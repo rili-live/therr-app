@@ -50,6 +50,10 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         habitId,
         habitName,
         daysRemaining,
+        // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md)
+        dayCount,
+        consistencyPercent,
+        bestStreakCount,
         // Leaderboards
         rank,
     } = req.body;
@@ -87,6 +91,9 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             habitId,
             habitName,
             daysRemaining,
+            dayCount,
+            consistencyPercent,
+            bestStreakCount,
             rank,
         },
         undefined,
@@ -134,6 +141,10 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         habitId,
         habitName,
         daysRemaining,
+        // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md)
+        dayCount,
+        consistencyPercent,
+        bestStreakCount,
         // Leaderboards
         rank,
     } = req.body;
@@ -175,6 +186,9 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             habitId,
             habitName,
             daysRemaining,
+            dayCount,
+            consistencyPercent,
+            bestStreakCount,
             rank,
         },
         undefined,

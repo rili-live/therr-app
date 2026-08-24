@@ -12,10 +12,12 @@ import router from './routes';
 import reqLogDecorator from './middleware/reqLogDecorator';
 import { version as packageVersion } from '../package.json';
 import authenticate from './middleware/authenticate';
+import unauthenticatedPaths from './config/unauthenticatedPaths';
 import restrictApiKeyAccess from './middleware/restrictApiKeyAccess';
 import { apiKeyRequestLimiter } from './services/users/limitation/apiKeys';
 import openapiSpec from './docs/openapi.json';
 import getRedocHtml from './docs/redocPage';
+import { assertNoShadowedRoutes } from './utilities/routeOrdering';
 
 tracing.start();
 
@@ -103,64 +105,9 @@ app.use(/^(?!\/v1\/users-service\/users\/connections\/find-people$)/, express.js
 // Serves static files in the /build/static directory
 app.use(express.static(path.join(__dirname, 'static')));
 
-// Authentication
-app.use(authenticate.unless({
-    path: [
-        { url: '/', methods: ['GET'] }, // healthcheck
-        { url: '/healthcheck', methods: ['GET'] }, // healthcheck
-        { url: '/v1/docs', methods: ['GET'] }, // API documentation
-        { url: '/v1/docs/openapi.json', methods: ['GET'] }, // OpenAPI spec
-        // { url: '/favicon.ico', methods: ['GET'] }, // favicon
-        { url: '/v1/users-service/interests', methods: ['GET'] },
-        { url: '/v1/users-service/rewards/exchange-rate', methods: ['GET'] },
-        { url: '/v1/users-service/emails/bounced', methods: ['POST'] }, // bounced email handler
-        { url: '/v1/users-service/subscribers/signup', methods: ['POST'] }, // email marketing subscribe
-        { url: '/v1/users-service/subscribers/preferences', methods: ['GET'] }, // Update E-mail subscription settings
-        { url: '/v1/users-service/subscribers/unsubscribe', methods: ['POST'] }, // Update E-mail subscription settings
-        { url: '/v1/users-service/subscribers/send-feedback', methods: ['POST'] }, // send feedback
-        { url: '/v1/users-service/auth', methods: ['POST'] }, // login
-        { url: '/v1/users-service/payments/webhook', methods: ['POST'] }, // webhook
-        { url: '/v1/users-service/users', methods: ['POST'] }, // register
-        { url: /\/v1\/users-service\/users\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/, methods: ['GET'] },
-        // Public badges — handler enforces settingsIsProfilePublic
-        { url: /\/v1\/users-service\/users\/achievements\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/public$/, methods: ['GET'] },
-        { url: '/v1/users-service/auth/token/refresh', methods: ['POST'] }, // token refresh
-        { url: '/v1/users-service/auth/email-precheck', methods: ['POST'] }, // multi-app email lookup (enumeration-safe)
-        { url: '/v1/users-service/auth/handoff/redeem', methods: ['POST'] }, // cross-app handoff: code IS the credential
-        { url: '/v1/users-service/users/forgot-password', methods: ['POST'] }, // one time password
-        // Passwordless phone auth. These are pre-session by definition: the SMS code IS the
-        // credential, so requiring a JWT would make them unreachable. Each is rate limited
-        // per IP and per phone number in services/phone/router.ts.
-        { url: '/v1/phone/auth/start', methods: ['POST'] }, // SMS sign-in: request code
-        { url: '/v1/phone/auth/verify', methods: ['POST'] }, // SMS sign-in: submit code
-        { url: '/v1/phone/auth/select', methods: ['POST'] }, // SMS sign-in: pick account when a number has several
-        { url: '/v1/phone/register/start', methods: ['POST'] }, // SMS sign-up: request code
-        { url: '/v1/phone/register/verify', methods: ['POST'] }, // SMS sign-up: submit code
-        { url: '/v1/users-service/social-sync/oauth2-tiktok', methods: ['GET'] }, // TikTok OAuth
-        { url: '/v1/users-service/social-sync/oauth2-facebook', methods: ['GET'] }, // Facebook OAuth
-        { url: '/v1/users-service/social-sync/oauth2-dashboard-facebook', methods: ['GET'] }, // Facebook OAuth
-        { url: '/v1/users-service/social-sync/oauth2-instagram', methods: ['GET'] }, // Instagram OAuth
-        { url: /\/v1\/users-service\/users\/verify\/.*/, methods: ['POST'] }, // verify account
-        { url: /\/v1\/users-service\/users\/by-username\/.*/, methods: ['GET'] }, // Get public/private profile
-        { url: /\/v1\/user-files\/.*/, methods: ['GET'] }, // image proxy
-        { url: /\/v1\/maps-service\/place\/*/, methods: ['GET'] }, // Google Maps: Places proxy
-        { url: '/v1/maps-service/geocode', methods: ['GET'] }, // Nominatim geocoding proxy
-        { url: /\/v1\/maps-service\/moments\/.*\/details/, methods: ['POST'] },
-        { url: '/v1/maps-service/spaces/list', methods: ['POST'] },
-        { url: /\/v1\/maps-service\/spaces\/.*\/details/, methods: ['POST'] },
-        { url: /\/v1\/maps-service\/events\/.*\/details/, methods: ['POST'] }, // Public event view (uses authenticateOptional)
-        { url: /\/v1\/maps-service\/events\/search/, methods: ['POST'] }, // Optional for public map view
-        { url: /\/v1\/maps-service\/moments\/search/, methods: ['POST'] }, // Optional for public map view
-        { url: /\/v1\/maps-service\/spaces\/search/, methods: ['POST'] }, // Optional for public map view
-        { url: /\/v1\/maps-service\/spaces\/.*\/pairings$/, methods: ['GET'] }, // Space pairings (optional auth)
-        { url: /\/v1\/maps-service\/spaces\/.*\/pairings\/feedback/, methods: ['POST'] }, // Pairing feedback (optional auth)
-        { url: /\/v1\/maps-service\/spaces\/[^/]+\/corrections$/, methods: ['POST'] }, // Crowdsourced business info corrections (uses authenticateOptional)
-        { url: /\/v1\/maps-service\/cities\/[^/]+\/pulse$/, methods: ['GET'] }, // Public city landing page (uses authenticateOptional)
-        { url: /\/v1\/messages-service\/forums\/[0-9a-f-]+$/, methods: ['GET'] }, // Public group/forum view (uses authenticateOptional)
-        { url: '/v1/messages-service/forums/search', methods: ['POST'] }, // Public forum search (uses authenticateOptional)
-        { url: /\/v1\/reactions-service\/user-lists\/public\/[0-9a-f-]+\/[a-z0-9-]+$/, methods: ['GET'] }, // Public shareable list page
-    ],
-}));
+// Authentication. The skip-list lives in its own module so it can be unit-tested;
+// see config/unauthenticatedPaths.ts for why anchoring those patterns matters.
+app.use(authenticate.unless({ path: unauthenticatedPaths }));
 
 // API key access restrictions and rate limiting (after auth, before routes)
 app.use(restrictApiKeyAccess);
@@ -181,6 +128,16 @@ app.get(`${API_BASE_ROUTE}/docs/openapi.json`, (req, res) => { res.json(openapiS
 app.get(`${API_BASE_ROUTE}/docs`, (req, res) => { res.send(getRedocHtml()); });
 
 app.use(API_BASE_ROUTE, router);
+
+// Fail the boot rather than serve a router where a literal route is claimed by an
+// earlier :param sibling. Eight routes were shadowed this way before the check
+// existed; because handleServiceRequest forwards req.url verbatim, seven of them
+// still proxied correctly and only ran the wrong middleware, while
+// PUT /users/change-password 400'd on the other route's isUUID(4) param check.
+// That asymmetry is why this is an assertion and not a code review item -- the
+// latent ones are invisible until one day the middleware differs enough to reject.
+// The same check runs in CI (tests/unit/utilities/routeOrdering.test.ts).
+assertNoShadowedRoutes(router);
 
 const { API_GATEWAY_PORT } = process.env;
 

@@ -41,7 +41,11 @@
   },
   "common": {
     "share": "Compartir",
-    "linkCopied": "¡Enlace copiado!"
+    "linkCopied": "¡Enlace copiado!",
+    "justNow": "ahora mismo",
+    "minutesAgo": "{count} min",
+    "hoursAgo": "{count} h",
+    "daysAgo": "{count} d"
   },
   "components": {
     "incompleteProfileBanner": {
@@ -263,6 +267,60 @@
       "contactDescription": "Para preguntas o inquietudes sobre nuestras prácticas de seguridad infantil, contáctanos en",
       "returnHome": "Volver a la página de inicio"
     },
+    "apiAccess": {
+      "pageTitle": "Obtén una clave de API de Therr",
+      "intro": "Las API de ubicación de Therr te dan acceso a lugares cercanos, eventos y actividad de la comunidad. Así se obtiene una clave, de principio a fin.",
+      "steps": {
+        "one": {
+          "title": "Crea una cuenta de negocio",
+          "description": "El acceso a la API está vinculado a una cuenta de negocio en el panel de Therr. Regístrate allí con el correo de tu negocio: un perfil personal de Therr no puede generar claves."
+        },
+        "two": {
+          "title": "Elige un plan",
+          "description": "Abre Configuración en el panel y elige una suscripción. Todos los planes de pago incluyen acceso a la API; el plan que elijas define tus límites de uso."
+        },
+        "three": {
+          "title": "Genera tu clave",
+          "description": "Ve a Configuración y luego a Claves de API para crear una clave. La clave se muestra una sola vez, al crearla: cópiala en un lugar seguro antes de cerrar la página."
+        },
+        "four": {
+          "title": "Empieza a construir",
+          "description": "Envía tu clave en el encabezado x-api-key de cada solicitud. La referencia de la API describe todos los endpoints, sus parámetros y sus respuestas."
+        }
+      },
+      "status": {
+        "unauthenticated": "Aún no has iniciado sesión. Empieza creando una cuenta de negocio.",
+        "incompleteProfile": "Tu cuenta necesita algunos datos más antes de poder usarse para el acceso a la API.",
+        "notABusiness": "Has iniciado sesión con un perfil personal. Las claves de API requieren una cuenta de negocio aparte.",
+        "noSubscription": "Tu cuenta de negocio está lista. Elige un plan de suscripción para activar el acceso a la API.",
+        "eligible": "Tu cuenta puede crear claves de API. Ve al panel para generar una."
+      },
+      "cta": {
+        "unauthenticated": "Crear una cuenta de negocio",
+        "incompleteProfile": "Termina de configurar tu perfil",
+        "notABusiness": "Crear una cuenta de negocio",
+        "noSubscription": "Elegir un plan",
+        "eligible": "Generar una clave de API"
+      },
+      "handoffError": "No pudimos abrir el panel. Inténtalo de nuevo.",
+      "viewDocs": "Leer la referencia de la API",
+      "faqTitle": "Preguntas frecuentes",
+      "faq": {
+        "cost": {
+          "question": "¿El acceso a la API tiene un costo adicional?",
+          "answer": "No. El acceso a la API está incluido en todos los planes de pago del panel. Tu plan determina tus límites de uso."
+        },
+        "lost": {
+          "question": "Perdí mi clave. ¿Puedo verla de nuevo?",
+          "answer": "No. Las claves se guardan cifradas y solo se muestran una vez, al crearlas. Revoca la clave anterior y crea una nueva."
+        },
+        "limit": {
+          "question": "¿Cuántas claves puedo tener?",
+          "answer": "Hasta cinco claves activas por cuenta. Revoca una que ya no uses para liberar espacio."
+        }
+      },
+      "returnHome": "Volver al inicio"
+    },
     "deleteAccount": {
       "pageTitle": "Eliminar tu cuenta",
       "description": "Lamentamos que te vayas. Si deseas eliminar tu cuenta de Therr y todos los datos asociados, puedes hacerlo usando una de las opciones a continuación.",
@@ -418,7 +476,21 @@
       "visibilityPrivate": "Privado",
       "postSuccess": "¡Pensamiento publicado!",
       "postError": "No se pudo publicar el pensamiento. Por favor, inténtalo de nuevo.",
-      "messageTooShort": "El mensaje es demasiado corto"
+      "messageTooShort": "El mensaje es demasiado corto",
+      "viewAllReplies": "Ver las {count} respuestas",
+      "viewReplies": "Ver {count} respuestas",
+      "viewReply": "Ver 1 respuesta",
+      "reply": "Responder",
+      "repostedBy": "{userName} republicó",
+      "repostThought": "Republicar",
+      "repostUnavailable": "Esta publicación ya no está disponible",
+      "repostModalTitle": "Republicar",
+      "repostPlaceholder": "Añade un comentario (opcional)",
+      "repostConfirm": "Republicar",
+      "repostCancel": "Cancelar",
+      "repostError": "No pudimos republicar esto. Inténtalo de nuevo.",
+      "repostDuplicate": "Ya republicaste esta publicación",
+      "repostRestricted": "Solo el autor puede republicar una publicación que no es pública"
     },
     "viewThought": {
       "headerTitle": "Pensamiento",
@@ -432,7 +504,13 @@
       "loginToReply": "Inicia sesión para responder",
       "loginToView": "Inicia sesión para ver esta publicación y unirte a la conversación",
       "backToThoughts": "Volver a Pensamientos",
-      "viewReplies": "Ver {count} respuestas"
+      "viewReplies": "Ver {count} respuestas",
+      "headerTitleReply": "Respuesta",
+      "parentThread": "Conversación",
+      "partOfThread": "Parte de una conversación",
+      "replyingTo": "Respondiendo a {userName}",
+      "viewParentThought": "Ver la publicación a la que responde",
+      "backToParent": "Volver a la conversación"
     },
     "explorePeople": {
       "pageTitle": "Buscar personas",
@@ -667,6 +745,27 @@
       "infoTitle": "¿Por qué verificamos tu número de teléfono?",
       "info": "Tu seguridad es nuestra prioridad. La verificación telefónica nos ayuda a mantener una comunidad auténtica y libre de cuentas falsas. Junto con el correo electrónico y las protecciones basadas en ubicación, garantizamos que te conectes con personas reales en un entorno de confianza."
     },
+    "verifyPhone": {
+      "pageTitle": "Verifica tu teléfono",
+      "pageTitleVerify": "Verifica tu teléfono: ingresa el código",
+      "description": "Te enviaremos un código por SMS para confirmar que este número es tuyo.",
+      "labels": {
+        "mobilePhone": "Teléfono móvil"
+      },
+      "buttons": {
+        "sendCode": "Enviar código"
+      },
+      "validationErrors": {
+        "phoneNumber": "Ingresa un número de teléfono válido"
+      },
+      "verifyPhoneSuccess": "¡Número de teléfono verificado!",
+      "verifyPhoneError": "No se pudo enviar el código de verificación. Inténtalo de nuevo.",
+      "updateProfileError": "No se pudo guardar tu número de teléfono. Inténtalo de nuevo.",
+      "authError": "Tu sesión ha expirado. Inicia sesión de nuevo.",
+      "invalidCode": "El código no es válido o ha expirado. Inténtalo de nuevo o solicita otro.",
+      "phoneNumberAlreadyInUseError": "El número de teléfono ya está en uso para este tipo de cuenta",
+      "phoneRegionNotSupportedError": "La verificación por SMS no está disponible en tu región. Usa otro número de teléfono."
+    },
     "login": {
       "pageTitle": "Iniciar sesión",
       "buttons": {
@@ -872,6 +971,9 @@
       "joinButton": "Únete ahora y gana 5 monedas",
       "appStoreText": "También disponible en móvil",
       "returnHome": "Volver a la página de inicio"
+    },
+    "inviteLinkLanding": {
+      "appStoreText": "Termina de unirte en {appName}"
     },
     "claimPactLanding": {
       "title": "Acepta tu pacto",

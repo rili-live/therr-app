@@ -39,6 +39,40 @@ The result: **zero added infrastructure cost, zero added runtime overhead on
 the cluster** (read-only queries, run on demand by a human), and a tight
 security boundary.
 
+### The cluster is not the whole system — use `--cloud-run`
+
+Two Cloud Run functions run outside it (`therr-messaging-automator`, `therr-ai-automator`), on
+Cloud Scheduler, and they touch production data directly. A clean cluster digest does **not**
+mean a clean system. If the symptom is missing emails/pushes, missing or stale AI-generated
+content, or a data anomaly with no matching cluster error, add `--cloud-run` and see
+[CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md).
+
+```bash
+_bin/prod-debug/collect-incident.sh --cloud-run
+```
+
+Because these are **scheduled** — `ai-automator` every 5 days, `messaging-automator` twice a
+day, the habits digest at 9am Central — the default 30m window will essentially never contain
+one of their invocations. So this section does not go quiet on an empty window: per function
+it widens to `THERR_CLOUD_RUN_LOOKBACK` (default `30d`, the Cloud Logging `_Default` bucket
+retention), reports the **most recent invocation** with its age, and says which scope it used.
+"Last ran 3d ago" answers most _"why didn't the digest send?"_ questions on its own, and the
+Cloud Scheduler table above it separates _the function broke_ from _nothing invoked it_.
+
+Two signatures worth memorizing:
+
+- **Habits digest hangs ~127s then `ETIMEDOUT`** — the users-service internal LB or its
+  NetworkPolicy `ipBlock` is missing/wrong (`k8s/prod/users-service-*.yaml`). Dropped
+  packets, not refused; `ECONNREFUSED` means something else.
+- **Feeds go empty platform-wide with no 5xx spike** — suspect a future-dated
+  `main.thoughts` row breaking a candidate query (the ai-automator writes them ahead of
+  `NOW()` on purpose). This mode failed silently for 8 days in July 2026.
+- **Digest ran clean and nobody got a push** — it queues rather than sends, so a green
+  invocation only proves rows were written. Check `NOTIFICATION_QUEUE_WORKER_ENABLED` on
+  users-service and the row statuses in `main."notificationQueue"`: all `pending` means the
+  worker is off, climbing `attempts` means the send is failing, `skipped` means the 5/day
+  per-user cap with the reason in `lastError`.
+
 ---
 
 ## Security model
@@ -82,7 +116,16 @@ _bin/prod-debug/collect-incident.sh 15m --live
 
 # Just after a deploy went out: focus on rollout status + history
 _bin/prod-debug/collect-incident.sh 1h --deploy
+
+# Missing emails/pushes or stale AI content: ALSO digest the GCP Cloud Run functions.
+# Additive — you still get the cluster sections, so you can correlate the two.
+_bin/prod-debug/collect-incident.sh --cloud-run
+
+# Narrow it to one function (repeatable as a comma-separated list)
+_bin/prod-debug/collect-incident.sh 6h --cloud-run=messaging-automator
 ```
+
+`--cloud-functions` and `--gcf` are accepted as aliases of `--cloud-run`.
 
 Then, in a Claude session with this repo:
 
@@ -106,20 +149,39 @@ relevant service source in this monorepo.
    deployments use `strategy: Recreate` with `replicas: 1`, so the crashed pod's
    logs are gone from `kubectl` after a redeploy), else from live `kubectl logs`.
 7. **Live tails** (`--live` mode) — current + `--previous` logs for unhealthy pods.
+8. **Cloud Run functions** (`--cloud-run` mode) — Cloud Scheduler job state
+   (schedule, last attempt, status code), then per function: last invocation
+   timestamp + age, the full log of that one invocation in chronological order,
+   and deduped errors for the scope used.
 
 ### Requirements
 - `gcloud` authenticated to the `therr-app` project **and/or** `kubectl`
   pointed at the prod cluster. The script auto-detects both and degrades
   gracefully if only one is present. `jq` is optional (richer Cloud Logging
   parsing) but not required.
+- `--cloud-run` needs `gcloud` specifically (there is no `kubectl` fallback for
+  something that doesn't run in the cluster) with read access to Cloud Logging
+  and Cloud Scheduler in the project.
 
 ### Config (env overrides)
 | Env var | Default | Meaning |
 |---------|---------|---------|
 | `THERR_GCP_PROJECT` | `therr-app` | GCP project for Cloud Logging |
+| `THERR_GCP_REGION` | `us-central1` | Region for Cloud Scheduler job lookup |
 | `THERR_K8S_NAMESPACE` | `default` | Namespace to inspect |
 | `THERR_MAX_LOG_LINES` | `120` | Cap on deduped error lines (keeps digest context-sized) |
 | `THERR_PROD_DEBUG_DIR` | `.prod-debug` | Output directory (git-ignored) |
+| `THERR_CLOUD_RUN_FUNCTIONS` | `ai-automator messaging-automator` | Functions digested by `--cloud-run` |
+| `THERR_CLOUD_RUN_LOOKBACK` | `30d` | How far back to hunt for the last invocation when the window is empty |
+| `THERR_CLOUD_RUN_TAIL` | `80` | Log lines kept per invocation |
+
+> The functions are Gen-1 (`google_cloudfunctions_function` in
+> `therr-infra-terraform`), which log under `resource.type="cloud_function"`.
+> The script's filter also matches `cloud_run_revision`, so it keeps working if
+> they are migrated to Gen-2 / Cloud Run without an edit here. Gen-1 tags every
+> line of a run with the same `labels.execution_id`, which is what lets the
+> digest show one invocation start-to-finish; on Gen-2 that label is absent and
+> it falls back to the most recent `THERR_CLOUD_RUN_TAIL` lines.
 
 ---
 

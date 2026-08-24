@@ -14,6 +14,7 @@ import Store from '../store';
 import { createUserToken, createRefreshToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
 import { redactUserCreds, validateCredentials } from './helpers/user';
+import { applyCheckoutSessionAccessLevels } from './helpers/checkoutSessionAccessLevels';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { acceptInvitesOnFirstLogin } from './helpers/inviteAcceptance';
 import TherrEventEmitter from '../api/TherrEventEmitter';
@@ -131,6 +132,30 @@ const issueUserSession = async (req: any, res: any, {
         },
     });
 
+    /**
+     * Seed the user's content stream for the new session. Deferred via setImmediate so it
+     * never delays the login response, and ungated (unlike the notifications-poll caller) so a
+     * fresh session always re-seeds.
+     *
+     * `x-userid` is set explicitly rather than inherited from `req.headers`. Login is an
+     * unauthenticated route — the gateway's `authenticateOptional` leaves the header empty on a
+     * fresh sign-in, and `internalRestRequest` forwards it verbatim, so reactions-service's
+     * `createOrUpdateMultiThoughtReactions` rejected the whole batch with a 401 that
+     * `createReactions` caught and logged. The seed silently never happened. That header is
+     * also the identity the reaction rows are written under, and what the distributor resolves
+     * the user's content algorithm from, so it has to name the user who just authenticated.
+     *
+     * This runs here rather than at the lookup in `login` because that point precedes
+     * `validateCredentials`: seeding there fired on failed attempts and let anyone trigger a
+     * run for any account by submitting its email.
+     */
+    setImmediate(() => {
+        TherrEventEmitter.runThoughtDistributorAlgorithm({
+            ...req.headers,
+            'x-userid': userDetails.id,
+        }, [userDetails.id], 'createdAt', 10);
+    });
+
     // Fire and forget — first-login invite redemption. Marks every
     // matching pending invite accepted, rewards each inviter, and
     // guarantees a COMPLETE userConnection between inviter and this
@@ -169,12 +194,46 @@ const issueUserSession = async (req: any, res: any, {
         integrationsAccess: user.integrations,
     };
 
+    // `billingEmail` is accepted from the login body and no client sends it today, so an
+    // attacker was free to claim any address here. That matters because `payments.ts`
+    // attributes an incoming Stripe checkout to an account via `getUserByEmail(billingEmail)`
+    // and falls back to `user.billingEmail` when emailing receipts — claiming someone else's
+    // address redirects their subscription and their billing mail.
+    //
+    // Own address: always allowed. Any other address: only if no other account already holds
+    // it as either its login email or its billing email. The write is dropped rather than
+    // failing the login, since a caller who never meant to set it should still get a session.
     if (req.body.billingEmail) {
-        if (req.body.billingEmail !== user.email) {
-            // TODO: Improve security so users cannot claim the same billing email as another user
-            // Send verification e-mail before updating param
+        const requestedBillingEmail = normalizeEmail(`${req.body.billingEmail}`.trim());
+
+        if (requestedBillingEmail === user.email) {
+            updateArgs.billingEmail = requestedBillingEmail;
+        } else {
+            const conflictingUsers = await Store.users.getUserByConditions(
+                { email: requestedBillingEmail },
+                { billingEmail: requestedBillingEmail },
+                undefined,
+                ['id'],
+            ).catch(() => [{ id: 'unknown' }]); // Fail closed: a lookup error must not grant the claim
+
+            const conflict = conflictingUsers.find((u) => `${u.id}` !== `${user.id}`);
+
+            if (conflict) {
+                logSpan({
+                    level: 'warn',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Rejected billingEmail claim already held by another account'],
+                    traceArgs: {
+                        'user.id': user.id,
+                        'user.conflictingId': conflict.id,
+                        port: process.env.USERS_SERVICE_API_PORT,
+                        'process.id': process.pid,
+                    },
+                });
+            } else {
+                updateArgs.billingEmail = requestedBillingEmail;
+            }
         }
-        updateArgs.billingEmail = req.body.billingEmail;
     }
 
     return Store.users.updateUser(updateArgs, {
@@ -231,8 +290,10 @@ const login: RequestHandler = (req: any, res: any) => {
         platform,
     } = parseHeaders(req.headers);
 
-    // const { paymentSessionId } = req.body;
-    // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
+    // Sent by the dashboard when an existing account completes a Stripe checkout
+    // (`PaymentComplete.tsx` redirects to `/login?paymentSessionId=`). Applied below, once
+    // credentials have actually been proven — never off the unauthenticated lookup.
+    const { paymentSessionId } = req.body;
 
     // NOTE: When a phone number is attached to more than one account, password login still
     // resolves to whichever row the OR-lookup returns first. The passwordless flow below
@@ -265,17 +326,10 @@ const login: RequestHandler = (req: any, res: any) => {
     return getUsersPromise
         .then((userSearchResults) => {
             if (userSearchResults.length) {
-                /**
-                 * This is simply an event trigger. It could be triggered by a user logging in, or any other common event.
-                 * We will probably want to move this to a scheduler to run at a set interval.
-                 *
-                 * Uses createdAt to target recently created users
-                 * Deferred via setImmediate to avoid blocking login response
-                 */
-                setImmediate(() => {
-                    TherrEventEmitter.runThoughtDistributorAlgorithm(req.headers, [userSearchResults[0].id], 'createdAt', 10);
-                });
-
+                // NOTE: the thought distributor used to run here. This point is reached by a
+                // bare username/email/phone lookup, before `validateCredentials` — so it fired
+                // on failed attempts too, and anyone could trigger a seed for any account by
+                // submitting its email. It now runs in `issueUserSession`, past that gate.
                 if (req.body.isDashboard && !userSearchResults[0].isBusinessAccount) {
                     // TODO: Disallow login to dashboard for non-business users
                 }
@@ -332,8 +386,12 @@ const login: RequestHandler = (req: any, res: any) => {
                 },
             }, res).then(async ([isValid, userDetails, oauthResponseData]) => {
                 if (isValid) {
+                    const subscribedUserDetails = paymentSessionId
+                        ? await applyCheckoutSessionAccessLevels(paymentSessionId, userDetails)
+                        : userDetails;
+
                     return issueUserSession(req, res, {
-                        userDetails,
+                        userDetails: subscribedUserDetails,
                         userSearchResults,
                         oauthResponseData,
                         brandVariation,

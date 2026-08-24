@@ -922,7 +922,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteView = 'Connect';
             } else if (data.action === brandIntents.NEW_LIKE_RECEIVED
                 || data.action === brandIntents.NEW_SUPER_LIKE_RECEIVED
-                || data.action === brandIntents.NEW_THOUGHT_REPLY_RECEIVED) {
+                || data.action === brandIntents.NEW_THOUGHT_REPLY_RECEIVED
+                || data.action === brandIntents.NEW_THOUGHT_REPOST_RECEIVED) {
                 targetRouteView = 'Notifications';
             } else if (data.action === brandIntents.NUDGE_SPACE_ENGAGEMENT) {
                 targetRouteView = 'Areas';
@@ -1120,6 +1121,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 if (area?.id) return buildSpaceRoute(area);
                 return { targetRouteView: 'Map', targetRouteParams: {} };
             case PushNotifications.Types.newThoughtReplyReceived:
+            case PushNotifications.Types.newThoughtRepostReceived:
                 if (thought?.id) return buildThoughtRoute(thought);
                 return { targetRouteView: 'Notifications', targetRouteParams: {} };
             case PushNotifications.Types.postVisitReviewReminder:
@@ -1148,6 +1150,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             case PushNotifications.Types.dailyHabitReminder:
             case PushNotifications.Types.morningMotivation:
             case PushNotifications.Types.eveningCheckIn:
+            // Habit lifecycle milestones and check-ins
+            // (docs/HABIT_LIFECYCLE_MESSAGING.md). Listed here rather than left
+            // to `default` because that returns null — the notification would
+            // render, be tappable, and open nothing.
+            case PushNotifications.Types.habitEstablished:
+            case PushNotifications.Types.habitAutomaticity:
+            case PushNotifications.Types.habitMaintenanceCheckIn:
+            case PushNotifications.Types.habitComeback:
                 return { targetRouteView: 'Notifications', targetRouteParams: {} };
 
             default:
@@ -1637,6 +1647,28 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             } else {
                 this.setState({
                     targetRouteView: 'Achievements',
+                });
+            }
+        } else if (url?.includes('therr.com/api-access') || url?.includes('therr.com/api-keys')) {
+            // therr.com is an auto-verified App Link, so the marketing site's "Get an API key"
+            // CTA opens this app instead of the browser. Without this branch it fell through
+            // to handleOpenByNotifeeNotification and the user hit a dead end. The screen is
+            // public, so route signed-out users there too rather than deferring to targetRouteView.
+            // '/api-keys' is matched as well because older marketing links still point at it.
+            RootNavigation.navigate('ApiAccess');
+        } else if (url?.includes('therr.com/verify-phone')) {
+            // Phone verification lives only inside the CreateProfile stack, so anything that
+            // needs to send a user there — the bulk-invite 403, the profile checklist, an
+            // email or SMS nudge — points at this URL. The web page at the same path is the
+            // fallback for users without the app, and it verifies through the same endpoints.
+            // Signed-out users cannot verify anything, so defer via targetRouteView and let
+            // them land here after login rather than bouncing them to a screen that 401s.
+            if (isUserLoggedIn) {
+                RootNavigation.navigate('CreateProfile', { stage: 'phone' });
+            } else {
+                this.setState({
+                    targetRouteView: 'CreateProfile',
+                    targetRouteParams: { stage: 'phone' },
                 });
             }
         } else if (url?.includes('therr.com/app-feedback')) {

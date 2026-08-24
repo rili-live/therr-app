@@ -72,6 +72,14 @@ export enum BrandVariations {
 | Header Parser | `therr-js-utilities/src/http/parse-headers.ts` | Extracts brand from headers |
 | Inter-service | `therr-js-utilities/src/internal-rest-request.ts` | Preserves header across services |
 
+> **Brand awareness has to be re-implemented outside this repo.** `therr-messaging-automator`
+> reads `main.notifications` and `main.userAchievements` straight from Postgres — no header,
+> no `BrandScopedStore`, and out of reach of `therr/no-direct-brand-scoped-table`. It resolves
+> a primary brand per user in its own store layer. Promoting a table into
+> `BRAND_SCOPED_TABLES` here means mirroring it there in the same batch of work, or that
+> repo's reads silently span brands. See
+> [CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md) §2.
+
 ## Branch Strategy for Multi-Brand Development
 
 | Branch | Purpose | What Goes Here |
@@ -326,6 +334,15 @@ This is **fine for MVP** but becomes painful once any brand needs:
    will copy it on its own.
 
 ### Migration path: when to split into per-brand Firebase projects
+
+> **Not receiving push notifications is not a trigger.** A shared project
+> delivers to every app registered in it, and splitting makes the existing
+> service account a stranger to the brand's tokens — every send then fails with
+> `messaging/mismatched-credential`, and the invalid-token cleanup path deletes
+> the registrations on its way out. Diagnose first with
+> [`PUSH_NOTIFICATIONS_DEBUGGING.md`](./PUSH_NOTIFICATIONS_DEBUGGING.md); the
+> cause is usually `apns-topic`, a wrong-brand device-token row, or a missing
+> APNS auth key — none of which a new project fixes.
 
 Triggers that warrant splitting:
 - A brand variant reaches its first 1k+ MAU and analytics signal noise

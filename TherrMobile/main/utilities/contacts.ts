@@ -2,6 +2,7 @@ import Contacts from 'react-native-contacts';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { UserConnectionsService } from 'therr-react/services';
 import permissions from './permissionsOrchestrator';
+import { getContactPhoneNumber } from './inviteContacts';
 
 interface IMatchedUser {
     id: string;
@@ -31,11 +32,19 @@ const synceMobileContacts = ({
         return Contacts.getAllWithoutPhotos().then(contacts => {
             // contacts returned
 
-            const contactsFiltered = contacts.map((contact) => ({
-                emailAddresses: contact.emailAddresses.filter((address) => address.label.toLowerCase() !== 'work'),
-                phoneNumbers: contact.phoneNumbers.filter((address) => address.label.toLowerCase() === 'mobile'),
-                isStarred: contact.isStarred,
-            })).filter((c) => c.emailAddresses.length || c.phoneNumbers.length);
+            const contactsFiltered = contacts.map((contact) => {
+                // Send at most one number per contact — the server caps the lookup at 500
+                // phone entries per batch, so a contact with several numbers would crowd
+                // out later contacts. Previously this only accepted a 'mobile' label,
+                // which silently skipped anyone whose cell was saved as 'home' or 'other'.
+                const phoneNumber = getContactPhoneNumber(contact);
+
+                return {
+                    emailAddresses: contact.emailAddresses.filter((address) => address.label.toLowerCase() !== 'work'),
+                    phoneNumbers: phoneNumber ? [{ number: phoneNumber }] : [],
+                    isStarred: contact.isStarred,
+                };
+            }).filter((c) => c.emailAddresses.length || c.phoneNumbers.length);
 
             const promises: Promise<any>[] = [];
             let pointer = 0;

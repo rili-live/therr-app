@@ -38,6 +38,7 @@ import { getImagePreviewPath } from '../../utilities/areaUtils';
 import { signImageUrl } from '../../utilities/content';
 import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions';
 import { SheetManager } from 'react-native-actions-sheet';
+import { getPostSubmitDestination } from './postSubmitDestination';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -253,14 +254,19 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                     }).catch((err) => console.log(err));
 
                     setTimeout(() => {
-                        const isAreasEnabled = getConfig().featureFlags?.[FeatureFlags.ENABLE_AREAS] === true;
-                        if (isAreasEnabled) {
-                            this.props.navigation.navigate('Areas');
-                        } else {
-                            this.props.navigation.navigate('ViewUser', {
-                                userInView: { id: user.details.id },
-                            });
-                        }
+                        // A caller that opened this form from somewhere with its own
+                        // notion of "done" says so with `returnToRoute`, and gets the
+                        // user back where they started. Without it the post lands the
+                        // user on a screen they never asked for — the journal's "share
+                        // a goal" would otherwise dump them on their profile.
+                        const destination = getPostSubmitDestination({
+                            returnToRoute: route.params?.returnToRoute,
+                            returnToRouteParams: route.params?.returnToRouteParams,
+                            isAreasEnabled: getConfig().featureFlags?.[FeatureFlags.ENABLE_AREAS] === true,
+                            userId: user.details.id,
+                        });
+
+                        this.props.navigation.navigate(destination.route, destination.params);
                     }, 500);
                 })
                 .catch((error: any) => {

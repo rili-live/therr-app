@@ -1,6 +1,7 @@
 import React from 'react';
-import { Pressable, RefreshControl, Text, View } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import {
+    FlatList, Pressable, RefreshControl, Text, View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -15,9 +16,9 @@ import {
     INotificationsState as IStoreNotificationsState,
 } from 'therr-react/types';
 import { Notifications as NotificationsEmuns, UserConnectionTypes } from 'therr-js-utilities/constants';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { buildStyles } from '../../styles';
-import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { notifications as notificationStyles, buildStyles as buildNotificationStyles } from '../../styles/notifications';
 import translator from '../../utilities/translator';
@@ -51,6 +52,14 @@ interface INotificationsState {
     isRefreshing: boolean;
 }
 
+/**
+ * Virtualization window for the notifications list. Wide enough that a fast flick cannot
+ * outrun the render batch — that was the second half of the same blank-band regression.
+ */
+const LIST_INITIAL_NUM_TO_RENDER = 8;
+const LIST_MAX_TO_RENDER_PER_BATCH = 5;
+const LIST_WINDOW_SIZE = 11;
+
 const mapStateToProps = (state) => ({
     notifications: state.notifications,
     user: state.user,
@@ -67,10 +76,9 @@ class Notifications extends React.Component<
     INotificationsProps,
     INotificationsState
 > {
-    private flatListRef: FlashList<any> | null = null;
+    private flatListRef: FlatList<any> | null = null;
     private translate: Function;
     private theme = buildStyles();
-    private themeForms = buildFormStyles();
     private themeMenu = buildMenuStyles();
     private themeNotification = buildNotificationStyles();
 
@@ -82,7 +90,6 @@ class Notifications extends React.Component<
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeNotification = buildNotificationStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
@@ -172,7 +179,10 @@ class Notifications extends React.Component<
             }
         } else if (notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED
             || notification.type === NotificationsEmuns.Types.NEW_SUPER_LIKE_RECEIVED
-            || notification.type === NotificationsEmuns.Types.THOUGHT_REPLY) {
+            || notification.type === NotificationsEmuns.Types.THOUGHT_REPLY
+            // A repost notification's associationId is the *original*, which belongs to the
+            // recipient — so it lands on their own post, same as a like or a reply does.
+            || notification.type === NotificationsEmuns.Types.THOUGHT_REPOST) {
             if (notification.messageParams?.thoughtId) {
                 navigation.navigate('ViewThought', {
                     isMyContent: true,
@@ -276,6 +286,56 @@ class Notifications extends React.Component<
         }).finally(() => this.setState({ isRefreshing: false }));
     };
 
+    /**
+     * Overline + action chip. Replaces the bare "Mark all read" text link that
+     * floated above a full-width rule with no context around it. The overline
+     * doubles as a count so the unread state is legible without scanning rows.
+     */
+    renderListHeader = () => {
+        const { notifications } = this.props;
+        const messages = notifications.messages || [];
+
+        if (!messages.length) {
+            return null;
+        }
+
+        const unreadCount = messages.filter((message: any) => message.isUnread).length;
+
+        return (
+            <View style={this.themeNotification.styles.listHeader}>
+                <Text style={this.themeNotification.styles.listHeaderTitle}>
+                    {unreadCount > 0
+                        ? this.translate('pages.notifications.unreadCount', { count: unreadCount })
+                        : this.translate('pages.notifications.caughtUp')}
+                </Text>
+                {unreadCount > 0 && (
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={this.translate('pages.notifications.markAllRead')}
+                        onPress={this.handleMarkAllRead}
+                        style={({ pressed }) => [
+                            this.themeNotification.styles.markAllReadButton,
+                            pressed && this.themeNotification.styles.markAllReadButtonPressed,
+                        ]}
+                    >
+                        <FontAwesome5Icon
+                            name="check-double"
+                            size={12}
+                            color={this.themeNotification.colors.brand}
+                        />
+                        <Text style={this.themeNotification.styles.markAllReadText}>
+                            {this.translate('pages.notifications.markAllRead')}
+                        </Text>
+                    </Pressable>
+                )}
+            </View>
+        );
+    };
+
+    renderItemSeparator = () => (
+        <View style={this.themeNotification.styles.rowDivider} />
+    );
+
     render() {
         const { navigation, notifications, user } = this.props;
         const { isRefreshing } = this.state;
@@ -283,27 +343,25 @@ class Notifications extends React.Component<
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
-                    <FlashList<any>
+                <SafeAreaView
+                    edges={[]}
+                    style={[
+                        this.theme.styles.safeAreaView,
+                        { backgroundColor: this.themeNotification.colors.surface },
+                    ]}
+                >
+                    <FlatList<any>
                         data={notifications.messages || []}
                         keyExtractor={(item) => String(item.id)}
-                        ListHeaderComponent={notifications.messages?.length ? (
-                            <View style={notificationStyles.markAllReadContainer}>
-                                <Pressable onPress={this.handleMarkAllRead}>
-                                    <Text style={this.themeForms.styles.buttonLinkHeader}>
-                                        {this.translate('pages.notifications.markAllRead')}
-                                    </Text>
-                                </Pressable>
-                            </View>
-                        ) : null}
-                        renderItem={({ item, index }) => (
+                        ListHeaderComponent={this.renderListHeader()}
+                        ItemSeparatorComponent={this.renderItemSeparator}
+                        renderItem={({ item }) => (
                             <Notification
                                 acknowledgeRequest={this.handleConnectionRequestAction}
                                 handlePressAndNavigate={(e) => this.onNotificationPress(e, item, false, true)}
                                 handlePress={(e) => this.onNotificationPress(e, item, false, false)}
                                 isUnread={item.isUnread}
                                 notification={item}
-                                containerStyles={index === 0 ? notificationStyles.firstChildNotification : notificationStyles.otherChildNotification}
                                 translate={this.translate}
                                 themeNotification={this.themeNotification}
                             />
@@ -316,8 +374,23 @@ class Notifications extends React.Component<
                             refreshing={isRefreshing}
                             onRefresh={this.handleRefresh}
                         />}
-                        contentContainerStyle={notificationStyles.flashListContentContainer}
-                        estimatedItemSize={88}
+                        contentContainerStyle={notificationStyles.listContentContainer}
+                        /*
+                         * Was a FlashList sized from `estimatedItemSize={88}`. A notification row
+                         * is not one height — the title wraps to two lines for longer names, and
+                         * a connection request adds an accept/decline row — so the recycler laid
+                         * cells out from the estimate and repositioned them once real heights
+                         * arrived, showing blank bands that filled in on re-layout. Same failure
+                         * as the Connect lists (see routes/Connect/index.tsx). FlashList v1 has no
+                         * per-row size hint to fix it, and this list pages rather than growing
+                         * without bound, so a plain FlatList is the right tool.
+                         *
+                         * `removeClippedSubviews` stays unset — see routes/Areas/AreaCarousel.tsx
+                         * for why it is a blank-cell hazard on Android.
+                         */
+                        initialNumToRender={LIST_INITIAL_NUM_TO_RENDER}
+                        maxToRenderPerBatch={LIST_MAX_TO_RENDER_PER_BATCH}
+                        windowSize={LIST_WINDOW_SIZE}
                     />
                 </SafeAreaView>
                 <MainButtonMenu

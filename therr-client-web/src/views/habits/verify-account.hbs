@@ -47,6 +47,16 @@
             margin: 0 auto;
             padding: 0 1.5rem;
         }
+        header.site-header .container {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+        header.site-header .brand-mark {
+            width: 2rem;
+            height: 2rem;
+            display: block;
+        }
         header.site-header .brand {
             font-weight: 800;
             font-size: 1.125rem;
@@ -137,9 +147,15 @@
             color: var(--habits-text-muted);
             font-size: 0.875rem;
         }
-        footer.site-footer a {
+        footer.site-footer .footer-links {
+            margin-bottom: 0.75rem;
+        }
+        footer.site-footer .footer-links a {
             margin: 0 0.5rem;
             color: var(--habits-text-muted);
+        }
+        footer.site-footer .footer-family {
+            margin-top: 0.5rem;
         }
         [hidden] { display: none !important; }
     </style>
@@ -147,6 +163,7 @@
 <body>
     <header class="site-header">
         <div class="container">
+            <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
             <span class="brand">Friends with Habits</span>
         </div>
     </header>
@@ -162,13 +179,19 @@
                 <h1>You&rsquo;re in.</h1>
                 <div class="alert alert--success">Email verified. Open the Friends with Habits app to start your first pact.</div>
                 <p class="lede">Already installed? Open the app and sign in &mdash; you&rsquo;re all set.</p>
-                <a class="cta" href="https://play.google.com/store/apps/details?id=app.therrmobile" rel="noopener">Get the app</a>
+                <!--
+                    Friends with Habits applicationId — NOT app.therrmobile. The Therr
+                    listing installs an app that cannot open the account just verified
+                    here. Hardcoded rather than interpolated because Handlebars escapes
+                    '=' in an attribute to &#x3D;.
+                -->
+                <a class="cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get the app</a>
             </div>
 
             <div id="state-already-verified" hidden>
                 <h1>Already verified</h1>
                 <div class="alert alert--info">This account&rsquo;s email is already confirmed. Open the app and sign in.</div>
-                <a class="cta" href="https://play.google.com/store/apps/details?id=app.therrmobile" rel="noopener">Get the app</a>
+                <a class="cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get the app</a>
             </div>
 
             <div id="state-failed" hidden>
@@ -187,14 +210,7 @@
         </div>
     </main>
 
-    <footer class="site-footer">
-        <div class="container">
-            <a href="/">Home</a>
-            <a href="/privacy-policy">Privacy</a>
-            <a href="/terms-of-service">Terms</a>
-            <div style="margin-top: 0.75rem;">&copy; Therr Inc. &middot; Friends with Habits</div>
-        </div>
-    </footer>
+    {{> habitsFooter}}
 
     <script>
         (function () {

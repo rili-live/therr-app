@@ -41,7 +41,11 @@
   },
   "common": {
     "share": "Partager",
-    "linkCopied": "Lien copié!"
+    "linkCopied": "Lien copié!",
+    "justNow": "à l'instant",
+    "minutesAgo": "{count} min",
+    "hoursAgo": "{count} h",
+    "daysAgo": "{count} j"
   },
   "components": {
     "incompleteProfileBanner": {
@@ -263,6 +267,60 @@
       "contactDescription": "Pour toute question ou préoccupation concernant nos pratiques de sécurité des enfants, veuillez nous contacter à",
       "returnHome": "Retour à la page d'accueil"
     },
+    "apiAccess": {
+      "pageTitle": "Obtenir une clé API Therr",
+      "intro": "Les API de localisation de Therr donnent accès aux lieux à proximité, aux événements et à l'activité de la communauté. Voici comment obtenir une clé, de bout en bout.",
+      "steps": {
+        "one": {
+          "title": "Créez un compte entreprise",
+          "description": "L'accès à l'API est lié à un compte entreprise sur le tableau de bord Therr. Inscrivez-vous avec le courriel de votre entreprise : un profil Therr personnel ne peut pas générer de clés."
+        },
+        "two": {
+          "title": "Choisissez un forfait",
+          "description": "Ouvrez Paramètres dans le tableau de bord et choisissez un abonnement. Tous les forfaits payants incluent l'accès à l'API; le forfait choisi définit vos limites de débit."
+        },
+        "three": {
+          "title": "Générez votre clé",
+          "description": "Allez dans Paramètres, puis Clés API, et créez une clé. La clé n'est affichée qu'une seule fois, à la création : copiez-la en lieu sûr avant de fermer la page."
+        },
+        "four": {
+          "title": "Commencez à créer",
+          "description": "Envoyez votre clé dans l'en-tête x-api-key de chaque requête. La référence de l'API décrit tous les points d'accès, leurs paramètres et leurs réponses."
+        }
+      },
+      "status": {
+        "unauthenticated": "Vous n'êtes pas encore connecté. Commencez par créer un compte entreprise.",
+        "incompleteProfile": "Votre compte a besoin de quelques informations avant de pouvoir servir à l'accès API.",
+        "notABusiness": "Vous êtes connecté avec un profil personnel. Les clés API nécessitent un compte entreprise distinct.",
+        "noSubscription": "Votre compte entreprise est prêt. Choisissez un forfait pour activer l'accès à l'API.",
+        "eligible": "Votre compte peut créer des clés API. Rendez-vous au tableau de bord pour en générer une."
+      },
+      "cta": {
+        "unauthenticated": "Créer un compte entreprise",
+        "incompleteProfile": "Terminer la configuration du profil",
+        "notABusiness": "Créer un compte entreprise",
+        "noSubscription": "Choisir un forfait",
+        "eligible": "Générer une clé API"
+      },
+      "handoffError": "Impossible d'ouvrir le tableau de bord. Veuillez réessayer.",
+      "viewDocs": "Consulter la référence de l'API",
+      "faqTitle": "Questions fréquentes",
+      "faq": {
+        "cost": {
+          "question": "L'accès à l'API coûte-t-il plus cher?",
+          "answer": "Non. L'accès à l'API est inclus dans tous les forfaits payants du tableau de bord. Votre forfait détermine vos limites de débit."
+        },
+        "lost": {
+          "question": "J'ai perdu ma clé. Puis-je la revoir?",
+          "answer": "Non. Les clés sont stockées hachées et affichées une seule fois, à la création. Révoquez l'ancienne clé et créez-en une nouvelle."
+        },
+        "limit": {
+          "question": "Combien de clés puis-je avoir?",
+          "answer": "Jusqu'à cinq clés actives par compte. Révoquez celle que vous n'utilisez plus pour libérer une place."
+        }
+      },
+      "returnHome": "Retour à l'accueil"
+    },
     "deleteAccount": {
       "pageTitle": "Supprimer votre compte",
       "description": "Nous sommes désolés de vous voir partir. Si vous souhaitez supprimer votre compte Therr et toutes les données associées, vous pouvez le faire en utilisant l'une des options ci-dessous.",
@@ -418,7 +476,21 @@
       "visibilityPrivate": "Privé",
       "postSuccess": "Pensée publiée!",
       "postError": "Échec de la publication de la pensée. Veuillez réessayer.",
-      "messageTooShort": "Le message est trop court"
+      "messageTooShort": "Le message est trop court",
+      "viewAllReplies": "Voir les {count} réponses",
+      "viewReplies": "Voir {count} réponses",
+      "viewReply": "Voir 1 réponse",
+      "reply": "Répondre",
+      "repostedBy": "{userName} a republié",
+      "repostThought": "Republier",
+      "repostUnavailable": "Cette publication n'est plus disponible",
+      "repostModalTitle": "Republier",
+      "repostPlaceholder": "Ajoute un commentaire (optionnel)",
+      "repostConfirm": "Republier",
+      "repostCancel": "Annuler",
+      "repostError": "Nous n'avons pas pu republier ceci. Réessaie.",
+      "repostDuplicate": "Tu as déjà republié cette publication",
+      "repostRestricted": "Seul l'auteur peut republier une publication qui n'est pas publique"
     },
     "explorePeople": {
       "pageTitle": "Rechercher des personnes",
@@ -439,7 +511,13 @@
       "loginToReply": "Connectez-vous pour répondre",
       "loginToView": "Connectez-vous pour voir cette publication et rejoindre la conversation",
       "backToThoughts": "Retour aux pensées",
-      "viewReplies": "Voir {count} réponses"
+      "viewReplies": "Voir {count} réponses",
+      "headerTitleReply": "Réponse",
+      "parentThread": "Fil",
+      "partOfThread": "Fait partie d'un fil",
+      "replyingTo": "En réponse à {userName}",
+      "viewParentThought": "Voir la publication à laquelle ceci répond",
+      "backToParent": "Retour au fil"
     },
     "chatForum": {
       "pageTitle": "Clavardage hébergé",
@@ -667,6 +745,27 @@
       "infoTitle": "Pourquoi exiger un numéro de téléphone?",
       "info": "Nous nous engageons à prévenir les faux utilisateurs, donc l'authentification multifacteur est essentielle. Exiger un courriel et un numéro de téléphone, combiné aux exigences de géolocalisation des publications, limite considérablement le potentiel de faux utilisateurs."
     },
+    "verifyPhone": {
+      "pageTitle": "Vérifiez votre téléphone",
+      "pageTitleVerify": "Vérifiez votre téléphone : saisissez le code",
+      "description": "Nous vous enverrons un code par texto pour confirmer que ce numéro vous appartient.",
+      "labels": {
+        "mobilePhone": "Téléphone mobile"
+      },
+      "buttons": {
+        "sendCode": "Envoyer le code"
+      },
+      "validationErrors": {
+        "phoneNumber": "Veuillez saisir un numéro de téléphone valide"
+      },
+      "verifyPhoneSuccess": "Numéro de téléphone vérifié!",
+      "verifyPhoneError": "Échec de l'envoi du code de vérification. Veuillez réessayer.",
+      "updateProfileError": "Échec de l'enregistrement de votre numéro de téléphone. Veuillez réessayer.",
+      "authError": "Votre session a expiré. Veuillez vous reconnecter.",
+      "invalidCode": "Le code est invalide ou expiré. Réessayez ou demandez-en un autre.",
+      "phoneNumberAlreadyInUseError": "Ce numéro de téléphone est déjà utilisé pour ce type de compte",
+      "phoneRegionNotSupportedError": "La vérification par SMS n'est pas offerte dans votre région. Veuillez utiliser un autre numéro de téléphone."
+    },
     "login": {
       "pageTitle": "Connexion",
       "buttons": {
@@ -872,6 +971,9 @@
       "joinButton": "Rejoindre et gagner 5 pièces",
       "appStoreText": "Aussi disponible sur mobile",
       "returnHome": "Retour à la page d'accueil"
+    },
+    "inviteLinkLanding": {
+      "appStoreText": "Terminez votre inscription sur {appName}"
     },
     "claimPactLanding": {
       "title": "Accepte ton pacte",

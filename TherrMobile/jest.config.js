@@ -24,6 +24,9 @@ module.exports = {
         // Reaches for its native module at import time, which fails under Jest and takes the
         // whole App.tsx suite with it.
         'react-native-keyboard-controller': '<rootDir>/__mocks__/react-native-keyboard-controller.tsx',
+        // `SystemBars` schedules a setImmediate that reads Platform.OS after the Jest
+        // environment is torn down, crashing the worker for any suite that renders a screen.
+        '^react-native-edge-to-edge$': '<rootDir>/__mocks__/react-native-edge-to-edge.tsx',
         '^pretty-format$': '<rootDir>/../node_modules/pretty-format',
     },
     moduleDirectories: ['<rootDir>/node_modules', '<rootDir>../node_modules'],

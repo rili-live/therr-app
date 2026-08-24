@@ -9,7 +9,6 @@ import ApiService, {
 } from '../../services/ApiService';
 import { ContentActionTypes } from '../../types/redux/content';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ISearchThoughtsArgs {}
 interface ILoginSSOTokens {
     google?: string;
@@ -66,6 +65,7 @@ class UsersActions {
             settingsLocale,
             settingsWebsite,
             settingsIsProfilePublic,
+            settingsContentAlgorithm,
             settingsPushTopics,
             settingsEmailMarketing,
             settingsEmailBusMarketing,
@@ -124,6 +124,7 @@ class UsersActions {
             settingsLocale,
             settingsWebsite,
             settingsIsProfilePublic,
+            settingsContentAlgorithm,
             settingsPushTopics,
             settingsEmailMarketing,
             settingsEmailBusMarketing,
@@ -514,6 +515,7 @@ class UsersActions {
             settingsLocale,
             settingsWebsite,
             settingsIsProfilePublic,
+            settingsContentAlgorithm,
             settingsPushTopics,
             settingsEmailMarketing,
             settingsEmailBusMarketing,
@@ -560,6 +562,7 @@ class UsersActions {
             settingsWebsite,
             settingsIsProfilePublic,
             settingsIsAccountSoftDeleted,
+            settingsContentAlgorithm,
             settingsPushTopics,
             settingsEmailMarketing,
             settingsEmailBusMarketing,

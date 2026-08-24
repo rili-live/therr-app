@@ -52,12 +52,29 @@
             border-bottom: 1px solid var(--habits-border);
             background: #fff;
         }
+        header.site-header .container {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+        header.site-header .brand-mark {
+            width: 2rem;
+            height: 2rem;
+            display: block;
+        }
         header.site-header .brand {
             font-weight: 800;
             font-size: 1.125rem;
             color: var(--habits-navy);
             letter-spacing: -0.01em;
         }
+        header.site-header .session-link {
+            margin-left: auto;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--habits-text-muted);
+        }
+        [hidden] { display: none !important; }
         .profile {
             padding: 3rem 0 2.5rem;
             text-align: center;
@@ -152,10 +169,15 @@
             color: var(--habits-text-muted);
             font-size: 0.875rem;
         }
-        footer.site-footer .footer-links { margin-bottom: 0.75rem; }
+        footer.site-footer .footer-links {
+            margin-bottom: 0.75rem;
+        }
         footer.site-footer .footer-links a {
             margin: 0 0.5rem;
             color: var(--habits-text-muted);
+        }
+        footer.site-footer .footer-family {
+            margin-top: 0.5rem;
         }
         @media (min-width: 640px) {
             .profile { padding: 4rem 0 3rem; }
@@ -166,7 +188,16 @@
 <body>
     <header class="site-header">
         <div class="container">
+            <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
             <a class="brand" href="/" style="color: var(--habits-navy);">Friends with Habits</a>
+            <!--
+                Hidden in the served markup and revealed by the script at the end of this
+                page. Profile pages are public and shared-proxy cached (see the
+                Cache-Control set alongside this render in server-client.tsx), so the
+                server cannot know whether the viewer is signed in — a server-rendered
+                "Sign out" would be cached and then shown to anonymous visitors.
+            -->
+            <a class="session-link" id="session-logout" href="/logout" hidden>Sign out</a>
         </div>
     </header>
 
@@ -190,21 +221,26 @@
                 <p class="label">Same person, more places</p>
                 <a class="therr-cta" href="{{therrProfileUrl}}" rel="noopener">
                     <img src="/assets/images/therr-email-logo.svg" alt="" aria-hidden="true">
-                    <span>Find me on the Therr app</span>
+                    <span>Find me on Therr app</span>
                 </a>
             </div>
         </section>
         {{/if}}
     </main>
 
-    <footer class="site-footer">
-        <div class="container">
-            <div class="footer-links">
-                <a href="/privacy-policy">Privacy Policy</a>
-                <a href="/terms-of-service">Terms of Service</a>
-            </div>
-            <div>&copy; Therr Inc. &middot; Part of the Therr family of apps</div>
-        </div>
-    </footer>
+    {{> habitsFooter}}
+
+    <script>
+        (function () {
+            // Reveal the sign-out affordance only for a viewer who actually has a session.
+            // Any session counts, not just this profile's owner: someone signed in while
+            // looking at a friend's profile still needs a way out.
+            try {
+                if (sessionStorage.getItem('therrUser') || localStorage.getItem('therrUser')) {
+                    document.getElementById('session-logout').hidden = false;
+                }
+            } catch (e) { /* storage disabled — leave the link hidden */ }
+        })();
+    </script>
 </body>
 </html>

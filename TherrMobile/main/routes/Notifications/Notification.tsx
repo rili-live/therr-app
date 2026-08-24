@@ -1,9 +1,10 @@
 import React from 'react';
 import { GestureResponderEvent, Pressable, Text, View } from 'react-native';
 import { Notifications as NotificationEnums } from 'therr-js-utilities/constants';
-import { Button } from '../../components/BaseButton';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import formatDate from '../../utilities/formatDate';
+import { formatRelativeOrAbsolute } from '../../utilities/formatDate';
+import { getNotificationDisplay, getToneColor } from '../../utilities/notificationDisplay';
+import { tint } from '../../styles/notifications';
 import { ITherrThemeColors } from '../../styles/themes';
 
 interface IMessageSegment {
@@ -15,8 +16,6 @@ const getHighlightValues = (notification: any): string[] => {
     const values: string[] = [];
     const params = notification.messageParams;
     const type = notification.type;
-
-    console.log(params);
 
     // Add dynamic param values (user names, group names, counts, etc.)
     if (params) {
@@ -47,6 +46,11 @@ const getHighlightValues = (notification: any): string[] => {
         values.push('your post', 'tu publicación', 'ta publication');
     } else if (type === NotificationEnums.Types.THOUGHT_REPLY) {
         values.push('new replies', 'nuevas respuestas', 'a répondu à ta publication');
+    } else if (type === NotificationEnums.Types.THOUGHT_REPOST) {
+        // Must match the wording in each users-service dictionary's
+        // `notifications.newThoughtRepostReceived`, or the highlight silently
+        // does nothing for non-English users.
+        values.push('reposted your post', 'republicó tu publicación', 'a republié ta publication');
     } else if (type === NotificationEnums.Types.NEW_DM_RECEIVED) {
         values.push('direct message', 'mensaje directo', 'Nouveau message');
     } else if (type === NotificationEnums.Types.NEW_GROUP_INVITE) {
@@ -134,28 +138,42 @@ const Notification = ({
 }: INotificationProps) => {
     // Styles
     const rootStyle = isUnread ? themeNotification.styles.rootUnread : themeNotification.styles.rootRead;
-    const messageContainerStyle = isUnread ? themeNotification.styles.messageContainerUnread : themeNotification.styles.messageContainerRead;
-    const messageStyle = isUnread ? themeNotification.styles.unread : themeNotification.styles.read;
+    const messageStyle = isUnread ? themeNotification.styles.messageUnread : themeNotification.styles.messageRead;
     const highlightStyle = isUnread ? themeNotification.styles.highlightUnread : themeNotification.styles.highlightRead;
     const iconStyle = isUnread ? themeNotification.styles.iconUnread : themeNotification.styles.iconRead;
 
     const highlightValues = getHighlightValues(notification);
     const messageSegments = splitMessageByHighlights(notification.message, highlightValues);
 
+    // Leading glyph identifies the notification type at a glance. Read rows
+    // desaturate it so unread entries stay the brightest thing in the list.
+    const { icon, tone } = getNotificationDisplay(notification.type);
+    const toneColor = isUnread
+        ? getToneColor(tone, themeNotification.colors)
+        : themeNotification.colors.onSurfaceMuted;
+
+    const isConnectionRequestPending = notification.userConnection?.requestStatus === 'pending';
+
     return (
         <Pressable
             android_ripple={{
-                color: themeNotification.colors.primary,
+                color: tint(themeNotification.colors.brand, 0.12),
             }}
+            accessibilityRole="button"
+            accessibilityLabel={notification.message}
             onPress={handlePressAndNavigate}
-            style={{
-                ...rootStyle,
-                ...(containerStyles || {}),
-            }}
+            style={[rootStyle, containerStyles]}
         >
             <View
-                style={messageContainerStyle}
+                style={[
+                    themeNotification.styles.iconContainer,
+                    { backgroundColor: tint(toneColor, isUnread ? 0.14 : 0.08) },
+                ]}
             >
+                <FontAwesomeIcon name={icon} size={16} color={toneColor} />
+            </View>
+
+            <View style={themeNotification.styles.messageContainer}>
                 <Text style={messageStyle}>
                     {messageSegments.map((segment, idx) => (
                         segment.highlighted
@@ -163,76 +181,81 @@ const Notification = ({
                             : <React.Fragment key={idx}>{segment.text}</React.Fragment>
                     ))}
                 </Text>
-                {
-                    notification.userConnection?.requestStatus === 'pending' &&
+
+                {isConnectionRequestPending && (
                     <View style={themeNotification.styles.actionsContainer}>
-                        {
-                            notification.messageParams?.userId &&
-                            <Button
-                                title={translate('components.notification.buttons.view')}
-                                type="clear"
-                                buttonStyle={themeNotification.styles.actionButton}
-                                titleStyle={themeNotification.styles.actionButtonText}
-                                icon={
-                                    <FontAwesomeIcon
-                                        name="eye"
-                                        size={18}
-                                    />
-                                }
-                                onPress={(e) => handlePressAndNavigate && handlePressAndNavigate(e)}
-                            />
-                        }
-                        <Button
-                            title={translate('components.notification.buttons.accept')}
-                            type="clear"
-                            buttonStyle={themeNotification.styles.actionButton}
-                            titleStyle={themeNotification.styles.actionButtonText}
-                            icon={
-                                <FontAwesomeIcon
-                                    name="check"
-                                    size={18}
-                                />
-                            }
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={translate('components.notification.buttons.accept')}
                             onPress={(e) => acknowledgeRequest(e, notification, true)}
-                        />
-                        <Button
-                            title={translate('components.notification.buttons.reject')}
-                            type="clear"
-                            buttonStyle={themeNotification.styles.actionButton}
-                            titleStyle={themeNotification.styles.actionButtonText}
-                            icon={
-                                <FontAwesomeIcon
-                                    name="minus"
-                                    size={18}
-                                />
-                            }
+                            style={({ pressed }) => [
+                                themeNotification.styles.actionButton,
+                                themeNotification.styles.actionButtonPrimary,
+                                pressed && themeNotification.styles.actionButtonPressed,
+                            ]}
+                        >
+                            <FontAwesomeIcon name="check" size={13} color={themeNotification.colors.onBrand} />
+                            <Text style={themeNotification.styles.actionButtonPrimaryText}>
+                                {translate('components.notification.buttons.accept')}
+                            </Text>
+                        </Pressable>
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={translate('components.notification.buttons.reject')}
                             onPress={(e) => acknowledgeRequest(e, notification, false)}
-                        />
+                            style={({ pressed }) => [
+                                themeNotification.styles.actionButton,
+                                themeNotification.styles.actionButtonSecondary,
+                                pressed && themeNotification.styles.actionButtonPressed,
+                            ]}
+                        >
+                            <FontAwesomeIcon name="times" size={13} color={themeNotification.colors.onSurfaceMuted} />
+                            <Text style={themeNotification.styles.actionButtonSecondaryText}>
+                                {translate('components.notification.buttons.reject')}
+                            </Text>
+                        </Pressable>
+                        {!!notification.messageParams?.userId && (
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={translate('components.notification.buttons.view')}
+                                onPress={(e) => handlePressAndNavigate && handlePressAndNavigate(e)}
+                                style={({ pressed }) => [
+                                    themeNotification.styles.actionButton,
+                                    themeNotification.styles.actionButtonSecondary,
+                                    pressed && themeNotification.styles.actionButtonPressed,
+                                ]}
+                            >
+                                <FontAwesomeIcon name="eye" size={13} color={themeNotification.colors.onSurfaceMuted} />
+                                <Text style={themeNotification.styles.actionButtonSecondaryText}>
+                                    {translate('components.notification.buttons.view')}
+                                </Text>
+                            </Pressable>
+                        )}
                     </View>
-                }
-                <View style={themeNotification.styles.dateContainer}>
-                    {/* eslint-disable-next-line max-len */}
-                    <Text style={themeNotification.styles.dateText}>{formatDate(notification.createdAt, 'short').date} | {formatDate(notification.createdAt, 'short').time}</Text>
+                )}
+
+                <View style={themeNotification.styles.metaRow}>
+                    {isUnread && <View style={themeNotification.styles.unreadDot} />}
+                    <Text style={themeNotification.styles.dateText}>
+                        {formatRelativeOrAbsolute(notification.createdAt, translate)}
+                    </Text>
                 </View>
             </View>
+
             <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={translate(isUnread
+                    ? 'components.notification.buttons.markRead'
+                    : 'components.notification.buttons.markUnread')}
                 onPress={handlePress}
-                style={themeNotification.styles.iconContainerStyle}
-                hitSlop={20}
+                style={themeNotification.styles.readToggle}
+                hitSlop={8}
             >
-                {
-                    isUnread ?
-                        <FontAwesomeIcon
-                            name="dot-circle"
-                            size={20}
-                            style={iconStyle}
-                        /> :
-                        <FontAwesomeIcon
-                            name="check"
-                            size={14}
-                            style={iconStyle}
-                        />
-                }
+                <FontAwesomeIcon
+                    name={isUnread ? 'dot-circle' : 'check'}
+                    size={isUnread ? 16 : 14}
+                    style={iconStyle}
+                />
             </Pressable>
         </Pressable>
     );

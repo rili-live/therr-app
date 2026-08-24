@@ -81,7 +81,6 @@ describe('UserLocationCache', () => {
             expire: expireStub,
             exec: execStub,
         }));
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const userLocationCache = new UserLocationCache(mockUserId);
 
         await userLocationCache.getMomentsWithinDistance({}, 100, {})
@@ -173,7 +172,6 @@ describe('UserLocationCache', () => {
             expire: expireStub,
             exec: execStub,
         }));
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const userLocationCache = new UserLocationCache(mockUserId);
 
         await userLocationCache.getSpacesWithinDistance({}, 100, {})

@@ -22,6 +22,12 @@ import {
     IStreakHistory,
     IHabitsState,
     HabitsActionTypes,
+    IUserHabit,
+    IUserHabitEligibility,
+    IJournalEntry,
+    IJournalFeedItem,
+    IHabitsLifetimePurchase,
+    IHabitsLifetimeOffer,
 } from './habits';
 import {
     IMapState,
@@ -46,6 +52,7 @@ import {
 } from './reactions';
 import {
     IMobileThemeName,
+    IContentAlgorithmName,
     IUser,
     ISocketDetails,
     IUserState,
@@ -89,6 +96,12 @@ export {
     IStreakHistory,
     IHabitsState,
     HabitsActionTypes,
+    IUserHabit,
+    IUserHabitEligibility,
+    IJournalEntry,
+    IJournalFeedItem,
+    IHabitsLifetimePurchase,
+    IHabitsLifetimeOffer,
 
     // Maps
     IMapState,
@@ -113,6 +126,7 @@ export {
 
     // User
     IMobileThemeName,
+    IContentAlgorithmName,
     IUser,
     ISocketDetails,
     IUserState,

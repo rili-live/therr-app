@@ -15,6 +15,7 @@ import { faFacebookF } from '@fortawesome/free-brands-svg-icons';
 import Toast from 'react-bootstrap/Toast';
 import { v4 as uuidv4 } from 'uuid';
 import { IUserState } from 'therr-react/types';
+import { getStoredAttribution } from 'therr-react/utilities/attribution';
 import translator from '../../services/translator';
 import RegisterForm from './RegisterForm';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -22,6 +23,7 @@ import withNavigation from '../../wrappers/withNavigation';
 import { getWebsiteName } from '../../utilities/getHostContext';
 import { onFBLoginPress, shouldRenderLoginForm } from '../../api/login';
 import { routeAfterLogin } from '../Login';
+import getReturnTo from '../../utilities/getReturnTo';
 import LoginWith from '../../components/LoginWith';
 
 const BgImage = '/assets/img/illustrations/signin-v2.svg';
@@ -86,7 +88,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         document.title = `${getWebsiteName()} | ${this.translate('pages.register.pageTitle')}`;
     }
 
@@ -116,8 +118,15 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
             isDashboardRegistration: true,
             activationCode,
             paymentSessionId,
+            // Captured on first landing by Layout. Advisory telemetry — the
+            // server drops anything malformed rather than failing the signup.
+            userAcquisition: getStoredAttribution() || undefined,
         }).then((response: any) => {
-            this.props.navigation.navigate('/login', {
+            // Keep the inbound destination attached through the login step so a business
+            // account created from the /api-access flow lands on API keys, not the overview.
+            const returnTo = getReturnTo(window?.location?.search, '');
+            const loginPath = returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : '/login';
+            this.props.navigation.navigate(loginPath, {
                 state: {
                     successMessage: this.translate('pages.register.registerSuccess'),
                 },

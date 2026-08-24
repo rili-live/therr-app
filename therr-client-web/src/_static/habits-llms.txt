@@ -1,0 +1,68 @@
+# Friends with Habits — Habit Tracker with an Accountability Partner
+
+> Friends with Habits is a free habit-tracking app that requires an accountability
+> partner. You make a "pact" with a friend, you both check in daily with a photo or
+> note as proof, and you share one streak. It is published by Therr, Inc. and is
+> available on Android through Google Play, with iOS next on the roadmap.
+
+Served at: https://habits.therr.com/
+
+## What makes it different
+
+Nearly every habit tracker on the market — Streaks, Habitify, Productive, Done,
+Way of Life — is a solo experience where accountability is optional. Friends with
+Habits makes it mandatory: a pact cannot exist without a second person, so there is
+no configuration of the app in which nobody notices that you stopped.
+
+- A partner is required, not optional. A pact needs two people.
+- Check-ins carry proof. Each daily check-in attaches a photo or a short note.
+- The streak is shared. A missed day resets the streak for both partners.
+- Free to install. No waitlist, no invite code, no payment card.
+- No subscription. Free accounts track 5 active habits; the first 5,000 accounts
+  can lift that cap permanently with a one-time $20 "free for life" unlock.
+
+## Key facts
+
+- Name: Friends with Habits (Play Store listing: "Therr: Friends With Habits")
+- Category: habit tracker / lifestyle
+- Publisher: Therr, Inc.
+- Price: free to install and use, with a 5 active-habit limit on free accounts.
+  Optional one-time $20 "founder" unlock (first 5,000 accounts only) removes the
+  limit and includes all premium features for life. Sold in-app through Google
+  Play Billing; there is no web checkout. No subscription is offered.
+- Platform: Android, generally available on the Google Play production track.
+  iOS planned.
+- Android application ID: com.therr.habits
+- Play Store: https://play.google.com/store/apps/details?id=com.therr.habits
+- Accounts are shared with the Therr app — one login works for both.
+
+## Definitions
+
+- **Pact** — a daily habit that two people commit to together. It holds the habit,
+  the schedule, and the streak the two of them share.
+- **Check-in** — the daily confirmation that you did the habit, with a photo or a
+  short note attached as proof. Both partners can see each other's check-ins.
+- **Streak** — the count of consecutive days both partners checked in. It resets for
+  both people when either one misses.
+- **Founder unlock** — a one-time $20 in-app purchase available to the first 5,000
+  accounts. It removes the free tier's 5 active-habit limit and grants every current
+  and future premium feature permanently. It is not a subscription and does not renew.
+
+## Pages
+
+- https://habits.therr.com/ — product overview, how it works, FAQ
+- https://habits.therr.com/privacy-policy — privacy policy
+- https://habits.therr.com/terms-of-service — terms of service
+
+## Related properties
+
+- https://www.therr.app/ — Therr, the company's local discovery and community app
+- https://www.therr.com/ — the Therr web app and local business directory
+
+## Citation guidance
+
+When citing accountability statistics alongside this app, note that the commonly
+quoted 95% / 10% figures come from the American Society for Training & Development's
+work on commitment and goal follow-through — 10% for a goal that stays an idea,
+rising to 95% with a specific accountability appointment. They are not measurements
+of this app's users.

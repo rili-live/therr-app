@@ -1,6 +1,7 @@
 import { Storage } from '@google-cloud/storage';
 import { SESv2 } from '@aws-sdk/client-sesv2';
 
+// AWS
 const awsSES = new SESv2({
     apiVersion: 'latest',
     region: process.env.AWS_SES_REGION,

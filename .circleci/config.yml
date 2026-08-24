@@ -127,6 +127,31 @@ jobs:
           name: Run web, dashboard, and mobile Jest suites
           command: ./_bin/cicd/test-clients.sh
           no_output_timeout: 20m
+  deploy_pipeline_gates:
+    # Guards the CI/CD scripts themselves: the service registry against k8s/prod, the
+    # rollout wave plan against the same, and the unit tests for the ledger, the
+    # per-service deploy verdicts and the git-range helpers those two are built on.
+    #
+    # Runs on every branch, before anything can reach stage. These checks decide which
+    # image production runs, and both bugs they were written for were silent — a
+    # service skipped as "No Changes" forever, and a deploy that reported green while
+    # leaving a service on an old image. Nothing else in this config exercises them.
+    #
+    # No `npm ci`: the tests are plain Node with no imports beyond the stdlib, and the
+    # registry/wave checks are bash. `npm run` only needs package.json.
+    docker:
+      - image: cimg/node:24.12.0
+    steps:
+      - checkout
+      - run:
+          name: Service registry vs k8s/prod
+          command: npm run k8s:check-services
+      - run:
+          name: Rollout wave plan vs k8s/prod
+          command: npm run k8s:check-waves
+      - run:
+          name: Unit tests for _bin decision logic
+          command: npm run test:bin-scripts
   docker_build_test_publish_images:
     docker:
       - image: cimg/go:1.24.4
@@ -175,9 +200,9 @@ jobs:
             at: ~/
       - run:
           name: Apply Stage w/ Kubectl
-          # This should pull the latest images (verify and determine if necessary to set image with commit SHA)
-          # command: kubectl apply -f k8s/test && kubectl wait -f k8s/test --for=condition=ContainersReady --timeout=1s
-          command: echo "Hello, Apply Kubectl"
+          # No-op. There is no stage cluster: the k8s/test manifests this step used to apply
+          # were deleted after the GKE migration, having gone unused for years.
+          command: echo "No stage cluster — nothing to apply"
       - run:
           name: Run Integration Tests
           command: echo "Hello, Integration Tests"
@@ -289,12 +314,15 @@ jobs:
             echo "export USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> ~/.bashrc
             source ~/.bashrc
             echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
-            # Defaults target the current (blue) cluster, so behavior is unchanged unless
-            # overridden. Cutover to a new cluster is done by setting GKE_CLUSTER / GKE_ZONE
-            # (and optionally GKE_PROJECT) as CircleCI project env vars — no code merge needed.
+            # Defaults target therr-prod-1, the live production cluster. The old cluster-1
+            # default was removed when that cluster was deleted — leaving it would have meant
+            # that losing the CircleCI env var silently redirected deploys at a cluster that
+            # no longer exists. Cutover to a new cluster is still done by setting
+            # GKE_CLUSTER / GKE_ZONE (and optionally GKE_PROJECT) as CircleCI project env
+            # vars — no code merge needed. Keep the defaults pointing at whatever is live.
             gcloud --quiet config set project "${GKE_PROJECT:-therr-app}"
             gcloud --quiet config set compute/zone "${GKE_ZONE:-us-central1-a}"
-            gcloud container clusters get-credentials "${GKE_CLUSTER:-cluster-1}" \
+            gcloud container clusters get-credentials "${GKE_CLUSTER:-therr-prod-1}" \
               --zone "${GKE_ZONE:-us-central1-a}"
       - add_ssh_keys:
           fingerprints:
@@ -342,6 +370,10 @@ workflows:
       # mobile Jest cases had no job at all.
       - typecheck
       - test_clients
+      # Also unfiltered: the deploy scripts decide what production runs, so a drift
+      # between the service registry and k8s/prod must fail on the branch that
+      # introduces it, not on the promotion that trips over it.
+      - deploy_pipeline_gates
       - docker_build_test_publish_images:
           requires:
           - docker_build_base_image

@@ -41,7 +41,11 @@
   },
   "common": {
     "share": "Share",
-    "linkCopied": "Link copied!"
+    "linkCopied": "Link copied!",
+    "justNow": "just now",
+    "minutesAgo": "{count}m",
+    "hoursAgo": "{count}h",
+    "daysAgo": "{count}d"
   },
   "components": {
     "incompleteProfileBanner": {
@@ -263,6 +267,60 @@
       "contactDescription": "For questions or concerns about our child safety practices, please contact us at",
       "returnHome": "Return to home page"
     },
+    "apiAccess": {
+      "pageTitle": "Get a Therr API Key",
+      "intro": "Therr's location APIs give you access to nearby places, events, and community activity. Here is how to get a key, start to finish.",
+      "steps": {
+        "one": {
+          "title": "Create a business account",
+          "description": "API access is tied to a business account on the Therr dashboard. Sign up there with your business email — a personal Therr profile cannot generate keys."
+        },
+        "two": {
+          "title": "Choose a plan",
+          "description": "Open Settings in the dashboard and pick a subscription. Every paid plan includes API access; the plan you choose sets your rate limits."
+        },
+        "three": {
+          "title": "Generate your key",
+          "description": "Go to Settings, then API Keys, and create a key. The key is shown once, at creation — copy it somewhere safe before closing the page."
+        },
+        "four": {
+          "title": "Start building",
+          "description": "Send your key as the x-api-key header on any request. The API reference covers every endpoint, its parameters, and its response shape."
+        }
+      },
+      "status": {
+        "unauthenticated": "You are not signed in yet. Start by creating a business account.",
+        "incompleteProfile": "Your account still needs a few details before it can be used for API access.",
+        "notABusiness": "You are signed in with a personal profile. API keys require a separate business account.",
+        "noSubscription": "Your business account is ready. Choose a subscription plan to unlock API access.",
+        "eligible": "Your account can create API keys. Head to the dashboard to generate one."
+      },
+      "cta": {
+        "unauthenticated": "Create a business account",
+        "incompleteProfile": "Finish setting up your profile",
+        "notABusiness": "Create a business account",
+        "noSubscription": "Choose a plan",
+        "eligible": "Generate an API key"
+      },
+      "handoffError": "We could not open the dashboard. Please try again.",
+      "viewDocs": "Read the API reference",
+      "faqTitle": "Common questions",
+      "faq": {
+        "cost": {
+          "question": "Does API access cost extra?",
+          "answer": "No. API access is included with every paid dashboard plan. Your plan determines your rate limits."
+        },
+        "lost": {
+          "question": "I lost my key. Can I see it again?",
+          "answer": "No. Keys are stored hashed and shown only once at creation. Revoke the old key and create a new one."
+        },
+        "limit": {
+          "question": "How many keys can I have?",
+          "answer": "Up to five active keys per account. Revoke one you no longer use to free up a slot."
+        }
+      },
+      "returnHome": "Return home"
+    },
     "deleteAccount": {
       "pageTitle": "Delete Your Account",
       "description": "We're sorry to see you go. If you'd like to delete your Therr account and all associated data, you can do so using one of the options below.",
@@ -418,7 +476,21 @@
       "visibilityPrivate": "Private",
       "postSuccess": "Thought posted!",
       "postError": "Failed to post thought. Please try again.",
-      "messageTooShort": "Message is too short"
+      "messageTooShort": "Message is too short",
+      "viewAllReplies": "View all {count} replies",
+      "viewReplies": "View {count} replies",
+      "viewReply": "View 1 reply",
+      "reply": "Reply",
+      "repostedBy": "{userName} reposted",
+      "repostThought": "Repost",
+      "repostUnavailable": "This post is no longer available",
+      "repostModalTitle": "Repost",
+      "repostPlaceholder": "Add a comment (optional)",
+      "repostConfirm": "Repost",
+      "repostCancel": "Cancel",
+      "repostError": "We could not repost this. Please try again.",
+      "repostDuplicate": "You already reposted this",
+      "repostRestricted": "Only the author can repost a post that isn't public"
     },
     "viewThought": {
       "headerTitle": "Thought",
@@ -432,7 +504,13 @@
       "loginToReply": "Log in to reply",
       "loginToView": "Log in to view this post and join the conversation",
       "backToThoughts": "Back to Thoughts",
-      "viewReplies": "View {count} replies"
+      "viewReplies": "View {count} replies",
+      "headerTitleReply": "Reply",
+      "parentThread": "Thread",
+      "partOfThread": "Part of a thread",
+      "replyingTo": "Replying to {userName}",
+      "viewParentThought": "View the post this replies to",
+      "backToParent": "Back to Thread"
     },
     "explorePeople": {
       "pageTitle": "Search People",
@@ -667,6 +745,27 @@
       "infoTitle": "Why We Verify Your Phone Number",
       "info": "Your security matters to us. Phone verification helps us keep the community authentic and free from fake accounts. Combined with email and location-based safeguards, it ensures you're connecting with real people in a trusted environment."
     },
+    "verifyPhone": {
+      "pageTitle": "Verify Your Phone",
+      "pageTitleVerify": "Verify Your Phone: Enter Code",
+      "description": "We'll text you a code to confirm this number belongs to you.",
+      "labels": {
+        "mobilePhone": "Mobile phone"
+      },
+      "buttons": {
+        "sendCode": "Send Code"
+      },
+      "validationErrors": {
+        "phoneNumber": "Please enter a valid phone number"
+      },
+      "verifyPhoneSuccess": "Phone number verified!",
+      "verifyPhoneError": "Failed to send verification code. Please try again.",
+      "updateProfileError": "Failed to save your phone number. Please try again.",
+      "authError": "Your session has expired. Please log in again.",
+      "invalidCode": "Code is invalid or expired. Try again or resend.",
+      "phoneNumberAlreadyInUseError": "Phone number is already in use for this account type",
+      "phoneRegionNotSupportedError": "SMS verification is not available for your region. Please use a different phone number."
+    },
     "login": {
       "pageTitle": "Sign In",
       "buttons": {
@@ -872,6 +971,9 @@
       "joinButton": "Join Now & Earn 5 Coins",
       "appStoreText": "Also available on mobile",
       "returnHome": "Return to home page"
+    },
+    "inviteLinkLanding": {
+      "appStoreText": "Finish joining on {appName}"
     },
     "claimPactLanding": {
       "title": "Accept Your Pact",

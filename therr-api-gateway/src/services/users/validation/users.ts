@@ -5,6 +5,7 @@ import {
     query,
 } from 'express-validator';
 import isValidSignupAge, { MINIMUM_SIGNUP_AGE } from 'therr-js-utilities/is-valid-signup-age';
+import { SELECTABLE_CONTENT_ALGORITHMS } from 'therr-js-utilities/content-ranking';
 
 export const createUserValidation = [
     // checkFalsy: SSO/dashboard registration may omit phone by sending ''. A bare .optional()
@@ -53,6 +54,12 @@ export const createUserValidation = [
     body('inviteToken').optional().isUUID(4),
     body('activationCode').optional().isString(),
     body('paymentSessionId').optional().isString(),
+    // Marketing attribution captured on first landing. Only the shape is checked here —
+    // the individual fields are attacker-controlled URL parameters and are truncated and
+    // filtered to known columns by `sanitizeUserAcquisition` in the users-service, which
+    // is the layer that actually has to be safe. Deliberately not stricter than this: a
+    // 400 on telemetry would cost a real signup, which is the opposite of the trade we want.
+    body('userAcquisition').optional().isObject(),
 ];
 
 export const changePasswordValidation = [
@@ -115,6 +122,14 @@ export const updateUserValidation = [
     body('settingsIsProfilePublic').optional().isBoolean(),
     body('settingsPushMarketing').optional().isBoolean(),
     body('settingsPushBackground').optional().isBoolean(),
+    // Validated against the *selectable* list, not the full ContentAlgorithms enum, so a
+    // client cannot put itself onto an algorithm that has not been released yet (WANDER is
+    // implemented but needs geo-aware map surfaces to be meaningful).
+    //
+    // Unlike settingsThemeName — which is unvalidated here and only ever picks a stylesheet —
+    // this value selects a ranking profile whose constants are interpolated into ORDER BY
+    // expressions downstream. It is constrained at the edge rather than trusted.
+    body('settingsContentAlgorithm').optional().isIn(SELECTABLE_CONTENT_ALGORITHMS),
     body('shouldSendPushNotification').optional().isBoolean(),
 ];
 
@@ -140,4 +155,15 @@ export const createNotificationValidation = [
     body('isUnread').optional().isBoolean(),
     body('messageLocaleKey').optional().isString().isLength({ max: 200 }),
     body('messageParams').optional().isObject(),
+];
+
+// The user id comes from the path, and the device token is resolved server-side,
+// so the only things worth constraining are the two optional body fields. `dryRun`
+// is validated as a boolean specifically so a stray string ("false") is rejected
+// at the gateway rather than reaching the handler, where anything other than the
+// literal `false` correctly means "dry run".
+export const sendUserPushDiagnosticsTestValidation = [
+    param('id').exists().isUUID(4),
+    body('type').optional().isString().isLength({ max: 100 }),
+    body('dryRun').optional().isBoolean(),
 ];

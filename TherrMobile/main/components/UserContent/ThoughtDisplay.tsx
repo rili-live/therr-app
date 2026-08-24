@@ -10,6 +10,7 @@ import {
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { canRepostThought } from 'therr-js-utilities/content';
 import { IUserState } from 'therr-react/types';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
@@ -19,6 +20,7 @@ import TherrIcon from '../TherrIcon';
 import RichText from '../RichText';
 import handleMentionPress from '../../utilities/handleMentionPress';
 import formatDate from '../../utilities/formatDate';
+import { formatCrossBrandMessage } from '../../utilities/crossBrandPostLabel';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
 
 // const hapticFeedbackOptions = {
@@ -46,11 +48,17 @@ interface IThoughtDisplayProps {
     topReply?: any;
     replyCount?: number;
     /**
-     * Renders a standalone reply-count icon/count for content that is not itself repliable
-     * (ie. replies rendered within the thought details view). Pressing it inspects the nested
-     * thought. Off by default so feed/carousel displays are unaffected.
+     * Renders a standalone action row for content that is not itself repliable (ie. replies
+     * rendered within the thought details view): a reply-count icon that inspects the nested
+     * thought, and a like control. Off by default so feed/carousel displays are unaffected.
      */
-    showReplyCount?: boolean;
+    showThreadActions?: boolean;
+    /**
+     * Opens the repost composer for this thought. Optional: the repost control only renders
+     * where a screen has wired one up, so surfaces that show thoughts read-only (a carousel
+     * without a composer, say) are unaffected.
+     */
+    onRepostPress?: (thought: any) => void;
     goToViewUser: Function;
     updateThoughtReaction: Function;
     user: IUserState;
@@ -101,15 +109,20 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
 
     onBookmarkPress = (thought) => {
         const { updateThoughtReaction, user } = this.props;
-        const newIsBookmarked = !this.state.isBookmarked;
+        const previousIsBookmarked = this.state.isBookmarked;
+        const newIsBookmarked = !previousIsBookmarked;
 
         this.setState({
             isBookmarked: newIsBookmarked,
         });
 
-        updateThoughtReaction(thought.id, {
+        const request = updateThoughtReaction(thought.id, {
             userBookmarkCategory: newIsBookmarked ? 'Uncategorized' : null,
         }, thought.fromUserId, user?.details?.userName);
+
+        // Not every caller returns the request (some fire-and-forget through an action sheet),
+        // so this is opt-in: when we can see the failure, undo the optimistic toggle.
+        request?.catch?.(() => this.setState({ isBookmarked: previousIsBookmarked }));
     };
 
     // TODO: Open full screen reply editor
@@ -123,18 +136,25 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
         if (!thought.isDraft) {
             // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateThoughtReaction, user } = this.props;
-            const newIsLiked = !this.state.isLiked;
+            const previousIsLiked = this.state.isLiked;
+            const previousLikeCount = this.state.likeCount;
+            const newIsLiked = !previousIsLiked;
 
             this.setState({
                 isLiked: newIsLiked,
                 likeCount: this.props.thought.likeCount != null
-                    ? (this.state.likeCount || 0) + (newIsLiked ? 1 : -1)
-                    : this.state.likeCount,
+                    ? Math.max((previousLikeCount || 0) + (newIsLiked ? 1 : -1), 0)
+                    : previousLikeCount,
             });
 
-            updateThoughtReaction(thought.id, {
+            const request = updateThoughtReaction(thought.id, {
                 userHasLiked: newIsLiked,
             }, thought.fromUserId, user?.details?.userName);
+
+            request?.catch?.(() => this.setState({
+                isLiked: previousIsLiked,
+                likeCount: previousLikeCount,
+            }));
         }
     };
 
@@ -150,9 +170,11 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
             thought,
             topReply,
             replyCount,
-            showReplyCount,
+            showThreadActions,
+            onRepostPress,
             goToViewUser,
             contentUserDetails,
+            user,
             theme,
             themeForms,
             themeViewContent,
@@ -165,6 +187,24 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
 
         return (
             <View style={themeViewContent.styles.thoughtCard}>
+                {
+                    // Attribution sits above the author row rather than inside it, so the card
+                    // still reads as "posted by <reposter>" — the embed below carries the
+                    // original author's identity.
+                    !!thought.isRepost &&
+                        <View style={themeViewContent.styles.repostAttributionContainer}>
+                            <Icon
+                                name="repeat"
+                                size={14}
+                                color={isDarkMode ? theme.colors.textWhite : theme.colors.textGray}
+                            />
+                            <Text style={themeViewContent.styles.repostAttributionText} numberOfLines={1}>
+                                {translate('components.thoughtDisplay.repostedBy', {
+                                    userName: contentUserDetails?.userName || '',
+                                })}
+                            </Text>
+                        </View>
+                }
                 <View style={[themeViewContent.styles.thoughtContainer]}>
                     <View style={themeViewContent.styles.thoughtLeftContainer}>
                         <Pressable
@@ -240,8 +280,10 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                     onCommentPress={this.onCommentPress}
                                     onLikePress={this.onLikePress}
                                     goToViewUser={goToViewUser}
+                                    onRepostPress={onRepostPress}
+                                    currentUserId={user?.details?.id}
                                     replyCount={replyCount}
-                                    showReplyCount={showReplyCount}
+                                    showThreadActions={showThreadActions}
                                     theme={theme}
                                     themeForms={themeForms}
                                     themeViewContent={themeViewContent}
@@ -281,8 +323,10 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                 onCommentPress={this.onCommentPress}
                                 onLikePress={this.onLikePress}
                                 goToViewUser={goToViewUser}
+                                onRepostPress={onRepostPress}
+                                currentUserId={user?.details?.id}
                                 replyCount={replyCount}
-                                showReplyCount={showReplyCount}
+                                showThreadActions={showThreadActions}
                                 theme={theme}
                                 themeForms={themeForms}
                                 themeViewContent={themeViewContent}
@@ -347,6 +391,69 @@ const ThreadPreview = ({
     );
 };
 
+/**
+ * The original post embedded inside a repost. Tapping it opens the original rather than the
+ * repost, so a reader can always reach the source in one gesture.
+ *
+ * `repostOf` is null whenever the original is deleted, mature-flagged, or outside the reader's
+ * brand — all of which the backend resolves to the same "no embed" answer. Rendering an
+ * explicit unavailable line rather than nothing keeps a plain (unquoted) repost from
+ * collapsing into a blank card with no explanation.
+ */
+const RepostEmbed = ({
+    goToViewUser,
+    inspectThought,
+    theme,
+    themeViewContent,
+    repostOf,
+    translate,
+}) => {
+    const onMentionPress = (username: string) => handleMentionPress(username, goToViewUser);
+
+    if (!repostOf) {
+        return (
+            <View style={themeViewContent.styles.repostEmbedContainer}>
+                <Text style={themeViewContent.styles.repostEmbedUnavailableText}>
+                    {translate('components.thoughtDisplay.repostUnavailable')}
+                </Text>
+            </View>
+        );
+    }
+
+    const dateTime = formatDate(repostOf.createdAt);
+    const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
+
+    return (
+        <Pressable
+            style={themeViewContent.styles.repostEmbedContainer}
+            onPress={() => inspectThought(repostOf)}
+        >
+            <View style={themeViewContent.styles.repostEmbedHeader}>
+                <Image
+                    source={{ uri: getUserImageUri({
+                        details: { media: repostOf.fromUserMedia, id: repostOf.fromUserId },
+                    }, 32) }}
+                    style={themeViewContent.styles.repostEmbedAvatarImg}
+                    transition={false}
+                />
+                <Text style={themeViewContent.styles.repostEmbedUserName} numberOfLines={1}>
+                    {repostOf.fromUserName || ''}
+                </Text>
+                <Text style={themeViewContent.styles.repostEmbedDateTime}>
+                    {dateStr}
+                </Text>
+            </View>
+            <RichText
+                style={themeViewContent.styles.repostEmbedMessage}
+                text={repostOf.message}
+                linkStyle={theme.styles.link}
+                onMentionPress={onMentionPress}
+                numberOfLines={5}
+            />
+        </Pressable>
+    );
+};
+
 const ThoughtContent = ({
     hashtags,
     isBookmarked,
@@ -360,9 +467,11 @@ const ThoughtContent = ({
     onBookmarkPress,
     onCommentPress,
     onLikePress,
+    onRepostPress,
     goToViewUser,
+    currentUserId,
     replyCount,
-    showReplyCount,
+    showThreadActions,
     theme,
     themeForms,
     themeViewContent,
@@ -371,21 +480,45 @@ const ThoughtContent = ({
 }) => {
     const totalReplies = replyCount ?? thought.replyCount ?? thought.replies?.length;
     const onMentionPress = (username: string) => handleMentionPress(username, goToViewUser);
+    // A post written in another Therr-family app (a Friends with Habits goal, say) reads as
+    // a bare sentence here with nothing saying where it came from. See crossBrandPostLabel.
+    const message = formatCrossBrandMessage({
+        message: thought.message,
+        brandVariation: thought.brandVariation,
+        parentId: thought.parentId,
+        translate,
+    });
     const hasRepliableActions = !thought.isDraft && isRepliable;
-    // The repliable action row already renders a reply icon/count, so this only fills the gap
-    // for non-repliable content (replies within the thought details view).
-    const shouldShowStandaloneReplyCount = !hasRepliableActions && !thought.isDraft && showReplyCount;
+    const totalReposts = thought.repostCount ?? 0;
+    // Shared with the server's own gate (handlers/thoughts createThought) so the control is
+    // only ever offered where a repost would actually be accepted.
+    const canRepost = !!onRepostPress && canRepostThought(thought, currentUserId);
+    const repostButtonTitle = totalReposts > 0 ? `${totalReposts}` : '';
+    // The repliable action row already renders a reply icon/count and a like control, so this
+    // only fills the gap for non-repliable content (replies within the thought details view).
+    const shouldShowThreadActions = !hasRepliableActions && !thought.isDraft && showThreadActions;
 
     return (
         <Pressable style={themeViewContent.styles.thoughtContentContainer} onPress={() => inspectThought(thought)}>
             <View style={spacingStyles.flexOne}>
                 <RichText
                     style={themeViewContent.styles.thoughtMessage}
-                    text={thought.message}
+                    text={message}
                     linkStyle={theme.styles.link}
                     onMentionPress={onMentionPress}
                     numberOfLines={isExpanded ? undefined : 7}
                 />
+                {
+                    !!thought.isRepost &&
+                        <RepostEmbed
+                            goToViewUser={goToViewUser}
+                            inspectThought={inspectThought}
+                            theme={theme}
+                            themeViewContent={themeViewContent}
+                            repostOf={thought.repostOf}
+                            translate={translate}
+                        />
+                }
                 <View>
                     <HashtagsContainer
                         hasIcon={false}
@@ -398,27 +531,79 @@ const ThoughtContent = ({
                 </View>
                 <View style={isExpanded ? themeViewContent.styles.thoughtReactionsContainerExpanded : themeViewContent.styles.thoughtReactionsContainer}>
                     {
-                        shouldShowStandaloneReplyCount &&
-                        <Button
-                            containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
-                            buttonStyle={themeViewContent.styles.thoughtReactionButton}
-                            icon={
-                                <TherrIcon
-                                    name="chat"
-                                    size={22}
-                                    color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                        shouldShowThreadActions &&
+                        <>
+                            <Button
+                                containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
+                                buttonStyle={themeViewContent.styles.thoughtReactionButton}
+                                icon={
+                                    <TherrIcon
+                                        name="chat"
+                                        size={22}
+                                        color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                    />
+                                }
+                                onPress={() => inspectThought(thought)}
+                                type="clear"
+                                title={`${totalReplies || 0}`}
+                                titleStyle={[
+                                    themeViewContent.styles.thoughtReactionButtonTitle,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                                ]}
+                                accessibilityLabel={translate('components.thoughtDisplay.viewReplies', { count: totalReplies || 0 })}
+                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                            />
+                            {
+                                canRepost &&
+                                <Button
+                                    containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
+                                    buttonStyle={themeViewContent.styles.thoughtReactionButton}
+                                    icon={
+                                        <Icon
+                                            name="repeat"
+                                            size={22}
+                                            color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                        />
+                                    }
+                                    onPress={() => onRepostPress(thought)}
+                                    type="clear"
+                                    title={repostButtonTitle}
+                                    titleStyle={[
+                                        themeViewContent.styles.thoughtReactionButtonTitle,
+                                        { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                                    ]}
+                                    accessibilityLabel={translate('components.thoughtDisplay.repostThought')}
+                                    TouchableComponent={TouchableWithoutFeedbackComponent}
                                 />
                             }
-                            onPress={() => inspectThought(thought)}
-                            type="clear"
-                            title={`${totalReplies || 0}`}
-                            titleStyle={[
-                                themeViewContent.styles.thoughtReactionButtonTitle,
-                                { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
-                            ]}
-                            accessibilityLabel={translate('components.thoughtDisplay.viewReplies', { count: totalReplies || 0 })}
-                            TouchableComponent={TouchableWithoutFeedbackComponent}
-                        />
+                            {/*
+                                The like control is deliberately its own pressable rather than part
+                                of the card's inspect gesture — liking a reply should not first
+                                require opening it.
+                            */}
+                            <Button
+                                containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
+                                buttonStyle={themeViewContent.styles.thoughtReactionButton}
+                                icon={
+                                    <TherrIcon
+                                        name={ isLiked ? 'heart-filled' : 'heart' }
+                                        size={22}
+                                        color={likeColor}
+                                    />
+                                }
+                                onPress={() => onLikePress(thought)}
+                                type="clear"
+                                title={(likeCount && likeCount > 0) ? likeCount.toString() : ''}
+                                titleStyle={[
+                                    themeViewContent.styles.thoughtReactionButtonTitle,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                                ]}
+                                accessibilityLabel={translate(isLiked
+                                    ? 'components.thoughtDisplay.unlikeThought'
+                                    : 'components.thoughtDisplay.likeThought')}
+                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                            />
+                        </>
                     }
                     {
                         hasRepliableActions &&
@@ -461,6 +646,29 @@ const ThoughtContent = ({
                                         themeViewContent.styles.thoughtReactionButtonTitle,
                                         { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
                                     ]}
+                                    TouchableComponent={TouchableWithoutFeedbackComponent}
+                                />
+                            }
+                            {
+                                canRepost &&
+                                <Button
+                                    containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
+                                    buttonStyle={themeViewContent.styles.thoughtReactionButton}
+                                    icon={
+                                        <Icon
+                                            name="repeat"
+                                            size={22}
+                                            color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                        />
+                                    }
+                                    onPress={() => onRepostPress(thought)}
+                                    type="clear"
+                                    title={repostButtonTitle}
+                                    titleStyle={[
+                                        themeViewContent.styles.thoughtReactionButtonTitle,
+                                        { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                                    ]}
+                                    accessibilityLabel={translate('components.thoughtDisplay.repostThought')}
                                     TouchableComponent={TouchableWithoutFeedbackComponent}
                                 />
                             }

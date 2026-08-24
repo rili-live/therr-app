@@ -59,6 +59,41 @@ export const getIdentifierType = (value?: string): 'email' | 'phone' | 'userName
     return isLikelyPhoneNumber(value) ? 'phone' : 'userName';
 };
 
+/** Which soft keyboard the sign-in identifier field should raise. */
+export type IdentifierKeyboard = 'phone-pad' | 'default';
+
+/**
+ * Picks the keyboard for the identifier field.
+ *
+ * Deliberately separate from `isLikelyPhoneNumber`, which needs 7+ digits before it will
+ * call something a phone number. That threshold is right for deciding *which sign-in flow to
+ * offer* but wrong for deciding which keyboard to raise: driving `keyboardType` off it meant
+ * Android tore down the alphabet IME and replaced it with the number pad on the seventh
+ * digit, mid-entry. The caller resolves this once per editing session and holds it, so the
+ * keyboard never changes under the user's thumb.
+ *
+ * A single character can only be judged on its shape — someone who opens with a digit or `+`
+ * is dialling. Anything longer (a remembered profile, a sign-up hand-off) is a complete
+ * identifier and gets the real classifier, so a username like `1coolguy` is not mistaken for
+ * a phone number.
+ *
+ * Returns `undefined` for an empty value: nothing has been typed, so there is nothing to
+ * infer from and the caller should stay on its default.
+ */
+export const resolveIdentifierKeyboard = (value?: string): IdentifierKeyboard | undefined => {
+    const trimmed = (value || '').trim();
+
+    if (!trimmed) {
+        return undefined;
+    }
+
+    if (trimmed.length === 1) {
+        return /[\d+]/.test(trimmed) ? 'phone-pad' : 'default';
+    }
+
+    return getIdentifierType(trimmed) === 'phone' ? 'phone-pad' : 'default';
+};
+
 /**
  * Partially hides an email for display in the account switcher — enough to recognize your own
  * account, not enough to be useful to someone glancing at your screen.

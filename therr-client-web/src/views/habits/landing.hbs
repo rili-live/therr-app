@@ -7,14 +7,30 @@
     <link rel="canonical" href="{{canonicalUrl}}">
     <meta name="description" content="{{description}}">
     <meta name="author" content="Therr Inc.">
+    <!-- Allow full snippets and large image previews so AI answer engines and SERPs
+         can surface the definition + FAQ copy below rather than a truncated stub. -->
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="theme-color" content="#102a43">
     <meta property="og:site_name" content="Friends with Habits">
     <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
     <meta property="og:url" content="{{canonicalUrl}}">
     <meta property="og:title" content="{{title}}">
     <meta property="og:description" content="{{description}}">
+    <meta property="og:image" content="https://habits.therr.com/assets/images/habits-og-image.png">
+    <meta property="og:image:secure_url" content="https://habits.therr.com/assets/images/habits-og-image.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Friends with Habits — habits that stick when a friend's on the hook too.">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@therr_app">
     <meta name="twitter:title" content="{{title}}">
     <meta name="twitter:description" content="{{description}}">
+    <meta name="twitter:image" content="https://habits.therr.com/assets/images/habits-og-image.png">
+    <meta name="twitter:image:alt" content="Friends with Habits — habits that stick when a friend's on the hook too.">
+    <!-- Play Store association for Android smart banners / app indexing. -->
+    <meta name="google-play-app" content="app-id=com.therr.habits">
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,6 +39,7 @@
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon-habits.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon-habits.png">
     <style>
         :root {
             --habits-navy: #102a43;
@@ -57,6 +74,16 @@
             border-bottom: 1px solid var(--habits-border);
             background: #fff;
         }
+        header.site-header .container {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+        header.site-header .brand-mark {
+            width: 2rem;
+            height: 2rem;
+            display: block;
+        }
         header.site-header .brand {
             font-weight: 800;
             font-size: 1.125rem;
@@ -66,6 +93,9 @@
         .hero {
             padding: 4rem 0 3rem;
             text-align: center;
+            /* The generic `section` rule below adds a top border between sections;
+               the hero sits directly under the header's own border-bottom. */
+            border-top: none;
         }
         .hero h1 {
             font-size: 2.25rem;
@@ -98,27 +128,95 @@
             text-decoration: none;
             color: #fff;
         }
-        .cta--placeholder {
-            background: var(--habits-text-muted);
-            cursor: not-allowed;
-        }
-        .cta--placeholder:hover { background: var(--habits-text-muted); }
         .cta-note {
             font-size: 0.875rem;
             color: var(--habits-text-muted);
             margin-top: 0.75rem;
         }
-        section.steps {
+        /* Founder offer. Rendered as a bordered card rather than a plain section so the
+           limited-availability offer reads as a distinct object on the page — it is the
+           one block here with a price and a deadline attached. */
+        .founder-card {
+            background: #fff;
+            border: 2px solid var(--habits-coral);
+            border-radius: 1rem;
+            padding: 2rem 1.5rem;
+            text-align: center;
+        }
+        .founder-badge {
+            display: inline-block;
+            background: var(--habits-coral);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 0.3125rem 0.75rem;
+            border-radius: 999px;
+            margin-bottom: 1rem;
+        }
+        section.founder h2 {
+            margin: 0 0 0.75rem;
+            font-size: 1.75rem;
+        }
+        .founder-lede {
+            color: var(--habits-text-muted);
+            max-width: 480px;
+            margin: 0 auto 1.5rem;
+        }
+        .founder-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 auto 1.5rem;
+            max-width: 420px;
+            display: grid;
+            gap: 0.75rem;
+            text-align: left;
+        }
+        .founder-list li {
+            padding-left: 1.75rem;
+            position: relative;
+            color: var(--habits-text-muted);
+            font-size: 0.9375rem;
+        }
+        .founder-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.45em;
+            width: 0.625rem;
+            height: 0.625rem;
+            border-radius: 50%;
+            background: var(--habits-coral);
+        }
+        .founder-note {
+            font-size: 0.8125rem;
+            color: var(--habits-text-muted);
+            margin: 0 auto;
+            max-width: 460px;
+        }
+        section {
             padding: 3rem 0;
             border-top: 1px solid var(--habits-border);
         }
-        section.steps h2 {
+        section h2 {
             font-size: 1.5rem;
             font-weight: 800;
             color: var(--habits-navy);
-            margin: 0 0 2rem;
-            text-align: center;
+            margin: 0 0 1.25rem;
         }
+        section.steps h2,
+        section.why h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        /* Definitional answer block — the paragraph most likely to be lifted verbatim
+           by an AI answer engine, so it leads the page body and names the entity. */
+        section.definition p {
+            font-size: 1.0625rem;
+            margin: 0 0 1rem;
+        }
+        section.definition p:last-child { margin-bottom: 0; }
         .step-list {
             list-style: none;
             padding: 0;
@@ -156,17 +254,7 @@
             color: var(--habits-text-muted);
             font-size: 0.9375rem;
         }
-        section.why {
-            padding: 3rem 0;
-            border-top: 1px solid var(--habits-border);
-            text-align: center;
-        }
-        section.why h2 {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--habits-navy);
-            margin: 0 0 1rem;
-        }
+        section.why { text-align: center; }
         section.why p {
             color: var(--habits-text-muted);
             max-width: 520px;
@@ -178,6 +266,51 @@
             color: var(--habits-coral);
             line-height: 1;
             margin: 0.5rem 0;
+        }
+        section.why .stat-secondary {
+            color: var(--habits-text-muted);
+            font-size: 2rem;
+        }
+        .source-note {
+            font-size: 0.8125rem;
+            color: var(--habits-text-muted);
+            margin: 1.5rem auto 0;
+            max-width: 520px;
+        }
+        .compare-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 1rem;
+        }
+        .compare-list li {
+            padding-left: 1.75rem;
+            position: relative;
+            color: var(--habits-text-muted);
+        }
+        .compare-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.6em;
+            width: 0.625rem;
+            height: 0.625rem;
+            border-radius: 50%;
+            background: var(--habits-coral);
+        }
+        .compare-list strong { color: var(--habits-text); font-weight: 700; }
+        .faq-item { margin: 0 0 1.75rem; }
+        .faq-item:last-child { margin-bottom: 0; }
+        .faq-item h3 {
+            font-size: 1.0625rem;
+            font-weight: 700;
+            color: var(--habits-navy);
+            margin: 0 0 0.375rem;
+        }
+        .faq-item p {
+            margin: 0;
+            color: var(--habits-text-muted);
         }
         footer.site-footer {
             padding: 2rem 0 3rem;
@@ -194,6 +327,9 @@
             margin: 0 0.5rem;
             color: var(--habits-text-muted);
         }
+        footer.site-footer .footer-family {
+            margin-top: 0.5rem;
+        }
         @media (min-width: 640px) {
             .hero { padding: 6rem 0 4rem; }
             .hero h1 { font-size: 3rem; }
@@ -202,10 +338,179 @@
             .step-list li { flex-direction: column; text-align: center; align-items: center; }
         }
     </style>
+    <!--
+        Entity graph for search and AI answer engines. Deliberately hardcoded rather
+        than interpolated: this view only ever renders at '/', and Handlebars escapes
+        apostrophes to &#x27; — which are NOT decoded inside a JSON-LD script block,
+        so an interpolated {{title}} would corrupt the JSON string.
+
+        `publisher` points at the Organization node declared on www.therr.app so the
+        two properties resolve to one company entity across both domains.
+        FAQPage answers must stay byte-identical to the visible FAQ copy below.
+    -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://habits.therr.com/#website",
+          "url": "https://habits.therr.com/",
+          "name": "Friends with Habits",
+          "description": "A free habit tracker built around accountability partners.",
+          "inLanguage": "en-US",
+          "publisher": { "@id": "https://www.therr.app/#organization" }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://www.therr.app/#organization",
+          "name": "Therr, Inc.",
+          "url": "https://www.therr.app/",
+          "logo": "https://www.therr.app/assets/img/therr-splash-logo-200.png",
+          "sameAs": [
+            "https://www.therr.com/",
+            "https://www.instagram.com/therr.app/",
+            "https://twitter.com/therr_app",
+            "https://www.linkedin.com/company/therr"
+          ]
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://habits.therr.com/#webpage",
+          "url": "https://habits.therr.com/",
+          "name": "Friends with Habits — Habit Tracker with an Accountability Partner",
+          "isPartOf": { "@id": "https://habits.therr.com/#website" },
+          "about": { "@id": "https://habits.therr.com/#app" },
+          "primaryImageOfPage": "https://habits.therr.com/assets/images/habits-og-image.png",
+          "inLanguage": "en-US"
+        },
+        {
+          "@type": "MobileApplication",
+          "@id": "https://habits.therr.com/#app",
+          "name": "Friends with Habits",
+          "alternateName": "Therr: Friends With Habits",
+          "url": "https://habits.therr.com/",
+          "description": "A habit tracker that requires an accountability partner. Make a pact with a friend, check in daily with a photo or note as proof, and build a shared streak.",
+          "applicationCategory": "LifestyleApplication",
+          "applicationSubCategory": "Habit Tracker",
+          "operatingSystem": "Android 8.0 and up",
+          "releaseNotes": "Now generally available on the Google Play production track.",
+          "installUrl": "https://play.google.com/store/apps/details?id=com.therr.habits",
+          "downloadUrl": "https://play.google.com/store/apps/details?id=com.therr.habits",
+          "screenshot": "https://habits.therr.com/assets/images/habits-og-image.png",
+          "image": "https://habits.therr.com/assets/images/habits-og-image.png",
+          "inLanguage": "en-US",
+          "featureList": [
+            "Habit pacts with an accountability partner",
+            "Daily check-ins with photo or note proof",
+            "Shared streak tracking",
+            "Push notifications when your partner checks in or misses",
+            "Partner activity feed"
+          ],
+          "offers": [
+            {
+              "@type": "Offer",
+              "name": "Free",
+              "description": "Free to install and use, tracking up to 5 active habits at a time.",
+              "price": "0",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Founder free-for-life unlock",
+              "description": "A one-time $20 purchase, limited to the first 5,000 accounts, that removes the habit limit and includes every premium feature for life. Sold in the app through Google Play Billing.",
+              "price": "20",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/LimitedAvailability",
+              "eligibleQuantity": {
+                "@type": "QuantitativeValue",
+                "value": 5000,
+                "unitText": "accounts"
+              }
+            }
+          ],
+          "publisher": { "@id": "https://www.therr.app/#organization" }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://habits.therr.com/#faq",
+          "isPartOf": { "@id": "https://habits.therr.com/#webpage" },
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is Friends with Habits?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Friends with Habits is a habit-tracking app that requires an accountability partner. Instead of tracking a habit alone, you make a pact with a friend: you both commit to the same daily habit, you both check in with proof, and you both see it when the other one misses."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is Friends with Habits free?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Friends with Habits is free to download and free to use, with no waitlist, no invite code and no card. A free account tracks up to 5 active habits at a time, and archiving a habit you have finished with frees a slot back up."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What is the founder free-for-life unlock?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The first 5,000 accounts can pay $20 once and never pay again. The founder unlock removes the 5-habit limit and includes every premium feature we add later, for life. There is no subscription attached to it and nothing to cancel. You buy it inside the app through Google Play, and once 5,000 people have claimed it the offer is gone for good."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What is a pact?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "A pact is a daily habit that you and a friend commit to together — a workout, a reading session, a meditation, a language lesson, anything you want to do every day. The pact holds the habit, the schedule, and the streak that the two of you share."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Do I need a friend to use the app?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, and that is deliberate. A pact needs two people, so you invite a friend when you create one. Solo habit trackers let you quit in private, which is the failure mode this app exists to remove. If your friend has not installed the app yet, your invite link walks them through it."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How do daily check-ins work?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Each day you check in on your pact and attach a photo or a short note as proof. Your partner sees the check-in, you see theirs, and the shared streak grows for every day you both show up. Miss a day and the streak resets for both of you."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is Friends with Habits available on iPhone?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Not yet. Friends with Habits is on Android via Google Play today, and an iOS version is next on the roadmap. Your account works across every Therr app, so an account you create on Android will carry over."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Who makes Friends with Habits?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Friends with Habits is built by Therr, Inc., the company behind the Therr app for local discovery and community. The two apps share one account system, so a single Therr login works for both."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 </head>
 <body>
     <header class="site-header">
         <div class="container">
+            <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
             <span class="brand">Friends with Habits</span>
         </div>
     </header>
@@ -215,8 +520,23 @@
             <div class="container">
                 <h1>Habits that stick when a friend's on the hook too.</h1>
                 <p class="lede">Most habit apps let you give up in private. Friends with Habits doesn't. Pact with a friend, check in daily, and keep each other on streak.</p>
-                <a class="cta cta--placeholder" href="#" aria-disabled="true">Coming soon to Google Play</a>
-                <div class="cta-note">Internal testing in progress. iOS coming next.</div>
+                <!--
+                    Friends with Habits applicationId — NOT app.therrmobile. Sending a
+                    visitor to the Therr listing installs an app that cannot open a
+                    Friends with Habits account. Hardcoded rather than interpolated
+                    because Handlebars escapes '=' in an attribute to &#x3D;.
+                -->
+                <a class="cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get it on Google Play</a>
+                <div class="cta-note">Free to install &mdash; now available to everyone on Google Play. iOS coming next.</div>
+                <div class="cta-note"><strong>Founding member offer:</strong> the first 5,000 accounts get every paid feature free for life for a one-time $20.</div>
+            </div>
+        </section>
+
+        <section class="definition">
+            <div class="container">
+                <h2>What is Friends with Habits?</h2>
+                <p>Friends with Habits is a habit-tracking app that requires an accountability partner. Instead of tracking a habit alone, you make a pact with a friend: you both commit to the same daily habit, you both check in with proof, and you both see it when the other one misses.</p>
+                <p>It is free, made by <a href="https://www.therr.app/" rel="noopener">Therr, Inc.</a>, and out now on Android through Google Play while an iOS version is in the works.</p>
             </div>
         </section>
 
@@ -253,21 +573,89 @@
             <div class="container">
                 <h2>Why accountability changes everything</h2>
                 <div class="stat">95%</div>
-                <p>People who track habits with a partner stick with them.</p>
-                <div class="stat" style="color: var(--habits-text-muted); font-size: 2rem;">10%</div>
-                <p>Without a partner, only one in ten do. Solo apps can't bridge that gap. We make accountability the default.</p>
+                <p>How often people follow through on a goal when they have a standing accountability appointment with someone else.</p>
+                <div class="stat stat-secondary">10%</div>
+                <p>How often the same goal gets done when it stays an idea you never commit to anyone. Solo apps can't bridge that gap. We make accountability the default.</p>
+                <!--
+                    Cited rather than asserted: these two figures are the top and bottom
+                    rungs of the ASTD commitment ladder, and an uncited "95%" is both a
+                    trust signal AI answer engines penalise and a Play-listing claim risk.
+                -->
+                <p class="source-note">Figures from the American Society for Training &amp; Development's study on commitment and goal follow-through, which found a 10% follow-through rate for a goal you only have an idea about, rising to 95% when you have a specific accountability appointment with the person you committed to.</p>
+            </div>
+        </section>
+
+        <section class="compare">
+            <div class="container">
+                <h2>How it's different from other habit trackers</h2>
+                <ul class="compare-list">
+                    <li><strong>A partner is required, not optional.</strong> Streaks, Habitify, Done and most other habit apps are built for one person. Here a pact needs two, so there is no version of the app where nobody notices you stopped.</li>
+                    <li><strong>Check-ins carry proof.</strong> Every daily check-in takes a photo or a note, so a streak is evidence rather than a tap.</li>
+                    <li><strong>The streak is shared.</strong> You and your partner are on the same streak, so a missed day costs both of you — the reason it is uncomfortable is the reason it works.</li>
+                    <li><strong>It is free to start.</strong> No waitlist, no invite code, no card. Install it and make your first pact.</li>
+                    <li><strong>No subscription to sign up for.</strong> Free accounts track 5 active habits. The first 5,000 accounts can lift that permanently with a one-time $20 founder unlock instead of a monthly bill.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!--
+            Founder offer. Deliberately says "in the app" and carries no purchase link:
+            the unlock is sold through Google Play Billing (see
+            docs/niche-sub-apps/habits/HABITS_PAYMENT_WORKFLOW.md), and pointing at an
+            external checkout for in-app digital content is the Play policy problem that
+            rail was chosen to avoid. This block advertises the offer; Play collects it.
+        -->
+        <section class="founder">
+            <div class="container">
+                <div class="founder-card">
+                    <div class="founder-badge">Founding member offer</div>
+                    <h2>$20 once. Free for life.</h2>
+                    <p class="founder-lede">The first 5,000 accounts can unlock everything permanently for a single $20 payment. No subscription, no renewal, nothing to cancel.</p>
+                    <ul class="founder-list">
+                        <li>No cap on active habits &mdash; free accounts track 5 at a time</li>
+                        <li>Every premium feature we ship later, included</li>
+                        <li>Yours for life, on every device you sign in on</li>
+                    </ul>
+                    <p class="founder-note">Available inside the app through Google Play. When 5,000 people have claimed it, the offer is gone.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="faq">
+            <div class="container">
+                <h2>Frequently asked questions</h2>
+                <div class="faq-item">
+                    <h3>Is Friends with Habits free?</h3>
+                    <p>Yes. Friends with Habits is free to download and free to use, with no waitlist, no invite code and no card. A free account tracks up to 5 active habits at a time, and archiving a habit you have finished with frees a slot back up.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>What is the founder free-for-life unlock?</h3>
+                    <p>The first 5,000 accounts can pay $20 once and never pay again. The founder unlock removes the 5-habit limit and includes every premium feature we add later, for life. There is no subscription attached to it and nothing to cancel. You buy it inside the app through Google Play, and once 5,000 people have claimed it the offer is gone for good.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>What is a pact?</h3>
+                    <p>A pact is a daily habit that you and a friend commit to together — a workout, a reading session, a meditation, a language lesson, anything you want to do every day. The pact holds the habit, the schedule, and the streak that the two of you share.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Do I need a friend to use the app?</h3>
+                    <p>Yes, and that is deliberate. A pact needs two people, so you invite a friend when you create one. Solo habit trackers let you quit in private, which is the failure mode this app exists to remove. If your friend has not installed the app yet, your invite link walks them through it.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>How do daily check-ins work?</h3>
+                    <p>Each day you check in on your pact and attach a photo or a short note as proof. Your partner sees the check-in, you see theirs, and the shared streak grows for every day you both show up. Miss a day and the streak resets for both of you.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Is Friends with Habits available on iPhone?</h3>
+                    <p>Not yet. Friends with Habits is on Android via Google Play today, and an iOS version is next on the roadmap. Your account works across every Therr app, so an account you create on Android will carry over.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Who makes Friends with Habits?</h3>
+                    <p>Friends with Habits is built by Therr, Inc., the company behind the <a href="https://www.therr.app/" rel="noopener">Therr app</a> for local discovery and community. The two apps share one account system, so a single Therr login works for both.</p>
+                </div>
             </div>
         </section>
     </main>
 
-    <footer class="site-footer">
-        <div class="container">
-            <div class="footer-links">
-                <a href="/privacy-policy">Privacy Policy</a>
-                <a href="/terms-of-service">Terms of Service</a>
-            </div>
-            <div>&copy; Therr Inc. &middot; Part of the Therr family of apps</div>
-        </div>
-    </footer>
+    {{> habitsFooter}}
 </body>
 </html>

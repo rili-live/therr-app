@@ -120,7 +120,6 @@ const accessAndModifyCampaign = (
                         adSetResults.forEach((adSetResult) => {
                             if (adSetResult.status === 'fulfilled') {
                                 adSetResult.value.forEach((adGroupResult, resultIdx) => {
-                                    // eslint-disable-next-line no-param-reassign
                                     adGroupsWithIntegs[resultIdx] = {
                                         ...adGroupsWithIntegs[resultIdx],
                                         ...(adGroupResult[resultIdx] || {}),
@@ -131,7 +130,6 @@ const accessAndModifyCampaign = (
                             }
                         });
 
-                        // eslint-disable-next-line max-len
                         const shouldSendEmailNotifications = (status === CampaignStatuses.REMOVED && fetchedCampaign.status !== CampaignStatuses.REMOVED)
                         || (status === CampaignStatuses.ACTIVE && fetchedCampaign.status !== CampaignStatuses.ACTIVE);
                         const isCampaignCompleted = Date.now() >= new Date(scheduleStopAt || fetchedCampaign.scheduleStopAt).getTime();

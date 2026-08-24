@@ -45,7 +45,6 @@ export interface ISearchActiveAreasByIdsParams {
     userLongitude?: number,
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ISearchBookmarkedAreasParams extends ISearchActiveAreasParams {}
 
 export interface ICreateEventReactionBody extends ICreateAreaReactionBody {

@@ -46,6 +46,16 @@
             margin: 0 auto;
             padding: 0 1.5rem;
         }
+        header.site-header .container {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+        header.site-header .brand-mark {
+            width: 2rem;
+            height: 2rem;
+            display: block;
+        }
         header.site-header .brand {
             font-weight: 800;
             font-size: 1.125rem;
@@ -136,9 +146,15 @@
             color: var(--habits-text-muted);
             font-size: 0.875rem;
         }
-        footer.site-footer a {
+        footer.site-footer .footer-links {
+            margin-bottom: 0.75rem;
+        }
+        footer.site-footer .footer-links a {
             margin: 0 0.5rem;
             color: var(--habits-text-muted);
+        }
+        footer.site-footer .footer-family {
+            margin-top: 0.5rem;
         }
         [hidden] { display: none !important; }
     </style>
@@ -146,6 +162,7 @@
 <body>
     <header class="site-header">
         <div class="container">
+            <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
             <span class="brand">Friends with Habits</span>
         </div>
     </header>
@@ -175,14 +192,7 @@
         </div>
     </main>
 
-    <footer class="site-footer">
-        <div class="container">
-            <a href="/">Home</a>
-            <a href="/privacy-policy">Privacy</a>
-            <a href="/terms-of-service">Terms</a>
-            <div style="margin-top: 0.75rem;">&copy; Therr Inc. &middot; Friends with Habits</div>
-        </div>
-    </footer>
+    {{> habitsFooter}}
 
     <script>
         (function () {
@@ -261,6 +271,14 @@
                     persistSession(out.body);
                     var userName = out.body && out.body.userName;
                     var dest = userName ? '/u/' + encodeURIComponent(userName) : '/';
+                    // Pages that need a session (e.g. /verify-phone) send the user here with
+                    // ?returnTo=. Only same-origin relative paths are honored: a lone leading
+                    // '/' with no second '/' or '\', which rejects '//evil.com' and
+                    // 'https://evil.com' rather than turning this into an open redirect.
+                    var returnTo = qs.get('returnTo');
+                    if (returnTo && /^\/(?![/\\])/.test(returnTo)) {
+                        dest = returnTo;
+                    }
                     window.location.assign(dest);
                 }).catch(function () {
                     showError('Network error. Try again in a moment.');

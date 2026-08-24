@@ -27,9 +27,15 @@ git fetch origin "$DIFF_BASE"
 # Get changed .ts and .js source files relative to the diff base
 # --diff-filter=d excludes deleted files (which don't exist in the working tree)
 # Exclude build artifacts, config files, and non-source directories
+# NOTE: the compiled-library exclusion is scoped to therr-public-library on purpose.
+# A bare `grep -v '/lib/'` also swallowed `_bin/lib/**`, which holds the deploy
+# pipeline's decision logic and its tests — so those files were never linted here even
+# once `_bin` had a config. The two library `lib/` trees are gitignored anyway, so they
+# cannot appear in a `git diff --name-only` in the first place; this stays only as a
+# guard against a build artifact that is ever committed by accident.
 CHANGED_FILES=$(git diff --name-only --diff-filter=d "origin/${DIFF_BASE}" -- '*.ts' '*.tsx' '*.js' '*.jsx' \
   | grep -v node_modules \
-  | grep -v '/lib/' \
+  | grep -v 'therr-public-library/[^/]*/lib/' \
   | grep -v '/build/' \
   | grep -v '.eslintrc' \
   | grep -v 'jest.config' \
@@ -48,6 +54,15 @@ printMessageNeutral "Found ${FILE_COUNT} changed file(s) to lint"
 printMessageNeutral "Installing dependencies for linting..."
 npm ci --legacy-peer-deps --ignore-scripts
 printMessageSuccess "Dependencies installed"
+
+# Unit tests for eslint-plugin-therr. These rules are the repo's architectural invariants
+# (brand-scoped table access, Knex builder footguns, migration idempotency) and nothing else
+# exercises them — a rule that silently stops matching keeps passing every lint run it is
+# part of. Runs here rather than in its own job because it needs the root install and
+# nothing else, so it is effectively free at this point in the script.
+printMessageNeutral "=== ESLint custom rule tests ==="
+npm run test:lint-rules
+printMessageSuccess "Custom rule tests passed"
 
 # Build shared libraries so eslint can resolve therr-react/* and therr-js-utilities/* imports
 # (lib/ directories are gitignored and must be built before linting consumers)
@@ -68,6 +83,10 @@ printMessageSuccess "Shared libraries built"
 # is a no-op (linting not yet configured for that package).
 # TherrMobile is included to match the local lint:changed behavior.
 declare -a PACKAGES=(
+  # The CI/CD helper scripts and their tests. `_bin/.eslintrc.js` (root: true) exists
+  # so these are lintable at all — before it, eslint aborted on them with "couldn't
+  # find a configuration file".
+  "_bin"
   "therr-api-gateway"
   "therr-services/push-notifications-service"
   "therr-services/maps-service"

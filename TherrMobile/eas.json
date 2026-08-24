@@ -7,6 +7,7 @@
     "therr-internal": {
       "distribution": "store",
       "environment": "production",
+      "node": "24.12.0",
       "android": {
         "image": "latest",
         "buildType": "app-bundle",

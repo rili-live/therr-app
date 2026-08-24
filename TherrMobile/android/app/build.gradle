@@ -93,9 +93,25 @@ android {
         applicationId "app.therrmobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 438
-        versionName "3.11.0"
-        manifestPlaceholders = [GOOGLE_APIS_ANDROID_KEY: "${System.getenv("GOOGLE_APIS_ANDROID_KEY")}"]
+        versionCode 451
+        versionName "3.16.0"
+        // App Links hosts for the autoVerify intent-filter in AndroidManifest.xml.
+        // Keyed off applicationId (same pattern as the release signingConfig below) so a
+        // niche variant only has to change applicationId and the hosts follow.
+        //
+        // Every host listed here must serve /.well-known/assetlinks.json delegating to
+        // THIS applicationId — see therr-client-web/src/_static/.well-known/. A host whose
+        // assetlinks names a different package fails verification, and Android 12+ silently
+        // hands the link back to the browser instead of opening the app.
+        def appLinkHostsByAppId = [
+            'com.therr.habits': ['habits.therr.com', 'www.habits.therr.com'],
+        ]
+        def appLinkHosts = appLinkHostsByAppId.getOrDefault(applicationId, ['therr.com', 'www.therr.com'])
+        manifestPlaceholders = [
+            GOOGLE_APIS_ANDROID_KEY: "${System.getenv("GOOGLE_APIS_ANDROID_KEY")}",
+            appLinkHost: appLinkHosts[0],
+            appLinkHostWww: appLinkHosts[1],
+        ]
         vectorDrawables.useSupportLibrary = true
     }
     signingConfigs {

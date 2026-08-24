@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UsersService } from 'therr-react/services';
 import { BrandVariations } from 'therr-js-utilities/constants';
+import getReturnTo from '../utilities/getReturnTo';
 
 // Persists the handoff/login result and reloads so the Redux store
 // re-initializes from storage on the dashboard's normal boot path.
@@ -9,14 +10,17 @@ const persistAndEnter = (
     userData: Record<string, any>,
     refreshToken: string | null,
     rememberMe: boolean,
+    returnTo: string,
 ) => {
     const storage = rememberMe ? localStorage : sessionStorage;
     storage.setItem('therrUser', JSON.stringify(userData));
     if (refreshToken) {
         storage.setItem('therrRefreshToken', refreshToken);
     }
-    // Full reload so the Redux store re-initializes from storage
-    window.location.href = '/dashboard';
+    // Full reload so the Redux store re-initializes from storage. `returnTo` lets a
+    // linking site (e.g. the /api-access page) land the user on the exact page they
+    // asked for instead of dropping everyone on the dashboard overview.
+    window.location.href = returnTo;
 };
 
 const SSOLanding = () => {
@@ -27,6 +31,7 @@ const SSOLanding = () => {
         const params = new URLSearchParams(location.search);
         const rememberMe = params.get('rm') === '1';
         const code = params.get('code');
+        const returnTo = getReturnTo(location.search);
 
         // Preferred path: exchange a single-use handoff code for a fresh,
         // dashboard-branded session. The code is the only credential in the URL
@@ -51,10 +56,13 @@ const SSOLanding = () => {
                         },
                         data.refreshToken,
                         rememberMe,
+                        returnTo,
                     );
                 })
                 .catch(() => {
-                    navigate('/login');
+                    // Carry the destination through the login detour so a failed or expired
+                    // handoff still ends where the user was headed.
+                    navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`);
                 });
             return;
         }
@@ -65,7 +73,7 @@ const SSOLanding = () => {
         const token = params.get('token');
         const userId = params.get('userId');
         if (!token || !userId) {
-            navigate('/login');
+            navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`);
             return;
         }
 
@@ -88,6 +96,7 @@ const SSOLanding = () => {
             },
             params.get('rt') || null,
             rememberMe,
+            returnTo,
         );
     }, []);
 

@@ -7,6 +7,7 @@ import {
     ISearchQuery,
     IUserState,
 } from '../types';
+import type { IUserAcquisition } from '../utilities/attribution';
 
 interface ILoginCredentials {
     userName: string;
@@ -42,6 +43,11 @@ interface IRegisterCredentials {
     // Short-lived proof of phone ownership from POST /v1/phone/register/verify. When present,
     // the account is created already phone-verified and `password` may be omitted.
     phoneVerificationToken?: string;
+    // Where this signup came from — captured on first landing by
+    // `utilities/attribution` and written to `main.userAcquisition`. Advisory
+    // telemetry only: a malformed or absent value must never fail a
+    // registration, and nothing here may grant access.
+    userAcquisition?: IUserAcquisition;
 }
 
 export interface ISearchUsersArgs {
@@ -85,6 +91,12 @@ interface ICreateThoughtBody {
     locale: string;
     isPublic?: boolean;
     isRepost?: boolean;
+    /**
+     * Id of the thought being re-shared. The server derives `isRepost` from this, so sending
+     * `isRepost` alone creates an ordinary post. An empty `message` is a plain repost; a
+     * non-empty one is a quote repost.
+     */
+    repostThoughtId?: string;
     message: string;
     mediaIds?: string;
     mentionsIds?: string;
@@ -95,14 +107,27 @@ interface ICreateThoughtBody {
 interface IGetThoughtDetailsArgs {
     withUser?: boolean;
     withReplies?: boolean;
+    /**
+     * Attaches `thought.parent` (author + message snippet) when the thought is a reply, so the
+     * details view can show it belongs to a thread and link back up to it.
+     */
+    withParent?: boolean;
 }
 
 interface IDeleteThoughtsBody {
     ids: string[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ISearchThoughtsArgs {}
+
+export interface ICreateCheckoutSessionArgs {
+    /** One of the dashboard's plan slugs: basic | advanced | pro. */
+    plan: string;
+    billingPeriod?: 'monthly' | 'annual';
+    /** Same-origin path to return to if the buyer abandons checkout. */
+    cancelPath?: string;
+    userAcquisition?: IUserAcquisition;
+}
 
 export interface ISocialSyncs {
     syncs: {
@@ -441,6 +466,21 @@ class UsersService {
     activateSubscription = (sessionId: string) => axios({
         method: 'post',
         url: `/users-service/payments/checkout/sessions/${sessionId}`,
+    });
+
+    /**
+     * Start a Stripe Checkout Session and get back the URL to send the browser
+     * to. Navigate in the *same tab*: the returning `/payment-complete` page is
+     * where the GA4 `purchase` event fires, and a new tab is a new GA4 session
+     * with no memory of the campaign that produced the sale.
+     *
+     * `userAcquisition` is copied into the session's Stripe metadata so the
+     * campaign survives independently of the browser session.
+     */
+    createCheckoutSession = (data: ICreateCheckoutSessionArgs) => axios({
+        method: 'post',
+        url: '/users-service/payments/checkout/sessions',
+        data,
     });
 
     createCustomerPortalSession = (returnUrl?: string) => axios({

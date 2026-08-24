@@ -8,6 +8,9 @@ const utilities = [
     // Constants
     'constants/index',
 
+    // Content Ranking (user-selectable feed algorithms)
+    'content-ranking/index',
+
     // Database Helpers
     'db/index',
 
@@ -32,6 +35,7 @@ const utilities = [
 
     // Utilities
     'calculate-pages',
+    'content',
     'email-validator',
     'format-sql-join-as-json',
     'http-response',

@@ -26,7 +26,12 @@ import AccountPickerModal, { IPickableAccount } from '../../components/Modals/Ac
 import { ITherrThemeColors } from '../../styles/themes';
 import OrDivider from '../../components/Input/OrDivider';
 import TherrIcon from '../../components/TherrIcon';
-import { isLikelyPhoneNumber, toDialableNumber } from '../../utilities/authIdentifier';
+import {
+    IdentifierKeyboard,
+    isLikelyPhoneNumber,
+    resolveIdentifierKeyboard,
+    toDialableNumber,
+} from '../../utilities/authIdentifier';
 import {
     forgetProfile,
     getRememberedProfiles,
@@ -50,7 +55,7 @@ export interface ISSOUserDetails {
  * Which step of the passwordless flow is on screen. `password` is the default and covers
  * email/username sign-in; the two `code` states are only reachable from a phone number.
  */
-type LoginMode = 'password' | 'awaitingCode' | 'selectingAccount';
+export type LoginMode = 'password' | 'awaitingCode' | 'selectingAccount';
 
 // Regular component props
 interface ILoginFormProps {
@@ -65,6 +70,12 @@ interface ILoginFormProps {
      * signed in — doesn't land on an empty form.
      */
     prefillIdentifier?: string;
+    /**
+     * Fires whenever the flow moves between steps. The screen uses it to take down pre-login
+     * chrome that would destroy an in-flight sign-in — see the note on the language selector
+     * in `Login/index.tsx`.
+     */
+    onModeChange?: (mode: LoginMode) => void;
     userMessage?: string;
     userSettings: any;
     themeAlerts: {
@@ -96,6 +107,23 @@ interface ILoginFormState {
     selectableAccounts: IPickableAccount[];
     phoneVerificationToken: string;
     activeProfileId: string;
+    /**
+     * Soft keyboard for the identifier field, locked for the current editing session.
+     *
+     * Held in state rather than derived on every render because re-deriving it from the
+     * field's contents is exactly the bug: on Android, changing `keyboardType` while the
+     * input has focus tears down the IME and raises a different one, so a user typing their
+     * phone number watched the alphabet keyboard become a number pad partway through. It is
+     * set once — when the field goes from empty to non-empty, or when a whole identifier is
+     * seeded from a remembered profile — and cleared only when the field is emptied.
+     */
+    identifierKeyboard: IdentifierKeyboard;
+    /**
+     * Whether the user picked the keyboard themselves via the toggle, which suppresses the
+     * automatic pick. Without this, tapping "use the number keypad" on an empty field would
+     * be undone by the very next keystroke.
+     */
+    isIdentifierKeyboardUserChosen: boolean;
 }
 
 /**
@@ -129,6 +157,8 @@ export class LoginFormComponent extends React.Component<
             selectableAccounts: [],
             phoneVerificationToken: '',
             activeProfileId: '',
+            identifierKeyboard: resolveIdentifierKeyboard(props.prefillIdentifier) || 'default',
+            isIdentifierKeyboardUserChosen: false,
         };
 
         // Read from `this.props` so labels re-translate when the pre-login locale changes.
@@ -146,18 +176,26 @@ export class LoginFormComponent extends React.Component<
      * the constructor does not run a second time. Without this the number is silently dropped
      * and the user has to retype the one they just verified.
      */
-    componentDidUpdate(prevProps: ILoginFormProps) {
+    componentDidUpdate(prevProps: ILoginFormProps, prevState: ILoginFormState) {
         const { prefillIdentifier } = this.props;
 
+        if (prevState.mode !== this.state.mode) {
+            this.props.onModeChange?.(this.state.mode);
+        }
+
         if (prefillIdentifier && prefillIdentifier !== prevProps.prefillIdentifier) {
-            this.setState((prevState) => ({
+            this.setState((currentState) => ({
                 // `mode` back to the identifier step: `isPhoneModeActive` derives the SMS
                 // affordance from the identifier itself, so a phone number lands one tap
                 // from a code without any extra state.
-                inputs: { ...prevState.inputs, userName: prefillIdentifier, password: '' },
+                inputs: { ...currentState.inputs, userName: prefillIdentifier, password: '' },
                 activeProfileId: '',
                 mode: 'password',
                 prevLoginError: '',
+                // A whole identifier arriving at once is the one moment the keyboard can be
+                // re-picked without interrupting anyone: the field was not being typed into.
+                identifierKeyboard: resolveIdentifierKeyboard(prefillIdentifier) || 'default',
+                isIdentifierKeyboardUserChosen: false,
             }));
         }
     }
@@ -176,13 +214,20 @@ export class LoginFormComponent extends React.Component<
                 return;
             }
 
-            this.setState((prevState) => ({
-                rememberedProfiles,
-                activeProfileId: mostRecent && !prevState.inputs.userName ? mostRecent.id : prevState.activeProfileId,
-                inputs: (mostRecent && !prevState.inputs.userName)
-                    ? { ...prevState.inputs, userName: mostRecent.identifier }
-                    : prevState.inputs,
-            }));
+            this.setState((prevState) => {
+                const isSeeding = !!mostRecent && !prevState.inputs.userName;
+
+                return {
+                    rememberedProfiles,
+                    activeProfileId: isSeeding ? mostRecent.id : prevState.activeProfileId,
+                    inputs: isSeeding
+                        ? { ...prevState.inputs, userName: mostRecent.identifier }
+                        : prevState.inputs,
+                    identifierKeyboard: (isSeeding && !prevState.isIdentifierKeyboardUserChosen)
+                        ? (resolveIdentifierKeyboard(mostRecent.identifier) || 'default')
+                        : prevState.identifierKeyboard,
+                };
+            });
         })
         .catch(() => { /* a missing cache just means no pre-fill */ });
 
@@ -483,6 +528,8 @@ export class LoginFormComponent extends React.Component<
             isProfileSwitcherVisible: false,
             mode: 'password',
             prevLoginError: '',
+            identifierKeyboard: resolveIdentifierKeyboard(account.identifier) || 'default',
+            isIdentifierKeyboardUserChosen: false,
         }));
     };
 
@@ -498,6 +545,10 @@ export class LoginFormComponent extends React.Component<
                     inputs: wasActive
                         ? { ...prevState.inputs, userName: '', password: '' }
                         : prevState.inputs,
+                    // Emptying the field ends the editing session, so the next thing typed
+                    // gets to pick the keyboard again.
+                    identifierKeyboard: wasActive ? 'default' as IdentifierKeyboard : prevState.identifierKeyboard,
+                    isIdentifierKeyboardUserChosen: wasActive ? false : prevState.isIdentifierKeyboardUserChosen,
                 };
             });
         });
@@ -510,23 +561,55 @@ export class LoginFormComponent extends React.Component<
             isProfileSwitcherVisible: false,
             mode: 'password',
             prevLoginError: '',
+            identifierKeyboard: 'default',
+            isIdentifierKeyboardUserChosen: false,
+        }));
+    };
+
+    /**
+     * Explicit keyboard switch, exposed as a button beside the identifier field.
+     *
+     * The automatic pick reads the first character typed, which is right for the overwhelming
+     * majority but wrong — and inescapable — for an email or username that opens with a digit
+     * (`1234@…`): a phone pad has no letters, so without this the field could not be finished.
+     * A switch the user asked for is not the jarring kind, so this one is allowed to change
+     * the keyboard mid-entry.
+     */
+    toggleIdentifierKeyboard = () => {
+        this.setState((prevState) => ({
+            identifierKeyboard: prevState.identifierKeyboard === 'phone-pad' ? 'default' : 'phone-pad',
+            isIdentifierKeyboardUserChosen: true,
         }));
     };
 
     onInputChange = (name: string, value: string) => {
         const isIdentifierChange = name === 'userName';
 
-        this.setState((prevState) => ({
-            inputs: {
-                ...prevState.inputs,
-                [name]: value,
-            },
-            prevLoginError: '',
-            // Editing the identifier detaches it from the remembered profile it came from and
-            // invalidates any code already in flight.
-            activeProfileId: isIdentifierChange ? '' : prevState.activeProfileId,
-            mode: isIdentifierChange ? 'password' : prevState.mode,
-        }));
+        this.setState((prevState) => {
+            // Only the empty -> non-empty transition re-picks the keyboard. Once there is
+            // something in the field the choice is frozen, because swapping `keyboardType`
+            // on a focused Android input dismisses the IME and raises a new one — which is
+            // what made typing a phone number here feel like the app fighting you.
+            const wasEmpty = !(prevState.inputs.userName || '').trim();
+            const shouldRepickKeyboard = isIdentifierChange
+                && wasEmpty
+                && !prevState.isIdentifierKeyboardUserChosen;
+
+            return {
+                inputs: {
+                    ...prevState.inputs,
+                    [name]: value,
+                },
+                prevLoginError: '',
+                // Editing the identifier detaches it from the remembered profile it came from
+                // and invalidates any code already in flight.
+                activeProfileId: isIdentifierChange ? '' : prevState.activeProfileId,
+                mode: isIdentifierChange ? 'password' : prevState.mode,
+                identifierKeyboard: shouldRepickKeyboard
+                    ? (resolveIdentifierKeyboard(value) || 'default')
+                    : prevState.identifierKeyboard,
+            };
+        });
     };
 
     /**
@@ -597,18 +680,23 @@ export class LoginFormComponent extends React.Component<
      * password field or the "text me a code" button, depending on what was typed.
      */
     renderIdentifierStep() {
-        const { isSubmitting, rememberedProfiles } = this.state;
+        const { identifierKeyboard, isSubmitting, rememberedProfiles } = this.state;
         const { themeAlerts, themeAuthForm, themeForms } = this.props;
         const isPhoneMode = this.isPhoneModeActive();
         const hasRememberedProfiles = rememberedProfiles.length > 0;
+        // Keyboard and autofill hint come from the locked session choice, not from
+        // `isPhoneMode` — the latter flips the moment a seventh digit is typed, which is the
+        // right trigger for swapping the form below the field but the wrong one for swapping
+        // the keyboard out from under the person using it.
+        const isPhoneKeyboard = identifierKeyboard === 'phone-pad';
 
         return (
             <>
                 <RoundInput
                     autoCapitalize="none"
-                    autoComplete={isPhoneMode ? 'tel' : 'email'}
+                    autoComplete={isPhoneKeyboard ? 'tel' : 'email'}
                     autoCorrect={false}
-                    keyboardType={isPhoneMode ? 'phone-pad' : 'default'}
+                    keyboardType={identifierKeyboard}
                     placeholder={this.translate(
                         'forms.loginForm.labels.userName'
                     )}
@@ -617,29 +705,45 @@ export class LoginFormComponent extends React.Component<
                         this.onInputChange('userName', text)
                     }
                     rightIcon={
-                        hasRememberedProfiles
-                            ? (
-                                <Pressable
-                                    accessibilityRole="button"
-                                    accessibilityLabel={this.translate('forms.loginForm.labels.switchAccount')}
-                                    hitSlop={12}
-                                    onPress={this.toggleProfileSwitcher}
-                                    testID="login-profile-switcher"
-                                >
-                                    <MaterialIcon
-                                        name="expand-more"
-                                        size={26}
-                                        color={themeAlerts.colors.placeholderTextColorAlt}
-                                    />
-                                </Pressable>
-                            )
-                            : (
+                        <View style={localStyles.identifierIcons}>
+                            {/*
+                              * Shows the keyboard it will switch *to*, so it reads as an
+                              * action rather than a status icon. It replaces the old static
+                              * phone/person indicator, which said the same thing without
+                              * being any use to someone the automatic pick guessed wrong for.
+                              */}
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={this.translate(isPhoneKeyboard
+                                    ? 'forms.loginForm.labels.useLetterKeyboard'
+                                    : 'forms.loginForm.labels.useNumberKeypad')}
+                                hitSlop={12}
+                                onPress={this.toggleIdentifierKeyboard}
+                                testID="login-keyboard-toggle"
+                            >
                                 <MaterialIcon
-                                    name={isPhoneMode ? 'smartphone' : 'person'}
+                                    name={isPhoneKeyboard ? 'keyboard' : 'dialpad'}
                                     size={24}
                                     color={themeAlerts.colors.placeholderTextColorAlt}
                                 />
-                            )
+                            </Pressable>
+                            {
+                                hasRememberedProfiles &&
+                                    <Pressable
+                                        accessibilityRole="button"
+                                        accessibilityLabel={this.translate('forms.loginForm.labels.switchAccount')}
+                                        hitSlop={12}
+                                        onPress={this.toggleProfileSwitcher}
+                                        testID="login-profile-switcher"
+                                    >
+                                        <MaterialIcon
+                                            name="expand-more"
+                                            size={26}
+                                            color={themeAlerts.colors.placeholderTextColorAlt}
+                                        />
+                                    </Pressable>
+                            }
+                        </View>
                     }
                     themeForms={themeForms}
                     containerStyle={{ marginBottom: 14 }}
@@ -868,6 +972,11 @@ const localStyles = StyleSheet.create({
         fontSize: fontSizes.sm,
         textAlign: 'center',
         marginBottom: space.md,
+    },
+    identifierIcons: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: space.xs,
     },
 });
 

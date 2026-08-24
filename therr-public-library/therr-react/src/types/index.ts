@@ -27,6 +27,12 @@ import {
     IStreakHistory,
     IHabitsState,
     HabitsActionTypes,
+    IUserHabit,
+    IUserHabitEligibility,
+    IJournalEntry,
+    IJournalFeedItem,
+    IHabitsLifetimePurchase,
+    IHabitsLifetimeOffer,
 
     // Messages
     MessageActionTypes,
@@ -50,6 +56,7 @@ import {
     ISocketDetails,
     IUserState,
     IMobileThemeName,
+    IContentAlgorithmName,
 
     // User Connections
     IUserConnection,
@@ -121,6 +128,12 @@ export {
     IStreakHistory,
     IHabitsState,
     HabitsActionTypes,
+    IUserHabit,
+    IUserHabitEligibility,
+    IJournalEntry,
+    IJournalFeedItem,
+    IHabitsLifetimePurchase,
+    IHabitsLifetimeOffer,
 
     // Maps
     IMapState,
@@ -148,6 +161,7 @@ export {
     ISocketDetails,
     IUserState,
     IMobileThemeName,
+    IContentAlgorithmName,
 
     // User Connections
     IUserConnection,

@@ -99,9 +99,16 @@ The module resolution is complex due to the monorepo. Understanding this prevent
    - `shared/*` -> root `node_modules/*`
 
 4. **Patches** (`patches/`, applied via `postinstall`):
-   - `react-native+0.80.0.patch`
+   - `react-native+0.83.6.patch`
+   - `react-native-screens+4.24.0.patch`
+   - `react-native-worklets+0.8.1.patch`
    - `@react-native-community+slider+5.1.2.patch`
    - `react-native-tab-view+3.5.2.patch`
+
+   Patch filenames pin an **exact** version. When you bump a patched package the
+   patch stops applying — regenerate it rather than renaming the file. Run
+   `/mobile-dep-guard` after any dependency change; it cross-checks every patch
+   against the installed (or lockfile-resolved) version.
 
 **When adding a new shared library dependency**: Add it to root `package.json`, then ensure Metro can find it via `extraNodeModules` or the Proxy fallback.
 
@@ -198,5 +205,37 @@ Before completing changes:
 npm run lint:fix   # Auto-fix
 npm run lint       # Verify zero errors
 ```
+
+Type-checking here is a **baseline** gate, not a zero-error gate — the app carries a
+backlog of errors inherited from the RN 0.83 upgrade. Run `npm run pr:tsc-baseline:mobile`
+from the repo root; it fails only on error signatures absent from
+`TherrMobile/.tsc-baseline`. That file is the authority on the count — read it rather
+than trusting a number quoted in prose, which drifts every time errors are fixed. Never
+run the baseline script with `--update` to clear a failure.
+
+### The baseline reports one error that is not yours
+
+`react-native-background-geolocation` is a licensed package. It is declared in
+`TherrMobile/package.json` but will not install without credentials, so on most dev
+machines it is simply absent from `node_modules` and the baseline check reports:
+
+```
+TherrMobile/main/components/Layout.tsx  TS2307  Cannot find module 'react-native-background-geolocation'
+```
+
+That is an artifact of the local install, not a regression, and it is **not** in the
+baseline because CI installs the package successfully. Confirm it by checking whether the
+package resolves — `ls TherrMobile/node_modules/react-native-background-geolocation` — and
+whether `Layout.tsx` is even in your diff. If that is the only signature reported, treat
+the check as passing and say so; do not add it to the baseline, and do not add an ambient
+declaration to paper over it, which would also hide a genuinely missing dependency.
+
+Three mobile-specific skills cover what lint and tsc cannot:
+
+| Skill | When |
+|---|---|
+| `/mobile-crash-guard` | After changing anything under `main/**` — audits for runtime-only failure classes (native modules at import time, missing effect cleanup, unguarded nav params and API fields, safe-area/system-bar regressions) |
+| `/mobile-dep-guard` | After adding, upgrading, or removing a dependency — checks the Metro/Babel/tsconfig/Jest/patch-package wiring matrix that silently breaks on device |
+| `/mobile-release-preflight` | Before cutting an EAS or Gradle release build — brand/branch agreement, version bump, patch drift, deprecated Android 15 APIs, locale parity |
 
 See root `CLAUDE.md` for full requirements.

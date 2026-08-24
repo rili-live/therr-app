@@ -124,21 +124,51 @@ export default class PactsStore {
     }
 
     /**
-     * Counts pacts this user has created (not joined as partner) that are
-     * still in flight — pending invitation or active. Used to enforce the
-     * HABITS free-tier limit so that pacts they're invited to don't count
-     * against their cap.
+     * The active pacts a user's check-in on a given habit goal counts toward.
+     *
+     * Clients log a check-in against a habit goal, never a pact — the pact is
+     * a property of the goal — so this is how the check-in flow finds the
+     * pacts to credit and the partners to notify. A goal can back more than
+     * one active pact (a group pact plus a 1:1, say), hence the plural.
+     *
+     * Membership is the source of truth, with the same creator/partner
+     * fallback as getByUserId — but only for 1:1 pacts that pre-date
+     * pact_members and so have no member row to consult. Where a member row
+     * does exist it decides on its own, because the creator/partner columns
+     * outlive membership: declining an already-active 1:1 pact marks the
+     * member `left` while `pacts.partnerUserId` keeps pointing at them, and
+     * consulting the column as an alternative would go on crediting their
+     * check-ins to the pact they left (and pushing "your partner checked in"
+     * to the creator). The join is already scoped to this user, so a null
+     * member id means "no row for them", not "no rows at all".
+     *
+     * Ordered by startDate so callers that must pick a single pact (the
+     * singular habit_checkins.pactId column) pick deterministically.
      */
-    countOpenByCreator(creatorUserId: string): Promise<number> {
+    getActiveByUserAndHabitGoal(userId: string, habitGoalId: string) {
         const queryString = knexBuilder
+            .distinct(`${PACTS_TABLE_NAME}.*`)
             .from(PACTS_TABLE_NAME)
-            .count('* as count')
-            .where('creatorUserId', creatorUserId)
-            .whereIn('status', ['pending', 'active'])
-            .toString();
+            .leftJoin(PACT_MEMBERS_TABLE_NAME, function joinMembers() {
+                this.on(`${PACT_MEMBERS_TABLE_NAME}.pactId`, '=', `${PACTS_TABLE_NAME}.id`)
+                    .andOn(`${PACT_MEMBERS_TABLE_NAME}.userId`, '=', knexBuilder.raw('?', [userId]));
+            })
+            .where(`${PACTS_TABLE_NAME}.habitGoalId`, habitGoalId)
+            .andWhere(`${PACTS_TABLE_NAME}.status`, 'active')
+            .andWhere((builder) => {
+                builder.where(`${PACT_MEMBERS_TABLE_NAME}.status`, 'active')
+                    .orWhere((legacy) => {
+                        legacy.whereNull(`${PACT_MEMBERS_TABLE_NAME}.id`)
+                            .andWhere((participant) => {
+                                participant.where(`${PACTS_TABLE_NAME}.creatorUserId`, userId)
+                                    .orWhere(`${PACTS_TABLE_NAME}.partnerUserId`, userId);
+                            });
+                    });
+            })
+            .orderBy(`${PACTS_TABLE_NAME}.startDate`, 'asc');
 
-        return this.db.read.query(queryString)
-            .then((response) => parseInt(response.rows[0]?.count || '0', 10));
+        return this.db.read.query(queryString.toString())
+            .then((response) => response.rows);
     }
 
     getPendingInvitesForUser(userId: string) {

@@ -4,6 +4,8 @@ import {
     Paper, Text, Group, Badge, Stack, Anchor,
 } from '@mantine/core';
 import { formatDate } from '../../utilities/formatDate';
+import EmbeddedThought from '../EmbeddedThought';
+import useTranslation from '../../hooks/useTranslation';
 
 interface IThoughtCardProps {
     locale: string;
@@ -12,6 +14,7 @@ interface IThoughtCardProps {
 }
 
 const ThoughtCard: React.FC<IThoughtCardProps> = ({ locale, thought, onThoughtClick }) => {
+    const { t: translate } = useTranslation();
     const hashTags = thought.hashTags ? thought.hashTags.split(',').filter(Boolean) : [];
     const thoughtUrl = `/thoughts/${thought.id}`;
 
@@ -42,7 +45,9 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({ locale, thought, onThoughtCl
                 <Stack gap="xs">
                     <Group justify="space-between" align="center">
                         <Text size="xs" c="dimmed">
-                            {formatDate(thought.createdAt, locale)}
+                            {thought.isRepost
+                                ? translate('pages.exploreThoughts.repostedBy', { userName: thought.fromUserName || '' })
+                                : formatDate(thought.createdAt, locale)}
                         </Text>
                         {thought.category && (
                             <Badge variant="light" size="sm">
@@ -53,6 +58,13 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({ locale, thought, onThoughtCl
                     <Text size="sm" style={{ whiteSpace: 'pre-wrap' }} lineClamp={4}>
                         {thought.message}
                     </Text>
+                    {/*
+                        A plain repost has an empty message, so without the embed this card would
+                        render as a blank tile on the author's profile. Non-interactive because the
+                        whole card is an <a>: stopping React's synthetic event does not stop the
+                        browser following the enclosing anchor.
+                    */}
+                    {thought.isRepost && <EmbeddedThought repostOf={thought.repostOf} isInteractive={false} />}
                     {hashTags.length > 0 && (
                         <Group gap={4} wrap="wrap">
                             {hashTags.slice(0, 5).map((tag: string) => (

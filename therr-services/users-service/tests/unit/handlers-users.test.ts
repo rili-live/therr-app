@@ -1,4 +1,3 @@
-/* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { AccessLevels, UserConnectionTypes } from 'therr-js-utilities/constants';
@@ -9,7 +8,7 @@ import {
     isUserProfileIncomplete,
     redactUserCreds,
 } from '../../src/handlers/helpers/user';
-import { getMe, updateUser } from '../../src/handlers/users';
+import { getMe, updateUser, updateUserCoins } from '../../src/handlers/users';
 
 // Minimal Express res double that captures the status + payload getMe sends.
 const makeRes = () => {
@@ -383,6 +382,70 @@ describe('Users Handler', () => {
             expect(parsed).to.include(AccessLevels.EMAIL_VERIFIED);
             expect(parsed).to.not.include(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
         });
+
+        // MOBILE_VERIFIED is evidence that one *specific* number passed the SMS flow, so it
+        // must not survive that number being edited to an arbitrary new one via a plain
+        // profile save.
+        it('revokes MOBILE_VERIFIED when the phone number changes', () => {
+            const result = computeAccessLevelsAfterProfileUpdate(
+                [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+                false,
+                true,
+            );
+            const parsed = JSON.parse(result as string);
+            expect(parsed).to.not.include(AccessLevels.MOBILE_VERIFIED);
+            expect(parsed).to.include(AccessLevels.EMAIL_VERIFIED);
+            expect(parsed).to.include(AccessLevels.DEFAULT);
+        });
+
+        it('keeps MOBILE_VERIFIED when the phone number is unchanged', () => {
+            const result = computeAccessLevelsAfterProfileUpdate(
+                [AccessLevels.DEFAULT, AccessLevels.MOBILE_VERIFIED],
+                false,
+                false,
+            );
+            expect(result).to.be.eq(undefined);
+        });
+
+        it('returns undefined on a phone change when MOBILE_VERIFIED was never held', () => {
+            // No transition means no accessLevels write at all — an unverified user editing
+            // their number must not cause a pointless column update.
+            const result = computeAccessLevelsAfterProfileUpdate(
+                [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED],
+                false,
+                true,
+            );
+            expect(result).to.be.eq(undefined);
+        });
+
+        it('applies both transitions at once: profile completed and number changed', () => {
+            const result = computeAccessLevelsAfterProfileUpdate(
+                [
+                    AccessLevels.DEFAULT,
+                    AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES,
+                    AccessLevels.MOBILE_VERIFIED,
+                ],
+                false,
+                true,
+            );
+            const parsed = JSON.parse(result as string);
+            expect(parsed).to.include(AccessLevels.EMAIL_VERIFIED);
+            expect(parsed).to.not.include(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+            expect(parsed).to.not.include(AccessLevels.MOBILE_VERIFIED);
+        });
+
+        it('revokes MOBILE_VERIFIED on a phone change even when the profile is incomplete', () => {
+            // The two transitions are independent: an incomplete profile suppresses the
+            // EMAIL_VERIFIED upgrade but must not suppress the revocation.
+            const result = computeAccessLevelsAfterProfileUpdate(
+                [AccessLevels.DEFAULT, AccessLevels.MOBILE_VERIFIED],
+                true,
+                true,
+            );
+            const parsed = JSON.parse(result as string);
+            expect(parsed).to.not.include(AccessLevels.MOBILE_VERIFIED);
+            expect(parsed).to.include(AccessLevels.DEFAULT);
+        });
     });
 
     describe('redactUserCreds helper', () => {
@@ -683,6 +746,154 @@ describe('Users Handler', () => {
             expect(res.statusCode).to.equal(202);
             expect(updateStub.calledOnce).to.equal(true);
             expect(lookupStub.called).to.equal(false);
+        });
+    });
+
+    describe('updateUser phone-verification gate', () => {
+        // A profile save could previously move `phoneNumber` to any value while the account
+        // kept the MOBILE_VERIFIED level the *old* number earned — so phone-gated actions
+        // stayed unlocked against a number nobody ever verified.
+        const PHONE = '+1 317-555-1234';
+        const NEW_PHONE = '+1 317-555-9999';
+
+        const stubUpdateChain = () => {
+            const updateStub = sinon.stub(Store.users, 'updateUser').resolves([{ id: 'user-1' }] as any);
+            sinon.stub(Store.userOrganizations, 'get').resolves([] as any);
+            return updateStub;
+        };
+
+        const makeReq = (body: any) => ({
+            headers: { 'x-userid': 'user-1', 'x-brand-variation': 'therr' },
+            body,
+        });
+
+        it('revokes MOBILE_VERIFIED when the save changes the phone number', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1',
+                phoneNumber: PHONE,
+                userName: 'someone',
+                isBusinessAccount: false,
+                isCreatorAccount: false,
+                accessLevels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+            }] as any);
+            sinon.stub(Store.users, 'getAllByPhoneNumber').resolves([] as any);
+            const updateStub = stubUpdateChain();
+
+            const res = makeRes();
+            await updateUser(makeReq({ phoneNumber: NEW_PHONE }), res);
+
+            expect(res.statusCode).to.equal(202);
+            const writtenAccessLevels = JSON.parse(updateStub.firstCall.args[0].accessLevels);
+            expect(writtenAccessLevels).to.not.include(AccessLevels.MOBILE_VERIFIED);
+            expect(writtenAccessLevels).to.include(AccessLevels.EMAIL_VERIFIED);
+        });
+
+        it('leaves accessLevels untouched on a save that does not change the number', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1',
+                phoneNumber: PHONE,
+                userName: 'someone',
+                isBusinessAccount: false,
+                isCreatorAccount: false,
+                accessLevels: [AccessLevels.DEFAULT, AccessLevels.MOBILE_VERIFIED],
+            }] as any);
+            const updateStub = stubUpdateChain();
+
+            const res = makeRes();
+            await updateUser(makeReq({ settingsBio: 'a new bio' }), res);
+
+            expect(res.statusCode).to.equal(202);
+            expect(updateStub.firstCall.args[0].accessLevels).to.be.eq(undefined);
+        });
+
+        it('treats a reformatted but identical number as unchanged', async () => {
+            // The column holds two dialects (compact E.164 from profile edits, the gateway's
+            // display format from the verification flow). Comparing them raw would revoke
+            // verification on a save that changed nothing.
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1',
+                phoneNumber: PHONE,
+                userName: 'someone',
+                isBusinessAccount: false,
+                isCreatorAccount: false,
+                accessLevels: [AccessLevels.DEFAULT, AccessLevels.MOBILE_VERIFIED],
+            }] as any);
+            const updateStub = stubUpdateChain();
+
+            const res = makeRes();
+            await updateUser(makeReq({ phoneNumber: '+13175551234' }), res);
+
+            expect(res.statusCode).to.equal(202);
+            expect(updateStub.firstCall.args[0].accessLevels).to.be.eq(undefined);
+        });
+    });
+
+    describe('updateUserCoins', () => {
+        // Internal-only route (`PUT /users/:id/coins`, not registered in the gateway) whose
+        // sole caller is reactions-service and sends nothing but `settingsTherrCoinTotal`.
+        const makeReq = (body: any) => ({
+            headers: { 'x-userid': 'user-1', 'x-brand-variation': 'therr' },
+            body,
+        });
+
+        it('passes the reward through as a delta for the store to increment', async () => {
+            // Regression: the handler used to send `userSearchResults[0] + delta` — the whole
+            // user row, not the column — so the value stringified to "[object Object]<delta>",
+            // failed the store's `> 0` guard, and no coins were ever awarded.
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1', settingsPushBackground: true,
+            }] as any);
+            const updateStub = sinon.stub(Store.users, 'updateUser').resolves([{ id: 'user-1' }] as any);
+
+            const res = makeRes();
+            await updateUserCoins(makeReq({ settingsTherrCoinTotal: 5 }), res);
+
+            expect(res.statusCode).to.equal(202);
+            expect(updateStub.firstCall.args[0].settingsTherrCoinTotal).to.equal(5);
+        });
+
+        it('does not reward a user who has not opted in to background push', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1', settingsPushBackground: false,
+            }] as any);
+            const updateStub = sinon.stub(Store.users, 'updateUser').resolves([{ id: 'user-1' }] as any);
+
+            const res = makeRes();
+            await updateUserCoins(makeReq({ settingsTherrCoinTotal: 5 }), res);
+
+            expect(res.statusCode).to.equal(202);
+            expect(updateStub.called).to.equal(false);
+        });
+
+        it('ignores profile fields smuggled into the body', async () => {
+            // The handler used to build the same broad updateArgs as updateUser — phoneNumber,
+            // userName, media, deviceMobileFirebaseToken — with none of updateUser's guards.
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1', settingsPushBackground: true,
+            }] as any);
+            const updateStub = sinon.stub(Store.users, 'updateUser').resolves([{ id: 'user-1' }] as any);
+
+            const res = makeRes();
+            await updateUserCoins(makeReq({
+                settingsTherrCoinTotal: 5,
+                phoneNumber: '+1 317-555-1234',
+                userName: 'stolen-name',
+                accessLevels: JSON.stringify([AccessLevels.SUPER_ADMIN]),
+            }), res);
+
+            expect(res.statusCode).to.equal(202);
+            expect(updateStub.firstCall.args[0]).to.deep.equal({ settingsTherrCoinTotal: 5 });
+        });
+
+        it('responds 404 without writing when the user does not exist', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([] as any);
+            const updateStub = sinon.stub(Store.users, 'updateUser').resolves([] as any);
+
+            const res = makeRes();
+            await updateUserCoins(makeReq({ settingsTherrCoinTotal: 5 }), res);
+
+            expect(res.statusCode).to.equal(404);
+            expect(updateStub.called).to.equal(false);
         });
     });
 

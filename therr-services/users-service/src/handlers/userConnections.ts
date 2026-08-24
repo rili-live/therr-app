@@ -13,7 +13,7 @@ import * as globalConfig from '../../../../global-config';
 import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
-import translate from '../utilities/translator';
+import translate, { translateOptional } from '../utilities/translator';
 import { translateNotification } from './notifications';
 import { createUserHelper } from './helpers/user';
 import sendContactInviteEmail from '../api/email/for-social/sendContactInviteEmail';
@@ -21,6 +21,7 @@ import twilioClient from '../api/twilio';
 import { createOrUpdateAchievement } from './helpers/achievements';
 import { parseConfigValue } from './config';
 import { IFindUsersByContactInfo } from '../store/UsersStore';
+import { getHostContext } from '../constants/hostContext';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { getInterestRanking, logShadowInterestRanking } from '../utilities/interestWeights';
 
@@ -43,7 +44,9 @@ const failsafeBlackListRequest = (email) => Store.blacklistedEmails.get({
 });
 
 // CREATE
-// TODO:RSERV-24: Security, get requestingUserId from user header token
+// RSERV-24 closed: `requestingUserId` still arrives in the body (the deployed mobile
+// app sends it and cannot be force-updated), but it is rejected below unless it matches
+// the `x-userid` header, so the body value can no longer be used to impersonate.
 const createUserConnection: RequestHandler = async (req: any, res: any) => {
     const {
         requestingUserId,
@@ -185,10 +188,15 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             }
 
             if (getResults.length && getResults[0].isConnectionBroken) {
-                // Re-create connection after unconnection
+                // Re-create connection after unconnection.
+                // Both sides of the WHERE must come from the row itself: the lookup above is
+                // reverse-checking, so the existing row is just as likely to be stored as
+                // (other -> me). Pairing the row's `requestingUserId` with `acceptingUser.id`
+                // then yielded `requestingUserId = X AND acceptingUserId = X`, which matches
+                // nothing — the update silently no-op'd and the re-connect never took.
                 connectionPromise = Store.userConnections.updateUserConnection({
                     requestingUserId: getResults[0].requestingUserId,
-                    acceptingUserId: acceptingUser.id as string,
+                    acceptingUserId: getResults[0].acceptingUserId,
                 }, {
                     isConnectionBroken: false,
                     requestStatus: UserConnectionTypes.PENDING,
@@ -425,7 +433,19 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
         // row, so an old link can't be reused after a new invite. Existing-user
         // invites are tracked separately below (they get in-app connection
         // requests, not magic links).
-        const hostFull = `${globalConfig[process.env.NODE_ENV].hostFull}`;
+        // Invite links must land on the host that belongs to the brand that sent them. A niche
+        // app with its own subdomain sets `appHostFull`, and `habitsSubdomainRoutes` exists
+        // specifically to serve `/invite/link/:token` there; without this, a Friends with
+        // Habits invite bounced the recipient to therr.com. Brands with no subdomain of their
+        // own keep falling back to the global host — note this deliberately does NOT fall back
+        // to `parentHomepageUrl` the way the pact flow does, because for Therr that resolves to
+        // the marketing site (therr.app), which does not serve this route.
+        const contextConfig = getHostContext(whiteLabelOrigin, brandVariation);
+        const hostFull = contextConfig.emailTemplates.appHostFull
+            || `${globalConfig[process.env.NODE_ENV].hostFull}`;
+
+        // Only Therr ships a tagline; every other brand renders the short form.
+        const brandTagline = translateOptional(locale, `invites.phoneTaglines.${brandVariation}`) ?? '';
         const emailInvitesToPersist = sendableEmailContacts.map((contact) => ({
             requestingUserId: userId,
             email: contact.email,
@@ -456,7 +476,6 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
 
         // 3. Send email invites (with magic link) to non-existent, dedupe-filtered users
         const emailSendPromises: any[] = persistedEmailInvites.map((invite) => sendContactInviteEmail({
-            subject: `${requestingUserFirstName} ${requestingUserLastName} invited you to Therr app`,
             locale,
             toAddresses: [invite.email as string],
             agencyDomainName: whiteLabelOrigin,
@@ -473,6 +492,10 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             .create({
                 body: translate(locale, 'invites.phone', {
                     name: `${requestingUserFirstName} ${requestingUserLastName}`,
+                    // `brandShortName`, not `brandName`: for Therr the latter is "Therr App",
+                    // which would read "invited you to Therr App — the local community…".
+                    brandName: contextConfig.brandShortName,
+                    brandTagline,
                     inviteUrl: `${hostFull}/invite/link/${invite.token}`,
                 }),
                 to: invite.phoneNumber as string, // Text this number
@@ -671,21 +694,47 @@ const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
 };
 
 // READ
-const getUserConnection = (req, res) => Store.userConnections.getUserConnections({
-    requestingUserId: req.params.requestingUserId,
-    acceptingUserId: Number(req.query.acceptingUserId),
-})
-    .then((results) => {
-        if (!results.length) {
-            return handleHttpError({
-                res,
-                message: `No user connection found with id, ${req.params.id}.`,
-                statusCode: 404,
-            });
-        }
-        return res.status(200).send(results[0]);
+// `requestingUserId` is a route param, so without this guard any authenticated user could
+// read the connection row of any other pair. Matches the check in `createUserConnection`.
+/**
+ * Deliberately NOT brand-scoped. This reads a single connection by its
+ * (requestingUserId, acceptingUserId) pair — a targeted lookup, not discovery — and the
+ * guard below restricts it to pairs the caller is themselves a member of, so there is no
+ * id-walking path to another user's connections.
+ *
+ * Scoping it would break the case it exists for: a connection formed in one app is a fact
+ * about two identities, and `main.userConnections` records no brand. A user signed into
+ * Habits who is also a Therr user would get a 404 for a connection that demonstrably
+ * exists. Brand scoping belongs on discovery (searchUsers, searchUserPairings,
+ * findUsersByContactInfo), which is where a cross-brand result actually leaks accounts.
+ */
+const getUserConnection = (req, res) => {
+    const { locale, userId } = parseHeaders(req.headers);
+
+    if (`${req.params.requestingUserId}` !== `${userId}`) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.userConnections.mismatchTokenUserId'),
+            statusCode: 403,
+        });
+    }
+
+    return Store.userConnections.getUserConnections({
+        requestingUserId: req.params.requestingUserId,
+        acceptingUserId: Number(req.query.acceptingUserId),
     })
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
+        .then((results) => {
+            if (!results.length) {
+                return handleHttpError({
+                    res,
+                    message: `No user connection found with id, ${req.params.requestingUserId}.`,
+                    statusCode: 404,
+                });
+            }
+            return res.status(200).send(results[0]);
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
+};
 
 const getTopRankedConnections = (req, res) => {
     const {

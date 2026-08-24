@@ -121,6 +121,63 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             fontSize: 14,
             paddingLeft: 2,
         },
+        // Repost attribution line ("<user> reposted"), rendered above the card's own author row.
+        repostAttributionContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingLeft: 6,
+            paddingBottom: 2,
+        },
+        repostAttributionText: {
+            fontSize: 12,
+            fontWeight: '600',
+            paddingLeft: 6,
+            color: isDarkMode ? therrTheme.colorVariations.accentTextWhiteFade : therrTheme.colors.textGray,
+        },
+        // The embedded original inside a repost. Boxed rather than left-bordered (which is how
+        // a thread preview reads) so the two never look like the same relationship: a reply
+        // continues the post above it, an embed is a different post being quoted.
+        repostEmbedContainer: {
+            marginTop: 6,
+            marginBottom: 2,
+            padding: 10,
+            borderWidth: 1,
+            borderRadius: 10,
+            borderColor: isDarkMode ? therrTheme.colors.accentDivider : therrTheme.colorVariations.backgroundNeutral,
+        },
+        repostEmbedHeader: {
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingBottom: 4,
+        },
+        repostEmbedAvatarImg: {
+            height: 22,
+            width: 22,
+            borderRadius: 11,
+        },
+        repostEmbedUserName: {
+            fontSize: 13,
+            fontWeight: '600',
+            paddingLeft: 6,
+            color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
+        },
+        repostEmbedDateTime: {
+            fontSize: 11,
+            paddingLeft: 6,
+            color: isDarkMode ? therrTheme.colorVariations.accentTextWhiteFade : therrTheme.colors.textGray,
+        },
+        repostEmbedMessage: {
+            fontSize: 14,
+            color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
+        },
+        // Shown in place of the embed when the original is gone, out of brand, or hidden.
+        repostEmbedUnavailableText: {
+            fontSize: 13,
+            fontStyle: 'italic',
+            color: isDarkMode ? therrTheme.colorVariations.accentTextWhiteFade : therrTheme.colors.textGray,
+        },
         threadPreviewContainer: {
             display: 'flex',
             flexDirection: 'row',
@@ -218,6 +275,32 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             borderTopWidth: StyleSheet.hairlineWidth,
             borderTopColor: isDarkMode ? therrTheme.colors.accentDivider : therrTheme.colors.tertiary,
             backgroundColor: therrTheme.colors.accent1,
+        },
+        // "This post is a reply" banner, rendered above the post in the details view. Styled as a
+        // quoted block (left rule + muted text) so it reads as context rather than as the post.
+        parentThoughtContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 10,
+            marginHorizontal: 2,
+            paddingVertical: 8,
+            paddingHorizontal: 10,
+            borderRadius: 8,
+            backgroundColor: isDarkMode ? therrTheme.colors.accent1 : therrTheme.colorVariations.backgroundNeutral,
+        },
+        parentThoughtTextContainer: {
+            flex: 1,
+            paddingHorizontal: 8,
+        },
+        parentThoughtLabel: {
+            fontSize: 12,
+            fontWeight: '600',
+            paddingBottom: 2,
+            color: therrTheme.colors.brand,
+        },
+        parentThoughtMessage: {
+            fontSize: 14,
+            color: isDarkMode ? therrTheme.colorVariations.accentTextWhiteFade : therrTheme.colors.tertiary,
         },
         repliesDivider: {
             width: '100%',

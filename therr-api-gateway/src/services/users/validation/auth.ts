@@ -9,6 +9,14 @@ export const authenticateUserTokenValidation = [
 
 export const authenticateUserValidation = [
     body('rememberMe').optional().isBoolean(),
+    // Sent when an existing account signs in straight after a Stripe checkout — the dashboard's
+    // PaymentComplete redirects to `/login?paymentSessionId=`, and users-service reads it off the
+    // body to grant the plan's access level on the session it is about to issue.
+    // checkFalsy, not a bare .optional(): the dashboard builds the body with
+    // `urlParams.get('paymentSessionId')`, which yields **null** on an ordinary login rather than
+    // undefined. A bare .optional() only skips undefined, so isString() would run against null and
+    // 400 every sign-in that did not come from a checkout.
+    body('paymentSessionId').optional({ checkFalsy: true }).isString(),
     oneOf([
         [
             body('userName').exists().isString(),

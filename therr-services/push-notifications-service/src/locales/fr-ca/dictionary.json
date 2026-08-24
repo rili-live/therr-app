@@ -83,6 +83,11 @@
       "body": "{userName} a répondu à ta publication — regarde ce qu'il a dit",
       "pressActionView": "Voir la réponse"
     },
+    "newThoughtRepostReceived": {
+      "title": "Ta publication a été republiée",
+      "body": "{userName} a republié ta publication — elle rejoint un nouveau public",
+      "pressActionView": "Voir la publication"
+    },
     "newAreasActivated": {
       "title": "Nouveaux secteurs débloqués!",
       "body": "Tu viens de débloquer {totalAreasActivated} nouveau(x) secteur(s) — explore ce qui a été partagé à proximité"
@@ -171,6 +176,22 @@
     "eveningCheckIn": {
       "title": "Comment s'est passée ta journée?",
       "body": "Appuie pour enregistrer ton suivi et garantir un jour de plus dans ta série."
+    },
+    "habitEstablished": {
+      "title": "{habitName} commence à tenir",
+      "body": "{consistencyPercent}% de régularité sur {dayCount} jours. On espace les rappels quotidiens — celle-là, tu la maîtrises."
+    },
+    "habitAutomaticity": {
+      "title": "C'est devenu automatique",
+      "body": "{dayCount} jours de {habitName}. La recherche situe ici le moment où une habitude cesse d'exiger de la volonté. Rappels quotidiens désactivés — on te fera seulement signe de temps en temps."
+    },
+    "habitMaintenanceCheckIn": {
+      "title": "Bilan de {dayCount} jours",
+      "body": "Toujours fidèle à {habitName}? Tu es à {consistencyPercent}% de régularité depuis qu'on a espacé les rappels. Appuie pour confirmer que ça roule."
+    },
+    "habitComeback": {
+      "title": "Envie de relancer {habitName}?",
+      "body": "Tu l'as déjà tenue {bestStreakCount} jours — ça ne s'efface pas. Prêt à repartir sur une nouvelle série?"
     }
   },
   "validation": "Les paramètres requis n'ont pas été fournis."

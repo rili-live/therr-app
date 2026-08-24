@@ -62,13 +62,13 @@ async function querySpaces(db: Pool, args: ICliArgs) {
 
   if (args.mode === 'email') {
     conditions.push('"businessEmail" IS NULL');
-    conditions.push(`"websiteUrl" IS NOT NULL`);
-    conditions.push(`"websiteUrl" != ''`);
+    conditions.push('"websiteUrl" IS NOT NULL');
+    conditions.push('"websiteUrl" != \'\'');
   } else if (args.mode === 'website') {
-    conditions.push(`("websiteUrl" IS NULL OR "websiteUrl" = '')`);
+    conditions.push('("websiteUrl" IS NULL OR "websiteUrl" = \'\')');
   } else {
     // both: spaces missing either email or website
-    conditions.push(`("businessEmail" IS NULL OR "websiteUrl" IS NULL OR "websiteUrl" = '')`);
+    conditions.push('("businessEmail" IS NULL OR "websiteUrl" IS NULL OR "websiteUrl" = \'\')');
   }
 
   if (args.city !== 'all') {
@@ -86,7 +86,7 @@ async function querySpaces(db: Pool, args: ICliArgs) {
     paramIdx++;
   }
 
-  let query = `SELECT id, "notificationMsg", category, "websiteUrl", "businessEmail",
+  const query = `SELECT id, "notificationMsg", category, "websiteUrl", "businessEmail",
       "phoneNumber", "mediaIds", medias, "fromUserId",
       "addressStreetAddress", "addressLocality", "addressRegion", "postalCode"
     FROM main.spaces

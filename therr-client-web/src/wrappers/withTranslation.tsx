@@ -1,4 +1,3 @@
-/* eslint-disable react/display-name */
 /* eslint-disable arrow-body-style */
 import * as React from 'react';
 import { useSelector } from 'react-redux';

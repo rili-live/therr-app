@@ -72,7 +72,8 @@
     "reactionFailed": "Reaction Failed",
     "mediaUploadFailed": "Image Upload Failed",
     "tooManyAttempts": "Too Many Attempts",
-    "registerSuccess": "Account Created"
+    "registerSuccess": "Account Created",
+    "repostSuccess": "Reposted"
   },
   "alertMessages": {
     "activityCreated": "A new group and event was created. Invites sent to each group member.",
@@ -111,7 +112,11 @@
     "waitlistSuccess": "Check your e-mail to verify your account",
     "mediaUploadFailed": "Your image could not be uploaded. Please try again.",
     "tooManyAttempts": "Please wait a few minutes before trying again.",
-    "phoneRegisterSuccess": "Your phone is verified. Check your e-mail to confirm your address."
+    "phoneRegisterSuccess": "Your phone is verified. Check your e-mail to confirm your address.",
+    "repostSuccess": "This post now shows on your profile",
+    "repostFailed": "We could not repost this. Please try again.",
+    "repostDuplicate": "You already reposted this",
+    "repostRestricted": "Only the author can repost a post that isn't public"
   },
   "dateTime": {
     "lessThanHours": "< 1h",
@@ -394,12 +399,23 @@
       "buttons": {
         "accept": "Accept",
         "reject": "Reject",
-        "view": "View"
+        "view": "View",
+        "markRead": "Mark as read",
+        "markUnread": "Mark as unread"
       }
     },
     "thoughtDisplay": {
       "viewAllReplies": "View all {count} replies",
-      "viewReplies": "View {count} replies"
+      "viewReplies": "View {count} replies",
+      "likeThought": "Like this post",
+      "unlikeThought": "Remove like from this post",
+      "repostedBy": "{userName} reposted",
+      "repostThought": "Repost this post",
+      "repostUnavailable": "This post is no longer available",
+      "crossBrandLabels": {
+        "format": "{label}: {message}",
+        "habits": "Goals update"
+      }
     },
     "userMenu": {
       "buttons": {
@@ -417,36 +433,10 @@
       "dismiss": "Dismiss",
       "messageSingular": "Finish your profile — 1 step left"
     },
-    "profileCompletionCard": {
-      "title": "Finish your profile!",
+    "profileCompletionLink": {
+      "title": "Finish your profile",
       "stepsLeft": "{count} steps left",
-      "stepLeft": "1 step left",
-      "continue": "Continue",
-      "collapse": "Collapse checklist",
-      "expand": "Expand checklist",
-      "skipped": "Skipped — tap to do it now",
-      "steps": {
-        "name": {
-          "label": "Add your name",
-          "description": "So friends can recognize you"
-        },
-        "interests": {
-          "label": "Pick your interests",
-          "description": "We use these to show you better content"
-        },
-        "picture": {
-          "label": "Add a profile photo",
-          "description": "Profiles with photos get more connections"
-        },
-        "phone": {
-          "label": "Verify your phone",
-          "description": "Keeps your account secure"
-        },
-        "contacts": {
-          "label": "Sync your contacts",
-          "description": "Find friends who are already here"
-        }
-      }
+      "stepLeft": "1 step left"
     }
   },
   "forms": {
@@ -528,7 +518,9 @@
         "password": "Password",
         "userName": "Email/Phone/Username",
         "enterCode": "Enter your code",
-        "switchAccount": "Switch account"
+        "switchAccount": "Switch account",
+        "useNumberKeypad": "Use the number keypad",
+        "useLetterKeyboard": "Use the letter keyboard"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "invalidUsernamePassword": "Invalid username/password combination.",
@@ -867,7 +859,12 @@
       },
       "errorMessages": {
         "repeatPassword": "Passwords do not match",
-        "passwordInsecure": "New password does not meet minimum security requirements"
+        "passwordInsecure": "New password does not meet minimum security requirements",
+        "userNameRequired": "Username is required",
+        "firstNameRequired": "First name is required",
+        "lastNameRequired": "Last name is required",
+        "oldPasswordRequired": "Enter your current password to change it",
+        "newPasswordRequired": "Enter a new password, then repeat it below"
       },
       "labels": {
         "accountTypeLabel": "Account Type: ",
@@ -1242,7 +1239,8 @@
         "claimTitleInProgress": "{achievementClass}: {achievementTitle}",
         "alreadyClaimed": "You have already claimed rewards for this achievement",
         "unClaimed": "This achievement is complete! Go back and press 'claim rewards' to continue.",
-        "inProgressDescription": "You're almost there! Keep on keepin' on!"
+        "inProgressDescription": "You're almost there! Keep on keepin' on!",
+        "progressOf": "{count} of {total}"
       },
       "sections": {
         "unclaimed": "Claim Your Rewards",
@@ -1263,6 +1261,36 @@
         "all": "All",
         "moments": "Moments",
         "thoughts": "Thoughts"
+      }
+    },
+    "apiAccess": {
+      "headerTitle": "API Access",
+      "pageTitle": "Get a Therr API Key",
+      "intro": "API keys are managed on the Therr web dashboard. Here is what the process looks like.",
+      "steps": {
+        "one": {
+          "title": "Create a business account",
+          "description": "Sign up on the Therr dashboard with your business email. A personal Therr profile cannot generate API keys."
+        },
+        "two": {
+          "title": "Choose a plan",
+          "description": "Open Settings on the dashboard and pick a subscription. Every paid plan includes API access."
+        },
+        "three": {
+          "title": "Generate your key",
+          "description": "Go to Settings, then API Keys, and create a key. It is shown once, at creation — copy it somewhere safe."
+        },
+        "four": {
+          "title": "Start building",
+          "description": "Send your key as the x-api-key header on any request. The API reference covers every endpoint."
+        }
+      },
+      "statusEligible": "Your account can create API keys. Open the dashboard to manage them.",
+      "statusNotEligible": "You will need a business account with a paid plan to create API keys.",
+      "buttons": {
+        "manageKeys": "Manage API keys",
+        "openDashboard": "Open the web dashboard",
+        "viewDocs": "Read the API reference"
       }
     },
     "advancedSettings": {
@@ -1516,6 +1544,35 @@
         "pairingsDescription": "Perfect spots nearby to complete your outing at {spaceName}",
         "helpful": "Helpful",
         "notHelpful": "Not helpful"
+      },
+      "suggestEdit": {
+        "trigger": "Suggest an edit",
+        "title": "Suggest an edit",
+        "description": "Spotted incorrect info? Suggest a fix. We'll apply it once a few visitors agree.",
+        "fieldLabel": "What needs updating?",
+        "valueLabel": "Correct value",
+        "phoneOption": "Phone",
+        "websiteOption": "Website",
+        "phonePlaceholder": "(415) 555-1234",
+        "websitePlaceholder": "https://example.com",
+        "normalizedPreview": "Will be saved as",
+        "submit": "Submit",
+        "cancel": "Cancel",
+        "close": "Close",
+        "appliedMessage": "Thanks! Your correction has been applied.",
+        "pendingMessage": "Thanks! We need {remaining} more agreement(s) before applying this change.",
+        "ownerClaimedMessage": "Thanks! This business has an owner — we've forwarded your suggestion to them.",
+        "errorMessage": "Something went wrong submitting your suggestion. Please try again.",
+        "rateLimited": "You've submitted a lot of suggestions recently. Please try again later.",
+        "errors": {
+          "EMPTY_PHONE": "Please enter a phone number.",
+          "INVALID_PHONE": "That doesn't look like a valid phone number.",
+          "EMPTY_URL": "Please enter a website.",
+          "INVALID_URL": "That doesn't look like a valid website URL.",
+          "INVALID_FIELD_NAME": "That field can't be edited.",
+          "UNSUPPORTED_FIELD": "That field can't be edited.",
+          "SPACE_NOT_FOUND": "This space is no longer available."
+        }
       }
     },
     "viewMoment": {
@@ -1686,7 +1743,40 @@
       "headerTitle": "Notifications",
       "pageTitle": "Notifications",
       "noNotifications": "You have no notifications at this time",
-      "markAllRead": "Mark all read"
+      "markAllRead": "Mark all read",
+      "unreadCount": "{count} unread",
+      "caughtUp": "You're all caught up"
+    },
+    "profileCompletion": {
+      "headerTitle": "Finish Your Profile",
+      "title": "Finish your profile!",
+      "stepsLeft": "{count} steps left",
+      "stepLeft": "1 step left",
+      "continue": "Continue",
+      "skipped": "Skipped — tap to do it now",
+      "allDone": "Your profile is all set. Nothing left to do here!",
+      "steps": {
+        "name": {
+          "label": "Add your name",
+          "description": "So friends can recognize you"
+        },
+        "interests": {
+          "label": "Pick your interests",
+          "description": "We use these to show you better content"
+        },
+        "picture": {
+          "label": "Add a profile photo",
+          "description": "Profiles with photos get more connections"
+        },
+        "phone": {
+          "label": "Verify your phone",
+          "description": "Keeps your account secure"
+        },
+        "contacts": {
+          "label": "Sync your contacts",
+          "description": "Find friends who are already here"
+        }
+      }
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"
@@ -1701,7 +1791,9 @@
       "buttons": {
         "connect": "Connect",
         "invite": "Invite",
-        "inviteSelected": "Invite Selected"
+        "inviteSelected": "Invite Selected",
+        "invited": "Invited",
+        "inviteSelectedCount": "Invite Selected ({count})"
       },
       "empty": {
         "onApp": "None of your contacts are on Therr yet",
@@ -1712,12 +1804,20 @@
       "alertTitles": {
         "contactInvitesSent": "Invite Success",
         "connectRequestSent": "Connect Request Sent",
-        "noContactsSelected": "No Contacts Selected"
+        "noContactsSelected": "No Contacts Selected",
+        "noContactInfo": "No Contact Info",
+        "tooManySelected": "Too Many Selected",
+        "inviteFailed": "Invite Not Sent",
+        "phoneVerificationRequired": "Verify Your Phone"
       },
       "alertMessages": {
         "contactInvitesSent": "Your invites are on the way",
         "connectRequestSent": "Your connection request has been sent",
-        "noContactsSelected": "Please select at least one contact to invite"
+        "noContactsSelected": "Please select at least one contact to invite",
+        "noContactInfo": "This contact has no phone number or email address to send an invite to",
+        "tooManySelected": "Only the first {count} contacts were invited. Select fewer to invite the rest.",
+        "inviteFailed": "We could not send your invites. Please try again.",
+        "phoneVerificationRequired": "Tap here to verify your phone number, then try sending invites again"
       }
     },
     "register": {
@@ -1747,12 +1847,18 @@
         "themeDark": "Dark",
         "themeRetro": "Retro",
         "enableRewards": "Opt-In?",
-        "isPublic": "Public Profile?"
+        "isPublic": "Public Profile?",
+        "contentAlgorithm": "Content algorithm",
+        "algorithmPulse": "Pulse",
+        "algorithmFocus": "Focus",
+        "algorithmPulseDescription": "What's happening right now — the most active and recent posts lead.",
+        "algorithmFocusDescription": "Only what you chose. A quieter feed, limited to your interests."
       },
       "alertTitles": {
         "accountUpdated": "Account Updated",
         "backendErrorMessage": "Oops! Something went wrong.",
-        "insecurePassword": "Insecure Password"
+        "insecurePassword": "Insecure Password",
+        "incompleteForm": "Check your details"
       },
       "alertMessages": {
         "accountUpdated": "Successfully updated."
@@ -1829,7 +1935,13 @@
     "viewThought": {
       "headerTitle": "Thoughts",
       "reply": "Reply",
-      "replies": "Replies"
+      "replies": "Replies",
+      "repliesFailed": "We couldn't load the replies. Try again in a moment.",
+      "headerTitleReply": "Reply",
+      "partOfThread": "Part of a thread",
+      "replyingTo": "Replying to {userName}",
+      "viewParentThought": "View the post this replies to",
+      "backToParent": "Back to Thread"
     },
     "manageSpaces": {
       "headerTitle": "My Business Spaces",
@@ -2065,6 +2177,12 @@
       "chooseHeader": "Choose an account",
       "useAnotherAccount": "Use another account",
       "removeAccount": "Remove saved account"
+    },
+    "repostModal": {
+      "header": "Repost",
+      "placeholder": "Add a comment (optional)",
+      "confirm": "Repost",
+      "cancel": "Cancel"
     }
   },
   "permissions": {

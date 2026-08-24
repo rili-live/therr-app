@@ -72,7 +72,8 @@
     "reactionFailed": "Reacción fallida",
     "mediaUploadFailed": "Error al cargar imagen",
     "tooManyAttempts": "Demasiados intentos",
-    "registerSuccess": "Cuenta creada"
+    "registerSuccess": "Cuenta creada",
+    "repostSuccess": "Republicado"
   },
   "alertMessages": {
     "activityCreated": "Se creó un nuevo grupo y evento. Se enviaron invitaciones a cada miembro del grupo.",
@@ -111,7 +112,11 @@
     "waitlistSuccess": "Revisa tu correo electrónico para verificar tu cuenta",
     "mediaUploadFailed": "No se pudo cargar tu imagen. Por favor, inténtalo de nuevo.",
     "tooManyAttempts": "Espera unos minutos antes de volver a intentarlo.",
-    "phoneRegisterSuccess": "Tu teléfono está verificado. Revisa tu correo para confirmar tu dirección."
+    "phoneRegisterSuccess": "Tu teléfono está verificado. Revisa tu correo para confirmar tu dirección.",
+    "repostSuccess": "Esta publicación ahora aparece en tu perfil",
+    "repostFailed": "No pudimos republicar esto. Inténtalo de nuevo.",
+    "repostDuplicate": "Ya republicaste esta publicación",
+    "repostRestricted": "Solo el autor puede republicar una publicación que no es pública"
   },
   "dateTime": {
     "lessThanHours": "< 1h",
@@ -394,12 +399,23 @@
       "buttons": {
         "accept": "Aceptar",
         "reject": "Rechazar",
-        "view": "Ver"
+        "view": "Ver",
+        "markRead": "Marcar como leído",
+        "markUnread": "Marcar como no leído"
       }
     },
     "thoughtDisplay": {
       "viewAllReplies": "Ver las {count} respuestas",
-      "viewReplies": "Ver {count} respuestas"
+      "viewReplies": "Ver {count} respuestas",
+      "likeThought": "Me gusta esta publicación",
+      "unlikeThought": "Quitar me gusta de esta publicación",
+      "repostedBy": "{userName} republicó",
+      "repostThought": "Republicar esta publicación",
+      "repostUnavailable": "Esta publicación ya no está disponible",
+      "crossBrandLabels": {
+        "format": "{label}: {message}",
+        "habits": "Actualización de objetivos"
+      }
     },
     "userMenu": {
       "buttons": {
@@ -417,36 +433,10 @@
       "dismiss": "Descartar",
       "messageSingular": "Termina tu perfil: queda 1 paso"
     },
-    "profileCompletionCard": {
-      "title": "¡Termina tu perfil!",
+    "profileCompletionLink": {
+      "title": "Termina tu perfil",
       "stepsLeft": "Quedan {count} pasos",
-      "stepLeft": "Queda 1 paso",
-      "continue": "Continuar",
-      "collapse": "Contraer lista",
-      "expand": "Expandir lista",
-      "skipped": "Omitido: toca para hacerlo ahora",
-      "steps": {
-        "name": {
-          "label": "Agrega tu nombre",
-          "description": "Para que tus amigos puedan reconocerte"
-        },
-        "interests": {
-          "label": "Elige tus intereses",
-          "description": "Los usamos para mostrarte mejor contenido"
-        },
-        "picture": {
-          "label": "Agrega una foto de perfil",
-          "description": "Los perfiles con foto logran más conexiones"
-        },
-        "phone": {
-          "label": "Verifica tu teléfono",
-          "description": "Mantiene tu cuenta segura"
-        },
-        "contacts": {
-          "label": "Sincroniza tus contactos",
-          "description": "Encuentra amigos que ya están aquí"
-        }
-      }
+      "stepLeft": "Queda 1 paso"
     }
   },
   "forms": {
@@ -528,7 +518,9 @@
         "password": "Contraseña",
         "userName": "Correo/Teléfono/Usuario",
         "enterCode": "Ingresa tu código",
-        "switchAccount": "Cambiar de cuenta"
+        "switchAccount": "Cambiar de cuenta",
+        "useNumberKeypad": "Usar el teclado numérico",
+        "useLetterKeyboard": "Usar el teclado alfabético"
       },
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde.",
       "invalidUsernamePassword": "Combinación de usuario/contraseña inválida.",
@@ -867,7 +859,12 @@
       },
       "errorMessages": {
         "repeatPassword": "Las contraseñas no coinciden",
-        "passwordInsecure": "La nueva contraseña no cumple los requisitos mínimos de seguridad"
+        "passwordInsecure": "La nueva contraseña no cumple los requisitos mínimos de seguridad",
+        "userNameRequired": "El nombre de usuario es obligatorio",
+        "firstNameRequired": "El nombre es obligatorio",
+        "lastNameRequired": "El apellido es obligatorio",
+        "oldPasswordRequired": "Ingresa tu contraseña actual para cambiarla",
+        "newPasswordRequired": "Ingresa una nueva contraseña y repítela abajo"
       },
       "labels": {
         "accountTypeLabel": "Tipo de cuenta: ",
@@ -1242,7 +1239,8 @@
         "claimTitleInProgress": "{achievementClass}: {achievementTitle}",
         "alreadyClaimed": "Ya has reclamado las recompensas de este logro",
         "unClaimed": "¡Este logro está completo! Regresa y presiona 'reclamar recompensas' para continuar.",
-        "inProgressDescription": "¡Ya casi llegas! ¡Sigue adelante!"
+        "inProgressDescription": "¡Ya casi llegas! ¡Sigue adelante!",
+        "progressOf": "{count} de {total}"
       },
       "sections": {
         "unclaimed": "Reclama tus recompensas",
@@ -1263,6 +1261,36 @@
         "all": "Todos",
         "moments": "Momentos",
         "thoughts": "Pensamientos"
+      }
+    },
+    "apiAccess": {
+      "headerTitle": "Acceso a la API",
+      "pageTitle": "Obtén una clave de API de Therr",
+      "intro": "Las claves de API se administran en el panel web de Therr. Así funciona el proceso.",
+      "steps": {
+        "one": {
+          "title": "Crea una cuenta de negocio",
+          "description": "Regístrate en el panel de Therr con el correo de tu negocio. Un perfil personal de Therr no puede generar claves de API."
+        },
+        "two": {
+          "title": "Elige un plan",
+          "description": "Abre Configuración en el panel y elige una suscripción. Todos los planes de pago incluyen acceso a la API."
+        },
+        "three": {
+          "title": "Genera tu clave",
+          "description": "Ve a Configuración y luego a Claves de API para crear una clave. Se muestra una sola vez, al crearla: cópiala en un lugar seguro."
+        },
+        "four": {
+          "title": "Empieza a construir",
+          "description": "Envía tu clave en el encabezado x-api-key de cada solicitud. La referencia de la API describe todos los endpoints."
+        }
+      },
+      "statusEligible": "Tu cuenta puede crear claves de API. Abre el panel para administrarlas.",
+      "statusNotEligible": "Necesitarás una cuenta de negocio con un plan de pago para crear claves de API.",
+      "buttons": {
+        "manageKeys": "Administrar claves de API",
+        "openDashboard": "Abrir el panel web",
+        "viewDocs": "Leer la referencia de la API"
       }
     },
     "advancedSettings": {
@@ -1516,6 +1544,35 @@
         "pairingsDescription": "Lugares perfectos cerca para completar tu salida en {spaceName}",
         "helpful": "Útil",
         "notHelpful": "No útil"
+      },
+      "suggestEdit": {
+        "trigger": "Sugerir una edición",
+        "title": "Sugerir una edición",
+        "description": "¿Viste información incorrecta? Sugiere una corrección. La aplicaremos cuando varias personas estén de acuerdo.",
+        "fieldLabel": "¿Qué necesita actualización?",
+        "valueLabel": "Valor correcto",
+        "phoneOption": "Teléfono",
+        "websiteOption": "Sitio web",
+        "phonePlaceholder": "+34 600 000 000",
+        "websitePlaceholder": "https://ejemplo.com",
+        "normalizedPreview": "Se guardará como",
+        "submit": "Enviar",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "appliedMessage": "¡Gracias! Tu corrección ha sido aplicada.",
+        "pendingMessage": "¡Gracias! Necesitamos {remaining} confirmación(es) más antes de aplicar este cambio.",
+        "ownerClaimedMessage": "¡Gracias! Este negocio tiene un propietario — le hemos reenviado tu sugerencia.",
+        "errorMessage": "Algo salió mal al enviar tu sugerencia. Por favor, intenta de nuevo.",
+        "rateLimited": "Has enviado muchas sugerencias recientemente. Por favor, inténtalo de nuevo más tarde.",
+        "errors": {
+          "EMPTY_PHONE": "Por favor, introduce un número de teléfono.",
+          "INVALID_PHONE": "Eso no parece un número de teléfono válido.",
+          "EMPTY_URL": "Por favor, introduce un sitio web.",
+          "INVALID_URL": "Eso no parece una URL válida.",
+          "INVALID_FIELD_NAME": "Ese campo no se puede editar.",
+          "UNSUPPORTED_FIELD": "Ese campo no se puede editar.",
+          "SPACE_NOT_FOUND": "Este lugar ya no está disponible."
+        }
       }
     },
     "viewMoment": {
@@ -1686,7 +1743,40 @@
       "headerTitle": "Notificaciones",
       "pageTitle": "Notificaciones",
       "noNotifications": "No tienes notificaciones en este momento",
-      "markAllRead": "Marcar todo leído"
+      "markAllRead": "Marcar todo leído",
+      "unreadCount": "{count} sin leer",
+      "caughtUp": "Estás al día"
+    },
+    "profileCompletion": {
+      "headerTitle": "Termina tu perfil",
+      "title": "¡Termina tu perfil!",
+      "stepsLeft": "Quedan {count} pasos",
+      "stepLeft": "Queda 1 paso",
+      "continue": "Continuar",
+      "skipped": "Omitido: toca para hacerlo ahora",
+      "allDone": "Tu perfil está completo. ¡No queda nada por hacer aquí!",
+      "steps": {
+        "name": {
+          "label": "Agrega tu nombre",
+          "description": "Para que tus amigos puedan reconocerte"
+        },
+        "interests": {
+          "label": "Elige tus intereses",
+          "description": "Los usamos para mostrarte mejor contenido"
+        },
+        "picture": {
+          "label": "Agrega una foto de perfil",
+          "description": "Los perfiles con foto logran más conexiones"
+        },
+        "phone": {
+          "label": "Verifica tu teléfono",
+          "description": "Mantiene tu cuenta segura"
+        },
+        "contacts": {
+          "label": "Sincroniza tus contactos",
+          "description": "Encuentra amigos que ya están aquí"
+        }
+      }
     },
     "pageNotFound": {
       "pageTitle": "Página no encontrada"
@@ -1701,7 +1791,9 @@
       "buttons": {
         "connect": "Conectar",
         "invite": "Invitar",
-        "inviteSelected": "Invitar seleccionados"
+        "inviteSelected": "Invitar seleccionados",
+        "invited": "Invitado",
+        "inviteSelectedCount": "Invitar seleccionados ({count})"
       },
       "empty": {
         "onApp": "Ninguno de tus contactos está en Therr todavía",
@@ -1712,12 +1804,20 @@
       "alertTitles": {
         "contactInvitesSent": "Invitación exitosa",
         "connectRequestSent": "Solicitud de conexión enviada",
-        "noContactsSelected": "No se seleccionaron contactos"
+        "noContactsSelected": "No se seleccionaron contactos",
+        "noContactInfo": "Sin datos de contacto",
+        "tooManySelected": "Demasiados seleccionados",
+        "inviteFailed": "Invitación no enviada",
+        "phoneVerificationRequired": "Verifica tu teléfono"
       },
       "alertMessages": {
         "contactInvitesSent": "Tus invitaciones están en camino",
         "connectRequestSent": "Tu solicitud de conexión ha sido enviada",
-        "noContactsSelected": "Por favor, selecciona al menos un contacto para invitar"
+        "noContactsSelected": "Por favor, selecciona al menos un contacto para invitar",
+        "noContactInfo": "Este contacto no tiene un número de teléfono ni un correo electrónico al que enviar la invitación",
+        "tooManySelected": "Solo se invitó a los primeros {count} contactos. Selecciona menos para invitar al resto.",
+        "inviteFailed": "No pudimos enviar tus invitaciones. Inténtalo de nuevo.",
+        "phoneVerificationRequired": "Toca aquí para verificar tu número de teléfono y vuelve a enviar las invitaciones"
       }
     },
     "register": {
@@ -1747,12 +1847,18 @@
         "themeDark": "Oscuro",
         "themeRetro": "Retro",
         "enableRewards": "¿Participar?",
-        "isPublic": "¿Perfil público?"
+        "isPublic": "¿Perfil público?",
+        "contentAlgorithm": "Algoritmo del muro",
+        "algorithmPulse": "Pulso",
+        "algorithmFocus": "Enfoque",
+        "algorithmPulseDescription": "Lo que está pasando ahora: las publicaciones más activas y recientes van primero.",
+        "algorithmFocusDescription": "Solo lo que elegiste. Un muro más tranquilo, limitado a tus intereses."
       },
       "alertTitles": {
         "accountUpdated": "Cuenta actualizada",
         "backendErrorMessage": "¡Ups! Algo salió mal.",
-        "insecurePassword": "Contraseña insegura"
+        "insecurePassword": "Contraseña insegura",
+        "incompleteForm": "Revisa tus datos"
       },
       "alertMessages": {
         "accountUpdated": "Actualizado exitosamente."
@@ -1829,7 +1935,13 @@
     "viewThought": {
       "headerTitle": "Pensamientos",
       "reply": "Responder",
-      "replies": "Respuestas"
+      "replies": "Respuestas",
+      "repliesFailed": "No pudimos cargar las respuestas. Inténtalo de nuevo en un momento.",
+      "headerTitleReply": "Respuesta",
+      "partOfThread": "Parte de una conversación",
+      "replyingTo": "Respondiendo a {userName}",
+      "viewParentThought": "Ver la publicación a la que responde",
+      "backToParent": "Volver a la conversación"
     },
     "manageSpaces": {
       "headerTitle": "Mis Negocios",
@@ -2065,6 +2177,12 @@
       "chooseHeader": "Elige una cuenta",
       "useAnotherAccount": "Usar otra cuenta",
       "removeAccount": "Quitar cuenta guardada"
+    },
+    "repostModal": {
+      "header": "Republicar",
+      "placeholder": "Añade un comentario (opcional)",
+      "confirm": "Republicar",
+      "cancel": "Cancelar"
     }
   },
   "permissions": {

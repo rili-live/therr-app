@@ -153,7 +153,7 @@ describe('Settings', () => {
     });
 
     describe('Form Validation', () => {
-        it('should disable form when userName is empty', () => {
+        it('should report an error when userName is empty', () => {
             let component: renderer.ReactTestRenderer;
             act(() => {
                 component = renderer.create(<Settings {...defaultProps} />);
@@ -162,10 +162,10 @@ describe('Settings', () => {
 
             act(() => { instance.onInputChange('userName', ''); });
 
-            expect(instance.isFormDisabled()).toBe(true);
+            expect(instance.getFormErrors().userName).toBeTruthy();
         });
 
-        it('should disable form when firstName is empty', () => {
+        it('should report an error when firstName is empty', () => {
             let component: renderer.ReactTestRenderer;
             act(() => {
                 component = renderer.create(<Settings {...defaultProps} />);
@@ -174,10 +174,10 @@ describe('Settings', () => {
 
             act(() => { instance.onInputChange('firstName', ''); });
 
-            expect(instance.isFormDisabled()).toBe(true);
+            expect(instance.getFormErrors().firstName).toBeTruthy();
         });
 
-        it('should disable form when lastName is empty', () => {
+        it('should report an error when lastName is empty', () => {
             let component: renderer.ReactTestRenderer;
             act(() => {
                 component = renderer.create(<Settings {...defaultProps} />);
@@ -186,10 +186,10 @@ describe('Settings', () => {
 
             act(() => { instance.onInputChange('lastName', ''); });
 
-            expect(instance.isFormDisabled()).toBe(true);
+            expect(instance.getFormErrors().lastName).toBeTruthy();
         });
 
-        it('should disable form when passwords do not match', () => {
+        it('should report an error when passwords do not match', () => {
             let component: renderer.ReactTestRenderer;
             act(() => {
                 component = renderer.create(<Settings {...defaultProps} />);
@@ -197,23 +197,48 @@ describe('Settings', () => {
             const instance = component!.getInstance() as Settings;
 
             act(() => { instance.onInputChange('oldPassword', 'currentpassword'); });
-            act(() => { instance.onInputChange('password', 'newpassword123'); });
-            act(() => { instance.onInputChange('repeatPassword', 'differentpassword123'); });
+            act(() => { instance.onInputChange('password', 'NewPassword123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'DifferentPassword123!'); });
 
-            expect(instance.isFormDisabled()).toBe(true);
+            expect(instance.getFormErrors().repeatPassword).toBeTruthy();
         });
 
-        it('should enable form when all required fields are filled', () => {
+        it('should report an error when a new password is entered without the current one', () => {
             let component: renderer.ReactTestRenderer;
             act(() => {
                 component = renderer.create(<Settings {...defaultProps} />);
             });
             const instance = component!.getInstance() as Settings;
 
-            expect(instance.isFormDisabled()).toBe(false);
+            act(() => { instance.onInputChange('password', 'NewPassword123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'NewPassword123!'); });
+
+            expect(instance.getFormErrors().oldPassword).toBeTruthy();
         });
 
-        it('should enable form when passwords match', () => {
+        it('should report an error when the current password is entered without a new one', () => {
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
+
+            act(() => { instance.onInputChange('oldPassword', 'currentpassword'); });
+
+            expect(instance.getFormErrors().password).toBeTruthy();
+        });
+
+        it('should report no errors when all required fields are filled', () => {
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
+
+            expect(instance.getFormErrors()).toEqual({});
+        });
+
+        it('should report no errors when passwords match', () => {
             let component: renderer.ReactTestRenderer;
             act(() => {
                 component = renderer.create(<Settings {...defaultProps} />);
@@ -224,7 +249,114 @@ describe('Settings', () => {
             act(() => { instance.onInputChange('password', 'NewPassword123!'); });
             act(() => { instance.onInputChange('repeatPassword', 'NewPassword123!'); });
 
-            expect(instance.isFormDisabled()).toBe(false);
+            expect(instance.getFormErrors()).toEqual({});
+        });
+
+        it('should keep the submit button enabled while the form is invalid', () => {
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
+
+            act(() => { instance.onInputChange('firstName', ''); });
+
+            const submitButton = component!.root.findAll(
+                (node) => node.props.title === 'Save' && typeof node.props.onPress === 'function'
+            )[0];
+            expect(submitButton.props.disabled).toBe(false);
+        });
+    });
+
+    describe('Submit Validation Feedback', () => {
+        it('should surface the blocking field inline instead of silently disabling save', () => {
+            const mockUpdateUser = jest.fn().mockResolvedValue({});
+            const props = { ...defaultProps, updateUser: mockUpdateUser };
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
+
+            act(() => { instance.onInputChange('firstName', ''); });
+            act(() => { instance.onSubmit(); });
+
+            expect(mockUpdateUser).not.toHaveBeenCalled();
+            expect(instance.state.formErrors.firstName).toBe('First name is required');
+        });
+
+        it('should toast the topmost error and scroll to its section', () => {
+            const Toast = require('react-native-toast-message').default;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
+            const scrollTo = jest.fn();
+            (instance as any).scrollViewRef = { scrollTo };
+            (instance as any).userSectionYOffset = 420;
+
+            act(() => { instance.onInputChange('userName', ''); });
+            act(() => { instance.onInputChange('lastName', ''); });
+            act(() => { instance.onSubmit(); });
+
+            expect(Toast.show).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: 'errorBig',
+                    text2: 'Username is required',
+                })
+            );
+            expect(scrollTo).toHaveBeenCalledWith({ x: 0, y: 420, animated: true });
+        });
+
+        it('should scroll to the password section when a password field is the first error', () => {
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
+            const scrollTo = jest.fn();
+            (instance as any).scrollViewRef = { scrollTo };
+            (instance as any).userSectionYOffset = 420;
+            (instance as any).passwordSectionYOffset = 900;
+
+            act(() => { instance.onInputChange('password', 'NewPassword123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'NewPassword123!'); });
+            act(() => { instance.onSubmit(); });
+
+            expect(scrollTo).toHaveBeenCalledWith({ x: 0, y: 900, animated: true });
+        });
+
+        it('should clear a field error once the user edits that field', () => {
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
+
+            act(() => { instance.onInputChange('firstName', ''); });
+            act(() => { instance.onSubmit(); });
+            expect(instance.state.formErrors.firstName).toBeTruthy();
+
+            act(() => { instance.onInputChange('firstName', 'Test'); });
+
+            expect(instance.state.formErrors.firstName).toBeUndefined();
+        });
+
+        it('should not send a half-filled password change as a silent no-op', () => {
+            const mockUpdateUser = jest.fn().mockResolvedValue({});
+            const props = { ...defaultProps, updateUser: mockUpdateUser };
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
+
+            act(() => { instance.onInputChange('oldPassword', 'currentpassword'); });
+            act(() => { instance.onSubmit(); });
+
+            expect(mockUpdateUser).not.toHaveBeenCalled();
+            expect(instance.state.formErrors.password).toBeTruthy();
         });
     });
 
@@ -268,7 +400,7 @@ describe('Settings', () => {
             act(() => { instance.onInputChange('password', 'newpassword'); });
             act(() => { instance.onInputChange('repeatPassword', 'differentpassword'); });
 
-            expect(instance.state.passwordErrorMessage).toBeTruthy();
+            expect(instance.state.formErrors.repeatPassword).toBeTruthy();
         });
 
         it('should clear password error when passwords match', () => {
@@ -282,7 +414,7 @@ describe('Settings', () => {
             act(() => { instance.onInputChange('password', 'newpassword'); });
             act(() => { instance.onInputChange('repeatPassword', 'newpassword'); });
 
-            expect(instance.state.passwordErrorMessage).toBe('');
+            expect(instance.state.formErrors.repeatPassword).toBeUndefined();
         });
     });
 
@@ -441,7 +573,7 @@ describe('Settings', () => {
             );
         });
 
-        it('should not include password when old password is not provided', async () => {
+        it('should not include password when the user is not changing it', async () => {
             const mockUpdateUser = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, updateUser: mockUpdateUser };
             let component: renderer.ReactTestRenderer;
@@ -450,8 +582,7 @@ describe('Settings', () => {
             });
             const instance = component!.getInstance() as Settings;
 
-            act(() => { instance.onInputChange('password', 'NewPassword123!'); });
-            act(() => { instance.onInputChange('repeatPassword', 'NewPassword123!'); });
+            act(() => { instance.onInputChange('firstName', 'Updated'); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -481,7 +612,7 @@ describe('Settings', () => {
             expect(instance.state.isSubmitting).toBe(true);
         });
 
-        it('should not submit when form is disabled', () => {
+        it('should not submit when a required field is missing', () => {
             const mockUpdateUser = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, updateUser: mockUpdateUser };
             let component: renderer.ReactTestRenderer;
@@ -658,6 +789,153 @@ describe('Settings', () => {
             act(() => { instance.gotToManagePreferences(); });
 
             expect(mockPush).toHaveBeenCalledWith('ManagePreferences');
+        });
+    });
+
+    describe('Scroll To User Profile Section', () => {
+        const layoutEvent = { nativeEvent: { layout: { y: 1234 } } };
+
+        const renderWithScrollSpy = (props: any) => {
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
+            const scrollTo = jest.fn();
+            // The KeyboardAwareScrollView is mocked as a plain View, so the real ref
+            // has no scrollTo to spy on.
+            (instance as any).scrollViewRef = { scrollTo };
+
+            return { instance, scrollTo };
+        };
+
+        it('should scroll to the measured user section when navigated with the param', () => {
+            const { instance, scrollTo } = renderWithScrollSpy({
+                ...defaultProps,
+                navigation: { ...defaultProps.navigation, setParams: jest.fn() },
+                route: { params: { scrollToSection: 'userProfile' } },
+            });
+
+            act(() => { instance.onUserSectionLayout(layoutEvent); });
+
+            expect(scrollTo).toHaveBeenCalledWith({ x: 0, y: 1234, animated: true });
+        });
+
+        it('should not scroll when navigated without the param', () => {
+            const { instance, scrollTo } = renderWithScrollSpy({
+                ...defaultProps,
+                navigation: { ...defaultProps.navigation, setParams: jest.fn() },
+                route: { params: {} },
+            });
+
+            act(() => { instance.onUserSectionLayout(layoutEvent); });
+
+            expect(scrollTo).not.toHaveBeenCalled();
+        });
+
+        it('should not re-scroll on subsequent layout passes', () => {
+            const { instance, scrollTo } = renderWithScrollSpy({
+                ...defaultProps,
+                navigation: { ...defaultProps.navigation, setParams: jest.fn() },
+                route: { params: { scrollToSection: 'userProfile' } },
+            });
+
+            act(() => { instance.onUserSectionLayout(layoutEvent); });
+            act(() => { instance.onUserSectionLayout({ nativeEvent: { layout: { y: 1300 } } }); });
+
+            expect(scrollTo).toHaveBeenCalledTimes(1);
+        });
+
+        it('should scroll when the param arrives after mount and the section is already measured', () => {
+            const mockSetParams = jest.fn();
+            const props = {
+                ...defaultProps,
+                navigation: { ...defaultProps.navigation, setParams: mockSetParams },
+                route: { params: {} },
+            };
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
+            const scrollTo = jest.fn();
+            (instance as any).scrollViewRef = { scrollTo };
+
+            act(() => { instance.onUserSectionLayout(layoutEvent); });
+            expect(scrollTo).not.toHaveBeenCalled();
+
+            act(() => {
+                component.update(
+                    <Settings {...props} route={{ params: { scrollToSection: 'userProfile' } }} />
+                );
+            });
+
+            expect(scrollTo).toHaveBeenCalledWith({ x: 0, y: 1234, animated: true });
+            expect(mockSetParams).toHaveBeenCalledWith({ scrollToSection: undefined });
+        });
+    });
+
+    describe('Add Your Name Prompt', () => {
+        const userWithoutName = {
+            ...mockUser,
+            details: { ...mockUser.details, firstName: '' },
+        };
+
+        it('should focus the first name input instead of navigating to ManageAccount', () => {
+            const mockPush = jest.fn();
+            const props = {
+                ...defaultProps,
+                user: userWithoutName,
+                navigation: { ...defaultProps.navigation, push: mockPush },
+            };
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
+            const focus = jest.fn();
+            (instance as any).firstNameInputRef = { focus };
+
+            // Matches both the composite Text and its host element.
+            const prompts = component!.root.findAll(
+                (node) => node.props?.onPress === instance.focusFirstNameInput
+            );
+            expect(prompts.length).toBeGreaterThan(0);
+
+            act(() => { prompts[0].props.onPress(); });
+
+            expect(focus).toHaveBeenCalled();
+            // ManageAccount only offers account deletion — it is the wrong destination here.
+            expect(mockPush).not.toHaveBeenCalledWith('ManageAccount');
+        });
+
+        it('should wire an inputRef to the first name input', () => {
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} user={userWithoutName} />);
+            });
+            const instance = component!.getInstance() as Settings;
+
+            const refInputs = component!.root.findAll((node) => typeof node.props?.inputRef === 'function');
+            expect(refInputs.length).toBeGreaterThan(0);
+
+            act(() => { refInputs[0].props.inputRef({ focus: jest.fn() }); });
+
+            expect((instance as any).firstNameInputRef).toBeDefined();
+        });
+
+        it('should not render the prompt when the user already has a name', () => {
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
+
+            const prompts = component!.root.findAll(
+                (node) => node.props?.onPress === instance.focusFirstNameInput
+            );
+
+            expect(prompts).toHaveLength(0);
         });
     });
 

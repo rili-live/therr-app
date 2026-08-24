@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Platform } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import { FlatList, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/BaseButton';
@@ -48,6 +47,14 @@ interface IDirectMessageState {
     pageNumber: number;
 }
 
+/**
+ * Virtualization window for the message thread. Wider than the default so scrolling back
+ * through history cannot outrun the render batch.
+ */
+const LIST_INITIAL_NUM_TO_RENDER = 10;
+const LIST_MAX_TO_RENDER_PER_BATCH = 10;
+const LIST_WINDOW_SIZE = 21;
+
 const mapStateToProps = (state: any) => ({
     messages: state.messages,
     user: state.user,
@@ -66,7 +73,6 @@ class DirectMessage extends React.Component<
     IDirectMessageProps,
     IDirectMessageState
 > {
-    private flatListRef: FlashList<any> | null = null;
     private translate: Function;
     private theme = buildStyles();
     private themeForms = buildFormsStyles();
@@ -223,10 +229,18 @@ class DirectMessage extends React.Component<
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
+                    {/*
+                      * `behavior` has to be set on Android too. Without it the component is a
+                      * documented no-op, and under edge-to-edge (API 36) the window no longer
+                      * resizes for the keyboard either — so the composer stayed put and the
+                      * keyboard covered it. `automaticOffset` measures this view's true position
+                      * on screen, which is what the hand-tuned iOS `keyboardVerticalOffset={90}`
+                      * used to approximate.
+                      */}
                     <KeyboardAvoidingView
-                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        behavior="padding"
+                        automaticOffset
                         style={this.themeMessage.styles.container}
-                        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
                     >
                         {
                             isLoading ?
@@ -246,7 +260,7 @@ class DirectMessage extends React.Component<
                                         )} />
                                     </View> :
                                     <View style={spacingStyles.flexOne}>
-                                        <FlashList<any>
+                                        <FlatList<any>
                                             data={dms}
                                             inverted
                                             keyExtractor={(item) => String(item.id || item.key)}
@@ -271,10 +285,27 @@ class DirectMessage extends React.Component<
                                                     />
                                                 );
                                             }}
-                                            ref={(component) => { this.flatListRef = component; }}
                                             onEndReached={this.tryLoadMore}
                                             onEndReachedThreshold={0.5}
-                                            estimatedItemSize={60}
+                                            /*
+                                             * Was a FlashList sized from `estimatedItemSize={60}`.
+                                             * Chat bubbles are the most variable-height rows in the
+                                             * app — a one-word reply and a ten-line paragraph are
+                                             * the same row type — so the recycler positioned cells
+                                             * from that single estimate and corrected them once the
+                                             * real heights arrived, which reads as bubbles landing
+                                             * in the wrong place or a blank gap mid-thread. Same
+                                             * failure as the Connect lists; FlashList v1 offers no
+                                             * per-row size hint, so this is a plain FlatList.
+                                             *
+                                             * `removeClippedSubviews` stays unset (see
+                                             * routes/Areas/AreaCarousel.tsx), and it would be a
+                                             * particularly bad fit here: `inverted` lists are where
+                                             * its missing-content bug is most often reported.
+                                             */
+                                            initialNumToRender={LIST_INITIAL_NUM_TO_RENDER}
+                                            maxToRenderPerBatch={LIST_MAX_TO_RENDER_PER_BATCH}
+                                            windowSize={LIST_WINDOW_SIZE}
                                         />
                                     </View>
                         }

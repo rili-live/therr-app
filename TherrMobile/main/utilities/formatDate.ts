@@ -66,7 +66,7 @@ export const hoursDaysOrYearsSince = (pastDate: Date, translate: (key: string, p
     });
 };
 
-export default (
+const formatDate = (
     unformattedDate,
     variation: IVariation = 'default',
 ): {
@@ -104,3 +104,40 @@ export default (
         time: `${hours}:${minute.padStart(2, '0')} ${amPm}`,
     };
 };
+
+const RELATIVE_CUTOFF_MS = millisecondsPerDay * 7;
+
+/**
+ * Timestamp formatting for feed-style lists (notifications, activity).
+ *
+ * Recent entries read as an age ("3h", "2d") because that is what the reader is
+ * actually asking — "did this just happen?". Past a week the age stops being
+ * meaningful and an absolute date ("Jul 20, 2026") is easier to place. Reuses
+ * the `dateTime.*` dictionary entries, so no new locale keys are required.
+ */
+export const formatRelativeOrAbsolute = (
+    unformattedDate,
+    translate: (key: string, params?: any) => string,
+): string => {
+    if (!unformattedDate) {
+        return '';
+    }
+
+    const date = new Date(unformattedDate);
+
+    if (Number.isNaN(date.getTime())) {
+        return '';
+    }
+
+    const ageMs = Date.now() - date.getTime();
+
+    // Future-dated (clock skew) entries fall through to the absolute format
+    // rather than rendering a nonsensical negative age.
+    if (ageMs < 0 || ageMs >= RELATIVE_CUTOFF_MS) {
+        return formatDate(date).date;
+    }
+
+    return hoursDaysOrYearsSince(date, translate);
+};
+
+export default formatDate;

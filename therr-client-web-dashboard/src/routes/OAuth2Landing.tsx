@@ -105,7 +105,7 @@ export class OAuth2LandingComponent extends React.Component<IOAuth2LandingProps,
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         document.title = `${getWebsiteName()} | ${this.translate('pages.login.pageTitle')}`;
     }
 

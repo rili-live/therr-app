@@ -167,7 +167,126 @@
   padding-top: 4px;
 }
 
-// Reply-count control on nested replies (thought details view only)
+// Inline thread preview: the top reply surfaced under a post in the feed
+.thought-card-thread-preview {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border-left: 2px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.03);
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  [data-mantine-color-scheme="dark"] & {
+    border-left-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.04);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.07);
+    }
+  }
+}
+
+.thought-card-thread-preview-avatar {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.thought-card-thread-preview-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.thought-card-thread-preview-message {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.thought-card-thread-preview-view-all {
+  font-weight: 600;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Repost: attribution line above the author row, and the embedded original below the message.
+// The embed is boxed rather than left-bordered (which is how a thread preview reads) so the two
+// never look like the same relationship — a reply continues the post above it, an embed is a
+// different post being quoted.
+.thought-card-repost-attribution {
+  .inline-svg svg {
+    width: 0.85rem;
+    height: 0.85rem;
+    fill: currentColor;
+    opacity: 0.6;
+  }
+}
+
+.thought-card-repost-embed {
+  margin-top: 10px;
+  margin-bottom: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+
+  [data-mantine-color-scheme="dark"] & {
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+}
+
+.thought-card-repost-embed-clickable {
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  [data-mantine-color-scheme="dark"] & {
+    &:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+  }
+}
+
+.thought-card-repost-embed-message {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.thought-card-repost-count {
+  padding-left: 4px;
+  padding-right: 6px;
+
+  .inline-svg {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+    fill: currentColor;
+  }
+}
+
+// Reply-count control on a post card and on nested replies (thought details view)
 .thought-card-reply-count {
   padding-left: 4px;
   padding-right: 6px;
@@ -213,6 +332,35 @@
   [data-mantine-color-scheme="dark"] & {
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+// "Replying to ..." banner above a reply. Styled as a quoted block (left rule, muted text) so it
+// reads as context for the post rather than as the post itself.
+.view-thought-parent {
+  display: block;
+  padding: 10px 14px;
+  border-left: 3px solid var(--mantine-primary-color-filled, #1c7ed6);
+  border-radius: 0 8px 8px 0;
+  background: rgba(0, 0, 0, 0.03);
+  color: inherit;
+  margin-bottom: -8px;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+  }
+
+  .discovered-tile-icon {
+    height: 16px;
+    width: 16px;
+  }
+
+  [data-mantine-color-scheme="dark"] & {
+    background: rgba(255, 255, 255, 0.04);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
   }
 }
 

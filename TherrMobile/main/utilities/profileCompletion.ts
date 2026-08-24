@@ -1,13 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
 import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../constants';
 
 /**
- * Profile completion model shared by the "Finish your profile" card, the
- * incomplete-profile banner, and the guided CreateProfile flow. Keeping the
- * step list in one place means the card, the banner, and the onboarding stages
- * can never disagree about what is left to do.
+ * Profile completion model shared by the ProfileCompletion screen, the profile
+ * link that points at it, the incomplete-profile banner, and the guided
+ * CreateProfile flow. Keeping the step list in one place means the screen, the
+ * banners, and the onboarding stages can never disagree about what is left to do.
  */
 
 export type IProfileStepKey = 'name' | 'interests' | 'picture' | 'phone' | 'contacts';
@@ -147,6 +148,15 @@ const hasRealName = (details: any) => {
     return !(firstName === DEFAULT_FIRSTNAME && details?.lastName === DEFAULT_LASTNAME);
 };
 
+/**
+ * True only when the user holds a number *and* MOBILE_VERIFIED for it.
+ *
+ * Exported because the phone-gated screens need the same answer the checklist gives —
+ * a second, subtly different definition of "verified" is how the two drift apart.
+ */
+export const isPhoneVerified = (details: any) => !!details?.phoneNumber
+    && !!details?.accessLevels?.includes(AccessLevels.MOBILE_VERIFIED);
+
 export const getProfileCompletionSummary = (
     user: IUserState,
     flags: IProfileCompletionFlags = DEFAULT_PROFILE_COMPLETION_FLAGS,
@@ -158,8 +168,8 @@ export const getProfileCompletionSummary = (
             key: 'name',
             stage: 'details',
             icon: 'user-edit',
-            labelKey: 'components.profileCompletionCard.steps.name.label',
-            descriptionKey: 'components.profileCompletionCard.steps.name.description',
+            labelKey: 'pages.profileCompletion.steps.name.label',
+            descriptionKey: 'pages.profileCompletion.steps.name.description',
             isComplete: hasRealName(details),
             isSkipped: false,
         },
@@ -167,8 +177,8 @@ export const getProfileCompletionSummary = (
             key: 'interests',
             stage: 'interests',
             icon: 'heart',
-            labelKey: 'components.profileCompletionCard.steps.interests.label',
-            descriptionKey: 'components.profileCompletionCard.steps.interests.description',
+            labelKey: 'pages.profileCompletion.steps.interests.label',
+            descriptionKey: 'pages.profileCompletion.steps.interests.description',
             isComplete: !!flags.hasSelectedInterests,
             isSkipped: false,
         },
@@ -176,8 +186,8 @@ export const getProfileCompletionSummary = (
             key: 'picture',
             stage: 'picture',
             icon: 'camera',
-            labelKey: 'components.profileCompletionCard.steps.picture.label',
-            descriptionKey: 'components.profileCompletionCard.steps.picture.description',
+            labelKey: 'pages.profileCompletion.steps.picture.label',
+            descriptionKey: 'pages.profileCompletion.steps.picture.description',
             isComplete: !!details?.media?.profilePicture,
             isSkipped: false,
         },
@@ -185,17 +195,22 @@ export const getProfileCompletionSummary = (
             key: 'phone',
             stage: 'phone',
             icon: 'shield-alt',
-            labelKey: 'components.profileCompletionCard.steps.phone.label',
-            descriptionKey: 'components.profileCompletionCard.steps.phone.description',
-            isComplete: !!details?.phoneNumber,
+            labelKey: 'pages.profileCompletion.steps.phone.label',
+            descriptionKey: 'pages.profileCompletion.steps.phone.description',
+            // Presence of a number is not the same as a *verified* number. The server revokes
+            // MOBILE_VERIFIED when a profile save changes the number, so checking only
+            // `phoneNumber` would leave the checklist claiming this step was done while the
+            // phone-gated actions it unlocks (bulk invites) kept returning 403 — and the
+            // checklist is the only permanent in-app route back to verification.
+            isComplete: isPhoneVerified(details),
             isSkipped: false,
         },
         {
             key: 'contacts',
             stage: 'contacts',
             icon: 'address-book',
-            labelKey: 'components.profileCompletionCard.steps.contacts.label',
-            descriptionKey: 'components.profileCompletionCard.steps.contacts.description',
+            labelKey: 'pages.profileCompletion.steps.contacts.label',
+            descriptionKey: 'pages.profileCompletion.steps.contacts.description',
             isComplete: !!flags.hasSyncedContacts,
             isSkipped: !flags.hasSyncedContacts && !!flags.hasSkippedContacts,
         },

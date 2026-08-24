@@ -72,7 +72,8 @@
     "reactionFailed": "Échec de la réaction",
     "mediaUploadFailed": "Échec du téléversement de l'image",
     "tooManyAttempts": "Trop de tentatives",
-    "registerSuccess": "Compte créé"
+    "registerSuccess": "Compte créé",
+    "repostSuccess": "Republié"
   },
   "alertMessages": {
     "activityCreated": "Un nouveau groupe et événement ont été créés. Des invitations ont été envoyées à chaque membre du groupe.",
@@ -111,7 +112,11 @@
     "waitlistSuccess": "Vérifiez votre courriel pour confirmer votre compte",
     "mediaUploadFailed": "Votre image n'a pas pu être téléversée. Veuillez réessayer.",
     "tooManyAttempts": "Veuillez patienter quelques minutes avant de réessayer.",
-    "phoneRegisterSuccess": "Votre téléphone est vérifié. Consultez vos courriels pour confirmer votre adresse."
+    "phoneRegisterSuccess": "Votre téléphone est vérifié. Consultez vos courriels pour confirmer votre adresse.",
+    "repostSuccess": "Cette publication apparaît maintenant sur ton profil",
+    "repostFailed": "Nous n'avons pas pu republier ceci. Réessaie.",
+    "repostDuplicate": "Tu as déjà republié cette publication",
+    "repostRestricted": "Seul l'auteur peut republier une publication qui n'est pas publique"
   },
   "dateTime": {
     "lessThanHours": "< 1h",
@@ -394,12 +399,23 @@
       "buttons": {
         "accept": "Accepter",
         "reject": "Refuser",
-        "view": "Voir"
+        "view": "Voir",
+        "markRead": "Marquer comme lu",
+        "markUnread": "Marquer comme non lu"
       }
     },
     "thoughtDisplay": {
       "viewAllReplies": "Voir les {count} réponses",
-      "viewReplies": "Voir {count} réponses"
+      "viewReplies": "Voir {count} réponses",
+      "likeThought": "Aimer cette publication",
+      "unlikeThought": "Retirer le « j'aime » de cette publication",
+      "repostedBy": "{userName} a republié",
+      "repostThought": "Republier cette publication",
+      "repostUnavailable": "Cette publication n'est plus disponible",
+      "crossBrandLabels": {
+        "format": "{label} : {message}",
+        "habits": "Mise à jour des objectifs"
+      }
     },
     "userMenu": {
       "buttons": {
@@ -417,36 +433,10 @@
       "dismiss": "Ignorer",
       "messageSingular": "Complétez votre profil — il reste 1 étape"
     },
-    "profileCompletionCard": {
-      "title": "Complétez votre profil!",
+    "profileCompletionLink": {
+      "title": "Complétez votre profil",
       "stepsLeft": "Il reste {count} étapes",
-      "stepLeft": "Il reste 1 étape",
-      "continue": "Continuer",
-      "collapse": "Réduire la liste",
-      "expand": "Afficher la liste",
-      "skipped": "Ignoré — touchez pour le faire maintenant",
-      "steps": {
-        "name": {
-          "label": "Ajoutez votre nom",
-          "description": "Pour que vos amis puissent vous reconnaître"
-        },
-        "interests": {
-          "label": "Choisissez vos intérêts",
-          "description": "Nous les utilisons pour vous montrer du meilleur contenu"
-        },
-        "picture": {
-          "label": "Ajoutez une photo de profil",
-          "description": "Les profils avec photo obtiennent plus de connexions"
-        },
-        "phone": {
-          "label": "Vérifiez votre téléphone",
-          "description": "Garde votre compte sécuritaire"
-        },
-        "contacts": {
-          "label": "Synchronisez vos contacts",
-          "description": "Trouvez des amis qui sont déjà ici"
-        }
-      }
+      "stepLeft": "Il reste 1 étape"
     }
   },
   "forms": {
@@ -528,7 +518,9 @@
         "password": "Mot de passe",
         "userName": "Courriel/Téléphone/Nom d'utilisateur",
         "enterCode": "Entrez votre code",
-        "switchAccount": "Changer de compte"
+        "switchAccount": "Changer de compte",
+        "useNumberKeypad": "Utiliser le clavier numérique",
+        "useLetterKeyboard": "Utiliser le clavier alphabétique"
       },
       "backendErrorMessage": "Erreur de connexion. Veuillez réessayer plus tard.",
       "invalidUsernamePassword": "Combinaison nom d'utilisateur/mot de passe invalide.",
@@ -867,7 +859,12 @@
       },
       "errorMessages": {
         "repeatPassword": "Les mots de passe ne correspondent pas",
-        "passwordInsecure": "Le nouveau mot de passe ne respecte pas les exigences minimales de sécurité"
+        "passwordInsecure": "Le nouveau mot de passe ne respecte pas les exigences minimales de sécurité",
+        "userNameRequired": "Le nom d'utilisateur est obligatoire",
+        "firstNameRequired": "Le prénom est obligatoire",
+        "lastNameRequired": "Le nom de famille est obligatoire",
+        "oldPasswordRequired": "Entrez votre mot de passe actuel pour le modifier",
+        "newPasswordRequired": "Entrez un nouveau mot de passe, puis répétez-le ci-dessous"
       },
       "labels": {
         "accountTypeLabel": "Type de compte : ",
@@ -1242,7 +1239,8 @@
         "claimTitleInProgress": "{achievementClass} : {achievementTitle}",
         "alreadyClaimed": "Vous avez déjà réclamé les récompenses pour cette réalisation",
         "unClaimed": "Cette réalisation est terminée! Retournez en arrière et appuyez sur « réclamer les récompenses » pour continuer.",
-        "inProgressDescription": "Vous y êtes presque! Continuez sur cette lancée!"
+        "inProgressDescription": "Vous y êtes presque! Continuez sur cette lancée!",
+        "progressOf": "{count} sur {total}"
       },
       "sections": {
         "unclaimed": "Réclamez vos récompenses",
@@ -1263,6 +1261,36 @@
         "all": "Tout",
         "moments": "Moments",
         "thoughts": "Pensées"
+      }
+    },
+    "apiAccess": {
+      "headerTitle": "Accès à l'API",
+      "pageTitle": "Obtenir une clé API Therr",
+      "intro": "Les clés API se gèrent dans le tableau de bord web de Therr. Voici comment se déroule le processus.",
+      "steps": {
+        "one": {
+          "title": "Créez un compte entreprise",
+          "description": "Inscrivez-vous au tableau de bord Therr avec le courriel de votre entreprise. Un profil Therr personnel ne peut pas générer de clés API."
+        },
+        "two": {
+          "title": "Choisissez un forfait",
+          "description": "Ouvrez Paramètres dans le tableau de bord et choisissez un abonnement. Tous les forfaits payants incluent l'accès à l'API."
+        },
+        "three": {
+          "title": "Générez votre clé",
+          "description": "Allez dans Paramètres, puis Clés API, et créez une clé. Elle n'est affichée qu'une seule fois, à la création : copiez-la en lieu sûr."
+        },
+        "four": {
+          "title": "Commencez à créer",
+          "description": "Envoyez votre clé dans l'en-tête x-api-key de chaque requête. La référence de l'API décrit tous les points d'accès."
+        }
+      },
+      "statusEligible": "Votre compte peut créer des clés API. Ouvrez le tableau de bord pour les gérer.",
+      "statusNotEligible": "Vous aurez besoin d'un compte entreprise avec un forfait payant pour créer des clés API.",
+      "buttons": {
+        "manageKeys": "Gérer les clés API",
+        "openDashboard": "Ouvrir le tableau de bord web",
+        "viewDocs": "Consulter la référence de l'API"
       }
     },
     "advancedSettings": {
@@ -1516,6 +1544,35 @@
         "pairingsDescription": "Des endroits parfaits à proximité pour compléter votre sortie à {spaceName}",
         "helpful": "Utile",
         "notHelpful": "Pas utile"
+      },
+      "suggestEdit": {
+        "trigger": "Suggérer une modification",
+        "title": "Suggérer une modification",
+        "description": "Vous avez repéré une information incorrecte? Suggérez une correction. Nous l'appliquerons lorsque plusieurs visiteurs seront d'accord.",
+        "fieldLabel": "Qu'est-ce qui doit être mis à jour?",
+        "valueLabel": "Valeur correcte",
+        "phoneOption": "Téléphone",
+        "websiteOption": "Site Web",
+        "phonePlaceholder": "(514) 555-1234",
+        "websitePlaceholder": "https://exemple.com",
+        "normalizedPreview": "Sera enregistré sous",
+        "submit": "Soumettre",
+        "cancel": "Annuler",
+        "close": "Fermer",
+        "appliedMessage": "Merci! Votre correction a été appliquée.",
+        "pendingMessage": "Merci! Nous avons besoin de {remaining} accord(s) supplémentaire(s) avant d'appliquer ce changement.",
+        "ownerClaimedMessage": "Merci! Cette entreprise a un propriétaire — nous lui avons transmis votre suggestion.",
+        "errorMessage": "Une erreur s'est produite lors de l'envoi de votre suggestion. Veuillez réessayer.",
+        "rateLimited": "Vous avez soumis beaucoup de suggestions récemment. Veuillez réessayer plus tard.",
+        "errors": {
+          "EMPTY_PHONE": "Veuillez saisir un numéro de téléphone.",
+          "INVALID_PHONE": "Cela ne ressemble pas à un numéro de téléphone valide.",
+          "EMPTY_URL": "Veuillez saisir un site Web.",
+          "INVALID_URL": "Cela ne ressemble pas à une URL valide.",
+          "INVALID_FIELD_NAME": "Ce champ ne peut pas être modifié.",
+          "UNSUPPORTED_FIELD": "Ce champ ne peut pas être modifié.",
+          "SPACE_NOT_FOUND": "Ce lieu n'est plus disponible."
+        }
       }
     },
     "viewMoment": {
@@ -1686,7 +1743,40 @@
       "headerTitle": "Notifications",
       "pageTitle": "Notifications",
       "noNotifications": "Vous n'avez aucune notification pour le moment",
-      "markAllRead": "Tout marquer comme lu"
+      "markAllRead": "Tout marquer comme lu",
+      "unreadCount": "{count} non lue(s)",
+      "caughtUp": "Tu es à jour"
+    },
+    "profileCompletion": {
+      "headerTitle": "Complétez votre profil",
+      "title": "Complétez votre profil!",
+      "stepsLeft": "Il reste {count} étapes",
+      "stepLeft": "Il reste 1 étape",
+      "continue": "Continuer",
+      "skipped": "Ignoré — touchez pour le faire maintenant",
+      "allDone": "Votre profil est complet. Il ne reste rien à faire ici!",
+      "steps": {
+        "name": {
+          "label": "Ajoutez votre nom",
+          "description": "Pour que vos amis puissent vous reconnaître"
+        },
+        "interests": {
+          "label": "Choisissez vos intérêts",
+          "description": "Nous les utilisons pour vous montrer du meilleur contenu"
+        },
+        "picture": {
+          "label": "Ajoutez une photo de profil",
+          "description": "Les profils avec photo obtiennent plus de connexions"
+        },
+        "phone": {
+          "label": "Vérifiez votre téléphone",
+          "description": "Garde votre compte sécuritaire"
+        },
+        "contacts": {
+          "label": "Synchronisez vos contacts",
+          "description": "Trouvez des amis qui sont déjà ici"
+        }
+      }
     },
     "pageNotFound": {
       "pageTitle": "Page non trouvée"
@@ -1701,7 +1791,9 @@
       "buttons": {
         "connect": "Connecter",
         "invite": "Inviter",
-        "inviteSelected": "Inviter la sélection"
+        "inviteSelected": "Inviter la sélection",
+        "invited": "Invité",
+        "inviteSelectedCount": "Inviter la sélection ({count})"
       },
       "empty": {
         "onApp": "Aucun de vos contacts n'est encore sur Therr",
@@ -1712,12 +1804,20 @@
       "alertTitles": {
         "contactInvitesSent": "Invitations envoyées",
         "connectRequestSent": "Demande de connexion envoyée",
-        "noContactsSelected": "Aucun contact sélectionné"
+        "noContactsSelected": "Aucun contact sélectionné",
+        "noContactInfo": "Aucune coordonnée",
+        "tooManySelected": "Trop de sélections",
+        "inviteFailed": "Invitation non envoyée",
+        "phoneVerificationRequired": "Vérifiez votre téléphone"
       },
       "alertMessages": {
         "contactInvitesSent": "Vos invitations sont en route",
         "connectRequestSent": "Votre demande de connexion a été envoyée",
-        "noContactsSelected": "Veuillez sélectionner au moins un contact à inviter"
+        "noContactsSelected": "Veuillez sélectionner au moins un contact à inviter",
+        "noContactInfo": "Ce contact n'a ni numéro de téléphone ni adresse courriel pour recevoir une invitation",
+        "tooManySelected": "Seuls les {count} premiers contacts ont été invités. Sélectionnez-en moins pour inviter les autres.",
+        "inviteFailed": "Nous n'avons pas pu envoyer vos invitations. Veuillez réessayer.",
+        "phoneVerificationRequired": "Touchez ici pour vérifier votre numéro de téléphone, puis renvoyez les invitations"
       }
     },
     "register": {
@@ -1747,12 +1847,18 @@
         "themeDark": "Sombre",
         "themeRetro": "Rétro",
         "enableRewards": "Participer?",
-        "isPublic": "Profil public?"
+        "isPublic": "Profil public?",
+        "contentAlgorithm": "Algorithme du fil",
+        "algorithmPulse": "Pouls",
+        "algorithmFocus": "Focus",
+        "algorithmPulseDescription": "Ce qui se passe maintenant : les publications les plus actives et récentes en tête.",
+        "algorithmFocusDescription": "Seulement ce que vous avez choisi. Un fil plus calme, limité à vos intérêts."
       },
       "alertTitles": {
         "accountUpdated": "Compte mis à jour",
         "backendErrorMessage": "Oups! Une erreur est survenue.",
-        "insecurePassword": "Mot de passe non sécurisé"
+        "insecurePassword": "Mot de passe non sécurisé",
+        "incompleteForm": "Vérifiez vos informations"
       },
       "alertMessages": {
         "accountUpdated": "Mis à jour avec succès."
@@ -1829,7 +1935,13 @@
     "viewThought": {
       "headerTitle": "Pensées",
       "reply": "Répondre",
-      "replies": "Réponses"
+      "replies": "Réponses",
+      "repliesFailed": "Impossible de charger les réponses. Réessayez dans un instant.",
+      "headerTitleReply": "Réponse",
+      "partOfThread": "Fait partie d'un fil",
+      "replyingTo": "En réponse à {userName}",
+      "viewParentThought": "Voir la publication à laquelle ceci répond",
+      "backToParent": "Retour au fil"
     },
     "manageSpaces": {
       "headerTitle": "Mes Commerces",
@@ -2065,6 +2177,12 @@
       "chooseHeader": "Choisissez un compte",
       "useAnotherAccount": "Utiliser un autre compte",
       "removeAccount": "Retirer le compte enregistré"
+    },
+    "repostModal": {
+      "header": "Republier",
+      "placeholder": "Ajoute un commentaire (optionnel)",
+      "confirm": "Republier",
+      "cancel": "Annuler"
     }
   },
   "permissions": {
