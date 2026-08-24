@@ -73,7 +73,7 @@
     "mediaUploadFailed": "Image Upload Failed",
     "tooManyAttempts": "Too Many Attempts",
     "registerSuccess": "Account Created",
-    "accountNotVerified": "Verify Your E-mail"
+    "accountNotVerified": "Verify Your E-mail",
     "repostSuccess": "Reposted"
   },
   "alertMessages": {
@@ -2050,6 +2050,27 @@
     }
   },
   "modals": {
+    "appReviewPrompt": {
+      "sentiment": {
+        "header": "Enjoying {appName}?",
+        "message": "You have been getting some good use out of {appName} lately. How is it going so far?",
+        "notReally": "Not really",
+        "yes": "Yes!"
+      },
+      "review": {
+        "header": "Glad to hear it!",
+        "message": "Would you mind leaving a quick review? It only takes a moment, and it helps other people find {appName}.",
+        "maybeLater": "Maybe later",
+        "writeReview": "Write a review"
+      },
+      "feedback": {
+        "header": "Sorry to hear that",
+        "message": "Tell us what is not working and we will take a look. Your feedback goes straight to our team.",
+        "noThanks": "No thanks",
+        "sendFeedback": "Send feedback"
+      },
+      "emailSubject": "{appName} feedback"
+    },
     "confirmModal": {
       "agree": "Agree",
       "confirm": "Yes",
