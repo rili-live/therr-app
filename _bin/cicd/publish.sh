@@ -36,7 +36,10 @@ for KEY in $(service_keys); do
   IMAGE="$(service_image "$KEY")"
 
   if ! has_prev_diff_changes_any $(service_sources "$KEY"); then
-    echo "Skipping $KEY publish (No Changes) — ledger keeps $(ledger_resolve "$KEY")"
+    # ledger_resolve is empty for a service that has never been published. Say so
+    # rather than printing a bare "ledger keeps ", which reads like a lost SHA.
+    KEPT="$(ledger_resolve "$KEY")"
+    echo "Skipping $KEY publish (No Changes) — ledger keeps ${KEPT:-no row yet}"
     continue
   fi
 

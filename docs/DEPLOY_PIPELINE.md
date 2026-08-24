@@ -30,9 +30,11 @@ Two rules keep it honest:
 2. **A row is written only after both `docker push`es succeed.** A row is a promise
    to the deploy that the tag is pullable.
 
-A service with no row falls back to `LAST_PUBLISHED_GIT_SHA`. That fallback is what
-carries the transition from the old single-SHA format, and is the honest answer for
-an image that predates the ledger.
+A service with no row resolves to **nothing**, and is left alone (`unresolved`). It does
+*not* fall back to `LAST_PUBLISHED_GIT_SHA`: that field is a watermark meaning "most
+recent stage publish, any service", and since `publish.sh` is incremental it gets bumped
+by a merge that pushed a single image. Resolving through it points every unrowed service
+at a tag that was never built for it — see § The fallback deadlock.
 
 ## What the deploy decides, per service
 
@@ -107,28 +109,51 @@ what shape the merge was, or whether the last deploy finished — a service behi
 its desired tag is simply still behind, and gets picked up. The single writer fixes
 the fifth.
 
-## One-time transition
+## The fallback deadlock
 
-One thing carries over from the truncating era:
+`ledger_resolve` used to fall back to `LAST_PUBLISHED_GIT_SHA` for a service with no
+row, to carry the transition from the single-SHA era. That fallback wedged production
+for three consecutive promotions, and it is worth understanding because the failure
+looked like "deploys stopped working" with nothing obviously wrong.
 
-**No service has a per-service row yet.** Every service resolves through
-`LAST_PUBLISHED_GIT_SHA` on the first deploy, and rows accumulate from the next
-stage publish onward.
+`publish.sh` is incremental: it pushes only the services whose sources changed in the
+merge, then bumps `LAST_PUBLISHED_GIT_SHA` regardless. So one stage merge touching one
+service pushed one image and simultaneously re-pointed the other seven at that new SHA:
 
-That fallback is not quite "the same behaviour as the old script", and the
-difference matters once: the old script only pulled images for services the merge
-diff named, whereas the plan now resolves a desired tag for **every** service. A
-`LAST_PUBLISHED_GIT_SHA` was only ever pushed for the services that publish actually
-rebuilt, so on the first deploy the other services point at a `-stage` tag that was
-never created. They are already running the right image, so they come out
-`up-to-date` and are skipped — but only because `up-to-date` is decided ahead of the
-registry probe (see `plan_verdict`). Any of them that the cluster *is* behind on will
-come out `missing-image` and block; the fix is the ordinary one — re-run the stage
-pipeline so it publishes and writes rows.
+```
+stage merge  users-service changes  -> pushes therrapp/users-service-stage:A
+                                       writes LAST_PUBLISHED_GIT_SHA=A
+stage -> main                       -> maps-service has no row, resolves to A,
+                                       therrapp/maps-service-stage:A never existed
+                                    -> missing-image -> BLOCKS the whole deploy
+```
 
-`general`, `stage` and `main` currently all hold the same
-`LAST_PUBLISHED_GIT_SHA`, so no branch has a stale copy and no merge in either
-direction has anything to resolve on this file.
+The plan's `up-to-date`-before-the-registry-probe ordering was meant to absorb this, on
+the reasoning that an unrowed service is "already running exactly the right image". That
+only holds while the cluster's running tag equals the watermark — and it never did. When
+the ledger landed the watermark was `3f1d5ba` while the cluster was on `eef996d`, so
+every service fell straight through to the probe.
+
+It also **ratchets**. The natural way to force a deploy — touch one service's README and
+promote it — publishes that one service and moves the watermark to a *newer* absent tag
+for the other seven. Every retry widened the gap. Re-running the stage pipeline could not
+fix it either, because a re-run republishes only the services that changed in that merge.
+
+Now a row is the only thing that resolves. A row is a promise, made by `publish.sh` only
+after both pushes succeed; absent a row there is no promise and the plan does not invent
+one. Unrowed services land on `unresolved` (warn, left as-is) or, if the merge did carry
+their work, `unpublished` (blocking) — which is correct, because that genuinely is a
+promotion dropping work.
+
+### Giving every service a row
+
+A service earns a row the next time its sources change and `stage` publishes it. To
+repopulate the whole ledger deliberately, change `global-config.js`: it is in every
+service's source fan-out in `_bin/lib/service-registry.sh`, so one commit through
+`general` → `stage` rebuilds and publishes all eight and writes eight rows at one SHA.
+That is the supported way to resynchronise a cluster that has drifted behind the ledger.
+
+Never hand-edit `VERSIONS.txt` to do it.
 
 ## The service registry
 
