@@ -38,6 +38,7 @@ import TherrIcon from '../../components/TherrIcon';
 import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import { navToViewContent } from '../../utilities/postViewHelpers';
 import { showToast } from '../../utilities/toasts';
+import getRepostErrorKey from '../../utilities/repostErrors';
 
 const localStyles = StyleSheet.create({
     contentContainer: {
@@ -479,11 +480,11 @@ const ViewThought = ({
             .catch((error: any) => {
                 showToast.error({
                     text1: translate('alertTitles.backendErrorMessage'),
-                    // 400 here is the server's "you already reposted this" duplicate guard,
-                    // which is a distinct and actionable thing to say.
-                    text2: error?.statusCode === 400
-                        ? translate('alertMessages.repostDuplicate')
-                        : translate('alertMessages.repostFailed'),
+                    // 400 is the server's "you already reposted this" duplicate guard. The
+                    // control is gated on the same rule the server enforces, so a 403 means the
+                    // original went non-public between opening the composer and confirming —
+                    // distinct, and not something retrying fixes.
+                    text2: translate(getRepostErrorKey(error?.statusCode)),
                 });
             })
             .finally(() => {

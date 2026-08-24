@@ -115,7 +115,8 @@
     "phoneRegisterSuccess": "Votre téléphone est vérifié. Consultez vos courriels pour confirmer votre adresse.",
     "repostSuccess": "Cette publication apparaît maintenant sur ton profil",
     "repostFailed": "Nous n'avons pas pu republier ceci. Réessaie.",
-    "repostDuplicate": "Tu as déjà republié cette publication"
+    "repostDuplicate": "Tu as déjà republié cette publication",
+    "repostRestricted": "Seul l'auteur peut republier une publication qui n'est pas publique"
   },
   "dateTime": {
     "lessThanHours": "< 1h",

@@ -115,7 +115,8 @@
     "phoneRegisterSuccess": "Your phone is verified. Check your e-mail to confirm your address.",
     "repostSuccess": "This post now shows on your profile",
     "repostFailed": "We could not repost this. Please try again.",
-    "repostDuplicate": "You already reposted this"
+    "repostDuplicate": "You already reposted this",
+    "repostRestricted": "Only the author can repost a post that isn't public"
   },
   "dateTime": {
     "lessThanHours": "< 1h",

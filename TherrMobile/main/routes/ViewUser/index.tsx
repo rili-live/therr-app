@@ -23,6 +23,7 @@ import {
 } from 'therr-react/types';
 import { TabBar } from 'react-native-tab-view';
 import { showToast } from '../../utilities/toasts';
+import getRepostErrorKey from '../../utilities/repostErrors';
 import { ContentActions } from 'therr-react/redux/actions';
 import UsersActions from '../../redux/actions/UsersActions';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -371,11 +372,11 @@ class ViewUser extends React.Component<
             .catch((error: any) => {
                 showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
-                    // 400 here is the server's "you already reposted this" duplicate guard,
-                    // which is a distinct and actionable thing to say.
-                    text2: error?.statusCode === 400
-                        ? this.translate('alertMessages.repostDuplicate')
-                        : this.translate('alertMessages.repostFailed'),
+                    // 400 is the server's "you already reposted this" duplicate guard. The
+                    // control is gated on the same rule the server enforces, so a 403 means the
+                    // original went non-public between opening the composer and confirming —
+                    // distinct, and not something retrying fixes.
+                    text2: this.translate(getRepostErrorKey(error?.statusCode)),
                 });
             })
             .finally(() => {

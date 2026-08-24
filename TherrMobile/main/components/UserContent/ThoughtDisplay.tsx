@@ -10,6 +10,7 @@ import {
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { canRepostThought } from 'therr-js-utilities/content';
 import { IUserState } from 'therr-react/types';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
@@ -489,18 +490,9 @@ const ThoughtContent = ({
     });
     const hasRepliableActions = !thought.isDraft && isRepliable;
     const totalReposts = thought.repostCount ?? 0;
-    // Drafts have no id the server would accept as a repost target, and a repost of a repost
-    // is collapsed to the root server-side — so offering the control on one would silently
-    // re-share something other than what the reader tapped.
-    //
-    // The visibility clause mirrors the server's own gate (handlers/thoughts createThought):
-    // only an author may repost their own non-public thought. Replies are minted with
-    // isPublic=false by every client, so without this the control renders on every reply and
-    // returns 403 for anyone but its author — under copy that asks the user to try again.
-    const canRepost = !!onRepostPress
-        && !thought.isDraft
-        && !thought.isRepost
-        && (!!thought.isPublic || thought.fromUserId === currentUserId);
+    // Shared with the server's own gate (handlers/thoughts createThought) so the control is
+    // only ever offered where a repost would actually be accepted.
+    const canRepost = !!onRepostPress && canRepostThought(thought, currentUserId);
     const repostButtonTitle = totalReposts > 0 ? `${totalReposts}` : '';
     // The repliable action row already renders a reply icon/count and a like control, so this
     // only fills the gap for non-repliable content (replies within the thought details view).

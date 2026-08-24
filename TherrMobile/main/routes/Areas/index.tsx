@@ -46,6 +46,7 @@ import { isLocationPermissionGranted } from '../../utilities/requestOSPermission
 import LocationUseDisclosureModal from '../../components/Modals/LocationUseDisclosureModal';
 import RepostModal from '../../components/Modals/RepostModal';
 import { showToast } from '../../utilities/toasts';
+import getRepostErrorKey from '../../utilities/repostErrors';
 import { isUserAuthenticated } from '../../utilities/authUtils';
 import UsersActions from '../../redux/actions/UsersActions';
 
@@ -661,11 +662,11 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             .catch((error: any) => {
                 showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
-                    // 400 here is the server's "you already reposted this" duplicate guard,
-                    // which is a distinct and actionable thing to say.
-                    text2: error?.statusCode === 400
-                        ? this.translate('alertMessages.repostDuplicate')
-                        : this.translate('alertMessages.repostFailed'),
+                    // 400 is the server's "you already reposted this" duplicate guard. The
+                    // control is gated on the same rule the server enforces, so a 403 means the
+                    // original went non-public between opening the composer and confirming —
+                    // distinct, and not something retrying fixes.
+                    text2: this.translate(getRepostErrorKey(error?.statusCode)),
                 });
             })
             .finally(() => {
