@@ -322,6 +322,119 @@ describe('ThoughtsStore brand filtering', () => {
                 expect(sql).to.not.include('authorRank');
             });
 
+            it('adds nothing to the query when no location is supplied', () => {
+                const withoutLocation = buildMockConnection();
+                new ThoughtsStore(withoutLocation.connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.PULSE));
+
+                const sql = withoutLocation.readStub.args[0][0] as string;
+                // A surface with no coordinates must emit no geo SQL at all, not a distance
+                // term multiplied by zero — that is what keeps PULSE byte-identical.
+                expect(sql).to.not.include('ST_DWithin');
+                expect(sql).to.not.include('ST_Distance');
+                expect(sql).to.not.include('latitude');
+            });
+
+            it('bounds a local query by an indexable box before the exact distance test', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.PULSE), {
+                        latitude: 41.8781,
+                        longitude: -87.6298,
+                        radiusMeters: 60000,
+                    });
+
+                const sql = readStub.args[0][0] as string;
+                // The box is what the partial (latitude, longitude) index can serve. Without
+                // it, ST_DWithin alone sequentially scans every thought ever posted.
+                expect(sql).to.include('"main"."thoughts"."latitude" between');
+                expect(sql).to.include('"main"."thoughts"."longitude" between');
+                // And the exact test trims the corners of the box that fall outside the circle.
+                expect(sql).to.include('ST_DWithin(');
+                expect(sql).to.include('60000');
+                // A NULL latitude can never satisfy the distance test, so it is excluded up front.
+                expect(sql).to.include('"main"."thoughts"."latitude" is not null');
+            });
+
+            it('passes the point as longitude-then-latitude, the order PostGIS expects', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.PULSE), {
+                        latitude: 41.8781,
+                        longitude: -87.6298,
+                        radiusMeters: 60000,
+                    });
+
+                const sql = readStub.args[0][0] as string;
+                // Swapping these silently searches the wrong hemisphere rather than failing.
+                expect(sql).to.include('ST_MakePoint(-87.6298, 41.8781)');
+                expect(sql).to.include('ST_MakePoint(main.thoughts."longitude", main.thoughts."latitude")');
+            });
+
+            it('feeds the distance into the score for a profile that weighs geo, by alias', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.WANDER), {
+                        latitude: 41.8781,
+                        longitude: -87.6298,
+                        radiusMeters: 25000,
+                    });
+
+                const sql = readStub.args[0][0] as string;
+                // Computed once in the candidate query and referenced by alias in the score,
+                // so the SELECTed value and the ORDER BY cannot drift apart.
+                expect(sql).to.include('AS "distanceMeters"');
+                expect(sql).to.include('EXP(-1 * GREATEST("distanceMeters", 0)');
+            });
+
+            it('still emits no geo term for a zero-geo-weight profile, even with a location', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.PULSE), {
+                        latitude: 41.8781,
+                        longitude: -87.6298,
+                        radiusMeters: 60000,
+                    });
+
+                const sql = readStub.args[0][0] as string;
+                // PULSE selects local candidates but ranks them on hotness; the boost that
+                // lifts them happens at activation, not in this query.
+                expect(sql).to.not.include('EXP(');
+            });
+
+            it('ignores an unusable point rather than emitting NaN into SQL', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.PULSE), {
+                        latitude: Number.NaN,
+                        longitude: -87.6298,
+                        radiusMeters: 60000,
+                    });
+
+                const sql = readStub.args[0][0] as string;
+                // main.userLocations.latitude is nullable, so a half-written row reaches this
+                // on the feed's hot path. Degrading to the ordinary query beats a query that
+                // errors or matches nothing.
+                expect(sql).to.not.include('NaN');
+                expect(sql).to.not.include('ST_DWithin');
+            });
+
+            it('drops only the longitude bound for a box that wraps the antimeridian', () => {
+                const { connection, readStub } = buildMockConnection();
+                new ThoughtsStore(connection, stubUsersStore)
+                    .getRecentThoughts(BrandVariations.THERR, 10, [], ['id'], getAlgorithmProfile(ContentAlgorithms.PULSE), {
+                        latitude: -16.5,
+                        longitude: 179.9,
+                        radiusMeters: 60000,
+                    });
+
+                const sql = readStub.args[0][0] as string;
+                // A wrapped range has min > max, so BETWEEN would match nothing at all.
+                expect(sql).to.not.include('"main"."thoughts"."longitude" between');
+                expect(sql).to.include('"main"."thoughts"."latitude" between');
+                expect(sql).to.include('ST_DWithin(');
+            });
+
             it('keeps the clamp and the score/order agreement under FOCUS too', () => {
                 const { connection, readStub } = buildMockConnection();
                 new ThoughtsStore(connection, stubUsersStore)
@@ -463,19 +576,36 @@ describe('ThoughtsStore brand filtering', () => {
     });
 
     describe('getById (parent thread context)', () => {
+        // getById issues other queries besides the parent lookup (notably the repost-count
+        // aggregate), so these stubs dispatch on the shape of the SQL rather than on call
+        // index — "the second call" is not a stable way to name the parent query, and
+        // indexing into it silently fed parent rows to an unrelated query.
+        //
+        // The parent lookup is the only one that selects "parentId" while filtering on an
+        // id list; the repost-originals lookup also uses `id in (...)` but never selects it.
+        const isParentQuery = (sql: string) => sql.includes('"id" in (') && sql.includes('"parentId"');
+        const findParentQuery = (readStub: sinon.SinonStub): string | undefined => readStub.args
+            .map((args) => args[0] as string)
+            .find(isParentQuery);
+
         const buildParentAwareStub = (parentRow?: any) => {
             const { connection, readStub } = buildMockConnection();
-            readStub.onFirstCall().callsFake(() => Promise.resolve({
-                rows: [{
-                    id: 'reply-1',
-                    parentId: 'thought-1',
-                    fromUserId: '22',
-                    message: 'a reply',
-                }],
-            }));
-            readStub.onSecondCall().callsFake(() => Promise.resolve({
-                rows: parentRow ? [parentRow] : [],
-            }));
+            readStub.callsFake((sql: string) => {
+                if (isParentQuery(sql)) {
+                    return Promise.resolve({ rows: parentRow ? [parentRow] : [] });
+                }
+                if (sql.includes('group by "repostThoughtId"')) {
+                    return Promise.resolve({ rows: [] });
+                }
+                return Promise.resolve({
+                    rows: [{
+                        id: 'reply-1',
+                        parentId: 'thought-1',
+                        fromUserId: '22',
+                        message: 'a reply',
+                    }],
+                });
+            });
 
             return { connection, readStub };
         };
@@ -486,7 +616,7 @@ describe('ThoughtsStore brand filtering', () => {
 
             const { thoughts } = await store.getById(BrandVariations.THERR, 'reply-1', {}, {});
 
-            expect(readStub.callCount).to.equal(1);
+            expect(findParentQuery(readStub)).to.equal(undefined);
             expect(thoughts[0].parent).to.equal(undefined);
         });
 
@@ -501,8 +631,7 @@ describe('ThoughtsStore brand filtering', () => {
 
             const { thoughts } = await store.getById(BrandVariations.THERR, 'reply-1', {}, { withParent: true });
 
-            expect(readStub.callCount).to.equal(2);
-            expect(readStub.args[1][0]).to.include('in (\'thought-1\')');
+            expect(findParentQuery(readStub)).to.include('in (\'thought-1\')');
             expect(thoughts[0].parent.id).to.equal('thought-1');
             expect(thoughts[0].parent.message).to.equal('the original thought');
         });
@@ -514,7 +643,7 @@ describe('ThoughtsStore brand filtering', () => {
             await store.getById(BrandVariations.HABITS, 'reply-1', {}, { withParent: true });
 
             // Mirrors the reply join: a habits reader must not be linked up to a therr parent.
-            expect(readStub.args[1][0]).to.include('"brandVariation" in (\'habits\')');
+            expect(findParentQuery(readStub)).to.include('"brandVariation" in (\'habits\')');
         });
 
         it('leaves parent undefined when the parent is filtered out or deleted', async () => {
@@ -535,7 +664,7 @@ describe('ThoughtsStore brand filtering', () => {
 
             await store.getById(BrandVariations.THERR, 'thought-1', {}, { withParent: true });
 
-            expect(readStub.callCount).to.equal(1);
+            expect(findParentQuery(readStub)).to.equal(undefined);
         });
 
         it('hydrates the parent author even when the reply author is missing', async () => {
@@ -564,10 +693,10 @@ describe('ThoughtsStore brand filtering', () => {
     });
 
     describe('create', () => {
-        it('stamps the row with the caller brand on insert (habits)', () => {
+        it('stamps the row with the caller brand on insert (habits)', async () => {
             const { connection, writeStub } = buildMockConnection();
             const store = new ThoughtsStore(connection, stubUsersStore);
-            store.create(BrandVariations.HABITS, {
+            await store.create(BrandVariations.HABITS, {
                 fromUserId: 1 as any,
                 locale: 'en-us',
                 message: 'hello',
@@ -578,12 +707,192 @@ describe('ThoughtsStore brand filtering', () => {
             expect(sql).to.include(`'habits'`);
         });
 
-        it('stamps the row with therr when caller is therr (legacy default behavior)', () => {
+        /**
+         * Coordinates on a human-authored post.
+         *
+         * Same meaning as on a bot post: this post is *about* this place. Nothing here is
+         * inferred from where the author lives, and nothing is accepted from the request.
+         */
+        describe('city detection', () => {
+            // Chicago, unless a case says otherwise. Detection is gated on the author being
+            // near the city they name, so every case has to say where the author is.
+            const AUTHOR_IN_CHICAGO = { latitude: 41.8781, longitude: -87.6298 };
+
+            const createWith = async (params: any, authorLocation: any = AUTHOR_IN_CHICAGO) => {
+                const { connection, writeStub } = buildMockConnection();
+                const stubUserLocationsStore: any = {
+                    getPrimary: sinon.stub().resolves(authorLocation),
+                };
+
+                await new ThoughtsStore(connection, stubUsersStore, stubUserLocationsStore)
+                    .create(BrandVariations.THERR, {
+                        fromUserId: 'author-1' as any,
+                        locale: 'en-us',
+                        isPublic: true,
+                        ...params,
+                    });
+
+                return writeStub.args[0][0] as string;
+            };
+
+            it('stamps a public post that names a city', async () => {
+                const sql = await createWith({ message: 'deep dish in Chicago is a casserole' });
+
+                expect(sql).to.include('"latitude"');
+                expect(sql).to.include('41.8781');
+                expect(sql).to.include('-87.6298');
+                expect(sql).to.include(`'Chicago, IL'`);
+            });
+
+            it('writes the coordinates as a complete pair', async () => {
+                const sql = await createWith(
+                    { message: 'hot chicken in Nashville' },
+                    { latitude: 36.1627, longitude: -86.7816 },
+                );
+
+                // The local candidate query filters on `latitude IS NOT NULL` and computes
+                // distance from both columns; half a pair matches nothing but claims to be
+                // from somewhere.
+                expect(sql).to.include('"latitude"');
+                expect(sql).to.include('"longitude"');
+            });
+
+            it('leaves a post that names nowhere untouched', async () => {
+                const sql = await createWith({ message: 'made a pumpkin latte at home' });
+
+                expect(sql).to.not.include('"latitude"');
+                expect(sql).to.not.include('"locality"');
+            });
+
+            it('does not tag a reply, which can never reach a stream slot anyway', async () => {
+                const sql = await createWith({ message: 'Chicago for sure', parentId: 'parent-1' });
+
+                expect(sql).to.not.include('"latitude"');
+            });
+
+            it('does not tag a private post', async () => {
+                // Excluded from candidates regardless, and writing a location onto a post the
+                // author kept private is data they did not ask for.
+                const sql = await createWith({ message: 'thinking about Seattle again', isPublic: false });
+
+                expect(sql).to.not.include('"latitude"');
+            });
+
+            it('does not tag a post forced private for mature content', async () => {
+                const sql = await createWith({ message: 'Seattle', isPublic: true, isMatureContent: true });
+
+                expect(sql).to.not.include('"latitude"');
+            });
+
+            it('ignores coordinates supplied by the caller', async () => {
+                // createThought spreads req.body into this method, so honoring these would let
+                // any client drop a post into any city's local feed.
+                const sql = await createWith({
+                    message: 'no city named here at all',
+                    latitude: 41.8781,
+                    longitude: -87.6298,
+                    locality: 'Chicago, IL',
+                });
+
+                expect(sql).to.not.include('41.8781');
+                expect(sql).to.not.include(`'Chicago, IL'`);
+            });
+
+            it('refuses to tag a post about a city the author is nowhere near', async () => {
+                // Post text is user-controlled, so without this check, typing "Chicago" into
+                // every post is all it takes to farm the Chicago feed from another state.
+                const sql = await createWith(
+                    { message: 'chicago pizza is overrated' },
+                    { latitude: 40.7128, longitude: -74.0060 },
+                );
+
+                expect(sql).to.not.include('"latitude"');
+                expect(sql).to.not.include(`'Chicago, IL'`);
+            });
+
+            it('refuses to tag when the author has no known location', async () => {
+                // `null`, not `undefined` — the helper defaults an omitted argument to a
+                // Chicago author, and this case is specifically about having none.
+                const sql = await createWith({ message: 'deep dish in Chicago' }, null);
+
+                expect(sql).to.not.include('"latitude"');
+            });
+
+            it('saves the post anyway when the location lookup fails', async () => {
+                const { connection, writeStub } = buildMockConnection();
+                const stubUserLocationsStore: any = {
+                    getPrimary: sinon.stub().rejects(new Error('connection terminated')),
+                };
+
+                await new ThoughtsStore(connection, stubUsersStore, stubUserLocationsStore)
+                    .create(BrandVariations.THERR, {
+                        fromUserId: 'author-1' as any,
+                        locale: 'en-us',
+                        isPublic: true,
+                        message: 'deep dish in Chicago',
+                    });
+
+                // An untagged post is exactly what every post was before this feature. A
+                // failed lookup must never cost somebody their post.
+                const sql = writeStub.args[0][0] as string;
+                expect(sql).to.include(`'deep dish in Chicago'`);
+                expect(sql).to.not.include('"latitude"');
+            });
+
+            it('tags nothing at all when no locations store was wired in', async () => {
+                // Fails closed: the only thing that dependency does is enforce a check on
+                // user-controlled input, so its absence must not mean "tag it anyway".
+                const { connection, writeStub } = buildMockConnection();
+
+                await new ThoughtsStore(connection, stubUsersStore)
+                    .create(BrandVariations.THERR, {
+                        fromUserId: 'author-1' as any,
+                        locale: 'en-us',
+                        isPublic: true,
+                        message: 'deep dish in Chicago',
+                    });
+
+                expect(writeStub.args[0][0] as string).to.not.include('"latitude"');
+            });
+
+            it('does not look up a location for a post that could never be tagged', async () => {
+                const { connection } = buildMockConnection();
+                const getPrimary = sinon.stub().resolves(AUTHOR_IN_CHICAGO);
+
+                await new ThoughtsStore(connection, stubUsersStore, { getPrimary } as any)
+                    .create(BrandVariations.THERR, {
+                        fromUserId: 'author-1' as any,
+                        locale: 'en-us',
+                        isPublic: true,
+                        parentId: 'parent-1',
+                        message: 'deep dish in Chicago',
+                    });
+
+                // Replies and private posts add no query to the write path.
+                expect(getPrimary.called).to.equal(false);
+            });
+
+            it('does not let a caller relocate a post that does name a city', async () => {
+                const sql = await createWith(
+                    {
+                        message: 'sunset over Seattle',
+                        latitude: 41.8781,
+                        longitude: -87.6298,
+                    },
+                    { latitude: 47.6062, longitude: -122.3321 },
+                );
+
+                expect(sql).to.include('47.6062');
+                expect(sql).to.not.include('41.8781');
+            });
+        });
+
+        it('stamps the row with therr when caller is therr (legacy default behavior)', async () => {
             // Simulates a legacy token (no x-brand-variation header) that getBrandContext
             // resolved to THERR. The insert MUST stamp 'therr' so the row stays visible to Therr.
             const { connection, writeStub } = buildMockConnection();
             const store = new ThoughtsStore(connection, stubUsersStore);
-            store.create(BrandVariations.THERR, {
+            await store.create(BrandVariations.THERR, {
                 fromUserId: 1 as any,
                 locale: 'en-us',
                 message: 'hello legacy',
@@ -605,6 +914,247 @@ describe('ThoughtsStore brand filtering', () => {
 
             const sql = readStub.args[0][0] as string;
             expect(sql).to.include(`"main"."thoughts"."brandVariation" in ('habits')`);
+        });
+
+        it('requires a null repostThoughtId for an ordinary post', () => {
+            // Without this, a plain repost (empty message, no parentId) would collide with an
+            // ordinary empty-message post by the same author and be rejected as a duplicate.
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.get(BrandVariations.THERR, {
+                fromUserId: 1,
+                message: 'hi',
+            });
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include(`"repostThoughtId" is null`);
+        });
+
+        it('keys the duplicate check on repostThoughtId for a repost', () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.get(BrandVariations.THERR, {
+                fromUserId: 1,
+                message: '',
+                repostThoughtId: 'original-1',
+            });
+
+            const sql = readStub.args[0][0] as string;
+            expect(sql).to.include(`"repostThoughtId" = 'original-1'`);
+            expect(sql).to.not.include(`"repostThoughtId" is null`);
+        });
+    });
+});
+
+describe('ThoughtsStore reposts', () => {
+    describe('create', () => {
+        it('persists repostThoughtId and derives isRepost from it', () => {
+            const { connection, writeStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.create(BrandVariations.THERR, {
+                fromUserId: 1 as any,
+                locale: 'en-us',
+                message: '',
+                repostThoughtId: 'original-1',
+            });
+
+            const sql = writeStub.args[0][0] as string;
+            expect(sql).to.include(`'original-1'`);
+            expect(sql).to.include(`"isRepost"`);
+            expect(sql).to.include('true');
+        });
+
+        it('ignores a client-supplied isRepost when nothing is being reposted', () => {
+            // `isRepost` shipped years before reposts did, so a client can set it on an ordinary
+            // post. Deriving it keeps "isRepost with nothing reposted" out of the table entirely.
+            const { connection, writeStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            store.create(BrandVariations.THERR, {
+                fromUserId: 1 as any,
+                locale: 'en-us',
+                message: 'not actually a repost',
+                isRepost: true,
+            });
+
+            const sql = writeStub.args[0][0] as string;
+            expect(sql).to.include('false');
+        });
+    });
+
+    describe('attachRepostDetails', () => {
+        it('is a no-op on an empty page and issues no queries', async () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            await store.attachRepostDetails(BrandVariations.THERR, []);
+
+            expect(readStub.callCount).to.equal(0);
+        });
+
+        it('skips the originals lookup when the page contains no reposts', async () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            await store.attachRepostDetails(BrandVariations.THERR, [{ id: 't1' }]);
+
+            // Only the repost-count aggregate should run.
+            expect(readStub.callCount).to.equal(1);
+            expect(readStub.args[0][0] as string).to.include('group by "repostThoughtId"');
+        });
+
+        it('scopes the originals lookup to the caller brand', async () => {
+            // The repost and its original are separate rows, so a Therr user (who reads 'all')
+            // can repost something a HABITS reader must not see. The embed has to re-filter.
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            await store.attachRepostDetails(BrandVariations.HABITS, [
+                { id: 't1', repostThoughtId: 'original-1' },
+            ]);
+
+            const originalsSql = readStub.args.map((args) => args[0] as string)
+                .find((sql) => sql.includes('"id" in'));
+            expect(originalsSql).to.include(`"main"."thoughts"."brandVariation" in ('habits')`);
+            expect(originalsSql).to.include('"isMatureContent" = false');
+        });
+
+        it('attaches a null repostOf when the original is not readable', async () => {
+            const { connection } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{ id: 't1', repostThoughtId: 'gone' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].repostOf).to.equal(null);
+            expect(thoughts[0].repostCount).to.equal(0);
+        });
+
+        it('hydrates repostOf with the original author and coerces repostCount to a number', async () => {
+            const readStub = sinon.stub();
+            // Originals lookup (has the id IN filter) vs the count aggregate (has GROUP BY).
+            readStub.callsFake((sql: string) => {
+                if (sql.includes('group by "repostThoughtId"')) {
+                    // pg returns COUNT(*) as a bigint string.
+                    return Promise.resolve({ rows: [{ repostThoughtId: 't1', count: '3' }] });
+                }
+                return Promise.resolve({
+                    rows: [{ id: 'original-1', fromUserId: 'u9', message: 'hello' }],
+                });
+            });
+            const connection: any = {
+                read: { query: readStub },
+                write: { query: sinon.stub() },
+            };
+            const usersStore: any = {
+                findUsers: () => Promise.resolve([{ id: 'u9', userName: 'author', isSuperUser: true }]),
+            };
+            const store = new ThoughtsStore(connection, usersStore);
+            const thoughts: any[] = [{ id: 't1', repostThoughtId: 'original-1' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].repostOf.message).to.equal('hello');
+            expect(thoughts[0].repostOf.fromUserName).to.equal('author');
+            expect(thoughts[0].repostOf.fromUserIsSuperUser).to.equal(true);
+            expect(thoughts[0].repostCount).to.equal(3);
+        });
+
+        it('leaves repostOf unset on a non-repost row', async () => {
+            const { connection } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{ id: 't1' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0]).to.not.have.property('repostOf');
+            expect(thoughts[0].repostCount).to.equal(0);
+        });
+
+        // find/getById attach up to three reply previews per parent, and the details view
+        // renders a repost control against each one. A reply left out of the walk renders a
+        // permanently blank count next to a control that works.
+        it('counts reposts of nested reply previews, not only of the parents', async () => {
+            const readStub = sinon.stub();
+            readStub.callsFake((sql: string) => {
+                if (sql.includes('group by "repostThoughtId"')) {
+                    return Promise.resolve({ rows: [{ repostThoughtId: 'reply-1', count: '2' }] });
+                }
+                return Promise.resolve({ rows: [] });
+            });
+            const connection: any = {
+                read: { query: readStub },
+                write: { query: sinon.stub() },
+            };
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{
+                id: 't1',
+                replies: [{ id: 'reply-1' }, { id: 'reply-2' }],
+            }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].replies[0].repostCount).to.equal(2);
+            expect(thoughts[0].replies[1].repostCount).to.equal(0);
+            expect(thoughts[0].repostCount).to.equal(0);
+        });
+
+        it('includes reply ids in the counts lookup', async () => {
+            const { connection, readStub } = buildMockConnection();
+            const store = new ThoughtsStore(connection, stubUsersStore);
+
+            await store.attachRepostDetails(BrandVariations.THERR, [{
+                id: 't1',
+                replies: [{ id: 'reply-1' }],
+            }]);
+
+            const countsSql = readStub.args.map((args) => args[0] as string)
+                .find((sql) => sql.includes('group by "repostThoughtId"'));
+            expect(countsSql).to.include('reply-1');
+        });
+
+        // _bin/cicd/run-migrations.sh applies migrations AFTER `kubectl set image`, so the new
+        // pod serves the pre-migration schema for a minute or two. The counts query names
+        // "repostThoughtId" on every non-empty page, so a propagating error here is a total
+        // feed outage for the length of that window — and this hydration is only decoration.
+        it('degrades to no counts rather than throwing when the counts query fails', async () => {
+            const readStub = sinon.stub();
+            readStub.callsFake((sql: string) => {
+                if (sql.includes('group by "repostThoughtId"')) {
+                    return Promise.reject(new Error('column "repostThoughtId" does not exist'));
+                }
+                return Promise.resolve({ rows: [] });
+            });
+            const connection: any = {
+                read: { query: readStub },
+                write: { query: sinon.stub() },
+            };
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{ id: 't1' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].repostCount).to.equal(0);
+        });
+
+        it('degrades to no embed rather than throwing when the originals lookup fails', async () => {
+            const readStub = sinon.stub();
+            readStub.callsFake((sql: string) => {
+                if (sql.includes('group by "repostThoughtId"')) {
+                    return Promise.resolve({ rows: [] });
+                }
+                return Promise.reject(new Error('read replica unavailable'));
+            });
+            const connection: any = {
+                read: { query: readStub },
+                write: { query: sinon.stub() },
+            };
+            const store = new ThoughtsStore(connection, stubUsersStore);
+            const thoughts: any[] = [{ id: 't1', repostThoughtId: 'original-1' }];
+
+            await store.attachRepostDetails(BrandVariations.THERR, thoughts);
+
+            expect(thoughts[0].repostOf).to.equal(null);
+            expect(thoughts[0].repostCount).to.equal(0);
         });
     });
 

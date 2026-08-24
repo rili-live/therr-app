@@ -72,7 +72,8 @@
     "reactionFailed": "Reacción fallida",
     "mediaUploadFailed": "Error al cargar imagen",
     "tooManyAttempts": "Demasiados intentos",
-    "registerSuccess": "Cuenta creada"
+    "registerSuccess": "Cuenta creada",
+    "repostSuccess": "Republicado"
   },
   "alertMessages": {
     "activityCreated": "Se creó un nuevo grupo y evento. Se enviaron invitaciones a cada miembro del grupo.",
@@ -111,7 +112,11 @@
     "waitlistSuccess": "Revisa tu correo electrónico para verificar tu cuenta",
     "mediaUploadFailed": "No se pudo cargar tu imagen. Por favor, inténtalo de nuevo.",
     "tooManyAttempts": "Espera unos minutos antes de volver a intentarlo.",
-    "phoneRegisterSuccess": "Tu teléfono está verificado. Revisa tu correo para confirmar tu dirección."
+    "phoneRegisterSuccess": "Tu teléfono está verificado. Revisa tu correo para confirmar tu dirección.",
+    "repostSuccess": "Esta publicación ahora aparece en tu perfil",
+    "repostFailed": "No pudimos republicar esto. Inténtalo de nuevo.",
+    "repostDuplicate": "Ya republicaste esta publicación",
+    "repostRestricted": "Solo el autor puede republicar una publicación que no es pública"
   },
   "dateTime": {
     "lessThanHours": "< 1h",
@@ -416,6 +421,9 @@
       "viewReplies": "Ver {count} respuestas",
       "likeThought": "Me gusta esta publicación",
       "unlikeThought": "Quitar me gusta de esta publicación",
+      "repostedBy": "{userName} republicó",
+      "repostThought": "Republicar esta publicación",
+      "repostUnavailable": "Esta publicación ya no está disponible",
       "crossBrandLabels": {
         "format": "{label}: {message}",
         "habits": "Actualización de objetivos"
@@ -2513,6 +2521,12 @@
       "chooseHeader": "Elige una cuenta",
       "useAnotherAccount": "Usar otra cuenta",
       "removeAccount": "Quitar cuenta guardada"
+    },
+    "repostModal": {
+      "header": "Republicar",
+      "placeholder": "Añade un comentario (opcional)",
+      "confirm": "Republicar",
+      "cancel": "Cancelar"
     }
   },
   "permissions": {

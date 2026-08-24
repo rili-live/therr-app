@@ -19,6 +19,11 @@ const locationConstants = {
     DWELL_LOCATION_RADIUS_METERS: 150,
     // Dwellings decay: a hotel from last year should not permanently mute notifications.
     DWELL_LOCATION_MAX_AGE_MS: 1000 * 60 * 60 * 24 * 30, // 30 days since last visit
+    // How far from a city an author may be and still have their post tagged as being about
+    // it (see `detectLocality`). Deliberately the same 60km as PULSE's localFeedRadiusMeters,
+    // which buys a property worth keeping: you can only tag a city whose local feed you
+    // would yourself be served. If the two numbers drift apart, that stops being true.
+    LOCAL_AUTHOR_MAX_DISTANCE_METERS: 60000,
     MIN_RADIUS_OF_AWARENESS: 10,
     MAX_RADIUS_OF_AWARENESS: 160934,
     MIN_RADIUS_OF_INFLUENCE: 10,

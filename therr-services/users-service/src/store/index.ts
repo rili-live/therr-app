@@ -142,7 +142,10 @@ class Store {
         this.userGroups = new UserGroupsStore(this.db);
         this.subscribers = new SubscribersStore(this.db);
         this.socialSyncs = new SocialSyncsStore(this.db);
-        this.thoughts = new ThoughtsStore(this.db, this.users);
+        // userLocations is passed so `create` can check an author is near the city their post
+        // names before tagging it (see ThoughtsStore.getAuthorLocation). Must stay constructed
+        // after `this.userLocations` above.
+        this.thoughts = new ThoughtsStore(this.db, this.users, this.userLocations);
         this.interests = new InterestsStore(this.db);
         this.invites = new InvitesStore(this.db);
         this.inviteCodes = new InviteCodesStore(this.db);

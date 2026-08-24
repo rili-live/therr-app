@@ -11,7 +11,8 @@
             "invalidPassword": "Le mot de passe est invalide"
         },
         "posts": {
-            "duplicatePost": "Les publications en double ne sont pas autorisées"
+            "duplicatePost": "Les publications en double ne sont pas autorisées",
+            "duplicateRepost": "Tu as déjà republié cette publication"
         },
         "pacts": {
             "activityTypeRequired": "Choisis ce que tu veux envoyer",
@@ -105,6 +106,7 @@
         "reactionLikeReceived": "{userName} a aimé ta publication",
         "reactionSuperLikeReceived": "{userName} a super-aimé ta publication!",
         "newThoughtReplyReceived": "{userName} a répondu à ta publication",
+        "newThoughtRepostReceived": "{userName} a republié ta publication",
         "newDmReceived": "Nouveau message de {userName} pendant ton absence",
         "newGroupMembers": "{members} vient de rejoindre ton groupe, {groupName}",
         "newGroupInvite": "{inviterUserName} t'a invité à rejoindre {groupName}",
@@ -124,6 +126,7 @@
     },
     "thoughts": {
         "notFound": "Pensée non trouvée",
+        "repostRestricted": "Cette publication ne peut pas être republiée",
         "parentAccessRestricted": "Cet utilisateur n'est pas autorisé à répondre à une pensée à laquelle il n'a pas accès"
     },
     "thoughtReactions": {

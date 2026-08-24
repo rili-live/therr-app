@@ -139,6 +139,7 @@ const REMINDER_ACTION_KEYS = new Set<string>([
     'NEW_LIKE_RECEIVED',
     'NEW_SUPER_LIKE_RECEIVED',
     'NEW_THOUGHT_REPLY_RECEIVED',
+    'NEW_THOUGHT_REPOST_RECEIVED',
     // HABITS — time-sensitive nudges. These are the retention loop; on the
     // DEFAULT-importance channel they post silently with no heads-up banner,
     // which is indistinguishable from "push isn't working" to a user.

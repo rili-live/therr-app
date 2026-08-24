@@ -38,6 +38,7 @@
         "docker:infra:down": "docker compose -f docker-compose.infra.yml down",
         "k8s:apply": "kubectl apply -f k8s/prod --validate=false",
         "k8s:check-waves": "bash ./_bin/lib/rollout-waves.sh",
+        "k8s:check-services": "bash ./_bin/lib/service-registry.sh",
         "k8s:dev": "skaffold dev",
         "seeds:create": "node --require=./node_modules/dotenv/config ./node_modules/.bin/knex --require @babel/register --knexfile ./therr-services/users-service/src/store/knexfile.js seed:make $1 dotenv_config_path=./.env",
         "seeds:run": "node --require=./node_modules/dotenv/config ./node_modules/.bin/babel-node ./node_modules/.bin/knex --knexfile ./therr-services/users-service/src/store/knexfile.js seed:run dotenv_config_path=./.env",

@@ -850,6 +850,54 @@ console configuration, and one verification that gates a payments change.
   partner when no sender is configured for their country, instead of reporting the invite as sent.
   That is the correct outcome, but it means a missing GB sender becomes user-visible as "we could
   not reach them" on every UK pact invite and nudge, where it previously failed silently.
+- [ ] (2026-08-22, /quality-peer-review) **Run the `main.thoughts` location migration and the
+  location-bot seed in production.** `20260821000001_main.thoughts.location.js` adds nullable
+  `latitude`/`longitude`/`locality` plus a partial index (additive, verified re-runnable), and
+  `006_local_bot_users.js` seeds the 12 metro bot accounts with declared homes in
+  `main.userLocations`. The seed is the this-repo half of the bot contract — without it the
+  distributor's local query has no bot content to find.
+- [ ] (2026-08-22, /quality-peer-review) **Build the `therr-ai-automator` half before expecting
+  any location-aware bot content.** Verified against the sibling repo on 2026-08-22: it has no
+  `src/config/locales.ts`, does not read `main.userLocations`, and never writes
+  `main.thoughts.latitude/longitude/locality`. Until that ships, human city detection
+  (`detectLocality`) is the only source of location-tagged posts and the "Location-aware bots"
+  feature is inert. `docs/CROSS_REPO_INTEGRATION.md` § "a bot's home city lives here" and the
+  `docs/FEATURES.md` bullet describe that contract in the present tense — both are now marked as
+  pending, and the markers should be removed when the automator side deploys.
+- [ ] (2026-08-22, /quality-peer-review) **Keep the `locality` label spelling identical across
+  repos when the automator lands.** Human posts render `"${name}, ${stateAbbr}"` from the `Cities`
+  catalog; the automator must emit the same form ("Chicago, IL") or one place shows up under two
+  spellings in the feed. No CI can see both sides.
+- [ ] (2026-08-23, /quality-peer-review) **Watch the first `stage` → `main` deploy after the
+  pipeline rewrite lands, and confirm the plan table before letting it roll.** No service has a
+  `PUBLISHED_*` row yet, so all eight resolve through `LAST_PUBLISHED_GIT_SHA=3f1d5ba` — a tag the
+  publish job only ever pushed for the services that merge rebuilt. Services already on that tag
+  come out `up-to-date` and are skipped; any the cluster is genuinely behind on will come out
+  `missing-image` and block before touching the cluster. The fix in that case is to re-run the
+  stage pipeline so it publishes and writes per-service rows — not to hand-edit `VERSIONS.txt`.
+- [ ] (2026-08-23, /quality-peer-review) **After the first successful deploy, confirm `VERSIONS.txt`
+  on `stage` has grown a `PUBLISHED_*` row per service.** That is the signal the ledger transition
+  is complete and the `LAST_PUBLISHED_GIT_SHA` fallback is no longer load-bearing.
+- [ ] (2026-08-23, /quality-peer-review) **Make a CircleCI rerun of the stage publish job
+  reconcile with `origin/stage` before committing `VERSIONS.txt`.** A rerun starts from a fresh
+  checkout at `CIRCLE_SHA1`, so the working tree holds the pre-publish ledger while
+  `origin/stage` already carries the `[skip ci]` commit the first run pushed. `publish.sh` then
+  builds a sibling commit and `git push` is rejected as non-fast-forward — the job reports a
+  broken publish that actually succeeded. Pre-existing (the pre-rewrite script failed the same
+  way), and not something the empty-index guard addresses. Fix is to `git fetch origin stage` and
+  re-load the ledger from the remote tip before `ledger_write`, so the guard sees the real state.
+  Until then, recover by re-running the *stage pipeline* rather than the single job.
+- [ ] (2026-08-23, /quality-peer-review) **After the reposts deploy, confirm
+  `20260809000001_main.thoughts.repostThoughtId` actually applied to production.**
+  `_bin/cicd/run-migrations.sh` runs migrations *after* `kubectl set image`, so the new
+  users-service pod serves the pre-migration schema for the length of the rollout. Repost
+  hydration (`ThoughtsStore.attachRepostDetails`) is deliberately fail-soft so that window
+  degrades to "no embeds, no counts" instead of 500ing every thoughts feed — which also means an
+  unapplied migration is now **silent**. Verify explicitly: the column exists
+  (`\d main.thoughts`), and a repost created from the app comes back with a populated
+  `repostOf`. If migrations were skipped (`RUN_MIGRATIONS_ON_DEPLOY=false`), run
+  `npm run pr:migrate:users`.
+
 <!-- skill-followups:end -->
 
 ---
@@ -1725,8 +1773,6 @@ note that should be honored on a calendar reminder.
 - `_bin/pre-commit.sh:16` — Use `CHANGEME.json` to verify dev changes and
   rebuild affected pages
 - `_bin/pre-push.sh:16` — Add conditions to prevent bad commits
-- `_bin/cicd/publish.sh:104` — Output a list of all services that should be
-  deployed for the given commit
 - `TherrMobile/env-config.js:43` — Import config from a shared location
   instead of duplicating
 - `scripts/generate-content/utils/contentSchema.ts:143` — Implement planned
@@ -1774,7 +1820,26 @@ many times more often than it's written.
 
 Append to **§ Manual Operational Follow-ups** with a checkbox. If the item
 was generated by a skill run, place it under "Skill-generated items" between
-the `<!-- skill-followups:start -->` and `<!-- skill-followups:end -->`
+the `<!-- skill-followups:start -->` and `- [ ] (2026-08-23, /quality-peer-review) **Watch the first `stage` → `main` deploy after the
+  pipeline rewrite lands, and confirm the plan table before letting it roll.** No service has a
+  `PUBLISHED_*` row yet, so all eight resolve through `LAST_PUBLISHED_GIT_SHA=3f1d5ba` — a tag the
+  publish job only ever pushed for the services that merge rebuilt. Services already on that tag
+  come out `up-to-date` and are skipped; any the cluster is genuinely behind on will come out
+  `missing-image` and block before touching the cluster. The fix in that case is to re-run the
+  stage pipeline so it publishes and writes per-service rows — not to hand-edit `VERSIONS.txt`.
+- [ ] (2026-08-23, /quality-peer-review) **After the first successful deploy, confirm `VERSIONS.txt`
+  on `stage` has grown a `PUBLISHED_*` row per service.** That is the signal the ledger transition
+  is complete and the `LAST_PUBLISHED_GIT_SHA` fallback is no longer load-bearing.
+- [ ] (2026-08-23, /quality-peer-review) **Make a CircleCI rerun of the stage publish job
+  reconcile with `origin/stage` before committing `VERSIONS.txt`.** A rerun starts from a fresh
+  checkout at `CIRCLE_SHA1`, so the working tree holds the pre-publish ledger while
+  `origin/stage` already carries the `[skip ci]` commit the first run pushed. `publish.sh` then
+  builds a sibling commit and `git push` is rejected as non-fast-forward — the job reports a
+  broken publish that actually succeeded. Pre-existing (the pre-rewrite script failed the same
+  way), and not something the empty-index guard addresses. Fix is to `git fetch origin stage` and
+  re-load the ledger from the remote tip before `ledger_write`, so the guard sees the real state.
+  Until then, recover by re-running the *stage pipeline* rather than the single job.
+<!-- skill-followups:end -->`
 markers, prefixed with the date and originating skill:
 
 ```
