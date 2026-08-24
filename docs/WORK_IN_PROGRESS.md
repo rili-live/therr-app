@@ -53,6 +53,37 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Analytics & traffic (added 2026-08-24, from the GA4 review)
+
+- [ ] **Cut off the headless-Chrome crawler polluting the consolidated property.**
+  1,010 of 1,156 sessions (87%) in Consolidated Domains (`549794383`) over the 60
+  days to 23 Aug were Singapore desktop at 2.1% engagement and ~17s duration.
+  Signature: Chrome/Windows at screen resolution **1280x1200** (799 sessions) and
+  **800x600** (207), walking `/spaces/*` two-to-three sessions per URL across 969
+  distinct landing pages — a JS-executing sitemap crawler from a cloud region, not
+  an audience. It is not on the IAB list, so GA4's built-in bot exclusion misses it.
+  > **A GA4 data filter cannot do this.** Data filters only support Developer and
+  > Internal traffic; there is no country, resolution, or user-agent filter. The two
+  > mechanisms that actually work are (a) block it at the edge — a Cloudflare or k8s
+  > ingress rule on the source ASN/user-agent, which removes the load as well as the
+  > analytics noise, and (b) pull the source IPs out of the ingress access logs, add
+  > them under Admin -> Data streams -> Configure tag settings -> Define internal
+  > traffic, then enable the Internal Traffic data filter to Exclude.
+  Do this **before** the old GA4 properties are retired, or the consolidated
+  property's only history is a baseline inflated roughly 8x.
+- [ ] **Re-register the `surface` custom dimension** now that habits.therr.com
+  reports as its own surface (`landing` / `web` / `habits` / `dashboard`). GA4 admin
+  -> Custom definitions, event-scoped, parameter `surface`. Without registration the
+  value is collected but not reportable, and habits web traffic stays indistinguishable
+  from therr.com.
+- [ ] **Re-submit the habits sitemap to Search Console** — `habits.therr.com/sitemap.xml`
+  grew from 3 URLs to 3 + `/blog` + one per cross-post. This subdomain has almost no
+  inbound links, so the sitemap is most of how those pages get discovered at all.
+- [ ] **Verify `therr-for-business` (property `351769800`) is tagged.** It returned
+  zero rows for every window checked on 2026-08-24 — either not deployed or not
+  collecting. The B2B funnel is Priority 1 in `docs/GROWTH_STRATEGY.md`, and it is
+  currently unmeasured.
+
 ## Standing items (always re-verify after a deploy that touches the area)
 
 - [ ] **Submit / re-submit sitemap to Google Search Console** after any change
