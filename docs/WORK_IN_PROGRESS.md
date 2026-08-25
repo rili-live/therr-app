@@ -1408,7 +1408,7 @@ Pacts already have the cycle — `durationDays` of 7/14/30/90 — but nothing
 closes it. `pactExpiring` warns each member for the last three days
 (`therr-services/users-service/src/handlers/habitsDigest.ts:243`) and then the
 app has nothing more to say. `PactsStore.expire()` and
-`pactHelpers.shouldAutoExpire` both exist and **neither is called from
+`pactHelpers.shouldExpirePact` both exist and **neither is called from
 anywhere**, so pacts also sit at `status='active'` past their `endDate`
 indefinitely.
 
