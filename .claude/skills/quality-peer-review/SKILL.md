@@ -372,6 +372,14 @@ Run tests for every package in the Step 0f scope, not just backend ones. All wra
 
 Run the wrappers for affected packages in parallel (separate Bash calls in one message).
 
+> **Never `cd` in a batched call.** Bash calls share one working directory that persists
+> between them, so a `cd TherrMobile` in one call silently relocates every other call in the
+> same message — and every call after it. The failure looks like a stale skill: running
+> `npm run pr:typecheck:web` from `TherrMobile/` reports `npm error Missing script:
+> "pr:typecheck:web"`, which reads as a wrapper that no longer exists rather than a wrong
+> directory. Use `npm --prefix <pkg>` or absolute paths, and if a tool genuinely needs a
+> different root, give it its own un-batched call.
+
 ### Integration tests (only when `BACKEND` is in scope)
 
 Step 1 already confirmed postgres and redis are healthy. Service integration tests connect directly to the database — they do not require other service containers.
@@ -438,7 +446,15 @@ That wrapper builds `therr-js-utilities` then `therr-react` in the correct order
 npx eslint <file1> <file2> ... --fix-type problem,suggestion,layout --fix --no-error-on-unmatched-pattern 2>&1
 ```
 
-Group files by package and pass each package's files in a single invocation. Omit both fix flags when `--dry-run`.
+Group files by package and pass each package's files in a single invocation, **from the repo
+root, with repo-root-relative paths** — including `TherrMobile/**`. Do not `cd` into a package
+first. TherrMobile has its own `.eslintrc.js`, so cd-ing there looks necessary, but ESLint
+resolves config from each file's own location either way: the effective config for a
+`TherrMobile/main/**` file is rule-for-rule identical from both roots (verified — the only
+delta is `ignorePatterns`, which selects which files are linted, not how). The `cd` buys
+nothing and breaks every later call in the message, per the warning in Step 5.
+
+Omit both fix flags when `--dry-run`.
 
 **`--fix-type` is not optional here.** `eslint-config/base.js` sets
 `reportUnusedDisableDirectives`, which makes every stale `eslint-disable` comment

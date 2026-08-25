@@ -32,6 +32,8 @@
             "inviteesTooMany": "Puedes invitar hasta {limit} compañeros a la vez",
             "notAcceptingMembers": "Este pacto ya está completo",
             "notActive": "Este pacto no está activo",
+            "alreadyRenewed": "Ya tienes un pacto activo para este hábito",
+            "notRenewable": "Este pacto sigue en curso: podrás renovarlo cuando termine",
             "notFound": "Ese pacto ya no existe",
             "notInvitedPartner": "Esta invitación se envió a otra persona",
             "notParticipant": "No formas parte de este pacto",

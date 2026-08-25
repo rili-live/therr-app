@@ -36,6 +36,17 @@ export interface IPactMemberStats {
     currentStreak: number;
     longestStreak: number;
     completionRate: number;
+    /**
+     * Whether this member has a completed check-in for the pact's habit goal
+     * **today**, on the service's UTC habit day.
+     *
+     * A statement about the member's habit, not about the pact: it stays
+     * factual for a pact that has already ended, and the caller decides
+     * whether showing it makes sense there. Pacts with no measurable window
+     * (pending, or not yet started) report `false` along with every other
+     * zeroed stat — there is nothing to be late for yet.
+     */
+    checkedInToday: boolean;
 }
 
 export const ZERO_PACT_MEMBER_STATS: IPactMemberStats = {
@@ -44,6 +55,7 @@ export const ZERO_PACT_MEMBER_STATS: IPactMemberStats = {
     currentStreak: 0,
     longestStreak: 0,
     completionRate: 0,
+    checkedInToday: false,
 };
 
 /**
@@ -136,10 +148,12 @@ export const buildPactMemberStats = ({
     scheduledCount,
     completedCheckins,
     streak,
+    checkedInToday = false,
 }: {
     scheduledCount: number;
     completedCheckins: number;
     streak?: { currentStreak?: number | string; longestStreak?: number | string } | null;
+    checkedInToday?: boolean;
 }): IPactMemberStats => {
     const completed = Math.max(0, Math.round(Number(completedCheckins) || 0));
     // A user can log more check-ins than the cadence schedules (a 3x/week
@@ -155,5 +169,6 @@ export const buildPactMemberStats = ({
         currentStreak: Number(streak?.currentStreak) || 0,
         longestStreak: Number(streak?.longestStreak) || 0,
         completionRate,
+        checkedInToday,
     };
 };

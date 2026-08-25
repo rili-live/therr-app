@@ -32,6 +32,8 @@
             "inviteesTooMany": "Tu peux inviter jusqu'à {limit} partenaires à la fois",
             "notAcceptingMembers": "Ce pacte est complet",
             "notActive": "Ce pacte n'est pas actif",
+            "alreadyRenewed": "Tu as déjà un pacte en cours pour cette habitude",
+            "notRenewable": "Ce pacte est encore en cours : tu pourras le renouveler quand il sera terminé",
             "notFound": "Ce pacte n'existe plus",
             "notInvitedPartner": "Cette invitation a été envoyée à quelqu'un d'autre",
             "notParticipant": "Tu ne fais pas partie de ce pacte",

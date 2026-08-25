@@ -79,6 +79,12 @@ const buildFakeQueue = () => {
 };
 
 const stubDigestReads = () => {
+    // The expiry sweep runs before the active-pact read. Nothing is past its
+    // endDate in this fixture, so the sweep is a no-op here — it has its own
+    // tests below.
+    sinon.stub(Store.pacts, 'getExpiredPacts').resolves([] as any);
+    sinon.stub(Store.pacts, 'expire').resolves({} as any);
+
     sinon.stub(Store.pacts, 'get').resolves([{
         id: PACT_ID,
         habitGoalId: HABIT_GOAL_ID,
@@ -235,6 +241,58 @@ describe('Habits digest — running it twice is a no-op', () => {
 
         // Same work decided on both times; only the disposition differs.
         expect(first.pactsEvaluated).to.equal(second.pactsEvaluated);
+    });
+
+    it('sweeps pacts whose window has passed into expired', async () => {
+        sinon.restore();
+        buildFakeQueue();
+        stubDigestReads();
+        (Store.pacts.getExpiredPacts as any).restore();
+        (Store.pacts.expire as any).restore();
+        sinon.stub(Store.pacts, 'getExpiredPacts').resolves([
+            { id: 'stale-1' }, { id: 'stale-2' },
+        ] as any);
+        const expire = sinon.stub(Store.pacts, 'expire').resolves({} as any);
+
+        const counters = await runDigest();
+
+        expect(counters.pactsExpired).to.equal(2);
+        expect(expire.callCount).to.equal(2);
+        expect(counters.errors).to.equal(0);
+    });
+
+    // The sweep runs before the active-pact read specifically so a pact cannot
+    // be warned that it expires in zero days on the same run that ends it.
+    it('sweeps before reading the active set', async () => {
+        sinon.restore();
+        buildFakeQueue();
+        stubDigestReads();
+        (Store.pacts.expire as any).restore();
+        const expire = sinon.stub(Store.pacts, 'expire').resolves({} as any);
+
+        await runDigest();
+
+        // `get` is the active-pact read; both are stubs on the same object, so
+        // sinon's call ordering is the real execution order.
+        expect((Store.pacts.getExpiredPacts as any).calledBefore(Store.pacts.get as any)).to.equal(true);
+        expect(expire.called).to.equal(false);
+    });
+
+    // A pact left un-swept is exactly the behaviour every run before this one
+    // had — worth a wasted read, never worth failing the digest over.
+    it('counts a failed sweep as an error and still runs the digest', async () => {
+        sinon.restore();
+        const failQueue = buildFakeQueue();
+        stubDigestReads();
+        (Store.pacts.getExpiredPacts as any).restore();
+        sinon.stub(Store.pacts, 'getExpiredPacts').rejects(new Error('read pool exhausted'));
+
+        const counters = await runDigest();
+
+        expect(counters.pactsExpired).to.equal(0);
+        expect(counters.errors).to.equal(1);
+        // The notifications still went out.
+        expect(failQueue.insertedCount()).to.equal(9);
     });
 
     it('reports a broken queue as errors, never as dedup', async () => {

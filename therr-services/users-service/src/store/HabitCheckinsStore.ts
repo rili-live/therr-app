@@ -254,6 +254,66 @@ export default class HabitCheckinsStore {
         ));
     }
 
+    /**
+     * Which of these (user, habit goal) pairs have a completed check-in on
+     * `date`, in one query.
+     *
+     * This is what lets a pact card say who has and has not shown up today —
+     * the whole mechanism behind Duolingo's Friend Streak result (+22% daily
+     * completion from adding nothing but a second reader). A per-member query
+     * would make the pacts list O(members) round trips on a hot read path.
+     *
+     * `date` is a habit day as the service counts them (UTC, via
+     * `getTodayDateString`), matching what the check-in write path stores in
+     * `scheduledDate` — not the viewer's local calendar day.
+     *
+     * Returns a Set of `${userId}:${habitGoalId}`. Absence means "no completed
+     * check-in", which is the same thing the caller wants to render.
+     *
+     * No index was added for this. The three equality predicates are exactly the
+     * key of the existing UNIQUE constraint on
+     * (userId, habitGoalId, scheduledDate), so a per-pair lookup is already a
+     * single index hit; a partial index on the same columns would only add write
+     * cost. What is worth knowing is which plan runs: with a small table the
+     * planner drives from `habit_checkins_scheduleddate_index`, reading every
+     * check-in scheduled that day and join-filtering against the pairs. That is
+     * free at current volume and gets worse as the daily active population
+     * grows, while the pair-driven nested loop stays at roughly one row per
+     * pair — so the planner should flip to it on its own once the day partition
+     * is large enough. If this read ever shows up slow, check that it has:
+     * an EXPLAIN driving from `*VALUES*` is the healthy shape.
+     */
+    getCompletedOnDateForPairs(
+        pairs: { userId: string; habitGoalId: string }[],
+        date: string,
+    ): Promise<Set<string>> {
+        if (!pairs.length) {
+            return Promise.resolve(new Set<string>());
+        }
+
+        const values = pairs.map(() => '(?::uuid, ?::uuid)').join(', ');
+        const bindings = pairs.reduce(
+            (acc: string[], pair) => acc.concat([pair.userId, pair.habitGoalId]),
+            [],
+        ).concat([date]);
+
+        const queryString = knexBuilder.raw(
+            `WITH pairs("userId", "habitGoalId") AS (VALUES ${values})
+            SELECT DISTINCT p."userId" AS "userId", p."habitGoalId" AS "habitGoalId"
+            FROM pairs p
+            JOIN ${HABIT_CHECKINS_TABLE_NAME} c
+                ON c."userId" = p."userId"
+                AND c."habitGoalId" = p."habitGoalId"
+                AND c.status = 'completed'
+                AND c."scheduledDate" = ?::date`,
+            bindings,
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => new Set<string>(
+            response.rows.map((row: any) => `${row.userId}:${row.habitGoalId}`),
+        ));
+    }
+
     create(params: ICreateHabitCheckinParams) {
         const queryString = knexBuilder
             .insert({

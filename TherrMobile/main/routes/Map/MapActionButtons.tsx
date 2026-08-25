@@ -223,6 +223,11 @@ export default ({
     const hasValidCheckinSpaces = validCheckInSpaces?.length > 0 && !shouldShowCreateActions;
     const shouldFeatureCheckIn = (hasNearbySpaces && hasValidCheckinSpaces);
 
+    // The featured create action takes over the right edge in compact mode, where the
+    // +/- expander that normally sits there is hidden.
+    const compactFeaturedStyle = isCompact && [COMPACT_LIFT_STYLE, themeButtons.styles.featuredActionCompact];
+    const compactFeaturedBadgeStyle = isCompact && [COMPACT_LIFT_STYLE, themeButtons.styles.featuredActionBadgeCompact];
+
     // Dynamic position computation for expanded menu buttons
     // quickReport stays fixed at 120 (static style); other buttons stack above it
     const expandedButtonKeys: string[] = ['createEvent', 'claimASpace', 'uploadMoment'];
@@ -321,14 +326,14 @@ export default ({
             {
                 !shouldShowCreateActions && shouldFeatureCheckIn
                     ? <>
-                        <View style={[themeButtons.styles.addACheckInBadgeFeatured, isCompact && COMPACT_LIFT_STYLE]}>
+                        <View style={[themeButtons.styles.addACheckInBadgeFeatured, compactFeaturedBadgeStyle]}>
                             <Pressable onPress={onShowCheckInModal} style={themeButtons.styles.checkInRewardsBadgeContainer}>
                                 <Badge style={themeButtons.styles.checkInRewardsBadge}>
                                     {`$${checkinValue}`}
                                 </Badge>
                             </Pressable>
                         </View>
-                        <View style={[themeButtons.styles.addACheckInFeatured, isCompact && COMPACT_LIFT_STYLE]}>
+                        <View style={[themeButtons.styles.addACheckInFeatured, compactFeaturedStyle]}>
                             <FAB
                                 icon={renderMapMarkerClockIcon}
                                 variant="secondary"
@@ -340,7 +345,7 @@ export default ({
                     : !shouldShowCreateActions && <>
                         {
                             validRewardMoments?.length > 0 &&
-                            <View style={[themeButtons.styles.uploadMomentBadgeFeatured, isCompact && COMPACT_LIFT_STYLE]}>
+                            <View style={[themeButtons.styles.uploadMomentBadgeFeatured, compactFeaturedBadgeStyle]}>
                                 <Pressable onPress={onShowCheckInModal} style={themeButtons.styles.momentRewardsBadgeContainer}>
                                     <Badge style={themeButtons.styles.momentRewardsBadge}>
                                         {`$${momentRewardValue}`}
@@ -348,7 +353,7 @@ export default ({
                                 </Pressable>
                             </View>
                         }
-                        <View style={[themeButtons.styles.uploadMomentFeatured, isCompact && COMPACT_LIFT_STYLE]}>
+                        <View style={[themeButtons.styles.uploadMomentFeatured, compactFeaturedStyle]}>
                             <FAB
                                 icon={renderMapMarkerPlusIcon}
                                 variant="secondary"

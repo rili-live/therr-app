@@ -88,6 +88,20 @@ class PactsService {
         url: `/users-service/habits/pacts/${id}/abandon`,
     });
 
+    /**
+     * Starts a new cycle on the same habit goal, re-inviting the members of the
+     * one that ended. Answers 201 with the new pact; 409 when the pact has not
+     * ended yet or the user already has a live pact for that habit.
+     *
+     * `durationDays` is optional — omitted, the new cycle inherits the length of
+     * the one being renewed.
+     */
+    renew = (id: string, durationDays?: number) => axios({
+        method: 'put',
+        url: `/users-service/habits/pacts/${id}/renew`,
+        data: durationDays ? { durationDays } : {},
+    });
+
     delete = (id: string) => axios({
         method: 'delete',
         url: `/users-service/habits/pacts/${id}`,
