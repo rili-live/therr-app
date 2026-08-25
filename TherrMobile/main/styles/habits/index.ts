@@ -566,6 +566,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         pactComparisonItemPressed: {
             opacity: 0.6,
         },
+        pactComparisonTodayRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+            marginTop: 2,
+        },
 
         // Pact Detail — member list + inline navigation links
         pactMemberRow: {
@@ -599,6 +605,23 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 12,
             color: therrTheme.colors.textGray,
             marginTop: 2,
+        },
+        // Today's check-in state, rendered per member so a partner's absence is
+        // noticeable — the whole mechanism behind the Friend Streak result.
+        pactMemberTodayBadge: {
+            width: 26,
+            height: 26,
+            borderRadius: 13,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: 4,
+        },
+        pactMemberTodayBadgeDone: {
+            backgroundColor: therrTheme.colorVariations.primary3Fade,
+        },
+        pactMemberTodayBadgePending: {
+            borderWidth: 1,
+            borderColor: therrTheme.colors.primary4,
         },
         pactMemberAction: {
             width: 40,

@@ -33,6 +33,19 @@ const getMemberInitials = (member: IPactMember): string => {
     return (initials || member.userName?.[0] || '?').toUpperCase();
 };
 
+/**
+ * Whether this member checked in today, when the server is new enough to say.
+ *
+ * Read defensively rather than off the `IPactMember` type: users-service began
+ * deriving `checkedInToday` after this screen shipped, so a client talking to an
+ * older service gets `undefined`. That must render as *nothing* — silently
+ * treating "unknown" as `false` would show a green-dot-less row that reads as
+ * "they missed today", which is the one wrong thing this indicator can say.
+ */
+const getCheckedInToday = (member: IPactMember): boolean | undefined => (
+    member as IPactMember & { checkedInToday?: boolean }
+).checkedInToday;
+
 const getMemberMeta = (
     member: IPactMember,
     translate: (key: string, params?: any) => string,
@@ -45,7 +58,14 @@ const getMemberMeta = (
         ? translate(`pages.pacts.memberStatus.${member.status}`)
         : member.status;
 
-    return [role, status].filter(Boolean).join(' · ');
+    // The streak belongs on the row for an active member and nowhere else: on a
+    // pending invite there is no shared streak yet, and on someone who left it
+    // is a number about a habit they are no longer keeping with you.
+    const streak = member.status === 'active' && member.currentStreak > 0
+        ? translate('pages.pacts.memberStreak', { count: member.currentStreak })
+        : '';
+
+    return [role, status, streak].filter(Boolean).join(' · ');
 };
 
 const PactMemberRow: React.FC<IPactMemberRowProps> = ({
@@ -57,6 +77,9 @@ const PactMemberRow: React.FC<IPactMemberRowProps> = ({
     translate,
 }) => {
     const name = getMemberName(member, translate);
+    const checkedInToday = getCheckedInToday(member);
+    // Only meaningful for someone actually in the pact today.
+    const showTodayState = member.status === 'active' && checkedInToday !== undefined;
 
     return (
         <View style={[
@@ -88,6 +111,28 @@ const PactMemberRow: React.FC<IPactMemberRowProps> = ({
                         {getMemberMeta(member, translate)}
                     </Text>
                 </View>
+                {showTodayState && (
+                    <View
+                        accessible
+                        accessibilityLabel={translate(checkedInToday
+                            ? 'pages.pacts.memberCheckedInToday'
+                            : 'pages.pacts.memberNotCheckedInToday', { name })}
+                        style={[
+                            themeHabits.styles.pactMemberTodayBadge,
+                            checkedInToday
+                                ? themeHabits.styles.pactMemberTodayBadgeDone
+                                : themeHabits.styles.pactMemberTodayBadgePending,
+                        ]}
+                    >
+                        <MaterialIcon
+                            name={checkedInToday ? 'check' : 'schedule'}
+                            size={14}
+                            color={checkedInToday
+                                ? themeHabits.colors.alertSuccess
+                                : themeHabits.colors.textGray}
+                        />
+                    </View>
+                )}
                 <MaterialIcon
                     name="chevron-right"
                     size={24}
@@ -121,4 +166,5 @@ export {
     getMemberName,
     getMemberInitials,
     getMemberMeta,
+    getCheckedInToday,
 };
