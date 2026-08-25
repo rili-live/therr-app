@@ -1,6 +1,6 @@
 # Work In Progress — TODO Backlog & Manual Steps
 
-**Last Updated:** April 2026
+**Last Updated:** August 2026
 **Audience:** Developers and coding agents
 **Status:** Living document — update when TODOs are resolved or added
 
@@ -1226,6 +1226,11 @@ The viral loop in Friends With Habits (`docs/niche-sub-apps/HABITS_PROJECT_BRIEF
 and the engagement roadmap (`docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md`)
 depend on these working correctly.
 
+> **Start at § 2.6.** It is the highest-impact cluster in this tier — five
+> independent changes that align the Friends with Habits loop with the
+> gamification evidence — and it acts on the retention loop that §§ 2.1–2.5
+> all feed into.
+
 ### 2.1 Push notification engagement
 
 - `therr-services/push-notifications-service/src/handlers/helpers/areaLocationHelpers.ts:222`
@@ -1304,6 +1309,181 @@ Still open:
   consumes Play's Real-Time Developer Notifications, so a refunded buyer keeps
   the entitlement.
 - iOS StoreKit verification — the `platform` column is ready, the code is not.
+
+---
+
+### 2.6 Gamification research alignment (Friends with Habits)
+
+Source: [The Gamification of Habits: Why Duolingo Works and Most Habit Apps
+Don't](https://www.therr.app/blog/2026/8_25_2026_gamification_of_habits.html)
+(therr-landing, Aug 2026). Companion to
+[`docs/HABIT_LIFECYCLE_MESSAGING.md`](HABIT_LIFECYCLE_MESSAGING.md), which
+already applies the Lally automaticity research to *send cadence*. This section
+applies the gamification evidence to the **loop itself** — what counts as a
+check-in, who sees it, and what happens when it ends.
+
+The article's six rules, audited against what is in the code today:
+
+| # | Rule | Today |
+|---|---|---|
+| 1 | Set the bar at the floor | ❌ the daily check-in is a modal, not a tap |
+| 2 | Track a streak, not a score | ⚠️ streaks are central, but a weekly XP board sits beside them |
+| 3 | Build in the miss | ✅ streak freezes exist — but are invisible until spent |
+| 4 | Visible to 2–5 specific people | ⚠️ pacts cap invitees at 5; partner streaks are never rendered |
+| 5 | Keep the metric inseparable from the behaviour | ⚠️ HABITS XP also accrues from invites |
+| 6 | Renew on a fixed cycle | ❌ nothing — a pact reaches `endDate` and goes quiet |
+
+The five items below are ordered by expected impact and are **independent**:
+each can ship on its own without waiting on the others. They are the highest-
+priority cluster in Tier 2 — ahead of §§ 2.1–2.5 — because they act on the
+retention loop every other Tier 2 item feeds.
+
+---
+
+#### 2.6.1 One-tap check-in — lower the bar to the floor
+
+**Rule 1.** Duolingo's largest published retention win was making the streak
+easier to extend, not harder: a single lesson extends it, with the daily goal
+tracked separately. The A/B result was **+3.3% day-14 retention, +10.5% daily
+learners on a streak (+19% among new learners)**, and their own conclusion is
+that lowering the barrier to a consistent daily habit beats raising how much
+you do each day. Learners who reach a 7-day streak are **2.4×** more likely to
+return tomorrow — so the cheapest thing the app can do is get more people to
+day 7.
+
+Today the daily action costs a modal. `CheckinButton` → `handleCheckin` opens
+`CheckinProofSheet` (notes field + camera/library picker) and needs a second
+confirm tap, on **both** entry points
+(`TherrMobile/main/routes/Habits/Dashboard.tsx:259`,
+`TherrMobile/main/routes/Habits/HabitDetail.tsx:142`). Nothing about the sheet
+is required — `onConfirm` is happy with no note and no photo — so it is pure
+friction on the one action the entire product depends on.
+
+The fix: the primary button commits the check-in immediately and optimistically;
+proof becomes something you *add*, not something you pass through. The backend
+already supports this — `habitCheckins.createOrUpdate` is idempotent per
+(habit, date), and the handler's same-day branch explicitly updates proofs and
+notes without re-crediting the streak, awarding XP twice, or re-firing partner
+pushes — so an "add a note or photo" affordance after the fact reuses the sheet
+unchanged against the same row.
+
+- Scope: `niche/HABITS-general` (mobile only — no backend, no migration).
+- Watch: `MetricNames.FUNNEL_HABIT_CHECKIN`, and the share of users reaching a
+  7-day streak.
+
+#### 2.6.2 Render partner streaks — the Friend Streak surface
+
+**Rule 4.** Duolingo's Friend Streak — share a streak with up to five people,
+no leaderboard, no messaging, no new content — makes learners **22% more likely
+to complete their daily lesson**, and the effect compounds with each additional
+friend. It adds nothing but a second reader.
+
+Pacts are already the right shape: `MAX_BULK_INVITEES = 5`
+(`therr-services/users-service/src/handlers/pacts.ts:39`) matches the research
+window exactly, and `attachPactMemberStats` already derives and returns each
+member's `currentStreak` from `habits.streaks` — the number is on the wire
+today. It is simply never drawn: `PactMemberRow` renders
+`role · status` ("partner · active") and nothing else, so the one mechanic with
+the largest published effect size is invisible in the UI.
+
+The fix: render each member's current streak and today's check-in state on the
+pact card, so a member's absence is *noticeable* — the whole mechanism. Adding
+`checkedInToday` per member to `attachPactMemberStats` is the only backend
+piece; the streak number needs no server change at all.
+
+- Scope: `general` (add `checkedInToday` to the derived member stats) +
+  `niche/HABITS-general` (render it).
+- Note: deliberately **not** a leaderboard. Friend Streak has no ranking, and
+  see 2.6.5 for why that matters.
+
+#### 2.6.3 Pact renewal — close the fixed-cycle loop
+
+**Rule 6.** The RCT meta-analysis behind the article (16 studies, 2,407
+participants) found gamified interventions produce a **Hedges' g of 0.42** on
+physical activity that decays to **g = 0.15 at 12–24 week follow-up**. The
+effect is real and it fades, which is why the article's last rule is to renew
+on a fixed cycle rather than run open-ended.
+
+Pacts already have the cycle — `durationDays` of 7/14/30/90 — but nothing
+closes it. `pactExpiring` warns each member for the last three days
+(`therr-services/users-service/src/handlers/habitsDigest.ts:243`) and then the
+app has nothing more to say. `PactsStore.expire()` and
+`pactHelpers.shouldAutoExpire` both exist and **neither is called from
+anywhere**, so pacts also sit at `status='active'` past their `endDate`
+indefinitely.
+
+The fix, in two separable halves:
+
+1. An expiry sweep in the daily digest that actually calls
+   `PactsStore.expire()` on pacts past `endDate`.
+2. A renewal endpoint (`POST /pacts/:id/renew`) that clones an expiring or
+   completed pact — same habit goal, same members, a fresh window — leaving the
+   underlying `habits.streaks` row untouched so the streak carries across the
+   boundary. Surface it as a "re-commit for another N days" CTA on the
+   expiring-pact push and the pact card.
+
+The streak **must** carry: a renewal that resets it to zero converts the
+article's strongest mechanic into its worst failure mode on a day the user did
+nothing wrong.
+
+- Scope: `general` (sweep, endpoint, digest copy) + `niche/HABITS-general` (CTA).
+- Optional follow-on: a long-form "your pact ended — here's what you built"
+  re-commit email in `therr-messaging-automator`, which owns the SES templates
+  and unsubscribe-token path (see `docs/HABIT_LIFECYCLE_MESSAGING.md` § Where
+  each message lives). Push first; email has no rate-limiting layer of its own.
+
+#### 2.6.4 Announce the streak freeze before it is spent
+
+**Rule 3.** "Build in the miss" is explicitly a rule *agreed in advance* — the
+first bad day has to happen inside the rules rather than ending them. Duolingo's
+streak freeze cut churn ~21% for at-risk users.
+
+The mechanic is fully built here and almost entirely unadvertised. Streaks start
+with one freeze (`StreaksStore.ts:139`), earn another at every 7+ day milestone
+up to `MAX_GRACE_PERIOD_DAYS`, and are spent automatically on the next check-in
+after a gap (`habitCheckins.ts:194-217`). But the user is only ever told the
+count in passing — `StreakWidget` and `HabitDetail` show "N grace days" — and:
+
+- the `streakAtRisk` push (`habitsDigest.ts:389`) says the streak is at risk
+  without mentioning that a freeze will cover tonight;
+- spending a freeze fires **no** notification at all, so the safety net is
+  invisible at exactly the two moments it would change behaviour;
+- nothing in onboarding or goal creation states the rule up front.
+
+The fix: state the allowance at habit creation, fold the remaining freeze count
+into `streakAtRisk` copy, and notify when one is consumed ("your 12-day streak
+survived — 1 freeze left"). Copy work in three locales, no schema change.
+
+- Scope: `general` (digest copy, new push type, shared dictionaries) +
+  `niche/HABITS-general` (onboarding + goal-creation copy).
+
+#### 2.6.5 Keep the HABITS score tied to the behaviour
+
+**Rules 2 and 5.** The article's failure case is the overjustification effect —
+Deci, Koestner & Ryan across **128 experiments**, with completion-contingent
+rewards undermining intrinsic motivation at around **d = −0.36**. The practical
+test it offers: *if you can move the number without doing the thing, the number
+is the wrong one.*
+
+HABITS currently fails that test at the edges. `awardLeaderboardPoints` gives
+10 XP per first check-in and a `milestone × 5` bonus — both properly tied to
+behaviour — but achievement progress also pays `activityUnit` XP, and the HABITS
+allow-list includes `socialite`, which is earned by **inviting people**
+(`handlers/helpers/achievements.ts:81`). Those points then rank users against
+each other on a weekly board (`TherrMobile/main/routes/Leaderboard`, gated on
+`ENABLE_ACHIEVEMENTS`) — a competition the evidence in this article does not
+support, fed partly by a currency you can farm without doing your habit.
+
+The fix is a decision, not just a patch, and should be taken deliberately:
+either scope the HABITS leaderboard to check-in-derived XP only, or replace it
+outright with a shared-streak board scoped to a user's own pact members — which
+is 2.6.2 grown up, and stays inside the article's "small audience, no ranking"
+finding.
+
+- Scope: `general` (XP sourcing / board query) + `niche/HABITS-general` (surface).
+- Cheapest first step: audit which achievement classes pay XP under
+  `BrandVariations.HABITS` and confirm the number cannot move without a
+  check-in.
 
 ---
 
