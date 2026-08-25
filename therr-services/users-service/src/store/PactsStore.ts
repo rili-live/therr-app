@@ -144,6 +144,18 @@ export default class PactsStore {
      *
      * Ordered by startDate so callers that must pick a single pact (the
      * singular habit_checkins.pactId column) pick deterministically.
+     *
+     * "Active" means the cycle is genuinely still running, not merely that the
+     * status column says `active`. Nothing closed a finished pact until the
+     * habits digest gained its expiry sweep, and even now the sweep runs
+     * nightly, so a pact sits `active` for up to a day after its endDate has
+     * passed. Without the date predicate that window leaks a finished pact back
+     * to every caller: renewal refused it as a still-live cycle, and a check-in
+     * logged the morning after a pact ended was attributed to it. The predicate
+     * makes the read agree with the state the sweep will put the row in anyway.
+     *
+     * A null endDate is treated as still running, matching `shouldExpirePact` —
+     * an open-ended pact has no cycle to have finished.
      */
     getActiveByUserAndHabitGoal(userId: string, habitGoalId: string) {
         const queryString = knexBuilder
@@ -164,6 +176,10 @@ export default class PactsStore {
                                     .orWhere(`${PACTS_TABLE_NAME}.partnerUserId`, userId);
                             });
                     });
+            })
+            .andWhere((builder) => {
+                builder.whereNull(`${PACTS_TABLE_NAME}.endDate`)
+                    .orWhere(`${PACTS_TABLE_NAME}.endDate`, '>', new Date());
             })
             .orderBy(`${PACTS_TABLE_NAME}.startDate`, 'asc');
 

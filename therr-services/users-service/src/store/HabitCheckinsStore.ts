@@ -269,6 +269,19 @@ export default class HabitCheckinsStore {
      *
      * Returns a Set of `${userId}:${habitGoalId}`. Absence means "no completed
      * check-in", which is the same thing the caller wants to render.
+     *
+     * No index was added for this. The three equality predicates are exactly the
+     * key of the existing UNIQUE constraint on
+     * (userId, habitGoalId, scheduledDate), so a per-pair lookup is already a
+     * single index hit; a partial index on the same columns would only add write
+     * cost. What is worth knowing is which plan runs: with a small table the
+     * planner drives from `habit_checkins_scheduleddate_index`, reading every
+     * check-in scheduled that day and join-filtering against the pairs. That is
+     * free at current volume and gets worse as the daily active population
+     * grows, while the pair-driven nested loop stays at roughly one row per
+     * pair — so the planner should flip to it on its own once the day partition
+     * is large enough. If this read ever shows up slow, check that it has:
+     * an EXPLAIN driving from `*VALUES*` is the healthy shape.
      */
     getCompletedOnDateForPairs(
         pairs: { userId: string; habitGoalId: string }[],

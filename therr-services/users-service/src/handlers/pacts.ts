@@ -1002,205 +1002,215 @@ const renewPact: RequestHandler = async (req: any, res: any) => {
     const { id } = req.params;
     const { durationDays } = req.body || {};
 
-    const pact = await Store.pacts.getById(id);
-    if (!pact) {
-        return handleHttpError({
-            res,
-            message: translate(locale, 'errorMessages.pacts.notFound'),
-            statusCode: 404,
-            errorCode: ErrorCodes.NOT_FOUND,
-        });
-    }
-
-    const previousMembers = await Store.pactMembers.getByPactId(id);
-    const membership = previousMembers.find((member: any) => member.userId === userId);
-    const isParticipant = isUserInPact(userId, pact.creatorUserId, pact.partnerUserId) || !!membership;
-    if (!isParticipant) {
-        return handleHttpError({
-            res,
-            message: translate(locale, 'errorMessages.pacts.notParticipant'),
-            statusCode: 403,
-            errorCode: ErrorCodes.NOT_PERMITTED,
-        });
-    }
-
-    // Only a finished cycle can be renewed — see isPactRenewable for which
-    // statuses qualify and why `abandoned` is not one of them.
-    if (!isPactRenewable(pact)) {
-        return handleHttpError({
-            res,
-            message: translate(locale, 'errorMessages.pacts.notRenewable'),
-            statusCode: 409,
-            errorCode: ErrorCodes.BAD_REQUEST,
-        });
-    }
-
-    // One live cycle per habit at a time. Without this, tapping renew twice —
-    // or two members each renewing the same ended pact — produces two parallel
-    // pacts on one goal, which the check-in path would then credit twice over.
-    //
-    // `getActiveByUserAndHabitGoal` filters on status alone, so a pact that has
-    // run past its endDate but has not been swept yet still comes back as
-    // "active" — including the very pact being renewed. Counting those would
-    // make renewal impossible until the nightly digest happened to run, which
-    // is precisely the case isPactRenewable exists to allow. Only a cycle that
-    // is genuinely still running blocks a new one.
-    const livePacts = await Store.pacts.getActiveByUserAndHabitGoal(userId, pact.habitGoalId);
-    const blockingPacts = livePacts.filter((live: any) => live.id !== pact.id
-        && !shouldExpirePact(live.status, live.endDate ?? null));
-    if (blockingPacts.length) {
-        return handleHttpError({
-            res,
-            message: translate(locale, 'errorMessages.pacts.alreadyRenewed'),
-            statusCode: 409,
-            errorCode: ErrorCodes.BAD_REQUEST,
-        });
-    }
-
-    const nextDurationDays = durationDays || pact.durationDays || 30;
-    const validation = validatePactParams({
-        durationDays: nextDurationDays,
-        consequenceType: pact.consequenceType,
-        consequenceDetails: pact.consequenceDetails,
-    });
-    if (!validation.valid) {
-        return handleHttpError({
-            res,
-            message: translate(locale, validation.errorKey || 'errorMessages.pacts.invalidParams', validation.errorParams),
-            statusCode: 400,
-            errorCode: ErrorCodes.BAD_REQUEST,
-        });
-    }
-
-    const habitGoal = await Store.habitGoals.getById(pact.habitGoalId);
-    if (!habitGoal) {
-        return handleHttpError({
-            res,
-            message: translate(locale, 'errorMessages.habits.habitGoalNotFound'),
-            statusCode: 404,
-            errorCode: ErrorCodes.NOT_FOUND,
-        });
-    }
-
-    // No free-tier capacity check. The cap counts *habits tracked*, and this
-    // habit is already one of them — it had a pact. `getOrCreate` below will
-    // not resurrect a row the user archived, so a renewal cannot smuggle an
-    // extra habit past the limit either.
-
-    const inviteeIds = selectRenewalInvitees(previousMembers, userId);
-
-    // Keep the 1:1 shape where the last cycle had one: several read paths still
-    // fall back to `partnerUserId` for pacts with no member rows. A group pact
-    // leaves it null, exactly as bulkInvitePact does.
-    const nextPartnerUserId = inviteeIds.length === 1 ? inviteeIds[0] : undefined;
-
-    return Store.pacts.create({
-        creatorUserId: userId,
-        partnerUserId: nextPartnerUserId,
-        habitGoalId: pact.habitGoalId,
-        pactType: pact.pactType,
-        durationDays: nextDurationDays,
-        consequenceType: pact.consequenceType,
-        consequenceDetails: pact.consequenceDetails,
-    })
-        .then(async (renewed) => {
-            await Store.pactMembers.create({
-                pactId: renewed.id,
-                userId,
-                role: 'creator',
-                status: 'active',
+    // Every read below can reject, and an async handler that rejects is an
+    // unhandled rejection rather than a response — Express 4 does not catch
+    // one, so the request hangs until the client gives up. The create chain
+    // at the end has always had its own .catch; this extends the same
+    // treatment to the reads and validation in front of it.
+    try {
+        const pact = await Store.pacts.getById(id);
+        if (!pact) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'errorMessages.pacts.notFound'),
+                statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
             });
+        }
 
-            const partnerMembers = inviteeIds.length
-                ? await Store.pactMembers.createBulk(inviteeIds.map((partnerId) => ({
+        const previousMembers = await Store.pactMembers.getByPactId(id);
+        const membership = previousMembers.find((member: any) => member.userId === userId);
+        const isParticipant = isUserInPact(userId, pact.creatorUserId, pact.partnerUserId) || !!membership;
+        if (!isParticipant) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'errorMessages.pacts.notParticipant'),
+                statusCode: 403,
+                errorCode: ErrorCodes.NOT_PERMITTED,
+            });
+        }
+
+        // Only a finished cycle can be renewed — see isPactRenewable for which
+        // statuses qualify and why `abandoned` is not one of them.
+        if (!isPactRenewable(pact)) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'errorMessages.pacts.notRenewable'),
+                statusCode: 409,
+                errorCode: ErrorCodes.BAD_REQUEST,
+            });
+        }
+
+        // One live cycle per habit at a time. Without this, tapping renew twice —
+        // or two members each renewing the same ended pact — produces two parallel
+        // pacts on one goal, which the check-in path would then credit twice over.
+        //
+        // `getActiveByUserAndHabitGoal` now excludes anything past its endDate, so
+        // a finished-but-unswept pact — including the very one being renewed —
+        // no longer comes back here. The filter below is kept as a second line of
+        // defence rather than as the fix: this guard is what stands between a
+        // double-tap and two parallel pacts crediting the same check-in twice, and
+        // it should not silently depend on a predicate living in another file. A
+        // regression on either side alone still leaves renewal correct.
+        const livePacts = await Store.pacts.getActiveByUserAndHabitGoal(userId, pact.habitGoalId);
+        const blockingPacts = livePacts.filter((live: any) => live.id !== pact.id
+            && !shouldExpirePact(live.status, live.endDate ?? null));
+        if (blockingPacts.length) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'errorMessages.pacts.alreadyRenewed'),
+                statusCode: 409,
+                errorCode: ErrorCodes.BAD_REQUEST,
+            });
+        }
+
+        const nextDurationDays = durationDays || pact.durationDays || 30;
+        const validation = validatePactParams({
+            durationDays: nextDurationDays,
+            consequenceType: pact.consequenceType,
+            consequenceDetails: pact.consequenceDetails,
+        });
+        if (!validation.valid) {
+            return handleHttpError({
+                res,
+                message: translate(locale, validation.errorKey || 'errorMessages.pacts.invalidParams', validation.errorParams),
+                statusCode: 400,
+                errorCode: ErrorCodes.BAD_REQUEST,
+            });
+        }
+
+        const habitGoal = await Store.habitGoals.getById(pact.habitGoalId);
+        if (!habitGoal) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'errorMessages.habits.habitGoalNotFound'),
+                statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
+            });
+        }
+
+        // No free-tier capacity check. The cap counts *habits tracked*, and this
+        // habit is already one of them — it had a pact. `getOrCreate` below will
+        // not resurrect a row the user archived, so a renewal cannot smuggle an
+        // extra habit past the limit either.
+
+        const inviteeIds = selectRenewalInvitees(previousMembers, userId);
+
+        // Keep the 1:1 shape where the last cycle had one: several read paths still
+        // fall back to `partnerUserId` for pacts with no member rows. A group pact
+        // leaves it null, exactly as bulkInvitePact does.
+        const nextPartnerUserId = inviteeIds.length === 1 ? inviteeIds[0] : undefined;
+
+        return Store.pacts.create({
+            creatorUserId: userId,
+            partnerUserId: nextPartnerUserId,
+            habitGoalId: pact.habitGoalId,
+            pactType: pact.pactType,
+            durationDays: nextDurationDays,
+            consequenceType: pact.consequenceType,
+            consequenceDetails: pact.consequenceDetails,
+        })
+            .then(async (renewed) => {
+                await Store.pactMembers.create({
                     pactId: renewed.id,
-                    userId: partnerId,
-                    role: 'partner' as const,
-                    status: 'pending',
-                })))
-                : [];
-
-            await Store.userHabits.getOrCreate(userId, pact.habitGoalId);
-
-            // Close out the pact being renewed if the sweep has not yet. Done
-            // after the new pact exists so a failure here cannot leave the user
-            // with neither an old cycle nor a new one.
-            if (pact.status === 'active') {
-                await Store.pacts.expire(pact.id).catch((err) => {
-                    logSpan({
-                        level: 'error',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['Failed to expire the pact being renewed'],
-                        traceArgs: { 'error.message': err?.message, pactId: pact.id },
-                    });
+                    userId,
+                    role: 'creator',
+                    status: 'active',
                 });
-            }
 
-            // A pact with nobody left to invite has no acceptance coming, so it
-            // would sit `pending` forever. Every other pact activates on the
-            // first partner acceptance, and this one keeps that rule.
-            const activated = partnerMembers.length
-                ? renewed
-                : await Store.pacts.activate(renewed.id);
+                const partnerMembers = inviteeIds.length
+                    ? await Store.pactMembers.createBulk(inviteeIds.map((partnerId) => ({
+                        pactId: renewed.id,
+                        userId: partnerId,
+                        role: 'partner' as const,
+                        status: 'pending',
+                    })))
+                    : [];
 
-            recordFunnelMetric(MetricNames.FUNNEL_PACT_CREATED, userId, {
-                brandVariation: brandVariation || '',
-                isRenewal: 'true',
-            });
-            if (partnerMembers.length) {
-                recordFunnelMetric(MetricNames.FUNNEL_PACT_INVITE_SENT, userId, {
+                await Store.userHabits.getOrCreate(userId, pact.habitGoalId);
+
+                // Close out the pact being renewed if the sweep has not yet. Done
+                // after the new pact exists so a failure here cannot leave the user
+                // with neither an old cycle nor a new one.
+                if (pact.status === 'active') {
+                    await Store.pacts.expire(pact.id).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['Failed to expire the pact being renewed'],
+                            traceArgs: { 'error.message': err?.message, pactId: pact.id },
+                        });
+                    });
+                }
+
+                // A pact with nobody left to invite has no acceptance coming, so it
+                // would sit `pending` forever. Every other pact activates on the
+                // first partner acceptance, and this one keeps that rule.
+                const activated = partnerMembers.length
+                    ? renewed
+                    : await Store.pacts.activate(renewed.id);
+
+                recordFunnelMetric(MetricNames.FUNNEL_PACT_CREATED, userId, {
                     brandVariation: brandVariation || '',
                     isRenewal: 'true',
-                }, String(partnerMembers.length));
-            }
+                });
+                if (partnerMembers.length) {
+                    recordFunnelMetric(MetricNames.FUNNEL_PACT_INVITE_SENT, userId, {
+                        brandVariation: brandVariation || '',
+                        isRenewal: 'true',
+                    }, String(partnerMembers.length));
+                }
 
-            partnerMembers.forEach((member: any) => {
-                const toUserId = member.userId;
-                dispatchPactInvitation({
-                    pactMemberId: member.id,
-                    partnerUserId: toUserId,
-                    fromUserName: userName,
-                    habitName: habitGoal.name,
-                    brandVariation,
-                    whiteLabelOrigin,
-                    locale,
-                }).catch((err) => {
-                    logSpan({
-                        level: 'error',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['Error dispatching pact renewal invitation'],
-                        traceArgs: { 'error.message': err?.message, toUserId },
-                    });
-                    return { isOnBrand: true };
-                }).then((dispatchResult) => {
-                    if (!dispatchResult.isOnBrand) {
-                        return undefined;
-                    }
-                    return sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
-                        authorization,
-                        fromUser: { id: userId, userName },
-                        locale,
-                        toUserId,
-                        type: PushNotifications.Types.pactInvitation,
-                        whiteLabelOrigin,
+                partnerMembers.forEach((member: any) => {
+                    const toUserId = member.userId;
+                    dispatchPactInvitation({
+                        pactMemberId: member.id,
+                        partnerUserId: toUserId,
+                        fromUserName: userName,
+                        habitName: habitGoal.name,
                         brandVariation,
-                    });
-                }).catch((err) => {
-                    logSpan({
-                        level: 'error',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['Error sending pact renewal notification'],
-                        traceArgs: { 'error.message': err?.message, toUserId },
+                        whiteLabelOrigin,
+                        locale,
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['Error dispatching pact renewal invitation'],
+                            traceArgs: { 'error.message': err?.message, toUserId },
+                        });
+                        return { isOnBrand: true };
+                    }).then((dispatchResult) => {
+                        if (!dispatchResult.isOnBrand) {
+                            return undefined;
+                        }
+                        return sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
+                            authorization,
+                            fromUser: { id: userId, userName },
+                            locale,
+                            toUserId,
+                            type: PushNotifications.Types.pactInvitation,
+                            whiteLabelOrigin,
+                            brandVariation,
+                        });
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['Error sending pact renewal notification'],
+                            traceArgs: { 'error.message': err?.message, toUserId },
+                        });
                     });
                 });
-            });
 
-            Store.habitGoals.incrementUsageCount(pact.habitGoalId).catch((e) => e);
+                Store.habitGoals.incrementUsageCount(pact.habitGoalId).catch((e) => e);
 
-            const members = await Store.pactMembers.getByPactId(renewed.id);
-            return res.status(201).send(await attachMemberStatsToPact({ ...activated, members }));
-        })
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
+                const members = await Store.pactMembers.getByPactId(renewed.id);
+                return res.status(201).send(await attachMemberStatsToPact({ ...activated, members }));
+            })
+            .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' });
+    }
 };
 
 const deletePact: RequestHandler = async (req: any, res: any) => {
