@@ -907,7 +907,7 @@ console configuration, and one verification that gates a payments change.
   `repostOf`. If migrations were skipped (`RUN_MIGRATIONS_ON_DEPLOY=false`), run
   `npm run pr:migrate:users`.
 
-- [ ] (2026-08-25, /quality-peer-review) **Android 3.16.1 (versionCode 452) — build, upload and
+- [ ] (2026-08-25, /quality-peer-review) **Android 3.17.0 (versionCode 453) — build, upload and
   write release notes.** The mobile half of this `general` diff reaches nobody through
   `general → stage → main`; CI deploys services and client-web only, so the version bump does
   nothing until `npm run build:release` produces an AAB and it is uploaded to a Play track. Notes
@@ -916,7 +916,7 @@ console configuration, and one verification that gates a payments change.
   placeholder, the map's featured check-in / add-moment button no longer sits offset while the
   area preview strip is open, and the modal header spacing fix.
 - [ ] (2026-08-25, /quality-peer-review) **QA the `react-native-actions-sheet` patch on a physical
-  Android device before cutting 3.16.1.** The patch now carries three changes on the open/close
+  Android device before cutting 3.17.0.** The patch now carries three changes on the open/close
   path of *every* sheet in the app, not just the profile menu, and the ~220ms → ~92ms figure in
   `main/components/ActionSheet/index.tsx` was measured on an emulator in a debug build. Two of the
   three have no automated coverage and fail in ways tests would not catch: the seeded root size
@@ -926,6 +926,19 @@ console configuration, and one verification that gates a payments change.
   list-picker sheets; confirm each still animates from fully offscreen (not mid-screen), that
   swipe-down and hardware-back still dismiss, and that a tap on the button underneath immediately
   after a dismiss hits that button rather than being swallowed.
+
+- [ ] (2026-08-25, /quality-peer-review) **Watch `pactsExpired` on the first production habits
+  digest run after this deploy — expect a large one-time backlog, not a steady-state number.**
+  `PactsStore.expire()` and `getExpiredPacts()` have existed since the pact schema landed and
+  nothing has ever called either, so every pact that has ever reached its `endDate` is still
+  sitting `active` in production. The first run of the new sweep closes all of them at once. Two
+  consequences worth confirming rather than assuming: the run is doing one `expire()` write per
+  stale pact in a serial loop, so a large backlog makes that first digest materially slower than
+  every subsequent one; and those pacts stop rendering as in-flight in the app the moment it
+  succeeds, which is correct but will look to affected users like their pact vanished. Check the
+  counter in the run's log span, and if the backlog is big enough to threaten the digest's
+  runtime, sweep it once manually before the deploy rather than letting the nightly job carry it.
+
 
 <!-- skill-followups:end -->
 

@@ -27,6 +27,7 @@ import {
     isCreator,
     isPactRenewable,
     selectRenewalInvitees,
+    shouldExpirePact,
 } from '../utilities/pactHelpers';
 import {
     awardPactPioneerCreatedAchievement,
@@ -1037,8 +1038,17 @@ const renewPact: RequestHandler = async (req: any, res: any) => {
     // One live cycle per habit at a time. Without this, tapping renew twice —
     // or two members each renewing the same ended pact — produces two parallel
     // pacts on one goal, which the check-in path would then credit twice over.
+    //
+    // `getActiveByUserAndHabitGoal` filters on status alone, so a pact that has
+    // run past its endDate but has not been swept yet still comes back as
+    // "active" — including the very pact being renewed. Counting those would
+    // make renewal impossible until the nightly digest happened to run, which
+    // is precisely the case isPactRenewable exists to allow. Only a cycle that
+    // is genuinely still running blocks a new one.
     const livePacts = await Store.pacts.getActiveByUserAndHabitGoal(userId, pact.habitGoalId);
-    if (livePacts.length) {
+    const blockingPacts = livePacts.filter((live: any) => live.id !== pact.id
+        && !shouldExpirePact(live.status, live.endDate ?? null));
+    if (blockingPacts.length) {
         return handleHttpError({
             res,
             message: translate(locale, 'errorMessages.pacts.alreadyRenewed'),

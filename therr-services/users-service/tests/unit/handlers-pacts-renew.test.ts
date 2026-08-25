@@ -308,6 +308,39 @@ describe('Pact renewal — handler', () => {
         expect(createdPact).to.not.equal(undefined);
     });
 
+    // The live-pact guard reads `getActiveByUserAndHabitGoal`, which filters on
+    // status alone — so a past-due pact the nightly sweep has not reached yet
+    // comes back as "active", including the one being renewed. Counting it made
+    // renewing before the sweep return 409, killing the exact same-evening path
+    // isPactRenewable was written to allow.
+    it('renews a past-due pact the nightly sweep has not closed yet', async () => {
+        const pastDue = endedPact({ status: 'active', endDate: yesterday() });
+        stubStores({
+            pact: pastDue,
+            members: [{ userId: RENEWER, status: 'active', role: 'creator' }],
+            // What the real store returns here: the pact being renewed itself.
+            livePacts: [pastDue],
+        });
+
+        const { statusCode } = await run();
+
+        expect(statusCode).to.equal(201);
+        expect(createdPact).to.not.equal(undefined);
+    });
+
+    it('still refuses when another cycle on that habit is genuinely running', async () => {
+        stubStores({
+            pact: endedPact(),
+            members: [{ userId: RENEWER, status: 'active', role: 'creator' }],
+            livePacts: [{ id: 'pact-live', status: 'active', endDate: tomorrow() }],
+        });
+
+        const { statusCode } = await run();
+
+        expect(statusCode).to.equal(409);
+        expect(createdPact).to.equal(undefined);
+    });
+
     it('takes a caller-supplied duration over the previous cycle length', async () => {
         stubStores({
             pact: endedPact({ durationDays: 30 }),
