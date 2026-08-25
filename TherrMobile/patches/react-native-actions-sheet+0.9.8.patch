@@ -1,8 +1,44 @@
 diff --git a/node_modules/react-native-actions-sheet/dist/src/index.js b/node_modules/react-native-actions-sheet/dist/src/index.js
-index 0b9975e..06ed5c0 100644
+index 0b9975e..da605c7 100644
 --- a/node_modules/react-native-actions-sheet/dist/src/index.js
 +++ b/node_modules/react-native-actions-sheet/dist/src/index.js
-@@ -364,6 +364,7 @@ export default forwardRef(function ActionSheet(_a, ref) {
+@@ -79,15 +79,33 @@ export default forwardRef(function ActionSheet(_a, ref) {
+     var rootViewContainerRef = useRef(null);
+     var gestureBoundaries = useRef({});
+     var hiding = useRef(false);
++    var _hidingState = useState(false), isHiding = _hidingState[0], setIsHiding = _hidingState[1];
+     var payloadRef = useRef(payload);
+     var sheetPayload = useSheetPayload();
+     var panHandlerRef = useRef(null);
+     var closing = useRef(false);
+     var draggableNodes = useRef([]);
+     var sheetLayoutRef = useRef(null);
++    var seededRootSize = React.useMemo(function () {
++        if (Platform.OS !== 'android' || isModal) {
++            return { width: Dimensions.get('window').width, height: 0 };
++        }
++        var win = Dimensions.get('window');
++        return {
++            width: win.width,
++            height: win.height - (StatusBar.currentHeight || 0),
++        };
++    }, [isModal]);
++    if (seededRootSize.height && !dimensionsRef.current.height) {
++        dimensionsRef.current = {
++            width: seededRootSize.width,
++            height: seededRootSize.height,
++            portrait: seededRootSize.width < seededRootSize.height,
++        };
++    }
+     var _y = useState({
+-        width: Dimensions.get('window').width,
+-        height: 0,
++        width: seededRootSize.width,
++        height: seededRootSize.height,
+         portrait: true,
+         paddingBottom: (props === null || props === void 0 ? void 0 : props.useBottomSafeAreaPadding) ? 25 : 0,
+     }), dimensions = _y[0], setDimensions = _y[1];
+@@ -364,6 +382,7 @@ export default forwardRef(function ActionSheet(_a, ref) {
              rootViewLayoutEventValues.current.layouTimer = setTimeout(function () {
                  internalEventManager.publish(EVENTS_INTERNAL.safeAreaLayout);
              }, Platform.OS === 'ios' ||
@@ -10,3 +46,43 @@ index 0b9975e..06ed5c0 100644
                  rootViewLayoutEventValues.current.firstEventFired
                  ? 0
                  : 300);
+@@ -380,6 +399,7 @@ export default forwardRef(function ActionSheet(_a, ref) {
+             return;
+         }
+         hiding.current = true;
++        setIsHiding(true);
+         onBeforeClose === null || onBeforeClose === void 0 ? void 0 : onBeforeClose((data || payloadRef.current || data));
+         setTimeout(function () {
+             if (closable) {
+@@ -410,11 +430,13 @@ export default forwardRef(function ActionSheet(_a, ref) {
+                         }
+                         currentSnapIndex.current = initialSnapIndex;
+                         closing.current = false;
++                        setIsHiding(false);
+                         setTimeout(function () {
+                             keyboard.reset();
+                         });
+                     }
+                     else {
++                        setIsHiding(false);
+                         animations.opacity.setValue(1);
+                         returnAnimation();
+                     }
+@@ -1109,11 +1131,14 @@ export default forwardRef(function ActionSheet(_a, ref) {
+                     width: '100%',
+                     height: '100%',
+                 },
+-                pointerEvents: (props === null || props === void 0 ? void 0 : props.backgroundInteractionEnabled)
+-                    ? 'box-none'
+-                    : 'auto',
++                pointerEvents: isHiding
++                    ? 'none'
++                    : (props === null || props === void 0 ? void 0 : props.backgroundInteractionEnabled)
++                        ? 'box-none'
++                        : 'auto',
+             };
+     }, [
++        isHiding,
+         currentContext,
+         isModal,
+         onHardwareBackPress,

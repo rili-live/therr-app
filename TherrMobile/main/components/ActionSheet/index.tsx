@@ -3,15 +3,32 @@
  * Each sheet renders `./BaseActionSheet` rather than the library's `ActionSheet` directly —
  * see that file for the shared defaults and why they matter on Android.
  *
- * NOTE: `patches/react-native-actions-sheet+0.9.8.patch` removes a 300ms delay this library
- * puts in front of every sheet on Android. Upstream defers its internal `safeAreaLayout`
- * event by 300ms on the first root layout of an `ActionSheet` mount, to give iOS's
- * `SafeAreaView` inset probes time to report. Those probes are never rendered on Android
- * (inset comes from `StatusBar.currentHeight`, read synchronously), so the wait measures
- * nothing — and because `SheetProvider` unmounts a sheet when it closes, the "first" layout
- * is every layout. That is a flat 300ms between the tap and the sheet starting to animate,
- * on every open of every sheet. Symptom that led here: the 3-dot menu on a user profile
- * taking a visibly long time to appear.
+ * NOTE: `patches/react-native-actions-sheet+0.9.8.patch` carries three fixes, all on the
+ * open/close path. `SheetProvider` unmounts a sheet when it closes, so every open is a fresh
+ * mount and every one of these costs is paid on every open, not just the first.
+ *
+ * 1. Removes a 300ms delay in front of every sheet on Android. Upstream defers its internal
+ *    `safeAreaLayout` event by 300ms on the first root layout of an `ActionSheet` mount, to
+ *    give iOS's `SafeAreaView` inset probes time to report. Those probes are never rendered
+ *    on Android (inset comes from `StatusBar.currentHeight`, read synchronously), so the
+ *    wait measures nothing. Symptom that led here: the 3-dot menu on a user profile taking
+ *    a visibly long time to appear.
+ *
+ * 2. Seeds the root size synchronously on Android non-modal sheets. Upstream starts
+ *    `dimensions.height` at 0 and gates the sheet body behind `dimensions.height === 0`, so
+ *    opening costs *two* native layout round-trips: mount an empty root, measure it, then
+ *    re-render with the body and measure that before the entry animation may start. With
+ *    `isModal={false}` the root is just a full-screen view in our own tree, so its size is
+ *    already known from `Dimensions.get('window')` minus the status bar — seeding it lets the
+ *    body lay out in the same commit as the root. Measured on the profile route (emulator,
+ *    debug): steady-state tap-to-animation went from ~220ms to ~92ms.
+ *
+ * 3. Stops a closing sheet from swallowing the next press. The root is a full-screen view
+ *    with `pointerEvents: 'auto'`, and it stays mounted for the whole ~200ms exit animation,
+ *    so a tap within that window hit the invisible backdrop instead of the button underneath
+ *    and did nothing — the user pressed again, and the sheet read as slow to reopen. It now
+ *    drops to `pointerEvents: 'none'` as soon as hiding starts. Re-presses 100ms after a
+ *    dismiss now register; before, 150ms was still being eaten.
  */
 import { SheetDefinition, registerSheet } from 'react-native-actions-sheet';
 import GroupSheet from './GroupSheet';
