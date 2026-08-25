@@ -41,6 +41,7 @@ import mapCustomStyle from '../../styles/map/googleCustom';
 import MarkerIcon from './MarkerIcon';
 import { getUserContentUri, isMyContent } from '../../utilities/content';
 import { rankAreaPreviews } from '../../utilities/feedRanking';
+import { hasUsableCoords } from '../../utilities/coordinates';
 import AreaDisplayCard from '../../components/UserContent/AreaDisplayCard';
 import AreaCreatePromptCard from '../../components/UserContent/AreaCreatePromptCard';
 import { isUserAuthenticated } from '../../utilities/authUtils';
@@ -575,7 +576,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
             // Label with user's location if available, but score against distance from pressedCoord
             const areasWithDistance = baseAreas
-                .filter((a: any) => a.latitude && a.longitude).map((area: any) => {
+                .filter((a: any) => hasUsableCoords(a)).map((area: any) => {
                     const milesFromPress = distanceTo({
                         lon: pressedCoords.longitude,
                         lat: pressedCoords.latitude,
@@ -583,7 +584,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         lon: area.longitude,
                         lat: area.latitude,
                     }) / METERS_PER_MILE;
-                    const milesFromUser = !(location?.user?.longitude && location?.user?.latitude)
+                    const milesFromUser = !hasUsableCoords(location?.user)
                         ? milesFromPress
                         : distanceTo({
                             lon: location?.user?.longitude,

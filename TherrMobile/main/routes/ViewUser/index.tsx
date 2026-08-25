@@ -955,7 +955,8 @@ class ViewUser extends React.Component<
         const { isRefreshingHabitsData } = this.state;
         const ListComponent: any = collapsible?.ScrollComponent || FlatList;
         // Show active pacts first, then completed pacts beneath. Filter out other lifecycle states
-        // (pending, abandoned, expired) — those belong on the dedicated PactsList screen.
+        // (pending, abandoned, expired) — those belong on the habits dashboard's "All" segment,
+        // which is what the dedicated PactsList screen became.
         const allPacts = habits.pacts || [];
         const activePacts = allPacts.filter((p) => p.status === 'active');
         const completedPacts = allPacts.filter((p) => p.status === 'completed');
