@@ -23,12 +23,31 @@
  *    body lay out in the same commit as the root. Measured on the profile route (emulator,
  *    debug): steady-state tap-to-animation went from ~220ms to ~92ms.
  *
+ *    That subtraction is the one assumption in the patch that can drift. It holds because
+ *    edge-to-edge makes `Dimensions.get('window')` report the full screen on Android; if a
+ *    future target-SDK bump changes what `window` measures, the seed goes wrong. It is
+ *    self-correcting rather than fatal — `onRootViewLayout` overwrites `dimensionsRef` with
+ *    the measured height on the first layout, so a wrong seed only shifts where the entry
+ *    animation starts from. The visible symptom would be a sheet that animates in from
+ *    mid-screen instead of from fully offscreen, which is why that is what the device QA
+ *    step looks for.
+ *
  * 3. Stops a closing sheet from swallowing the next press. The root is a full-screen view
  *    with `pointerEvents: 'auto'`, and it stays mounted for the whole ~200ms exit animation,
  *    so a tap within that window hit the invisible backdrop instead of the button underneath
  *    and did nothing — the user pressed again, and the sheet read as slow to reopen. It now
  *    drops to `pointerEvents: 'none'` as soon as hiding starts. Re-presses 100ms after a
  *    dismiss now register; before, 150ms was still being eaten.
+ *
+ * On upgrading `react-native-actions-sheet`: re-derive this patch, do not drop it. A version
+ * bump makes `patch-package` fail loudly on postinstall, and the quickest way to green is to
+ * delete the patch or regenerate it from unmodified sources — either of which silently
+ * reverts all three fixes above. Nothing else catches that: none of the three has automated
+ * coverage, the app still builds and every sheet still opens and closes, so the only signal
+ * is sheets feeling slow again and the swallowed-press bug returning. Re-apply the three
+ * hunks against the new `dist/src/index.js`, confirm upstream has not already fixed one (drop
+ * only the ones that are genuinely redundant, and say so here), then re-run the device QA in
+ * `docs/WORK_IN_PROGRESS.md`.
  */
 import { SheetDefinition, registerSheet } from 'react-native-actions-sheet';
 import GroupSheet from './GroupSheet';
