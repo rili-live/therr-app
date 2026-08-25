@@ -17,6 +17,16 @@ export interface ISelectedProofImage {
     size: number;
 }
 
+/**
+ * Attaches a note or photo to a check-in that has **already been logged** — the
+ * check-in button commits on the first tap, and this sheet is offered
+ * afterwards from the success toast.
+ *
+ * Confirming re-POSTs the same (habitGoalId, date) pair: the users-service
+ * upsert merges the note and proof onto the existing row, and its same-day
+ * branch returns before crediting the streak again, awarding XP again or
+ * re-notifying partners.
+ */
 interface ICheckinProofSheetProps {
     isVisible: boolean;
     isSubmitting?: boolean;
@@ -127,7 +137,7 @@ const CheckinProofSheet: React.FC<ICheckinProofSheetProps> = ({
                 style={themeConfirmModal.styles.container}
             >
                 <Dialog.Title style={themeConfirmModal.styles.headerText}>
-                    {translate('pages.habits.checkinProof.title')}
+                    {translate('pages.habits.checkinProof.addDetailTitle')}
                 </Dialog.Title>
                 <Divider />
                 <Dialog.ScrollArea style={[themeConfirmModal.styles.body, localStyles.transparentBorder]}>
@@ -136,7 +146,7 @@ const CheckinProofSheet: React.FC<ICheckinProofSheetProps> = ({
                             <Text style={themeConfirmModal.styles.bodyTextBold}>{habitName}</Text>
                         ) : null}
                         <Text style={[themeConfirmModal.styles.bodyText, localStyles.prompt]}>
-                            {translate('pages.habits.checkinProof.notePrompt')}
+                            {translate('pages.habits.checkinProof.addDetailPrompt')}
                         </Text>
                         <View style={localStyles.inputContainer}>
                             <TextInput
@@ -246,7 +256,7 @@ const CheckinProofSheet: React.FC<ICheckinProofSheetProps> = ({
                     />
                     <ModalButton
                         iconName="check-circle"
-                        title={translate('pages.habits.checkinProof.confirm')}
+                        title={translate('pages.habits.checkinProof.save')}
                         onPress={handleConfirm}
                         loading={isSubmitting}
                         disabled={isSubmitting}

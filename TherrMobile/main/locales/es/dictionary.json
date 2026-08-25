@@ -1995,14 +1995,19 @@
       "awaitingAnyPartnerAcceptance": "Esperando a que se acepte tu invitación para que comience este pacto.",
       "habitNotFound": "Hábito no encontrado",
       "checkinProof": {
-        "title": "Registrar",
-        "notePrompt": "Añade una nota rápida (opcional)",
         "notePlaceholder": "¿Cómo te fue? ¿Algún logro para compartir?",
         "takePhoto": "Tomar foto",
         "choosePhoto": "Elegir foto",
         "uploadFailed": "No pudimos subir tu foto. Inténtalo de nuevo.",
         "cancel": "Cancelar",
-        "confirm": "Registrar"
+        "addDetailTitle": "Añadir una nota o foto",
+        "addDetailPrompt": "Registrado. Añade lo que quieras recordar (opcional).",
+        "save": "Guardar"
+      },
+      "checkinToast": {
+        "title": "Registrado: {habitName}",
+        "addDetailAction": "Toca para añadir una nota o foto",
+        "detailSavedTitle": "Guardado en el registro de hoy"
       },
       "frequency": {
         "daily": "Cada día",
