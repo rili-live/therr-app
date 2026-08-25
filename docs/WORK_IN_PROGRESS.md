@@ -1329,7 +1329,7 @@ The article's six rules, audited against what is in the code today:
 | 1 | Set the bar at the floor | ❌ the daily check-in is a modal, not a tap |
 | 2 | Track a streak, not a score | ⚠️ streaks are central, but a weekly XP board sits beside them |
 | 3 | Build in the miss | ✅ streak freezes exist — but are invisible until spent |
-| 4 | Visible to 2–5 specific people | ⚠️ pacts cap invitees at 5; partner streaks are never rendered |
+| 4 | Visible to 2–5 specific people | ⚠️ pacts cap invitees at 5, but only one partner's streak is ever rendered |
 | 5 | Keep the metric inseparable from the behaviour | ⚠️ HABITS XP also accrues from invites |
 | 6 | Renew on a fixed cycle | ❌ nothing — a pact reaches `endDate` and goes quiet |
 
@@ -1386,10 +1386,17 @@ today. It is simply never drawn: `PactMemberRow` renders
 `role · status` ("partner · active") and nothing else, so the one mechanic with
 the largest published effect size is invisible in the UI.
 
-The fix: render each member's current streak and today's check-in state on the
-pact card, so a member's absence is *noticeable* — the whole mechanism. Adding
-`checkedInToday` per member to `attachPactMemberStats` is the only backend
-piece; the streak number needs no server change at all.
+It is barely drawn. `PactCard` does render a streak comparison, but only
+between the current user and `members.find(m => m.userId !== currentUserId)` —
+the *first* other member — so in a group pact everyone past the second person is
+invisible. `PactMemberRow`, which is where the pact detail screen lists every
+member, renders `role · status` ("partner · active") and nothing else. And
+neither surface says who has shown up *today*, which is the part that makes an
+absence noticeable.
+
+The fix: render each member's current streak and today's check-in state on both
+surfaces. Adding `checkedInToday` per member to `attachPactMemberStats` is the
+only backend piece; the streak number needs no server change at all.
 
 - Scope: `general` (add `checkedInToday` to the derived member stats) +
   `niche/HABITS-general` (render it).
