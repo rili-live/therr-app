@@ -2,6 +2,8 @@ import { AndroidChannel, AndroidImportance } from '@notifee/react-native';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 
+import { METERS_PER_MILE } from './units';
+
 // CAROUSEL Constants
 const CAROUSEL_TABS = {
     DISCOVERIES: 'discoveries',
@@ -236,6 +238,7 @@ export {
     LOCATION_PROCESSING_THROTTLE_MS,
     MAX_DISTANCE_TO_NEARBY_SPACE,
     EST_US_RADIUS_METERS,
+    METERS_PER_MILE,
 
     // RegEx
     youtubeLinkRegex,

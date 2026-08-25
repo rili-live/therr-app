@@ -103,6 +103,19 @@ Consumer social network growth (dense proximity-based content) requires geograph
 
 **Do not** invest time in consumer-facing marketing for core Therr until B2B has validated revenue.
 
+### Content supply is not consumer marketing
+
+One clarification, because the rule above is easy to over-apply. Work that raises the rate
+at which users post moments is **supply for the B2B funnel**, not consumer growth spend. A
+space page with no recent posts is a directory listing that Yelp and Google already do
+better, so there is no reason for a business to claim it; per-space moment counts are the
+outreach hook for step 1, and content recency is the SEO signal
+`docs/CONTENT_MOMENT_DRIVEN_PLAN.md` depends on. That plan is blocked on supply, not code.
+
+`docs/CONTENT_CREATION_FLYWHEEL.md` holds that work. It is measured on moments per space per
+month in target markets, not on signups or DAU. Anything in it that cannot be traced back to
+space-page value belongs behind the queue below, not in it.
+
 ---
 
 ## Prioritized Action Queue

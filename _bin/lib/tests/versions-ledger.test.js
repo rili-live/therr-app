@@ -59,7 +59,7 @@ const withTempFile = (contents, fn) => {
 
     assert.match(ledger, /^PUBLISHED_USERS_SERVICE=aaaaaaa$/m, 'The second publish must not overwrite the first service\'s recorded SHA.');
     assert.match(ledger, /^PUBLISHED_MAPS_SERVICE=bbbbbbb$/m);
-    assert.match(ledger, /^LAST_PUBLISHED_GIT_SHA=bbbbbbb$/m, 'LAST_PUBLISHED_GIT_SHA still tracks the most recent publish, for the fallback.');
+    assert.match(ledger, /^LAST_PUBLISHED_GIT_SHA=bbbbbbb$/m, 'LAST_PUBLISHED_GIT_SHA still tracks the most recent publish, as a watermark.');
 }
 
 {
@@ -72,18 +72,31 @@ const withTempFile = (contents, fn) => {
     assert.strictEqual(resolved, 'aaaaaaa bbbbbbb');
 }
 
-// --- The transition path ---------------------------------------------------------------------
+// --- A row is a promise; the watermark is not --------------------------------------------------
 
 {
-    // A file written before the ledger existed has no rows at all. Every service must
-    // still resolve, via LAST_PUBLISHED_GIT_SHA, or the first deploy after this lands
-    // would block every service as "unpublished".
+    // ledger_resolve must NOT fall back to LAST_PUBLISHED_GIT_SHA. That watermark means
+    // "most recent stage publish, any service", but publish.sh is incremental and bumps
+    // it even when it pushed one image — so resolving through it points every unrowed
+    // service at a tag that was never built for it, which is `missing-image`, which is
+    // blocking. That deadlocked production for three promotions.
     const resolved = withTempFile('LAST_PUBLISHED_GIT_SHA=ccccccc\n', (file) => bash(`
         ledger_load "${file}"
-        echo "$(ledger_resolve users-service) $(ledger_resolve client-web)"
+        echo "[$(ledger_resolve users-service)][$(ledger_resolve client-web)]"
     `));
 
-    assert.strictEqual(resolved, 'ccccccc ccccccc');
+    assert.strictEqual(resolved, '[][]', 'A service with no row has no desired tag — guessing one is the bug.');
+}
+
+{
+    // The watermark is still parsed and still written (publish.sh sets it, and it is the
+    // file's backwards-compatible first line) — it just resolves nothing on its own.
+    const kept = withTempFile('LAST_PUBLISHED_GIT_SHA=ccccccc\nPUBLISHED_MAPS_SERVICE=bbbbbbb\n', (file) => bash(`
+        ledger_load "${file}"
+        echo "[$LEDGER_LAST_PUBLISHED][$(ledger_resolve maps-service)][$(ledger_resolve users-service)]"
+    `));
+
+    assert.strictEqual(kept, '[ccccccc][bbbbbbb][]');
 }
 
 {
@@ -129,13 +142,14 @@ const withTempFile = (contents, fn) => {
 
 {
     // A row with no value is not a row. Recording an empty SHA would make the deploy
-    // try to pull "therrapp/users-service-stage:".
+    // try to pull "therrapp/users-service-stage:". It resolves to nothing — not to the
+    // file-wide watermark, which is not this service's tag.
     const resolved = withTempFile('PUBLISHED_USERS_SERVICE=\nLAST_PUBLISHED_GIT_SHA=9999999\n', (file) => bash(`
         ledger_load "${file}"
         echo "[$(ledger_resolve users-service)]"
     `));
 
-    assert.strictEqual(resolved, '[9999999]');
+    assert.strictEqual(resolved, '[]');
 }
 
 {

@@ -45,6 +45,13 @@ import {
     getBrandName,
 } from './brandNames';
 import {
+    IBrandAppStore,
+    APP_STORES_BY_BRAND,
+    getBrandAppStore,
+    getPlayStoreUrl,
+    getAppStoreUrl,
+} from './brandAppStores';
+import {
     PhoneAccountType,
     PHONE_ACCOUNT_TYPES,
     MAX_ACCOUNTS_PER_PHONE_BY_BRAND,
@@ -102,6 +109,11 @@ export {
     BRAND_NAMES,
     DEFAULT_BRAND_NAME,
     getBrandName,
+    IBrandAppStore,
+    APP_STORES_BY_BRAND,
+    getBrandAppStore,
+    getPlayStoreUrl,
+    getAppStoreUrl,
     getReadableBrands,
     FeatureFlags,
     HABITS_FREE_HABIT_LIMIT,

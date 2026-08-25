@@ -73,6 +73,7 @@
     "mediaUploadFailed": "Image Upload Failed",
     "tooManyAttempts": "Too Many Attempts",
     "registerSuccess": "Account Created",
+    "accountNotVerified": "Verify Your E-mail",
     "repostSuccess": "Reposted"
   },
   "alertMessages": {
@@ -123,6 +124,8 @@
     "hoursSinceDate": "{count}h",
     "daysSinceDate": "{count}d",
     "yearsSinceDate": "{count}y",
+    "justNow": "Now",
+    "minutesSinceDate": "{count}m",
     "months": {
       "january": "January",
       "february": "February",
@@ -548,7 +551,8 @@
         "phoneSignInHint": "We'll text you a 6-digit code — no password needed."
       },
       "invalidCode": "That code is invalid or expired.",
-      "invalidPhoneNumber": "Please enter a valid phone number."
+      "invalidPhoneNumber": "Please enter a valid phone number.",
+      "accountNotVerified": "Your e-mail address is not verified yet. Check your inbox for the verification link."
     },
     "nearbyForm": {
       "buttons": {
@@ -809,7 +813,8 @@
         "invalidPhoneNumber": "Phone number is invalid.",
         "repeatPassword": "Passwords do not match",
         "passwordInsecure": "Password does not meet minimum security requirements",
-        "birthdateTooYoung": "You must be at least {minAge} years old to sign up"
+        "birthdateTooYoung": "You must be at least {minAge} years old to sign up",
+        "accountExists": "An account already uses that e-mail or username. Try signing in instead."
       },
       "labels": {
         "email": "E-mail",
@@ -977,6 +982,12 @@
         "accountExists": "An account already uses this number. Try signing in.",
         "accountTypeTaken": "This number already has an account of that type. Pick another type or sign in instead.",
         "accountLimitReached": "This number already has the maximum number of accounts. Try signing in."
+      }
+    },
+    "passwordInput": {
+      "labels": {
+        "showPassword": "Show password",
+        "hidePassword": "Hide password"
       }
     }
   },
@@ -1724,6 +1735,14 @@
         "places": "Places",
         "events": "Events",
         "music": "Music"
+      },
+      "preview": {
+        "activeNearby": "{count} active near you",
+        "activeNearbyOne": "1 active near you",
+        "nothingNearby": "Nothing posted near you yet",
+        "createPromptTitle": "Be the first to post here",
+        "createPromptTitleAtSpace": "Be the first at {spaceTitle}",
+        "createPromptSubtitle": "Share a moment and put this place on the map"
       }
     },
     "mapFilteredSearch": {
@@ -2395,6 +2414,27 @@
     }
   },
   "modals": {
+    "appReviewPrompt": {
+      "sentiment": {
+        "header": "Enjoying {appName}?",
+        "message": "You have been getting some good use out of {appName} lately. How is it going so far?",
+        "notReally": "Not really",
+        "yes": "Yes!"
+      },
+      "review": {
+        "header": "Glad to hear it!",
+        "message": "Would you mind leaving a quick review? It only takes a moment, and it helps other people find {appName}.",
+        "maybeLater": "Maybe later",
+        "writeReview": "Write a review"
+      },
+      "feedback": {
+        "header": "Sorry to hear that",
+        "message": "Tell us what is not working and we will take a look. Your feedback goes straight to our team.",
+        "noThanks": "No thanks",
+        "sendFeedback": "Send feedback"
+      },
+      "emailSubject": "{appName} feedback"
+    },
     "confirmModal": {
       "agree": "Agree",
       "confirm": "Yes",

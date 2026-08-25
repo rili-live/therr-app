@@ -3,7 +3,7 @@ import { RequestHandler } from 'express';
 import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import {
-    AccessLevels, BrandVariations, MetricNames, OAuthIntegrationProviders, hasValidStandardClaims,
+    AccessLevels, BrandVariations, ErrorCodes, MetricNames, OAuthIntegrationProviders, hasValidStandardClaims,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
@@ -366,6 +366,7 @@ const login: RequestHandler = (req: any, res: any) => {
                     res,
                     message: translate(locale, 'errorMessages.auth.accountNotVerified'),
                     statusCode: 401,
+                    errorCode: ErrorCodes.NOT_VERIFIED,
                 });
             }
 
@@ -552,6 +553,7 @@ const loginWithVerifiedPhone: RequestHandler = (req: any, res: any) => {
                     res,
                     message: translate(locale, 'errorMessages.auth.accountNotVerified'),
                     statusCode: 401,
+                    errorCode: ErrorCodes.NOT_VERIFIED,
                 });
             }
 

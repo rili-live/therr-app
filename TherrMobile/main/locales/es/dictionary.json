@@ -73,6 +73,7 @@
     "mediaUploadFailed": "Error al cargar imagen",
     "tooManyAttempts": "Demasiados intentos",
     "registerSuccess": "Cuenta creada",
+    "accountNotVerified": "Verifica tu correo",
     "repostSuccess": "Republicado"
   },
   "alertMessages": {
@@ -123,6 +124,8 @@
     "hoursSinceDate": "{count}h",
     "daysSinceDate": "{count}d",
     "yearsSinceDate": "{count}a",
+    "justNow": "Ahora",
+    "minutesSinceDate": "{count} min",
     "months": {
       "january": "Enero",
       "february": "Febrero",
@@ -548,7 +551,8 @@
         "phoneSignInHint": "Te enviaremos un código de 6 dígitos: no necesitas contraseña."
       },
       "invalidCode": "Ese código no es válido o ha expirado.",
-      "invalidPhoneNumber": "Ingresa un número de teléfono válido."
+      "invalidPhoneNumber": "Ingresa un número de teléfono válido.",
+      "accountNotVerified": "Tu correo electrónico aún no está verificado. Revisa tu bandeja de entrada para encontrar el enlace de verificación."
     },
     "nearbyForm": {
       "buttons": {
@@ -809,7 +813,8 @@
         "invalidPhoneNumber": "El número de teléfono es inválido.",
         "repeatPassword": "Las contraseñas no coinciden",
         "passwordInsecure": "La contraseña no cumple los requisitos mínimos de seguridad",
-        "birthdateTooYoung": "Debes tener al menos {minAge} años para registrarte"
+        "birthdateTooYoung": "Debes tener al menos {minAge} años para registrarte",
+        "accountExists": "Ya existe una cuenta con ese correo o nombre de usuario. Intenta iniciar sesión."
       },
       "labels": {
         "email": "Correo electrónico",
@@ -977,6 +982,12 @@
         "accountExists": "Ya existe una cuenta con este número. Intenta iniciar sesión.",
         "accountTypeTaken": "Este número ya tiene una cuenta de ese tipo. Elige otro tipo o inicia sesión.",
         "accountLimitReached": "Este número ya tiene el número máximo de cuentas. Intenta iniciar sesión."
+      }
+    },
+    "passwordInput": {
+      "labels": {
+        "showPassword": "Mostrar contraseña",
+        "hidePassword": "Ocultar contraseña"
       }
     }
   },
@@ -1724,6 +1735,14 @@
         "places": "Lugares",
         "events": "Eventos",
         "music": "Música"
+      },
+      "preview": {
+        "activeNearby": "{count} activos cerca de ti",
+        "activeNearbyOne": "1 activo cerca de ti",
+        "nothingNearby": "Aún no hay publicaciones cerca de ti",
+        "createPromptTitle": "Sé el primero en publicar aquí",
+        "createPromptTitleAtSpace": "Sé el primero en {spaceTitle}",
+        "createPromptSubtitle": "Comparte un momento y pon este lugar en el mapa"
       }
     },
     "mapFilteredSearch": {
@@ -2395,6 +2414,27 @@
     }
   },
   "modals": {
+    "appReviewPrompt": {
+      "sentiment": {
+        "header": "¿Te gusta {appName}?",
+        "message": "Últimamente has usado bastante {appName}. ¿Qué te parece hasta ahora?",
+        "notReally": "La verdad, no",
+        "yes": "¡Sí!"
+      },
+      "review": {
+        "header": "¡Nos alegra saberlo!",
+        "message": "¿Te importaría dejar una reseña rápida? Solo toma un momento y ayuda a que otras personas descubran {appName}.",
+        "maybeLater": "Quizás más tarde",
+        "writeReview": "Escribir una reseña"
+      },
+      "feedback": {
+        "header": "Lamentamos oír eso",
+        "message": "Cuéntanos qué no está funcionando y lo revisaremos. Tus comentarios llegan directamente a nuestro equipo.",
+        "noThanks": "No, gracias",
+        "sendFeedback": "Enviar comentarios"
+      },
+      "emailSubject": "Comentarios sobre {appName}"
+    },
     "confirmModal": {
       "agree": "Aceptar",
       "confirm": "Sí",

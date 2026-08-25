@@ -19,13 +19,13 @@ import spacingStyles, { space } from '../../styles/layouts/spacing';
 import { fontSizes } from '../../styles/text';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
+import PasswordInput from '../../components/Input/PasswordInput';
 import VerificationCodeInput from '../../components/Input/VerificationCodeInput';
 import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
 import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
 import AccountPickerModal, { IPickableAccount } from '../../components/Modals/AccountPickerModal';
 import { ITherrThemeColors } from '../../styles/themes';
 import OrDivider from '../../components/Input/OrDivider';
-import TherrIcon from '../../components/TherrIcon';
 import {
     IdentifierKeyboard,
     isLikelyPhoneNumber,
@@ -38,6 +38,7 @@ import {
     rememberCurrentUser,
     IRememberedProfile,
 } from '../../utilities/rememberedProfiles';
+import { getLoginErrorCopy } from '../../utilities/authErrors';
 
 export interface ISSOUserDetails {
     isSSO: boolean;
@@ -139,7 +140,7 @@ export class LoginFormComponent extends React.Component<
     ILoginFormProps,
     ILoginFormState
 > {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: ILoginFormProps) {
         super(props);
@@ -257,23 +258,23 @@ export class LoginFormComponent extends React.Component<
         });
 
         if (err?.message?.includes('The user canceled the sign in request')) {
-            // Google SSO User Canceled
+            // Google SSO User Canceled — the user's own choice, not an error to report back.
             return;
         } else if (err?.message?.includes('com.apple.AuthenticationServices.AuthorizationError')) {
-            showToast.error({
-                text1: this.translate('alertTitles.errorWithAppleSSO'),
-                text2: this.translate('alertMessages.errorWithAppleSSO'),
-            });
+            this.showLoginError(
+                this.translate('alertMessages.errorWithAppleSSO'),
+                this.translate('alertTitles.errorWithAppleSSO'),
+            );
         } else if (err?.message?.includes('RNGoogleSignInError')) {
-            showToast.error({
-                text1: this.translate('alertTitles.errorWithGoogleSSO'),
-                text2: this.translate('alertMessages.errorWithGoogleSSO'),
-            });
+            this.showLoginError(
+                this.translate('alertMessages.errorWithGoogleSSO'),
+                this.translate('alertTitles.errorWithGoogleSSO'),
+            );
         } else {
-            showToast.error({
-                text1: this.translate('alertTitles.backendErrorMessage'),
-                text2: this.translate('alertMessages.backendErrorMessage'),
-            });
+            this.showLoginError(
+                this.translate('alertMessages.backendErrorMessage'),
+                this.translate('alertTitles.backendErrorMessage'),
+            );
         }
         // TODO: Handle bad Google SSO key
     };
@@ -300,33 +301,33 @@ export class LoginFormComponent extends React.Component<
         }
     };
 
-    /** Shared error mapping for every sign-in path so the messaging never diverges. */
+    /**
+     * Shared error handling for every sign-in path so the messaging never diverges.
+     *
+     * `getLoginErrorCopy` always returns copy — the previous version had no `else`, so a
+     * rejection that was neither 4xx nor 5xx (which is what a wrong password used to arrive
+     * as, see the note on auth endpoints in `interceptors.ts`) cleared the spinner and showed
+     * the user nothing at all.
+     */
     onLoginError = (error: any) => {
-        if (
-            error.statusCode === 400 ||
-            error.statusCode === 401 ||
-            error.statusCode === 404
-        ) {
-            const msg = this.translate(
-                'forms.loginForm.invalidUsernamePassword'
-            );
-            this.setState({ prevLoginError: msg });
-            showToast.error({
-                text1: this.translate('alertTitles.loginError'),
-                text2: msg,
-            });
-        } else if (error.statusCode >= 500) {
-            const msg = this.translate(
-                'forms.loginForm.backendErrorMessage'
-            );
-            this.setState({ prevLoginError: msg });
-            showToast.error({
-                text1: this.translate('alertTitles.backendErrorMessage'),
-                text2: msg,
-            });
-        }
+        const { title, message } = getLoginErrorCopy(error, this.translate);
+
         this.setState({
+            prevLoginError: message,
             isSubmitting: false,
+        });
+        showToast.error({
+            text1: title,
+            text2: message,
+        });
+    };
+
+    /** Client-side validation failure: same inline alert + toast pairing as a server rejection. */
+    showLoginError = (message: string, title = this.translate('alertTitles.loginError')) => {
+        this.setState({ prevLoginError: message });
+        showToast.error({
+            text1: title,
+            text2: message,
         });
     };
 
@@ -335,17 +336,11 @@ export class LoginFormComponent extends React.Component<
 
         if (!ssoUserDetails) {
             if (!userName) {
-                showToast.error({
-                    text1: this.translate('alertTitles.loginError'),
-                    text2: this.translate('forms.loginForm.missingEmail'),
-                });
+                this.showLoginError(this.translate('forms.loginForm.missingEmail'));
                 return;
             }
             if (!password) {
-                showToast.error({
-                    text1: this.translate('alertTitles.loginError'),
-                    text2: this.translate('forms.loginForm.missingPassword'),
-                });
+                this.showLoginError(this.translate('forms.loginForm.missingPassword'));
                 return;
             }
         }
@@ -365,6 +360,7 @@ export class LoginFormComponent extends React.Component<
 
         this.setState({
             isSubmitting: true,
+            prevLoginError: '',
         });
         this.props
             .login(loginArgs, {
@@ -385,10 +381,7 @@ export class LoginFormComponent extends React.Component<
         const phoneNumber = toDialableNumber(this.state.inputs.userName);
 
         if (!isLikelyPhoneNumber(phoneNumber)) {
-            showToast.error({
-                text1: this.translate('alertTitles.loginError'),
-                text2: this.translate('forms.loginForm.invalidPhoneNumber'),
-            });
+            this.showLoginError(this.translate('forms.loginForm.invalidPhoneNumber'));
             return;
         }
 
@@ -412,20 +405,20 @@ export class LoginFormComponent extends React.Component<
             })
             .catch((error: any) => {
                 if (error?.errorCode === ErrorCodes.INVALID_REGION) {
-                    showToast.error({
-                        text1: this.translate('alertTitles.invalidRegionCode'),
-                        text2: this.translate('alertMessages.invalidRegionCode'),
-                    });
+                    this.showLoginError(
+                        this.translate('alertMessages.invalidRegionCode'),
+                        this.translate('alertTitles.invalidRegionCode'),
+                    );
                 } else if (error?.statusCode === 429) {
-                    showToast.error({
-                        text1: this.translate('alertTitles.tooManyAttempts'),
-                        text2: this.translate('alertMessages.tooManyAttempts'),
-                    });
+                    this.showLoginError(
+                        this.translate('alertMessages.tooManyAttempts'),
+                        this.translate('alertTitles.tooManyAttempts'),
+                    );
                 } else {
-                    showToast.error({
-                        text1: this.translate('alertTitles.backendErrorMessage'),
-                        text2: this.translate('alertMessages.backendErrorMessage'),
-                    });
+                    this.showLoginError(
+                        this.translate('alertMessages.backendErrorMessage'),
+                        this.translate('alertTitles.backendErrorMessage'),
+                    );
                 }
             })
             .finally(() => this.setState({ isSubmitting: false }));
@@ -782,9 +775,8 @@ export class LoginFormComponent extends React.Component<
                         )
                         : (
                             <>
-                                <RoundInput
-                                    autoCapitalize="none"
-                                    autoCorrect={false}
+                                <PasswordInput
+                                    variant="round"
                                     autoComplete="password"
                                     placeholder={this.translate(
                                         'forms.loginForm.labels.password'
@@ -794,14 +786,8 @@ export class LoginFormComponent extends React.Component<
                                         this.onInputChange('password', text)
                                     }
                                     onSubmitEditing={() => this.onSubmit()}
-                                    secureTextEntry={true}
-                                    rightIcon={
-                                        <TherrIcon
-                                            name="key"
-                                            size={24}
-                                            color={themeAlerts.colors.placeholderTextColorAlt}
-                                        />
-                                    }
+                                    translate={this.translate}
+                                    iconColor={themeAlerts.colors.placeholderTextColorAlt}
                                     themeForms={themeForms}
                                     testID="login-password"
                                     inputStyle={{ fontSize: 17 }}
@@ -837,7 +823,13 @@ export class LoginFormComponent extends React.Component<
     }
 
     public render() {
-        const { isSubmitting, mode, rememberedProfiles, selectableAccounts } = this.state;
+        const {
+            isSubmitting,
+            mode,
+            prevLoginError,
+            rememberedProfiles,
+            selectableAccounts,
+        } = this.state;
         const {
             navigation,
             themeAlerts,
@@ -856,6 +848,20 @@ export class LoginFormComponent extends React.Component<
                     isVisible={!!userMessage}
                     message={userMessage}
                     type={'success'}
+                    themeAlerts={themeAlerts}
+                />
+                {/*
+                  * The inline half of the error pairing. `prevLoginError` had been written on
+                  * every failure path and read by nothing, which left a toast — dismissible,
+                  * and gone after a few seconds — as the only trace that sign-in had failed.
+                  */}
+                <Alert
+                    containerStyles={addMargins({
+                        marginBottom: 16,
+                    })}
+                    isVisible={!!prevLoginError}
+                    message={prevLoginError}
+                    type={'error'}
                     themeAlerts={themeAlerts}
                 />
                 {isCodeStep ? this.renderVerificationCodeStep() : this.renderIdentifierStep()}

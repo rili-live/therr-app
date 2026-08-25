@@ -1,6 +1,6 @@
 # Work In Progress — TODO Backlog & Manual Steps
 
-**Last Updated:** April 2026
+**Last Updated:** August 2026
 **Audience:** Developers and coding agents
 **Status:** Living document — update when TODOs are resolved or added
 
@@ -52,6 +52,37 @@ configuration that code alone cannot complete. **Coding agents should
 proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
+
+## Analytics & traffic (added 2026-08-24, from the GA4 review)
+
+- [ ] **Cut off the headless-Chrome crawler polluting the consolidated property.**
+  1,010 of 1,156 sessions (87%) in Consolidated Domains (`549794383`) over the 60
+  days to 23 Aug were Singapore desktop at 2.1% engagement and ~17s duration.
+  Signature: Chrome/Windows at screen resolution **1280x1200** (799 sessions) and
+  **800x600** (207), walking `/spaces/*` two-to-three sessions per URL across 969
+  distinct landing pages — a JS-executing sitemap crawler from a cloud region, not
+  an audience. It is not on the IAB list, so GA4's built-in bot exclusion misses it.
+  > **A GA4 data filter cannot do this.** Data filters only support Developer and
+  > Internal traffic; there is no country, resolution, or user-agent filter. The two
+  > mechanisms that actually work are (a) block it at the edge — a Cloudflare or k8s
+  > ingress rule on the source ASN/user-agent, which removes the load as well as the
+  > analytics noise, and (b) pull the source IPs out of the ingress access logs, add
+  > them under Admin -> Data streams -> Configure tag settings -> Define internal
+  > traffic, then enable the Internal Traffic data filter to Exclude.
+  Do this **before** the old GA4 properties are retired, or the consolidated
+  property's only history is a baseline inflated roughly 8x.
+- [ ] **Re-register the `surface` custom dimension** now that habits.therr.com
+  reports as its own surface (`landing` / `web` / `habits` / `dashboard`). GA4 admin
+  -> Custom definitions, event-scoped, parameter `surface`. Without registration the
+  value is collected but not reportable, and habits web traffic stays indistinguishable
+  from therr.com.
+- [ ] **Re-submit the habits sitemap to Search Console** — `habits.therr.com/sitemap.xml`
+  grew from 3 URLs to 3 + `/blog` + one per cross-post. This subdomain has almost no
+  inbound links, so the sitemap is most of how those pages get discovered at all.
+- [ ] **Verify `therr-for-business` (property `351769800`) is tagged.** It returned
+  zero rows for every window checked on 2026-08-24 — either not deployed or not
+  collecting. The B2B funnel is Priority 1 in `docs/GROWTH_STRATEGY.md`, and it is
+  currently unmeasured.
 
 ## Standing items (always re-verify after a deploy that touches the area)
 
@@ -868,16 +899,16 @@ console configuration, and one verification that gates a payments change.
   repos when the automator lands.** Human posts render `"${name}, ${stateAbbr}"` from the `Cities`
   catalog; the automator must emit the same form ("Chicago, IL") or one place shows up under two
   spellings in the feed. No CI can see both sides.
-- [ ] (2026-08-23, /quality-peer-review) **Watch the first `stage` → `main` deploy after the
-  pipeline rewrite lands, and confirm the plan table before letting it roll.** No service has a
-  `PUBLISHED_*` row yet, so all eight resolve through `LAST_PUBLISHED_GIT_SHA=3f1d5ba` — a tag the
-  publish job only ever pushed for the services that merge rebuilt. Services already on that tag
-  come out `up-to-date` and are skipped; any the cluster is genuinely behind on will come out
-  `missing-image` and block before touching the cluster. The fix in that case is to re-run the
-  stage pipeline so it publishes and writes per-service rows — not to hand-edit `VERSIONS.txt`.
-- [ ] (2026-08-23, /quality-peer-review) **After the first successful deploy, confirm `VERSIONS.txt`
-  on `stage` has grown a `PUBLISHED_*` row per service.** That is the signal the ledger transition
-  is complete and the `LAST_PUBLISHED_GIT_SHA` fallback is no longer load-bearing.
+- [ ] (2026-08-23) **Promote the `global-config.js` touch through `general` → `stage` → `main` to
+  repopulate the ledger.** The fallback deadlock is fixed in code, so a promotion no longer blocks —
+  but seven services still have no `PUBLISHED_*` row and will report `unresolved` until one stage
+  publish rebuilds them all. `global-config.js` is in every service's source fan-out, so that single
+  commit publishes all eight and writes eight rows at one SHA. Watch the plan table on the
+  `stage` → `main` run and confirm eight `deploy` verdicts. If the stage publish job needs a retry,
+  re-run the whole *stage pipeline*, not the single job (see the non-fast-forward item below).
+- [ ] (2026-08-23) **After that deploy, confirm `VERSIONS.txt` on `stage` has a `PUBLISHED_*` row per
+  service, and that the cluster has moved off `eef996d`.** Eight rows is the signal the ledger
+  transition is finally complete; until then the cluster is still on the pre-rewrite image.
 - [ ] (2026-08-23, /quality-peer-review) **Make a CircleCI rerun of the stage publish job
   reconcile with `origin/stage` before committing `VERSIONS.txt`.** A rerun starts from a fresh
   checkout at `CIRCLE_SHA1`, so the working tree holds the pre-publish ledger while
@@ -897,6 +928,26 @@ console configuration, and one verification that gates a payments change.
   (`\d main.thoughts`), and a repost created from the app comes back with a populated
   `repostOf`. If migrations were skipped (`RUN_MIGRATIONS_ON_DEPLOY=false`), run
   `npm run pr:migrate:users`.
+
+- [ ] (2026-08-25, /quality-peer-review) **Android 3.16.1 (versionCode 452) — build, upload and
+  write release notes.** The mobile half of this `general` diff reaches nobody through
+  `general → stage → main`; CI deploys services and client-web only, so the version bump does
+  nothing until `npm run build:release` produces an AAB and it is uploaded to a Play track. Notes
+  should cover: action sheets open roughly twice as fast on Android, re-pressing a button right
+  after dismissing a sheet now registers, the reply box on a thought centers its text and
+  placeholder, the map's featured check-in / add-moment button no longer sits offset while the
+  area preview strip is open, and the modal header spacing fix.
+- [ ] (2026-08-25, /quality-peer-review) **QA the `react-native-actions-sheet` patch on a physical
+  Android device before cutting 3.16.1.** The patch now carries three changes on the open/close
+  path of *every* sheet in the app, not just the profile menu, and the ~220ms → ~92ms figure in
+  `main/components/ActionSheet/index.tsx` was measured on an emulator in a debug build. Two of the
+  three have no automated coverage and fail in ways tests would not catch: the seeded root size
+  assumes `Dimensions.get('window') - StatusBar.currentHeight` is the real root height under
+  edge-to-edge, and the `pointerEvents: 'none'` change alters touch routing for the ~150ms exit
+  animation. Open content-options, group, user, user-profile, image-picker, visibility-picker and
+  list-picker sheets; confirm each still animates from fully offscreen (not mid-screen), that
+  swipe-down and hardware-back still dismiss, and that a tap on the button underneath immediately
+  after a dismiss hits that button rather than being swallowed.
 
 <!-- skill-followups:end -->
 
@@ -1217,6 +1268,11 @@ The viral loop in Friends With Habits (`docs/niche-sub-apps/HABITS_PROJECT_BRIEF
 and the engagement roadmap (`docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md`)
 depend on these working correctly.
 
+> **Start at § 2.6.** It is the highest-impact cluster in this tier — five
+> independent changes that align the Friends with Habits loop with the
+> gamification evidence — and it acts on the retention loop that §§ 2.1–2.5
+> all feed into.
+
 ### 2.1 Push notification engagement
 
 - `therr-services/push-notifications-service/src/handlers/helpers/areaLocationHelpers.ts:222`
@@ -1295,6 +1351,181 @@ Still open:
   consumes Play's Real-Time Developer Notifications, so a refunded buyer keeps
   the entitlement.
 - iOS StoreKit verification — the `platform` column is ready, the code is not.
+
+---
+
+### 2.6 Gamification research alignment (Friends with Habits)
+
+Source: [The Gamification of Habits: Why Duolingo Works and Most Habit Apps
+Don't](https://www.therr.app/blog/2026/8_25_2026_gamification_of_habits.html)
+(therr-landing, Aug 2026). Companion to
+[`docs/HABIT_LIFECYCLE_MESSAGING.md`](HABIT_LIFECYCLE_MESSAGING.md), which
+already applies the Lally automaticity research to *send cadence*. This section
+applies the gamification evidence to the **loop itself** — what counts as a
+check-in, who sees it, and what happens when it ends.
+
+The article's six rules, audited against what is in the code today:
+
+| # | Rule | Today |
+|---|---|---|
+| 1 | Set the bar at the floor | ❌ the daily check-in is a modal, not a tap |
+| 2 | Track a streak, not a score | ⚠️ streaks are central, but a weekly XP board sits beside them |
+| 3 | Build in the miss | ✅ streak freezes exist — but are invisible until spent |
+| 4 | Visible to 2–5 specific people | ⚠️ pacts cap invitees at 5; partner streaks are never rendered |
+| 5 | Keep the metric inseparable from the behaviour | ⚠️ HABITS XP also accrues from invites |
+| 6 | Renew on a fixed cycle | ❌ nothing — a pact reaches `endDate` and goes quiet |
+
+The five items below are ordered by expected impact and are **independent**:
+each can ship on its own without waiting on the others. They are the highest-
+priority cluster in Tier 2 — ahead of §§ 2.1–2.5 — because they act on the
+retention loop every other Tier 2 item feeds.
+
+---
+
+#### 2.6.1 One-tap check-in — lower the bar to the floor
+
+**Rule 1.** Duolingo's largest published retention win was making the streak
+easier to extend, not harder: a single lesson extends it, with the daily goal
+tracked separately. The A/B result was **+3.3% day-14 retention, +10.5% daily
+learners on a streak (+19% among new learners)**, and their own conclusion is
+that lowering the barrier to a consistent daily habit beats raising how much
+you do each day. Learners who reach a 7-day streak are **2.4×** more likely to
+return tomorrow — so the cheapest thing the app can do is get more people to
+day 7.
+
+Today the daily action costs a modal. `CheckinButton` → `handleCheckin` opens
+`CheckinProofSheet` (notes field + camera/library picker) and needs a second
+confirm tap, on **both** entry points
+(`TherrMobile/main/routes/Habits/Dashboard.tsx:259`,
+`TherrMobile/main/routes/Habits/HabitDetail.tsx:142`). Nothing about the sheet
+is required — `onConfirm` is happy with no note and no photo — so it is pure
+friction on the one action the entire product depends on.
+
+The fix: the primary button commits the check-in immediately and optimistically;
+proof becomes something you *add*, not something you pass through. The backend
+already supports this — `habitCheckins.createOrUpdate` is idempotent per
+(habit, date), and the handler's same-day branch explicitly updates proofs and
+notes without re-crediting the streak, awarding XP twice, or re-firing partner
+pushes — so an "add a note or photo" affordance after the fact reuses the sheet
+unchanged against the same row.
+
+- Scope: `niche/HABITS-general` (mobile only — no backend, no migration).
+- Watch: `MetricNames.FUNNEL_HABIT_CHECKIN`, and the share of users reaching a
+  7-day streak.
+
+#### 2.6.2 Render partner streaks — the Friend Streak surface
+
+**Rule 4.** Duolingo's Friend Streak — share a streak with up to five people,
+no leaderboard, no messaging, no new content — makes learners **22% more likely
+to complete their daily lesson**, and the effect compounds with each additional
+friend. It adds nothing but a second reader.
+
+Pacts are already the right shape: `MAX_BULK_INVITEES = 5`
+(`therr-services/users-service/src/handlers/pacts.ts:39`) matches the research
+window exactly, and `attachPactMemberStats` already derives and returns each
+member's `currentStreak` from `habits.streaks` — the number is on the wire
+today. It is simply never drawn: `PactMemberRow` renders
+`role · status` ("partner · active") and nothing else, so the one mechanic with
+the largest published effect size is invisible in the UI.
+
+The fix: render each member's current streak and today's check-in state on the
+pact card, so a member's absence is *noticeable* — the whole mechanism. Adding
+`checkedInToday` per member to `attachPactMemberStats` is the only backend
+piece; the streak number needs no server change at all.
+
+- Scope: `general` (add `checkedInToday` to the derived member stats) +
+  `niche/HABITS-general` (render it).
+- Note: deliberately **not** a leaderboard. Friend Streak has no ranking, and
+  see 2.6.5 for why that matters.
+
+#### 2.6.3 Pact renewal — close the fixed-cycle loop
+
+**Rule 6.** The RCT meta-analysis behind the article (16 studies, 2,407
+participants) found gamified interventions produce a **Hedges' g of 0.42** on
+physical activity that decays to **g = 0.15 at 12–24 week follow-up**. The
+effect is real and it fades, which is why the article's last rule is to renew
+on a fixed cycle rather than run open-ended.
+
+Pacts already have the cycle — `durationDays` of 7/14/30/90 — but nothing
+closes it. `pactExpiring` warns each member for the last three days
+(`therr-services/users-service/src/handlers/habitsDigest.ts:243`) and then the
+app has nothing more to say. `PactsStore.expire()` and
+`pactHelpers.shouldExpirePact` both exist and **neither is called from
+anywhere**, so pacts also sit at `status='active'` past their `endDate`
+indefinitely.
+
+The fix, in two separable halves:
+
+1. An expiry sweep in the daily digest that actually calls
+   `PactsStore.expire()` on pacts past `endDate`.
+2. A renewal endpoint (`POST /pacts/:id/renew`) that clones an expiring or
+   completed pact — same habit goal, same members, a fresh window — leaving the
+   underlying `habits.streaks` row untouched so the streak carries across the
+   boundary. Surface it as a "re-commit for another N days" CTA on the
+   expiring-pact push and the pact card.
+
+The streak **must** carry: a renewal that resets it to zero converts the
+article's strongest mechanic into its worst failure mode on a day the user did
+nothing wrong.
+
+- Scope: `general` (sweep, endpoint, digest copy) + `niche/HABITS-general` (CTA).
+- Optional follow-on: a long-form "your pact ended — here's what you built"
+  re-commit email in `therr-messaging-automator`, which owns the SES templates
+  and unsubscribe-token path (see `docs/HABIT_LIFECYCLE_MESSAGING.md` § Where
+  each message lives). Push first; email has no rate-limiting layer of its own.
+
+#### 2.6.4 Announce the streak freeze before it is spent
+
+**Rule 3.** "Build in the miss" is explicitly a rule *agreed in advance* — the
+first bad day has to happen inside the rules rather than ending them. Duolingo's
+streak freeze cut churn ~21% for at-risk users.
+
+The mechanic is fully built here and almost entirely unadvertised. Streaks start
+with one freeze (`StreaksStore.ts:139`), earn another at every 7+ day milestone
+up to `MAX_GRACE_PERIOD_DAYS`, and are spent automatically on the next check-in
+after a gap (`habitCheckins.ts:194-217`). But the user is only ever told the
+count in passing — `StreakWidget` and `HabitDetail` show "N grace days" — and:
+
+- the `streakAtRisk` push (`habitsDigest.ts:389`) says the streak is at risk
+  without mentioning that a freeze will cover tonight;
+- spending a freeze fires **no** notification at all, so the safety net is
+  invisible at exactly the two moments it would change behaviour;
+- nothing in onboarding or goal creation states the rule up front.
+
+The fix: state the allowance at habit creation, fold the remaining freeze count
+into `streakAtRisk` copy, and notify when one is consumed ("your 12-day streak
+survived — 1 freeze left"). Copy work in three locales, no schema change.
+
+- Scope: `general` (digest copy, new push type, shared dictionaries) +
+  `niche/HABITS-general` (onboarding + goal-creation copy).
+
+#### 2.6.5 Keep the HABITS score tied to the behaviour
+
+**Rules 2 and 5.** The article's failure case is the overjustification effect —
+Deci, Koestner & Ryan across **128 experiments**, with completion-contingent
+rewards undermining intrinsic motivation at around **d = −0.36**. The practical
+test it offers: *if you can move the number without doing the thing, the number
+is the wrong one.*
+
+HABITS currently fails that test at the edges. `awardLeaderboardPoints` gives
+10 XP per first check-in and a `milestone × 5` bonus — both properly tied to
+behaviour — but achievement progress also pays `activityUnit` XP, and the HABITS
+allow-list includes `socialite`, which is earned by **inviting people**
+(`handlers/helpers/achievements.ts:81`). Those points then rank users against
+each other on a weekly board (`TherrMobile/main/routes/Leaderboard`, gated on
+`ENABLE_ACHIEVEMENTS`) — a competition the evidence in this article does not
+support, fed partly by a currency you can farm without doing your habit.
+
+The fix is a decision, not just a patch, and should be taken deliberately:
+either scope the HABITS leaderboard to check-in-derived XP only, or replace it
+outright with a shared-streak board scoped to a user's own pact members — which
+is 2.6.2 grown up, and stays inside the article's "small audience, no ranking"
+finding.
+
+- Scope: `general` (XP sourcing / board query) + `niche/HABITS-general` (surface).
+- Cheapest first step: audit which achievement classes pay XP under
+  `BrandVariations.HABITS` and confirm the number cannot move without a
+  check-in.
 
 ---
 
@@ -1820,26 +2051,7 @@ many times more often than it's written.
 
 Append to **§ Manual Operational Follow-ups** with a checkbox. If the item
 was generated by a skill run, place it under "Skill-generated items" between
-the `<!-- skill-followups:start -->` and `- [ ] (2026-08-23, /quality-peer-review) **Watch the first `stage` → `main` deploy after the
-  pipeline rewrite lands, and confirm the plan table before letting it roll.** No service has a
-  `PUBLISHED_*` row yet, so all eight resolve through `LAST_PUBLISHED_GIT_SHA=3f1d5ba` — a tag the
-  publish job only ever pushed for the services that merge rebuilt. Services already on that tag
-  come out `up-to-date` and are skipped; any the cluster is genuinely behind on will come out
-  `missing-image` and block before touching the cluster. The fix in that case is to re-run the
-  stage pipeline so it publishes and writes per-service rows — not to hand-edit `VERSIONS.txt`.
-- [ ] (2026-08-23, /quality-peer-review) **After the first successful deploy, confirm `VERSIONS.txt`
-  on `stage` has grown a `PUBLISHED_*` row per service.** That is the signal the ledger transition
-  is complete and the `LAST_PUBLISHED_GIT_SHA` fallback is no longer load-bearing.
-- [ ] (2026-08-23, /quality-peer-review) **Make a CircleCI rerun of the stage publish job
-  reconcile with `origin/stage` before committing `VERSIONS.txt`.** A rerun starts from a fresh
-  checkout at `CIRCLE_SHA1`, so the working tree holds the pre-publish ledger while
-  `origin/stage` already carries the `[skip ci]` commit the first run pushed. `publish.sh` then
-  builds a sibling commit and `git push` is rejected as non-fast-forward — the job reports a
-  broken publish that actually succeeded. Pre-existing (the pre-rewrite script failed the same
-  way), and not something the empty-index guard addresses. Fix is to `git fetch origin stage` and
-  re-load the ledger from the remote tip before `ledger_write`, so the guard sees the real state.
-  Until then, recover by re-running the *stage pipeline* rather than the single job.
-<!-- skill-followups:end -->`
+the `<!-- skill-followups:start -->` and `<!-- skill-followups:end -->`
 markers, prefixed with the date and originating skill:
 
 ```

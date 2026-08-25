@@ -131,6 +131,7 @@
 - **Draft management** — save and resume content drafts
 - **Animated onboarding** — landing page with background carousel
 - **Android app shortcuts** — long-press the launcher icon for quick links straight into Create Moment / Create Thought
+- **App review prompt** — after several delight moments (a posted moment, a claimed reward) and a few days of use, asks whether the user is enjoying the app; "yes" links to that brand's store listing to write a review, "not really" opens a support email instead. Rate-limited and one-way: opting out or reviewing is permanent per install
 
 ---
 

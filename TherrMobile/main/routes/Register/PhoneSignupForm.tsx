@@ -22,6 +22,7 @@ import { Button } from '../../components/BaseButton';
 import { showToast } from '../../utilities/toasts';
 import translator from '../../utilities/translator';
 import RoundInput from '../../components/Input/Round';
+import PasswordInput from '../../components/Input/PasswordInput';
 import PhoneNumberInput from '../../components/Input/PhoneNumberInput';
 import VerificationCodeInput from '../../components/Input/VerificationCodeInput';
 import PasswordRequirements from '../../components/Input/PasswordRequirements';
@@ -31,6 +32,7 @@ import { addMargins } from '../../styles';
 import spacingStyles, { space } from '../../styles/layouts/spacing';
 import { fontSizes } from '../../styles/text';
 import { ITherrThemeColors, ITherrThemeColorVariations, isDarkTheme } from '../../styles/themes';
+import { getRegistrationErrorCopy } from '../../utilities/authErrors';
 
 /**
  * Three steps, in order. The account row is not created until `details` is submitted, so an
@@ -115,7 +117,7 @@ export class PhoneSignupFormComponent extends React.Component<
     IPhoneSignupFormProps,
     IPhoneSignupFormState
 > {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: IPhoneSignupFormProps) {
         super(props);
@@ -157,6 +159,19 @@ export class PhoneSignupFormComponent extends React.Component<
         return d;
     };
 
+    /**
+     * Inline alert plus toast, matching the other two auth forms. Some checks here used to set
+     * only the alert, which sits at the top of a long scrolling step and is easy to submit
+     * past without ever seeing.
+     */
+    showFormError = (message: string, title = this.translate('alertTitles.registrationError')) => {
+        this.setState({ errorMessage: message });
+        showToast.error({
+            text1: title,
+            text2: message,
+        });
+    };
+
     onPhoneInputChange = (value: string, isValid: boolean) => {
         this.setState({
             phoneNumber: value,
@@ -188,30 +203,27 @@ export class PhoneSignupFormComponent extends React.Component<
                 if (error?.errorCode === ErrorCodes.USER_EXISTS) {
                     // On a brand that allows several accounts per number, "an account already
                     // uses this number" is not why we refused — the number is full.
-                    this.setState({
-                        errorMessage: getMaxAccountsPerPhone(CURRENT_BRAND_VARIATION) > 1
+                    this.showFormError(
+                        getMaxAccountsPerPhone(CURRENT_BRAND_VARIATION) > 1
                             ? this.translate('forms.phoneSignupForm.errorMessages.accountLimitReached')
                             : this.translate('forms.phoneSignupForm.errorMessages.accountExists'),
-                    });
-                    showToast.error({
-                        text1: this.translate('alertTitles.phoneNumberAlreadyInUse'),
-                        text2: this.translate('alertMessages.phoneNumberAlreadyInUse'),
-                    });
+                        this.translate('alertTitles.phoneNumberAlreadyInUse'),
+                    );
                 } else if (error?.errorCode === ErrorCodes.INVALID_REGION) {
-                    showToast.error({
-                        text1: this.translate('alertTitles.invalidRegionCode'),
-                        text2: this.translate('alertMessages.invalidRegionCode'),
-                    });
+                    this.showFormError(
+                        this.translate('alertMessages.invalidRegionCode'),
+                        this.translate('alertTitles.invalidRegionCode'),
+                    );
                 } else if (error?.statusCode === 429) {
-                    showToast.error({
-                        text1: this.translate('alertTitles.tooManyAttempts'),
-                        text2: this.translate('alertMessages.tooManyAttempts'),
-                    });
+                    this.showFormError(
+                        this.translate('alertMessages.tooManyAttempts'),
+                        this.translate('alertTitles.tooManyAttempts'),
+                    );
                 } else {
-                    showToast.error({
-                        text1: this.translate('alertTitles.backendErrorMessage'),
-                        text2: this.translate('alertMessages.backendErrorMessage'),
-                    });
+                    this.showFormError(
+                        this.translate('alertMessages.backendErrorMessage'),
+                        this.translate('alertTitles.backendErrorMessage'),
+                    );
                 }
             })
             .finally(() => this.setState({ isSubmitting: false }));
@@ -244,16 +256,16 @@ export class PhoneSignupFormComponent extends React.Component<
             .catch((error: any) => {
                 if (error?.statusCode === 400) {
                     this.setState({ hasCodeError: true, verificationCode: '' });
-                    showToast.error({
-                        text1: this.translate('alertTitles.invalidCode'),
-                        text2: this.translate('alertMessages.invalidCode'),
-                    });
+                    this.showFormError(
+                        this.translate('alertMessages.invalidCode'),
+                        this.translate('alertTitles.invalidCode'),
+                    );
                     return;
                 }
-                showToast.error({
-                    text1: this.translate('alertTitles.backendErrorMessage'),
-                    text2: this.translate('alertMessages.backendErrorMessage'),
-                });
+                this.showFormError(
+                    this.translate('alertMessages.backendErrorMessage'),
+                    this.translate('alertTitles.backendErrorMessage'),
+                );
             })
             .finally(() => this.setState({ isSubmitting: false }));
     };
@@ -298,24 +310,18 @@ export class PhoneSignupFormComponent extends React.Component<
         } = this.state;
 
         if (!email) {
-            showToast.error({
-                text1: this.translate('alertTitles.registrationError'),
-                text2: this.translate('forms.registerForm.missingEmail'),
-            });
+            this.showFormError(this.translate('forms.registerForm.missingEmail'));
             return;
         }
         // Password is optional here — but if one was typed it still has to be a real one.
         if (password && !PasswordRegex.test(password)) {
-            this.setState({
-                errorMessage: this.translate('forms.registerForm.errorMessages.passwordInsecure'),
-            });
+            this.showFormError(this.translate('forms.registerForm.errorMessages.passwordInsecure'));
             return;
         }
         if (!settingsBirthdate || !isValidSignupAge(settingsBirthdate)) {
-            showToast.error({
-                text1: this.translate('alertTitles.registrationError'),
-                text2: this.translate('forms.registerForm.errorMessages.birthdateTooYoung', { minAge: `${MINIMUM_SIGNUP_AGE}` }),
-            });
+            this.showFormError(
+                this.translate('forms.registerForm.errorMessages.birthdateTooYoung', { minAge: `${MINIMUM_SIGNUP_AGE}` }),
+            );
             return;
         }
 
@@ -342,21 +348,15 @@ export class PhoneSignupFormComponent extends React.Component<
                     : {}),
             })
             .then(() => this.props.onSuccess({ email: email.trim(), phoneNumber }))
+            // Shared with the e-mail sign-up form, so the two paths cannot drift. It maps
+            // TOO_MANY_ACCOUNTS (the number filled its last slot between verification and
+            // submit) and USER_EXISTS to real copy, and everything else to a message rather
+            // than to nothing.
             .catch((error: any) => {
-                if (error?.errorCode === ErrorCodes.TOO_MANY_ACCOUNTS) {
-                    // The number filled its last slot between verification and submit.
-                    this.setState({
-                        isSubmitting: false,
-                        errorMessage: this.translate('forms.phoneSignupForm.errorMessages.accountTypeTaken'),
-                    });
-                    return;
-                }
-                this.setState({
-                    isSubmitting: false,
-                    errorMessage: error?.statusCode === 400
-                        ? `${error.message}`
-                        : this.translate('forms.registerForm.backendErrorMessage'),
-                });
+                const { title, message } = getRegistrationErrorCopy(error, this.translate);
+
+                this.setState({ isSubmitting: false });
+                this.showFormError(message, title);
             });
     };
 
@@ -420,7 +420,11 @@ export class PhoneSignupFormComponent extends React.Component<
                 </Text>
                 <VerificationCodeInput
                     value={verificationCode}
-                    onChangeText={(value) => this.setState({ verificationCode: value, hasCodeError: false })}
+                    onChangeText={(value) => this.setState({
+                        verificationCode: value,
+                        hasCodeError: false,
+                        errorMessage: '',
+                    })}
                     onComplete={this.onSubmitCode}
                     disabled={isSubmitting}
                     hasError={hasCodeError}
@@ -590,9 +594,8 @@ export class PhoneSignupFormComponent extends React.Component<
                     isPasswordEntryDirty &&
                         <PasswordRequirements translate={this.translate} password={password} themeForms={themeForms} />
                 }
-                <RoundInput
-                    autoCapitalize="none"
-                    autoCorrect={false}
+                <PasswordInput
+                    variant="round"
                     placeholder={this.translate('forms.phoneSignupForm.labels.optionalPassword')}
                     value={password}
                     onChangeText={(text) => this.setState({
@@ -600,14 +603,8 @@ export class PhoneSignupFormComponent extends React.Component<
                         isPasswordEntryDirty: true,
                         errorMessage: '',
                     })}
-                    secureTextEntry={true}
-                    rightIcon={
-                        <TherrIcon
-                            name="key"
-                            size={24}
-                            color={themeAlerts.colors.placeholderTextColorAlt}
-                        />
-                    }
+                    translate={this.translate}
+                    iconColor={themeAlerts.colors.placeholderTextColorAlt}
                     themeForms={themeForms}
                     containerStyle={{ marginBottom: 6 }}
                     testID="phone-signup-password"

@@ -24,8 +24,15 @@
 
 export const ATTRIBUTION_STORAGE_KEY = 'therrUserAcquisition';
 
-/** Which client the visitor arrived on. Mirrors the GA4 `surface` dimension. */
-export type AttributionSurface = 'landing' | 'web' | 'dashboard' | 'mobile';
+/**
+ * Which client the visitor arrived on. Mirrors the GA4 `surface` dimension.
+ *
+ * `habits` is the Friends with Habits subdomain (habits.therr.com). It shares a
+ * registrable domain and a serving pod with `web`, but it is a different product
+ * with its own funnel, so it reports as its own surface — without that, habits
+ * traffic is indistinguishable from therr.com in every report.
+ */
+export type AttributionSurface = 'landing' | 'web' | 'habits' | 'dashboard' | 'mobile';
 
 export interface IUserAcquisition {
     utmSource?: string;

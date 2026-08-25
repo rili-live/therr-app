@@ -61,9 +61,17 @@ const localStyles = StyleSheet.create({
      * `style`, so a cap set there would clip the text instead of letting the input scroll. On the
      * native input it caps growth at roughly five lines and hands overflow to the input's own
      * scroll.
+     *
+     * `textAlignVertical` undoes the side effect of `multiline` on this input. Paper stretches
+     * the native input to fill the dense outlined minimum height (48) via `flexGrow`, and pins
+     * multiline text to the top of it, so a one-line reply — and the placeholder — floated well
+     * above the centered send icon. Centering only moves the text while it is shorter than the
+     * box, so a reply that wraps still fills from the top. Android-only in React Native; iOS
+     * already lands near center because Paper keeps its vertical padding there.
      */
     replyInputContent: {
         maxHeight: 120,
+        textAlignVertical: 'center',
     },
     replyInputOutline: {
         borderRadius: 20,

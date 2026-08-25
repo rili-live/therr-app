@@ -1,3 +1,17 @@
+// Shared configuration compiled into every backend service image and both web
+// bundles. It is listed in the source fan-out of all eight rows in
+// _bin/lib/service-registry.sh, which makes it the one file whose change rebuilds
+// and republishes the entire fleet in a single stage publish.
+//
+// That is deliberate, and it is the supported lever for repopulating VERSIONS.txt:
+// a service only earns a PUBLISHED_* row when a stage publish actually builds it,
+// and the deploy will not invent a tag for a service that has none. Touching this
+// file through general -> stage therefore writes a row for all eight at one SHA.
+// See docs/DEPLOY_PIPELINE.md -> "Giving every service a row".
+//
+// The corollary is the reason to be careful here: any edit to this file is a full
+// fleet rebuild and rollout, never a narrow change.
+
 const apiGatewayPort = 7770;
 const apiUsersPort = 7771;
 const apiMessagesPort = 7772;
