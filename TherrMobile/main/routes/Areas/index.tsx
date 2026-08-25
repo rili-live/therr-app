@@ -48,6 +48,7 @@ import RepostModal from '../../components/Modals/RepostModal';
 import { showToast } from '../../utilities/toasts';
 import getRepostErrorKey from '../../utilities/repostErrors';
 import { isUserAuthenticated } from '../../utilities/authUtils';
+import { hasUsableCoords } from '../../utilities/coordinates';
 import UsersActions from '../../redux/actions/UsersActions';
 
 const { width: viewportWidth } = Dimensions.get('window');
@@ -352,7 +353,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             locationDisclosureAreaType: areaType,
         });
 
-        if (!(location?.user?.latitude && location?.user?.longitude)) {
+        if (!hasUsableCoords(location?.user)) {
             navigation.navigate('Map', {
                 shouldInitiateLocation: true,
                 shouldShowPreview: false,
@@ -391,7 +392,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                 return;
             }
 
-            if (location?.settings?.isGpsEnabled && location?.user?.latitude && location?.user?.longitude) {
+            if (location?.settings?.isGpsEnabled && hasUsableCoords(location?.user)) {
                 navigation.reset({
                     index: 1,
                     routes: [

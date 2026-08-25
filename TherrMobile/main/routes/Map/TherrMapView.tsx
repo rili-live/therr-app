@@ -41,7 +41,7 @@ import mapCustomStyle from '../../styles/map/googleCustom';
 import MarkerIcon from './MarkerIcon';
 import { getUserContentUri, isMyContent } from '../../utilities/content';
 import { rankAreaPreviews } from '../../utilities/feedRanking';
-import { hasUsableCoords } from '../../utilities/coordinates';
+import { hasUsableCoords, isUsableCoordinate } from '../../utilities/coordinates';
 import AreaDisplayCard from '../../components/UserContent/AreaDisplayCard';
 import AreaCreatePromptCard from '../../components/UserContent/AreaCreatePromptCard';
 import { isUserAuthenticated } from '../../utilities/authUtils';
@@ -297,7 +297,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                             areaInPreviewIndex: index,
                         });
                         const { latitude, longitude } = areasInPreview[index] || {};
-                        if (latitude && longitude) {
+                        if (isUsableCoordinate(latitude) && isUsableCoordinate(longitude)) {
                             const { map } = this.props;
                             let animationLatitudeDelta = PRIMARY_LATITUDE_DELTA * 2;
                             let animationLongitudeDelta = PRIMARY_LONGITUDE_DELTA * 2;
@@ -348,7 +348,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     });
 
     onPoiClick = (e) => {
-        if (e?.nativeEvent?.coordinate?.latitude && e?.nativeEvent?.coordinate?.longitude) {
+        if (hasUsableCoords(e?.nativeEvent?.coordinate)) {
             const passThroughEvent: any = {
                 nativeEvent: {
                     coordinate: {

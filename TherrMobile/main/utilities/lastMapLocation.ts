@@ -1,4 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+// One definition, shared with the map screens: this guard existing here and *not* in the
+// map preview path is how areas on the prime meridian stayed invisible after the first fix.
+import { isUsableCoordinate } from './coordinates';
 
 /**
  * Local cache of the last map location.
@@ -29,14 +32,6 @@ export interface ILastMapLocation {
 }
 
 let lastWriteAt = 0;
-
-/**
- * A usable coordinate component. `Number.isFinite` rather than a truthiness check because
- * `0` is a real latitude and a real longitude — the prime meridian runs through the UK,
- * France, Spain and Ghana — while still rejecting undefined, null, NaN, Infinity, and the
- * strings a corrupt cache entry can deserialize into.
- */
-const isUsableCoordinate = (value: any): value is number => Number.isFinite(value);
 
 export const setLastMapLocation = (latitude?: number, longitude?: number): Promise<void> => {
     if (!isUsableCoordinate(latitude) || !isUsableCoordinate(longitude)) {

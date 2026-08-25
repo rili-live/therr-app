@@ -74,6 +74,7 @@ import TherrMapView from './TherrMapView';
 import { isMyContent } from '../../utilities/content';
 import getNearbySpaces from '../../utilities/getNearbySpaces';
 import { getLastMapLocation, setLastMapLocation } from '../../utilities/lastMapLocation';
+import { hasUsableCoords } from '../../utilities/coordinates';
 import { sendForegroundNotification } from '../../utilities/pushNotifications';
 import QuickFiltersList from '../../components/QuickFiltersList';
 import { getInitialAuthorFilters, getInitialCategoryFilters, getInitialVisibilityFilters } from '../../utilities/getInitialFilters';
@@ -445,7 +446,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             if (inScopeRoute?.params?.shouldInitiateLocation) {
                 this.handleGpsRecenterPress();
             } else if (inScopeRoute?.params?.shouldShowPreview &&
-                ((map?.latitude && map?.longitude) || (location?.user?.latitude && location?.user?.longitude))) {
+                (hasUsableCoords(map) || hasUsableCoords(location?.user))) {
                 navigation.setParams({
                     shouldShowPreview: false,
                     previewScrollIndex: undefined,
