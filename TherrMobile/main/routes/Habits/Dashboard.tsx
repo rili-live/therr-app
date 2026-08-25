@@ -27,7 +27,7 @@ import {
 import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { signImageUrl } from '../../utilities/content';
-import { showToast } from '../../utilities/toasts';
+import { DURATION, showToast } from '../../utilities/toasts';
 import { IHabitWithPactState, splitHabitsByPactState } from './pactState';
 import { getNudgeErrorMessage, getNudgeOutcomeToast } from '../Pacts/nudgeOutcome';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
@@ -256,7 +256,31 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         });
     };
 
+    /**
+     * The primary check-in action. It commits immediately rather than opening
+     * the proof sheet first.
+     *
+     * Duolingo's largest published retention win came from lowering the bar to
+     * extend a streak (a single lesson, not the full daily goal): +3.3% D14
+     * retention and +10.5% daily learners on a streak. Nothing in the proof
+     * sheet was ever required — `onConfirm` accepts an empty note and no photo
+     * — so gating the one action the product depends on behind a modal and a
+     * second tap was pure friction. Proof is now something you *add*, offered
+     * on the success toast, not something you pass through.
+     */
     handleCheckin = (habitGoal: IHabitGoal) => {
+        this.submitCheckin(habitGoal, {});
+    };
+
+    /**
+     * Re-opens the sheet against a check-in that already exists, to attach a
+     * note or photo to it. Safe to confirm: the users-service upsert merges
+     * onto the same (habitGoalId, date) row and its same-day branch returns
+     * before crediting the streak again, awarding XP again or re-notifying
+     * partners.
+     */
+    handleAddCheckinDetail = (habitGoal: IHabitGoal) => {
+        Toast.hide();
         this.setState({ proofSheetHabit: habitGoal });
     };
 
@@ -290,14 +314,31 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     };
 
     handleProofSheetConfirm = ({ notes, image }: { notes?: string; image?: ISelectedProofImage }) => {
-        const { createCheckin } = this.props;
-        const { proofSheetHabit, checkinLoadingIds } = this.state;
+        const { proofSheetHabit } = this.state;
 
         if (!proofSheetHabit) {
             return;
         }
 
-        const habitGoalId = proofSheetHabit.id;
+        this.submitCheckin(proofSheetHabit, { notes, image });
+    };
+
+    /**
+     * The single write path for both entry points — the one-tap button and the
+     * proof sheet. `scheduledDate` stays on the UTC calendar day deliberately:
+     * users-service defines a habit day in UTC (`getTodayDateString` in
+     * `utilities/streakHelpers.ts`), so the local-calendar `toLocalDateKey`
+     * used for rendering the month grid would key the write to a different day.
+     */
+    submitCheckin = (
+        habitGoal: IHabitGoal,
+        { notes, image }: { notes?: string; image?: ISelectedProofImage },
+    ) => {
+        const { createCheckin, getActiveStreaks } = this.props;
+        const { checkinLoadingIds } = this.state;
+
+        const habitGoalId = habitGoal.id;
+        const isAddingDetail = !!notes || !!image;
         const newLoadingIds = new Set(checkinLoadingIds);
         newLoadingIds.add(habitGoalId);
         this.setState({
@@ -319,6 +360,30 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 notes,
                 proofMedias,
             }))
+            .then(() => {
+                if (isAddingDetail) {
+                    showToast.success({
+                        text1: this.translate('pages.habits.checkinToast.detailSavedTitle'),
+                    });
+                    return;
+                }
+
+                // The streak is the reward for the tap, so it has to move now.
+                // CREATE_CHECKIN only updates today's checkins in Redux — the
+                // card's streak count comes from `habits.streaks`, which is
+                // otherwise only refetched on a pull-to-refresh or re-focus.
+                getActiveStreaks().catch(() => {});
+
+                // The toast is the confirmation that replaced the modal, and
+                // it is also the only route to the proof sheet now — so it has
+                // to say it is tappable (nothing about the styling signals it).
+                showToast.success({
+                    text1: this.translate('pages.habits.checkinToast.title', { habitName: habitGoal.name }),
+                    text2: this.translate('pages.habits.checkinToast.addDetailAction'),
+                    duration: DURATION.LONG,
+                    onPress: () => this.handleAddCheckinDetail(habitGoal),
+                });
+            })
             .catch((err) => {
                 showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),

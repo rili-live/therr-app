@@ -2014,14 +2014,19 @@
       "awaitingAnyPartnerAcceptance": "Waiting for your invite to be accepted before this pact starts.",
       "habitNotFound": "Habit not found",
       "checkinProof": {
-        "title": "Check In",
-        "notePrompt": "Add a quick note (optional)",
         "notePlaceholder": "How did it go? Any wins to share?",
         "takePhoto": "Take Photo",
         "choosePhoto": "Choose Photo",
         "uploadFailed": "We couldn't upload your photo. Try again.",
         "cancel": "Cancel",
-        "confirm": "Check In"
+        "addDetailTitle": "Add a note or photo",
+        "addDetailPrompt": "Checked in. Add anything you want to remember (optional).",
+        "save": "Save"
+      },
+      "checkinToast": {
+        "title": "Checked in: {habitName}",
+        "addDetailAction": "Tap to add a note or photo",
+        "detailSavedTitle": "Saved to today's check-in"
       },
       "frequency": {
         "daily": "Every day",
@@ -2201,6 +2206,11 @@
       "checkinsLabel": "{completed}/{total} checkins",
       "completionLabel": "{pct}% completion",
       "vs": "vs",
+      "todayDone": "Done today",
+      "todayPending": "Not yet today",
+      "memberStreak": "{count}-day streak",
+      "memberCheckedInToday": "{name} checked in today",
+      "memberNotCheckedInToday": "{name} has not checked in today",
       "partnerFallback": "Friend",
       "partnersTitle": "Accountability Partners",
       "viewProfileOf": "View {name}'s profile",

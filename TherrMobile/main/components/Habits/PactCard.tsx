@@ -3,6 +3,7 @@ import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { IPact, IPactMember } from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
+import { getCheckedInToday } from './PactMemberRow';
 
 interface IPactCardProps {
     pact: IPact;
@@ -94,21 +95,43 @@ const PactCard: React.FC<IPactCardProps> = ({
 
     const statusStyles = getStatusBadgeStyles();
 
-    const renderMemberComparison = (member: IPactMember | undefined, label: string) => (
-        <View style={themeHabits.styles.pactComparisonItem}>
-            <Text style={themeHabits.styles.pactComparisonValue}>
-                {member?.currentStreak || 0}
-            </Text>
-            <Text style={themeHabits.styles.pactComparisonLabel}>
-                {label}
-            </Text>
-            {member?.completionRate !== undefined && (
-                <Text style={themeHabits.styles.pactComparisonLabel}>
-                    {Math.round(member.completionRate)}%
+    const renderMemberComparison = (member: IPactMember | undefined, label: string) => {
+        // `undefined` means the server has not told us — see getCheckedInToday.
+        // Render nothing rather than an indicator that reads as "missed today".
+        const checkedInToday = member && getCheckedInToday(member);
+
+        return (
+            <View style={themeHabits.styles.pactComparisonItem}>
+                <Text style={themeHabits.styles.pactComparisonValue}>
+                    {member?.currentStreak || 0}
                 </Text>
-            )}
-        </View>
-    );
+                <Text style={themeHabits.styles.pactComparisonLabel}>
+                    {label}
+                </Text>
+                {member?.completionRate !== undefined && (
+                    <Text style={themeHabits.styles.pactComparisonLabel}>
+                        {Math.round(member.completionRate)}%
+                    </Text>
+                )}
+                {checkedInToday !== undefined && (
+                    <View style={themeHabits.styles.pactComparisonTodayRow}>
+                        <FontAwesome5Icon
+                            name={checkedInToday ? 'check-circle' : 'clock'}
+                            size={11}
+                            color={checkedInToday
+                                ? themeHabits.colors.alertSuccess
+                                : themeHabits.colors.textGray}
+                        />
+                        <Text style={themeHabits.styles.pactComparisonLabel}>
+                            {translate(checkedInToday
+                                ? 'pages.pacts.todayDone'
+                                : 'pages.pacts.todayPending')}
+                        </Text>
+                    </View>
+                )}
+            </View>
+        );
+    };
 
     return (
         <Pressable
