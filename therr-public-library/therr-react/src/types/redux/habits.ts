@@ -58,6 +58,16 @@ export interface IPactMember {
     currentStreak: number;
     longestStreak: number;
     completionRate?: number;
+    /**
+     * Whether this member has completed today's check-in for the pact's habit
+     * goal, on the service's UTC habit day. Derived server-side alongside the
+     * other stats (users-service `utilities/pactMemberStats`).
+     *
+     * Optional because a client can be talking to a users-service that predates
+     * it; treat `undefined` as "unknown" and render nothing rather than
+     * implying the member missed a day.
+     */
+    checkedInToday?: boolean;
     // Joined fields
     userName?: string;
     firstName?: string;
