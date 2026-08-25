@@ -1995,14 +1995,19 @@
       "awaitingAnyPartnerAcceptance": "En attente de l'acceptation de votre invitation pour démarrer ce pacte.",
       "habitNotFound": "Habitude introuvable",
       "checkinProof": {
-        "title": "Enregistrer",
-        "notePrompt": "Ajouter une note rapide (optionnel)",
         "notePlaceholder": "Comment ça s'est passé? Une réussite à partager?",
         "takePhoto": "Prendre une photo",
         "choosePhoto": "Choisir une photo",
         "uploadFailed": "Impossible de téléverser votre photo. Réessayez.",
         "cancel": "Annuler",
-        "confirm": "Enregistrer"
+        "addDetailTitle": "Ajouter une note ou une photo",
+        "addDetailPrompt": "Enregistré. Ajoutez ce que vous voulez retenir (optionnel).",
+        "save": "Enregistrer"
+      },
+      "checkinToast": {
+        "title": "Enregistré : {habitName}",
+        "addDetailAction": "Touchez pour ajouter une note ou une photo",
+        "detailSavedTitle": "Ajouté à l'enregistrement du jour"
       },
       "frequency": {
         "daily": "Chaque jour",

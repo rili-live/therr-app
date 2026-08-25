@@ -7,6 +7,7 @@ import { FilePaths } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
 import { IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
+import Toast from 'react-native-toast-message';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
@@ -17,7 +18,7 @@ import { CheckinButton, CheckinProofSheet, HabitCalendar, StreakWidget } from '.
 import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
 import { signImageUrl } from '../../utilities/content';
 import { toLocalDateKey } from '../../utilities/localDateKey';
-import { showToast } from '../../utilities/toasts';
+import { DURATION, showToast } from '../../utilities/toasts';
 
 interface IHabitDetailDispatchProps {
     getCheckinsByRange: Function;
@@ -139,7 +140,17 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         });
     };
 
+    /**
+     * Commits the check-in on the first tap — see the note on the dashboard's
+     * `handleCheckin`. The proof sheet is offered afterwards, from the success
+     * toast, rather than standing between the user and their streak.
+     */
     handleCheckin = () => {
+        this.submitCheckin({});
+    };
+
+    handleAddCheckinDetail = () => {
+        Toast.hide();
         this.setState({ isProofSheetVisible: true });
     };
 
@@ -173,8 +184,19 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
     };
 
     handleProofSheetConfirm = ({ notes, image }: { notes?: string; image?: ISelectedProofImage }) => {
+        this.submitCheckin({ notes, image });
+    };
+
+    /**
+     * The single write path for both entry points. `scheduledDate` stays on the
+     * UTC calendar day: users-service defines a habit day in UTC
+     * (`getTodayDateString`), so the local-calendar `toLocalDateKey` used to
+     * render the month grid must not be used for the write.
+     */
+    submitCheckin = ({ notes, image }: { notes?: string; image?: ISelectedProofImage }) => {
         const { createCheckin, route } = this.props;
         const { habitGoalId } = route.params;
+        const isAddingDetail = !!notes || !!image;
 
         this.setState({ isCheckinLoading: true });
 
@@ -192,6 +214,23 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                 notes,
                 proofMedias,
             }))
+            .then(() => {
+                if (isAddingDetail) {
+                    showToast.success({
+                        text1: this.translate('pages.habits.checkinToast.detailSavedTitle'),
+                    });
+                    return;
+                }
+
+                showToast.success({
+                    text1: this.translate('pages.habits.checkinToast.title', {
+                        habitName: this.getHabitGoal()?.name || '',
+                    }),
+                    text2: this.translate('pages.habits.checkinToast.addDetailAction'),
+                    duration: DURATION.LONG,
+                    onPress: this.handleAddCheckinDetail,
+                });
+            })
             .catch((err) => {
                 showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
