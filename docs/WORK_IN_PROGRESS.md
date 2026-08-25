@@ -907,6 +907,26 @@ console configuration, and one verification that gates a payments change.
   `repostOf`. If migrations were skipped (`RUN_MIGRATIONS_ON_DEPLOY=false`), run
   `npm run pr:migrate:users`.
 
+- [ ] (2026-08-25, /quality-peer-review) **Android 3.16.1 (versionCode 452) — build, upload and
+  write release notes.** The mobile half of this `general` diff reaches nobody through
+  `general → stage → main`; CI deploys services and client-web only, so the version bump does
+  nothing until `npm run build:release` produces an AAB and it is uploaded to a Play track. Notes
+  should cover: action sheets open roughly twice as fast on Android, re-pressing a button right
+  after dismissing a sheet now registers, the reply box on a thought centers its text and
+  placeholder, the map's featured check-in / add-moment button no longer sits offset while the
+  area preview strip is open, and the modal header spacing fix.
+- [ ] (2026-08-25, /quality-peer-review) **QA the `react-native-actions-sheet` patch on a physical
+  Android device before cutting 3.16.1.** The patch now carries three changes on the open/close
+  path of *every* sheet in the app, not just the profile menu, and the ~220ms → ~92ms figure in
+  `main/components/ActionSheet/index.tsx` was measured on an emulator in a debug build. Two of the
+  three have no automated coverage and fail in ways tests would not catch: the seeded root size
+  assumes `Dimensions.get('window') - StatusBar.currentHeight` is the real root height under
+  edge-to-edge, and the `pointerEvents: 'none'` change alters touch routing for the ~150ms exit
+  animation. Open content-options, group, user, user-profile, image-picker, visibility-picker and
+  list-picker sheets; confirm each still animates from fully offscreen (not mid-screen), that
+  swipe-down and hardware-back still dismiss, and that a tap on the button underneath immediately
+  after a dismiss hits that button rather than being swallowed.
+
 <!-- skill-followups:end -->
 
 ---
