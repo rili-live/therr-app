@@ -12,6 +12,7 @@ import {
     declinePact,
     abandonPact,
     completePact,
+    renewPact,
     deletePact,
 } from '../handlers/pacts';
 import runDailyHabitsDigest from '../handlers/habitsDigest';
@@ -40,6 +41,7 @@ router.put('/:id/accept', acceptPact);
 router.put('/:id/decline', declinePact);
 router.put('/:id/abandon', abandonPact);
 router.put('/:id/complete', completePact);
+router.put('/:id/renew', renewPact);
 
 // DELETE
 router.delete('/:id', deletePact);

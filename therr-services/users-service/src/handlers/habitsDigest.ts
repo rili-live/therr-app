@@ -24,6 +24,10 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 interface IDigestCounters {
     pactsEvaluated: number;
+    // Pacts whose window had passed and that this run closed out. Additive to
+    // the shape therr-messaging-automator logs, so an older automator simply
+    // does not print it.
+    pactsExpired: number;
     // Retained under their original names because therr-messaging-automator logs
     // this exact shape (see its IHabitsDigestCounters). They now count rows
     // *queued*, not pushes sent — the worker decides what actually goes out.
@@ -62,6 +66,9 @@ interface IDigestCounters {
  *                    complete yesterday's check-in.
  *  - pactExpiring  → to all active members when the pact ends within 3 days.
  *
+ * It also sweeps pacts whose window has passed into `expired` before reading
+ * the active set — see the sweep below.
+ *
  * Designed to be triggered once per day by an internal cron (today, a Cloud
  * Scheduler job poking therr-messaging-automator). The route is deliberately
  * NOT registered in the API gateway, so it is unreachable from the public
@@ -91,6 +98,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
 
     const counters: IDigestCounters = {
         pactsEvaluated: 0,
+        pactsExpired: 0,
         streakAtRiskSent: 0,
         partnerMissedSent: 0,
         pactExpiringSent: 0,
@@ -156,6 +164,46 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
     ): Promise<boolean> => (await queuePushOutcome(toUserId, type, dedupeKey, extras)) === 'queued';
 
     try {
+        // Close out pacts whose window has passed, before anything reads the
+        // active set.
+        //
+        // `PactsStore.expire()`, `PactsStore.getExpiredPacts()` and
+        // `pactHelpers.shouldExpirePact` have all existed since the pact schema
+        // landed and nothing has ever called any of them, so a pact reached its
+        // endDate and simply stayed `active` forever: still drawing digest
+        // reads, still rendering as in-flight, still counting against the
+        // one-live-pact-per-habit rule that gates renewal.
+        //
+        // Sweeping first is what stops a pact being warned that it expires in
+        // zero days on the same run that ends it. A failure here is logged and
+        // the digest continues — an unswept pact is the behaviour every run
+        // before this one had.
+        const expiredPacts = await Store.pacts.getExpiredPacts().catch((err: any) => {
+            counters.errors += 1;
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [err?.message, 'Habits digest: failed to read expired pacts'],
+            });
+            return [] as any[];
+        });
+        // eslint-disable-next-line no-restricted-syntax
+        for (const expiring of expiredPacts) {
+            try {
+                // eslint-disable-next-line no-await-in-loop
+                await Store.pacts.expire(expiring.id);
+                counters.pactsExpired += 1;
+            } catch (err: any) {
+                counters.errors += 1;
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: failed to expire pact'],
+                    traceArgs: { pactId: expiring.id },
+                });
+            }
+        }
+
         const activePacts = await Store.pacts.get({ status: 'active' }, undefined, DIGEST_MAX_PACTS);
         const habitNameCache = new Map<string, string>();
         const userNameCache = new Map<string, string>();

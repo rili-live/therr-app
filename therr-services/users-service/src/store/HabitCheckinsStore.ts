@@ -254,6 +254,53 @@ export default class HabitCheckinsStore {
         ));
     }
 
+    /**
+     * Which of these (user, habit goal) pairs have a completed check-in on
+     * `date`, in one query.
+     *
+     * This is what lets a pact card say who has and has not shown up today —
+     * the whole mechanism behind Duolingo's Friend Streak result (+22% daily
+     * completion from adding nothing but a second reader). A per-member query
+     * would make the pacts list O(members) round trips on a hot read path.
+     *
+     * `date` is a habit day as the service counts them (UTC, via
+     * `getTodayDateString`), matching what the check-in write path stores in
+     * `scheduledDate` — not the viewer's local calendar day.
+     *
+     * Returns a Set of `${userId}:${habitGoalId}`. Absence means "no completed
+     * check-in", which is the same thing the caller wants to render.
+     */
+    getCompletedOnDateForPairs(
+        pairs: { userId: string; habitGoalId: string }[],
+        date: string,
+    ): Promise<Set<string>> {
+        if (!pairs.length) {
+            return Promise.resolve(new Set<string>());
+        }
+
+        const values = pairs.map(() => '(?::uuid, ?::uuid)').join(', ');
+        const bindings = pairs.reduce(
+            (acc: string[], pair) => acc.concat([pair.userId, pair.habitGoalId]),
+            [],
+        ).concat([date]);
+
+        const queryString = knexBuilder.raw(
+            `WITH pairs("userId", "habitGoalId") AS (VALUES ${values})
+            SELECT DISTINCT p."userId" AS "userId", p."habitGoalId" AS "habitGoalId"
+            FROM pairs p
+            JOIN ${HABIT_CHECKINS_TABLE_NAME} c
+                ON c."userId" = p."userId"
+                AND c."habitGoalId" = p."habitGoalId"
+                AND c.status = 'completed'
+                AND c."scheduledDate" = ?::date`,
+            bindings,
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => new Set<string>(
+            response.rows.map((row: any) => `${row.userId}:${row.habitGoalId}`),
+        ));
+    }
+
     create(params: ICreateHabitCheckinParams) {
         const queryString = knexBuilder
             .insert({
