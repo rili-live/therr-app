@@ -2,6 +2,32 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+// Resolve GOOGLE_APIS_ANDROID_KEY from the process environment first (CI/EAS export it),
+// falling back to TherrMobile/.env — which is gitignored and is where local dev keeps it.
+// Android Studio does not inherit the login shell's environment, so without the .env
+// fallback a Studio build silently bakes in the literal string "null" and Maps fails at
+// runtime. Never hardcode the key here; this file is committed.
+def resolveGoogleApisAndroidKey = {
+    def fromEnv = System.getenv("GOOGLE_APIS_ANDROID_KEY")
+    if (fromEnv?.trim()) {
+        return fromEnv.trim()
+    }
+    def dotenv = rootProject.file("../.env")
+    if (dotenv.exists()) {
+        def match = dotenv.readLines().find { it.trim().startsWith("GOOGLE_APIS_ANDROID_KEY=") }
+        if (match) {
+            def value = match.trim().substring("GOOGLE_APIS_ANDROID_KEY=".length()).trim()
+            value = value.replaceAll(/^["']|["']$/, "")
+            if (value) {
+                return value
+            }
+        }
+    }
+    logger.warn("[therr] GOOGLE_APIS_ANDROID_KEY is unset — Google Maps will not load in this build.")
+    return ""
+}
+def googleApisAndroidKey = resolveGoogleApisAndroidKey()
+
 // background-geolocation
 def background_geolocation_path = "$rootDir/../node_modules/react-native-background-geolocation/android"
 apply from: "${background_geolocation_path}/app.gradle"
@@ -93,8 +119,8 @@ android {
         applicationId "app.therrmobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 453
-        versionName "3.17.0"
+        versionCode 454
+        versionName "3.17.1"
         // App Links hosts for the autoVerify intent-filter in AndroidManifest.xml.
         // Keyed off applicationId (same pattern as the release signingConfig below) so a
         // niche variant only has to change applicationId and the hosts follow.
@@ -108,7 +134,7 @@ android {
         ]
         def appLinkHosts = appLinkHostsByAppId.getOrDefault(applicationId, ['therr.com', 'www.therr.com'])
         manifestPlaceholders = [
-            GOOGLE_APIS_ANDROID_KEY: "${System.getenv("GOOGLE_APIS_ANDROID_KEY")}",
+            GOOGLE_APIS_ANDROID_KEY: googleApisAndroidKey,
             appLinkHost: appLinkHosts[0],
             appLinkHostWww: appLinkHosts[1],
         ]
