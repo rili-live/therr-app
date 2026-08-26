@@ -69,6 +69,10 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     habitId?: string;
     habitName?: string;
     daysRemaining?: number;
+    // Streak freezes ("build in the miss"). `freezesRemaining` is what is left
+    // *after* the spend, so the copy can promise a net that is still there.
+    freezesRemaining?: number;
+    freezeDaysUsed?: number;
     // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md). Age of the
     // habit in days, trailing-window consistency as a whole percent, and the
     // user's best-ever streak — the comeback copy leans on that last one to
@@ -130,6 +134,8 @@ export default (
         habitId,
         habitName,
         daysRemaining,
+        freezesRemaining,
+        freezeDaysUsed,
         dayCount,
         consistencyPercent,
         bestStreakCount,
@@ -264,6 +270,8 @@ export default (
                     habitId,
                     habitName,
                     daysRemaining,
+                    freezesRemaining,
+                    freezeDaysUsed,
                     dayCount,
                     consistencyPercent,
                     bestStreakCount,

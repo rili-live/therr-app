@@ -51,6 +51,11 @@ export enum Types {
     streakAtRisk = 'streak-at-risk',
     streakBroken = 'streak-broken',
     newPersonalRecord = 'new-personal-record',
+    // Fired when a streak freeze is *spent*, not when one is earned. "Build in
+    // the miss" is a rule agreed in advance: the safety net only changes
+    // behaviour if the user knows it caught them, so this is the one moment the
+    // mechanic must announce itself.
+    streakFreezeUsed = 'streak-freeze-used',
 
     // HABITS: Reminders
     dailyHabitReminder = 'daily-habit-reminder',

@@ -940,6 +940,25 @@ console configuration, and one verification that gates a payments change.
   runtime, sweep it once manually before the deploy rather than letting the nightly job carry it.
 
 
+- [ ] (2026-08-26, /work-plan) **Confirm `streak-freeze-used` renders on a real device before
+  the next HABITS Play build.** It is the first HABITS push added since the brand-scoped device
+  token rollout, and it is a *display* notification (`createNotificationMessage`, channel
+  `reminders`) rather than data-only — so unlike `streakAtRisk` it does not go through the
+  in-app handler and nothing in the mobile client had to change for it to appear. That also
+  means nothing in the mobile client will report it failing: an unregistered channel or a
+  missing brand credential shows up as silence, not as an error. Trigger it by checking in
+  after skipping a day on a habit whose streak still holds a freeze, and confirm both the tray
+  entry and that `freezesRemaining` interpolates rather than rendering the literal
+  `{freezesRemaining}`.
+
+- [ ] (2026-08-26, /work-plan) **Watch the first `streakAtRisk` batch after this deploy for the
+  freeze-body split.** The body is now chosen per user from `freezesRemaining` on the queue row.
+  Rows enqueued by the *previous* users-service carry no such field and correctly fall back to
+  the plain warning, so during the rollout window the two bodies are both live and that is
+  expected — but a run where *every* send takes the plain body after the new users-service is
+  fully rolled out means the digest is not putting the count on the row, and the mechanic is
+  silently unannounced again.
+
 <!-- skill-followups:end -->
 
 ---
@@ -1453,21 +1472,38 @@ streak freeze cut churn ~21% for at-risk users.
 The mechanic is fully built here and almost entirely unadvertised. Streaks start
 with one freeze (`StreaksStore.ts:139`), earn another at every 7+ day milestone
 up to `MAX_GRACE_PERIOD_DAYS`, and are spent automatically on the next check-in
-after a gap (`habitCheckins.ts:194-217`). But the user is only ever told the
-count in passing — `StreakWidget` and `HabitDetail` show "N grace days" — and:
+after a gap. But the user was only ever told the count in passing —
+`StreakWidget` and `HabitDetail` show "N grace days".
 
-- the `streakAtRisk` push (`habitsDigest.ts:389`) says the streak is at risk
-  without mentioning that a freeze will cover tonight;
-- spending a freeze fires **no** notification at all, so the safety net is
-  invisible at exactly the two moments it would change behaviour;
-- nothing in onboarding or goal creation states the rule up front.
+**The `general` half shipped 2026-08-26.** Both notification moments now exist:
 
-The fix: state the allowance at habit creation, fold the remaining freeze count
-into `streakAtRisk` copy, and notify when one is consumed ("your 12-day streak
-survived — 1 freeze left"). Copy work in three locales, no schema change.
+- `PushNotifications.Types.streakFreezeUsed` fires from `habitCheckins.ts` the
+  moment a freeze is spent, carrying `freezesRemaining` (the count left *after*
+  the spend) and the streak it saved. Classified as a display type, not
+  data-only — it has to land in the tray whether or not the app is running.
+- `streakAtRisk` now selects `bodyWithFreeze` when the user still holds one
+  (`api/streakCopy.ts`), so the warning names the net instead of overstating
+  the threat. An absent or unparseable count falls back to the plain body —
+  during a rollout the field rides on queue rows written by an older
+  users-service, and promising a net that is not there is the worse failure.
+- `POST /habits/checkins` returns `graceDaysConsumed` and `streakSavedByFreeze`
+  on the 201, so the client can confirm in-app rather than leaving the user to
+  infer from an unchanged streak number that something caught them. The
+  same-day resubmit branch returns before this, so adding a proof after the
+  fact never re-announces.
 
-- Scope: `general` (digest copy, new push type, shared dictionaries) +
-  `niche/HABITS-general` (onboarding + goal-creation copy).
+Still open, on `niche/HABITS-general`:
+
+- State the allowance at habit creation (`routes/Pacts/CreatePactInvite.tsx`) —
+  one freeze to start, one more every 7 days, capped at three. Nothing states
+  the rule up front, and a net the user does not know about cannot change what
+  they do on the day they are deciding whether to bother.
+- Replace the bare "N grace days" number in `StreakWidget.tsx` and
+  `HabitDetail.tsx` with the rule, not just the count.
+- Surface `graceDaysConsumed` on the check-in success toast.
+
+- Scope: `general` ✅ + `niche/HABITS-general` (onboarding, goal-creation copy,
+  success toast).
 
 #### 2.6.5 Keep the HABITS score tied to the behaviour
 

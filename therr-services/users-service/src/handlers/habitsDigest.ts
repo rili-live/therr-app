@@ -440,6 +440,15 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                                         pactId: pact.id,
                                         habitName,
                                         streakCount: streak.currentStreak,
+                                        // Selects the body that names the safety
+                                        // net. Telling someone their streak is on
+                                        // the line while silently holding a freeze
+                                        // that would cover tonight is the loss
+                                        // aversion without the rule it belongs to.
+                                        freezesRemaining: Math.max(
+                                            0,
+                                            (streak.gracePeriodDays || 0) - (streak.graceDaysUsed || 0),
+                                        ),
                                     },
                                 );
                                 if (queued) {
