@@ -19,13 +19,13 @@ import { IUserHabitReminderRow } from '../store/UserHabitsStore';
 // Upper bound per run so a runaway pact count can't turn the digest into a
 // multi-minute request. Raise (or page the query) when active pacts approach
 // this number.
-const DIGEST_MAX_PACTS = 500;
+export const DIGEST_MAX_PACTS = 500;
 // The reminder pass is per *habit*, not per pact, and most users track more
 // habits than they hold pacts — so this is deliberately several times
 // DIGEST_MAX_PACTS. Same contract: raise it (or page the query) when the active
 // habit count approaches the cap, rather than letting the run silently cover
 // only the oldest habits.
-const DIGEST_MAX_HABITS = 2000;
+export const DIGEST_MAX_HABITS = 2000;
 const PACT_EXPIRING_WARNING_DAYS = 3;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -76,6 +76,14 @@ interface IDigestCounters {
     // habit on an off day). Reported so a suspiciously quiet run can be told
     // apart from a mis-parsed cadence.
     remindersNotDue: number;
+    // True when the run read exactly DIGEST_MAX_PACTS / DIGEST_MAX_HABITS rows,
+    // i.e. the LIMIT was reached and there is very likely a tail this run never
+    // looked at. Both queries order oldest-first, so the rows that fall off the
+    // end belong to the *newest* users — precisely the cohort the reminder pass
+    // exists to reach. Without these flags that tail goes dark silently: the
+    // counters keep rising, nothing errors, and the run still looks healthy.
+    pactsCapped: boolean;
+    habitsCapped: boolean;
     // Lifecycle engine (docs/HABIT_LIFECYCLE_MESSAGING.md). All zero when
     // HABIT_PHASE_ENGINE_ENABLED is not 'true', which is also how a reader tells
     // a run with the engine off from one where nobody happened to cross a gate.
@@ -127,9 +135,39 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
 
     // main.notificationQueue deliberately has no default for brandVariation, and
     // the worker only ever claims rows under a known BrandVariations value — a
-    // row filed under '' would sit pending forever. Pacts are a HABITS feature,
-    // so a missing header (a hand-run curl) means habits, not "unknown".
-    const brand = brandVariation || BrandVariations.HABITS;
+    // row filed under '' would sit pending forever.
+    //
+    // Pinned to HABITS rather than taken from the header. Everything this handler
+    // reads lives in the `habits.*` schema, which carries no brandVariation column
+    // precisely because the whole schema belongs to Friends with Habits (see the
+    // archetype note in 20260815000001_habits.user_habits.js). Every row it acts on
+    // is a HABITS row regardless of what the caller claims to be.
+    //
+    // `enqueueNotification`, though, files rows under whatever brand it is given,
+    // and brandVariation leads the UNIQUE (brandVariation, userId, dedupeKey)
+    // constraint. A wrong header would therefore write habit reminders into another
+    // brand's partition, where they dedupe against the wrong keys and are claimed by
+    // the wrong app's worker — with nothing failing anywhere.
+    //
+    // Coerced rather than rejected. The one production caller
+    // (therr-messaging-automator's habitsDigest.ts) hardcodes
+    // `x-brand-variation: habits`, so a mismatch is a misconfiguration — but this
+    // pass exists because a cohort of users was getting no notification at all, and
+    // answering 400 would put them back there. Filing under the correct brand and
+    // logging the discrepancy keeps the reminders flowing and still makes it visible.
+    const brand = BrandVariations.HABITS;
+    if (brandVariation && brandVariation !== BrandVariations.HABITS) {
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'API_SERVER',
+            messages: [
+                `Habits digest called with x-brand-variation '${brandVariation}'; `
+                + 'the habits schema is single-brand, so notifications were filed under '
+                + `'${BrandVariations.HABITS}' regardless. Check the caller's headers.`,
+            ],
+            traceArgs: { 'pushNotification.brandVariation': String(brandVariation) },
+        });
+    }
 
     const counters: IDigestCounters = {
         pactsEvaluated: 0,
@@ -142,6 +180,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         habitsEvaluated: 0,
         dailyRemindersSent: 0,
         remindersNotDue: 0,
+        pactsCapped: false,
+        habitsCapped: false,
         phasesEvaluated: 0,
         habitEstablishedSent: 0,
         habitAutomaticitySent: 0,
@@ -243,6 +283,18 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         }
 
         const activePacts = await Store.pacts.get({ status: 'active' }, undefined, DIGEST_MAX_PACTS);
+        counters.pactsCapped = activePacts.length >= DIGEST_MAX_PACTS;
+        if (counters.pactsCapped) {
+            logSpan({
+                level: 'warn',
+                messageOrigin: 'API_SERVER',
+                messages: [
+                    'Habits digest: active pact count reached DIGEST_MAX_PACTS — '
+                    + 'pacts beyond the limit were not evaluated in this run',
+                ],
+                traceArgs: { 'habitsDigest.limit': DIGEST_MAX_PACTS },
+            });
+        }
         const habitNameCache = new Map<string, string>();
         const userNameCache = new Map<string, string>();
 
@@ -312,6 +364,22 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             })
             : [];
         counters.habitsEvaluated = remindableHabits.length;
+        counters.habitsCapped = remindableHabits.length >= DIGEST_MAX_HABITS;
+        if (counters.habitsCapped) {
+            // The reminder pass orders by `startedAt ASC`, so the habits that fall
+            // off the end are the most recently started ones — new users, who are
+            // exactly who a daily reminder is meant to retain. Raise the limit or
+            // page the query; do not let this warning become routine.
+            logSpan({
+                level: 'warn',
+                messageOrigin: 'API_SERVER',
+                messages: [
+                    'Habits digest: trackable habit count reached DIGEST_MAX_HABITS — '
+                    + 'the newest habits were not evaluated in this run',
+                ],
+                traceArgs: { 'habitsDigest.limit': DIGEST_MAX_HABITS },
+            });
+        }
 
         // One lifecycle decision per (user, habit), deduplicated across pacts:
         // a user pursuing one goal through two pacts has one habit, and must

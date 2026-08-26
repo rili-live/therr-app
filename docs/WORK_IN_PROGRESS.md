@@ -409,7 +409,11 @@ console configuration, and one verification that gates a payments change.
   worker reports `daily cap reached`: the cap is 5/user/day across all types, and the
   reminder is the first producer with a row for nearly every active user, so it is the first
   thing that can crowd out a timely notification. Kill switch is
-  `HABIT_DAILY_REMINDERS_ENABLED=false`.
+  `HABIT_DAILY_REMINDERS_ENABLED=false`. Third, `habitsCapped` in the response must stay
+  `false`: it goes `true` the run the habit read comes back at `DIGEST_MAX_HABITS` (2000),
+  and because that query orders `startedAt ASC` the habits that fall off the end belong to
+  the newest users — the cohort this pass exists to retain. Raise the limit or page the
+  query when it flips; the run also logs a warn-level span.
 - [ ] (2026-08-07, push-notifications-debug) **Six HABITS notification types still have no
   sender.** `morningMotivation`, `eveningCheckIn`, `streakBroken`, `newPersonalRecord`,
   `partnerCelebrated` and `pactCompleted` have copy in all three

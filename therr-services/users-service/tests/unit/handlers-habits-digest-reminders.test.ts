@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import Store from '../../src/store';
-import runDailyHabitsDigest from '../../src/handlers/habitsDigest';
+import runDailyHabitsDigest, { DIGEST_MAX_HABITS } from '../../src/handlers/habitsDigest';
 import { getTodayDateString } from '../../src/utilities/streakHelpers';
 
 /**
@@ -303,5 +303,31 @@ describe('Habits digest — daily reminder pass', () => {
 
         expect(queue.calls).to.have.length(0);
         expect(counters.habitsEvaluated).to.equal(0);
+    });
+
+    it('does not raise the cap flag on an ordinary run', async () => {
+        stubDigest({ habits: [soloHabit()] });
+
+        const counters = await runDigest();
+
+        expect(counters.habitsCapped).to.equal(false);
+        expect(counters.pactsCapped).to.equal(false);
+    });
+
+    it('flags the run when the habit read comes back at the limit', async () => {
+        // The query orders by startedAt ASC, so a full page means the habits that
+        // fell off the end are the most recently started — new users, exactly who
+        // the reminder pass exists to retain. Without this flag that tail goes dark
+        // silently: counters keep rising, nothing errors, the run looks healthy.
+        const habits = Array.from({ length: DIGEST_MAX_HABITS }, (_, i) => soloHabit({
+            userId: `user-${i}`,
+            habitGoalId: `goal-${i}`,
+        }));
+        stubDigest({ habits });
+
+        const counters = await runDigest();
+
+        expect(counters.habitsEvaluated).to.equal(DIGEST_MAX_HABITS);
+        expect(counters.habitsCapped).to.equal(true);
     });
 });
