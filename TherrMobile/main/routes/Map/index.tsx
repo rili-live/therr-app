@@ -438,8 +438,12 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             const { map, location, route: inScopeRoute } = this.props;
             const restoredScrollIndex = inScopeRoute?.params?.previewScrollIndex || 0;
             this.expandBottomSheet(-1);
+            // TherrMapView tears the strip down on blur, so it is always closed by the time
+            // the map is focused again. Anything below that re-opens it sets this back to
+            // true once its search resolves.
             this.setState({
                 areButtonsVisible: true,
+                isPreviewStripOpen: false,
             });
             setSearchDropdownVisibility(false);
 

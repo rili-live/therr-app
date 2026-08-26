@@ -11,6 +11,7 @@ import {
     getPostRankingScore,
     getReplyCount,
     getTopReply,
+    orderAreaPreviewStrip,
     rankAreaPreviews,
     rankFeedPosts,
     shouldAutoExpandThread,
@@ -261,6 +262,81 @@ describe('feedRanking', () => {
 
         it('handles empty input', () => {
             expect(rankAreaPreviews([] as any, [] as any)).toEqual([]);
+        });
+    });
+
+    describe('orderAreaPreviewStrip', () => {
+        const PRESSED_RADIUS_METERS = 120;
+        const order = (areas: any[], options: any = {}) => orderAreaPreviewStrip(areas as any, {
+            pressedAreaRadiusMeters: PRESSED_RADIUS_METERS,
+            ...options,
+        }).map((a) => a.id);
+
+        const area = (id: string, distanceFromPress: number, extra: any = {}) => ({
+            id,
+            areaType: 'spaces',
+            createdAt: hoursAgo(2),
+            distanceFromPress,
+            distanceFromUser: distanceFromPress,
+            ...extra,
+        });
+
+        it('leads with the area the user actually pressed', () => {
+            const pressed = area('pressed', 30);
+            const closer = area('closer', 0.001);
+            expect(order([closer, pressed], { pressedAreaId: 'pressed' })).toEqual(['pressed', 'closer']);
+        });
+
+        it('treats an area within the pressed radius as the pressed area', () => {
+            const onTop = area('onTop', 50 * MILES_PER_METER);
+            const nearby = area('nearby', 2);
+            expect(order([onTop, nearby])).toEqual(['onTop', 'nearby']);
+        });
+
+        it('hoists a nearby featured area ahead of unfeatured content', () => {
+            const featured = area('featured', 3, { featuredIncentiveRewardKey: 'reward' });
+            const plain = area('plain', 1);
+            expect(order([plain, featured])).toEqual(['featured', 'plain']);
+        });
+
+        it('does not hoist a featured area the user could not plausibly reach', () => {
+            const farFeatured = area('farFeatured', 260, { featuredIncentiveRewardKey: 'reward' });
+            const plain = area('plain', 1);
+            expect(order([farFeatured, plain])).toEqual(['plain']);
+        });
+
+        it('does not hoist a featured area past the hoist radius but inside the strip', () => {
+            const midFeatured = area('midFeatured', 40, { featuredIncentiveRewardKey: 'reward' });
+            const plain = area('plain', 1);
+            // Already in rank order — the assertion is that midFeatured stays where ranking
+            // put it rather than jumping the queue the way a nearby featured area does.
+            expect(order([plain, midFeatured])).toEqual(['plain', 'midFeatured']);
+        });
+
+        it('drops areas beyond the strip radius even when they rank first', () => {
+            const stale = area('stale', 400);
+            const near = area('near', 2);
+            expect(order([stale, near])).toEqual(['near']);
+        });
+
+        it('keeps the pressed area even when it is beyond the strip radius', () => {
+            const pressed = area('pressed', 400);
+            expect(order([pressed], { pressedAreaId: 'pressed' })).toEqual(['pressed']);
+        });
+
+        it('skips the distance ceilings for an explicitly provided overlapping set', () => {
+            const farFeatured = area('farFeatured', 400, { featuredIncentiveRewardKey: 'reward' });
+            const near = area('near', 2);
+            expect(order([farFeatured, near], { hasExplicitAreas: true })).toEqual(['farFeatured', 'near']);
+        });
+
+        it('caps the number of cards handed to the strip', () => {
+            const many = Array.from({ length: 150 }, (_, i) => area(`a${i}`, 1));
+            expect(orderAreaPreviewStrip(many as any, { pressedAreaRadiusMeters: PRESSED_RADIUS_METERS })).toHaveLength(100);
+        });
+
+        it('handles empty input', () => {
+            expect(order([])).toEqual([]);
         });
     });
 

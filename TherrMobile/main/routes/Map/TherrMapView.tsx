@@ -40,7 +40,7 @@ import mapStyles from '../../styles/map';
 import mapCustomStyle from '../../styles/map/googleCustom';
 import MarkerIcon from './MarkerIcon';
 import { getUserContentUri, isMyContent } from '../../utilities/content';
-import { rankAreaPreviews } from '../../utilities/feedRanking';
+import { orderAreaPreviewStrip, rankAreaPreviews } from '../../utilities/feedRanking';
 import { hasUsableCoords, isUsableCoordinate } from '../../utilities/coordinates';
 import AreaDisplayCard from '../../components/UserContent/AreaDisplayCard';
 import AreaCreatePromptCard from '../../components/UserContent/AreaCreatePromptCard';
@@ -238,6 +238,14 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {});
 
         this.unsubscribeBlurListener = navigation.addListener('blur', () => {
+            // The parent owns the map action buttons and drops them to their compact,
+            // lifted-clear-of-the-strip subset while the strip is open. Closing the strip
+            // here without telling it stranded that layout: navigating back to the map left
+            // two buttons floating above a strip that was no longer there, with no way to
+            // get the rest back short of opening and closing the strip again.
+            if (this.state.isPreviewBottomSheetVisible) {
+                this.props.onPreviewBottomSheetClose();
+            }
             this.setState({
                 isPreviewBottomSheetVisible: false,
                 areaInPreviewIndex: -1,
@@ -605,21 +613,18 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             // even when the strip is showing an explicitly-provided overlapping set.
             const sortedAreasWithDistance = rankAreaPreviews(areasWithDistance, filteredMoments);
 
-            const areasArray: any[] = [];
-            let pressedAreas: any[] = [];
-            let featuredAreas: any[] = [];
             const missingMedias: {
                 path: string;
                 type: string;
             }[] = [];
 
-            sortedAreasWithDistance.some((area: any, index: number) => {
-                // Prevent loading spaces from too far away to be relevant
-                // Stop after 100 miles
-                if (index >= 20 && area.distanceFromUser && area.distanceFromUser > 100) {
-                    return true;
-                }
+            modifiedAreasInPreview = orderAreaPreviewStrip(sortedAreasWithDistance, {
+                pressedAreaId,
+                pressedAreaRadiusMeters: MAX_DISTANCE_TO_NEARBY_SPACE,
+                hasExplicitAreas: !!overlappingAreas?.length,
+            });
 
+            modifiedAreasInPreview.forEach((area: any) => {
                 if (area.medias?.length) {
                     area.medias
                         .forEach((media) => {
@@ -630,24 +635,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                 }
 
                 area.distance = getReadableDistance(area.distanceFromUser);
-
-                if (pressedAreaId && area.id === pressedAreaId) {
-                    pressedAreas.push(area);
-                } else if (pressedAreas.length < 1 && (area.distanceFromPress * METERS_PER_MILE) < MAX_DISTANCE_TO_NEARBY_SPACE) {
-                    // Prioritize area over featured when approximate press/click or search specific area by name
-                    pressedAreas.push(area);
-                } else if (area.featuredIncentiveRewardKey && featuredAreas.length < 2) {
-                    // TODO: Prioritize top 2 with highest rewards nearby
-                    featuredAreas.push(area);
-                } else {
-                    areasArray.push(area);
-                }
-
-                // Prevent loading too many areas in preview
-                return index >= 99;
             });
-
-            modifiedAreasInPreview = pressedAreas.concat(featuredAreas).concat(areasArray);
             if (missingMedias.length) {
                 this.fetchPrivateMedia(missingMedias);
             }
