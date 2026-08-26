@@ -112,6 +112,11 @@ const stubDigestReads = () => {
         .resolves({ isActive: true, currentStreak: 5 } as any);
 
     sinon.stub(Store.users, 'findUser').resolves([{ firstName: 'Alex' }] as any);
+
+    // The daily-reminder pass reads its own spine off habits.user_habits. This
+    // fixture is about the pact-driven half, so it contributes nothing —
+    // handlers-habits-digest-reminders.test.ts covers the pass itself.
+    sinon.stub(Store.userHabits, 'getActiveForReminders').resolves([] as any);
 };
 
 const runDigest = async (headers: Record<string, string> = { 'x-brand-variation': 'habits', 'x-localecode': 'en-us' }) => {
