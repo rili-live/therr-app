@@ -399,19 +399,35 @@ console configuration, and one verification that gates a payments change.
   but "now" until this lands. Prerequisite for roadmap item #2 (send-time personalization,
   15-40% on opens).
 
-- [ ] (2026-08-07, push-notifications-debug) **Seven HABITS notification types have no
-  sender.** `dailyHabitReminder`, `morningMotivation`, `eveningCheckIn`, `streakBroken`,
-  `newPersonalRecord`, `partnerCelebrated` and `pactCompleted` have copy in all three
+- [ ] (2026-08-26, habits-daily-notifications) **Watch the first week of daily-reminder
+  volume, then decide on `morningMotivation` / `eveningCheckIn`.** `dailyHabitReminder`
+  now has a producer: the digest's reminder pass walks `habits.user_habits` and queues one
+  reminder per due, un-checked-in habit (`habitsDigest.ts`). Two things to confirm on real
+  data before adding more reminder types. First, `habitsEvaluated` in the digest response
+  should be far larger than `pactsEvaluated` — if it is not, `user_habits` is under-populated
+  and the pass is reaching fewer people than it looks like. Second, watch how often the
+  worker reports `daily cap reached`: the cap is 5/user/day across all types, and the
+  reminder is the first producer with a row for nearly every active user, so it is the first
+  thing that can crowd out a timely notification. Kill switch is
+  `HABIT_DAILY_REMINDERS_ENABLED=false`.
+- [ ] (2026-08-07, push-notifications-debug) **Four HABITS notification types still have no
+  sender.** `morningMotivation`, `eveningCheckIn`, `streakBroken`, `newPersonalRecord`,
+  `partnerCelebrated` and `pactCompleted` have copy in all three
   locales, Android channel routing, per-brand intent actions and test coverage — and
   nothing in this repo ever calls them. They are not scheduled on-device either
-  (`sendTriggerNotification` is used only by Moments/Events). The daily-reminder loop,
-  which `docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md` treats as the core HABITS
-  retention mechanic, is therefore delivery-half-only. Decide per type: wire a trigger
-  (the digest at `habitsDigest.ts` is the natural home for the daily three, and it now
-  queues through `enqueueNotification`, so a new type there gets dedup and the 5/day cap
-  for free — give it a period-stamped `dedupeKey`), schedule them
-  locally via Notifee, or delete the dead copy. Verify with:
-  `grep -rn "Types.dailyHabitReminder" --include=*.ts therr-services/ | grep -v push-notifications-service`
+  (`sendTriggerNotification` is used only by Moments/Events). `dailyHabitReminder` is now
+  wired (see the entry above); the rest are still delivery-half-only. Decide per type: wire
+  a trigger (the digest at `habitsDigest.ts` is the natural home for the time-of-day pair,
+  though `morningMotivation` / `eveningCheckIn` want the user-timezone column below before
+  they mean anything), schedule them locally via Notifee, or delete the dead copy. Verify with:
+  `grep -rn "Types.morningMotivation" --include=*.ts therr-services/ | grep -v push-notifications-service`
+- [ ] (2026-08-26, habits-daily-notifications) **`streakAtRisk` can still double-send for one
+  habit held through two pacts.** The pact loop keys it `streak-at-risk:<pactId>:<date>`, so
+  a user pursuing one goal through two active pacts gets two warnings about one streak. The
+  lifecycle notifications next to it are all keyed on `habitGoalId` precisely to avoid this,
+  and the new reminder pass uses `streak-at-risk:habit:<habitGoalId>:<date>` for solo habits.
+  Re-keying the pact path to match would fix it; the cost is one duplicate push on the day it
+  deploys, for users who already received that day's warning under the old key.
 
 - [ ] (2026-08-07, push-notifications-debug) **Verify the iOS APNS-topic fix on a real
   Habits handset after this deploys.** `apns-topic` for HABITS/TEEM was

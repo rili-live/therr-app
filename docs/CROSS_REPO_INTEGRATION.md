@@ -180,6 +180,14 @@ Cloud Scheduler → messaging-automator (GCF) → VPC connector → GKE internal
 Two internal LBs exist (7775 push-notifications, 7771 users-service) because a k8s Service
 routes all of its ports to one pod selector — 7775 could not be reused.
 
+**The digest's response shape is a coupling too.** `IHabitsDigestCounters` in the messaging
+repo mirrors what this handler returns, and every field there is optional so the two can be
+deployed independently — a new counter here logs as `undefined` on an older automator rather
+than breaking it. That only holds in one direction: *renaming* or repurposing an existing
+counter silently changes what that repo's Cloud Function logs, with nothing failing. The
+reminder-pass counters (`habitsEvaluated`, `dailyRemindersSent`, `remindersNotDue`) were added
+this way.
+
 **The `ipBlock` must be the node subnet, not the VPC connector range (`10.6.0.0/28`)**: the LB
 runs `externalTrafficPolicy: Cluster`, which SNATs the client to a node IP. Tightening it
 requires switching to `externalTrafficPolicy: Local`.
