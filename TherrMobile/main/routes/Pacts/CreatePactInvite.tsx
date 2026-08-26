@@ -17,6 +17,7 @@ import Toast from 'react-native-toast-message';
 import { HabitActions } from 'therr-react/redux/actions';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import getConfig from '../../utilities/getConfig';
+import { streakFreezeRuleParams } from '../../utilities/streakFreezes';
 import permissions from '../../utilities/permissionsOrchestrator';
 import UsersActions from '../../redux/actions/UsersActions';
 import { IUserState, IHabitsState, IHabitGoal } from 'therr-react/types';
@@ -934,6 +935,16 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                         {this.translate('pages.pacts.wizard.soloAddPartnersLater')}
                     </Text>
                 )}
+                {/*
+                  * State the streak-freeze allowance on the last screen before
+                  * the habit exists. "Build in the miss" is explicitly a rule
+                  * agreed in advance — a net the user only discovers after
+                  * their first bad day cannot change what they do on it, and
+                  * this is the last moment it is still in advance.
+                  */}
+                <Text style={[this.themeHabits.styles.streakMilestoneText, { paddingHorizontal: 20, marginTop: 12 }]}>
+                    {this.translate('pages.pacts.wizard.freezeRule', streakFreezeRuleParams)}
+                </Text>
             </View>
         );
     };

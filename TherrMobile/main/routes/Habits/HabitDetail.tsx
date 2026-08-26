@@ -15,6 +15,11 @@ import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confi
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { CheckinButton, CheckinProofSheet, HabitCalendar, StreakWidget } from '../../components/Habits';
+import {
+    getFreezeConsumed,
+    getStreakSavedByFreeze,
+    streakFreezeRuleParams,
+} from '../../utilities/streakFreezes';
 import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
 import { signImageUrl } from '../../utilities/content';
 import { toLocalDateKey } from '../../utilities/localDateKey';
@@ -214,7 +219,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                 notes,
                 proofMedias,
             }))
-            .then(() => {
+            .then((checkin: any) => {
                 if (isAddingDetail) {
                     showToast.success({
                         text1: this.translate('pages.habits.checkinToast.detailSavedTitle'),
@@ -222,11 +227,22 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                     return;
                 }
 
+                // A freeze was spent covering a day this user missed. Say so
+                // here rather than leaving them to infer it from a streak
+                // number that did not drop — this is the moment the safety net
+                // either becomes a known rule or stays invisible.
+                const freezeConsumed = getFreezeConsumed(checkin);
                 showToast.success({
-                    text1: this.translate('pages.habits.checkinToast.title', {
-                        habitName: this.getHabitGoal()?.name || '',
-                    }),
-                    text2: this.translate('pages.habits.checkinToast.addDetailAction'),
+                    text1: freezeConsumed
+                        ? this.translate('pages.habits.checkinToast.freezeUsedTitle', {
+                            count: getStreakSavedByFreeze(checkin),
+                        })
+                        : this.translate('pages.habits.checkinToast.title', {
+                            habitName: this.getHabitGoal()?.name || '',
+                        }),
+                    text2: freezeConsumed
+                        ? this.translate('pages.habits.checkinToast.freezeUsedBody')
+                        : this.translate('pages.habits.checkinToast.addDetailAction'),
                     duration: DURATION.LONG,
                     onPress: this.handleAddCheckinDetail,
                 });
@@ -366,6 +382,18 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                         </Text>
                                     </View>
                                 </View>
+                                {/*
+                                  * The number on its own reads as a score. It is
+                                  * a rule, and it only changes behaviour if the
+                                  * user knows the terms before the day they need
+                                  * it.
+                                  */}
+                                <Text style={[
+                                    this.themeHabits.styles.streakMilestoneText,
+                                    { marginTop: 8 },
+                                ]}>
+                                    {this.translate('pages.habits.streak.freezeRule', streakFreezeRuleParams)}
+                                </Text>
                             </View>
                         )}
                     </ScrollView>

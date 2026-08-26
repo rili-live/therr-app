@@ -2002,7 +2002,7 @@
       "bestStreak": "Mejor racha",
       "currentStreak": "Racha actual",
       "longestStreak": "Racha más larga",
-      "graceDays": "Días de gracia restantes",
+      "graceDays": "Congelamientos restantes",
       "stats": "Estadísticas",
       "checkin": "Registrar",
       "completed": "¡Completado!",
@@ -2026,7 +2026,9 @@
       "checkinToast": {
         "title": "Registrado: {habitName}",
         "addDetailAction": "Toca para añadir una nota o foto",
-        "detailSavedTitle": "Guardado en el registro de hoy"
+        "detailSavedTitle": "Guardado en el registro de hoy",
+        "freezeUsedTitle": "Tu racha de {count} días sobrevivió",
+        "freezeUsedBody": "Un congelamiento de racha cubrió el día que fallaste. Toca para añadir una nota o foto."
       },
       "frequency": {
         "daily": "Cada día",
@@ -2047,9 +2049,11 @@
         "day": "día",
         "days": "días",
         "nextMilestone": "Próximo hito: {days} días",
-        "graceDaysRemaining": "Días de gracia restantes: {count}",
+        "graceDaysRemaining": "Te queda(n) {count} congelamiento(s) de racha — si fallas un día, uno te cubre automáticamente.",
         "nextMilestoneCompact": "próx. {days} d",
-        "graceDaysCompact": "{count} de gracia"
+        "graceDaysCompact": "{count} congelamiento",
+        "freezeRule": "Si fallas un día, un congelamiento de racha lo cubre — empiezas con {starting} y ganas otro cada {interval} días, hasta {max}.",
+        "graceDaysExhausted": "No te quedan congelamientos de racha — el próximo día que falles reinicia la racha. Ganarás uno en tu próximo hito de 7 días."
       },
       "tabs": {
         "habits": "Hábitos"
@@ -2186,7 +2190,8 @@
         "soloAddPartnersLater": "Puedes invitar a un amigo a este hábito cuando quieras.",
         "pickPartnerFirstLocked": "Elige un amigo o invita a {remaining} más para desbloquear los hábitos en solitario",
         "soloLockedTitle": "Invita a {remaining} amigo(s) más para desbloquear los hábitos en solitario",
-        "soloLockedProgress": "{invited} de {required} amigos invitados"
+        "soloLockedProgress": "{invited} de {required} amigos invitados",
+        "freezeRule": "Si fallas un día, un congelamiento de racha lo cubre — empiezas con {starting} y ganas otro cada {interval} días, hasta {max}. El primer mal día ocurre dentro de las reglas."
       },
       "status": {
         "pending": "Pendiente",

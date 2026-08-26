@@ -25,6 +25,7 @@ import {
     HabitCard, CheckinProofSheet, NewPactButton, PactCard, SentInviteCard,
 } from '../../components/Habits';
 import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
+import { getFreezeConsumed, getStreakSavedByFreeze } from '../../utilities/streakFreezes';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { signImageUrl } from '../../utilities/content';
 import { DURATION, showToast } from '../../utilities/toasts';
@@ -364,7 +365,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 notes,
                 proofMedias,
             }))
-            .then(() => {
+            .then((checkin: any) => {
                 if (isAddingDetail) {
                     showToast.success({
                         text1: this.translate('pages.habits.checkinToast.detailSavedTitle'),
@@ -381,9 +382,21 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 // The toast is the confirmation that replaced the modal, and
                 // it is also the only route to the proof sheet now — so it has
                 // to say it is tappable (nothing about the styling signals it).
+                //
+                // When a freeze covered a missed day it takes over the copy:
+                // the streak surviving is the more surprising fact, and it is
+                // the only place the user learns the net exists at the moment
+                // it caught them.
+                const freezeConsumed = getFreezeConsumed(checkin);
                 showToast.success({
-                    text1: this.translate('pages.habits.checkinToast.title', { habitName: habitGoal.name }),
-                    text2: this.translate('pages.habits.checkinToast.addDetailAction'),
+                    text1: freezeConsumed
+                        ? this.translate('pages.habits.checkinToast.freezeUsedTitle', {
+                            count: getStreakSavedByFreeze(checkin),
+                        })
+                        : this.translate('pages.habits.checkinToast.title', { habitName: habitGoal.name }),
+                    text2: freezeConsumed
+                        ? this.translate('pages.habits.checkinToast.freezeUsedBody')
+                        : this.translate('pages.habits.checkinToast.addDetailAction'),
                     duration: DURATION.LONG,
                     onPress: () => this.handleAddCheckinDetail(habitGoal),
                 });

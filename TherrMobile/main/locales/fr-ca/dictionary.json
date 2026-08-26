@@ -2002,7 +2002,7 @@
       "bestStreak": "Meilleure série",
       "currentStreak": "Série actuelle",
       "longestStreak": "Plus longue série",
-      "graceDays": "Jours de grâce restants",
+      "graceDays": "Gels de série restants",
       "stats": "Statistiques",
       "checkin": "Enregistrer",
       "completed": "Complété!",
@@ -2026,7 +2026,9 @@
       "checkinToast": {
         "title": "Enregistré : {habitName}",
         "addDetailAction": "Touchez pour ajouter une note ou une photo",
-        "detailSavedTitle": "Ajouté à l'enregistrement du jour"
+        "detailSavedTitle": "Ajouté à l'enregistrement du jour",
+        "freezeUsedTitle": "Ta série de {count} jours a tenu",
+        "freezeUsedBody": "Un gel de série a couvert la journée manquée. Touche pour ajouter une note ou une photo."
       },
       "frequency": {
         "daily": "Chaque jour",
@@ -2047,9 +2049,11 @@
         "day": "jour",
         "days": "jours",
         "nextMilestone": "Prochain jalon : {days} jours",
-        "graceDaysRemaining": "Jours de grâce restants : {count}",
+        "graceDaysRemaining": "Il te reste {count} gel(s) de série — si tu manques une journée, un gel te couvre automatiquement.",
         "nextMilestoneCompact": "proch. {days} j",
-        "graceDaysCompact": "{count} de grâce"
+        "graceDaysCompact": "{count} gel",
+        "freezeRule": "Si tu manques une journée, un gel de série la couvre — tu commences avec {starting} et tu en gagnes un autre tous les {interval} jours, jusqu'à {max}.",
+        "graceDaysExhausted": "Plus de gels de série — la prochaine journée manquée réinitialise la série. Tu en regagnes un à ton prochain jalon de 7 jours."
       },
       "tabs": {
         "habits": "Habitudes"
@@ -2186,7 +2190,8 @@
         "soloAddPartnersLater": "Tu peux inviter un ami à cette habitude quand tu veux.",
         "pickPartnerFirstLocked": "Choisis un ami, ou invites-en {remaining} de plus pour débloquer les habitudes en solo",
         "soloLockedTitle": "Invite {remaining} ami(s) de plus pour débloquer les habitudes en solo",
-        "soloLockedProgress": "{invited} amis invités sur {required}"
+        "soloLockedProgress": "{invited} amis invités sur {required}",
+        "freezeRule": "Si tu manques une journée, un gel de série la couvre — tu commences avec {starting} et tu en gagnes un autre tous les {interval} jours, jusqu'à {max}. La première mauvaise journée arrive à l'intérieur des règles."
       },
       "status": {
         "pending": "En attente",

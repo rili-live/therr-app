@@ -2002,7 +2002,7 @@
       "bestStreak": "Best Streak",
       "currentStreak": "Current Streak",
       "longestStreak": "Longest Streak",
-      "graceDays": "Grace Days Left",
+      "graceDays": "Streak Freezes Left",
       "stats": "Statistics",
       "checkin": "Check In",
       "completed": "Completed!",
@@ -2026,7 +2026,9 @@
       "checkinToast": {
         "title": "Checked in: {habitName}",
         "addDetailAction": "Tap to add a note or photo",
-        "detailSavedTitle": "Saved to today's check-in"
+        "detailSavedTitle": "Saved to today's check-in",
+        "freezeUsedTitle": "Your {count}-day streak survived",
+        "freezeUsedBody": "A streak freeze covered the day you missed. Tap to add a note or photo."
       },
       "frequency": {
         "daily": "Every day",
@@ -2047,9 +2049,11 @@
         "day": "day",
         "days": "days",
         "nextMilestone": "Next milestone: {days} days",
-        "graceDaysRemaining": "Grace days remaining: {count}",
+        "graceDaysRemaining": "{count} streak freeze(s) left — miss a day and one covers you automatically.",
         "nextMilestoneCompact": "next {days}d",
-        "graceDaysCompact": "{count} grace"
+        "graceDaysCompact": "{count} freeze",
+        "freezeRule": "Miss a day and a streak freeze covers it — you start with {starting} and earn another every {interval} days, up to {max}.",
+        "graceDaysExhausted": "No streak freezes left — the next missed day resets the streak. You earn one back at your next 7-day milestone."
       },
       "tabs": {
         "habits": "Habits"
@@ -2186,7 +2190,8 @@
         "soloAddPartnersLater": "You can invite a friend to this habit any time.",
         "pickPartnerFirstLocked": "Choose a friend — or invite {remaining} more to unlock solo habits",
         "soloLockedTitle": "Invite {remaining} more friend(s) to unlock solo habits",
-        "soloLockedProgress": "{invited} of {required} friends invited"
+        "soloLockedProgress": "{invited} of {required} friends invited",
+        "freezeRule": "Miss a day and a streak freeze covers it — you start with {starting} and earn another every {interval} days, up to {max}. The first bad day happens inside the rules."
       },
       "status": {
         "pending": "Pending",
