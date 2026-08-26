@@ -34,13 +34,45 @@ resolve_diff_base()
     esac
 }
 
+# Sets NUM_FILES_CHANGED from `git diff --name-only <rev...> -- <path...>`, and aborts
+# the script when git itself fails.
+#
+# WHY THIS IS NOT `NUM=$(git diff ... | wc -l)`
+#
+# That form throws away git's exit status — a pipeline reports the status of its last
+# element, so `wc` succeeding hides git dying. A git that cannot answer (an
+# unresolvable rev, a missing object, a shallow or partial checkout) prints its fatal
+# to stderr and contributes zero lines, and `[[ 0 -gt 0 ]]` is false. "git could not
+# tell us" and "nothing changed" therefore become the same answer: a silent skip.
+#
+# Not hypothetical. On the stage merge at e4790de8, build.sh skipped all eight
+# services as "No Changes" while publish.sh — the identical predicate, the same
+# checkout, later in the same job — found therr-client-web changed and pushed an
+# image nothing had built. The job failed at `docker push` with "An image does not
+# exist locally", four steps downstream of the step that actually went wrong, and the
+# build step itself was green.
+#
+# stderr is deliberately left attached to the job log rather than captured: git's own
+# message is the thing an operator needs to read.
+_count_diff_files()
+{
+    local OUT
+    if ! OUT=$(git diff --name-only "$@"); then
+        printMessageError "git diff --name-only $* failed (git's error is above)."
+        printMessageError "Refusing to report 'no changes' from a git failure — that is a silent skip."
+        exit 1
+    fi
+
+    NUM_FILES_CHANGED=$(printf '%s' "$OUT" | grep -c . || true)
+}
+
 has_diff_changes()
 {
     ORIGIN_BRANCH=$1
     DIR=$2
 
     _fetch_once "$ORIGIN_BRANCH"
-    NUM_FILES_CHANGED=$(git diff --name-only origin/$ORIGIN_BRANCH -- $DIR | wc -l)
+    _count_diff_files "origin/$ORIGIN_BRANCH" -- $DIR
 
     if [[ ${NUM_FILES_CHANGED} -gt 0 ]]; then
         printMessageWarning "Found ${NUM_FILES_CHANGED} files changed w/ 'git diff origin/$ORIGIN_BRANCH:$DIR'"
@@ -61,7 +93,7 @@ has_prev_diff_changes()
         # everything that was merged in. Using merge-base with the source branch
         # doesn't work here because the source branch tip is an ancestor of the
         # merge commit, making the diff empty for the merged-in changes.
-        NUM_FILES_CHANGED=$(git diff HEAD^1 --name-only -- $DIR | wc -l)
+        _count_diff_files HEAD^1 -- $DIR
         if [[ ${NUM_FILES_CHANGED} -gt 0 ]]; then
             printMessageWarning "Found ${NUM_FILES_CHANGED} files changed w/ 'git diff HEAD^1 -- $DIR'"
             return 0
@@ -73,7 +105,7 @@ has_prev_diff_changes()
         # all changes since the branch diverged
         _fetch_once "general"
         MERGE_BASE=$(git merge-base HEAD origin/general)
-        NUM_FILES_CHANGED=$(git diff $MERGE_BASE --name-only -- $DIR | wc -l)
+        _count_diff_files "$MERGE_BASE" -- $DIR
         if [[ ${NUM_FILES_CHANGED} -gt 0 ]]; then
             printMessageWarning "Found ${NUM_FILES_CHANGED} files changed w/ 'git diff $MERGE_BASE -- $DIR'"
             return 0
