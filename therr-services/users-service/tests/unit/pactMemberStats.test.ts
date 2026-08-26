@@ -119,6 +119,7 @@ describe('pactMemberStats', () => {
                 currentStreak: 3,
                 longestStreak: 5,
                 completionRate: 70,
+                checkedInToday: false,
             });
         });
 
@@ -133,6 +134,19 @@ describe('pactMemberStats', () => {
             expect(stats.completionRate).to.equal(100);
         });
 
+        // The pact card renders this to show who has and has not shown up
+        // today. It defaults to false so a caller that has not resolved it —
+        // the zeroed pending-pact path — cannot accidentally imply a member
+        // checked in.
+        it('defaults checkedInToday to false and carries it through when given', () => {
+            expect(buildPactMemberStats({ scheduledCount: 1, completedCheckins: 1 }).checkedInToday).to.equal(false);
+            expect(buildPactMemberStats({
+                scheduledCount: 1,
+                completedCheckins: 1,
+                checkedInToday: true,
+            }).checkedInToday).to.equal(true);
+        });
+
         it('zeroes out cleanly when nothing is scheduled yet', () => {
             const stats = buildPactMemberStats({ scheduledCount: 0, completedCheckins: 0 });
             expect(stats).to.deep.equal({
@@ -141,6 +155,7 @@ describe('pactMemberStats', () => {
                 currentStreak: 0,
                 longestStreak: 0,
                 completionRate: 0,
+                checkedInToday: false,
             });
         });
 

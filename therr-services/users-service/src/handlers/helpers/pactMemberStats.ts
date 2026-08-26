@@ -6,6 +6,7 @@ import {
     IPactMemberStats,
     ZERO_PACT_MEMBER_STATS,
 } from '../../utilities/pactMemberStats';
+import { getTodayDateString } from '../../utilities/streakHelpers';
 
 interface IStatsTarget {
     key: string;
@@ -25,7 +26,7 @@ const withStats = (member: any, stats: IPactMemberStats) => ({ ...member, ...sta
  * streaks. Every member comes back with numeric stats, so clients never have to
  * distinguish "no progress" from "never computed".
  *
- * Batched across the whole page: three queries total regardless of how many
+ * Batched across the whole page: four queries total regardless of how many
  * pacts or members are passed in.
  */
 export const attachPactMemberStats = async (pacts: any[]): Promise<any[]> => {
@@ -75,10 +76,15 @@ export const attachPactMemberStats = async (pacts: any[]): Promise<any[]> => {
         }));
     }
 
-    const [goals, streaks, completedCounts] = await Promise.all([
+    // The service's UTC habit day, matching what the check-in write path
+    // stores in `scheduledDate` — see getTodayDateString.
+    const today = getTodayDateString();
+
+    const [goals, streaks, completedCounts, completedToday] = await Promise.all([
         Store.habitGoals.getByIds([...goalIds]),
         Store.streaks.getByUserHabitPairs(pairs),
         Store.habitCheckins.getCompletedCountsForWindows(targets),
+        Store.habitCheckins.getCompletedOnDateForPairs(pairs, today),
     ]);
 
     const goalsById: Record<string, any> = goals.reduce((acc: any, goal: any) => {
@@ -116,6 +122,7 @@ export const attachPactMemberStats = async (pacts: any[]): Promise<any[]> => {
                 scheduledCount: scheduledByPactId[pact.id] || 0,
                 completedCheckins: completedCounts[statsKey(pact.id, member.userId)] || 0,
                 streak: streaksByPair[`${member.userId}:${pact.habitGoalId}`],
+                checkedInToday: completedToday.has(`${member.userId}:${pact.habitGoalId}`),
             }))),
         };
     });

@@ -141,6 +141,7 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         repostEmbedContainer: {
             marginTop: 6,
             marginBottom: 2,
+            marginRight: 12,
             padding: 10,
             borderWidth: 1,
             borderRadius: 10,

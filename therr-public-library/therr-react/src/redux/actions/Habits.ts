@@ -148,6 +148,19 @@ const Habits = {
         return response.data;
     }),
 
+    // Dispatches CREATE_PACT rather than a type of its own: a renewal *is* a
+    // new pact on the same habit goal, and the reducer's job here — put the new
+    // pact into state — is identical. The pact being renewed is refetched with
+    // its new `expired` status on the next list read.
+    renewPact: (id: string, durationDays?: number) => (dispatch: any) => PactsService
+        .renew(id, durationDays).then((response) => {
+            dispatch({
+                type: HabitsActionTypes.CREATE_PACT,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
     // Checkins
     getTodayCheckins: (habitGoalId?: string) => (dispatch: any) => HabitCheckinsService
         .getTodayCheckins(habitGoalId).then((response: any) => {

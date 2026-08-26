@@ -128,6 +128,63 @@ describe('Integration Tests - Pact resolution from a habit goal', () => {
         return pact;
     };
 
+    // The digest's expiry sweep runs nightly, so a pact that reached its endDate keeps
+    // status='active' until the next run. Both callers of this store method read that
+    // window wrong: renewal refused the finished pact as a still-live cycle, and a
+    // check-in logged the next morning was attributed to a pact that had already ended.
+    // The predicate mixes with the LEFT JOIN and OR fallback above, which is exactly the
+    // shape the query-string unit tests cannot verify — so it is pinned here.
+    it('does not resolve a pact whose endDate has passed, even while status is still active', async () => {
+        if (skipTests) return;
+
+        const creator = await createTestUser('h1');
+        const partner = await createTestUser('h2');
+        const goal = await createGoal(creator.id);
+        const pact = await createActivePact(creator.id, partner.id, goal.id);
+
+        await pactMembersStore.create({
+            pactId: pact.id, userId: creator.id, role: 'creator', status: 'active',
+        });
+        await pactMembersStore.create({
+            pactId: pact.id, userId: partner.id, role: 'partner', status: 'active',
+        });
+
+        // Still 'active' — this is the un-swept state, not an expired one.
+        await pactsStore.update(pact.id, { endDate: new Date(Date.now() - 24 * 60 * 60 * 1000) });
+
+        expect(await pactsStore.getActiveByUserAndHabitGoal(creator.id, goal.id)).to.deep.equal([]);
+        expect(await pactsStore.getActiveByUserAndHabitGoal(partner.id, goal.id)).to.deep.equal([]);
+    });
+
+    // A pact with no endDate has no cycle to have finished, so the date predicate must
+    // not swallow it — `shouldExpirePact` treats a null endDate the same way.
+    it('still resolves an open-ended pact that has no endDate', async () => {
+        if (skipTests) return;
+
+        const creator = await createTestUser('i1');
+        const partner = await createTestUser('i2');
+        const goal = await createGoal(creator.id);
+
+        // `create` derives endDate from startDate, so omitting startDate is how a row
+        // legitimately ends up with a null endDate — no need to force one in.
+        const pact = await pactsStore.create({
+            creatorUserId: creator.id,
+            partnerUserId: partner.id,
+            habitGoalId: goal.id,
+            durationDays: 30,
+        });
+        createdPactIds.push(pact.id);
+        await pactsStore.update(pact.id, { status: 'active' });
+        expect(pact.endDate).to.equal(null);
+
+        await pactMembersStore.create({
+            pactId: pact.id, userId: creator.id, role: 'creator', status: 'active',
+        });
+
+        const forCreator = await pactsStore.getActiveByUserAndHabitGoal(creator.id, goal.id);
+        expect(forCreator.map((p: any) => p.id)).to.deep.equal([pact.id]);
+    });
+
     it('resolves an active pact for a member whose membership is active', async () => {
         if (skipTests) return;
 
