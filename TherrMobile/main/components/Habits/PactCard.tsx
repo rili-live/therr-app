@@ -4,6 +4,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { IPact, IPactMember } from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
 import { getCheckedInToday } from './PactMemberRow';
+import { isPactRenewable } from '../../routes/Habits/pactState';
 
 interface IPactCardProps {
     pact: IPact;
@@ -15,6 +16,11 @@ interface IPactCardProps {
     onAccept?: () => void;
     onDecline?: () => void;
     isRespondPending?: boolean;
+    // Supplying this renders the re-commit CTA on a pact whose cycle has ended.
+    // Omitted where a renewal has nowhere to land (another user's profile), so
+    // the card stays read-only there.
+    onRenew?: () => void;
+    isRenewPending?: boolean;
     themeHabits: {
         colors: ITherrThemeColors;
         styles: any;
@@ -62,12 +68,15 @@ const PactCard: React.FC<IPactCardProps> = ({
     onAccept,
     onDecline,
     isRespondPending,
+    onRenew,
+    isRenewPending,
     themeHabits,
     translate,
 }) => {
     const currentUserMember = pact.members?.find((m) => m.userId === currentUserId);
     const partnerMember = pact.members?.find((m) => m.userId !== currentUserId);
     const showInviteActions = !!onAccept && !!onDecline;
+    const showRenewAction = !!onRenew && !showInviteActions && isPactRenewable(pact);
 
     // Badge surface, dot and label color move together — a tonal badge is only
     // legible when its foreground matches the tint it sits on.
@@ -243,6 +252,37 @@ const PactCard: React.FC<IPactCardProps> = ({
                             </Text>
                         </Pressable>
                     </View>
+                </>
+            )}
+
+            {showRenewAction && (
+                <>
+                    <Text style={themeHabits.styles.pactCardInvitePrompt}>
+                        {translate('pages.pacts.renew.prompt')}
+                    </Text>
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={translate('pages.pacts.renew.cta', { days: pact.durationDays })}
+                        accessibilityState={{ disabled: !!isRenewPending }}
+                        disabled={isRenewPending}
+                        onPress={onRenew}
+                        style={({ pressed }) => [
+                            themeHabits.styles.pactCardInviteButton,
+                            themeHabits.styles.pactCardInviteButtonPrimary,
+                            pressed && themeHabits.styles.pactCardInviteButtonPressed,
+                        ]}
+                    >
+                        {isRenewPending
+                            ? <ActivityIndicator color={themeHabits.colors.onBrand} size="small" />
+                            : (
+                                <>
+                                    <FontAwesome5Icon name="redo" size={13} color={themeHabits.colors.onBrand} />
+                                    <Text style={themeHabits.styles.pactCardInviteButtonPrimaryText}>
+                                        {translate('pages.pacts.renew.cta', { days: pact.durationDays })}
+                                    </Text>
+                                </>
+                            )}
+                    </Pressable>
                 </>
             )}
         </Pressable>

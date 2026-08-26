@@ -2233,6 +2233,13 @@
       "incoming": {
         "emptyTitle": "Aucune invitation en attente",
         "emptySubtitle": "Quand un ami vous invite à un pacte, elle apparaît ici."
+      },
+      "renew": {
+        "prompt": "Ce pacte est terminé. Votre série est conservée.",
+        "cta": "Se réengager pour {days} jours de plus",
+        "successTitle": "Vous êtes réengagé",
+        "successMessage": "{days} jours de plus, la même équipe. Votre série continue.",
+        "error": "Impossible de renouveler le pacte. Veuillez réessayer."
       }
     },
     "pushOptIn": {

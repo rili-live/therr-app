@@ -2233,6 +2233,13 @@
       "incoming": {
         "emptyTitle": "No tienes invitaciones pendientes",
         "emptySubtitle": "Cuando un amigo te invite a un pacto, aparecerá aquí."
+      },
+      "renew": {
+        "prompt": "Este pacto ha terminado. Tu racha se mantiene.",
+        "cta": "Comprometerse {days} días más",
+        "successTitle": "Te has vuelto a comprometer",
+        "successMessage": "{days} días más, el mismo equipo. Tu racha continúa.",
+        "error": "No se pudo renovar el pacto. Inténtalo de nuevo."
       }
     },
     "pushOptIn": {

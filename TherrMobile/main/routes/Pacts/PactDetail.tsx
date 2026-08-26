@@ -9,6 +9,7 @@ import permissions from '../../utilities/permissionsOrchestrator';
 import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
 // Shared so the pending-pact wording can't drift between the card and this screen.
 import { getStatusText } from '../../components/Habits/PactCard';
+import { isPactRenewable } from '../Habits/pactState';
 import getPactTimeline from '../../utilities/pactTimeline';
 import getConfig from '../../utilities/getConfig';
 import { IUserState, IHabitsState, IPact, IPactMember } from 'therr-react/types';
@@ -30,6 +31,7 @@ interface IPactDetailDispatchProps {
     acceptPact: Function;
     declinePact: Function;
     abandonPact: Function;
+    renewPact: Function;
 }
 
 interface IStoreProps extends IPactDetailDispatchProps {
@@ -64,6 +66,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     acceptPact: HabitActions.acceptPact,
     declinePact: HabitActions.declinePact,
     abandonPact: HabitActions.abandonPact,
+    renewPact: HabitActions.renewPact,
 }, dispatch);
 
 export class PactDetail extends React.Component<IPactDetailProps, IPactDetailState> {
@@ -231,6 +234,62 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
             });
     };
 
+    /**
+     * Re-commit for another cycle of the same length. See
+     * `Dashboard.handleRenewPact` for why the duration is not asked for and why
+     * the streak survives the boundary.
+     *
+     * Navigates to the renewed pact rather than staying here: renewal creates a
+     * *new* pact, so this screen's `pactId` still addresses the finished cycle
+     * and would otherwise sit showing the old one with its CTA now gone.
+     */
+    handleRenew = () => {
+        const { renewPact, route, navigation } = this.props;
+        const { pactId } = route.params;
+
+        this.setState({ isActionLoading: true });
+
+        renewPact(pactId)
+            .then((renewed: any) => {
+                Toast.show({
+                    type: 'success',
+                    text1: this.translate('pages.pacts.renew.successTitle'),
+                    text2: this.translate('pages.pacts.renew.successMessage', {
+                        days: renewed?.durationDays,
+                    }),
+                    visibilityTime: 3000,
+                });
+
+                if (renewed?.id) {
+                    navigation.setParams({ pactId: renewed.id });
+                    this.handleRefresh();
+                } else {
+                    navigation.goBack();
+                }
+            })
+            .catch((error: any) => {
+                // Localized by the API and names the real reason — most often that
+                // someone else renewed this pact first, leaving a live cycle on the
+                // habit. The axios interceptor rejects with the body verbatim, so the
+                // message is on `error.message`; no `statusCode` means it never
+                // reached the API.
+                const apiMessage = error?.statusCode && typeof error?.message === 'string'
+                    ? error.message
+                    : '';
+
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.errorTitle'),
+                    text2: apiMessage || this.translate('pages.pacts.renew.error'),
+                    visibilityTime: 4000,
+                });
+                this.handleRefresh();
+            })
+            .finally(() => {
+                this.setState({ isActionLoading: false });
+            });
+    };
+
     handleCancelConfirm = () => {
         this.setState({ showConfirmModal: false, confirmAction: null });
     };
@@ -393,8 +452,12 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         const currentUserId = user.details?.id || '';
         const currentUserMember = pact?.members?.find((m) => m.userId === currentUserId);
         const partnerMember = pact?.members?.find((m) => m.userId !== currentUserId);
-        const isActive = pact?.status === 'active';
         const isInvitedUser = isPactInviteAwaitingResponse(pact, currentUserId);
+        // A pact past its endDate still reads `active` until the nightly sweep
+        // marks it expired, so renewability is checked before activity: that
+        // window must offer re-commit, not abandon.
+        const isRenewable = !isInvitedUser && isPactRenewable(pact);
+        const isActive = pact?.status === 'active' && !isRenewable;
         const linkableHabitGoalId = pact && this.getLinkableHabitGoalId(pact);
         const partnerName = partnerMember?.firstName
             || partnerMember?.userName
@@ -524,6 +587,24 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                                     titleStyle={this.themeButtons.styles.btnTitleRed}
                                     title={this.translate('pages.pacts.abandon')}
                                     onPress={this.handleAbandon}
+                                    disabled={isActionLoading}
+                                />
+                            </View>
+                        )}
+
+                        {isRenewable && (
+                            <View style={this.themeHabits.styles.streakWidgetContainer}>
+                                <Text style={this.themeHabits.styles.pactCardInvitePrompt}>
+                                    {this.translate('pages.pacts.renew.prompt')}
+                                </Text>
+                                <Button
+                                    buttonStyle={this.themeButtons.styles.btnLargeWithText}
+                                    titleStyle={this.themeButtons.styles.btnLargeTitle}
+                                    title={this.translate('pages.pacts.renew.cta', {
+                                        days: pact.durationDays,
+                                    })}
+                                    onPress={this.handleRenew}
+                                    loading={isActionLoading}
                                     disabled={isActionLoading}
                                 />
                             </View>

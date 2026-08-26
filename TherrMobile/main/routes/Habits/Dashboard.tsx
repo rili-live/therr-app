@@ -103,6 +103,7 @@ interface IHabitsDashboardDispatchProps {
     acceptPact: Function;
     declinePact: Function;
     nudgePact: Function;
+    renewPact: Function;
 }
 
 interface IStoreProps extends IHabitsDashboardDispatchProps {
@@ -122,6 +123,7 @@ interface IHabitsDashboardState {
     proofSheetHabit: IHabitGoal | null;
     isSubmittingCheckin: boolean;
     respondingPactId: string | null;
+    renewingPactId: string | null;
     nudgingPactId: string | null;
     pactIdPendingDecline: string | null;
 }
@@ -143,6 +145,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     acceptPact: HabitActions.acceptPact,
     declinePact: HabitActions.declinePact,
     nudgePact: HabitActions.nudgePact,
+    renewPact: HabitActions.renewPact,
 }, dispatch);
 
 export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHabitsDashboardState> {
@@ -164,6 +167,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             proofSheetHabit: null,
             isSubmittingCheckin: false,
             respondingPactId: null,
+            renewingPactId: null,
             nudgingPactId: null,
             pactIdPendingDecline: null,
         };
@@ -504,6 +508,69 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             });
     };
 
+    /**
+     * Re-commit to a pact whose cycle has ended, for another window of the same
+     * length.
+     *
+     * The duration is deliberately not asked for. The gamification evidence
+     * behind this feature is that a *fixed* cycle is the mechanic — the RCT
+     * meta-analysis it comes from measures renewal, not length — and § 2.6.1
+     * already established here that lowering the bar on the committing action
+     * beats adding choice to it. `renewPact` with no override reuses the
+     * previous cycle's `durationDays`.
+     *
+     * A renewal is a new pact, not a mutation of the old one, so the streak in
+     * `habits.streaks` is untouched and carries across the boundary. That is
+     * load-bearing: a renewal that reset the streak would turn the strongest
+     * mechanic in the loop into its worst failure mode, on a day the user did
+     * nothing wrong.
+     */
+    handleRenewPact = (pact: IPact) => {
+        const { renewPact } = this.props;
+
+        this.setState({ renewingPactId: pact.id });
+
+        renewPact(pact.id)
+            .then(() => {
+                Toast.show({
+                    type: 'success',
+                    text1: this.translate('pages.pacts.renew.successTitle'),
+                    text2: this.translate('pages.pacts.renew.successMessage', {
+                        days: pact.durationDays,
+                    }),
+                    visibilityTime: 3000,
+                });
+
+                this.handleRefresh();
+            })
+            .catch((error: any) => {
+                // The server re-checks renewability and 409s a stale CTA — most often
+                // because someone else already renewed this pact, leaving a live cycle
+                // on the habit. Its body is localized and names the actual reason, and
+                // the axios interceptor rejects with that body verbatim (hence
+                // `error.message`, not `error.response.data`), so prefer it. A rejection
+                // carrying no `statusCode` never reached the API at all.
+                const apiMessage = error?.statusCode && typeof error?.message === 'string'
+                    ? error.message
+                    : '';
+
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.errorTitle'),
+                    text2: apiMessage || this.translate('pages.pacts.renew.error'),
+                    visibilityTime: 4000,
+                });
+
+                // The likeliest rejection means the list this CTA was drawn from is out
+                // of date, so refetch rather than leave a button that fails again on the
+                // next tap.
+                this.handleRefresh();
+            })
+            .finally(() => {
+                this.setState({ renewingPactId: null });
+            });
+    };
+
     handleDeclineInvitePress = (pact: IPact) => {
         this.setState({ pactIdPendingDecline: pact.id });
     };
@@ -792,7 +859,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
 
     renderPactItem = ({ item }: { item: IPact }) => {
         const { user } = this.props;
-        const { respondingPactId, nudgingPactId } = this.state;
+        const { respondingPactId, nudgingPactId, renewingPactId } = this.state;
 
         if (this.getEffectiveTab() === 'outgoing') {
             return (
@@ -824,6 +891,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 onAccept={isAwaitingMyResponse ? () => this.handleAcceptInvite(item) : undefined}
                 onDecline={isAwaitingMyResponse ? () => this.handleDeclineInvitePress(item) : undefined}
                 isRespondPending={respondingPactId === item.id}
+                onRenew={() => this.handleRenewPact(item)}
+                isRenewPending={renewingPactId === item.id}
                 themeHabits={this.themeHabits}
                 translate={this.translate}
             />

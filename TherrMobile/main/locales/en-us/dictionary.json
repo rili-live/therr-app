@@ -2233,6 +2233,13 @@
       "incoming": {
         "emptyTitle": "No invites waiting on you",
         "emptySubtitle": "When a friend invites you to a pact, it shows up here."
+      },
+      "renew": {
+        "prompt": "This pact has finished. Your streak carries over.",
+        "cta": "Re-commit for {days} more days",
+        "successTitle": "You're re-committed",
+        "successMessage": "{days} more days, same crew. Your streak keeps going.",
+        "error": "Could not renew this pact. Please try again."
       }
     },
     "pushOptIn": {
