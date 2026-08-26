@@ -1,0 +1,28 @@
+diff --git a/node_modules/react-native-nitro-modules/android/build.gradle b/node_modules/react-native-nitro-modules/android/build.gradle
+index 6721e9c..331b21c 100644
+--- a/node_modules/react-native-nitro-modules/android/build.gradle
++++ b/node_modules/react-native-nitro-modules/android/build.gradle
+@@ -157,6 +157,23 @@ if (isNewArchitectureEnabled()) {
+   }
+ }
+ 
++// Populate the prefab headers eagerly during configuration so that dependent modules
++// (e.g. react-native-iap) can resolve `react-native-nitro-modules::NitroModules` at
++// CMake configure time. Android Studio's Gradle sync configures CMake without first
++// running `preBuild`, so `prepareHeaders` has not executed yet and
++// `prefab<Variant>ConfigurePackage` fails on a non-existent `moduleHeaders` directory
++// ("Imported target ...::NitroModules includes non-existent path"). This mirrors the
++// same spec as `prepareHeaders` below, which still runs and stays authoritative.
++def nitroPrefabHeadersDir = project.file("${project.buildDir}/headers/nitromodules/NitroModules/")
++nitroPrefabHeadersDir.mkdirs()
++project.copy {
++  from fileTree('./src/main/cpp').filter { it.isFile() }
++  from fileTree('../cpp/').filter { it.isFile() }
++  include "*.hpp"
++  into nitroPrefabHeadersDir
++  includeEmptyDirs = false
++}
++
+ tasks.register('prepareHeaders', Copy) {
+   from fileTree('./src/main/cpp').filter { it.isFile() }
+   from fileTree('../cpp/').filter { it.isFile() }
