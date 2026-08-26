@@ -410,7 +410,7 @@ console configuration, and one verification that gates a payments change.
   reminder is the first producer with a row for nearly every active user, so it is the first
   thing that can crowd out a timely notification. Kill switch is
   `HABIT_DAILY_REMINDERS_ENABLED=false`.
-- [ ] (2026-08-07, push-notifications-debug) **Four HABITS notification types still have no
+- [ ] (2026-08-07, push-notifications-debug) **Six HABITS notification types still have no
   sender.** `morningMotivation`, `eveningCheckIn`, `streakBroken`, `newPersonalRecord`,
   `partnerCelebrated` and `pactCompleted` have copy in all three
   locales, Android channel routing, per-brand intent actions and test coverage — and
@@ -974,6 +974,16 @@ console configuration, and one verification that gates a payments change.
   expected — but a run where *every* send takes the plain body after the new users-service is
   fully rolled out means the digest is not putting the count on the row, and the mechanic is
   silently unannounced again.
+
+- [ ] (2026-08-26, /quality-peer-review) **Confirm the build→publish manifest handoff on the
+  next real merge to `stage`.** `_bin/lib/build-manifest.sh` is only exercised by a genuine
+  `docker_build_test_publish_images` run — no local test can produce the CircleCI image store.
+  In the build step's log, check the `--- .build-manifest.tsv ---` block names exactly the
+  services the step said it was building; in the publish step, check every push is preceded by
+  a tag read from that file. Two new failure modes to watch for, both of which now abort loudly
+  rather than failing at the registry: "No build manifest at ..." (the build step never ran) and
+  "changed in this merge but build.sh never built it" (the two steps' predicates disagreed).
+  Introduced to stop the e4790de8 class of failure, where publish pushed a tag nothing built.
 
 <!-- skill-followups:end -->
 

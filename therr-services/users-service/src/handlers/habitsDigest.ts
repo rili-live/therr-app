@@ -503,10 +503,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     const completedToday = (todayCheckins || []).some((c: any) => c.status === 'completed');
                     const completedYesterday = (yesterdayCheckins || []).some((c: any) => c.status === 'completed');
 
-                    // Lifecycle: milestones, maintenance check-ins and comeback
-                    // offers. Runs once per (user, habit) per digest, before the
-                    // nudge below, because its decision is what decides whether
-                    // that nudge is allowed to go out at all.
+                    // Read here rather than inside the nudge below because both
+                    // the taper check and `nudgedPairs` need them.
                     const key = pairKey(member.userId, pact.habitGoalId);
                     const decision = lifecycle.decisions[key];
 
