@@ -359,6 +359,86 @@ export const rankAreaPreviews = (areas: IRankablePost[], moments: IRankablePost[
 };
 
 /**
+ * Beyond this radius an area is dropped from the preview strip outright. `filteredSpaces`
+ * is a redux cache that accumulates across searches and across locations, and a couple of
+ * miles out the proximity term has already decayed to ~0 — so without a hard ceiling a space
+ * left over from a previous city is ordered on recency and engagement alone and can lead the
+ * strip.
+ */
+const MAX_AREA_PREVIEW_DISTANCE_MILES = 100;
+
+/**
+ * Featured (reward-bearing) areas are hoisted ahead of closer content. That trade only pays
+ * off for a reward the user could plausibly go claim, so a featured area past this radius is
+ * ordered like any other area instead of jumping the queue.
+ */
+const MAX_FEATURED_HOIST_DISTANCE_MILES = 25;
+
+/** Hard cap on cards handed to the strip. */
+const MAX_AREA_PREVIEW_COUNT = 100;
+
+interface IAreaPreviewStripOptions {
+    /** The area the user actually tapped, if the press resolved to a marker. */
+    pressedAreaId?: string;
+    /** Radius (meters) within which an untapped area still counts as "the thing pressed". */
+    pressedAreaRadiusMeters: number;
+    /**
+     * Set when the caller passed an explicit set of overlapping areas (markers stacked at one
+     * point). That set is the answer to the press by construction, so the distance ceilings
+     * are skipped for it.
+     */
+    hasExplicitAreas?: boolean;
+}
+
+/**
+ * Buckets an already-ranked area list into the order the preview strip renders: the pressed
+ * area first, then up to two nearby featured areas, then everything else in rank order.
+ *
+ * Distances are measured from the pressed coordinate rather than from the user, because
+ * panning to another city and pressing there is a supported way to browse it — the ceilings
+ * are about "far from what you asked about", not "far from home".
+ */
+export const orderAreaPreviewStrip = (
+    rankedAreas: IRankablePost[],
+    { pressedAreaId, pressedAreaRadiusMeters, hasExplicitAreas }: IAreaPreviewStripOptions,
+): IRankablePost[] => {
+    const pressedAreas: IRankablePost[] = [];
+    const featuredAreas: IRankablePost[] = [];
+    const remainingAreas: IRankablePost[] = [];
+
+    (rankedAreas || []).some((area) => {
+        const isPressedArea = !!pressedAreaId && area.id === pressedAreaId;
+        const milesFromPress = area.distanceFromPress || 0;
+        const isWithinStrip = hasExplicitAreas
+            || isPressedArea
+            || milesFromPress <= MAX_AREA_PREVIEW_DISTANCE_MILES;
+
+        if (isWithinStrip) {
+            if (isPressedArea) {
+                pressedAreas.push(area);
+            } else if (!pressedAreaId
+                && pressedAreas.length < 1
+                && (milesFromPress * METERS_PER_MILE) < pressedAreaRadiusMeters) {
+                // Prioritize area over featured when the press did not resolve to a marker
+                // (an approximate tap, or a search by name) but landed on top of one anyway.
+                pressedAreas.push(area);
+            } else if (area.featuredIncentiveRewardKey
+                && featuredAreas.length < 2
+                && (hasExplicitAreas || milesFromPress <= MAX_FEATURED_HOIST_DISTANCE_MILES)) {
+                // TODO: Prioritize top 2 with highest rewards nearby
+                featuredAreas.push(area);
+            } else {
+                remainingAreas.push(area);
+            }
+        }
+
+        return pressedAreas.length + featuredAreas.length + remainingAreas.length >= MAX_AREA_PREVIEW_COUNT;
+    });
+
+    return pressedAreas.concat(featuredAreas).concat(remainingAreas);
+};
+
+/**
  * Auto-expand criteria: threads with real conversation (2+ replies) always expand;
  * single-reply threads only expand when there is a like signal on the parent or reply.
  */

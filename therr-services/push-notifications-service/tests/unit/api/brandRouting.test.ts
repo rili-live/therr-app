@@ -88,6 +88,10 @@ const DISPLAY_TYPES = [
     PushNotifications.Types.proximityRequiredMoment,
     PushNotifications.Types.proximityRequiredSpace,
     PushNotifications.Types.streakBroken,
+    // Reassurance on a day the user did nothing wrong. It has to survive in the
+    // tray whether or not the app is running, because the whole point is that
+    // the user learns the net caught them rather than inferring it later.
+    PushNotifications.Types.streakFreezeUsed,
     PushNotifications.Types.pactDeclined,
     PushNotifications.Types.dailyHabitReminder,
     PushNotifications.Types.morningMotivation,

@@ -163,6 +163,12 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                 );
             }
 
+            // Freeze accounting for this request. Reported back on the 201 so
+            // the client can confirm in-app rather than leaving the user to
+            // infer from an unchanged streak number that something caught them.
+            let graceDaysConsumed = 0;
+            let streakSavedByFreeze = 0;
+
             // If completed, update streak
             if (checkin.status === 'completed') {
                 let streak = await Store.streaks.getOrCreate(userId, habitGoalId, attributedPactId);
@@ -211,12 +217,50 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                                 await Store.streaks.useGraceDay(streak.id);
                             }
                             await Store.streaks.recordGraceUsed(streak.id, userId, checkinDate, streak.currentStreak);
+                            graceDaysConsumed = missedDays;
+                            streakSavedByFreeze = streak.currentStreak;
                         } else {
                             await Store.streaks.recordMissed(streak.id, userId, checkinDate, streak.currentStreak);
                             await Store.streaks.resetStreak(streak.id);
                         }
                         streak = await Store.streaks.getById(streak.id);
                     }
+                }
+
+                // Announce the freeze at the moment it is spent.
+                //
+                // The mechanic has always worked silently, which makes it
+                // worthless as a rule: "build in the miss" only changes
+                // behaviour if the user learns the first bad day happened
+                // inside the rules rather than ending them. Both channels are
+                // deliberate — the toast reaches the user who is holding the
+                // phone right now (they just tapped check in), the push reaches
+                // the same user later on a device that was backgrounded.
+                if (graceDaysConsumed > 0) {
+                    sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
+                        authorization,
+                        fromUser: { id: userId, userName },
+                        locale,
+                        toUserId: userId,
+                        type: PushNotifications.Types.streakFreezeUsed,
+                        streakCount: streakSavedByFreeze,
+                        habitId: habitGoalId,
+                        habitName: habitGoal.name,
+                        freezeDaysUsed: graceDaysConsumed,
+                        freezesRemaining: Math.max(
+                            0,
+                            (streak.gracePeriodDays || 0) - (streak.graceDaysUsed || 0),
+                        ),
+                        whiteLabelOrigin,
+                        brandVariation,
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['Error sending streak freeze used notification'],
+                            traceArgs: { 'error.message': err?.message, habitGoalId },
+                        });
+                    });
                 }
 
                 const streakBefore = streak.currentStreak;
@@ -380,7 +424,11 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                 await Store.habitCheckins.update(checkin.id, { contributedToStreak: true });
             }
 
-            return res.status(201).send(checkin);
+            return res.status(201).send({
+                ...checkin,
+                graceDaysConsumed,
+                streakSavedByFreeze,
+            });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' }));
 };

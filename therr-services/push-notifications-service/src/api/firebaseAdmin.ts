@@ -5,6 +5,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import translate from '../utilities/translator';
 import { clearInvalidDeviceToken } from '../handlers/helpers/user';
 import { getCredentialEnvKey } from './firebaseCredentialEnvKey';
+import { selectStreakAtRiskBodyKey } from './streakCopy';
 
 // FCM error codes for tokens that should be removed from the database.
 // See https://firebase.google.com/docs/cloud-messaging/send-message#admin
@@ -160,6 +161,11 @@ interface ICreateMessageConfig {
     habitId?: string;
     habitName?: string;
     daysRemaining?: number;
+    // Streak freezes. `freezesRemaining` is the count left after the spend and
+    // also rides along on `streakAtRisk`, where it selects a body that names
+    // the net instead of only naming the threat.
+    freezesRemaining?: number;
+    freezeDaysUsed?: number;
     // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md). Mirrors the
     // fields users-service puts on the queue row in
     // `sendEmailAndOrPushNotification.ts` — age of the habit in days,
@@ -912,19 +918,49 @@ const createMessage = (
         // copy ("Don't break your N-day streak") and partner-anchored copy
         // ("Sam just hit Day N — don't let them lap you") consistently
         // out-perform generic reminders for habit apps.
-        case PushNotifications.Types.streakAtRisk:
+        case PushNotifications.Types.streakAtRisk: {
+            // Loss aversion, but stated inside the rule the app actually plays
+            // by. Warning that a streak is on the line while quietly holding a
+            // freeze that covers tonight teaches the user the threat is
+            // overstated; naming the freeze is what makes "build in the miss" a
+            // rule agreed in advance rather than a surprise.
+            const atRiskFreezesRemaining = Number(config.freezesRemaining || 0);
             baseMessage = createDataOnlyMessage({
                 data: {
                     ...modifiedData,
                     notificationTitle: translate(config.userLocale, 'notifications.streakAtRisk.title'),
-                    notificationBody: translate(config.userLocale, 'notifications.streakAtRisk.body', {
-                        streakCount: Number(config.streakCount || 0),
-                        habitName: String(config.habitName || ''),
-                    }),
+                    notificationBody: translate(
+                        config.userLocale,
+                        selectStreakAtRiskBodyKey(atRiskFreezesRemaining),
+                        {
+                            streakCount: Number(config.streakCount || 0),
+                            habitName: String(config.habitName || ''),
+                            freezesRemaining: atRiskFreezesRemaining,
+                        },
+                    ),
                     notificationPressActionId: PushNotifications.PressActionIds.checkinView,
                 },
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'STREAK_AT_RISK'), brandVariation);
+            return baseMessage;
+        }
+        case PushNotifications.Types.streakFreezeUsed:
+            // A real notification rather than data-only: this one is worth a
+            // tray entry the user can come back to. It is the only moment the
+            // safety net is visible, and it lands on a day the user did nothing
+            // wrong, so it must read as reassurance and not as a warning.
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, 'notifications.streakFreezeUsed.title'),
+                notificationBody: translate(config.userLocale, 'notifications.streakFreezeUsed.body', {
+                    streakCount: Number(config.streakCount || 0),
+                    habitName: String(config.habitName || ''),
+                    freezesRemaining: Number(config.freezesRemaining || 0),
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
             return baseMessage;
         case PushNotifications.Types.streakBroken:
             baseMessage = createNotificationMessage({
@@ -1356,6 +1392,7 @@ const predictAndSendNotification = (
 
             // HABITS — Streak, partner, pact lifecycle, habit reminders
             if (type === PushNotifications.Types.streakAtRisk
+                || type === PushNotifications.Types.streakFreezeUsed
                 || type === PushNotifications.Types.streakBroken
                 || type === PushNotifications.Types.streakMilestone
                 || type === PushNotifications.Types.newPersonalRecord

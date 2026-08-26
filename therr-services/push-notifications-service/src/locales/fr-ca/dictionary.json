@@ -111,7 +111,12 @@
     },
     "streakAtRisk": {
       "title": "Ne brise pas ta série",
-      "body": "Ta série de {streakCount} jours sur {habitName} est en jeu — enregistre-toi avant minuit pour la garder."
+      "body": "Ta série de {streakCount} jours sur {habitName} est en jeu — enregistre-toi avant minuit pour la garder.",
+      "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} est en jeu. Un gel de série couvrira ce soir si tu manques ({freezesRemaining} restant(s)) — mais t'enregistrer te le garde en réserve."
+    },
+    "streakFreezeUsed": {
+      "title": "Ta série a tenu",
+      "body": "Tu as manqué une journée sur {habitName}, alors un gel de série l'a couverte — ta série de {streakCount} jours est intacte. Il t'en reste {freezesRemaining}."
     },
     "streakBroken": {
       "title": "Série réinitialisée",

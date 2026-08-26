@@ -940,6 +940,25 @@ console configuration, and one verification that gates a payments change.
   runtime, sweep it once manually before the deploy rather than letting the nightly job carry it.
 
 
+- [ ] (2026-08-26, /work-plan) **Confirm `streak-freeze-used` renders on a real device before
+  the next HABITS Play build.** It is the first HABITS push added since the brand-scoped device
+  token rollout, and it is a *display* notification (`createNotificationMessage`, channel
+  `reminders`) rather than data-only — so unlike `streakAtRisk` it does not go through the
+  in-app handler and nothing in the mobile client had to change for it to appear. That also
+  means nothing in the mobile client will report it failing: an unregistered channel or a
+  missing brand credential shows up as silence, not as an error. Trigger it by checking in
+  after skipping a day on a habit whose streak still holds a freeze, and confirm both the tray
+  entry and that `freezesRemaining` interpolates rather than rendering the literal
+  `{freezesRemaining}`.
+
+- [ ] (2026-08-26, /work-plan) **Watch the first `streakAtRisk` batch after this deploy for the
+  freeze-body split.** The body is now chosen per user from `freezesRemaining` on the queue row.
+  Rows enqueued by the *previous* users-service carry no such field and correctly fall back to
+  the plain warning, so during the rollout window the two bodies are both live and that is
+  expected — but a run where *every* send takes the plain body after the new users-service is
+  fully rolled out means the digest is not putting the count on the row, and the mechanic is
+  silently unannounced again.
+
 <!-- skill-followups:end -->
 
 ---
@@ -1359,75 +1378,48 @@ The article's six rules, audited against what is in the code today:
 
 | # | Rule | Today |
 |---|---|---|
-| 1 | Set the bar at the floor | ❌ the daily check-in is a modal, not a tap |
+| 1 | Set the bar at the floor | ✅ the check-in commits on the first tap; proof is added after |
 | 2 | Track a streak, not a score | ⚠️ streaks are central, but a weekly XP board sits beside them |
 | 3 | Build in the miss | ✅ streak freezes exist — but are invisible until spent |
-| 4 | Visible to 2–5 specific people | ⚠️ pacts cap invitees at 5; partner streaks are never rendered |
+| 4 | Visible to 2–5 specific people | ✅ pacts cap invitees at 5, and partner streaks now render on the card |
 | 5 | Keep the metric inseparable from the behaviour | ⚠️ HABITS XP also accrues from invites |
-| 6 | Renew on a fixed cycle | ❌ nothing — a pact reaches `endDate` and goes quiet |
+| 6 | Renew on a fixed cycle | ⚠️ sweep, endpoint and card CTA ship; the expiring push still has no CTA |
 
 The five items below are ordered by expected impact and are **independent**:
 each can ship on its own without waiting on the others. They are the highest-
 priority cluster in Tier 2 — ahead of §§ 2.1–2.5 — because they act on the
-retention loop every other Tier 2 item feeds.
+retention loop every other Tier 2 item feeds. §§ 2.6.1 and 2.6.2 are closed and
+2.6.3 is all but closed; **2.6.4 and 2.6.5 are what remains open here.**
 
 ---
 
-#### 2.6.1 One-tap check-in — lower the bar to the floor
+#### 2.6.1 One-tap check-in — closed 2026-08-26
 
-**Rule 1.** Duolingo's largest published retention win was making the streak
-easier to extend, not harder: a single lesson extends it, with the daily goal
-tracked separately. The A/B result was **+3.3% day-14 retention, +10.5% daily
-learners on a streak (+19% among new learners)**, and their own conclusion is
-that lowering the barrier to a consistent daily habit beats raising how much
-you do each day. Learners who reach a 7-day streak are **2.4×** more likely to
-return tomorrow — so the cheapest thing the app can do is get more people to
-day 7.
+Closed (/work-plan). The primary button now commits the check-in immediately on
+both entry points (`Habits/Dashboard.tsx`, `Habits/HabitDetail.tsx`); the proof
+sheet is offered afterwards from the success toast, against the same
+(habit, date) row. `habitCheckins.createOrUpdate`'s same-day branch is what makes
+that safe — it updates notes and proofs without re-crediting the streak, awarding
+XP twice, or re-firing partner pushes.
 
-Today the daily action costs a modal. `CheckinButton` → `handleCheckin` opens
-`CheckinProofSheet` (notes field + camera/library picker) and needs a second
-confirm tap, on **both** entry points
-(`TherrMobile/main/routes/Habits/Dashboard.tsx:259`,
-`TherrMobile/main/routes/Habits/HabitDetail.tsx:142`). Nothing about the sheet
-is required — `onConfirm` is happy with no note and no photo — so it is pure
-friction on the one action the entire product depends on.
+Watch `MetricNames.FUNNEL_HABIT_CHECKIN` and the share of users reaching a 7-day
+streak; the change is worth nothing if those do not move.
 
-The fix: the primary button commits the check-in immediately and optimistically;
-proof becomes something you *add*, not something you pass through. The backend
-already supports this — `habitCheckins.createOrUpdate` is idempotent per
-(habit, date), and the handler's same-day branch explicitly updates proofs and
-notes without re-crediting the streak, awarding XP twice, or re-firing partner
-pushes — so an "add a note or photo" affordance after the fact reuses the sheet
-unchanged against the same row.
+#### 2.6.2 Render partner streaks — closed 2026-08-26
 
-- Scope: `niche/HABITS-general` (mobile only — no backend, no migration).
-- Watch: `MetricNames.FUNNEL_HABIT_CHECKIN`, and the share of users reaching a
-  7-day streak.
+Closed (/work-plan). `attachPactMemberStats` gained `checkedInToday`, and
+`PactMemberRow` / `PactCard` now draw each member's current streak alongside
+today's state, so a member's absence is visible to the people it should be
+visible to.
 
-#### 2.6.2 Render partner streaks — the Friend Streak surface
+One rendering rule is load-bearing and easy to undo by accident: an `undefined`
+`checkedInToday` means *the server did not say* (pending invites come back
+without member rows), and must render as nothing rather than as an unchecked
+box. Drawing it as "missed today" would tell a member their partner skipped a
+day the app has no information about — see `getCheckedInToday`.
 
-**Rule 4.** Duolingo's Friend Streak — share a streak with up to five people,
-no leaderboard, no messaging, no new content — makes learners **22% more likely
-to complete their daily lesson**, and the effect compounds with each additional
-friend. It adds nothing but a second reader.
-
-Pacts are already the right shape: `MAX_BULK_INVITEES = 5`
-(`therr-services/users-service/src/handlers/pacts.ts:39`) matches the research
-window exactly, and `attachPactMemberStats` already derives and returns each
-member's `currentStreak` from `habits.streaks` — the number is on the wire
-today. It is simply never drawn: `PactMemberRow` renders
-`role · status` ("partner · active") and nothing else, so the one mechanic with
-the largest published effect size is invisible in the UI.
-
-The fix: render each member's current streak and today's check-in state on the
-pact card, so a member's absence is *noticeable* — the whole mechanism. Adding
-`checkedInToday` per member to `attachPactMemberStats` is the only backend
-piece; the streak number needs no server change at all.
-
-- Scope: `general` (add `checkedInToday` to the derived member stats) +
-  `niche/HABITS-general` (render it).
-- Note: deliberately **not** a leaderboard. Friend Streak has no ranking, and
-  see 2.6.5 for why that matters.
+Still deliberately **not** a leaderboard: Friend Streak has no ranking, and
+§ 2.6.5 is the open question about the board that does exist.
 
 #### 2.6.3 Pact renewal — close the fixed-cycle loop
 
@@ -1437,35 +1429,41 @@ physical activity that decays to **g = 0.15 at 12–24 week follow-up**. The
 effect is real and it fades, which is why the article's last rule is to renew
 on a fixed cycle rather than run open-ended.
 
-Pacts already have the cycle — `durationDays` of 7/14/30/90 — but nothing
-closes it. `pactExpiring` warns each member for the last three days
-(`therr-services/users-service/src/handlers/habitsDigest.ts:243`) and then the
-app has nothing more to say. `PactsStore.expire()` and
-`pactHelpers.shouldExpirePact` both exist and **neither is called from
-anywhere**, so pacts also sit at `status='active'` past their `endDate`
-indefinitely.
+Closed 2026-08-26 (/work-plan), both halves plus the in-app surface:
 
-The fix, in two separable halves:
+- The daily digest now sweeps pacts past `endDate` through `PactsStore.expire()`,
+  which had existed uncalled since the pact schema landed.
+- `PUT /habits/pacts/:id/renew` clones a finished pact — same habit goal, same
+  members who were actually *in* the last cycle, a fresh window — leaving
+  `habits.streaks` untouched so the streak carries across the boundary. It is a
+  new pact, not a mutation of the old one.
+- The mobile "re-commit for another N days" CTA renders on the pact card and the
+  pact detail screen, one tap, reusing the previous cycle's `durationDays`.
 
-1. An expiry sweep in the daily digest that actually calls
-   `PactsStore.expire()` on pacts past `endDate`.
-2. A renewal endpoint (`POST /pacts/:id/renew`) that clones an expiring or
-   completed pact — same habit goal, same members, a fresh window — leaving the
-   underlying `habits.streaks` row untouched so the streak carries across the
-   boundary. Surface it as a "re-commit for another N days" CTA on the
-   expiring-pact push and the pact card.
+Two invariants worth not re-deriving:
 
-The streak **must** carry: a renewal that resets it to zero converts the
-article's strongest mechanic into its worst failure mode on a day the user did
-nothing wrong.
+- **The streak must carry.** A renewal that reset it to zero would convert the
+  article's strongest mechanic into its worst failure mode, on a day the user did
+  nothing wrong.
+- **Renewability is not a status check.** The sweep runs nightly, so a pact past
+  its `endDate` still reads `active` until it fires. `isPactRenewable`
+  (users-service `utilities/pactHelpers.ts`, mirrored client-side in
+  `TherrMobile/main/routes/Habits/pactState.ts`) therefore treats
+  active-past-`endDate` as finished. Gating on status alone tells a user whose
+  pact visibly ended that it is still running, and hides the CTA.
 
-- Scope: `general` (sweep, endpoint, digest copy) + `niche/HABITS-general` (CTA).
+Still open:
+
+- The `pactExpiring` push has no renew CTA and no deep link — the CTA is only
+  discoverable by opening the app and finding the pact. This is the half that
+  reaches a user who has stopped opening the app, which is the population the
+  whole item is aimed at.
 - Optional follow-on: a long-form "your pact ended — here's what you built"
   re-commit email in `therr-messaging-automator`, which owns the SES templates
   and unsubscribe-token path (see `docs/HABIT_LIFECYCLE_MESSAGING.md` § Where
   each message lives). Push first; email has no rate-limiting layer of its own.
 
-#### 2.6.4 Announce the streak freeze before it is spent
+#### 2.6.4 Announce the streak freeze before it is spent — closed 2026-08-26
 
 **Rule 3.** "Build in the miss" is explicitly a rule *agreed in advance* — the
 first bad day has to happen inside the rules rather than ending them. Duolingo's
@@ -1474,21 +1472,44 @@ streak freeze cut churn ~21% for at-risk users.
 The mechanic is fully built here and almost entirely unadvertised. Streaks start
 with one freeze (`StreaksStore.ts:139`), earn another at every 7+ day milestone
 up to `MAX_GRACE_PERIOD_DAYS`, and are spent automatically on the next check-in
-after a gap (`habitCheckins.ts:194-217`). But the user is only ever told the
-count in passing — `StreakWidget` and `HabitDetail` show "N grace days" — and:
+after a gap. But the user was only ever told the count in passing —
+`StreakWidget` and `HabitDetail` show "N grace days".
 
-- the `streakAtRisk` push (`habitsDigest.ts:389`) says the streak is at risk
-  without mentioning that a freeze will cover tonight;
-- spending a freeze fires **no** notification at all, so the safety net is
-  invisible at exactly the two moments it would change behaviour;
-- nothing in onboarding or goal creation states the rule up front.
+**The `general` half shipped 2026-08-26.** Both notification moments now exist:
 
-The fix: state the allowance at habit creation, fold the remaining freeze count
-into `streakAtRisk` copy, and notify when one is consumed ("your 12-day streak
-survived — 1 freeze left"). Copy work in three locales, no schema change.
+- `PushNotifications.Types.streakFreezeUsed` fires from `habitCheckins.ts` the
+  moment a freeze is spent, carrying `freezesRemaining` (the count left *after*
+  the spend) and the streak it saved. Classified as a display type, not
+  data-only — it has to land in the tray whether or not the app is running.
+- `streakAtRisk` now selects `bodyWithFreeze` when the user still holds one
+  (`api/streakCopy.ts`), so the warning names the net instead of overstating
+  the threat. An absent or unparseable count falls back to the plain body —
+  during a rollout the field rides on queue rows written by an older
+  users-service, and promising a net that is not there is the worse failure.
+- `POST /habits/checkins` returns `graceDaysConsumed` and `streakSavedByFreeze`
+  on the 201, so the client can confirm in-app rather than leaving the user to
+  infer from an unchanged streak number that something caught them. The
+  same-day resubmit branch returns before this, so adding a proof after the
+  fact never re-announces.
 
-- Scope: `general` (digest copy, new push type, shared dictionaries) +
-  `niche/HABITS-general` (onboarding + goal-creation copy).
+**The `niche/HABITS-general` half shipped 2026-08-26.** The rule is now stated
+before it is needed and confirmed at the moment it is spent:
+
+- The create-habit wizard's review step states the allowance on the last screen
+  before the habit exists — the last moment it is still *in advance*.
+- `StreakWidget` renders the rule alongside the count, and renders it when the
+  allowance is exhausted too: the old condition hid the line at exactly the
+  moment the user most needed to know the net was gone.
+- Both check-in toasts (`Dashboard`, `HabitDetail`) take over their copy when
+  `graceDaysConsumed > 0`. An older server omits the field and correctly reads
+  as "no freeze spent" — announcing a save that did not happen is the worse
+  failure, and `__tests__/utilities/streakFreezes.test.ts` pins that asymmetry.
+- `utilities/streakFreezes.ts` mirrors the backend allowance (1 to start, +1
+  per 7-day milestone, cap 3) because the rule must be stated before any
+  `habits.streaks` row exists to read it from. **Change both together** — a
+  backend move makes this copy lie rather than break.
+
+Closed 2026-08-26. Remaining in § 2.6: **2.6.5** only.
 
 #### 2.6.5 Keep the HABITS score tied to the behaviour
 

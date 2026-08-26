@@ -111,7 +111,12 @@
     },
     "streakAtRisk": {
       "title": "Don't Break Your Streak",
-      "body": "Your {streakCount}-day {habitName} streak is on the line — check in before midnight to keep it alive."
+      "body": "Your {streakCount}-day {habitName} streak is on the line — check in before midnight to keep it alive.",
+      "bodyWithFreeze": "Your {streakCount}-day {habitName} streak is on the line. A streak freeze will cover tonight if you miss ({freezesRemaining} left) — but checking in keeps it in your pocket."
+    },
+    "streakFreezeUsed": {
+      "title": "Your Streak Survived",
+      "body": "You missed a day on {habitName}, so a streak freeze covered it — your {streakCount}-day streak is intact. {freezesRemaining} freeze(s) left."
     },
     "streakBroken": {
       "title": "Streak Reset",
