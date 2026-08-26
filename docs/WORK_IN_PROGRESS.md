@@ -1485,7 +1485,7 @@ Still open:
   and unsubscribe-token path (see `docs/HABIT_LIFECYCLE_MESSAGING.md` § Where
   each message lives). Push first; email has no rate-limiting layer of its own.
 
-#### 2.6.4 Announce the streak freeze before it is spent
+#### 2.6.4 Announce the streak freeze before it is spent — closed 2026-08-26
 
 **Rule 3.** "Build in the miss" is explicitly a rule *agreed in advance* — the
 first bad day has to happen inside the rules rather than ending them. Duolingo's
@@ -1514,18 +1514,24 @@ after a gap. But the user was only ever told the count in passing —
   same-day resubmit branch returns before this, so adding a proof after the
   fact never re-announces.
 
-Still open, on `niche/HABITS-general`:
+**The `niche/HABITS-general` half shipped 2026-08-26.** The rule is now stated
+before it is needed and confirmed at the moment it is spent:
 
-- State the allowance at habit creation (`routes/Pacts/CreatePactInvite.tsx`) —
-  one freeze to start, one more every 7 days, capped at three. Nothing states
-  the rule up front, and a net the user does not know about cannot change what
-  they do on the day they are deciding whether to bother.
-- Replace the bare "N grace days" number in `StreakWidget.tsx` and
-  `HabitDetail.tsx` with the rule, not just the count.
-- Surface `graceDaysConsumed` on the check-in success toast.
+- The create-habit wizard's review step states the allowance on the last screen
+  before the habit exists — the last moment it is still *in advance*.
+- `StreakWidget` renders the rule alongside the count, and renders it when the
+  allowance is exhausted too: the old condition hid the line at exactly the
+  moment the user most needed to know the net was gone.
+- Both check-in toasts (`Dashboard`, `HabitDetail`) take over their copy when
+  `graceDaysConsumed > 0`. An older server omits the field and correctly reads
+  as "no freeze spent" — announcing a save that did not happen is the worse
+  failure, and `__tests__/utilities/streakFreezes.test.ts` pins that asymmetry.
+- `utilities/streakFreezes.ts` mirrors the backend allowance (1 to start, +1
+  per 7-day milestone, cap 3) because the rule must be stated before any
+  `habits.streaks` row exists to read it from. **Change both together** — a
+  backend move makes this copy lie rather than break.
 
-- Scope: `general` ✅ + `niche/HABITS-general` (onboarding, goal-creation copy,
-  success toast).
+Closed 2026-08-26. Remaining in § 2.6: **2.6.5** only.
 
 #### 2.6.5 Keep the HABITS score tied to the behaviour
 
