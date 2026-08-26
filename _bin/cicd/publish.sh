@@ -6,6 +6,7 @@ source ./_bin/lib/colorize.sh
 source ./_bin/lib/has_diff_changes.sh
 source ./_bin/lib/service-registry.sh
 source ./_bin/lib/versions-ledger.sh
+source ./_bin/lib/build-manifest.sh
 
 assert_service_registry
 
@@ -30,27 +31,65 @@ fi
 # header of versions-ledger.sh.
 ledger_load VERSIONS.txt
 
+# build.sh runs earlier in this same job and writes the manifest before its loop, so
+# an absent file means the build step did not run at all — never that nothing was
+# built. Pushing on the changed-files predicate alone is what let this script send a
+# tag no build had produced; it no longer decides that on its own.
+if ! manifest_exists; then
+  printMessageError "No build manifest at $BUILD_MANIFEST_FILE."
+  printMessageError "  publish.sh pushes what build.sh recorded building, so build.sh must have run"
+  printMessageError "  earlier in this job over this checkout. Re-run the whole stage pipeline"
+  printMessageError "  rather than this job alone."
+  exit 1
+fi
+
 PUBLISHED_KEYS=()
 
 for KEY in $(service_keys); do
-  IMAGE="$(service_image "$KEY")"
-
-  if ! has_prev_diff_changes_any $(service_sources "$KEY"); then
-    # ledger_resolve is empty for a service that has never been published. Say so
-    # rather than printing a bare "ledger keeps ", which reads like a lost SHA.
-    KEPT="$(ledger_resolve "$KEY")"
-    echo "Skipping $KEY publish (No Changes) — ledger keeps ${KEPT:-no row yet}"
-    continue
+  if manifest_has "$KEY"; then
+    WAS_BUILT=true
+  else
+    WAS_BUILT=false
   fi
 
-  printMessageNeutral "Publishing therrapp/$IMAGE$SUFFIX:$GIT_SHA"
-  docker push "therrapp/$IMAGE$SUFFIX:latest"
-  docker push "therrapp/$IMAGE$SUFFIX:$GIT_SHA"
+  if ! has_prev_diff_changes_any $(service_sources "$KEY"); then
+    if [ "$WAS_BUILT" = "false" ]; then
+      # ledger_resolve is empty for a service that has never been published. Say so
+      # rather than printing a bare "ledger keeps ", which reads like a lost SHA.
+      KEPT="$(ledger_resolve "$KEY")"
+      echo "Skipping $KEY publish (No Changes) — ledger keeps ${KEPT:-no row yet}"
+      continue
+    fi
+
+    # The manifest is the authority on what exists, so a service built despite
+    # reporting no changes still ships — leaving a built image unpushed would put
+    # the ledger and the image store out of step for no gain.
+    printMessageWarning "$KEY reports no changes but was built in this job — publishing it."
+  elif [ "$WAS_BUILT" = "false" ]; then
+    printMessageError "$KEY changed in this merge but build.sh never built it."
+    printMessageError "  Both steps evaluate the same changed-files predicate over the same checkout,"
+    printMessageError "  so this means they disagreed — usually because git could not answer the diff"
+    printMessageError "  during the build step and the failure was read as 'no changes'."
+    printMessageError "  Read the build step's log for a git error; do not re-run this job alone."
+    exit 1
+  fi
+
+  LATEST_TAG="$(manifest_tag_latest "$KEY")"
+  SHA_TAG="$(manifest_tag_sha "$KEY")"
+
+  assert_image_exists "$SHA_TAG" "recorded in $BUILD_MANIFEST_FILE by build.sh"
+
+  printMessageNeutral "Publishing $SHA_TAG"
+  docker push "$LATEST_TAG"
+  docker push "$SHA_TAG"
 
   # Recorded only after both pushes succeed. A ledger row is a promise to the deploy
   # that this exact tag is pullable; writing it before the push would turn a failed
   # push into a missing-image abort one job later, at the cluster, instead of here.
-  ledger_set "$KEY" "$GIT_SHA"
+  #
+  # Taken off the tag that was actually pushed rather than off GIT_SHA, so the row
+  # cannot name a tag the push never sent.
+  ledger_set "$KEY" "${SHA_TAG##*:}"
   PUBLISHED_KEYS+=("$KEY")
 done
 

@@ -180,6 +180,22 @@ Cloud Scheduler → messaging-automator (GCF) → VPC connector → GKE internal
 Two internal LBs exist (7775 push-notifications, 7771 users-service) because a k8s Service
 routes all of its ports to one pod selector — 7775 could not be reused.
 
+**The digest's response shape is a coupling too.** `IHabitsDigestCounters` in the messaging
+repo mirrors what this handler returns, and every field there is optional so the two can be
+deployed independently — a new counter here logs as `undefined` on an older automator rather
+than breaking it. That only holds in one direction: *renaming* or repurposing an existing
+counter silently changes what that repo's Cloud Function logs, with nothing failing. The
+reminder-pass counters (`habitsEvaluated`, `dailyRemindersSent`, `remindersNotDue`) were added
+this way, as were the `pactsCapped` / `habitsCapped` booleans that say a run hit its LIMIT and
+left a tail unevaluated.
+
+The digest also **ignores the `x-brand-variation` header it is sent** and files every
+notification under `habits`. The automator hardcodes `habits` for this call, so the two agree
+today; the pin exists because `habits.*` carries no `brandVariation` column at all, and
+honouring a wrong header would file habit reminders in another brand's partition of
+`main.notificationQueue` — deduping against the wrong keys, claimed by the wrong worker, with
+nothing failing. A mismatch is logged at warn level rather than rejected.
+
 **The `ipBlock` must be the node subnet, not the VPC connector range (`10.6.0.0/28`)**: the LB
 runs `externalTrafficPolicy: Cluster`, which SNATs the client to a node IP. Tightening it
 requires switching to `externalTrafficPolicy: Local`.

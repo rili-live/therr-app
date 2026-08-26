@@ -292,3 +292,81 @@ export const isPhoenixMoment = (
     streakAfter: number,
     previousLongestStreak: number,
 ): boolean => streakAfter > previousLongestStreak && previousLongestStreak >= 7;
+
+/**
+ * Is this habit due today?
+ *
+ * The gate on the daily reminder. Without it a "3x per week" habit gets nudged
+ * seven days a week, which is the single fastest way to teach a user that the
+ * app's reminders are noise — the anti-pattern
+ * docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md warns costs DAU rather than
+ * lifting it.
+ *
+ * Three cadence shapes, in priority order:
+ *
+ *   1. `targetDaysOfWeek` set → due only on those weekdays, whatever
+ *      `frequencyType` says. An explicit schedule is the strongest signal the
+ *      user has given us and always wins.
+ *   2. `daily` → due every day.
+ *   3. Everything else (a `weekly`/`custom` count with no fixed days) → there
+ *      is no day to anchor on, so "due" is derived from the gap since the last
+ *      completion: a 3x/week habit is due once roughly every other day. This
+ *      reads `lastCompletedDate` off the streak row the caller already has
+ *      rather than counting check-ins, so it costs no extra query.
+ *
+ * `today` is a YYYY-MM-DD string and is parsed as UTC, matching
+ * `getTodayDateString()` and the UTC convention in habitLifecycleContext. Using
+ * local parsing here would put the weekday one day off for every host west of
+ * UTC — see the note on `toLocalMidnight` above for the same hazard.
+ */
+export const isHabitDueToday = (
+    habit: {
+        frequencyType?: string | null;
+        frequencyCount?: number | null;
+        targetDaysOfWeek?: number[] | null;
+        lastCompletedDate?: string | Date | null;
+    },
+    today: string,
+): boolean => {
+    const todayUtc = new Date(`${String(today).slice(0, 10)}T00:00:00.000Z`);
+    if (Number.isNaN(todayUtc.getTime())) {
+        // An unparseable date is a bug in the caller, not a reason to spam. Stay
+        // silent rather than reminding on a day we cannot identify.
+        return false;
+    }
+
+    if (habit.targetDaysOfWeek?.length) {
+        return habit.targetDaysOfWeek.includes(todayUtc.getUTCDay());
+    }
+
+    const frequencyType = habit.frequencyType || 'daily';
+    if (frequencyType === 'daily') {
+        return true;
+    }
+
+    // Never completed → due now. This is deliberately the permissive branch: a
+    // habit someone set up and never started is exactly who a reminder is for.
+    if (!habit.lastCompletedDate) {
+        return true;
+    }
+
+    // Clamped into 1..7. A malformed frequencyCount (0, null, negative, NaN)
+    // therefore degrades to once a week — the quiet direction. Leaving it
+    // unclamped would either divide by zero or produce an interval so large the
+    // habit is never reminded again, and both are silent failures; over-
+    // reminding on bad data would at least be visible, but it is visible to the
+    // user, as spam.
+    const perWeek = Math.max(1, Math.min(7, Number(habit.frequencyCount) || 1));
+    const intervalDays = Math.max(1, Math.floor(7 / perWeek));
+    const lastCompletedUtc = new Date(
+        `${normalizeDateString(habit.lastCompletedDate).slice(0, 10)}T00:00:00.000Z`,
+    );
+    if (Number.isNaN(lastCompletedUtc.getTime())) {
+        return true;
+    }
+
+    const daysSince = Math.floor(
+        (todayUtc.getTime() - lastCompletedUtc.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    return daysSince >= intervalDays;
+};

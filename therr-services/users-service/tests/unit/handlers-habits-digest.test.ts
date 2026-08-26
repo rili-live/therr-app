@@ -112,6 +112,11 @@ const stubDigestReads = () => {
         .resolves({ isActive: true, currentStreak: 5 } as any);
 
     sinon.stub(Store.users, 'findUser').resolves([{ firstName: 'Alex' }] as any);
+
+    // The daily-reminder pass reads its own spine off habits.user_habits. This
+    // fixture is about the pact-driven half, so it contributes nothing —
+    // handlers-habits-digest-reminders.test.ts covers the pass itself.
+    sinon.stub(Store.userHabits, 'getActiveForReminders').resolves([] as any);
 };
 
 const runDigest = async (headers: Record<string, string> = { 'x-brand-variation': 'habits', 'x-localecode': 'en-us' }) => {
@@ -135,7 +140,7 @@ describe('Habits digest — queues instead of sending', () => {
         sinon.restore();
     });
 
-    it('queues every notification the run decides on, under the request brand', async () => {
+    it('queues every notification the run decides on, under the habits brand', async () => {
         const counters = await runDigest();
 
         // 3 x pactExpiring + 2 x streakAtRisk (C checked in today) + 4 x
@@ -313,15 +318,29 @@ describe('Habits digest — running it twice is a no-op', () => {
         expect(counters.partnerMissedSent).to.equal(0);
     });
 
-    it('does not dedupe against a different brand running the same pact', async () => {
+    it('files under habits even when the caller sends another brand header', async () => {
         await runDigest();
         const callsAfterFirst = queue.calls.length;
 
         await runDigest({ 'x-brand-variation': 'therr', 'x-localecode': 'en-us' });
 
-        // Brand is the leading column of the constraint. Cross-brand collisions
-        // would mean one app's digest silently suppressing another's.
-        expect(queue.callsSince(callsAfterFirst)).to.have.length(9);
-        expect(queue.insertedCount()).to.equal(18);
+        // The habits schema carries no brandVariation column — it belongs to
+        // Friends with Habits outright — so there is no such thing as another
+        // brand's copy of these pacts. Honouring the header would file the same
+        // habit reminders in the therr partition of main.notificationQueue, where
+        // brandVariation leads the UNIQUE constraint: they would dedupe against
+        // the wrong keys and be claimed by the wrong app's worker.
+        //
+        // So the second run must behave exactly like any other re-run of the day:
+        // same brand, same keys, nothing inserted.
+        const secondRunCalls = queue.callsSince(callsAfterFirst);
+        expect(secondRunCalls).to.have.length(9);
+        secondRunCalls.forEach((call) => {
+            expect(call.brand, call.dedupeKey).to.equal(BrandVariations.HABITS);
+        });
+        expect(queue.insertedCount()).to.equal(9);
+
+        // (That brandVariation leads the dedupe constraint at all is asserted
+        // where it lives, in notificationQueueStore.test.ts.)
     });
 });
