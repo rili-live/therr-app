@@ -1,0 +1,91 @@
+# ---------------------------------------------------------------------------
+# settings.yaml — everything that is NOT a google-ads library credential.
+#
+# Copy to `settings.yaml` (gitignored) and adjust. Nothing here is secret by
+# itself, but it is gitignored anyway because the customer id and property id
+# identify billable accounts.
+#
+# Every value can be overridden per-invocation by a CLI flag; the flag wins.
+# ---------------------------------------------------------------------------
+
+# The Google Ads account campaigns are created in. Digits only, no dashes.
+# This is the OPERATING account, distinct from `login_customer_id` in
+# config.yaml (the manager account you authenticate through).
+customer_id: "1234567890"
+
+# Hard ceiling, enforced client-side in money.py before any mutate is sent.
+# The Google Ads API will happily accept a daily budget of $10,000 because of a
+# misplaced decimal point; this is the guard rail that stops it. Raise it
+# deliberately when the campaign graduates from the learning phase.
+limits:
+    # Maximum daily budget this tool will set on any single campaign, in
+    # account currency.
+    max_daily_budget: 50.00
+    # Maximum combined daily budget across all campaigns it manages.
+    max_total_daily_budget: 100.00
+    # Google resets a campaign's learning phase on a budget change larger than
+    # this fraction. Changes above it require --force and print a warning.
+    budget_change_warn_ratio: 0.20
+    # Days after campaign start during which edits are discouraged entirely.
+    learning_period_days: 7
+
+ga4:
+    # Numeric PROPERTY ID for the Data API — NOT the G- measurement id.
+    # 549794383 is "Consolidated Domains", the property `googleAnalyticsKeyUnified`
+    # (G-R7CY0Z1ZRM) in global-config.js reports into. Find it under
+    # GA4 Admin -> Property settings.
+    property_id: "549794383"
+
+    # The consolidated property is polluted by a headless-Chrome crawler (see
+    # docs/WORK_IN_PROGRESS.md § Analytics & traffic). Until that is blocked at
+    # the edge, session totals are inflated roughly 8x. With this true, the
+    # reporting layer flags any report whose shape matches the crawler
+    # signature instead of quietly reporting the inflated number as growth.
+    crawler_guard: true
+
+    # Registered as an event-scoped custom dimension? While false, the tools
+    # skip `customEvent:surface` breakdowns rather than failing the whole
+    # report — GA4 returns a 400 for an unregistered custom dimension.
+    surface_dimension_registered: false
+
+# Read-only Postgres connection for the product-side funnel (`report product`).
+# Reuses the users-service READ replica env vars already in your .env, so there
+# is nothing new to configure if you can already run the repo's TS scripts.
+# Leave enabled: false to run purely on Ads + GA4 data.
+product_db:
+    enabled: false
+    host_env: DB_HOST_MAIN_READ
+    port_env: DB_PORT_MAIN_READ
+    user_env: DB_USER_MAIN_READ
+    password_env: DB_PASSWORD_MAIN_READ
+    database_env: USERS_SERVICE_DATABASE
+    # Only rows for this brand are counted. 'habits' is Friends with Habits.
+    brand_variation: habits
+
+# Where `therrads analyze --write-work-items` puts its output. Both files are
+# updated inside a managed marker block, so re-running replaces the previous
+# findings instead of appending a duplicate section.
+outputs:
+    work_in_progress: ../../docs/WORK_IN_PROGRESS.md
+    playbook: ../../docs/PAID_ACQUISITION_PLAYBOOK.md
+    reports_dir: ./out
+
+# Thresholds the analyzer judges against. These are the campaign's definition of
+# success — edit them as the business learns, and the generated action items
+# change with them. Documented in docs/PAID_ACQUISITION_PLAYBOOK.md § Thresholds.
+targets:
+    # Cost per install, account currency. Above this the app arm is unaffordable.
+    max_cpi: 3.00
+    # Cost per attributable signup on the web arm.
+    max_cost_per_signup: 12.00
+    # Share of installs that register an account.
+    min_install_to_signup_rate: 0.25
+    # Share of signups that create or join a pact — the app's activation event.
+    min_signup_to_pact_rate: 0.30
+    # Share of signups reaching 3 distinct invites (solo-tracking unlock).
+    min_signup_to_unlock_rate: 0.10
+    # Share of activated users buying the $20 Founder Unlock.
+    min_activation_to_payer_rate: 0.02
+    # Minimum conversions before a verdict is trusted rather than reported as
+    # "insufficient data". Below this the analyzer refuses to recommend a pivot.
+    min_conversions_for_verdict: 30

@@ -66,6 +66,7 @@ went unread.
 ### Growth & marketing
 - [GROWTH_STRATEGY.md](./GROWTH_STRATEGY.md) — B2B-first funnel; the active growth strategy
 - [TARGET_MARKETS.md](./TARGET_MARKETS.md) — consumer and business target markets
+- [PAID_ACQUISITION_PLAYBOOK.md](./PAID_ACQUISITION_PLAYBOOK.md) — Google Ads strategy, thresholds and decision log for Friends with Habits (tooling: `scripts/google-ads/`)
 - [QR_CODE_MAIL_CAMPAIGN.md](./QR_CODE_MAIL_CAMPAIGN.md) — direct mail campaign
 - [PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md](./PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md) — push engagement plan
 - [CONTENT_CREATION_FLYWHEEL.md](./CONTENT_CREATION_FLYWHEEL.md) — raising moment supply as input to the B2B funnel
