@@ -192,6 +192,53 @@ console configuration, and one verification that gates a payments change.
 - [ ] **Run `source-emails-websites` overnight cron for highest-density city**
   to populate `businessEmail` before the next batch.
 
+## Paid acquisition — Friends with Habits (added 2026-08-28)
+
+Tooling is built (`scripts/google-ads/`) and both campaign specs validate. These
+are the steps code cannot do. Strategy, thresholds and the decision log live in
+`docs/PAID_ACQUISITION_PLAYBOOK.md`.
+
+- [ ] **Obtain a Google Ads developer token at Basic access.** Google Ads UI ->
+  Tools & Settings -> Setup -> API Center, on the manager account. A newly issued
+  token is Test Account level and rejects every call against a real account with
+  `DEVELOPER_TOKEN_NOT_APPROVED`; approval takes 1-3 business days. Everything
+  else in the tooling is blocked on this.
+- [ ] **Create a Desktop-app OAuth client and run `./therrads auth login`.**
+  Google Cloud Console -> APIs & Services -> Credentials. A *Web application*
+  client fails the installed-app flow with `redirect_uri_mismatch`.
+- [ ] **Set the Cloud project's OAuth consent screen to "In production".** While
+  it is in *Testing*, Google expires the refresh token after 7 days with no
+  warning and no distinguishing error — this is the cause of "it worked last
+  week" for every tool built on this API.
+- [ ] **Produce a 15-30s portrait video asset for the App campaign.** Without
+  video, an App campaign is limited to Search and a narrow Display slice: a
+  fraction of the reach at a materially higher CPI. It is the single largest
+  lever on App campaign cost, and `campaign plan` warns on every run until it
+  exists (`assets.videos` in `campaigns/habits-app-install.yaml`).
+- [ ] **Link Google Ads to the Play Console** (Play Console -> Settings ->
+  Google Ads links) so installs are reported as conversions. Without the link,
+  the App campaign optimises against nothing and `report ads` shows zero installs
+  regardless of what actually happened.
+- [ ] **Set `settings.yaml` -> `product_db.enabled: true`** against the READ
+  replica once credentials are sourced. Ads and GA4 alone cannot answer whether
+  paid users activate or pay; that join lives only in our own database.
+
+### Code work this unblocks
+
+- [ ] **Wire the Play Install Referrer API into TherrMobile** so paid installs
+  are attributable. Read the referrer string on first launch, parse the UTM
+  parameters, and include them in the registration payload's `userAcquisition`
+  object — `sanitizeUserAcquisition` and `main."userAcquisition"` already exist,
+  so no backend change is needed. Until this ships, every conclusion about the
+  app-install arm's users is inference rather than measurement, and paid installs
+  are indistinguishable from organic ones in the funnel.
+  **Mobile-only — belongs on `niche/HABITS-general`, not `general`.**
+- [ ] **Add accepted-invite counts to the acquisition funnel query** so the viral
+  coefficient is measured rather than assumed. `product.py` currently counts
+  invites *sent* (the 3-invite solo-tracking unlock); the loop only pays for
+  acquisition if invites are *accepted*. Join `main.invites.isAccepted` to the
+  cohort in `FUNNEL_SQL`.
+
 ## Skill-generated items (auto-appended)
 
 > Skills (`/quality-peer-review`, `/quality-peer-review-niche`, `/seo-audit`,

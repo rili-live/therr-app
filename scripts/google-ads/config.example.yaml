@@ -1,0 +1,74 @@
+# ---------------------------------------------------------------------------
+# config.yaml — credentials for the `google-ads` Python library ONLY.
+#
+# Copy to `config.yaml` (gitignored) and fill in, or generate it with:
+#
+#     ./therrads config init
+#
+# WHY THIS FILE HOLDS NOTHING BUT CREDENTIALS
+# The google-ads library loads this file itself (`GoogleAdsClient.load_from_storage`)
+# and validates the top-level keys against its own schema. Our campaign, GA4 and
+# reporting settings therefore live in a SEPARATE file, `settings.yaml` — putting
+# them here risks the loader either ignoring them silently (so your setting does
+# nothing and looks like it works) or rejecting the file outright at startup.
+# Two files, one job each. See settings.example.yaml for the other half.
+#
+# THE FIVE VALUES AND WHERE EACH COMES FROM — they are from four different
+# consoles, and mixing them up is the single most common setup failure:
+# ---------------------------------------------------------------------------
+
+# 1. DEVELOPER TOKEN — Google Ads UI, from your MANAGER (MCC) account:
+#      Tools & Settings -> Setup -> API Center
+#    This is NOT an OAuth credential and is NOT the refresh token. A brand-new
+#    token is issued at "Test Account" access level, which can ONLY call test
+#    accounts — against your real account every request fails with
+#    DEVELOPER_TOKEN_NOT_APPROVED. Apply for Basic access in the same screen;
+#    approval is usually 1-3 business days. Basic access is enough for
+#    everything this tool does.
+developer_token: "INSERT_DEVELOPER_TOKEN"
+
+# 2 & 3. OAUTH CLIENT — Google Cloud Console (any project with the
+#    "Google Ads API" enabled):
+#      APIs & Services -> Credentials -> Create credentials -> OAuth client ID
+#      -> Application type: **Desktop app**
+#    Desktop app matters: `therrads auth login` runs the installed-app flow, and
+#    a "Web application" client rejects it with redirect_uri_mismatch.
+client_id: "INSERT_OAUTH_CLIENT_ID.apps.googleusercontent.com"
+client_secret: "INSERT_OAUTH_CLIENT_SECRET"
+
+# 4. REFRESH TOKEN — minted by this repo's own script:
+#      ./therrads auth login
+#    Log in as a Google account that has access to the Ads account. The token is
+#    long-lived but NOT permanent: it is revoked if the account password
+#    changes, if the OAuth client is deleted, or after 7 days while the Cloud
+#    project's OAuth consent screen is still in "Testing" publishing status.
+#    That last one is the usual cause of "it worked last week" — publish the
+#    consent screen (In production) to stop the weekly expiry.
+refresh_token: "INSERT_REFRESH_TOKEN"
+
+# 5. LOGIN CUSTOMER ID — the MANAGER account id, digits only, no dashes.
+#    (123-456-7890 -> 1234567890.) This is the account you authenticate THROUGH.
+#    The account you operate ON is `customer_id` in settings.yaml. If the Ads
+#    account is not under a manager, set both to the same id.
+login_customer_id: "1234567890"
+
+# Keep true. The alternative (raw protobuf) changes every field access in
+# reporting.py from `row.metrics.clicks` to a getter, for no benefit here.
+use_proto_plus: true
+
+# Uncomment to see the request/response bodies. Verbose, and it prints the
+# developer token in headers — do not paste the output into an issue or a PR.
+# logging:
+#   version: 1
+#   disable_existing_loggers: false
+#   formatters:
+#     default_fmt:
+#       format: "[%(asctime)s - %(levelname)s] %(message).5000s"
+#   handlers:
+#     default_handler:
+#       class: logging.StreamHandler
+#       formatter: default_fmt
+#   loggers:
+#     "":
+#       handlers: [default_handler]
+#       level: DEBUG
