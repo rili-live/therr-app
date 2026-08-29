@@ -544,12 +544,29 @@ const createMessage = (
         type,
         timestamp: Date.now().toString(), // values must be strings!
     };
+    // FCM's `data` map is string->string, and firebase-admin enforces it client
+    // side: `validateMessage` throws "data must only contain string values" for
+    // ANY non-string value, before the message reaches Google.
+    //
+    // This loop used to copy every non-object value through verbatim, which is
+    // wrong for exactly the values that reach it in practice. The callers build
+    // their `data` literal with a fixed key set (`area`, `groupId`, `postType`,
+    // `thought`, ...) and simply leave the irrelevant ones `undefined` — and
+    // `typeof undefined` is 'undefined', not 'object', so those keys arrived
+    // here as real `undefined` values and failed the whole send. Numbers had
+    // the same problem. Because `predictAndSendNotification` swallows the throw
+    // and the route still answered 201, the queue then recorded the row as
+    // 'sent': 77 pushes were discarded this way in one 30-day window against 19
+    // that actually went out.
+    //
+    // So: drop null/undefined rather than forwarding them, and coerce whatever
+    // is left to a string.
     Object.keys(data).forEach((key) => {
-        if (typeof data[key] === 'object') {
-            modifiedData[key] = JSON.stringify(data[key]);
-        } else {
-            modifiedData[key] = data[key];
+        const value = data[key];
+        if (value === null || value === undefined) {
+            return;
         }
+        modifiedData[key] = typeof value === 'object' ? JSON.stringify(value) : String(value);
     });
 
     switch (type) {
@@ -1280,6 +1297,67 @@ const createMessage = (
 };
 
 // TODO: RDATA-3 - Add machine learning to predict whether to send push notification
+/**
+ * The types this service will actually hand to FCM.
+ *
+ * This replaces a ~120-line `if (type === X) return messaging.send(message)`
+ * chain that did nothing but test membership. It is a whitelist, not a
+ * formality: a type with a `createMessage` case but no entry here is built and
+ * then dropped, so keeping the two in sync is the difference between a
+ * notification existing and a notification being sent.
+ *
+ * `postVisitReviewReminder` and `reportConfirmed` are deliberately absent —
+ * they have no `createMessage` case either, so they are rejected one step
+ * earlier, with `unsupported-notification-type`.
+ */
+const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
+    PushNotifications.Types.achievementCompleted,
+    PushNotifications.Types.completeDraftReminder,
+    PushNotifications.Types.connectionRequestAccepted,
+    PushNotifications.Types.createAMomentReminder,
+    PushNotifications.Types.createYourProfileReminder,
+    PushNotifications.Types.dailyHabitReminder,
+    PushNotifications.Types.eveningCheckIn,
+    PushNotifications.Types.habitAutomaticity,
+    PushNotifications.Types.habitComeback,
+    PushNotifications.Types.habitEstablished,
+    PushNotifications.Types.habitMaintenanceCheckIn,
+    PushNotifications.Types.inviteFriendsReminder,
+    PushNotifications.Types.latestPostLikesStats,
+    PushNotifications.Types.latestPostViewcountStats,
+    PushNotifications.Types.leaderboardRankMilestone,
+    PushNotifications.Types.morningMotivation,
+    PushNotifications.Types.newAreasActivated,
+    PushNotifications.Types.newConnectionRequest,
+    PushNotifications.Types.newDirectMessage,
+    PushNotifications.Types.newGroupInvite,
+    PushNotifications.Types.newGroupMembers,
+    PushNotifications.Types.newGroupMessage,
+    PushNotifications.Types.newLikeReceived,
+    PushNotifications.Types.newPersonalRecord,
+    PushNotifications.Types.newSuperLikeReceived,
+    PushNotifications.Types.newThoughtReplyReceived,
+    PushNotifications.Types.newThoughtRepostReceived,
+    PushNotifications.Types.nudgeSpaceEngagement,
+    PushNotifications.Types.pactAccepted,
+    PushNotifications.Types.pactCompleted,
+    PushNotifications.Types.pactDeclined,
+    PushNotifications.Types.pactExpiring,
+    PushNotifications.Types.pactInvitation,
+    PushNotifications.Types.pactNudge,
+    PushNotifications.Types.partnerCelebrated,
+    PushNotifications.Types.partnerCheckedIn,
+    PushNotifications.Types.partnerMissedDay,
+    PushNotifications.Types.proximityRequiredMoment,
+    PushNotifications.Types.proximityRequiredSpace,
+    PushNotifications.Types.streakAtRisk,
+    PushNotifications.Types.streakBroken,
+    PushNotifications.Types.streakFreezeUsed,
+    PushNotifications.Types.streakMilestone,
+    PushNotifications.Types.unclaimedAchievementsReminder,
+    PushNotifications.Types.unreadNotificationsReminder,
+]);
+
 const predictAndSendNotification = (
     type: PushNotifications.Types,
     data: PushNotifications.INotificationData,
@@ -1287,152 +1365,54 @@ const predictAndSendNotification = (
     metrics: INotificationMetrics | undefined,
     brandVariation: BrandVariations,
     headers?: InternalConfigHeaders,
-) => {
+): Promise<IRawSendResult> => {
     const message = createMessage(type, data, config, brandVariation);
     // Route sends through the brand's own Firebase project so FCM delivery
     // uses the correct APNS auth key / FCM credentials for this brand.
     const messaging = getAdminAppForBrand(brandVariation).messaging();
 
     return Promise.resolve()
-        .then(() => {
+        .then((): Promise<IRawSendResult> => {
             if (!message) {
-                return;
-            }
-
-            // Automation
-            if (type === PushNotifications.Types.createYourProfileReminder) {
-                return messaging.send(message);
-            }
-            if (type === PushNotifications.Types.createAMomentReminder) {
-                return messaging.send(message);
-            }
-            if (type === PushNotifications.Types.completeDraftReminder) {
-                return messaging.send(message);
-            }
-            if (type === PushNotifications.Types.latestPostLikesStats) {
-                return messaging.send(message);
-            }
-            if (type === PushNotifications.Types.latestPostViewcountStats) {
-                return messaging.send(message);
-            }
-            if (type === PushNotifications.Types.unreadNotificationsReminder) {
-                return messaging.send(message);
-            }
-            if (type === PushNotifications.Types.unclaimedAchievementsReminder) {
-                return messaging.send(message);
-            }
-            if (type === PushNotifications.Types.inviteFriendsReminder) {
-                return messaging.send(message);
-            }
-
-            // Event Driven
-            if (type === PushNotifications.Types.achievementCompleted) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.leaderboardRankMilestone) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.connectionRequestAccepted) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newConnectionRequest) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newDirectMessage) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newGroupMessage) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newGroupMembers) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newGroupInvite) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newLikeReceived) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newSuperLikeReceived) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newAreasActivated) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.nudgeSpaceEngagement) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.proximityRequiredMoment) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.proximityRequiredSpace) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newThoughtReplyReceived) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newThoughtRepostReceived) {
-                return messaging.send(message);
-            }
-
-            // HABITS — Streak, partner, pact lifecycle, habit reminders
-            if (type === PushNotifications.Types.streakAtRisk
-                || type === PushNotifications.Types.streakFreezeUsed
-                || type === PushNotifications.Types.streakBroken
-                || type === PushNotifications.Types.streakMilestone
-                || type === PushNotifications.Types.newPersonalRecord
-                || type === PushNotifications.Types.partnerCheckedIn
-                || type === PushNotifications.Types.partnerMissedDay
-                || type === PushNotifications.Types.partnerCelebrated
-                || type === PushNotifications.Types.pactInvitation
-                || type === PushNotifications.Types.pactNudge
-                || type === PushNotifications.Types.pactAccepted
-                || type === PushNotifications.Types.pactDeclined
-                || type === PushNotifications.Types.pactCompleted
-                || type === PushNotifications.Types.pactExpiring
-                || type === PushNotifications.Types.dailyHabitReminder
-                || type === PushNotifications.Types.morningMotivation
-                || type === PushNotifications.Types.eveningCheckIn
-                || type === PushNotifications.Types.habitEstablished
-                || type === PushNotifications.Types.habitAutomaticity
-                || type === PushNotifications.Types.habitMaintenanceCheckIn
-                || type === PushNotifications.Types.habitComeback) {
-                return messaging.send(message);
-            }
-
-            return null;
-        })
-        .then(() => {
-            if (message) {
-                logSpan({
-                    level: 'info',
-                    messageOrigin: 'API_SERVER',
-                    messages: ['Push successfully sent'],
-                    traceArgs: {
-                        'pushNotification.message': 'Push successfully sent',
-                        'pushNotification.messageData': message.data,
-                        'pushNotification.messageNotification': message.notification,
-                        'user.id': config.userId,
-                        'pushNotification.lastMomentNotificationDate': metrics?.lastMomentNotificationDate,
-                        'pushNotification.lastSpaceNotificationDate': metrics?.lastSpaceNotificationDate,
-                    },
+                // No case in createMessage — nothing would ever be sent for this
+                // type. Previously this returned undefined and the route still
+                // answered 201, so the caller recorded a delivery.
+                return Promise.resolve({
+                    ok: false,
+                    errorCode: 'unsupported-notification-type',
+                    errorMessage: `createMessage returned false for type "${type}"`,
                 });
             }
+
+            if (!SENDABLE_NOTIFICATION_TYPES.has(type)) {
+                return Promise.resolve({
+                    ok: false,
+                    errorCode: 'notification-type-not-routed',
+                    errorMessage: `Type "${type}" has a createMessage case but is not in SENDABLE_NOTIFICATION_TYPES`,
+                });
+            }
+
+            return messaging.send(message).then((messageId) => ({ ok: true, messageId }));
+        })
+        .then((result: IRawSendResult) => {
+            logSpan({
+                level: result.ok ? 'info' : 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [result.ok ? 'Push successfully sent' : 'Push not sent'],
+                traceArgs: {
+                    'pushNotification.ok': result.ok,
+                    'error.code': result.errorCode,
+                    'error.message': result.errorMessage,
+                    'pushNotification.type': String(type),
+                    'pushNotification.messageData': message && message.data,
+                    'pushNotification.messageNotification': message && message.notification,
+                    'user.id': config.userId,
+                    'pushNotification.lastMomentNotificationDate': metrics?.lastMomentNotificationDate,
+                    'pushNotification.lastSpaceNotificationDate': metrics?.lastSpaceNotificationDate,
+                },
+            });
+
+            return result;
         })
         .catch((error) => {
             const fcmErrorCode = error?.code || error?.errorInfo?.code;
@@ -1465,6 +1445,16 @@ const predictAndSendNotification = (
                 // Fire-and-forget; helper swallows its own errors
                 clearInvalidDeviceToken(headers, targetUserId, config.deviceToken);
             }
+
+            // Still never rejects — the fan-out callers below depend on that.
+            // The outcome is *reported* instead, so a caller that needs to know
+            // (the notification queue worker, via the single-send route) can act
+            // on it while the request-path callers keep ignoring it.
+            return {
+                ok: false,
+                errorCode: fcmErrorCode || 'unknown',
+                errorMessage: error?.message || String(error),
+            };
         });
 };
 

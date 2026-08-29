@@ -84,6 +84,42 @@ append new items here rather than only printing them once.
   collecting. The B2B funnel is Priority 1 in `docs/GROWTH_STRATEGY.md`, and it is
   currently unmeasured.
 
+## Habits push pipeline (added 2026-08-29, from a production log + queue analysis)
+
+The two P0 defects found in this analysis are **fixed on `general`** (FCM `data`
+coercion in `createMessage`, and send-outcome reporting through
+`predictAndSendNotification` -> `POST /notifications/send`), with regression
+coverage in
+`push-notifications-service/tests/unit/api/fcmDataPayload.test.ts`. What is left
+here is what code cannot close.
+
+- [ ] **Verify delivery in production once the fix reaches `main`.** The bug was
+  invisible for ~3 weeks because the queue recorded `sent` for pushes that never
+  left the process, so a green deploy is not evidence. After rollout, confirm the
+  digest window (14:00 UTC) shows `Push successfully sent` and **not** `Push not
+  sent` / `data must only contain string values`, and that a real handset receives
+  one:
+  ```
+  gcloud logging read 'resource.type="k8s_container"
+    resource.labels.container_name="server-push-notifications"
+    ("Push successfully sent" OR "Push not sent")' --freshness=1d --limit=20
+  ```
+  Baseline before the fix: 77 `data must only contain string values` vs 19
+  successful sends in 30 days, and 0 `failed` rows in `main."notificationQueue"`.
+- [ ] **Guard the missing-device-token case in the queue worker.**
+  Second-most-common production error, **36 in 30 days**: `Exactly one of topic,
+  token or condition is required` — `resolveDeviceTokenForBrand` returned nothing
+  and the send was attempted anyway. Six queue recipients (the `*.test.local` seed
+  users) have no `habits` row in `main."userDeviceTokens"`. Now that failures
+  propagate, these rows will burn all 3 attempts and land `failed` daily instead
+  of being silently marked `sent`; the worker should `markSkipped('no-device-token')`
+  up front rather than spend attempts on a message that cannot be addressed.
+- [ ] **Move the habits digest off 14:00 UTC.** The Cloud Scheduler job fires at
+  14:00 UTC = 09:00 CDT, but `streakAtRisk` is designed as an *evening* nudge
+  (`habitsDigest.ts`: "run it in the evening") — at 9am it tells users their streak
+  is at risk before they have had the day to check in. Owned by
+  `therr-infra-terraform` (`messaging-automator.tf`), not this repo.
+
 ## Standing items (always re-verify after a deploy that touches the area)
 
 - [ ] **Submit / re-submit sitemap to Google Search Console** after any change
