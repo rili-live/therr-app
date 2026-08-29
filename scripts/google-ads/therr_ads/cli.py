@@ -504,6 +504,34 @@ def _cmd_campaign_status(args) -> int:
             f"  This starts spending up to {format_micros(campaign['budget_micros'])}/day.\n"
             "  Google may spend up to 2x on a high-traffic day, balanced over the month."
         )
+        # Resuming is the other operation that adds burn to the account, and it
+        # adds the campaign's FULL daily budget at once. _sum_other_budgets only
+        # counts ENABLED campaigns, so a paused campaign is invisible to the
+        # ceiling until exactly this moment — checking here is what stops a
+        # resume walking the account past limits.max_total_daily_budget.
+        #
+        # Deliberately no days_since_start: a campaign created by `campaign
+        # apply` is PAUSED and zero days old, so a learning-period warning would
+        # fire on every first resume and gate the documented launch flow behind
+        # --force. Only hard blockers stop a resume.
+        others = _sum_other_budgets(client, customer_id, campaign["id"])
+        decision = check_budget(
+            from_micros(campaign["budget_micros"]),
+            settings.limits,
+            other_campaigns_micros=others,
+        )
+        if others:
+            print(f"  other enabled campaigns: {format_micros(others)}/day")
+        for message in decision.blocked:
+            print(f"  x {message}")
+        if not decision.allowed:
+            print(
+                "\nRefusing to resume — this would put the account over its ceiling. Lower this "
+                "campaign's budget, pause another, or raise the limit in settings.yaml.\n",
+                file=sys.stderr,
+            )
+            return 2
+
     if not _guard(args.confirm, f"Re-run with --confirm to set it {args.status}."):
         return 0
 
