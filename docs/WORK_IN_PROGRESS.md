@@ -1044,6 +1044,20 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   an App campaign without a video is limited to Search and a narrow Display slice, so this is the
   step that decides the campaign's reach.
 
+- [ ] (2026-08-29, /quality-peer-review-niche) **Confirm Play has not already consumed
+  `versionCode 31` for `com.therr.habits`, then merge `niche/HABITS-general` into
+  `niche/HABITS-main` to cut the Android build.** The 192 commits queued behind that merge were
+  reviewed against `origin/niche/HABITS-main` and are clean; three peer-review commits
+  (`ae24bb5d4`, `160bff861`, `d251c7e95`) sit unpushed on `niche/HABITS-general` and go with
+  them. Unlike the 2026-08-17 item above, the API side is **not** a blocker this time: every
+  backend dependency the new client calls — `PUT /habits/pacts/:id/renew`, `.../nudge`,
+  `GET /habits/pacts/invites`, `repostThoughtId` on thought creation, and `graceDaysConsumed` /
+  `streakSavedByFreeze` on the check-in 201 — is already on `origin/main`, so the mobile release
+  cannot outrun it. What is unverified is the version number: `build.gradle` reads
+  `versionCode 31 / versionName 1.3.2`, bumped from 27 / 1.1.2, and Play rejects a re-used
+  versionCode at upload rather than at build time. Check the Play Console release history first,
+  and prefer `/mobile-release-preflight` over doing it by hand.
+
 <!-- skill-followups:end -->
 
 ---
