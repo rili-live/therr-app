@@ -1,0 +1,102 @@
+# =============================================================================
+# Friends with Habits — App install campaign (the VOLUME arm)
+#
+#   ./therrads campaign plan  campaigns/habits-app-install.yaml
+#   ./therrads campaign apply campaigns/habits-app-install.yaml --confirm
+#
+# WHAT THIS BUYS: Play Store installs of com.therr.habits at the lowest
+# available cost. Google decides placement, audience and creative combination
+# itself — an App campaign exposes almost no targeting levers beyond geography,
+# language and budget. That is not a limitation to work around; it is the deal.
+# You supply assets and a target cost, Google supplies the volume.
+#
+# WHAT THIS DOES NOT BUY: knowledge. An install from this campaign arrives with
+# no UTM parameters, so main.userAcquisition records nothing and the funnel is
+# blind past the install. Pair it with habits-web-landing.yaml, which is the
+# measured arm, and read the two together — see docs/PAID_ACQUISITION_PLAYBOOK.md.
+# =============================================================================
+
+# Stated up front so the analyzer can quote it back when it reports the result.
+# A campaign without a falsifiable hypothesis produces numbers, not decisions.
+hypothesis: >
+  Friends with Habits can acquire Android installs in the US at or under $3.00
+  CPI. If true, paid acquisition is a viable channel to seed the pact loop and
+  we scale budget. If CPI settles above $5.00 with a healthy install-to-signup
+  rate, the product works but the channel does not, and the next experiment is
+  organic/referral rather than more budget.
+
+campaign:
+    name: "FwH-App-US-Installs-2026Q3"
+    kind: app_install
+    app_id: "com.therr.habits"
+    app_store: GOOGLE_APP_STORE
+    # Always PAUSED on creation. Review what was built in the Ads UI, then
+    # `./therrads campaign resume "FwH-App-US-Installs-2026Q3" --confirm`.
+    status: PAUSED
+    start_date: ""     # empty = starts when enabled
+    end_date: ""       # empty = runs until paused. Budget caps the exposure.
+
+budget:
+    # Deliberately small. The goal of the first 30 days is a believable CPI
+    # number and a first cohort to watch, not growth. Raise it with
+    # `./therrads campaign budget <name> --daily N` once CPI is known — in
+    # steps of <=20%, or the learning phase restarts.
+    daily: 20.00
+    currency: USD
+    delivery: STANDARD
+
+bidding:
+    # Install-volume bidding with a cost target. The alternative
+    # (OPTIMIZE_IN_APP_CONVERSIONS_*) needs a Firebase or Play conversion action
+    # already receiving events, which this app does not have yet — the spec
+    # validator will tell you so if you switch it early.
+    goal: OPTIMIZE_INSTALLS_TARGET_INSTALL_COST
+    # Google's bidder needs room. A target this low with a $20/day budget is
+    # already below the 50x-budget guidance the validator warns about; that
+    # warning is expected here and accepted, because the first run is priced for
+    # a cheap answer rather than for scale.
+    target_cpa: 2.50
+
+targeting:
+    # 2840 = United States. English only for the first run: the app ships
+    # es and fr-ca dictionaries, but the Play listing copy is en-US only, so
+    # non-English traffic would land on an English store page.
+    location_ids: ["2840"]
+    language_ids: ["1000"]
+    notes: >
+      US + English. Deliberately broad — App campaigns have no audience
+      targeting, so narrowing geography is the only segmentation lever, and
+      narrowing it before there is data would just starve the bidder. The
+      market-segment question is answered by the web arm's search terms, not here.
+
+assets:
+    # <=30 chars each, 2-5 of them. Every headline must stand alone: Google
+    # assembles combinations and no headline is guaranteed to appear with any
+    # other. Character counts in comments are checked by the validator.
+    headlines:
+        - "Habits That Actually Stick"      # 25
+        - "Pact Up With a Friend"           # 20
+        - "Don't Break the Streak"          # 22
+        - "Habit Tracker for Friends"       # 25
+        - "Accountability, Built In"        # 24
+    # <=90 chars each, 1-5 of them.
+    descriptions:
+        - "Every habit is a pact with a friend. You check in, they check in, the streak lives."
+        - "Most habit apps let you quit in private. Friends with Habits doesn't. Start free."
+        - "Track habits with a partner who notices when you skip. Free for five habits."
+        - "Build a streak together with photo check-ins and real accountability."
+    # Paths relative to this repo root, or existing asset resource names.
+    # Populate before enabling: an App campaign with no image or video assets
+    # falls back to Play listing assets alone and serves almost nowhere.
+    images: []
+    videos: []
+
+tracking:
+    # Recorded for documentation and for the reporting join only. An App
+    # campaign sends the user to the Play Store, not to a URL we control, so
+    # these UTMs are NOT appended to anything and NOT captured in
+    # main.userAcquisition. They exist so `therrads report` can label this
+    # campaign's rows consistently with the web arm's.
+    utm_source: google
+    utm_medium: cpc
+    utm_campaign: fwh-app-us-installs-2026q3

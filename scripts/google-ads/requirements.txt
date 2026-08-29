@@ -1,0 +1,18 @@
+# Google Ads API client. Pinned to a range rather than an exact version because
+# each release drops the oldest supported Google Ads API version, and a pin that
+# ages out fails with "version v__ is deprecated" rather than anything readable.
+# `therrads auth check` prints the API version the installed library defaults to.
+google-ads>=25.0.0,<30.0.0
+
+# OAuth desktop flow for `therrads auth login`. Ships with google-ads as a
+# transitive dep, named here because auth.py imports it directly.
+google-auth-oauthlib>=1.2.0,<2.0.0
+
+# GA4 Data API — the reporting half of `therrads report ga4`.
+google-analytics-data>=0.18.0,<1.0.0
+
+PyYAML>=6.0,<7.0
+
+# Optional: only needed for `therrads report product`, which reads the
+# users-service Postgres replica directly. Everything else works without it.
+# psycopg[binary]>=3.1,<4.0

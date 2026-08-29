@@ -120,6 +120,7 @@ npm run test:changed     # test changed packages
 npm run locales:check    # locale dictionary parity across all packages
 npm run test:lint-rules  # unit tests for the custom ESLint rules
 npm run test:bin-scripts # unit tests for decision logic in _bin gate scripts
+npm run test:google-ads  # unit tests for the Google Ads tooling (needs PyYAML)
 npm run k8s:check-services # service registry vs k8s/prod manifests
 npm run k8s:check-waves    # rollout wave plan vs k8s/prod manifests
 ```

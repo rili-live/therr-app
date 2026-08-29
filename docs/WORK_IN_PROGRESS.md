@@ -84,6 +84,42 @@ append new items here rather than only printing them once.
   collecting. The B2B funnel is Priority 1 in `docs/GROWTH_STRATEGY.md`, and it is
   currently unmeasured.
 
+## Habits push pipeline (added 2026-08-29, from a production log + queue analysis)
+
+The two P0 defects found in this analysis are **fixed on `general`** (FCM `data`
+coercion in `createMessage`, and send-outcome reporting through
+`predictAndSendNotification` -> `POST /notifications/send`), with regression
+coverage in
+`push-notifications-service/tests/unit/api/fcmDataPayload.test.ts`. What is left
+here is what code cannot close.
+
+- [ ] **Verify delivery in production once the fix reaches `main`.** The bug was
+  invisible for ~3 weeks because the queue recorded `sent` for pushes that never
+  left the process, so a green deploy is not evidence. After rollout, confirm the
+  digest window (14:00 UTC) shows `Push successfully sent` and **not** `Push not
+  sent` / `data must only contain string values`, and that a real handset receives
+  one:
+  ```
+  gcloud logging read 'resource.type="k8s_container"
+    resource.labels.container_name="server-push-notifications"
+    ("Push successfully sent" OR "Push not sent")' --freshness=1d --limit=20
+  ```
+  Baseline before the fix: 77 `data must only contain string values` vs 19
+  successful sends in 30 days, and 0 `failed` rows in `main."notificationQueue"`.
+- [ ] **Guard the missing-device-token case in the queue worker.**
+  Second-most-common production error, **36 in 30 days**: `Exactly one of topic,
+  token or condition is required` — `resolveDeviceTokenForBrand` returned nothing
+  and the send was attempted anyway. Six queue recipients (the `*.test.local` seed
+  users) have no `habits` row in `main."userDeviceTokens"`. Now that failures
+  propagate, these rows will burn all 3 attempts and land `failed` daily instead
+  of being silently marked `sent`; the worker should `markSkipped('no-device-token')`
+  up front rather than spend attempts on a message that cannot be addressed.
+- [ ] **Move the habits digest off 14:00 UTC.** The Cloud Scheduler job fires at
+  14:00 UTC = 09:00 CDT, but `streakAtRisk` is designed as an *evening* nudge
+  (`habitsDigest.ts`: "run it in the evening") — at 9am it tells users their streak
+  is at risk before they have had the day to check in. Owned by
+  `therr-infra-terraform` (`messaging-automator.tf`), not this repo.
+
 ## Standing items (always re-verify after a deploy that touches the area)
 
 - [ ] **Submit / re-submit sitemap to Google Search Console** after any change
@@ -191,6 +227,53 @@ console configuration, and one verification that gates a payments change.
 - [ ] **Run OSM import for Chicago/LA at scale** to populate email inventory.
 - [ ] **Run `source-emails-websites` overnight cron for highest-density city**
   to populate `businessEmail` before the next batch.
+
+## Paid acquisition — Friends with Habits (added 2026-08-28)
+
+Tooling is built (`scripts/google-ads/`) and both campaign specs validate. These
+are the steps code cannot do. Strategy, thresholds and the decision log live in
+`docs/PAID_ACQUISITION_PLAYBOOK.md`.
+
+- [ ] **Obtain a Google Ads developer token at Basic access.** Google Ads UI ->
+  Tools & Settings -> Setup -> API Center, on the manager account. A newly issued
+  token is Test Account level and rejects every call against a real account with
+  `DEVELOPER_TOKEN_NOT_APPROVED`; approval takes 1-3 business days. Everything
+  else in the tooling is blocked on this.
+- [ ] **Create a Desktop-app OAuth client and run `./therrads auth login`.**
+  Google Cloud Console -> APIs & Services -> Credentials. A *Web application*
+  client fails the installed-app flow with `redirect_uri_mismatch`.
+- [ ] **Set the Cloud project's OAuth consent screen to "In production".** While
+  it is in *Testing*, Google expires the refresh token after 7 days with no
+  warning and no distinguishing error — this is the cause of "it worked last
+  week" for every tool built on this API.
+- [ ] **Produce a 15-30s portrait video asset for the App campaign.** Without
+  video, an App campaign is limited to Search and a narrow Display slice: a
+  fraction of the reach at a materially higher CPI. It is the single largest
+  lever on App campaign cost, and `campaign plan` warns on every run until it
+  exists (`assets.videos` in `campaigns/habits-app-install.yaml`).
+- [ ] **Link Google Ads to the Play Console** (Play Console -> Settings ->
+  Google Ads links) so installs are reported as conversions. Without the link,
+  the App campaign optimises against nothing and `report ads` shows zero installs
+  regardless of what actually happened.
+- [ ] **Set `settings.yaml` -> `product_db.enabled: true`** against the READ
+  replica once credentials are sourced. Ads and GA4 alone cannot answer whether
+  paid users activate or pay; that join lives only in our own database.
+
+### Code work this unblocks
+
+- [ ] **Wire the Play Install Referrer API into TherrMobile** so paid installs
+  are attributable. Read the referrer string on first launch, parse the UTM
+  parameters, and include them in the registration payload's `userAcquisition`
+  object — `sanitizeUserAcquisition` and `main."userAcquisition"` already exist,
+  so no backend change is needed. Until this ships, every conclusion about the
+  app-install arm's users is inference rather than measurement, and paid installs
+  are indistinguishable from organic ones in the funnel.
+  **Mobile-only — belongs on `niche/HABITS-general`, not `general`.**
+- [ ] **Add accepted-invite counts to the acquisition funnel query** so the viral
+  coefficient is measured rather than assumed. `product.py` currently counts
+  invites *sent* (the 3-invite solo-tracking unlock); the loop only pays for
+  acquisition if invites are *accepted*. Join `main.invites.isAccepted` to the
+  cohort in `FUNNEL_SQL`.
 
 ## Skill-generated items (auto-appended)
 
@@ -988,6 +1071,28 @@ console configuration, and one verification that gates a payments change.
   rather than failing at the registry: "No build manifest at ..." (the build step never ran) and
   "changed in this merge but build.sh never built it" (the two steps' predicates disagreed).
   Introduced to stop the e4790de8 class of failure, where publish pushed a tag nothing built.
+
+- [ ] (2026-08-29, /quality-peer-review) **Attach the Habits app-campaign image and video assets in
+  the Google Ads UI after the first `therrads campaign apply`.** `scripts/google-ads` sends text
+  assets only — `assets.images` / `assets.videos` in a spec are validated and counted but never
+  uploaded, because image and video assets need a separate AssetService binary upload the tool
+  does not perform. The spec and plan now say so out loud rather than dropping them silently, but
+  an App campaign without a video is limited to Search and a narrow Display slice, so this is the
+  step that decides the campaign's reach.
+
+- [ ] (2026-08-29, /quality-peer-review-niche) **Confirm Play has not already consumed
+  `versionCode 31` for `com.therr.habits`, then merge `niche/HABITS-general` into
+  `niche/HABITS-main` to cut the Android build.** The 192 commits queued behind that merge were
+  reviewed against `origin/niche/HABITS-main` and are clean; three peer-review commits
+  (`ae24bb5d4`, `160bff861`, `d251c7e95`) sit unpushed on `niche/HABITS-general` and go with
+  them. Unlike the 2026-08-17 item above, the API side is **not** a blocker this time: every
+  backend dependency the new client calls — `PUT /habits/pacts/:id/renew`, `.../nudge`,
+  `GET /habits/pacts/invites`, `repostThoughtId` on thought creation, and `graceDaysConsumed` /
+  `streakSavedByFreeze` on the check-in 201 — is already on `origin/main`, so the mobile release
+  cannot outrun it. What is unverified is the version number: `build.gradle` reads
+  `versionCode 31 / versionName 1.3.2`, bumped from 27 / 1.1.2, and Play rejects a re-used
+  versionCode at upload rather than at build time. Check the Play Console release history first,
+  and prefer `/mobile-release-preflight` over doing it by hand.
 
 <!-- skill-followups:end -->
 

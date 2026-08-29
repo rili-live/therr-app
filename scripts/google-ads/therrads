@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Wrapper so the tool runs as ./therrads from scripts/google-ads without an
+# install step or a PYTHONPATH export. Activates .venv if one exists here.
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$HERE/.venv/bin/activate" ]; then
+    # shellcheck disable=SC1091
+    . "$HERE/.venv/bin/activate"
+fi
+cd "$HERE"
+exec python3 -m therr_ads "$@"
