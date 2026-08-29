@@ -100,7 +100,7 @@ therr_ads/
   settings.py    settings.yaml loader
   auth.py        OAuth refresh-token flow
   client.py      GoogleAdsClient factory + error hints
-  campaigns.py   plan/apply, budget and status mutations
+  campaigns.py   plan/apply, budget and status mutations       (plan is tested)
   reporting.py   GAQL -> normalized rows
   ga4.py         GA4 Data API + crawler guard             (guard is tested)
   product.py     the users-service funnel SQL

@@ -160,6 +160,11 @@ const stubDigest = (scenario: IScenario = {}) => {
         return Promise.resolve(1);
     });
 
+    // Reminder pass off for this fixture: the lifecycle assertions here are
+    // about the pact-driven path, and a second source of pairs would change the
+    // counts without changing what is under test.
+    sinon.stub(Store.userHabits, 'getActiveForReminders').resolves([] as any);
+
     sinon.stub(Store.streaks, 'getByUserAndHabit').resolves({ isActive: true, currentStreak: 30 } as any);
     sinon.stub(Store.streaks, 'getByUserHabitPairs').resolves([
         { userId: USER, habitGoalId: HABIT_GOAL_ID, longestStreak: 42 },

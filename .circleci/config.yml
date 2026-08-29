@@ -36,6 +36,12 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+          # Pinned rather than left implicit: the daemon version is an input to every
+          # image these jobs build, and an unpinned default moves under us on
+          # CircleCI's schedule. `default` is CircleCI's documented alias for the
+          # current default (Docker 24); moving to 26/27 requires Gen2 resource
+          # classes, so change this deliberately rather than by drift.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
           at: ~/
@@ -60,6 +66,8 @@ jobs:
       - image: cimg/go:1.24.4
     steps:
       - setup_remote_docker:
+          # Pinned — see docker_build_base_image above.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
           at: ~/
@@ -90,6 +98,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+          # Pinned — see docker_build_base_image above.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
           at: ~/
@@ -164,6 +174,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+          # Pinned — see docker_build_base_image above.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
             at: ~/
@@ -353,6 +365,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+          # Pinned — see docker_build_base_image above.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
             at: ~/

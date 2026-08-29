@@ -107,8 +107,6 @@ def explain(exception) -> str:
             for field_descriptor, value in getattr(code_obj, "ListFields", lambda: [])():
                 code_name = getattr(value, "name", str(value))
                 parts.append(f"{field_descriptor.name}: {code_name}")
-        else:
-            parts.append(message)
 
         if message:
             parts.append(f"  {message}")

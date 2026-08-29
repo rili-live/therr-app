@@ -153,8 +153,13 @@ def build_plan(
                 "CREATE",
                 "AdGroupAd",
                 "app ad",
-                f"{len(spec.assets.headlines)} headlines, {len(spec.assets.descriptions)} descriptions, "
-                f"{len(spec.assets.images)} images, {len(spec.assets.videos)} videos",
+                f"{len(spec.assets.headlines)} headlines, {len(spec.assets.descriptions)} descriptions"
+                + (
+                    f" (+{len(spec.assets.images)} images, {len(spec.assets.videos)} videos "
+                    "NOT uploaded — attach them in the Google Ads UI)"
+                    if (spec.assets.images or spec.assets.videos)
+                    else ""
+                ),
             )
         )
     else:

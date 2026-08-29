@@ -155,6 +155,56 @@ That is the supported way to resynchronise a cluster that has drifted behind the
 
 Never hand-edit `VERSIONS.txt` to do it.
 
+## build.sh hands publish.sh a manifest
+
+Both scripts run as steps of the one `docker_build_test_publish_images` job, over one
+checkout. They used to answer "should this service ship?" separately, by each
+evaluating the changed-files predicate — two evaluations of one question, with nothing
+positioned to notice when they disagreed.
+
+They did disagree, on the stage merge at `e4790de8`. `build.sh` skipped all eight
+services as "No Changes" and went green; `publish.sh` found `therr-client-web` changed
+and pushed a tag nothing had built. The job died four steps later at `docker push`:
+
+```
+The push refers to repository [docker.io/therrapp/client-web-stage]
+An image does not exist locally with the tag: therrapp/client-web-stage
+```
+
+A message about the registry, for a fault in the build step, which reported success.
+
+Now `build.sh` writes `.build-manifest.tsv` — one row per image it built, `key`,
+`:latest` tag, `:<sha>` tag — and `publish.sh` pushes that list. Three consequences:
+
+- **An absent manifest is a hard error**, not an empty publish: the file is truncated
+  before the build loop, so "exists but empty" means *built nothing* and "absent" means
+  *the build step never ran*. The recovery is re-running the whole stage pipeline, not
+  this job alone.
+- **The predicate stays in `publish.sh` as a cross-check only.** If it says a service
+  should have shipped and the manifest doesn't carry it, publish fails naming both
+  steps, instead of failing at the registry.
+- **The ledger row is taken from the tag that was pushed**, not from `GIT_SHA`, so a
+  row cannot name a tag the push never sent.
+
+Both scripts also `docker image inspect` each tag before relying on it. A `docker
+build` that exits 0 without loading its tags is not hypothetical — under a buildx
+container driver the result stays in the build cache unless `--load` is passed, and
+the only symptom is a push that cannot find the image.
+
+### Why a git failure can no longer read as "no changes"
+
+The predicate in `_bin/lib/has_diff_changes.sh` counted with
+`NUM=$(git diff ... | wc -l)`. A pipeline reports its *last* element's status, so git
+dying — an unresolvable rev, a missing object, a shallow or partial checkout —
+produced zero lines, and `[[ 0 -gt 0 ]]` is false. "git could not tell us" and
+"nothing changed" were the same answer.
+
+`_count_diff_files` now checks git's own exit status and aborts the script, leaving
+git's message in the job log. That is what turns the failure above into a red *build*
+step naming the real cause. `setup_remote_docker` is also pinned rather than left to
+CircleCI's moving default, so the executor is one less thing that changes underneath
+a green pipeline.
+
 ## The service registry
 
 `_bin/lib/service-registry.sh` is the one list `build.sh`, `publish.sh`,

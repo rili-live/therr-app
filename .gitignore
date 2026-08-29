@@ -107,3 +107,6 @@ context/transcripts/
 
 # Per-service deploy plan, written by _bin/cicd/deploy.sh for run-migrations.sh
 .deploy-plan.tsv
+
+# Tags built in this job, written by _bin/cicd/build.sh for publish.sh
+.build-manifest.tsv

@@ -172,7 +172,7 @@
     },
     "dailyHabitReminder": {
       "title": "Hora de registrarte",
-      "body": "No olvides registrar {habitName} hoy — un toque rápido mantiene tu racha viva."
+      "body": "Registra {habitName} hoy — un solo registro pone tu racha en marcha."
     },
     "morningMotivation": {
       "title": "Buenos días",

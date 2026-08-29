@@ -172,7 +172,7 @@
     },
     "dailyHabitReminder": {
       "title": "Time to Check In",
-      "body": "Don't forget to log {habitName} today — a quick tap keeps your streak alive."
+      "body": "Log {habitName} today — one check-in gets your streak going."
     },
     "morningMotivation": {
       "title": "Good Morning",

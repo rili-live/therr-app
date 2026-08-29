@@ -1,6 +1,7 @@
 import KnexBuilder, { Knex } from 'knex';
 import { IConnection } from './connection';
 import {
+    HABIT_CHECKINS_TABLE_NAME,
     HABIT_GOALS_TABLE_NAME,
     PACTS_TABLE_NAME,
     PACT_MEMBERS_TABLE_NAME,
@@ -54,6 +55,30 @@ export interface IUserHabitDetail extends IUserHabitRow {
     activePactCount: number;
     currentStreak: number;
     longestStreak: number;
+}
+
+/**
+ * One row of the daily-reminder universe: everything the digest needs to decide
+ * whether to nudge this (user, habit) today, gathered in a single query.
+ *
+ * Deliberately flatter than `IUserHabitDetail` — the digest does not want the
+ * dashboard's shape, it wants the cadence, the streak and whether today is
+ * already done, for every active habit in the system at once.
+ */
+export interface IUserHabitReminderRow {
+    userId: string;
+    habitGoalId: string;
+    goalName: string;
+    frequencyType: string;
+    frequencyCount: number | null;
+    targetDaysOfWeek: number[] | null;
+    currentStreak: number;
+    streakIsActive: boolean;
+    gracePeriodDays: number;
+    graceDaysUsed: number;
+    lastCompletedDate: string | null;
+    completedToday: boolean;
+    activePactId: string | null;
 }
 
 export default class UserHabitsStore {
@@ -154,6 +179,73 @@ export default class UserHabitsStore {
 
         return this.db.read.query(queryString)
             .then((response) => response.rows as IUserHabitDetail[]);
+    }
+
+    /**
+     * Every actively-tracked habit in the system, for the daily reminder pass.
+     *
+     * WHY THIS EXISTS AND NOT A LOOP OVER PACTS
+     *
+     * The digest used to reach users only through `habits.pacts`, so a user
+     * with a solo habit — or a user whose pact ended — generated zero sends,
+     * forever. `habits.user_habits` is the registry of what people are actually
+     * trying to do, solo and pact-backed alike, so it is the correct spine for
+     * "remind me to do my habit today".
+     *
+     * One query for the whole run, in the same spirit as
+     * `buildHabitLifecycleContext`: the alternative is a per-habit check-in
+     * lookup and a per-habit streak lookup, which turns a background job into
+     * thousands of round trips against the read pool.
+     *
+     * `activePactId` is a sample, not a count — it exists so reminder copy can
+     * deep-link into a pact when one happens to back the habit, and is null for
+     * a solo habit. Pact-scoped notifications still come from the pact loop.
+     */
+    getActiveForReminders(today: string, limit: number): Promise<IUserHabitReminderRow[]> {
+        const queryString = knexBuilder.raw(
+            `SELECT
+                uh."userId",
+                uh."habitGoalId",
+                g."name" AS "goalName",
+                g."frequencyType" AS "frequencyType",
+                g."frequencyCount" AS "frequencyCount",
+                g."targetDaysOfWeek" AS "targetDaysOfWeek",
+                COALESCE(s."currentStreak", 0) AS "currentStreak",
+                COALESCE(s."isActive", false) AS "streakIsActive",
+                COALESCE(s."gracePeriodDays", 0) AS "gracePeriodDays",
+                COALESCE(s."graceDaysUsed", 0) AS "graceDaysUsed",
+                s."lastCompletedDate" AS "lastCompletedDate",
+                EXISTS (
+                    SELECT 1
+                    FROM ${HABIT_CHECKINS_TABLE_NAME} c
+                    WHERE c."userId" = uh."userId"
+                        AND c."habitGoalId" = uh."habitGoalId"
+                        AND c."scheduledDate" = ?::date
+                        AND c."status" = 'completed'
+                ) AS "completedToday",
+                (
+                    SELECT p."id"
+                    FROM ${PACT_MEMBERS_TABLE_NAME} pm
+                    INNER JOIN ${PACTS_TABLE_NAME} p ON p."id" = pm."pactId"
+                    WHERE pm."userId" = uh."userId"
+                        AND pm."status" = 'active'
+                        AND p."habitGoalId" = uh."habitGoalId"
+                        AND p."status" = 'active'
+                    ORDER BY p."createdAt" ASC
+                    LIMIT 1
+                ) AS "activePactId"
+            FROM ${USER_HABITS_TABLE_NAME} uh
+            INNER JOIN ${HABIT_GOALS_TABLE_NAME} g ON g."id" = uh."habitGoalId"
+            LEFT JOIN ${STREAKS_TABLE_NAME} s
+                ON s."userId" = uh."userId" AND s."habitGoalId" = uh."habitGoalId"
+            WHERE uh."status" = 'active'
+            ORDER BY uh."startedAt" ASC, uh."id" ASC
+            LIMIT ?`,
+            [today, limit],
+        ).toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => response.rows as IUserHabitReminderRow[]);
     }
 
     /**

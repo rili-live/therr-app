@@ -172,7 +172,7 @@
     },
     "dailyHabitReminder": {
       "title": "C'est l'heure de t'enregistrer",
-      "body": "N'oublie pas d'enregistrer {habitName} aujourd'hui — un simple appui garde ta série vivante."
+      "body": "Enregistre {habitName} aujourd'hui — un seul enregistrement lance ta série."
     },
     "morningMotivation": {
       "title": "Bon matin",

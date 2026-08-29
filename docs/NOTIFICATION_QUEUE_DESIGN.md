@@ -199,10 +199,11 @@ is currently a cap on queued notifications, not on notifications.
 
 ### Where the frequency actually is
 
-- **Seven types are delivery-half-only** — `dailyHabitReminder`,
-  `morningMotivation`, `eveningCheckIn`, `streakBroken`, `newPersonalRecord`,
-  `partnerCelebrated`, `pactCompleted`. Copy in three locales, channels, intent
-  actions, tests, and no caller anywhere. The largest block of ready volume.
+- **Six types are delivery-half-only** — `morningMotivation`, `eveningCheckIn`,
+  `streakBroken`, `newPersonalRecord`, `partnerCelebrated`, `pactCompleted`.
+  Copy in three locales, channels, intent actions, tests, and no caller
+  anywhere. `dailyHabitReminder` was the seventh and now has a producer: the
+  digest's reminder pass.
 - **Silent reward moments** — `habitCheckins.ts` awards a streak freeze at every
   7+ day milestone and says nothing. Exactly the loss-aversion mechanic Duolingo
   leans on, with the state already persisted.
@@ -211,10 +212,15 @@ is currently a cap on queued notifications, not on notifications.
 - **`main.thoughts`** — ai-automator already drips content over ~30h, with no
   notification attached.
 
-Note what a solo tester can currently trigger: essentially nothing. Every live
-type needs a second human or the digest, and the digest iterates `activePacts`,
-so an account with no pact generates zero sends. The only self-triggered push is
-`streakMilestone`, at exactly 3/7/14/30/… consecutive days.
+Note what a solo tester can trigger. This used to be essentially nothing: every
+live type needed a second human or the digest, and the digest iterated
+`activePacts`, so an account with no pact generated zero sends — the only
+self-triggered push was `streakMilestone`, at exactly 3/7/14/30/… consecutive
+days. The digest's reminder pass now also walks `habits.user_habits`, so a solo
+account with one tracked habit and no check-in gets a `dailyHabitReminder` (or
+`streakAtRisk`, once it has a streak) on the next run. That pass is the first
+producer with a row for nearly every active user, which makes it the first thing
+likely to press against the 5/day cap.
 
 ---
 
@@ -225,7 +231,9 @@ so an account with no pact generates zero sends. The only self-triggered push is
    confirm dedup by running the digest twice. **(done)**
 3. Honor `settingsPush*` in the worker; add the push category UI.
 4. Add user timezone; start setting `scheduledFor` per user.
-5. Wire the seven orphaned types and the silent reward moments.
+5. Wire the remaining orphaned types and the silent reward moments.
+   `dailyHabitReminder` is done — see `habitsDigest.ts`, gated on
+   `HABIT_DAILY_REMINDERS_ENABLED` (defaults on).
 6. Revisit the 5/day cap with real data.
 
 Steps 3 and 4 are what earn the right to step 5. Doing 5 first is how you find

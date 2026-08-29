@@ -362,6 +362,18 @@ def _validate_app(spec: CampaignSpec) -> tuple[list[str], list[str]]:
             "Search and a narrow Display slice: expect a fraction of the reach at a higher CPI. "
             "A single 15-30s portrait clip is the highest-leverage asset here."
         )
+    if spec.assets.images or spec.assets.videos:
+        # Image and video assets need a separate AssetService upload of the binary
+        # before an ad can reference them, which this tool does not do. Say so
+        # here rather than letting `apply` drop them silently — the plan counts
+        # them, so an operator who filled the list in would otherwise believe
+        # they had shipped.
+        warnings.append(
+            f"assets.images ({len(spec.assets.images)}) and assets.videos "
+            f"({len(spec.assets.videos)}) are NOT uploaded by this tool — only text assets are "
+            "sent. Attach the media to the created campaign in the Google Ads UI, or the app ad "
+            "will serve text-only."
+        )
     return errors, warnings
 
 
