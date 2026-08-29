@@ -1,0 +1,167 @@
+# =============================================================================
+# Friends with Habits — Search to landing page (the MEASURED arm)
+#
+#   ./therrads campaign plan  campaigns/habits-web-landing.yaml
+#   ./therrads campaign apply campaigns/habits-web-landing.yaml --confirm
+#
+# WHY THIS EXISTS WHEN THE APP ARM IS CHEAPER
+# This arm costs several times more per signup than habits-app-install.yaml and
+# will never be the volume driver. Run it anyway, because it is the only path
+# where a click is connected to a person:
+#
+#   click (utm_campaign) -> habits.therr.com -> registration
+#     -> main."userAcquisition".utmCampaign        (captured by therr-react attribution)
+#       -> habits.pacts / main.invites             (did they activate?)
+#         -> habits.lifetime_purchases             (did they pay the $20?)
+#
+# Every question the business actually needs answered — which intent converts,
+# what a paying user costs, whether the pact mechanic survives contact with a
+# cold audience — is answerable from this arm and unanswerable from the other.
+# Treat its budget as a research cost, not an acquisition cost.
+#
+# The keyword themes below are the market-segmentation hypothesis in testable
+# form. `therrads analyze` reports cost and downstream conversion per ad group,
+# so the ad groups ARE the experiment: whichever theme produces payers is the
+# market, and the others are the pivot evidence.
+# =============================================================================
+
+hypothesis: >
+  The people who convert are not generic "habit tracker" searchers — they are
+  people already looking for accountability (partner, buddy, group). If the
+  accountability ad group beats the generic tracker ad group on cost per
+  activated user, the positioning and the Play listing should lead with
+  accountability and stop competing with Streaks/Habitify on tracker features.
+  If neither ad group activates, the problem is the onboarding wall (a pact
+  needs a partner before the app does anything), not the targeting.
+
+campaign:
+    name: "FwH-Web-US-Search-2026Q3"
+    kind: web_landing
+    status: PAUSED
+    start_date: ""
+    end_date: ""
+
+budget:
+    # Half the app arm. This buys answers, not users — size it by how many
+    # clicks are needed for a readable ad-group comparison, not by growth.
+    daily: 10.00
+    currency: USD
+    delivery: STANDARD
+
+bidding:
+    # Cost per acquisition target for the landing-page conversion. Higher than
+    # the app arm's target CPI on purpose: a web signup is a fully attributed
+    # user, and the extra cost is what the attribution is worth.
+    goal: OPTIMIZE_INSTALLS_TARGET_INSTALL_COST
+    target_cpa: 8.00
+
+targeting:
+    location_ids: ["2840"]
+    language_ids: ["1000"]
+    notes: >
+      US + English, matching the app arm so the two are comparable. Once an ad
+      group shows a payer, narrow a copy of this spec to that city or state and
+      compare — geography is the cheapest segmentation test available.
+
+ad_groups:
+    # ---------------------------------------------------------------------
+    # Theme A — accountability intent. The hypothesis. These searchers already
+    # believe the premise the app is built on, so they should convert at a
+    # materially better rate even at a higher click price.
+    # ---------------------------------------------------------------------
+    - name: "accountability-partner"
+      match_type: PHRASE
+      final_url: "https://habits.therr.com"
+      keywords:
+          - "accountability partner app"
+          - "habit accountability app"
+          - "accountability buddy app"
+          - "find an accountability partner"
+          - "habit tracker with friends"
+          - "habit tracker with accountability"
+      negative_keywords:
+          - "free"
+          - "aa"
+          - "sponsor"
+          - "recovery"
+          - "addiction"
+          - "12 step"
+
+    # ---------------------------------------------------------------------
+    # Theme B — generic habit-tracker intent. The control. Much higher volume,
+    # much more competition (Streaks, Habitify, Productive all bid here), and
+    # the searcher has no reason to want a partner. If this beats Theme A the
+    # positioning hypothesis above is wrong.
+    # ---------------------------------------------------------------------
+    - name: "habit-tracker-generic"
+      match_type: PHRASE
+      final_url: "https://habits.therr.com"
+      keywords:
+          - "habit tracker app"
+          - "best habit tracker"
+          - "daily habit app"
+          - "streak tracker app"
+      negative_keywords:
+          - "free"
+          - "notion"
+          - "template"
+          - "spreadsheet"
+          - "excel"
+          - "printable"
+          - "reddit"
+
+    # ---------------------------------------------------------------------
+    # Theme C — the failure state the product is a remedy for. Highest intent,
+    # lowest volume. Worth its own group precisely because the volume is small:
+    # if it converts, the ad copy for the whole account should sound like this.
+    # ---------------------------------------------------------------------
+    - name: "cant-stick-to-habits"
+      match_type: PHRASE
+      final_url: "https://habits.therr.com"
+      keywords:
+          - "how to stick to a habit"
+          - "cant stick to habits"
+          - "how to stay consistent with habits"
+          - "keep breaking my streak"
+      negative_keywords:
+          - "free"
+          - "quotes"
+          - "book"
+          - "podcast"
+          - "atomic habits"
+
+assets:
+    # Responsive search ads: 3-15 headlines (<=30 chars), 2-4 descriptions
+    # (<=90 chars). More headlines is strictly better — Google tests
+    # combinations, and pinning nothing lets it find the winner.
+    headlines:
+        - "Habits That Actually Stick"
+        - "Pact Up With a Friend"
+        - "Your Accountability Partner"
+        - "Don't Break the Streak"
+        - "Habit Tracker for Friends"
+        - "Quit in Private? Not Here."
+        - "Track Habits Together"
+        - "Free for Five Habits"
+    descriptions:
+        - "Every habit is a pact with a friend. You check in, they check in, the streak lives."
+        - "Most habit apps let you quit in private. Friends with Habits doesn't. Start free."
+        - "Photo check-ins, shared streaks, and a partner who notices when you skip a day."
+        - "Free for five habits. No card required. Bring one friend and start today."
+
+tracking:
+    # utm_campaign is the join key into main."userAcquisition".utmCampaign.
+    # It is effectively IMMUTABLE once this campaign has served: renaming it
+    # orphans every historical signup from its spend. Start a new campaign
+    # instead of renaming this one.
+    utm_source: google
+    utm_medium: cpc
+    utm_campaign: fwh-web-us-search-2026q3
+    # ValueTrack placeholders Google substitutes per click. utm_term carrying
+    # {keyword} is what lets analysis.py rank actual search intent rather than
+    # only the keywords we thought to bid on.
+    value_track:
+        utm_term: "{keyword}"
+        gad_matchtype: "{matchtype}"
+        gad_network: "{network}"
+        gad_device: "{device}"

@@ -1,0 +1,16 @@
+# Secrets. config.yaml holds the developer token AND the OAuth refresh token —
+# together they are full write access to the ad account and the ability to spend
+# money. Never commit it; config.example.yaml is the committed shape.
+config.yaml
+settings.yaml
+*.local.yaml
+client_secret*.json
+
+# Report output and cached pulls.
+out/
+.cache/
+
+__pycache__/
+*.pyc
+.venv/
+venv/
