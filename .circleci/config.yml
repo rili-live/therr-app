@@ -162,6 +162,27 @@ jobs:
       - run:
           name: Unit tests for _bin decision logic
           command: npm run test:bin-scripts
+  google_ads_tooling_tests:
+    # Unit tests for scripts/google-ads (the paid-acquisition tooling). Nothing
+    # else in this config runs Python, and these tests guard the budget ceiling
+    # that decides how much real money a `campaign apply` or `campaign resume`
+    # can commit — an unrun test there is indistinguishable from no test.
+    #
+    # cimg/python rather than the node image: only PyYAML is needed, because the
+    # tested modules are deliberately importable without the google-ads client
+    # or any credentials. Keep it that way — a test that needs a live account is
+    # a test that never runs here.
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - checkout
+      - run:
+          name: Install the one pure-Python test dependency
+          command: pip install --quiet "PyYAML>=6.0,<7.0"
+      - run:
+          name: Unit tests for the Google Ads campaign tooling
+          working_directory: scripts/google-ads
+          command: python3 -m unittest discover -s tests -t . --verbose
   docker_build_test_publish_images:
     docker:
       - image: cimg/go:1.24.4
@@ -388,6 +409,7 @@ workflows:
       # between the service registry and k8s/prod must fail on the branch that
       # introduces it, not on the promotion that trips over it.
       - deploy_pipeline_gates
+      - google_ads_tooling_tests
       - docker_build_test_publish_images:
           requires:
           - docker_build_base_image
