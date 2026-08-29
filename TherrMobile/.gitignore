@@ -39,6 +39,15 @@ local.properties
 #
 android/app/src/main/assets/appcenter-config.json
 
+# Android release artifacts.
+#
+# `build/` above already covers the path `npm run build:release` actually writes
+# (android/app/build/outputs/bundle/release/). This covers the stray sibling
+# directory a hand-run Gradle task drops the same bundle into — a 68 MB binary
+# that was tracked for months, rewritten by every release build, and carried in
+# full through every general -> niche merge.
+android/app/release/
+
 # Visual Studio Code
 #
 .vscode/

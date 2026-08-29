@@ -74,7 +74,7 @@ import TherrMapView from './TherrMapView';
 import { isMyContent } from '../../utilities/content';
 import getNearbySpaces from '../../utilities/getNearbySpaces';
 import { getLastMapLocation, setLastMapLocation } from '../../utilities/lastMapLocation';
-import { hasUsableCoords, isUsableCoordinate } from '../../utilities/coordinates';
+import { firstUsableCoordinate, hasUsableCoords, isUsableCoordinate } from '../../utilities/coordinates';
 import { sendForegroundNotification } from '../../utilities/pushNotifications';
 import QuickFiltersList from '../../components/QuickFiltersList';
 import { getInitialAuthorFilters, getInitialCategoryFilters, getInitialVisibilityFilters } from '../../utilities/getInitialFilters';
@@ -332,9 +332,16 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             shouldShowCreateActions: false,
             // Note: This is essentially the same as redux state `location.user.longitude/latitude` (plus defaults)
             // We should probably consolidate this into redux
+            // `firstUsableCoordinate`, not `||`: a route param of exactly 0 is falsy, so
+            // the chain would skip a coordinate it was handed and centre the map on the
+            // default instead.
             circleCenter: {
-                longitude: routeLongitude || props?.user?.details?.lastKnownLongitude || DEFAULT_LONGITUDE,
-                latitude: routeLatitude || props?.user?.details?.lastKnownLatitude || DEFAULT_LATITUDE,
+                longitude: firstUsableCoordinate(
+                    routeLongitude, props?.user?.details?.lastKnownLongitude,
+                ) ?? DEFAULT_LONGITUDE,
+                latitude: firstUsableCoordinate(
+                    routeLatitude, props?.user?.details?.lastKnownLatitude,
+                ) ?? DEFAULT_LATITUDE,
             },
         };
 
@@ -397,8 +404,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             updateFirstTimeUI(true);
         }
 
-        if (!route.params?.longitude || !route.params?.latitude) {
-            if (user?.details?.lastKnownLatitude && user?.details?.lastKnownLongitude) {
+        if (!hasUsableCoords(route.params)) {
+            if (isUsableCoordinate(user?.details?.lastKnownLatitude)
+                && isUsableCoordinate(user?.details?.lastKnownLongitude)) {
                 // Load the users last known location
                 // Note: See getLongitudeDelta()
                 // This converts degrees to miles then miles to meters (times 4 for extended search)
@@ -997,7 +1005,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         this.updateCircleCenter(coords);
         // Widen the delta when the region is already on the target longitude
         // so the animation is visible instead of being a near-no-op.
-        const mapDelta = region.longitude && region.latitudeDelta
+        const mapDelta = isUsableCoordinate(region.longitude) && region.latitudeDelta
             && Math.abs(region.latitudeDelta - MAX_ANIMATION_LATITUDE_DELTA) > 0.001
             && Math.abs(region.longitude - coords.longitude) < 0.0001
             ? {
@@ -1031,7 +1039,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         // repeat presses won't refire the 6+ search requests.
         if (location?.settings?.isGpsEnabled
             && isLocationPermissionGranted(location?.permissions || {})
-            && location.user?.longitude && location.user?.latitude
+            && hasUsableCoords(location.user)
             && map.hasUserLocationLoaded) {
             const coords = {
                 longitude: location.user.longitude,
@@ -1103,7 +1111,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                             });
 
                             // User has already logged in initially and loaded the map
-                            if (location.user?.longitude && location.user?.latitude && map.hasUserLocationLoaded) {
+                            if (hasUsableCoords(location.user) && map.hasUserLocationLoaded) {
                                 const coords = {
                                     longitude: location.user.longitude,
                                     latitude: location.user.latitude,
@@ -1554,14 +1562,15 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         let lat = latitude;
         let long = longitude;
 
-        if (!latitude || !longitude) {
+        if (!isUsableCoordinate(latitude) || !isUsableCoordinate(longitude)) {
             lat = region.latitude;
             long = region.longitude;
         }
 
         // Skip if we searched recently AND haven't moved far enough. Class fields are used
         // (not state) so these guards don't trigger re-renders.
-        if (!overrideThrottle && lat && long && this.lastSearchAt && this.lastSearchCoords &&
+        if (!overrideThrottle && isUsableCoordinate(lat) && isUsableCoordinate(long)
+            && this.lastSearchAt && this.lastSearchCoords &&
             (Date.now() - this.lastSearchAt <= MOMENTS_REFRESH_THROTTLE_MS)) {
             const movedMeters = distanceTo({
                 lon: this.lastSearchCoords.longitude,
@@ -1770,7 +1779,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         } = this.state;
         const { location } = this.props;
 
-        if (shouldFollowUserLocation === false && location?.user?.longitude && location?.user?.latitude) {
+        if (shouldFollowUserLocation === false && hasUsableCoords(location?.user)) {
             // Zoom in
             // TODO: Find way to keep pitch while following
             // this.animateToWithHelp(() => {

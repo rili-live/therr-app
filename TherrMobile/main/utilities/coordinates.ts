@@ -19,4 +19,17 @@ export const isUsableCoordinate = (value: any): value is number => Number.isFini
 export const hasUsableCoords = (point: any): boolean => isUsableCoordinate(point?.latitude)
     && isUsableCoordinate(point?.longitude);
 
+/**
+ * First usable coordinate in a preference order, for the `a || b || DEFAULT` fallback
+ * chains the map builds its initial region from.
+ *
+ * `||` is the same bug as the truthiness checks above, one step further along: a route
+ * param of `0` is falsy, so the chain skips a coordinate it was explicitly handed and
+ * silently falls through to the next candidate — or all the way to the hardcoded
+ * default, putting the map in the wrong country. Returns `undefined` only when no
+ * candidate is usable, so callers still supply their own last resort.
+ */
+export const firstUsableCoordinate = (...values: any[]): number | undefined => values
+    .find((value) => isUsableCoordinate(value));
+
 export default hasUsableCoords;

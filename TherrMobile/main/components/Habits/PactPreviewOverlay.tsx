@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
@@ -251,7 +252,12 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
     return (
         <>
             <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-            <SafeAreaView style={[theme.styles.safeAreaView, themeHabits.styles.dashboardContainer]}>
+            {/* `edges={[]}`: this overlay already adds `bottomSafeAreaInset` to its own
+                content padding below, so a second inset here would double it. */}
+            <SafeAreaView
+                edges={[]}
+                style={[theme.styles.safeAreaView, themeHabits.styles.dashboardContainer]}
+            >
                 <ScrollView
                     contentContainerStyle={{
                         paddingBottom: (footerHeight || 220) + bottomSafeAreaInset,

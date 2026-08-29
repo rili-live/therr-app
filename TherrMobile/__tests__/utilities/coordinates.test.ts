@@ -1,4 +1,4 @@
-import { hasUsableCoords, isUsableCoordinate } from '../../main/utilities/coordinates';
+import { firstUsableCoordinate, hasUsableCoords, isUsableCoordinate } from '../../main/utilities/coordinates';
 
 describe('coordinates', () => {
     describe('isUsableCoordinate', () => {
@@ -44,6 +44,27 @@ describe('coordinates', () => {
             expect(hasUsableCoords(null)).toBe(false);
             expect(hasUsableCoords({ latitude: 'a', longitude: 'b' })).toBe(false);
             expect(hasUsableCoords({ latitude: NaN, longitude: 0 })).toBe(false);
+        });
+    });
+
+    describe('firstUsableCoordinate', () => {
+        // The regression this guards: `routeLongitude || lastKnownLongitude || DEFAULT`
+        // skipped a route param of exactly 0 and centred the map on the default instead.
+        it('returns a leading zero rather than falling through it', () => {
+            expect(firstUsableCoordinate(0, 51.4779, -87.6298)).toBe(0);
+        });
+
+        it('falls through absent and non-finite candidates', () => {
+            expect(firstUsableCoordinate(undefined, null, NaN, 41.8781)).toBe(41.8781);
+        });
+
+        it('keeps the declared preference order', () => {
+            expect(firstUsableCoordinate(41.8781, 0)).toBe(41.8781);
+        });
+
+        it('returns undefined when nothing is usable', () => {
+            expect(firstUsableCoordinate(undefined, null, 'nope')).toBeUndefined();
+            expect(firstUsableCoordinate()).toBeUndefined();
         });
     });
 });

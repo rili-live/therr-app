@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import RNFB from 'react-native-blob-util';
@@ -292,7 +293,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
 
         if (!habitGoal) {
             return (
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={['bottom']} style={this.theme.styles.safeAreaView}>
                     <View style={this.themeHabits.styles.emptyStateContainer}>
                         <Text style={this.themeHabits.styles.emptyStateTitle}>
                             {this.translate('pages.habits.habitNotFound')}
@@ -305,7 +306,14 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         return (
             <>
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-                <SafeAreaView style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}>
+                {/* `edges={['bottom']}`: Layout pads the header, but this screen has no
+                    ButtonMenu and its ScrollView runs to the bottom edge. React Native's
+                    own SafeAreaView is a no-op on Android, so that last row sat under the
+                    gesture handle. */}
+                <SafeAreaView
+                    edges={['bottom']}
+                    style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}
+                >
                     <ScrollView
                         refreshControl={
                             <RefreshControl

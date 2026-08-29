@@ -281,7 +281,10 @@ describe('habits dashboard nudge outcome toasts', () => {
         await flushPromises();
 
         const call: any = (Toast.show as any).mock.calls[0][0];
-        expect(call.type).toBe('error');
+        // The `showToast` wrapper picks the two-line variant whenever `text2` is set, so
+        // the assertion is on the error family rather than on one of its two members —
+        // this case is the only nudge toast that carries a body.
+        expect(['error', 'errorBig']).toContain(call.type);
         expect(call.text2).toBe('Only the person who created this pact can send a nudge');
     });
 

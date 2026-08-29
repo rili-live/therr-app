@@ -195,4 +195,57 @@ describe('HabitsDashboard pact action feedback', () => {
 
         expect(getListProps(instance).extraData).toBe(getListProps(instance).extraData);
     });
+
+    it('distinguishes which check-in is running, not just how many', () => {
+        // One check-in finishing as another starts leaves the count unchanged while the
+        // row that should be spinning has moved, so the ids themselves are what is keyed.
+        const instance: any = buildInstance('habits');
+
+        instance.state = { ...instance.state, checkinLoadingIds: new Set(['goal-a']) };
+        const first = getListProps(instance).extraData;
+
+        instance.state = { ...instance.state, checkinLoadingIds: new Set(['goal-b']) };
+
+        expect(getListProps(instance).extraData).not.toBe(first);
+    });
+});
+
+/**
+ * The habits segment used to rebuild every row object on every render, which is what
+ * masked the missing `extraData` there — new row identities forced every cell to
+ * re-render, correctly but for the wrong reason and at the cost of the virtualization.
+ *
+ * Now that the derivation is memoized on its four Redux inputs, the habits segment
+ * depends on `extraData` exactly like the pact segments do. These cases pin the memo, so
+ * the two halves of that bargain cannot drift apart.
+ */
+describe('HabitsDashboard habits row memo', () => {
+    const withHabit = (instance: any) => {
+        instance.props.habits.habitGoals = [{ id: 'goal-a', name: 'Read' }];
+        return instance;
+    };
+
+    it('keeps row identity while the Redux inputs hold still', () => {
+        const instance: any = withHabit(buildInstance('habits'));
+
+        expect(instance.getHabitsRows()).toBe(instance.getHabitsRows());
+        expect(getListProps(instance).data).toBe(getListProps(instance).data);
+    });
+
+    it('recomputes when a Redux input is replaced', () => {
+        const instance: any = withHabit(buildInstance('habits'));
+        const first = instance.getHabitsRows();
+
+        instance.props.habits.habitGoals = [{ id: 'goal-a', name: 'Read' }];
+
+        expect(instance.getHabitsRows()).not.toBe(first);
+    });
+
+    it('derives the split and the rows from one shared entry', () => {
+        // `render` reads both — the rows for the list, the split for the header's
+        // progress summary — so computing them separately did the work twice.
+        const instance: any = withHabit(buildInstance('habits'));
+
+        expect(instance.getHabitsByPactState()).toBe(instance.getHabitsByPactState());
+    });
 });

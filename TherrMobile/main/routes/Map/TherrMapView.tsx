@@ -869,11 +869,15 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
     getLatitudeDelta = () => {
         const { map, route, user } = this.props;
-        if (route.params?.latitude) {
+        // `isUsableCoordinate`, not truthiness: a route param of exactly 0 is a real
+        // latitude, and dropping it here picks the wrong zoom for the region the
+        // caller asked for.
+        if (isUsableCoordinate(route.params?.latitude)) {
             return SECONDARY_LATITUDE_DELTA;
         }
 
-        if (user?.details?.lastKnownLatitude && user?.details?.lastKnownLongitude) {
+        if (isUsableCoordinate(user?.details?.lastKnownLatitude)
+            && isUsableCoordinate(user?.details?.lastKnownLongitude)) {
             return MAX_ANIMATION_LATITUDE_DELTA;
         }
         return map.hasUserLocationLoaded ? PRIMARY_LATITUDE_DELTA : INITIAL_LATITUDE_DELTA;
@@ -881,11 +885,12 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
     getLongitudeDelta = () => {
         const { map, route, user } = this.props;
-        if (route.params?.longitude) {
+        if (isUsableCoordinate(route.params?.longitude)) {
             return SECONDARY_LONGITUDE_DELTA;
         }
 
-        if (user?.details?.lastKnownLatitude && user?.details?.lastKnownLongitude) {
+        if (isUsableCoordinate(user?.details?.lastKnownLatitude)
+            && isUsableCoordinate(user?.details?.lastKnownLongitude)) {
             return MAX_ANIMATION_LONGITUDE_DELTA;
         }
         return map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA;

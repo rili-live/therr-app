@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import RNFB from 'react-native-blob-util';
@@ -157,6 +158,28 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     private themeConfirmModal = buildConfirmModalStyles();
     private themeButtons = buildButtonsStyles();
     private unsubscribeNavigationListener: any;
+
+    /**
+     * Memo for the habits segment, keyed on the identity of the four Redux inputs it
+     * derives from.
+     *
+     * Two reasons, and the second is the one that bites. `getHabitsByPactState` runs on
+     * every render and `render` calls it twice — once for the rows, once for the list
+     * header's progress summary. And rebuilding a fresh row object per render defeats
+     * FlatList's cell memoization outright: every cell re-renders on every keystroke of
+     * unrelated state, which is exactly what `extraData` exists to make unnecessary.
+     *
+     * `this.translate` is bound to the constructor's locale and a locale change remounts
+     * the screen, so it does not belong in the key.
+     */
+    private habitsRowsMemo: {
+        habitGoals: any;
+        activePacts: any;
+        pacts: any;
+        userId?: string;
+        split: { live: IHabitWithPactState[]; pending: IHabitWithPactState[] };
+        rows: IHabitsRow[];
+    } | null = null;
 
     constructor(props: IHabitsDashboardProps) {
         super(props);
@@ -444,11 +467,10 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
 
         acceptPact(pact.id)
             .then(() => {
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: this.translate('pages.pacts.acceptedTitle'),
                     text2: this.translate('pages.pacts.acceptedMessage'),
-                    visibilityTime: 2000,
+                    duration: DURATION.SHORT,
                 });
                 permissions.requestIfAppropriate('notifications', { trigger: 'pactAccept' });
                 // The pact is live now, which makes its habit checkin-able —
@@ -457,11 +479,10 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 this.handleRefresh();
             })
             .catch(() => {
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('pages.pacts.errorTitle'),
                     text2: this.translate('pages.pacts.acceptError'),
-                    visibilityTime: 2000,
+                    duration: DURATION.SHORT,
                 });
             })
             .finally(() => {
@@ -493,12 +514,11 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 const results: IPactNudgeResult[] = response?.nudgeResults || [];
                 const toast = getNudgeOutcomeToast(results, this.formatNudgeDate);
 
-                Toast.show({
-                    type: toast.type,
+                showToast[toast.type]({
                     text1: this.translate(toast.key, toast.params),
                     // Partial and undeliverable outcomes need a sentence of explanation; a
                     // plain success or cooldown says everything in its headline.
-                    visibilityTime: toast.type === 'success' ? 2000 : 4000,
+                    duration: toast.type === 'success' ? DURATION.SHORT : DURATION.LONG,
                 });
 
                 this.handleRefresh();
@@ -509,11 +529,10 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 // over this screen's generic copy.
                 const { key, message } = getNudgeErrorMessage(error);
 
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('pages.pacts.errorTitle'),
                     text2: message || this.translate(key as string),
-                    visibilityTime: 4000,
+                    duration: DURATION.LONG,
                 });
             })
             .finally(() => {
@@ -545,13 +564,12 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
 
         renewPact(pact.id)
             .then(() => {
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: this.translate('pages.pacts.renew.successTitle'),
                     text2: this.translate('pages.pacts.renew.successMessage', {
                         days: pact.durationDays,
                     }),
-                    visibilityTime: 3000,
+                    duration: DURATION.DEFAULT,
                 });
 
                 this.handleRefresh();
@@ -567,11 +585,10 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                     ? error.message
                     : '';
 
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('pages.pacts.errorTitle'),
                     text2: apiMessage || this.translate('pages.pacts.renew.error'),
-                    visibilityTime: 4000,
+                    duration: DURATION.LONG,
                 });
 
                 // The likeliest rejection means the list this CTA was drawn from is out
@@ -607,20 +624,18 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
 
         declinePact(pactIdPendingDecline)
             .then(() => {
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: this.translate('pages.pacts.successTitle'),
                     text2: this.translate('pages.pacts.declinedMessage'),
-                    visibilityTime: 2000,
+                    duration: DURATION.SHORT,
                 });
                 this.handleRefresh();
             })
             .catch(() => {
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('pages.pacts.errorTitle'),
                     text2: this.translate('pages.pacts.declineError'),
-                    visibilityTime: 2000,
+                    duration: DURATION.SHORT,
                 });
             })
             .finally(() => {
@@ -642,16 +657,42 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         return habits.activeStreaks.find((s: IStreak) => s.habitGoalId === habitGoalId);
     };
 
-    getHabitsByPactState = () => {
+    /**
+     * Recomputes the split and the rows together, or returns the memo when none of the
+     * four inputs has moved. Both derivations share one entry because both are pure
+     * functions of the same inputs and both are read on every render.
+     */
+    private getHabitsMemo = () => {
         const { habits, user } = this.props;
+        const habitGoals = habits.habitGoals || [];
+        const activePacts = habits.activePacts || [];
+        const pacts = habits.pacts || [];
+        const userId = user.details?.id;
+        const memo = this.habitsRowsMemo;
 
-        return splitHabitsByPactState(
-            habits.habitGoals || [],
-            habits.activePacts || [],
-            habits.pacts || [],
-            user.details?.id,
-        );
+        if (memo
+            && memo.habitGoals === habitGoals
+            && memo.activePacts === activePacts
+            && memo.pacts === pacts
+            && memo.userId === userId) {
+            return memo;
+        }
+
+        const split = splitHabitsByPactState(habitGoals, activePacts, pacts, userId);
+
+        this.habitsRowsMemo = {
+            habitGoals,
+            activePacts,
+            pacts,
+            userId,
+            split,
+            rows: this.buildHabitsRows(split),
+        };
+
+        return this.habitsRowsMemo;
     };
+
+    getHabitsByPactState = () => this.getHabitsMemo().split;
 
     getOutgoingInvites = (): IPact[] => {
         const { habits, user } = this.props;
@@ -691,8 +732,11 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
      * FlatList the pact segments use instead of nesting one inside a scroll
      * view.
      */
-    getHabitsRows = (): IHabitsRow[] => {
-        const { live, pending } = this.getHabitsByPactState();
+    getHabitsRows = (): IHabitsRow[] => this.getHabitsMemo().rows;
+
+    private buildHabitsRows = (
+        { live, pending }: { live: IHabitWithPactState[]; pending: IHabitWithPactState[] },
+    ): IHabitsRow[] => {
         const rows: IHabitsRow[] = [];
 
         if (live.length > 0) {
@@ -988,7 +1032,9 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
      * place of the old "Active" pacts segment rather than being added beside it.
      */
     renderTabBar = () => {
-        const { activeTab } = this.state;
+        // `getEffectiveTab`, not `state.activeTab`, so the highlighted segment and the
+        // list below it can never disagree about which segment is showing.
+        const activeTab = this.getEffectiveTab();
 
         return (
             <View style={this.themeHabits.styles.segmentedControl}>
@@ -1040,12 +1086,22 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         const data: any[] = isHabitsTab ? this.getHabitsRows() : this.getPactsList();
         // Everything a row renders that does not live in `data`. Recomposed every render so
         // it is never `===` to the previous value once any of these moves.
-        const extraData = `${respondingPactId}|${renewingPactId}|${nudgingPactId}|${checkinLoadingIds.size}`;
+        const extraData = [
+            respondingPactId, renewingPactId, nudgingPactId,
+            // The ids themselves, not the count: one check-in finishing as another starts
+            // leaves the size unchanged while the row that should be spinning has moved.
+            [...checkinLoadingIds].sort().join(','),
+        ].join('|');
 
         return (
             <PactOnboardingGuard navigation={navigation} isBypassed={this.isOnboardingBypassed()}>
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-                <SafeAreaView style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}>
+                {/* `edges={[]}`: Layout pads the header and MainButtonMenu below pads the
+                    bottom, so this view applies no inset of its own. */}
+                <SafeAreaView
+                    edges={[]}
+                    style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}
+                >
                     <View style={this.themeHabits.styles.dashboardHeader}>
                         <Text style={this.themeHabits.styles.dashboardGreeting}>
                             {this.getGreeting()}
