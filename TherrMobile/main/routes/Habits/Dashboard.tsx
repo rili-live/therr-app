@@ -965,11 +965,6 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     };
 
     /**
-     * Segmented control. Four segments is the ceiling the pill layout holds
-     * without truncating a label — which is why the Habits segment took the
-     * place of the old "Active" pacts segment rather than being added beside it.
-     */
-    /**
      * How many items a segment would show, for the inline count. Only the two
      * invite segments carry one — "Habits" is the default landing segment and
      * "All" is a superset, so a number on either is noise rather than news.
@@ -987,6 +982,11 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         return 0;
     };
 
+    /**
+     * Segmented control. Four segments is the ceiling the pill layout holds
+     * without truncating a label — which is why the Habits segment took the
+     * place of the old "Active" pacts segment rather than being added beside it.
+     */
     renderTabBar = () => {
         const { activeTab } = this.state;
 
@@ -1033,10 +1033,14 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         const { navigation, user } = this.props;
         const {
             isRefreshing, proofSheetHabit, isSubmittingCheckin, pactIdPendingDecline,
+            checkinLoadingIds, respondingPactId, renewingPactId, nudgingPactId,
         } = this.state;
         const arePactsEnabled = this.arePactsEnabled();
         const isHabitsTab = this.getEffectiveTab() === 'habits';
         const data: any[] = isHabitsTab ? this.getHabitsRows() : this.getPactsList();
+        // Everything a row renders that does not live in `data`. Recomposed every render so
+        // it is never `===` to the previous value once any of these moves.
+        const extraData = `${respondingPactId}|${renewingPactId}|${nudgingPactId}|${checkinLoadingIds.size}`;
 
         return (
             <PactOnboardingGuard navigation={navigation} isBypassed={this.isOnboardingBypassed()}>
@@ -1058,6 +1062,15 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                         // Habit rows carry a composed `key`; pacts are keyed by id.
                         keyExtractor={(item: any) => item.key || item.id}
                         renderItem={this.renderRow}
+                        // Required, not defensive. VirtualizedList's CellRenderer is a
+                        // PureComponent that is handed only `item`, `index` and `renderItem`
+                        // — none of which change while a pact action is in flight, because
+                        // the pact segments render Redux arrays whose rows keep their
+                        // identity across a local setState. Without this every pending flag
+                        // below is invisible: Accept/Decline/Nudge/Renew would neither show
+                        // their spinner nor go `disabled`, leaving each of them open to a
+                        // second tap on a request that is already running.
+                        extraData={extraData}
                         ListHeaderComponent={isHabitsTab ? this.renderHabitsListHeader : undefined}
                         ListEmptyComponent={this.renderEmptyState}
                         refreshControl={

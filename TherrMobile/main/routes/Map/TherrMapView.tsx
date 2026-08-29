@@ -53,6 +53,8 @@ const CARD_HEIGHT = areaPreviewCardHeight;
 const CARD_WIDTH = IS_SMALL_SCREEN ? viewPortWidth / 3 : CARD_HEIGHT - 70;
 // NOTE: distanceTo() returns meters; getReadableDistance() expects miles. The conversion
 // factor is shared via ../../constants so this file and utilities/feedRanking cannot drift.
+//
+// Height of the strip's title row, above the cards.
 const PREVIEW_HEADER_HEIGHT = 22;
 // const CARD_WIDTH = viewPortWidth / 4;
 // const spaceBubbleWidth = viewPortWidth / 8;

@@ -74,7 +74,7 @@ import TherrMapView from './TherrMapView';
 import { isMyContent } from '../../utilities/content';
 import getNearbySpaces from '../../utilities/getNearbySpaces';
 import { getLastMapLocation, setLastMapLocation } from '../../utilities/lastMapLocation';
-import { hasUsableCoords } from '../../utilities/coordinates';
+import { hasUsableCoords, isUsableCoordinate } from '../../utilities/coordinates';
 import { sendForegroundNotification } from '../../utilities/pushNotifications';
 import QuickFiltersList from '../../components/QuickFiltersList';
 import { getInitialAuthorFilters, getInitialCategoryFilters, getInitialVisibilityFilters } from '../../utilities/getInitialFilters';
@@ -1960,9 +1960,12 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     autoOpenPreviewStrip = (latitude?: number, longitude?: number) => {
         const { route } = this.props;
 
+        // `isUsableCoordinate`, not a truthiness check: `0` is a real latitude and a real
+        // longitude, and dropping them here would silently deny the cold-start strip to
+        // anyone on the equator or the prime meridian.
         if (this.hasAutoOpenedPreview
-            || !latitude
-            || !longitude
+            || !isUsableCoordinate(latitude)
+            || !isUsableCoordinate(longitude)
             // This route param drives its own open-and-restore-scroll path on focus.
             || route?.params?.shouldShowPreview
             // The tour owns the screen; an auto-opening strip would fight its spotlight.
