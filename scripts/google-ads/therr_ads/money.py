@@ -35,7 +35,7 @@ class BudgetError(ValueError):
 
 
 def to_micros(amount) -> int:
-    """Convert an account-currency amount to micros, rounded to the cent.
+    """Convert an account-currency amount to micros, truncated to the cent quantum.
 
     Accepts str/int/float/Decimal. Uses Decimal internally: float arithmetic
     turns 20.10 into 20.099999999999998, which truncates to 20_099_999 micros —

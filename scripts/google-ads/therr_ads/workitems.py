@@ -45,7 +45,7 @@ def render_block(actions, diagnosis, source: str = "therrads analyze") -> str:
         "",
         f"> Auto-generated from Google Ads + GA4 + product funnel data for **{diagnosis.window}**.",
         "> This whole block is REPLACED on the next run — do not edit inside the markers, and if you",
-        f"> action an item, delete its bullet and note the outcome outside the block.",
+        "> action an item, delete its bullet and note the outcome outside the block.",
         "> Regenerate: `cd scripts/google-ads && ./therrads analyze --days 14 --write-work-items`",
         "",
     ]

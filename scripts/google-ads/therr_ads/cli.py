@@ -352,7 +352,19 @@ def _cmd_campaign_plan(args) -> int:
 def _cmd_campaign_apply(args) -> int:
     spec = load_spec(args.spec)
     settings = _settings(args)
-    plan = campaigns.build_plan(spec, settings)
+
+    # Creating a campaign is what ADDS burn to the account, so the account-wide
+    # ceiling has to be evaluated against what is already running — not against
+    # zero. `campaign plan` stays offline and therefore reports only the
+    # per-campaign ceiling; this is the path that spends money, so it pays for
+    # the extra query. Without it, limits.max_total_daily_budget is unenforced
+    # on creation and N campaigns each under the per-campaign cap silently
+    # multiply the intended burn.
+    client = _client(args)
+    customer_id = settings.require_customer_id()
+    others = _sum_other_budgets(client, customer_id)
+
+    plan = campaigns.build_plan(spec, settings, other_campaigns_micros=others)
     print(plan.render())
 
     if not plan.can_apply:
@@ -361,8 +373,6 @@ def _cmd_campaign_apply(args) -> int:
     if not _guard(args.confirm, "Re-run with --confirm to create these entities."):
         return 0
 
-    client = _client(args)
-    customer_id = settings.require_customer_id()
     result = _call(campaigns.apply_plan, client, customer_id, spec)
     print(f"\nCreated {len(result['created'])} resources.")
     print(f"Campaign: {result['campaign_resource_name']}")
@@ -462,7 +472,7 @@ def _cmd_campaign_budget(args) -> int:
     return 0
 
 
-def _sum_other_budgets(client, customer_id: str, exclude_campaign_id: int) -> int:
+def _sum_other_budgets(client, customer_id: str, exclude_campaign_id: int | None = None) -> int:
     service = client.get_service("GoogleAdsService")
     request = client.get_type("SearchGoogleAdsRequest")
     request.customer_id = customer_id

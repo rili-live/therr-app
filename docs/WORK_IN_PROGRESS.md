@@ -1036,6 +1036,14 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   "changed in this merge but build.sh never built it" (the two steps' predicates disagreed).
   Introduced to stop the e4790de8 class of failure, where publish pushed a tag nothing built.
 
+- [ ] (2026-08-29, /quality-peer-review) **Attach the Habits app-campaign image and video assets in
+  the Google Ads UI after the first `therrads campaign apply`.** `scripts/google-ads` sends text
+  assets only — `assets.images` / `assets.videos` in a spec are validated and counted but never
+  uploaded, because image and video assets need a separate AssetService binary upload the tool
+  does not perform. The spec and plan now say so out loud rather than dropping them silently, but
+  an App campaign without a video is limited to Search and a narrow Display slice, so this is the
+  step that decides the campaign's reach.
+
 <!-- skill-followups:end -->
 
 ---

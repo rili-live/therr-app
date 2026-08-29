@@ -167,6 +167,13 @@ def describe_config(config_path: Path | None = None) -> list[str]:
             rows.append(f"  [MISSING] {key}")
         else:
             shown = str(value)
-            masked = shown if key == "login_customer_id" else f"{shown[:6]}...{shown[-4:]}"
+            if key == "login_customer_id":
+                masked = shown
+            elif len(shown) > 12:
+                masked = f"{shown[:6]}...{shown[-4:]}"
+            else:
+                # Slices overlap below this length, so the "masked" form would
+                # print the whole secret — and twice. Show only the length.
+                masked = f"<{len(shown)} chars>"
             rows.append(f"  [ok]      {key} = {masked}")
     return rows
