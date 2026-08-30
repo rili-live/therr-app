@@ -292,6 +292,31 @@ or drop FCM for a backgrounded app.
 
 ## Known sharp edges
 
+- **A green `push-debug.sh` run does not mean production is delivering.** The
+  diagnostics endpoint builds its `data` map as `{ fromUser }` — a single object
+  key, stringified, always valid — and sends via `sendMessageForBrandRaw`,
+  bypassing `predictAndSendNotification` entirely. The real path
+  (`POST /notifications/send`) builds `data` from a fixed key set where the
+  irrelevant keys are `undefined`. In August 2026 that difference hid a total
+  outage for ~3 weeks: firebase-admin rejected every real push with `data must
+  only contain string values` before it reached FCM, while `[5/5] FCM accepted
+  the message` passed on every run. Fixed (coercion in `createMessage`, plus the
+  send route now answering 502 instead of 201 on failure, and
+  `tests/unit/api/fcmDataPayload.test.ts` pinning it), but the structural point
+  stands: **links 4-5 of this runbook exercise a different envelope than
+  production**. To check the real path, read the queue and the logs:
+  ```sql
+  SELECT status, count(*) FROM main."notificationQueue"
+  WHERE "brandVariation" = 'habits' GROUP BY 1;
+  ```
+  ```
+  gcloud logging read 'resource.type="k8s_container"
+    resource.labels.container_name="server-push-notifications"
+    ("Push successfully sent" OR "Push not sent")' --freshness=1d --limit=20
+  ```
+  A queue that is all `sent` with zero `failed` is a claim, not a measurement —
+  before this fix that was exactly what a 100%-failing pipeline looked like.
+
 - **A niche brand with no iOS target runs as the Therr binary.** `niche/*`
   branches change `brandConfig.ts`, `app.json` and `build.gradle`; they do not
   change `PRODUCT_BUNDLE_IDENTIFIER`. So an iOS Habits build *is*

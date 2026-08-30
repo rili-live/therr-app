@@ -84,6 +84,42 @@ append new items here rather than only printing them once.
   collecting. The B2B funnel is Priority 1 in `docs/GROWTH_STRATEGY.md`, and it is
   currently unmeasured.
 
+## Habits push pipeline (added 2026-08-29, from a production log + queue analysis)
+
+The two P0 defects found in this analysis are **fixed on `general`** (FCM `data`
+coercion in `createMessage`, and send-outcome reporting through
+`predictAndSendNotification` -> `POST /notifications/send`), with regression
+coverage in
+`push-notifications-service/tests/unit/api/fcmDataPayload.test.ts`. What is left
+here is what code cannot close.
+
+- [ ] **Verify delivery in production once the fix reaches `main`.** The bug was
+  invisible for ~3 weeks because the queue recorded `sent` for pushes that never
+  left the process, so a green deploy is not evidence. After rollout, confirm the
+  digest window (14:00 UTC) shows `Push successfully sent` and **not** `Push not
+  sent` / `data must only contain string values`, and that a real handset receives
+  one:
+  ```
+  gcloud logging read 'resource.type="k8s_container"
+    resource.labels.container_name="server-push-notifications"
+    ("Push successfully sent" OR "Push not sent")' --freshness=1d --limit=20
+  ```
+  Baseline before the fix: 77 `data must only contain string values` vs 19
+  successful sends in 30 days, and 0 `failed` rows in `main."notificationQueue"`.
+- [ ] **Guard the missing-device-token case in the queue worker.**
+  Second-most-common production error, **36 in 30 days**: `Exactly one of topic,
+  token or condition is required` — `resolveDeviceTokenForBrand` returned nothing
+  and the send was attempted anyway. Six queue recipients (the `*.test.local` seed
+  users) have no `habits` row in `main."userDeviceTokens"`. Now that failures
+  propagate, these rows will burn all 3 attempts and land `failed` daily instead
+  of being silently marked `sent`; the worker should `markSkipped('no-device-token')`
+  up front rather than spend attempts on a message that cannot be addressed.
+- [ ] **Move the habits digest off 14:00 UTC.** The Cloud Scheduler job fires at
+  14:00 UTC = 09:00 CDT, but `streakAtRisk` is designed as an *evening* nudge
+  (`habitsDigest.ts`: "run it in the evening") — at 9am it tells users their streak
+  is at risk before they have had the day to check in. Owned by
+  `therr-infra-terraform` (`messaging-automator.tf`), not this repo.
+
 ## Standing items (always re-verify after a deploy that touches the area)
 
 - [ ] **Submit / re-submit sitemap to Google Search Console** after any change
@@ -1065,6 +1101,70 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   does not perform. The spec and plan now say so out loud rather than dropping them silently, but
   an App campaign without a video is limited to Search and a narrow Display slice, so this is the
   step that decides the campaign's reach.
+
+- [ ] (2026-08-29, /quality-peer-review-niche) **Confirm Play has not already consumed
+  `versionCode 31` for `com.therr.habits`, then merge `niche/HABITS-general` into
+  `niche/HABITS-main` to cut the Android build.** The 192 commits queued behind that merge were
+  reviewed against `origin/niche/HABITS-main` and are clean; three peer-review commits
+  (`ae24bb5d4`, `160bff861`, `d251c7e95`) sit unpushed on `niche/HABITS-general` and go with
+  them. Unlike the 2026-08-17 item above, the API side is **not** a blocker this time: every
+  backend dependency the new client calls — `PUT /habits/pacts/:id/renew`, `.../nudge`,
+  `GET /habits/pacts/invites`, `repostThoughtId` on thought creation, and `graceDaysConsumed` /
+  `streakSavedByFreeze` on the check-in 201 — is already on `origin/main`, so the mobile release
+  cannot outrun it. What is unverified is the version number: `build.gradle` reads
+  `versionCode 31 / versionName 1.3.2`, bumped from 27 / 1.1.2, and Play rejects a re-used
+  versionCode at upload rather than at build time. Check the Play Console release history first,
+  and prefer `/mobile-release-preflight` over doing it by hand.
+
+- [x] (2026-08-29, resolved 2026-08-30) **CircleCI's write access to `rili-live/therr-app` was
+  revoked; replaced with a fresh deploy key.** The `docker_build_test_publish_images` job on `stage`
+  at `b1c338f` built, tested and `docker push`ed correctly, then died on `publish.sh:130` with
+  `git@github.com: Permission denied (publickey)` — so the `[skip ci] Publish
+  push-notifications-service at b1c338f` ledger commit was made in the container and never reached
+  `origin/stage`. `checkout` in that same job succeeded, so only the *write* key failed; and it had
+  worked on 2026-08-26 (`81feb6ddb`), which ruled out GitHub's delete-after-a-year-unused policy and
+  the 2022 RSA/SHA-1 removals. Resolved by generating an ed25519 pair, adding the public half as a
+  **repo deploy key with write access** (deploy keys do not expire, unlike a user key or a
+  fine-grained PAT), storing the private half under Project Settings → SSH Keys, and replacing the
+  old MD5 fingerprint at `.circleci/config.yml:219` and `:364` with
+  `SHA256:RQGJpv9BjVSmabmSV9DshSyQe7yrxI6meRAi7AkuAB8` — the SHA256 form, because the Project
+  Settings UI now displays SHA256 rather than MD5. Shipped in `d91c06bbe`, on `stage` via `#2826`.
+  The `:364` copy stays vestigial: `deploy.sh` never pushes.
+
+- [ ] (2026-08-29, updated 2026-08-30) **Force a full `stage` publish with a no-op touch to
+  `global-config.js` — three services are `stale-build` and will refuse the next `stage` → `main`
+  deploy.** This is now the single blocking item, and merging `#2826` to `main` does *not* clear it:
+  that merge carried only `.circleci/config.yml` and `docs/`, neither of which is in any service's
+  source fan-out, so its publish job builds nothing, writes no ledger row and never exercises the
+  new key. Three services come back blocking against the stage tip:
+
+  | Service | Ledger row | Why stale |
+  |---|---|---|
+  | `push-notifications-service` | `e01037368e` | image `b1c338f153` was published but the ledger commit never pushed |
+  | `client-web` | `cf4ce3ae9a` | `796958361` (habits-blog habit-audit cross-post) and `17a027a8e` reached `stage` in `e4790de82` without a publish |
+  | `api-gateway` | `cf4ce3ae9a` | `32b2748bd` reached `stage` in `e4790de82` without a publish |
+
+  `deploy.sh` is right to refuse: `sources_changed_between` spans `desired..promoted_tip`, not just
+  the last merge, so it sees images older than the code being promoted. A blocking verdict stops the
+  whole plan before the cluster is touched — which is why the 2026-08-29 `b2cb65122` run rolled
+  nothing at all, `users-service` included, and the cluster sat on `cf4ce3a` for all eight services.
+  `global-config.js` is in every service's fan-out, so one touched commit through
+  `general → stage` republishes all eight at one SHA, writes eight rows, and proves the new deploy
+  key on its way past `publish.sh:130`. Then merge `stage → main` and confirm the plan table shows
+  eight non-blocking verdicts. The habit-audit cross-post is a user-facing web change that is not in
+  production until this lands.
+
+- [ ] (2026-08-30) **Confirm the un-suffixed prod image tags exist after that deploy.** The
+  2026-08-29 manual rollout pointed `users-service-deployment` (`e01037368e`) and
+  `push-notifications-service-deployment` (`b1c338f153`) at `therrapp/<svc>-stage:<sha>`, because
+  retagging into the un-suffixed prod repo needs Docker Hub write credentials only CI holds:
+  `therrapp/push-notifications-service:b1c338f153` and `therrapp/users-service:e01037368e` are both
+  404 in the registry, and so is a matching `:latest`. Functionally fine — the images are identical
+  and take their environment from Kubernetes — but it means **a plain `kubectl apply` of the
+  Deployment manifests would roll production backwards**, since they pin `:latest` and prod
+  `:latest` is still `cf4ce3a`. Do not hand-apply those manifests until the deploy above has pushed
+  the real tags; then re-check `kubectl get deployments -o custom-columns=` and confirm no
+  Deployment is still on a `-stage` image.
 
 <!-- skill-followups:end -->
 
