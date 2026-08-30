@@ -146,6 +146,8 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://*.tile.openstreetmap.org',
                     'https://*.basemaps.cartocdn.com',
                     'https://unpkg.com',
+                    // LaunchKiwi badge on the Friends with Habits landing page
+                    'https://launchkiwi.com',
                 ],
                 workerSrc: ["'self'", 'blob:'],
             },
