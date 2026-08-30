@@ -112,7 +112,8 @@
     "streakAtRisk": {
       "title": "Ne brise pas ta série",
       "body": "Ta série de {streakCount} jours sur {habitName} est en jeu — enregistre-toi avant minuit pour la garder.",
-      "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} est en jeu. Un gel de série couvrira ce soir si tu manques ({freezesRemaining} restant(s)) — mais t'enregistrer te le garde en réserve."
+      "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} est en jeu. Un gel de série couvrira ce soir si tu manques ({freezesRemaining} restant(s)) — mais t'enregistrer te le garde en réserve.",
+      "bodyMultiple": "{habitCount} séries sont en jeu — {habitNames}. Enregistre-toi avant minuit pour les garder."
     },
     "streakFreezeUsed": {
       "title": "Ta série a tenu",
@@ -172,7 +173,8 @@
     },
     "dailyHabitReminder": {
       "title": "C'est l'heure de t'enregistrer",
-      "body": "Enregistre {habitName} aujourd'hui — un seul enregistrement lance ta série."
+      "body": "Enregistre {habitName} aujourd'hui — un seul enregistrement lance ta série.",
+      "bodyMultiple": "{habitCount} habitudes t'attendent aujourd'hui — {habitNames}. Un seul enregistrement te lance."
     },
     "morningMotivation": {
       "title": "Bon matin",
@@ -197,6 +199,10 @@
     "habitComeback": {
       "title": "Envie de relancer {habitName}?",
       "body": "Tu l'as déjà tenue {bestStreakCount} jours — ça ne s'efface pas. Prêt à repartir sur une nouvelle série?"
+    },
+    "shared": {
+      "pressActionCheckIn": "S'enregistrer",
+      "pressActionView": "Voir"
     }
   },
   "validation": "Les paramètres requis n'ont pas été fournis."

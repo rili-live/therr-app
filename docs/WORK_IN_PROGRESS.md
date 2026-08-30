@@ -106,14 +106,24 @@ here is what code cannot close.
   ```
   Baseline before the fix: 77 `data must only contain string values` vs 19
   successful sends in 30 days, and 0 `failed` rows in `main."notificationQueue"`.
-- [ ] **Guard the missing-device-token case in the queue worker.**
-  Second-most-common production error, **36 in 30 days**: `Exactly one of topic,
-  token or condition is required` — `resolveDeviceTokenForBrand` returned nothing
-  and the send was attempted anyway. Six queue recipients (the `*.test.local` seed
-  users) have no `habits` row in `main."userDeviceTokens"`. Now that failures
-  propagate, these rows will burn all 3 attempts and land `failed` daily instead
-  of being silently marked `sent`; the worker should `markSkipped('no-device-token')`
-  up front rather than spend attempts on a message that cannot be addressed.
+- [ ] **Ship the mobile release before promoting the `dailyHabitReminder` change.**
+  It moved from an OS-rendered display notification to data-only so Notifee can
+  render its "Check In" action button — the display path cannot carry one. The
+  consequence is that the Android channel now comes from the client's
+  `getAndroidChannelFromClickActionId` rather than the `channelId` the backend
+  names, so `DAILY_HABIT_REMINDER` must be in `REMINDER_ACTION_KEYS`
+  (`TherrMobile/main/constants/index.tsx`, on `niche/HABITS-general`) before this
+  reaches production. On an app that predates that release the reminder posts on
+  the DEFAULT-importance "General" channel: it still arrives, with no heads-up
+  banner. Verify on a handset after both halves are out.
+- [ ] **Watch `checkinNudgesRolledUp` in the first digest runs after deploy.**
+  New counter: candidates recorded minus rows queued. It is the direct evidence
+  the burst is gone — `streakAtRiskSent + dailyRemindersSent` now counts *users*
+  notified, and this counts the pushes they are no longer getting. A persistent
+  zero on a population that tracks multiple habits means the accumulator is not
+  being fed. Watch `daily cap reached` fall at the same time, and watch for
+  `spaced:` values in `notificationQueue."lastError"` — those are deferrals, not
+  failures, and should clear within the hour.
 - [ ] **Move the habits digest off 14:00 UTC.** The Cloud Scheduler job fires at
   14:00 UTC = 09:00 CDT, but `streakAtRisk` is designed as an *evening* nudge
   (`habitsDigest.ts`: "run it in the evening") — at 9am it tells users their streak
@@ -509,13 +519,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   though `morningMotivation` / `eveningCheckIn` want the user-timezone column below before
   they mean anything), schedule them locally via Notifee, or delete the dead copy. Verify with:
   `grep -rn "Types.morningMotivation" --include=*.ts therr-services/ | grep -v push-notifications-service`
-- [ ] (2026-08-26, habits-daily-notifications) **`streakAtRisk` can still double-send for one
-  habit held through two pacts.** The pact loop keys it `streak-at-risk:<pactId>:<date>`, so
-  a user pursuing one goal through two active pacts gets two warnings about one streak. The
-  lifecycle notifications next to it are all keyed on `habitGoalId` precisely to avoid this,
-  and the new reminder pass uses `streak-at-risk:habit:<habitGoalId>:<date>` for solo habits.
-  Re-keying the pact path to match would fix it; the cost is one duplicate push on the day it
-  deploys, for users who already received that day's warning under the old key.
 
 - [ ] (2026-08-07, push-notifications-debug) **Verify the iOS APNS-topic fix on a real
   Habits handset after this deploys.** `apns-topic` for HABITS/TEEM was

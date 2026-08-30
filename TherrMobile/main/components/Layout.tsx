@@ -112,6 +112,8 @@ interface ILayoutDispatchProps {
     createUserGroup: Function;
     deleteUserGroup: Function;
     getActivePacts: Function;
+    acceptPact: Function;
+    createCheckin: Function;
     getMyAchievements: Function;
     getUserGroups: Function;
     logout: Function;
@@ -187,6 +189,8 @@ const mapDispatchToProps = (dispatch: any) =>
             createUserGroup: UsersActions.createUserGroup,
             deleteUserGroup: UsersActions.deleteUserGroup,
             getActivePacts: HabitActions.getActivePacts,
+            acceptPact: HabitActions.acceptPact,
+            createCheckin: HabitActions.createCheckin,
             getMyAchievements: UsersActions.getMyAchievements,
             getUserGroups: UsersActions.getUserGroups,
             logout: UsersActions.logout,
@@ -989,6 +993,27 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     ? PushNotifications.AndroidIntentActions.Teem
                     : PushNotifications.AndroidIntentActions.Therr;
 
+            // The HABITS-only keys (PACT_*, PARTNER_*, STREAK_*,
+            // DAILY_HABIT_REMINDER, MORNING_MOTIVATION, EVENING_CHECK_IN) exist
+            // on HabitsAndroidIntentActions and on neither of the other two, so
+            // reading them off the union is a compile error even though the
+            // comparison is exactly what we want at runtime: on a Therr binary
+            // the lookup is `undefined` and no habits branch can match, which is
+            // correct — that build declares no habits intent filters, so the
+            // action string can never arrive.
+            //
+            // `?? '\u0000'` rather than `undefined` so an FCM payload with no
+            // `action` cannot accidentally equal a missing key.
+            const brandIntent = (key: string): string => (brandIntents as Record<string, string | undefined>)[key] ?? '\u0000';
+
+            // Intent extras arrive as strings and are absent unless the backend
+            // put them in the FCM data map.
+            const intentData = data as Record<string, any>;
+            const intentPactId = typeof intentData.pactId === 'string' && intentData.pactId ? intentData.pactId : undefined;
+            const intentHabitGoalId = typeof intentData.habitGoalId === 'string' && intentData.habitGoalId
+                ? intentData.habitGoalId
+                : undefined;
+
             if (data.action === brandIntents.ACHIEVEMENT_COMPLETED
                 || data.action === brandIntents.UNCLAIMED_ACHIEVEMENTS_REMINDER) {
                 targetRouteView = 'Achievements';
@@ -1042,6 +1067,41 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteView = 'BookMarked';
             } else if (data.action === brandIntents.REPORT_CONFIRMED) {
                 targetRouteView = 'Notifications';
+            } else if (data.action === brandIntent('PACT_INVITATION')
+                || data.action === brandIntent('PACT_NUDGE')) {
+                targetRouteView = 'HabitsDashboard';
+                targetRouteParams = { initialTab: 'pending' };
+            } else if (data.action === brandIntent('PACT_ACCEPTED')
+                || data.action === brandIntent('PACT_DECLINED')
+                || data.action === brandIntent('PACT_COMPLETED')
+                || data.action === brandIntent('PACT_EXPIRING')
+                || data.action === brandIntent('PARTNER_CHECKED_IN')
+                || data.action === brandIntent('PARTNER_MISSED_DAY')
+                || data.action === brandIntent('PARTNER_CELEBRATED')) {
+                // The manifest has declared every one of these actions since the
+                // habits work landed, but none of them were compared here — so
+                // `targetRouteView` stayed '' and the `else if (targetRouteView)`
+                // below was falsy: tapping a habits notification on the Android
+                // intent path navigated nowhere at all.
+                //
+                // `data.pactId` reaches the intent extras only when the backend
+                // put it in the FCM data map, which it now does; without it the
+                // dashboard is the honest destination.
+                targetRouteView = intentPactId ? 'PactDetail' : 'HabitsDashboard';
+                targetRouteParams = intentPactId ? { pactId: intentPactId } : {};
+            } else if (data.action === brandIntent('STREAK_AT_RISK')
+                || data.action === brandIntent('DAILY_HABIT_REMINDER')
+                || data.action === brandIntent('MORNING_MOTIVATION')
+                || data.action === brandIntent('EVENING_CHECK_IN')) {
+                targetRouteView = intentHabitGoalId ? 'HabitDetail' : 'HabitsDashboard';
+                targetRouteParams = intentHabitGoalId
+                    ? { habitGoalId: intentHabitGoalId }
+                    : { initialTab: 'today' };
+            } else if (data.action === brandIntent('STREAK_MILESTONE')
+                || data.action === brandIntent('STREAK_BROKEN')
+                || data.action === brandIntent('NEW_PERSONAL_RECORD')) {
+                targetRouteView = intentHabitGoalId ? 'HabitDetail' : 'MyHabits';
+                targetRouteParams = intentHabitGoalId ? { habitGoalId: intentHabitGoalId } : {};
             } else if (data.action?.endsWith(QUICK_ACTION_SUFFIXES.CREATE_MOMENT)) {
                 // App-shortcut: jump straight into moment creation. EditMoment
                 // destructures route.params (and calls nearbySpaces.find), so we
@@ -1121,6 +1181,29 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const thought = parseObject('thought');
         const groupId = typeof data?.groupId === 'string' ? data.groupId : undefined;
         const postType = typeof data?.postType === 'string' ? data.postType : undefined;
+        // HABITS routing ids. The backend promotes these out of the copy config
+        // into the FCM data map (push-notifications-service firebaseAdmin.ts) —
+        // before that they were carried all the way from the producer, used to
+        // render the body, and dropped, which is why every habits notification
+        // could only ever open a list.
+        //
+        // `habitGoalId` is present only when the notification names exactly one
+        // habit: the digest rolls a user's whole day into one nudge, and a
+        // roll-up covering three habits has no single habit to open.
+        const habitGoalId = typeof data?.habitGoalId === 'string' && data.habitGoalId ? data.habitGoalId : undefined;
+        const pactId = typeof data?.pactId === 'string' && data.pactId ? data.pactId : undefined;
+
+        // Falls back to the dashboard rather than to the in-app Notifications
+        // list. That list has no habits rows at all — `Notifications.Types`
+        // (therr-js-utilities) declares none — so routing there was a dead end
+        // that looked like a broken notification.
+        const buildPactRoute = () => (pactId
+            ? { targetRouteView: 'PactDetail', targetRouteParams: { pactId } }
+            : { targetRouteView: 'HabitsDashboard', targetRouteParams: {} });
+
+        const buildHabitRoute = (initialTab?: string) => (habitGoalId
+            ? { targetRouteView: 'HabitDetail', targetRouteParams: { habitGoalId } }
+            : { targetRouteView: 'HabitsDashboard', targetRouteParams: initialTab ? { initialTab } : {} });
 
         const buildMomentRoute = (m: any) => ({
             targetRouteView: 'ViewMoment',
@@ -1248,6 +1331,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             case PushNotifications.Types.pactNudge:
                 return { targetRouteView: 'HabitsDashboard', targetRouteParams: { initialTab: 'pending' } };
 
+            // Pact state and partner activity — the pact is the subject, so the
+            // pact is the destination.
             case PushNotifications.Types.pactAccepted:
             case PushNotifications.Types.pactDeclined:
             case PushNotifications.Types.pactCompleted:
@@ -1255,22 +1340,30 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             case PushNotifications.Types.partnerCheckedIn:
             case PushNotifications.Types.partnerMissedDay:
             case PushNotifications.Types.partnerCelebrated:
-            case PushNotifications.Types.streakMilestone:
+                return buildPactRoute();
+
+            // Anything asking the user to check in opens the habit itself, with
+            // today's tab when it cannot name one.
             case PushNotifications.Types.streakAtRisk:
-            case PushNotifications.Types.streakBroken:
-            case PushNotifications.Types.newPersonalRecord:
             case PushNotifications.Types.dailyHabitReminder:
             case PushNotifications.Types.morningMotivation:
             case PushNotifications.Types.eveningCheckIn:
-            // Habit lifecycle milestones and check-ins
-            // (docs/HABIT_LIFECYCLE_MESSAGING.md). Listed here rather than left
-            // to `default` because that returns null — the notification would
-            // render, be tappable, and open nothing.
-            case PushNotifications.Types.habitEstablished:
-            case PushNotifications.Types.habitAutomaticity:
             case PushNotifications.Types.habitMaintenanceCheckIn:
             case PushNotifications.Types.habitComeback:
-                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+                return buildHabitRoute('today');
+
+            // Celebrations and lifecycle milestones
+            // (docs/HABIT_LIFECYCLE_MESSAGING.md). The habit's own history is
+            // what the copy refers to; MyHabits is the fallback because a
+            // milestone with no habit id is still about the user's habits.
+            case PushNotifications.Types.streakMilestone:
+            case PushNotifications.Types.streakBroken:
+            case PushNotifications.Types.newPersonalRecord:
+            case PushNotifications.Types.habitEstablished:
+            case PushNotifications.Types.habitAutomaticity:
+                return habitGoalId
+                    ? { targetRouteView: 'HabitDetail', targetRouteParams: { habitGoalId } }
+                    : { targetRouteView: 'MyHabits', targetRouteParams: {} };
 
             default:
                 return null;
@@ -1581,6 +1674,116 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     }).finally(() => {
                         RootNavigation.navigate('ViewUser', routeParams);
                     });
+                }
+                return Promise.resolve();
+            }
+
+            // HABITS action buttons.
+            //
+            // Before this, none of the four habits PressActionIds had a branch
+            // here at all: the backend has been stamping `pactView` /
+            // `pactAccept` / `checkinView` / `streakView` on every habits push
+            // since they shipped, and every one of them fell through to the
+            // type fallback below, which sent the user to the in-app
+            // Notifications list — a screen with no habits rows in it.
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.habitCheckin) {
+                // The killed-app case is handled by notifee.onBackgroundEvent in
+                // TherrMobile/index.js, which completes the check-in without
+                // opening the app. This branch is the warm path (foreground, or
+                // a background event while the tree is alive), where using the
+                // normal redux action keeps the dashboard in sync rather than
+                // leaving it showing an un-checked-in habit.
+                const checkinHabitGoalId = typeof notification?.data?.habitGoalId === 'string'
+                    ? notification.data.habitGoalId
+                    : undefined;
+                const checkinPactId = typeof notification?.data?.pactId === 'string'
+                    ? notification.data.pactId
+                    : undefined;
+
+                if (!isUserAuthorized || !checkinHabitGoalId) {
+                    this.setState({
+                        targetRouteView: 'HabitsDashboard',
+                        targetRouteParams: { initialTab: 'today' },
+                    });
+                    return Promise.resolve();
+                }
+
+                return this.props.createCheckin({
+                    habitGoalId: checkinHabitGoalId,
+                    ...(checkinPactId ? { pactId: checkinPactId } : {}),
+                    status: 'completed',
+                }).then(() => {
+                    showToast.success({
+                        text1: this.translate('alertTitles.checkinSucceeded'),
+                        text2: this.translate('alertMessages.checkinSucceeded'),
+                    });
+                }).catch(() => {
+                    // Falls through to the habit rather than only toasting: the
+                    // press already dismissed the notification, so an error with
+                    // no destination leaves the user with nothing to act on.
+                    showToast.error({
+                        text1: this.translate('alertTitles.checkinFailed'),
+                    });
+                    RootNavigation.navigate('HabitDetail', { habitGoalId: checkinHabitGoalId });
+                });
+            }
+
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.pactAccept) {
+                const acceptPactId = typeof notification?.data?.pactId === 'string'
+                    ? notification.data.pactId
+                    : undefined;
+
+                if (!acceptPactId) {
+                    this.setState({
+                        targetRouteView: 'HabitsDashboard',
+                        targetRouteParams: { initialTab: 'pending' },
+                    });
+                    return Promise.resolve();
+                }
+
+                const pactRouteParams = { pactId: acceptPactId };
+
+                if (!isUserAuthorized) {
+                    this.setState({
+                        targetRouteView: 'PactDetail',
+                        targetRouteParams: pactRouteParams,
+                    });
+                    return Promise.resolve();
+                }
+
+                // Mirrors the connection-request branch above: mutate, report,
+                // then land the user on the thing they just acted on either way.
+                return this.props.acceptPact(acceptPactId).then(() => {
+                    showToast.success({
+                        text1: this.translate('alertTitles.pactAccepted'),
+                    });
+                }).catch(() => {
+                    showToast.error({
+                        text1: this.translate('alertTitles.backendErrorMessage'),
+                    });
+                }).finally(() => {
+                    RootNavigation.navigate('PactDetail', pactRouteParams);
+                });
+            }
+
+            if (notification?.id
+                && (pressAction?.id === PushNotifications.PressActionIds.pactView
+                    || pressAction?.id === PushNotifications.PressActionIds.checkinView
+                    || pressAction?.id === PushNotifications.PressActionIds.streakView)) {
+                // Navigation only — the destination is exactly what the type
+                // fallback resolves, so reuse it rather than restating the
+                // habit/pact/dashboard precedence in a second place.
+                const habitsRoute = this.getRouteFromNotificationType(
+                    typeof notification?.data?.type === 'string' ? notification.data.type : undefined,
+                    notification?.data,
+                );
+
+                if (habitsRoute) {
+                    if (!isUserAuthorized) {
+                        this.setState(habitsRoute);
+                        return Promise.resolve();
+                    }
+                    RootNavigation.navigate(habitsRoute.targetRouteView, habitsRoute.targetRouteParams);
                 }
                 return Promise.resolve();
             }

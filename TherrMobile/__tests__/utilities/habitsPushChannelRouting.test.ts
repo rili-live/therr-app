@@ -39,6 +39,17 @@ describe('getAndroidChannelFromClickActionId — HABITS actions', () => {
             'PACT_INVITATION',
             'PACT_NUDGE',
             'PACT_EXPIRING',
+            // These three used to be OS-rendered display notifications, which
+            // named their own `channelId` in the FCM payload and so never
+            // reached this function. dailyHabitReminder moved to data-only so
+            // Notifee could render its "Check In" action button — the display
+            // path cannot carry one — which handed the channel decision here.
+            // Without these entries the daily reminder posts on the
+            // DEFAULT-importance "General" channel with no heads-up banner,
+            // which is the whole retention loop silently degraded.
+            'DAILY_HABIT_REMINDER',
+            'MORNING_MOTIVATION',
+            'EVENING_CHECK_IN',
         ])('%s', (key) => {
             expect(getAndroidChannelFromClickActionId(habitsAction(key)).id)
                 .toBe(AndroidChannelIds.reminders);

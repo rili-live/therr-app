@@ -14,6 +14,8 @@ import {
     IHabitPair,
 } from '../utilities/habitLifecycleContext';
 import { getTodayDateString, isHabitDueToday, normalizeDateString } from '../utilities/streakHelpers';
+import { checkinNudgeDedupeKey, createCheckinNudgeAccumulator } from '../utilities/checkinNudgeRollup';
+import { createNameResolvers } from '../utilities/notificationNames';
 import { IUserHabitReminderRow } from '../store/UserHabitsStore';
 
 // Upper bound per run so a runaway pact count can't turn the digest into a
@@ -96,6 +98,12 @@ interface IDigestCounters {
     // the only direct evidence the engine is reducing send volume rather than
     // merely adding new message types on top of the existing ones.
     nudgesTapered: number;
+    // Check-in nudges removed by the per-user roll-up: candidates recorded minus
+    // rows queued. Additive to the shape therr-messaging-automator logs, like
+    // `pactsExpired`. This is the number that says whether the burst is actually
+    // gone — `streakAtRiskSent + dailyRemindersSent` now counts *users*
+    // notified, and this counts the extra pushes they are no longer getting.
+    checkinNudgesRolledUp: number;
 }
 
 /**
@@ -188,6 +196,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         maintenanceCheckInSent: 0,
         comebackSent: 0,
         nudgesTapered: 0,
+        checkinNudgesRolledUp: 0,
     };
 
     const today = getTodayDateString();
@@ -295,24 +304,10 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 traceArgs: { 'habitsDigest.limit': DIGEST_MAX_PACTS },
             });
         }
-        const habitNameCache = new Map<string, string>();
-        const userNameCache = new Map<string, string>();
-
-        const getHabitName = async (habitGoalId: string): Promise<string> => {
-            if (!habitNameCache.has(habitGoalId)) {
-                const goal = await Store.habitGoals.getById(habitGoalId).catch(() => null);
-                habitNameCache.set(habitGoalId, goal?.name || 'your habit');
-            }
-            return habitNameCache.get(habitGoalId) as string;
-        };
-
-        const getUserDisplayName = async (userId: string): Promise<string> => {
-            if (!userNameCache.has(userId)) {
-                const rows = await Store.users.findUser({ id: userId }, ['userName', 'firstName']).catch(() => []);
-                userNameCache.set(userId, rows?.[0]?.firstName || rows?.[0]?.userName || 'Your partner');
-            }
-            return userNameCache.get(userId) as string;
-        };
+        // Memoized for the run. Shared with the inline check-in path
+        // (handlers/habitCheckins.ts) so the same partner is named the same way
+        // whichever notification reaches the user — they disagreed before.
+        const { getHabitName, getUserDisplayName } = createNameResolvers();
 
         // Membership is resolved up front rather than inside the notification
         // loop so the lifecycle engine can batch-load its four reads across
@@ -422,6 +417,17 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
          * both apply.
          */
         const nudgedPairs = new Set<string>();
+
+        /**
+         * Every "go check in" nudge this run decides on, collected per user and
+         * queued as ONE notification each at the end of the run.
+         *
+         * Both the pact loop and the reminder pass feed it. Nothing here is
+         * enqueued until `drain()` below, which is what turns a user's five
+         * near-identical pushes into one — see checkinNudgeRollup for why the
+         * collapse happens at the producer rather than at the worker.
+         */
+        const checkinNudges = createCheckinNudgeAccumulator();
 
         /**
          * Milestones, maintenance check-ins and the comeback offer for one
@@ -602,29 +608,29 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                             if (decision && !decision.allowsDailyNudge) {
                                 counters.nudgesTapered += 1;
                             } else {
-                                // eslint-disable-next-line no-await-in-loop
-                                const queued = await queuePush(
-                                    member.userId,
-                                    PushNotifications.Types.streakAtRisk,
-                                    `streak-at-risk:${pact.id}:${today}`,
-                                    {
-                                        pactId: pact.id,
-                                        habitName,
-                                        streakCount: streak.currentStreak,
-                                        // Selects the body that names the safety
-                                        // net. Telling someone their streak is on
-                                        // the line while silently holding a freeze
-                                        // that would cover tonight is the loss
-                                        // aversion without the rule it belongs to.
-                                        freezesRemaining: Math.max(
-                                            0,
-                                            (streak.gracePeriodDays || 0) - (streak.graceDaysUsed || 0),
-                                        ),
-                                    },
-                                );
-                                if (queued) {
-                                    counters.streakAtRiskSent += 1;
-                                }
+                                // Recorded, not queued. Every check-in nudge this
+                                // run decides on — pact-backed or solo — is
+                                // collapsed into one notification per user at the
+                                // end (see checkinNudgeRollup). Keyed on the habit
+                                // goal there, so a habit held through two pacts is
+                                // counted once instead of producing the duplicate
+                                // this loop and the reminder pass used to send
+                                // under two different dedupe keys.
+                                checkinNudges.add(member.userId, {
+                                    habitGoalId: pact.habitGoalId,
+                                    pactId: pact.id,
+                                    habitName,
+                                    streakCount: streak.currentStreak,
+                                    // Selects the body that names the safety
+                                    // net. Telling someone their streak is on
+                                    // the line while silently holding a freeze
+                                    // that would cover tonight is the loss
+                                    // aversion without the rule it belongs to.
+                                    freezesRemaining: Math.max(
+                                        0,
+                                        (streak.gracePeriodDays || 0) - (streak.graceDaysUsed || 0),
+                                    ),
+                                });
                             }
                         }
                     }
@@ -679,16 +685,19 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         // sits at zero because they are new or just broke one. This pass covers
         // both, off habits.user_habits.
         //
-        // `dailyHabitReminder` is a *display* notification rather than the
-        // data-only shape streakAtRisk uses, so the OS renders it with no JS
-        // involved — which is what makes it land for an app that is not running.
+        // Nothing here sends. Both this pass and the pact loop above record into
+        // `checkinNudges`, which is drained into one notification per user after
+        // this loop — so a user tracking four habits is nudged once, not four
+        // times.
         //
         // Everything it skips, it skips for a reason worth stating:
         //   - already checked in today   → nothing to remind about
         //   - not due today              → a 3x/week habit on an off day
         //   - tapered by the phase engine → the habit is established; backing
         //                                   off is the whole point of the engine
-        //   - already nudged above       → streakAtRisk said it better
+        //   - already nudged above       → the pact loop recorded this habit
+        //                                  with its pact id and streak; adding
+        //                                  it again would be the same entry
         // eslint-disable-next-line no-restricted-syntax
         for (const habit of remindableHabits) {
             const key = pairKey(habit.userId, habit.habitGoalId);
@@ -728,42 +737,21 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
 
                 nudgedPairs.add(key);
 
-                if (habit.streakIsActive && Number(habit.currentStreak) > 0) {
-                    // A solo habit with a live streak gets the same loss-aversion
-                    // copy a pact-backed one does. Keyed on the habit rather than
-                    // a pact because there is no pact — and because the lifecycle
-                    // for this pair is habit-keyed too.
-                    // eslint-disable-next-line no-await-in-loop
-                    const queued = await queuePush(
-                        habit.userId,
-                        PushNotifications.Types.streakAtRisk,
-                        `streak-at-risk:habit:${habit.habitGoalId}:${today}`,
-                        {
-                            habitId: habit.habitGoalId,
-                            pactId: habit.activePactId || undefined,
-                            habitName: habit.goalName,
-                            streakCount: Number(habit.currentStreak),
-                            freezesRemaining: Math.max(
-                                0,
-                                Number(habit.gracePeriodDays || 0) - Number(habit.graceDaysUsed || 0),
-                            ),
-                        },
-                    );
-                    if (queued) counters.streakAtRiskSent += 1;
-                } else {
-                    // eslint-disable-next-line no-await-in-loop
-                    const queued = await queuePush(
-                        habit.userId,
-                        PushNotifications.Types.dailyHabitReminder,
-                        `daily-habit-reminder:${habit.habitGoalId}:${today}`,
-                        {
-                            habitId: habit.habitGoalId,
-                            pactId: habit.activePactId || undefined,
-                            habitName: habit.goalName,
-                        },
-                    );
-                    if (queued) counters.dailyRemindersSent += 1;
-                }
+                // Recorded into the same accumulator the pact loop feeds. A solo
+                // habit with a live streak still gets the loss-aversion framing
+                // and one without still gets the reminder framing — that choice
+                // now happens once per user, over every habit at stake, rather
+                // than once per habit.
+                checkinNudges.add(habit.userId, {
+                    habitGoalId: habit.habitGoalId,
+                    pactId: habit.activePactId || undefined,
+                    habitName: habit.goalName,
+                    streakCount: habit.streakIsActive ? Number(habit.currentStreak) : 0,
+                    freezesRemaining: Math.max(
+                        0,
+                        Number(habit.gracePeriodDays || 0) - Number(habit.graceDaysUsed || 0),
+                    ),
+                });
             } catch (err: any) {
                 counters.errors += 1;
                 logSpan({
@@ -772,6 +760,42 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     messages: [err?.message, 'Habits digest: failed to evaluate habit reminder'],
                     traceArgs: { 'user.id': habit.userId, habitGoalId: habit.habitGoalId },
                 });
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Drain the check-in nudges: one notification per user, however many
+        // habits and pacts fed it.
+        //
+        // Deliberately last. Both loops above contribute, and the framing
+        // (`streakAtRisk` vs `dailyHabitReminder`) and the streak it cites can
+        // only be chosen once every habit at stake for that user is known.
+        //
+        // One dedupe key per user per day — `checkin-nudge:<today>` — replaces
+        // the three period-stamped keys these used to write. A second run of the
+        // day still collides and inserts nothing; what changed is that a *first*
+        // run now inserts one row where it used to insert several.
+        const nudgeRows = checkinNudges.drain();
+        counters.checkinNudgesRolledUp = checkinNudges.candidateCount() - nudgeRows.length;
+
+        // eslint-disable-next-line no-restricted-syntax
+        for (const row of nudgeRows) {
+            // eslint-disable-next-line no-await-in-loop
+            const queued = await queuePush(
+                row.userId,
+                row.type,
+                checkinNudgeDedupeKey(today),
+                row.payload,
+            );
+            if (queued) {
+                // Counted under the type actually queued, so the fields
+                // therr-messaging-automator already logs keep meaning "rows of
+                // this type queued" — they just no longer double-count a user.
+                if (row.type === PushNotifications.Types.streakAtRisk) {
+                    counters.streakAtRiskSent += 1;
+                } else {
+                    counters.dailyRemindersSent += 1;
+                }
             }
         }
 
