@@ -22,6 +22,13 @@ export interface IJournalDaySection {
     isFirstOfMonth: boolean;
     dayOfMonth: string;
     weekdayLabel: string;
+    /**
+     * Whether this section is the day the user is reading on, so the date block
+     * can mark it. False for every section when the caller passes no "today",
+     * which is the safe default: an unmarked journal is correct, a journal that
+     * marks the wrong day is not.
+     */
+    isToday: boolean;
     data: IJournalFeedItem[];
 }
 
@@ -55,6 +62,21 @@ export const getWeekdayKey = (entryDate: string): string => {
 };
 
 /**
+ * A `Date` as the YYYY-MM-DD calendar day the *device* is on.
+ *
+ * The inverse of `parseEntryDate`, and the same reason for existing: reading
+ * the local components is what keeps a note written at 23:40 filed under the
+ * day the user experienced. `toISOString().split('T')[0]` would file it under
+ * tomorrow for anyone west of Greenwich, which is both the day it is written
+ * and the day the "today" marker highlights.
+ */
+export const toLocalEntryDate = (date: Date): string => [
+    date.getFullYear(),
+    `${date.getMonth() + 1}`.padStart(2, '0'),
+    `${date.getDate()}`.padStart(2, '0'),
+].join('-');
+
+/**
  * Collapse a flat feed into one section per day, newest first.
  *
  * `translate` is injected rather than imported so this stays RN-free and so the
@@ -65,6 +87,7 @@ export const getWeekdayKey = (entryDate: string): string => {
 export const groupFeedByDay = (
     items: IJournalFeedItem[],
     translate: (key: string, params?: any) => string,
+    todayEntryDate?: string,
 ): IJournalDaySection[] => {
     const sections: IJournalDaySection[] = [];
     // Tracked as year+month, not as the month name. A journal that runs longer
@@ -93,6 +116,7 @@ export const groupFeedByDay = (
             isFirstOfMonth,
             dayOfMonth: String(parsed.getDate()),
             weekdayLabel: translate(`pages.habits.daysOfWeekShort.${WEEKDAY_KEYS[parsed.getDay()]}`),
+            isToday: !!todayEntryDate && item.entryDate === todayEntryDate,
             data: [item],
         });
     });

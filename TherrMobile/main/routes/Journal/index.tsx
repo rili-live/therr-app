@@ -12,7 +12,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { HabitActions } from 'therr-react/redux/actions';
-import { IHabitsState, IJournalFeedItem, IUserState } from 'therr-react/types';
+import { IHabitsState, IJournalFeedItem, IUserHabit, IUserState } from 'therr-react/types';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import translator from '../../utilities/translator';
@@ -20,7 +20,11 @@ import { showToast } from '../../utilities/toasts';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildJournalStyles } from '../../styles/habits/journal';
-import { groupFeedByDay, IJournalDaySection } from './journalGrouping';
+import {
+    buildJournalSwatchAssignment,
+    resolveJournalSwatch,
+} from '../../styles/habits/journalPalette';
+import { groupFeedByDay, IJournalDaySection, toLocalEntryDate } from './journalGrouping';
 import JournalEntryRow from './JournalEntryRow';
 import JournalComposer from './JournalComposer';
 import JournalCreateMenu from './JournalCreateMenu';
@@ -82,6 +86,19 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
 
     private unsubscribeFocus?: () => void;
 
+    /**
+     * Habit -> palette slot, rebuilt only when the habit list itself changes.
+     *
+     * Memoized on the array reference rather than recomputed per render because
+     * every row in the feed reads it, and because rebuilding it mid-scroll
+     * would be free to hand a habit a different slot — the probe order depends
+     * on the whole list, so recomputing from a partially-loaded one is what
+     * makes colors visibly jump.
+     */
+    private habitSwatchAssignment: Record<string, number> = {};
+
+    private habitSwatchAssignmentSource: IUserHabit[] | null = null;
+
     constructor(props: IJournalProps) {
         super(props);
 
@@ -124,6 +141,17 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
     componentWillUnmount() {
         this.unsubscribeFocus?.();
     }
+
+    getHabitSwatchAssignment = (userHabits: IUserHabit[]) => {
+        if (userHabits !== this.habitSwatchAssignmentSource) {
+            this.habitSwatchAssignmentSource = userHabits;
+            this.habitSwatchAssignment = buildJournalSwatchAssignment(
+                userHabits.map((habit) => habit.habitGoalId),
+            );
+        }
+
+        return this.habitSwatchAssignment;
+    };
 
     loadFeed = () => this.props.getJournalFeed({})
         .catch(() => {
@@ -237,12 +265,7 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
         // The entry date is resolved on the device, because only it knows the
         // user's timezone: a note written at 23:40 must file under the day the
         // user experienced, not whatever UTC day the server is on.
-        const now = new Date();
-        const entryDate = [
-            now.getFullYear(),
-            `${now.getMonth() + 1}`.padStart(2, '0'),
-            `${now.getDate()}`.padStart(2, '0'),
-        ].join('-');
+        const entryDate = toLocalEntryDate(new Date());
 
         const request = editingEntry
             ? this.props.updateJournalEntry(editingEntry.id, { body, habitGoalId })
@@ -269,7 +292,10 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
         }
 
         return (
-            <Text style={this.themeJournal.styles.monthHeading}>{section.monthLabel}</Text>
+            <View style={this.themeJournal.styles.monthHeadingRow}>
+                <Text style={this.themeJournal.styles.monthHeading}>{section.monthLabel}</Text>
+                <View style={this.themeJournal.styles.monthHeadingRule} />
+            </View>
         );
     };
 
@@ -284,9 +310,15 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
             editingEntry,
         } = this.state;
 
+        const userHabits = habits.userHabits || [];
+        const habitSwatchAssignment = this.getHabitSwatchAssignment(userHabits);
         const sections = groupFeedByDay(
             habits.journalFeed || [],
             this.translate as (key: string, params?: any) => string,
+            // Resolved per render rather than once at mount: the journal is a
+            // screen people leave open, and a session that crosses midnight
+            // would otherwise keep marking yesterday as today.
+            toLocalEntryDate(new Date()),
         );
 
         return (
@@ -322,32 +354,54 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
                             // The date rail belongs to the day, not to any one
                             // entry, so it is rendered once per section and the
                             // entries are stacked beside it.
-                            renderItem={({ item, index, section }) => (
-                                <View style={this.themeJournal.styles.dayRow}>
-                                    <View style={this.themeJournal.styles.dateBlock}>
-                                        {index === 0 && (
-                                            <View style={this.themeJournal.styles.dateCard}>
-                                                <Text style={this.themeJournal.styles.dateWeekday}>
-                                                    {(section as IJournalDaySection).weekdayLabel}
-                                                </Text>
-                                                <Text style={this.themeJournal.styles.dateDay}>
-                                                    {(section as IJournalDaySection).dayOfMonth}
-                                                </Text>
-                                            </View>
-                                        )}
+                            renderItem={({ item, index, section }) => {
+                                const { isToday } = section as IJournalDaySection;
+
+                                return (
+                                    <View style={this.themeJournal.styles.dayRow}>
+                                        <View style={this.themeJournal.styles.dateBlock}>
+                                            {index === 0 && (
+                                                <View style={[
+                                                    this.themeJournal.styles.dateCard,
+                                                    isToday && this.themeJournal.styles.dateCardToday,
+                                                ]}
+                                                >
+                                                    <Text style={[
+                                                        this.themeJournal.styles.dateWeekday,
+                                                        isToday && this.themeJournal.styles.dateTextToday,
+                                                    ]}
+                                                    >
+                                                        {(section as IJournalDaySection).weekdayLabel}
+                                                    </Text>
+                                                    <Text style={[
+                                                        this.themeJournal.styles.dateDay,
+                                                        isToday && this.themeJournal.styles.dateTextToday,
+                                                    ]}
+                                                    >
+                                                        {(section as IJournalDaySection).dayOfMonth}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                        <View style={this.themeJournal.styles.entryColumn}>
+                                            <JournalEntryRow
+                                                item={item}
+                                                locale={user.settings?.locale || 'en-us'}
+                                                themeJournal={this.themeJournal}
+                                                swatch={resolveJournalSwatch(
+                                                    item,
+                                                    this.themeJournal.palette,
+                                                    this.themeJournal.typePalette,
+                                                    habitSwatchAssignment,
+                                                )}
+                                                translate={this.translate as (key: string, params?: any) => string}
+                                                onPress={this.openComposer}
+                                                onPressGoal={this.handleOpenGoal}
+                                            />
+                                        </View>
                                     </View>
-                                    <View style={this.themeJournal.styles.entryColumn}>
-                                        <JournalEntryRow
-                                            item={item}
-                                            locale={user.settings?.locale || 'en-us'}
-                                            themeJournal={this.themeJournal}
-                                            translate={this.translate as (key: string, params?: any) => string}
-                                            onPress={this.openComposer}
-                                            onPressGoal={this.handleOpenGoal}
-                                        />
-                                    </View>
-                                </View>
-                            )}
+                                );
+                            }}
                             refreshControl={(
                                 <RefreshControl
                                     refreshing={isRefreshing}
@@ -358,7 +412,7 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
                             onEndReachedThreshold={0.4}
                             ListFooterComponent={isLoadingMore ? (
                                 <View style={this.themeJournal.styles.footerLoading}>
-                                    <ActivityIndicator size="small" color={this.themeJournal.colors.primary} />
+                                    <ActivityIndicator size="small" color={this.themeJournal.colors.brand} />
                                 </View>
                             ) : null}
                             ListEmptyComponent={habits.isLoading ? null : (
@@ -385,7 +439,8 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
                 <JournalComposer
                     isVisible={isComposerVisible}
                     isSaving={isSaving}
-                    habits={habits.userHabits || []}
+                    habits={userHabits}
+                    habitSwatchAssignment={habitSwatchAssignment}
                     initialBody={editingEntry?.body || ''}
                     initialHabitGoalId={editingEntry?.habitGoalId || null}
                     themeJournal={this.themeJournal}

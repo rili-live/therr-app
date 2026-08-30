@@ -4,6 +4,7 @@ import {
     getMonthKey,
     getWeekdayKey,
     groupFeedByDay,
+    toLocalEntryDate,
 } from '../../main/routes/Journal/journalGrouping';
 
 /**
@@ -113,6 +114,23 @@ describe('groupFeedByDay', () => {
         expect(sections[0].weekdayLabel).toBe('pages.habits.daysOfWeekShort.wed');
     });
 
+    it('marks only the section matching the day passed as today', () => {
+        const sections = groupFeedByDay([
+            item('a', '2026-03-11'),
+            item('b', '2026-03-10'),
+        ], translate, '2026-03-11');
+
+        expect(sections.map((s) => s.isToday)).toEqual([true, false]);
+    });
+
+    it('marks nothing when the caller passes no today', () => {
+        // A journal that highlights no day is merely plain; one that highlights
+        // the wrong day tells the user they logged something they did not.
+        const sections = groupFeedByDay([item('a', '2026-03-11')], translate);
+
+        expect(sections[0].isToday).toBe(false);
+    });
+
     it('keeps mixed item types in one day together', () => {
         const sections = groupFeedByDay([
             { ...item('a', '2026-03-11'), type: 'checkin' },
@@ -121,6 +139,20 @@ describe('groupFeedByDay', () => {
 
         expect(sections).toHaveLength(1);
         expect(sections[0].data.map((i: any) => i.type)).toEqual(['checkin', 'achievement']);
+    });
+});
+
+describe('toLocalEntryDate', () => {
+    it('reads the device calendar day, not the UTC one', () => {
+        // 23:40 local on the 14th. `toISOString().split("T")[0]` would file this
+        // under the 15th anywhere east of Greenwich — the exact off-by-one that
+        // `parseEntryDate` exists to prevent in the other direction, and the one
+        // that would highlight tomorrow as "today".
+        expect(toLocalEntryDate(new Date(2026, 7, 14, 23, 40))).toBe('2026-08-14');
+    });
+
+    it('zero-pads so the string sorts and compares as YYYY-MM-DD', () => {
+        expect(toLocalEntryDate(new Date(2026, 0, 2))).toBe('2026-01-02');
     });
 });
 
