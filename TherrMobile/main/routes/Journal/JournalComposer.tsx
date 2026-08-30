@@ -9,11 +9,14 @@ import {
 } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { IUserHabit } from 'therr-react/types';
+import { getJournalSwatchIndex } from '../../styles/habits/journalPalette';
 
 interface IJournalComposerProps {
     isVisible: boolean;
     isSaving: boolean;
     habits: IUserHabit[];
+    /** Habit -> palette slot, built once by the screen so the dots match the feed. */
+    habitSwatchAssignment: Record<string, number>;
     initialBody?: string;
     initialHabitGoalId?: string | null;
     themeJournal: any;
@@ -37,6 +40,7 @@ const JournalComposer = ({
     isVisible,
     isSaving,
     habits,
+    habitSwatchAssignment,
     initialBody,
     initialHabitGoalId,
     themeJournal,
@@ -90,6 +94,9 @@ const JournalComposer = ({
                             <View style={themeJournal.styles.composerTagRow}>
                                 {habits.map((habit) => {
                                     const isSelected = habitGoalId === habit.habitGoalId;
+                                    const swatch = themeJournal.palette[
+                                        getJournalSwatchIndex(habit.habitGoalId, habitSwatchAssignment)
+                                    ];
 
                                     return (
                                         <Pressable
@@ -98,12 +105,23 @@ const JournalComposer = ({
                                             accessibilityState={{ selected: isSelected }}
                                             style={[
                                                 themeJournal.styles.composerTag,
-                                                isSelected && themeJournal.styles.composerTagSelected,
+                                                // Selecting a tag fills it in that habit's own color,
+                                                // so the composer previews what the saved entry will
+                                                // look like in the feed.
+                                                isSelected && {
+                                                    backgroundColor: swatch.tint,
+                                                    borderColor: swatch.accent,
+                                                },
                                             ]}
                                             // Tapping the selected tag clears it, so an entry can be
                                             // untagged again without reopening the composer.
                                             onPress={() => setHabitGoalId(isSelected ? null : habit.habitGoalId)}
                                         >
+                                            <View style={[
+                                                themeJournal.styles.composerTagDot,
+                                                { backgroundColor: swatch.accent },
+                                            ]}
+                                            />
                                             <Text style={themeJournal.styles.composerTagLabel}>
                                                 {habit.goalEmoji ? `${habit.goalEmoji} ` : ''}
                                                 {habit.goalName}

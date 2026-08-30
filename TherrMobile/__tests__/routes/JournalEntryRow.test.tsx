@@ -9,8 +9,20 @@ import { it, describe, expect, jest } from '@jest/globals';
 
 import JournalEntryRow from '../../main/routes/Journal/JournalEntryRow';
 import { buildStyles as buildJournalStyles } from '../../main/styles/habits/journal';
+import {
+    buildJournalSwatchAssignment,
+    resolveJournalSwatch,
+} from '../../main/styles/habits/journalPalette';
 
 const themeJournal = buildJournalStyles('light') as any;
+
+// What the screen does per row, so these render with the colors the app renders.
+const swatchFor = (item: any, assignment: Record<string, number> = {}) => resolveJournalSwatch(
+    item,
+    themeJournal.palette,
+    themeJournal.typePalette,
+    assignment,
+);
 
 const translate = (key: string, params?: any) => (
     params ? `${key}(${Object.values(params).join(',')})` : key
@@ -29,14 +41,17 @@ const buildItem = (overrides: any = {}) => ({
     ...overrides,
 }) as any;
 
-const render = (props: any) => {
+const render = ({ assignment, ...props }: any = {}) => {
     let component: renderer.ReactTestRenderer;
+    const item = props.item || buildItem();
+
     act(() => {
         component = renderer.create(
             <JournalEntryRow
-                item={buildItem()}
+                item={item}
                 locale="en-us"
                 themeJournal={themeJournal}
+                swatch={swatchFor(item, assignment)}
                 translate={translate as any}
                 {...props}
             />,
@@ -113,5 +128,83 @@ describe('JournalEntryRow', () => {
         const component = render({ item: buildItem() });
 
         expect(JSON.stringify(component.toJSON())).not.toContain('pages.journal.entry.goalChip');
+    });
+});
+
+/**
+ * Color coding.
+ *
+ * The point of the feature is that a user can tell two habits apart at a glance
+ * on a day that mixes them, so what is worth asserting is the *contrast between
+ * rows*, not any particular hex. These read the rendered tree rather than the
+ * palette directly, because the failure that matters is a row that stops
+ * carrying its color through to the view.
+ */
+const accentsOf = (component: renderer.ReactTestRenderer): string[] => component.root
+    .findAll((node) => !!node.props?.style)
+    .flatMap((node) => (Array.isArray(node.props.style) ? node.props.style : [node.props.style]))
+    .filter((style) => !!style?.borderLeftColor && style.borderLeftColor !== 'transparent')
+    .map((style) => style.borderLeftColor);
+
+describe('JournalEntryRow color coding', () => {
+    const assignment = buildJournalSwatchAssignment(['habit-a', 'habit-b']);
+
+    it('draws two different habits in two different colors', () => {
+        const a = accentsOf(render({
+            item: buildItem({ habitGoalId: 'habit-a', goalName: 'Running' }),
+            assignment,
+        }));
+        const b = accentsOf(render({
+            item: buildItem({ habitGoalId: 'habit-b', goalName: 'Reading' }),
+            assignment,
+        }));
+
+        expect(a[0]).toBeTruthy();
+        expect(b[0]).toBeTruthy();
+        expect(a[0]).not.toBe(b[0]);
+    });
+
+    it('draws every row of one habit in the same color, whatever the row type', () => {
+        // A check-in, the note written about it and the milestone it produced
+        // are one habit's story; splitting them across colors would undo the
+        // grouping the color is there to provide.
+        const checkin = accentsOf(render({
+            item: buildItem({ type: 'checkin', body: null, habitGoalId: 'habit-a', goalName: 'Running' }),
+            assignment,
+        }));
+        const milestone = accentsOf(render({
+            item: buildItem({
+                type: 'milestone',
+                body: null,
+                habitGoalId: 'habit-a',
+                goalName: 'Running',
+                meta: { milestoneReached: 7 },
+            }),
+            assignment,
+        }));
+
+        expect(checkin[0]).toBe(milestone[0]);
+    });
+
+    it('gives a habit the same color whether or not the habit list has loaded', () => {
+        // The feed and the habit list are two requests; the one that arrives
+        // first must not decide the color, or every row visibly re-colors when
+        // the other lands.
+        const item = buildItem({ habitGoalId: 'habit-a', goalName: 'Running' });
+
+        expect(accentsOf(render({ item }))[0])
+            .toBe(accentsOf(render({ item, assignment }))[0]);
+    });
+
+    it('colors a goal from the type palette rather than a habit slot', () => {
+        const goal = accentsOf(render({ item: buildItem({ type: 'goal', body: 'Run a 5k' }) }));
+
+        expect(goal[0]).toBe(themeJournal.typePalette.goal.accent);
+    });
+
+    it('leaves an untagged note neutral, so color keeps meaning "habit"', () => {
+        const note = accentsOf(render({ item: buildItem() }));
+
+        expect(note[0]).toBe(themeJournal.typePalette.neutral.accent);
     });
 });

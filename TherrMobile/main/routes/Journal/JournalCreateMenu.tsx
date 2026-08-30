@@ -115,7 +115,7 @@ const JournalCreateMenu = ({
                                         <MaterialIcon
                                             name={option.icon}
                                             size={24}
-                                            color={themeJournal.colors.primary}
+                                            color={themeJournal.typePalette.goal.accent}
                                         />
                                     </View>
                                     <View style={themeJournal.styles.createOptionTextGroup}>
