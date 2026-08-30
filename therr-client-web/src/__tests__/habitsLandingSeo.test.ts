@@ -95,10 +95,21 @@ describe('habits landing page SEO markup', () => {
                 : host === sourceHost;
         });
 
-        const externalImageHosts = new Set(
-            (template.match(/(?:src|srcset)="https:\/\/[^/"]+/g) || [])
-                .map((match) => match.replace(/^(?:src|srcset)="https:\/\//, '')),
-        );
+        // Scoped to <img>/<source>: a <script src> or an <iframe src> is governed by a
+        // different CSP directive, so demanding those appear in imgSrc would be wrong.
+        const externalImageHosts = new Set<string>();
+        (template.match(/<(?:img|source)\b[^>]*>/g) || []).forEach((tag) => {
+            (tag.match(/(?:src|srcset)="[^"]*"/g) || []).forEach((attribute) => {
+                const value = attribute.replace(/^[a-z]+="/, '').replace(/"$/, '');
+                // A srcset holds comma-separated candidates, each "<url> [descriptor]".
+                value.split(',').forEach((candidate) => {
+                    const url = candidate.trim().split(/\s+/)[0];
+                    if (url.indexOf('https://') === 0) {
+                        externalImageHosts.add(url.slice('https://'.length).split('/')[0]);
+                    }
+                });
+            });
+        });
         expect(externalImageHosts.size).toBeGreaterThan(0);
         externalImageHosts.forEach((host) => expect({ host, isAllowed: isAllowed(host) }).toEqual({ host, isAllowed: true }));
     });
