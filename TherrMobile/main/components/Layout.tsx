@@ -1096,7 +1096,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteView = intentHabitGoalId ? 'HabitDetail' : 'HabitsDashboard';
                 targetRouteParams = intentHabitGoalId
                     ? { habitGoalId: intentHabitGoalId }
-                    : { initialTab: 'today' };
+                    : { initialTab: 'habits' };
             } else if (data.action === brandIntent('STREAK_MILESTONE')
                 || data.action === brandIntent('STREAK_BROKEN')
                 || data.action === brandIntent('NEW_PERSONAL_RECORD')) {
@@ -1343,14 +1343,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 return buildPactRoute();
 
             // Anything asking the user to check in opens the habit itself, with
-            // today's tab when it cannot name one.
+            // the dashboard's habits segment when it cannot name one — that is
+            // the segment listing the habits the user can check in on.
             case PushNotifications.Types.streakAtRisk:
             case PushNotifications.Types.dailyHabitReminder:
             case PushNotifications.Types.morningMotivation:
             case PushNotifications.Types.eveningCheckIn:
             case PushNotifications.Types.habitMaintenanceCheckIn:
             case PushNotifications.Types.habitComeback:
-                return buildHabitRoute('today');
+                return buildHabitRoute('habits');
 
             // Celebrations and lifecycle milestones
             // (docs/HABIT_LIFECYCLE_MESSAGING.md). The habit's own history is
@@ -1703,7 +1704,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 if (!isUserAuthorized || !checkinHabitGoalId) {
                     this.setState({
                         targetRouteView: 'HabitsDashboard',
-                        targetRouteParams: { initialTab: 'today' },
+                        targetRouteParams: { initialTab: 'habits' },
                     });
                     return Promise.resolve();
                 }
