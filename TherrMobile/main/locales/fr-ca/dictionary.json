@@ -74,7 +74,10 @@
     "tooManyAttempts": "Trop de tentatives",
     "registerSuccess": "Compte créé",
     "accountNotVerified": "Vérifiez votre courriel",
-    "repostSuccess": "Republié"
+    "repostSuccess": "Republié",
+    "checkinSucceeded": "Enregistré",
+    "checkinFailed": "Enregistrement impossible",
+    "pactAccepted": "Pacte accepté!"
   },
   "alertMessages": {
     "activityCreated": "Un nouveau groupe et événement ont été créés. Des invitations ont été envoyées à chaque membre du groupe.",
@@ -117,7 +120,9 @@
     "repostSuccess": "Cette publication apparaît maintenant sur ton profil",
     "repostFailed": "Nous n'avons pas pu republier ceci. Réessaie.",
     "repostDuplicate": "Tu as déjà republié cette publication",
-    "repostRestricted": "Seul l'auteur peut republier une publication qui n'est pas publique"
+    "repostRestricted": "Seul l'auteur peut republier une publication qui n'est pas publique",
+    "checkinSucceeded": "Bravo — ta journée est enregistrée.",
+    "checkinFailed": "Touche pour ouvrir {appName} et terminer ton enregistrement."
   },
   "dateTime": {
     "lessThanHours": "< 1h",

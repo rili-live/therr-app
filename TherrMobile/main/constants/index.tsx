@@ -149,6 +149,15 @@ const REMINDER_ACTION_KEYS = new Set<string>([
     'PACT_INVITATION',
     'PACT_NUDGE',
     'PACT_EXPIRING',
+    // The daily reminder moved from an OS-rendered display notification to
+    // data-only so Notifee can render its "Check In" action button — the display
+    // path cannot carry one. That also moved the channel decision here: the
+    // backend no longer names a `channelId`, this set does. Without these three
+    // the reminder posts on the DEFAULT-importance "General" channel with no
+    // heads-up banner, which is indistinguishable from "push isn't working".
+    'DAILY_HABIT_REMINDER',
+    'MORNING_MOTIVATION',
+    'EVENING_CHECK_IN',
 ]);
 
 const REWARD_ACTION_KEYS = new Set<string>([
