@@ -36,6 +36,30 @@ recent stage publish, any service", and since `publish.sh` is incremental it get
 by a merge that pushed a single image. Resolving through it points every unrowed service
 at a tag that was never built for it — see § The fallback deadlock.
 
+### The ledger also decides what gets built
+
+`build.sh` and `publish.sh` ask `service_needs_build` (`_bin/lib/build-scope.sh`), which
+compares each service's sources against **the SHA the ledger records for that service**
+— not against `HEAD^1`.
+
+The merge range answers "what did this merge bring in", which is only the right question
+while every stage run publishes what it built. When one does not — the run at `a5ce2eee`
+aborted in `build.sh` before pushing anything — the merge carrying a service's change
+falls behind `HEAD^1` permanently. That service then reads as unchanged on every later
+merge, and nothing says so: the build log lists it under "No Changes", the publish log
+agrees, and production keeps running the image from before the change.
+
+Comparing against the published SHA converges instead: a service missed by one run is
+picked up by the next. It is also one-directional — it can only ever build *more* than
+the merge range, never less.
+
+A service with no row, or whose recorded SHA this checkout cannot reach, falls back to
+the `HEAD^1` range with a warning saying which.
+
+> Expect the first stage run after a gap to build several services at once. That is the
+> ledger reporting real drift — images published before library changes that have since
+> landed — not the predicate misfiring.
+
 ## What the deploy decides, per service
 
 The deploy is a **desired-state comparison**, not a diff of the merge:
@@ -204,6 +228,26 @@ git's message in the job log. That is what turns the failure above into a red *b
 step naming the real cause. `setup_remote_docker` is also pinned rather than left to
 CircleCI's moving default, so the executor is one less thing that changes underneath
 a green pipeline.
+
+### …and why a missing commit no longer stops the deploy either
+
+The rule is "an unanswerable diff must never read as *no changes*" — which is not the
+same as "must abort". The stage merge at `a5ce2eee` aborted the build step with
+`git diff --name-only HEAD^1 -- therr-client-web failed`, because CircleCI had handed
+that job a shallow clone: on `stage`/`main` the predicate compares against HEAD's first
+parent, and in a depth-1 clone HEAD has no parent locally. Nothing was wrong with the
+merge, and nothing about the code could fix it.
+
+So `prev_tip()` now deepens the checkout by one commit and asks again (`_deepen_once`,
+a no-op on a full clone, recorded in the git dir so the eight services do not each pay
+for a fetch). Only when the parent is still unreachable does the predicate **fail
+open** — reporting the path as changed, with a warning saying so. Building a service
+that did not change costs one job; skipping one that did costs a deploy. The same
+fallback covers the feature-branch path when `git merge-base` has no common ancestor to
+find.
+
+`_count_diff_files` keeps its abort for the other case: a diff git *could* answer and
+did not.
 
 ## The service registry
 

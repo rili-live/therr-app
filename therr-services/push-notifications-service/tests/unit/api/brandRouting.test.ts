@@ -54,6 +54,12 @@ const DATA_ONLY_TYPES = [
     PushNotifications.Types.newThoughtRepostReceived,
     PushNotifications.Types.leaderboardRankMilestone,
     PushNotifications.Types.streakAtRisk,
+    // Moved off the display path so Notifee can render its "Check In" action
+    // button — the OS-rendered path cannot carry one. See the DEPLOY ORDER note
+    // on this case in firebaseAdmin.ts: the client picks the channel from the
+    // intent action now, so DAILY_HABIT_REMINDER must be in the mobile
+    // REMINDER_ACTION_KEYS or an installed app posts it on the default channel.
+    PushNotifications.Types.dailyHabitReminder,
     PushNotifications.Types.streakMilestone,
     PushNotifications.Types.newPersonalRecord,
     PushNotifications.Types.partnerCheckedIn,
@@ -93,7 +99,6 @@ const DISPLAY_TYPES = [
     // the user learns the net caught them rather than inferring it later.
     PushNotifications.Types.streakFreezeUsed,
     PushNotifications.Types.pactDeclined,
-    PushNotifications.Types.dailyHabitReminder,
     PushNotifications.Types.morningMotivation,
     PushNotifications.Types.eveningCheckIn,
     // The one lifecycle message aimed at someone who has stopped opening the
@@ -163,17 +168,33 @@ describe('firebaseAdmin brand routing', () => {
     describe('click actions', () => {
         it('stamps HABITS display notifications with the habits-prefixed intent action', () => {
             const message: any = createMessage(
-                PushNotifications.Types.dailyHabitReminder,
+                PushNotifications.Types.streakBroken,
                 {},
                 config,
                 BrandVariations.HABITS,
             );
 
             expect(message.android.notification.clickAction)
-                .to.equal(PushNotifications.AndroidIntentActions.Habits.DAILY_HABIT_REMINDER);
+                .to.equal(PushNotifications.AndroidIntentActions.Habits.STREAK_BROKEN);
             // The Android manifest must declare this exact action or the tap is a no-op;
             // TherrMobile/__tests__/androidNotificationIntentFilters.test.ts guards that end.
             expect(message.android.notification.clickAction).to.have.string('com.therr.mobile.habits.');
+        });
+
+        it('stamps the daily habit reminder with the habits-prefixed intent action', () => {
+            // Data-only since the reminder gained action buttons, so the click
+            // action moved from android.notification to the data map — which is
+            // also what the client reads to pick the notification channel.
+            const message: any = createMessage(
+                PushNotifications.Types.dailyHabitReminder,
+                {},
+                config,
+                BrandVariations.HABITS,
+            );
+
+            expect(message.data.clickActionId)
+                .to.equal(PushNotifications.AndroidIntentActions.Habits.DAILY_HABIT_REMINDER);
+            expect(message.data.clickActionId).to.have.string('com.therr.mobile.habits.');
         });
 
         it('stamps HABITS data-only notifications with the habits-prefixed intent action', () => {

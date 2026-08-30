@@ -68,6 +68,16 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     pactName?: string;
     habitId?: string;
     habitName?: string;
+    // The habit goal a one-press "Check In" action would complete. Distinct
+    // from `habitName` (copy) and `habitId`: this is the id the device POSTs to
+    // /habits/checkins straight from the notification, so it must only be set
+    // when the notification unambiguously names one habit.
+    habitGoalId?: string;
+    // Set by the digest's per-user roll-up. `habitCount > 1` means one
+    // notification stands in for several habits, which selects the plural copy
+    // and suppresses the check-in action.
+    habitCount?: number;
+    habitNames?: string[];
     daysRemaining?: number;
     // Streak freezes ("build in the miss"). `freezesRemaining` is what is left
     // *after* the spend, so the copy can promise a net that is still there.
@@ -133,6 +143,9 @@ export default (
         pactName,
         habitId,
         habitName,
+        habitGoalId,
+        habitCount,
+        habitNames,
         daysRemaining,
         freezesRemaining,
         freezeDaysUsed,
@@ -269,6 +282,9 @@ export default (
                     pactName,
                     habitId,
                     habitName,
+                    habitGoalId,
+                    habitCount,
+                    habitNames,
                     daysRemaining,
                     freezesRemaining,
                     freezeDaysUsed,

@@ -112,7 +112,8 @@
     "streakAtRisk": {
       "title": "No rompas tu racha",
       "body": "Tu racha de {streakCount} días en {habitName} está en juego — registra antes de medianoche para mantenerla.",
-      "bodyWithFreeze": "Tu racha de {streakCount} días en {habitName} está en juego. Un congelamiento de racha cubrirá esta noche si fallas (te quedan {freezesRemaining}) — pero si registras, lo guardas para después."
+      "bodyWithFreeze": "Tu racha de {streakCount} días en {habitName} está en juego. Un congelamiento de racha cubrirá esta noche si fallas (te quedan {freezesRemaining}) — pero si registras, lo guardas para después.",
+      "bodyMultiple": "{habitCount} rachas están en juego — {habitNames}. Registra antes de medianoche para mantenerlas."
     },
     "streakFreezeUsed": {
       "title": "Tu racha sobrevivió",
@@ -172,7 +173,8 @@
     },
     "dailyHabitReminder": {
       "title": "Hora de registrarte",
-      "body": "Registra {habitName} hoy — un solo registro pone tu racha en marcha."
+      "body": "Registra {habitName} hoy — un solo registro pone tu racha en marcha.",
+      "bodyMultiple": "{habitCount} hábitos te esperan hoy — {habitNames}. Un solo registro te pone en marcha."
     },
     "morningMotivation": {
       "title": "Buenos días",
@@ -197,6 +199,10 @@
     "habitComeback": {
       "title": "¿Quieres retomar {habitName}?",
       "body": "Una vez lo mantuviste {bestStreakCount} días — eso no se borra. ¿Empezamos una racha nueva?"
+    },
+    "shared": {
+      "pressActionCheckIn": "Registrarse",
+      "pressActionView": "Ver"
     }
   },
   "validation": "No se proporcionaron los parámetros requeridos."
