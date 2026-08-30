@@ -216,7 +216,7 @@ jobs:
           command: ./_bin/cicd/test-microservices-integration.sh
       - add_ssh_keys:
           fingerprints:
-            - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
+            - "SHA256:RQGJpv9BjVSmabmSV9DshSyQe7yrxI6meRAi7AkuAB8"
       - run:
           name: Publish Docker Images
           command: ./_bin/cicd/publish.sh
@@ -361,7 +361,7 @@ jobs:
               --zone "${GKE_ZONE:-us-central1-a}"
       - add_ssh_keys:
           fingerprints:
-            - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
+            - "SHA256:RQGJpv9BjVSmabmSV9DshSyQe7yrxI6meRAi7AkuAB8"
       - run:
           name: Deploy Changes To GKE
           command: ./_bin/cicd/deploy.sh
