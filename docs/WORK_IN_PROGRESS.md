@@ -1094,6 +1094,53 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   versionCode at upload rather than at build time. Check the Play Console release history first,
   and prefer `/mobile-release-preflight` over doing it by hand.
 
+- [ ] (2026-08-29) **Restore CircleCI's write access to `rili-live/therr-app` — the additional SSH
+  key at `.circleci/config.yml:218` (`7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6`) is being
+  refused.** The `docker_build_test_publish_images` job on `stage` at `b1c338f` built, tested and
+  `docker push`ed correctly, then died on `publish.sh:130` with `git@github.com: Permission denied
+  (publickey)` — so the `[skip ci] Publish push-notifications-service at b1c338f` ledger commit was
+  made in the container and never reached `origin/stage`. `checkout` in that same job succeeded, so
+  the read-only checkout key is fine; only the write key failed. It last worked on 2026-08-26
+  (`81feb6ddb`), which rules out GitHub's delete-after-a-year-unused policy and the 2022 RSA/SHA-1
+  removals — the key was revoked, not deprecated. Read the `add_ssh_keys` step's own log first: "no
+  key matching that fingerprint" points at CircleCI project settings or at the org having picked up
+  the GitHub App integration (which checks out over HTTPS and installs no SSH keys); a key that
+  installs cleanly and is still refused points at the public half being gone from GitHub, or at the
+  `rili.main@gmail.com` account's authorizations having been reset. Fix by generating a fresh
+  ed25519 pair, adding the public half as a **repo deploy key with write access** (deploy keys do
+  not expire, unlike a user key or a fine-grained PAT), storing the private half under Project
+  Settings → SSH Keys, and updating the fingerprint at `.circleci/config.yml:218`. The copy at
+  `:363` is vestigial — `deploy.sh` never pushes.
+- [ ] (2026-08-29) **Repair the `VERSIONS.txt` ledger for `push-notifications-service` on `stage`,
+  then let CI reconcile the un-suffixed Docker Hub tags.** Because the commit above never landed,
+  both `origin/stage` and `origin/main` still record
+  `PUBLISHED_PUSH_NOTIFICATIONS_SERVICE=e01037368e` while the image actually published is
+  `b1c338f153`. `deploy.sh` correctly refused the `stage` → `main` run at `b2cb65122` with a
+  `stale-build` verdict, and because a blocking verdict stops the whole plan, `users-service` did
+  not roll either — which is why the cluster sat on `cf4ce3a` for all eight services. Until the row
+  is corrected on `stage`, **every** future promotion is blocked the same way. Note also that the
+  2026-08-29 manual rollout pointed the two Deployments at `therrapp/<svc>-stage:<sha>`, because
+  retagging to the un-suffixed prod repo needs Docker Hub write credentials that only CI holds:
+  `therrapp/push-notifications-service:b1c338f153` and `therrapp/users-service:e01037368e` do not
+  exist in the registry, and neither does a matching `:latest`. That is functionally fine — the
+  images are byte-identical and take their environment from Kubernetes — but it means a plain
+  `kubectl apply` of the manifests (which pin `:latest`) would roll production *backwards*. The
+  next successful CI deploy pushes the missing prod tags and puts this right.
+
+- [ ] (2026-08-29) **`client-web` and `api-gateway` are running images that predate their code —
+  neither has been rebuilt since `cf4ce3a`.** Found while reconciling the cluster by hand. Both are
+  still on `cf4ce3a` in `VERSIONS.txt` *and* in the cluster, so the running-vs-desired comparison
+  reports them `up-to-date`, but their sources moved on: `796958361` (habits-blog habit-audit
+  cross-post) and `17a027a8e` touch `client-web`, and `32b2748bd` touches `api-gateway`. Those
+  commits reached `stage` in merge `e4790de82` without a publish, so no image was ever built from
+  them. `deploy.sh` sees this correctly — `sources_changed_between` spans `desired..promoted_tip`,
+  not just the last merge, so both come back `stale-build`, which is *blocking* — meaning the
+  `push-notifications-service` ledger row above is not the only thing holding the next promotion.
+  The habit-audit cross-post in particular is a user-facing web change that is not in production.
+  Fix is a `stage` publish that rebuilds them: touch something in each service's source fan-out (or
+  `global-config.js`, which is in all eight) and let the publish job run once the SSH key is
+  restored. Then confirm the plan table shows eight non-blocking verdicts.
+
 <!-- skill-followups:end -->
 
 ---
