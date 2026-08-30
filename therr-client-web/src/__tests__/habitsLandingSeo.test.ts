@@ -78,6 +78,37 @@ describe('habits landing page SEO markup', () => {
         expect(template.match(/<h1[\s>]/g)).toHaveLength(1);
     });
 
+    it('allows every third-party image host it embeds through the CSP', () => {
+        // Helmet's CSP is only applied outside development, so an img-src omission
+        // renders fine locally and breaks the image in production silently.
+        const serverClient = fs.readFileSync(path.join(__dirname, '../server-client.tsx'), 'utf8');
+        const imgSrcBlock = serverClient.match(/imgSrc: \[([\s\S]*?)\],/);
+        if (!imgSrcBlock) {
+            throw new Error('No imgSrc directive found in the server-client.tsx CSP');
+        }
+
+        const allowedSources = (imgSrcBlock[1].match(/'([^']+)'/g) || []).map((entry) => entry.slice(1, -1));
+        const isAllowed = (host: string) => allowedSources.some((source) => {
+            const sourceHost = source.replace(/^https:\/\//, '');
+            return sourceHost.startsWith('*.')
+                ? host === sourceHost.slice(2) || host.endsWith(sourceHost.slice(1))
+                : host === sourceHost;
+        });
+
+        const externalImageHosts = new Set(
+            (template.match(/(?:src|srcset)="https:\/\/[^/"]+/g) || [])
+                .map((match) => match.replace(/^(?:src|srcset)="https:\/\//, '')),
+        );
+        expect(externalImageHosts.size).toBeGreaterThan(0);
+        externalImageHosts.forEach((host) => expect({ host, isAllowed: isAllowed(host) }).toEqual({ host, isAllowed: true }));
+    });
+
+    it('links the LaunchKiwi badge with a theme-aware source', () => {
+        expect(template).toContain('href="https://launchkiwi.com/p/friends-with-habits"');
+        expect(template).toContain('srcset="https://launchkiwi.com/badge-dark.svg" media="(prefers-color-scheme: dark)"');
+        expect(template).toContain('src="https://launchkiwi.com/badge-light.svg"');
+    });
+
     it('ships an absolute, correctly-sized Open Graph image', () => {
         // A summary_large_image card with no og:image renders as a blank link preview.
         expect(template).toContain('<meta property="og:image" content="https://habits.therr.com/assets/images/habits-og-image.png">');
