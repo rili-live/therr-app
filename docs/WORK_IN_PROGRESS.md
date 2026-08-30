@@ -1166,6 +1166,15 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   the real tags; then re-check `kubectl get deployments -o custom-columns=` and confirm no
   Deployment is still on a `-stage` image.
 
+- [ ] (2026-08-30, /quality-peer-review) **Confirm the LaunchKiwi badge actually renders on
+  https://habits.therr.com once `client-web` next deploys.** Helmet's CSP is skipped entirely when
+  `NODE_ENV === 'development'`, so the new `https://launchkiwi.com` `img-src` entry at
+  `therr-client-web/src/server-client.tsx:150` is never exercised locally — a wrong entry, or a
+  redirect from `launchkiwi.com` to a different asset host (CSP re-checks the redirect target),
+  surfaces as a broken image in production and nowhere else. `client-web` is one of the three
+  `stale-build` services above, so this only ships after the forced `stage` publish lands. Check
+  the browser console for a CSP violation, not just the rendered page.
+
 <!-- skill-followups:end -->
 
 ---
