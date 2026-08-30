@@ -5,6 +5,8 @@ set -e
 source ./_bin/lib/colorize.sh
 source ./_bin/lib/has_diff_changes.sh
 source ./_bin/lib/service-registry.sh
+source ./_bin/lib/versions-ledger.sh
+source ./_bin/lib/build-scope.sh
 source ./_bin/lib/build-manifest.sh
 
 # The registry is upstream of build, publish and deploy alike, so a drift between
@@ -32,6 +34,11 @@ fi
 # HAS_UTILITIES_LIBRARY_CHANGES / HAS_GLOBAL_CONFIG_FILE_CHANGES flags this file used
 # to carry — and had to keep in sync with two other files — are gone.
 
+# What each service last published, so the build scope is "changed since that image"
+# rather than "changed in this merge" — see build-scope.sh for why the difference
+# decides whether a failed run strands a service forever.
+ledger_load VERSIONS.txt
+
 # Reset before the loop, not inside it: publish.sh reads the file's existence as
 # "build.sh reached its loop in this job", so an empty manifest has to mean "built
 # nothing" rather than "never ran".
@@ -40,7 +47,7 @@ manifest_reset
 for KEY in $(service_keys); do
   IMAGE="$(service_image "$KEY")"
 
-  if ! has_prev_diff_changes_any $(service_sources "$KEY"); then
+  if ! service_needs_build "$KEY"; then
     echo "Skipping $KEY build (No Changes)"
     continue
   fi

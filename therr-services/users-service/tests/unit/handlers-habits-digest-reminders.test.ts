@@ -211,8 +211,10 @@ describe('Habits digest — daily reminder pass', () => {
         const first = await runDigest();
         const second = await runDigest();
 
+        // One key per user per day, not per habit: the roll-up is what stops a
+        // user with four habits receiving four near-identical pushes.
         expect(queue.ofType('daily-habit-reminder')[0].dedupeKey)
-            .to.equal(`daily-habit-reminder:${SOLO_GOAL}:${TODAY}`);
+            .to.equal(`checkin-nudge:${TODAY}`);
         expect(first.dailyRemindersSent).to.equal(1);
         // Attempted again, inserted nothing — which is what makes a manual
         // re-run or an overlapping scheduler firing safe.
@@ -262,8 +264,13 @@ describe('Habits digest — daily reminder pass', () => {
 
         // Exactly one message about this habit today, and it is the stronger one.
         expect(queue.ofType('streak-at-risk')).to.have.length(1);
-        expect(queue.ofType('streak-at-risk')[0].dedupeKey).to.equal(`streak-at-risk:${PACT_ID}:${TODAY}`);
+        expect(queue.ofType('streak-at-risk')[0].dedupeKey).to.equal(`checkin-nudge:${TODAY}`);
         expect(queue.ofType('daily-habit-reminder')).to.have.length(0);
+        // The habit reached the accumulator through the pact loop, so the row
+        // carries the pact id — the deep link target the reminder pass alone
+        // could not supply.
+        expect(queue.ofType('streak-at-risk')[0].payload.pactId).to.equal(PACT_ID);
+        expect(queue.ofType('streak-at-risk')[0].payload.habitCount).to.equal(1);
     });
 
     it('evaluates the lifecycle of a solo habit even on a day it was checked in', async () => {

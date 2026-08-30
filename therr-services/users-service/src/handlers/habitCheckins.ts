@@ -8,6 +8,8 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
+import enqueueNotification from '../utilities/enqueueNotification';
+import { resolveUserDisplayName } from '../utilities/notificationNames';
 import {
     getTodayDateString,
     checkMilestoneReached,
@@ -336,7 +338,12 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                         milestone,
                     );
 
-                    // Send milestone notification
+                    // Send milestone notification.
+                    //
+                    // The copy is "{streakCount} days strong on {habitName}" and
+                    // this call used to pass neither, so it rendered as
+                    // " days strong on " — `translate` only substitutes the
+                    // params it is handed.
                     sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                         authorization,
                         fromUser: { id: userId, userName },
@@ -345,6 +352,9 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                         type: PushNotifications.Types.streakMilestone,
                         whiteLabelOrigin,
                         brandVariation,
+                        habitName: habitGoal.name,
+                        habitGoalId,
+                        streakCount: updatedStreak.currentStreak,
                     }).catch((err) => {
                         logSpan({
                             level: 'error',
@@ -397,27 +407,59 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
                     // Notify partners. Someone in two pacts on this same habit
                     // is told once, not once per pact.
+                    //
+                    // Queued rather than sent inline. This is the one habits
+                    // notification whose volume is driven by *other people* —
+                    // every partner check-in on every shared habit produces one
+                    // — so it is the type most able to arrive as a burst, and
+                    // inline sending has neither dedup nor the per-user daily
+                    // cap. The worker drains within a tick (30s), so it stays
+                    // effectively immediate while gaining both, plus the
+                    // minimum spacing in notificationQueueWorker.
+                    //
+                    // The dedupe key names the checker and the habit, not the
+                    // recipient — the recipient is already in the UNIQUE
+                    // (brandVariation, userId, dedupeKey) constraint. Two
+                    // partners checking in on the same habit today are two
+                    // notifications; the same partner checking in twice is one.
                     const partnerIds = await resolvePactPartnerIds(pacts, userId, {
                         onlyCelebrating: true,
                     });
-                    partnerIds.forEach((partnerId) => {
-                        sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
-                            authorization,
-                            fromUser: { id: userId, userName },
-                            locale,
+                    if (partnerIds.length) {
+                        const checkerDisplayName = await resolveUserDisplayName(userId);
+                        await Promise.all(partnerIds.map((partnerId) => enqueueNotification({
+                            brandVariation,
                             toUserId: partnerId,
                             type: PushNotifications.Types.partnerCheckedIn,
-                            whiteLabelOrigin,
-                            brandVariation,
+                            dedupeKey: `partner-checked-in:${habitGoalId}:${userId}:${checkinDate}`,
+                            payload: {
+                                // The worker rebuilds the send from this payload
+                                // alone — this request's headers are gone by the
+                                // time it drains.
+                                locale,
+                                whiteLabelOrigin,
+                                fromUserId: userId,
+                                partnerName: checkerDisplayName,
+                                habitName: habitGoal.name,
+                                habitGoalId,
+                                pactId: pacts[0]?.id,
+                                streakCount: updatedStreak.currentStreak,
+                                // One habit, so a "Check In" button on this
+                                // notification has something unambiguous to do —
+                                // which is the point: "don't let them lap you"
+                                // should be answerable from the tray.
+                                habitCount: 1,
+                            },
                         }).catch((err) => {
                             logSpan({
                                 level: 'error',
                                 messageOrigin: 'API_SERVER',
-                                messages: ['Error sending partner checkin notification'],
+                                messages: ['Error queueing partner checkin notification'],
                                 traceArgs: { 'error.message': err?.message, partnerId },
                             });
-                        });
-                    });
+                            return 'failed' as const;
+                        })));
+                    }
                 }
 
                 // Mark checkin as contributing to streak

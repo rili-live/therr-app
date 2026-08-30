@@ -14,6 +14,12 @@
 //      zero lines and `[[ 0 -gt 0 ]]` was false. Silent skip.
 //   2. build and publish each evaluated that predicate independently, so there was
 //      nothing to notice they had disagreed.
+//
+// The rule the first group asserts is "an unanswerable diff must never read as no
+// changes" — not "must abort". Where the answer is merely absent rather than broken
+// (HEAD^1 missing in a shallow checkout, which is what stopped the stage merge at
+// a5ce2eee) the predicate deepens and, failing that, reports *changed*: building more
+// than necessary costs a job, skipping costs a deploy.
 
 const assert = require('assert');
 const { execFileSync, spawnSync } = require('child_process');
@@ -57,24 +63,20 @@ const makeRepo = (count) => {
 // --- 1. A git failure must stop the script, not read as "no changes" ---------------------------
 
 {
-    // One commit, so HEAD^1 does not resolve — the shape a shallow or partial
-    // checkout presents to `git diff HEAD^1`.
-    const repo = makeRepo(1);
+    // A rev git cannot resolve at all, with the path perfectly ordinary: the guard
+    // has to read git's exit status rather than its line count, and stop the script.
+    const repo = makeRepo(2);
     const result = run(`
         source ./_bin/lib/has_diff_changes.sh
         cd "${repo}"
-        if has_prev_diff_changes src; then echo "VERDICT changed"; else echo "VERDICT no-changes"; fi
+        _count_diff_files no-such-rev -- src
         echo REACHED_END
     `, { env: { CICD_BRANCH: 'stage' } });
 
     assert.notStrictEqual(
         result.status,
         0,
-        'An unanswerable `git diff HEAD^1` must fail the script, not fall through',
-    );
-    assert.ok(
-        !result.stdout.includes('VERDICT'),
-        `A git failure must not produce a verdict at all; got:\n${result.stdout}`,
+        'A git diff that fails must fail the script, not fall through',
     );
     assert.ok(
         !result.stdout.includes('REACHED_END'),
@@ -83,6 +85,35 @@ const makeRepo = (count) => {
     assert.ok(
         /Refusing to report 'no changes'/.test(result.stdout),
         `The abort must say why, so the build log names the real fault; got:\n${result.stdout}`,
+    );
+
+    fs.rmSync(repo, { recursive: true, force: true });
+}
+
+{
+    // One commit, so HEAD^1 does not resolve — the shape a shallow checkout presents,
+    // and what stopped the stage merge at a5ce2eee. With no remote to deepen from the
+    // answer is unobtainable, and the only safe verdict is "changed".
+    const repo = makeRepo(1);
+    const result = run(`
+        source ./_bin/lib/has_diff_changes.sh
+        cd "${repo}"
+        if has_prev_diff_changes src; then echo "VERDICT changed"; else echo "VERDICT no-changes"; fi
+        echo REACHED_END
+    `, { env: { CICD_BRANCH: 'stage' } });
+
+    assert.strictEqual(
+        result.status,
+        0,
+        `A missing HEAD^1 must not stop the pipeline; got:\n${result.stdout}\n${result.stderr}`,
+    );
+    assert.ok(
+        result.stdout.includes('VERDICT changed'),
+        `An unresolvable base must fail open, never skip; got:\n${result.stdout}`,
+    );
+    assert.ok(
+        /no resolvable first parent/.test(result.stdout),
+        `The fail-open must say why, so an operator can tell it from a real diff; got:\n${result.stdout}`,
     );
 
     fs.rmSync(repo, { recursive: true, force: true });
@@ -108,18 +139,31 @@ const makeRepo = (count) => {
 
 {
     // has_prev_diff_changes_any is what build.sh and publish.sh actually call, and it
-    // must inherit the abort rather than swallowing it while looping paths.
-    const repo = makeRepo(1);
-    const result = run(`
+    // must inherit both behaviours rather than flattening them while looping paths:
+    // it aborts on a broken diff, and reports changed on an unobtainable base.
+    const repo = makeRepo(2);
+    const broken = run(`
         source ./_bin/lib/has_diff_changes.sh
         cd "${repo}"
+        _count_diff_files no-such-rev -- src
         if has_prev_diff_changes_any src docs; then echo "VERDICT changed"; else echo "VERDICT no-changes"; fi
     `, { env: { CICD_BRANCH: 'stage' } });
 
-    assert.notStrictEqual(result.status, 0, 'The multi-path form must abort too');
-    assert.ok(!result.stdout.includes('VERDICT'), result.stdout);
+    assert.notStrictEqual(broken.status, 0, 'The multi-path form must abort too');
+    assert.ok(!broken.stdout.includes('VERDICT'), broken.stdout);
+
+    const shallow = makeRepo(1);
+    const result = run(`
+        source ./_bin/lib/has_diff_changes.sh
+        cd "${shallow}"
+        if has_prev_diff_changes_any src docs; then echo "VERDICT changed"; else echo "VERDICT no-changes"; fi
+    `, { env: { CICD_BRANCH: 'stage' } });
+
+    assert.strictEqual(result.status, 0, `${result.stdout}\n${result.stderr}`);
+    assert.ok(result.stdout.includes('VERDICT changed'), result.stdout);
 
     fs.rmSync(repo, { recursive: true, force: true });
+    fs.rmSync(shallow, { recursive: true, force: true });
 }
 
 // --- 2. The manifest: what build.sh built, read back by publish.sh -----------------------------
