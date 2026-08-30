@@ -49,6 +49,13 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         pactName,
         habitId,
         habitName,
+        // The habit goal a one-press check-in completes, plus the roll-up
+        // shape. Set together by the habits digest: `habitCount > 1` means the
+        // nudge covers several habits, which selects the plural copy and
+        // suppresses the check-in action (there is no single goal to complete).
+        habitGoalId,
+        habitCount,
+        habitNames,
         daysRemaining,
         freezesRemaining,
         freezeDaysUsed,
@@ -92,6 +99,9 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             pactName,
             habitId,
             habitName,
+            habitGoalId,
+            habitCount,
+            habitNames,
             daysRemaining,
             freezesRemaining,
             freezeDaysUsed,
@@ -164,6 +174,9 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         pactName,
         habitId,
         habitName,
+        habitGoalId,
+        habitCount,
+        habitNames,
         daysRemaining,
         freezesRemaining,
         freezeDaysUsed,
@@ -211,6 +224,9 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             pactName,
             habitId,
             habitName,
+            habitGoalId,
+            habitCount,
+            habitNames,
             daysRemaining,
             freezesRemaining,
             freezeDaysUsed,

@@ -46,7 +46,8 @@ producers                  queue                     worker                sende
 ─────────                  ─────                     ──────                ──────
 handlers, digest  ──►  main.notificationQueue  ──►  users-service  ──►  push-notifications
 enqueueNotification()   (dedup + scheduledFor)      30s interval         -service
-                                                    daily cap
+                                                    daily cap +
+                                                    15-min spacing
       ▲
       │
 Cloud Scheduler ──► therr-messaging-automator ──► POST /habits/pacts/digest/run-daily
@@ -112,10 +113,22 @@ scale with the backlog, not with history.
 It must encode everything that makes the notification distinct **including its
 period**:
 
-- once-per-day → `streak-at-risk:<pactId>:2026-08-08`
+- once-per-day → `pact-expiring:<pactId>:2026-08-08`
 - once-per-event → `pact-accepted:<pactId>:<memberId>`
+- once-per-user-per-day → `checkin-nudge:2026-08-08`, with no id at all: the
+  recipient is already half of the unique constraint, so an id here can only
+  *widen* the key and let a duplicate through
 - **never** interpolate `Date.now()` or a random value — that makes every
   enqueue unique, which silently turns dedup off
+
+A key that is too narrow is the failure mode worth watching for. Check-in
+nudges were keyed per pact *and* per habit — `streak-at-risk:<pactId>:<date>`
+from the pact loop, `streak-at-risk:habit:<habitGoalId>:<date>` and
+`daily-habit-reminder:<habitGoalId>:<date>` from the reminder pass. Every key
+deduped correctly against itself and the user still received up to five copies
+of the same sentence, because the keys named different things. Deduplication
+cannot fix a producer that genuinely intends several notifications; the fix was
+to make the producer intend one (see `checkinNudgeRollup.ts`).
 
 Enqueue is `ON CONFLICT DO NOTHING` (not `DO UPDATE`): a re-run must not reset
 `scheduledFor` or resurrect a row already sent.
@@ -139,8 +152,16 @@ its own reaper. The happy path overwrites with `sent` moments later;
 | Type | dedupeKey |
 |---|---|
 | `pactExpiring` | `pact-expiring:<pactId>:<YYYY-MM-DD>` |
-| `streakAtRisk` | `streak-at-risk:<pactId>:<YYYY-MM-DD>` |
+| `streakAtRisk` / `dailyHabitReminder` | `checkin-nudge:<YYYY-MM-DD>` |
 | `partnerMissedDay` | `partner-missed-day:<pactId>:<missingMemberId>:<YYYY-MM-DD>` |
+
+The check-in nudge is one row per **user** per day, whichever of the two types
+it ends up as. Both the pact loop and the reminder pass record into an
+accumulator keyed on the habit goal, and the run drains it once at the end: the
+framing (`streakAtRisk` when any habit has a live streak, citing the longest
+one; `dailyHabitReminder` otherwise) can only be chosen after every habit at
+stake for that user is known. A nudge naming exactly one habit carries
+`habitGoalId`, which is what lets the notification offer a one-press check-in.
 
 Two things in that table are load-bearing and neither is obvious:
 
@@ -249,9 +270,30 @@ the frequency cap by hitting it.
   the old behavior: the digest queues rather than sends, so with the flag off it
   fills the table and delivers nothing.
 - Tunables (`TICK_INTERVAL_MS` 30s, `CLAIM_BATCH_SIZE` 25, `MAX_ATTEMPTS` 3,
-  `MAX_SENDS_PER_USER_PER_DAY` 5) are module constants, not env vars — there is
+  `MAX_SENDS_PER_USER_PER_DAY` 5, `MIN_GAP_BETWEEN_SENDS_MS` 15min,
+  `MAX_DEFERRAL_WINDOW_MS` 6h) are module constants, not env vars — there is
   no production experience to configure against yet, and an env var implies a
   knob someone has a reason to turn.
+- **The daily cap does not space anything.** It bounds how many notifications a
+  user gets, not when, and a tick sends a whole claimed batch within a few
+  hundred milliseconds — so four due rows arrived in the same second. The worker
+  therefore also enforces a minimum gap per user, *deferring* rather than
+  dropping (unlike the cap: a reminder a day late is worse than none, but
+  everything hitting the spacing rule is still fine fifteen minutes from now).
+  `defer` decrements `attempts`, because `claimDue` increments on claim and a
+  deferral must not spend a retry; `MAX_DEFERRAL_WINDOW_MS` stops a busy user
+  holding a low-priority row back forever. Deferred rows show `spaced: …` in
+  `lastError` — that is a status, not a failure.
+- **Batch order is by type, not just `scheduledFor`.** A digest run stamps every
+  row with the same `scheduledFor`, so with spacing in play the ordering decides
+  which of a user's notifications actually goes out tonight.
+  `TYPE_SEND_PRIORITY` puts the time-sensitive nudge ahead of the celebration;
+  unlisted types sort last.
+- **Rows with no reachable device are skipped, not retried.** `sendOne` resolves
+  the device token up front (brand-scoped table, falling back to the legacy
+  `users.deviceMobileFirebaseToken` column) and marks `skipped: no-device-token`
+  when there is none. Before this, those rows burned all three attempts daily —
+  36 production errors in 30 days — and buried real failures in noise.
 - Sends are sequential within a batch. A burst of 25 concurrent sends from a
   `replicas: 1` pod is a good way to exhaust the write pool, and throughput is
   not the constraint: 30s × 25 is ~3,000/hour/brand.
