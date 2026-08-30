@@ -84,6 +84,52 @@ append new items here rather than only printing them once.
   collecting. The B2B funnel is Priority 1 in `docs/GROWTH_STRATEGY.md`, and it is
   currently unmeasured.
 
+## Habits push pipeline (added 2026-08-29, from a production log + queue analysis)
+
+The two P0 defects found in this analysis are **fixed on `general`** (FCM `data`
+coercion in `createMessage`, and send-outcome reporting through
+`predictAndSendNotification` -> `POST /notifications/send`), with regression
+coverage in
+`push-notifications-service/tests/unit/api/fcmDataPayload.test.ts`. What is left
+here is what code cannot close.
+
+- [ ] **Verify delivery in production once the fix reaches `main`.** The bug was
+  invisible for ~3 weeks because the queue recorded `sent` for pushes that never
+  left the process, so a green deploy is not evidence. After rollout, confirm the
+  digest window (14:00 UTC) shows `Push successfully sent` and **not** `Push not
+  sent` / `data must only contain string values`, and that a real handset receives
+  one:
+  ```
+  gcloud logging read 'resource.type="k8s_container"
+    resource.labels.container_name="server-push-notifications"
+    ("Push successfully sent" OR "Push not sent")' --freshness=1d --limit=20
+  ```
+  Baseline before the fix: 77 `data must only contain string values` vs 19
+  successful sends in 30 days, and 0 `failed` rows in `main."notificationQueue"`.
+- [ ] **Ship the mobile release before promoting the `dailyHabitReminder` change.**
+  It moved from an OS-rendered display notification to data-only so Notifee can
+  render its "Check In" action button — the display path cannot carry one. The
+  consequence is that the Android channel now comes from the client's
+  `getAndroidChannelFromClickActionId` rather than the `channelId` the backend
+  names, so `DAILY_HABIT_REMINDER` must be in `REMINDER_ACTION_KEYS`
+  (`TherrMobile/main/constants/index.tsx`, on `niche/HABITS-general`) before this
+  reaches production. On an app that predates that release the reminder posts on
+  the DEFAULT-importance "General" channel: it still arrives, with no heads-up
+  banner. Verify on a handset after both halves are out.
+- [ ] **Watch `checkinNudgesRolledUp` in the first digest runs after deploy.**
+  New counter: candidates recorded minus rows queued. It is the direct evidence
+  the burst is gone — `streakAtRiskSent + dailyRemindersSent` now counts *users*
+  notified, and this counts the pushes they are no longer getting. A persistent
+  zero on a population that tracks multiple habits means the accumulator is not
+  being fed. Watch `daily cap reached` fall at the same time, and watch for
+  `spaced:` values in `notificationQueue."lastError"` — those are deferrals, not
+  failures, and should clear within the hour.
+- [ ] **Move the habits digest off 14:00 UTC.** The Cloud Scheduler job fires at
+  14:00 UTC = 09:00 CDT, but `streakAtRisk` is designed as an *evening* nudge
+  (`habitsDigest.ts`: "run it in the evening") — at 9am it tells users their streak
+  is at risk before they have had the day to check in. Owned by
+  `therr-infra-terraform` (`messaging-automator.tf`), not this repo.
+
 ## Standing items (always re-verify after a deploy that touches the area)
 
 - [ ] **Submit / re-submit sitemap to Google Search Console** after any change
@@ -473,13 +519,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   though `morningMotivation` / `eveningCheckIn` want the user-timezone column below before
   they mean anything), schedule them locally via Notifee, or delete the dead copy. Verify with:
   `grep -rn "Types.morningMotivation" --include=*.ts therr-services/ | grep -v push-notifications-service`
-- [ ] (2026-08-26, habits-daily-notifications) **`streakAtRisk` can still double-send for one
-  habit held through two pacts.** The pact loop keys it `streak-at-risk:<pactId>:<date>`, so
-  a user pursuing one goal through two active pacts gets two warnings about one streak. The
-  lifecycle notifications next to it are all keyed on `habitGoalId` precisely to avoid this,
-  and the new reminder pass uses `streak-at-risk:habit:<habitGoalId>:<date>` for solo habits.
-  Re-keying the pact path to match would fix it; the cost is one duplicate push on the day it
-  deploys, for users who already received that day's warning under the old key.
 
 - [ ] (2026-08-07, push-notifications-debug) **Verify the iOS APNS-topic fix on a real
   Habits handset after this deploys.** `apns-topic` for HABITS/TEEM was
@@ -1065,6 +1104,20 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   does not perform. The spec and plan now say so out loud rather than dropping them silently, but
   an App campaign without a video is limited to Search and a narrow Display slice, so this is the
   step that decides the campaign's reach.
+
+- [ ] (2026-08-29, /quality-peer-review-niche) **Confirm Play has not already consumed
+  `versionCode 31` for `com.therr.habits`, then merge `niche/HABITS-general` into
+  `niche/HABITS-main` to cut the Android build.** The 192 commits queued behind that merge were
+  reviewed against `origin/niche/HABITS-main` and are clean; three peer-review commits
+  (`ae24bb5d4`, `160bff861`, `d251c7e95`) sit unpushed on `niche/HABITS-general` and go with
+  them. Unlike the 2026-08-17 item above, the API side is **not** a blocker this time: every
+  backend dependency the new client calls — `PUT /habits/pacts/:id/renew`, `.../nudge`,
+  `GET /habits/pacts/invites`, `repostThoughtId` on thought creation, and `graceDaysConsumed` /
+  `streakSavedByFreeze` on the check-in 201 — is already on `origin/main`, so the mobile release
+  cannot outrun it. What is unverified is the version number: `build.gradle` reads
+  `versionCode 31 / versionName 1.3.2`, bumped from 27 / 1.1.2, and Play rejects a re-used
+  versionCode at upload rather than at build time. Check the Play Console release history first,
+  and prefer `/mobile-release-preflight` over doing it by hand.
 
 <!-- skill-followups:end -->
 

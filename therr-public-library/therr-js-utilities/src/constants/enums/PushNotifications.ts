@@ -97,6 +97,12 @@ export enum PressActionIds {
     pactAccept = 'accept-pact',
     checkinView = 'view-checkin',
     streakView = 'view-streak',
+    // Completes a check-in from the notification itself, without opening the
+    // app. Unlike every other id here it names a *mutation*, so the payload
+    // that carries it must also carry an unambiguous `habitGoalId` — a nudge
+    // that rolls several habits together has nothing to check into and must
+    // offer `checkinView` instead.
+    habitCheckin = 'habit-checkin',
     // Leaderboards
     leaderboardView = 'view-leaderboard',
 }

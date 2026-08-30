@@ -166,7 +166,10 @@ describe('Habits digest — queues instead of sending', () => {
         }, {});
 
         expect(keysByType['pact-expiring']).to.deep.equal(Array(3).fill(`pact-expiring:${PACT_ID}:${TODAY}`));
-        expect(keysByType['streak-at-risk']).to.deep.equal(Array(2).fill(`streak-at-risk:${PACT_ID}:${TODAY}`));
+        // Check-in nudges are rolled up per user, so the key names the day and
+        // nothing else — the recipient is already half of the unique
+        // constraint, and a per-habit key is what produced duplicates.
+        expect(keysByType['streak-at-risk']).to.deep.equal(Array(2).fill(`checkin-nudge:${TODAY}`));
         // Keyed on who slipped, not on who hears about it — the recipient is
         // already half of the unique constraint.
         expect(new Set(keysByType['partner-missed-day'])).to.deep.equal(new Set([
@@ -177,7 +180,9 @@ describe('Habits digest — queues instead of sending', () => {
         // A key carrying a clock reading would be unique on every run, which
         // turns dedup off without failing anything else.
         queue.calls.forEach((call) => {
-            expect(call.dedupeKey, call.dedupeKey).to.match(/^[a-z-]+:[\w-]+(:[\w-]+)?:\d{4}-\d{2}-\d{2}$/);
+            // Zero or more id segments — a rolled-up key names only the day,
+            // because the recipient is already half of the unique constraint.
+            expect(call.dedupeKey, call.dedupeKey).to.match(/^[a-z-]+(:[\w-]+)*:\d{4}-\d{2}-\d{2}$/);
         });
     });
 

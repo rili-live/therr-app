@@ -166,6 +166,56 @@ export default class NotificationQueueStore extends BrandScopedStore {
         return this.db.read.query(queryString).then((response) => Number(response.rows[0]?.count || 0));
     }
 
+    /**
+     * When this user last received anything under this brand, or null if never.
+     *
+     * Reads the same ("brandVariation","userId","sentAt") index `countSentSince`
+     * uses. Feeds the minimum-spacing rule in notificationQueueWorker: the daily
+     * cap alone does not stop five notifications arriving in the same second,
+     * because the worker drains a whole claimed batch inside one tick.
+     */
+    getLastSentAt(brand: BrandValue, userId: string): Promise<Date | null> {
+        const queryString = this.scopedQuery(brand)
+            .where('userId', '=', userId)
+            .where('status', '=', 'sent')
+            .whereNotNull('sentAt')
+            .max('sentAt as lastSentAt')
+            .toString();
+        return this.db.read.query(queryString)
+            .then((response) => {
+                const value = response.rows[0]?.lastSentAt;
+                return value ? new Date(value) : null;
+            });
+    }
+
+    /**
+     * Push a claimed row back to 'pending' with a later `scheduledFor`.
+     *
+     * `attempts` is decremented because `claimDue` increments on claim and a
+     * deferral is not an attempt — without this, three spacing deferrals would
+     * exhaust MAX_ATTEMPTS and the notification would be dropped for the one
+     * reason that is not a failure.
+     *
+     * GREATEST(...,0) rather than a bare subtraction so a row that somehow
+     * reaches here un-incremented cannot go negative and then out-live the
+     * retry bound.
+     */
+    defer(id: string, scheduledFor: Date, reason: string): Promise<number> {
+        const queryString = knexBuilder
+            .raw(
+                `UPDATE ??
+                 SET "status" = 'pending',
+                     "scheduledFor" = ?::timestamptz,
+                     "attempts" = GREATEST("attempts" - 1, 0),
+                     "lastError" = ?,
+                     "updatedAt" = now()
+                 WHERE "id" = ?::uuid`,
+                [NOTIFICATION_QUEUE_TABLE_NAME, scheduledFor.toISOString(), reason, id],
+            )
+            .toString();
+        return this.db.write.query(queryString).then((response) => response.rowCount ?? 0);
+    }
+
     // Bounded retry for rows a worker claimed but never completed (crash, pod
     // eviction mid-batch) and for transient send failures.
     requeueFailed(brand: BrandValue, maxAttempts: number, limit: number): Promise<number> {

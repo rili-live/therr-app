@@ -112,7 +112,8 @@
     "streakAtRisk": {
       "title": "Don't Break Your Streak",
       "body": "Your {streakCount}-day {habitName} streak is on the line — check in before midnight to keep it alive.",
-      "bodyWithFreeze": "Your {streakCount}-day {habitName} streak is on the line. A streak freeze will cover tonight if you miss ({freezesRemaining} left) — but checking in keeps it in your pocket."
+      "bodyWithFreeze": "Your {streakCount}-day {habitName} streak is on the line. A streak freeze will cover tonight if you miss ({freezesRemaining} left) — but checking in keeps it in your pocket.",
+      "bodyMultiple": "{habitCount} streaks are on the line — {habitNames}. Check in before midnight to keep them alive."
     },
     "streakFreezeUsed": {
       "title": "Your Streak Survived",
@@ -172,7 +173,8 @@
     },
     "dailyHabitReminder": {
       "title": "Time to Check In",
-      "body": "Log {habitName} today — one check-in gets your streak going."
+      "body": "Log {habitName} today — one check-in gets your streak going.",
+      "bodyMultiple": "{habitCount} habits are waiting today — {habitNames}. One check-in gets you started."
     },
     "morningMotivation": {
       "title": "Good Morning",
@@ -197,6 +199,10 @@
     "habitComeback": {
       "title": "Want to Restart {habitName}?",
       "body": "You held this {bestStreakCount} days once — that doesn't go away. Ready to start a fresh streak?"
+    },
+    "shared": {
+      "pressActionCheckIn": "Check In",
+      "pressActionView": "View"
     }
   },
   "validation": "The required parameters were not provided."

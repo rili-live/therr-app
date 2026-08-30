@@ -146,5 +146,57 @@ class ApplySuppliesTheAccountTotalTest(unittest.TestCase):
         self.assertEqual(code, 2, "apply should refuse once the account total is blown")
 
 
+class ResumeChecksTheAccountCeilingTest(unittest.TestCase):
+    """Resuming adds a campaign's FULL daily budget to the account at once.
+
+    _sum_other_budgets counts only ENABLED campaigns, so a paused campaign is
+    invisible to the ceiling right up until it is resumed — which makes resume
+    the one moment the check has to happen.
+    """
+
+    def _run_status(self, status, own_micros, other_micros):
+        from types import SimpleNamespace
+        from unittest import mock
+
+        from therr_ads import cli
+
+        campaign = {
+            "id": 7,
+            "name": "FwH-App-US-Installs-2026Q3",
+            "status": "PAUSED",
+            "start_date": "2026-08-01",
+            "budget_resource": "customers/1/campaignBudgets/9",
+            "budget_micros": own_micros,
+            "sub_type": "APP_CAMPAIGN",
+        }
+        args = SimpleNamespace(
+            name=campaign["name"], settings=None, config=None, confirm=False, status=status
+        )
+        set_status = mock.Mock()
+        with mock.patch.object(cli, "_client", return_value=object()), \
+             mock.patch.object(cli, "_settings", return_value=settings_with()), \
+             mock.patch.object(cli, "_sum_other_budgets", return_value=other_micros), \
+             mock.patch.object(cli.campaigns, "find_campaign", return_value=campaign), \
+             mock.patch.object(cli.campaigns, "set_status", set_status):
+            code = cli._cmd_campaign_status(args)
+        return code, set_status
+
+    def test_resume_is_refused_when_it_would_blow_the_account_total(self):
+        code, set_status = self._run_status("ENABLED", 20_000_000, 95_000_000)
+        self.assertEqual(code, 2)
+        set_status.assert_not_called()
+
+    def test_resume_is_allowed_when_the_account_has_room(self):
+        code, _ = self._run_status("ENABLED", 20_000_000, 10_000_000)
+        # 0 is the dry-run exit: the ceiling passed and it fell through to
+        # the --confirm guard rather than being refused.
+        self.assertEqual(code, 0)
+
+    def test_pausing_is_never_blocked_by_a_budget_ceiling(self):
+        # Pausing only ever reduces spend, so the ceiling must not gate it.
+        code, _ = self._run_status("PAUSED", 20_000_000, 99_000_000)
+        self.assertEqual(code, 0)
+
+
 if __name__ == "__main__":
     unittest.main()

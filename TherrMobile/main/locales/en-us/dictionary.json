@@ -74,7 +74,10 @@
     "tooManyAttempts": "Too Many Attempts",
     "registerSuccess": "Account Created",
     "accountNotVerified": "Verify Your E-mail",
-    "repostSuccess": "Reposted"
+    "repostSuccess": "Reposted",
+    "checkinSucceeded": "Checked In",
+    "checkinFailed": "Couldn't Check In",
+    "pactAccepted": "Pact accepted!"
   },
   "alertMessages": {
     "activityCreated": "A new group and event was created. Invites sent to each group member.",
@@ -117,7 +120,9 @@
     "repostSuccess": "This post now shows on your profile",
     "repostFailed": "We could not repost this. Please try again.",
     "repostDuplicate": "You already reposted this",
-    "repostRestricted": "Only the author can repost a post that isn't public"
+    "repostRestricted": "Only the author can repost a post that isn't public",
+    "checkinSucceeded": "Nice work — today is logged.",
+    "checkinFailed": "Tap to open {appName} and finish checking in."
   },
   "dateTime": {
     "lessThanHours": "< 1h",
