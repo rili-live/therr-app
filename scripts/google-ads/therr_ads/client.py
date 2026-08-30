@@ -56,8 +56,43 @@ def build_client(config_path: Path | None = None):
     Env vars win when present (GOOGLE_ADS_DEVELOPER_TOKEN and friends), which is
     how CI or a one-off run against a different account works without editing
     the file — but the file is the documented path.
+
+    Credential validation happens before the google-ads import on purpose: a
+    misconfigured environment should say so whether or not the library is
+    installed, and "the package is missing" is a different problem from "the
+    credentials are half-set".
     """
+    import os
+
     config_path = Path(config_path) if config_path else DEFAULT_CONFIG_PATH
+
+    # Treat any GOOGLE_ADS_* credential as "the operator means to use env vars",
+    # then require the whole set. load_from_env() with a partial set raises a
+    # KeyError naming one variable, which reads as a library bug rather than a
+    # half-filled environment — and the half that IS set makes the config.yaml
+    # fallback look like it was ignored.
+    env_required = (
+        "GOOGLE_ADS_DEVELOPER_TOKEN",
+        "GOOGLE_ADS_CLIENT_ID",
+        "GOOGLE_ADS_CLIENT_SECRET",
+        "GOOGLE_ADS_REFRESH_TOKEN",
+    )
+    env_present = [name for name in env_required if os.environ.get(name)]
+    missing = [name for name in env_required if not os.environ.get(name)]
+    if env_present and missing:
+        raise SettingsError(
+            "Partial Google Ads credentials in the environment: "
+            + ", ".join(env_present)
+            + " set, but "
+            + ", ".join(missing)
+            + f" missing. Set the whole set, or unset them all to fall back to {config_path}."
+        )
+
+    if not env_present and not config_path.exists():
+        raise SettingsError(
+            f"{config_path} not found. Copy config.example.yaml to config.yaml, fill in the four "
+            "credentials it documents, then run `./therrads auth login`."
+        )
 
     try:
         from google.ads.googleads.client import GoogleAdsClient
@@ -68,16 +103,8 @@ def build_client(config_path: Path | None = None):
             "    pip install -r requirements.txt"
         ) from exc
 
-    import os
-
-    if os.environ.get("GOOGLE_ADS_DEVELOPER_TOKEN") and os.environ.get("GOOGLE_ADS_REFRESH_TOKEN"):
+    if env_present:
         return GoogleAdsClient.load_from_env()
-
-    if not config_path.exists():
-        raise SettingsError(
-            f"{config_path} not found. Copy config.example.yaml to config.yaml, fill in the four "
-            "credentials it documents, then run `./therrads auth login`."
-        )
 
     return GoogleAdsClient.load_from_storage(str(config_path))
 

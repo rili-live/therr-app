@@ -110,8 +110,11 @@ therr_ads/
 ```
 
 Run the tests with `python3 -m unittest discover -s tests -t .` from this
-directory. They need no credentials and no `google-ads` install — that is
-deliberate, and worth preserving.
+directory, or `npm run test:google-ads` from the repo root. They need no
+credentials and no `google-ads` install — that is deliberate, and worth
+preserving: CI runs them in the `google_ads_tooling_tests` job on every branch
+with nothing installed but PyYAML, so a test that reaches for a live account is
+a test that stops running.
 
 ## Branch placement
 

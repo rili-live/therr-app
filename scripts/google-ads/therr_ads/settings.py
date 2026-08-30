@@ -61,12 +61,30 @@ class ProductDbSettings:
                 + ". Source the repo .env (see docs/SECRETS_AND_LOCAL_BOOTSTRAP.md), or set "
                 "product_db.enabled: false in settings.yaml to run on Ads + GA4 data only."
             )
-        host = os.environ[self.host_env]
-        port = os.environ.get(self.port_env) or "5432"
-        user = os.environ[self.user_env]
-        password = os.environ[self.password_env]
-        database = os.environ[self.database_env]
-        return f"host={host} port={port} user={user} password={password} dbname={database}"
+        return " ".join(
+            f"{key}={_quote_conninfo(value)}"
+            for key, value in (
+                ("host", os.environ[self.host_env]),
+                ("port", os.environ.get(self.port_env) or "5432"),
+                ("user", os.environ[self.user_env]),
+                ("password", os.environ[self.password_env]),
+                ("dbname", os.environ[self.database_env]),
+            )
+        )
+
+
+def _quote_conninfo(value: str) -> str:
+    """Quote one value for a libpq keyword/value connection string.
+
+    libpq splits a conninfo string on whitespace, so a password containing a
+    space silently truncates the password and turns the remainder into a
+    garbage keyword — the connection then fails with an authentication error
+    that points at the wrong thing entirely. Empty values have the same
+    problem. libpq's rule: wrap in single quotes, and backslash-escape any
+    single quote or backslash inside.
+    """
+    escaped = str(value).replace("\\", "\\\\").replace("'", "\\'")
+    return f"'{escaped}'"
 
 
 @dataclass
