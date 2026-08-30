@@ -205,6 +205,26 @@ step naming the real cause. `setup_remote_docker` is also pinned rather than lef
 CircleCI's moving default, so the executor is one less thing that changes underneath
 a green pipeline.
 
+### …and why a missing commit no longer stops the deploy either
+
+The rule is "an unanswerable diff must never read as *no changes*" — which is not the
+same as "must abort". The stage merge at `a5ce2eee` aborted the build step with
+`git diff --name-only HEAD^1 -- therr-client-web failed`, because CircleCI had handed
+that job a shallow clone: on `stage`/`main` the predicate compares against HEAD's first
+parent, and in a depth-1 clone HEAD has no parent locally. Nothing was wrong with the
+merge, and nothing about the code could fix it.
+
+So `prev_tip()` now deepens the checkout by one commit and asks again (`_deepen_once`,
+a no-op on a full clone, recorded in the git dir so the eight services do not each pay
+for a fetch). Only when the parent is still unreachable does the predicate **fail
+open** — reporting the path as changed, with a warning saying so. Building a service
+that did not change costs one job; skipping one that did costs a deploy. The same
+fallback covers the feature-branch path when `git merge-base` has no common ancestor to
+find.
+
+`_count_diff_files` keeps its abort for the other case: a diff git *could* answer and
+did not.
+
 ## The service registry
 
 `_bin/lib/service-registry.sh` is the one list `build.sh`, `publish.sh`,
