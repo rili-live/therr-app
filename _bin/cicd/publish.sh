@@ -6,6 +6,7 @@ source ./_bin/lib/colorize.sh
 source ./_bin/lib/has_diff_changes.sh
 source ./_bin/lib/service-registry.sh
 source ./_bin/lib/versions-ledger.sh
+source ./_bin/lib/build-scope.sh
 source ./_bin/lib/build-manifest.sh
 
 assert_service_registry
@@ -52,7 +53,9 @@ for KEY in $(service_keys); do
     WAS_BUILT=false
   fi
 
-  if ! has_prev_diff_changes_any $(service_sources "$KEY"); then
+  # The same predicate build.sh used, over the same checkout and the same ledger —
+  # the disagreement branch below is only meaningful while that stays true.
+  if ! service_needs_build "$KEY"; then
     if [ "$WAS_BUILT" = "false" ]; then
       # ledger_resolve is empty for a service that has never been published. Say so
       # rather than printing a bare "ledger keeps ", which reads like a lost SHA.
@@ -66,7 +69,7 @@ for KEY in $(service_keys); do
     # the ledger and the image store out of step for no gain.
     printMessageWarning "$KEY reports no changes but was built in this job — publishing it."
   elif [ "$WAS_BUILT" = "false" ]; then
-    printMessageError "$KEY changed in this merge but build.sh never built it."
+    printMessageError "$KEY changed since its published image but build.sh never built it."
     printMessageError "  Both steps evaluate the same changed-files predicate over the same checkout,"
     printMessageError "  so this means they disagreed — usually because git could not answer the diff"
     printMessageError "  during the build step and the failure was read as 'no changes'."

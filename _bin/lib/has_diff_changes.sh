@@ -79,6 +79,55 @@ _deepen_once()
     return 0
 }
 
+# Fetch the whole history, once, when the checkout is shallow.
+#
+# _deepen_once buys one commit, which is all HEAD^1/HEAD^2 need. A SHA recorded in
+# VERSIONS.txt by an earlier stage publish can be dozens of commits back, and there is
+# no useful depth to guess — so the answer for that case is the whole history or
+# nothing. Only paid when the checkout is actually shallow.
+_unshallow_once()
+{
+    local MARKER
+    MARKER="$(git rev-parse --git-dir 2>/dev/null)/therr-unshallow-attempted"
+
+    if [ -e "$MARKER" ]; then
+        return 0
+    fi
+    : > "$MARKER" 2>/dev/null || true
+
+    if [ "$(git rev-parse --is-shallow-repository 2>/dev/null)" != "true" ]; then
+        return 0
+    fi
+
+    {
+        printMessageWarning "Shallow checkout — fetching full history to resolve a recorded SHA."
+        git fetch --unshallow origin \
+            || printMessageWarning "Could not unshallow the checkout (git's error is above)."
+    } >&2
+
+    return 0
+}
+
+# Whether <rev> names a commit this checkout can read, fetching it if it cannot.
+#
+# Returns 1 when the object stays unavailable — an old SHA whose branch is gone, or a
+# shallow clone with no remote to complete it. Callers fall back to a range they can
+# answer rather than treating "not here" as "not changed".
+ensure_commit_available()
+{
+    local REV=$1
+
+    [ -n "$REV" ] || return 1
+
+    if git cat-file -e "${REV}^{commit}" 2>/dev/null; then
+        return 0
+    fi
+
+    _unshallow_once
+
+    git cat-file -e "${REV}^{commit}" 2>/dev/null
+}
+
 # The tip the branch was at before this merge — HEAD's first parent.
 #
 # Echoes the resolved SHA and returns 0. Returns 1, silently, when the parent cannot
