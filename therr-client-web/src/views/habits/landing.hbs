@@ -312,6 +312,16 @@
             margin: 0;
             color: var(--habits-text-muted);
         }
+        section.featured {
+            padding: 2rem 0;
+            text-align: center;
+        }
+        section.featured a { display: inline-block; line-height: 0; }
+        section.featured img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
         footer.site-footer {
             padding: 2rem 0 3rem;
             border-top: 1px solid var(--habits-border);
@@ -653,6 +663,32 @@
                     <h3>Who makes Friends with Habits?</h3>
                     <p>Friends with Habits is built by Therr, Inc., the company behind the <a href="https://www.therr.app/" rel="noopener">Therr app</a> for local discovery and community. The two apps share one account system, so a single Therr login works for both.</p>
                 </div>
+            </div>
+        </section>
+
+        <!--
+            LaunchKiwi launch-directory badge. Two things this depends on:
+
+              1. launchkiwi.com must stay in the CSP img-src allowlist in
+                 server-client.tsx. Helmet's CSP only applies outside development,
+                 so a missing entry looks fine locally and renders a broken image
+                 in production with nothing on the page to say why.
+              2. The srcset swap is keyed on the visitor's OS theme, not the page's:
+                 this template has no dark palette, so a dark-mode visitor gets the
+                 dark badge on the light page. Pin the img to badge-light.svg and
+                 drop the <source> if that ever reads wrong.
+
+            width/height are kept on the img so the badge reserves its layout box
+            and does not shove the footer down as the SVG loads.
+        -->
+        <section class="featured">
+            <div class="container">
+                <a href="https://launchkiwi.com/p/friends-with-habits" target="_blank" rel="noopener">
+                    <picture>
+                        <source srcset="https://launchkiwi.com/badge-dark.svg" media="(prefers-color-scheme: dark)">
+                        <img src="https://launchkiwi.com/badge-light.svg" alt="Featured on LaunchKiwi" width="198" height="62">
+                    </picture>
+                </a>
             </div>
         </section>
     </main>
