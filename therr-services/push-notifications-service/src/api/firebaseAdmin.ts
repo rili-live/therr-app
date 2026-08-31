@@ -388,21 +388,24 @@ const BRAND_EXCLUDED_NOTIFICATION_TYPES: Partial<Record<BrandVariations, Set<Pus
     ]),
 };
 
-export const isTypeAllowedForBrand = (
-    type: PushNotifications.Types,
-    brandVariation: BrandVariations,
-): boolean => !BRAND_EXCLUDED_NOTIFICATION_TYPES[brandVariation]?.has(type);
-
 /**
- * Types whose deep links only exist in the Habits Android manifest.
+ * Types that belong to the Friends with Habits product and to no other app.
  *
- * `getAppBrandingClickAction` returns `undefined` for these under any other
- * brand, which produces a push that renders and then opens nothing when tapped.
- * That is a symptom of a caller that lost its `x-brand-variation` header — the
- * gateway forwards it as `''` when absent (`handleServiceRequest.ts`) and
- * `getBrandAppIdentity` then falls back to Therr — so it is worth a warn rather
- * than a silent send. Not blocked: the copy is still correct and a broken deep
- * link beats no notification.
+ * These must never be sent under another brand, and the reason is stronger than
+ * the deep link. `brandVariation` is what selects the recipient's device token
+ * (`resolveDeviceTokenForBrand`, users-service), and a user who holds two branded
+ * apps has a separate token per install — so a `streakAtRisk` push sent under
+ * THERR is addressed to the user's *Therr* install and renders there, under
+ * Therr's name and icon, on an app with no habits surface at all. The Habits app
+ * gets nothing. It is the same "advertised a different product" failure
+ * `BRAND_EXCLUDED_NOTIFICATION_TYPES` exists to prevent, in the other direction.
+ *
+ * This previously only warned and sent anyway, reasoning that "a broken deep link
+ * beats no notification" — which held only if the push still reached the Habits
+ * app. It does not. Blocking makes the real fault (a caller that lost its
+ * `x-brand-variation` header — the gateway forwards it as `''` when absent, see
+ * `handleServiceRequest.ts`, and `getBrandContext` then defaults to THERR)
+ * visible as a routing failure instead of delivering to the wrong product.
  */
 const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.pactInvitation,
@@ -429,6 +432,16 @@ const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
 ]);
 
 export const isHabitsOnlyType = (type: PushNotifications.Types): boolean => HABITS_ONLY_TYPES.has(type);
+
+export const isTypeAllowedForBrand = (
+    type: PushNotifications.Types,
+    brandVariation: BrandVariations,
+): boolean => {
+    if (isHabitsOnlyType(type) && brandVariation !== BrandVariations.HABITS) {
+        return false;
+    }
+    return !BRAND_EXCLUDED_NOTIFICATION_TYPES[brandVariation]?.has(type);
+};
 
 const getApnsTopic = (brandVariation: BrandVariations) => getBrandAppIdentity(brandVariation).iosApnsTopic;
 
@@ -1602,17 +1615,24 @@ const predictAndSendNotification = (
     const messaging = getAdminAppForBrand(brandVariation).messaging();
 
     if (isHabitsOnlyType(type) && brandVariation !== BrandVariations.HABITS) {
-        // Not blocked — see HABITS_ONLY_TYPES. The push still goes out with
-        // correct copy; what it loses is a resolvable deep link, because the
-        // intent action it needs is only declared in the Habits manifest.
+        // Blocked below by isTypeAllowedForBrand — see HABITS_ONLY_TYPES. Logged at
+        // error rather than warn because this is never benign: the brand picks the
+        // device token, so the only reason a habits type arrives under another brand
+        // is a producer that lost its `x-brand-variation` header, and the user
+        // silently gets this notification in the wrong app (or, now, not at all).
+        // The trace args are what identify that producer.
         logSpan({
-            level: 'warn',
+            level: 'error',
             messageOrigin: 'API_SERVER',
-            messages: ['HABITS notification sent under a non-HABITS brand — deep link will not resolve'],
+            messages: ['HABITS-only notification arrived under a non-HABITS brand — not routed. Caller lost x-brand-variation.'],
             traceArgs: {
                 'pushNotification.type': String(type),
                 'pushNotification.brandVariation': String(brandVariation),
                 'user.id': config.userId,
+                // Whatever the caller did send, so the producer is identifiable from
+                // one log line rather than by correlating timestamps.
+                'request.brandVariationHeader': String(headers?.['x-brand-variation'] ?? ''),
+                'request.userIdHeader': String(headers?.['x-userid'] ?? ''),
             },
         });
     }

@@ -1,23 +1,38 @@
-diff --git a/node_modules/react-native/Libraries/Components/RefreshControl/__mocks__/RefreshControlMock.js b/node_modules/react-native/Libraries/Components/RefreshControl/__mocks__/RefreshControlMock.js
-new file mode 100644
-index 0000000..2ad6867
---- /dev/null
-+++ b/node_modules/react-native/Libraries/Components/RefreshControl/__mocks__/RefreshControlMock.js
-@@ -0,0 +1,9 @@
-+'use strict';
+diff --git a/node_modules/react-native/Libraries/StyleSheet/StyleSheetExports.js b/node_modules/react-native/Libraries/StyleSheet/StyleSheetExports.js
+index 152cd00..973eeb2 100644
+--- a/node_modules/react-native/Libraries/StyleSheet/StyleSheetExports.js
++++ b/node_modules/react-native/Libraries/StyleSheet/StyleSheetExports.js
+@@ -109,6 +109,25 @@ export default {
+    */
+   absoluteFill,
+ 
++  /**
++   * Sometimes you may want `absoluteFill` but with a couple tweaks - `absoluteFillObject` can be
++   * used to create a customized entry in a `StyleSheet`, e.g.:
++   *
++   *   const styles = StyleSheet.create({
++   *     wrapper: {
++   *       ...StyleSheet.absoluteFillObject,
++   *       top: 10,
++   *     },
++   *   });
++   *
++   * Removed upstream in 0.86 but still spread by many libraries (react-native-paper's Modal,
++   * Menu, FABGroup, BottomNavigationBar; react-native-bootsplash; react-native-country-picker-modal).
++   * Spreading `undefined` is legal JS and yields `{}`, so those overlays silently lose
++   * `position: 'absolute'` and lay out in flow instead. Restored here as the same object
++   * `absoluteFill` points at.
++   */
++  absoluteFillObject: absoluteFill,
 +
-+const React = require('react');
-+
-+function RefreshControlMock(props) {
-+  return React.createElement('RefreshControl', props, props.children);
-+}
-+
-+module.exports = RefreshControlMock;
+   /**
+    * Combines two styles such that `style2` will override any styles in `style1`.
+    * If either style is falsy, the other one is returned without allocating an
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/statusbar/StatusBarModule.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/statusbar/StatusBarModule.kt
-index 1e773ba..4e6b9f6 100644
+index 97725bf..8ee0860 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/statusbar/StatusBarModule.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/statusbar/StatusBarModule.kt
-@@ -35,13 +35,12 @@ internal class StatusBarModule(reactContext: ReactApplicationContext?) :
+@@ -67,13 +67,12 @@ internal class StatusBarModule(reactContext: ReactApplicationContext?) :
    @Suppress("DEPRECATION")
    override fun getTypedExportedConstants(): Map<String, Any> {
      val currentActivity = reactApplicationContext.currentActivity
@@ -35,7 +50,7 @@ index 1e773ba..4e6b9f6 100644
      )
    }
  
-@@ -68,17 +67,11 @@ internal class StatusBarModule(reactContext: ReactApplicationContext?) :
+@@ -100,17 +99,11 @@ internal class StatusBarModule(reactContext: ReactApplicationContext?) :
            override fun runGuarded() {
              val window = activity.window ?: return
              window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
