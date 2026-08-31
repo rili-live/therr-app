@@ -34,6 +34,121 @@ resolve_diff_base()
     esac
 }
 
+# Whether the checkout can answer anything about history above HEAD.
+#
+# CircleCI's checkout can hand a job a shallow clone, and `attach_workspace` replays
+# whatever depth the job that persisted the workspace was given. In a depth-1 clone
+# HEAD has no parent locally, so `git diff HEAD^1` dies with "unknown revision" —
+# which _count_diff_files below then, correctly, turns into a failed job rather than
+# a silent "no changes". That is the right verdict on the diff and the wrong one for
+# the pipeline: the history is a fetch away, so go and get it.
+#
+# One deepen covers every HEAD^1/HEAD^2 question these scripts ask (depth 2 pulls in
+# both parents of a merge), and it is a no-op on a full clone, where the probe is
+# false.
+#
+# Everything it says goes to stderr: its callers run inside `$(...)`, and a warning on
+# stdout would be captured as part of the SHA they are resolving.
+#
+# The "already tried" flag is a file rather than a shell variable for the same reason —
+# a variable set inside a command substitution dies with that subshell, so a fetch that
+# fails outright would otherwise be retried once per service, per script.
+_deepen_once()
+{
+    local MARKER
+    MARKER="$(git rev-parse --git-dir 2>/dev/null)/therr-deepen-attempted"
+
+    if [ -e "$MARKER" ]; then
+        return 0
+    fi
+    : > "$MARKER" 2>/dev/null || true
+
+    if [ "$(git rev-parse --is-shallow-repository 2>/dev/null)" != "true" ]; then
+        return 0
+    fi
+
+    local BRANCH=${CICD_BRANCH:-${CIRCLE_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}}
+
+    {
+        printMessageWarning "Shallow checkout — deepening so HEAD's parents are resolvable."
+        git fetch --deepen=1 origin "$BRANCH" \
+            || git fetch --unshallow origin "$BRANCH" \
+            || printMessageWarning "Could not deepen the checkout (git's error is above)."
+    } >&2
+
+    return 0
+}
+
+# Fetch the whole history, once, when the checkout is shallow.
+#
+# _deepen_once buys one commit, which is all HEAD^1/HEAD^2 need. A SHA recorded in
+# VERSIONS.txt by an earlier stage publish can be dozens of commits back, and there is
+# no useful depth to guess — so the answer for that case is the whole history or
+# nothing. Only paid when the checkout is actually shallow.
+_unshallow_once()
+{
+    local MARKER
+    MARKER="$(git rev-parse --git-dir 2>/dev/null)/therr-unshallow-attempted"
+
+    if [ -e "$MARKER" ]; then
+        return 0
+    fi
+    : > "$MARKER" 2>/dev/null || true
+
+    if [ "$(git rev-parse --is-shallow-repository 2>/dev/null)" != "true" ]; then
+        return 0
+    fi
+
+    {
+        printMessageWarning "Shallow checkout — fetching full history to resolve a recorded SHA."
+        git fetch --unshallow origin \
+            || printMessageWarning "Could not unshallow the checkout (git's error is above)."
+    } >&2
+
+    return 0
+}
+
+# Whether <rev> names a commit this checkout can read, fetching it if it cannot.
+#
+# Returns 1 when the object stays unavailable — an old SHA whose branch is gone, or a
+# shallow clone with no remote to complete it. Callers fall back to a range they can
+# answer rather than treating "not here" as "not changed".
+ensure_commit_available()
+{
+    local REV=$1
+
+    [ -n "$REV" ] || return 1
+
+    if git cat-file -e "${REV}^{commit}" 2>/dev/null; then
+        return 0
+    fi
+
+    _unshallow_once
+
+    git cat-file -e "${REV}^{commit}" 2>/dev/null
+}
+
+# The tip the branch was at before this merge — HEAD's first parent.
+#
+# Echoes the resolved SHA and returns 0. Returns 1, silently, when the parent cannot
+# be made available even after deepening. Callers must read that as "git cannot tell
+# us", which is a fail-open: reporting "no changes" from it is the silent skip this
+# whole file exists to prevent.
+prev_tip()
+{
+    local REV
+    REV=$(git rev-parse --verify --quiet "HEAD^1" || true)
+
+    if [ -z "$REV" ]; then
+        _deepen_once
+        REV=$(git rev-parse --verify --quiet "HEAD^1" || true)
+    fi
+
+    [ -n "$REV" ] || return 1
+
+    printf '%s' "$REV"
+}
+
 # Sets NUM_FILES_CHANGED from `git diff --name-only <rev...> -- <path...>`, and aborts
 # the script when git itself fails.
 #
@@ -93,9 +208,16 @@ has_prev_diff_changes()
         # everything that was merged in. Using merge-base with the source branch
         # doesn't work here because the source branch tip is an ancestor of the
         # merge commit, making the diff empty for the merged-in changes.
-        _count_diff_files HEAD^1 -- $DIR
+        local BASE
+        if ! BASE=$(prev_tip); then
+            printMessageWarning "HEAD has no resolvable first parent in this checkout."
+            printMessageWarning "  Treating '$DIR' as changed: 'git cannot tell' must build, not skip."
+            return 0
+        fi
+
+        _count_diff_files "$BASE" -- $DIR
         if [[ ${NUM_FILES_CHANGED} -gt 0 ]]; then
-            printMessageWarning "Found ${NUM_FILES_CHANGED} files changed w/ 'git diff HEAD^1 -- $DIR'"
+            printMessageWarning "Found ${NUM_FILES_CHANGED} files changed w/ 'git diff ${BASE:0:7} (HEAD^1) -- $DIR'"
             return 0
         else
             return 1
@@ -104,7 +226,18 @@ has_prev_diff_changes()
         # Feature branches: use merge-base with the target branch to detect
         # all changes since the branch diverged
         _fetch_once "general"
-        MERGE_BASE=$(git merge-base HEAD origin/general)
+        MERGE_BASE=$(git merge-base HEAD origin/general 2>/dev/null || true)
+        if [ -z "$MERGE_BASE" ]; then
+            _deepen_once
+            MERGE_BASE=$(git merge-base HEAD origin/general 2>/dev/null || true)
+        fi
+        if [ -z "$MERGE_BASE" ]; then
+            # Same rule as above: a shallow or grafted checkout with no common
+            # ancestor cannot answer, and "cannot answer" is not "unchanged".
+            printMessageWarning "No merge-base between HEAD and origin/general in this checkout."
+            printMessageWarning "  Treating '$DIR' as changed rather than skipping it."
+            return 0
+        fi
         _count_diff_files "$MERGE_BASE" -- $DIR
         if [[ ${NUM_FILES_CHANGED} -gt 0 ]]; then
             printMessageWarning "Found ${NUM_FILES_CHANGED} files changed w/ 'git diff $MERGE_BASE -- $DIR'"
@@ -144,7 +277,22 @@ has_prev_diff_changes_any()
 # *is* the promoted tip in those cases.
 promoted_tip()
 {
-    git rev-parse --verify --quiet "HEAD^2" 2>/dev/null || git rev-parse HEAD
+    local REV
+    REV=$(git rev-parse --verify --quiet "HEAD^2" 2>/dev/null || true)
+
+    if [ -z "$REV" ]; then
+        # A shallow checkout hides the second parent of a real merge, which would
+        # send the staleness check off to compare HEAD against itself. Deepen first,
+        # and only then treat the absence as genuine.
+        _deepen_once
+        REV=$(git rev-parse --verify --quiet "HEAD^2" 2>/dev/null || true)
+    fi
+
+    if [ -n "$REV" ]; then
+        echo "$REV"
+    else
+        git rev-parse HEAD
+    fi
 }
 
 # Returns 0 if any commit touching <path...> landed in <from>..<to>.
