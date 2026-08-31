@@ -184,6 +184,10 @@
         <category android:name="android.intent.category.DEFAULT" />
       </intent-filter>
       <intent-filter>
+        <action android:name="${notificationActionPrefix}.NEW_THOUGHT_REPOST_RECEIVED" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
         <action android:name="${notificationActionPrefix}.UNREAD_NOTIFICATIONS_REMINDER" />
         <category android:name="android.intent.category.DEFAULT" />
       </intent-filter>
