@@ -4,6 +4,7 @@ import { UsersService } from 'therr-react/services';
 import { isOfflineError } from 'therr-react/utilities/cacheHelpers';
 import SecureStorage from './utilities/SecureStorage';
 import { CURRENT_BRAND_VARIATION } from './config/brandConfig';
+import REQUEST_PLATFORM from './constants/requestPlatform';
 import getConfig from './utilities/getConfig';
 import UsersActions from './redux/actions/UsersActions';
 import { socketIO } from './socket-io-middleware';
@@ -178,7 +179,7 @@ const initInterceptors = (
     // is incompatible with axios 1.x's xhr adapter
     axios.defaults.adapter = 'fetch';
     axios.defaults.baseURL = baseUrl;
-    axios.defaults.headers['x-platform'] = 'mobile';
+    axios.defaults.headers['x-platform'] = REQUEST_PLATFORM;
     // NICHE - Brand variation is now set via config/brandConfig.ts
     axios.defaults.headers['x-brand-variation'] = CURRENT_BRAND_VARIATION;
 
