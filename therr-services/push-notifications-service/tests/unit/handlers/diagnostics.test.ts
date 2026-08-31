@@ -209,4 +209,186 @@ describe('push diagnostics handlers', () => {
             }
         });
     });
+
+    /**
+     * The raw send path validates an envelope production never sends. That gap
+     * hid a total outage for ~3 weeks in August 2026 while every diagnostics run
+     * reported success, so the production path below is what any automated
+     * post-deploy check must use. These assertions pin the two halves that make
+     * that check meaningful: that opting in really does route through
+     * `predictAndSendNotification`, and that a dry run has no side effects.
+     */
+    describe('sendTestPushNotification via the production path', () => {
+        const withSendStub = async (sendStub: any, run: () => Promise<void>) => {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+            const { Messaging } = require('firebase-admin/messaging');
+            const original = Messaging.prototype.send;
+            Messaging.prototype.send = sendStub;
+            try {
+                await run();
+            } finally {
+                Messaging.prototype.send = original;
+            }
+        };
+
+        it('reports which send path produced the result', async () => {
+            const req: any = buildReq({
+                body: { deviceToken: 'token-abc', type: PushNotifications.Types.pactInvitation },
+            });
+            const res = buildRes();
+
+            await sendTestPushNotification(req, res, () => undefined);
+
+            // Reported unconditionally: a caller reading a green result needs to
+            // know whether it came from the path production uses.
+            expect(res.send.firstCall.args[0].sendPath).to.equal('raw');
+        });
+
+        it('forwards the dry-run flag to FCM so nothing is delivered', async () => {
+            const sendStub = sinon.stub().resolves('projects/test-project/messages/1');
+
+            await withSendStub(sendStub, async () => {
+                const req: any = buildReq({
+                    body: {
+                        deviceToken: 'token-abc',
+                        type: PushNotifications.Types.pactInvitation,
+                        dryRun: true,
+                        viaProductionPath: true,
+                    },
+                });
+                const res = buildRes();
+
+                await sendTestPushNotification(req, res, () => undefined);
+
+                expect(res.send.firstCall.args[0].sendPath).to.equal('production');
+                // `send(message, true)` is FCM's validate_only. Without the second
+                // argument this is an ordinary delivery to a real handset.
+                expect(sendStub.firstCall.args[1]).to.equal(true);
+            });
+        });
+
+        it('delivers for real only when dryRun is explicitly false', async () => {
+            const sendStub = sinon.stub().resolves('projects/test-project/messages/1');
+
+            await withSendStub(sendStub, async () => {
+                const req: any = buildReq({
+                    body: {
+                        deviceToken: 'token-abc',
+                        type: PushNotifications.Types.pactInvitation,
+                        dryRun: false,
+                        viaProductionPath: true,
+                    },
+                });
+                const res = buildRes();
+
+                await sendTestPushNotification(req, res, () => undefined);
+
+                expect(sendStub.firstCall.args[1]).to.equal(false);
+            });
+        });
+
+        it('agrees with the raw path about which types are sendable', async () => {
+            // The two paths gate types differently: the raw sender will send
+            // anything `createMessage` builds, while production also requires
+            // membership of SENDABLE_NOTIFICATION_TYPES. They happen to be in
+            // sync today, and this is what keeps them that way — a new type
+            // added to `createMessage` but not to the set would be reported
+            // deliverable by every raw-path check and silently dropped in
+            // production.
+            const divergent: string[] = [];
+
+            // eslint-disable-next-line no-restricted-syntax
+            for (const type of Object.values(PushNotifications.Types)) {
+                const rawReq: any = buildReq({ body: { deviceToken: 'token-abc', type } });
+                const rawRes = buildRes();
+                // eslint-disable-next-line no-await-in-loop
+                await sendTestPushNotification(rawReq, rawRes, () => undefined);
+
+                // A 400 means createMessage has no case; production drops it too.
+                if (rawRes.status.firstCall.args[0] === 200) {
+                    const prodReq: any = buildReq({
+                        body: { deviceToken: 'token-abc', type, viaProductionPath: true },
+                    });
+                    const prodRes = buildRes();
+                    // eslint-disable-next-line no-await-in-loop
+                    await sendTestPushNotification(prodReq, prodRes, () => undefined);
+
+                    if (prodRes.send.firstCall.args[0]?.result?.errorCode === 'notification-type-not-routed') {
+                        divergent.push(String(type));
+                    }
+                }
+            }
+
+            expect(
+                divergent,
+                `these types build a message but production refuses to route them: ${divergent.join(', ')}`,
+            ).to.have.lengthOf(0);
+        });
+
+        it('builds the envelope from the wide data shape production uses', async () => {
+            // The August 2026 outage was `data must only contain string values`,
+            // thrown by firebase-admin before the request left the process, because
+            // production's optional keys arrive as `undefined`. The raw path never
+            // sets them, so it could not reproduce it. Every value reaching FCM
+            // must be a string.
+            const sendStub = sinon.stub().resolves('projects/test-project/messages/1');
+
+            await withSendStub(sendStub, async () => {
+                const req: any = buildReq({
+                    body: {
+                        deviceToken: 'token-abc',
+                        type: PushNotifications.Types.pactInvitation,
+                        dryRun: true,
+                        viaProductionPath: true,
+                    },
+                });
+                const res = buildRes();
+
+                await sendTestPushNotification(req, res, () => undefined);
+
+                const sentMessage = sendStub.firstCall.args[0];
+                Object.entries(sentMessage.data || {}).forEach(([key, value]) => {
+                    expect(value, `data.${key} must be a string`).to.be.a('string');
+                });
+            });
+        });
+
+        it('does not clear a device token on a dry run', async () => {
+            // A synthetic token is indistinguishable from a real stale one, and the
+            // production path deletes stale registrations. Left unguarded, a
+            // post-deploy check would un-register real users' devices.
+            // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+            const userHelpers = require('../../../src/handlers/helpers/user');
+            const clearSpy = sinon.stub(userHelpers, 'clearInvalidDeviceToken');
+
+            const sendStub = sinon.stub().rejects(
+                Object.assign(new Error('The registration token is not a valid FCM registration token'), {
+                    code: 'messaging/invalid-registration-token',
+                }),
+            );
+
+            try {
+                await withSendStub(sendStub, async () => {
+                    const req: any = buildReq({
+                        body: {
+                            deviceToken: 'uat-synthetic-token',
+                            type: PushNotifications.Types.pactInvitation,
+                            dryRun: true,
+                            viaProductionPath: true,
+                        },
+                    });
+                    const res = buildRes();
+
+                    await sendTestPushNotification(req, res, () => undefined);
+
+                    expect(res.send.firstCall.args[0].result.errorCode)
+                        .to.equal('messaging/invalid-registration-token');
+                    expect(clearSpy.called, 'clearInvalidDeviceToken must not run on a dry run')
+                        .to.equal(false);
+                });
+            } finally {
+                clearSpy.restore();
+            }
+        });
+    });
 });

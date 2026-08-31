@@ -388,21 +388,24 @@ const BRAND_EXCLUDED_NOTIFICATION_TYPES: Partial<Record<BrandVariations, Set<Pus
     ]),
 };
 
-export const isTypeAllowedForBrand = (
-    type: PushNotifications.Types,
-    brandVariation: BrandVariations,
-): boolean => !BRAND_EXCLUDED_NOTIFICATION_TYPES[brandVariation]?.has(type);
-
 /**
- * Types whose deep links only exist in the Habits Android manifest.
+ * Types that belong to the Friends with Habits product and to no other app.
  *
- * `getAppBrandingClickAction` returns `undefined` for these under any other
- * brand, which produces a push that renders and then opens nothing when tapped.
- * That is a symptom of a caller that lost its `x-brand-variation` header — the
- * gateway forwards it as `''` when absent (`handleServiceRequest.ts`) and
- * `getBrandAppIdentity` then falls back to Therr — so it is worth a warn rather
- * than a silent send. Not blocked: the copy is still correct and a broken deep
- * link beats no notification.
+ * These must never be sent under another brand, and the reason is stronger than
+ * the deep link. `brandVariation` is what selects the recipient's device token
+ * (`resolveDeviceTokenForBrand`, users-service), and a user who holds two branded
+ * apps has a separate token per install — so a `streakAtRisk` push sent under
+ * THERR is addressed to the user's *Therr* install and renders there, under
+ * Therr's name and icon, on an app with no habits surface at all. The Habits app
+ * gets nothing. It is the same "advertised a different product" failure
+ * `BRAND_EXCLUDED_NOTIFICATION_TYPES` exists to prevent, in the other direction.
+ *
+ * This previously only warned and sent anyway, reasoning that "a broken deep link
+ * beats no notification" — which held only if the push still reached the Habits
+ * app. It does not. Blocking makes the real fault (a caller that lost its
+ * `x-brand-variation` header — the gateway forwards it as `''` when absent, see
+ * `handleServiceRequest.ts`, and `getBrandContext` then defaults to THERR)
+ * visible as a routing failure instead of delivering to the wrong product.
  */
 const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.pactInvitation,
@@ -429,6 +432,16 @@ const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
 ]);
 
 export const isHabitsOnlyType = (type: PushNotifications.Types): boolean => HABITS_ONLY_TYPES.has(type);
+
+export const isTypeAllowedForBrand = (
+    type: PushNotifications.Types,
+    brandVariation: BrandVariations,
+): boolean => {
+    if (isHabitsOnlyType(type) && brandVariation !== BrandVariations.HABITS) {
+        return false;
+    }
+    return !BRAND_EXCLUDED_NOTIFICATION_TYPES[brandVariation]?.has(type);
+};
 
 const getApnsTopic = (brandVariation: BrandVariations) => getBrandAppIdentity(brandVariation).iosApnsTopic;
 
@@ -1565,6 +1578,27 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.unreadNotificationsReminder,
 ]);
 
+// Keeps the two log call sites below from drifting apart, and keeps the four
+// strings greppable in one place — docs/PUSH_NOTIFICATIONS_DEBUGGING.md quotes
+// the real-send pair verbatim in its `gcloud logging read` query.
+const dryRunAwareLogMessage = (ok: boolean, isDryRun: boolean): string => {
+    if (isDryRun) {
+        return ok ? 'Push dry run validated' : 'Push dry run rejected';
+    }
+    return ok ? 'Push successfully sent' : 'Push not sent';
+};
+
+export interface IPredictAndSendOptions {
+    // Ask FCM to validate the message (credentials, envelope, token) without
+    // delivering it. Exists so a post-deploy check can exercise *this* function
+    // — the one production uses — rather than `sendMessageForBrandRaw`, which
+    // builds a different envelope and skips the SENDABLE_NOTIFICATION_TYPES gate
+    // below. See docs/PUSH_NOTIFICATIONS_DEBUGGING.md § Known sharp edges: a
+    // green raw-path check ran throughout the August 2026 outage because the
+    // envelope it validated was not the envelope production sends.
+    dryRun?: boolean;
+}
+
 const predictAndSendNotification = (
     type: PushNotifications.Types,
     data: PushNotifications.INotificationData,
@@ -1572,24 +1606,33 @@ const predictAndSendNotification = (
     metrics: INotificationMetrics | undefined,
     brandVariation: BrandVariations,
     headers?: InternalConfigHeaders,
+    options?: IPredictAndSendOptions,
 ): Promise<IRawSendResult> => {
+    const isDryRun = !!options?.dryRun;
     const message = createMessage(type, data, config, brandVariation);
     // Route sends through the brand's own Firebase project so FCM delivery
     // uses the correct APNS auth key / FCM credentials for this brand.
     const messaging = getAdminAppForBrand(brandVariation).messaging();
 
     if (isHabitsOnlyType(type) && brandVariation !== BrandVariations.HABITS) {
-        // Not blocked — see HABITS_ONLY_TYPES. The push still goes out with
-        // correct copy; what it loses is a resolvable deep link, because the
-        // intent action it needs is only declared in the Habits manifest.
+        // Blocked below by isTypeAllowedForBrand — see HABITS_ONLY_TYPES. Logged at
+        // error rather than warn because this is never benign: the brand picks the
+        // device token, so the only reason a habits type arrives under another brand
+        // is a producer that lost its `x-brand-variation` header, and the user
+        // silently gets this notification in the wrong app (or, now, not at all).
+        // The trace args are what identify that producer.
         logSpan({
-            level: 'warn',
+            level: 'error',
             messageOrigin: 'API_SERVER',
-            messages: ['HABITS notification sent under a non-HABITS brand — deep link will not resolve'],
+            messages: ['HABITS-only notification arrived under a non-HABITS brand — not routed. Caller lost x-brand-variation.'],
             traceArgs: {
                 'pushNotification.type': String(type),
                 'pushNotification.brandVariation': String(brandVariation),
                 'user.id': config.userId,
+                // Whatever the caller did send, so the producer is identifiable from
+                // one log line rather than by correlating timestamps.
+                'request.brandVariationHeader': String(headers?.['x-brand-variation'] ?? ''),
+                'request.userIdHeader': String(headers?.['x-userid'] ?? ''),
             },
         });
     }
@@ -1623,14 +1666,19 @@ const predictAndSendNotification = (
                 });
             }
 
-            return messaging.send(message).then((messageId) => ({ ok: true, messageId }));
+            return messaging.send(message, isDryRun).then((messageId) => ({ ok: true, messageId }));
         })
         .then((result: IRawSendResult) => {
             logSpan({
                 level: result.ok ? 'info' : 'error',
                 messageOrigin: 'API_SERVER',
-                messages: [result.ok ? 'Push successfully sent' : 'Push not sent'],
+                // Dry runs get their own wording on purpose. The runbook's
+                // delivery-rate query greps for "Push successfully sent" /
+                // "Push not sent", and a post-deploy check firing on every
+                // release would otherwise show up as production traffic.
+                messages: [dryRunAwareLogMessage(result.ok, isDryRun)],
                 traceArgs: {
+                    'pushNotification.dryRun': isDryRun,
                     'pushNotification.ok': result.ok,
                     'error.code': result.errorCode,
                     'error.message': result.errorMessage,
@@ -1654,11 +1702,15 @@ const predictAndSendNotification = (
                 level: 'error',
                 messageOrigin: 'API_SERVER',
                 messages: [
-                    tokenInvalid
-                        ? 'Invalid FCM device token — scheduling cleanup'
-                        : 'Failed to send push notification',
+                    // eslint-disable-next-line no-nested-ternary
+                    isDryRun
+                        ? 'Push dry run rejected'
+                        : (tokenInvalid
+                            ? 'Invalid FCM device token — scheduling cleanup'
+                            : 'Failed to send push notification'),
                 ],
                 traceArgs: {
+                    'pushNotification.dryRun': isDryRun,
                     'error.message': error?.message,
                     'error.code': fcmErrorCode,
                     'error.stack': error?.stack,
@@ -1672,7 +1724,13 @@ const predictAndSendNotification = (
                 },
             });
 
-            if (tokenInvalid && config.deviceToken) {
+            // Never mutate state on a dry run. A dry run is how a post-deploy
+            // check exercises this path, and it deliberately uses a bogus token
+            // — which `isInvalidTokenError` cannot distinguish from a real
+            // user's stale one. Left unguarded, a synthetic check would delete
+            // real device registrations and require those users to reopen the
+            // app before push worked again.
+            if (tokenInvalid && config.deviceToken && !isDryRun) {
                 // Fire-and-forget; helper swallows its own errors
                 clearInvalidDeviceToken(headers, targetUserId, config.deviceToken);
             }

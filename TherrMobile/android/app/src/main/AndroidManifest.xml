@@ -101,10 +101,10 @@
         `PushNotifications.AndroidIntentActions` in therr-js-utilities
         (Therr: app.therrmobile, Teem: com.therr.mobile,
         Habits: com.therr.mobile.habits). Hardcoding `app.therrmobile` here
-        meant the Friends with Habits build declared none of the actions its
-        own backend sends, so every reminder, streak and pact notification was
-        untappable. `notificationActionPrefix` is a manifest placeholder keyed
-        off applicationId in app/build.gradle, same pattern as appLinkHost.
+        meant every niche build declared none of the actions its own backend
+        sends, so its reminder, streak and pact notifications were untappable.
+        `notificationActionPrefix` is a manifest placeholder keyed off
+        applicationId in app/build.gradle, same pattern as appLinkHost.
 
         Data-only notifications (createDataOnlyMessage) are rendered locally by
         Notifee with `launchActivity: 'default'` and do NOT need a filter here —
