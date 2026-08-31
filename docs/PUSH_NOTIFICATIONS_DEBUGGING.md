@@ -6,6 +6,11 @@ Read this before changing Firebase configuration. The most common instinct —
 "our Firebase setup must be wrong, let's make a new project" — is usually the
 wrong move, and § Do we need a separate Firebase project? explains why.
 
+This document is for diagnosing a push that already failed. To *prevent* the next
+one, run `/push-notification-guard` before changing anything in the pipeline — it
+checks the wiring a notification type needs across this repo, the mobile client
+and the niche branches, and carries the new-niche-app checklist.
+
 ## Link 0: did anything actually try to send?
 
 Before debugging delivery, rule this out — on HABITS it is the most likely

@@ -88,6 +88,18 @@ Full runbook: `docs/PUSH_NOTIFICATIONS_DEBUGGING.md`. Driver script:
 `./_bin/push-debug.sh`. Unattended post-deploy check: `_bin/cicd/uat-push.sh`,
 run by the `post_deploy_uat` CircleCI job on every `main` deploy.
 
+### Before changing anything here
+
+Run `/push-notification-guard`. Every link in this pipeline fails without
+producing an error, and the wiring for one notification type spans this service,
+`therr-js-utilities`, the mobile client, and an `AndroidManifest.xml` that lives
+on a *different branch*. The skill cross-references all of it in one pass:
+
+```bash
+node .claude/skills/push-notification-guard/scripts/check-push-wiring.js
+node .claude/skills/push-notification-guard/scripts/check-push-wiring.js --brand-branch niche/HABITS-general
+```
+
 ### Location Caching
 - User locations cached in Redis with TTL
 - Geo-indexed for proximity queries
