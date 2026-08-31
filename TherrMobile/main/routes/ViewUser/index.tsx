@@ -63,12 +63,19 @@ import TherrIcon from '../../components/TherrIcon';
 import getDirections from '../../utilities/getDirections';
 import { PEOPLE_CAROUSEL_TABS, PROFILE_CAROUSEL_TABS } from '../../constants';
 import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
+import { space } from '../../styles/layouts/spacing';
 import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 
 const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
 
 const { width: viewportWidth } = Dimensions.get('window');
 const HABITS_TAB_LIST_CONTENT_STYLE = { paddingBottom: 120, paddingTop: 8 };
+
+// HABITS renders every profile tab as a list of elevated cards, and the tab bar casts a
+// shadow of its own. Padded flush to the overlay, the first card's own shadow lands inside
+// the tab bar's, which reads as the card being tucked underneath it. Therr's lists are flat
+// rows with no shadow to collide, so they stay flush.
+const HABITS_TAB_LIST_TOP_INSET = IS_HABITS ? space.md : 0;
 
 // The profile FAB opens the composer that fills the first profile tab: Therr's Thoughts tab
 // (lightbulb) and, on HABITS, the Goals tab — so it carries a trophy rather than a lightbulb.
@@ -1098,6 +1105,7 @@ class ViewUser extends React.Component<
                                     lazyPreloadDistance={0}
                                     headerStyle={this.themeUser.styles.profileHeaderCollapsible}
                                     listBottomInset={buttonMenuHeight}
+                                    listTopInset={HABITS_TAB_LIST_TOP_INSET}
                                     navigationState={{
                                         index: activeTabIndex,
                                         routes: tabRoutes,
