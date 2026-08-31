@@ -66,6 +66,13 @@ is compiled out there):
   key, fallback status, and the `apns-topic` each brand's iOS pushes carry.
 - `POST /notifications/diagnostics/send-test` — builds the real envelope for a
   type and sends it, returning the **raw** FCM result. `dryRun` defaults to true.
+  `viaProductionPath: true` routes the send through `predictAndSendNotification`
+  instead of `sendMessageForBrandRaw`; the default (raw) builds a narrower `data`
+  map than production and skips the `SENDABLE_NOTIFICATION_TYPES` gate, so a
+  raw-path pass is not evidence the pipeline is healthy. Every response reports
+  which `sendPath` ran. A dry run never mutates state — notably it will not clear
+  a device-token registration on an invalid-token error, which is what makes a
+  synthetic-token check safe to run against production.
 
 They exist because `predictAndSendNotification` swallows every FCM error by
 design, and because APNS drops a push whose `apns-topic` isn't the receiving
@@ -78,7 +85,8 @@ of its own runs as the Therr binary and must use Therr's bundle id.
 `brandRouting.test.ts` reads the Xcode project and enforces this.
 
 Full runbook: `docs/PUSH_NOTIFICATIONS_DEBUGGING.md`. Driver script:
-`./_bin/push-debug.sh`.
+`./_bin/push-debug.sh`. Unattended post-deploy check: `_bin/cicd/uat-push.sh`,
+run by the `post_deploy_uat` CircleCI job on every `main` deploy.
 
 ### Location Caching
 - User locations cached in Redis with TTL

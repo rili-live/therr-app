@@ -53,6 +53,24 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Push notification UAT (added 2026-08-31)
+
+- [ ] **Configure the `post_deploy_uat` CircleCI job.** It ships disabled: with no
+  credentials set it explains why it could not run and passes, so it is currently
+  a no-op gate. Set `UAT_SUPER_ADMIN_EMAIL` and `UAT_SUPER_ADMIN_PASSWORD` as
+  CircleCI project env vars for an account with SUPER_ADMIN access, and
+  `UAT_BRAND` to the brand that account logs in under (the gateway rejects a JWT
+  whose brand claim disagrees with `x-brand-variation`, so one job invocation
+  covers one brand). Optionally set `UAT_USER_ID` to an account with a registered
+  device — without it, a credential/project mismatch and an expired APNS auth key
+  are both uncovered, since each needs a real device token to detect. Details:
+  docs/PUSH_NOTIFICATIONS_DEBUGGING.md § Post-deploy UAT.
+
+- [ ] **Decide whether to add a second `post_deploy_uat` invocation for HABITS.**
+  Requires a habits-brand SUPER_ADMIN login. Habits is the active consumer bet and
+  is the brand whose push routing has actually broken before, so it is arguably
+  the one worth covering first.
+
 ## Analytics & traffic (added 2026-08-24, from the GA4 review)
 
 - [ ] **Cut off the headless-Chrome crawler polluting the consolidated property.**
@@ -1921,6 +1939,12 @@ backlog).
   Turns a bad deploy into a ~minutes auto-rollback instead of a manual
   scramble. Effort: medium. Depends on a reachable staging cluster (the job
   scaffold and GKE auth already exist).
+  **Partially done:** the push-send leg exists — `_bin/cicd/uat-push.sh`, run by
+  the `post_deploy_uat` job after every `main` deploy (see
+  docs/PUSH_NOTIFICATIONS_DEBUGGING.md § Post-deploy UAT). It runs against
+  production rather than a staging cluster, and does not auto-rollback: it
+  fails the job and leaves the revert to a human. Remaining: the other critical
+  paths, and wiring a failure to `kubectl rollout undo`.
 
 - [ ] **Unify CI/CD across all repos + CD for the cloud functions & infra**
   (roadmap #4) — standardize on one CI convention and add the missing

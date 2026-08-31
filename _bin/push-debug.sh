@@ -9,9 +9,16 @@
 # Usage:
 #   ./_bin/push-debug.sh --user <userId> --token <jwt> [--brand habits] [--send] [--type <type>]
 #   ./_bin/push-debug.sh --user <userId> --token <jwt> --device-token <fcmToken>   # target one handset
+#   ./_bin/push-debug.sh --user <userId> --token <jwt> --production-path           # real send path
 #
 # By default the test send is a DRY RUN: FCM validates the token and credentials
 # without delivering anything. Pass --send to make the handset actually buzz.
+#
+# --production-path routes the send through `predictAndSendNotification`, the
+# function real notifications use, instead of the raw sender. The default (raw)
+# builds a narrower envelope than production does, which is why it stayed green
+# through the August 2026 outage — use --production-path when the question is
+# "is the pipeline healthy" rather than "does this handset receive".
 #
 # --brand defaults to the JWT's own `brand` claim, because the gateway rejects any
 # request whose x-brand-variation disagrees with it. A token is bound to the brand
@@ -27,9 +34,10 @@ JWT=""
 DEVICE_TOKEN=""
 TYPE="pact-invitation"
 DRY_RUN="true"
+VIA_PRODUCTION_PATH="false"
 
 usage() {
-    sed -n '3,18p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '3,25p' "$0" | sed 's/^# \{0,1\}//'
     exit 1
 }
 
@@ -41,6 +49,7 @@ while [[ $# -gt 0 ]]; do
         --device-token) DEVICE_TOKEN="$2"; shift 2 ;;
         --type) TYPE="$2"; shift 2 ;;
         --send) DRY_RUN="false"; shift ;;
+        --production-path) VIA_PRODUCTION_PATH="true"; shift ;;
         --host) API_HOST="$2"; shift 2 ;;
         -h|--help) usage ;;
         *) echo "Unknown argument: $1" >&2; usage ;;
@@ -204,20 +213,20 @@ if [[ -n "$USER_ID" ]]; then
 fi
 
 # ---------------------------------------------------------------- links 4-5
-echo "==> [4/5] Test send (dryRun=${DRY_RUN}, type=${TYPE})"
+echo "==> [4/5] Test send (dryRun=${DRY_RUN}, type=${TYPE}, path=$([[ "$VIA_PRODUCTION_PATH" == "true" ]] && echo production || echo raw))"
 
 if [[ -n "$DEVICE_TOKEN" ]]; then
     # Explicit token: addresses a specific handset, useful when a user has several.
     request post \
         "${API_HOST}/v1/push-notifications-service/notifications/diagnostics/send-test" \
-        "{\"deviceToken\":\"${DEVICE_TOKEN}\",\"type\":\"${TYPE}\",\"dryRun\":${DRY_RUN}}"
+        "{\"deviceToken\":\"${DEVICE_TOKEN}\",\"type\":\"${TYPE}\",\"dryRun\":${DRY_RUN},\"viaProductionPath\":${VIA_PRODUCTION_PATH}}"
     RESULT="$RESPONSE"
 else
     # By user id: users-service resolves the brand-scoped token the same way the
     # real notification path does, so no token wrangling off the device.
     request post \
         "${API_HOST}/v1/users-service/users/${USER_ID}/push-diagnostics/send-test" \
-        "{\"type\":\"${TYPE}\",\"dryRun\":${DRY_RUN}}"
+        "{\"type\":\"${TYPE}\",\"dryRun\":${DRY_RUN},\"viaProductionPath\":${VIA_PRODUCTION_PATH}}"
     RESULT="$RESPONSE"
 
     if [[ "$(echo "$RESULT" | jq -r '.reason // ""' 2>/dev/null)" == "no-device-token" ]]; then
@@ -240,6 +249,12 @@ if [[ "$(echo "$RESULT" | jq -r '.result.ok // false')" == "true" ]]; then
     echo "    If nothing arrived on iOS, compare the apns-topic above against the"
     echo "    installed build's bundle id — APNS drops a mismatch silently and FCM"
     echo "    still reports success. That is the one failure no error code covers."
+    if [[ "$VIA_PRODUCTION_PATH" != "true" ]]; then
+        echo
+        echo "    NOTE: this used the raw send path, which builds a narrower envelope"
+        echo "    than production. Re-run with --production-path before concluding the"
+        echo "    pipeline is healthy — a raw-path pass is what hid the Aug 2026 outage."
+    fi
 else
     echo "==> [4/5] FCM rejected the message:"
     echo "$RESULT" | jq -r '"    " + (.result.errorCode // "?") + ": " + (.result.errorMessage // "")'

@@ -195,6 +195,12 @@ curl -sS -X POST \
   -d '{"deviceToken":"'"$DEVICE_TOKEN"'","type":"pact-invitation","dryRun":false}' | jq
 ```
 
+Add `"viaProductionPath": true` to either request to send through
+`predictAndSendNotification` instead of the raw sender — see § Known sharp edges
+for why that matters. `dryRun` is honoured on both paths, and a dry run never
+mutates state: in particular it will not clear a device-token registration the way
+a real send does when FCM reports the token invalid.
+
 The response echoes the full envelope (minus the token) plus the raw FCM result.
 Error codes worth knowing:
 
@@ -214,9 +220,55 @@ installed build's bundle id.
 `_bin/push-debug.sh` chains all three:
 
 ```bash
-./_bin/push-debug.sh --user <userId> --brand habits --token "$JWT"           # inspect only
-./_bin/push-debug.sh --user <userId> --brand habits --token "$JWT" --send    # deliver for real
+./_bin/push-debug.sh --user <userId> --brand habits --token "$JWT"                    # inspect only
+./_bin/push-debug.sh --user <userId> --brand habits --token "$JWT" --production-path  # real send path
+./_bin/push-debug.sh --user <userId> --brand habits --token "$JWT" --send             # deliver for real
 ```
+
+## Post-deploy UAT
+
+`_bin/cicd/uat-push.sh` is the unattended version of the above, run by the
+`post_deploy_uat` CircleCI job after every `main` deploy. Nothing it does is
+delivered — every send is an FCM dry run.
+
+Three checks:
+
+1. **Synthetic token through the production path.** An inverted assertion: a
+   healthy pipeline *rejects* a deliberately invalid token with an
+   invalid-token error code and nothing else. Reaching that specific rejection
+   proves the service booted, credentials parsed and authenticated, the type is
+   still routable, and firebase-admin accepted the envelope — the last of which
+   is where the August 2026 outage lived. Needs no account and no handset.
+2. **Brand routing.** Every brand resolves to a Firebase project and still
+   addresses `com.therr.mobile.Therr`. Complements
+   `brandRouting.test.ts`, which pins the same invariant at build time against
+   the Xcode project; this one checks what the *deployed* service reports.
+3. **Real registered device** (optional, `UAT_USER_ID`). The only check that can
+   catch `messaging/mismatched-credential` or an expired APNS auth key — both
+   need a genuine token to detect.
+
+Configure with `UAT_SUPER_ADMIN_EMAIL` / `UAT_SUPER_ADMIN_PASSWORD` (a
+SUPER_ADMIN account; a stored `UAT_SUPER_ADMIN_JWT` works too but expires) and
+optionally `UAT_USER_ID`, as CircleCI project environment variables. With none
+of them set the job explains why it could not run and passes, so an
+unconfigured gate never blocks a deploy.
+
+Two constraints worth knowing before configuring it:
+
+- **The brand is fixed by the login.** `authenticate.ts` binds a JWT to the brand
+  it was issued under and the gateway rejects a mismatched `x-brand-variation`,
+  so testing `habits` needs a habits login. Set `UAT_BRAND` to match the
+  credentials, and add a second job invocation to cover a second brand.
+- **`UAT_ALLOW_REAL_SEND=true` makes check 3 deliver for real** — that is a phone
+  buzzing on every production deploy. Leave it off for the gate; use it for a
+  deliberate manual run, or on a nightly schedule.
+
+**What it still cannot prove.** Link 5. Nothing server-side can: APNS discards a
+mismatched-topic push without reporting it, and FCM returns a message id anyway.
+Closing that loop needs the app to acknowledge receipt — a `uatPingId` in the
+data payload that `setBackgroundMessageHandler` posts back. Worth doing as a
+nightly synthetic; too dependent on a device being awake, online and
+un-throttled by OEM battery management to gate a deploy on.
 
 ## Do we need a separate Firebase project per brand?
 
@@ -316,6 +368,16 @@ or drop FCM for a backgrounded app.
   ```
   A queue that is all `sent` with zero `failed` is a claim, not a measurement —
   before this fix that was exactly what a 100%-failing pipeline looked like.
+
+  **`viaProductionPath: true` closes this gap** for anything automated. Passing it
+  on either `send-test` endpoint routes the send through `predictAndSendNotification`
+  — the same function every real notification uses — so the envelope validated is
+  the envelope production builds, and the `SENDABLE_NOTIFICATION_TYPES` gate applies.
+  `_bin/push-debug.sh --production-path` does the same. The default stays on the raw
+  path, which is still the better tool for debugging one handset (it echoes the
+  envelope and will send types production refuses), but **no post-deploy check should
+  use it** — every response now reports `sendPath` so a green result says which path
+  produced it.
 
 - **A niche brand with no iOS target runs as the Therr binary.** `niche/*`
   branches change `brandConfig.ts`, `app.json` and `build.gradle`; they do not

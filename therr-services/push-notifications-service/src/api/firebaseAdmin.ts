@@ -1578,6 +1578,27 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.unreadNotificationsReminder,
 ]);
 
+// Keeps the two log call sites below from drifting apart, and keeps the four
+// strings greppable in one place — docs/PUSH_NOTIFICATIONS_DEBUGGING.md quotes
+// the real-send pair verbatim in its `gcloud logging read` query.
+const dryRunAwareLogMessage = (ok: boolean, isDryRun: boolean): string => {
+    if (isDryRun) {
+        return ok ? 'Push dry run validated' : 'Push dry run rejected';
+    }
+    return ok ? 'Push successfully sent' : 'Push not sent';
+};
+
+export interface IPredictAndSendOptions {
+    // Ask FCM to validate the message (credentials, envelope, token) without
+    // delivering it. Exists so a post-deploy check can exercise *this* function
+    // — the one production uses — rather than `sendMessageForBrandRaw`, which
+    // builds a different envelope and skips the SENDABLE_NOTIFICATION_TYPES gate
+    // below. See docs/PUSH_NOTIFICATIONS_DEBUGGING.md § Known sharp edges: a
+    // green raw-path check ran throughout the August 2026 outage because the
+    // envelope it validated was not the envelope production sends.
+    dryRun?: boolean;
+}
+
 const predictAndSendNotification = (
     type: PushNotifications.Types,
     data: PushNotifications.INotificationData,
@@ -1585,7 +1606,9 @@ const predictAndSendNotification = (
     metrics: INotificationMetrics | undefined,
     brandVariation: BrandVariations,
     headers?: InternalConfigHeaders,
+    options?: IPredictAndSendOptions,
 ): Promise<IRawSendResult> => {
+    const isDryRun = !!options?.dryRun;
     const message = createMessage(type, data, config, brandVariation);
     // Route sends through the brand's own Firebase project so FCM delivery
     // uses the correct APNS auth key / FCM credentials for this brand.
@@ -1643,14 +1666,19 @@ const predictAndSendNotification = (
                 });
             }
 
-            return messaging.send(message).then((messageId) => ({ ok: true, messageId }));
+            return messaging.send(message, isDryRun).then((messageId) => ({ ok: true, messageId }));
         })
         .then((result: IRawSendResult) => {
             logSpan({
                 level: result.ok ? 'info' : 'error',
                 messageOrigin: 'API_SERVER',
-                messages: [result.ok ? 'Push successfully sent' : 'Push not sent'],
+                // Dry runs get their own wording on purpose. The runbook's
+                // delivery-rate query greps for "Push successfully sent" /
+                // "Push not sent", and a post-deploy check firing on every
+                // release would otherwise show up as production traffic.
+                messages: [dryRunAwareLogMessage(result.ok, isDryRun)],
                 traceArgs: {
+                    'pushNotification.dryRun': isDryRun,
                     'pushNotification.ok': result.ok,
                     'error.code': result.errorCode,
                     'error.message': result.errorMessage,
@@ -1674,11 +1702,15 @@ const predictAndSendNotification = (
                 level: 'error',
                 messageOrigin: 'API_SERVER',
                 messages: [
-                    tokenInvalid
-                        ? 'Invalid FCM device token — scheduling cleanup'
-                        : 'Failed to send push notification',
+                    // eslint-disable-next-line no-nested-ternary
+                    isDryRun
+                        ? 'Push dry run rejected'
+                        : (tokenInvalid
+                            ? 'Invalid FCM device token — scheduling cleanup'
+                            : 'Failed to send push notification'),
                 ],
                 traceArgs: {
+                    'pushNotification.dryRun': isDryRun,
                     'error.message': error?.message,
                     'error.code': fcmErrorCode,
                     'error.stack': error?.stack,
@@ -1692,7 +1724,13 @@ const predictAndSendNotification = (
                 },
             });
 
-            if (tokenInvalid && config.deviceToken) {
+            // Never mutate state on a dry run. A dry run is how a post-deploy
+            // check exercises this path, and it deliberately uses a bogus token
+            // — which `isInvalidTokenError` cannot distinguish from a real
+            // user's stale one. Left unguarded, a synthetic check would delete
+            // real device registrations and require those users to reopen the
+            // app before push worked again.
+            if (tokenInvalid && config.deviceToken && !isDryRun) {
                 // Fire-and-forget; helper swallows its own errors
                 clearInvalidDeviceToken(headers, targetUserId, config.deviceToken);
             }
