@@ -266,6 +266,9 @@ const brandCanReceive = (label, type) => {
     }
 }
 
+// Which brand's binary the TherrMobile files under review build. Resolved in A2.
+let mobileBrandLabel = null;
+
 // ---------------------------------------------------------------------------
 // A2 — AndroidManifest declares every intent action the server may send
 //
@@ -301,6 +304,23 @@ const brandCanReceive = (label, type) => {
         }
 
         const usesPlaceholder = [...declared].some((a) => a.includes('${'));
+
+        // Which brand do these mobile files build? Read applicationId from
+        // build.gradle and push it through the same prefix map the manifest
+        // placeholder uses. Needed below: the client's channel buckets only have
+        // to cover the types the brand this binary belongs to can receive.
+        if (gradle) {
+            const appIdMatch = gradle.match(/applicationId\s+"([\w.]+)"/);
+            const appId = appIdMatch ? appIdMatch[1] : null;
+            const prefixMap = new Map();
+            const mapBlock = gradle.match(/notificationActionPrefixByAppId\s*=\s*\[([\s\S]*?)\]/);
+            if (mapBlock) for (const m of mapBlock[1].matchAll(/'([\w.]+)'\s*:\s*'([\w.]+)'/g)) prefixMap.set(m[1], m[2]);
+            const prefix = (appId && prefixMap.get(appId)) || 'app.therrmobile';
+            for (const [label, keys] of brandIntentEnums) {
+                const sample = [...keys.values()][0] || '';
+                if (sample.slice(0, sample.lastIndexOf('.')) === prefix) mobileBrandLabel = label;
+            }
+        }
         const declaredKeys = new Set();
         for (const a of declared) {
             if (a.startsWith('android.intent.')) continue;
@@ -315,15 +335,15 @@ const brandCanReceive = (label, type) => {
             const prefix = sample.slice(0, sample.lastIndexOf('.'));
             if (prefixes.has(prefix)) { matchedLabel = label; break; }
         }
-        if (usesPlaceholder) {
-            // A placeholder manifest (`${notificationActionPrefix}.KEY`) is
-            // brand-agnostic — the same file builds every brand the gradle map
-            // names — so the key set must satisfy every brand, not just the one
-            // whose default prefix happened to match.
-            matchedLabel = null;
-        }
+        // A placeholder manifest (`${notificationActionPrefix}.KEY`) carries no
+        // brand of its own, so the prefix cannot identify it. `applicationId` in
+        // build.gradle can, and it is what the placeholder resolves through — a
+        // manifest is only responsible for the brand its own tree builds. The
+        // Habits filters live on niche/HABITS-general, not here.
+        if (usesPlaceholder) matchedLabel = mobileBrandLabel;
 
         const labelsToCheck = matchedLabel ? [matchedLabel] : [...brandIntentEnums.keys()];
+        const buildsBrand = matchedLabel ? `builds brand: ${matchedLabel}` : 'brand unidentified — checked against every brand enum';
         // A placeholder manifest is one file serving every brand, so a gap in it
         // is one gap, not one per brand. Collapse them.
         const live = new Map();   // KEY -> brands affected
@@ -338,10 +358,10 @@ const brandCanReceive = (label, type) => {
             }
         }
         const describe = (m) => [...m.entries()].sort()
-            .map(([k, labels]) => `${k}${keyToType.has(k) ? ` (sent as ${keyToType.get(k)})` : ''} — brand(s): ${labels.join(', ')}`)
+            .map(([k, labels]) => `${k}${keyToType.has(k) ? ` (sent as ${keyToType.get(k)})` : ''}`
+                + (labelsToCheck.length > 1 ? ` — brand(s): ${labels.join(', ')}` : ''))
             .join('\n  ');
-        const provenance = `manifest read from: ${brandBranch || 'working tree'}`
-            + (usesPlaceholder ? ' (placeholder manifest — one file serves every brand)' : '');
+        const provenance = `manifest read from: ${brandBranch || 'working tree'} (${buildsBrand})`;
         if (live.size) {
             blocker('manifest-action-gap',
                 `AndroidManifest.xml is missing ${live.size} intent-filter action(s) the server actually sends`,
@@ -513,12 +533,16 @@ const brandCanReceive = (label, type) => {
         // Only data-only pushes go through Notifee, and only those pick their
         // channel from the clickActionId suffix. A display push names its
         // channel in the FCM payload and never reaches this code.
+        // ...and only for the types the brand this binary belongs to can receive.
+        // Therr's build never gets a PACT_* push, so Therr's key list not naming
+        // one is correct, not a gap.
+        const forBrand = mobileBrandLabel || 'Therr';
         const dataOnlyKeys = [...caseFacts.entries()]
-            .filter(([, f]) => f.dataOnly)
+            .filter(([type, f]) => f.dataOnly && brandCanReceive(forBrand, type))
             .flatMap(([, f]) => f.clickKeys);
         const unbucketed = [...new Set(dataOnlyKeys)].filter((k) => !bucketed.has(k)).sort();
         if (unbucketed.length) {
-            warn('clickaction-channel-default', `${unbucketed.length} data-only intent key(s) fall through to the "default" channel`,
+            warn('clickaction-channel-default', `${unbucketed.length} data-only intent key(s) fall through to the "default" channel on the "${forBrand}" build`,
                 unbucketed.map((k) => `${k} (${keyToType.get(k)})`).join(', '),
                 `Notifee renders these on the "default" channel at DEFAULT importance — no heads-up banner. If the type `
                 + `is meant to interrupt, add its key to REMINDER_ACTION_KEYS (or REWARD_ACTION_KEYS) in ${P.mobileConstants}. `
@@ -584,13 +608,27 @@ const brandCanReceive = (label, type) => {
 // which addresses them to the user's Therr install.
 // ---------------------------------------------------------------------------
 {
+    // A brand only needs an ONLY_TYPES rule once it owns types no other brand
+    // ships — which shows up as intent-action keys unique to its enum. Teem
+    // declares nothing of its own, so it needs no rule.
+    const keysOf = (label) => new Set((brandIntentEnums.get(label) || new Map()).keys());
+    const ownsExclusiveTypes = (label) => {
+        const mine = keysOf(label);
+        const others = new Set([...brandIntentEnums.keys()].filter((l) => l !== label).flatMap((l) => [...keysOf(l)]));
+        return [...mine].some((k) => !others.has(k));
+    };
     const nicheBrands = [...brandVariations.entries()]
         .filter(([, v]) => v !== 'therr' && !BRANDS_WITHOUT_OWN_APP.has(v))
-        .map(([k]) => k);
+        .map(([k]) => k)
+        .filter((b) => {
+            const label = [...labelToBrandMember.entries()].find(([, member]) => member === b)?.[0];
+            return label && ownsExclusiveTypes(label);
+        });
+    const guardScope = (firebaseSrc.match(/isTypeAllowedForBrand[\s\S]*?\n\};/) || [''])[0];
     const guarded = nicheBrands.filter((b) => new RegExp(`${b}_ONLY_TYPES`, 'i').test(firebaseSrc)
-        || new RegExp(`BrandVariations\\.${b}`).test((firebaseSrc.match(/isTypeAllowedForBrand[\s\S]*?\n\};/) || [''])[0]));
+        || new RegExp(`BrandVariations\\.${b}`).test(guardScope));
     const unguarded = nicheBrands.filter((b) => !guarded.includes(b));
-    if (unguarded.length > 0 && nicheBrands.length > 1) {
+    if (unguarded.length > 0) {
         warn('brand-only-types-unguarded', `${unguarded.length} brand(s) with their own app have no <BRAND>_ONLY_TYPES rule`,
             unguarded.join(', '),
             'A type that only exists in one niche app must be blocked under every other brand — the brand selects '
