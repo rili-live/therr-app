@@ -6,6 +6,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import {
     createMessage,
     describeBrandPushRouting,
+    predictAndSendNotification,
     sendMessageForBrandRaw,
 } from '../api/firebaseAdmin';
 
@@ -66,11 +67,28 @@ const getPushDiagnostics: RequestHandler = (req, res) => {
 };
 
 // POST /v1/notifications/diagnostics/send-test
-// Body: { deviceToken, type?, dryRun?, habitName?, partnerName?, streakCount?, fromUserName? }
+// Body: { deviceToken, type?, dryRun?, viaProductionPath?, habitName?, partnerName?,
+//         streakCount?, fromUserName? }
 //
 // Builds the real envelope for `type` under the request's brand and either
 // validates it against FCM (`dryRun: true`, the default — FCM checks the token
 // and credentials without delivering) or actually delivers it.
+//
+// Two send paths, and the difference matters more than it looks:
+//
+//   - `viaProductionPath: false` (default) — `sendMessageForBrandRaw`. Echoes the
+//     envelope, works for types production would refuse, and is the right tool
+//     when you are debugging one handset.
+//   - `viaProductionPath: true` — `predictAndSendNotification`, the function every
+//     real notification goes through. Applies the SENDABLE_NOTIFICATION_TYPES gate
+//     and is fed the same wide `data`/`config` shape the send route builds, so a
+//     regression in either is visible here.
+//
+// The default stays on the raw path so the documented runbook flow is unchanged.
+// Automated post-deploy checks should pass `viaProductionPath: true`: the raw path
+// reported success throughout the August 2026 outage because it validated an
+// envelope production never sends. See docs/PUSH_NOTIFICATIONS_DEBUGGING.md
+// § Known sharp edges.
 const sendTestPushNotification: RequestHandler = (req, res) => {
     const { brandVariation, locale } = parseHeaders(req.headers);
 
@@ -78,6 +96,7 @@ const sendTestPushNotification: RequestHandler = (req, res) => {
         deviceToken,
         type,
         dryRun,
+        viaProductionPath,
         fromUserName = 'Diagnostics',
         habitName = 'Morning run',
         partnerName = 'Diagnostics',
@@ -100,26 +119,69 @@ const sendTestPushNotification: RequestHandler = (req, res) => {
         });
     }
 
+    const useProductionPath = viaProductionPath === true;
+
     const resolvedType: PushNotifications.Types = type || PushNotifications.Types.newLikeReceived;
     const resolvedBrand = (brandVariation || BrandVariations.THERR) as BrandVariations;
 
+    const syntheticUserId = '00000000-0000-4000-8000-000000000000';
+
+    const notificationData = {
+        fromUser: {
+            id: syntheticUserId,
+            userName: fromUserName,
+        },
+        // Present-but-undefined on the production path only, mirroring what
+        // `predictAndSendPushNotification` builds from a request body whose
+        // optional fields were omitted. These keys reaching `createMessage` as
+        // `undefined` is precisely the condition that broke every real push in
+        // August 2026 while the raw path — which never sets them — stayed green.
+        ...(useProductionPath
+            ? {
+                area: undefined,
+                groupId: undefined,
+                postType: undefined,
+                thought: undefined,
+            }
+            : {}),
+    };
+
+    const messageConfig = {
+        deviceToken,
+        userId: syntheticUserId,
+        userLocale: (locale as string) || 'en-us',
+        fromUserName,
+        habitName,
+        partnerName,
+        streakCount,
+        ...(useProductionPath
+            ? {
+                achievementsCount: undefined,
+                likeCount: undefined,
+                notificationsCount: undefined,
+                totalAreasActivated: undefined,
+                viewCount: undefined,
+                groupName: undefined,
+                groupMembersList: undefined,
+                previousRecordDays: undefined,
+                pactId: undefined,
+                pactName: undefined,
+                habitId: undefined,
+                daysRemaining: undefined,
+                freezesRemaining: undefined,
+                freezeDaysUsed: undefined,
+                dayCount: undefined,
+                consistencyPercent: undefined,
+                bestStreakCount: undefined,
+                rank: undefined,
+            }
+            : {}),
+    };
+
     const message = createMessage(
         resolvedType,
-        {
-            fromUser: {
-                id: '00000000-0000-4000-8000-000000000000',
-                userName: fromUserName,
-            },
-        },
-        {
-            deviceToken,
-            userId: '00000000-0000-4000-8000-000000000000',
-            userLocale: (locale as string) || 'en-us',
-            fromUserName,
-            habitName,
-            partnerName,
-            streakCount,
-        },
+        notificationData,
+        messageConfig,
         resolvedBrand,
     );
 
@@ -141,7 +203,23 @@ const sendTestPushNotification: RequestHandler = (req, res) => {
     const envelope = { ...(message as any) };
     delete envelope.token;
 
-    return sendMessageForBrandRaw(resolvedBrand, message, isDryRun)
+    const send = useProductionPath
+        ? predictAndSendNotification(
+            resolvedType,
+            notificationData,
+            messageConfig,
+            undefined,
+            resolvedBrand,
+            req.headers as any,
+            { dryRun: isDryRun },
+        )
+        : sendMessageForBrandRaw(resolvedBrand, message, isDryRun);
+
+    const apnsCaveat = 'A successful messageId means FCM accepted the message. On iOS it can '
+        + 'still be dropped by APNS without any error if routing.iosApnsTopic is not '
+        + "the receiving build's PRODUCT_BUNDLE_IDENTIFIER.";
+
+    return send
         .then((result) => {
             logSpan({
                 level: result.ok ? 'info' : 'warn',
@@ -151,6 +229,7 @@ const sendTestPushNotification: RequestHandler = (req, res) => {
                     'pushNotification.brandVariation': String(resolvedBrand),
                     'pushNotification.type': String(resolvedType),
                     'pushNotification.dryRun': isDryRun,
+                    'pushNotification.sendPath': useProductionPath ? 'production' : 'raw',
                     'pushNotification.ok': result.ok,
                     'error.code': result.errorCode,
                 },
@@ -160,13 +239,18 @@ const sendTestPushNotification: RequestHandler = (req, res) => {
                 brandVariation: String(resolvedBrand),
                 type: String(resolvedType),
                 dryRun: isDryRun,
+                // Reported on every response, not just when opted in, so a caller
+                // reading a green result can see which path produced it.
+                sendPath: useProductionPath ? 'production' : 'raw',
                 result,
                 routing,
                 envelope,
-                // The one thing an FCM success cannot tell you.
-                caveat: 'A successful messageId means FCM accepted the message. On iOS it can '
-                    + 'still be dropped by APNS without any error if routing.iosApnsTopic is not '
-                    + "the receiving build's PRODUCT_BUNDLE_IDENTIFIER.",
+                caveat: useProductionPath
+                    ? apnsCaveat
+                    : `${apnsCaveat} This run used the raw path, which bypasses `
+                        + 'predictAndSendNotification: it skips the SENDABLE_NOTIFICATION_TYPES gate '
+                        + 'and builds a narrower data map than production does. Pass '
+                        + '"viaProductionPath": true to validate the envelope production actually sends.',
             });
         })
         .catch((err) => handleHttpError({ err, res, message: 'PUSH_NOTIFICATIONS:DIAGNOSTICS_SEND_ERROR' }));
