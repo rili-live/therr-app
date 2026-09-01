@@ -1976,6 +1976,26 @@ backlog).
   "run unconsumed migrations" manual follow-up. Additive/expand-contract
   migrations only; opt out with `RUN_MIGRATIONS_ON_DEPLOY=false`.
 
+- [ ] **The `.husky/pre-push` gate cannot pass, whether or not Redis is running.**
+  Found 2026-09-01 (/work-plan) while pushing an unrelated habits change; neither
+  defect is in the pushed diff, and both are latent because the integration tests
+  self-skip on a machine with no Redis.
+  - **Redis down:** `push-notifications-service`'s integration `after all` hooks
+    call `closeTestRedisConnection`, which `quit()`s a connection that was never
+    opened — `Error: Connection is closed`, 2 failures. The test *bodies* skip
+    correctly; only the teardown does not. Guard the `quit()` on the same
+    `skipTests`/connected flag the bodies use
+    (`tests/integration/testRedisConnection.ts:56`).
+  - **Redis up:** `therr-api-gateway`'s two TTL-expiry tests (`should expire
+    session tokens after TTL`, `should reset rate limit after window expires`)
+    `setTimeout` for **2500ms** under mocha's default **2000ms** timeout, so they
+    can only pass while Redis is absent and they skip. `therr-api-gateway/.mocharc.js`
+    sets no `timeout`. Either set one there or pass `this.timeout(5000)` on those
+    two tests.
+  Both are ~1-line fixes, and until they land every push either fails the hook or
+  trains the next person to reach for `--no-verify` — which is what the hook's own
+  header warns against.
+
 - [ ] **Post-deploy staging smoke tests + auto-rollback** (roadmap #3) —
   replace the stubbed `test-e2e-staging` job in `.circleci/config.yml`
   (currently `echo "Hello, Integration Tests"`) with a real synthetic suite
