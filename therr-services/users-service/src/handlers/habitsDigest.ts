@@ -61,6 +61,14 @@ interface IDigestCounters {
     streakAtRiskSent: number;
     partnerMissedSent: number;
     pactExpiringSent: number;
+    // Rows queued by the expiry sweep's announcement — the "your cycle ended,
+    // start a new one" push. Unlike its siblings this is not a daily figure:
+    // its dedupe key holds no date, so a pact contributes exactly once, ever.
+    // It should therefore track `pactsExpired` closely (times members per pact),
+    // and a run with `pactsExpired > 0` and `pactEndedSent === 0` means the
+    // announcement is failing while the sweep succeeds — the two are separately
+    // caught for exactly that reason.
+    pactEndedSent: number;
     // Notifications this run decided on that were already queued for the same
     // period. On a second run of the same day every one of the three types
     // lands here instead, which is what makes re-running the digest a no-op.
@@ -116,6 +124,9 @@ interface IDigestCounters {
  *  - partnerMissedDay → to the other members when a member failed to
  *                    complete yesterday's check-in.
  *  - pactExpiring  → to all active members when the pact ends within 3 days.
+ *  - pactEnded     → to all active members the run their pact is swept into
+ *                    `expired`, carrying the renew action. Once per pact ever,
+ *                    not once per day.
  *
  * It also sweeps pacts whose window has passed into `expired` before reading
  * the active set — see the sweep below.
@@ -183,6 +194,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         streakAtRiskSent: 0,
         partnerMissedSent: 0,
         pactExpiringSent: 0,
+        pactEndedSent: 0,
         deduped: 0,
         errors: 0,
         habitsEvaluated: 0,
@@ -251,6 +263,14 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
     ): Promise<boolean> => (await queuePushOutcome(toUserId, type, dedupeKey, extras)) === 'queued';
 
     try {
+        // Memoized for the run. Shared with the inline check-in path
+        // (handlers/habitCheckins.ts) so the same partner is named the same way
+        // whichever notification reaches the user — they disagreed before.
+        //
+        // Built before the expiry sweep because the sweep now notifies, and its
+        // copy names the habit.
+        const { getHabitName, getUserDisplayName } = createNameResolvers();
+
         // Close out pacts whose window has passed, before anything reads the
         // active set.
         //
@@ -288,6 +308,68 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     messages: [err?.message, 'Habits digest: failed to expire pact'],
                     traceArgs: { pactId: expiring.id },
                 });
+                // Not notified: the pact is still `active`, so it will be swept
+                // — and announced — on the next run. Announcing an end that did
+                // not persist would offer a renewal the handler then refuses.
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
+            try {
+                // Tell the members their cycle closed, and offer the renewal in
+                // the same breath.
+                //
+                // This moment is the only one where the offer is real:
+                // `isPactRenewable` is false while a pact is active and inside
+                // its window, so the renew CTA cannot ride `pactExpiring` three
+                // days earlier — it would produce a rejected request. It is also
+                // the moment the behaviour-change literature says to make the
+                // offer at all: the end of a cycle is a temporal landmark, and
+                // landmarks are when people restart (Dai, Milkman & Riis 2014;
+                // docs/HABIT_LIFECYCLE_MESSAGING.md § Why the app renews on a
+                // cycle).
+                //
+                // Sent to everyone whose membership was still active, whether or
+                // not they saw the pact through. `pactCompleted` deliberately
+                // does not serve here: its copy congratulates both partners, and
+                // the sweep cannot tell a finisher from someone who dropped out
+                // in week one.
+                //
+                // Keyed on the pact alone, with no date: a pact expires exactly
+                // once, so a re-run — or a manual digest firing — must not
+                // produce a second one. That is a departure from the
+                // period-stamped keys elsewhere in this file, and it is
+                // deliberate; the event is not periodic.
+                // eslint-disable-next-line no-await-in-loop
+                const endedMembers = (await Store.pactMembers.getByPactId(expiring.id))
+                    .filter((m: any) => m.status === 'active');
+                // eslint-disable-next-line no-await-in-loop
+                const endedHabitName = await getHabitName(expiring.habitGoalId);
+                // eslint-disable-next-line no-await-in-loop
+                const endedQueued = await Promise.all(endedMembers.map((member: any) => queuePush(
+                    member.userId,
+                    PushNotifications.Types.pactEnded,
+                    `pact-ended:${expiring.id}`,
+                    {
+                        pactId: expiring.id,
+                        habitName: endedHabitName,
+                        durationDays: Number(expiring.durationDays || 0),
+                    },
+                )));
+                counters.pactEndedSent += endedQueued.filter(Boolean).length;
+            } catch (err: any) {
+                // The pact is expired either way — this only costs the
+                // announcement. The dedupe key holds no date, so a retry on the
+                // next run would queue nothing; a pact that fails here is one
+                // whose members are never told, which is why it is logged as its
+                // own failure rather than folded into the sweep's.
+                counters.errors += 1;
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: failed to announce ended pact'],
+                    traceArgs: { pactId: expiring.id },
+                });
             }
         }
 
@@ -304,10 +386,6 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 traceArgs: { 'habitsDigest.limit': DIGEST_MAX_PACTS },
             });
         }
-        // Memoized for the run. Shared with the inline check-in path
-        // (handlers/habitCheckins.ts) so the same partner is named the same way
-        // whichever notification reaches the user — they disagreed before.
-        const { getHabitName, getUserDisplayName } = createNameResolvers();
 
         // Membership is resolved up front rather than inside the notification
         // loop so the lifecycle engine can batch-load its four reads across
