@@ -39,6 +39,20 @@ class HabitCheckinsService {
         url: `/users-service/habits/checkins/${id}`,
     });
 
+    /**
+     * Proof media attached to one check-in, as `{ proofs: [...] }`.
+     *
+     * Owner-only, and fetched per check-in rather than with the month range:
+     * the calendar renders a badge from the `hasProof` flag it already has, so
+     * paths are only requested for a day the user opens. Each proof carries the
+     * `path`/`type` pair `MapsService.fetchMedia` expects, so the caller can
+     * hand `proofs` straight to it to resolve displayable URLs.
+     */
+    getProofs = (checkinId: string) => axios({
+        method: 'get',
+        url: `/users-service/habits/checkins/${checkinId}/proofs`,
+    });
+
     getTodayCheckins = (habitGoalId?: string) => {
         const params = new URLSearchParams();
         if (habitGoalId) params.append('habitGoalId', habitGoalId);

@@ -2,6 +2,7 @@ import * as express from 'express';
 import {
     createCheckin,
     getCheckin,
+    getCheckinProofs,
     getTodayCheckins,
     getCheckinsByDateRange,
     getPactCheckins,
@@ -16,6 +17,7 @@ const router = express.Router();
 router.get('/today', getTodayCheckins);
 router.get('/range', getCheckinsByDateRange);
 router.get('/pact/:pactId', getPactCheckins);
+router.get('/:id/proofs', getCheckinProofs);
 router.get('/:id', getCheckin);
 
 // CREATE
