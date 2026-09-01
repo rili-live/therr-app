@@ -311,6 +311,31 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-09-01, /work-plan) **Ship the `niche/HABITS-general` half of `pactEnded` before
+  this reaches production traffic.** Two things are missing there and neither errors: the
+  `${notificationActionPrefix}.PACT_ENDED` `<intent-filter>` in
+  `TherrMobile/android/app/src/main/AndroidManifest.xml`, and a handler for the `renew-pact`
+  press action. Without the filter an installed app ignores the notification outright; with
+  the filter but no handler the button opens the app and renews nothing. `Layout.tsx` on
+  `general` already routes the type to the Notifications list so a tap is never a dead end,
+  but that is a floor, not the feature. Verify with
+  `node .claude/skills/push-notification-guard/scripts/check-push-wiring.js --brand-branch niche/HABITS-general`
+  — that run could not be completed in the session that wrote this (the branch would not
+  fetch), so the niche half is **unverified**, not known-good.
+- [ ] (2026-09-01, /work-plan) **Confirm on a handset that the ended-pact push renews.** This
+  is link 5 and nothing server-side reports it. Let a HABITS pact pass its `endDate`, run the
+  digest, then on a real device confirm: the notification arrives, shows **two** buttons
+  ("Start New Cycle" and "View"), and the first produces a new pact carrying the old streak.
+  The streak carrying across is the load-bearing part — a renewal that reset it would turn the
+  app's strongest mechanic into its worst failure mode, on a day the user did nothing wrong.
+- [ ] (2026-09-01, /work-plan) **Watch `pactEndedSent` against `pactsExpired` in the first runs
+  after deploy.** Unlike its sibling counters this is not a daily figure — its dedupe key holds
+  no date, so each pact contributes exactly once, ever. It should track `pactsExpired` ×
+  members-per-pact. `pactsExpired > 0` with `pactEndedSent === 0` means the announcement is
+  failing while the sweep succeeds; the two are caught separately for exactly that reason, and
+  the failure logs `Habits digest: failed to announce ended pact`. Note the digest still fires
+  at 14:00 UTC (09:00 CDT), so this push currently lands in the morning — see the open item
+  above about moving that schedule.
 - [ ] (2026-08-15, habits-production-readiness) **Create the Google Play in-app product before
   the paywall can work.** Product id `habits_lifetime_founder` on `com.therr.habits`, one-time
   **non-consumable**, $20 USD, active. In-app products do not resolve until the app is published
@@ -1605,13 +1630,14 @@ The article's six rules, audited against what is in the code today:
 | 3 | Build in the miss | ✅ streak freezes exist — but are invisible until spent |
 | 4 | Visible to 2–5 specific people | ✅ pacts cap invitees at 5, and partner streaks now render on the card |
 | 5 | Keep the metric inseparable from the behaviour | ⚠️ HABITS XP also accrues from invites |
-| 6 | Renew on a fixed cycle | ⚠️ sweep, endpoint and card CTA ship; the expiring push still has no CTA |
+| 6 | Renew on a fixed cycle | ⚠️ sweep, endpoint, card CTA and the `pactEnded` push with its renew action all ship on `general`; the mobile half is not built |
 
 The five items below are ordered by expected impact and are **independent**:
 each can ship on its own without waiting on the others. They are the highest-
 priority cluster in Tier 2 — ahead of §§ 2.1–2.5 — because they act on the
-retention loop every other Tier 2 item feeds. §§ 2.6.1 and 2.6.2 are closed and
-2.6.3 is all but closed; **2.6.4 and 2.6.5 are what remains open here.**
+retention loop every other Tier 2 item feeds. §§ 2.6.1, 2.6.2 and 2.6.4 are
+closed, and 2.6.3's `general` half closed 2026-09-01 leaving only its mobile
+counterpart; **2.6.5 is the only item still open on its own terms.**
 
 ---
 
@@ -1674,12 +1700,32 @@ Two invariants worth not re-deriving:
   active-past-`endDate` as finished. Gating on status alone tells a user whose
   pact visibly ended that it is still running, and hides the CTA.
 
+Closed 2026-09-01 (/work-plan), the `general` half. The premise recorded here was
+wrong in a way worth keeping: this entry asked for a renew CTA on the
+**`pactExpiring`** push, and that cannot work. `pactExpiring` fires 1–3 days
+*before* `endDate`, and `isPactRenewable` (`utilities/pactHelpers.ts`) is false
+for an active pact still inside its window — so the button would have produced a
+rejected request, on the notification most likely to be tapped.
+
+Renewal is legal at exactly one moment: the digest's expiry sweep, which until
+now closed pacts **silently**. That moment is also the right one on the evidence
+— the end of a cycle is a temporal landmark, and landmarks are when people
+restart (Dai, Milkman & Riis 2014; see `docs/HABIT_LIFECYCLE_MESSAGING.md`
+§ Why the app renews on a cycle). So the sweep gained a producer: a new
+`pactEnded` type carrying a "Start New Cycle" action and the pact id it acts on.
+
+`pactCompleted` deliberately does **not** serve here — its copy congratulates
+both partners, and the sweep cannot tell a finisher from someone who dropped out
+in week one. Its dedupe key is `pact-ended:<pactId>` with **no date**, the only
+such key in the digest: a pact ends once, and `getExpiredPacts` keeps returning
+it until `expire` lands, so a date would let a retry double-send.
+
 Still open:
 
-- The `pactExpiring` push has no renew CTA and no deep link — the CTA is only
-  discoverable by opening the app and finding the pact. This is the half that
-  reaches a user who has stopped opening the app, which is the population the
-  whole item is aimed at.
+- **The mobile half is not built** — `niche/HABITS-general` must declare the
+  `PACT_ENDED` intent filter in `AndroidManifest.xml` and handle the
+  `renew-pact` press action. Until it ships, an installed app ignores the
+  notification entirely; nothing errors on either side.
 - Optional follow-on: a long-form "your pact ended — here's what you built"
   re-commit email in `therr-messaging-automator`, which owns the SES templates
   and unsubscribe-token path (see `docs/HABIT_LIFECYCLE_MESSAGING.md` § Where

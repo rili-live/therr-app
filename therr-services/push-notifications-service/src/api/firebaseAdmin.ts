@@ -176,6 +176,9 @@ interface ICreateMessageConfig {
     habitCount?: number;
     habitNames?: string[] | string;
     daysRemaining?: number;
+    // The length of the cycle that just ended, in days — `pactEnded` copy names
+    // it so the number the user sees is what they actually did, not a target.
+    durationDays?: number;
     // Streak freezes. `freezesRemaining` is the count left after the spend and
     // also rides along on `streakAtRisk`, where it selects a body that names
     // the net instead of only naming the threat.
@@ -252,6 +255,45 @@ const buildCheckinPressActions = (
 
     actions.push({
         id: PushNotifications.PressActionIds.checkinView,
+        title: translate(userLocale, 'notifications.shared.pressActionView'),
+    });
+
+    return JSON.stringify(actions);
+};
+
+/**
+ * The action buttons on the "your pact ended" notification.
+ *
+ * This notification exists because of the fresh-start effect (Dai, Milkman &
+ * Riis 2014): the end of a cycle is a temporal landmark, and a landmark is when
+ * people will restart. The renew button is the whole reason the push is sent at
+ * this moment rather than three days earlier — `isPactRenewable` is false until
+ * the pact's window has passed, so the same button on `pactExpiring` would only
+ * produce a rejected request.
+ *
+ * "Start New Cycle" is offered only when the payload names one pact, for the
+ * same reason `buildCheckinPressActions` gates its check-in action: the id is
+ * what the device sends to `PUT /habits/pacts/:id/renew`, and there is nothing
+ * to renew without it. The View button is always present so the notification is
+ * never a dead end.
+ *
+ * Android only — see the note in `buildCheckinPressActions`.
+ */
+const buildPactEndedPressActions = (
+    userLocale: string,
+    config: ICreateMessageConfig,
+): string => {
+    const actions: { id: string; title: string; }[] = [];
+
+    if (config.pactId) {
+        actions.push({
+            id: PushNotifications.PressActionIds.pactRenew,
+            title: translate(userLocale, 'notifications.shared.pressActionRenew'),
+        });
+    }
+
+    actions.push({
+        id: PushNotifications.PressActionIds.pactView,
         title: translate(userLocale, 'notifications.shared.pressActionView'),
     });
 
@@ -414,6 +456,7 @@ const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.pactDeclined,
     PushNotifications.Types.pactCompleted,
     PushNotifications.Types.pactExpiring,
+    PushNotifications.Types.pactEnded,
     PushNotifications.Types.partnerCheckedIn,
     PushNotifications.Types.partnerMissedDay,
     PushNotifications.Types.partnerCelebrated,
@@ -725,6 +768,13 @@ const createMessage = (
         habitGoalId: config.habitGoalId,
         pactId: config.pactId,
         habitCount: config.habitCount,
+        // Not an identifier, but the renewal flow needs it for the same reason
+        // the ids are here: the confirmation names the cycle it is about to
+        // start ("another 30 days"), and a plan that states its own when is
+        // what the implementation-intention literature finds effective. The
+        // server re-reads the real value from the pact when renewing, so this
+        // is display-only and a stale one cannot create a wrong cycle.
+        durationDays: config.durationDays,
     };
     Object.keys(routingIds).forEach((key) => {
         const value = routingIds[key];
@@ -1454,6 +1504,32 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'PACT_EXPIRING'), brandVariation);
             return baseMessage;
+        case PushNotifications.Types.pactEnded:
+            // Data-only so the renew button can exist at all: Android renders
+            // action buttons from Notifee, and Notifee only sees a message that
+            // arrives as data. Same constraint that moved `dailyHabitReminder`
+            // off the display path.
+            //
+            // DEPLOY ORDER: an installed app that does not yet declare the
+            // PACT_ENDED intent action ignores this entirely, and one that
+            // declares it but has no handler for `renew-pact` opens the app
+            // without renewing. Neither errors. Ship the niche/HABITS-general
+            // half before this reaches production traffic.
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.pactEnded.title', {
+                        habitName: String(config.habitName || ''),
+                    }),
+                    notificationBody: translate(config.userLocale, 'notifications.pactEnded.body', {
+                        durationDays: Number(config.durationDays || 0),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.pactView,
+                    notificationLinkPressActions: buildPactEndedPressActions(config.userLocale, config),
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'PACT_ENDED'), brandVariation);
+            return baseMessage;
         case PushNotifications.Types.dailyHabitReminder:
             // Data-only, where this used to be an OS-rendered notification.
             // Action buttons are the reason: Android renders them from Notifee,
@@ -1562,6 +1638,7 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.pactAccepted,
     PushNotifications.Types.pactCompleted,
     PushNotifications.Types.pactDeclined,
+    PushNotifications.Types.pactEnded,
     PushNotifications.Types.pactExpiring,
     PushNotifications.Types.pactInvitation,
     PushNotifications.Types.pactNudge,
