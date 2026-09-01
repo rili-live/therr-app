@@ -14,6 +14,12 @@ const MONTH_KEYS = [
 
 const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
+export interface IResolvedProofUri {
+    id: string;
+    uri: string;
+    mediaType: string;
+}
+
 /**
  * The sheet's title, built from the locale dictionary rather than
  * `toLocaleDateString`.
@@ -94,13 +100,15 @@ export const isDayInFuture = (date: Date, today: Date): boolean => {
 export const resolveProofUris = (
     proofs: IHabitCheckinProof[],
     mediaMap: Record<string, string>,
-): { id: string; uri: string; mediaType: string }[] => (proofs || [])
-    .map((proof) => ({
-        id: proof.id,
-        uri: mediaMap?.[proof.thumbnailPath || proof.path] || mediaMap?.[proof.path],
-        mediaType: proof.mediaType,
-    }))
-    .filter((proof): proof is { id: string; uri: string; mediaType: string } => !!proof.uri);
+): IResolvedProofUri[] => (proofs || []).reduce((acc: IResolvedProofUri[], proof) => {
+    const uri = mediaMap?.[proof.thumbnailPath || proof.path] || mediaMap?.[proof.path];
+
+    if (uri) {
+        acc.push({ id: proof.id, uri, mediaType: proof.mediaType });
+    }
+
+    return acc;
+}, []);
 
 /**
  * The paths to hand `MapActions.fetchMedia`.

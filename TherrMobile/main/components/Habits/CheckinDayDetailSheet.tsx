@@ -8,13 +8,9 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { IHabitCheckin } from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
 import ModalButton from '../Modals/ModalButton';
-import { formatDayTitle, getStatusLabelKey, isDayInFuture } from '../../routes/Habits/checkinDayDetail';
-
-export interface IResolvedProof {
-    id: string;
-    uri: string;
-    mediaType: string;
-}
+import {
+    IResolvedProofUri, formatDayTitle, getStatusLabelKey, isDayInFuture,
+} from '../../routes/Habits/checkinDayDetail';
 
 /**
  * What happened on one calendar day, opened by tapping that day in
@@ -33,7 +29,7 @@ interface ICheckinDayDetailSheetProps {
     date: Date | null;
     /** The check-in on that day, if there is one. */
     checkin?: IHabitCheckin;
-    proofs: IResolvedProof[];
+    proofs: IResolvedProofUri[];
     /**
      * True while the proofs request (and the media-url resolution behind it) is
      * in flight. Distinct from `proofs.length === 0`: a check-in with
@@ -73,7 +69,6 @@ const RatingRow: React.FC<{
                     // The dots are a fixed-length scale, so the index IS the
                     // identity of each one — there is no reorder for a key to
                     // survive.
-                    // eslint-disable-next-line react/no-array-index-key
                     key={`rating-dot-${index}`}
                     name={index < value ? 'star' : 'star-border'}
                     size={16}
@@ -186,7 +181,8 @@ const CheckinDayDetailSheet: React.FC<ICheckinDayDetailSheetProps> = ({
                 <Text style={[
                     themeConfirmModal.styles.bodyText,
                     localStyles.notes,
-                    !notes && { color: themeConfirmModal.colors.textGray, fontStyle: 'italic' },
+                    !notes && localStyles.notesPlaceholder,
+                    !notes && { color: themeConfirmModal.colors.textGray },
                 ]}>
                     {notes || translate('pages.habits.dayDetail.noNote')}
                 </Text>
@@ -265,6 +261,9 @@ const localStyles = StyleSheet.create({
         paddingTop: 6,
         paddingBottom: 4,
         lineHeight: 20,
+    },
+    notesPlaceholder: {
+        fontStyle: 'italic',
     },
     ratingRow: {
         flexDirection: 'row',
