@@ -30,6 +30,7 @@ This section links to project brief documentation for the core app and each nich
 ### Niche Sub Apps
 - [HABITS_PROJECT_BRIEF.md](./niche-sub-apps/HABITS_PROJECT_BRIEF.md) - "Friends With Habits" app variation
 - [TEEM_PROJECT_BRIEF.md](./niche-sub-apps/TEEM_PROJECT_BRIEF.md) - Teem app variation
+- [PRIORITIZED_PROJECT_BRIEF.md](./niche-sub-apps/PRIORITIZED_PROJECT_BRIEF.md) - "Prioritized" family chore/allowance app (proposed, no code yet)
 
 ## Documentation Index
 
