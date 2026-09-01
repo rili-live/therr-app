@@ -1,4 +1,5 @@
 import CheckinButton from './CheckinButton';
+import CheckinDayDetailSheet from './CheckinDayDetailSheet';
 import CheckinProofSheet from './CheckinProofSheet';
 import HabitCalendar from './HabitCalendar';
 import HabitCard from './HabitCard';
@@ -12,6 +13,7 @@ import StreakWidget from './StreakWidget';
 
 export {
     CheckinButton,
+    CheckinDayDetailSheet,
     CheckinProofSheet,
     HabitCalendar,
     HabitCard,
