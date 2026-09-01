@@ -171,6 +171,10 @@
       "title": "Tu pacto está por terminar",
       "body": "Quedan {daysRemaining} día(s) en tu pacto de {habitName} — termina con fuerza."
     },
+    "pactEnded": {
+      "title": "Tu pacto de {habitName} ha terminado",
+      "body": "{durationDays} días completados. La mayoría de los hábitos tardan meses, no semanas — empieza un nuevo ciclo y tu racha continúa."
+    },
     "dailyHabitReminder": {
       "title": "Hora de registrarte",
       "body": "Registra {habitName} hoy — un solo registro pone tu racha en marcha.",
@@ -202,6 +206,7 @@
     },
     "shared": {
       "pressActionCheckIn": "Registrarse",
+      "pressActionRenew": "Nuevo ciclo",
       "pressActionView": "Ver"
     }
   },

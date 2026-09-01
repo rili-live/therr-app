@@ -1296,6 +1296,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             case PushNotifications.Types.pactDeclined:
             case PushNotifications.Types.pactCompleted:
             case PushNotifications.Types.pactExpiring:
+            case PushNotifications.Types.pactEnded:
             case PushNotifications.Types.partnerCheckedIn:
             case PushNotifications.Types.partnerMissedDay:
             case PushNotifications.Types.partnerCelebrated:

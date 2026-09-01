@@ -171,6 +171,10 @@
       "title": "Pact Wrapping Up Soon",
       "body": "{daysRemaining} day(s) left on your {habitName} pact — finish strong."
     },
+    "pactEnded": {
+      "title": "Your {habitName} Pact Wrapped Up",
+      "body": "{durationDays} days in. Most habits take months, not weeks — start a new cycle and your streak carries over."
+    },
     "dailyHabitReminder": {
       "title": "Time to Check In",
       "body": "Log {habitName} today — one check-in gets your streak going.",
@@ -202,6 +206,7 @@
     },
     "shared": {
       "pressActionCheckIn": "Check In",
+      "pressActionRenew": "Start New Cycle",
       "pressActionView": "View"
     }
   },
