@@ -1850,7 +1850,7 @@ Still open, and the reason this is a section rather than a closed line:
   Sightengine; the proof path does not. Harmless while proofs are owner-only,
   **blocking** for 2.6.8, which makes them public.
 
-#### 2.6.7 Thoughts silently drop uploaded images
+#### 2.6.7 Thoughts silently drop uploaded images (#2840)
 
 Not a missing feature — a broken one, and the client half is already built.
 
@@ -1882,7 +1882,7 @@ and image". Every goal posted with a photo since that shipped has lost the photo
 
 Scope: `general` throughout (migration, store, shared components). No niche half.
 
-#### 2.6.8 Share a check-in publicly as a thought
+#### 2.6.8 Share a check-in publicly as a thought (#2841)
 
 **Rule 4, widened deliberately.** 2.6.2 made a check-in visible to 2–5 pact
 members, which is where the Friend Streak evidence sits. This is the opt-in
