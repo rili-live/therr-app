@@ -14,6 +14,13 @@ import { it, describe, expect, jest } from '@jest/globals';
  * the only pure-white shapes in the upper half of the logo, which makes them findable
  * without decoding the design intent.
  *
+ * Both bitmaps the overlay can draw are measured: the bundled JS copy (iOS, and the fallback
+ * everywhere) and the Android drawable the native splash itself draws. The drawable is also
+ * held to the 288dp canvas Android renders a splash logo in, because the overlay sizes itself
+ * to that canvas — regenerate the drawables the way react-native-bootsplash's own generator
+ * would (a 100dp logo centered in the canvas) and the overlay would draw the logo at 2.9x the
+ * size the native splash did. That shows up here as eyes in the wrong place, not as a crash.
+ *
  * The component itself is only imported for its constants; reanimated is stubbed out so
  * that import costs nothing.
  */
@@ -32,10 +39,27 @@ jest.mock('react-native-reanimated', () => {
     };
 });
 
-import { SPLASH_LOGO_EYES } from '../../main/components/SplashLogoSpinner';
+import { ANDROID_SPLASH_CANVAS_SIZE, SPLASH_LOGO_EYES, splashLogoSize } from '../../main/components/SplashLogoSpinner';
 
-/** Rendered at 4x, the density where the eyes are large enough to measure precisely. */
-const LOGO_PNG = path.resolve(__dirname, '../../main/assets/bootsplash_logo@4x.png');
+/** What `assets/bootsplash/manifest.json` and `ios/Therr/BootSplash.storyboard` size the logo at. */
+const MANIFEST_LOGO_SIZE = 100;
+
+const asset = (relative: string) => path.resolve(__dirname, '../..', relative);
+
+/** The artwork the overlay draws, at the densities where the eyes are large enough to measure. */
+const LOGO_PNGS = {
+    'the bundled JS copy': asset('main/assets/bootsplash_logo@4x.png'),
+    'the Android splash drawable': asset('android/app/src/main/res/drawable-xxhdpi/bootsplash_logo.png'),
+};
+
+/** `drawable-<density>` folders, and the scale each one renders at. */
+const ANDROID_DENSITIES: Array<[string, number]> = [
+    ['mdpi', 1],
+    ['hdpi', 1.5],
+    ['xhdpi', 2],
+    ['xxhdpi', 3],
+    ['xxxhdpi', 4],
+];
 
 interface IBitmap {
     width: number;
@@ -125,18 +149,18 @@ const readPng = (file: Buffer): IBitmap => {
     return { width, height, pixels };
 };
 
-const bitmap = readPng(fs.readFileSync(LOGO_PNG));
-
-const pixelAt = (x: number, y: number): number[] => {
-    const at = (y * bitmap.width * 4) + (x * 4);
-    return [bitmap.pixels[at], bitmap.pixels[at + 1], bitmap.pixels[at + 2], bitmap.pixels[at + 3]];
-};
-
 const isOpaque = ([, , , alpha]: number[]) => alpha > 200;
 const isWhite = (pixel: number[]) => isOpaque(pixel) && pixel[0] > 230 && pixel[1] > 230 && pixel[2] > 230;
 
 /** The white of each eye, as a fraction-of-the-box center and diameter. */
-const measureEyeWhites = () => {
+const measureEyeWhites = (file: string) => {
+    const bitmap = readPng(fs.readFileSync(file));
+
+    const pixelAt = (x: number, y: number): number[] => {
+        const at = (y * bitmap.width * 4) + (x * 4);
+        return [bitmap.pixels[at], bitmap.pixels[at + 1], bitmap.pixels[at + 2], bitmap.pixels[at + 3]];
+    };
+
     const halves: { left: number[][]; right: number[][] } = { left: [], right: [] };
 
     // The wordmark below is the logo's other white-adjacent region, so stay above it.
@@ -150,7 +174,7 @@ const measureEyeWhites = () => {
 
     return Object.entries(halves).reduce((acc, [side, points]) => {
         if (!points.length) {
-            throw new Error(`Found no eye white in the ${side} half of ${path.basename(LOGO_PNG)} — has the logo been redrawn?`);
+            throw new Error(`Found no eye white in the ${side} half of ${path.basename(file)} — has the logo been redrawn?`);
         }
 
         const xs = points.map(([x]) => x);
@@ -206,13 +230,13 @@ const measureEyeWhites = () => {
     }>);
 };
 
-const measured = measureEyeWhites();
-
 const toChannels = (hex: string) => [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
 
 const SIDES: Array<'left' | 'right'> = ['left', 'right'];
 
-describe('HABITS splash-logo eye geometry', () => {
+describe.each(Object.entries(LOGO_PNGS))('HABITS splash-logo eye geometry in %s', (_label, file) => {
+    const measured = measureEyeWhites(file);
+
     it.each(SIDES)('centers the %s eyelid on the eye in the artwork', (side) => {
         expect(SPLASH_LOGO_EYES[side].centerXRatio).toBeCloseTo(measured[side].centerXRatio, 2);
         expect(SPLASH_LOGO_EYES.centerYRatio).toBeCloseTo(measured[side].centerYRatio, 2);
@@ -229,5 +253,62 @@ describe('HABITS splash-logo eye geometry', () => {
         toChannels(SPLASH_LOGO_EYES[side].lidColor).forEach((channel, index) => {
             expect(Math.abs(channel - measured[side].socketColor[index])).toBeLessThanOrEqual(16);
         });
+    });
+});
+
+describe('HABITS splash-logo overlay size', () => {
+    it('redraws the logo at the size the native splash drew it, per platform', () => {
+        // The storyboard pins its image view to the manifest size...
+        expect(splashLogoSize('ios', 1)).toBe(MANIFEST_LOGO_SIZE);
+        // ...while Android renders the whole canvas these drawables fill. Sizing both at the
+        // manifest's 100dp is the bug this guards: the logo shrank 2.88x at the handoff.
+        expect(splashLogoSize('android', 1)).toBe(ANDROID_SPLASH_CANVAS_SIZE);
+    });
+
+    it('follows the native icon down on Samsung One UI 4, which halves it', () => {
+        expect(splashLogoSize('android', 0.5)).toBe(ANDROID_SPLASH_CANVAS_SIZE / 2);
+        expect(splashLogoSize('ios', 0.5)).toBe(MANIFEST_LOGO_SIZE / 2);
+    });
+});
+
+/**
+ * The overlay draws its logo box at `ANDROID_SPLASH_CANVAS_SIZE` on Android because that is the
+ * canvas the platform renders a splash logo in, and because these drawables are artwork filling
+ * that canvas rather than a smaller logo centered inside one. Both halves of that reasoning are
+ * load-bearing, so hold the committed drawables to both.
+ */
+describe('HABITS Android splash drawables', () => {
+    it.each(ANDROID_DENSITIES)('is a %s canvas of the size the overlay assumes', (density, scale) => {
+        const bitmap = readPng(fs.readFileSync(asset(`android/app/src/main/res/drawable-${density}/bootsplash_logo.png`)));
+
+        expect(bitmap.width).toBe(ANDROID_SPLASH_CANVAS_SIZE * scale);
+        expect(bitmap.height).toBe(bitmap.width);
+    });
+
+    it('fills that canvas with the artwork, rather than centering a smaller logo in it', () => {
+        const drawable = readPng(fs.readFileSync(LOGO_PNGS['the Android splash drawable']));
+        const bundled = readPng(fs.readFileSync(LOGO_PNGS['the bundled JS copy']));
+
+        const artworkWidthRatio = ({ width, height, pixels }: IBitmap) => {
+            let minX = width;
+            let maxX = -1;
+
+            for (let y = 0; y < height; y += 1) {
+                for (let x = 0; x < width; x += 1) {
+                    if (pixels[(y * width * 4) + (x * 4) + 3] > 10) {
+                        minX = Math.min(minX, x);
+                        maxX = Math.max(maxX, x);
+                    }
+                }
+            }
+
+            return (maxX - minX + 1) / width;
+        };
+
+        // Same framing in both bitmaps: the overlay swaps between them (and falls back from one to
+        // the other) without the logo shifting or resizing.
+        expect(artworkWidthRatio(drawable)).toBeCloseTo(artworkWidthRatio(bundled), 2);
+        // The generator's own output would put the artwork at ~1/3 of the canvas.
+        expect(artworkWidthRatio(drawable)).toBeGreaterThan(0.8);
     });
 });
