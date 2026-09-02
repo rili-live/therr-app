@@ -83,6 +83,11 @@
       "body": "{userName} respondió a tu publicación — mira lo que dijo",
       "pressActionView": "Ver respuesta"
     },
+    "newThoughtRepostReceived": {
+      "title": "Republicaron tu publicación",
+      "body": "{userName} republicó tu publicación — está llegando a más gente",
+      "pressActionView": "Ver publicación"
+    },
     "newAreasActivated": {
       "title": "¡Nuevos lugares desbloqueados!",
       "body": "Acabas de desbloquear {totalAreasActivated} nueva(s) área(s) — explora lo que se ha compartido cerca"
@@ -106,7 +111,13 @@
     },
     "streakAtRisk": {
       "title": "No rompas tu racha",
-      "body": "Tu racha de {streakCount} días en {habitName} está en juego — registra antes de medianoche para mantenerla."
+      "body": "Tu racha de {streakCount} días en {habitName} está en juego — registra antes de medianoche para mantenerla.",
+      "bodyWithFreeze": "Tu racha de {streakCount} días en {habitName} está en juego. Un congelamiento de racha cubrirá esta noche si fallas (te quedan {freezesRemaining}) — pero si registras, lo guardas para después.",
+      "bodyMultiple": "{habitCount} rachas están en juego — {habitNames}. Registra antes de medianoche para mantenerlas."
+    },
+    "streakFreezeUsed": {
+      "title": "Tu racha sobrevivió",
+      "body": "Faltaste un día en {habitName}, así que un congelamiento de racha lo cubrió — tu racha de {streakCount} días sigue intacta. Te queda(n) {freezesRemaining}."
     },
     "streakBroken": {
       "title": "Racha reiniciada",
@@ -160,17 +171,24 @@
       "title": "Tu pacto está por terminar",
       "body": "Quedan {daysRemaining} día(s) en tu pacto de {habitName} — termina con fuerza."
     },
+    "pactEnded": {
+      "title": "Tu pacto de {habitName} ha terminado",
+      "body": "{durationDays} días completados. La mayoría de los hábitos tardan meses, no semanas — empieza un nuevo ciclo y tu racha continúa."
+    },
     "dailyHabitReminder": {
       "title": "Hora de registrarte",
-      "body": "No olvides registrar {habitName} hoy — un toque rápido mantiene tu racha viva."
+      "body": "Registra {habitName} hoy — un solo registro pone tu racha en marcha.",
+      "bodyMultiple": "{habitCount} hábitos te esperan hoy — {habitNames}. Un solo registro te pone en marcha."
     },
     "morningMotivation": {
       "title": "Buenos días",
       "body": "Hoy es una nueva oportunidad para construir el hábito al que te comprometiste. Vamos."
     },
     "eveningCheckIn": {
-      "title": "¿Cómo te fue hoy?",
-      "body": "Toca para registrar tu día y asegurar uno más en tu racha."
+      "title": "Última oportunidad esta noche",
+      "body": "Tu racha de {streakCount} días en {habitName} termina a medianoche. Un solo registro la mantiene viva.",
+      "bodyWithFreeze": "Tu racha de {streakCount} días en {habitName} termina a medianoche. Un congelamiento de racha te cubrirá (te quedan {freezesRemaining}) — pero si registras ahora, lo guardas para después.",
+      "bodyMultiple": "Última llamada para {habitCount} rachas — {habitNames}. Registra antes de medianoche para mantenerlas."
     },
     "habitEstablished": {
       "title": "{habitName} se está afianzando",
@@ -187,6 +205,11 @@
     "habitComeback": {
       "title": "¿Quieres retomar {habitName}?",
       "body": "Una vez lo mantuviste {bestStreakCount} días — eso no se borra. ¿Empezamos una racha nueva?"
+    },
+    "shared": {
+      "pressActionCheckIn": "Registrarse",
+      "pressActionRenew": "Nuevo ciclo",
+      "pressActionView": "Ver"
     }
   },
   "validation": "No se proporcionaron los parámetros requeridos."

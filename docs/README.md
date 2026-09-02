@@ -30,6 +30,7 @@ This section links to project brief documentation for the core app and each nich
 ### Niche Sub Apps
 - [HABITS_PROJECT_BRIEF.md](./niche-sub-apps/HABITS_PROJECT_BRIEF.md) - "Friends With Habits" app variation
 - [TEEM_PROJECT_BRIEF.md](./niche-sub-apps/TEEM_PROJECT_BRIEF.md) - Teem app variation
+- [PRIORITIZED_PROJECT_BRIEF.md](./niche-sub-apps/PRIORITIZED_PROJECT_BRIEF.md) - "Prioritized" family chore/allowance app (proposed, no code yet)
 
 ## Documentation Index
 
@@ -55,6 +56,7 @@ went unread.
 - [MEMORY_SYSTEM_SETUP.md](./MEMORY_SYSTEM_SETUP.md) — the `context/` memory system
 
 ### Operations & debugging
+- [DEPLOY_PIPELINE.md](./DEPLOY_PIPELINE.md) — general → stage → main: what `VERSIONS.txt` records, how the deploy decides per service, and the silent-staleness failures it now refuses
 - [PROD_DEBUG_CLAUDE.md](./PROD_DEBUG_CLAUDE.md) — production debugging runbook
 - [PUSH_NOTIFICATIONS_DEBUGGING.md](./PUSH_NOTIFICATIONS_DEBUGGING.md) — why a push didn't arrive; the diagnostics endpoints, and why a separate Firebase project per brand is usually the wrong fix
 - [NOTIFICATION_QUEUE_DESIGN.md](./NOTIFICATION_QUEUE_DESIGN.md) — the deduplicated, schedulable notification queue; what must land before send frequency goes up
@@ -65,8 +67,10 @@ went unread.
 ### Growth & marketing
 - [GROWTH_STRATEGY.md](./GROWTH_STRATEGY.md) — B2B-first funnel; the active growth strategy
 - [TARGET_MARKETS.md](./TARGET_MARKETS.md) — consumer and business target markets
+- [PAID_ACQUISITION_PLAYBOOK.md](./PAID_ACQUISITION_PLAYBOOK.md) — Google Ads strategy, thresholds and decision log for Friends with Habits (tooling: `scripts/google-ads/`)
 - [QR_CODE_MAIL_CAMPAIGN.md](./QR_CODE_MAIL_CAMPAIGN.md) — direct mail campaign
 - [PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md](./PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md) — push engagement plan
+- [CONTENT_CREATION_FLYWHEEL.md](./CONTENT_CREATION_FLYWHEEL.md) — raising moment supply as input to the B2B funnel
 
 ### Content pipeline
 - [CONTENT_GUIDES.md](./CONTENT_GUIDES.md) — editorial guides overview

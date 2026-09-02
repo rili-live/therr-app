@@ -43,11 +43,16 @@ const renderLogoutView = (): string => hbs.handlebars.compile(fs.readFileSync(VI
  * Assigning markup through innerHTML deliberately does not execute <script> elements,
  * so the script is pulled out and evaluated explicitly — that keeps the DOM the script
  * operates on identical to the served page.
+ *
+ * The script is matched inside the <body> region rather than across the whole
+ * document: every habits view also carries the analytics partial in <head>, so a
+ * document-wide non-greedy match picks up the gtag snippet instead of the page's
+ * own script and every assertion below fails on an untouched DOM.
  */
 const mountAndRun = (): void => {
     const rendered = renderLogoutView();
     const body = rendered.match(/<body>([\s\S]*)<\/body>/);
-    const script = rendered.match(/<script>([\s\S]*?)<\/script>/);
+    const script = body && body[1].match(/<script>([\s\S]*?)<\/script>/);
 
     if (!body || !script) {
         throw new Error('logout.hbs no longer has the expected <body>/<script> structure');
@@ -261,7 +266,9 @@ describe('habits profile page sign-out link', () => {
             userName: 'streakqueen',
         });
         const body = rendered.match(/<body>([\s\S]*)<\/body>/);
-        const script = rendered.match(/<script>([\s\S]*?)<\/script>/);
+        // Body-scoped for the same reason as mountAndRun above: the analytics
+        // partial in <head> would otherwise be the first match.
+        const script = body && body[1].match(/<script>([\s\S]*?)<\/script>/);
 
         if (!body || !script) {
             throw new Error('profile.hbs no longer has the expected <body>/<script> structure');

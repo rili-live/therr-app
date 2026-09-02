@@ -1,6 +1,8 @@
 // import { RequestHandler } from 'express';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
+import TherrEventEmitter from '../api/TherrEventEmitter';
+import { DISTRIBUTOR_MIN_SECONDS_BETWEEN_RUNS } from '../utilities/distributorGate';
 // import translate from '../utilities/translator';
 
 // READ
@@ -29,9 +31,46 @@ const createUserLocations = (req, res) => Store.userLocations.create([{
     longitudeRounded: req.body.longitudeRounded,
     visitCount: req.body.visitCount,
 }])
-    .then((results) => res.status(201).send({
-        userLocations: results,
-    }))
+    .then((results) => {
+        /**
+         * Re-seed the user's stream now that we know where they are.
+         *
+         * This is what makes "share your location, see posts about your city" immediate
+         * rather than something that shows up at the next login. It matters most for a user
+         * who just signed up: login seeds their stream before any location exists, so
+         * without this their first session has no local content in it at all.
+         *
+         * Gated on the same per-user window as the notifications poll, and deliberately so.
+         * `main.userLocations` rows are keyed on coordinates rounded to ~111m, so a client
+         * reporting background movement creates new rows continuously — an ungated run here
+         * would fire on every few steps the user takes. Sharing the window means location
+         * pings add no runs beyond what polling already allows, while the first ping after a
+         * sign-in still runs immediately (login itself passes 0 and never claims the window).
+         *
+         * Fire and forget after the response: the client is reporting a location, not asking
+         * for a feed, and a distributor failure must not turn into a failed location write.
+         *
+         * Skipped unless the authenticated header names the same user as the path. Every
+         * reaction the run creates is written under `x-userid`, so running for the path
+         * parameter instead would let a caller seed somebody else's stream; a mismatch here
+         * means only that this one location write does not also re-seed a feed.
+         */
+        if (req.headers['x-userid'] && req.headers['x-userid'] === req.params.userId) {
+            setImmediate(() => {
+                TherrEventEmitter.runThoughtDistributorAlgorithm(
+                    req.headers,
+                    [req.params.userId],
+                    'createdAt',
+                    10,
+                    DISTRIBUTOR_MIN_SECONDS_BETWEEN_RUNS,
+                );
+            });
+        }
+
+        return res.status(201).send({
+            userLocations: results,
+        });
+    })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_LOCATIONS_ROUTES:ERROR' }));
 
 const updateUserLocation = (req, res) => Store.userLocations.update(req.params.userLocationId, {

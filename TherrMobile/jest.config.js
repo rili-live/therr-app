@@ -1,5 +1,5 @@
 module.exports = {
-    preset: 'react-native',
+    preset: '@react-native/jest-preset',
     globals: {
         window: {}, // This required since we import Therr React library that is compiled for web app (with window)
     },

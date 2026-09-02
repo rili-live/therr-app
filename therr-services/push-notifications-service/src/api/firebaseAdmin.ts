@@ -5,6 +5,12 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import translate from '../utilities/translator';
 import { clearInvalidDeviceToken } from '../handlers/helpers/user';
 import { getCredentialEnvKey } from './firebaseCredentialEnvKey';
+import { selectFreezeAwareBodyKey, selectStreakAtRiskBodyKey } from './streakCopy';
+import {
+    formatHabitNames,
+    selectCheckinNudgeBodyKey,
+    shouldOfferOnePressCheckin,
+} from './checkinNudgeCopy';
 
 // FCM error codes for tokens that should be removed from the database.
 // See https://firebase.google.com/docs/cloud-messaging/send-message#admin
@@ -159,7 +165,25 @@ interface ICreateMessageConfig {
     pactName?: string;
     habitId?: string;
     habitName?: string;
+    // The habit goal a one-press check-in would complete. Distinct from
+    // `habitName` (copy) and `habitId`: this is the id the device POSTs to
+    // /habits/checkins, so it is only ever set when the notification names
+    // exactly one habit.
+    habitGoalId?: string;
+    // Set by the digest's per-user roll-up. `habitCount > 1` means the nudge
+    // covers several habits, which selects the plural copy AND suppresses the
+    // check-in action — there is no single goal to complete.
+    habitCount?: number;
+    habitNames?: string[] | string;
     daysRemaining?: number;
+    // The length of the cycle that just ended, in days — `pactEnded` copy names
+    // it so the number the user sees is what they actually did, not a target.
+    durationDays?: number;
+    // Streak freezes. `freezesRemaining` is the count left after the spend and
+    // also rides along on `streakAtRisk`, where it selects a body that names
+    // the net instead of only naming the threat.
+    freezesRemaining?: number;
+    freezeDaysUsed?: number;
     // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md). Mirrors the
     // fields users-service puts on the queue row in
     // `sendEmailAndOrPushNotification.ts` — age of the habit in days,
@@ -201,6 +225,80 @@ interface ICreateNotificationMessage extends ICreateBaseMessage {
     // pushes to the wrong app, and nothing at runtime reports that.
     brandVariation: BrandVariations;
 }
+
+/**
+ * The action buttons on a check-in nudge, as the JSON string Notifee's
+ * background handler parses (`TherrMobile/index.js`).
+ *
+ * "Check In" is only offered when the notification names one habit goal — see
+ * `shouldOfferOnePressCheckin`. When it does not, the user still gets a "View"
+ * button rather than no buttons at all: the whole point of the roll-up is that
+ * one notification can cover three habits, and the right destination then is
+ * the list, not a guess.
+ *
+ * Android only. iOS renders the OS alert and cannot show these without a
+ * Notification Service Extension — see the TODO(iOS-NSE) in
+ * `createDataOnlyMessage`.
+ */
+const buildCheckinPressActions = (
+    userLocale: string,
+    config: ICreateMessageConfig,
+): string => {
+    const actions: { id: string; title: string; }[] = [];
+
+    if (shouldOfferOnePressCheckin(config.habitGoalId, config.habitCount)) {
+        actions.push({
+            id: PushNotifications.PressActionIds.habitCheckin,
+            title: translate(userLocale, 'notifications.shared.pressActionCheckIn'),
+        });
+    }
+
+    actions.push({
+        id: PushNotifications.PressActionIds.checkinView,
+        title: translate(userLocale, 'notifications.shared.pressActionView'),
+    });
+
+    return JSON.stringify(actions);
+};
+
+/**
+ * The action buttons on the "your pact ended" notification.
+ *
+ * This notification exists because of the fresh-start effect (Dai, Milkman &
+ * Riis 2014): the end of a cycle is a temporal landmark, and a landmark is when
+ * people will restart. The renew button is the whole reason the push is sent at
+ * this moment rather than three days earlier — `isPactRenewable` is false until
+ * the pact's window has passed, so the same button on `pactExpiring` would only
+ * produce a rejected request.
+ *
+ * "Start New Cycle" is offered only when the payload names one pact, for the
+ * same reason `buildCheckinPressActions` gates its check-in action: the id is
+ * what the device sends to `PUT /habits/pacts/:id/renew`, and there is nothing
+ * to renew without it. The View button is always present so the notification is
+ * never a dead end.
+ *
+ * Android only — see the note in `buildCheckinPressActions`.
+ */
+const buildPactEndedPressActions = (
+    userLocale: string,
+    config: ICreateMessageConfig,
+): string => {
+    const actions: { id: string; title: string; }[] = [];
+
+    if (config.pactId) {
+        actions.push({
+            id: PushNotifications.PressActionIds.pactRenew,
+            title: translate(userLocale, 'notifications.shared.pressActionRenew'),
+        });
+    }
+
+    actions.push({
+        id: PushNotifications.PressActionIds.pactView,
+        title: translate(userLocale, 'notifications.shared.pressActionView'),
+    });
+
+    return JSON.stringify(actions);
+};
 
 const getPostActionId = (postType?: string) => {
     let id = PushNotifications.PressActionIds.spaceView;
@@ -298,6 +396,95 @@ const BRAND_APP_IDENTITIES: Record<BrandVariations, IBrandAppIdentity> = {
 // it can be a value outside the enum at runtime despite the type.
 const getBrandAppIdentity = (brandVariation: BrandVariations): IBrandAppIdentity => BRAND_APP_IDENTITIES[brandVariation]
     || THERR_APP_IDENTITY;
+
+/**
+ * Notification types a brand must never receive, even though the type is
+ * otherwise sendable.
+ *
+ * The whitelist below (`SENDABLE_NOTIFICATION_TYPES`) answers "does this type
+ * work"; this answers "does this type belong to the app the user is holding".
+ * They are separate questions because the senders are separate systems: the
+ * retention pushes live in the sibling `therr-messaging-automator`
+ * (docs/CROSS_REPO_INTEGRATION.md), which walks users per brand and has no
+ * notion of which copy is on-brand for which app. A Friends with Habits user
+ * receiving "Drop a moment at your favorite spot — your friends nearby will
+ * discover it later!" is being advertised a different product, and the copy is
+ * unfixable from here because it is correct for Therr.
+ *
+ * Excluded rather than deleted, and keyed per brand, because every type listed
+ * here is the right notification on THERR/TEEM. Deliberately narrow: only copy
+ * anchored to Therr's map / moment / space product. Cross-brand types
+ * (`achievementCompleted`, `leaderboardRankMilestone`, connections, DMs,
+ * groups, thoughts) stay allowed — Habits ships all of those surfaces.
+ */
+const BRAND_EXCLUDED_NOTIFICATION_TYPES: Partial<Record<BrandVariations, Set<PushNotifications.Types>>> = {
+    [BrandVariations.HABITS]: new Set([
+        PushNotifications.Types.createAMomentReminder,
+        PushNotifications.Types.completeDraftReminder,
+        PushNotifications.Types.newAreasActivated,
+        PushNotifications.Types.nudgeSpaceEngagement,
+        PushNotifications.Types.proximityRequiredMoment,
+        PushNotifications.Types.proximityRequiredSpace,
+        PushNotifications.Types.latestPostLikesStats,
+        PushNotifications.Types.latestPostViewcountStats,
+    ]),
+};
+
+/**
+ * Types that belong to the Friends with Habits product and to no other app.
+ *
+ * These must never be sent under another brand, and the reason is stronger than
+ * the deep link. `brandVariation` is what selects the recipient's device token
+ * (`resolveDeviceTokenForBrand`, users-service), and a user who holds two branded
+ * apps has a separate token per install — so a `streakAtRisk` push sent under
+ * THERR is addressed to the user's *Therr* install and renders there, under
+ * Therr's name and icon, on an app with no habits surface at all. The Habits app
+ * gets nothing. It is the same "advertised a different product" failure
+ * `BRAND_EXCLUDED_NOTIFICATION_TYPES` exists to prevent, in the other direction.
+ *
+ * This previously only warned and sent anyway, reasoning that "a broken deep link
+ * beats no notification" — which held only if the push still reached the Habits
+ * app. It does not. Blocking makes the real fault (a caller that lost its
+ * `x-brand-variation` header — the gateway forwards it as `''` when absent, see
+ * `handleServiceRequest.ts`, and `getBrandContext` then defaults to THERR)
+ * visible as a routing failure instead of delivering to the wrong product.
+ */
+const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
+    PushNotifications.Types.pactInvitation,
+    PushNotifications.Types.pactNudge,
+    PushNotifications.Types.pactAccepted,
+    PushNotifications.Types.pactDeclined,
+    PushNotifications.Types.pactCompleted,
+    PushNotifications.Types.pactExpiring,
+    PushNotifications.Types.pactEnded,
+    PushNotifications.Types.partnerCheckedIn,
+    PushNotifications.Types.partnerMissedDay,
+    PushNotifications.Types.partnerCelebrated,
+    PushNotifications.Types.streakMilestone,
+    PushNotifications.Types.streakAtRisk,
+    PushNotifications.Types.streakBroken,
+    PushNotifications.Types.streakFreezeUsed,
+    PushNotifications.Types.newPersonalRecord,
+    PushNotifications.Types.dailyHabitReminder,
+    PushNotifications.Types.morningMotivation,
+    PushNotifications.Types.eveningCheckIn,
+    PushNotifications.Types.habitEstablished,
+    PushNotifications.Types.habitAutomaticity,
+    PushNotifications.Types.habitMaintenanceCheckIn,
+    PushNotifications.Types.habitComeback,
+]);
+
+export const isHabitsOnlyType = (type: PushNotifications.Types): boolean => HABITS_ONLY_TYPES.has(type);
+
+export const isTypeAllowedForBrand = (
+    type: PushNotifications.Types,
+    brandVariation: BrandVariations,
+): boolean => {
+    if (isHabitsOnlyType(type) && brandVariation !== BrandVariations.HABITS) {
+        return false;
+    }
+    return !BRAND_EXCLUDED_NOTIFICATION_TYPES[brandVariation]?.has(type);
+};
 
 const getApnsTopic = (brandVariation: BrandVariations) => getBrandAppIdentity(brandVariation).iosApnsTopic;
 
@@ -538,11 +725,61 @@ const createMessage = (
         type,
         timestamp: Date.now().toString(), // values must be strings!
     };
+    // FCM's `data` map is string->string, and firebase-admin enforces it client
+    // side: `validateMessage` throws "data must only contain string values" for
+    // ANY non-string value, before the message reaches Google.
+    //
+    // This loop used to copy every non-object value through verbatim, which is
+    // wrong for exactly the values that reach it in practice. The callers build
+    // their `data` literal with a fixed key set (`area`, `groupId`, `postType`,
+    // `thought`, ...) and simply leave the irrelevant ones `undefined` — and
+    // `typeof undefined` is 'undefined', not 'object', so those keys arrived
+    // here as real `undefined` values and failed the whole send. Numbers had
+    // the same problem. Because `predictAndSendNotification` swallows the throw
+    // and the route still answered 201, the queue then recorded the row as
+    // 'sent': 77 pushes were discarded this way in one 30-day window against 19
+    // that actually went out.
+    //
+    // So: drop null/undefined rather than forwarding them, and coerce whatever
+    // is left to a string.
     Object.keys(data).forEach((key) => {
-        if (typeof data[key] === 'object') {
-            modifiedData[key] = JSON.stringify(data[key]);
-        } else {
-            modifiedData[key] = data[key];
+        const value = data[key];
+        if (value === null || value === undefined) {
+            return;
+        }
+        modifiedData[key] = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    });
+
+    // Routing identifiers, promoted from `config` into the FCM data map.
+    //
+    // `config` is the *copy* payload — it never reaches the device. Everything
+    // the client needs to act on a notification has to be in `data`, and these
+    // three were not: `pactId` and `habitGoalId` were carried all the way from
+    // the producer, used to render the body, and then dropped. That is why
+    // tapping a habits notification could only ever open a list — the payload
+    // named no destination — and it is what the one-press check-in needs, since
+    // the action POSTs `habitGoalId` to /habits/checkins.
+    //
+    // Set here rather than per case so a new habits type inherits routing for
+    // free, and only when present: FCM rejects a data map holding undefined
+    // (see the coercion loop above), and an empty string is a value the client
+    // would have to special-case.
+    const routingIds: Record<string, unknown> = {
+        habitGoalId: config.habitGoalId,
+        pactId: config.pactId,
+        habitCount: config.habitCount,
+        // Not an identifier, but the renewal flow needs it for the same reason
+        // the ids are here: the confirmation names the cycle it is about to
+        // start ("another 30 days"), and a plan that states its own when is
+        // what the implementation-intention literature finds effective. The
+        // server re-reads the real value from the pact when renewing, so this
+        // is display-only and a stale one cannot create a wrong cycle.
+        durationDays: config.durationDays,
+    };
+    Object.keys(routingIds).forEach((key) => {
+        const value = routingIds[key];
+        if (value !== null && value !== undefined && value !== '') {
+            modifiedData[key] = String(value);
         }
     });
 
@@ -887,25 +1124,85 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'NEW_THOUGHT_REPLY_RECEIVED'), brandVariation);
             return baseMessage;
+        case PushNotifications.Types.newThoughtRepostReceived:
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.newThoughtRepostReceived.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.newThoughtRepostReceived.body', {
+                        userName: String(config.fromUserName || ''),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.thoughtView,
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: PushNotifications.PressActionIds.thoughtView,
+                            title: translate(config.userLocale, 'notifications.newThoughtRepostReceived.pressActionView'),
+                        },
+                    ]),
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'NEW_THOUGHT_REPOST_RECEIVED'), brandVariation);
+            return baseMessage;
 
         // HABITS — Streak framing & pact lifecycle.
         // These notifications are HABITS' core retention loop. Loss-aversion
         // copy ("Don't break your N-day streak") and partner-anchored copy
         // ("Sam just hit Day N — don't let them lap you") consistently
         // out-perform generic reminders for habit apps.
-        case PushNotifications.Types.streakAtRisk:
+        case PushNotifications.Types.streakAtRisk: {
+            // Loss aversion, but stated inside the rule the app actually plays
+            // by. Warning that a streak is on the line while quietly holding a
+            // freeze that covers tonight teaches the user the threat is
+            // overstated; naming the freeze is what makes "build in the miss" a
+            // rule agreed in advance rather than a surprise.
+            const atRiskFreezesRemaining = Number(config.freezesRemaining || 0);
             baseMessage = createDataOnlyMessage({
                 data: {
                     ...modifiedData,
                     notificationTitle: translate(config.userLocale, 'notifications.streakAtRisk.title'),
-                    notificationBody: translate(config.userLocale, 'notifications.streakAtRisk.body', {
-                        streakCount: Number(config.streakCount || 0),
-                        habitName: String(config.habitName || ''),
-                    }),
+                    notificationBody: translate(
+                        config.userLocale,
+                        // The digest rolls a user's whole day into one nudge, so
+                        // this can now cover several habits at once. The plural
+                        // body drops the freeze clause: a freeze count is
+                        // per-habit and means nothing spread across three.
+                        selectCheckinNudgeBodyKey(
+                            type,
+                            config.habitCount,
+                            selectStreakAtRiskBodyKey(atRiskFreezesRemaining),
+                        ),
+                        {
+                            streakCount: Number(config.streakCount || 0),
+                            habitName: String(config.habitName || ''),
+                            habitCount: Number(config.habitCount || 1),
+                            habitNames: formatHabitNames(config.habitNames),
+                            freezesRemaining: atRiskFreezesRemaining,
+                        },
+                    ),
                     notificationPressActionId: PushNotifications.PressActionIds.checkinView,
+                    notificationLinkPressActions: buildCheckinPressActions(config.userLocale, config),
                 },
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'STREAK_AT_RISK'), brandVariation);
+            return baseMessage;
+        }
+        case PushNotifications.Types.streakFreezeUsed:
+            // A real notification rather than data-only: this one is worth a
+            // tray entry the user can come back to. It is the only moment the
+            // safety net is visible, and it lands on a day the user did nothing
+            // wrong, so it must read as reassurance and not as a warning.
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, 'notifications.streakFreezeUsed.title'),
+                notificationBody: translate(config.userLocale, 'notifications.streakFreezeUsed.body', {
+                    streakCount: Number(config.streakCount || 0),
+                    habitName: String(config.habitName || ''),
+                    freezesRemaining: Number(config.freezesRemaining || 0),
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
             return baseMessage;
         case PushNotifications.Types.streakBroken:
             baseMessage = createNotificationMessage({
@@ -1001,6 +1298,9 @@ const createMessage = (
                         consistencyPercent: Number(config.consistencyPercent || 0),
                     }),
                     notificationPressActionId: PushNotifications.PressActionIds.streakView,
+                    // A maintenance check-in asks "are you still doing this?" —
+                    // answering it from the tray is the cheapest possible yes.
+                    notificationLinkPressActions: buildCheckinPressActions(config.userLocale, config),
                 },
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'STREAK_MILESTONE'), brandVariation);
@@ -1038,28 +1338,44 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'NEW_PERSONAL_RECORD'), brandVariation);
             return baseMessage;
-        case PushNotifications.Types.partnerCheckedIn:
+        // The three `partner*` titles interpolate {partnerName}. `translate`
+        // only substitutes params it is handed (see
+        // therr-js-utilities/src/localization.ts), so calling it without them —
+        // as all three of these did — shipped the literal braces to the
+        // notification tray: "{partnerName} Just Checked In".
+        case PushNotifications.Types.partnerCheckedIn: {
+            const checkedInPartnerName = String(config.partnerName || config.fromUserName || '');
             baseMessage = createDataOnlyMessage({
                 data: {
                     ...modifiedData,
-                    notificationTitle: translate(config.userLocale, 'notifications.partnerCheckedIn.title'),
+                    notificationTitle: translate(config.userLocale, 'notifications.partnerCheckedIn.title', {
+                        partnerName: checkedInPartnerName,
+                    }),
                     notificationBody: translate(config.userLocale, 'notifications.partnerCheckedIn.body', {
-                        partnerName: String(config.partnerName || config.fromUserName || ''),
+                        partnerName: checkedInPartnerName,
                         streakCount: Number(config.streakCount || 0),
                         habitName: String(config.habitName || ''),
                     }),
                     notificationPressActionId: PushNotifications.PressActionIds.pactView,
+                    // "don't let them lap you" is a call to check in, so the
+                    // notification should let the user do exactly that. The
+                    // action only renders when the payload named one habit goal.
+                    notificationLinkPressActions: buildCheckinPressActions(config.userLocale, config),
                 },
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'PARTNER_CHECKED_IN'), brandVariation);
             return baseMessage;
-        case PushNotifications.Types.partnerMissedDay:
+        }
+        case PushNotifications.Types.partnerMissedDay: {
+            const missedDayPartnerName = String(config.partnerName || config.fromUserName || '');
             baseMessage = createDataOnlyMessage({
                 data: {
                     ...modifiedData,
-                    notificationTitle: translate(config.userLocale, 'notifications.partnerMissedDay.title'),
+                    notificationTitle: translate(config.userLocale, 'notifications.partnerMissedDay.title', {
+                        partnerName: missedDayPartnerName,
+                    }),
                     notificationBody: translate(config.userLocale, 'notifications.partnerMissedDay.body', {
-                        partnerName: String(config.partnerName || config.fromUserName || ''),
+                        partnerName: missedDayPartnerName,
                         habitName: String(config.habitName || ''),
                     }),
                     notificationPressActionId: PushNotifications.PressActionIds.pactView,
@@ -1067,19 +1383,24 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'PARTNER_MISSED_DAY'), brandVariation);
             return baseMessage;
-        case PushNotifications.Types.partnerCelebrated:
+        }
+        case PushNotifications.Types.partnerCelebrated: {
+            const celebratedPartnerName = String(config.partnerName || config.fromUserName || '');
             baseMessage = createDataOnlyMessage({
                 data: {
                     ...modifiedData,
-                    notificationTitle: translate(config.userLocale, 'notifications.partnerCelebrated.title'),
+                    notificationTitle: translate(config.userLocale, 'notifications.partnerCelebrated.title', {
+                        partnerName: celebratedPartnerName,
+                    }),
                     notificationBody: translate(config.userLocale, 'notifications.partnerCelebrated.body', {
-                        partnerName: String(config.partnerName || config.fromUserName || ''),
+                        partnerName: celebratedPartnerName,
                     }),
                     notificationPressActionId: PushNotifications.PressActionIds.pactView,
                 },
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'PARTNER_CELEBRATED'), brandVariation);
             return baseMessage;
+        }
         case PushNotifications.Types.pactInvitation:
             baseMessage = createDataOnlyMessage({
                 data: {
@@ -1183,18 +1504,65 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'PACT_EXPIRING'), brandVariation);
             return baseMessage;
-        case PushNotifications.Types.dailyHabitReminder:
-            baseMessage = createNotificationMessage({
-                data: modifiedData,
+        case PushNotifications.Types.pactEnded:
+            // Data-only so the renew button can exist at all: Android renders
+            // action buttons from Notifee, and Notifee only sees a message that
+            // arrives as data. Same constraint that moved `dailyHabitReminder`
+            // off the display path.
+            //
+            // DEPLOY ORDER: an installed app that does not yet declare the
+            // PACT_ENDED intent action ignores this entirely, and one that
+            // declares it but has no handler for `renew-pact` opens the app
+            // without renewing. Neither errors. Ship the niche/HABITS-general
+            // half before this reaches production traffic.
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.pactEnded.title', {
+                        habitName: String(config.habitName || ''),
+                    }),
+                    notificationBody: translate(config.userLocale, 'notifications.pactEnded.body', {
+                        durationDays: Number(config.durationDays || 0),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.pactView,
+                    notificationLinkPressActions: buildPactEndedPressActions(config.userLocale, config),
+                },
                 deviceToken: config.deviceToken,
-                brandVariation,
-                notificationTitle: translate(config.userLocale, 'notifications.dailyHabitReminder.title'),
-                notificationBody: translate(config.userLocale, 'notifications.dailyHabitReminder.body', {
-                    habitName: String(config.habitName || ''),
-                }),
-                channelId: AndroidChannelId.reminders,
-            });
-            baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'DAILY_HABIT_REMINDER');
+            }, getAppBrandingClickAction(brandVariation, 'PACT_ENDED'), brandVariation);
+            return baseMessage;
+        case PushNotifications.Types.dailyHabitReminder:
+            // Data-only, where this used to be an OS-rendered notification.
+            // Action buttons are the reason: Android renders them from Notifee,
+            // and Notifee only ever sees a message that arrives as data
+            // (`TherrMobile/index.js` matches on `clickActionId`). A reminder
+            // the user can satisfy from the tray is the whole point of the
+            // change, and it cannot be done on the display path.
+            //
+            // DEPLOY ORDER: the channel now comes from the client's
+            // `getAndroidChannelFromClickActionId` instead of the `channelId`
+            // named here, so `DAILY_HABIT_REMINDER` must be in
+            // `REMINDER_ACTION_KEYS` (TherrMobile/main/constants/index.tsx,
+            // niche/HABITS-general) or an installed app posts this on the
+            // DEFAULT-importance "General" channel with no heads-up banner.
+            // Ship the mobile release first.
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.dailyHabitReminder.title'),
+                    notificationBody: translate(
+                        config.userLocale,
+                        selectCheckinNudgeBodyKey(type, config.habitCount, 'notifications.dailyHabitReminder.body'),
+                        {
+                            habitName: String(config.habitName || ''),
+                            habitCount: Number(config.habitCount || 1),
+                            habitNames: formatHabitNames(config.habitNames),
+                        },
+                    ),
+                    notificationPressActionId: PushNotifications.PressActionIds.checkinView,
+                    notificationLinkPressActions: buildCheckinPressActions(config.userLocale, config),
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'DAILY_HABIT_REMINDER'), brandVariation);
             return baseMessage;
         case PushNotifications.Types.morningMotivation:
             baseMessage = createNotificationMessage({
@@ -1207,17 +1575,55 @@ const createMessage = (
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'MORNING_MOTIVATION');
             return baseMessage;
-        case PushNotifications.Types.eveningCheckIn:
-            baseMessage = createNotificationMessage({
-                data: modifiedData,
+        case PushNotifications.Types.eveningCheckIn: {
+            // The "last chance" escalation: the same warning as `streakAtRisk`,
+            // delivered mid-to-late in the *user's own* evening rather than at
+            // the digest's clock time. It is the second push a user can get in
+            // a day, so it has to earn it — the copy names the streak, the
+            // count and the freeze, and a body that could have been sent at any
+            // hour would not be worth sending at all.
+            //
+            // Data-only, where this used to be an OS-rendered notification, for
+            // the same reason `dailyHabitReminder` moved: Android renders
+            // action buttons from Notifee and Notifee only sees a message that
+            // arrives as data. A last-chance reminder the user can satisfy from
+            // the tray is precisely the point.
+            //
+            // DEPLOY ORDER: the channel now comes from the client's
+            // `getAndroidChannelFromClickActionId` rather than the `channelId`
+            // named here, so `EVENING_CHECK_IN` must be in `REMINDER_ACTION_KEYS`
+            // (TherrMobile/main/constants/index.tsx, niche/HABITS-general) in the
+            // shipped build or this posts on the DEFAULT-importance "General"
+            // channel with no heads-up banner. It already is, in the same
+            // release `dailyHabitReminder` is waiting on — so this adds no new
+            // ordering constraint, it inherits the existing one.
+            const eveningFreezesRemaining = Number(config.freezesRemaining || 0);
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.eveningCheckIn.title'),
+                    notificationBody: translate(
+                        config.userLocale,
+                        selectCheckinNudgeBodyKey(
+                            type,
+                            config.habitCount,
+                            selectFreezeAwareBodyKey('notifications.eveningCheckIn', eveningFreezesRemaining),
+                        ),
+                        {
+                            streakCount: Number(config.streakCount || 0),
+                            habitName: String(config.habitName || ''),
+                            habitCount: Number(config.habitCount || 1),
+                            habitNames: formatHabitNames(config.habitNames),
+                            freezesRemaining: eveningFreezesRemaining,
+                        },
+                    ),
+                    notificationPressActionId: PushNotifications.PressActionIds.checkinView,
+                    notificationLinkPressActions: buildCheckinPressActions(config.userLocale, config),
+                },
                 deviceToken: config.deviceToken,
-                brandVariation,
-                notificationTitle: translate(config.userLocale, 'notifications.eveningCheckIn.title'),
-                notificationBody: translate(config.userLocale, 'notifications.eveningCheckIn.body'),
-                channelId: AndroidChannelId.reminders,
-            });
-            baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'EVENING_CHECK_IN');
+            }, getAppBrandingClickAction(brandVariation, 'EVENING_CHECK_IN'), brandVariation);
             return baseMessage;
+        }
 
         default:
             return false;
@@ -1225,6 +1631,89 @@ const createMessage = (
 };
 
 // TODO: RDATA-3 - Add machine learning to predict whether to send push notification
+/**
+ * The types this service will actually hand to FCM.
+ *
+ * This replaces a ~120-line `if (type === X) return messaging.send(message)`
+ * chain that did nothing but test membership. It is a whitelist, not a
+ * formality: a type with a `createMessage` case but no entry here is built and
+ * then dropped, so keeping the two in sync is the difference between a
+ * notification existing and a notification being sent.
+ *
+ * `postVisitReviewReminder` and `reportConfirmed` are deliberately absent —
+ * they have no `createMessage` case either, so they are rejected one step
+ * earlier, with `unsupported-notification-type`.
+ */
+const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
+    PushNotifications.Types.achievementCompleted,
+    PushNotifications.Types.completeDraftReminder,
+    PushNotifications.Types.connectionRequestAccepted,
+    PushNotifications.Types.createAMomentReminder,
+    PushNotifications.Types.createYourProfileReminder,
+    PushNotifications.Types.dailyHabitReminder,
+    PushNotifications.Types.eveningCheckIn,
+    PushNotifications.Types.habitAutomaticity,
+    PushNotifications.Types.habitComeback,
+    PushNotifications.Types.habitEstablished,
+    PushNotifications.Types.habitMaintenanceCheckIn,
+    PushNotifications.Types.inviteFriendsReminder,
+    PushNotifications.Types.latestPostLikesStats,
+    PushNotifications.Types.latestPostViewcountStats,
+    PushNotifications.Types.leaderboardRankMilestone,
+    PushNotifications.Types.morningMotivation,
+    PushNotifications.Types.newAreasActivated,
+    PushNotifications.Types.newConnectionRequest,
+    PushNotifications.Types.newDirectMessage,
+    PushNotifications.Types.newGroupInvite,
+    PushNotifications.Types.newGroupMembers,
+    PushNotifications.Types.newGroupMessage,
+    PushNotifications.Types.newLikeReceived,
+    PushNotifications.Types.newPersonalRecord,
+    PushNotifications.Types.newSuperLikeReceived,
+    PushNotifications.Types.newThoughtReplyReceived,
+    PushNotifications.Types.newThoughtRepostReceived,
+    PushNotifications.Types.nudgeSpaceEngagement,
+    PushNotifications.Types.pactAccepted,
+    PushNotifications.Types.pactCompleted,
+    PushNotifications.Types.pactDeclined,
+    PushNotifications.Types.pactEnded,
+    PushNotifications.Types.pactExpiring,
+    PushNotifications.Types.pactInvitation,
+    PushNotifications.Types.pactNudge,
+    PushNotifications.Types.partnerCelebrated,
+    PushNotifications.Types.partnerCheckedIn,
+    PushNotifications.Types.partnerMissedDay,
+    PushNotifications.Types.proximityRequiredMoment,
+    PushNotifications.Types.proximityRequiredSpace,
+    PushNotifications.Types.streakAtRisk,
+    PushNotifications.Types.streakBroken,
+    PushNotifications.Types.streakFreezeUsed,
+    PushNotifications.Types.streakMilestone,
+    PushNotifications.Types.unclaimedAchievementsReminder,
+    PushNotifications.Types.unreadNotificationsReminder,
+]);
+
+// Keeps the two log call sites below from drifting apart, and keeps the four
+// strings greppable in one place — docs/PUSH_NOTIFICATIONS_DEBUGGING.md quotes
+// the real-send pair verbatim in its `gcloud logging read` query.
+const dryRunAwareLogMessage = (ok: boolean, isDryRun: boolean): string => {
+    if (isDryRun) {
+        return ok ? 'Push dry run validated' : 'Push dry run rejected';
+    }
+    return ok ? 'Push successfully sent' : 'Push not sent';
+};
+
+export interface IPredictAndSendOptions {
+    // Ask FCM to validate the message (credentials, envelope, token) without
+    // delivering it. Exists so a post-deploy check can exercise *this* function
+    // — the one production uses — rather than `sendMessageForBrandRaw`, which
+    // builds a different envelope and skips the SENDABLE_NOTIFICATION_TYPES gate
+    // below. See docs/PUSH_NOTIFICATIONS_DEBUGGING.md § Known sharp edges: a
+    // green raw-path check ran throughout the August 2026 outage because the
+    // envelope it validated was not the envelope production sends.
+    dryRun?: boolean;
+}
+
 const predictAndSendNotification = (
     type: PushNotifications.Types,
     data: PushNotifications.INotificationData,
@@ -1232,147 +1721,92 @@ const predictAndSendNotification = (
     metrics: INotificationMetrics | undefined,
     brandVariation: BrandVariations,
     headers?: InternalConfigHeaders,
-) => {
+    options?: IPredictAndSendOptions,
+): Promise<IRawSendResult> => {
+    const isDryRun = !!options?.dryRun;
     const message = createMessage(type, data, config, brandVariation);
     // Route sends through the brand's own Firebase project so FCM delivery
     // uses the correct APNS auth key / FCM credentials for this brand.
     const messaging = getAdminAppForBrand(brandVariation).messaging();
 
+    if (isHabitsOnlyType(type) && brandVariation !== BrandVariations.HABITS) {
+        // Blocked below by isTypeAllowedForBrand — see HABITS_ONLY_TYPES. Logged at
+        // error rather than warn because this is never benign: the brand picks the
+        // device token, so the only reason a habits type arrives under another brand
+        // is a producer that lost its `x-brand-variation` header, and the user
+        // silently gets this notification in the wrong app (or, now, not at all).
+        // The trace args are what identify that producer.
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: ['HABITS-only notification arrived under a non-HABITS brand — not routed. Caller lost x-brand-variation.'],
+            traceArgs: {
+                'pushNotification.type': String(type),
+                'pushNotification.brandVariation': String(brandVariation),
+                'user.id': config.userId,
+                // Whatever the caller did send, so the producer is identifiable from
+                // one log line rather than by correlating timestamps.
+                'request.brandVariationHeader': String(headers?.['x-brand-variation'] ?? ''),
+                'request.userIdHeader': String(headers?.['x-userid'] ?? ''),
+            },
+        });
+    }
+
     return Promise.resolve()
-        .then(() => {
-            if (!message) {
-                return;
-            }
-
-            // Automation
-            if (type === PushNotifications.Types.createYourProfileReminder) {
-                return messaging.send(message);
-            }
-            if (type === PushNotifications.Types.createAMomentReminder) {
-                return messaging.send(message);
-            }
-            if (type === PushNotifications.Types.completeDraftReminder) {
-                return messaging.send(message);
-            }
-            if (type === PushNotifications.Types.latestPostLikesStats) {
-                return messaging.send(message);
-            }
-            if (type === PushNotifications.Types.latestPostViewcountStats) {
-                return messaging.send(message);
-            }
-            if (type === PushNotifications.Types.unreadNotificationsReminder) {
-                return messaging.send(message);
-            }
-            if (type === PushNotifications.Types.unclaimedAchievementsReminder) {
-                return messaging.send(message);
-            }
-            if (type === PushNotifications.Types.inviteFriendsReminder) {
-                return messaging.send(message);
-            }
-
-            // Event Driven
-            if (type === PushNotifications.Types.achievementCompleted) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.leaderboardRankMilestone) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.connectionRequestAccepted) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newConnectionRequest) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newDirectMessage) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newGroupMessage) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newGroupMembers) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newGroupInvite) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newLikeReceived) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newSuperLikeReceived) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newAreasActivated) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.nudgeSpaceEngagement) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.proximityRequiredMoment) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.proximityRequiredSpace) {
-                return messaging.send(message);
-            }
-
-            if (type === PushNotifications.Types.newThoughtReplyReceived) {
-                return messaging.send(message);
-            }
-
-            // HABITS — Streak, partner, pact lifecycle, habit reminders
-            if (type === PushNotifications.Types.streakAtRisk
-                || type === PushNotifications.Types.streakBroken
-                || type === PushNotifications.Types.streakMilestone
-                || type === PushNotifications.Types.newPersonalRecord
-                || type === PushNotifications.Types.partnerCheckedIn
-                || type === PushNotifications.Types.partnerMissedDay
-                || type === PushNotifications.Types.partnerCelebrated
-                || type === PushNotifications.Types.pactInvitation
-                || type === PushNotifications.Types.pactNudge
-                || type === PushNotifications.Types.pactAccepted
-                || type === PushNotifications.Types.pactDeclined
-                || type === PushNotifications.Types.pactCompleted
-                || type === PushNotifications.Types.pactExpiring
-                || type === PushNotifications.Types.dailyHabitReminder
-                || type === PushNotifications.Types.morningMotivation
-                || type === PushNotifications.Types.eveningCheckIn
-                || type === PushNotifications.Types.habitEstablished
-                || type === PushNotifications.Types.habitAutomaticity
-                || type === PushNotifications.Types.habitMaintenanceCheckIn
-                || type === PushNotifications.Types.habitComeback) {
-                return messaging.send(message);
-            }
-
-            return null;
-        })
-        .then(() => {
-            if (message) {
-                logSpan({
-                    level: 'info',
-                    messageOrigin: 'API_SERVER',
-                    messages: ['Push successfully sent'],
-                    traceArgs: {
-                        'pushNotification.message': 'Push successfully sent',
-                        'pushNotification.messageData': message.data,
-                        'pushNotification.messageNotification': message.notification,
-                        'user.id': config.userId,
-                        'pushNotification.lastMomentNotificationDate': metrics?.lastMomentNotificationDate,
-                        'pushNotification.lastSpaceNotificationDate': metrics?.lastSpaceNotificationDate,
-                    },
+        .then((): Promise<IRawSendResult> => {
+            if (!isTypeAllowedForBrand(type, brandVariation)) {
+                return Promise.resolve({
+                    ok: false,
+                    errorCode: 'notification-type-not-routed-for-brand',
+                    errorMessage: `Type "${type}" is excluded for brand "${brandVariation}"`,
                 });
             }
+
+            if (!message) {
+                // No case in createMessage — nothing would ever be sent for this
+                // type. Previously this returned undefined and the route still
+                // answered 201, so the caller recorded a delivery.
+                return Promise.resolve({
+                    ok: false,
+                    errorCode: 'unsupported-notification-type',
+                    errorMessage: `createMessage returned false for type "${type}"`,
+                });
+            }
+
+            if (!SENDABLE_NOTIFICATION_TYPES.has(type)) {
+                return Promise.resolve({
+                    ok: false,
+                    errorCode: 'notification-type-not-routed',
+                    errorMessage: `Type "${type}" has a createMessage case but is not in SENDABLE_NOTIFICATION_TYPES`,
+                });
+            }
+
+            return messaging.send(message, isDryRun).then((messageId) => ({ ok: true, messageId }));
+        })
+        .then((result: IRawSendResult) => {
+            logSpan({
+                level: result.ok ? 'info' : 'error',
+                messageOrigin: 'API_SERVER',
+                // Dry runs get their own wording on purpose. The runbook's
+                // delivery-rate query greps for "Push successfully sent" /
+                // "Push not sent", and a post-deploy check firing on every
+                // release would otherwise show up as production traffic.
+                messages: [dryRunAwareLogMessage(result.ok, isDryRun)],
+                traceArgs: {
+                    'pushNotification.dryRun': isDryRun,
+                    'pushNotification.ok': result.ok,
+                    'error.code': result.errorCode,
+                    'error.message': result.errorMessage,
+                    'pushNotification.type': String(type),
+                    'pushNotification.messageData': message && message.data,
+                    'pushNotification.messageNotification': message && message.notification,
+                    'user.id': config.userId,
+                    'pushNotification.lastMomentNotificationDate': metrics?.lastMomentNotificationDate,
+                    'pushNotification.lastSpaceNotificationDate': metrics?.lastSpaceNotificationDate,
+                },
+            });
+
+            return result;
         })
         .catch((error) => {
             const fcmErrorCode = error?.code || error?.errorInfo?.code;
@@ -1383,11 +1817,15 @@ const predictAndSendNotification = (
                 level: 'error',
                 messageOrigin: 'API_SERVER',
                 messages: [
-                    tokenInvalid
-                        ? 'Invalid FCM device token — scheduling cleanup'
-                        : 'Failed to send push notification',
+                    // eslint-disable-next-line no-nested-ternary
+                    isDryRun
+                        ? 'Push dry run rejected'
+                        : (tokenInvalid
+                            ? 'Invalid FCM device token — scheduling cleanup'
+                            : 'Failed to send push notification'),
                 ],
                 traceArgs: {
+                    'pushNotification.dryRun': isDryRun,
                     'error.message': error?.message,
                     'error.code': fcmErrorCode,
                     'error.stack': error?.stack,
@@ -1401,10 +1839,26 @@ const predictAndSendNotification = (
                 },
             });
 
-            if (tokenInvalid && config.deviceToken) {
+            // Never mutate state on a dry run. A dry run is how a post-deploy
+            // check exercises this path, and it deliberately uses a bogus token
+            // — which `isInvalidTokenError` cannot distinguish from a real
+            // user's stale one. Left unguarded, a synthetic check would delete
+            // real device registrations and require those users to reopen the
+            // app before push worked again.
+            if (tokenInvalid && config.deviceToken && !isDryRun) {
                 // Fire-and-forget; helper swallows its own errors
                 clearInvalidDeviceToken(headers, targetUserId, config.deviceToken);
             }
+
+            // Still never rejects — the fan-out callers below depend on that.
+            // The outcome is *reported* instead, so a caller that needs to know
+            // (the notification queue worker, via the single-send route) can act
+            // on it while the request-path callers keep ignoring it.
+            return {
+                ok: false,
+                errorCode: fcmErrorCode || 'unknown',
+                errorMessage: error?.message || String(error),
+            };
         });
 };
 

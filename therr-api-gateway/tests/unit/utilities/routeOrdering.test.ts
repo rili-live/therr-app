@@ -132,13 +132,39 @@ describe('routeOrdering utility', () => {
     });
 
     describe('the real gateway router', () => {
-        it('exposes no unreachable routes', () => {
-            // Required lazily: the service routers read config and construct
-            // limiters at module load, so importing them is a side effect that
-            // should not run for the pure tests above.
-            // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-            const gatewayRouter = require('../../../src/routes').default;
+        let gatewayRouter: any;
 
+        // Required lazily: the service routers read config and construct
+        // limiters at module load, so importing them is a side effect that
+        // should not run for the pure tests above.
+        //
+        // In a hook, with its own budget, because the first require in the run
+        // compiles the whole route tree through ts-node and mocha charges that
+        // to the test that triggers it -- past the 2s default in CI. Today this
+        // file runs after tests/unit/routes/validationWiring.test.ts and hits a
+        // warm require cache; that ordering is not something to depend on.
+        before(function loadGatewayRouter(this: Mocha.Context) {
+            this.timeout(30000);
+            // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
+            gatewayRouter = require('../../../src/routes').default;
+        });
+
+        // The gateway names every route it proxies and has no wildcard, so a
+        // users-service route with no entry here 404s at the edge while the
+        // service, the shared client and their tests are all green. That is how
+        // `GET /habits/checkins/:id/proofs` shipped unreachable: the handler,
+        // the router entry, the therr-react service method and the redux action
+        // all existed, and nothing that ran could see the missing hop.
+        it('proxies every habits check-in route the shared client calls', () => {
+            const paths = collectRoutes(gatewayRouter)
+                .filter((route) => route.method === 'get')
+                .map((route) => route.path);
+
+            expect(paths).to.include('/users-service/habits/checkins/:id/proofs');
+            expect(paths).to.include('/users-service/habits/checkins/:id');
+        });
+
+        it('exposes no unreachable routes', () => {
             const routes = collectRoutes(gatewayRouter);
 
             // Guards against the check silently passing because it collected nothing.

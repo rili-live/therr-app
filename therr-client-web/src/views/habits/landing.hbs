@@ -133,6 +133,68 @@
             color: var(--habits-text-muted);
             margin-top: 0.75rem;
         }
+        /* Founder offer. Rendered as a bordered card rather than a plain section so the
+           limited-availability offer reads as a distinct object on the page — it is the
+           one block here with a price and a deadline attached. */
+        .founder-card {
+            background: #fff;
+            border: 2px solid var(--habits-coral);
+            border-radius: 1rem;
+            padding: 2rem 1.5rem;
+            text-align: center;
+        }
+        .founder-badge {
+            display: inline-block;
+            background: var(--habits-coral);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 0.3125rem 0.75rem;
+            border-radius: 999px;
+            margin-bottom: 1rem;
+        }
+        section.founder h2 {
+            margin: 0 0 0.75rem;
+            font-size: 1.75rem;
+        }
+        .founder-lede {
+            color: var(--habits-text-muted);
+            max-width: 480px;
+            margin: 0 auto 1.5rem;
+        }
+        .founder-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 auto 1.5rem;
+            max-width: 420px;
+            display: grid;
+            gap: 0.75rem;
+            text-align: left;
+        }
+        .founder-list li {
+            padding-left: 1.75rem;
+            position: relative;
+            color: var(--habits-text-muted);
+            font-size: 0.9375rem;
+        }
+        .founder-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.45em;
+            width: 0.625rem;
+            height: 0.625rem;
+            border-radius: 50%;
+            background: var(--habits-coral);
+        }
+        .founder-note {
+            font-size: 0.8125rem;
+            color: var(--habits-text-muted);
+            margin: 0 auto;
+            max-width: 460px;
+        }
         section {
             padding: 3rem 0;
             border-top: 1px solid var(--habits-border);
@@ -250,6 +312,16 @@
             margin: 0;
             color: var(--habits-text-muted);
         }
+        section.featured {
+            padding: 2rem 0;
+            text-align: center;
+        }
+        section.featured a { display: inline-block; line-height: 0; }
+        section.featured img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
         footer.site-footer {
             padding: 2rem 0 3rem;
             border-top: 1px solid var(--habits-border);
@@ -332,6 +404,7 @@
           "applicationCategory": "LifestyleApplication",
           "applicationSubCategory": "Habit Tracker",
           "operatingSystem": "Android 8.0 and up",
+          "releaseNotes": "Now generally available on the Google Play production track.",
           "installUrl": "https://play.google.com/store/apps/details?id=com.therr.habits",
           "downloadUrl": "https://play.google.com/store/apps/details?id=com.therr.habits",
           "screenshot": "https://habits.therr.com/assets/images/habits-og-image.png",
@@ -344,12 +417,29 @@
             "Push notifications when your partner checks in or misses",
             "Partner activity feed"
           ],
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD",
-            "availability": "https://schema.org/InStock"
-          },
+          "offers": [
+            {
+              "@type": "Offer",
+              "name": "Free",
+              "description": "Free to install and use, tracking up to 5 active habits at a time.",
+              "price": "0",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Founder free-for-life unlock",
+              "description": "A one-time $20 purchase, limited to the first 5,000 accounts, that removes the habit limit and includes every premium feature for life. Sold in the app through Google Play Billing.",
+              "price": "20",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/LimitedAvailability",
+              "eligibleQuantity": {
+                "@type": "QuantitativeValue",
+                "value": 5000,
+                "unitText": "accounts"
+              }
+            }
+          ],
           "publisher": { "@id": "https://www.therr.app/#organization" }
         },
         {
@@ -370,7 +460,15 @@
               "name": "Is Friends with Habits free?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Yes. Friends with Habits is free to download and free to use. It is currently in open testing on Google Play, so anyone can install it without a waitlist or an invite code."
+                "text": "Yes. Friends with Habits is free to download and free to use, with no waitlist, no invite code and no card. A free account tracks up to 5 active habits at a time, and archiving a habit you have finished with frees a slot back up."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What is the founder free-for-life unlock?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The first 5,000 accounts can pay $20 once and never pay again. The founder unlock removes the 5-habit limit and includes every premium feature we add later, for life. There is no subscription attached to it and nothing to cancel. You buy it inside the app through Google Play, and once 5,000 people have claimed it the offer is gone for good."
               }
             },
             {
@@ -418,6 +516,7 @@
       ]
     }
     </script>
+    {{> habitsAnalytics}}
 </head>
 <body>
     <header class="site-header">
@@ -439,7 +538,8 @@
                     because Handlebars escapes '=' in an attribute to &#x3D;.
                 -->
                 <a class="cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get it on Google Play</a>
-                <div class="cta-note">Free to install &mdash; currently in open testing on Google Play. iOS coming next.</div>
+                <div class="cta-note">Free to install &mdash; now available to everyone on Google Play. iOS coming next.</div>
+                <div class="cta-note"><strong>Founding member offer:</strong> the first 5,000 accounts get every paid feature free for life for a one-time $20.</div>
             </div>
         </section>
 
@@ -447,7 +547,7 @@
             <div class="container">
                 <h2>What is Friends with Habits?</h2>
                 <p>Friends with Habits is a habit-tracking app that requires an accountability partner. Instead of tracking a habit alone, you make a pact with a friend: you both commit to the same daily habit, you both check in with proof, and you both see it when the other one misses.</p>
-                <p>It is free, made by <a href="https://www.therr.app/" rel="noopener">Therr, Inc.</a>, and available on Android through Google Play while an iOS version is in the works.</p>
+                <p>It is free, made by <a href="https://www.therr.app/" rel="noopener">Therr, Inc.</a>, and out now on Android through Google Play while an iOS version is in the works.</p>
             </div>
         </section>
 
@@ -504,7 +604,31 @@
                     <li><strong>Check-ins carry proof.</strong> Every daily check-in takes a photo or a note, so a streak is evidence rather than a tap.</li>
                     <li><strong>The streak is shared.</strong> You and your partner are on the same streak, so a missed day costs both of you — the reason it is uncomfortable is the reason it works.</li>
                     <li><strong>It is free to start.</strong> No waitlist, no invite code, no card. Install it and make your first pact.</li>
+                    <li><strong>No subscription to sign up for.</strong> Free accounts track 5 active habits. The first 5,000 accounts can lift that permanently with a one-time $20 founder unlock instead of a monthly bill.</li>
                 </ul>
+            </div>
+        </section>
+
+        <!--
+            Founder offer. Deliberately says "in the app" and carries no purchase link:
+            the unlock is sold through Google Play Billing (see
+            docs/niche-sub-apps/habits/HABITS_PAYMENT_WORKFLOW.md), and pointing at an
+            external checkout for in-app digital content is the Play policy problem that
+            rail was chosen to avoid. This block advertises the offer; Play collects it.
+        -->
+        <section class="founder">
+            <div class="container">
+                <div class="founder-card">
+                    <div class="founder-badge">Founding member offer</div>
+                    <h2>$20 once. Free for life.</h2>
+                    <p class="founder-lede">The first 5,000 accounts can unlock everything permanently for a single $20 payment. No subscription, no renewal, nothing to cancel.</p>
+                    <ul class="founder-list">
+                        <li>No cap on active habits &mdash; free accounts track 5 at a time</li>
+                        <li>Every premium feature we ship later, included</li>
+                        <li>Yours for life, on every device you sign in on</li>
+                    </ul>
+                    <p class="founder-note">Available inside the app through Google Play. When 5,000 people have claimed it, the offer is gone.</p>
+                </div>
             </div>
         </section>
 
@@ -513,7 +637,11 @@
                 <h2>Frequently asked questions</h2>
                 <div class="faq-item">
                     <h3>Is Friends with Habits free?</h3>
-                    <p>Yes. Friends with Habits is free to download and free to use. It is currently in open testing on Google Play, so anyone can install it without a waitlist or an invite code.</p>
+                    <p>Yes. Friends with Habits is free to download and free to use, with no waitlist, no invite code and no card. A free account tracks up to 5 active habits at a time, and archiving a habit you have finished with frees a slot back up.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>What is the founder free-for-life unlock?</h3>
+                    <p>The first 5,000 accounts can pay $20 once and never pay again. The founder unlock removes the 5-habit limit and includes every premium feature we add later, for life. There is no subscription attached to it and nothing to cancel. You buy it inside the app through Google Play, and once 5,000 people have claimed it the offer is gone for good.</p>
                 </div>
                 <div class="faq-item">
                     <h3>What is a pact?</h3>
@@ -535,6 +663,32 @@
                     <h3>Who makes Friends with Habits?</h3>
                     <p>Friends with Habits is built by Therr, Inc., the company behind the <a href="https://www.therr.app/" rel="noopener">Therr app</a> for local discovery and community. The two apps share one account system, so a single Therr login works for both.</p>
                 </div>
+            </div>
+        </section>
+
+        <!--
+            LaunchKiwi launch-directory badge. Two things this depends on:
+
+              1. launchkiwi.com must stay in the CSP img-src allowlist in
+                 server-client.tsx. Helmet's CSP only applies outside development,
+                 so a missing entry looks fine locally and renders a broken image
+                 in production with nothing on the page to say why.
+              2. The srcset swap is keyed on the visitor's OS theme, not the page's:
+                 this template has no dark palette, so a dark-mode visitor gets the
+                 dark badge on the light page. Pin the img to badge-light.svg and
+                 drop the <source> if that ever reads wrong.
+
+            width/height are kept on the img so the badge reserves its layout box
+            and does not shove the footer down as the SVG loads.
+        -->
+        <section class="featured">
+            <div class="container">
+                <a href="https://launchkiwi.com/p/friends-with-habits" target="_blank" rel="noopener">
+                    <picture>
+                        <source srcset="https://launchkiwi.com/badge-dark.svg" media="(prefers-color-scheme: dark)">
+                        <img src="https://launchkiwi.com/badge-light.svg" alt="Featured on LaunchKiwi" width="198" height="62">
+                    </picture>
+                </a>
             </div>
         </section>
     </main>

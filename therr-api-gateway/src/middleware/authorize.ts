@@ -1,6 +1,5 @@
 import handleHttpError from '../utilities/handleHttpError';
 
-// eslint-disable-next-line no-shadow
 export enum AccessCheckType {
     ALL = 'all', // User has all of the access levels from the check
     ANY = 'any', // User has at least one of the access levels from the check

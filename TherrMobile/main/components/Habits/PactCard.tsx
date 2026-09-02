@@ -3,6 +3,8 @@ import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { IPact, IPactMember } from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
+import { getCheckedInToday } from './PactMemberRow';
+import { isPactRenewable } from '../../routes/Habits/pactState';
 
 interface IPactCardProps {
     pact: IPact;
@@ -14,6 +16,11 @@ interface IPactCardProps {
     onAccept?: () => void;
     onDecline?: () => void;
     isRespondPending?: boolean;
+    // Supplying this renders the re-commit CTA on a pact whose cycle has ended.
+    // Omitted where a renewal has nowhere to land (another user's profile), so
+    // the card stays read-only there.
+    onRenew?: () => void;
+    isRenewPending?: boolean;
     themeHabits: {
         colors: ITherrThemeColors;
         styles: any;
@@ -21,11 +28,33 @@ interface IPactCardProps {
     translate: (key: string, params?: any) => string;
 }
 
-const getStatusText = (
+/**
+ * Badge wording for a pact's status.
+ *
+ * `pending` is deliberately not rendered as the word "Pending". The dashboard's
+ * invite segment is also about pending things, so one screen carried the word
+ * twice with two meanings: the segment meant "waiting on you", the badge meant
+ * "not started yet". Both halves of a pending pact are named for whoever has to
+ * act instead — "Awaiting acceptance" for the sender, "Needs your reply" for the
+ * person holding the invite — which also makes the badge match the wording
+ * `SentInviteCard` already uses on the Sent segment.
+ *
+ * `isAwaitingMyResponse` comes from the caller because only it knows: a group
+ * pact can be `active` for the pact while this user's own member row is still an
+ * open invite (see `isPactInviteAwaitingResponse`).
+ */
+export const getStatusText = (
     status: string,
     translate: (key: string, params?: any) => string,
+    isAwaitingMyResponse: boolean,
 ): string => {
-    const known = ['pending', 'active', 'completed', 'abandoned', 'expired'];
+    if (status === 'pending') {
+        return isAwaitingMyResponse
+            ? translate('pages.pacts.status.needsYourReply')
+            : translate('pages.pacts.status.awaitingAcceptance');
+    }
+
+    const known = ['active', 'completed', 'abandoned', 'expired'];
     if (known.includes(status)) {
         return translate(`pages.pacts.status.${status}`);
     }
@@ -39,12 +68,15 @@ const PactCard: React.FC<IPactCardProps> = ({
     onAccept,
     onDecline,
     isRespondPending,
+    onRenew,
+    isRenewPending,
     themeHabits,
     translate,
 }) => {
     const currentUserMember = pact.members?.find((m) => m.userId === currentUserId);
     const partnerMember = pact.members?.find((m) => m.userId !== currentUserId);
     const showInviteActions = !!onAccept && !!onDecline;
+    const showRenewAction = !!onRenew && !showInviteActions && isPactRenewable(pact);
 
     // Badge surface, dot and label color move together — a tonal badge is only
     // legible when its foreground matches the tint it sits on.
@@ -72,21 +104,43 @@ const PactCard: React.FC<IPactCardProps> = ({
 
     const statusStyles = getStatusBadgeStyles();
 
-    const renderMemberComparison = (member: IPactMember | undefined, label: string) => (
-        <View style={themeHabits.styles.pactComparisonItem}>
-            <Text style={themeHabits.styles.pactComparisonValue}>
-                {member?.currentStreak || 0}
-            </Text>
-            <Text style={themeHabits.styles.pactComparisonLabel}>
-                {label}
-            </Text>
-            {member?.completionRate !== undefined && (
-                <Text style={themeHabits.styles.pactComparisonLabel}>
-                    {Math.round(member.completionRate)}%
+    const renderMemberComparison = (member: IPactMember | undefined, label: string) => {
+        // `undefined` means the server has not told us — see getCheckedInToday.
+        // Render nothing rather than an indicator that reads as "missed today".
+        const checkedInToday = member && getCheckedInToday(member);
+
+        return (
+            <View style={themeHabits.styles.pactComparisonItem}>
+                <Text style={themeHabits.styles.pactComparisonValue}>
+                    {member?.currentStreak || 0}
                 </Text>
-            )}
-        </View>
-    );
+                <Text style={themeHabits.styles.pactComparisonLabel}>
+                    {label}
+                </Text>
+                {member?.completionRate !== undefined && (
+                    <Text style={themeHabits.styles.pactComparisonLabel}>
+                        {Math.round(member.completionRate)}%
+                    </Text>
+                )}
+                {checkedInToday !== undefined && (
+                    <View style={themeHabits.styles.pactComparisonTodayRow}>
+                        <FontAwesome5Icon
+                            name={checkedInToday ? 'check-circle' : 'clock'}
+                            size={11}
+                            color={checkedInToday
+                                ? themeHabits.colors.alertSuccess
+                                : themeHabits.colors.textGray}
+                        />
+                        <Text style={themeHabits.styles.pactComparisonLabel}>
+                            {translate(checkedInToday
+                                ? 'pages.pacts.todayDone'
+                                : 'pages.pacts.todayPending')}
+                        </Text>
+                    </View>
+                )}
+            </View>
+        );
+    };
 
     return (
         <Pressable
@@ -101,7 +155,7 @@ const PactCard: React.FC<IPactCardProps> = ({
             <View style={[themeHabits.styles.pactCardStatusBadge, statusStyles.container]}>
                 <View style={[themeHabits.styles.pactCardStatusDot, { backgroundColor: statusStyles.dot }]} />
                 <Text style={[themeHabits.styles.pactCardStatusText, statusStyles.label]}>
-                    {getStatusText(pact.status, translate)}
+                    {getStatusText(pact.status, translate, showInviteActions)}
                 </Text>
             </View>
 
@@ -198,6 +252,37 @@ const PactCard: React.FC<IPactCardProps> = ({
                             </Text>
                         </Pressable>
                     </View>
+                </>
+            )}
+
+            {showRenewAction && (
+                <>
+                    <Text style={themeHabits.styles.pactCardInvitePrompt}>
+                        {translate('pages.pacts.renew.prompt')}
+                    </Text>
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={translate('pages.pacts.renew.cta', { days: pact.durationDays })}
+                        accessibilityState={{ disabled: !!isRenewPending }}
+                        disabled={isRenewPending}
+                        onPress={onRenew}
+                        style={({ pressed }) => [
+                            themeHabits.styles.pactCardInviteButton,
+                            themeHabits.styles.pactCardInviteButtonPrimary,
+                            pressed && themeHabits.styles.pactCardInviteButtonPressed,
+                        ]}
+                    >
+                        {isRenewPending
+                            ? <ActivityIndicator color={themeHabits.colors.onBrand} size="small" />
+                            : (
+                                <>
+                                    <FontAwesome5Icon name="redo" size={13} color={themeHabits.colors.onBrand} />
+                                    <Text style={themeHabits.styles.pactCardInviteButtonPrimaryText}>
+                                        {translate('pages.pacts.renew.cta', { days: pact.durationDays })}
+                                    </Text>
+                                </>
+                            )}
+                    </Pressable>
                 </>
             )}
         </Pressable>

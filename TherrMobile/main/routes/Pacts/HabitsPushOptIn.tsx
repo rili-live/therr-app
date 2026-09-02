@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text, Pressable } from 'react-native';
+import { ScrollView, View, Text, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IUserState } from 'therr-react/types';
@@ -74,7 +75,14 @@ class HabitsPushOptIn extends React.Component<IHabitsPushOptInProps> {
         return (
             <>
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-                <SafeAreaView style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}>
+                {/* `edges={['bottom']}`: Layout pads the header, but this screen has no
+                    ButtonMenu and its ScrollView runs to the bottom edge. React Native's
+                    own SafeAreaView is a no-op on Android, so that last row sat under the
+                    gesture handle. */}
+                <SafeAreaView
+                    edges={['bottom']}
+                    style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}
+                >
                     <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 48 }}>
                         <Text style={{ fontSize: 64, textAlign: 'center', marginBottom: 16 }}>{'🔔'}</Text>
                         <Text style={[this.themeHabits.styles.dashboardGreeting, { textAlign: 'center', fontSize: 24 }]}>

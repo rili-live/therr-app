@@ -52,7 +52,11 @@ const StreakWidget: React.FC<IStreakWidgetProps> = ({
         : 100;
     const emoji = streak.emoji || getStreakEmoji(streak.currentStreak);
     const graceDaysRemaining = streak.gracePeriodDays - streak.graceDaysUsed;
-    const hasGraceDays = streak.gracePeriodDays > 0 && graceDaysRemaining > 0;
+    // Rendered whether or not any are left. The count only means something
+    // alongside the rule it belongs to, and the moment the user most needs to
+    // know the net is gone is exactly the moment the old condition hid the line.
+    const hasFreezeAllowance = streak.gracePeriodDays > 0;
+    const hasGraceDays = hasFreezeAllowance && graceDaysRemaining > 0;
 
     const getRiskBadgeStyle = () => {
         switch (streak.riskLevel) {
@@ -163,11 +167,13 @@ const StreakWidget: React.FC<IStreakWidgetProps> = ({
                 </View>
             )}
 
-            {hasGraceDays && (
+            {hasFreezeAllowance && (
                 <Text style={[themeHabits.styles.streakMilestoneText, { marginTop: 8 }]}>
-                    {translate('pages.habits.streak.graceDaysRemaining', {
-                        count: streak.gracePeriodDays - streak.graceDaysUsed,
-                    })}
+                    {hasGraceDays
+                        ? translate('pages.habits.streak.graceDaysRemaining', {
+                            count: graceDaysRemaining,
+                        })
+                        : translate('pages.habits.streak.graceDaysExhausted')}
                 </Text>
             )}
         </View>

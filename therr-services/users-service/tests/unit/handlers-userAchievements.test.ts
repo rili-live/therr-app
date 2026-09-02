@@ -1,4 +1,3 @@
-/* eslint-disable quotes, max-len */
 /**
  * Regression tests for the public-read user achievements handler.
  *

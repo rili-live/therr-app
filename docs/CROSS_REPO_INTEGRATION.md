@@ -21,7 +21,7 @@ made *here*. Internal architecture is in [ARCHITECTURE.md](./ARCHITECTURE.md).
 | **therr-messaging-automator** | GCP Cloud Function (nodejs22): lifecycle email via AWS SES, push notifications, HABITS daily digest | **Direct Knex reads** on users/maps/reactions DBs + **HTTP call into users-service** over the VPC |
 | **therr-ai-automator** | GCP Cloud Function (nodejs22): scheduled AI content generation (thoughts, replies, reactions) via Anthropic/OpenAI | **Direct Knex reads and writes** on users/maps/reactions DBs |
 | **therr-infra-terraform** | GCP infra: Cloud Functions, Cloud Scheduler, VPC connector, Cloud SQL, reserved internal IPs, Secret Manager | Provisions the DB this repo's services use; owns the internal IP that `k8s/prod` pins |
-| **therr-landing** | Marketing site (therr.app), React 18 + Vite SSG behind nginx | Public API only — `POST /v1/users-service/subscribers/signup`. **Not coupled**; changes there cannot break the backend |
+| **therr-landing** | Marketing site (therr.app), React 18 + Vite SSG behind nginx | Public API only — `POST /v1/users-service/subscribers/signup` — plus a **build-time content export** that produces `therr-client-web/src/data/habitsBlogPosts.json` here (see § Habits blog cross-posts). Not coupled at runtime; changes there cannot break the backend |
 
 All four are separate deploy pipelines. Both automators auto-deploy on merge to their
 `main` (GitHub Actions → artifacts committed into `therr-infra-terraform` → `repository_dispatch`
@@ -58,6 +58,7 @@ Coupling surface, regenerated 2026-07-30:
 | `main.notifications` | ✅ | — |
 | `main.userAchievements` | ✅ | — |
 | `main.thoughts` / `main.thoughtReactions` | — | ✅ (writes) |
+| `main.userLocations` | — | ✅ (declared homes of bot accounts) |
 | `habits.habit_phases` | ✅ (**writes**) | — |
 | `habits.habit_goals` / `habits.streaks` | ✅ | — |
 
@@ -83,6 +84,42 @@ grep -rn "columnName" ~/Code/therr-messaging-automator/src/store \
 ```
 
 Then: add the new column → backfill → ship the consumer repos → *only then* drop the old one.
+
+### Rule: a bot's home city lives here, its local colour lives there
+
+> **Status (2026-08-22): the automator half is not built yet.** This repo's side has shipped —
+> the columns, the seeded bots with declared homes, and the distributor's local query. But
+> `therr-ai-automator` currently has no `src/config/locales.ts`, does not read
+> `main.userLocations`, and never writes `main.thoughts.latitude/longitude/locality`. Until it
+> does, the only location-tagged posts come from `detectLocality` on human posts. Read the rest
+> of this section as the contract to build against, not as a description of what runs today.
+
+Location-aware bots (seeded by `therr-services/users-service/src/store/seeds/006_local_bot_users.js`)
+have a declared home in `main.userLocations`. `therr-ai-automator` reads those coordinates
+each run and matches them against its own metro catalog (`src/config/locales.ts`) **by
+proximity, within 80km** — there is no shared city key, deliberately, so neither repo has to
+be redeployed because the other reworded a city name.
+
+What that means in practice:
+
+- Moving or deleting a seeded bot's `userLocations` row silently turns its local posts off.
+  Nothing errors; the bot just goes back to writing generic content.
+- Adding a metro takes **both** halves: a catalog entry there and a seeded bot with a home
+  inside its radius here. Either alone does nothing.
+- The automator writes `main.thoughts.latitude/longitude/locality` only on posts that are
+  actually about the city, and always as a complete coordinate pair. The distributor's local
+  candidate query filters on `latitude IS NOT NULL` and computes distance from both columns,
+  so a half pair would be a row claiming to be from somewhere while matching nothing.
+- **Bot posts do not go through the author-proximity check.** Human posts are only tagged
+  when the author is within 60km of the city they named (`detectLocality`), because post
+  text is user-controlled. The automator writes `main.thoughts` directly and never touches
+  `ThoughtsStore.create`, so that gate does not apply to it — its bots are trusted content
+  and are seeded with a declared home matching the city they write about anyway.
+- **The `locality` label must read the same on both sides.** Human posts get theirs from
+  `detectLocality` (`${name}, ${stateAbbr}` off the `Cities` catalog); bot posts get theirs
+  from the automator's `locales.ts` `name` field. Both spell it `"Chicago, IL"`. If one
+  repo restyles that label, the feed shows two spellings of one place — there is a parity
+  test in `therr-js-utilities/tests/detect-locality.test.ts`, but it can only see this repo.
 
 ### Rule: brand-scoping must be mirrored by hand
 
@@ -143,6 +180,24 @@ Cloud Scheduler → messaging-automator (GCF) → VPC connector → GKE internal
 Two internal LBs exist (7775 push-notifications, 7771 users-service) because a k8s Service
 routes all of its ports to one pod selector — 7775 could not be reused.
 
+**The digest's response shape is a coupling too.** `IHabitsDigestCounters` in the messaging
+repo mirrors what this handler returns, and every field there is optional so the two can be
+deployed independently — a new counter here logs as `undefined` on an older automator rather
+than breaking it. That only holds in one direction: *renaming* or repurposing an existing
+counter silently changes what that repo's Cloud Function logs, with nothing failing. The
+reminder-pass counters (`habitsEvaluated`, `dailyRemindersSent`, `remindersNotDue`) were added
+this way, as were the `pactsCapped` / `habitsCapped` booleans that say a run hit its LIMIT and
+left a tail unevaluated, and the local-scheduling counters (`lastChanceSent`,
+`lastChanceNotScheduled`, `lastChanceSkippedNoStreak`, `lastChanceMutedByPreference`,
+`remindersMutedByPreference`, `usersWithoutTimezone`).
+
+The digest also **ignores the `x-brand-variation` header it is sent** and files every
+notification under `habits`. The automator hardcodes `habits` for this call, so the two agree
+today; the pin exists because `habits.*` carries no `brandVariation` column at all, and
+honouring a wrong header would file habit reminders in another brand's partition of
+`main.notificationQueue` — deduping against the wrong keys, claimed by the wrong worker, with
+nothing failing. A mismatch is logged at warn level rather than rejected.
+
 **The `ipBlock` must be the node subnet, not the VPC connector range (`10.6.0.0/28`)**: the LB
 runs `externalTrafficPolicy: Cluster`, which SNATs the client to a node IP. Tightening it
 requires switching to `externalTrafficPolicy: Local`.
@@ -157,6 +212,17 @@ period-stamped dedupe keys (`streak-at-risk:<pactId>:<YYYY-MM-DD>`) behind a UNI
 timeout continuation costs a wasted read pass rather than a double-send to real users.
 The single Cloud Scheduler job (`0 9 * * *` America/Chicago) is still the intended trigger,
 but it is no longer the *only* thing standing between a retry and duplicate pushes.
+
+**That job is now a clock, not a delivery time — and moving it would be a regression.**
+The digest reads each user's `main.users.settingsTimezone` and queues rows with an explicit
+`scheduledFor`, so one firing produces two per-user slots: a morning streak-status nudge and
+an evening `eveningCheckIn` "last chance" reminder, each in the recipient's own local day.
+Rescheduling the job to "the evening" — which the backlog asked for while delivery still
+followed the firing — would only change *whose* decisions get made late in their own day.
+Worse, `America/Chicago` is also the fallback zone for a user whose timezone is not yet
+known, so changing the schedule silently moves those users' reminders. This is also why a
+fourth scheduler job was never the answer to wanting a second daily reminder: the free tier
+is 3 jobs and all 3 are in use (§ below), and the queue does the job better anyway.
 
 Two consequences for the automator side:
 
@@ -204,8 +270,64 @@ stages the emails mail on. Enable the chained path *or* a dedicated job, never b
 | Changing `k8s/prod` users-service ports, selector, or NetworkPolicy | Re-check the internal LB path in §3 |
 | Needing a new scheduled backend job | Multiplex onto an existing Cloud Function (§4), or budget for a paid job |
 | Adding a public API route the marketing site consumes | Coordinate with `therr-landing`; it pins absolute `api.therr.com/v1/...` URLs |
+| Editing `therr-client-web/src/data/habitsBlogPosts.json` | Don't — it is generated. Change the `habits` block in `therr-landing`'s `src/data/blog-posts.json` and re-run the export |
 
 Known gaps, in rough value order: no schema contract test (a test in each automator running
 its store queries against a migrated schema would be the highest-value gate available), no
 shared locale check across repos, no Renovate/Dependabot anywhere, no telemetry — so every
 failure above is currently found by a human noticing.
+
+---
+
+## Habits blog cross-posts (therr-landing → this repo)
+
+The only content coupling between the two repos, and the only one that is a
+**build-time file handoff rather than a shared database or an HTTP call**.
+
+### Why it exists
+
+therr.app's blog is the only organic channel that grows on its own (+58% over the
+60 days to 2026-08-24, from roughly a dozen posts). `habits.therr.com` — the
+domain that actually sells Friends with Habits — shipped with a three-URL sitemap
+and no content, while the habit-and-accountability posts that rank sat on the
+other domain.
+
+### How it works
+
+1. A post in `therr-landing/src/data/blog-posts.json` gains a `habits` block:
+   its own slug, title, description, excerpt, keywords, and an **adapted**
+   `bodyHtml`.
+2. `npm run export:habits-blog -- --out <path>` in therr-landing validates every
+   block and writes the consumable JSON.
+3. That file is committed here at `therr-client-web/src/data/habitsBlogPosts.json`,
+   **on `general`** — habits.therr.com is served by the production therr-client-web
+   pod, so a niche branch would never ship it.
+4. `therr-client-web/src/utilities/habitsBlog.ts` reads it; the habits middleware
+   in `server-client.tsx` serves `/blog` and `/blog/:slug`, and the habits
+   `sitemap.xml` is generated from the same list so a post can never be published
+   without a sitemap entry.
+
+### The rule that keeps this safe
+
+**A cross-post is not a copy.** Both the therr.app original and the habits version
+are self-canonical, so two near-identical pages on two domains compete, Google
+picks one, and the loser gets nothing — which would put the therr.app rankings
+that currently work at risk. The habits version must carry its own title, framing,
+opening and close, written for someone deciding whether to start a pact.
+
+`assertAdapted` in `therr-landing/scripts/export-habits-blog.ts` enforces this
+mechanically: it compares 5-word shingles between the two bodies and fails the
+export above 50% overlap. Pasting the original in does not "just work".
+
+### Cross-post a post when…
+
+…its subject is habit formation, accountability, streaks, or the friendships that
+carry them. Leave it on therr.app when it is about local discovery, businesses,
+creators, or privacy. Skip app-roundup listicles outright — Friends with Habits is
+one entry among ten in those, so there is no honest habits-first version.
+
+### Gotcha
+
+No CI in either repo checks this. Step 3 is manual, and a `habits` block edited in
+therr-landing changes nothing in production until the export is re-run and the
+regenerated JSON is committed here.

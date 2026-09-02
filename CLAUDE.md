@@ -23,6 +23,17 @@ branch to `main`. Only `general → stage → main` deploys. Code committed only
 `niche/*` branch is dead code — it runs locally, it shows in diffs, it never runs in
 production.
 
+`general → stage` builds and publishes `therrapp/<svc>-stage:<sha>` and records what it
+published, per service, in `VERSIONS.txt`. `stage → main` reads that ledger, compares each
+service's published tag against the tag actually running in the cluster, and rolls whatever
+differs. It refuses to deploy — before touching the cluster — when a published image is
+missing or predates the code being promoted, rather than deploying a stale version and
+reporting green. Full detail: [`docs/DEPLOY_PIPELINE.md`](docs/DEPLOY_PIPELINE.md).
+
+> `VERSIONS.txt` has exactly one writer: the publish job, on `stage`. Never hand-edit it,
+> and never resolve a merge conflict on it toward anything but the `stage` side — that file
+> is what decides which image version production runs.
+
 These paths **MUST** land on `general` to ever ship:
 
 - `therr-services/**`, `therr-api-gateway/**` — backend
@@ -96,7 +107,7 @@ Read the brief matching your branch early in a session:
 | `niche/<TAG>-general` | `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` |
 
 Teem is **shelved**; its brief is a stub. Friends With Habits is the active consumer bet
-and is in open testing.
+and is generally available on the Google Play production track.
 
 ## Commands
 
@@ -109,6 +120,9 @@ npm run test:changed     # test changed packages
 npm run locales:check    # locale dictionary parity across all packages
 npm run test:lint-rules  # unit tests for the custom ESLint rules
 npm run test:bin-scripts # unit tests for decision logic in _bin gate scripts
+npm run test:google-ads  # unit tests for the Google Ads tooling (needs PyYAML)
+npm run k8s:check-services # service registry vs k8s/prod manifests
+npm run k8s:check-waves    # rollout wave plan vs k8s/prod manifests
 ```
 
 Type-check and lint a specific package:
@@ -158,7 +172,7 @@ Most dependencies live in the root `package.json`. TherrMobile has its own.
 - **Node 24.12.0** (`.nvmrc`), npm 11+ (enforced by `_bin/prep.sh`)
 - **TypeScript** 5.9.x
 - **React** 18.2 (web) / 19.2 (mobile) — hooks and functional components, no class components
-- **React Native** 0.83.6, new architecture enabled
+- **React Native** 0.86.3, new architecture enabled
 - **Redux Toolkit** 2.5, React Router 6
 - Backend: Express + raw SQL via Knex (not an ORM), separate read/write pools per service
 
@@ -222,7 +236,7 @@ gateway. No CI in any repo checks these couplings.
 | Repo | Couples to this repo via |
 |---|---|
 | `therr-messaging-automator` | Direct Knex reads (users/maps/reactions) **and writes** (`habits.habit_phases` email watermarks) + `POST /v1/habits/pacts/digest/run-daily` on users-service over the VPC |
-| `therr-ai-automator` | Direct Knex reads **and writes** — it authors `main.thoughts` / `main.thoughtReactions` |
+| `therr-ai-automator` | Direct Knex reads **and writes** — it authors `main.thoughts` / `main.thoughtReactions`, and reads its bots' declared homes from `main.userLocations` |
 | `therr-infra-terraform` | Provisions Cloud SQL, the Cloud Functions, Cloud Scheduler, and the internal IP that `k8s/prod` pins |
 | `therr-landing` | Public API only (`/v1/users-service/subscribers/signup`) — not coupled |
 
@@ -305,7 +319,12 @@ session.
 
 Log session activity silently to today's daily log (goal, deliverables, decisions, open
 threads). Never announce that you logged something. `/memory-write` handles "remember
-this" / "forget about" requests and enforces the cap. Full protocol:
+this" / "forget about" requests and enforces the cap.
+
+For anything older than that — "what did we decide about X", "why is Y written this way",
+"have we hit this before" — use `/memory-recall` rather than reading through
+`context/memory/`. It searches the vector index in a forked context and returns only the
+findings. Never run `memsearch search` directly in the main context. Full protocol:
 `docs/MEMORY_SYSTEM_SETUP.md`.
 
 ## Other Documentation

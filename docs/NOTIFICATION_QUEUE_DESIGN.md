@@ -46,7 +46,8 @@ producers                  queue                     worker                sende
 ─────────                  ─────                     ──────                ──────
 handlers, digest  ──►  main.notificationQueue  ──►  users-service  ──►  push-notifications
 enqueueNotification()   (dedup + scheduledFor)      30s interval         -service
-                                                    daily cap
+                                                    daily cap +
+                                                    15-min spacing
       ▲
       │
 Cloud Scheduler ──► therr-messaging-automator ──► POST /habits/pacts/digest/run-daily
@@ -112,10 +113,22 @@ scale with the backlog, not with history.
 It must encode everything that makes the notification distinct **including its
 period**:
 
-- once-per-day → `streak-at-risk:<pactId>:2026-08-08`
+- once-per-day → `pact-expiring:<pactId>:2026-08-08`
 - once-per-event → `pact-accepted:<pactId>:<memberId>`
+- once-per-user-per-day → `checkin-nudge:2026-08-08`, with no id at all: the
+  recipient is already half of the unique constraint, so an id here can only
+  *widen* the key and let a duplicate through
 - **never** interpolate `Date.now()` or a random value — that makes every
   enqueue unique, which silently turns dedup off
+
+A key that is too narrow is the failure mode worth watching for. Check-in
+nudges were keyed per pact *and* per habit — `streak-at-risk:<pactId>:<date>`
+from the pact loop, `streak-at-risk:habit:<habitGoalId>:<date>` and
+`daily-habit-reminder:<habitGoalId>:<date>` from the reminder pass. Every key
+deduped correctly against itself and the user still received up to five copies
+of the same sentence, because the keys named different things. Deduplication
+cannot fix a producer that genuinely intends several notifications; the fix was
+to make the producer intend one (see `checkinNudgeRollup.ts`).
 
 Enqueue is `ON CONFLICT DO NOTHING` (not `DO UPDATE`): a re-run must not reset
 `scheduledFor` or resurrect a row already sent.
@@ -136,11 +149,20 @@ its own reaper. The happy path overwrites with `sent` moments later;
 
 `habitsDigest.ts` queues all three of its types instead of sending inline:
 
-| Type | dedupeKey |
-|---|---|
-| `pactExpiring` | `pact-expiring:<pactId>:<YYYY-MM-DD>` |
-| `streakAtRisk` | `streak-at-risk:<pactId>:<YYYY-MM-DD>` |
-| `partnerMissedDay` | `partner-missed-day:<pactId>:<missingMemberId>:<YYYY-MM-DD>` |
+| Type | dedupeKey | `scheduledFor` |
+|---|---|---|
+| `pactExpiring` | `pact-expiring:<pactId>:<YYYY-MM-DD>` | now |
+| `streakAtRisk` / `dailyHabitReminder` | `checkin-nudge:<YYYY-MM-DD>` | the user's local morning |
+| `eveningCheckIn` (the "last chance" nudge) | `last-chance:<YYYY-MM-DD>` | the user's local evening |
+| `partnerMissedDay` | `partner-missed-day:<pactId>:<missingMemberId>:<YYYY-MM-DD>` | now |
+
+The check-in nudge is one row per **user** per day, whichever of the two types
+it ends up as. Both the pact loop and the reminder pass record into an
+accumulator keyed on the habit goal, and the run drains it once at the end: the
+framing (`streakAtRisk` when any habit has a live streak, citing the longest
+one; `dailyHabitReminder` otherwise) can only be chosen after every habit at
+stake for that user is known. A nudge naming exactly one habit carries
+`habitGoalId`, which is what lets the notification offer a one-press check-in.
 
 Two things in that table are load-bearing and neither is obvious:
 
@@ -153,6 +175,59 @@ Two things in that table are load-bearing and neither is obvious:
   key costs nothing — but leaving out the *slipping* member means a pact where
   two partners both missed yesterday notifies the third member about only the
   first of them.
+
+### Send-time personalization (live)
+
+The digest is poked once a day at 14:00 UTC and used to queue everything with
+`scheduledFor = now()`, so its own comment — *"run it in the evening"* — was
+true in `America/Chicago` and nowhere else. Berlin got its *morning* nudge at
+16:00; Auckland got "check in before midnight" at 02:00, six hours after the
+midnight in question.
+
+`utilities/localReminderSchedule.ts` now turns one firing into two per-user
+instants, from `main.users.settingsTimezone` (written by the mobile client on
+every push registration) plus the three preference columns that had never been
+read by anything: `settingsPreferredReminderTime`, `settingsQuietHoursStart`,
+`settingsQuietHoursEnd`. Four rules, each of which is a case that would
+otherwise produce a bad push:
+
+1. **Never schedule into the past.** A slot whose local time has passed becomes
+   "as soon as possible", not "tomorrow" — a day's deferral would make the
+   streak counts stale before they were ever sent.
+2. **Never schedule inside quiet hours.** A morning slot that lands there moves
+   to the *end* of quiet hours: bounded by half a day, not a full one.
+3. **The evening slot may be dropped.** "Last chance to keep today's streak"
+   delivered tomorrow morning is nonsense, so when the local day has no room
+   left the correct output is no notification at all.
+4. **At least four hours between the two slots**, so a user whose morning nudge
+   was itself deferred to 18:00 is not told "last chance" at 19:30.
+
+A user with no stored timezone falls back to `America/Chicago` — the zone the
+scheduler already fires in — so they keep exactly the delivery time they have
+today, and the change is strictly additive.
+
+### Relevance expires: the send-time gate
+
+Deciding hours before sending creates a failure the queue had not had before.
+Every other row here is a fact — a partner checked in, a pact ended — and is
+still true tonight. A check-in nudge is a claim about something the user has
+**not yet done**, and in the hours between the digest and the evening slot most
+people do it. Sending "your 12-day streak is on the line" to someone who checked
+in at lunchtime teaches them the app does not know what they have done, which is
+how notifications get turned off for good.
+
+Nothing upstream can catch it: the producer was right when it queued the row and
+the send succeeds. So `utilities/checkinNudgeFreshness.ts` re-reads
+`habits.habit_checkins` in the worker, before the daily cap is consulted, and
+marks the row `skipped` with `already-checked-in` when every habit it names is
+done. Ordering matters — a row that no longer needs sending must not spend one
+of the user's five daily sends.
+
+Two properties keep it honest. It **fails open**: a read failure sends, because
+silence on the feature whose purpose is not being silent is invisible, while an
+extra push is visible and recoverable. And it only acts on rows carrying
+`habitGoalIds` + `checkinDate`, so a row queued before the stamp existed passes
+through unchanged rather than being suppressed for lack of evidence.
 
 The handler still evaluates every pact on a re-run; dedup is the queue's job,
 not a short-circuit in the producer. So a second run of the same day does the
@@ -179,18 +254,28 @@ three outcomes the same way.
 
 ### Blockers to clear before raising frequency
 
-**1. No push preference is honored server-side.** `settingsPushMarketing`,
-`settingsPushBackground`, `settingsPushInvites`, `settingsPushLikes`,
-`settingsPushMentions`, `settingsPushTopics` all exist as columns, are settable
-through the API, and flow through `therr-react`.
+**1. Most push preferences are still not honored server-side.**
+`settingsPushMarketing`, `settingsPushBackground`, `settingsPushInvites`,
+`settingsPushLikes`, `settingsPushMentions`, `settingsPushTopics` all exist as
+columns, are settable through the API, and flow through `therr-react`.
 `sendEmailAndOrPushNotification` reads exactly one thing: `isUnclaimed`. And
 `ManageNotifications.tsx` renders **email** toggles only — there is no push
-category UI at all. A user's only control today is the OS switch, which is
-all-or-nothing. **This must land before volume goes up**, and the worker is the
-natural enforcement point (mark `skipped`, don't drop silently).
+category UI at all, so a user's only control over most types is the OS switch.
 
-**2. No user timezone.** No timezone or UTC-offset column exists. Needed before
-`scheduledFor` can mean anything but "now".
+The habits reminders are the exception and the template: the digest reads
+`settingsPushHabitReminders` (suppresses both daily slots) and
+`settingsPushStreakAlerts` (suppresses only the evening escalation), counting
+each so the suppression is measurable. Both default `true`, and **no client
+writes either of them yet** — the columns work, the UI does not exist. That UI
+is the next thing worth building here; everything else stays uncontrollable
+until it does.
+
+**2. ~~No user timezone~~ — done.** `main.users.settingsTimezone` is written by
+the mobile client on every push registration and read by
+`utilities/localReminderSchedule.ts`. Until installs update, most users are on
+the `America/Chicago` fallback; the digest's `usersWithoutTimezone` counter is
+how that adoption is tracked, and a flat line means the mobile release never
+shipped.
 
 **3. More producers.** The digest is the only one. Everything still sending
 inline through `sendEmailAndOrPushNotification` is uncapped and undeduped, and
@@ -199,10 +284,15 @@ is currently a cap on queued notifications, not on notifications.
 
 ### Where the frequency actually is
 
-- **Seven types are delivery-half-only** — `dailyHabitReminder`,
-  `morningMotivation`, `eveningCheckIn`, `streakBroken`, `newPersonalRecord`,
-  `partnerCelebrated`, `pactCompleted`. Copy in three locales, channels, intent
-  actions, tests, and no caller anywhere. The largest block of ready volume.
+- **Five types are delivery-half-only** — `morningMotivation`, `streakBroken`,
+  `newPersonalRecord`, `partnerCelebrated`, `pactCompleted`. Copy in three
+  locales, channels, intent actions, tests, and no caller anywhere.
+  `dailyHabitReminder` was the seventh and gained a producer with the digest's
+  reminder pass; `eveningCheckIn` was the sixth and is now the evening
+  "last chance" nudge — reused rather than replaced with a new type precisely
+  because a new type is inert until a fresh Android build ships from
+  `niche/HABITS-general`, while this one is already wired on installs that
+  exist.
 - **Silent reward moments** — `habitCheckins.ts` awards a streak freeze at every
   7+ day milestone and says nothing. Exactly the loss-aversion mechanic Duolingo
   leans on, with the state already persisted.
@@ -211,10 +301,15 @@ is currently a cap on queued notifications, not on notifications.
 - **`main.thoughts`** — ai-automator already drips content over ~30h, with no
   notification attached.
 
-Note what a solo tester can currently trigger: essentially nothing. Every live
-type needs a second human or the digest, and the digest iterates `activePacts`,
-so an account with no pact generates zero sends. The only self-triggered push is
-`streakMilestone`, at exactly 3/7/14/30/… consecutive days.
+Note what a solo tester can trigger. This used to be essentially nothing: every
+live type needed a second human or the digest, and the digest iterated
+`activePacts`, so an account with no pact generated zero sends — the only
+self-triggered push was `streakMilestone`, at exactly 3/7/14/30/… consecutive
+days. The digest's reminder pass now also walks `habits.user_habits`, so a solo
+account with one tracked habit and no check-in gets a `dailyHabitReminder` (or
+`streakAtRisk`, once it has a streak) on the next run. That pass is the first
+producer with a row for nearly every active user, which makes it the first thing
+likely to press against the 5/day cap.
 
 ---
 
@@ -225,7 +320,9 @@ so an account with no pact generates zero sends. The only self-triggered push is
    confirm dedup by running the digest twice. **(done)**
 3. Honor `settingsPush*` in the worker; add the push category UI.
 4. Add user timezone; start setting `scheduledFor` per user.
-5. Wire the seven orphaned types and the silent reward moments.
+5. Wire the remaining orphaned types and the silent reward moments.
+   `dailyHabitReminder` is done — see `habitsDigest.ts`, gated on
+   `HABIT_DAILY_REMINDERS_ENABLED` (defaults on).
 6. Revisit the 5/day cap with real data.
 
 Steps 3 and 4 are what earn the right to step 5. Doing 5 first is how you find
@@ -241,9 +338,30 @@ the frequency cap by hitting it.
   the old behavior: the digest queues rather than sends, so with the flag off it
   fills the table and delivers nothing.
 - Tunables (`TICK_INTERVAL_MS` 30s, `CLAIM_BATCH_SIZE` 25, `MAX_ATTEMPTS` 3,
-  `MAX_SENDS_PER_USER_PER_DAY` 5) are module constants, not env vars — there is
+  `MAX_SENDS_PER_USER_PER_DAY` 5, `MIN_GAP_BETWEEN_SENDS_MS` 15min,
+  `MAX_DEFERRAL_WINDOW_MS` 6h) are module constants, not env vars — there is
   no production experience to configure against yet, and an env var implies a
   knob someone has a reason to turn.
+- **The daily cap does not space anything.** It bounds how many notifications a
+  user gets, not when, and a tick sends a whole claimed batch within a few
+  hundred milliseconds — so four due rows arrived in the same second. The worker
+  therefore also enforces a minimum gap per user, *deferring* rather than
+  dropping (unlike the cap: a reminder a day late is worse than none, but
+  everything hitting the spacing rule is still fine fifteen minutes from now).
+  `defer` decrements `attempts`, because `claimDue` increments on claim and a
+  deferral must not spend a retry; `MAX_DEFERRAL_WINDOW_MS` stops a busy user
+  holding a low-priority row back forever. Deferred rows show `spaced: …` in
+  `lastError` — that is a status, not a failure.
+- **Batch order is by type, not just `scheduledFor`.** A digest run stamps every
+  row with the same `scheduledFor`, so with spacing in play the ordering decides
+  which of a user's notifications actually goes out tonight.
+  `TYPE_SEND_PRIORITY` puts the time-sensitive nudge ahead of the celebration;
+  unlisted types sort last.
+- **Rows with no reachable device are skipped, not retried.** `sendOne` resolves
+  the device token up front (brand-scoped table, falling back to the legacy
+  `users.deviceMobileFirebaseToken` column) and marks `skipped: no-device-token`
+  when there is none. Before this, those rows burned all three attempts daily —
+  36 production errors in 30 days — and buried real failures in noise.
 - Sends are sequential within a batch. A burst of 25 concurrent sends from a
   `replicas: 1` pod is a good way to exhaust the write pool, and throughput is
   not the constraint: 30s × 25 is ~3,000/hour/brand.

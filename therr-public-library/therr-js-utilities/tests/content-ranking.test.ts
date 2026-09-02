@@ -94,8 +94,9 @@ describe('content-ranking', () => {
         });
 
         it('offers only PULSE and FOCUS for selection — WANDER is implemented but unreleased', () => {
-            // WANDER is geo-dominant and main.thoughts has no coordinates, so on the only
-            // profile-aware surface today it would degenerate into a weak recency feed.
+            // WANDER is geo-dominant, and only the small minority of main.thoughts rows that
+            // are *about* a place carry coordinates — so choosing it would rank those few
+            // above the entire rest of the feed.
             expect(SELECTABLE_CONTENT_ALGORITHMS).to.have.members([
                 ContentAlgorithms.PULSE,
                 ContentAlgorithms.FOCUS,
@@ -115,6 +116,38 @@ describe('content-ranking', () => {
 
         it('keeps the default selectable, so the default can never be an unpickable state', () => {
             expect(SELECTABLE_CONTENT_ALGORITHMS).to.include(DEFAULT_CONTENT_ALGORITHM);
+        });
+    });
+
+    describe('local content knobs', () => {
+        it('gives every profile a usable local radius and boost', () => {
+            getAllAlgorithmProfiles().forEach((profile) => {
+                expect(profile.localFeedRadiusMeters).to.be.a('number');
+                expect(profile.localMatchBoost).to.be.at.least(1);
+            });
+        });
+
+        it('scopes local content to a metro, not to walking distance', () => {
+            getAllAlgorithmProfiles().forEach((profile) => {
+                // searchRadiusMeters bounds map searches for places you could go to right
+                // now; a post about your city has to reach the whole city, suburbs included.
+                expect(profile.localFeedRadiusMeters).to.be.greaterThan(profile.searchRadiusMeters);
+            });
+        });
+
+        it('keeps local content behind interest matches under the default profile', () => {
+            const pulse = getAlgorithmProfile(ContentAlgorithms.PULSE);
+            // Ordering intent: an interest match still leads; local is the tiebreak that puts
+            // your own city ahead of an equally hot post from nowhere in particular.
+            expect(pulse.localMatchBoost).to.be.lessThan(pulse.interestMatchBoost);
+            expect(pulse.localMatchBoost).to.be.greaterThan(1);
+        });
+
+        it('does not let the boost leak into the emitted SQL', () => {
+            // It is applied at activation, in the distributor. If it ever reached this
+            // expression, PULSE would stop being byte-identical to the legacy ranker.
+            const sql = getScoreSqlExpression(getAlgorithmProfile(ContentAlgorithms.PULSE), THOUGHT_COLUMNS);
+            expect(sql).to.equal(LEGACY_HOT_SCORE_EXPRESSION);
         });
     });
 
@@ -179,7 +212,7 @@ describe('content-ranking', () => {
             expect(sql).to.contain('COALESCE("scoreInterest", 0)');
         });
 
-        it('omits the geo term when the surface supplies no distance (main.thoughts has no coordinates)', () => {
+        it('omits the geo term when the caller supplies no distance (a non-local candidate query)', () => {
             const sql = getScoreSqlExpression(getAlgorithmProfile(ContentAlgorithms.WANDER), THOUGHT_COLUMNS);
             expect(sql).to.not.contain('EXP(');
         });
@@ -236,6 +269,22 @@ describe('content-ranking', () => {
             });
             // and reverts cleanly
             expect(getAlgorithmProfile(ContentAlgorithms.PULSE).recencyGravity).to.equal(1.5);
+        });
+
+        it('retunes the local-content knobs too', () => {
+            withEnv({ ALGO_PULSE_LOCAL_MATCH_BOOST: '2.5', ALGO_PULSE_LOCAL_FEED_RADIUS_METERS: '10000' }, () => {
+                const profile = getAlgorithmProfile(ContentAlgorithms.PULSE);
+                expect(profile.localMatchBoost).to.equal(2.5);
+                expect(profile.localFeedRadiusMeters).to.equal(10000);
+            });
+        });
+
+        it('lets an operator switch local candidates off entirely with a zero radius', () => {
+            // The distributor skips the local query when the radius is 0, so this is the
+            // single-flip rollback if local content misbehaves in production.
+            withEnv({ ALGO_PULSE_LOCAL_FEED_RADIUS_METERS: '0' }, () => {
+                expect(getAlgorithmProfile(ContentAlgorithms.PULSE).localFeedRadiusMeters).to.equal(0);
+            });
         });
 
         it('CONTENT_ALGORITHM_OVERRIDE forces every user onto one profile', () => {

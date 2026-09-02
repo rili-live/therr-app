@@ -168,7 +168,6 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
             });
     };
 
-    // eslint-disable-next-line class-methods-use-this
     public render(): JSX.Element | null {
         const {
             campaignsPendingReview,

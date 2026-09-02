@@ -2,7 +2,7 @@
 
 ## Overview
 
-React Native 0.83.6 mobile app (iOS + Android) for the Therr social platform. React 19.2.0. Has its own `package.json` isolated from the monorepo root. Android namespace `app.therrmobile`; `applicationId` varies by niche (`app.therrmobile` on Therr, `com.therr.habits` on Friends with Habits). Native code in Kotlin. New Architecture (`newArchEnabled=true`) + Hermes.
+React Native 0.86.3 mobile app (iOS + Android) for the Therr social platform. React 19.2.3. Has its own `package.json` isolated from the monorepo root. Android namespace `app.therrmobile`; `applicationId` varies by niche (`app.therrmobile` on Therr, `com.therr.habits` on Friends with Habits). Native code in Kotlin. New Architecture (`newArchEnabled=true`) + Hermes.
 
 ## Directory Structure
 
@@ -99,16 +99,33 @@ The module resolution is complex due to the monorepo. Understanding this prevent
    - `shared/*` -> root `node_modules/*`
 
 4. **Patches** (`patches/`, applied via `postinstall`):
-   - `react-native+0.83.6.patch`
+   - `react-native+0.86.3.patch`
    - `@react-native-community+slider+5.1.2.patch`
+   - `react-native-actions-sheet+0.9.8.patch`
    - `react-native-tab-view+3.5.2.patch`
-   - `react-native-screens+4.24.0.patch` (RTTI fix required for New Architecture)
-   - `react-native-worklets+0.8.1.patch` (prefab headers race fix for Reanimated 4)
+   - `react-native-nitro-modules+0.35.10.patch`
+   - `react-native-screens+4.27.0.patch` (RTTI fix required for New Architecture)
+   - `react-native-worklets+0.11.4.patch` (prefab headers race fix for Reanimated 4)
 
    Patch filenames pin an **exact** version. When you bump a patched package the
    patch stops applying — regenerate it rather than renaming the file. Run
    `/mobile-dep-guard` after any dependency change; it cross-checks every patch
    against the installed (or lockfile-resolved) version.
+
+   `react-native+0.86.3.patch` carries **two** hunks. Besides the `StatusBarModule.kt`
+   one described under § Edge-to-Edge, it restores `StyleSheet.absoluteFillObject`,
+   which 0.86 removed from `Libraries/StyleSheet/StyleSheetExports.js`. Our own code no
+   longer uses it, but several dependencies still spread it — react-native-paper's
+   `Modal` (so every `<Dialog>`), `Menu`, `FABGroup`, `BottomNavigationBar`,
+   `TouchableRipple`, `ActivityIndicator`; react-native-bootsplash;
+   react-native-country-picker-modal. Spreading `undefined` is legal JS and yields `{}`,
+   so those overlays silently lose `position: 'absolute'` and lay out in flow instead —
+   a Paper dialog drops to the bottom of the screen and its scrim covers only part of it,
+   with no error anywhere. Unlike the Kotlin hunk, this one is JS and **does** reach the
+   bundle. Keep it until every consumer has stopped using the removed API.
+
+   When regenerating, exclude Gradle's build cache or it lands in the patch:
+   `npx patch-package react-native --exclude '(package-lock\.json|\.npmignore|yarn\.lock|/\.gradle/)'`
 
 **When adding a new shared library dependency**: Add it to root `package.json`, then ensure Metro can find it via `extraNodeModules` or the Proxy fallback.
 
@@ -135,6 +152,37 @@ Three themes: light (default), dark, retro. Selected via `user.settings.mobileTh
 ### Push Notifications
 
 Firebase Cloud Messaging + Notifee. Android channels defined in `main/constants/index.tsx` (default, contentDiscovery, rewardUpdates, reminders). FCM setup in `main/utilities/pushNotifications.ts`.
+
+### Icon Fonts
+
+`TherrIcon` (`main/components/TherrIcon.tsx`) is an IcoMoon set rendered by
+react-native-vector-icons, which draws an icon as a bare `<Text>` — so the laid-out
+box is the glyph's **advance width**, and an outline sitting in the wrong place inside
+that advance cannot be recovered by centering the box.
+
+TrueType requires a glyph's left side bearing (`hmtx`) to equal its bounding box's
+`xMin` (`glyf`). When they disagree, FreeType — the rasterizer under both Android and
+iOS — slides the outline by `lsb - xMin` so the ink meets the advertised bearing.
+Commit `6e6d6882d` rebuilt TherrFont from IcoMoon to add one glyph (`cami-glyph`); the
+rebuild recalculated every `xMin` but left every `lsb` at 0, dragging all 95 icons left
+by their own bearing — 3px for `trophy`, 8px for `dots-horiz`, 11px for `idea` at 24dp
+on a 2.625-density screen. Three separate commits tried to fix this in layout
+(fixed-size wrappers, `includeFontPadding: false`, nudge transforms); none could have
+worked.
+
+Only the niche branches were affected, because `general` never took the rebuild.
+
+`resources/fonts/fix-icon-font-bearings.py` restores `lsb == xMin`. It changes no
+outline coordinates, so the result renders pixel-identically to the font `general`
+ships. It is idempotent — **run it after any IcoMoon export of TherrFont**, and write
+both checked-in copies (`resources/fonts/` and `android/app/src/main/assets/fonts/`).
+`__tests__/assets/therrIconFont.test.ts` fails if a bad export is committed or the two
+copies drift apart.
+
+Font changes are native assets: they need a rebuild, not a Metro reload.
+
+Do **not** run it against `SSOFont.ttf` — those glyphs are fragments of layered
+multi-color logos whose bearings are load-bearing.
 
 ### Sound Effects & Haptics
 
@@ -187,7 +235,9 @@ Android targets API 36, which enforces edge-to-edge — system bars are always t
 - Bottom inset for the button menu comes from `bottomSafeAreaInset` in `main/styles/navigation/buttonMenu.ts`. Reuse it on any bottom-anchored surface (action sheets, footers). It carries a 16dp Android fallback for the cold-start case; surfaces that need pixel-perfect bottom padding should subscribe to `SafeAreaInsetsContext` and prefer the measured value when present.
 - For `<SafeAreaView>` from `react-native-safe-area-context`: most authenticated screens use `edges={[]}` because the parent `Layout` already pads the header (top) and the global `ButtonMenu` pads the bottom. Only set explicit `edges` when a screen renders without that scaffolding (e.g., full-bleed pre-auth screens) or extends to the bottom edge with no `ButtonMenu`.
 - Forms that need the keyboard to push content up should use `KeyboardAvoidingView` from `react-native-keyboard-controller` (not the built-in one from `react-native`). `KeyboardProvider` is mounted in `App.tsx`, and `android:windowSoftInputMode="adjustResize"` in `AndroidManifest.xml` is the correct mode under edge-to-edge.
-- **Deprecated Android 15 APIs (Play Console pre-launch report):** Never call `Window.setStatusBarColor`/`getStatusBarColor`/`setNavigationBarColor`/`getNavigationBarColor`. They are deprecated no-ops under API 35+ and the Play Console flags any bytecode reference to them. Our native `EdgeToEdgeModule.kt` deliberately avoids the navigation-bar color getters/setters (it only toggles `setDecorFitsSystemWindows` + `isNavigationBarContrastEnforced`). React Native core's `StatusBarModule` still references the deprecated status-bar color getter/setter, so it is neutralized via `patches/react-native+0.83.6.patch` (`getTypedExportedConstants` no longer reads the getter; `setColor`'s `runGuarded` no longer references the setter). **If you bump the `react-native` version, regenerate that patch** — edit the installed `StatusBarModule.kt` and run `npx patch-package react-native`, then re-verify the Play Console report.
+- **Deprecated Android 15 APIs (Play Console pre-launch report):** Never call `Window.setStatusBarColor`/`getStatusBarColor`/`setNavigationBarColor`/`getNavigationBarColor`. They are deprecated no-ops under API 35+ and the Play Console flags any bytecode reference to them. Our native `EdgeToEdgeModule.kt` deliberately avoids the navigation-bar color getters/setters (it only toggles `setDecorFitsSystemWindows` + `isNavigationBarContrastEnforced`). React Native core's `StatusBarModule` still references the deprecated status-bar color getter/setter, so it is neutralized via `patches/react-native+0.86.3.patch` (`getTypedExportedConstants` no longer reads the getter; `setColor`'s `runGuarded` no longer references the setter). **If you bump the `react-native` version, regenerate that patch** — edit the installed `StatusBarModule.kt` and run `npx patch-package react-native`, then re-verify the Play Console report.
+
+  > **Caveat, verified 2026-08-31 against a signed 0.86.3 release APK: that patch does not currently reach the build.** Gradle resolves `com.facebook.react:react-android` as a prebuilt AAR from Maven (there is no `react.buildFromSource` property and no `:ReactAndroid` task runs), so the patched Kotlin source is never compiled. Disassembling the release APK still shows `StatusBarModule$b` carrying the `ValueAnimator` + `setStatusBarColor` code the patch deletes. The APK also references the deprecated setters from `androidx.activity`, `com.google.android.material`, `com.swmansion.rnscreens.ScreenViewManager`, and RN's own `views/view` — so this patch alone was never going to clear the pre-launch report. Keep it (it is harmless and documents intent), but treat the Play Console finding as open and re-check it against a real APK rather than assuming the patch handles it.
 
 ## Common Debugging
 

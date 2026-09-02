@@ -139,3 +139,43 @@ export const splitHabitsByPactState = (
     },
     { live: [], pending: [] },
 );
+
+/**
+ * Whether a pact's cycle is over and can therefore be renewed.
+ *
+ * Mirrors `isPactRenewable` in users-service (`src/utilities/pactHelpers.ts`),
+ * which is the authority — the server re-checks this and 400s a renewal it
+ * disagrees with, so a drift here shows the wrong CTA rather than corrupting
+ * anything. It is duplicated instead of shared because the helper lives in a
+ * backend service, not in a library mobile consumes.
+ *
+ * The `active`-past-`endDate` arm is the one that earns its keep. The nightly
+ * digest sweep is what marks a finished pact `expired`, so between a pact's end
+ * and the next sweep its status still reads `active`. Gating on status alone
+ * would tell a user who opens the app that morning that a pact which visibly
+ * ended is still running, and hide the one CTA the screen exists to offer.
+ *
+ * `abandoned` and `pending` are deliberately absent: someone who walked away
+ * should start fresh deliberately, and a pending pact never had a cycle to
+ * finish.
+ */
+export const isPactRenewable = (
+    pact: { status?: string; endDate?: Date | string | null } | null | undefined,
+): boolean => {
+    if (!pact) {
+        return false;
+    }
+    if (pact.status === 'completed' || pact.status === 'expired') {
+        return true;
+    }
+    if (pact.status !== 'active' || !pact.endDate) {
+        return false;
+    }
+
+    const endDate = new Date(pact.endDate);
+    if (Number.isNaN(endDate.getTime())) {
+        return false;
+    }
+
+    return Date.now() > endDate.getTime();
+};

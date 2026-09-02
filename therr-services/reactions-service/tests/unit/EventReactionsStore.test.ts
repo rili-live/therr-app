@@ -1,4 +1,3 @@
-/* eslint-disable quotes */
 import { expect } from 'chai';
 import sinon from 'sinon';
 import EventReactionsStore from '../../src/store/EventReactionsStore';

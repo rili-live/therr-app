@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
@@ -237,18 +238,26 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
         getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_SOLO] === true,
     );
 
+    // Both land on the dashboard's pact segments. The `initialTab` is what tells
+    // `PactOnboardingGuard` to stand down for that visit — without it a user who
+    // has not started yet would be handed straight back to this overlay.
     const handleViewSent = () => {
-        navigation.navigate('PactsList', { initialTab: 'outgoing' });
+        navigation.navigate('HabitsDashboard', { initialTab: 'outgoing' });
     };
 
     const handleViewPending = () => {
-        navigation.navigate('PactsList', { initialTab: 'pending' });
+        navigation.navigate('HabitsDashboard', { initialTab: 'pending' });
     };
 
     return (
         <>
             <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-            <SafeAreaView style={[theme.styles.safeAreaView, themeHabits.styles.dashboardContainer]}>
+            {/* `edges={[]}`: this overlay already adds `bottomSafeAreaInset` to its own
+                content padding below, so a second inset here would double it. */}
+            <SafeAreaView
+                edges={[]}
+                style={[theme.styles.safeAreaView, themeHabits.styles.dashboardContainer]}
+            >
                 <ScrollView
                     contentContainerStyle={{
                         paddingBottom: (footerHeight || 220) + bottomSafeAreaInset,

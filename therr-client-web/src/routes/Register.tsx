@@ -73,7 +73,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         };
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         document.title = `Therr | ${this.props.translate('pages.register.pageTitle')}`;
 
         if (window?.location) {

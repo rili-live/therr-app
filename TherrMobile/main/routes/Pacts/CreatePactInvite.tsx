@@ -1,14 +1,15 @@
 import React from 'react';
 import {
-    ScrollView,
     View,
     Text,
     Pressable,
     TextInput,
     ActivityIndicator,
     Share,
+    LayoutChangeEvent,
 } from 'react-native';
 import { SafeAreaView, SafeAreaInsetsContext } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView, KeyboardStickyView, useKeyboardState } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,6 +17,7 @@ import Toast from 'react-native-toast-message';
 import { HabitActions } from 'therr-react/redux/actions';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import getConfig from '../../utilities/getConfig';
+import { streakFreezeRuleParams } from '../../utilities/streakFreezes';
 import permissions from '../../utilities/permissionsOrchestrator';
 import UsersActions from '../../redux/actions/UsersActions';
 import { IUserState, IHabitsState, IHabitGoal } from 'therr-react/types';
@@ -41,6 +43,9 @@ import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 
 const MAX_PARTNERS = 5;
 const DEFAULT_PACT_DURATION_DAYS = 30;
+// Used to keep a focused input clear of the footer until the footer reports its
+// real height (one layout pass), so the very first focus is not left underneath it.
+const FOOTER_HEIGHT_FALLBACK = 96;
 
 interface IConnectionDetails {
     id: string;
@@ -80,6 +85,7 @@ interface ICreatePactInviteState {
     isSending: boolean;
     isLoadingTemplates: boolean;
     isStartingSolo: boolean;
+    footerHeight: number;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -117,7 +123,53 @@ const partnerDisplayName = (
     return details.userName || fallback;
 };
 
-class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePactInviteState> {
+/**
+ * The wizard's action bar is bottom-anchored, so under edge-to-edge the Android
+ * keyboard covers it (and, on step 1, the custom-habit input sitting just above
+ * it). `KeyboardStickyView` translates the bar up with the keyboard instead.
+ * Once the bar is riding on top of the keyboard the gesture-bar inset no longer
+ * applies to it, so that padding is dropped while the keyboard is open —
+ * otherwise a band of empty surface sits between the buttons and the keys.
+ */
+const WizardFooter = ({
+    bottomInset,
+    backgroundColor,
+    shadowColor,
+    onLayout,
+    children,
+}: {
+    bottomInset: number;
+    backgroundColor: string;
+    shadowColor: string;
+    onLayout: (event: LayoutChangeEvent) => void;
+    children: React.ReactNode;
+}) => {
+    const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
+
+    return (
+        <KeyboardStickyView style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
+            <View
+                onLayout={onLayout}
+                style={{
+                    flexDirection: 'row',
+                    paddingHorizontal: 16,
+                    paddingTop: 16,
+                    paddingBottom: 16 + (isKeyboardVisible ? 0 : bottomInset),
+                    backgroundColor,
+                    shadowColor,
+                    shadowOffset: { width: 0, height: -2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                    elevation: 4,
+                }}
+            >
+                {children}
+            </View>
+        </KeyboardStickyView>
+    );
+};
+
+export class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePactInviteState> {
     private translate: (key: string, params?: any) => string;
     private theme = buildStyles();
     private themeButtons = buildButtonStyles();
@@ -141,6 +193,7 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
             isSending: false,
             isLoadingTemplates: false,
             isStartingSolo: false,
+            footerHeight: FOOTER_HEIGHT_FALLBACK,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -882,6 +935,16 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                         {this.translate('pages.pacts.wizard.soloAddPartnersLater')}
                     </Text>
                 )}
+                {/*
+                  * State the streak-freeze allowance on the last screen before
+                  * the habit exists. "Build in the miss" is explicitly a rule
+                  * agreed in advance — a net the user only discovers after
+                  * their first bad day cannot change what they do on it, and
+                  * this is the last moment it is still in advance.
+                  */}
+                <Text style={[this.themeHabits.styles.streakMilestoneText, { paddingHorizontal: 20, marginTop: 12 }]}>
+                    {this.translate('pages.pacts.wizard.freezeRule', streakFreezeRuleParams)}
+                </Text>
             </View>
         );
     };
@@ -923,23 +986,11 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                 {(insets) => {
                     const bottomInset = insets?.bottom ?? bottomSafeAreaInset;
                     return (
-                        <View
-                            style={{
-                                position: 'absolute',
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                flexDirection: 'row',
-                                paddingHorizontal: 16,
-                                paddingTop: 16,
-                                paddingBottom: 16 + bottomInset,
-                                backgroundColor: this.theme.colors.surface,
-                                shadowColor: this.theme.colors.textBlack,
-                                shadowOffset: { width: 0, height: -2 },
-                                shadowOpacity: 0.1,
-                                shadowRadius: 4,
-                                elevation: 4,
-                            }}
+                        <WizardFooter
+                            bottomInset={bottomInset}
+                            backgroundColor={this.theme.colors.surface}
+                            shadowColor={this.theme.colors.textBlack}
+                            onLayout={this.onFooterLayout}
                         >
                             <Pressable
                                 onPress={this.handleBack}
@@ -961,15 +1012,24 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                                     disabled={isBusy}
                                 />
                             </View>
-                        </View>
+                        </WizardFooter>
                     );
                 }}
             </SafeAreaInsetsContext.Consumer>
         );
     };
 
+    onFooterLayout = (event: LayoutChangeEvent) => {
+        const { height } = event.nativeEvent.layout;
+
+        if (height > 0 && Math.round(height) !== Math.round(this.state.footerHeight)) {
+            this.setState({ footerHeight: height });
+        }
+    };
+
     render() {
         const { user } = this.props;
+        const { footerHeight } = this.state;
 
         return (
             <>
@@ -982,9 +1042,16 @@ class CreatePactInvite extends React.Component<ICreatePactInviteProps, ICreatePa
                         {(insets) => {
                             const bottomInset = insets?.bottom ?? bottomSafeAreaInset;
                             return (
-                                <ScrollView contentContainerStyle={{ paddingBottom: 120 + bottomInset }}>
+                                /* `bottomOffset` keeps the focused input (the custom-habit
+                                 * name on step 1, the people search on step 2) clear of the
+                                 * action bar that sticks to the top of the keyboard. */
+                                <KeyboardAwareScrollView
+                                    bottomOffset={footerHeight}
+                                    keyboardShouldPersistTaps="handled"
+                                    contentContainerStyle={{ paddingBottom: footerHeight + 24 + bottomInset }}
+                                >
                                     {this.renderStepContent()}
-                                </ScrollView>
+                                </KeyboardAwareScrollView>
                             );
                         }}
                     </SafeAreaInsetsContext.Consumer>

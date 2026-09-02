@@ -1,4 +1,3 @@
-/* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
 import EventsStore from '../../src/store/EventsStore';

@@ -9,6 +9,10 @@ export const sendTestPushNotificationValidation = [
     // and credentials without delivering, which is what you want on a first pass
     // against a real user's device.
     body('dryRun').isBoolean().optional(),
+    // Opt in to sending through `predictAndSendNotification` — the function real
+    // notifications use — instead of the raw sender. Post-deploy checks want this
+    // on; interactive debugging of a single handset generally does not.
+    body('viaProductionPath').isBoolean().optional(),
     body('fromUserName').isString().optional(),
     body('habitName').isString().optional(),
     body('partnerName').isString().optional(),

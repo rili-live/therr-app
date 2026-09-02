@@ -62,6 +62,21 @@ describe('pact partner resolution', () => {
             );
         });
 
+        // The digest's expiry sweep runs nightly, so a finished pact keeps
+        // status='active' for up to a day after its endDate. Without this
+        // predicate that window leaks the finished pact back to both callers:
+        // renewal refuses it as a still-live cycle, and the next morning's
+        // check-in is attributed to a pact that already ended.
+        it('excludes a pact whose endDate has already passed', async () => {
+            const { store, mockConnection } = buildStore(PactsStore);
+
+            await store.getActiveByUserAndHabitGoal('user-1', 'goal-1');
+
+            const queryString = mockConnection.read.query.args[0][0];
+            expect(queryString).to.contain(`"habits"."pacts"."endDate" is null`);
+            expect(queryString).to.match(/"habits"\."pacts"\."endDate" > '/);
+        });
+
         // habit_checkins.pactId is singular, so a goal backing two active pacts
         // needs a deterministic winner or the attribution flaps between requests.
         it('orders by startDate so single-pact attribution is deterministic', async () => {

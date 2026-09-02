@@ -83,6 +83,11 @@
       "body": "{userName} replied to your post — see what they said",
       "pressActionView": "View Reply"
     },
+    "newThoughtRepostReceived": {
+      "title": "Your Post Was Reposted",
+      "body": "{userName} reposted your post — it's reaching a new audience",
+      "pressActionView": "View Post"
+    },
     "newAreasActivated": {
       "title": "New Spots Unlocked!",
       "body": "You just unlocked {totalAreasActivated} new area(s) — explore what's been shared nearby"
@@ -106,7 +111,13 @@
     },
     "streakAtRisk": {
       "title": "Don't Break Your Streak",
-      "body": "Your {streakCount}-day {habitName} streak is on the line — check in before midnight to keep it alive."
+      "body": "Your {streakCount}-day {habitName} streak is on the line — check in before midnight to keep it alive.",
+      "bodyWithFreeze": "Your {streakCount}-day {habitName} streak is on the line. A streak freeze will cover tonight if you miss ({freezesRemaining} left) — but checking in keeps it in your pocket.",
+      "bodyMultiple": "{habitCount} streaks are on the line — {habitNames}. Check in before midnight to keep them alive."
+    },
+    "streakFreezeUsed": {
+      "title": "Your Streak Survived",
+      "body": "You missed a day on {habitName}, so a streak freeze covered it — your {streakCount}-day streak is intact. {freezesRemaining} freeze(s) left."
     },
     "streakBroken": {
       "title": "Streak Reset",
@@ -160,17 +171,24 @@
       "title": "Pact Wrapping Up Soon",
       "body": "{daysRemaining} day(s) left on your {habitName} pact — finish strong."
     },
+    "pactEnded": {
+      "title": "Your {habitName} Pact Wrapped Up",
+      "body": "{durationDays} days in. Most habits take months, not weeks — start a new cycle and your streak carries over."
+    },
     "dailyHabitReminder": {
       "title": "Time to Check In",
-      "body": "Don't forget to log {habitName} today — a quick tap keeps your streak alive."
+      "body": "Log {habitName} today — one check-in gets your streak going.",
+      "bodyMultiple": "{habitCount} habits are waiting today — {habitNames}. One check-in gets you started."
     },
     "morningMotivation": {
       "title": "Good Morning",
       "body": "Today is a fresh chance to build the habit you committed to. Let's go."
     },
     "eveningCheckIn": {
-      "title": "How Did Today Go?",
-      "body": "Tap to log your check-in and lock in another day on your streak."
+      "title": "Last Chance Tonight",
+      "body": "Your {streakCount}-day {habitName} streak ends at midnight. One check-in keeps it alive.",
+      "bodyWithFreeze": "Your {streakCount}-day {habitName} streak ends at midnight. A streak freeze will cover you ({freezesRemaining} left) — but checking in now keeps it in your pocket.",
+      "bodyMultiple": "Last call on {habitCount} streaks — {habitNames}. Check in before midnight to keep them alive."
     },
     "habitEstablished": {
       "title": "{habitName} Is Sticking",
@@ -187,6 +205,11 @@
     "habitComeback": {
       "title": "Want to Restart {habitName}?",
       "body": "You held this {bestStreakCount} days once — that doesn't go away. Ready to start a fresh streak?"
+    },
+    "shared": {
+      "pressActionCheckIn": "Check In",
+      "pressActionRenew": "Start New Cycle",
+      "pressActionView": "View"
     }
   },
   "validation": "The required parameters were not provided."

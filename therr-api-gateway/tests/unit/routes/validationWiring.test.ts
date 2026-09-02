@@ -100,14 +100,28 @@ const collectUnenforced = (router: any, out: IUnenforcedRoute[] = []): IUnenforc
     return out;
 };
 
-// Required lazily for the same reason as routeOrdering.test.ts: the service routers
-// construct rate limiters and read config at module load.
-// eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-const getGatewayRouter = () => require('../../../src/routes').default;
+let gatewayRouter: any;
 
 describe('route validation wiring', () => {
+    // Required lazily for the same reason as routeOrdering.test.ts: the service
+    // routers construct rate limiters and read config at module load.
+    //
+    // Loaded in a hook rather than inside the first test that needs it, because
+    // that first require compiles the whole route tree through ts-node: under a
+    // second on a developer machine, past mocha's 2s default inside the CI
+    // container. Mocha applies that budget to synchronous tests too -- `done`
+    // reports a timeout for any test whose measured duration exceeds it -- so
+    // charging the compile to whichever test happened to run first produced a
+    // CI-only "Timeout of 2000ms exceeded" on an assertion that does no async
+    // work at all. The hook gets a budget sized for a cold compile instead.
+    before(function loadGatewayRouter(this: Mocha.Context) {
+        this.timeout(30000);
+        // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
+        gatewayRouter = require('../../../src/routes').default;
+    });
+
     it('adds no new route that declares validators without `validate`', () => {
-        const unenforced = collectUnenforced(getGatewayRouter());
+        const unenforced = collectUnenforced(gatewayRouter);
         const added = unenforced.filter((route) => !KNOWN_UNENFORCED.includes(toKey(route)));
 
         const detail = added
@@ -121,7 +135,7 @@ describe('route validation wiring', () => {
     it('keeps the baseline honest — every KNOWN_UNENFORCED entry still exists and is still unenforced', () => {
         // Without this the list would rot into a set of stale strings that silently
         // re-admit a route after someone renames it.
-        const present = collectUnenforced(getGatewayRouter()).map(toKey);
+        const present = collectUnenforced(gatewayRouter).map(toKey);
         const stale = KNOWN_UNENFORCED.filter((key) => !present.includes(key));
 
         expect(stale, `\nThese are fixed or gone — delete them from KNOWN_UNENFORCED:\n  ${stale.join('\n  ')}\n`)
@@ -132,7 +146,7 @@ describe('route validation wiring', () => {
         // The specific regression: this route was unreachable, so its four required
         // fields were never checked. Un-shadowing it without `validate` would have
         // proxied any body straight through to the users-service.
-        const unenforced = collectUnenforced(getGatewayRouter()).map(toKey);
+        const unenforced = collectUnenforced(gatewayRouter).map(toKey);
 
         expect(unenforced).to.not.include('PUT /users/change-password');
     });

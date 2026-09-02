@@ -10,21 +10,25 @@ import { FeatureFlags } from 'therr-js-utilities/constants';
  *
  * WHY THE COUNT IS DERIVED RATHER THAN CONSTANT
  *
- * `routes/index.tsx` registers the `Journal` screen only when
- * ENABLE_HABITS_JOURNAL is on. A tab rendered unconditionally would therefore
- * survive the flag being switched off and call `navigate('Journal')` against a
+ * `routes/index.tsx` registers the `Journal` and `Achievements` screens only
+ * when their flag is on. A tab rendered unconditionally would therefore survive
+ * the flag being switched off and call `navigate('Journal')` against a
  * navigator with no such screen — which does nothing at all, no error, no
  * screen change. A kill-switch that leaves a dead button behind has not killed
- * anything, so the tab and the route read the same flag.
+ * anything, so each tab and its route read the same flag.
  *
  * 5 is also the ceiling `validateFeatureFlags` enforces, and that check is not
  * cosmetic: every tab is `screenWidth / tabCount` wide, so a sixth would push
- * the labels past their glyphs on a small device.
+ * the labels past their glyphs on a small device. The fixed three are Habits,
+ * Connect and Profile.
  */
 export const HABITS_TAB_COUNT_MAX = 5;
 
+const HABITS_TAB_COUNT_MIN = 3;
+
 export interface IHabitsTabLayout {
     isJournalEnabled: boolean;
+    isAchievementsEnabled: boolean;
     tabCount: number;
     buttonWidth: number;
 }
@@ -37,10 +41,14 @@ export const getHabitsTabLayout = (
     // routes on `requiredFeatures`. A flag that is merely present must not
     // count as enabled, or the tab and the route could disagree.
     const isJournalEnabled = featureFlags[FeatureFlags.ENABLE_HABITS_JOURNAL] === true;
-    const tabCount = isJournalEnabled ? HABITS_TAB_COUNT_MAX : HABITS_TAB_COUNT_MAX - 1;
+    const isAchievementsEnabled = featureFlags[FeatureFlags.ENABLE_ACHIEVEMENTS] === true;
+    const tabCount = HABITS_TAB_COUNT_MIN
+        + (isJournalEnabled ? 1 : 0)
+        + (isAchievementsEnabled ? 1 : 0);
 
     return {
         isJournalEnabled,
+        isAchievementsEnabled,
         tabCount,
         buttonWidth: screenWidth / tabCount,
     };

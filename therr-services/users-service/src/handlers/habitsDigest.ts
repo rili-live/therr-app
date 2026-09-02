@@ -13,23 +13,93 @@ import {
     EMPTY_LIFECYCLE_CONTEXT,
     IHabitPair,
 } from '../utilities/habitLifecycleContext';
-import { getTodayDateString, normalizeDateString } from '../utilities/streakHelpers';
+import { getTodayDateString, isHabitDueToday, normalizeDateString } from '../utilities/streakHelpers';
+import {
+    checkinNudgeDedupeKey,
+    createCheckinNudgeAccumulator,
+    lastChanceNudgeDedupeKey,
+} from '../utilities/checkinNudgeRollup';
+import { resolveReminderSchedule } from '../utilities/localReminderSchedule';
+import { createNameResolvers } from '../utilities/notificationNames';
+import { IUserHabitReminderRow } from '../store/UserHabitsStore';
 
 // Upper bound per run so a runaway pact count can't turn the digest into a
 // multi-minute request. Raise (or page the query) when active pacts approach
 // this number.
-const DIGEST_MAX_PACTS = 500;
+export const DIGEST_MAX_PACTS = 500;
+// The reminder pass is per *habit*, not per pact, and most users track more
+// habits than they hold pacts — so this is deliberately several times
+// DIGEST_MAX_PACTS. Same contract: raise it (or page the query) when the active
+// habit count approaches the cap, rather than letting the run silently cover
+// only the oldest habits.
+export const DIGEST_MAX_HABITS = 2000;
 const PACT_EXPIRING_WARNING_DAYS = 3;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+/**
+ * Kill switch for the daily reminder pass.
+ *
+ * Defaults **on**, unlike HABIT_PHASE_ENGINE_ENABLED, and for the opposite
+ * reason: the phase engine deploys dark because turning it on *removes*
+ * reminders from users who get them today, while this pass exists precisely
+ * because the users it covers get nothing at all today — a solo habit, or a
+ * habit whose streak is at zero, reached no notification path before it. A flag
+ * defaulting off would ship the fix and leave the silence in place.
+ *
+ * It stays a flag because it is the one lever that raises send volume: set
+ * HABIT_DAILY_REMINDERS_ENABLED=false to stop the pass without a deploy. Note
+ * that the per-user 5/day cap in notificationQueueWorker still applies on top,
+ * and nothing is delivered at all unless NOTIFICATION_QUEUE_WORKER_ENABLED is
+ * true.
+ */
+const areDailyRemindersEnabled = (): boolean => process.env.HABIT_DAILY_REMINDERS_ENABLED !== 'false';
+
+/**
+ * Kill switch for the evening "last chance" reminder.
+ *
+ * Defaults **on**, like the daily reminder pass and unlike the phase engine,
+ * because it is the half of this feature that makes the other half safe: the
+ * morning slot moved earlier in the user's day (see `resolveReminderSchedule`),
+ * and without an evening follow-up a user who is reminded at 08:00 and forgets
+ * by 21:00 is worse off than before.
+ *
+ * It stays a flag because it is the only change here that *raises* send volume,
+ * and it is the first lever to pull if the numbers say the second push is not
+ * earning its place: `HABIT_LAST_CHANCE_REMINDERS_ENABLED=false` stops it
+ * without a deploy, leaving per-user local scheduling of the morning nudge
+ * intact.
+ *
+ * Three things already bound the volume it can add, and they are worth stating
+ * because "one more push per day" is exactly the change that quietly costs DAU:
+ *   - only users with a *live streak* qualify (see `hasLiveStreak` below), so a
+ *     user with nothing to lose still gets one reminder a day;
+ *   - the slot must fit inside the user's own local evening, before quiet
+ *     hours, at least four hours after their morning nudge, or it is dropped;
+ *   - the send-time freshness gate suppresses the row entirely if the user has
+ *     checked in since — which, on a working day, is most of them.
+ */
+const areLastChanceRemindersEnabled = (): boolean => process.env.HABIT_LAST_CHANCE_REMINDERS_ENABLED !== 'false';
+
 interface IDigestCounters {
     pactsEvaluated: number;
+    // Pacts whose window had passed and that this run closed out. Additive to
+    // the shape therr-messaging-automator logs, so an older automator simply
+    // does not print it.
+    pactsExpired: number;
     // Retained under their original names because therr-messaging-automator logs
     // this exact shape (see its IHabitsDigestCounters). They now count rows
     // *queued*, not pushes sent — the worker decides what actually goes out.
     streakAtRiskSent: number;
     partnerMissedSent: number;
     pactExpiringSent: number;
+    // Rows queued by the expiry sweep's announcement — the "your cycle ended,
+    // start a new one" push. Unlike its siblings this is not a daily figure:
+    // its dedupe key holds no date, so a pact contributes exactly once, ever.
+    // It should therefore track `pactsExpired` closely (times members per pact),
+    // and a run with `pactsExpired > 0` and `pactEndedSent === 0` means the
+    // announcement is failing while the sweep succeeds — the two are separately
+    // caught for exactly that reason.
+    pactEndedSent: number;
     // Notifications this run decided on that were already queued for the same
     // period. On a second run of the same day every one of the three types
     // lands here instead, which is what makes re-running the digest a no-op.
@@ -37,6 +107,24 @@ interface IDigestCounters {
     // `error`, so "zeros + deduped" stays a reliable signal for "already ran".
     deduped: number;
     errors: number;
+    // Daily reminder pass. `habitsEvaluated` counts rows read from
+    // habits.user_habits, so a zero here means the pass is disabled or nobody is
+    // tracking a habit — which is the distinction worth drawing first when the
+    // complaint is "no notifications". `dailyRemindersSent` counts rows queued.
+    habitsEvaluated: number;
+    dailyRemindersSent: number;
+    // Habits skipped because today is not one of their scheduled days (a 3x/week
+    // habit on an off day). Reported so a suspiciously quiet run can be told
+    // apart from a mis-parsed cadence.
+    remindersNotDue: number;
+    // True when the run read exactly DIGEST_MAX_PACTS / DIGEST_MAX_HABITS rows,
+    // i.e. the LIMIT was reached and there is very likely a tail this run never
+    // looked at. Both queries order oldest-first, so the rows that fall off the
+    // end belong to the *newest* users — precisely the cohort the reminder pass
+    // exists to reach. Without these flags that tail goes dark silently: the
+    // counters keep rising, nothing errors, and the run still looks healthy.
+    pactsCapped: boolean;
+    habitsCapped: boolean;
     // Lifecycle engine (docs/HABIT_LIFECYCLE_MESSAGING.md). All zero when
     // HABIT_PHASE_ENGINE_ENABLED is not 'true', which is also how a reader tells
     // a run with the engine off from one where nobody happened to cross a gate.
@@ -49,6 +137,43 @@ interface IDigestCounters {
     // the only direct evidence the engine is reducing send volume rather than
     // merely adding new message types on top of the existing ones.
     nudgesTapered: number;
+    // Check-in nudges removed by the per-user roll-up: candidates recorded minus
+    // rows queued. Additive to the shape therr-messaging-automator logs, like
+    // `pactsExpired`. This is the number that says whether the burst is actually
+    // gone — `streakAtRiskSent + dailyRemindersSent` now counts *users*
+    // notified, and this counts the extra pushes they are no longer getting.
+    checkinNudgesRolledUp: number;
+
+    // ---- Evening "last chance" reminders + per-user local scheduling --------
+    // Rows queued for the evening slot. The one number that says the feature is
+    // on and reaching people. Read it against `streakAtRiskSent`: only a user
+    // with a live streak qualifies, so it can never exceed it, and a large gap
+    // is explained by the three counters below rather than by a fault.
+    lastChanceSent: number;
+    // Users with a live streak whose local day had no room left for a second
+    // nudge — the digest reached them late in their evening, their quiet hours
+    // had begun, or the two slots would have landed within four hours of each
+    // other. Expected to be substantial and non-zero: it counts pushes
+    // deliberately *not* sent, which is the point.
+    lastChanceNotScheduled: number;
+    // Users nudged this run with no live streak anywhere. They get the morning
+    // reminder only — loss aversion is the whole justification for a second
+    // push in a day, and there is nothing here to lose.
+    lastChanceSkippedNoStreak: number;
+    // Suppressed by the user's own settings. `remindersMutedByPreference`
+    // (settingsPushHabitReminders = false) drops both slots;
+    // `lastChanceMutedByPreference` (settingsPushStreakAlerts = false) drops
+    // only the evening one. Both columns have existed since the habits schema
+    // landed and nothing read either until now, so both read 0 until a client
+    // starts writing them.
+    remindersMutedByPreference: number;
+    lastChanceMutedByPreference: number;
+    // Users whose `settingsTimezone` was unset or unusable, who therefore fell
+    // back to the digest's own zone and kept exactly the delivery time they had
+    // before this feature. Starts at ~100% of recipients and should fall as
+    // installs report their timezone on push registration; a flat line means
+    // the mobile half never shipped, and this is the only place that shows it.
+    usersWithoutTimezone: number;
 }
 
 /**
@@ -57,15 +182,39 @@ interface IDigestCounters {
  * only fire when someone acts; this job covers the silence:
  *
  *  - streakAtRisk  → to each member with an active streak who hasn't
- *                    completed today's check-in (run it in the evening).
+ *                    completed today's check-in, delivered at their local
+ *                    morning.
+ *  - eveningCheckIn → the "last chance" escalation, delivered mid-to-late in
+ *                    the *user's own* evening to those same people, and only
+ *                    if they still have not checked in by the time it drains.
  *  - partnerMissedDay → to the other members when a member failed to
  *                    complete yesterday's check-in.
  *  - pactExpiring  → to all active members when the pact ends within 3 days.
+ *  - pactEnded     → to all active members the run their pact is swept into
+ *                    `expired`, carrying the renew action. Once per pact ever,
+ *                    not once per day.
+ *
+ * It also sweeps pacts whose window has passed into `expired` before reading
+ * the active set — see the sweep below.
  *
  * Designed to be triggered once per day by an internal cron (today, a Cloud
  * Scheduler job poking therr-messaging-automator). The route is deliberately
  * NOT registered in the API gateway, so it is unreachable from the public
  * internet.
+ *
+ * ONE FIRING, PER-USER DELIVERY TIMES. That single daily firing used to be the
+ * delivery time as well — every row was queued with `scheduledFor = now()`, so
+ * "run it in the evening" meant evening in America/Chicago and 02:00 in
+ * Auckland. It now decides *what* to send at 14:00 UTC and *when* per user,
+ * via `utilities/localReminderSchedule.ts` and the `scheduledFor` column the
+ * queue was built with. Cloud Scheduler's free tier is 3 jobs and all 3 are
+ * spoken for (docs/CROSS_REPO_INTEGRATION.md §4), so more firings were never
+ * the answer; the queue is.
+ *
+ * The cost of deciding hours before sending is that the decision can go stale —
+ * the user checks in at lunchtime and the evening row still says their streak
+ * is on the line. `utilities/checkinNudgeFreshness.ts` re-checks at send time
+ * and drops the row, which is what makes the deferral safe.
  *
  * SAFE TO RE-RUN. This handler decides *what* to notify; it queues rather than
  * sends, and every dedupe key it writes is stamped with the period it belongs
@@ -85,23 +234,67 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
 
     // main.notificationQueue deliberately has no default for brandVariation, and
     // the worker only ever claims rows under a known BrandVariations value — a
-    // row filed under '' would sit pending forever. Pacts are a HABITS feature,
-    // so a missing header (a hand-run curl) means habits, not "unknown".
-    const brand = brandVariation || BrandVariations.HABITS;
+    // row filed under '' would sit pending forever.
+    //
+    // Pinned to HABITS rather than taken from the header. Everything this handler
+    // reads lives in the `habits.*` schema, which carries no brandVariation column
+    // precisely because the whole schema belongs to Friends with Habits (see the
+    // archetype note in 20260815000001_habits.user_habits.js). Every row it acts on
+    // is a HABITS row regardless of what the caller claims to be.
+    //
+    // `enqueueNotification`, though, files rows under whatever brand it is given,
+    // and brandVariation leads the UNIQUE (brandVariation, userId, dedupeKey)
+    // constraint. A wrong header would therefore write habit reminders into another
+    // brand's partition, where they dedupe against the wrong keys and are claimed by
+    // the wrong app's worker — with nothing failing anywhere.
+    //
+    // Coerced rather than rejected. The one production caller
+    // (therr-messaging-automator's habitsDigest.ts) hardcodes
+    // `x-brand-variation: habits`, so a mismatch is a misconfiguration — but this
+    // pass exists because a cohort of users was getting no notification at all, and
+    // answering 400 would put them back there. Filing under the correct brand and
+    // logging the discrepancy keeps the reminders flowing and still makes it visible.
+    const brand = BrandVariations.HABITS;
+    if (brandVariation && brandVariation !== BrandVariations.HABITS) {
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'API_SERVER',
+            messages: [
+                `Habits digest called with x-brand-variation '${brandVariation}'; `
+                + 'the habits schema is single-brand, so notifications were filed under '
+                + `'${BrandVariations.HABITS}' regardless. Check the caller's headers.`,
+            ],
+            traceArgs: { 'pushNotification.brandVariation': String(brandVariation) },
+        });
+    }
 
     const counters: IDigestCounters = {
         pactsEvaluated: 0,
+        pactsExpired: 0,
         streakAtRiskSent: 0,
         partnerMissedSent: 0,
         pactExpiringSent: 0,
+        pactEndedSent: 0,
         deduped: 0,
         errors: 0,
+        habitsEvaluated: 0,
+        dailyRemindersSent: 0,
+        remindersNotDue: 0,
+        pactsCapped: false,
+        habitsCapped: false,
         phasesEvaluated: 0,
         habitEstablishedSent: 0,
         habitAutomaticitySent: 0,
         maintenanceCheckInSent: 0,
         comebackSent: 0,
         nudgesTapered: 0,
+        checkinNudgesRolledUp: 0,
+        lastChanceSent: 0,
+        lastChanceNotScheduled: 0,
+        lastChanceSkippedNoStreak: 0,
+        remindersMutedByPreference: 0,
+        lastChanceMutedByPreference: 0,
+        usersWithoutTimezone: 0,
     };
 
     const today = getTodayDateString();
@@ -120,6 +313,11 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         type: PushNotifications.Types,
         dedupeKey: string,
         extras: Record<string, any> = {},
+        // Omitted means "as soon as the worker next ticks", which is what every
+        // notification here did before per-user local scheduling existed. Only
+        // the two check-in slots pass a value. Defaulted rather than declared
+        // optional so it can follow `extras`, which is itself defaulted.
+        scheduledFor: Date | undefined = undefined,
     ): Promise<EnqueueOutcome> => {
         const outcome = await enqueueNotification({
             brandVariation: brand,
@@ -130,6 +328,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             // when it builds the send, so they have to travel with the row —
             // by the time it drains, this request's headers are long gone.
             payload: { ...extras, locale, whiteLabelOrigin },
+            scheduledFor,
         });
         if (outcome === 'duplicate') {
             counters.deduped += 1;
@@ -153,28 +352,133 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         type: PushNotifications.Types,
         dedupeKey: string,
         extras: Record<string, any> = {},
-    ): Promise<boolean> => (await queuePushOutcome(toUserId, type, dedupeKey, extras)) === 'queued';
+        scheduledFor: Date | undefined = undefined,
+    ): Promise<boolean> => (await queuePushOutcome(toUserId, type, dedupeKey, extras, scheduledFor)) === 'queued';
 
     try {
+        // Memoized for the run. Shared with the inline check-in path
+        // (handlers/habitCheckins.ts) so the same partner is named the same way
+        // whichever notification reaches the user — they disagreed before.
+        //
+        // Built before the expiry sweep because the sweep now notifies, and its
+        // copy names the habit.
+        const { getHabitName, getUserDisplayName } = createNameResolvers();
+
+        // Close out pacts whose window has passed, before anything reads the
+        // active set.
+        //
+        // `PactsStore.expire()`, `PactsStore.getExpiredPacts()` and
+        // `pactHelpers.shouldExpirePact` have all existed since the pact schema
+        // landed and nothing has ever called any of them, so a pact reached its
+        // endDate and simply stayed `active` forever: still drawing digest
+        // reads, still rendering as in-flight, still counting against the
+        // one-live-pact-per-habit rule that gates renewal.
+        //
+        // Sweeping first is what stops a pact being warned that it expires in
+        // zero days on the same run that ends it. A failure here is logged and
+        // the digest continues — an unswept pact is the behaviour every run
+        // before this one had.
+        const expiredPacts = await Store.pacts.getExpiredPacts().catch((err: any) => {
+            counters.errors += 1;
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [err?.message, 'Habits digest: failed to read expired pacts'],
+            });
+            return [] as any[];
+        });
+        // eslint-disable-next-line no-restricted-syntax
+        for (const expiring of expiredPacts) {
+            try {
+                // eslint-disable-next-line no-await-in-loop
+                await Store.pacts.expire(expiring.id);
+                counters.pactsExpired += 1;
+            } catch (err: any) {
+                counters.errors += 1;
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: failed to expire pact'],
+                    traceArgs: { pactId: expiring.id },
+                });
+                // Not notified: the pact is still `active`, so it will be swept
+                // — and announced — on the next run. Announcing an end that did
+                // not persist would offer a renewal the handler then refuses.
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
+            try {
+                // Tell the members their cycle closed, and offer the renewal in
+                // the same breath.
+                //
+                // This moment is the only one where the offer is real:
+                // `isPactRenewable` is false while a pact is active and inside
+                // its window, so the renew CTA cannot ride `pactExpiring` three
+                // days earlier — it would produce a rejected request. It is also
+                // the moment the behaviour-change literature says to make the
+                // offer at all: the end of a cycle is a temporal landmark, and
+                // landmarks are when people restart (Dai, Milkman & Riis 2014;
+                // docs/HABIT_LIFECYCLE_MESSAGING.md § Why the app renews on a
+                // cycle).
+                //
+                // Sent to everyone whose membership was still active, whether or
+                // not they saw the pact through. `pactCompleted` deliberately
+                // does not serve here: its copy congratulates both partners, and
+                // the sweep cannot tell a finisher from someone who dropped out
+                // in week one.
+                //
+                // Keyed on the pact alone, with no date: a pact expires exactly
+                // once, so a re-run — or a manual digest firing — must not
+                // produce a second one. That is a departure from the
+                // period-stamped keys elsewhere in this file, and it is
+                // deliberate; the event is not periodic.
+                // eslint-disable-next-line no-await-in-loop
+                const endedMembers = (await Store.pactMembers.getByPactId(expiring.id))
+                    .filter((m: any) => m.status === 'active');
+                // eslint-disable-next-line no-await-in-loop
+                const endedHabitName = await getHabitName(expiring.habitGoalId);
+                // eslint-disable-next-line no-await-in-loop
+                const endedQueued = await Promise.all(endedMembers.map((member: any) => queuePush(
+                    member.userId,
+                    PushNotifications.Types.pactEnded,
+                    `pact-ended:${expiring.id}`,
+                    {
+                        pactId: expiring.id,
+                        habitName: endedHabitName,
+                        durationDays: Number(expiring.durationDays || 0),
+                    },
+                )));
+                counters.pactEndedSent += endedQueued.filter(Boolean).length;
+            } catch (err: any) {
+                // The pact is expired either way — this only costs the
+                // announcement. The dedupe key holds no date, so a retry on the
+                // next run would queue nothing; a pact that fails here is one
+                // whose members are never told, which is why it is logged as its
+                // own failure rather than folded into the sweep's.
+                counters.errors += 1;
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: failed to announce ended pact'],
+                    traceArgs: { pactId: expiring.id },
+                });
+            }
+        }
+
         const activePacts = await Store.pacts.get({ status: 'active' }, undefined, DIGEST_MAX_PACTS);
-        const habitNameCache = new Map<string, string>();
-        const userNameCache = new Map<string, string>();
-
-        const getHabitName = async (habitGoalId: string): Promise<string> => {
-            if (!habitNameCache.has(habitGoalId)) {
-                const goal = await Store.habitGoals.getById(habitGoalId).catch(() => null);
-                habitNameCache.set(habitGoalId, goal?.name || 'your habit');
-            }
-            return habitNameCache.get(habitGoalId) as string;
-        };
-
-        const getUserDisplayName = async (userId: string): Promise<string> => {
-            if (!userNameCache.has(userId)) {
-                const rows = await Store.users.findUser({ id: userId }, ['userName', 'firstName']).catch(() => []);
-                userNameCache.set(userId, rows?.[0]?.firstName || rows?.[0]?.userName || 'Your partner');
-            }
-            return userNameCache.get(userId) as string;
-        };
+        counters.pactsCapped = activePacts.length >= DIGEST_MAX_PACTS;
+        if (counters.pactsCapped) {
+            logSpan({
+                level: 'warn',
+                messageOrigin: 'API_SERVER',
+                messages: [
+                    'Habits digest: active pact count reached DIGEST_MAX_PACTS — '
+                    + 'pacts beyond the limit were not evaluated in this run',
+                ],
+                traceArgs: { 'habitsDigest.limit': DIGEST_MAX_PACTS },
+            });
+        }
 
         // Membership is resolved up front rather than inside the notification
         // loop so the lifecycle engine can batch-load its four reads across
@@ -203,6 +507,46 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             }
         }
 
+        // Every habit anyone is actively tracking — the spine of the reminder
+        // pass below, and the reason a solo habit is now reachable at all.
+        //
+        // Read before the lifecycle context is built so these pairs can be part
+        // of it: a solo habit has the same phases as a pact-backed one, and
+        // evaluating it here is what stops the new reminder from ignoring the
+        // taper that docs/HABIT_LIFECYCLE_MESSAGING.md exists to enforce.
+        //
+        // A failure is logged and the run continues with no reminder pass. The
+        // partner-accountability notifications are the older, load-bearing half
+        // of this job and must not be taken down by the newer one.
+        const remindableHabits = areDailyRemindersEnabled()
+            ? await Store.userHabits.getActiveForReminders(today, DIGEST_MAX_HABITS).catch((err: any) => {
+                counters.errors += 1;
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: failed to read trackable habits'],
+                });
+                return [] as IUserHabitReminderRow[];
+            })
+            : [];
+        counters.habitsEvaluated = remindableHabits.length;
+        counters.habitsCapped = remindableHabits.length >= DIGEST_MAX_HABITS;
+        if (counters.habitsCapped) {
+            // The reminder pass orders by `startedAt ASC`, so the habits that fall
+            // off the end are the most recently started ones — new users, who are
+            // exactly who a daily reminder is meant to retain. Raise the limit or
+            // page the query; do not let this warning become routine.
+            logSpan({
+                level: 'warn',
+                messageOrigin: 'API_SERVER',
+                messages: [
+                    'Habits digest: trackable habit count reached DIGEST_MAX_HABITS — '
+                    + 'the newest habits were not evaluated in this run',
+                ],
+                traceArgs: { 'habitsDigest.limit': DIGEST_MAX_HABITS },
+            });
+        }
+
         // One lifecycle decision per (user, habit), deduplicated across pacts:
         // a user pursuing one goal through two pacts has one habit, and must
         // taper, celebrate and be checked in on exactly once.
@@ -215,6 +559,12 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                         userId: member.userId,
                         habitGoalId: pact.habitGoalId,
                     });
+                });
+            });
+            remindableHabits.forEach((habit) => {
+                uniquePairs.set(pairKey(habit.userId, habit.habitGoalId), {
+                    userId: habit.userId,
+                    habitGoalId: habit.habitGoalId,
                 });
             });
         }
@@ -230,6 +580,131 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         // second pass would also write `lastComebackAt` and advance the
         // maintenance stage a second time.
         const lifecycleHandled = new Set<string>();
+
+        /**
+         * (user, habit) pairs the pact loop has already spoken to about today's
+         * check-in. The daily-reminder pass reads it to stay out of the way:
+         * `streakAtRisk` is the stronger, streak-aware message and wins wherever
+         * both apply.
+         */
+        const nudgedPairs = new Set<string>();
+
+        /**
+         * Every "go check in" nudge this run decides on, collected per user and
+         * queued as ONE notification each at the end of the run.
+         *
+         * Both the pact loop and the reminder pass feed it. Nothing here is
+         * enqueued until `drain()` below, which is what turns a user's five
+         * near-identical pushes into one — see checkinNudgeRollup for why the
+         * collapse happens at the producer rather than at the worker.
+         */
+        const checkinNudges = createCheckinNudgeAccumulator();
+
+        /**
+         * Milestones, maintenance check-ins and the comeback offer for one
+         * (user, habit) pair — plus the phase write that records what was
+         * delivered.
+         *
+         * Lifted out of the pact loop because the lifecycle belongs to the *habit*,
+         * not to the pact: a solo habit has exactly the same phases, and until the
+         * daily-reminder pass below existed there was simply no code path that
+         * reached one. `lifecycleHandled` keeps it to once per pair per run, which
+         * matters in both directions now — a user pursuing one goal through two
+         * pacts, and a habit visited by both the pact loop and the reminder pass.
+         */
+        const queueLifecycleNotifications = async (
+            userId: string,
+            habitGoalId: string,
+            habitName: string,
+        ): Promise<void> => {
+            const key = pairKey(userId, habitGoalId);
+            const decision = lifecycle.decisions[key];
+            if (!decision || lifecycleHandled.has(key)) {
+                return;
+            }
+            lifecycleHandled.add(key);
+            const dayCount = lifecycle.ages[key] || 0;
+            const { consistencyPercent } = decision;
+            const delivered: { maintenanceStage?: number; comeback?: boolean } = {};
+
+            if (decision.milestone === 'established') {
+                // Keyed on the date the taper happened: a habit that
+                // lapses and is rebuilt earns this again, and should.
+                const queued = await queuePush(
+                    userId,
+                    PushNotifications.Types.habitEstablished,
+                    `habit-established:${habitGoalId}:${today}`,
+                    {
+                        habitId: habitGoalId, habitName, dayCount, consistencyPercent,
+                    },
+                );
+                if (queued) counters.habitEstablishedSent += 1;
+            }
+
+            if (decision.milestone === 'automaticity') {
+                const queued = await queuePush(
+                    userId,
+                    PushNotifications.Types.habitAutomaticity,
+                    `habit-automaticity:${habitGoalId}:${today}`,
+                    {
+                        habitId: habitGoalId, habitName, dayCount, consistencyPercent,
+                    },
+                );
+                if (queued) counters.habitAutomaticitySent += 1;
+            }
+
+            if (decision.maintenanceDue !== undefined) {
+                const anchor = lifecycle.rows[key]?.establishedAt
+                    ? normalizeDateString(lifecycle.rows[key].establishedAt as string)
+                    : today;
+                // The anchor is in the key so that a habit which
+                // lapsed and re-established can receive the 30/60/90
+                // sequence again against its new establishment,
+                // rather than colliding with the old cycle's keys.
+                const outcome = await queuePushOutcome(
+                    userId,
+                    PushNotifications.Types.habitMaintenanceCheckIn,
+                    `habit-maintenance:${habitGoalId}:${anchor}:${decision.maintenanceDue}`,
+                    {
+                        habitId: habitGoalId,
+                        habitName,
+                        dayCount: decision.maintenanceDue,
+                        consistencyPercent,
+                    },
+                );
+                if (outcome === 'queued') counters.maintenanceCheckInSent += 1;
+                // 'duplicate' counts as delivered: the row is already
+                // in the queue for this stage, so advancing is right.
+                // Only a hard failure leaves the stage open to retry.
+                if (outcome !== 'failed') delivered.maintenanceStage = decision.maintenanceDue;
+            }
+
+            if (decision.comebackDue) {
+                const outcome = await queuePushOutcome(
+                    userId,
+                    PushNotifications.Types.habitComeback,
+                    `habit-comeback:${habitGoalId}:${today}`,
+                    {
+                        habitId: habitGoalId,
+                        habitName,
+                        bestStreakCount: lifecycle.bestStreaks[key] || 0,
+                    },
+                );
+                if (outcome === 'queued') counters.comebackSent += 1;
+                if (outcome !== 'failed') delivered.comeback = true;
+            }
+
+            await persistPhaseDecision(userId, habitGoalId, decision, today, delivered)
+                .catch((err: any) => {
+                    counters.errors += 1;
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: [err?.message, 'Habits digest: failed to persist habit phase'],
+                        traceArgs: { 'user.id': userId, habitGoalId },
+                    });
+                });
+        };
 
         // Sequential per pact keeps DB pressure flat; the run is a background
         // job where total wall time matters far less than read-pool spikes.
@@ -273,101 +748,17 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     const completedToday = (todayCheckins || []).some((c: any) => c.status === 'completed');
                     const completedYesterday = (yesterdayCheckins || []).some((c: any) => c.status === 'completed');
 
+                    // Read here rather than inside the nudge below because both
+                    // the taper check and `nudgedPairs` need them.
+                    const key = pairKey(member.userId, pact.habitGoalId);
+                    const decision = lifecycle.decisions[key];
+
                     // Lifecycle: milestones, maintenance check-ins and comeback
                     // offers. Runs once per (user, habit) per digest, before the
                     // nudge below, because its decision is what decides whether
                     // that nudge is allowed to go out at all.
-                    const key = pairKey(member.userId, pact.habitGoalId);
-                    const decision = lifecycle.decisions[key];
-                    if (decision && !lifecycleHandled.has(key)) {
-                        lifecycleHandled.add(key);
-                        const dayCount = lifecycle.ages[key] || 0;
-                        const { consistencyPercent } = decision;
-                        const delivered: { maintenanceStage?: number; comeback?: boolean } = {};
-
-                        if (decision.milestone === 'established') {
-                            // Keyed on the date the taper happened: a habit that
-                            // lapses and is rebuilt earns this again, and should.
-                            // eslint-disable-next-line no-await-in-loop
-                            const queued = await queuePush(
-                                member.userId,
-                                PushNotifications.Types.habitEstablished,
-                                `habit-established:${pact.habitGoalId}:${today}`,
-                                {
-                                    habitId: pact.habitGoalId, habitName, dayCount, consistencyPercent,
-                                },
-                            );
-                            if (queued) counters.habitEstablishedSent += 1;
-                        }
-
-                        if (decision.milestone === 'automaticity') {
-                            // eslint-disable-next-line no-await-in-loop
-                            const queued = await queuePush(
-                                member.userId,
-                                PushNotifications.Types.habitAutomaticity,
-                                `habit-automaticity:${pact.habitGoalId}:${today}`,
-                                {
-                                    habitId: pact.habitGoalId, habitName, dayCount, consistencyPercent,
-                                },
-                            );
-                            if (queued) counters.habitAutomaticitySent += 1;
-                        }
-
-                        if (decision.maintenanceDue !== undefined) {
-                            const anchor = lifecycle.rows[key]?.establishedAt
-                                ? normalizeDateString(lifecycle.rows[key].establishedAt as string)
-                                : today;
-                            // The anchor is in the key so that a habit which
-                            // lapsed and re-established can receive the 30/60/90
-                            // sequence again against its new establishment,
-                            // rather than colliding with the old cycle's keys.
-                            // eslint-disable-next-line no-await-in-loop
-                            const outcome = await queuePushOutcome(
-                                member.userId,
-                                PushNotifications.Types.habitMaintenanceCheckIn,
-                                `habit-maintenance:${pact.habitGoalId}:${anchor}:${decision.maintenanceDue}`,
-                                {
-                                    habitId: pact.habitGoalId,
-                                    habitName,
-                                    dayCount: decision.maintenanceDue,
-                                    consistencyPercent,
-                                },
-                            );
-                            if (outcome === 'queued') counters.maintenanceCheckInSent += 1;
-                            // 'duplicate' counts as delivered: the row is already
-                            // in the queue for this stage, so advancing is right.
-                            // Only a hard failure leaves the stage open to retry.
-                            if (outcome !== 'failed') delivered.maintenanceStage = decision.maintenanceDue;
-                        }
-
-                        if (decision.comebackDue) {
-                            // eslint-disable-next-line no-await-in-loop
-                            const outcome = await queuePushOutcome(
-                                member.userId,
-                                PushNotifications.Types.habitComeback,
-                                `habit-comeback:${pact.habitGoalId}:${today}`,
-                                {
-                                    habitId: pact.habitGoalId,
-                                    habitName,
-                                    bestStreakCount: lifecycle.bestStreaks[key] || 0,
-                                },
-                            );
-                            if (outcome === 'queued') counters.comebackSent += 1;
-                            if (outcome !== 'failed') delivered.comeback = true;
-                        }
-
-                        // eslint-disable-next-line no-await-in-loop
-                        await persistPhaseDecision(member.userId, pact.habitGoalId, decision, today, delivered)
-                            .catch((err: any) => {
-                                counters.errors += 1;
-                                logSpan({
-                                    level: 'error',
-                                    messageOrigin: 'API_SERVER',
-                                    messages: [err?.message, 'Habits digest: failed to persist habit phase'],
-                                    traceArgs: { 'user.id': member.userId, habitGoalId: pact.habitGoalId },
-                                });
-                            });
-                    }
+                    // eslint-disable-next-line no-await-in-loop
+                    await queueLifecycleNotifications(member.userId, pact.habitGoalId, habitName);
 
                     // Evening nudge: streak on the line and no check-in yet today.
                     //
@@ -380,23 +771,37 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                         // eslint-disable-next-line no-await-in-loop
                         const streak = await Store.streaks.getByUserAndHabit(member.userId, pact.habitGoalId);
                         if (streak && streak.isActive && streak.currentStreak > 0) {
+                            // Claimed either way — queued, tapered or failed. The
+                            // reminder pass below covers every tracked habit,
+                            // including this one, and must not follow a streak
+                            // warning with a generic "get your streak going".
+                            nudgedPairs.add(key);
                             if (decision && !decision.allowsDailyNudge) {
                                 counters.nudgesTapered += 1;
                             } else {
-                                // eslint-disable-next-line no-await-in-loop
-                                const queued = await queuePush(
-                                    member.userId,
-                                    PushNotifications.Types.streakAtRisk,
-                                    `streak-at-risk:${pact.id}:${today}`,
-                                    {
-                                        pactId: pact.id,
-                                        habitName,
-                                        streakCount: streak.currentStreak,
-                                    },
-                                );
-                                if (queued) {
-                                    counters.streakAtRiskSent += 1;
-                                }
+                                // Recorded, not queued. Every check-in nudge this
+                                // run decides on — pact-backed or solo — is
+                                // collapsed into one notification per user at the
+                                // end (see checkinNudgeRollup). Keyed on the habit
+                                // goal there, so a habit held through two pacts is
+                                // counted once instead of producing the duplicate
+                                // this loop and the reminder pass used to send
+                                // under two different dedupe keys.
+                                checkinNudges.add(member.userId, {
+                                    habitGoalId: pact.habitGoalId,
+                                    pactId: pact.id,
+                                    habitName,
+                                    streakCount: streak.currentStreak,
+                                    // Selects the body that names the safety
+                                    // net. Telling someone their streak is on
+                                    // the line while silently holding a freeze
+                                    // that would cover tonight is the loss
+                                    // aversion without the rule it belongs to.
+                                    freezesRemaining: Math.max(
+                                        0,
+                                        (streak.gracePeriodDays || 0) - (streak.graceDaysUsed || 0),
+                                    ),
+                                });
                             }
                         }
                     }
@@ -438,6 +843,253 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     messages: [err?.message, 'Habits digest: failed to evaluate pact'],
                     traceArgs: { pactId: pact.id },
                 });
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Daily habit reminder.
+        //
+        // The pact loop above can only reach someone through an active pact,
+        // and only warns them when a live streak is on the line. That leaves
+        // the two cohorts most in need of a nudge with no notification path at
+        // all: someone tracking a habit on their own, and someone whose streak
+        // sits at zero because they are new or just broke one. This pass covers
+        // both, off habits.user_habits.
+        //
+        // Nothing here sends. Both this pass and the pact loop above record into
+        // `checkinNudges`, which is drained into one notification per user after
+        // this loop — so a user tracking four habits is nudged once, not four
+        // times.
+        //
+        // Everything it skips, it skips for a reason worth stating:
+        //   - already checked in today   → nothing to remind about
+        //   - not due today              → a 3x/week habit on an off day
+        //   - tapered by the phase engine → the habit is established; backing
+        //                                   off is the whole point of the engine
+        //   - already nudged above       → the pact loop recorded this habit
+        //                                  with its pact id and streak; adding
+        //                                  it again would be the same entry
+        // eslint-disable-next-line no-restricted-syntax
+        for (const habit of remindableHabits) {
+            const key = pairKey(habit.userId, habit.habitGoalId);
+
+            try {
+                // Lifecycle first, and unconditionally — before every gate
+                // below, including the check-in one.
+                //
+                // A solo habit had no code path into the engine at all until
+                // now, and the day someone crosses the establish gate is
+                // usually a day they *did* check in: gating this on
+                // `completedToday` would withhold the milestone from exactly
+                // the run that earned it, and leave `habits.habit_phases`
+                // un-advanced with it. Idempotent per pair per run via
+                // `lifecycleHandled`, so this is a no-op for anything the pact
+                // loop already handled.
+                // eslint-disable-next-line no-await-in-loop
+                await queueLifecycleNotifications(habit.userId, habit.habitGoalId, habit.goalName);
+
+                if (habit.completedToday || nudgedPairs.has(key)) {
+                    // eslint-disable-next-line no-continue
+                    continue;
+                }
+
+                if (!isHabitDueToday(habit, today)) {
+                    counters.remindersNotDue += 1;
+                    // eslint-disable-next-line no-continue
+                    continue;
+                }
+
+                const decision = lifecycle.decisions[key];
+                if (decision && !decision.allowsDailyNudge) {
+                    counters.nudgesTapered += 1;
+                    // eslint-disable-next-line no-continue
+                    continue;
+                }
+
+                nudgedPairs.add(key);
+
+                // Recorded into the same accumulator the pact loop feeds. A solo
+                // habit with a live streak still gets the loss-aversion framing
+                // and one without still gets the reminder framing — that choice
+                // now happens once per user, over every habit at stake, rather
+                // than once per habit.
+                checkinNudges.add(habit.userId, {
+                    habitGoalId: habit.habitGoalId,
+                    pactId: habit.activePactId || undefined,
+                    habitName: habit.goalName,
+                    streakCount: habit.streakIsActive ? Number(habit.currentStreak) : 0,
+                    freezesRemaining: Math.max(
+                        0,
+                        Number(habit.gracePeriodDays || 0) - Number(habit.graceDaysUsed || 0),
+                    ),
+                });
+            } catch (err: any) {
+                counters.errors += 1;
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: failed to evaluate habit reminder'],
+                    traceArgs: { 'user.id': habit.userId, habitGoalId: habit.habitGoalId },
+                });
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Drain the check-in nudges: one notification per user, however many
+        // habits and pacts fed it.
+        //
+        // Deliberately last. Both loops above contribute, and the framing
+        // (`streakAtRisk` vs `dailyHabitReminder`) and the streak it cites can
+        // only be chosen once every habit at stake for that user is known.
+        //
+        // One dedupe key per user per day — `checkin-nudge:<today>` — replaces
+        // the three period-stamped keys these used to write. A second run of the
+        // day still collides and inserts nothing; what changed is that a *first*
+        // run now inserts one row where it used to insert several.
+        const nudgeRows = checkinNudges.drain();
+        counters.checkinNudgesRolledUp = checkinNudges.candidateCount() - nudgeRows.length;
+
+        // Reminder settings for everyone this run is about to notify, in one
+        // read — the same reason `buildHabitLifecycleContext` batches: a
+        // `findUser` per recipient turns a background job into one round trip
+        // per user against the read pool.
+        //
+        // A failure here degrades rather than aborts. An empty map means every
+        // user falls back to the digest's own zone and the default quiet hours,
+        // which is exactly the behaviour every run before this one had.
+        const reminderPreferences = await Store.users
+            .getHabitReminderPreferences(nudgeRows.map((row) => row.userId))
+            .catch((err: any) => {
+                counters.errors += 1;
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: failed to read reminder preferences'],
+                });
+                return {};
+            });
+
+        // One instant for the whole drain, so two users in the same zone cannot
+        // land on different sides of a minute boundary and get slots that
+        // disagree by a minute for no reason.
+        const decidedAt = new Date();
+
+        // eslint-disable-next-line no-restricted-syntax
+        for (const row of nudgeRows) {
+            const preferences = reminderPreferences[row.userId] || {};
+
+            // The user's own kill switch. `settingsPushHabitReminders` has been
+            // a real, defaulted-true column since the habits schema landed and
+            // nothing has ever read it, so a user's only control over these
+            // pushes was the OS switch — all or nothing. Honoured here rather
+            // than at the worker so the row is never written at all.
+            if (preferences.settingsPushHabitReminders === false) {
+                counters.remindersMutedByPreference += 1;
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
+            // Where, in real time, this user's morning and evening slots fall.
+            // Everything about local delivery is decided here; the rest of this
+            // loop only queues what it returns.
+            const schedule = resolveReminderSchedule(preferences, decidedAt);
+            if (schedule.usedFallbackTimeZone) {
+                counters.usersWithoutTimezone += 1;
+            }
+
+            // ---- Morning slot: the streak-status nudge ----------------------
+            // Same roll-up, same dedupe key and same counters as before; what
+            // changed is `scheduledFor`. A user in Berlin used to receive this
+            // at 16:00 local and a user in Auckland at 02:00, because the queue
+            // row said "now" and "now" was 14:00 UTC for everybody.
+            //
+            // `checkinDate` is the user's local date *at delivery*, not the
+            // digest's — the notification is about the day it lands on, and
+            // that is the day the freshness gate has to check.
+            // eslint-disable-next-line no-await-in-loop
+            const queued = await queuePush(
+                row.userId,
+                row.type,
+                checkinNudgeDedupeKey(today),
+                { ...row.payload, checkinDate: schedule.morningLocalDate },
+                schedule.morningAt,
+            );
+            if (queued) {
+                // Counted under the type actually queued, so the fields
+                // therr-messaging-automator already logs keep meaning "rows of
+                // this type queued" — they just no longer double-count a user.
+                if (row.type === PushNotifications.Types.streakAtRisk) {
+                    counters.streakAtRiskSent += 1;
+                } else {
+                    counters.dailyRemindersSent += 1;
+                }
+            }
+
+            // ---- Evening slot: the "last chance" reminder -------------------
+            // Four gates, and each one exists to keep this from becoming the
+            // second daily push that teaches people to mute the app.
+            if (!areLastChanceRemindersEnabled()) {
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
+            // 1. Something to lose. A "last chance" for a user whose streak is
+            //    at zero is just a second generic reminder, and generic
+            //    reminders are what the frequency research says cost DAU. Loss
+            //    aversion is the entire justification for the extra push, so no
+            //    live streak means no second push.
+            if (!row.hasLiveStreak) {
+                counters.lastChanceSkippedNoStreak += 1;
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
+            // 2. The narrower of the user's two preference columns.
+            //    `settingsPushStreakAlerts` turns off the evening escalation
+            //    while leaving the ordinary morning reminder in place, which is
+            //    the setting someone reaching for "fewer of these" actually
+            //    wants.
+            if (preferences.settingsPushStreakAlerts === false) {
+                counters.lastChanceMutedByPreference += 1;
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
+            // 3. There has to be room in the user's own evening: after their
+            //    morning nudge by at least four hours, before their quiet
+            //    hours, and on the same local day the streak is at stake. When
+            //    there is not, `lastChanceAt` is null and silence is the
+            //    correct output — a "check in before midnight" that arrives
+            //    tomorrow morning is worse than nothing.
+            if (!schedule.lastChanceAt) {
+                counters.lastChanceNotScheduled += 1;
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
+            // The fourth gate is not here: the send-time freshness check in
+            // `utilities/checkinNudgeFreshness.ts` drops this row entirely if
+            // the user checks in between now and this evening, which on a
+            // working day is most of them. That is what makes queuing it now,
+            // hours ahead, honest.
+            //
+            // `eveningCheckIn` rather than a new type: it has had copy in all
+            // three locales, an intent action, manifest entries, channel
+            // routing and tap handling since the habits work landed, and no
+            // sender at all (docs/WORK_IN_PROGRESS.md has carried it as a dead
+            // type for a month). A new type would be inert until a fresh
+            // Android build shipped from niche/HABITS-general; this one works
+            // on installs that already exist.
+            // eslint-disable-next-line no-await-in-loop
+            const lastChanceQueued = await queuePush(
+                row.userId,
+                PushNotifications.Types.eveningCheckIn,
+                lastChanceNudgeDedupeKey(today),
+                { ...row.payload, checkinDate: schedule.lastChanceLocalDate },
+                schedule.lastChanceAt,
+            );
+            if (lastChanceQueued) {
+                counters.lastChanceSent += 1;
             }
         }
 

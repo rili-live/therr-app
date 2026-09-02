@@ -109,6 +109,18 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 13,
             fontWeight: '500',
         },
+        // Backdrop behind the drawer. Deliberately has no static top padding:
+        // the drawer pads itself by the measured safe-area inset instead, so
+        // this must stay full-bleed on both platforms.
+        overlay: {
+            top: 0,
+            left: 0,
+            height: '100%',
+            width: '100%',
+            padding: 0,
+            margin: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.35)',
+        },
         overlayContainer: {
             backgroundColor: therrTheme.colors.backgroundWhite,
             display: 'flex',

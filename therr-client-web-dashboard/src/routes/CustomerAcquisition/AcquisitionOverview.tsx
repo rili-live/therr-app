@@ -115,7 +115,6 @@ export class AcquisitionOverviewComponent extends React.Component<IAcquisitionOv
         );
     };
 
-    // eslint-disable-next-line class-methods-use-this
     public render(): JSX.Element | null {
         return (
             <BaseAcquisitionDashboard fetchCampaigns={fetchMyCampaigns} isSuperAdmin={false} isSubscriber={this.isSubscribed()} />

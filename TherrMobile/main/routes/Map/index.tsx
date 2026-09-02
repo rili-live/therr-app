@@ -35,6 +35,7 @@ import {
     DEFAULT_LONGITUDE,
     DEFAULT_LATITUDE,
     MAX_ANIMATION_LATITUDE_DELTA,
+    METERS_PER_MILE,
     ANIMATE_TO_REGION_DURATION_FAST,
     MAX_ANIMATION_LONGITUDE_DELTA,
     getAndroidChannel,
@@ -72,6 +73,8 @@ import MapBottomSheetContent, { IMapSheetContentTypes } from '../../components/B
 import TherrMapView from './TherrMapView';
 import { isMyContent } from '../../utilities/content';
 import getNearbySpaces from '../../utilities/getNearbySpaces';
+import { getLastMapLocation, setLastMapLocation } from '../../utilities/lastMapLocation';
+import { firstUsableCoordinate, hasUsableCoords, isUsableCoordinate } from '../../utilities/coordinates';
 import { sendForegroundNotification } from '../../utilities/pushNotifications';
 import QuickFiltersList from '../../components/QuickFiltersList';
 import { getInitialAuthorFilters, getInitialCategoryFilters, getInitialVisibilityFilters } from '../../utilities/getInitialFilters';
@@ -86,27 +89,17 @@ const AREAS_SEARCH_COUNT = Platform.OS === 'android' ? 250 : 400;
 const AREAS_SEARCH_COUNT_ZOOMED = Platform.OS === 'android' ? 100 : 200;
 const MAX_RENDERED_CIRCLES = (2 * AREAS_SEARCH_COUNT_ZOOMED) - 1;
 
-// TODO: Cache users last location and default there
-const DEFAULT_MAP_SEARCH = {
-    description: 'United States',
-    matched_substrings: [{
-        length: 13,
-        offset: 0,
-    }],
-    place_id: 'ChIJCzYy5IS16lQRQrfeQ5K5Oxw',
-    reference: 'ChIJCzYy5IS16lQRQrfeQ5K5Oxw',
-    structured_formatting: {
-        main_text: 'United States',
-        main_text_matched_substrings: [{
-            length: 13,
-            offset: 0,
-        }],
-    },
-    terms: [{
-        offset: 0,
-        value: 'United States',
-    }],
-    types: ['country', 'political', 'geocode'],
+// Last-resort center when nothing is known about the user's location: no route params, no
+// user.details.lastKnown*, nothing in the local map-location cache.
+//
+// This replaces a Google Places lookup for "United States", which centered the map on the
+// country's geographic middle at a whole-country zoom — an empty basemap over Kansas, which
+// reads as a broken app. A populated map of a seeded market reads as a working one, and it
+// gives the location permission prompt something to contrast against. Chicago is the first
+// outreach market in docs/GROWTH_STRATEGY.md, so it is the most likely to have content.
+const FALLBACK_METRO_COORDS = {
+    latitude: 41.8781,
+    longitude: -87.6298,
 };
 
 const hapticFeedbackOptions = {
@@ -182,6 +175,9 @@ interface IMapState {
     isLocationUseDisclosureModalVisible: boolean;
     isMapReady: boolean;
     isMinLoadTimeComplete: boolean;
+    // The area preview card strip is open. Map action buttons stay mounted but drop to a
+    // compact subset so the strip does not bury the map behind a column of FABs.
+    isPreviewStripOpen: boolean;
     isSearchThisLocationBtnVisible: boolean;
     isUserNewish: boolean;
     nearbySpaces: {
@@ -252,6 +248,13 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     private initialCategoryFilters;
     private initialVisibilityFilters;
     private mapRef: any;
+
+    // Guards the cold-start preview strip open so it fires once per mount and never
+    // fights a strip the user opened (or closed) themselves.
+    private hasAutoOpenedPreview = false;
+
+    // Set when the cold-start search resolved before the map mounted; onMapLayout retries.
+    private pendingAutoOpenCoords?: { latitude: number, longitude: number };
     private mapWatchId;
     private lastSearchAt?: number;
     private lastSearchCoords?: { latitude: number, longitude: number };
@@ -319,6 +322,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isSearchLoading: false,
             isMapReady: false,
             isMinLoadTimeComplete: false,
+            isPreviewStripOpen: false,
             isSearchThisLocationBtnVisible: false,
             // User exists and was created less than 2 weeks ago
             isUserNewish: props?.user?.details?.createdAt && new Date(props?.user?.details?.createdAt).getTime() > (Date.now() - 1000 * 60 * 60 * 24 * 14),
@@ -328,9 +332,16 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             shouldShowCreateActions: false,
             // Note: This is essentially the same as redux state `location.user.longitude/latitude` (plus defaults)
             // We should probably consolidate this into redux
+            // `firstUsableCoordinate`, not `||`: a route param of exactly 0 is falsy, so
+            // the chain would skip a coordinate it was handed and centre the map on the
+            // default instead.
             circleCenter: {
-                longitude: routeLongitude || props?.user?.details?.lastKnownLongitude || DEFAULT_LONGITUDE,
-                latitude: routeLatitude || props?.user?.details?.lastKnownLatitude || DEFAULT_LATITUDE,
+                longitude: firstUsableCoordinate(
+                    routeLongitude, props?.user?.details?.lastKnownLongitude,
+                ) ?? DEFAULT_LONGITUDE,
+                latitude: firstUsableCoordinate(
+                    routeLatitude, props?.user?.details?.lastKnownLatitude,
+                ) ?? DEFAULT_LATITUDE,
             },
         };
 
@@ -393,18 +404,21 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             updateFirstTimeUI(true);
         }
 
-        if (!route.params?.longitude || !route.params?.latitude) {
-            if (user?.details?.lastKnownLatitude && user?.details?.lastKnownLongitude) {
+        if (!hasUsableCoords(route.params)) {
+            if (isUsableCoordinate(user?.details?.lastKnownLatitude)
+                && isUsableCoordinate(user?.details?.lastKnownLongitude)) {
                 // Load the users last known location
                 // Note: See getLongitudeDelta()
                 // This converts degrees to miles then miles to meters (times 4 for extended search)
-                const radiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * 1609.34;
-                this.handleSearchThisLocation(radiusMeters, user?.details?.lastKnownLatitude, user?.details?.lastKnownLongitude);
+                const radiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * METERS_PER_MILE;
+                this.handleSearchThisLocation(radiusMeters, user?.details?.lastKnownLatitude, user?.details?.lastKnownLongitude)
+                    .finally(() => this.autoOpenPreviewStrip(user?.details?.lastKnownLatitude, user?.details?.lastKnownLongitude));
             } else {
-                this.handleSearchSelect(DEFAULT_MAP_SEARCH);
+                this.searchFromCachedOrFallbackLocation();
             }
         } else {
-            this.handleSearchThisLocation(undefined, route.params?.latitude, route.params?.longitude);
+            this.handleSearchThisLocation(undefined, route.params?.latitude, route.params?.longitude)
+                .finally(() => this.autoOpenPreviewStrip(route.params?.latitude, route.params?.longitude));
         }
 
         this.unsubscribeNavigationListener = navigation.addListener('state', () => {
@@ -432,21 +446,25 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             const { map, location, route: inScopeRoute } = this.props;
             const restoredScrollIndex = inScopeRoute?.params?.previewScrollIndex || 0;
             this.expandBottomSheet(-1);
+            // TherrMapView tears the strip down on blur, so it is always closed by the time
+            // the map is focused again. Anything below that re-opens it sets this back to
+            // true once its search resolves.
             this.setState({
                 areButtonsVisible: true,
+                isPreviewStripOpen: false,
             });
             setSearchDropdownVisibility(false);
 
             if (inScopeRoute?.params?.shouldInitiateLocation) {
                 this.handleGpsRecenterPress();
             } else if (inScopeRoute?.params?.shouldShowPreview &&
-                ((map?.latitude && map?.longitude) || (location?.user?.latitude && location?.user?.longitude))) {
+                (hasUsableCoords(map) || hasUsableCoords(location?.user))) {
                 navigation.setParams({
                     shouldShowPreview: false,
                     previewScrollIndex: undefined,
                 });
 
-                const searchRadiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * 1609.34;
+                const searchRadiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * METERS_PER_MILE;
                 const latitude = map?.latitude || location?.user?.latitude;
                 const longitude = map?.longitude || location?.user?.longitude;
                 this.handleSearchThisLocation(searchRadiusMeters, latitude, longitude)
@@ -987,7 +1005,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         this.updateCircleCenter(coords);
         // Widen the delta when the region is already on the target longitude
         // so the animation is visible instead of being a near-no-op.
-        const mapDelta = region.longitude && region.latitudeDelta
+        const mapDelta = isUsableCoordinate(region.longitude) && region.latitudeDelta
             && Math.abs(region.latitudeDelta - MAX_ANIMATION_LATITUDE_DELTA) > 0.001
             && Math.abs(region.longitude - coords.longitude) < 0.0001
             ? {
@@ -1021,7 +1039,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         // repeat presses won't refire the 6+ search requests.
         if (location?.settings?.isGpsEnabled
             && isLocationPermissionGranted(location?.permissions || {})
-            && location.user?.longitude && location.user?.latitude
+            && hasUsableCoords(location.user)
             && map.hasUserLocationLoaded) {
             const coords = {
                 longitude: location.user.longitude,
@@ -1093,7 +1111,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                             });
 
                             // User has already logged in initially and loaded the map
-                            if (location.user?.longitude && location.user?.latitude && map.hasUserLocationLoaded) {
+                            if (hasUsableCoords(location.user) && map.hasUserLocationLoaded) {
                                 const coords = {
                                     longitude: location.user.longitude,
                                     latitude: location.user.latitude,
@@ -1544,14 +1562,15 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         let lat = latitude;
         let long = longitude;
 
-        if (!latitude || !longitude) {
+        if (!isUsableCoordinate(latitude) || !isUsableCoordinate(longitude)) {
             lat = region.latitude;
             long = region.longitude;
         }
 
         // Skip if we searched recently AND haven't moved far enough. Class fields are used
         // (not state) so these guards don't trigger re-renders.
-        if (!overrideThrottle && lat && long && this.lastSearchAt && this.lastSearchCoords &&
+        if (!overrideThrottle && isUsableCoordinate(lat) && isUsableCoordinate(long)
+            && this.lastSearchAt && this.lastSearchCoords &&
             (Date.now() - this.lastSearchAt <= MOMENTS_REFRESH_THROTTLE_MS)) {
             const movedMeters = distanceTo({
                 lon: this.lastSearchCoords.longitude,
@@ -1760,7 +1779,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         } = this.state;
         const { location } = this.props;
 
-        if (shouldFollowUserLocation === false && location?.user?.longitude && location?.user?.latitude) {
+        if (shouldFollowUserLocation === false && hasUsableCoords(location?.user)) {
             // Zoom in
             // TODO: Find way to keep pitch while following
             // this.animateToWithHelp(() => {
@@ -1845,21 +1864,139 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             bottomSheetContentType: 'nearby',
             bottomSheetSnapPoints: defaultSnapPoints,
             shouldFollowUserLocation: false,
+            isPreviewStripOpen: false,
             isScrollEnabled: true,
         });
     };
 
     onPreviewBottomSheetOpen = () => {
+        // The buttons deliberately stay mounted here. Hiding them entirely (the previous
+        // behavior) meant the strip and the create CTA could never be on screen together,
+        // which defeats the point of opening the strip on load. MapActionButtons drops to
+        // its compact subset instead — see isCompact there.
         this.setState({
-            areButtonsVisible: false,
+            areButtonsVisible: true,
             areLayersVisible: false,
             shouldFollowUserLocation: false,
+            isPreviewStripOpen: true,
             isScrollEnabled: true,
         });
     };
 
+    /**
+     * Cold-start path for a user the server has no lastKnown* coordinates for — a logged-out
+     * user, a fresh install, or anyone who has never granted location. Prefers the locally
+     * cached map location, then the seeded metro.
+     *
+     * The cached coordinates deliberately do NOT go through handleGpsRecenter: that posts a
+     * location change to push-notifications-service, and a possibly-days-old cached point is
+     * not a GPS fix. Setting circleCenter is enough — TherrMapView derives its initial region
+     * from it, and the map does not render until MIN_LOAD_TIMEOUT has elapsed, which is far
+     * longer than the AsyncStorage read.
+     */
+    searchFromCachedOrFallbackLocation = () => getLastMapLocation().then((cached) => {
+        const coords = cached || FALLBACK_METRO_COORDS;
+        const radiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * METERS_PER_MILE;
+
+        this.updateCircleCenter({ latitude: coords.latitude, longitude: coords.longitude });
+
+        return this.handleSearchThisLocation(radiusMeters, coords.latitude, coords.longitude)
+            .finally(() => this.autoOpenPreviewStrip(coords.latitude, coords.longitude));
+    });
+
+    /**
+     * The preview strip's create-prompt card. Deliberately routed through handleCreate so
+     * it inherits the same EULA, GPS and auth gating as the create FAB rather than opening
+     * a second, unguarded path into EditMoment.
+     */
+    handleCreatePromptPress = () => {
+        this.handleCreate('moment');
+    };
+
     onMapLayout = () => {
         this.setState({ isMapReady: true });
+
+        if (this.pendingAutoOpenCoords) {
+            const { latitude, longitude } = this.pendingAutoOpenCoords;
+            this.autoOpenPreviewStrip(latitude, longitude);
+        }
+    };
+
+    /**
+     * Whether this user/route qualifies for the spotlight tour, ignoring whether the map
+     * has finished painting. Checked at mount time (before isMapReady flips) to decide
+     * whether the preview strip may auto-open.
+     *
+     * Mirrors the user/route half of the two MapTourRenderer render conditions below.
+     */
+    isSpotlightTourEligible = () => {
+        const { route, user } = this.props;
+        const { isUserNewish } = this.state;
+
+        if (!this.isUserAuthenticated()) {
+            return false;
+        }
+
+        if (route?.params?.shouldStartNavigationTour) {
+            return true;
+        }
+
+        return !user?.settings?.isNavigationTouring
+            && isUserNewish
+            && (!user?.settings?.navigationTourCount || user?.settings?.navigationTourCount < 1);
+    };
+
+    /**
+     * True while the spotlight tour is running or about to start. Compact mode must not
+     * engage during the tour: it unmounts the matchUp (AttachStep 0) and addAMoment
+     * (AttachStep 3) anchors, and react-native-spotlight-tour cannot target a step whose
+     * anchor has gone away.
+     */
+    isSpotlightTourActive = () => {
+        const { isMapReady, isMinLoadTimeComplete } = this.state;
+
+        return isMapReady && isMinLoadTimeComplete && this.isSpotlightTourEligible();
+    };
+
+    /**
+     * Opens the area preview strip once, on cold start, when the user's location is
+     * already known — so the map lands on scrollable nearby content and a create CTA
+     * rather than an empty basemap with no stated value.
+     *
+     * Uses the same faked map press the shouldShowPreview focus listener uses, which is
+     * the established way to ask TherrMapView to open the strip without a real gesture.
+     */
+    autoOpenPreviewStrip = (latitude?: number, longitude?: number) => {
+        const { route } = this.props;
+
+        // `isUsableCoordinate`, not a truthiness check: `0` is a real latitude and a real
+        // longitude, and dropping them here would silently deny the cold-start strip to
+        // anyone on the equator or the prime meridian.
+        if (this.hasAutoOpenedPreview
+            || !isUsableCoordinate(latitude)
+            || !isUsableCoordinate(longitude)
+            // This route param drives its own open-and-restore-scroll path on focus.
+            || route?.params?.shouldShowPreview
+            // The tour owns the screen; an auto-opening strip would fight its spotlight.
+            || this.isSpotlightTourEligible()) {
+            return;
+        }
+
+        // The search can resolve before TherrMapView mounts (it is gated behind
+        // MIN_LOAD_TIMEOUT, and an offline search rejects immediately). Remember the
+        // coordinates and let onMapLayout retry rather than burning the one-shot guard.
+        if (!this.mapRef?.props?.onPress) {
+            this.pendingAutoOpenCoords = { latitude, longitude };
+            return;
+        }
+
+        this.hasAutoOpenedPreview = true;
+        this.pendingAutoOpenCoords = undefined;
+        this.mapRef.props.onPress({
+            nativeEvent: {
+                coordinate: { latitude, longitude },
+            },
+        }, true, 0);
     };
 
     onRegionChange = (region) => {
@@ -1918,6 +2055,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     updateCircleCenter = (center: { longitude: number, latitude: number }) => {
         const { circleCenter } = this.state;
 
+        // Cache locally so the next cold start opens somewhere real. Self-throttled, and
+        // best-effort — see lastMapLocation.ts.
+        setLastMapLocation(center.latitude, center.longitude);
+
         if (circleCenter.latitude !== center.latitude || circleCenter.longitude !== center.longitude) {
             const { user, myEventReactions, myMomentReactions, mySpaceReactions, map } = this.props;
             const nearbySpaces = getNearbySpaces({
@@ -1964,6 +2105,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isLocationUseDisclosureModalVisible,
             isMapReady,
             isMinLoadTimeComplete,
+            isPreviewStripOpen,
             isUserNewish,
             isSearchThisLocationBtnVisible,
             isSearchLoading,
@@ -2014,7 +2156,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 />
                             }
                             <TherrMapView
-                                areMapActionsVisible={areButtonsVisible}
                                 animateToWithHelp={this.animateToWithHelp}
                                 circleCenter={circleCenter}
                                 expandBottomSheet={this.expandBottomSheet}
@@ -2030,6 +2171,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 showAreaAlert={this.showAreaAlert}
                                 onPreviewBottomSheetClose={this.onBottomSheetClose}
                                 onPreviewBottomSheetOpen={this.onPreviewBottomSheetOpen}
+                                onCreatePromptPress={this.handleCreatePromptPress}
+                                nearestSpaceTitle={nearbySpaces?.[0]?.title}
                                 shouldFollowUserLocation={shouldFollowUserLocation}
                                 shouldRenderMapCircles={shouldRenderMapCircles}
                                 isQuickReportOpen={bottomSheetContentType === 'quick-report'}
@@ -2079,6 +2222,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 toggleFollow={this.toggleMapFollow}
                                 shouldShowCreateActions={shouldShowCreateActions}
                                 isAuthorized={this.isUserAuthorized}
+                                isCompact={isPreviewStripOpen && !this.isSpotlightTourActive()}
                                 isFollowEnabled={shouldFollowUserLocation}
                                 isGpsEnabled={location?.settings?.isGpsEnabled}
                                 nearbySpaces={nearbySpaces}

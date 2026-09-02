@@ -11,21 +11,48 @@
             "invalidPassword": "Le mot de passe est invalide"
         },
         "posts": {
-            "duplicatePost": "Les publications en double ne sont pas autorisées"
+            "duplicatePost": "Les publications en double ne sont pas autorisées",
+            "duplicateRepost": "Tu as déjà republié cette publication"
         },
         "pacts": {
-            "habitGoalRequired": "Un objectif d'habitude est requis pour créer un pacte"
+            "activityTypeRequired": "Choisis ce que tu veux envoyer",
+            "cannotDelete": "Tu ne peux supprimer qu'un pacte que tu as créé",
+            "claimTokenRequired": "Il manque le code à ce lien d'invitation",
+            "habitGoalRequired": "Un objectif d'habitude est requis pour créer un pacte",
+            "invalidConsequenceType": "Choisis l'une de ces conséquences : {allowed}",
+            "invalidDonationAmount": "Indique un montant de don supérieur à zéro",
+            "invalidDuration": "Un pacte peut durer {allowed} jours",
+            "invalidParams": "Quelque chose ne va pas dans ce pacte — vérifie les détails et réessaie",
+            "invitationBelongsToAnother": "Cette invitation a été envoyée à quelqu'un d'autre",
+            "invitationExpired": "Cette invitation est expirée. Demande à ton partenaire de t'en envoyer une nouvelle.",
+            "invitationNotFound": "Nous n'avons pas trouvé cette invitation",
+            "invitationNotRedeemable": "Cette invitation a déjà été utilisée",
+            "inviteesNoneValid": "Choisis quelqu'un d'autre que toi à inviter",
+            "inviteesRequired": "Choisis au moins une personne à inviter",
+            "inviteesTooMany": "Tu peux inviter jusqu'à {limit} partenaires à la fois",
+            "notAcceptingMembers": "Ce pacte est complet",
+            "notActive": "Ce pacte n'est pas actif",
+            "alreadyRenewed": "Tu as déjà un pacte en cours pour cette habitude",
+            "notRenewable": "Ce pacte est encore en cours : tu pourras le renouveler quand il sera terminé",
+            "notFound": "Ce pacte n'existe plus",
+            "notInvitedPartner": "Cette invitation a été envoyée à quelqu'un d'autre",
+            "notParticipant": "Tu ne fais pas partie de ce pacte",
+            "notPending": "Tu as déjà répondu à ce pacte",
+            "nudgeCreatorOnly": "Seule la personne qui a créé ce pacte peut envoyer un rappel",
+            "nudgeNoPendingPartners": "Tout le monde a déjà répondu à ce pacte",
+            "nudgeNotPending": "Ce pacte a déjà commencé, il ne reste donc personne à relancer"
         },
         "habits": {
-            "habitGoalRequired": "Un objectif d'habitude est requis",
             "freeTierHabitLimitReached": "Les comptes gratuits peuvent suivre {limit} habitudes à la fois. Archives-en une ou débloque tout à vie.",
-            "soloLocked": "Invite {remaining} ami(s) de plus pour débloquer les habitudes que tu suis seul — {required} invitations en tout.",
+            "habitGoalNotFound": "Nous n'avons pas trouvé cette habitude",
+            "habitGoalRequired": "Un objectif d'habitude est requis",
             "journalBodyRequired": "Écris quelque chose avant d'enregistrer cette entrée",
             "journalEntryNotFound": "Entrée de journal introuvable",
-            "lifetimeVerificationFailed": "Nous n'avons pas pu vérifier cet achat pour le moment. Réessaie dans un instant.",
-            "lifetimePurchaseNotFound": "Cet achat est introuvable",
+            "lifetimeAlreadyClaimed": "Cet achat a déjà été réclamé par un autre compte",
             "lifetimePurchaseNotCompleted": "Cet achat n'est pas encore complété",
-            "lifetimeAlreadyClaimed": "Cet achat a déjà été réclamé par un autre compte"
+            "lifetimePurchaseNotFound": "Cet achat est introuvable",
+            "lifetimeVerificationFailed": "Nous n'avons pas pu vérifier cet achat pour le moment. Réessaie dans un instant.",
+            "soloLocked": "Invite {remaining} ami(s) de plus pour débloquer les habitudes que tu suis seul — {required} invitations en tout."
         },
         "user": {
             "invalidUserNamePassword": "La combinaison utilisateur/mot de passe est incorrecte",
@@ -48,6 +75,27 @@
         },
         "privacy": {
             "restrictedMedia": "Contenu restreint"
+        },
+        "habitCheckins": {
+            "dateRangeRequired": "Choisis une date de début et une date de fin",
+            "habitGoalRequired": "Choisis une habitude à enregistrer",
+            "notAuthorizedToUpdate": "Tu ne peux modifier que ton propre suivi",
+            "notAuthorizedToView": "Tu ne peux voir que tes propres suivis",
+            "notFound": "Nous n'avons pas trouvé ce suivi",
+            "notFoundOrNotAuthorizedToDelete": "Nous n'avons pas trouvé ce suivi, ou il ne t'appartient pas"
+        },
+        "streaks": {
+            "noGraceDaysAvailable": "Tu as utilisé toutes les journées de grâce de cette série",
+            "notAuthorizedToModify": "Tu ne peux modifier que ta propre série",
+            "notAuthorizedToView": "Tu ne peux voir que ta propre série",
+            "notAuthorizedToViewHistory": "Tu ne peux voir que l'historique de ta propre série",
+            "notFound": "Nous n'avons pas trouvé cette série"
+        },
+        "habitGoals": {
+            "cannotDelete": "Tu ne peux supprimer qu'une habitude que tu as créée",
+            "cannotModifyTemplate": "Cette habitude est l'un de nos modèles, elle ne peut donc pas être modifiée",
+            "nameRequired": "Donne un nom à cette habitude",
+            "notOwner": "Tu ne peux modifier qu'une habitude que tu as créée"
         }
     },
     "metrics": {
@@ -60,6 +108,7 @@
         "reactionLikeReceived": "{userName} a aimé ta publication",
         "reactionSuperLikeReceived": "{userName} a super-aimé ta publication!",
         "newThoughtReplyReceived": "{userName} a répondu à ta publication",
+        "newThoughtRepostReceived": "{userName} a republié ta publication",
         "newDmReceived": "Nouveau message de {userName} pendant ton absence",
         "newGroupMembers": "{members} vient de rejoindre ton groupe, {groupName}",
         "newGroupInvite": "{inviterUserName} t'a invité à rejoindre {groupName}",
@@ -79,6 +128,7 @@
     },
     "thoughts": {
         "notFound": "Pensée non trouvée",
+        "repostRestricted": "Cette publication ne peut pas être republiée",
         "parentAccessRestricted": "Cet utilisateur n'est pas autorisé à répondre à une pensée à laquelle il n'a pas accès"
     },
     "thoughtReactions": {

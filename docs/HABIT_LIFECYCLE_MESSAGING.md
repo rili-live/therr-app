@@ -27,7 +27,7 @@ That is wrong in both directions at once:
 > about 21 days to stop seeing their old face in the mirror. It was never a
 > habit-formation study, and it has been repeated ever since as though it were.
 
-The actual measurement is **Lally et al. (2010)** — 96 people, one self-chosen
+The original measurement is **Lally et al. (2010)** — 96 people, one self-chosen
 daily behaviour, 12 weeks, automaticity modelled per individual:
 
 | Finding | Value |
@@ -37,11 +37,61 @@ daily behaviour, 12 weeks, automaticity modelled per individual:
 | Median by behaviour type | 65 eating / 59 drinking / **91 exercise** |
 | Effect of missing a single day | **Not material** to formation |
 
-Two consequences drive this design. First, 21 days is early-to-middling, not the
-finish line — declaring victory there withdraws support at roughly the point the
-median person is least secure. Second, the 18–254 range is so wide that *any*
-fixed calendar threshold is wrong for most users, which is why the gates below
-test the user's own behaviour rather than the date.
+It is no longer the largest measurement. **Singh, Murphy, Maher & Smith (2024)**,
+*Healthcare* 12(23):2488, is a systematic review and meta-analysis over **20
+studies and 2,601 participants**:
+
+| Finding | Value |
+|---|---|
+| Median time to habit formation | **59 – 66 days** |
+| Mean durations | **106 – 154 days** |
+| Observed range across individuals | **4 – 335 days** |
+| Determinants that significantly predicted habit strength | frequency, time of day, habit type, **individual choice**, affective judgements, behavioural regulation, preparatory habits |
+| Direction | **morning** practice and **self-selected** habits showed greater strength |
+
+**This confirms the gates below rather than changing them.** Singh's 59–66 median
+brackets the 66 the `established → maintaining` gate already uses, and the 4–335
+range is wider still than Lally's 18–254 — so the argument for testing the user's
+own behaviour instead of the calendar got stronger, not weaker. Do not move a
+gate value on the strength of this section; the gates encode a floor and an
+observed-consistency test, and both survive the update intact.
+
+Three consequences drive this design. First, 21 days is early-to-middling, not
+the finish line — declaring victory there withdraws support at roughly the point
+the median person is least secure. Second, the range is so wide that *any* fixed
+calendar threshold is wrong for most users, which is why the gates below test the
+user's own behaviour rather than the date. Third, the means (106–154 days) run far
+longer than the medians, so the distribution has a long tail: a user still
+struggling at four months is inside the evidence, not outside it, and copy must
+never imply otherwise.
+
+### Why the app renews on a cycle
+
+Two findings govern the pact-renewal loop specifically, and neither is about how
+long a habit takes:
+
+- **The fresh-start effect** — Dai, Milkman & Riis (2014), *Management Science*
+  60(10):2563–2582. Aspirational behaviour spikes right after a temporal
+  landmark (a new week, month, year, birthday, semester). The mechanism is
+  mental accounting: a landmark opens a new period and files past imperfections
+  under the previous one. **The end of a pact cycle is a landmark**, which is why
+  the "your pact ended" push exists and why it is sent at the sweep rather than
+  three days earlier. It is also the practical reason renewal is offered as a new
+  cycle rather than as "keep going" — the boundary is the mechanism.
+- **Implementation intentions** — Gollwitzer & Sheeran (2006): if-then plans
+  naming the when, where and how of goal striving showed **d = 0.65** across 94
+  independent tests (>8,000 participants). Treat that as the upper end: the 2024
+  extension (Sheeran, Listrom & Gollwitzer, 642 tests) puts the real range at
+  **d = 0.27 – 0.66** depending on plan format and motivation. The consequence
+  here is that a renewal carries the previous cycle's `durationDays` forward, so
+  the offer states a specific window rather than an open-ended intention.
+
+One caution worth recording, because it is easy to find and wrong: the widely
+repeated claims that an accountability partner "doubles" or "triples" habit
+success trace to blog posts, not to primary research. The defensible citation for
+social support and adherence is DiMatteo (2004), and it measures adherence to
+medical treatment, not habit pacts. **Do not put a multiplier in user-facing
+copy.**
 
 Supporting literature:
 
@@ -125,6 +175,7 @@ behind the service.**
 | Message | Channel | Lives in | Why |
 |---|---|---|---|
 | `streakAtRisk`, `partnerMissedDay`, `pactExpiring` | push | users-service digest | Needs `habits.*` data and per-brand push copy |
+| `pactEnded` | push | users-service digest (expiry sweep) | Fires the run the pact is swept to `expired` — the one moment `isPactRenewable` is true, so the only moment the renew action can succeed |
 | `habitEstablished`, `habitAutomaticity` | push | users-service digest | The celebration *is* the cadence change; they must be decided together |
 | `habitMaintenanceCheckIn` | push | users-service digest | Same |
 | `habitComeback` | push | users-service digest | Same |
@@ -213,6 +264,21 @@ habit-comeback:<habitGoalId>:<YYYY-MM-DD>
 The maintenance key carries `establishedAt` so a habit that lapses and
 re-establishes receives the 30/60/90 sequence again against its **new**
 establishment, instead of colliding with the old cycle's keys.
+
+**`pactEnded` is the one deliberate exception, and it carries no date:**
+
+```
+pact-ended:<pactId>
+```
+
+The invariant this section protects is *a key must not vary per call* — a
+period stamp is how a **recurring** notification satisfies it, not the rule
+itself. A pact expires exactly once, so stamping the date would let a second
+sweep of the same pact (a re-run, a manual digest firing, a clock that crosses
+midnight mid-run) announce the same ending twice. Omitting the date makes the
+row permanently unique per pact, which is the correct dedup for a
+non-recurring event. Read `NOTIFICATION_QUEUE_DESIGN.md`'s rule as "no clock,
+no randomness, and no finer granularity than the event's own period."
 
 ### 7. Volume is measurable
 

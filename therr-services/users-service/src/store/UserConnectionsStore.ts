@@ -220,18 +220,14 @@ export default class UserConnectionsStore {
             .innerJoin(USERS_TABLE_NAME, function () {
                 if (conditions?.userId) {
                     this.on(function () {
-                        // eslint-disable-next-line max-len
                         this.on(knexBuilder.raw('("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != ?)', [conditions.userId]));
-                        // eslint-disable-next-line max-len
                         this.orOn(knexBuilder.raw('("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != ?)', [conditions.userId]));
                     });
                 } else if (conditions.filterBy === 'acceptingUserId' && conditions.query && (!conditions.filterOperator || conditions.filterOperator === '=')) {
                     // NOTE: This is a backwards compatibility implementation due to gross usage of this method
                     this.on(function () {
-                        // eslint-disable-next-line max-len
                         this.on(knexBuilder.raw('("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != ?)', [conditions.query]));
                         if (shouldCheckReverse) {
-                            // eslint-disable-next-line max-len
                             this.orOn(knexBuilder.raw('("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != ?)', [conditions.query]));
                         }
                     });
@@ -239,10 +235,8 @@ export default class UserConnectionsStore {
                 } else if (conditions.filterBy === 'requestingUserId' && conditions.query && (!conditions.filterOperator || conditions.filterOperator === '=')) {
                     // NOTE: This is a backwards compatibility implementation due to gross usage of this method
                     this.on(function () {
-                        // eslint-disable-next-line max-len
                         this.on(knexBuilder.raw('("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != ?)', [conditions.query]));
                         if (shouldCheckReverse) {
-                            // eslint-disable-next-line max-len
                             this.orOn(knexBuilder.raw('("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != ?)', [conditions.query]));
                         }
                     });
@@ -261,7 +255,6 @@ export default class UserConnectionsStore {
 
         if (conditions.userId) {
             queryString = queryString.andWhere(knexBuilder.raw(
-                // eslint-disable-next-line max-len
                 '("userConnections"."requestingUserId" = ? OR "userConnections"."acceptingUserId" = ?)',
                 [conditions.userId, conditions.userId],
             ));

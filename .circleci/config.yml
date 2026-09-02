@@ -36,6 +36,12 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+          # Pinned rather than left implicit: the daemon version is an input to every
+          # image these jobs build, and an unpinned default moves under us on
+          # CircleCI's schedule. `default` is CircleCI's documented alias for the
+          # current default (Docker 24); moving to 26/27 requires Gen2 resource
+          # classes, so change this deliberately rather than by drift.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
           at: ~/
@@ -60,6 +66,8 @@ jobs:
       - image: cimg/go:1.24.4
     steps:
       - setup_remote_docker:
+          # Pinned — see docker_build_base_image above.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
           at: ~/
@@ -90,6 +98,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+          # Pinned — see docker_build_base_image above.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
           at: ~/
@@ -127,6 +137,52 @@ jobs:
           name: Run web, dashboard, and mobile Jest suites
           command: ./_bin/cicd/test-clients.sh
           no_output_timeout: 20m
+  deploy_pipeline_gates:
+    # Guards the CI/CD scripts themselves: the service registry against k8s/prod, the
+    # rollout wave plan against the same, and the unit tests for the ledger, the
+    # per-service deploy verdicts and the git-range helpers those two are built on.
+    #
+    # Runs on every branch, before anything can reach stage. These checks decide which
+    # image production runs, and both bugs they were written for were silent — a
+    # service skipped as "No Changes" forever, and a deploy that reported green while
+    # leaving a service on an old image. Nothing else in this config exercises them.
+    #
+    # No `npm ci`: the tests are plain Node with no imports beyond the stdlib, and the
+    # registry/wave checks are bash. `npm run` only needs package.json.
+    docker:
+      - image: cimg/node:24.12.0
+    steps:
+      - checkout
+      - run:
+          name: Service registry vs k8s/prod
+          command: npm run k8s:check-services
+      - run:
+          name: Rollout wave plan vs k8s/prod
+          command: npm run k8s:check-waves
+      - run:
+          name: Unit tests for _bin decision logic
+          command: npm run test:bin-scripts
+  google_ads_tooling_tests:
+    # Unit tests for scripts/google-ads (the paid-acquisition tooling). Nothing
+    # else in this config runs Python, and these tests guard the budget ceiling
+    # that decides how much real money a `campaign apply` or `campaign resume`
+    # can commit — an unrun test there is indistinguishable from no test.
+    #
+    # cimg/python rather than the node image: only PyYAML is needed, because the
+    # tested modules are deliberately importable without the google-ads client
+    # or any credentials. Keep it that way — a test that needs a live account is
+    # a test that never runs here.
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - checkout
+      - run:
+          name: Install the one pure-Python test dependency
+          command: pip install --quiet "PyYAML>=6.0,<7.0"
+      - run:
+          name: Unit tests for the Google Ads campaign tooling
+          working_directory: scripts/google-ads
+          command: python3 -m unittest discover -s tests -t . --verbose
   docker_build_test_publish_images:
     docker:
       - image: cimg/go:1.24.4
@@ -139,6 +195,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+          # Pinned — see docker_build_base_image above.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
             at: ~/
@@ -158,7 +216,7 @@ jobs:
           command: ./_bin/cicd/test-microservices-integration.sh
       - add_ssh_keys:
           fingerprints:
-            - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
+            - "SHA256:RQGJpv9BjVSmabmSV9DshSyQe7yrxI6meRAi7AkuAB8"
       - run:
           name: Publish Docker Images
           command: ./_bin/cicd/publish.sh
@@ -328,6 +386,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+          # Pinned — see docker_build_base_image above.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
             at: ~/
@@ -353,10 +413,45 @@ jobs:
               --zone "${GKE_ZONE:-us-central1-a}"
       - add_ssh_keys:
           fingerprints:
-            - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
+            - "SHA256:RQGJpv9BjVSmabmSV9DshSyQe7yrxI6meRAi7AkuAB8"
       - run:
           name: Deploy Changes To GKE
           command: ./_bin/cicd/deploy.sh
+
+  # Post-deploy verification that the push pipeline still works against the live
+  # cluster. Runs after `deploy` has rolled the new images out, and every send is
+  # an FCM dry run, so nothing is delivered and no user-visible state changes.
+  #
+  # Deliberately NOT part of the `deploy` job: a failure here means the deployed
+  # code is bad, not that the rollout failed, and keeping it separate leaves the
+  # rollout's own success/failure signal unambiguous.
+  #
+  # Requires UAT_SUPER_ADMIN_EMAIL / UAT_SUPER_ADMIN_PASSWORD (a SUPER_ADMIN
+  # account) as CircleCI project env vars. Optionally UAT_USER_ID to add the
+  # real-registered-device check. Without any of them the job reports why it
+  # could not run and passes — an unconfigured gate must not block deploys, but
+  # it must also not look like a passing check. See _bin/cicd/uat-push.sh.
+  post_deploy_uat:
+    docker:
+      - image: cimg/base:current
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run:
+          name: Install jq
+          command: sudo apt-get update && sudo apt-get install -y jq
+      - run:
+          name: Push notification UAT
+          command: |
+            if [ -z "${UAT_SUPER_ADMIN_EMAIL:-}" ] && [ -z "${UAT_SUPER_ADMIN_JWT:-}" ]; then
+              echo "SKIPPED: neither UAT_SUPER_ADMIN_EMAIL nor UAT_SUPER_ADMIN_JWT is set."
+              echo "The push UAT needs a SUPER_ADMIN credential to reach the diagnostics endpoints."
+              echo "Set them as CircleCI project environment variables to enable this gate."
+              exit 0
+            fi
+            ./_bin/cicd/uat-push.sh
 
 workflows:
   # Below is the definition of your workflow.
@@ -397,6 +492,11 @@ workflows:
       # mobile Jest cases had no job at all.
       - typecheck
       - test_clients
+      # Also unfiltered: the deploy scripts decide what production runs, so a drift
+      # between the service registry and k8s/prod must fail on the branch that
+      # introduces it, not on the promotion that trips over it.
+      - deploy_pipeline_gates
+      - google_ads_tooling_tests
       - docker_build_test_publish_images:
           requires:
           - docker_build_base_image
@@ -413,6 +513,13 @@ workflows:
               only:
                 - stage
       - deploy:
+          filters:
+            branches:
+              only:
+                - main
+      - post_deploy_uat:
+          requires:
+            - deploy
           filters:
             branches:
               only:

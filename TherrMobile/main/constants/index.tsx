@@ -2,6 +2,8 @@ import { AndroidChannel, AndroidImportance } from '@notifee/react-native';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 
+import { METERS_PER_MILE } from './units';
+
 // CAROUSEL Constants
 const CAROUSEL_TABS = {
     DISCOVERIES: 'discoveries',
@@ -139,6 +141,7 @@ const REMINDER_ACTION_KEYS = new Set<string>([
     'NEW_LIKE_RECEIVED',
     'NEW_SUPER_LIKE_RECEIVED',
     'NEW_THOUGHT_REPLY_RECEIVED',
+    'NEW_THOUGHT_REPOST_RECEIVED',
     // HABITS — time-sensitive nudges. These are the retention loop; on the
     // DEFAULT-importance channel they post silently with no heads-up banner,
     // which is indistinguishable from "push isn't working" to a user.
@@ -146,6 +149,15 @@ const REMINDER_ACTION_KEYS = new Set<string>([
     'PACT_INVITATION',
     'PACT_NUDGE',
     'PACT_EXPIRING',
+    // The daily reminder moved from an OS-rendered display notification to
+    // data-only so Notifee can render its "Check In" action button — the display
+    // path cannot carry one. That also moved the channel decision here: the
+    // backend no longer names a `channelId`, this set does. Without these three
+    // the reminder posts on the DEFAULT-importance "General" channel with no
+    // heads-up banner, which is indistinguishable from "push isn't working".
+    'DAILY_HABIT_REMINDER',
+    'MORNING_MOTIVATION',
+    'EVENING_CHECK_IN',
 ]);
 
 const REWARD_ACTION_KEYS = new Set<string>([
@@ -235,6 +247,7 @@ export {
     LOCATION_PROCESSING_THROTTLE_MS,
     MAX_DISTANCE_TO_NEARBY_SPACE,
     EST_US_RADIUS_METERS,
+    METERS_PER_MILE,
 
     // RegEx
     youtubeLinkRegex,

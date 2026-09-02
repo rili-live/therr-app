@@ -4,7 +4,7 @@ import { parseHeaders } from 'therr-js-utilities/http';
 import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../utilities/handleHttpError';
-import { predictAndSendNotification } from '../api/firebaseAdmin';
+import { IRawSendResult, predictAndSendNotification } from '../api/firebaseAdmin';
 // import translate from '../utilities/translator';
 
 // CREATE/UPDATE
@@ -49,7 +49,16 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         pactName,
         habitId,
         habitName,
+        // The habit goal a one-press check-in completes, plus the roll-up
+        // shape. Set together by the habits digest: `habitCount > 1` means the
+        // nudge covers several habits, which selects the plural copy and
+        // suppresses the check-in action (there is no single goal to complete).
+        habitGoalId,
+        habitCount,
+        habitNames,
         daysRemaining,
+        freezesRemaining,
+        freezeDaysUsed,
         // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md)
         dayCount,
         consistencyPercent,
@@ -90,7 +99,12 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             pactName,
             habitId,
             habitName,
+            habitGoalId,
+            habitCount,
+            habitNames,
             daysRemaining,
+            freezesRemaining,
+            freezeDaysUsed,
             dayCount,
             consistencyPercent,
             bestStreakCount,
@@ -100,7 +114,27 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         brandVariation,
         req.headers as unknown as InternalConfigHeaders,
     )
-        .then(() => res.status(201).send({}))
+        .then((result) => {
+            // The single-send route is what the users-service notification queue
+            // worker calls, and it needs the truth: `predictAndSendNotification`
+            // never rejects, so answering 201 unconditionally (as this did) made
+            // every dropped push look delivered and the queue marked the row
+            // 'sent'. Reporting the failure is what makes markFailed /
+            // requeueFailed / MAX_ATTEMPTS reachable at all.
+            //
+            // Request-path callers are unaffected: they reach this route through
+            // sendEmailAndOrPushNotification, whose default
+            // `shouldThrowOnError: false` still swallows a non-2xx, so a dead
+            // device token cannot fail someone's check-in.
+            if (!result?.ok) {
+                return res.status(502).send({
+                    errorCode: result?.errorCode || 'unknown',
+                    errorMessage: result?.errorMessage || 'Push notification was not sent',
+                });
+            }
+
+            return res.status(201).send({ messageId: result.messageId });
+        })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
 };
 
@@ -140,7 +174,12 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         pactName,
         habitId,
         habitName,
+        habitGoalId,
+        habitCount,
+        habitNames,
         daysRemaining,
+        freezesRemaining,
+        freezeDaysUsed,
         // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md)
         dayCount,
         consistencyPercent,
@@ -185,7 +224,12 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             pactName,
             habitId,
             habitName,
+            habitGoalId,
+            habitCount,
+            habitNames,
             daysRemaining,
+            freezesRemaining,
+            freezeDaysUsed,
             dayCount,
             consistencyPercent,
             bestStreakCount,
@@ -213,8 +257,17 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
                     },
                 });
             }
+            // `sent` counts messages FCM accepted, not promises that settled.
+            // predictAndSendNotification now reports its outcome, so a dropped
+            // push no longer inflates this number — a fan-out where every token
+            // was stale used to report `sent: <recipientCount>`.
+            const delivered = results.filter(
+                (r) => r.status === 'fulfilled' && (r as PromiseFulfilledResult<IRawSendResult>).value?.ok,
+            );
+
             return res.status(201).send({
-                sent: results.length,
+                sent: delivered.length,
+                failed: results.length - delivered.length - rejected.length,
                 rejected: rejected.length,
             });
         })

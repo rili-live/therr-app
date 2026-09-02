@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { connect } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IUserState, IHabitsState } from 'therr-react/types';
@@ -7,12 +7,14 @@ import { BrandVariations, FeatureFlags } from 'therr-js-utilities/constants';
 import { useFeatureFlags } from '../../context/FeatureFlagContext';
 import PactPreviewOverlay, { HABITS_PRESTAGED_TEMPLATE_ID } from './PactPreviewOverlay';
 import { hasSentPactInvite, hasTrackedHabit } from '../../routes/Habits/pactState';
+import { hasStartedHabitsCached, rememberHabitsStarted } from '../../utilities/habitsOnboardingCache';
 
 interface IPactOnboardingGuardProps {
     user: IUserState;
     habits: IHabitsState;
     navigation: any;
     children: React.ReactNode;
+    isBypassed?: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -44,16 +46,37 @@ const mapStateToProps = (state: any) => ({
  * enforced by the server on `POST /habits/user-habits`. A user who has sent one
  * invite is past this overlay and still cannot track alone; the overlay's footer
  * and the dashboard banner are what show them how far they have left to go.
+ *
+ * `isBypassed` exists because the dashboard now also holds the pact invite
+ * lists. A user with an invite waiting has not "started" by any of the tests
+ * above, so a blanket gate would answer the notification that told them they
+ * have an invite — and this overlay's own link to it — with this overlay.
+ *
+ * COLD START
+ *
+ * Every test above reads the `habits` slice, which redux-persist does not
+ * whitelist and which is therefore empty until the dashboard's fetches resolve.
+ * Left alone, that made an established user's launch flash this overlay for a
+ * network round trip. `hasStartedHabitsCached` answers the same question
+ * synchronously from MMKV, so the first render already knows — see
+ * `utilities/habitsOnboardingCache` for why the cached answer is one-way.
  */
 const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
     user,
     habits,
     navigation,
     children,
+    isBypassed,
 }) => {
     const { isEnabled } = useFeatureFlags();
     const activePactCount = habits.activePacts?.length || 0;
     const previousActivePactCount = useRef<number>(activePactCount);
+    const userId = user.details?.id;
+
+    // Read once per account rather than per render. Only ever flips false->true,
+    // and by the time it would the live `hasStarted` below is already true, so
+    // there is nothing for a re-read to catch.
+    const wasStartedBeforeLaunch = useMemo(() => hasStartedHabitsCached(userId), [userId]);
 
     const guardActive = CURRENT_BRAND_VARIATION === BrandVariations.HABITS
         && isEnabled(FeatureFlags.REQUIRE_PACT_ONBOARDING)
@@ -67,6 +90,14 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
     );
     const hasStarted = hasActivePact || hasSentInvite || hasOwnHabit;
 
+    // Write only on the live answer. Seeding from the cached one would let a
+    // stale flag re-persist itself forever.
+    useEffect(() => {
+        if (hasStarted) {
+            rememberHabitsStarted(userId);
+        }
+    }, [hasStarted, userId]);
+
     // Depend on the length, not the array reference, so unrelated Redux
     // dispatches that recreate `activePacts` don't re-run this effect.
     useEffect(() => {
@@ -77,7 +108,7 @@ const PactOnboardingGuard: React.FC<IPactOnboardingGuardProps> = ({
         previousActivePactCount.current = activePactCount;
     }, [activePactCount]);
 
-    if (!guardActive || hasStarted) {
+    if (!guardActive || isBypassed || hasStarted || wasStartedBeforeLaunch) {
         return <>{children}</>;
     }
 

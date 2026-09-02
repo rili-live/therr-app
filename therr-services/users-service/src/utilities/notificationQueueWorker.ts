@@ -2,7 +2,8 @@ import { BrandVariations } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
 import { INotificationQueueRow } from '../store/NotificationQueueStore';
-import sendEmailAndOrPushNotification from './sendEmailAndOrPushNotification';
+import sendEmailAndOrPushNotification, { resolveDeviceTokenForBrand } from './sendEmailAndOrPushNotification';
+import evaluateCheckinNudgeFreshness from './checkinNudgeFreshness';
 
 /**
  * Drains main.notificationQueue and sends what is due.
@@ -50,6 +51,120 @@ const REQUEUE_BATCH_SIZE = 25;
 const MAX_SENDS_PER_USER_PER_DAY = 5;
 const RATE_WINDOW_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * Types the daily cap may DELAY but must never DROP.
+ *
+ * The cap drops rather than defers, and the reasoning for that is sound for
+ * everything it was written against: those notifications recur, their dedupe
+ * keys are stamped with the day, and a reminder arriving a day late is worse
+ * than one that never arrives. Tomorrow's row is queued tomorrow regardless.
+ *
+ * A once-ever notification inverts every part of that. `pact-ended` is keyed on
+ * the pact alone (`pact-ended:<pactId>`, the only dateless key any producer in
+ * this service builds — every other one ends in a date), because a pact ends
+ * exactly once and a date would let two sweeps announce it twice. The same
+ * property means a dropped row is never re-queued: the member is simply never
+ * told their cycle closed, and the renew CTA that is the entire reason the push
+ * is sent at that moment goes with it. Late is strictly better than never here,
+ * because the thing it announces stays true.
+ *
+ * Membership rule for anything added later: a type belongs here if and only if
+ * its dedupe key carries no date. That is what makes a drop permanent.
+ */
+export const UNCAPPABLE_TYPES: Set<string> = new Set(['pact-ended']);
+
+/**
+ * How long an uncappable row waits for the cap window to open before it is sent
+ * over the cap.
+ *
+ * The window is a rolling 24h, so a user at their limit today usually has room
+ * within hours. A user who is genuinely at 5/day every day would defer forever
+ * without this bound, which would reproduce the exact failure the exemption
+ * exists to prevent -- silence, just arrived at more slowly. Exceeding the cap
+ * by one, once per pact, is the smaller cost.
+ */
+const MAX_CAP_DEFERRAL_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * How long to wait before re-testing the cap for a deferred uncappable row.
+ * Hourly: the window rolls continuously, and this is one row and one COUNT.
+ */
+const CAP_DEFERRAL_RETRY_MS = 60 * 60 * 1000;
+
+/**
+ * Minimum gap between two notifications to the same user.
+ *
+ * The daily cap bounds the *number* of notifications; it says nothing about
+ * their spacing, and a tick claims 25 rows and sends them sequentially in a few
+ * hundred milliseconds. So a user with four due rows got four pushes in the
+ * same second, which reads as a malfunction however reasonable each one is on
+ * its own. The digest's per-user roll-up removes most of that volume at the
+ * source; this covers what is left — a partner check-in landing on top of a
+ * pact-expiring warning landing on top of a milestone.
+ *
+ * Deferred, never dropped: unlike the daily cap (where a reminder arriving a
+ * day late is worse than none), everything reaching this rule is still timely
+ * fifteen minutes from now.
+ */
+const MIN_GAP_BETWEEN_SENDS_MS = 15 * 60 * 1000;
+
+/**
+ * How long a row may be held back by spacing before it goes out regardless.
+ *
+ * Without a horizon, a user who keeps receiving notifications could push a
+ * low-priority row out indefinitely. Six hours is chosen so a nudge queued by
+ * the evening digest still lands the same evening.
+ */
+const MAX_DEFERRAL_WINDOW_MS = 6 * 60 * 60 * 1000;
+
+/**
+ * Send order within a claimed batch.
+ *
+ * `claimDue` orders by `scheduledFor`, which for a digest run is the same
+ * timestamp for every row — so the order is effectively arbitrary, and with
+ * spacing in play the *first* row is the one that goes out now while the rest
+ * wait. That makes ordering user-visible: a "you hit 30 days!" celebration
+ * should not delay tonight's "your streak is on the line" by fifteen minutes.
+ *
+ * Lower sorts first. Anything unlisted sorts last, which is the right default
+ * for a new type nobody has thought about yet.
+ */
+const TYPE_SEND_PRIORITY: Record<string, number> = {
+    'streak-at-risk': 0,
+    // The "last chance" nudge, scheduled for the user's local evening. Ranked
+    // alongside `streak-at-risk` rather than with the reminders because by the
+    // time it is due there are only hours left in the user's day: deferring it
+    // fifteen minutes behind a celebration is deferring it past the point it
+    // means anything.
+    'evening-check-in': 0,
+    'daily-habit-reminder': 1,
+    // Ahead of the recurring reminders on purpose. The daily cap *drops* what it
+    // cannot send (see `sendOne`), on the reasoning that a reminder arriving a
+    // day late is worse than none -- which is true of everything else in this
+    // map and false of this one. `pact-ended` is keyed without a date because a
+    // pact ends exactly once, so a dropped row is never re-queued and the member
+    // is simply never told their cycle closed, losing the renew CTA that is the
+    // whole reason the notification is sent at that moment.
+    'pact-ended': 1,
+    'pact-expiring': 2,
+    'pact-invitation': 2,
+    'partner-checked-in': 3,
+    'partner-missed-day': 3,
+    'habit-maintenance-check-in': 4,
+    'habit-comeback': 4,
+};
+const DEFAULT_SEND_PRIORITY = 100;
+
+export const compareBySendPriority = (a: INotificationQueueRow, b: INotificationQueueRow): number => {
+    const priorityA = TYPE_SEND_PRIORITY[a.type] ?? DEFAULT_SEND_PRIORITY;
+    const priorityB = TYPE_SEND_PRIORITY[b.type] ?? DEFAULT_SEND_PRIORITY;
+    if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+    }
+    // Stable within a priority: oldest first, matching claimDue's own ordering.
+    return new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime();
+};
+
 // Retention. Sweeping on its own slow cadence rather than every tick: this is
 // housekeeping, and running it 120 times an hour would spend far more write-pool
 // time on DELETEs than on sends.
@@ -69,6 +184,24 @@ let isTicking = false;
 let lastRetentionSweepAt = 0;
 
 const sendOne = async (row: INotificationQueueRow): Promise<void> => {
+    // Relevance first, before the rate-limit budget is even consulted.
+    //
+    // A check-in nudge is the one thing in this queue that can stop being true
+    // between being queued and being due: the digest decides in the morning and
+    // the "last chance" row is scheduled for the user's local evening, and in
+    // between the user very often checks in. Suppressing here rather than at
+    // enqueue time is the whole reason a second daily reminder is not spam —
+    // see checkinNudgeFreshness for why it fails open.
+    //
+    // Ordered ahead of the daily cap deliberately: a row that no longer needs
+    // sending must not consume one of the user's five sends, or an irrelevant
+    // nudge would crowd out a timely notification later the same day.
+    const freshness = await evaluateCheckinNudgeFreshness(row);
+    if (!freshness.shouldSend) {
+        await Store.notificationQueue.markSkipped(row.id, freshness.reason || 'no-longer-relevant');
+        return;
+    }
+
     const since = new Date(Date.now() - RATE_WINDOW_MS);
     const sentToday = await Store.notificationQueue
         .countSentSince(row.brandVariation, row.userId, since)
@@ -78,8 +211,80 @@ const sendOne = async (row: INotificationQueueRow): Promise<void> => {
         // Dropped, not deferred. Deferring would just move the same notification
         // into tomorrow's budget and crowd out whatever is timely then — and a
         // reminder that arrives a day late is worse than one that never arrives.
-        await Store.notificationQueue.markSkipped(row.id, `daily cap reached (${sentToday})`);
+        //
+        // Except for the once-ever types, where a drop is permanent and there is
+        // no tomorrow's row to crowd anything out — see UNCAPPABLE_TYPES. Those
+        // wait for the rolling window to open, and go out over the cap if it
+        // never does. `defer` decrements `attempts`, so holding a row this way
+        // cannot exhaust MAX_ATTEMPTS.
+        const waitedMs = Date.now() - new Date(row.createdAt).getTime();
+
+        if (!UNCAPPABLE_TYPES.has(row.type)) {
+            await Store.notificationQueue.markSkipped(row.id, `daily cap reached (${sentToday})`);
+            return;
+        }
+
+        if (waitedMs < MAX_CAP_DEFERRAL_MS) {
+            await Store.notificationQueue.defer(
+                row.id,
+                new Date(Date.now() + CAP_DEFERRAL_RETRY_MS),
+                `daily cap reached (${sentToday}) — deferred, once-ever type`,
+            );
+            return;
+        }
+        // Falls through to send over the cap. The spacing rule below has its own
+        // six-hour horizon, which a row that has waited this long has already
+        // cleared, so it cannot be held a second time on the way out.
+    }
+
+    // Un-addressable rows, resolved before anything is built.
+    //
+    // Second-most-common production error in the first 30 days: 36 × "Exactly
+    // one of topic, token or condition is required" — `resolveDeviceTokenForBrand`
+    // found nothing and the send was attempted anyway. Now that failures
+    // propagate (the send route answers 502), those rows would burn all three
+    // attempts every day and settle as 'failed', which buries real failures in
+    // noise from users who simply have no device registered for this brand.
+    // 'skipped' says the same thing and stays measurable.
+    //
+    // The legacy `users.deviceMobileFirebaseToken` column is read here too, not
+    // just the brand-scoped table: `resolveDeviceTokenForBrand` falls back to it
+    // for users whose device has not re-registered since Phase 2, and skipping
+    // them would silence real recipients to tidy up a log.
+    const [recipient] = await Store.users
+        .findUser({ id: row.userId }, ['deviceMobileFirebaseToken'])
+        .catch(() => [] as { deviceMobileFirebaseToken: string }[]);
+    const deviceToken = await resolveDeviceTokenForBrand(
+        row.brandVariation,
+        row.userId,
+        recipient?.deviceMobileFirebaseToken,
+    ).catch(() => null);
+    if (!deviceToken) {
+        await Store.notificationQueue.markSkipped(row.id, 'no-device-token');
         return;
+    }
+
+    // Minimum spacing. Deferred rather than dropped — see
+    // MIN_GAP_BETWEEN_SENDS_MS — unless the row has already waited out the
+    // deferral horizon, at which point arriving close to something else beats
+    // not arriving at all.
+    const lastSentAt = await Store.notificationQueue
+        .getLastSentAt(row.brandVariation, row.userId)
+        .catch(() => null);
+    const now = Date.now();
+    if (lastSentAt) {
+        const msSinceLastSend = now - lastSentAt.getTime();
+        const hasWaitedLongEnough = now - new Date(row.createdAt).getTime() >= MAX_DEFERRAL_WINDOW_MS;
+
+        if (msSinceLastSend < MIN_GAP_BETWEEN_SENDS_MS && !hasWaitedLongEnough) {
+            const nextAttemptAt = new Date(lastSentAt.getTime() + MIN_GAP_BETWEEN_SENDS_MS);
+            await Store.notificationQueue.defer(
+                row.id,
+                nextAttemptAt,
+                `spaced: last send ${Math.round(msSinceLastSend / 1000)}s ago`,
+            );
+            return;
+        }
     }
 
     const payload = row.payload || {};
@@ -144,6 +349,13 @@ const drainBrand = async (brand: BrandVariations): Promise<number> => {
 
     const rows = await Store.notificationQueue.claimDue(brand, CLAIM_BATCH_SIZE);
     if (!rows.length) return 0;
+
+    // Order by what the notification is, not just when it was queued. With
+    // minimum spacing in play the first row for a user is the one that goes out
+    // now and the rest are deferred, so this decides which of a user's due
+    // notifications they actually see tonight. `claimDue` orders by
+    // `scheduledFor`, which is identical across a digest run.
+    rows.sort(compareBySendPriority);
 
     // Sequential, not Promise.all: each send fans out to push-notifications-service
     // and the DB, and a burst of 25 concurrent sends from a replicas:1 pod is a

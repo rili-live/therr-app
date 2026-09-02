@@ -1,33 +1,48 @@
 import React from 'react';
-import { SafeAreaView, View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import RNFB from 'react-native-blob-util';
 import { FilePaths } from 'therr-js-utilities/constants';
-import { HabitActions } from 'therr-react/redux/actions';
-import { IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak } from 'therr-react/types';
+import { HabitActions, MapActions } from 'therr-react/redux/actions';
+import {
+    IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IHabitCheckinProof, IStreak,
+} from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
+import Toast from 'react-native-toast-message';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import { CheckinButton, CheckinProofSheet, HabitCalendar, StreakWidget } from '../../components/Habits';
+import {
+    CheckinButton, CheckinDayDetailSheet, CheckinProofSheet, HabitCalendar, StreakWidget,
+} from '../../components/Habits';
+import { getProofMediaRequests, resolveProofUris } from './checkinDayDetail';
+import {
+    getFreezeConsumed,
+    getStreakSavedByFreeze,
+    streakFreezeRuleParams,
+} from '../../utilities/streakFreezes';
 import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
 import { signImageUrl } from '../../utilities/content';
 import { toLocalDateKey } from '../../utilities/localDateKey';
-import { showToast } from '../../utilities/toasts';
+import { DURATION, showToast } from '../../utilities/toasts';
 
 interface IHabitDetailDispatchProps {
     getCheckinsByRange: Function;
     getStreakByHabit: Function;
     createCheckin: Function;
+    getCheckinProofs: Function;
+    fetchMedia: Function;
 }
 
 interface IStoreProps extends IHabitDetailDispatchProps {
     user: IUserState;
     habits: IHabitsState;
+    content: any;
 }
 
 export interface IHabitDetailProps extends IStoreProps {
@@ -46,17 +61,28 @@ interface IHabitDetailState {
     checkins: IHabitCheckin[];
     streak: IStreak | null;
     isProofSheetVisible: boolean;
+    selectedDay: Date | null;
+    selectedDayCheckin?: IHabitCheckin;
+    dayProofs: IHabitCheckinProof[];
+    isLoadingDayProofs: boolean;
+    hasDayProofError: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
     user: state.user,
     habits: state.habits,
+    // `content.media` is the path -> displayable-URL map `fetchMedia` fills.
+    // Proofs live in the private bucket, so they cannot be built from a path
+    // client-side the way public content can.
+    content: state.content,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getCheckinsByRange: HabitActions.getCheckinsByRange,
     getStreakByHabit: HabitActions.getStreakByHabit,
     createCheckin: HabitActions.createCheckin,
+    getCheckinProofs: HabitActions.getCheckinProofs,
+    fetchMedia: MapActions.fetchMedia,
 }, dispatch);
 
 export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetailState> {
@@ -77,6 +103,11 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             checkins: [],
             streak: null,
             isProofSheetVisible: false,
+            selectedDay: null,
+            selectedDayCheckin: undefined,
+            dayProofs: [],
+            isLoadingDayProofs: false,
+            hasDayProofError: false,
         };
 
         this.themeHabits = buildHabitStyles(props.user.settings?.mobileThemeName);
@@ -139,7 +170,17 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         });
     };
 
+    /**
+     * Commits the check-in on the first tap — see the note on the dashboard's
+     * `handleCheckin`. The proof sheet is offered afterwards, from the success
+     * toast, rather than standing between the user and their streak.
+     */
     handleCheckin = () => {
+        this.submitCheckin({});
+    };
+
+    handleAddCheckinDetail = () => {
+        Toast.hide();
         this.setState({ isProofSheetVisible: true });
     };
 
@@ -173,8 +214,19 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
     };
 
     handleProofSheetConfirm = ({ notes, image }: { notes?: string; image?: ISelectedProofImage }) => {
+        this.submitCheckin({ notes, image });
+    };
+
+    /**
+     * The single write path for both entry points. `scheduledDate` stays on the
+     * UTC calendar day: users-service defines a habit day in UTC
+     * (`getTodayDateString`), so the local-calendar `toLocalDateKey` used to
+     * render the month grid must not be used for the write.
+     */
+    submitCheckin = ({ notes, image }: { notes?: string; image?: ISelectedProofImage }) => {
         const { createCheckin, route } = this.props;
         const { habitGoalId } = route.params;
+        const isAddingDetail = !!notes || !!image;
 
         this.setState({ isCheckinLoading: true });
 
@@ -192,6 +244,34 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                 notes,
                 proofMedias,
             }))
+            .then((checkin: any) => {
+                if (isAddingDetail) {
+                    showToast.success({
+                        text1: this.translate('pages.habits.checkinToast.detailSavedTitle'),
+                    });
+                    return;
+                }
+
+                // A freeze was spent covering a day this user missed. Say so
+                // here rather than leaving them to infer it from a streak
+                // number that did not drop — this is the moment the safety net
+                // either becomes a known rule or stays invisible.
+                const freezeConsumed = getFreezeConsumed(checkin);
+                showToast.success({
+                    text1: freezeConsumed
+                        ? this.translate('pages.habits.checkinToast.freezeUsedTitle', {
+                            count: getStreakSavedByFreeze(checkin),
+                        })
+                        : this.translate('pages.habits.checkinToast.title', {
+                            habitName: this.getHabitGoal()?.name || '',
+                        }),
+                    text2: freezeConsumed
+                        ? this.translate('pages.habits.checkinToast.freezeUsedBody')
+                        : this.translate('pages.habits.checkinToast.addDetailAction'),
+                    duration: DURATION.LONG,
+                    onPress: this.handleAddCheckinDetail,
+                });
+            })
             .catch((err) => {
                 showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
@@ -207,11 +287,95 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             });
     };
 
+    /**
+     * Opens the day-detail sheet.
+     *
+     * Every day opens, including days with no check-in — the sheet's empty
+     * state distinguishes "nothing recorded" from "hasn't happened yet", and a
+     * tap that does nothing on half the grid reads as a broken control.
+     *
+     * The check-in row is handed over from the month the calendar already
+     * loaded rather than refetched; only proof paths need a round trip, and
+     * only when the row says there are any.
+     */
     handleDayPress = (date: Date, checkin?: IHabitCheckin) => {
-        // Could show a modal with checkin details or allow editing
-        if (checkin) {
-            // Show checkin details
+        this.setState({
+            selectedDay: date,
+            selectedDayCheckin: checkin,
+            dayProofs: [],
+            hasDayProofError: false,
+            isLoadingDayProofs: !!checkin?.hasProof,
+        }, () => {
+            if (checkin?.hasProof) {
+                this.loadDayProofs(checkin.id);
+            }
+        });
+    };
+
+    /**
+     * Fetch a check-in's proof rows, then resolve their paths to displayable
+     * URLs.
+     *
+     * Two steps, not one: the users-service endpoint returns paths, and proofs
+     * live in the *private* bucket, so a URL has to come from the maps-service
+     * media endpoint (`fetchMedia`, which fills `content.media`). Building a
+     * URL from the path client-side works only for public content.
+     *
+     * A failure in either step lands on the same error state — from the user's
+     * side "the photo didn't load" is one outcome with one retry.
+     */
+    loadDayProofs = (checkinId: string) => {
+        const { getCheckinProofs, fetchMedia } = this.props;
+
+        this.setState({ isLoadingDayProofs: true, hasDayProofError: false });
+
+        return getCheckinProofs(checkinId)
+            .then((proofs: IHabitCheckinProof[]) => {
+                // The sheet may have been closed, or another day opened, while
+                // this was in flight. Writing the response in either case would
+                // show one day's photos under another day's date.
+                if (this.state.selectedDayCheckin?.id !== checkinId) {
+                    return undefined;
+                }
+
+                const resolved = proofs || [];
+                this.setState({ dayProofs: resolved });
+
+                const mediaRequests = getProofMediaRequests(resolved);
+                if (!mediaRequests.length) {
+                    return undefined;
+                }
+
+                return fetchMedia(undefined, mediaRequests);
+            })
+            .catch(() => {
+                if (this.state.selectedDayCheckin?.id === checkinId) {
+                    this.setState({ hasDayProofError: true });
+                }
+            })
+            .finally(() => {
+                if (this.state.selectedDayCheckin?.id === checkinId) {
+                    this.setState({ isLoadingDayProofs: false });
+                }
+            });
+    };
+
+    handleRetryDayProofs = () => {
+        const { selectedDayCheckin } = this.state;
+
+        if (selectedDayCheckin?.id) {
+            this.loadDayProofs(selectedDayCheckin.id);
         }
+    };
+
+    handleDayDetailClose = () => {
+        this.setState({
+            selectedDay: null,
+            selectedDayCheckin: undefined,
+            dayProofs: [],
+            isLoadingDayProofs: false,
+            hasDayProofError: false,
+        });
     };
 
     getTodayCheckin = (): IHabitCheckin | undefined => {
@@ -221,7 +385,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
     };
 
     render() {
-        const { user } = this.props;
+        const { content, user } = this.props;
         const {
             isRefreshing,
             isCheckinLoading,
@@ -229,7 +393,14 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             checkins,
             streak,
             isProofSheetVisible,
+            selectedDay,
+            selectedDayCheckin,
+            dayProofs,
+            isLoadingDayProofs,
+            hasDayProofError,
         } = this.state;
+
+        const resolvedDayProofs = resolveProofUris(dayProofs, content?.media || {});
 
         const habitGoal = this.getHabitGoal();
         const todayCheckin = this.getTodayCheckin();
@@ -237,7 +408,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
 
         if (!habitGoal) {
             return (
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView edges={['bottom']} style={this.theme.styles.safeAreaView}>
                     <View style={this.themeHabits.styles.emptyStateContainer}>
                         <Text style={this.themeHabits.styles.emptyStateTitle}>
                             {this.translate('pages.habits.habitNotFound')}
@@ -250,7 +421,14 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         return (
             <>
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-                <SafeAreaView style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}>
+                {/* `edges={['bottom']}`: Layout pads the header, but this screen has no
+                    ButtonMenu and its ScrollView runs to the bottom edge. React Native's
+                    own SafeAreaView is a no-op on Android, so that last row sat under the
+                    gesture handle. */}
+                <SafeAreaView
+                    edges={['bottom']}
+                    style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}
+                >
                     <ScrollView
                         refreshControl={
                             <RefreshControl
@@ -327,10 +505,41 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                         </Text>
                                     </View>
                                 </View>
+                                {/*
+                                  * The number on its own reads as a score. It is
+                                  * a rule, and it only changes behaviour if the
+                                  * user knows the terms before the day they need
+                                  * it.
+                                  */}
+                                <Text style={[
+                                    this.themeHabits.styles.streakMilestoneText,
+                                    { marginTop: 8 },
+                                ]}>
+                                    {this.translate('pages.habits.streak.freezeRule', streakFreezeRuleParams)}
+                                </Text>
                             </View>
                         )}
                     </ScrollView>
                 </SafeAreaView>
+                <CheckinDayDetailSheet
+                    isVisible={!!selectedDay}
+                    date={selectedDay}
+                    checkin={selectedDayCheckin}
+                    proofs={resolvedDayProofs}
+                    // Still loading while the paths are back but their URLs are
+                    // not: `content.media` fills asynchronously, and treating
+                    // that gap as "done" flashes the unavailable state.
+                    isLoadingProofs={isLoadingDayProofs
+                        || (!!selectedDayCheckin?.hasProof
+                            && !!dayProofs.length
+                            && !resolvedDayProofs.length)}
+                    hasProofError={hasDayProofError}
+                    onClose={this.handleDayDetailClose}
+                    onRetryProofs={this.handleRetryDayProofs}
+                    translate={this.translate}
+                    themeConfirmModal={this.themeConfirmModal}
+                    themeButtons={this.themeButtons}
+                />
                 <CheckinProofSheet
                     isVisible={isProofSheetVisible}
                     isSubmitting={isCheckinLoading}

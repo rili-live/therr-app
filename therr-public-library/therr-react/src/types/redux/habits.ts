@@ -58,6 +58,16 @@ export interface IPactMember {
     currentStreak: number;
     longestStreak: number;
     completionRate?: number;
+    /**
+     * Whether this member has completed today's check-in for the pact's habit
+     * goal, on the service's UTC habit day. Derived server-side alongside the
+     * other stats (users-service `utilities/pactMemberStats`).
+     *
+     * Optional because a client can be talking to a users-service that predates
+     * it; treat `undefined` as "unknown" and render nothing rather than
+     * implying the member missed a day.
+     */
+    checkedInToday?: boolean;
     // Joined fields
     userName?: string;
     firstName?: string;
@@ -70,11 +80,39 @@ export interface IPactMember {
 export interface IPactNudgeResult {
     partnerId: string;
     nudged: boolean;
-    reason?: 'cooldown' | 'error';
+    /**
+     * Why the nudge did not reach this partner. Mirrors `NudgeFailureReason` in
+     * users-service `src/utilities/pactNudgeOutcome.ts`:
+     *   cooldown      — nudged in the last 7 days; retry after `nextNudgeAvailableAt`
+     *   undeliverable — no Habits install and no email or phone on file; retrying cannot help
+     *   error         — dispatch threw; retrying is worth offering
+     */
+    reason?: 'cooldown' | 'undeliverable' | 'error';
     nextNudgeAvailableAt?: string;
 }
 
 // Checkin Types
+/**
+ * One proof image (or video) attached to a check-in.
+ *
+ * `path` + `type` are the pair `MapsService.fetchMedia` takes — `type` is the
+ * bucket-selecting `Content.mediaTypes` value resolved server-side, NOT
+ * `mediaType`, which says whether the file is an image or a video. Passing
+ * `mediaType` where `type` belongs resolves the URL against the public bucket
+ * and renders as a broken image with no error.
+ */
+export interface IHabitCheckinProof {
+    id: string;
+    checkinId: string;
+    mediaType: 'image' | 'video';
+    path: string;
+    type: string;
+    thumbnailPath: string | null;
+    createdAt: string;
+    capturedAt: string | null;
+    verificationStatus: string | null;
+}
+
 export interface IHabitCheckin {
     id: string;
     userId: string;
@@ -277,7 +315,6 @@ export interface IHabitsState {
 }
 
 // Action Types
-// eslint-disable-next-line no-shadow
 export enum HabitsActionTypes {
     // Habit Goals
     GET_USER_HABIT_GOALS = 'GET_USER_HABIT_GOALS',

@@ -1,5 +1,5 @@
 import React, { Ref } from 'react';
-import { Animated, Dimensions, View } from 'react-native';
+import { Animated, Dimensions, StyleSheet, Text, View } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Circle, Marker, MapPressEvent, MarkerPressEvent } from 'react-native-maps';
 import ClusteredMapView from '../../components/ClusteredMapView';
 import { connect } from 'react-redux';
@@ -30,23 +30,32 @@ import {
     MAX_ANIMATION_LATITUDE_DELTA,
     MAX_ANIMATION_LONGITUDE_DELTA,
     MAX_DISTANCE_TO_NEARBY_SPACE,
+    METERS_PER_MILE,
     HAPTIC_FEEDBACK_TYPE,
 } from '../../constants';
 import { buildStyles } from '../../styles';
-import { buildStyles as buildBottomSheetStyles } from '../../styles/bottom-sheet';
+import { buildStyles as buildBottomSheetStyles, areaPreviewCardHeight } from '../../styles/bottom-sheet';
 import { buildStyles as buildViewAreaStyles } from '../../styles/user-content/areas/viewing';
 import mapStyles from '../../styles/map';
 import mapCustomStyle from '../../styles/map/googleCustom';
 import MarkerIcon from './MarkerIcon';
 import { getUserContentUri, isMyContent } from '../../utilities/content';
+import { orderAreaPreviewStrip, rankAreaPreviews } from '../../utilities/feedRanking';
+import { hasUsableCoords, isUsableCoordinate } from '../../utilities/coordinates';
 import AreaDisplayCard from '../../components/UserContent/AreaDisplayCard';
+import AreaCreatePromptCard from '../../components/UserContent/AreaCreatePromptCard';
 import { isUserAuthenticated } from '../../utilities/authUtils';
 
-const { width: viewPortWidth, height: viewPortHeight } = Dimensions.get('window');
+const { width: viewPortWidth } = Dimensions.get('window');
 
 const IS_SMALL_SCREEN = viewPortWidth < 400;
-const CARD_HEIGHT = viewPortHeight / 4;
+const CARD_HEIGHT = areaPreviewCardHeight;
 const CARD_WIDTH = IS_SMALL_SCREEN ? viewPortWidth / 3 : CARD_HEIGHT - 70;
+// NOTE: distanceTo() returns meters; getReadableDistance() expects miles. The conversion
+// factor is shared via ../../constants so this file and utilities/feedRanking cannot drift.
+//
+// Height of the strip's title row, above the cards.
+const PREVIEW_HEADER_HEIGHT = 22;
 // const CARD_WIDTH = viewPortWidth / 4;
 // const spaceBubbleWidth = viewPortWidth / 8;
 // const MAX_CIRCLE_DIAMETER_SCALE = 2;
@@ -118,7 +127,6 @@ interface IStoreProps extends ITherrMapViewDispatchProps {
 
 // Regular component props
 export interface ITherrMapViewProps extends IStoreProps {
-    areMapActionsVisible: boolean;
     animateToWithHelp: (doAnimate: any) => any;
     circleCenter: { longitude: number, latitude: number };
     exchangeRate: number;
@@ -133,7 +141,11 @@ export interface ITherrMapViewProps extends IStoreProps {
     onPreviewBottomSheetClose: any;
     onPreviewBottomSheetOpen: any;
     onMapLayout: any;
+    /** Routed through Map.handleCreate so the prompt card inherits its EULA/GPS/auth gating. */
+    onCreatePromptPress: () => any;
     mapRef: any;
+    /** Title of the closest space, used to make the create prompt name a real place. */
+    nearestSpaceTitle?: string;
     navigation: any;
     route: any;
     showAreaAlert: () => any;
@@ -180,15 +192,11 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapViewState> {
-    static getDerivedStateFromProps(nextProps: ITherrMapViewProps, nextState: ITherrMapViewState) {
-        if (nextProps.areMapActionsVisible && nextState.isPreviewBottomSheetVisible) {
-            return {
-                isPreviewBottomSheetVisible: false,
-                areaInPreviewIndex: -1,
-            };
-        }
-        return {};
-    }
+    // NOTE: This class previously force-closed the preview strip whenever the map action
+    // buttons were visible, making the two mutually exclusive. That is no longer correct —
+    // the strip is expected to open on load with a create CTA still on screen, and
+    // MapActionButtons handles the crowding with its compact mode instead. Closing on
+    // navigation blur (see componentDidMount) already covers the case this guarded.
 
     private localeShort = 'en-US'; // TODO: Derive from user locale
     private mapViewRef: any;
@@ -232,6 +240,14 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {});
 
         this.unsubscribeBlurListener = navigation.addListener('blur', () => {
+            // The parent owns the map action buttons and drops them to their compact,
+            // lifted-clear-of-the-strip subset while the strip is open. Closing the strip
+            // here without telling it stranded that layout: navigating back to the map left
+            // two buttons floating above a strip that was no longer there, with no way to
+            // get the rest back short of opening and closing the strip again.
+            if (this.state.isPreviewBottomSheetVisible) {
+                this.props.onPreviewBottomSheetClose();
+            }
             this.setState({
                 isPreviewBottomSheetVisible: false,
                 areaInPreviewIndex: -1,
@@ -291,7 +307,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                             areaInPreviewIndex: index,
                         });
                         const { latitude, longitude } = areasInPreview[index] || {};
-                        if (latitude && longitude) {
+                        if (isUsableCoordinate(latitude) && isUsableCoordinate(longitude)) {
                             const { map } = this.props;
                             let animationLatitudeDelta = PRIMARY_LATITUDE_DELTA * 2;
                             let animationLongitudeDelta = PRIMARY_LONGITUDE_DELTA * 2;
@@ -342,7 +358,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     });
 
     onPoiClick = (e) => {
-        if (e?.nativeEvent?.coordinate?.latitude && e?.nativeEvent?.coordinate?.longitude) {
+        if (hasUsableCoords(e?.nativeEvent?.coordinate)) {
             const passThroughEvent: any = {
                 nativeEvent: {
                     coordinate: {
@@ -559,24 +575,26 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         let modifiedAreasInPreview = [...areasInPreview];
         if (!isPreviewBottomSheetVisible) {
             // TODO: Fetch media
-            const { content, filteredEvents, filteredSpaces, location } = this.props;
+            const { content, filteredEvents, filteredMoments, filteredSpaces, location } = this.props;
 
-            // When overlapping areas are provided (e.g. multiple moments at same location), use them directly
+            // When overlapping areas are provided (e.g. multiple moments at same location), use them directly.
+            // Otherwise moments are included alongside spaces and events: they carry the strongest
+            // recency signal on the map, and they are the content type the strip exists to encourage.
             const baseAreas = overlappingAreas?.length
                 ? overlappingAreas
-                : filteredSpaces.concat(filteredEvents);
+                : filteredSpaces.concat(filteredEvents).concat(filteredMoments);
 
-            // Label with user's location if available, but sort by distance from pressedCoord
-            const sortedAreasWithDistance = baseAreas
-                .filter((a: any) => a.latitude && a.longitude).map((area: any) => {
+            // Label with user's location if available, but score against distance from pressedCoord
+            const areasWithDistance = baseAreas
+                .filter((a: any) => hasUsableCoords(a)).map((area: any) => {
                     const milesFromPress = distanceTo({
                         lon: pressedCoords.longitude,
                         lat: pressedCoords.latitude,
                     }, {
                         lon: area.longitude,
                         lat: area.latitude,
-                    }) / 1069.344; // convert meters to miles
-                    const milesFromUser = !(location?.user?.longitude && location?.user?.latitude)
+                    }) / METERS_PER_MILE;
+                    const milesFromUser = !hasUsableCoords(location?.user)
                         ? milesFromPress
                         : distanceTo({
                             lon: location?.user?.longitude,
@@ -584,29 +602,31 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         }, {
                             lon: area.longitude,
                             lat: area.latitude,
-                        }) / 1069.344; // convert meters to miles
+                        }) / METERS_PER_MILE;
                     return {
                         ...area,
                         distanceFromUser: milesFromUser,
                         distanceFromPress: milesFromPress,
                     };
-                }).sort((a, b) => a.distanceFromPress - b.distanceFromPress);
+                });
 
-            const areasArray: any[] = [];
-            let pressedAreas: any[] = [];
-            let featuredAreas: any[] = [];
+            // Proximity blended with recent activity, rather than proximity alone. Spaces
+            // draw their recency from moments posted at them, so filteredMoments is passed
+            // even when the strip is showing an explicitly-provided overlapping set.
+            const sortedAreasWithDistance = rankAreaPreviews(areasWithDistance, filteredMoments);
+
             const missingMedias: {
                 path: string;
                 type: string;
             }[] = [];
 
-            sortedAreasWithDistance.some((area: any, index: number) => {
-                // Prevent loading spaces from too far away to be relevant
-                // Stop after 100 miles
-                if (index >= 20 && area.distanceFromUser && area.distanceFromUser > 100) {
-                    return true;
-                }
+            modifiedAreasInPreview = orderAreaPreviewStrip(sortedAreasWithDistance, {
+                pressedAreaId,
+                pressedAreaRadiusMeters: MAX_DISTANCE_TO_NEARBY_SPACE,
+                hasExplicitAreas: !!overlappingAreas?.length,
+            });
 
+            modifiedAreasInPreview.forEach((area: any) => {
                 if (area.medias?.length) {
                     area.medias
                         .forEach((media) => {
@@ -617,39 +637,20 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                 }
 
                 area.distance = getReadableDistance(area.distanceFromUser);
-
-                if (pressedAreaId && area.id === pressedAreaId) {
-                    pressedAreas.push(area);
-                } else if (pressedAreas.length < 1 && (area.distanceFromPress / 1609.34) < MAX_DISTANCE_TO_NEARBY_SPACE) {
-                    // Prioritize area over featured when approximate press/click or search specific area by name
-                    pressedAreas.push(area);
-                } else if (area.featuredIncentiveRewardKey && featuredAreas.length < 2) {
-                    // TODO: Prioritize top 2 with highest rewards nearby
-                    featuredAreas.push(area);
-                } else {
-                    areasArray.push(area);
-                }
-
-                // Prevent loading too many areas in preview
-                return index >= 99;
             });
-
-            modifiedAreasInPreview = pressedAreas.concat(featuredAreas).concat(areasArray);
             if (missingMedias.length) {
                 this.fetchPrivateMedia(missingMedias);
             }
-            if (modifiedAreasInPreview?.length > 0) {
-                this.props.onPreviewBottomSheetOpen();
-            } else {
-                this.props.onPreviewBottomSheetClose();
-                this.removeAnimation();
-            }
+            // Opens even with zero areas. The strip always renders a create-prompt card, so
+            // an empty result is now the "be the first to post here" state rather than a
+            // silent no-op that left the user staring at a bare map.
+            this.props.onPreviewBottomSheetOpen();
         } else {
             this.props.onPreviewBottomSheetClose();
             this.removeAnimation();
         }
 
-        const shouldOpen = modifiedAreasInPreview?.length < 1 ? false : !isPreviewBottomSheetVisible;
+        const shouldOpen = !isPreviewBottomSheetVisible;
         this.setState({
             areasInPreview: modifiedAreasInPreview,
             isPreviewBottomSheetVisible: shouldOpen,
@@ -663,6 +664,13 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                 }, 100);
             }
         });
+    };
+
+    handleCreatePromptPress = () => {
+        const { onCreatePromptPress } = this.props;
+
+        ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
+        onCreatePromptPress();
     };
 
     isAreaActivated = (type: IAreaType, area) => {
@@ -861,11 +869,15 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
     getLatitudeDelta = () => {
         const { map, route, user } = this.props;
-        if (route.params?.latitude) {
+        // `isUsableCoordinate`, not truthiness: a route param of exactly 0 is a real
+        // latitude, and dropping it here picks the wrong zoom for the region the
+        // caller asked for.
+        if (isUsableCoordinate(route.params?.latitude)) {
             return SECONDARY_LATITUDE_DELTA;
         }
 
-        if (user?.details?.lastKnownLatitude && user?.details?.lastKnownLongitude) {
+        if (isUsableCoordinate(user?.details?.lastKnownLatitude)
+            && isUsableCoordinate(user?.details?.lastKnownLongitude)) {
             return MAX_ANIMATION_LATITUDE_DELTA;
         }
         return map.hasUserLocationLoaded ? PRIMARY_LATITUDE_DELTA : INITIAL_LATITUDE_DELTA;
@@ -873,11 +885,12 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
     getLongitudeDelta = () => {
         const { map, route, user } = this.props;
-        if (route.params?.longitude) {
+        if (isUsableCoordinate(route.params?.longitude)) {
             return SECONDARY_LONGITUDE_DELTA;
         }
 
-        if (user?.details?.lastKnownLatitude && user?.details?.lastKnownLongitude) {
+        if (isUsableCoordinate(user?.details?.lastKnownLatitude)
+            && isUsableCoordinate(user?.details?.lastKnownLongitude)) {
             return MAX_ANIMATION_LONGITUDE_DELTA;
         }
         return map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA;
@@ -963,6 +976,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             filteredMoments,
             filteredSpaces,
             isScrollEnabled,
+            nearestSpaceTitle,
             shouldFollowUserLocation,
             shouldRenderMapCircles,
             map,
@@ -970,8 +984,16 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         const { areasInPreview, areaInPreviewIndex, isPreviewBottomSheetVisible, isMapReady } = this.state;
         const animatedOverlayHeight = CARD_HEIGHT
             + this.themeBottomSheet.styles.scrollViewOuterContainer.bottom;
+        // States what the strip is showing, so the map has a value proposition on load
+        // rather than an unexplained row of cards.
+        let previewHeaderLabel = this.translate('pages.map.preview.nothingNearby');
+        if (areasInPreview.length === 1) {
+            previewHeaderLabel = this.translate('pages.map.preview.activeNearbyOne');
+        } else if (areasInPreview.length > 1) {
+            previewHeaderLabel = this.translate('pages.map.preview.activeNearby', { count: areasInPreview.length });
+        }
         // This converts degrees to miles then miles to meters (divided by 10)
-        const focusedAreaRadius = Math.abs(((map?.longitudeDelta || 0) * 69 * 1609.34) / 12);
+        const focusedAreaRadius = Math.abs(((map?.longitudeDelta || 0) * 69 * METERS_PER_MILE) / 12);
         const unfocusedAreaRadius = focusedAreaRadius / 2;
 
         return (
@@ -1183,8 +1205,13 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                 {
                     isPreviewBottomSheetVisible &&
                     <View style={[this.themeBottomSheet.styles.scrollViewOuterContainer, {
-                        height: animatedOverlayHeight + 3, // Add for box shadow
+                        height: animatedOverlayHeight + PREVIEW_HEADER_HEIGHT + 3, // Add for box shadow
                     }]}>
+                        <View style={localStyles.previewHeader}>
+                            <Text style={[localStyles.previewHeaderText, { color: this.theme.colors.brandingWhite }]}>
+                                {previewHeaderLabel}
+                            </Text>
+                        </View>
                         <Animated.ScrollView
                             ref={(ref) => { this.scrollViewRef = ref; }}
                             horizontal
@@ -1244,6 +1271,15 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                     );
                                 })
                             }
+                            <AreaCreatePromptCard
+                                cardWidth={CARD_WIDTH}
+                                cardHeight={CARD_HEIGHT}
+                                nearestSpaceTitle={nearestSpaceTitle}
+                                onPress={this.handleCreatePromptPress}
+                                theme={this.theme}
+                                themeViewArea={this.themeViewArea}
+                                translate={this.translate}
+                            />
                         </Animated.ScrollView>
                     </View>
                 }
@@ -1251,5 +1287,21 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    previewHeader: {
+        height: PREVIEW_HEADER_HEIGHT,
+        justifyContent: 'center',
+        paddingHorizontal: 14,
+    },
+    previewHeaderText: {
+        fontSize: 13,
+        fontWeight: '700',
+        // The strip floats over the map, so the label needs its own contrast.
+        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 3,
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(TherrMapView);

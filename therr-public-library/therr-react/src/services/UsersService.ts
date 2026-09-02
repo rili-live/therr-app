@@ -91,6 +91,12 @@ interface ICreateThoughtBody {
     locale: string;
     isPublic?: boolean;
     isRepost?: boolean;
+    /**
+     * Id of the thought being re-shared. The server derives `isRepost` from this, so sending
+     * `isRepost` alone creates an ordinary post. An empty `message` is a plain repost; a
+     * non-empty one is a quote repost.
+     */
+    repostThoughtId?: string;
     message: string;
     mediaIds?: string;
     mentionsIds?: string;
@@ -112,7 +118,6 @@ interface IDeleteThoughtsBody {
     ids: string[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ISearchThoughtsArgs {}
 
 export interface ICreateCheckoutSessionArgs {

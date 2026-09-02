@@ -2,16 +2,19 @@ import React from 'react';
 import axios from 'axios';
 import qs from 'qs';
 import {
+    AppState,
+    AppStateStatus,
     Image,
     Linking,
     NativeModules,
+    NativeEventSubscription,
     PermissionsAndroid,
     Platform,
 } from 'react-native';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
-import { getAnalytics, logScreenView } from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent, logScreenView } from '@react-native-firebase/analytics';
 import { getCrashlytics, log as crashlyticsLog, recordError, setUserId as setCrashlyticsUserId } from '@react-native-firebase/crashlytics';
 import {
     getInitialNotification,
@@ -56,12 +59,22 @@ import { buildStyles as buildBottomSheetStyles } from '../styles/bottom-sheet';
 import { buildStyles as buildButtonStyles } from '../styles/buttons';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildModalStyles } from '../styles/modal';
+import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmModal';
 import { buildStyles as buildInfoModalStyles } from '../styles/modal/infoModal';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
 import { buildStyles as buildDisclosureStyles } from '../styles/modal/locationDisclosure';
 import permissions, { PermType } from '../utilities/permissionsOrchestrator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PermissionPrimerModal from './Modals/PermissionPrimerModal';
+import AppReviewPromptModal, { AppReviewPromptOutcome } from './Modals/AppReviewPromptModal';
+import {
+    markReviewPromptCompleted,
+    markReviewPromptDeclined,
+    markReviewPromptShown,
+    shouldShowReviewPrompt,
+} from '../utilities/appReviewPrompt';
+import { openStoreReviewPage } from '../utilities/appStoreReviewLink';
+import { openSupportEmail } from '../utilities/supportContact';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
@@ -79,6 +92,7 @@ import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils
 import { getBrandInitialRouteName } from '../utilities/brandLandingRoute';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
+import getDeviceTimeZone from '../utilities/deviceTimeZone';
 
 const preLoadImageList = [background1, background2, background3];
 
@@ -99,6 +113,9 @@ interface ILayoutDispatchProps {
     createUserGroup: Function;
     deleteUserGroup: Function;
     getActivePacts: Function;
+    acceptPact: Function;
+    renewPact: Function;
+    createCheckin: Function;
     getMyAchievements: Function;
     getUserGroups: Function;
     logout: Function;
@@ -145,7 +162,19 @@ interface ILayoutState {
     permissionPrimerType: PermType | null;
     shouldSpinSplashLogo: boolean;
     isSplashSpinnerVisible: boolean;
+    isAppReviewPromptVisible: boolean;
 }
+
+/**
+ * Delay before the review prompt is considered on a cold start, measured from the splash
+ * handoff. Long enough that the first screen has settled and the user is looking at their
+ * own content rather than at a loading state.
+ */
+const APP_REVIEW_PROMPT_COLD_START_DELAY_MS = 8000;
+/** Same idea on a warm return, where there is no splash and no first fetch to wait on. */
+const APP_REVIEW_PROMPT_FOREGROUND_DELAY_MS = 3000;
+/** How long the app must have been away for a return to count as the user coming back to it. */
+const APP_REVIEW_PROMPT_MIN_AWAY_MS = 60000;
 
 const mapStateToProps = (state: any) => ({
     content: state.content,
@@ -162,6 +191,9 @@ const mapDispatchToProps = (dispatch: any) =>
             createUserGroup: UsersActions.createUserGroup,
             deleteUserGroup: UsersActions.deleteUserGroup,
             getActivePacts: HabitActions.getActivePacts,
+            acceptPact: HabitActions.acceptPact,
+            renewPact: HabitActions.renewPact,
+            createCheckin: HabitActions.createCheckin,
             getMyAchievements: UsersActions.getMyAchievements,
             getUserGroups: UsersActions.getUserGroups,
             logout: UsersActions.logout,
@@ -206,11 +238,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private themeForms = buildFormStyles();
     private themeInfoModal = buildInfoModalStyles();
     private themeModal = buildModalStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
     private themeMenu = buildMenuStyles();
     private themeDisclosure = buildDisclosureStyles();
     private permissionPrimerResolve: ((allowed: boolean) => void) | null = null;
     private unsubscribeNotificationsGranted: (() => void) | null = null;
     private fcmRegistrationStarted = false;
+    private appStateListener: NativeEventSubscription | null = null;
+    private lastBackgroundedAt: number | null = null;
+    private appReviewPromptTimeout: ReturnType<typeof setTimeout> | null = null;
 
     constructor(props) {
         super(props);
@@ -221,6 +257,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             permissionPrimerType: null,
             shouldSpinSplashLogo: false,
             isSplashSpinnerVisible: true,
+            isAppReviewPromptVisible: false,
         };
 
         this.reloadTheme();
@@ -263,6 +300,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             .catch((err) => console.log('FCM_INITIAL_NOTIFICATION_ERROR', err));
         // Universal links handler
         this.urlEventListener = Linking.addEventListener('url', this.handleUrlEvent);
+
+        // Returning to the app is the calmest moment we get: nothing is mid-flow and no
+        // other modal is being opened, which is where the review prompt belongs.
+        this.appStateListener = AppState.addEventListener('change', this.handleAppStateChange);
 
         if (appleAuth.isSupported) {
             this.authCredentialListener = appleAuth.onCredentialRevoked(async () => {
@@ -427,6 +468,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     componentWillUnmount() {
         this.nativeEventListener?.remove();
         this.urlEventListener?.remove();
+        this.appStateListener?.remove();
+
+        if (this.appReviewPromptTimeout) {
+            clearTimeout(this.appReviewPromptTimeout);
+            this.appReviewPromptTimeout = null;
+        }
 
         if (this.authCredentialListener) {
             this.authCredentialListener();
@@ -503,6 +550,118 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
+    handleAppStateChange = (nextAppState: AppStateStatus) => {
+        if (nextAppState !== 'active') {
+            // Keep the *first* transition away: iOS reports 'inactive' before 'background',
+            // and overwriting would read as a much shorter absence than it was.
+            if (this.lastBackgroundedAt === null) {
+                this.lastBackgroundedAt = Date.now();
+            }
+
+            return;
+        }
+
+        const backgroundedAt = this.lastBackgroundedAt;
+        this.lastBackgroundedAt = null;
+
+        // Only a deliberate return counts. The app also goes inactive for an OS permission
+        // dialog, the camera, and the share sheet — all of which are the middle of a flow the
+        // user started, and the worst possible moment to interrupt with a review prompt.
+        if (backgroundedAt !== null && Date.now() - backgroundedAt >= APP_REVIEW_PROMPT_MIN_AWAY_MS) {
+            this.scheduleAppReviewPromptCheck(APP_REVIEW_PROMPT_FOREGROUND_DELAY_MS);
+        }
+    };
+
+    /**
+     * Whether this is a moment the prompt may interrupt. Everything here is a
+     * "the user is busy with something else" check — eligibility itself (how engaged the
+     * user is, how recently they were last asked) lives in `utilities/appReviewPrompt`.
+     */
+    isAppReviewPromptInterruptible = (): boolean => {
+        const {
+            isAppReviewPromptVisible,
+            isSplashSpinnerVisible,
+            permissionPrimerType,
+        } = this.state;
+
+        return this.isUserAuthenticated()
+            && !isAppReviewPromptVisible
+            && !isSplashSpinnerVisible
+            && !permissionPrimerType
+            && !this.props.user?.settings?.isTouring;
+    };
+
+    scheduleAppReviewPromptCheck = (delayMs: number) => {
+        // A single pending check at a time. Foregrounding twice in quick succession (a
+        // permission dialog, a share sheet) should not queue up two prompts.
+        if (this.appReviewPromptTimeout) {
+            return;
+        }
+
+        this.appReviewPromptTimeout = setTimeout(() => {
+            this.appReviewPromptTimeout = null;
+            this.checkAppReviewPrompt();
+        }, delayMs);
+    };
+
+    checkAppReviewPrompt = () => {
+        if (!this.isAppReviewPromptInterruptible()) {
+            return;
+        }
+
+        shouldShowReviewPrompt().then((shouldShow) => {
+            // Re-check: the read is async, and a permission primer or the tour may have
+            // opened while it was in flight.
+            if (!shouldShow || !this.isAppReviewPromptInterruptible()) {
+                return;
+            }
+
+            // Stamped on display rather than on an answer, so a prompt the user swipes away
+            // still starts the quiet period.
+            markReviewPromptShown();
+            this.setState({ isAppReviewPromptVisible: true });
+            logEvent(getAnalytics(), 'app_review_prompt_shown', {
+                userId: this.props.user?.details?.id,
+            }).catch((err) => console.log(err));
+        }).catch((err) => console.log('APP_REVIEW_PROMPT_CHECK_ERROR', err));
+    };
+
+    handleAppReviewPromptClose = (outcome: AppReviewPromptOutcome) => {
+        this.setState({ isAppReviewPromptVisible: false });
+
+        logEvent(getAnalytics(), 'app_review_prompt_closed', {
+            userId: this.props.user?.details?.id,
+            outcome,
+        }).catch((err) => console.log(err));
+
+        if (outcome === 'reviewRequested') {
+            openStoreReviewPage().then((didOpen) => {
+                // Only terminal if the store actually opened. If nothing could handle the
+                // link the user never got the chance to review, so leave them askable.
+                if (didOpen) {
+                    markReviewPromptCompleted();
+                }
+            }).catch((err) => console.log('APP_REVIEW_STORE_LINK_ERROR', err));
+
+            return;
+        }
+
+        if (outcome === 'feedbackRequested') {
+            markReviewPromptDeclined();
+            openSupportEmail(this.translate('modals.appReviewPrompt.emailSubject'))
+                .catch((err) => console.log('APP_REVIEW_SUPPORT_LINK_ERROR', err));
+
+            return;
+        }
+
+        if (outcome === 'declined') {
+            markReviewPromptDeclined();
+        }
+
+        // 'dismissed' leaves the user eligible for a later prompt; the shown-stamp above
+        // already started the quiet period.
+    };
+
     reloadTheme = (shouldForceUpdate: boolean = false) => {
         const themeName = this.props?.user?.settings?.mobileThemeName;
         this.theme = buildStyles(themeName);
@@ -512,6 +671,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.themeMenu = buildMenuStyles(themeName);
         this.themeInfoModal = buildInfoModalStyles(themeName);
         this.themeModal = buildModalStyles(themeName);
+        this.themeConfirmModal = buildConfirmModalStyles(themeName);
         this.themeDisclosure = buildDisclosureStyles(themeName);
         if (shouldForceUpdate) {
             this.forceUpdate();
@@ -836,6 +996,27 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     ? PushNotifications.AndroidIntentActions.Teem
                     : PushNotifications.AndroidIntentActions.Therr;
 
+            // The HABITS-only keys (PACT_*, PARTNER_*, STREAK_*,
+            // DAILY_HABIT_REMINDER, MORNING_MOTIVATION, EVENING_CHECK_IN) exist
+            // on HabitsAndroidIntentActions and on neither of the other two, so
+            // reading them off the union is a compile error even though the
+            // comparison is exactly what we want at runtime: on a Therr binary
+            // the lookup is `undefined` and no habits branch can match, which is
+            // correct — that build declares no habits intent filters, so the
+            // action string can never arrive.
+            //
+            // `?? '\u0000'` rather than `undefined` so an FCM payload with no
+            // `action` cannot accidentally equal a missing key.
+            const brandIntent = (key: string): string => (brandIntents as Record<string, string | undefined>)[key] ?? '\u0000';
+
+            // Intent extras arrive as strings and are absent unless the backend
+            // put them in the FCM data map.
+            const intentData = data as Record<string, any>;
+            const intentPactId = typeof intentData.pactId === 'string' && intentData.pactId ? intentData.pactId : undefined;
+            const intentHabitGoalId = typeof intentData.habitGoalId === 'string' && intentData.habitGoalId
+                ? intentData.habitGoalId
+                : undefined;
+
             if (data.action === brandIntents.ACHIEVEMENT_COMPLETED
                 || data.action === brandIntents.UNCLAIMED_ACHIEVEMENTS_REMINDER) {
                 targetRouteView = 'Achievements';
@@ -880,7 +1061,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteView = 'Connect';
             } else if (data.action === brandIntents.NEW_LIKE_RECEIVED
                 || data.action === brandIntents.NEW_SUPER_LIKE_RECEIVED
-                || data.action === brandIntents.NEW_THOUGHT_REPLY_RECEIVED) {
+                || data.action === brandIntents.NEW_THOUGHT_REPLY_RECEIVED
+                || data.action === brandIntents.NEW_THOUGHT_REPOST_RECEIVED) {
                 targetRouteView = 'Notifications';
             } else if (data.action === brandIntents.NUDGE_SPACE_ENGAGEMENT) {
                 targetRouteView = 'Areas';
@@ -888,6 +1070,41 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteView = 'BookMarked';
             } else if (data.action === brandIntents.REPORT_CONFIRMED) {
                 targetRouteView = 'Notifications';
+            } else if (data.action === brandIntent('PACT_INVITATION')
+                || data.action === brandIntent('PACT_NUDGE')) {
+                targetRouteView = 'HabitsDashboard';
+                targetRouteParams = { initialTab: 'pending' };
+            } else if (data.action === brandIntent('PACT_ACCEPTED')
+                || data.action === brandIntent('PACT_DECLINED')
+                || data.action === brandIntent('PACT_COMPLETED')
+                || data.action === brandIntent('PACT_EXPIRING')
+                || data.action === brandIntent('PARTNER_CHECKED_IN')
+                || data.action === brandIntent('PARTNER_MISSED_DAY')
+                || data.action === brandIntent('PARTNER_CELEBRATED')) {
+                // The manifest has declared every one of these actions since the
+                // habits work landed, but none of them were compared here — so
+                // `targetRouteView` stayed '' and the `else if (targetRouteView)`
+                // below was falsy: tapping a habits notification on the Android
+                // intent path navigated nowhere at all.
+                //
+                // `data.pactId` reaches the intent extras only when the backend
+                // put it in the FCM data map, which it now does; without it the
+                // dashboard is the honest destination.
+                targetRouteView = intentPactId ? 'PactDetail' : 'HabitsDashboard';
+                targetRouteParams = intentPactId ? { pactId: intentPactId } : {};
+            } else if (data.action === brandIntent('STREAK_AT_RISK')
+                || data.action === brandIntent('DAILY_HABIT_REMINDER')
+                || data.action === brandIntent('MORNING_MOTIVATION')
+                || data.action === brandIntent('EVENING_CHECK_IN')) {
+                targetRouteView = intentHabitGoalId ? 'HabitDetail' : 'HabitsDashboard';
+                targetRouteParams = intentHabitGoalId
+                    ? { habitGoalId: intentHabitGoalId }
+                    : { initialTab: 'habits' };
+            } else if (data.action === brandIntent('STREAK_MILESTONE')
+                || data.action === brandIntent('STREAK_BROKEN')
+                || data.action === brandIntent('NEW_PERSONAL_RECORD')) {
+                targetRouteView = intentHabitGoalId ? 'HabitDetail' : 'MyHabits';
+                targetRouteParams = intentHabitGoalId ? { habitGoalId: intentHabitGoalId } : {};
             } else if (data.action?.endsWith(QUICK_ACTION_SUFFIXES.CREATE_MOMENT)) {
                 // App-shortcut: jump straight into moment creation. EditMoment
                 // destructures route.params (and calls nearbySpaces.find), so we
@@ -967,6 +1184,29 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const thought = parseObject('thought');
         const groupId = typeof data?.groupId === 'string' ? data.groupId : undefined;
         const postType = typeof data?.postType === 'string' ? data.postType : undefined;
+        // HABITS routing ids. The backend promotes these out of the copy config
+        // into the FCM data map (push-notifications-service firebaseAdmin.ts) —
+        // before that they were carried all the way from the producer, used to
+        // render the body, and dropped, which is why every habits notification
+        // could only ever open a list.
+        //
+        // `habitGoalId` is present only when the notification names exactly one
+        // habit: the digest rolls a user's whole day into one nudge, and a
+        // roll-up covering three habits has no single habit to open.
+        const habitGoalId = typeof data?.habitGoalId === 'string' && data.habitGoalId ? data.habitGoalId : undefined;
+        const pactId = typeof data?.pactId === 'string' && data.pactId ? data.pactId : undefined;
+
+        // Falls back to the dashboard rather than to the in-app Notifications
+        // list. That list has no habits rows at all — `Notifications.Types`
+        // (therr-js-utilities) declares none — so routing there was a dead end
+        // that looked like a broken notification.
+        const buildPactRoute = () => (pactId
+            ? { targetRouteView: 'PactDetail', targetRouteParams: { pactId } }
+            : { targetRouteView: 'HabitsDashboard', targetRouteParams: {} });
+
+        const buildHabitRoute = (initialTab?: string) => (habitGoalId
+            ? { targetRouteView: 'HabitDetail', targetRouteParams: { habitGoalId } }
+            : { targetRouteView: 'HabitsDashboard', targetRouteParams: initialTab ? { initialTab } : {} });
 
         const buildMomentRoute = (m: any) => ({
             targetRouteView: 'ViewMoment',
@@ -1078,6 +1318,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 if (area?.id) return buildSpaceRoute(area);
                 return { targetRouteView: 'Map', targetRouteParams: {} };
             case PushNotifications.Types.newThoughtReplyReceived:
+            case PushNotifications.Types.newThoughtRepostReceived:
                 if (thought?.id) return buildThoughtRoute(thought);
                 return { targetRouteView: 'Notifications', targetRouteParams: {} };
             case PushNotifications.Types.postVisitReviewReminder:
@@ -1088,34 +1329,46 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
             // HABITS pact / streak / partner / habit-reminder notifications.
             case PushNotifications.Types.pactInvitation:
-                return { targetRouteView: 'PactsList', targetRouteParams: { initialTab: 'pending' } };
+                return { targetRouteView: 'HabitsDashboard', targetRouteParams: { initialTab: 'pending' } };
 
             case PushNotifications.Types.pactNudge:
-                return { targetRouteView: 'PactsList', targetRouteParams: { initialTab: 'pending' } };
+                return { targetRouteView: 'HabitsDashboard', targetRouteParams: { initialTab: 'pending' } };
 
+            // Pact state and partner activity — the pact is the subject, so the
+            // pact is the destination.
             case PushNotifications.Types.pactAccepted:
             case PushNotifications.Types.pactDeclined:
             case PushNotifications.Types.pactCompleted:
             case PushNotifications.Types.pactExpiring:
+            case PushNotifications.Types.pactEnded:
             case PushNotifications.Types.partnerCheckedIn:
             case PushNotifications.Types.partnerMissedDay:
             case PushNotifications.Types.partnerCelebrated:
-            case PushNotifications.Types.streakMilestone:
+                return buildPactRoute();
+
+            // Anything asking the user to check in opens the habit itself, with
+            // the dashboard's habits segment when it cannot name one — that is
+            // the segment listing the habits the user can check in on.
             case PushNotifications.Types.streakAtRisk:
-            case PushNotifications.Types.streakBroken:
-            case PushNotifications.Types.newPersonalRecord:
             case PushNotifications.Types.dailyHabitReminder:
             case PushNotifications.Types.morningMotivation:
             case PushNotifications.Types.eveningCheckIn:
-            // Habit lifecycle milestones and check-ins
-            // (docs/HABIT_LIFECYCLE_MESSAGING.md). Listed here rather than left
-            // to `default` because that returns null — the notification would
-            // render, be tappable, and open nothing.
-            case PushNotifications.Types.habitEstablished:
-            case PushNotifications.Types.habitAutomaticity:
             case PushNotifications.Types.habitMaintenanceCheckIn:
             case PushNotifications.Types.habitComeback:
-                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+                return buildHabitRoute('habits');
+
+            // Celebrations and lifecycle milestones
+            // (docs/HABIT_LIFECYCLE_MESSAGING.md). The habit's own history is
+            // what the copy refers to; MyHabits is the fallback because a
+            // milestone with no habit id is still about the user's habits.
+            case PushNotifications.Types.streakMilestone:
+            case PushNotifications.Types.streakBroken:
+            case PushNotifications.Types.newPersonalRecord:
+            case PushNotifications.Types.habitEstablished:
+            case PushNotifications.Types.habitAutomaticity:
+                return habitGoalId
+                    ? { targetRouteView: 'HabitDetail', targetRouteParams: { habitGoalId } }
+                    : { targetRouteView: 'MyHabits', targetRouteParams: {} };
 
             default:
                 return null;
@@ -1426,6 +1679,192 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     }).finally(() => {
                         RootNavigation.navigate('ViewUser', routeParams);
                     });
+                }
+                return Promise.resolve();
+            }
+
+            // HABITS action buttons.
+            //
+            // Before this, none of the four habits PressActionIds had a branch
+            // here at all: the backend has been stamping `pactView` /
+            // `pactAccept` / `checkinView` / `streakView` on every habits push
+            // since they shipped, and every one of them fell through to the
+            // type fallback below, which sent the user to the in-app
+            // Notifications list — a screen with no habits rows in it.
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.habitCheckin) {
+                // The killed-app case is handled by notifee.onBackgroundEvent in
+                // TherrMobile/index.js, which completes the check-in without
+                // opening the app. This branch is the warm path (foreground, or
+                // a background event while the tree is alive), where using the
+                // normal redux action keeps the dashboard in sync rather than
+                // leaving it showing an un-checked-in habit.
+                const checkinHabitGoalId = typeof notification?.data?.habitGoalId === 'string'
+                    ? notification.data.habitGoalId
+                    : undefined;
+                const checkinPactId = typeof notification?.data?.pactId === 'string'
+                    ? notification.data.pactId
+                    : undefined;
+
+                if (!isUserAuthorized || !checkinHabitGoalId) {
+                    this.setState({
+                        targetRouteView: 'HabitsDashboard',
+                        targetRouteParams: { initialTab: 'habits' },
+                    });
+                    return Promise.resolve();
+                }
+
+                return this.props.createCheckin({
+                    habitGoalId: checkinHabitGoalId,
+                    ...(checkinPactId ? { pactId: checkinPactId } : {}),
+                    status: 'completed',
+                }).then(() => {
+                    showToast.success({
+                        text1: this.translate('alertTitles.checkinSucceeded'),
+                        text2: this.translate('alertMessages.checkinSucceeded'),
+                    });
+                }).catch(() => {
+                    // Falls through to the habit rather than only toasting: the
+                    // press already dismissed the notification, so an error with
+                    // no destination leaves the user with nothing to act on.
+                    showToast.error({
+                        text1: this.translate('alertTitles.checkinFailed'),
+                    });
+                    RootNavigation.navigate('HabitDetail', { habitGoalId: checkinHabitGoalId });
+                });
+            }
+
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.pactAccept) {
+                const acceptPactId = typeof notification?.data?.pactId === 'string'
+                    ? notification.data.pactId
+                    : undefined;
+
+                if (!acceptPactId) {
+                    this.setState({
+                        targetRouteView: 'HabitsDashboard',
+                        targetRouteParams: { initialTab: 'pending' },
+                    });
+                    return Promise.resolve();
+                }
+
+                const pactRouteParams = { pactId: acceptPactId };
+
+                if (!isUserAuthorized) {
+                    this.setState({
+                        targetRouteView: 'PactDetail',
+                        targetRouteParams: pactRouteParams,
+                    });
+                    return Promise.resolve();
+                }
+
+                // Mirrors the connection-request branch above: mutate, report,
+                // then land the user on the thing they just acted on either way.
+                return this.props.acceptPact(acceptPactId).then(() => {
+                    showToast.success({
+                        text1: this.translate('alertTitles.pactAccepted'),
+                    });
+                }).catch(() => {
+                    showToast.error({
+                        text1: this.translate('alertTitles.backendErrorMessage'),
+                    });
+                }).finally(() => {
+                    RootNavigation.navigate('PactDetail', pactRouteParams);
+                });
+            }
+
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.pactRenew) {
+                // "Start New Cycle" on the `pactEnded` push. Without this branch
+                // the id falls through to the type fallback below, which routes
+                // to the pact — so the button renders, opens the pact, and
+                // renews nothing, behaving identically to the "View" button
+                // beside it. Nothing reports that: the press dismisses the
+                // notification and the user is left on a screen that looks right.
+                const renewPactId = typeof notification?.data?.pactId === 'string'
+                    ? notification.data.pactId
+                    : undefined;
+                // Display-only, and the server re-reads the real value when it
+                // renews — so a missing or stale one costs the toast its number,
+                // never the cycle its length.
+                const renewDurationDays = Number(notification?.data?.durationDays) || 0;
+
+                if (!renewPactId) {
+                    // 'all' rather than 'habits': the notification is about a
+                    // pact, and 'all' is the segment that lists finished ones.
+                    // (`normalizeInitialTab` silently falls back to 'habits' for
+                    // any unrecognised value, so a wrong name here would not
+                    // error — it would just quietly land on the wrong list.)
+                    this.setState({
+                        targetRouteView: 'HabitsDashboard',
+                        targetRouteParams: { initialTab: 'all' },
+                    });
+                    return Promise.resolve();
+                }
+
+                const renewRouteParams = { pactId: renewPactId };
+
+                if (!isUserAuthorized) {
+                    this.setState({
+                        targetRouteView: 'PactDetail',
+                        targetRouteParams: renewRouteParams,
+                    });
+                    return Promise.resolve();
+                }
+
+                // No duration override, matching the dashboard CTA: the evidence
+                // behind renewal measures the *fixed cycle*, not its length, so
+                // `renewPact` reuses the previous cycle's `durationDays`. The
+                // renewal is a new pact rather than a mutation, so the streak in
+                // `habits.streaks` carries across the boundary untouched.
+                // Reuses the dashboard CTA's strings rather than adding a second
+                // set: the two entry points renew the same thing, and copy that
+                // drifts between them is copy a user can catch us on.
+                return this.props.renewPact(renewPactId).then(() => {
+                    showToast.success({
+                        text1: this.translate('pages.pacts.renew.successTitle'),
+                        text2: renewDurationDays
+                            ? this.translate('pages.pacts.renew.successMessage', { days: renewDurationDays })
+                            : undefined,
+                    });
+                }).catch((error: any) => {
+                    // The server re-checks renewability and 409s a stale CTA —
+                    // most often because a partner already renewed, leaving a
+                    // live cycle on the habit. That body is localized and names
+                    // the real reason, and the axios interceptor rejects with it
+                    // verbatim (hence `error.message`, not `error.response.data`).
+                    // A rejection carrying no `statusCode` never reached the API.
+                    const apiMessage = error?.statusCode && typeof error?.message === 'string'
+                        ? error.message
+                        : '';
+
+                    showToast.error({
+                        text1: this.translate('pages.pacts.errorTitle'),
+                        text2: apiMessage || this.translate('pages.pacts.renew.error'),
+                    });
+                }).finally(() => {
+                    // Land on the pact either way. A renewal that succeeded has
+                    // a new cycle to show, and one that failed needs somewhere
+                    // to act — the press already dismissed the notification.
+                    RootNavigation.navigate('PactDetail', renewRouteParams);
+                });
+            }
+
+            if (notification?.id
+                && (pressAction?.id === PushNotifications.PressActionIds.pactView
+                    || pressAction?.id === PushNotifications.PressActionIds.checkinView
+                    || pressAction?.id === PushNotifications.PressActionIds.streakView)) {
+                // Navigation only — the destination is exactly what the type
+                // fallback resolves, so reuse it rather than restating the
+                // habit/pact/dashboard precedence in a second place.
+                const habitsRoute = this.getRouteFromNotificationType(
+                    typeof notification?.data?.type === 'string' ? notification.data.type : undefined,
+                    notification?.data,
+                );
+
+                if (habitsRoute) {
+                    if (!isUserAuthorized) {
+                        this.setState(habitsRoute);
+                        return Promise.resolve();
+                    }
+                    RootNavigation.navigate(habitsRoute.targetRouteView, habitsRoute.targetRouteParams);
                 }
                 return Promise.resolve();
             }
@@ -1813,9 +2252,41 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             .then(() => getToken(getMessaging()))
             .then((deviceToken) => {
                 axios.defaults.headers['x-user-device-token'] = deviceToken;
-                if (user.details.deviceMobileFirebaseToken !== deviceToken) {
-                    updateUser(user.details.id, { deviceMobileFirebaseToken: deviceToken });
-                }
+                // Register unconditionally. This was guarded on
+                // `user.details.deviceMobileFirebaseToken !== deviceToken`, but that value is
+                // the legacy *shared* users.deviceMobileFirebaseToken column, which every
+                // branded app on the device overwrites in turn — so it says nothing about
+                // whether THIS brand is registered. `updateUser` is the only path that writes
+                // the brand-scoped main.userDeviceTokens row (via syncDeviceTokenForBrand), so
+                // whenever the shared column already held this app's token the guard skipped
+                // the call and the row was never written at all. Routing then fell back to the
+                // shared column and delivered this brand's pushes to whichever app registered
+                // last — a Friends with Habits streak reminder arriving in Therr. The value is
+                // also never written back into Redux, and the `user` slice is redux-persisted,
+                // so a stale snapshot suppressed re-registration across app updates.
+                //
+                // `fcmRegistrationStarted` above already limits this to one call per app
+                // session, and the server-side upsert is idempotent.
+                //
+                // The device's IANA timezone rides along on the same call.
+                // `main.users.settingsTimezone` has existed since the habits schema
+                // landed and nothing has ever written it, which is why every scheduled
+                // notification went out at one global hour — evening in America/Chicago
+                // and 02:00 in Auckland. Reporting it here rather than through a new
+                // endpoint is deliberate: this is already the one call that happens once
+                // per app session on the push path, so a user who travels re-syncs the
+                // next time they open the app, and a user with push disabled — who
+                // cannot receive a scheduled reminder anyway — costs nothing.
+                //
+                // Sent only when the platform resolves a zone. The server rejects an
+                // unrecognised value with a 400, so passing `undefined` through on the
+                // rare device where `Intl` returns nothing would fail the device-token
+                // registration this call actually exists for.
+                const deviceTimeZone = getDeviceTimeZone();
+                updateUser(user.details.id, {
+                    deviceMobileFirebaseToken: deviceToken,
+                    ...(deviceTimeZone ? { settingsTimezone: deviceTimeZone } : {}),
+                });
                 this.unsubscribePushNotifications = onMessage(getMessaging(), async (remoteMessage) => {
                     await wrapOnMessageReceived(true, remoteMessage);
 
@@ -1940,7 +2411,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             updateGpsStatus,
             user,
         } = this.props;
-        const { permissionPrimerType, isSplashSpinnerVisible, shouldSpinSplashLogo } = this.state;
+        const {
+            isAppReviewPromptVisible,
+            permissionPrimerType,
+            isSplashSpinnerVisible,
+            shouldSpinSplashLogo,
+        } = this.state;
 
         return (
             <>
@@ -1969,6 +2445,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         // exactly, so the transition is invisible and the spin starts cleanly.
                             SplashScreen.hide({ fade: false });
                             this.setState({ shouldSpinSplashLogo: true });
+                            // AppState never reports the launch itself as a change, so the
+                            // cold-start path has to arm its own check.
+                            this.scheduleAppReviewPromptCheck(APP_REVIEW_PROMPT_COLD_START_DELAY_MS);
                         });
                     }}
                     onStateChange={async () => {
@@ -2237,6 +2716,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             themeDisclosure={this.themeDisclosure}
                         />
                     ) : null}
+                    <AppReviewPromptModal
+                        isVisible={isAppReviewPromptVisible}
+                        onClose={this.handleAppReviewPromptClose}
+                        translate={this.translate}
+                        themeModal={this.themeConfirmModal}
+                        themeButtons={this.themeButtons}
+                    />
+
                 </NavigationContainer>
                 {isSplashSpinnerVisible ? (
                     <SplashLogoSpinner

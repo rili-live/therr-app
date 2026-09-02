@@ -56,7 +56,7 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
         };
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         document.title = `Therr | ${this.props.translate('pages.changePassword.pageTitle')}`;
     }
 

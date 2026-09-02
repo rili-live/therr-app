@@ -1,5 +1,6 @@
 import 'react-native';
 import React from 'react';
+import { ErrorCodes } from 'therr-js-utilities/constants';
 import LoginForm from '../../main/routes/Login/LoginForm';
 
 // Note: test renderer must be required after react-native.
@@ -112,6 +113,67 @@ describe('LoginForm', () => {
         expect(instance.state.inputs.userName).toEqual('+13175551234');
         // A verified number should land straight in SMS mode, one tap from a code.
         expect(instance.isPhoneModeActive()).toEqual(true);
+    });
+
+    it('offers a visibility toggle on the password field', async () => {
+        const component = await renderLoginForm({ prefillIdentifier: 'jane@example.com' });
+
+        expect(component.root.findAllByProps({ testID: 'login-password-visibility-toggle' }).length)
+            .toBeGreaterThan(0);
+    });
+
+    describe('failed sign-in', () => {
+        // The reported bug: a wrong password cleared the spinner and showed nothing. Assert on
+        // the inline error rather than the toast, since the alert is the part that stays put.
+        const submitAndFail = async (rejection: any) => {
+            const login = jest.fn(() => Promise.reject(rejection));
+            const component = await renderLoginForm({ login });
+            const instance: any = component.getInstance();
+
+            await act(async () => {
+                instance.onInputChange('userName', 'jane@example.com');
+                instance.onInputChange('password', 'wrong-password');
+            });
+            await act(async () => {
+                instance.onSubmit();
+            });
+
+            return { component, instance, login };
+        };
+
+        it('tells the user their credentials were rejected', async () => {
+            const { instance } = await submitAndFail({ statusCode: 401, message: 'Incorrect user/password combination' });
+
+            expect(instance.state.prevLoginError).toEqual('Invalid username/password combination.');
+            expect(instance.state.isSubmitting).toEqual(false);
+        });
+
+        it('names an unverified account instead of blaming the password', async () => {
+            const { instance } = await submitAndFail({ statusCode: 401, errorCode: ErrorCodes.NOT_VERIFIED });
+
+            expect(instance.state.prevLoginError).toContain('not verified');
+        });
+
+        it('still says something when the rejection carries no statusCode', async () => {
+            // What a hijacked 401 used to look like by the time it reached the form: the
+            // interceptor's refresh-and-retry rejected it with a bare Error instead.
+            const { instance } = await submitAndFail(new Error('No refresh token available'));
+
+            expect(instance.state.prevLoginError).toEqual('Connection error. Please try again later.');
+            expect(instance.state.isSubmitting).toEqual(false);
+        });
+
+        it('clears the previous error when the next attempt starts', async () => {
+            const { instance } = await submitAndFail({ statusCode: 401 });
+
+            expect(instance.state.prevLoginError).not.toEqual('');
+
+            act(() => {
+                instance.onInputChange('password', 'another-try');
+            });
+
+            expect(instance.state.prevLoginError).toEqual('');
+        });
     });
 
     it('drops back to the password step when the identifier stops looking like a phone number', async () => {

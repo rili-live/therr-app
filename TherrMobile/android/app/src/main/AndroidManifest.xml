@@ -101,10 +101,10 @@
         `PushNotifications.AndroidIntentActions` in therr-js-utilities
         (Therr: app.therrmobile, Teem: com.therr.mobile,
         Habits: com.therr.mobile.habits). Hardcoding `app.therrmobile` here
-        meant the Friends with Habits build declared none of the actions its
-        own backend sends, so every reminder, streak and pact notification was
-        untappable. `notificationActionPrefix` is a manifest placeholder keyed
-        off applicationId in app/build.gradle, same pattern as appLinkHost.
+        meant every niche build declared none of the actions its own backend
+        sends, so its reminder, streak and pact notifications were untappable.
+        `notificationActionPrefix` is a manifest placeholder keyed off
+        applicationId in app/build.gradle, same pattern as appLinkHost.
 
         Data-only notifications (createDataOnlyMessage) are rendered locally by
         Notifee with `launchActivity: 'default'` and do NOT need a filter here —
@@ -184,6 +184,10 @@
         <category android:name="android.intent.category.DEFAULT" />
       </intent-filter>
       <intent-filter>
+        <action android:name="${notificationActionPrefix}.NEW_THOUGHT_REPOST_RECEIVED" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
         <action android:name="${notificationActionPrefix}.UNREAD_NOTIFICATIONS_REMINDER" />
         <category android:name="android.intent.category.DEFAULT" />
       </intent-filter>
@@ -227,6 +231,18 @@
       </intent-filter>
       <intent-filter>
         <action android:name="${notificationActionPrefix}.PACT_EXPIRING" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <!--
+        PACT_ENDED. The server has been sending this since the digest gained its
+        expiry sweep, and without this filter Android silently no-ops the tap:
+        the notification renders, the "Start New Cycle" button does nothing, and
+        no error is produced on the device or the server. Caught by
+        .claude/skills/push-notification-guard/scripts/check-push-wiring.js,
+        which reads the manifest from whichever branch builds the brand.
+      -->
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.PACT_ENDED" />
         <category android:name="android.intent.category.DEFAULT" />
       </intent-filter>
       <intent-filter>

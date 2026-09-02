@@ -61,7 +61,7 @@ import ViewUser from './ViewUser';
 // HABITS routes
 import { HabitsDashboard, HabitDetail, UpgradePaywall } from './Habits';
 import Journal from './Journal';
-import { PactsList, PactDetail, CreatePactInvite, HabitsPushOptIn } from './Pacts';
+import { PactDetail, CreatePactInvite, HabitsPushOptIn } from './Pacts';
 import { AccessPresets } from './access';
 import { editStackOptions, momentStackOptions, viewStackOptions } from './stackOptions';
 
@@ -544,6 +544,10 @@ const routes: RouteConfig<
     },
     // HABITS routes
     {
+        // Holds the pact invite lists too, as segments — the former `PactsList`
+        // screen. Gated on ENABLE_HABITS alone rather than also on
+        // ENABLE_PACTS, which the screen reads itself to decide whether to
+        // render those segments at all.
         name: 'HabitsDashboard',
         component: HabitsDashboard,
         options: () => ({
@@ -576,18 +580,6 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Free For Life',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER],
-            access: AccessPresets.EMAIL_VERIFIED,
-        }),
-    },
-    {
-        name: 'PactsList',
-        component: PactsList,
-        options: () => ({
-            title: 'My Pacts',
-            // Inherits the gating of the former MyPacts screen, which this
-            // screen replaced. ENABLE_PACTS is only ever on where
-            // ENABLE_HABITS is, so this is not a new restriction.
-            requiredFeatures: [FeatureFlags.ENABLE_HABITS, FeatureFlags.ENABLE_PACTS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),
     },

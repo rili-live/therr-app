@@ -135,10 +135,16 @@ git status --short 2>&1
 
 A `general→stage` diff can be tens of thousands of lines. Reading it whole wastes the context you need for the actual review, and generated files carry no review signal. **Always exclude generated and binary paths**, and always look at `--stat` before requesting content:
 
+> Keep the compiled-library exclusion scoped to `therr-public-library/*/lib/**`. A bare
+> `**/lib/**` also swallows `_bin/lib/**` — the deploy pipeline's decision logic and its
+> tests — and hiding a change is indistinguishable from there being no change. A review
+> that ran with the broad glob silently skipped 1,230 of 1,831 changed lines, including
+> every new file in the diff.
+
 ```bash
 git diff origin/stage --stat -- . \
   ':(exclude)**/package-lock.json' \
-  ':(exclude)**/lib/**' \
+  ':(exclude)therr-public-library/*/lib/**' \
   ':(exclude)**/*.png' ':(exclude)**/*.jpg' ':(exclude)**/*.jpeg' ':(exclude)**/*.gif' \
   ':(exclude)**/*.svg' ':(exclude)**/*.jsbundle' ':(exclude)**/*.aab' ':(exclude)**/*.apk' \
   2>&1
@@ -148,7 +154,7 @@ Then:
 
 - **Under ~2,000 changed lines**: read the full filtered diff in one call (same pathspec, without `--stat`).
 - **Over ~2,000 changed lines**: do not read it in one call. Review **package by package**, highest-risk first — `therr-services/**` and `therr-api-gateway/**`, then `therr-public-library/**`, then clients. Scope each read with a path argument, e.g. `git diff origin/stage -- therr-services/users-service`.
-- Lockfile and compiled `lib/` changes still matter for *scope* (they tell you a dependency or shared library moved) but are never read line by line. Note them from `--stat` only.
+- Lockfile and compiled `therr-public-library/*/lib/` changes still matter for *scope* (they tell you a dependency or shared library moved) but are never read line by line. Note them from `--stat` only.
 
 If there is no diff at all (working tree is identical to origin/stage and no uncommitted changes):
 ```
@@ -366,6 +372,14 @@ Run tests for every package in the Step 0f scope, not just backend ones. All wra
 
 Run the wrappers for affected packages in parallel (separate Bash calls in one message).
 
+> **Never `cd` in a batched call.** Bash calls share one working directory that persists
+> between them, so a `cd TherrMobile` in one call silently relocates every other call in the
+> same message — and every call after it. The failure looks like a stale skill: running
+> `npm run pr:typecheck:web` from `TherrMobile/` reports `npm error Missing script:
+> "pr:typecheck:web"`, which reads as a wrapper that no longer exists rather than a wrong
+> directory. Use `npm --prefix <pkg>` or absolute paths, and if a tool genuinely needs a
+> different root, give it its own un-batched call.
+
 ### Integration tests (only when `BACKEND` is in scope)
 
 Step 1 already confirmed postgres and redis are healthy. Service integration tests connect directly to the database — they do not require other service containers.
@@ -432,7 +446,15 @@ That wrapper builds `therr-js-utilities` then `therr-react` in the correct order
 npx eslint <file1> <file2> ... --fix-type problem,suggestion,layout --fix --no-error-on-unmatched-pattern 2>&1
 ```
 
-Group files by package and pass each package's files in a single invocation. Omit both fix flags when `--dry-run`.
+Group files by package and pass each package's files in a single invocation, **from the repo
+root, with repo-root-relative paths** — including `TherrMobile/**`. Do not `cd` into a package
+first. TherrMobile has its own `.eslintrc.js`, so cd-ing there looks necessary, but ESLint
+resolves config from each file's own location either way: the effective config for a
+`TherrMobile/main/**` file is rule-for-rule identical from both roots (verified — the only
+delta is `ignorePatterns`, which selects which files are linted, not how). The `cd` buys
+nothing and breaks every later call in the message, per the warning in Step 5.
+
+Omit both fix flags when `--dry-run`.
 
 **`--fix-type` is not optional here.** `eslint-config/base.js` sets
 `reportUnusedDisableDirectives`, which makes every stale `eslint-disable` comment

@@ -10,7 +10,7 @@ import {
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button as PaperButton, Divider, Text as PaperText, TextInput as PaperTextInput } from 'react-native-paper';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView, KeyboardStickyView, useKeyboardState } from 'react-native-keyboard-controller';
 import { IContentState, IUserState } from 'therr-react/types';
 import { BrandVariations, FeatureFlags } from 'therr-js-utilities/constants';
 import { ContentActions } from 'therr-react/redux/actions';
@@ -29,6 +29,7 @@ import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confi
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
+import RepostModal from '../../components/Modals/RepostModal';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { isMyContent as checkIsMyContent } from '../../utilities/content';
 import { SheetManager } from 'react-native-actions-sheet';
@@ -38,6 +39,7 @@ import TherrIcon from '../../components/TherrIcon';
 import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import { navToViewContent } from '../../utilities/postViewHelpers';
 import { showToast } from '../../utilities/toasts';
+import getRepostErrorKey from '../../utilities/repostErrors';
 
 const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
 // On HABITS the "thought" backend hosts the user's Goals feed; surface goal-specific copy.
@@ -52,6 +54,24 @@ const localStyles = StyleSheet.create({
         flex: 1,
         fontSize: 16,
         backgroundColor: 'transparent',
+    },
+    /**
+     * `maxHeight` belongs on the native input (`contentStyle`), not on the Paper container
+     * (`style`): Paper only pins an explicit height on a multiline input when one is passed in
+     * `style`, so a cap set there would clip the text instead of letting the input scroll. On the
+     * native input it caps growth at roughly five lines and hands overflow to the input's own
+     * scroll.
+     *
+     * `textAlignVertical` undoes the side effect of `multiline` on this input. Paper stretches
+     * the native input to fill the dense outlined minimum height (48) via `flexGrow`, and pins
+     * multiline text to the top of it, so a one-line reply — and the placeholder — floated well
+     * above the centered send icon. Centering only moves the text while it is shorter than the
+     * box, so a reply that wraps still fills from the top. Android-only in React Native; iOS
+     * already lands near center because Paper keeps its vertical padding there.
+     */
+    replyInputContent: {
+        maxHeight: 120,
+        textAlignVertical: 'center',
     },
     replyInputOutline: {
         borderRadius: 20,
@@ -180,10 +200,22 @@ const ViewThought = ({
     const [isDeleting, setIsDeleting] = useState(false);
     const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
     const [fetchedThought, setFetchedThought] = useState<any>({});
+    // The thought the repost composer is open for (null when closed). Held rather than derived
+    // because the composer can be opened from the root thought or from any reply on screen.
+    const [repostTarget, setRepostTarget] = useState<any>(null);
+    const [isReposting, setIsReposting] = useState(false);
+    // Locally applied repost-count bumps, keyed by thought id. The details endpoint is not
+    // re-fetched after a repost, so without this the count the user just incremented would keep
+    // rendering its pre-repost value until they leave and come back.
+    const [repostCountBumps, setRepostCountBumps] = useState<{ [thoughtId: string]: number }>({});
 
     // Refs
     const scrollViewRef = useRef<any>(null);
     const replyInputRef = useRef<any>(null);
+
+    // Keyboard (selector keeps re-renders to visibility changes rather than every frame of the
+    // keyboard animation)
+    const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
     // Themes
     const theme = buildStyles(user.settings?.mobileThemeName);
@@ -210,6 +242,11 @@ const ViewThought = ({
     // already carry it, so the banner renders before the fetch resolves.
     const parentThought = fetchedThought?.parent || thought.parent;
     const isFormDisabled = !inputMessage || isSubmitting;
+    // Applies any repost the user made in this session on top of the server's count.
+    const withRepostBump = useCallback((target: any) => {
+        const bump = repostCountBumps[target?.id];
+        return bump ? { ...target, repostCount: (target.repostCount || 0) + bump } : target;
+    }, [repostCountBumps]);
     const brandColor = isDarkMode ? theme.colors.textWhite : theme.colors.brandingBlueGreen;
 
     // Fetch thought details and set up nav listener
@@ -325,6 +362,16 @@ const ViewThought = ({
         navToViewContent(content, user, navigation.push, 'ViewThought');
     }, [user, navigation]);
 
+    // The thought in view is already open, so its card body must not navigate to itself — but
+    // the repost embed nested inside it still has to be able to open the original. Routing both
+    // through one guarded handler keeps that distinction in one place.
+    const handleInspectFromDetails = useCallback((content: any) => {
+        if (!content?.id || content.id === thought.id) {
+            return;
+        }
+        handleGoToContent(content);
+    }, [thought.id, handleGoToContent]);
+
     const handleUpdateThoughtReaction = useCallback((thoughtId, data, contentUserId) => {
         if (thoughtId === thought.id) {
             navigation.setParams({
@@ -399,6 +446,68 @@ const ViewThought = ({
                 });
         }
     }, [thought, user, deleteThought, navigation]);
+
+    const handleRepostPress = useCallback((selectedThought: any) => {
+        setRepostTarget(selectedThought);
+    }, []);
+
+    const handleRepostConfirm = useCallback((message: string) => {
+        if (!repostTarget?.id) {
+            return;
+        }
+
+        const targetId = repostTarget.id;
+        // Hashtags come from the user's own quote only. Carrying the original's tags over would
+        // put the reposter's account in feeds they never chose to post into.
+        const hashTags = message.match(/#[a-z0-9_]+/g) || [];
+        const hashTagsString = [
+            ...new Set(hashTags.map((t) => t.replace(/#/g, ''))),
+        ].join(',');
+
+        ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
+        setIsReposting(true);
+
+        createThought({
+            fromUserId: user.details.id,
+            // Reposting is a public act by definition — it surfaces the original to the
+            // reposter's audience, so a private repost would be a no-op with a side effect.
+            isPublic: true,
+            message,
+            hashTags: hashTagsString,
+            repostThoughtId: targetId,
+            isDraft: false,
+        })
+            .then(() => {
+                setRepostCountBumps((prev) => ({
+                    ...prev,
+                    [targetId]: (prev[targetId] || 0) + 1,
+                }));
+                setRepostTarget(null);
+                showToast.success({
+                    text1: translate('alertTitles.repostSuccess'),
+                    text2: translate('alertMessages.repostSuccess'),
+                });
+
+                logEvent(getAnalytics(), 'thought_repost_create', {
+                    repostThoughtId: targetId,
+                    fromUserId: user.details.id,
+                    hasQuote: !!message,
+                }).catch((err) => console.log(err));
+            })
+            .catch((error: any) => {
+                showToast.error({
+                    text1: translate('alertTitles.backendErrorMessage'),
+                    // 400 is the server's "you already reposted this" duplicate guard. The
+                    // control is gated on the same rule the server enforces, so a 403 means the
+                    // original went non-public between opening the composer and confirming —
+                    // distinct, and not something retrying fixes.
+                    text2: translate(getRepostErrorKey(error?.statusCode)),
+                });
+            })
+            .finally(() => {
+                setIsReposting(false);
+            });
+    }, [repostTarget, user.details.id, createThought, translate]);
 
     const handleSubmitReply = useCallback(() => {
         if (isFormDisabled) {
@@ -506,8 +615,9 @@ const ViewThought = ({
                             isDarkMode={isDarkMode}
                             isExpanded={true}
                             isRepliable={true}
-                            inspectThought={() => null}
-                            thought={thoughtInView}
+                            inspectThought={handleInspectFromDetails}
+                            onRepostPress={handleRepostPress}
+                            thought={withRepostBump(thoughtInView)}
                             goToViewUser={handleGoToViewUser}
                             updateThoughtReaction={handleUpdateThoughtReaction}
                             user={user}
@@ -547,7 +657,8 @@ const ViewThought = ({
                                     isExpanded={false}
                                     inspectThought={handleGoToContent}
                                     showThreadActions={true}
-                                    thought={reply}
+                                    onRepostPress={handleRepostPress}
+                                    thought={withRepostBump(reply)}
                                     goToViewUser={handleGoToViewUser}
                                     updateThoughtReaction={handleUpdateThoughtReaction}
                                     user={user}
@@ -565,61 +676,91 @@ const ViewThought = ({
                     </View>
                 </KeyboardAwareScrollView>
 
-                {/* Sticky reply input */}
-                <View style={[themeThought.styles.replyInputContainer]}>
-                    <PaperTextInput
-                        ref={replyInputRef}
-                        mode="outlined"
-                        placeholder={translate('forms.editThought.labels.messageReply')}
-                        value={inputMessage}
-                        onChangeText={setInputMessage}
-                        onSubmitEditing={handleSubmitReply}
-                        maxLength={255}
-                        dense
-                        style={localStyles.replyInput}
-                        outlineStyle={localStyles.replyInputOutline}
-                        outlineColor={isDarkMode ? theme.colors.accentDivider : theme.colors.tertiary}
-                        activeOutlineColor={theme.colors.primary3}
-                        textColor={isDarkMode ? theme.colors.accentTextWhite : theme.colors.tertiary}
-                        placeholderTextColor={isDarkMode ? theme.colorVariations?.accentTextWhiteFade : theme.colors.textGray}
-                        right={
-                            <PaperTextInput.Icon
-                                icon={renderSendIcon}
-                                onPress={handleSubmitReply}
-                                disabled={isFormDisabled}
-                            />
-                        }
-                    />
-                </View>
+                {/*
+                  * Sticky reply input + footer.
+                  *
+                  * Android targets API 36, where the window is edge-to-edge and no longer resizes
+                  * for the keyboard, so a bottom-anchored composer is simply covered by it. The
+                  * whole bar is translated by the keyboard height instead, which keeps the text
+                  * the user is typing on screen on both platforms.
+                  */}
+                <KeyboardStickyView>
+                    <View style={[themeThought.styles.replyInputContainer]}>
+                        <PaperTextInput
+                            ref={replyInputRef}
+                            mode="outlined"
+                            placeholder={translate('forms.editThought.labels.messageReply')}
+                            value={inputMessage}
+                            onChangeText={setInputMessage}
+                            maxLength={255}
+                            dense
+                            // A reply is a paragraph, not a search term: the return key inserts a
+                            // newline (so `onSubmitEditing` never fires here) and sending is the
+                            // send icon's job.
+                            multiline
+                            style={localStyles.replyInput}
+                            contentStyle={localStyles.replyInputContent}
+                            outlineStyle={localStyles.replyInputOutline}
+                            outlineColor={isDarkMode ? theme.colors.accentDivider : theme.colors.tertiary}
+                            activeOutlineColor={theme.colors.primary3}
+                            textColor={isDarkMode ? theme.colors.accentTextWhite : theme.colors.tertiary}
+                            placeholderTextColor={isDarkMode ? theme.colorVariations?.accentTextWhiteFade : theme.colors.textGray}
+                            right={
+                                <PaperTextInput.Icon
+                                    icon={renderSendIcon}
+                                    onPress={handleSubmitReply}
+                                    disabled={isFormDisabled}
+                                />
+                            }
+                        />
+                    </View>
 
-                {/* Footer */}
-                <View style={themeThought.styles.footer}>
-                    <PaperButton
-                        mode="outlined"
-                        onPress={handleGoBack}
-                        icon="arrow-left"
-                        textColor={brandColor}
-                        style={localStyles.footerButton}
-                    >
-                        {parentThought?.id
-                            ? translate('pages.viewThought.backToParent')
-                            : translate('forms.editThought.buttons.back')}
-                    </PaperButton>
-                    {isMyContent && (
-                        <PaperButton
-                            mode="contained"
-                            onPress={() => setIsDeleteDialogVisible(true)}
-                            icon="trash-can-outline"
-                            buttonColor={theme.colors.accentRed}
-                            textColor={theme.colors.brandingWhite}
-                            style={localStyles.footerButton}
-                            disabled={isDeleting}
-                        >
-                            {translate('forms.editThought.buttons.delete')}
-                        </PaperButton>
+                    {/*
+                      * Footer. Hidden while the keyboard is up so the composer sits directly on
+                      * top of it — otherwise these buttons would ride up between the two and eat
+                      * a row of the thread. Both navigation options remain reachable: dismissing
+                      * the keyboard brings them straight back.
+                      */}
+                    {!isKeyboardVisible && (
+                        <View style={themeThought.styles.footer}>
+                            <PaperButton
+                                mode="outlined"
+                                onPress={handleGoBack}
+                                icon="arrow-left"
+                                textColor={brandColor}
+                                style={localStyles.footerButton}
+                            >
+                                {parentThought?.id
+                                    ? translate('pages.viewThought.backToParent')
+                                    : translate('forms.editThought.buttons.back')}
+                            </PaperButton>
+                            {isMyContent && (
+                                <PaperButton
+                                    mode="contained"
+                                    onPress={() => setIsDeleteDialogVisible(true)}
+                                    icon="trash-can-outline"
+                                    buttonColor={theme.colors.accentRed}
+                                    textColor={theme.colors.brandingWhite}
+                                    style={localStyles.footerButton}
+                                    disabled={isDeleting}
+                                >
+                                    {translate('forms.editThought.buttons.delete')}
+                                </PaperButton>
+                            )}
+                        </View>
                     )}
-                </View>
+                </KeyboardStickyView>
             </SafeAreaView>
+
+            <RepostModal
+                isVisible={!!repostTarget}
+                isSubmitting={isReposting}
+                onCancel={() => setRepostTarget(null)}
+                onConfirm={handleRepostConfirm}
+                thought={repostTarget}
+                translate={translate}
+                themeButtons={themeButtons}
+            />
 
             {/* Delete confirmation modal */}
             <ConfirmModal

@@ -148,6 +148,19 @@ const Habits = {
         return response.data;
     }),
 
+    // Dispatches CREATE_PACT rather than a type of its own: a renewal *is* a
+    // new pact on the same habit goal, and the reducer's job here — put the new
+    // pact into state — is identical. The pact being renewed is refetched with
+    // its new `expired` status on the next list read.
+    renewPact: (id: string, durationDays?: number) => (dispatch: any) => PactsService
+        .renew(id, durationDays).then((response) => {
+            dispatch({
+                type: HabitsActionTypes.CREATE_PACT,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
     // Checkins
     getTodayCheckins: (habitGoalId?: string) => (dispatch: any) => HabitCheckinsService
         .getTodayCheckins(habitGoalId).then((response: any) => {
@@ -167,6 +180,22 @@ const Habits = {
                 data: response.data,
             });
             return response.data;
+        }),
+
+    /**
+     * Proof media for one check-in.
+     *
+     * Deliberately dispatches nothing. Proofs are per-day-sheet data — opened,
+     * looked at, closed — and the only place to put them in the habits slice
+     * would be alongside `checkins`, where they would need invalidating on
+     * every month change and every re-check-in for a benefit no screen has.
+     * Kept as an action rather than a direct service call so the connected
+     * screens keep reaching data through one channel.
+     */
+    getCheckinProofs: (checkinId: string) => () => HabitCheckinsService
+        .getProofs(checkinId).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
+            return response.data?.proofs || [];
         }),
 
     createCheckin: (data: ICreateCheckinBody) => (dispatch: any) => HabitCheckinsService

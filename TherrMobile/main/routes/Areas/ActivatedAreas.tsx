@@ -18,6 +18,7 @@ import { navToViewContent, handleAreaReaction } from '../../utilities/postViewHe
 import { SheetManager } from 'react-native-actions-sheet';
 import { IContentSelectionType } from '../../components/ActionSheet/ContentOptionsSheet';
 import getDirections from '../../utilities/getDirections';
+import { hasUsableCoords } from '../../utilities/coordinates';
 import LottieLoader from '../../components/LottieLoader';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 
@@ -217,7 +218,7 @@ class ActivatedAreas extends React.Component<IActivatedAreasProps, IActivatedAre
 
     getMapRegion = () => {
         const { activatedData } = this.state;
-        const validAreas = activatedData.filter((a) => a.latitude && a.longitude);
+        const validAreas = activatedData.filter((a) => hasUsableCoords(a));
 
         if (validAreas.length === 0) {
             return null;
@@ -266,7 +267,7 @@ class ActivatedAreas extends React.Component<IActivatedAreasProps, IActivatedAre
                             liteMode={true}
                         >
                             {activatedData
-                                .filter((a) => a.latitude && a.longitude)
+                                .filter((a) => hasUsableCoords(a))
                                 .map((area) => (
                                     <Marker
                                         key={area.id}

@@ -32,6 +32,7 @@ import { resolveAccessLevelsForAccountEmail } from './helpers/checkoutSessionAcc
 import { isClaimCodePreVerified, isMatchingInvitee } from './helpers/pactRedemption';
 import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { isValidTimeZone } from '../utilities/localReminderSchedule';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
 import { createOrUpdateAchievement } from './helpers/achievements';
@@ -891,6 +892,21 @@ const updateUser = (req, res) => {
                 });
             }
 
+            // The user's IANA timezone. Rejected rather than coerced: this is the
+            // only input to per-user reminder scheduling
+            // (`utilities/localReminderSchedule.ts`), and a junk value stored here
+            // is invisible — every digest run would quietly fall back to the
+            // default zone and the user would keep receiving reminders at the
+            // wrong hour with nothing reporting why.
+            const rawTimezone = req.body.settingsTimezone;
+            if (rawTimezone !== undefined && rawTimezone !== null && !isValidTimeZone(rawTimezone)) {
+                return handleHttpError({
+                    res,
+                    message: 'Invalid settingsTimezone (expected an IANA timezone, e.g. America/New_York)',
+                    statusCode: 400,
+                });
+            }
+
             // TODO: Don't allow updating phone number unless user phone number is already verified
             const updateArgs: any = {
                 firstName: req.body.firstName,
@@ -918,6 +934,7 @@ const updateUser = (req, res) => {
                 settingsPushMarketing: req.body.settingsPushMarketing,
                 settingsPushBackground: req.body.settingsPushBackground,
                 settingsLocale: req.body.settingsLocale,
+                settingsTimezone: rawTimezone,
                 settingsIsAccountSoftDeleted: req.body.settingsIsAccountSoftDeleted,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
                 autoRechargeEnabled: rawAutoRechargeEnabled,
@@ -1635,7 +1652,7 @@ const sendUserPushDiagnosticsTest: RequestHandler = (req, res) => {
         locale,
     } = parseHeaders(req.headers);
 
-    const { type, dryRun } = req.body || {};
+    const { type, dryRun, viaProductionPath } = req.body || {};
     // Normalized here rather than relying on a destructure default, which only
     // fills in for `undefined` — an explicit `null` would otherwise be forwarded
     // as a falsy value and turn the safe default into a real push to a handset.
@@ -1676,7 +1693,9 @@ const sendUserPushDiagnosticsTest: RequestHandler = (req, res) => {
                     'x-localecode': locale,
                     'x-userid': id,
                 },
-                data: { deviceToken, type, dryRun: isDryRun },
+                data: {
+                    deviceToken, type, dryRun: isDryRun, viaProductionPath,
+                },
             })
                 .then((response: any) => res.status(200).send({ sent: true, ...response.data }))
                 // A non-2xx from the push service is a real diagnostic result, not a

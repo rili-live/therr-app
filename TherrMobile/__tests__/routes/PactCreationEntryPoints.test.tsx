@@ -15,9 +15,11 @@ import {
  *     exists while an invite is still outstanding.
  *
  * So a user whose first pact went active — the screenshot case — had no way to
- * start a second one. These tests walk the rendered element trees of both
- * habits surfaces and assert a create affordance is present and wired to
- * `CreatePactInvite`, including in the empty states.
+ * start a second one. These tests walk the rendered element tree of the habits
+ * screen and assert a create affordance is present and wired to
+ * `CreatePactInvite`, on both its habits and its pact segments, including in
+ * the empty states. (The two used to be separate screens; the pact segments are
+ * what the `PactsList` screen became.)
  */
 
 jest.mock('react-native-toast-message', () => ({
@@ -65,9 +67,8 @@ jest.mock('react-native-permissions', () => ({
     RESULTS: { GRANTED: 'granted', DENIED: 'denied', BLOCKED: 'blocked' },
 }));
 
-// Imported after the mocks above deliberately — both screens pull in a chain of
+// Imported after the mocks above deliberately — the screen pulls in a chain of
 // native modules at import time.
-import { PactsList } from '../../main/routes/Pacts/PactsList';
 import { HabitsDashboard } from '../../main/routes/Habits/Dashboard';
 import NewPactButton from '../../main/components/Habits/NewPactButton';
 
@@ -95,33 +96,7 @@ const flattenElements = (node: any, collected: any[] = []): any[] => {
     return collected;
 };
 
-const buildPactsList = (habitsOverrides: any = {}) => {
-    const navigate = jest.fn();
-    const props: any = {
-        user: { settings: {}, isAuthenticated: true, details: { id: CURRENT_USER_ID } },
-        habits: {
-            pacts: [ACTIVE_PACT],
-            activePacts: [ACTIVE_PACT],
-            pendingInvites: [],
-            ...habitsOverrides,
-        },
-        navigation: { navigate, addListener: jest.fn(), setOptions: jest.fn() },
-        route: { params: {} },
-        getUserPacts: jest.fn(),
-        getActivePacts: jest.fn(),
-        getPendingInvites: jest.fn(),
-        acceptPact: jest.fn(),
-        declinePact: jest.fn(),
-        nudgePact: jest.fn(),
-    };
-
-    const instance = new PactsList(props);
-    instance.setState = jest.fn();
-
-    return { instance, navigate };
-};
-
-const buildDashboard = (habitsOverrides: any = {}) => {
+const buildDashboard = (habitsOverrides: any = {}, initialTab?: string) => {
     const navigate = jest.fn();
     const props: any = {
         user: { settings: {}, isAuthenticated: true, details: { id: CURRENT_USER_ID } },
@@ -135,12 +110,17 @@ const buildDashboard = (habitsOverrides: any = {}) => {
             ...habitsOverrides,
         },
         navigation: { navigate, addListener: jest.fn(), setOptions: jest.fn() },
+        route: { params: initialTab ? { initialTab } : {} },
         getUserGoals: jest.fn(),
         getTodayCheckins: jest.fn(),
         getActiveStreaks: jest.fn(),
         getActivePacts: jest.fn(),
         getUserPacts: jest.fn(),
+        getPendingInvites: jest.fn(),
         createCheckin: jest.fn(),
+        acceptPact: jest.fn(),
+        declinePact: jest.fn(),
+        nudgePact: jest.fn(),
     };
 
     const instance = new HabitsDashboard(props);
@@ -154,8 +134,8 @@ describe('pact creation entry points', () => {
         jest.clearAllMocks();
     });
 
-    it('offers a create-pact action on the pacts list even when a pact is already active', () => {
-        const { instance, navigate } = buildPactsList();
+    it('offers a create-pact action on the pact segments even when a pact is already active', () => {
+        const { instance, navigate } = buildDashboard({}, 'all');
 
         const fab = flattenElements(instance.render())
             .find((el: any) => el.type === NewPactButton);
@@ -180,8 +160,8 @@ describe('pact creation entry points', () => {
         expect(navigate).toHaveBeenCalledWith('CreatePactInvite');
     });
 
-    it('gives the pacts-list empty state a create action, not just copy', () => {
-        const { instance, navigate } = buildPactsList({ pacts: [], activePacts: [] });
+    it('gives the pact-segment empty state a create action, not just copy', () => {
+        const { instance, navigate } = buildDashboard({ pacts: [], activePacts: [] }, 'outgoing');
 
         const pressable = flattenElements(instance.renderEmptyState())
             .find((el: any) => el.props?.accessibilityRole === 'button');

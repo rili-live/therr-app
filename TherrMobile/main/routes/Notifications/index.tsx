@@ -1,6 +1,7 @@
 import React from 'react';
-import { Pressable, RefreshControl, Text, View } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import {
+    FlatList, Pressable, RefreshControl, Text, View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -51,6 +52,14 @@ interface INotificationsState {
     isRefreshing: boolean;
 }
 
+/**
+ * Virtualization window for the notifications list. Wide enough that a fast flick cannot
+ * outrun the render batch — that was the second half of the same blank-band regression.
+ */
+const LIST_INITIAL_NUM_TO_RENDER = 8;
+const LIST_MAX_TO_RENDER_PER_BATCH = 5;
+const LIST_WINDOW_SIZE = 11;
+
 const mapStateToProps = (state) => ({
     notifications: state.notifications,
     user: state.user,
@@ -67,7 +76,7 @@ class Notifications extends React.Component<
     INotificationsProps,
     INotificationsState
 > {
-    private flatListRef: FlashList<any> | null = null;
+    private flatListRef: FlatList<any> | null = null;
     private translate: Function;
     private theme = buildStyles();
     private themeMenu = buildMenuStyles();
@@ -170,7 +179,10 @@ class Notifications extends React.Component<
             }
         } else if (notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED
             || notification.type === NotificationsEmuns.Types.NEW_SUPER_LIKE_RECEIVED
-            || notification.type === NotificationsEmuns.Types.THOUGHT_REPLY) {
+            || notification.type === NotificationsEmuns.Types.THOUGHT_REPLY
+            // A repost notification's associationId is the *original*, which belongs to the
+            // recipient — so it lands on their own post, same as a like or a reply does.
+            || notification.type === NotificationsEmuns.Types.THOUGHT_REPOST) {
             if (notification.messageParams?.thoughtId) {
                 navigation.navigate('ViewThought', {
                     isMyContent: true,
@@ -338,7 +350,7 @@ class Notifications extends React.Component<
                         { backgroundColor: this.themeNotification.colors.surface },
                     ]}
                 >
-                    <FlashList<any>
+                    <FlatList<any>
                         data={notifications.messages || []}
                         keyExtractor={(item) => String(item.id)}
                         ListHeaderComponent={this.renderListHeader()}
@@ -362,8 +374,23 @@ class Notifications extends React.Component<
                             refreshing={isRefreshing}
                             onRefresh={this.handleRefresh}
                         />}
-                        contentContainerStyle={notificationStyles.flashListContentContainer}
-                        estimatedItemSize={88}
+                        contentContainerStyle={notificationStyles.listContentContainer}
+                        /*
+                         * Was a FlashList sized from `estimatedItemSize={88}`. A notification row
+                         * is not one height — the title wraps to two lines for longer names, and
+                         * a connection request adds an accept/decline row — so the recycler laid
+                         * cells out from the estimate and repositioned them once real heights
+                         * arrived, showing blank bands that filled in on re-layout. Same failure
+                         * as the Connect lists (see routes/Connect/index.tsx). FlashList v1 has no
+                         * per-row size hint to fix it, and this list pages rather than growing
+                         * without bound, so a plain FlatList is the right tool.
+                         *
+                         * `removeClippedSubviews` stays unset — see routes/Areas/AreaCarousel.tsx
+                         * for why it is a blank-cell hazard on Android.
+                         */
+                        initialNumToRender={LIST_INITIAL_NUM_TO_RENDER}
+                        maxToRenderPerBatch={LIST_MAX_TO_RENDER_PER_BATCH}
+                        windowSize={LIST_WINDOW_SIZE}
                     />
                 </SafeAreaView>
                 <MainButtonMenu

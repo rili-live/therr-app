@@ -6,6 +6,38 @@ const millisecondsPerYear = 1000 * 60 * 60 * 24 * 365;
 const millisecondsPerDay = 1000 * 60 * 60 * 24;
 const millisecondsPerHour = 1000 * 60 * 60;
 
+const millisecondsPerMinute = 1000 * 60;
+
+/**
+ * Compact "how fresh is this" label for the map preview cards, where minute-level
+ * granularity is the point — "12m" reads as happening now in a way "< 1h" does not.
+ * Returns undefined past the caller's freshness window so the badge simply hides.
+ */
+export const compactTimeSince = (
+    pastDate: Date,
+    translate: (key: string, params?: any) => string,
+    maxAgeMs = millisecondsPerHour * 2,
+): string | undefined => {
+    const differenceInMilliseconds = Date.now() - pastDate.getTime();
+
+    if (Number.isNaN(differenceInMilliseconds) || differenceInMilliseconds < 0 || differenceInMilliseconds > maxAgeMs) {
+        return undefined;
+    }
+
+    const minutesSince = Math.floor(differenceInMilliseconds / millisecondsPerMinute);
+    if (minutesSince < 1) {
+        return translate('dateTime.justNow');
+    }
+
+    if (minutesSince < 60) {
+        return translate('dateTime.minutesSinceDate', { count: minutesSince });
+    }
+
+    return translate('dateTime.hoursSinceDate', {
+        count: Math.floor(differenceInMilliseconds / millisecondsPerHour),
+    });
+};
+
 export const hoursDaysOrYearsSince = (pastDate: Date, translate: (key: string, params?: any ) => string) => {
     const today = new Date();
 

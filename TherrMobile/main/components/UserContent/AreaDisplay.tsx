@@ -36,6 +36,7 @@ import SpaceRating from '../../components/Input/SpaceRating';
 import { buildSpaceUrl } from '../../utilities/shareUrls';
 import RichText from '../RichText';
 import handleMentionPress from '../../utilities/handleMentionPress';
+import { hasUsableCoords } from '../../utilities/coordinates';
 import { SheetManager } from 'react-native-actions-sheet';
 
 
@@ -1000,7 +1001,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 </Text>
                             </Pressable>
                         ) : null}
-                        {area.latitude && area.longitude ? (
+                        {hasUsableCoords(area) ? (
                             <Pressable onPress={() => Linking.openURL(
                                 `https://www.google.com/maps/search/?api=1&query=${area.latitude},${area.longitude}`
                             )}>

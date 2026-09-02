@@ -255,6 +255,15 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             bottom: 60 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
             zIndex: 20,
         },
+        // Compact mode (area preview strip open) hides the +/- expander at the right
+        // edge, so the surviving featured create action slides over to take its place,
+        // mirroring the GPS recenter button on the left.
+        featuredActionCompact: {
+            right: 18,
+        },
+        featuredActionBadgeCompact: {
+            right: 18 + (btnLargeWidth - 10),
+        },
         checkInRewardsBadgeContainer: {
             position: 'absolute',
             right: 0,

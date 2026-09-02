@@ -83,6 +83,11 @@
       "body": "{userName} a répondu à ta publication — regarde ce qu'il a dit",
       "pressActionView": "Voir la réponse"
     },
+    "newThoughtRepostReceived": {
+      "title": "Ta publication a été republiée",
+      "body": "{userName} a republié ta publication — elle rejoint un nouveau public",
+      "pressActionView": "Voir la publication"
+    },
     "newAreasActivated": {
       "title": "Nouveaux secteurs débloqués!",
       "body": "Tu viens de débloquer {totalAreasActivated} nouveau(x) secteur(s) — explore ce qui a été partagé à proximité"
@@ -106,7 +111,13 @@
     },
     "streakAtRisk": {
       "title": "Ne brise pas ta série",
-      "body": "Ta série de {streakCount} jours sur {habitName} est en jeu — enregistre-toi avant minuit pour la garder."
+      "body": "Ta série de {streakCount} jours sur {habitName} est en jeu — enregistre-toi avant minuit pour la garder.",
+      "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} est en jeu. Un gel de série couvrira ce soir si tu manques ({freezesRemaining} restant(s)) — mais t'enregistrer te le garde en réserve.",
+      "bodyMultiple": "{habitCount} séries sont en jeu — {habitNames}. Enregistre-toi avant minuit pour les garder."
+    },
+    "streakFreezeUsed": {
+      "title": "Ta série a tenu",
+      "body": "Tu as manqué une journée sur {habitName}, alors un gel de série l'a couverte — ta série de {streakCount} jours est intacte. Il t'en reste {freezesRemaining}."
     },
     "streakBroken": {
       "title": "Série réinitialisée",
@@ -160,17 +171,24 @@
       "title": "Ton pacte arrive à sa fin",
       "body": "Il reste {daysRemaining} jour(s) sur ton pacte {habitName} — termine en force."
     },
+    "pactEnded": {
+      "title": "Ton pacte {habitName} est terminé",
+      "body": "{durationDays} jours accomplis. La plupart des habitudes prennent des mois, pas des semaines — lance un nouveau cycle et ta série se poursuit."
+    },
     "dailyHabitReminder": {
       "title": "C'est l'heure de t'enregistrer",
-      "body": "N'oublie pas d'enregistrer {habitName} aujourd'hui — un simple appui garde ta série vivante."
+      "body": "Enregistre {habitName} aujourd'hui — un seul enregistrement lance ta série.",
+      "bodyMultiple": "{habitCount} habitudes t'attendent aujourd'hui — {habitNames}. Un seul enregistrement te lance."
     },
     "morningMotivation": {
       "title": "Bon matin",
       "body": "Aujourd'hui est une nouvelle chance de bâtir l'habitude à laquelle tu t'es engagé. Allons-y."
     },
     "eveningCheckIn": {
-      "title": "Comment s'est passée ta journée?",
-      "body": "Appuie pour enregistrer ton suivi et garantir un jour de plus dans ta série."
+      "title": "Dernière chance ce soir",
+      "body": "Ta série de {streakCount} jours sur {habitName} se termine à minuit. Un seul suivi la garde en vie.",
+      "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} se termine à minuit. Un gel de série te couvrira ({freezesRemaining} restant(s)) — mais t'enregistrer maintenant te le garde en réserve.",
+      "bodyMultiple": "Dernier appel pour {habitCount} séries — {habitNames}. Enregistre-toi avant minuit pour les garder."
     },
     "habitEstablished": {
       "title": "{habitName} commence à tenir",
@@ -187,6 +205,11 @@
     "habitComeback": {
       "title": "Envie de relancer {habitName}?",
       "body": "Tu l'as déjà tenue {bestStreakCount} jours — ça ne s'efface pas. Prêt à repartir sur une nouvelle série?"
+    },
+    "shared": {
+      "pressActionCheckIn": "S'enregistrer",
+      "pressActionRenew": "Nouveau cycle",
+      "pressActionView": "Voir"
     }
   },
   "validation": "Les paramètres requis n'ont pas été fournis."

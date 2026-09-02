@@ -1,4 +1,3 @@
-/* eslint-disable quotes */
 /**
  * When login seeds a user's content stream, and under whose identity.
  *

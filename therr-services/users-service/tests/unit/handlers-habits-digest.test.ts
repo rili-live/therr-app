@@ -1,4 +1,3 @@
-/* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { BrandVariations } from 'therr-js-utilities/constants';
@@ -80,6 +79,24 @@ const buildFakeQueue = () => {
 };
 
 const stubDigestReads = () => {
+    // The evening "last chance" slot is off for these suites. Whether it
+    // produces a row depends on the wall-clock time in the recipient's zone, so
+    // leaving it on would make every count below pass in the morning and fail
+    // after 19:30 — the worst kind of flake, because it reads as a real
+    // regression. It has its own file, which pins the clock:
+    // handlers-habits-digest-last-chance.test.ts.
+    //
+    // Set here, per test, rather than in a mocha root hook: root hooks are
+    // global across every file in the run, so one would fight the last-chance
+    // suite's own setup depending on file order.
+    process.env.HABIT_LAST_CHANCE_REMINDERS_ENABLED = 'false';
+
+    // The expiry sweep runs before the active-pact read. Nothing is past its
+    // endDate in this fixture, so the sweep is a no-op here — it has its own
+    // tests below.
+    sinon.stub(Store.pacts, 'getExpiredPacts').resolves([] as any);
+    sinon.stub(Store.pacts, 'expire').resolves({} as any);
+
     sinon.stub(Store.pacts, 'get').resolves([{
         id: PACT_ID,
         habitGoalId: HABIT_GOAL_ID,
@@ -107,6 +124,17 @@ const stubDigestReads = () => {
         .resolves({ isActive: true, currentStreak: 5 } as any);
 
     sinon.stub(Store.users, 'findUser').resolves([{ firstName: 'Alex' }] as any);
+
+    // No stored timezone or quiet hours — the default for every user in
+    // production today, which sends both slots through the America/Chicago
+    // fallback and keeps delivery exactly where it was before per-user
+    // scheduling landed. See localReminderSchedule.test.ts for the zones.
+    sinon.stub(Store.users, 'getHabitReminderPreferences').resolves({} as any);
+
+    // The daily-reminder pass reads its own spine off habits.user_habits. This
+    // fixture is about the pact-driven half, so it contributes nothing —
+    // handlers-habits-digest-reminders.test.ts covers the pass itself.
+    sinon.stub(Store.userHabits, 'getActiveForReminders').resolves([] as any);
 };
 
 const runDigest = async (headers: Record<string, string> = { 'x-brand-variation': 'habits', 'x-localecode': 'en-us' }) => {
@@ -130,7 +158,7 @@ describe('Habits digest — queues instead of sending', () => {
         sinon.restore();
     });
 
-    it('queues every notification the run decides on, under the request brand', async () => {
+    it('queues every notification the run decides on, under the habits brand', async () => {
         const counters = await runDigest();
 
         // 3 x pactExpiring + 2 x streakAtRisk (C checked in today) + 4 x
@@ -156,7 +184,10 @@ describe('Habits digest — queues instead of sending', () => {
         }, {});
 
         expect(keysByType['pact-expiring']).to.deep.equal(Array(3).fill(`pact-expiring:${PACT_ID}:${TODAY}`));
-        expect(keysByType['streak-at-risk']).to.deep.equal(Array(2).fill(`streak-at-risk:${PACT_ID}:${TODAY}`));
+        // Check-in nudges are rolled up per user, so the key names the day and
+        // nothing else — the recipient is already half of the unique
+        // constraint, and a per-habit key is what produced duplicates.
+        expect(keysByType['streak-at-risk']).to.deep.equal(Array(2).fill(`checkin-nudge:${TODAY}`));
         // Keyed on who slipped, not on who hears about it — the recipient is
         // already half of the unique constraint.
         expect(new Set(keysByType['partner-missed-day'])).to.deep.equal(new Set([
@@ -167,7 +198,16 @@ describe('Habits digest — queues instead of sending', () => {
         // A key carrying a clock reading would be unique on every run, which
         // turns dedup off without failing anything else.
         queue.calls.forEach((call) => {
-            expect(call.dedupeKey, call.dedupeKey).to.match(/^[a-z-]+:[\w-]+(:[\w-]+)?:\d{4}-\d{2}-\d{2}$/);
+            // `pact-ended` is the one type whose key carries no date, because a
+            // pact ends exactly once and a date would let two sweeps of the same
+            // pact announce it twice. It is asserted on its own below.
+            if (call.type === 'pact-ended') {
+                expect(call.dedupeKey, call.dedupeKey).to.match(/^pact-ended:[\w-]+$/);
+                return;
+            }
+            // Zero or more id segments — a rolled-up key names only the day,
+            // because the recipient is already half of the unique constraint.
+            expect(call.dedupeKey, call.dedupeKey).to.match(/^[a-z-]+(:[\w-]+)*:\d{4}-\d{2}-\d{2}$/);
         });
     });
 
@@ -238,6 +278,153 @@ describe('Habits digest — running it twice is a no-op', () => {
         expect(first.pactsEvaluated).to.equal(second.pactsEvaluated);
     });
 
+    /**
+     * The sweep's announcement.
+     *
+     * The sweep used to close pacts silently, which meant the one moment
+     * renewal is legal — `isPactRenewable` is false until a pact is past its
+     * endDate — was also the one moment nobody was told. These tests pin the
+     * three properties that are invisible when they break: that it fires at
+     * all, that its key cannot fire twice for the same pact, and that the
+     * payload carries what the renew action needs.
+     */
+    describe('announcing the pacts it ends', () => {
+        const STALE_PACT = 'stale-1';
+
+        const stubExpiringSweep = () => {
+            (Store.pacts.getExpiredPacts as any).restore();
+            (Store.pacts.expire as any).restore();
+            sinon.stub(Store.pacts, 'getExpiredPacts').resolves([{
+                id: STALE_PACT,
+                habitGoalId: HABIT_GOAL_ID,
+                durationDays: 30,
+            }] as any);
+            sinon.stub(Store.pacts, 'expire').resolves({} as any);
+        };
+
+        it('queues one pactEnded per active member, carrying the renewal payload', async () => {
+            sinon.restore();
+            const sweepQueue = buildFakeQueue();
+            stubDigestReads();
+            stubExpiringSweep();
+
+            const counters = await runDigest();
+
+            const ended = sweepQueue.calls.filter((call) => call.type === 'pact-ended');
+            expect(ended).to.have.length(3);
+            expect(counters.pactEndedSent).to.equal(3);
+            expect(new Set(ended.map((call) => call.userId))).to.deep.equal(
+                new Set([MEMBER_A, MEMBER_B, MEMBER_C]),
+            );
+
+            ended.forEach((call) => {
+                // Without pactId the renew button resolves to nothing; without
+                // durationDays the copy renders "0 days in".
+                expect(call.payload.pactId).to.equal(STALE_PACT);
+                expect(call.payload.durationDays).to.equal(30);
+                expect(call.payload.habitName).to.equal('Morning run');
+                expect(call.brand).to.equal(BrandVariations.HABITS);
+            });
+        });
+
+        it('announces a pact exactly once, however many times the digest runs', async () => {
+            sinon.restore();
+            const sweepQueue = buildFakeQueue();
+            stubDigestReads();
+            stubExpiringSweep();
+
+            const first = await runDigest();
+            const second = await runDigest();
+
+            // A date-stamped key would insert a second row tomorrow for a pact
+            // that only ever ends once — and `getExpiredPacts` keeps returning
+            // it until `expire` lands, so a same-day retry would double-send.
+            expect(first.pactEndedSent).to.equal(3);
+            expect(second.pactEndedSent).to.equal(0);
+
+            const endedKeys = new Set(
+                sweepQueue.calls.filter((c) => c.type === 'pact-ended').map((c) => c.dedupeKey),
+            );
+            expect(endedKeys).to.deep.equal(new Set([`pact-ended:${STALE_PACT}`]));
+        });
+
+        it('does not announce a pact whose expiry write failed', async () => {
+            sinon.restore();
+            const sweepQueue = buildFakeQueue();
+            stubDigestReads();
+            (Store.pacts.getExpiredPacts as any).restore();
+            (Store.pacts.expire as any).restore();
+            sinon.stub(Store.pacts, 'getExpiredPacts').resolves([{
+                id: STALE_PACT,
+                habitGoalId: HABIT_GOAL_ID,
+                durationDays: 30,
+            }] as any);
+            sinon.stub(Store.pacts, 'expire').rejects(new Error('write pool exhausted'));
+
+            const counters = await runDigest();
+
+            // The pact is still `active`, so the renew handler would refuse it.
+            // Announcing an ending that did not persist offers a CTA that 4xxs,
+            // and the no-date dedupe key means the correct announcement on the
+            // next run would then be swallowed as a duplicate.
+            expect(counters.pactEndedSent).to.equal(0);
+            expect(counters.errors).to.equal(1);
+            expect(sweepQueue.calls.filter((call) => call.type === 'pact-ended')).to.have.length(0);
+        });
+    });
+
+    it('sweeps pacts whose window has passed into expired', async () => {
+        sinon.restore();
+        buildFakeQueue();
+        stubDigestReads();
+        (Store.pacts.getExpiredPacts as any).restore();
+        (Store.pacts.expire as any).restore();
+        sinon.stub(Store.pacts, 'getExpiredPacts').resolves([
+            { id: 'stale-1' }, { id: 'stale-2' },
+        ] as any);
+        const expire = sinon.stub(Store.pacts, 'expire').resolves({} as any);
+
+        const counters = await runDigest();
+
+        expect(counters.pactsExpired).to.equal(2);
+        expect(expire.callCount).to.equal(2);
+        expect(counters.errors).to.equal(0);
+    });
+
+    // The sweep runs before the active-pact read specifically so a pact cannot
+    // be warned that it expires in zero days on the same run that ends it.
+    it('sweeps before reading the active set', async () => {
+        sinon.restore();
+        buildFakeQueue();
+        stubDigestReads();
+        (Store.pacts.expire as any).restore();
+        const expire = sinon.stub(Store.pacts, 'expire').resolves({} as any);
+
+        await runDigest();
+
+        // `get` is the active-pact read; both are stubs on the same object, so
+        // sinon's call ordering is the real execution order.
+        expect((Store.pacts.getExpiredPacts as any).calledBefore(Store.pacts.get as any)).to.equal(true);
+        expect(expire.called).to.equal(false);
+    });
+
+    // A pact left un-swept is exactly the behaviour every run before this one
+    // had — worth a wasted read, never worth failing the digest over.
+    it('counts a failed sweep as an error and still runs the digest', async () => {
+        sinon.restore();
+        const failQueue = buildFakeQueue();
+        stubDigestReads();
+        (Store.pacts.getExpiredPacts as any).restore();
+        sinon.stub(Store.pacts, 'getExpiredPacts').rejects(new Error('read pool exhausted'));
+
+        const counters = await runDigest();
+
+        expect(counters.pactsExpired).to.equal(0);
+        expect(counters.errors).to.equal(1);
+        // The notifications still went out.
+        expect(failQueue.insertedCount()).to.equal(9);
+    });
+
     it('reports a broken queue as errors, never as dedup', async () => {
         // The distinction matters because it is the only one available remotely:
         // therr-messaging-automator reads "all *Sent zero + deduped > 0" as "already
@@ -256,15 +443,29 @@ describe('Habits digest — running it twice is a no-op', () => {
         expect(counters.partnerMissedSent).to.equal(0);
     });
 
-    it('does not dedupe against a different brand running the same pact', async () => {
+    it('files under habits even when the caller sends another brand header', async () => {
         await runDigest();
         const callsAfterFirst = queue.calls.length;
 
         await runDigest({ 'x-brand-variation': 'therr', 'x-localecode': 'en-us' });
 
-        // Brand is the leading column of the constraint. Cross-brand collisions
-        // would mean one app's digest silently suppressing another's.
-        expect(queue.callsSince(callsAfterFirst)).to.have.length(9);
-        expect(queue.insertedCount()).to.equal(18);
+        // The habits schema carries no brandVariation column — it belongs to
+        // Friends with Habits outright — so there is no such thing as another
+        // brand's copy of these pacts. Honouring the header would file the same
+        // habit reminders in the therr partition of main.notificationQueue, where
+        // brandVariation leads the UNIQUE constraint: they would dedupe against
+        // the wrong keys and be claimed by the wrong app's worker.
+        //
+        // So the second run must behave exactly like any other re-run of the day:
+        // same brand, same keys, nothing inserted.
+        const secondRunCalls = queue.callsSince(callsAfterFirst);
+        expect(secondRunCalls).to.have.length(9);
+        secondRunCalls.forEach((call) => {
+            expect(call.brand, call.dedupeKey).to.equal(BrandVariations.HABITS);
+        });
+        expect(queue.insertedCount()).to.equal(9);
+
+        // (That brandVariation leads the dedupe constraint at all is asserted
+        // where it lives, in notificationQueueStore.test.ts.)
     });
 });

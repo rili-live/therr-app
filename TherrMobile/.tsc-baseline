@@ -56,7 +56,6 @@ TherrMobile/main/routes/Events/EditEvent.tsx	TS2305	Module '"react-native-dotenv
 TherrMobile/main/routes/Events/EditEvent.tsx	TS2322	Type '(component: KeyboardAwareScrollViewRef | null) => KeyboardAwareScrollViewRef | null' is not assignable to type 'Ref<KeyboardAwareScrollViewRef> | undefined'.
 TherrMobile/main/routes/Events/EditEvent.tsx	TS2353	Object literal may only specify known properties, and 'apiKey' does not exist in type 'IPlaceDetailsArgs'.
 TherrMobile/main/routes/Groups/EditGroup.tsx	TS2322	Type '(component: KeyboardAwareScrollViewRef | null) => KeyboardAwareScrollViewRef | null' is not assignable to type 'Ref<KeyboardAwareScrollViewRef> | undefined'.
-TherrMobile/main/routes/Groups/EditGroup.tsx	TS2551	Property 'DuplicatePost' does not exist on type '{ ACCESS_DENIED: string; BAD_REQUEST: string; UNKNOWN_ERROR: string; DUPLICATE_POST: string; NOT_FOUND: string; USER_EXISTS: string; INVALID_REGION: string; INSUFFICIENT_THERR_COIN_FUNDS: string; ... 8 more ...; NOT_PERMITTED: string; }'. Did you mean 'DUPLICATE_POST'?
 TherrMobile/main/routes/Groups/ViewGroup.tsx	TS2724	'"therr-react/types"' has no exported member named 'IMessageState'. Did you mean 'IMessagesState'?
 TherrMobile/main/routes/Groups/ViewGroup.tsx	TS2769	No overload matches this call.
 TherrMobile/main/routes/Groups/ViewGroup.tsx	TS2769	No overload matches this call.

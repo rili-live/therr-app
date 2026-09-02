@@ -36,6 +36,17 @@ export interface IPactMemberStats {
     currentStreak: number;
     longestStreak: number;
     completionRate: number;
+    /**
+     * Whether this member has a completed check-in for the pact's habit goal
+     * **today**, on the service's UTC habit day.
+     *
+     * A statement about the member's habit, not about the pact: it stays
+     * factual for a pact that has already ended, and the caller decides
+     * whether showing it makes sense there. Pacts with no measurable window
+     * (pending, or not yet started) report `false` along with every other
+     * zeroed stat — there is nothing to be late for yet.
+     */
+    checkedInToday: boolean;
 }
 
 export const ZERO_PACT_MEMBER_STATS: IPactMemberStats = {
@@ -44,6 +55,7 @@ export const ZERO_PACT_MEMBER_STATS: IPactMemberStats = {
     currentStreak: 0,
     longestStreak: 0,
     completionRate: 0,
+    checkedInToday: false,
 };
 
 /**
@@ -102,7 +114,20 @@ export const countScheduledCheckins = (
     const frequencyType = goal?.frequencyType || 'daily';
     const targetDaysOfWeek = goal?.targetDaysOfWeek;
 
-    if (frequencyType === 'weekly' && targetDaysOfWeek?.length) {
+    // Cadence precedence is deliberately identical to `isHabitDueToday` in
+    // streakHelpers.ts: an explicit weekday schedule wins over `frequencyType`,
+    // then `daily`, then a per-week count. The two must agree — this function is
+    // the denominator of the completion rate and that one decides whether the
+    // habit is nudged, so a habit reminded on a cadence it is not scored against
+    // reads to the user as the app moving the goalposts.
+    //
+    // Keying the weekday branch on `frequencyType === 'weekly'` (what this did
+    // before) missed the case the column was actually added for: the migration
+    // documents `targetDaysOfWeek` as "[0,1,2,3,4,5,6] for custom schedules", and
+    // nothing server-side constrains the pair, so a `custom` goal with fixed days
+    // fell through to `return totalDays` and was scored against all seven — a
+    // 3x/week habit done perfectly capped out at a 43% completion rate.
+    if (targetDaysOfWeek?.length) {
         // Fixed weekdays: walk the range by day-of-week offset rather than by
         // Date arithmetic so a DST boundary inside the window can't drop a day.
         const startDayOfWeek = parseDateOnly(startDate).getDay();
@@ -115,15 +140,16 @@ export const countScheduledCheckins = (
         return scheduled;
     }
 
-    if (frequencyType === 'weekly') {
-        // "X times per week" with no fixed days. A partial week still owes its
-        // full target — that's the cadence the user signed up for — but the
-        // target can never exceed the days actually available.
-        const perWeek = Math.max(1, goal?.frequencyCount || 1);
-        return Math.min(totalDays, Math.ceil(totalDays / 7) * perWeek);
+    if (frequencyType === 'daily') {
+        return totalDays;
     }
 
-    return totalDays;
+    // "X times per week" with no fixed days — `weekly` and `custom` alike, since
+    // neither anchors on a weekday and both carry the count in the same column. A
+    // partial week still owes its full target — that's the cadence the user signed
+    // up for — but the target can never exceed the days actually available.
+    const perWeek = Math.max(1, Math.min(7, Number(goal?.frequencyCount) || 1));
+    return Math.min(totalDays, Math.ceil(totalDays / 7) * perWeek);
 };
 
 /**
@@ -136,10 +162,12 @@ export const buildPactMemberStats = ({
     scheduledCount,
     completedCheckins,
     streak,
+    checkedInToday = false,
 }: {
     scheduledCount: number;
     completedCheckins: number;
     streak?: { currentStreak?: number | string; longestStreak?: number | string } | null;
+    checkedInToday?: boolean;
 }): IPactMemberStats => {
     const completed = Math.max(0, Math.round(Number(completedCheckins) || 0));
     // A user can log more check-ins than the cadence schedules (a 3x/week
@@ -155,5 +183,6 @@ export const buildPactMemberStats = ({
         currentStreak: Number(streak?.currentStreak) || 0,
         longestStreak: Number(streak?.longestStreak) || 0,
         completionRate,
+        checkedInToday,
     };
 };

@@ -1,0 +1,26 @@
+diff --git a/node_modules/react-native-worklets/android/build.gradle.kts b/node_modules/react-native-worklets/android/build.gradle.kts
+index e326d97..24f84f3 100644
+--- a/node_modules/react-native-worklets/android/build.gradle.kts
++++ b/node_modules/react-native-worklets/android/build.gradle.kts
+@@ -137,6 +137,21 @@ version = WORKLETS_VERSION
+ 
+ val workletsPrefabHeadersDir: File = project.file("${layout.buildDirectory.get().asFile.absolutePath}/prefab-headers/worklets")
+ 
++// Populate prefab headers eagerly during configuration so that dependent modules
++// (e.g. react-native-reanimated) can resolve `react-native-worklets::worklets` at
++// CMake configure time — including during Android Studio's Gradle sync, which
++// does not run `preBuild` first. Upstream only wires the `prepareWorkletsHeadersForPrefabs`
++// Copy task into `preBuild`, which is too late for sync.
++workletsPrefabHeadersDir.mkdirs()
++listOf(project.file("$projectDir/src/main/cpp"), project.file("$projectDir/../Common/cpp")).forEach { srcDir ->
++    if (srcDir.exists()) {
++        project.copy {
++            from(srcDir) { include("worklets/**/*.h") }
++            into(workletsPrefabHeadersDir)
++        }
++    }
++}
++
+ fun reactNativeArchitectures(): List<String> {
+     val value = project.findProperty("reactNativeArchitectures") as String?
+     return value?.split(",")

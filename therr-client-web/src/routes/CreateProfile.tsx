@@ -62,7 +62,7 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
         };
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         document.title = `Therr | ${this.props.translate('pages.createProfile.pageTitle')}`;
     }
 

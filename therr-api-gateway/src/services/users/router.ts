@@ -720,6 +720,10 @@ usersServiceRouter.put('/habits/pacts/:id/complete', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
+usersServiceRouter.put('/habits/pacts/:id/renew', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
 // The nudge route existed in the service, in PactsService and in the mobile
 // PactsList screen, but was never registered here — so every "nudge" a user
 // sent died at the gateway with nothing in the UI to say so.
@@ -752,6 +756,15 @@ usersServiceRouter.get('/habits/checkins/range', handleServiceRequest({
     method: 'get',
 }));
 usersServiceRouter.get('/habits/checkins/pact/:pactId', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+// Registered before `/habits/checkins/:id` so the two-segment path is matched
+// by its own route rather than falling through the enumerated list to a 404.
+// The gateway proxies only routes it names explicitly -- there is no wildcard --
+// so a users-service route with no entry here is unreachable in production even
+// though it exists, tests green, and shows in the diff.
+usersServiceRouter.get('/habits/checkins/:id/proofs', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));

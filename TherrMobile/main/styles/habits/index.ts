@@ -351,6 +351,16 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderWidth: 2,
             borderColor: therrTheme.colors.primary3,
         },
+        // Sits below the day circle rather than on it: the circle is already
+        // carrying status via its fill, and overlaying a second signal on the
+        // same 36pt target makes both harder to read at a glance.
+        calendarDayProofDot: {
+            width: 5,
+            height: 5,
+            borderRadius: 2.5,
+            marginTop: 2,
+            backgroundColor: therrTheme.colors.primary3,
+        },
         calendarDayText: {
             fontFamily: therrFontFamily,
             fontSize: 14,
@@ -566,6 +576,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         pactComparisonItemPressed: {
             opacity: 0.6,
         },
+        pactComparisonTodayRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+            marginTop: 2,
+        },
 
         // Pact Detail — member list + inline navigation links
         pactMemberRow: {
@@ -599,6 +615,23 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 12,
             color: therrTheme.colors.textGray,
             marginTop: 2,
+        },
+        // Today's check-in state, rendered per member so a partner's absence is
+        // noticeable — the whole mechanism behind the Friend Streak result.
+        pactMemberTodayBadge: {
+            width: 26,
+            height: 26,
+            borderRadius: 13,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: 4,
+        },
+        pactMemberTodayBadgeDone: {
+            backgroundColor: therrTheme.colorVariations.primary3Fade,
+        },
+        pactMemberTodayBadgePending: {
+            borderWidth: 1,
+            borderColor: therrTheme.colors.primary4,
         },
         pactMemberAction: {
             width: 40,
@@ -718,6 +751,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         segmentedControlLabelActive: {
             color: therrTheme.colors.onSurface,
+            fontWeight: fontWeights.semibold,
+        },
+        // Nested inside the label so the count wraps and truncates with it.
+        // Deliberately not a pill: four flex:1 segments leave roughly 80dp of
+        // usable width each, which a badge plus a label does not survive.
+        segmentedControlCount: {
+            color: therrTheme.colors.onSurfaceMuted,
             fontWeight: fontWeights.semibold,
         },
 

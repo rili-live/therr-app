@@ -1,4 +1,3 @@
-/* eslint-disable quotes, max-len */
 /**
  * Notification queue worker — the queue row is the authority, not the payload.
  *
@@ -265,5 +264,91 @@ describe('notificationQueueWorker — per-user daily cap', () => {
         expect(markSkipped.firstCall.args[1]).to.have.string('daily cap');
         expect(markSent.called).to.equal(false);
         expect(internalRestRequest.called).to.equal(false);
+    });
+
+    /**
+     * The once-ever exemption.
+     *
+     * Dropping is right for the recurring types: tomorrow queues a fresh row, so
+     * a suppressed one costs a day. `pact-ended` is keyed `pact-ended:<pactId>`
+     * with no date -- the only dateless key any producer here builds -- because a
+     * pact ends exactly once. That makes a drop permanent and silent: the member
+     * is never told their cycle closed and never offered the renewal, which is
+     * the only moment `isPactRenewable` allows one. Nothing reports it.
+     */
+    describe('once-ever types the cap must not drop', () => {
+        const buildPactEndedRow = (createdAt: Date) => ({
+            ...buildPoisonedRow(),
+            type: 'pact-ended',
+            dedupeKey: 'pact-ended:pact-1',
+            createdAt,
+        });
+
+        const stubTickAtCap = (row: any) => {
+            stubRetention();
+            sinon.stub(Store.notificationQueue, 'requeueFailed').resolves(0);
+            sinon.stub(Store.notificationQueue, 'claimDue')
+                .callsFake((brand: any) => Promise.resolve(brand === BrandVariations.HABITS ? [row] : []));
+            sinon.stub(Store.notificationQueue, 'countSentSince').resolves(5);
+            sinon.stub(Store.users, 'findUser').resolves([{ deviceMobileFirebaseToken: 'legacy-token' }] as any);
+            sinon.stub(Store.userDeviceTokens, 'getTokensForUser').resolves([{ token: 'habits-device-token' } as any]);
+            sinon.stub(Store.notificationQueue, 'getLastSentAt').resolves(null);
+            sinon.stub(Store.notificationQueue, 'markFailed').resolves(1);
+
+            return {
+                markSkipped: sinon.stub(Store.notificationQueue, 'markSkipped').resolves(1),
+                markSent: sinon.stub(Store.notificationQueue, 'markSent').resolves(1),
+                defer: sinon.stub(Store.notificationQueue, 'defer').resolves(1),
+                internalRestRequest: sinon.stub(internalRestRequestModule, 'internalRestRequest')
+                    .resolves({ data: {} } as any),
+            };
+        };
+
+        it('defers a freshly queued pact-ended instead of dropping it', async () => {
+            const stubs = stubTickAtCap(buildPactEndedRow(new Date()));
+
+            await runNotificationQueueTick();
+
+            expect(stubs.defer.calledOnce, 'expected a deferral, not a drop').to.equal(true);
+            expect(stubs.markSkipped.called, 'a dropped row is never re-queued').to.equal(false);
+            expect(stubs.markSent.called).to.equal(false);
+
+            // Re-tested within the hour: the cap window rolls continuously, so
+            // room usually appears long before the 24h bound.
+            const nextAttemptAt: Date = stubs.defer.firstCall.args[1];
+            const msOut = nextAttemptAt.getTime() - Date.now();
+            expect(msOut).to.be.greaterThan(0);
+            expect(msOut).to.be.at.most(60 * 60 * 1000 + 5000);
+        });
+
+        it('sends over the cap once the row has waited out the deferral bound', async () => {
+            // A user genuinely at 5/day every day would otherwise be deferred
+            // forever, which is the same silence the exemption exists to prevent.
+            const dayAndAHalfAgo = new Date(Date.now() - 36 * 60 * 60 * 1000);
+            const stubs = stubTickAtCap(buildPactEndedRow(dayAndAHalfAgo));
+
+            await runNotificationQueueTick();
+
+            expect(stubs.markSent.calledOnce, 'expected the send to go through over the cap').to.equal(true);
+            expect(stubs.defer.called, 'must not defer again past the bound').to.equal(false);
+            expect(stubs.markSkipped.called).to.equal(false);
+            expect(stubs.internalRestRequest.called).to.equal(true);
+            expect(stubs.internalRestRequest.firstCall.args[1].data.type).to.equal('pact-ended');
+        });
+
+        it('still drops a recurring type at the cap, however long it has waited', async () => {
+            // The exemption is keyed on the type, not on age -- a stale
+            // streak-at-risk must not ride the same escape hatch.
+            const stubs = stubTickAtCap({
+                ...buildPoisonedRow(),
+                createdAt: new Date(Date.now() - 36 * 60 * 60 * 1000),
+            });
+
+            await runNotificationQueueTick();
+
+            expect(stubs.markSkipped.calledOnce).to.equal(true);
+            expect(stubs.defer.called).to.equal(false);
+            expect(stubs.markSent.called).to.equal(false);
+        });
     });
 });

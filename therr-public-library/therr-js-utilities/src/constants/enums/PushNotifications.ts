@@ -17,6 +17,7 @@ export enum Types {
     proximityRequiredMoment = 'proximity-required-moment',
     proximityRequiredSpace = 'proximity-required-space',
     newThoughtReplyReceived = 'new-thought-reply-received',
+    newThoughtRepostReceived = 'new-thought-repost-received',
     reportConfirmed = 'report-confirmed',
 
     // Leaderboards (all brands)
@@ -39,6 +40,17 @@ export enum Types {
     pactDeclined = 'pact-declined',
     pactCompleted = 'pact-completed',
     pactExpiring = 'pact-expiring',
+    // Fired by the digest's expiry sweep, for *every* pact whose window has
+    // passed — not only the ones the member saw through. It is deliberately
+    // separate from `pactCompleted`, whose copy congratulates both partners:
+    // the sweep cannot tell a finisher from someone who dropped out in week
+    // one, and telling the latter they "finished" is the failure mode the
+    // streak-freeze work was careful to avoid.
+    //
+    // This is also the only moment renewal is legal — `isPactRenewable` is
+    // false for a pact that has not yet passed its `endDate`, so the renew
+    // CTA cannot ride `pactExpiring`.
+    pactEnded = 'pact-ended',
 
     // HABITS: Partner Activity
     partnerCheckedIn = 'partner-checked-in',
@@ -50,6 +62,11 @@ export enum Types {
     streakAtRisk = 'streak-at-risk',
     streakBroken = 'streak-broken',
     newPersonalRecord = 'new-personal-record',
+    // Fired when a streak freeze is *spent*, not when one is earned. "Build in
+    // the miss" is a rule agreed in advance: the safety net only changes
+    // behaviour if the user knows it caught them, so this is the one moment the
+    // mechanic must announce itself.
+    streakFreezeUsed = 'streak-freeze-used',
 
     // HABITS: Reminders
     dailyHabitReminder = 'daily-habit-reminder',
@@ -89,8 +106,20 @@ export enum PressActionIds {
     // HABITS
     pactView = 'view-pact',
     pactAccept = 'accept-pact',
+    // Opens the renewal flow for a finished pact. Like `habitCheckin` this
+    // names an action with a precondition rather than a plain destination, so
+    // the payload carrying it must also carry an unambiguous `pactId` — and
+    // the pact must actually be renewable (`isPactRenewable`), which only
+    // holds once its window has passed.
+    pactRenew = 'renew-pact',
     checkinView = 'view-checkin',
     streakView = 'view-streak',
+    // Completes a check-in from the notification itself, without opening the
+    // app. Unlike every other id here it names a *mutation*, so the payload
+    // that carries it must also carry an unambiguous `habitGoalId` — a nudge
+    // that rolls several habits together has nothing to check into and must
+    // offer `checkinView` instead.
+    habitCheckin = 'habit-checkin',
     // Leaderboards
     leaderboardView = 'view-leaderboard',
 }
@@ -112,6 +141,7 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'NEW_GROUP_MEMBERS'
 | 'NEW_LIKE_RECEIVED'
 | 'NEW_THOUGHT_REPLY_RECEIVED'
+| 'NEW_THOUGHT_REPOST_RECEIVED'
 | 'NEW_SUPER_LIKE_RECEIVED'
 | 'UNREAD_NOTIFICATIONS_REMINDER'
 | 'UNCLAIMED_ACHIEVEMENTS_REMINDER'
@@ -125,6 +155,7 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'PACT_DECLINED'
 | 'PACT_COMPLETED'
 | 'PACT_EXPIRING'
+| 'PACT_ENDED'
 | 'PARTNER_CHECKED_IN'
 | 'PARTNER_MISSED_DAY'
 | 'PARTNER_CELEBRATED'
@@ -154,6 +185,7 @@ enum TeemAndroidIntentActions {
     NEW_GROUP_MEMBERS = 'com.therr.mobile.NEW_GROUP_MEMBERS',
     NEW_LIKE_RECEIVED = 'com.therr.mobile.NEW_LIKE_RECEIVED',
     NEW_THOUGHT_REPLY_RECEIVED = 'com.therr.mobile.NEW_THOUGHT_REPLY_RECEIVED',
+    NEW_THOUGHT_REPOST_RECEIVED = 'com.therr.mobile.NEW_THOUGHT_REPOST_RECEIVED',
     NEW_SUPER_LIKE_RECEIVED = 'com.therr.mobile.NEW_SUPER_LIKE_RECEIVED',
     UNREAD_NOTIFICATIONS_REMINDER = 'com.therr.mobile.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
@@ -180,6 +212,7 @@ enum TherrAndroidIntentActions {
     NEW_GROUP_MEMBERS = 'app.therrmobile.NEW_GROUP_MEMBERS',
     NEW_LIKE_RECEIVED = 'app.therrmobile.NEW_LIKE_RECEIVED',
     NEW_THOUGHT_REPLY_RECEIVED = 'app.therrmobile.NEW_THOUGHT_REPLY_RECEIVED',
+    NEW_THOUGHT_REPOST_RECEIVED = 'app.therrmobile.NEW_THOUGHT_REPOST_RECEIVED',
     NEW_SUPER_LIKE_RECEIVED = 'app.therrmobile.NEW_SUPER_LIKE_RECEIVED',
     UNREAD_NOTIFICATIONS_REMINDER = 'app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
@@ -206,6 +239,7 @@ enum HabitsAndroidIntentActions {
     NEW_GROUP_MEMBERS = 'com.therr.mobile.habits.NEW_GROUP_MEMBERS',
     NEW_LIKE_RECEIVED = 'com.therr.mobile.habits.NEW_LIKE_RECEIVED',
     NEW_THOUGHT_REPLY_RECEIVED = 'com.therr.mobile.habits.NEW_THOUGHT_REPLY_RECEIVED',
+    NEW_THOUGHT_REPOST_RECEIVED = 'com.therr.mobile.habits.NEW_THOUGHT_REPOST_RECEIVED',
     NEW_SUPER_LIKE_RECEIVED = 'com.therr.mobile.habits.NEW_SUPER_LIKE_RECEIVED',
     UNREAD_NOTIFICATIONS_REMINDER = 'com.therr.mobile.habits.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.habits.UNCLAIMED_ACHIEVEMENTS_REMINDER',
@@ -219,6 +253,7 @@ enum HabitsAndroidIntentActions {
     PACT_DECLINED = 'com.therr.mobile.habits.PACT_DECLINED',
     PACT_COMPLETED = 'com.therr.mobile.habits.PACT_COMPLETED',
     PACT_EXPIRING = 'com.therr.mobile.habits.PACT_EXPIRING',
+    PACT_ENDED = 'com.therr.mobile.habits.PACT_ENDED',
     PARTNER_CHECKED_IN = 'com.therr.mobile.habits.PARTNER_CHECKED_IN',
     PARTNER_MISSED_DAY = 'com.therr.mobile.habits.PARTNER_MISSED_DAY',
     PARTNER_CELEBRATED = 'com.therr.mobile.habits.PARTNER_CELEBRATED',
