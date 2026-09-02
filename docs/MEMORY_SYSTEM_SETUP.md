@@ -105,24 +105,50 @@ if (input.stop_reason === 'end_turn' && input.response) {
 }
 ```
 
-Register it in `.claude/settings.json`. Merge with existing content — do not replace the whole file:
+Register it in `.claude/settings.json`, and register the index refresh at session
+start while you are there. Merge with existing content — do not replace the whole file:
 
 ```json
 {
-  "Stop": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "node .claude/hooks/transcript-capture.js"
-        }
-      ]
-    }
-  ]
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "mkdir -p .memsearch && scripts/memsearch-index.sh >> .memsearch/index.log 2>&1 || true",
+            "async": true,
+            "statusMessage": "Refreshing memory index..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/transcript-capture.js"
+          }
+        ]
+      }
+    ]
+  }
 }
 ```
 
-If the file already has a `Stop` array, append the hook object to it. If the file uses a `"hooks": { "Stop": [...] }` wrapper instead of top-level keys, use that same format.
+> **Event names go under the top-level `"hooks"` key.** Claude Code ignores a `Stop`
+> or `SessionStart` array placed at the root of the file — no warning, no error, the
+> hook simply never fires. This repo ran that way for months: `transcript-capture.js`
+> was correct and registered at the root, and captured nothing the whole time. If you
+> are unsure whether a hook is live, `jq -e '.hooks.Stop' .claude/settings.json` is the
+> check, and an empty `context/transcripts/` after a session is the symptom.
+
+Verify a hook command before trusting it, by piping it the payload it will receive:
+
+```bash
+echo '{}' | sh -c 'mkdir -p .memsearch && scripts/memsearch-index.sh >> .memsearch/index.log 2>&1 || true'
+```
 
 ---
 
@@ -180,12 +206,12 @@ When the user says "remember this", "note that", "update memory", or "forget abo
 When the user asks about past context, conversations, or decisions:
 
 1. **Tier 0**: Check `context/MEMORY.md` and today's daily log — already in context, zero cost
-2. **L1**: Run `memsearch search "query" --top-k 5` — hybrid vector + keyword search. Finds semantic matches even with different words (e.g. "pricing" finds "monetisation")
-3. **L2**: Run `memsearch expand <chunk_hash>` — returns full markdown section around the match
-4. **L3**: Run `memsearch transcript <session_id>` — raw dialogue, last resort
-5. **Fallback**: "I don't have a record of that."
+2. **L1-L3**: Invoke the `memory-recall` skill. It runs search, expansion, and transcript
+   drill-down in a forked context and returns only the findings.
+3. **Fallback**: "I don't have a record of that."
 
-Only escalate if the previous tier didn't find the answer.
+Do not run `memsearch search` in the main context — that spends the tokens the fork exists
+to save.
 ```
 
 ### Daily Log
@@ -203,6 +229,20 @@ Track session activity in `context/memory/{YYYY-MM-DD}.md`. One file per day, nu
 
 Log these silently as they happen. Never announce "I've logged that."
 ```
+
+---
+
+## Step 5b — memory-recall skill
+
+`.claude/skills/memory-recall/SKILL.md` carries `context: fork`, so search and expansion
+run in a subagent and only the answer comes back. This matters more than it sounds: a
+raw `memsearch search` drops five chunks into the main context and an `expand` adds a
+full section on top, so unaided recall routinely costs more context than the answer is
+worth — the opposite of what a memory system is for.
+
+It uses `agent: Explore` (which skips CLAUDE.md, keeping the fork small) and
+`background: false` (so the answer lands in the turn that asked, rather than arriving
+later as a notification). `background: false` needs Claude Code v2.1.218 or later.
 
 ---
 
@@ -251,17 +291,26 @@ For **remove**: always confirm with the user before deleting.
 
 ---
 
-## Step 7 — Configure MemSearch embedding provider
+## Step 7 — Per-machine setup
 
-Create `.memsearch.toml` in the repo root:
+The embedding provider is a **per-machine** setting and cannot be committed. Every
+developer runs this once:
 
-```toml
-[embedding]
-provider = "onnx"
+```bash
+memsearch config set embedding.provider onnx     # writes ~/.memsearch/config.toml
 ```
 
-This overrides the default (OpenAI) with local ONNX inference — no API key needed.
-Commit this file so everyone on the team gets the same setting.
+It cannot live in the repo's `.memsearch.toml`. As of memsearch 0.4.12 that file is a
+restricted trust boundary — it is loaded from whatever repository you open, so it may
+only set `milvus.collection`, `embedding.batch_size`, `chunking.*`, `indexing.*`, and
+`watch.debounce_ms`. Everything else is **silently ignored**, `embedding.provider`
+included.
+
+That silence is the hazard. Without the global setting, memsearch falls back to the
+OpenAI provider: with no API key it fails with a traceback, and with one it embeds this
+repo's private memory through a third party at 1536 dimensions into an index built at
+bge-m3's 1024. `scripts/memsearch-index.sh` checks the resolved provider and refuses to
+run unless it is `onnx`.
 
 ---
 
@@ -422,6 +471,18 @@ The vector index itself (`.memsearch/`, gitignored) is a derived artifact — ea
 scripts/memsearch-index.sh
 ```
 
+This is wired up automatically by `.husky/post-merge`, which runs the script in the
+background when — and only when — the merge actually changed `context/memory/`,
+`context/external/`, or `.memsearch.toml`. It never fails or blocks a merge, and writes
+its output to `.memsearch/index.log`. Two things it deliberately does not cover:
+
+- **`git pull --rebase` does not fire `post-merge`.** Git runs no hook there. If you pull
+  with rebase, run the script by hand.
+- **A running `memsearch watch` takes precedence.** The hook detects one and exits.
+
+Skip it for a single pull with `MEMSEARCH_SKIP_INDEX=1 git pull`, or for all husky hooks
+with `HUSKY=0`.
+
 This avoids committing binary database blobs (which generate unreadable diffs and balloon git history). The tradeoff: a ~seconds rebuild step after pulling instead of instant search. For most teams this is the right call.
 
 > **Why not commit the `.db` file?** Milvus-lite stores data as a binary SQLite blob. Every re-index produces a completely different binary diff — git can't compress or diff it. A 500-doc index is ~10–30 MB of opaque binary per commit. Git LFS solves this but adds infrastructure. The markdown-as-source-of-truth approach avoids the problem entirely.
@@ -460,9 +521,52 @@ git push
 
 Note: the GitHub Action only fetches and commits the markdown. It does **not** run `memsearch index` — that stays local per developer.
 
+## Keeping the index fresh
+
+The index is a snapshot, not a live view: content written after the last index run is
+invisible to `memsearch search` — silently, as a query that returns nothing rather than an
+error. `scripts/memory-stats.sh` reports this directly, flagging how many source files are
+newer than the index.
+
+| Approach | Covers | Verdict |
+|---|---|---|
+| `SessionStart` hook (installed) | Everything written since your last session | Background, incremental, free |
+| `.husky/post-merge` (installed) | A pull that lands mid-session | Background, incremental, free |
+| Manual `scripts/memsearch-index.sh` | Anything the two above miss | Seconds per run |
+| `memsearch watch <paths>` | Everything, live | **Do not use with Milvus Lite** — see below |
+
+The first two are passive and need no attention. Together they cover the two ways new
+memory arrives: your own sessions write daily logs and transcripts, and pulls bring in
+your teammates'.
+
+> **Do not run `memsearch watch` against a Milvus Lite backend.** Milvus Lite protects its
+> store with a file lock and supports [a single process per `data_dir`](https://github.com/milvus-io/milvus-lite).
+> The watcher holds that lock for its whole lifetime, so every other `memsearch` call —
+> `index`, `stats`, and **`search` itself** — dies with a `DataDirLockedError` traceback.
+> A live watcher therefore disables the very retrieval it exists to keep fresh. This is
+> upstream [zilliztech/memsearch#80](https://github.com/zilliztech/memsearch/issues/80); the
+> maintainers' own guidance is to stop the watcher and index at hook boundaries instead,
+> which is what this repo does. A watcher is only viable against Milvus in gRPC server mode
+> (Docker) or Zilliz Cloud, neither of which is worth it for a single-developer index.
+>
+> All three scripts here detect a live watcher and degrade to a one-line explanation rather
+> than a traceback, so an accidental watcher is diagnosable instead of mysterious.
+
+Two gaps the post-merge hook cannot close, both inherent to git:
+
+- **A conflicted merge fires no hook.** Git does not run `post-merge` when the merge stopped
+  on conflicts, so the index misses work you resolved by hand.
+- **`git pull --rebase` fires no hook either.**
+
+In both cases run `scripts/memsearch-index.sh` yourself.
+
+Re-indexing is incremental by default (only changed files are re-embedded); `--force`
+re-embeds everything. `scripts/memsearch-index.sh` takes a single-writer lock at
+`~/.memsearch/.index.lock` so a background run and a manual one cannot collide.
+
 ## Maintenance
 
-- **After `git pull`**: run `scripts/memsearch-index.sh` to incorporate new daily logs and external docs
+- **After `git pull`**: handled by `.husky/post-merge`; run `scripts/memsearch-index.sh` by hand after a `--rebase` pull
 - **Weekly**: review `context/MEMORY.md` — prune stale entries, merge duplicates, stay under 2,500 chars
 - **When adding a new external source**: set the relevant env vars, run `scripts/memsearch-index.sh --fetch`, commit `context/external/`
 - **Context/transcripts is gitignored** — each developer's local transcript history stays on their machine

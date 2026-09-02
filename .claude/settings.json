@@ -1,23 +1,30 @@
 {
-  "Stop": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "node .claude/hooks/transcript-capture.js"
-        }
-      ]
-    }
-  ],
-  "SessionStart": [
-    {
-      "matcher": {},
-      "hooks": [
-        {
-          "type": "prompt",
-          "prompt": "This is the Therr App monorepo: React Native mobile, React web clients, and Express microservices behind an API gateway. Check the current git branch before making changes — niche/* branches are app-variant specific and never deploy to production; general/stage/main carry shared code. See CLAUDE.md for the full branch rules."
-        }
-      ]
-    }
-  ]
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "This is the Therr App monorepo: React Native mobile, React web clients, and Express microservices behind an API gateway. Check the current git branch before making changes — niche/* branches are app-variant specific and never deploy to production; general/stage/main carry shared code. See CLAUDE.md for the full branch rules."
+          },
+          {
+            "type": "command",
+            "command": "mkdir -p .memsearch && scripts/memsearch-index.sh >> .memsearch/index.log 2>&1 || true",
+            "async": true,
+            "statusMessage": "Refreshing memory index..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/transcript-capture.js"
+          }
+        ]
+      }
+    ]
+  }
 }
