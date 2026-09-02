@@ -20,6 +20,7 @@ import {
     MAX_GRACE_PERIOD_DAYS,
 } from '../utilities/streakHelpers';
 import { isUserInPact } from '../utilities/pactHelpers';
+import { canReadProofs, serializeProofs } from '../utilities/checkinProofs';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { resolvePactPartnerIds } from './helpers/pactPartners';
 import {
@@ -506,6 +507,61 @@ const getCheckin: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' }));
 };
 
+/**
+ * The proof images attached to one check-in.
+ *
+ * Split out of `getCheckin` rather than folded into it, and deliberately not
+ * attached to `GET /range`: the month grid only needs `hasProof`, which the
+ * check-in row already carries, so the calendar stays at one query per month
+ * and the paths are fetched only for a day the user actually opens.
+ */
+const getCheckinProofs: RequestHandler = async (req: any, res: any) => {
+    const { locale, userId } = parseHeaders(req.headers);
+    const { id } = req.params;
+
+    // `id` is a uuid column, so a malformed path segment makes Postgres throw
+    // rather than return no rows. Express 4 does not catch a rejected handler
+    // promise and this service registers no async wrapper, so a bare `await`
+    // here answers nothing at all -- the request hangs to timeout and surfaces
+    // as an unhandled rejection. Every sibling handler routes its failure
+    // through `handleHttpError`; this one has to do it explicitly.
+    let checkin;
+    try {
+        checkin = await Store.habitCheckins.getById(id);
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
+    }
+
+    const { allowed, error } = canReadProofs(checkin, userId);
+
+    if (!allowed) {
+        return error === 'notFound'
+            ? handleHttpError({
+                res,
+                message: translate(locale, 'errorMessages.habitCheckins.notFound'),
+                statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
+            })
+            : handleHttpError({
+                res,
+                message: translate(locale, 'errorMessages.habitCheckins.notAuthorizedToView'),
+                statusCode: 403,
+                errorCode: ErrorCodes.NOT_PERMITTED,
+            });
+    }
+
+    // `hasProof` is maintained by the write path, so an absent flag means there
+    // is nothing to fetch — skip the query rather than round-tripping for an
+    // empty set on every dayless tap.
+    if (!checkin.hasProof) {
+        return res.status(200).send({ proofs: [] });
+    }
+
+    return Store.proofs.getByCheckinId(id)
+        .then((proofs) => res.status(200).send({ proofs: serializeProofs(proofs) }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' }));
+};
+
 const getTodayCheckins: RequestHandler = async (req: any, res: any) => {
     const { userId } = parseHeaders(req.headers);
     const { habitGoalId } = req.query;
@@ -670,6 +726,7 @@ const deleteCheckin: RequestHandler = async (req: any, res: any) => {
 export {
     createCheckin,
     getCheckin,
+    getCheckinProofs,
     getTodayCheckins,
     getCheckinsByDateRange,
     getPactCheckins,

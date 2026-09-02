@@ -149,6 +149,21 @@ describe('routeOrdering utility', () => {
             gatewayRouter = require('../../../src/routes').default;
         });
 
+        // The gateway names every route it proxies and has no wildcard, so a
+        // users-service route with no entry here 404s at the edge while the
+        // service, the shared client and their tests are all green. That is how
+        // `GET /habits/checkins/:id/proofs` shipped unreachable: the handler,
+        // the router entry, the therr-react service method and the redux action
+        // all existed, and nothing that ran could see the missing hop.
+        it('proxies every habits check-in route the shared client calls', () => {
+            const paths = collectRoutes(gatewayRouter)
+                .filter((route) => route.method === 'get')
+                .map((route) => route.path);
+
+            expect(paths).to.include('/users-service/habits/checkins/:id/proofs');
+            expect(paths).to.include('/users-service/habits/checkins/:id');
+        });
+
         it('exposes no unreachable routes', () => {
             const routes = collectRoutes(gatewayRouter);
 

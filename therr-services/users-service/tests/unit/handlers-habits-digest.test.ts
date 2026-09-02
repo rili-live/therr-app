@@ -180,6 +180,13 @@ describe('Habits digest — queues instead of sending', () => {
         // A key carrying a clock reading would be unique on every run, which
         // turns dedup off without failing anything else.
         queue.calls.forEach((call) => {
+            // `pact-ended` is the one type whose key carries no date, because a
+            // pact ends exactly once and a date would let two sweeps of the same
+            // pact announce it twice. It is asserted on its own below.
+            if (call.type === 'pact-ended') {
+                expect(call.dedupeKey, call.dedupeKey).to.match(/^pact-ended:[\w-]+$/);
+                return;
+            }
             // Zero or more id segments — a rolled-up key names only the day,
             // because the recipient is already half of the unique constraint.
             expect(call.dedupeKey, call.dedupeKey).to.match(/^[a-z-]+(:[\w-]+)*:\d{4}-\d{2}-\d{2}$/);
@@ -251,6 +258,101 @@ describe('Habits digest — running it twice is a no-op', () => {
 
         // Same work decided on both times; only the disposition differs.
         expect(first.pactsEvaluated).to.equal(second.pactsEvaluated);
+    });
+
+    /**
+     * The sweep's announcement.
+     *
+     * The sweep used to close pacts silently, which meant the one moment
+     * renewal is legal — `isPactRenewable` is false until a pact is past its
+     * endDate — was also the one moment nobody was told. These tests pin the
+     * three properties that are invisible when they break: that it fires at
+     * all, that its key cannot fire twice for the same pact, and that the
+     * payload carries what the renew action needs.
+     */
+    describe('announcing the pacts it ends', () => {
+        const STALE_PACT = 'stale-1';
+
+        const stubExpiringSweep = () => {
+            (Store.pacts.getExpiredPacts as any).restore();
+            (Store.pacts.expire as any).restore();
+            sinon.stub(Store.pacts, 'getExpiredPacts').resolves([{
+                id: STALE_PACT,
+                habitGoalId: HABIT_GOAL_ID,
+                durationDays: 30,
+            }] as any);
+            sinon.stub(Store.pacts, 'expire').resolves({} as any);
+        };
+
+        it('queues one pactEnded per active member, carrying the renewal payload', async () => {
+            sinon.restore();
+            const sweepQueue = buildFakeQueue();
+            stubDigestReads();
+            stubExpiringSweep();
+
+            const counters = await runDigest();
+
+            const ended = sweepQueue.calls.filter((call) => call.type === 'pact-ended');
+            expect(ended).to.have.length(3);
+            expect(counters.pactEndedSent).to.equal(3);
+            expect(new Set(ended.map((call) => call.userId))).to.deep.equal(
+                new Set([MEMBER_A, MEMBER_B, MEMBER_C]),
+            );
+
+            ended.forEach((call) => {
+                // Without pactId the renew button resolves to nothing; without
+                // durationDays the copy renders "0 days in".
+                expect(call.payload.pactId).to.equal(STALE_PACT);
+                expect(call.payload.durationDays).to.equal(30);
+                expect(call.payload.habitName).to.equal('Morning run');
+                expect(call.brand).to.equal(BrandVariations.HABITS);
+            });
+        });
+
+        it('announces a pact exactly once, however many times the digest runs', async () => {
+            sinon.restore();
+            const sweepQueue = buildFakeQueue();
+            stubDigestReads();
+            stubExpiringSweep();
+
+            const first = await runDigest();
+            const second = await runDigest();
+
+            // A date-stamped key would insert a second row tomorrow for a pact
+            // that only ever ends once — and `getExpiredPacts` keeps returning
+            // it until `expire` lands, so a same-day retry would double-send.
+            expect(first.pactEndedSent).to.equal(3);
+            expect(second.pactEndedSent).to.equal(0);
+
+            const endedKeys = new Set(
+                sweepQueue.calls.filter((c) => c.type === 'pact-ended').map((c) => c.dedupeKey),
+            );
+            expect(endedKeys).to.deep.equal(new Set([`pact-ended:${STALE_PACT}`]));
+        });
+
+        it('does not announce a pact whose expiry write failed', async () => {
+            sinon.restore();
+            const sweepQueue = buildFakeQueue();
+            stubDigestReads();
+            (Store.pacts.getExpiredPacts as any).restore();
+            (Store.pacts.expire as any).restore();
+            sinon.stub(Store.pacts, 'getExpiredPacts').resolves([{
+                id: STALE_PACT,
+                habitGoalId: HABIT_GOAL_ID,
+                durationDays: 30,
+            }] as any);
+            sinon.stub(Store.pacts, 'expire').rejects(new Error('write pool exhausted'));
+
+            const counters = await runDigest();
+
+            // The pact is still `active`, so the renew handler would refuse it.
+            // Announcing an ending that did not persist offers a CTA that 4xxs,
+            // and the no-date dedupe key means the correct announcement on the
+            // next run would then be swallowed as a duplicate.
+            expect(counters.pactEndedSent).to.equal(0);
+            expect(counters.errors).to.equal(1);
+            expect(sweepQueue.calls.filter((call) => call.type === 'pact-ended')).to.have.length(0);
+        });
     });
 
     it('sweeps pacts whose window has passed into expired', async () => {

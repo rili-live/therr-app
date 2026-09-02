@@ -70,6 +70,11 @@ const DATA_ONLY_TYPES = [
     PushNotifications.Types.pactAccepted,
     PushNotifications.Types.pactCompleted,
     PushNotifications.Types.pactExpiring,
+    // Data-only for the same reason dailyHabitReminder is: it carries a "Start
+    // New Cycle" action button, and Notifee only renders buttons on a message
+    // that arrives as data. Same DEPLOY ORDER caveat — an installed app with no
+    // PACT_ENDED intent filter ignores it entirely.
+    PushNotifications.Types.pactEnded,
     // HABITS lifecycle celebrations (docs/HABIT_LIFECYCLE_MESSAGING.md). Data-only
     // like the rest of the streak family — the app is expected to be awake for a
     // milestone about a habit the user is actively keeping.

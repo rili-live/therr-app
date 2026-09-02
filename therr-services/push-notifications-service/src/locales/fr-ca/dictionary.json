@@ -171,6 +171,10 @@
       "title": "Ton pacte arrive à sa fin",
       "body": "Il reste {daysRemaining} jour(s) sur ton pacte {habitName} — termine en force."
     },
+    "pactEnded": {
+      "title": "Ton pacte {habitName} est terminé",
+      "body": "{durationDays} jours accomplis. La plupart des habitudes prennent des mois, pas des semaines — lance un nouveau cycle et ta série se poursuit."
+    },
     "dailyHabitReminder": {
       "title": "C'est l'heure de t'enregistrer",
       "body": "Enregistre {habitName} aujourd'hui — un seul enregistrement lance ta série.",
@@ -202,6 +206,7 @@
     },
     "shared": {
       "pressActionCheckIn": "S'enregistrer",
+      "pressActionRenew": "Nouveau cycle",
       "pressActionView": "Voir"
     }
   },

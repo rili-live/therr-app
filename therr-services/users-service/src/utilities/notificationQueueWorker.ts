@@ -51,6 +51,46 @@ const MAX_SENDS_PER_USER_PER_DAY = 5;
 const RATE_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 /**
+ * Types the daily cap may DELAY but must never DROP.
+ *
+ * The cap drops rather than defers, and the reasoning for that is sound for
+ * everything it was written against: those notifications recur, their dedupe
+ * keys are stamped with the day, and a reminder arriving a day late is worse
+ * than one that never arrives. Tomorrow's row is queued tomorrow regardless.
+ *
+ * A once-ever notification inverts every part of that. `pact-ended` is keyed on
+ * the pact alone (`pact-ended:<pactId>`, the only dateless key any producer in
+ * this service builds — every other one ends in a date), because a pact ends
+ * exactly once and a date would let two sweeps announce it twice. The same
+ * property means a dropped row is never re-queued: the member is simply never
+ * told their cycle closed, and the renew CTA that is the entire reason the push
+ * is sent at that moment goes with it. Late is strictly better than never here,
+ * because the thing it announces stays true.
+ *
+ * Membership rule for anything added later: a type belongs here if and only if
+ * its dedupe key carries no date. That is what makes a drop permanent.
+ */
+export const UNCAPPABLE_TYPES: Set<string> = new Set(['pact-ended']);
+
+/**
+ * How long an uncappable row waits for the cap window to open before it is sent
+ * over the cap.
+ *
+ * The window is a rolling 24h, so a user at their limit today usually has room
+ * within hours. A user who is genuinely at 5/day every day would defer forever
+ * without this bound, which would reproduce the exact failure the exemption
+ * exists to prevent -- silence, just arrived at more slowly. Exceeding the cap
+ * by one, once per pact, is the smaller cost.
+ */
+const MAX_CAP_DEFERRAL_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * How long to wait before re-testing the cap for a deferred uncappable row.
+ * Hourly: the window rolls continuously, and this is one row and one COUNT.
+ */
+const CAP_DEFERRAL_RETRY_MS = 60 * 60 * 1000;
+
+/**
  * Minimum gap between two notifications to the same user.
  *
  * The daily cap bounds the *number* of notifications; it says nothing about
@@ -91,6 +131,14 @@ const MAX_DEFERRAL_WINDOW_MS = 6 * 60 * 60 * 1000;
 const TYPE_SEND_PRIORITY: Record<string, number> = {
     'streak-at-risk': 0,
     'daily-habit-reminder': 1,
+    // Ahead of the recurring reminders on purpose. The daily cap *drops* what it
+    // cannot send (see `sendOne`), on the reasoning that a reminder arriving a
+    // day late is worse than none -- which is true of everything else in this
+    // map and false of this one. `pact-ended` is keyed without a date because a
+    // pact ends exactly once, so a dropped row is never re-queued and the member
+    // is simply never told their cycle closed, losing the renew CTA that is the
+    // whole reason the notification is sent at that moment.
+    'pact-ended': 1,
     'pact-expiring': 2,
     'pact-invitation': 2,
     'partner-checked-in': 3,
@@ -138,8 +186,30 @@ const sendOne = async (row: INotificationQueueRow): Promise<void> => {
         // Dropped, not deferred. Deferring would just move the same notification
         // into tomorrow's budget and crowd out whatever is timely then — and a
         // reminder that arrives a day late is worse than one that never arrives.
-        await Store.notificationQueue.markSkipped(row.id, `daily cap reached (${sentToday})`);
-        return;
+        //
+        // Except for the once-ever types, where a drop is permanent and there is
+        // no tomorrow's row to crowd anything out — see UNCAPPABLE_TYPES. Those
+        // wait for the rolling window to open, and go out over the cap if it
+        // never does. `defer` decrements `attempts`, so holding a row this way
+        // cannot exhaust MAX_ATTEMPTS.
+        const waitedMs = Date.now() - new Date(row.createdAt).getTime();
+
+        if (!UNCAPPABLE_TYPES.has(row.type)) {
+            await Store.notificationQueue.markSkipped(row.id, `daily cap reached (${sentToday})`);
+            return;
+        }
+
+        if (waitedMs < MAX_CAP_DEFERRAL_MS) {
+            await Store.notificationQueue.defer(
+                row.id,
+                new Date(Date.now() + CAP_DEFERRAL_RETRY_MS),
+                `daily cap reached (${sentToday}) — deferred, once-ever type`,
+            );
+            return;
+        }
+        // Falls through to send over the cap. The spacing rule below has its own
+        // six-hour horizon, which a row that has waited this long has already
+        // cleared, so it cannot be held a second time on the way out.
     }
 
     // Un-addressable rows, resolved before anything is built.

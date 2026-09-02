@@ -86,12 +86,13 @@ const baseConfig = {
 };
 
 describe('FCM data payload validity', () => {
-    // The three types the habits daily digest produces. All of them are
-    // data-only messages, so a bad `data` map is fatal rather than cosmetic.
+    // The types the habits daily digest produces. All of them are data-only
+    // messages, so a bad `data` map is fatal rather than cosmetic.
     const digestTypes = [
         PushNotifications.Types.streakAtRisk,
         PushNotifications.Types.partnerMissedDay,
         PushNotifications.Types.pactExpiring,
+        PushNotifications.Types.pactEnded,
     ];
 
     digestTypes.forEach((type) => {
@@ -106,6 +107,7 @@ describe('FCM data payload validity', () => {
                     streakCount: 4,
                     freezesRemaining: 1,
                     daysRemaining: 2,
+                    durationDays: 30,
                 },
                 BrandVariations.HABITS,
             );
@@ -146,6 +148,72 @@ describe('FCM data payload validity', () => {
         expect(message.data.hasProof).to.equal('true');
         Object.entries(message.data).forEach(([key, value]) => {
             expect(value, `data.${key} must be a string`).to.be.a('string');
+        });
+    });
+
+    // `pactEnded` is the only notification carrying an action that starts a new
+    // cycle, and the action is useless — worse, it is a dead button — without
+    // the pact id it acts on. The gate is the same one `buildCheckinPressActions`
+    // applies to one-press check-in, and it is asserted here because nothing at
+    // runtime reports a press action that resolves to nothing.
+    describe('pactEnded renew action', () => {
+        const buildPactEnded = (config: Record<string, unknown>): any => createMessage(
+            PushNotifications.Types.pactEnded,
+            digestNotificationData(),
+            { ...baseConfig, habitName: 'Morning workout', ...config } as any,
+            BrandVariations.HABITS,
+        );
+
+        it('offers renew then view when the payload names a pact', () => {
+            const message = buildPactEnded({
+                pactId: 'c0000001-de00-4000-a000-000000000001',
+                durationDays: 30,
+            });
+
+            const actions = JSON.parse(message.data.notificationLinkPressActions);
+            expect(actions.map((a: any) => a.id)).to.deep.equal([
+                PushNotifications.PressActionIds.pactRenew,
+                PushNotifications.PressActionIds.pactView,
+            ]);
+            // Titles come from the dictionary; a missing key would render the raw
+            // key path on the button.
+            actions.forEach((action: any) => {
+                expect(action.title, `press action ${action.id} has no copy`).to.be.a('string');
+                expect(action.title).to.not.contain('notifications.');
+                expect(action.title).to.have.length.greaterThan(0);
+            });
+        });
+
+        it('falls back to view only when no pact id is present', () => {
+            const message = buildPactEnded({ durationDays: 30 });
+
+            const actions = JSON.parse(message.data.notificationLinkPressActions);
+            expect(actions.map((a: any) => a.id)).to.deep.equal([
+                PushNotifications.PressActionIds.pactView,
+            ]);
+        });
+
+        it('promotes pactId and durationDays into the data map as strings', () => {
+            const message = buildPactEnded({
+                pactId: 'c0000001-de00-4000-a000-000000000001',
+                durationDays: 30,
+            });
+
+            // `config` never reaches the device. Anything the renewal flow needs
+            // has to be in `data` — this is the exact class of drop that made
+            // habits notifications open a list instead of a destination.
+            expect(message.data.pactId).to.equal('c0000001-de00-4000-a000-000000000001');
+            expect(message.data.durationDays).to.equal('30');
+        });
+
+        it('renders the cycle length in the body rather than a zero', () => {
+            const message = buildPactEnded({
+                pactId: 'c0000001-de00-4000-a000-000000000001',
+                durationDays: 30,
+            });
+
+            expect(message.data.notificationBody).to.contain('30');
+            expect(message.data.notificationTitle).to.contain('Morning workout');
         });
     });
 

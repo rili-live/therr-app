@@ -1,0 +1,51 @@
+#!/usr/bin/env sh
+# Post-merge: refresh the local memsearch vector index when a merge or pull
+# brought in new memory sources.
+#
+# Why this exists: the vector index at ~/.memsearch/milvus.db is machine-local
+# and gitignored (see docs/MEMORY_SYSTEM_SETUP.md -> "Why not commit the .db
+# file?"). The markdown under context/ is the source of truth and travels
+# through git; the index does not. Without this hook, a pull that brings in a
+# teammate's daily logs leaves your semantic search silently blind to them —
+# no error, just missing results.
+#
+# Properties this hook is required to have:
+#   - Never fails a merge. Indexing is a convenience; a merge is not.
+#   - Never blocks a merge. Embedding runs detached, output to .memsearch/.
+#   - Does nothing when the merge touched no memory sources (the common case).
+#
+# Note: git does NOT run post-merge for `git pull --rebase`. If you pull with
+# rebase, run scripts/memsearch-index.sh by hand.
+#
+# Escape hatches: MEMSEARCH_SKIP_INDEX=1 for this hook only, HUSKY=0 for all.
+
+[ "${MEMSEARCH_SKIP_INDEX:-}" = "1" ] && exit 0
+
+# Not installed (fresh clone, CI, a machine that never set memory up) — silent.
+command -v memsearch >/dev/null 2>&1 || exit 0
+[ -x scripts/memsearch-index.sh ] || exit 0
+
+# A running `memsearch watch` holds an exclusive lock on the Milvus Lite store
+# and is already picking these files up as they land on disk. Spawning an index
+# run here would only write a lock-error traceback to the log.
+if pgrep -f 'memsearch watch' >/dev/null 2>&1; then
+  exit 0
+fi
+
+# ORIG_HEAD is written by merge; absent on the very first merge in a clone.
+if ! git rev-parse --verify --quiet ORIG_HEAD >/dev/null 2>&1; then
+  exit 0
+fi
+
+changed=$(git diff --name-only ORIG_HEAD HEAD -- context/memory context/external .memsearch.toml 2>/dev/null || echo "")
+[ -z "$changed" ] && exit 0
+
+mkdir -p .memsearch
+LOG=.memsearch/index.log
+
+nohup scripts/memsearch-index.sh >"$LOG" 2>&1 &
+
+printf '\033[2mmemsearch: reindexing in background (%s changed file(s)) → %s\033[0m\n' \
+  "$(printf '%s\n' "$changed" | wc -l | tr -d ' ')" "$LOG"
+
+exit 0

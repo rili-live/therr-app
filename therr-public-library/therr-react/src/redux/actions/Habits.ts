@@ -182,6 +182,22 @@ const Habits = {
             return response.data;
         }),
 
+    /**
+     * Proof media for one check-in.
+     *
+     * Deliberately dispatches nothing. Proofs are per-day-sheet data — opened,
+     * looked at, closed — and the only place to put them in the habits slice
+     * would be alongside `checkins`, where they would need invalidating on
+     * every month change and every re-check-in for a benefit no screen has.
+     * Kept as an action rather than a direct service call so the connected
+     * screens keep reaching data through one channel.
+     */
+    getCheckinProofs: (checkinId: string) => () => HabitCheckinsService
+        .getProofs(checkinId).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
+            return response.data?.proofs || [];
+        }),
+
     createCheckin: (data: ICreateCheckinBody) => (dispatch: any) => HabitCheckinsService
         .create(data).then((response) => {
             dispatch({

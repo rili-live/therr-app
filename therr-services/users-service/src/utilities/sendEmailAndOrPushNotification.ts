@@ -105,6 +105,10 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     habitCount?: number;
     habitNames?: string[];
     daysRemaining?: number;
+    // The length of the cycle a `pactEnded` notification is about. This list is
+    // an allow-list, not a passthrough — a field the producer sets but that is
+    // missing here is dropped silently, and the copy renders a zero.
+    durationDays?: number;
     // Streak freezes ("build in the miss"). `freezesRemaining` is what is left
     // *after* the spend, so the copy can promise a net that is still there.
     freezesRemaining?: number;
@@ -173,6 +177,7 @@ export default (
         habitCount,
         habitNames,
         daysRemaining,
+        durationDays,
         freezesRemaining,
         freezeDaysUsed,
         dayCount,
@@ -312,6 +317,7 @@ export default (
                     habitCount,
                     habitNames,
                     daysRemaining,
+                    durationDays,
                     freezesRemaining,
                     freezeDaysUsed,
                     dayCount,

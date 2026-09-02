@@ -1,2 +1,19 @@
-[embedding]
-provider = "onnx"
+# Project-local memsearch config.
+#
+# As of memsearch 0.4.12 this file is a RESTRICTED trust boundary: it is loaded
+# from whatever repository you happen to open, so it may only set low-risk local
+# indexing knobs. The allowlist is milvus.collection, embedding.batch_size,
+# chunking.*, indexing.*, and watch.debounce_ms.
+#
+# Anything outside that list is silently ignored — including embedding.provider,
+# which this file used to set. Each developer sets that once, per machine:
+#
+#     memsearch config set embedding.provider onnx
+#
+# Without it memsearch falls back to the OpenAI provider, which fails outright
+# with no API key and — worse, with one — would embed this repo's private memory
+# through a third party using a model the existing index was not built with.
+# scripts/memsearch-index.sh refuses to run in that state.
+
+[milvus]
+collection = "memsearch_chunks"
