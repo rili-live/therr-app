@@ -519,7 +519,19 @@ const getCheckinProofs: RequestHandler = async (req: any, res: any) => {
     const { locale, userId } = parseHeaders(req.headers);
     const { id } = req.params;
 
-    const checkin = await Store.habitCheckins.getById(id);
+    // `id` is a uuid column, so a malformed path segment makes Postgres throw
+    // rather than return no rows. Express 4 does not catch a rejected handler
+    // promise and this service registers no async wrapper, so a bare `await`
+    // here answers nothing at all -- the request hangs to timeout and surfaces
+    // as an unhandled rejection. Every sibling handler routes its failure
+    // through `handleHttpError`; this one has to do it explicitly.
+    let checkin;
+    try {
+        checkin = await Store.habitCheckins.getById(id);
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
+    }
+
     const { allowed, error } = canReadProofs(checkin, userId);
 
     if (!allowed) {
