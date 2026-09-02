@@ -83,9 +83,11 @@ LOG_DIR="context/memory"
 if [[ -d "$LOG_DIR" ]]; then
   LOG_COUNT=$(find "$LOG_DIR" -name "*.md" | wc -l)
   if [[ $LOG_COUNT -gt 0 ]]; then
-    OLDEST=$(find "$LOG_DIR" -name "*.md" | sort | head -1 | xargs basename .md 2>/dev/null || echo "unknown")
-    NEWEST=$(find "$LOG_DIR" -name "*.md" | sort | tail -1 | xargs basename .md 2>/dev/null || echo "unknown")
-    NEWEST_LINES=$(find "$LOG_DIR" -name "*.md" | sort | tail -1 | xargs lines_of)
+    OLDEST_FILE=$(find "$LOG_DIR" -name "*.md" | sort | head -1)
+    NEWEST_FILE=$(find "$LOG_DIR" -name "*.md" | sort | tail -1)
+    OLDEST=$(basename "$OLDEST_FILE" .md)
+    NEWEST=$(basename "$NEWEST_FILE" .md)
+    NEWEST_LINES=$(lines_of "$NEWEST_FILE")
     echo "  Daily logs: ${LOG_COUNT} file(s)  (${OLDEST} → ${NEWEST})"
     echo "  Last log:   ${NEWEST} — ${NEWEST_LINES} line(s)"
   else
@@ -106,7 +108,7 @@ TRANSCRIPT_DIR="context/transcripts"
 if [[ -d "$TRANSCRIPT_DIR" ]]; then
   T_COUNT=$(find "$TRANSCRIPT_DIR" -name "*.md" | wc -l)
   if [[ $T_COUNT -gt 0 ]]; then
-    T_LATEST=$(find "$TRANSCRIPT_DIR" -name "*.md" | sort | tail -1 | xargs basename .md 2>/dev/null || echo "unknown")
+    T_LATEST=$(basename "$(find "$TRANSCRIPT_DIR" -name "*.md" | sort | tail -1)" .md)
     T_TOTAL_KB=$(du -sk "$TRANSCRIPT_DIR" 2>/dev/null | awk '{print $1}' || echo 0)
     echo "  Captures:  ${T_COUNT} file(s), ${T_TOTAL_KB} KB total"
     echo "  Latest:    ${T_LATEST}"
@@ -148,22 +150,50 @@ fi
 # ---------------------------------------------------------------------------
 
 echo ""
-echo -e "${BOLD}Vector index${RESET} ${DIM}(machine-local, .memsearch/)${RESET}"
+echo -e "${BOLD}Vector index${RESET} ${DIM}(machine-local, ~/.memsearch/milvus.db)${RESET}"
 
 STATS_OUTPUT=$(memsearch stats 2>/dev/null || echo "")
 if echo "$STATS_OUTPUT" | grep -q "^Total indexed chunks:"; then
   CHUNK_COUNT=$(echo "$STATS_OUTPUT" | grep "^Total indexed chunks:" | awk '{print $NF}')
   echo "  Chunks indexed: ${CHUNK_COUNT}"
-  # Show last-modified time of the milvus DB file if it exists
-  DB_FILE=$(python3 -c "
-import os, pathlib
+  # Newest mtime anywhere under the store. Milvus writes into subdirectories,
+  # so the top-level directory's own mtime never moves after creation.
+  INDEXED_AT=$(python3 -c "
+import datetime, pathlib
 p = pathlib.Path('~/.memsearch/milvus.db').expanduser()
-if p.exists():
-    import datetime
-    mtime = datetime.datetime.fromtimestamp(p.stat().st_mtime)
-    print(mtime.strftime('%Y-%m-%d %H:%M'))
+times = [f.stat().st_mtime for f in p.rglob('*') if f.is_file()] if p.exists() else []
+if times:
+    print(datetime.datetime.fromtimestamp(max(times)).strftime('%Y-%m-%d %H:%M'))
 " 2>/dev/null || echo "")
-  [[ -n "$DB_FILE" ]] && echo "  Last indexed:   ${DB_FILE}"
+  [[ -n "$INDEXED_AT" ]] && echo "  Last indexed:   ${INDEXED_AT}"
+
+  # Staleness: the index only knows what it was last told. Compare it against
+  # the newest source file so a blind search surface is visible here rather
+  # than discovered as a search that quietly returns nothing.
+  STALE=$(python3 -c "
+import pathlib
+idx = pathlib.Path('~/.memsearch/milvus.db').expanduser()
+itimes = [f.stat().st_mtime for f in idx.rglob('*') if f.is_file()] if idx.exists() else []
+if itimes:
+    newest_idx = max(itimes)
+    stale = []
+    for d in ('context/memory', 'context/external', 'context/transcripts'):
+        for f in pathlib.Path(d).rglob('*.md'):
+            if f.stat().st_mtime > newest_idx:
+                stale.append(f)
+    if stale:
+        print(len(stale))
+" 2>/dev/null || echo "")
+  if [[ -n "$STALE" ]]; then
+    echo -e "  ${YELLOW}Stale:          ${STALE} source file(s) newer than the index${RESET}"
+    echo -e "  ${DIM}Run: scripts/memsearch-index.sh${RESET}"
+  fi
+elif pgrep -f 'memsearch watch' >/dev/null 2>&1; then
+  # Not "unindexed" — Milvus Lite is single-process, so the running watcher
+  # holds the lock and `memsearch stats` cannot open the store to count.
+  WATCH_PID="$(pgrep -f 'memsearch watch' 2>/dev/null | head -1 || true)"
+  echo -e "  ${DIM}Live watcher running (pid ${WATCH_PID}) — holds the store lock,${RESET}"
+  echo -e "  ${DIM}so chunk count is unavailable. Auto-indexing on file change.${RESET}"
 else
   echo -e "  ${DIM}Not indexed yet — run: scripts/memsearch-index.sh${RESET}"
 fi
