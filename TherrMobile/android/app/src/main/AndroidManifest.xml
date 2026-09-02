@@ -233,6 +233,18 @@
         <action android:name="${notificationActionPrefix}.PACT_EXPIRING" />
         <category android:name="android.intent.category.DEFAULT" />
       </intent-filter>
+      <!--
+        PACT_ENDED. The server has been sending this since the digest gained its
+        expiry sweep, and without this filter Android silently no-ops the tap:
+        the notification renders, the "Start New Cycle" button does nothing, and
+        no error is produced on the device or the server. Caught by
+        .claude/skills/push-notification-guard/scripts/check-push-wiring.js,
+        which reads the manifest from whichever branch builds the brand.
+      -->
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.PACT_ENDED" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
       <intent-filter>
         <action android:name="${notificationActionPrefix}.PARTNER_CHECKED_IN" />
         <category android:name="android.intent.category.DEFAULT" />
