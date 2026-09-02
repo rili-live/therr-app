@@ -56,9 +56,35 @@ export interface ICheckinNudgeRow {
         freezesRemaining?: number;
         habitGoalId?: string;
         pactId?: string;
+        /**
+         * Every habit goal this nudge covers — not only the one the copy names.
+         *
+         * Carried for the send-time freshness gate
+         * (`utilities/checkinNudgeFreshness.ts`), which re-reads check-ins for
+         * exactly these pairs before sending and suppresses the row once they
+         * are all done. That matters because the digest now schedules rows
+         * hours ahead into the user's local day, so "hasn't checked in" is a
+         * fact with a shelf life.
+         *
+         * Never reaches the device: `predictAndSendPushNotification` in
+         * push-notifications-service destructures a fixed key set off the
+         * request body, so an extra payload field is dropped before the FCM
+         * data map is built. Keep it that way — FCM's data map is
+         * string->string and an array would fail the whole send.
+         */
+        habitGoalIds: string[];
     };
     /** How many candidates this one row stands in for. */
     candidateCount: number;
+    /**
+     * True when at least one habit in this roll-up has a live streak.
+     *
+     * The digest reads it to decide whether the user gets an evening "last
+     * chance" reminder as well as the morning one. Loss aversion is the entire
+     * justification for a second push in a day, so a user with nothing to lose
+     * gets one reminder, not two — see `runDailyHabitsDigest`.
+     */
+    hasLiveStreak: boolean;
 }
 
 /**
@@ -70,6 +96,19 @@ export interface ICheckinNudgeRow {
  * duplicates this module exists to remove.
  */
 export const checkinNudgeDedupeKey = (today: string): string => `checkin-nudge:${today}`;
+
+/**
+ * The dedupe key for the evening "last chance" nudge.
+ *
+ * Stamped with the *digest run's* date rather than the recipient's local one,
+ * for the same reason `checkinNudgeDedupeKey` is: the digest fires once a day,
+ * so one key per run is exactly one notification per user per day, and it stays
+ * that way even for a user whose local date differs from the server's or who
+ * changes timezone mid-day. The local date has a different job — it is what the
+ * send-time freshness gate checks against — and conflating the two would let a
+ * traveller dedupe themselves out of a reminder, or into two.
+ */
+export const lastChanceNudgeDedupeKey = (today: string): string => `last-chance:${today}`;
 
 const hasLiveStreak = (candidate: ICheckinNudgeCandidate): boolean => Number(candidate.streakCount || 0) > 0;
 
@@ -140,8 +179,14 @@ export const createCheckinNudgeAccumulator = () => {
                     // unambiguous to complete and the tap belongs on the list.
                     habitGoalId: isSingle ? primary.habitGoalId : undefined,
                     pactId: isSingle ? primary.pactId : undefined,
+                    // Every goal, including the ones the copy does not name.
+                    // The freshness gate needs the full set: suppressing on the
+                    // primary habit alone would silence a nudge that still has
+                    // two outstanding habits behind it.
+                    habitGoalIds: candidates.map((c) => c.habitGoalId),
                 },
                 candidateCount: candidates.length,
+                hasLiveStreak: isAtRisk,
             };
         }),
     };

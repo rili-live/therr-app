@@ -79,6 +79,18 @@ const buildFakeQueue = () => {
 };
 
 const stubDigestReads = () => {
+    // The evening "last chance" slot is off for these suites. Whether it
+    // produces a row depends on the wall-clock time in the recipient's zone, so
+    // leaving it on would make every count below pass in the morning and fail
+    // after 19:30 — the worst kind of flake, because it reads as a real
+    // regression. It has its own file, which pins the clock:
+    // handlers-habits-digest-last-chance.test.ts.
+    //
+    // Set here, per test, rather than in a mocha root hook: root hooks are
+    // global across every file in the run, so one would fight the last-chance
+    // suite's own setup depending on file order.
+    process.env.HABIT_LAST_CHANCE_REMINDERS_ENABLED = 'false';
+
     // The expiry sweep runs before the active-pact read. Nothing is past its
     // endDate in this fixture, so the sweep is a no-op here — it has its own
     // tests below.
@@ -112,6 +124,12 @@ const stubDigestReads = () => {
         .resolves({ isActive: true, currentStreak: 5 } as any);
 
     sinon.stub(Store.users, 'findUser').resolves([{ firstName: 'Alex' }] as any);
+
+    // No stored timezone or quiet hours — the default for every user in
+    // production today, which sends both slots through the America/Chicago
+    // fallback and keeps delivery exactly where it was before per-user
+    // scheduling landed. See localReminderSchedule.test.ts for the zones.
+    sinon.stub(Store.users, 'getHabitReminderPreferences').resolves({} as any);
 
     // The daily-reminder pass reads its own spine off habits.user_habits. This
     // fixture is about the pact-driven half, so it contributes nothing —

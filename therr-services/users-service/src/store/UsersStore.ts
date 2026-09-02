@@ -131,6 +131,22 @@ export interface IFindUsersByContactInfo {
     phoneNumber?: string;
 }
 
+/**
+ * One user's habit-reminder delivery settings, as `getHabitReminderPreferences`
+ * returns them. The three time-valued fields are Postgres `time` columns and
+ * arrive as 'HH:MM:SS' strings; `parseTimeOfDay` in
+ * `utilities/localReminderSchedule.ts` is the only thing that should read them.
+ */
+export interface IHabitReminderPreferenceRow {
+    id: string;
+    settingsTimezone: string | null;
+    settingsPreferredReminderTime: string | null;
+    settingsQuietHoursStart: string | null;
+    settingsQuietHoursEnd: string | null;
+    settingsPushHabitReminders: boolean | null;
+    settingsPushStreakAlerts: boolean | null;
+}
+
 export default class UsersStore {
     db: IConnection;
 
@@ -269,6 +285,49 @@ export default class UsersStore {
 
         queryString = queryString.toString();
         return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
+    /**
+     * The reminder-delivery settings for a batch of users, keyed by user id.
+     *
+     * One query for a whole digest run, in the same spirit as
+     * `HabitCheckinsStore.getCompletedOnDateForPairs`: the alternative is a
+     * `findUser` per recipient, which turns a background job into one round trip
+     * per user against the read pool.
+     *
+     * Every column here has existed since the habits schema landed
+     * (`20260126000010_main.users_habits.js`) and, until the per-user reminder
+     * scheduling in `utilities/localReminderSchedule.ts`, **nothing ever read
+     * any of them** — a settings surface that silently did nothing. The two
+     * booleans default to `true` in the schema, so a user who has never touched
+     * them keeps receiving reminders; only an explicit `false` suppresses.
+     */
+    getHabitReminderPreferences(userIds: string[]): Promise<Record<string, IHabitReminderPreferenceRow>> {
+        if (!userIds.length) {
+            return Promise.resolve({});
+        }
+
+        const queryString = knexBuilder
+            .select([
+                'id',
+                'settingsTimezone',
+                'settingsPreferredReminderTime',
+                'settingsQuietHoursStart',
+                'settingsQuietHoursEnd',
+                'settingsPushHabitReminders',
+                'settingsPushStreakAlerts',
+            ])
+            .from(USERS_TABLE_NAME)
+            .whereIn('id', userIds)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.reduce(
+            (acc: Record<string, IHabitReminderPreferenceRow>, row: IHabitReminderPreferenceRow) => {
+                acc[row.id] = row;
+                return acc;
+            },
+            {},
+        ));
     }
 
     findUsersWithInterests({
@@ -624,6 +683,14 @@ export default class UsersStore {
 
         if (params.settingsLocale != null) {
             modifiedParams.settingsLocale = params.settingsLocale;
+        }
+
+        // The user's IANA timezone, reported by the mobile client on every push
+        // registration. Validated in the handler (`isValidTimeZone`) rather than
+        // here, because an unrecognised zone must fail the request loudly instead
+        // of being written and then silently falling back on every digest run.
+        if (params.settingsTimezone != null) {
+            modifiedParams.settingsTimezone = params.settingsTimezone;
         }
 
         if (params.settingsThemeName != null) {

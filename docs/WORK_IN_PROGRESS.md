@@ -134,6 +134,10 @@ here is what code cannot close.
   reaches production. On an app that predates that release the reminder posts on
   the DEFAULT-importance "General" channel: it still arrives, with no heads-up
   banner. Verify on a handset after both halves are out.
+  **`eveningCheckIn` (the new "last chance" nudge) moved the same way and rides
+  the same release** — `EVENING_CHECK_IN` is already in `REMINDER_ACTION_KEYS`
+  and in the manifest, so it adds no new ordering constraint, but it inherits
+  this one. Check both types on the handset in the same pass.
 - [ ] **Watch `checkinNudgesRolledUp` in the first digest runs after deploy.**
   New counter: candidates recorded minus rows queued. It is the direct evidence
   the burst is gone — `streakAtRiskSent + dailyRemindersSent` now counts *users*
@@ -142,11 +146,43 @@ here is what code cannot close.
   being fed. Watch `daily cap reached` fall at the same time, and watch for
   `spaced:` values in `notificationQueue."lastError"` — those are deferrals, not
   failures, and should clear within the hour.
-- [ ] **Move the habits digest off 14:00 UTC.** The Cloud Scheduler job fires at
-  14:00 UTC = 09:00 CDT, but `streakAtRisk` is designed as an *evening* nudge
-  (`habitsDigest.ts`: "run it in the evening") — at 9am it tells users their streak
-  is at risk before they have had the day to check in. Owned by
-  `therr-infra-terraform` (`messaging-automator.tf`), not this repo.
+- [x] ~~**Move the habits digest off 14:00 UTC.**~~ Superseded rather than done, and
+  **the schedule must now stay where it is.** The digest no longer treats its own
+  firing time as the delivery time: it reads each user's `settingsTimezone` and
+  queues rows with an explicit `scheduledFor`, so the morning nudge lands in the
+  user's local morning and the new `eveningCheckIn` "last chance" nudge in their
+  local evening. Moving the Cloud Scheduler job would only change which users'
+  *decisions* get made late in their own day — and 14:00 UTC = 09:00 CDT is also
+  the fallback delivery time for a user whose timezone we do not know yet, so
+  changing it would silently move their reminders.
+- [ ] **Watch `usersWithoutTimezone` fall over the weeks after the mobile release.**
+  It counts digest recipients with no usable `main.users.settingsTimezone`, who
+  fall back to `America/Chicago` and therefore keep exactly the delivery time they
+  had before. It starts at ~100% and should decline as installs update, because
+  the value is only written by `registerDeviceForFCM` on the push path. **A flat
+  line is the signal that the mobile half never shipped** — nothing else reports
+  it, and every user on the fallback is a user this feature did nothing for.
+- [ ] **Watch the first week of `lastChanceSent` against `streakAtRiskSent`.** The
+  evening nudge is the only change here that *raises* send volume, so treat the
+  first week as the real baseline. `lastChanceSent` can never exceed
+  `streakAtRiskSent` (a live streak is required), and the gap is accounted for by
+  `lastChanceNotScheduled` + `lastChanceSkippedNoStreak` +
+  `lastChanceMutedByPreference` — all three are pushes withheld on purpose. The
+  number that says the anti-spam side is working is **not** in the response: count
+  `already-checked-in` in `main."notificationQueue"."lastError"`, which is the
+  send-time gate dropping evening rows for users who checked in during the day.
+  Expect it to be a large fraction of `lastChanceSent`; a persistent zero means
+  the gate is not firing and users are being nagged after they have already done
+  the thing. Kill switch is `HABIT_LAST_CHANCE_REMINDERS_ENABLED=false` on
+  users-service — no deploy needed.
+- [ ] **Build the push-preference UI, now that two columns are finally read.** The
+  digest honours `settingsPushHabitReminders` (both daily slots) and
+  `settingsPushStreakAlerts` (the evening escalation only) — the first server-side
+  reading of any push preference column. No client writes either, so
+  `remindersMutedByPreference` and `lastChanceMutedByPreference` will sit at 0
+  until `TherrMobile/main/routes/Settings/ManageNotifications.tsx` grows push
+  toggles alongside its email ones. Until then a user's only way to turn the
+  evening nudge off is the OS switch, which takes everything with it.
 
 ## Standing items (always re-verify after a deploy that touches the area)
 
@@ -521,20 +557,25 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   `IHabitsDigestCounters` — the existing `*Sent` fields kept their names for compatibility
   but now count rows *queued*, and `deduped` is the only field that distinguishes a second
   run of the day from a quiet one.
-- [ ] (2026-08-08, notification-queue) **No push preference is honored server-side — fix
-  before raising send frequency.** `settingsPushMarketing`, `settingsPushBackground`,
-  `settingsPushInvites`, `settingsPushLikes`, `settingsPushMentions` and
-  `settingsPushTopics` are real columns, settable through the API and carried by
-  `therr-react`, and `sendEmailAndOrPushNotification` reads none of them (it checks only
-  `isUnclaimed`). `TherrMobile/main/routes/Settings/ManageNotifications.tsx` renders email
-  toggles only. So a user's sole control over push is the OS switch, which is
-  all-or-nothing. The queue worker is the natural enforcement point — mark such rows
-  `skipped`, not `failed`, so suppression stays measurable.
-- [ ] (2026-08-08, notification-queue) **Add a user timezone column.** Nothing in the
-  schema records one, so the daily digest's "run it in the evening" is evening in exactly
-  one timezone worldwide. `notificationQueue.scheduledFor` exists and cannot mean anything
-  but "now" until this lands. Prerequisite for roadmap item #2 (send-time personalization,
-  15-40% on opens).
+- [ ] (2026-08-08, notification-queue) **Most push preferences are still not honored
+  server-side — fix before raising send frequency further.** `settingsPushMarketing`,
+  `settingsPushBackground`, `settingsPushInvites`, `settingsPushLikes`,
+  `settingsPushMentions` and `settingsPushTopics` are real columns, settable through the
+  API and carried by `therr-react`, and `sendEmailAndOrPushNotification` reads none of them
+  (it checks only `isUnclaimed`). `TherrMobile/main/routes/Settings/ManageNotifications.tsx`
+  renders email toggles only. So a user's sole control over most push types is the OS
+  switch, which is all-or-nothing.
+  **Partially closed for habits:** the digest now reads `settingsPushHabitReminders` and
+  `settingsPushStreakAlerts` and counts each suppression — the first server-side reading of
+  any push preference column, and the template for the rest. What is missing is the UI to
+  write them; see the Manual Operational Follow-ups entry.
+- [x] ~~(2026-08-08, notification-queue) **Add a user timezone column.**~~ The column
+  (`main.users.settingsTimezone`) had existed since the habits schema landed —
+  `20260126000010_main.users_habits.js` — and nothing ever *wrote* it, which is why this
+  read as missing. The mobile client now reports the device's IANA zone on every push
+  registration, `users.ts` validates it, and `utilities/localReminderSchedule.ts` turns it
+  into `scheduledFor` instants. Roadmap item #2 (send-time personalization) is live for the
+  habits reminders; every other producer still queues at "now".
 
 - [ ] (2026-08-26, habits-daily-notifications) **Watch the first week of daily-reminder
   volume, then decide on `morningMotivation` / `eveningCheckIn`.** `dailyHabitReminder`
@@ -551,16 +592,18 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   and because that query orders `startedAt ASC` the habits that fall off the end belong to
   the newest users — the cohort this pass exists to retain. Raise the limit or page the
   query when it flips; the run also logs a warn-level span.
-- [ ] (2026-08-07, push-notifications-debug) **Six HABITS notification types still have no
-  sender.** `morningMotivation`, `eveningCheckIn`, `streakBroken`, `newPersonalRecord`,
-  `partnerCelebrated` and `pactCompleted` have copy in all three
-  locales, Android channel routing, per-brand intent actions and test coverage — and
-  nothing in this repo ever calls them. They are not scheduled on-device either
-  (`sendTriggerNotification` is used only by Moments/Events). `dailyHabitReminder` is now
-  wired (see the entry above); the rest are still delivery-half-only. Decide per type: wire
-  a trigger (the digest at `habitsDigest.ts` is the natural home for the time-of-day pair,
-  though `morningMotivation` / `eveningCheckIn` want the user-timezone column below before
-  they mean anything), schedule them locally via Notifee, or delete the dead copy. Verify with:
+- [ ] (2026-08-07, push-notifications-debug) **Five HABITS notification types still have no
+  sender.** `morningMotivation`, `streakBroken`, `newPersonalRecord`, `partnerCelebrated`
+  and `pactCompleted` have copy in all three locales, Android channel routing, per-brand
+  intent actions and test coverage — and nothing in this repo ever calls them. They are not
+  scheduled on-device either (`sendTriggerNotification` is used only by Moments/Events).
+  `dailyHabitReminder` was wired by the digest's reminder pass, and `eveningCheckIn` is now
+  the evening "last chance" nudge — reused rather than replaced by a new type precisely
+  because a new type is inert until a fresh Android build ships from `niche/HABITS-general`.
+  For the rest, decide per type: wire a trigger, schedule locally via Notifee, or delete the
+  dead copy. `morningMotivation` is the one to think hardest about — the digest's morning
+  slot already occupies its moment, so a second morning push would need to say something the
+  streak nudge does not. Verify with:
   `grep -rn "Types.morningMotivation" --include=*.ts therr-services/ | grep -v push-notifications-service`
 
 - [ ] (2026-08-07, push-notifications-debug) **Verify the iOS APNS-topic fix on a real

@@ -92,6 +92,7 @@ import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils
 import { getBrandInitialRouteName } from '../utilities/brandLandingRoute';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
+import getDeviceTimeZone from '../utilities/deviceTimeZone';
 
 const preLoadImageList = [background1, background2, background3];
 
@@ -2188,7 +2189,26 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 //
                 // `fcmRegistrationStarted` above already limits this to one call per app
                 // session, and the server-side upsert is idempotent.
-                updateUser(user.details.id, { deviceMobileFirebaseToken: deviceToken });
+                //
+                // The device's IANA timezone rides along on the same call.
+                // `main.users.settingsTimezone` has existed since the habits schema
+                // landed and nothing has ever written it, which is why every scheduled
+                // notification went out at one global hour — evening in America/Chicago
+                // and 02:00 in Auckland. Reporting it here rather than through a new
+                // endpoint is deliberate: this is already the one call that happens once
+                // per app session on the push path, so a user who travels re-syncs the
+                // next time they open the app, and a user with push disabled — who
+                // cannot receive a scheduled reminder anyway — costs nothing.
+                //
+                // Sent only when the platform resolves a zone. The server rejects an
+                // unrecognised value with a 400, so passing `undefined` through on the
+                // rare device where `Intl` returns nothing would fail the device-token
+                // registration this call actually exists for.
+                const deviceTimeZone = getDeviceTimeZone();
+                updateUser(user.details.id, {
+                    deviceMobileFirebaseToken: deviceToken,
+                    ...(deviceTimeZone ? { settingsTimezone: deviceTimeZone } : {}),
+                });
                 this.unsubscribePushNotifications = onMessage(getMessaging(), async (remoteMessage) => {
                     await wrapOnMessageReceived(true, remoteMessage);
 
