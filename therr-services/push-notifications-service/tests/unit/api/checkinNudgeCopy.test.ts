@@ -5,6 +5,7 @@ import es from '../../../src/locales/es/dictionary.json';
 import frCa from '../../../src/locales/fr-ca/dictionary.json';
 import {
     formatHabitNames,
+    getCheckinNudgeCopyNamespace,
     selectCheckinNudgeBodyKey,
     shouldOfferOnePressCheckin,
     MAX_LISTED_HABIT_NAMES,
@@ -74,6 +75,49 @@ describe('check-in nudge copy', () => {
                 'notifications.dailyHabitReminder.body',
             )).to.equal('notifications.dailyHabitReminder.bodyMultiple');
         });
+
+        it('resolves the evening nudge to its own plural copy, not the reminder\'s', () => {
+            // The failure this pins is silent: before the namespace table, every
+            // type that was not `streakAtRisk` fell through to
+            // `dailyHabitReminder.bodyMultiple`, so the evening "last chance"
+            // push would have rendered "One check-in gets you started" — a
+            // gentle opener, in the slot whose entire job is urgency.
+            expect(selectCheckinNudgeBodyKey(
+                PushNotifications.Types.eveningCheckIn,
+                3,
+                'notifications.eveningCheckIn.bodyWithFreeze',
+            )).to.equal('notifications.eveningCheckIn.bodyMultiple');
+        });
+
+        it('keeps the evening nudge\'s freeze-aware singular copy for one habit', () => {
+            expect(selectCheckinNudgeBodyKey(
+                PushNotifications.Types.eveningCheckIn,
+                1,
+                'notifications.eveningCheckIn.bodyWithFreeze',
+            )).to.equal('notifications.eveningCheckIn.bodyWithFreeze');
+        });
+
+        it('falls back to the neutral namespace for an unlisted type', () => {
+            // Matches what the ternary this replaced already did, so adding a
+            // nudge type without copy degrades rather than throwing a key path
+            // at the user as the push body.
+            expect(selectCheckinNudgeBodyKey(
+                PushNotifications.Types.morningMotivation,
+                2,
+                'notifications.morningMotivation.body',
+            )).to.equal('notifications.dailyHabitReminder.bodyMultiple');
+        });
+    });
+
+    describe('getCheckinNudgeCopyNamespace', () => {
+        it('maps each nudge type to its own dictionary namespace', () => {
+            expect(getCheckinNudgeCopyNamespace(PushNotifications.Types.streakAtRisk))
+                .to.equal('notifications.streakAtRisk');
+            expect(getCheckinNudgeCopyNamespace(PushNotifications.Types.dailyHabitReminder))
+                .to.equal('notifications.dailyHabitReminder');
+            expect(getCheckinNudgeCopyNamespace(PushNotifications.Types.eveningCheckIn))
+                .to.equal('notifications.eveningCheckIn');
+        });
     });
 
     describe('formatHabitNames', () => {
@@ -107,6 +151,7 @@ describe('check-in nudge copy', () => {
                 [
                     dictionary.notifications.streakAtRisk.bodyMultiple,
                     dictionary.notifications.dailyHabitReminder.bodyMultiple,
+                    dictionary.notifications.eveningCheckIn.bodyMultiple,
                 ].forEach((copy) => {
                     expect(copy, `${locale} is missing a bodyMultiple`).to.be.a('string');
                     expect(copy).to.contain('{habitCount}');
@@ -123,6 +168,19 @@ describe('check-in nudge copy', () => {
                 // A freeze count is per habit; naming one while the copy covers
                 // three promises a net over habits it does not cover.
                 expect(dictionary.notifications.streakAtRisk.bodyMultiple).to.not.contain('{freezesRemaining}');
+                expect(dictionary.notifications.eveningCheckIn.bodyMultiple).to.not.contain('{freezesRemaining}');
+            });
+
+            it(`${locale} gives the evening nudge streak-aware copy, not a generic prompt`, () => {
+                // The evening slot is the second push a user can receive in a
+                // day. A body that could have been written before we knew
+                // anything about them — which is what this copy used to be —
+                // does not earn that, and it is the difference between a
+                // reminder and noise.
+                const eveningCheckIn = dictionary.notifications.eveningCheckIn;
+                expect(eveningCheckIn.body).to.contain('{streakCount}');
+                expect(eveningCheckIn.body).to.contain('{habitName}');
+                expect(eveningCheckIn.bodyWithFreeze).to.contain('{freezesRemaining}');
             });
         });
     });
