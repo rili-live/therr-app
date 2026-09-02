@@ -187,7 +187,9 @@ than breaking it. That only holds in one direction: *renaming* or repurposing an
 counter silently changes what that repo's Cloud Function logs, with nothing failing. The
 reminder-pass counters (`habitsEvaluated`, `dailyRemindersSent`, `remindersNotDue`) were added
 this way, as were the `pactsCapped` / `habitsCapped` booleans that say a run hit its LIMIT and
-left a tail unevaluated.
+left a tail unevaluated, and the local-scheduling counters (`lastChanceSent`,
+`lastChanceNotScheduled`, `lastChanceSkippedNoStreak`, `lastChanceMutedByPreference`,
+`remindersMutedByPreference`, `usersWithoutTimezone`).
 
 The digest also **ignores the `x-brand-variation` header it is sent** and files every
 notification under `habits`. The automator hardcodes `habits` for this call, so the two agree
@@ -210,6 +212,17 @@ period-stamped dedupe keys (`streak-at-risk:<pactId>:<YYYY-MM-DD>`) behind a UNI
 timeout continuation costs a wasted read pass rather than a double-send to real users.
 The single Cloud Scheduler job (`0 9 * * *` America/Chicago) is still the intended trigger,
 but it is no longer the *only* thing standing between a retry and duplicate pushes.
+
+**That job is now a clock, not a delivery time — and moving it would be a regression.**
+The digest reads each user's `main.users.settingsTimezone` and queues rows with an explicit
+`scheduledFor`, so one firing produces two per-user slots: a morning streak-status nudge and
+an evening `eveningCheckIn` "last chance" reminder, each in the recipient's own local day.
+Rescheduling the job to "the evening" — which the backlog asked for while delivery still
+followed the firing — would only change *whose* decisions get made late in their own day.
+Worse, `America/Chicago` is also the fallback zone for a user whose timezone is not yet
+known, so changing the schedule silently moves those users' reminders. This is also why a
+fourth scheduler job was never the answer to wanting a second daily reminder: the free tier
+is 3 jobs and all 3 are in use (§ below), and the queue does the job better anyway.
 
 Two consequences for the automator side:
 

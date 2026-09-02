@@ -44,10 +44,36 @@ export const shouldOfferOnePressCheckin = (
 };
 
 /**
+ * The dictionary namespace each check-in nudge type renders its copy from.
+ *
+ * Three types, one notification: the digest's roll-up picks between them per
+ * user per slot (`users-service/src/utilities/checkinNudgeRollup.ts` and the
+ * evening slot in `habitsDigest.ts`). Keeping the mapping in one table rather
+ * than a ternary is what let `eveningCheckIn` join without the plural copy for
+ * the new type silently resolving to `dailyHabitReminder`'s — which would have
+ * rendered "one check-in gets you started" as a last-chance warning, with
+ * nothing failing anywhere.
+ */
+const CHECKIN_NUDGE_COPY_NAMESPACES: Partial<Record<PushNotifications.Types, string>> = {
+    [PushNotifications.Types.streakAtRisk]: 'notifications.streakAtRisk',
+    [PushNotifications.Types.dailyHabitReminder]: 'notifications.dailyHabitReminder',
+    [PushNotifications.Types.eveningCheckIn]: 'notifications.eveningCheckIn',
+};
+
+/**
+ * The dictionary namespace for a nudge type. Unlisted types fall back to
+ * `dailyHabitReminder`, which is the neutral framing and what the ternary this
+ * replaced already did for everything that was not `streakAtRisk`.
+ */
+export const getCheckinNudgeCopyNamespace = (
+    type: PushNotifications.Types,
+): string => CHECKIN_NUDGE_COPY_NAMESPACES[type] || 'notifications.dailyHabitReminder';
+
+/**
  * Which body copy a check-in nudge renders.
  *
- * `streakAtRisk` keeps its freeze-aware variants (see `streakCopy.ts`) in the
- * singular case, so this only decides the plural swap.
+ * `streakAtRisk` and `eveningCheckIn` keep their freeze-aware variants (see
+ * `streakCopy.ts`) in the singular case, so this only decides the plural swap.
  */
 export const selectCheckinNudgeBodyKey = (
     type: PushNotifications.Types,
@@ -57,9 +83,7 @@ export const selectCheckinNudgeBodyKey = (
     const count = Number(habitCount || 0);
 
     if (count > 1) {
-        return type === PushNotifications.Types.streakAtRisk
-            ? 'notifications.streakAtRisk.bodyMultiple'
-            : 'notifications.dailyHabitReminder.bodyMultiple';
+        return `${getCheckinNudgeCopyNamespace(type)}.bodyMultiple`;
     }
 
     return singularKey;

@@ -14,7 +14,12 @@ import {
     IHabitPair,
 } from '../utilities/habitLifecycleContext';
 import { getTodayDateString, isHabitDueToday, normalizeDateString } from '../utilities/streakHelpers';
-import { checkinNudgeDedupeKey, createCheckinNudgeAccumulator } from '../utilities/checkinNudgeRollup';
+import {
+    checkinNudgeDedupeKey,
+    createCheckinNudgeAccumulator,
+    lastChanceNudgeDedupeKey,
+} from '../utilities/checkinNudgeRollup';
+import { resolveReminderSchedule } from '../utilities/localReminderSchedule';
 import { createNameResolvers } from '../utilities/notificationNames';
 import { IUserHabitReminderRow } from '../store/UserHabitsStore';
 
@@ -48,6 +53,32 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
  * true.
  */
 const areDailyRemindersEnabled = (): boolean => process.env.HABIT_DAILY_REMINDERS_ENABLED !== 'false';
+
+/**
+ * Kill switch for the evening "last chance" reminder.
+ *
+ * Defaults **on**, like the daily reminder pass and unlike the phase engine,
+ * because it is the half of this feature that makes the other half safe: the
+ * morning slot moved earlier in the user's day (see `resolveReminderSchedule`),
+ * and without an evening follow-up a user who is reminded at 08:00 and forgets
+ * by 21:00 is worse off than before.
+ *
+ * It stays a flag because it is the only change here that *raises* send volume,
+ * and it is the first lever to pull if the numbers say the second push is not
+ * earning its place: `HABIT_LAST_CHANCE_REMINDERS_ENABLED=false` stops it
+ * without a deploy, leaving per-user local scheduling of the morning nudge
+ * intact.
+ *
+ * Three things already bound the volume it can add, and they are worth stating
+ * because "one more push per day" is exactly the change that quietly costs DAU:
+ *   - only users with a *live streak* qualify (see `hasLiveStreak` below), so a
+ *     user with nothing to lose still gets one reminder a day;
+ *   - the slot must fit inside the user's own local evening, before quiet
+ *     hours, at least four hours after their morning nudge, or it is dropped;
+ *   - the send-time freshness gate suppresses the row entirely if the user has
+ *     checked in since — which, on a working day, is most of them.
+ */
+const areLastChanceRemindersEnabled = (): boolean => process.env.HABIT_LAST_CHANCE_REMINDERS_ENABLED !== 'false';
 
 interface IDigestCounters {
     pactsEvaluated: number;
@@ -112,6 +143,37 @@ interface IDigestCounters {
     // gone — `streakAtRiskSent + dailyRemindersSent` now counts *users*
     // notified, and this counts the extra pushes they are no longer getting.
     checkinNudgesRolledUp: number;
+
+    // ---- Evening "last chance" reminders + per-user local scheduling --------
+    // Rows queued for the evening slot. The one number that says the feature is
+    // on and reaching people. Read it against `streakAtRiskSent`: only a user
+    // with a live streak qualifies, so it can never exceed it, and a large gap
+    // is explained by the three counters below rather than by a fault.
+    lastChanceSent: number;
+    // Users with a live streak whose local day had no room left for a second
+    // nudge — the digest reached them late in their evening, their quiet hours
+    // had begun, or the two slots would have landed within four hours of each
+    // other. Expected to be substantial and non-zero: it counts pushes
+    // deliberately *not* sent, which is the point.
+    lastChanceNotScheduled: number;
+    // Users nudged this run with no live streak anywhere. They get the morning
+    // reminder only — loss aversion is the whole justification for a second
+    // push in a day, and there is nothing here to lose.
+    lastChanceSkippedNoStreak: number;
+    // Suppressed by the user's own settings. `remindersMutedByPreference`
+    // (settingsPushHabitReminders = false) drops both slots;
+    // `lastChanceMutedByPreference` (settingsPushStreakAlerts = false) drops
+    // only the evening one. Both columns have existed since the habits schema
+    // landed and nothing read either until now, so both read 0 until a client
+    // starts writing them.
+    remindersMutedByPreference: number;
+    lastChanceMutedByPreference: number;
+    // Users whose `settingsTimezone` was unset or unusable, who therefore fell
+    // back to the digest's own zone and kept exactly the delivery time they had
+    // before this feature. Starts at ~100% of recipients and should fall as
+    // installs report their timezone on push registration; a flat line means
+    // the mobile half never shipped, and this is the only place that shows it.
+    usersWithoutTimezone: number;
 }
 
 /**
@@ -120,7 +182,11 @@ interface IDigestCounters {
  * only fire when someone acts; this job covers the silence:
  *
  *  - streakAtRisk  → to each member with an active streak who hasn't
- *                    completed today's check-in (run it in the evening).
+ *                    completed today's check-in, delivered at their local
+ *                    morning.
+ *  - eveningCheckIn → the "last chance" escalation, delivered mid-to-late in
+ *                    the *user's own* evening to those same people, and only
+ *                    if they still have not checked in by the time it drains.
  *  - partnerMissedDay → to the other members when a member failed to
  *                    complete yesterday's check-in.
  *  - pactExpiring  → to all active members when the pact ends within 3 days.
@@ -135,6 +201,20 @@ interface IDigestCounters {
  * Scheduler job poking therr-messaging-automator). The route is deliberately
  * NOT registered in the API gateway, so it is unreachable from the public
  * internet.
+ *
+ * ONE FIRING, PER-USER DELIVERY TIMES. That single daily firing used to be the
+ * delivery time as well — every row was queued with `scheduledFor = now()`, so
+ * "run it in the evening" meant evening in America/Chicago and 02:00 in
+ * Auckland. It now decides *what* to send at 14:00 UTC and *when* per user,
+ * via `utilities/localReminderSchedule.ts` and the `scheduledFor` column the
+ * queue was built with. Cloud Scheduler's free tier is 3 jobs and all 3 are
+ * spoken for (docs/CROSS_REPO_INTEGRATION.md §4), so more firings were never
+ * the answer; the queue is.
+ *
+ * The cost of deciding hours before sending is that the decision can go stale —
+ * the user checks in at lunchtime and the evening row still says their streak
+ * is on the line. `utilities/checkinNudgeFreshness.ts` re-checks at send time
+ * and drops the row, which is what makes the deferral safe.
  *
  * SAFE TO RE-RUN. This handler decides *what* to notify; it queues rather than
  * sends, and every dedupe key it writes is stamped with the period it belongs
@@ -209,6 +289,12 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         comebackSent: 0,
         nudgesTapered: 0,
         checkinNudgesRolledUp: 0,
+        lastChanceSent: 0,
+        lastChanceNotScheduled: 0,
+        lastChanceSkippedNoStreak: 0,
+        remindersMutedByPreference: 0,
+        lastChanceMutedByPreference: 0,
+        usersWithoutTimezone: 0,
     };
 
     const today = getTodayDateString();
@@ -227,6 +313,11 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         type: PushNotifications.Types,
         dedupeKey: string,
         extras: Record<string, any> = {},
+        // Omitted means "as soon as the worker next ticks", which is what every
+        // notification here did before per-user local scheduling existed. Only
+        // the two check-in slots pass a value. Defaulted rather than declared
+        // optional so it can follow `extras`, which is itself defaulted.
+        scheduledFor: Date | undefined = undefined,
     ): Promise<EnqueueOutcome> => {
         const outcome = await enqueueNotification({
             brandVariation: brand,
@@ -237,6 +328,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             // when it builds the send, so they have to travel with the row —
             // by the time it drains, this request's headers are long gone.
             payload: { ...extras, locale, whiteLabelOrigin },
+            scheduledFor,
         });
         if (outcome === 'duplicate') {
             counters.deduped += 1;
@@ -260,7 +352,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         type: PushNotifications.Types,
         dedupeKey: string,
         extras: Record<string, any> = {},
-    ): Promise<boolean> => (await queuePushOutcome(toUserId, type, dedupeKey, extras)) === 'queued';
+        scheduledFor: Date | undefined = undefined,
+    ): Promise<boolean> => (await queuePushOutcome(toUserId, type, dedupeKey, extras, scheduledFor)) === 'queued';
 
     try {
         // Memoized for the run. Shared with the inline check-in path
@@ -856,14 +949,70 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         const nudgeRows = checkinNudges.drain();
         counters.checkinNudgesRolledUp = checkinNudges.candidateCount() - nudgeRows.length;
 
+        // Reminder settings for everyone this run is about to notify, in one
+        // read — the same reason `buildHabitLifecycleContext` batches: a
+        // `findUser` per recipient turns a background job into one round trip
+        // per user against the read pool.
+        //
+        // A failure here degrades rather than aborts. An empty map means every
+        // user falls back to the digest's own zone and the default quiet hours,
+        // which is exactly the behaviour every run before this one had.
+        const reminderPreferences = await Store.users
+            .getHabitReminderPreferences(nudgeRows.map((row) => row.userId))
+            .catch((err: any) => {
+                counters.errors += 1;
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: failed to read reminder preferences'],
+                });
+                return {};
+            });
+
+        // One instant for the whole drain, so two users in the same zone cannot
+        // land on different sides of a minute boundary and get slots that
+        // disagree by a minute for no reason.
+        const decidedAt = new Date();
+
         // eslint-disable-next-line no-restricted-syntax
         for (const row of nudgeRows) {
+            const preferences = reminderPreferences[row.userId] || {};
+
+            // The user's own kill switch. `settingsPushHabitReminders` has been
+            // a real, defaulted-true column since the habits schema landed and
+            // nothing has ever read it, so a user's only control over these
+            // pushes was the OS switch — all or nothing. Honoured here rather
+            // than at the worker so the row is never written at all.
+            if (preferences.settingsPushHabitReminders === false) {
+                counters.remindersMutedByPreference += 1;
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
+            // Where, in real time, this user's morning and evening slots fall.
+            // Everything about local delivery is decided here; the rest of this
+            // loop only queues what it returns.
+            const schedule = resolveReminderSchedule(preferences, decidedAt);
+            if (schedule.usedFallbackTimeZone) {
+                counters.usersWithoutTimezone += 1;
+            }
+
+            // ---- Morning slot: the streak-status nudge ----------------------
+            // Same roll-up, same dedupe key and same counters as before; what
+            // changed is `scheduledFor`. A user in Berlin used to receive this
+            // at 16:00 local and a user in Auckland at 02:00, because the queue
+            // row said "now" and "now" was 14:00 UTC for everybody.
+            //
+            // `checkinDate` is the user's local date *at delivery*, not the
+            // digest's — the notification is about the day it lands on, and
+            // that is the day the freshness gate has to check.
             // eslint-disable-next-line no-await-in-loop
             const queued = await queuePush(
                 row.userId,
                 row.type,
                 checkinNudgeDedupeKey(today),
-                row.payload,
+                { ...row.payload, checkinDate: schedule.morningLocalDate },
+                schedule.morningAt,
             );
             if (queued) {
                 // Counted under the type actually queued, so the fields
@@ -874,6 +1023,73 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 } else {
                     counters.dailyRemindersSent += 1;
                 }
+            }
+
+            // ---- Evening slot: the "last chance" reminder -------------------
+            // Four gates, and each one exists to keep this from becoming the
+            // second daily push that teaches people to mute the app.
+            if (!areLastChanceRemindersEnabled()) {
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
+            // 1. Something to lose. A "last chance" for a user whose streak is
+            //    at zero is just a second generic reminder, and generic
+            //    reminders are what the frequency research says cost DAU. Loss
+            //    aversion is the entire justification for the extra push, so no
+            //    live streak means no second push.
+            if (!row.hasLiveStreak) {
+                counters.lastChanceSkippedNoStreak += 1;
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
+            // 2. The narrower of the user's two preference columns.
+            //    `settingsPushStreakAlerts` turns off the evening escalation
+            //    while leaving the ordinary morning reminder in place, which is
+            //    the setting someone reaching for "fewer of these" actually
+            //    wants.
+            if (preferences.settingsPushStreakAlerts === false) {
+                counters.lastChanceMutedByPreference += 1;
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
+            // 3. There has to be room in the user's own evening: after their
+            //    morning nudge by at least four hours, before their quiet
+            //    hours, and on the same local day the streak is at stake. When
+            //    there is not, `lastChanceAt` is null and silence is the
+            //    correct output — a "check in before midnight" that arrives
+            //    tomorrow morning is worse than nothing.
+            if (!schedule.lastChanceAt) {
+                counters.lastChanceNotScheduled += 1;
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
+            // The fourth gate is not here: the send-time freshness check in
+            // `utilities/checkinNudgeFreshness.ts` drops this row entirely if
+            // the user checks in between now and this evening, which on a
+            // working day is most of them. That is what makes queuing it now,
+            // hours ahead, honest.
+            //
+            // `eveningCheckIn` rather than a new type: it has had copy in all
+            // three locales, an intent action, manifest entries, channel
+            // routing and tap handling since the habits work landed, and no
+            // sender at all (docs/WORK_IN_PROGRESS.md has carried it as a dead
+            // type for a month). A new type would be inert until a fresh
+            // Android build shipped from niche/HABITS-general; this one works
+            // on installs that already exist.
+            // eslint-disable-next-line no-await-in-loop
+            const lastChanceQueued = await queuePush(
+                row.userId,
+                PushNotifications.Types.eveningCheckIn,
+                lastChanceNudgeDedupeKey(today),
+                { ...row.payload, checkinDate: schedule.lastChanceLocalDate },
+                schedule.lastChanceAt,
+            );
+            if (lastChanceQueued) {
+                counters.lastChanceSent += 1;
             }
         }
 

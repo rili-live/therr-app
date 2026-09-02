@@ -32,6 +32,7 @@ import { resolveAccessLevelsForAccountEmail } from './helpers/checkoutSessionAcc
 import { isClaimCodePreVerified, isMatchingInvitee } from './helpers/pactRedemption';
 import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { isValidTimeZone } from '../utilities/localReminderSchedule';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
 import { createOrUpdateAchievement } from './helpers/achievements';
@@ -891,6 +892,21 @@ const updateUser = (req, res) => {
                 });
             }
 
+            // The user's IANA timezone. Rejected rather than coerced: this is the
+            // only input to per-user reminder scheduling
+            // (`utilities/localReminderSchedule.ts`), and a junk value stored here
+            // is invisible — every digest run would quietly fall back to the
+            // default zone and the user would keep receiving reminders at the
+            // wrong hour with nothing reporting why.
+            const rawTimezone = req.body.settingsTimezone;
+            if (rawTimezone !== undefined && rawTimezone !== null && !isValidTimeZone(rawTimezone)) {
+                return handleHttpError({
+                    res,
+                    message: 'Invalid settingsTimezone (expected an IANA timezone, e.g. America/New_York)',
+                    statusCode: 400,
+                });
+            }
+
             // TODO: Don't allow updating phone number unless user phone number is already verified
             const updateArgs: any = {
                 firstName: req.body.firstName,
@@ -918,6 +934,7 @@ const updateUser = (req, res) => {
                 settingsPushMarketing: req.body.settingsPushMarketing,
                 settingsPushBackground: req.body.settingsPushBackground,
                 settingsLocale: req.body.settingsLocale,
+                settingsTimezone: rawTimezone,
                 settingsIsAccountSoftDeleted: req.body.settingsIsAccountSoftDeleted,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
                 autoRechargeEnabled: rawAutoRechargeEnabled,
