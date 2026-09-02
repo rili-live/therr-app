@@ -91,6 +91,14 @@ const MAX_DEFERRAL_WINDOW_MS = 6 * 60 * 60 * 1000;
 const TYPE_SEND_PRIORITY: Record<string, number> = {
     'streak-at-risk': 0,
     'daily-habit-reminder': 1,
+    // Ahead of the recurring reminders on purpose. The daily cap *drops* what it
+    // cannot send (see `sendOne`), on the reasoning that a reminder arriving a
+    // day late is worse than none -- which is true of everything else in this
+    // map and false of this one. `pact-ended` is keyed without a date because a
+    // pact ends exactly once, so a dropped row is never re-queued and the member
+    // is simply never told their cycle closed, losing the renew CTA that is the
+    // whole reason the notification is sent at that moment.
+    'pact-ended': 1,
     'pact-expiring': 2,
     'pact-invitation': 2,
     'partner-checked-in': 3,

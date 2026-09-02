@@ -196,6 +196,23 @@ describe('notificationQueueWorker — send order', () => {
         expect(ordered).to.deep.equal(['daily-habit-reminder', 'some-future-type']);
     });
 
+    it('puts the once-ever pact ending ahead of the recurring reminders', () => {
+        // Everything else in the priority map recurs, so the daily cap dropping
+        // one costs a day. `pact-ended` is keyed without a date -- a pact ends
+        // once -- so a dropped row is never re-queued and the member is never
+        // told their cycle closed, taking the renew CTA with it. Being ahead of
+        // the reminders is what keeps it out of the row the cap cuts.
+        const ordered = [
+            row('partner-checked-in'),
+            row('daily-habit-reminder'),
+            row('pact-ended'),
+            row('pact-expiring'),
+        ].sort(compareBySendPriority).map((r) => r.type);
+
+        expect(ordered.indexOf('pact-ended')).to.be.lessThan(ordered.indexOf('pact-expiring'));
+        expect(ordered.indexOf('pact-ended')).to.be.lessThan(ordered.indexOf('partner-checked-in'));
+    });
+
     it('falls back to oldest-first within one priority', () => {
         const older = row('partner-checked-in', new Date('2026-08-30T10:00:00.000Z'));
         const newer = row('partner-missed-day', new Date('2026-08-30T14:00:00.000Z'));
