@@ -1807,6 +1807,116 @@ finding.
   `BrandVariations.HABITS` and confirm the number cannot move without a
   check-in.
 
+#### 2.6.6 Check-in proof media — read path (shipped 2026-09-01)
+
+Proof images had been write-only since the check-in flow landed. The mobile
+proof sheet uploaded to the private GCS bucket, `habitCheckins.createCheckin`
+wrote `habits.proofs` rows and set `hasProof`, and then nothing ever read them
+back: `ProofsStore.getByCheckinId` existed uncalled, no route exposed it, and
+the only trace reaching a client was the `hasProof` boolean — which no surface
+rendered either. Users were being asked for a photo that was then unreachable.
+
+Shipped: `GET /habits/checkins/:id/proofs` (owner-only, mirroring `getCheckin`),
+`HabitCheckinsService.getProofs` / `Habits.getCheckinProofs`, and a tappable
+calendar day on `HabitDetail` that opens a sheet with that day's note, ratings
+and proof images.
+
+Two decisions worth not re-deriving:
+
+- **Proofs are not attached to `GET /range`.** The month grid renders its badge
+  from `hasProof`, which the check-in row already carries, so the calendar stays
+  at one query per month and paths are fetched only for a day the user opens.
+- **The response emits the bucket-selecting `type`, not `mediaType`.**
+  `habits.proofs.mediaType` is `'image' | 'video'`; maps-service `getBucket`
+  keys on `Content.mediaTypes.*` and falls through to the **public** bucket for
+  anything it does not recognize. A client passing `'image'` where `type`
+  belongs gets a broken image and no error anywhere. See
+  `utilities/checkinProofs.ts`.
+
+Still open, and the reason this is a section rather than a closed line:
+
+- [ ] **`POST /maps-service/media/signed-urls` does no authorization.**
+  `createMediaUrls` carries an explicit `// TODO: Check that the user has access
+  to this media` and honours it for nobody: it resolves any path the caller
+  names, and private media resolves to a *deterministic* `IMAGE_KIT_URL_PRIVATE`
+  URL rather than a signed one — so knowing a path is the whole access story.
+  The new endpoint does not widen this (it only ever hands a user their own
+  paths), but proofs are the first private media whose paths follow a guessable
+  shape: `<userId>/content/habits_proof_<habitGoalId>_<epochMs>.jpeg`. Fix the
+  endpoint, not the filename. Scope: `general`, maps-service.
+- [ ] **Proof images are never moderated.** `verificationStatus`,
+  `isSafeForWork` and `moderationFlags` on `habits.proofs` are all still at
+  their insert defaults — nothing writes them. The moments upload path runs
+  Sightengine; the proof path does not. Harmless while proofs are owner-only,
+  **blocking** for 2.6.8, which makes them public.
+
+#### 2.6.7 Thoughts silently drop uploaded images (#2840)
+
+Not a missing feature — a broken one, and the client half is already built.
+
+`main.thoughts` has had a `mediaIds text` column since the original 2022
+migration. `TherrMobile/main/routes/EditThought` has a full image picker,
+uploads the file to GCS via `signAndUploadImage`, and posts
+`createArgs.media = [{ type, path }]`. But `ThoughtsStore.create` builds an
+explicit `sanitizedParams` allow-list that includes neither `media` nor
+`mediaIds`, so the field is dropped on the floor: the object is orphaned in the
+bucket, the column stays `''`, and the read path returns a hard-coded
+`media: {}`. No client renders thought media at all.
+
+The Journal's own comment on `handleCreateGoal` documents the behaviour we do
+not have — "it gets the thought form's public/private toggle, category, hashtags
+and image". Every goal posted with a photo since that shipped has lost the photo.
+
+- [ ] Add a `medias jsonb` column (`[{path, type}]`), matching the
+      moments/spaces convention — **not** the legacy comma-separated `mediaIds`,
+      which areas already migrated away from. Clients then get display for free
+      via the existing `getUserContentUri(media)`.
+- [ ] Add `medias` to the `ThoughtsStore.create` allow-list and hydrate it on
+      the read paths (`getById`, `find`, `getForJournal`), replacing the
+      placeholder `media: {}`.
+- [ ] Render it in `ThoughtDisplay` (mobile) and `ViewThought` / `ThoughtCard`
+      (web). `AreaDisplay` is the working reference.
+- [ ] Decide what happens to already-orphaned uploads. They are unreferenced
+      objects in both buckets with no row pointing at them; a bucket-side
+      lifecycle rule is probably cheaper than a reconciliation script.
+
+Scope: `general` throughout (migration, store, shared components). No niche half.
+
+#### 2.6.8 Share a check-in publicly as a thought (#2841)
+
+**Rule 4, widened deliberately.** 2.6.2 made a check-in visible to 2–5 pact
+members, which is where the Friend Streak evidence sits. This is the opt-in
+step past it: a "share today's check-in" action that mints a `main.thoughts` row
+carrying the proof image and a short lead-in, so a user who wants an audience
+has one without the habit loop depending on it.
+
+Blocked on 2.6.7 — there is no working media path on thoughts to attach to.
+
+Two things already work in this feature's favour and should not be re-litigated:
+
+- **Cross-brand visibility is already correct.** `BRAND_THOUGHTS_VISIBILITY` is
+  `THERR: 'all'`, `HABITS: [HABITS]`, so a thought written from Friends with
+  Habits already surfaces in the Therr feed while Therr posts stay out of the
+  habits feed. That is exactly the asymmetry this wants. No change needed.
+- **The hand-off pattern exists.** Journal's "Share a goal" navigates to the
+  shared `EditThought` screen with `returnToRoute`, rather than growing a second
+  composer. A share-check-in action should do the same, prefilled.
+
+The one design decision, and it is load-bearing:
+
+- [ ] **Copy the media, do not reference it.** Three independent reasons: proofs
+      live in the private bucket and a public thought needs a public-bucket
+      object; nothing has moderated a proof image (2.6.6), and the copy is the
+      natural place to run the check moments already run; and the lifecycles
+      differ — deleting a check-in must not retract a post that has replies, and
+      deleting the post must not destroy the user's own record.
+- [ ] Store the link as a nullable `sharedThoughtId` on `habits.habit_checkins`
+      so the calendar day can show "shared" and deep-link to `ViewThought`, the
+      way the journal already opens goals.
+
+Scope: `general` (media copy + moderation, `sharedThoughtId` migration, share
+endpoint) + `niche/HABITS-general` (the share CTA on the day sheet, locales).
+
 ---
 
 ## Tier 3 — Operational Quality (Scale, Performance, Cost)
