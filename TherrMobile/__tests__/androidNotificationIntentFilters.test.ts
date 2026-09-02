@@ -124,6 +124,45 @@ describe('AndroidManifest push-notification intent filters', () => {
     });
 });
 
+/**
+ * The two lists above are literals, and that is deliberate — see the header. But a literal
+ * only catches what it already names: a key *added* to the enum and never added here is
+ * invisible, and the manifest assertions pass while the new notification ships untappable.
+ * That is how `NEW_THOUGHT_REPOST_RECEIVED` sat uncovered.
+ *
+ * So close the loop against the enum's **TypeScript source**, read as text. Reading the
+ * source rather than importing the module is what keeps the header's promise: it does not
+ * care whether therr-js-utilities' `lib/` output has been built or is stale, and it holds
+ * even though this suite must keep working when it has not been.
+ *
+ * `HabitsAndroidIntentActions` is the one checked because it is a strict superset of the
+ * Therr and Teem enums (41 keys against their 24), so covering it covers every brand.
+ */
+const ENUM_SOURCE_PATH = path.resolve(
+    __dirname,
+    '../../therr-public-library/therr-js-utilities/src/constants/enums/PushNotifications.ts',
+);
+
+describe('intent action key lists track the shared enum', () => {
+    it('names every key in HabitsAndroidIntentActions, and no key that is not in it', () => {
+        const enumSource = fs.readFileSync(ENUM_SOURCE_PATH, 'utf8');
+        const enumBlock = enumSource.match(/enum\s+HabitsAndroidIntentActions\s*\{([\s\S]*?)\n\}/);
+
+        // A rename or restructure of the enum must fail loudly here rather than quietly
+        // reducing this test to an assertion about an empty set.
+        expect(enumBlock).not.toBeNull();
+
+        const enumKeys = Array.from(enumBlock![1].matchAll(/^\s*([A-Z][A-Z0-9_]*)\s*=/gm)).map((m) => m[1]);
+        expect(enumKeys.length).toBeGreaterThan(0);
+
+        const covered = [...INTENT_ACTION_KEYS, ...HABITS_INTENT_ACTION_KEYS];
+
+        // Named rather than counted so a failure says which key drifted.
+        expect(enumKeys.filter((key) => !covered.includes(key))).toEqual([]);
+        expect(covered.filter((key) => !enumKeys.includes(key))).toEqual([]);
+    });
+});
+
 describe('build.gradle notificationActionPrefix placeholder', () => {
     it('defines the placeholder the manifest interpolates', () => {
         expect(buildGradle).toContain('notificationActionPrefix:');

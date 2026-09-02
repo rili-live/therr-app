@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     ImageSourcePropType,
     Platform,
@@ -30,11 +30,34 @@ const BLINK_OPEN_MS = 120;
 /** Eyes-open pause between the two blinks. */
 const BLINK_GAP_MS = 120;
 
+/** Every leg of the two-blink sequence, in the order `withSequence` runs them. */
+const BLINK_SEQUENCE_MS = BLINK_CLOSE_MS + BLINK_HOLD_MS + BLINK_OPEN_MS + BLINK_GAP_MS
+    + BLINK_CLOSE_MS + BLINK_HOLD_MS + BLINK_OPEN_MS;
+
 // Some brands (e.g. HABITS) use a combined splash logo that bundles the icon
 // and the wordmark into a single image. Spinning that image rotates the text
 // too, which reads poorly — so we only spin brands whose splash logo is an
 // icon on its own. HABITS gets a blink of the chameleon's eyes instead.
 const SHOULD_BLINK_LOGO = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
+
+/**
+ * How long the overlay may legitimately stay up, and the grace on top of it before the
+ * failsafe fires.
+ *
+ * This overlay is `absoluteFill` at `zIndex: 9999` over the whole NavigationContainer, and
+ * the only thing that takes it down is a reanimated completion callback. Those callbacks run
+ * with `finished: false` when an animation is interrupted rather than completed — and on that
+ * path nothing calls `fadeOut`, nothing calls `finish`, and the app is left under an opaque
+ * brand-colored sheet until the user force-kills it. The window is short (~1s) but it sits on
+ * the cold-start path, where a stuck frame is indistinguishable from a crash.
+ *
+ * Derived rather than hardcoded so retiming the blink cannot leave the failsafe firing mid-
+ * animation. The grace is deliberately large relative to the budget: this exists to bound a
+ * hang, not to race a slow-but-working animation on a cold JS thread.
+ */
+const ANIMATION_BUDGET_MS = (SHOULD_BLINK_LOGO ? BLINK_SEQUENCE_MS : SPIN_DURATION_MS) + FADE_OUT_DURATION_MS;
+const FAILSAFE_GRACE_MS = 3000;
+export const SPLASH_FAILSAFE_MS = ANIMATION_BUDGET_MS + FAILSAFE_GRACE_MS;
 
 /** What `assets/bootsplash/manifest.json` and `ios/Therr/BootSplash.storyboard` size the logo at. */
 const MANIFEST_LOGO_SIZE = 100;
@@ -201,6 +224,8 @@ const SplashLogoSpinner = ({ start, onAnimationComplete }: ISplashLogoSpinnerPro
     const eyelid = useSharedValue(0);
     const opacity = useSharedValue(1);
     const [hidden, setHidden] = useState(false);
+    /** Guards the race between the animation's completion callback and the failsafe timer. */
+    const hasFinishedRef = useRef(false);
     const [logoSource, setLogoSource] = useState(NATIVE_LOGO_SOURCE);
     // Read once on mount, as react-native-bootsplash does, rather than at import time.
     const [logoSize] = useState(() => splashLogoSize(Platform.OS, getNativeLogoSizeRatio()));
@@ -211,10 +236,22 @@ const SplashLogoSpinner = ({ start, onAnimationComplete }: ISplashLogoSpinnerPro
             return;
         }
 
+        // Idempotent: the animation callback and the failsafe timer race by design, and
+        // whichever loses must not hide the splash a second time or fire
+        // `onAnimationComplete` twice (Layout's handler is a setState, so a double call
+        // would be harmless today — but that is the caller's business, not ours).
         const finish = () => {
+            if (hasFinishedRef.current) {
+                return;
+            }
+            hasFinishedRef.current = true;
             setHidden(true);
             onAnimationComplete();
         };
+
+        // Bounds the hang described on SPLASH_FAILSAFE_MS. Cleared on unmount so a
+        // component torn down mid-animation does not call back into a dead tree.
+        const failsafe = setTimeout(finish, SPLASH_FAILSAFE_MS);
 
         const fadeOut = () => {
             opacity.value = withTiming(
@@ -249,7 +286,7 @@ const SplashLogoSpinner = ({ start, onAnimationComplete }: ISplashLogoSpinnerPro
                 }),
             );
 
-            return;
+            return () => clearTimeout(failsafe);
         }
 
         rotation.value = withTiming(
@@ -261,6 +298,8 @@ const SplashLogoSpinner = ({ start, onAnimationComplete }: ISplashLogoSpinnerPro
                 }
             },
         );
+
+        return () => clearTimeout(failsafe);
     }, [start, rotation, eyelid, opacity, onAnimationComplete]);
 
     const overlayStyle = useAnimatedStyle(() => ({
