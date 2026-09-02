@@ -185,8 +185,10 @@
       "body": "Today is a fresh chance to build the habit you committed to. Let's go."
     },
     "eveningCheckIn": {
-      "title": "How Did Today Go?",
-      "body": "Tap to log your check-in and lock in another day on your streak."
+      "title": "Last Chance Tonight",
+      "body": "Your {streakCount}-day {habitName} streak ends at midnight. One check-in keeps it alive.",
+      "bodyWithFreeze": "Your {streakCount}-day {habitName} streak ends at midnight. A streak freeze will cover you ({freezesRemaining} left) — but checking in now keeps it in your pocket.",
+      "bodyMultiple": "Last call on {habitCount} streaks — {habitNames}. Check in before midnight to keep them alive."
     },
     "habitEstablished": {
       "title": "{habitName} Is Sticking",
