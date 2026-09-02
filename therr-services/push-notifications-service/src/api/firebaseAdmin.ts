@@ -5,7 +5,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import translate from '../utilities/translator';
 import { clearInvalidDeviceToken } from '../handlers/helpers/user';
 import { getCredentialEnvKey } from './firebaseCredentialEnvKey';
-import { selectStreakAtRiskBodyKey } from './streakCopy';
+import { selectFreezeAwareBodyKey, selectStreakAtRiskBodyKey } from './streakCopy';
 import {
     formatHabitNames,
     selectCheckinNudgeBodyKey,
@@ -1575,17 +1575,55 @@ const createMessage = (
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'MORNING_MOTIVATION');
             return baseMessage;
-        case PushNotifications.Types.eveningCheckIn:
-            baseMessage = createNotificationMessage({
-                data: modifiedData,
+        case PushNotifications.Types.eveningCheckIn: {
+            // The "last chance" escalation: the same warning as `streakAtRisk`,
+            // delivered mid-to-late in the *user's own* evening rather than at
+            // the digest's clock time. It is the second push a user can get in
+            // a day, so it has to earn it — the copy names the streak, the
+            // count and the freeze, and a body that could have been sent at any
+            // hour would not be worth sending at all.
+            //
+            // Data-only, where this used to be an OS-rendered notification, for
+            // the same reason `dailyHabitReminder` moved: Android renders
+            // action buttons from Notifee and Notifee only sees a message that
+            // arrives as data. A last-chance reminder the user can satisfy from
+            // the tray is precisely the point.
+            //
+            // DEPLOY ORDER: the channel now comes from the client's
+            // `getAndroidChannelFromClickActionId` rather than the `channelId`
+            // named here, so `EVENING_CHECK_IN` must be in `REMINDER_ACTION_KEYS`
+            // (TherrMobile/main/constants/index.tsx, niche/HABITS-general) in the
+            // shipped build or this posts on the DEFAULT-importance "General"
+            // channel with no heads-up banner. It already is, in the same
+            // release `dailyHabitReminder` is waiting on — so this adds no new
+            // ordering constraint, it inherits the existing one.
+            const eveningFreezesRemaining = Number(config.freezesRemaining || 0);
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.eveningCheckIn.title'),
+                    notificationBody: translate(
+                        config.userLocale,
+                        selectCheckinNudgeBodyKey(
+                            type,
+                            config.habitCount,
+                            selectFreezeAwareBodyKey('notifications.eveningCheckIn', eveningFreezesRemaining),
+                        ),
+                        {
+                            streakCount: Number(config.streakCount || 0),
+                            habitName: String(config.habitName || ''),
+                            habitCount: Number(config.habitCount || 1),
+                            habitNames: formatHabitNames(config.habitNames),
+                            freezesRemaining: eveningFreezesRemaining,
+                        },
+                    ),
+                    notificationPressActionId: PushNotifications.PressActionIds.checkinView,
+                    notificationLinkPressActions: buildCheckinPressActions(config.userLocale, config),
+                },
                 deviceToken: config.deviceToken,
-                brandVariation,
-                notificationTitle: translate(config.userLocale, 'notifications.eveningCheckIn.title'),
-                notificationBody: translate(config.userLocale, 'notifications.eveningCheckIn.body'),
-                channelId: AndroidChannelId.reminders,
-            });
-            baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'EVENING_CHECK_IN');
+            }, getAppBrandingClickAction(brandVariation, 'EVENING_CHECK_IN'), brandVariation);
             return baseMessage;
+        }
 
         default:
             return false;

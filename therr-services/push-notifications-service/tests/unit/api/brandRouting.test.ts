@@ -60,6 +60,13 @@ const DATA_ONLY_TYPES = [
     // intent action now, so DAILY_HABIT_REMINDER must be in the mobile
     // REMINDER_ACTION_KEYS or an installed app posts it on the default channel.
     PushNotifications.Types.dailyHabitReminder,
+    // The evening "last chance" nudge, and data-only for exactly the same
+    // reason: it offers a one-press check-in, and Notifee — the only thing that
+    // renders action buttons — never sees a display-path message. Its intent key
+    // EVENING_CHECK_IN is already in the mobile REMINDER_ACTION_KEYS, in the
+    // same unreleased build dailyHabitReminder is waiting on, so this move
+    // inherits that deploy-ordering constraint rather than adding one.
+    PushNotifications.Types.eveningCheckIn,
     PushNotifications.Types.streakMilestone,
     PushNotifications.Types.newPersonalRecord,
     PushNotifications.Types.partnerCheckedIn,
@@ -105,7 +112,6 @@ const DISPLAY_TYPES = [
     PushNotifications.Types.streakFreezeUsed,
     PushNotifications.Types.pactDeclined,
     PushNotifications.Types.morningMotivation,
-    PushNotifications.Types.eveningCheckIn,
     // The one lifecycle message aimed at someone who has stopped opening the
     // app, so it has to render even when the app never wakes to handle it.
     PushNotifications.Types.habitComeback,
