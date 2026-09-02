@@ -351,6 +351,16 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderWidth: 2,
             borderColor: therrTheme.colors.primary3,
         },
+        // Sits below the day circle rather than on it: the circle is already
+        // carrying status via its fill, and overlaying a second signal on the
+        // same 36pt target makes both harder to read at a glance.
+        calendarDayProofDot: {
+            width: 5,
+            height: 5,
+            borderRadius: 2.5,
+            marginTop: 2,
+            backgroundColor: therrTheme.colors.primary3,
+        },
         calendarDayText: {
             fontFamily: therrFontFamily,
             fontSize: 14,

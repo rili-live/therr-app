@@ -119,10 +119,25 @@ const HabitCalendar: React.FC<IHabitCalendarProps> = ({
                     key={dateKey}
                     style={themeHabits.styles.calendarDay}
                     onPress={() => onDayPress?.(date, checkin)}
+                    accessibilityRole="button"
+                    accessibilityLabel={translate('pages.habits.dayDetail.dayAccessibilityLabel', {
+                        day,
+                        month: monthName,
+                    })}
                 >
                     <View style={getDayStyle(dateKey, checkin)}>
                         <Text style={getDayTextStyle(checkin)}>{day}</Text>
                     </View>
+                    {/*
+                      * Marks a day whose check-in carries a photo, so the month
+                      * grid advertises that there is something behind the tap.
+                      * Driven by `hasProof` on the check-in row the calendar
+                      * already has — the proof paths themselves are only
+                      * fetched when a day is opened.
+                      */}
+                    {!!checkin?.hasProof && (
+                        <View style={themeHabits.styles.calendarDayProofDot} />
+                    )}
                 </Pressable>,
             );
         }
