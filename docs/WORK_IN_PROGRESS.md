@@ -546,6 +546,7 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   `SUPER_ADMIN_ID` rather than having disappeared. The brand half is the part worth checking by
   hand — these deletes are intentionally unscoped, and a regression that re-scopes them would
   look correct for a single-brand test user.
+- [ ] (2026-08-06) **Play Console + privacy policy steps for the Friends with Habits contacts rejection — the code fix alone will not clear it.** Version code 20 was rejected under the User Data policy ("uploading users' Contact List information to https://api.therr.com/ without an adequate disclosure"). The in-app prominent disclosure is fixed in the app (`PermissionPrimerModal` + `permissions.primer.contacts.*`), but Google re-reviews the console declarations alongside the APK, and all three of these must agree with what the app now says: (1) **Data safety form** for `com.therr.habits` — declare Contacts → *Contacts* as both *collected* and *transferred off device*, purpose "App functionality"/"Account management", not "processed ephemerally" (the invite path persists invitee email/phone in `main.invites` past the request); (2) **Privacy policy** at `https://www.therr.app/privacy-policy.html` must name contact-list collection, the upload, and the retention split the in-app text now promises (non-matching contacts discarded, explicitly-invited contacts retained) — the app links to this URL directly from the disclosure, so a policy that omits contacts contradicts the disclosure the reviewer is reading; (3) in the **appeal/resubmission note**, point the reviewer at the exact screen — Connect tab → "Sync Your Contacts?", and onboarding → "Find your friends" — since the disclosure is behind a tap and reviewers have previously missed it. Do not resubmit as version code 20; the branch is already on 21 / `0.4.9`.
 - [ ] (2026-08-04) **Finish credential sharing now that `/.well-known/assetlinks.json` actually serves.** The `delegate_permission/common.get_login_creds` relation is live on `therr.com`/`www.therr.com` (`app.therrmobile`) and `dashboard.therr.com`, and the web login form now sends `autocomplete="username"` / `"current-password"` so Chrome has a credential worth sharing. Three gaps remain, each a decision rather than an oversight: (1) `assetlinks.habits.json` still declares only `handle_all_urls`, so Friends with Habits (`com.therr.habits`) gets App Links but no credential sharing — add the relation there if HABITS should share credentials with `habits.therr.com`. (2) `get_login_creds` is Android-only; the iOS equivalent is shared web credentials, which needs `webcredentials:therr.com` in `TherrMobile/ios/Therr/Therr{Debug,Release}.entitlements` (currently `applinks:therr.com` only) **and** a `webcredentials: { apps: ['22AN4MZ6H5.com.therr.mobile.Therr'] }` block alongside `applinks` in the `appLinksJson` object in `therr-client-web/src/server-client.tsx`. (3) That same AASA is served at `/apple-app-site-association` but its `/.well-known/` twin is still commented out one line below — Apple's CDN fetches the `.well-known` path, which now works, so uncomment it. Verify on-device after deploy: save a password on the website, then confirm Android offers it in the app — that is the only end-to-end proof the association resolved.
 - [ ] (2026-08-10, notification-queue) **Update `therr-messaging-automator` now that the
   digest dedups.** Sibling repo, separate PR. `src/api/habitsDigest.ts` still documents the
@@ -626,6 +627,15 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 - [ ] (2026-08-02, /quality-peer-review) Decide whether to bump `version` in `therr-public-library/therr-react/src/redux/persistConfig.ts` (currently `1`). `purgeOnLogoutMiddleware` now clears persisted state on logout in web as well as mobile, but only on a *future* logout — browsers and installs that already hold a previous account's `content` / `userConnections` / `notifications` keep them until that account signs out again. A version bump with no migrate function makes redux-persist discard the old payload for everyone on next load, which is the only way to clear the existing leak. Note this is shared config: bumping it purges mobile too, costing one cold feed/notification fetch per user.
 - [ ] (2026-08-01, /quality-peer-review) Niche follow-up on `niche/HABITS-general`: `GET /users-service/habits/goals/` (`getUserHabitGoals`) now returns goals the user **joined** via an accepted pact, not just ones they created. The Habits habit-list UI renders an edit/delete affordance per row, but `updateHabitGoal` and `deleteHabitGoal` both gate on `createdByUserId` and will 403 / no-op for a joined goal. Hide or disable those controls when `goal.createdByUserId !== me`. Backend behaviour is correct and this is UI-only, so it cannot be fixed on `general`.
 - [ ] (2026-08-01, /quality-peer-review) Bump and submit the iOS build for the 3.12.4 release. `TherrMobile/android/app/build.gradle` moved to `versionName 3.12.4` / `versionCode 443`, but `TherrMobile/ios/Therr.xcodeproj/project.pbxproj` is still `MARKETING_VERSION = 1.70.0` / `CURRENT_PROJECT_VERSION = 212`. iOS uses a separate version scheme, so this is a bump-and-submit step, not a value to copy across. (Supersedes the earlier 3.12.1 entry — Android has since moved three times with no matching iOS submission, so the two stores are now three releases apart.)
+- [ ] (2026-07-22, retention work) Schedule the HABITS daily partner-activity
+  digest via therr-messaging-automator — implementation plan in
+  `docs/niche-sub-apps/habits/AUTOMATOR_HABITS_PLAN.md` (Phase 1: task-dispatch
+  trigger in the Cloud Function + a new daily 23:00 UTC Cloud Scheduler job in
+  therr-infra-terraform with body `{"task":"habits-daily-digest"}`). The
+  users-service route (`/habits/pacts/digest/run-daily`) is deliberately not
+  exposed through the API gateway; more than one run per day duplicates
+  streakAtRisk/partnerMissedDay/pactExpiring pushes.
+- [ ] (2026-07-28, dwelling-location-notifications) Run `20260728000001_main.userLocations.dwelling` on production users-service (`npm run migrations:run`). Adds `distinctDayCount` (NOT NULL, default 1) and `lastVisitedAt` (NOT NULL, default now()) to `main.userLocations`, plus a `(userId, distinctDayCount)` index, and backfills both from existing `createdAt`/`updatedAt`/`visitCount`. Additive and defaulted, so applying it ahead of the image is safe; if the image ships first, `GET /users-locations/:userId/dwellings` errors on the unknown columns and `POST /users-locations/:userId` fails on the new upsert clause — which would break background location processing. **Run this migration before or with the users-service deploy.**
 - [ ] (2026-07-21, bot-personas) Run the `005_bot_users.js` seed on production users-service (`npm run seeds:run` from `therr-services/users-service`) — creates 10 persona-matched bot accounts (isBot=true) for therr-ai-automator content generation. Idempotent (fixed UUIDs, ON CONFLICT DO NOTHING). Optionally set `BOT_SEED_PASSWORD` beforehand; bots never log in, so the default hash is only a placeholder.
 - [ ] (2026-07-30, /work-plan) After the reaction-metrics bounds deploy, watch api-gateway for a rise in 400s on `POST /v1/reactions-service/{moment,thought,space,event}-reactions/:id`. Every client today sends `userViewCount: 1` (`TherrMobile/main/routes/Map/TherrMapView.tsx`) and no client sends `userBookmarkPriority`, so legitimate traffic should never trip the new bounds (view count 0–100, bookmark priority 0–100, rating 1–5) — a sustained 400 rate means either a client path nobody mapped or a real abuse attempt, and the two are worth telling apart before widening the range. Note the already-deployed mobile app cannot be force-updated, so a bad assumption here reaches users who cannot upgrade away from it. No migration and no env var; bounds live in `therr-js-utilities/constants` → `Reactions`.
 - [ ] (2026-07-30, /work-plan) One-off data check before trusting space ratings: `rating` was previously unbounded, so any existing `main."spaceReactions"` / `main."eventReactions"` row outside 1–5 is still averaged into the rating shown on public space pages. Query `SELECT COUNT(*) FROM main."spaceReactions" WHERE rating IS NOT NULL AND (rating < 1 OR rating > 5);` (and the same for `eventReactions`) — if it returns non-zero, those rows need clearing or clamping, since the new validation only stops *new* bad writes.
@@ -830,6 +840,18 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   auto-loop), but it needs a per-route opt-in prop rather than hardcoding the path into
   `therr-react`. Worth doing if the API funnel's register→subscribe conversion looks
   lossy.
+- [ ] (2026-08-06, /quality-peer-review) Merge `niche/HABITS-restore-brand-identity` into
+  `niche/HABITS-general` **whenever `general` is merged down**, and expect to repeat the
+  pattern. The brand revert on `general` merges into the niche branch without conflicts and
+  silently un-brands Friends with Habits — nothing fails, the app just builds as Therr. A
+  merge of `general` into any `niche/*` branch should be followed by verifying
+  `brandConfig.ts`, `build.gradle` ids and `app.json` still carry the niche identity.
+  Worth automating as a pre-push check on `niche/*`.
+- [ ] (2026-08-06, /quality-peer-review) The mobile tsc baseline grew by four signatures
+  (`routes/index.tsx` HabitDetail + PactDetail, `MyHabits/index.tsx` TS2322/TS2345) rather
+  than the errors being fixed. The `MyHabits` pair is the endemic `translate: Function`
+  typing issue and is cheap to fix; the two `ConnectedComponent` ones match a long-standing
+  pattern. Worth clearing so the baseline stops ratcheting upward.
 - [ ] (2026-08-06, /quality-peer-review) Convert the Play prominent-disclosure copy to
   `{appName}`. 848389103 landed the mechanism (`BRAND_DISPLAY_NAME` +the `translator.ts`
   wrapper that defaults the param) and a test that guards it, but no dictionary string
@@ -2477,6 +2499,15 @@ note that should be honored on a calendar reminder.
   per-family packages: `@react-native-vector-icons/material-icons`,
   `/font-awesome`, `/font-awesome-5`, `/ionicons`, `/octicons`. Removes the
   suppression and unblocks future RN/React upgrades.
+- **HABITS niche only** — Drop `react-native-maps` (and the iOS `Google`
+  subspec / `GoogleMaps` + `Google-Maps-iOS-Utils` pods) from the HABITS
+  build the same way `react-native-background-geolocation` was removed
+  (commit `88d0c18d3`). HABITS has no map feature, so the native Google Maps
+  SDK (and its API-key requirement + Play/App-store location signals) is dead
+  weight. Requires: gate/remove the `Map/*` route imports on the niche,
+  remove the dep from `TherrMobile/package.json`, revert the Podfile maps
+  block on the niche branch only, and re-run `npm install` + `pod install`.
+  Do **not** port to general/THERR/TEEM — those variants use the map.
 
 ---
 
