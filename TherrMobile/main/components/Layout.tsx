@@ -114,6 +114,7 @@ interface ILayoutDispatchProps {
     deleteUserGroup: Function;
     getActivePacts: Function;
     acceptPact: Function;
+    renewPact: Function;
     createCheckin: Function;
     getMyAchievements: Function;
     getUserGroups: Function;
@@ -191,6 +192,7 @@ const mapDispatchToProps = (dispatch: any) =>
             deleteUserGroup: UsersActions.deleteUserGroup,
             getActivePacts: HabitActions.getActivePacts,
             acceptPact: HabitActions.acceptPact,
+            renewPact: HabitActions.renewPact,
             createCheckin: HabitActions.createCheckin,
             getMyAchievements: UsersActions.getMyAchievements,
             getUserGroups: UsersActions.getUserGroups,
@@ -1766,6 +1768,82 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 }).finally(() => {
                     RootNavigation.navigate('PactDetail', pactRouteParams);
+                });
+            }
+
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.pactRenew) {
+                // "Start New Cycle" on the `pactEnded` push. Without this branch
+                // the id falls through to the type fallback below, which routes
+                // to the pact — so the button renders, opens the pact, and
+                // renews nothing, behaving identically to the "View" button
+                // beside it. Nothing reports that: the press dismisses the
+                // notification and the user is left on a screen that looks right.
+                const renewPactId = typeof notification?.data?.pactId === 'string'
+                    ? notification.data.pactId
+                    : undefined;
+                // Display-only, and the server re-reads the real value when it
+                // renews — so a missing or stale one costs the toast its number,
+                // never the cycle its length.
+                const renewDurationDays = Number(notification?.data?.durationDays) || 0;
+
+                if (!renewPactId) {
+                    // 'all' rather than 'habits': the notification is about a
+                    // pact, and 'all' is the segment that lists finished ones.
+                    // (`normalizeInitialTab` silently falls back to 'habits' for
+                    // any unrecognised value, so a wrong name here would not
+                    // error — it would just quietly land on the wrong list.)
+                    this.setState({
+                        targetRouteView: 'HabitsDashboard',
+                        targetRouteParams: { initialTab: 'all' },
+                    });
+                    return Promise.resolve();
+                }
+
+                const renewRouteParams = { pactId: renewPactId };
+
+                if (!isUserAuthorized) {
+                    this.setState({
+                        targetRouteView: 'PactDetail',
+                        targetRouteParams: renewRouteParams,
+                    });
+                    return Promise.resolve();
+                }
+
+                // No duration override, matching the dashboard CTA: the evidence
+                // behind renewal measures the *fixed cycle*, not its length, so
+                // `renewPact` reuses the previous cycle's `durationDays`. The
+                // renewal is a new pact rather than a mutation, so the streak in
+                // `habits.streaks` carries across the boundary untouched.
+                // Reuses the dashboard CTA's strings rather than adding a second
+                // set: the two entry points renew the same thing, and copy that
+                // drifts between them is copy a user can catch us on.
+                return this.props.renewPact(renewPactId).then(() => {
+                    showToast.success({
+                        text1: this.translate('pages.pacts.renew.successTitle'),
+                        text2: renewDurationDays
+                            ? this.translate('pages.pacts.renew.successMessage', { days: renewDurationDays })
+                            : undefined,
+                    });
+                }).catch((error: any) => {
+                    // The server re-checks renewability and 409s a stale CTA —
+                    // most often because a partner already renewed, leaving a
+                    // live cycle on the habit. That body is localized and names
+                    // the real reason, and the axios interceptor rejects with it
+                    // verbatim (hence `error.message`, not `error.response.data`).
+                    // A rejection carrying no `statusCode` never reached the API.
+                    const apiMessage = error?.statusCode && typeof error?.message === 'string'
+                        ? error.message
+                        : '';
+
+                    showToast.error({
+                        text1: this.translate('pages.pacts.errorTitle'),
+                        text2: apiMessage || this.translate('pages.pacts.renew.error'),
+                    });
+                }).finally(() => {
+                    // Land on the pact either way. A renewal that succeeded has
+                    // a new cycle to show, and one that failed needs somewhere
+                    // to act — the press already dismissed the notification.
+                    RootNavigation.navigate('PactDetail', renewRouteParams);
                 });
             }
 
