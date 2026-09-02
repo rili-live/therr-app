@@ -185,8 +185,10 @@
       "body": "Hoy es una nueva oportunidad para construir el hábito al que te comprometiste. Vamos."
     },
     "eveningCheckIn": {
-      "title": "¿Cómo te fue hoy?",
-      "body": "Toca para registrar tu día y asegurar uno más en tu racha."
+      "title": "Última oportunidad esta noche",
+      "body": "Tu racha de {streakCount} días en {habitName} termina a medianoche. Un solo registro la mantiene viva.",
+      "bodyWithFreeze": "Tu racha de {streakCount} días en {habitName} termina a medianoche. Un congelamiento de racha te cubrirá (te quedan {freezesRemaining}) — pero si registras ahora, lo guardas para después.",
+      "bodyMultiple": "Última llamada para {habitCount} rachas — {habitNames}. Registra antes de medianoche para mantenerlas."
     },
     "habitEstablished": {
       "title": "{habitName} se está afianzando",

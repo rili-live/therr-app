@@ -91,6 +91,18 @@ const phaseWrites: { id: string; update: Record<string, any> }[] = [];
 const stageAdvances: { id: string; stage: number }[] = [];
 
 const stubDigest = (scenario: IScenario = {}) => {
+    // The evening "last chance" slot is off for these suites. Whether it
+    // produces a row depends on the wall-clock time in the recipient's zone, so
+    // leaving it on would make every count below pass in the morning and fail
+    // after 19:30 — the worst kind of flake, because it reads as a real
+    // regression. It has its own file, which pins the clock:
+    // handlers-habits-digest-last-chance.test.ts.
+    //
+    // Set here, per test, rather than in a mocha root hook: root hooks are
+    // global across every file in the run, so one would fight the last-chance
+    // suite's own setup depending on file order.
+    process.env.HABIT_LAST_CHANCE_REMINDERS_ENABLED = 'false';
+
     const {
         phase = null,
         firstCheckinDaysAgo = 40,
@@ -110,6 +122,12 @@ const stubDigest = (scenario: IScenario = {}) => {
 
     sinon.stub(Store.habitGoals, 'getById').resolves({ name: 'Morning run' } as any);
     sinon.stub(Store.users, 'findUser').resolves([{ firstName: 'Alex' }] as any);
+
+    // No stored timezone or quiet hours — the default for every user in
+    // production today, which sends both slots through the America/Chicago
+    // fallback and keeps delivery exactly where it was before per-user
+    // scheduling landed. See localReminderSchedule.test.ts for the zones.
+    sinon.stub(Store.users, 'getHabitReminderPreferences').resolves({} as any);
 
     sinon.stub(Store.habitCheckins, 'getByUserAndDate')
         .callsFake((_u: any, date: any) => Promise.resolve(

@@ -3,6 +3,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
 import { INotificationQueueRow } from '../store/NotificationQueueStore';
 import sendEmailAndOrPushNotification, { resolveDeviceTokenForBrand } from './sendEmailAndOrPushNotification';
+import evaluateCheckinNudgeFreshness from './checkinNudgeFreshness';
 
 /**
  * Drains main.notificationQueue and sends what is due.
@@ -90,6 +91,12 @@ const MAX_DEFERRAL_WINDOW_MS = 6 * 60 * 60 * 1000;
  */
 const TYPE_SEND_PRIORITY: Record<string, number> = {
     'streak-at-risk': 0,
+    // The "last chance" nudge, scheduled for the user's local evening. Ranked
+    // alongside `streak-at-risk` rather than with the reminders because by the
+    // time it is due there are only hours left in the user's day: deferring it
+    // fifteen minutes behind a celebration is deferring it past the point it
+    // means anything.
+    'evening-check-in': 0,
     'daily-habit-reminder': 1,
     'pact-expiring': 2,
     'pact-invitation': 2,
@@ -129,6 +136,24 @@ let isTicking = false;
 let lastRetentionSweepAt = 0;
 
 const sendOne = async (row: INotificationQueueRow): Promise<void> => {
+    // Relevance first, before the rate-limit budget is even consulted.
+    //
+    // A check-in nudge is the one thing in this queue that can stop being true
+    // between being queued and being due: the digest decides in the morning and
+    // the "last chance" row is scheduled for the user's local evening, and in
+    // between the user very often checks in. Suppressing here rather than at
+    // enqueue time is the whole reason a second daily reminder is not spam —
+    // see checkinNudgeFreshness for why it fails open.
+    //
+    // Ordered ahead of the daily cap deliberately: a row that no longer needs
+    // sending must not consume one of the user's five sends, or an irrelevant
+    // nudge would crowd out a timely notification later the same day.
+    const freshness = await evaluateCheckinNudgeFreshness(row);
+    if (!freshness.shouldSend) {
+        await Store.notificationQueue.markSkipped(row.id, freshness.reason || 'no-longer-relevant');
+        return;
+    }
+
     const since = new Date(Date.now() - RATE_WINDOW_MS);
     const sentToday = await Store.notificationQueue
         .countSentSince(row.brandVariation, row.userId, since)

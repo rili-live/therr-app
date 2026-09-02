@@ -185,8 +185,10 @@
       "body": "Aujourd'hui est une nouvelle chance de bâtir l'habitude à laquelle tu t'es engagé. Allons-y."
     },
     "eveningCheckIn": {
-      "title": "Comment s'est passée ta journée?",
-      "body": "Appuie pour enregistrer ton suivi et garantir un jour de plus dans ta série."
+      "title": "Dernière chance ce soir",
+      "body": "Ta série de {streakCount} jours sur {habitName} se termine à minuit. Un seul suivi la garde en vie.",
+      "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} se termine à minuit. Un gel de série te couvrira ({freezesRemaining} restant(s)) — mais t'enregistrer maintenant te le garde en réserve.",
+      "bodyMultiple": "Dernier appel pour {habitCount} séries — {habitNames}. Enregistre-toi avant minuit pour les garder."
     },
     "habitEstablished": {
       "title": "{habitName} commence à tenir",
