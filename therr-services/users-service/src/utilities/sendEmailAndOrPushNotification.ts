@@ -22,7 +22,33 @@ export const resolveDeviceTokenForBrand = async (
     toUserId: string,
     legacyToken: string | null | undefined,
 ): Promise<string | null | undefined> => {
-    if (!brand || !toUserId) return legacyToken;
+    if (!brand || !toUserId) {
+        // An absent brand on a push send is always a caller bug — every producer
+        // either pins a brand or reads one off the request — and the consequence is
+        // specifically a cross-app leak: `legacyToken` is the *shared*
+        // users.deviceMobileFirebaseToken column, which whichever branded app
+        // registered last overwrites. So a Habits notification with no brand
+        // resolves the user's Therr install and renders there, under Therr's name,
+        // while their perfectly good `habits` row in main.userDeviceTokens goes
+        // unread. That is silent today; this is what makes the producer findable.
+        //
+        // The fallback itself is kept: single-brand legacy users who have no row at
+        // all still depend on it, and silencing them to tidy up a log would be worse
+        // than the leak it prevents.
+        if (toUserId) {
+            logSpan({
+                level: 'warn',
+                messageOrigin: 'API_SERVER',
+                messages: ['Push send with no brandVariation — falling back to the shared legacy device token, which may belong to another brand\'s app'],
+                traceArgs: {
+                    'user.id': toUserId,
+                    'pushNotification.brandVariation': String(brand ?? ''),
+                    source: 'users-service',
+                },
+            });
+        }
+        return legacyToken;
+    }
     const rows = await Store.userDeviceTokens.getTokensForUser(brand, toUserId).catch(() => [] as { token: string }[]);
     return rows[0]?.token || legacyToken;
 };
@@ -79,6 +105,10 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     habitCount?: number;
     habitNames?: string[];
     daysRemaining?: number;
+    // The length of the cycle a `pactEnded` notification is about. This list is
+    // an allow-list, not a passthrough — a field the producer sets but that is
+    // missing here is dropped silently, and the copy renders a zero.
+    durationDays?: number;
     // Streak freezes ("build in the miss"). `freezesRemaining` is what is left
     // *after* the spend, so the copy can promise a net that is still there.
     freezesRemaining?: number;
@@ -147,6 +177,7 @@ export default (
         habitCount,
         habitNames,
         daysRemaining,
+        durationDays,
         freezesRemaining,
         freezeDaysUsed,
         dayCount,
@@ -286,6 +317,7 @@ export default (
                     habitCount,
                     habitNames,
                     daysRemaining,
+                    durationDays,
                     freezesRemaining,
                     freezeDaysUsed,
                     dayCount,

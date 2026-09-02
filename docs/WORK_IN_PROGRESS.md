@@ -53,6 +53,24 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Push notification UAT (added 2026-08-31)
+
+- [ ] **Configure the `post_deploy_uat` CircleCI job.** It ships disabled: with no
+  credentials set it explains why it could not run and passes, so it is currently
+  a no-op gate. Set `UAT_SUPER_ADMIN_EMAIL` and `UAT_SUPER_ADMIN_PASSWORD` as
+  CircleCI project env vars for an account with SUPER_ADMIN access, and
+  `UAT_BRAND` to the brand that account logs in under (the gateway rejects a JWT
+  whose brand claim disagrees with `x-brand-variation`, so one job invocation
+  covers one brand). Optionally set `UAT_USER_ID` to an account with a registered
+  device — without it, a credential/project mismatch and an expired APNS auth key
+  are both uncovered, since each needs a real device token to detect. Details:
+  docs/PUSH_NOTIFICATIONS_DEBUGGING.md § Post-deploy UAT.
+
+- [ ] **Decide whether to add a second `post_deploy_uat` invocation for HABITS.**
+  Requires a habits-brand SUPER_ADMIN login. Habits is the active consumer bet and
+  is the brand whose push routing has actually broken before, so it is arguably
+  the one worth covering first.
+
 ## Analytics & traffic (added 2026-08-24, from the GA4 review)
 
 - [ ] **Cut off the headless-Chrome crawler polluting the consolidated property.**
@@ -293,6 +311,31 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-09-01, /work-plan) **Ship the `niche/HABITS-general` half of `pactEnded` before
+  this reaches production traffic.** Two things are missing there and neither errors: the
+  `${notificationActionPrefix}.PACT_ENDED` `<intent-filter>` in
+  `TherrMobile/android/app/src/main/AndroidManifest.xml`, and a handler for the `renew-pact`
+  press action. Without the filter an installed app ignores the notification outright; with
+  the filter but no handler the button opens the app and renews nothing. `Layout.tsx` on
+  `general` already routes the type to the Notifications list so a tap is never a dead end,
+  but that is a floor, not the feature. Verify with
+  `node .claude/skills/push-notification-guard/scripts/check-push-wiring.js --brand-branch niche/HABITS-general`
+  — that run could not be completed in the session that wrote this (the branch would not
+  fetch), so the niche half is **unverified**, not known-good.
+- [ ] (2026-09-01, /work-plan) **Confirm on a handset that the ended-pact push renews.** This
+  is link 5 and nothing server-side reports it. Let a HABITS pact pass its `endDate`, run the
+  digest, then on a real device confirm: the notification arrives, shows **two** buttons
+  ("Start New Cycle" and "View"), and the first produces a new pact carrying the old streak.
+  The streak carrying across is the load-bearing part — a renewal that reset it would turn the
+  app's strongest mechanic into its worst failure mode, on a day the user did nothing wrong.
+- [ ] (2026-09-01, /work-plan) **Watch `pactEndedSent` against `pactsExpired` in the first runs
+  after deploy.** Unlike its sibling counters this is not a daily figure — its dedupe key holds
+  no date, so each pact contributes exactly once, ever. It should track `pactsExpired` ×
+  members-per-pact. `pactsExpired > 0` with `pactEndedSent === 0` means the announcement is
+  failing while the sweep succeeds; the two are caught separately for exactly that reason, and
+  the failure logs `Habits digest: failed to announce ended pact`. Note the digest still fires
+  at 14:00 UTC (09:00 CDT), so this push currently lands in the morning — see the open item
+  above about moving that schedule.
 - [ ] (2026-08-15, habits-production-readiness) **Create the Google Play in-app product before
   the paywall can work.** Product id `habits_lifetime_founder` on `com.therr.habits`, one-time
   **non-consumable**, $20 USD, active. In-app products do not resolve until the app is published
@@ -553,7 +596,11 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 - [ ] (2026-07-25, /quality-peer-review) Bump the iOS app version for the passwordless-phone-auth release. `TherrMobile/android/app/build.gradle` moved to `versionName 3.9.0` / `versionCode 436`, but `TherrMobile/ios/Therr.xcodeproj/project.pbxproj` is still at `MARKETING_VERSION = 1.70.0` (iOS uses a separate scheme, so this is a bump-and-submit step, not a value to copy).
 - [ ] (2026-07-25, /quality-peer-review) Post-deploy smoke test of passwordless phone sign-in against a **real production account whose phone was set via profile edit** (not via the `/phone/verify` flow). Those two paths store different dialects in `main.users.phoneNumber` — `createUser`/`updateUser` write `req.body.phoneNumber` verbatim (compact E.164, `+13175551234`) while `updatePhoneVerification` writes the gateway's normalized display format (`+1 317-555-1234`). `UsersStore.getByPhoneNumber` / `getAllByPhoneNumber` now match the full candidate set, so both resolve; before that fix the compact-E.164 rows resolved to zero accounts and, because `/phone/auth/start` is enumeration-safe, the user got a "code sent" response and no SMS. Verify by checking that the SMS actually arrives, not by the API response.
 - [ ] (2026-07-25, /quality-peer-review) (Optional, no longer required for correctness) One-off backfill to normalize legacy `main.users.phoneNumber` rows onto the canonical display dialect. `UsersStore` now normalizes on write, so *new* rows no longer diverge, and `getByPhoneNumber` / `getAllByPhoneNumber` / `findUser` match a candidate set covering both dialects — so the mixed column works as-is. This is cleanup: until it happens, every future phone lookup has to keep replicating the candidate set. Do **not** add a phone-format CHECK constraint to the column as part of this — Apple SSO signups deliberately write the non-phone sentinel `'apple-sso'` there (`createUserHelper`, `handlers/helpers/user.ts`).
-- [ ] (2026-07-19, /quality-peer-review) Post-deploy verification for the cross-app push fix: on a device with **both** Therr and Friends with Habits installed, confirm a Therr "New Spots Unlocked" push lands in Therr (not Habits). Existing installs self-heal on next launch — mobile compares its FCM token against `/users/me` and re-registers via `updateUser`, which dual-writes the brand-scoped row — so expect one launch of latency per app before routing is correct.
+- [ ] (2026-07-19, /quality-peer-review) Post-deploy verification for the cross-app push fix: on a device with **both** Therr and Friends with Habits installed, confirm a Therr "New Spots Unlocked" push lands in Therr (not Habits), and a Habits streak reminder lands in Habits. **Requires the mobile release carrying the unconditional FCM re-registration** (see the correction below) — installs older than that may never have written a brand-scoped row at all.
+  > **Correction (2026-08-31).** The original note here claimed existing installs "self-heal on next launch". They do not. The re-registration was guarded on `user.details.deviceMobileFirebaseToken !== deviceToken`, and that value is the legacy *shared* `users.deviceMobileFirebaseToken` column — every branded app on the device overwrites it in turn, so it says nothing about whether *this* brand has a `main.userDeviceTokens` row. Whenever the shared column already held this app's token the guard skipped `updateUser` entirely and the brand-scoped row was never written; routing then fell back to the shared column and delivered the notification to whichever app registered last. The value is also never written back into Redux by `updateUser`, and the `user` slice is redux-persisted, so a stale snapshot survived app updates. Fixed by removing the guard — but that means an app-store update of the *old* code would not have fixed it; the fix must ship in a build.
+- [ ] (2026-08-31, streak-notification-routing) Verify in production, after the next mobile release, that `GET /v1/users/<userId>/push-diagnostics` (SUPER_ADMIN, `x-brand-variation: habits`) reports `habits` in `brandsRegistered` for a user who holds both apps, and that `platform` reads `android`/`ios` rather than the legacy `mobile`. Until a device re-registers, its legacy `mobile` row is still honoured, so a mixed result during rollout is expected rather than a regression.
+- [ ] **(2026-08-31, streak-notification-routing) Find the producer that sends HABITS pushes with no `x-brand-variation`.** A "Don't Break Your Streak" push was delivered to the *Therr* app for a user whose `main.userDeviceTokens` held correct, distinct `therr` and `habits` rows — so the brand-scoped row was never consulted. Mechanism, all confirmed in code: an empty brand makes `resolveDeviceTokenForBrand` (`sendEmailAndOrPushNotification.ts`) return the **shared legacy** `users.deviceMobileFirebaseToken` column, which is whichever branded app registered last; `getBrandContext` then defaults the push service to THERR (the gateway forwards the header as `''` when absent, `handleServiceRequest.ts`); and `isTypeAllowedForBrand` had no rule stopping a habits-only type under THERR, so it rendered in the wrong app.
+  Both silent halves are now closed — the push service blocks it (`notification-type-not-routed-for-brand`) and users-service warns on the empty-brand fallback — but **the producer is still unidentified, and until it is fixed the affected users get no streak notification at all rather than one in the wrong app.** It is not the habits digest: `habitsDigest` pins `BrandVariations.HABITS` and `notificationQueueWorker` forwards `row.brandVariation`, both covered by tests. Prime suspect is the sibling `therr-messaging-automator`, which pushes directly and walks users per brand (`docs/CROSS_REPO_INTEGRATION.md`). Search production logs for `Push send with no brandVariation` and `HABITS-only notification arrived under a non-HABITS brand` — both carry the user id, and the second carries the `x-brand-variation` the caller actually sent.
 - [ ] (2026-07-18, leaderboards) After one release cycle with clean shadow logs, flip `UserLeaderboardScoresStore` from `'shadow'` to `'enforce'` mode (users-service `src/store/UserLeaderboardScoresStore.ts`).
 - [ ] (2026-07-18, leaderboards) Product/QA note: the HABITS achievement allow-list is re-enabled (habit ladder + socialite + weeklyChampion — reverses the interim a55bce90d policy). Verify in the Friends with Habits build that check-ins surface streak/consistency achievements and that Therr-shaped classes (explorer, influencer…) still do not appear.
 - [ ] (2026-07-13, manual) Set the `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` CircleCI
@@ -1156,6 +1203,11 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   `stale-build` services above, so this only ships after the forced `stage` publish lands. Check
   the browser console for a CSP violation, not just the rendered page.
 
+- [ ] (2026-08-31, /quality-peer-review) **Cut a real Android *and* iOS build of the RN 0.86.3 upgrade before promoting past `stage`.** No CI job compiles the mobile app, so the entire native half of this upgrade is unverified by the pipeline that will happily deploy it. Jest, tsc-baseline and lint are all green and prove nothing about it. `react-native-gesture-handler` (2.30 -> 2.32) and `react-native-keyboard-controller` (1.21 -> 1.22.4) were both bumped specifically because the older pins fail to compile against 0.86, and `react-native-worklets` is held at `~0.11.4` on purpose (0.12 drops `executeSync`, which `react-native-audio-api` still calls) - a careless `npm update` past that pin breaks audio at runtime, not at build. Run `/mobile-release-preflight`, then a signed release build on both platforms.
+- [ ] (2026-08-31, /quality-peer-review) **Treat the Play Console deprecated-API (Android 15) finding as OPEN, not fixed by `patches/react-native+0.86.3.patch`.** Verified 2026-08-31 against a signed 0.86.3 release APK: Gradle resolves `com.facebook.react:react-android` as a prebuilt Maven AAR (no `react.buildFromSource`, no `:ReactAndroid` task), so the patched `StatusBarModule.kt` is never compiled and the shipped APK still carries the `ValueAnimator` + `setStatusBarColor` bytecode the patch deletes. The APK also references the deprecated setters from `androidx.activity`, `com.google.android.material`, `com.swmansion.rnscreens.ScreenViewManager` and RN's own `views/view`, so no edit to that one file could clear the report. Keep the patch (harmless, documents intent) but re-check the finding against a real APK rather than assuming it is handled. Details in `TherrMobile/CLAUDE.md` -> Edge-to-Edge.
+
+- [ ] (2026-09-02, /quality-peer-review) **Verify `GET /users-service/habits/checkins/:id/proofs` returns 200 through the deployed gateway, not just the service.** The route shipped unreachable: the users-service handler, its router entry, the `therr-react` service method and the redux action all existed, but the api-gateway names every route it proxies and has no wildcard, so the request 404'd at the edge. Nothing that ran could see the missing hop — there is still no consumer on `general`, so it would have surfaced later as an apparent client bug when the day-sheet UI was built on `niche/HABITS-general`. The gateway entry and a `routeOrdering` regression test asserting it are now in; confirm end-to-end against `stage` with a real check-in id that has `hasProof = true`, since the gateway is the only hop no unit test exercises.
+
 <!-- skill-followups:end -->
 
 ---
@@ -1580,13 +1632,14 @@ The article's six rules, audited against what is in the code today:
 | 3 | Build in the miss | ✅ streak freezes exist — but are invisible until spent |
 | 4 | Visible to 2–5 specific people | ✅ pacts cap invitees at 5, and partner streaks now render on the card |
 | 5 | Keep the metric inseparable from the behaviour | ⚠️ HABITS XP also accrues from invites |
-| 6 | Renew on a fixed cycle | ⚠️ sweep, endpoint and card CTA ship; the expiring push still has no CTA |
+| 6 | Renew on a fixed cycle | ⚠️ sweep, endpoint, card CTA and the `pactEnded` push with its renew action all ship on `general`; the mobile half is not built |
 
 The five items below are ordered by expected impact and are **independent**:
 each can ship on its own without waiting on the others. They are the highest-
 priority cluster in Tier 2 — ahead of §§ 2.1–2.5 — because they act on the
-retention loop every other Tier 2 item feeds. §§ 2.6.1 and 2.6.2 are closed and
-2.6.3 is all but closed; **2.6.4 and 2.6.5 are what remains open here.**
+retention loop every other Tier 2 item feeds. §§ 2.6.1, 2.6.2 and 2.6.4 are
+closed, and 2.6.3's `general` half closed 2026-09-01 leaving only its mobile
+counterpart; **2.6.5 is the only item still open on its own terms.**
 
 ---
 
@@ -1649,12 +1702,32 @@ Two invariants worth not re-deriving:
   active-past-`endDate` as finished. Gating on status alone tells a user whose
   pact visibly ended that it is still running, and hides the CTA.
 
+Closed 2026-09-01 (/work-plan), the `general` half. The premise recorded here was
+wrong in a way worth keeping: this entry asked for a renew CTA on the
+**`pactExpiring`** push, and that cannot work. `pactExpiring` fires 1–3 days
+*before* `endDate`, and `isPactRenewable` (`utilities/pactHelpers.ts`) is false
+for an active pact still inside its window — so the button would have produced a
+rejected request, on the notification most likely to be tapped.
+
+Renewal is legal at exactly one moment: the digest's expiry sweep, which until
+now closed pacts **silently**. That moment is also the right one on the evidence
+— the end of a cycle is a temporal landmark, and landmarks are when people
+restart (Dai, Milkman & Riis 2014; see `docs/HABIT_LIFECYCLE_MESSAGING.md`
+§ Why the app renews on a cycle). So the sweep gained a producer: a new
+`pactEnded` type carrying a "Start New Cycle" action and the pact id it acts on.
+
+`pactCompleted` deliberately does **not** serve here — its copy congratulates
+both partners, and the sweep cannot tell a finisher from someone who dropped out
+in week one. Its dedupe key is `pact-ended:<pactId>` with **no date**, the only
+such key in the digest: a pact ends once, and `getExpiredPacts` keeps returning
+it until `expire` lands, so a date would let a retry double-send.
+
 Still open:
 
-- The `pactExpiring` push has no renew CTA and no deep link — the CTA is only
-  discoverable by opening the app and finding the pact. This is the half that
-  reaches a user who has stopped opening the app, which is the population the
-  whole item is aimed at.
+- **The mobile half is not built** — `niche/HABITS-general` must declare the
+  `PACT_ENDED` intent filter in `AndroidManifest.xml` and handle the
+  `renew-pact` press action. Until it ships, an installed app ignores the
+  notification entirely; nothing errors on either side.
 - Optional follow-on: a long-form "your pact ended — here's what you built"
   re-commit email in `therr-messaging-automator`, which owns the SES templates
   and unsubscribe-token path (see `docs/HABIT_LIFECYCLE_MESSAGING.md` § Where
@@ -1735,6 +1808,116 @@ finding.
 - Cheapest first step: audit which achievement classes pay XP under
   `BrandVariations.HABITS` and confirm the number cannot move without a
   check-in.
+
+#### 2.6.6 Check-in proof media — read path (shipped 2026-09-01)
+
+Proof images had been write-only since the check-in flow landed. The mobile
+proof sheet uploaded to the private GCS bucket, `habitCheckins.createCheckin`
+wrote `habits.proofs` rows and set `hasProof`, and then nothing ever read them
+back: `ProofsStore.getByCheckinId` existed uncalled, no route exposed it, and
+the only trace reaching a client was the `hasProof` boolean — which no surface
+rendered either. Users were being asked for a photo that was then unreachable.
+
+Shipped: `GET /habits/checkins/:id/proofs` (owner-only, mirroring `getCheckin`),
+`HabitCheckinsService.getProofs` / `Habits.getCheckinProofs`, and a tappable
+calendar day on `HabitDetail` that opens a sheet with that day's note, ratings
+and proof images.
+
+Two decisions worth not re-deriving:
+
+- **Proofs are not attached to `GET /range`.** The month grid renders its badge
+  from `hasProof`, which the check-in row already carries, so the calendar stays
+  at one query per month and paths are fetched only for a day the user opens.
+- **The response emits the bucket-selecting `type`, not `mediaType`.**
+  `habits.proofs.mediaType` is `'image' | 'video'`; maps-service `getBucket`
+  keys on `Content.mediaTypes.*` and falls through to the **public** bucket for
+  anything it does not recognize. A client passing `'image'` where `type`
+  belongs gets a broken image and no error anywhere. See
+  `utilities/checkinProofs.ts`.
+
+Still open, and the reason this is a section rather than a closed line:
+
+- [ ] **`POST /maps-service/media/signed-urls` does no authorization.**
+  `createMediaUrls` carries an explicit `// TODO: Check that the user has access
+  to this media` and honours it for nobody: it resolves any path the caller
+  names, and private media resolves to a *deterministic* `IMAGE_KIT_URL_PRIVATE`
+  URL rather than a signed one — so knowing a path is the whole access story.
+  The new endpoint does not widen this (it only ever hands a user their own
+  paths), but proofs are the first private media whose paths follow a guessable
+  shape: `<userId>/content/habits_proof_<habitGoalId>_<epochMs>.jpeg`. Fix the
+  endpoint, not the filename. Scope: `general`, maps-service.
+- [ ] **Proof images are never moderated.** `verificationStatus`,
+  `isSafeForWork` and `moderationFlags` on `habits.proofs` are all still at
+  their insert defaults — nothing writes them. The moments upload path runs
+  Sightengine; the proof path does not. Harmless while proofs are owner-only,
+  **blocking** for 2.6.8, which makes them public.
+
+#### 2.6.7 Thoughts silently drop uploaded images (#2840)
+
+Not a missing feature — a broken one, and the client half is already built.
+
+`main.thoughts` has had a `mediaIds text` column since the original 2022
+migration. `TherrMobile/main/routes/EditThought` has a full image picker,
+uploads the file to GCS via `signAndUploadImage`, and posts
+`createArgs.media = [{ type, path }]`. But `ThoughtsStore.create` builds an
+explicit `sanitizedParams` allow-list that includes neither `media` nor
+`mediaIds`, so the field is dropped on the floor: the object is orphaned in the
+bucket, the column stays `''`, and the read path returns a hard-coded
+`media: {}`. No client renders thought media at all.
+
+The Journal's own comment on `handleCreateGoal` documents the behaviour we do
+not have — "it gets the thought form's public/private toggle, category, hashtags
+and image". Every goal posted with a photo since that shipped has lost the photo.
+
+- [ ] Add a `medias jsonb` column (`[{path, type}]`), matching the
+      moments/spaces convention — **not** the legacy comma-separated `mediaIds`,
+      which areas already migrated away from. Clients then get display for free
+      via the existing `getUserContentUri(media)`.
+- [ ] Add `medias` to the `ThoughtsStore.create` allow-list and hydrate it on
+      the read paths (`getById`, `find`, `getForJournal`), replacing the
+      placeholder `media: {}`.
+- [ ] Render it in `ThoughtDisplay` (mobile) and `ViewThought` / `ThoughtCard`
+      (web). `AreaDisplay` is the working reference.
+- [ ] Decide what happens to already-orphaned uploads. They are unreferenced
+      objects in both buckets with no row pointing at them; a bucket-side
+      lifecycle rule is probably cheaper than a reconciliation script.
+
+Scope: `general` throughout (migration, store, shared components). No niche half.
+
+#### 2.6.8 Share a check-in publicly as a thought (#2841)
+
+**Rule 4, widened deliberately.** 2.6.2 made a check-in visible to 2–5 pact
+members, which is where the Friend Streak evidence sits. This is the opt-in
+step past it: a "share today's check-in" action that mints a `main.thoughts` row
+carrying the proof image and a short lead-in, so a user who wants an audience
+has one without the habit loop depending on it.
+
+Blocked on 2.6.7 — there is no working media path on thoughts to attach to.
+
+Two things already work in this feature's favour and should not be re-litigated:
+
+- **Cross-brand visibility is already correct.** `BRAND_THOUGHTS_VISIBILITY` is
+  `THERR: 'all'`, `HABITS: [HABITS]`, so a thought written from Friends with
+  Habits already surfaces in the Therr feed while Therr posts stay out of the
+  habits feed. That is exactly the asymmetry this wants. No change needed.
+- **The hand-off pattern exists.** Journal's "Share a goal" navigates to the
+  shared `EditThought` screen with `returnToRoute`, rather than growing a second
+  composer. A share-check-in action should do the same, prefilled.
+
+The one design decision, and it is load-bearing:
+
+- [ ] **Copy the media, do not reference it.** Three independent reasons: proofs
+      live in the private bucket and a public thought needs a public-bucket
+      object; nothing has moderated a proof image (2.6.6), and the copy is the
+      natural place to run the check moments already run; and the lifecycles
+      differ — deleting a check-in must not retract a post that has replies, and
+      deleting the post must not destroy the user's own record.
+- [ ] Store the link as a nullable `sharedThoughtId` on `habits.habit_checkins`
+      so the calendar day can show "shared" and deep-link to `ViewThought`, the
+      way the journal already opens goals.
+
+Scope: `general` (media copy + moderation, `sharedThoughtId` migration, share
+endpoint) + `niche/HABITS-general` (the share CTA on the day sheet, locales).
 
 ---
 
@@ -1905,6 +2088,26 @@ backlog).
   "run unconsumed migrations" manual follow-up. Additive/expand-contract
   migrations only; opt out with `RUN_MIGRATIONS_ON_DEPLOY=false`.
 
+- [ ] **The `.husky/pre-push` gate cannot pass, whether or not Redis is running.**
+  Found 2026-09-01 (/work-plan) while pushing an unrelated habits change; neither
+  defect is in the pushed diff, and both are latent because the integration tests
+  self-skip on a machine with no Redis.
+  - **Redis down:** `push-notifications-service`'s integration `after all` hooks
+    call `closeTestRedisConnection`, which `quit()`s a connection that was never
+    opened — `Error: Connection is closed`, 2 failures. The test *bodies* skip
+    correctly; only the teardown does not. Guard the `quit()` on the same
+    `skipTests`/connected flag the bodies use
+    (`tests/integration/testRedisConnection.ts:56`).
+  - **Redis up:** `therr-api-gateway`'s two TTL-expiry tests (`should expire
+    session tokens after TTL`, `should reset rate limit after window expires`)
+    `setTimeout` for **2500ms** under mocha's default **2000ms** timeout, so they
+    can only pass while Redis is absent and they skip. `therr-api-gateway/.mocharc.js`
+    sets no `timeout`. Either set one there or pass `this.timeout(5000)` on those
+    two tests.
+  Both are ~1-line fixes, and until they land every push either fails the hook or
+  trains the next person to reach for `--no-verify` — which is what the hook's own
+  header warns against.
+
 - [ ] **Post-deploy staging smoke tests + auto-rollback** (roadmap #3) —
   replace the stubbed `test-e2e-staging` job in `.circleci/config.yml`
   (currently `echo "Hello, Integration Tests"`) with a real synthetic suite
@@ -1914,6 +2117,12 @@ backlog).
   Turns a bad deploy into a ~minutes auto-rollback instead of a manual
   scramble. Effort: medium. Depends on a reachable staging cluster (the job
   scaffold and GKE auth already exist).
+  **Partially done:** the push-send leg exists — `_bin/cicd/uat-push.sh`, run by
+  the `post_deploy_uat` job after every `main` deploy (see
+  docs/PUSH_NOTIFICATIONS_DEBUGGING.md § Post-deploy UAT). It runs against
+  production rather than a staging cluster, and does not auto-rollback: it
+  fails the job and leaves the revert to a human. Remaining: the other critical
+  paths, and wiring a failure to `kubectl rollout undo`.
 
 - [ ] **Unify CI/CD across all repos + CD for the cloud functions & infra**
   (roadmap #4) — standardize on one CI convention and add the missing

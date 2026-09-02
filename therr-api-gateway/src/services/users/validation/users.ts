@@ -166,4 +166,7 @@ export const sendUserPushDiagnosticsTestValidation = [
     param('id').exists().isUUID(4),
     body('type').optional().isString().isLength({ max: 100 }),
     body('dryRun').optional().isBoolean(),
+    // Forwarded to push-notifications-service so a by-user-id check can also
+    // exercise the real `predictAndSendNotification` path rather than the raw one.
+    body('viaProductionPath').optional().isBoolean(),
 ];

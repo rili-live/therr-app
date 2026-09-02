@@ -92,6 +92,27 @@ export interface IPactNudgeResult {
 }
 
 // Checkin Types
+/**
+ * One proof image (or video) attached to a check-in.
+ *
+ * `path` + `type` are the pair `MapsService.fetchMedia` takes — `type` is the
+ * bucket-selecting `Content.mediaTypes` value resolved server-side, NOT
+ * `mediaType`, which says whether the file is an image or a video. Passing
+ * `mediaType` where `type` belongs resolves the URL against the public bucket
+ * and renders as a broken image with no error.
+ */
+export interface IHabitCheckinProof {
+    id: string;
+    checkinId: string;
+    mediaType: 'image' | 'video';
+    path: string;
+    type: string;
+    thumbnailPath: string | null;
+    createdAt: string;
+    capturedAt: string | null;
+    verificationStatus: string | null;
+}
+
 export interface IHabitCheckin {
     id: string;
     userId: string;

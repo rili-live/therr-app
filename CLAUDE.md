@@ -172,7 +172,7 @@ Most dependencies live in the root `package.json`. TherrMobile has its own.
 - **Node 24.12.0** (`.nvmrc`), npm 11+ (enforced by `_bin/prep.sh`)
 - **TypeScript** 5.9.x
 - **React** 18.2 (web) / 19.2 (mobile) — hooks and functional components, no class components
-- **React Native** 0.83.6, new architecture enabled
+- **React Native** 0.86.3, new architecture enabled
 - **Redux Toolkit** 2.5, React Router 6
 - Backend: Express + raw SQL via Knex (not an ORM), separate read/write pools per service
 
@@ -319,7 +319,12 @@ session.
 
 Log session activity silently to today's daily log (goal, deliverables, decisions, open
 threads). Never announce that you logged something. `/memory-write` handles "remember
-this" / "forget about" requests and enforces the cap. Full protocol:
+this" / "forget about" requests and enforces the cap.
+
+For anything older than that — "what did we decide about X", "why is Y written this way",
+"have we hit this before" — use `/memory-recall` rather than reading through
+`context/memory/`. It searches the vector index in a forked context and returns only the
+findings. Never run `memsearch search` directly in the main context. Full protocol:
 `docs/MEMORY_SYSTEM_SETUP.md`.
 
 ## Other Documentation

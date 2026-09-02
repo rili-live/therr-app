@@ -1635,7 +1635,7 @@ const sendUserPushDiagnosticsTest: RequestHandler = (req, res) => {
         locale,
     } = parseHeaders(req.headers);
 
-    const { type, dryRun } = req.body || {};
+    const { type, dryRun, viaProductionPath } = req.body || {};
     // Normalized here rather than relying on a destructure default, which only
     // fills in for `undefined` — an explicit `null` would otherwise be forwarded
     // as a falsy value and turn the safe default into a real push to a handset.
@@ -1676,7 +1676,9 @@ const sendUserPushDiagnosticsTest: RequestHandler = (req, res) => {
                     'x-localecode': locale,
                     'x-userid': id,
                 },
-                data: { deviceToken, type, dryRun: isDryRun },
+                data: {
+                    deviceToken, type, dryRun: isDryRun, viaProductionPath,
+                },
             })
                 .then((response: any) => res.status(200).send({ sent: true, ...response.data }))
                 // A non-2xx from the push service is a real diagnostic result, not a

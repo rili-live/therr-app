@@ -35,6 +35,7 @@ import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUse
 import { ContentActions, ForumActions, NotificationActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { AccessLevels, BrandVariations, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
+import REQUEST_PLATFORM from '../constants/requestPlatform';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer, type ParamListBase } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -113,7 +114,7 @@ const Stack = createNativeStackNavigator<ParamListBase, undefined>();
 const getRequestHeaders = (user) => ({
     'x-userid': user?.details?.id,
     'x-localecode':  user?.settings?.locale || 'en-us',
-    'x-platform': 'mobile',
+    'x-platform': REQUEST_PLATFORM,
     'x-brand-variation': CURRENT_BRAND_VARIATION,
 });
 
@@ -1295,6 +1296,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             case PushNotifications.Types.pactDeclined:
             case PushNotifications.Types.pactCompleted:
             case PushNotifications.Types.pactExpiring:
+            case PushNotifications.Types.pactEnded:
             case PushNotifications.Types.partnerCheckedIn:
             case PushNotifications.Types.partnerMissedDay:
             case PushNotifications.Types.partnerCelebrated:
@@ -1989,9 +1991,22 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             .then(() => getToken(getMessaging()))
             .then((deviceToken) => {
                 axios.defaults.headers['x-user-device-token'] = deviceToken;
-                if (user.details.deviceMobileFirebaseToken !== deviceToken) {
-                    updateUser(user.details.id, { deviceMobileFirebaseToken: deviceToken });
-                }
+                // Register unconditionally. This was guarded on
+                // `user.details.deviceMobileFirebaseToken !== deviceToken`, but that value is
+                // the legacy *shared* users.deviceMobileFirebaseToken column, which every
+                // branded app on the device overwrites in turn — so it says nothing about
+                // whether THIS brand is registered. `updateUser` is the only path that writes
+                // the brand-scoped main.userDeviceTokens row (via syncDeviceTokenForBrand), so
+                // whenever the shared column already held this app's token the guard skipped
+                // the call and the row was never written at all. Routing then fell back to the
+                // shared column and delivered this brand's pushes to whichever app registered
+                // last — a Friends with Habits streak reminder arriving in Therr. The value is
+                // also never written back into Redux, and the `user` slice is redux-persisted,
+                // so a stale snapshot suppressed re-registration across app updates.
+                //
+                // `fcmRegistrationStarted` above already limits this to one call per app
+                // session, and the server-side upsert is idempotent.
+                updateUser(user.details.id, { deviceMobileFirebaseToken: deviceToken });
                 this.unsubscribePushNotifications = onMessage(getMessaging(), async (remoteMessage) => {
                     await wrapOnMessageReceived(true, remoteMessage);
 

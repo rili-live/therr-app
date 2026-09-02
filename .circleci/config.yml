@@ -366,6 +366,41 @@ jobs:
           name: Deploy Changes To GKE
           command: ./_bin/cicd/deploy.sh
 
+  # Post-deploy verification that the push pipeline still works against the live
+  # cluster. Runs after `deploy` has rolled the new images out, and every send is
+  # an FCM dry run, so nothing is delivered and no user-visible state changes.
+  #
+  # Deliberately NOT part of the `deploy` job: a failure here means the deployed
+  # code is bad, not that the rollout failed, and keeping it separate leaves the
+  # rollout's own success/failure signal unambiguous.
+  #
+  # Requires UAT_SUPER_ADMIN_EMAIL / UAT_SUPER_ADMIN_PASSWORD (a SUPER_ADMIN
+  # account) as CircleCI project env vars. Optionally UAT_USER_ID to add the
+  # real-registered-device check. Without any of them the job reports why it
+  # could not run and passes — an unconfigured gate must not block deploys, but
+  # it must also not look like a passing check. See _bin/cicd/uat-push.sh.
+  post_deploy_uat:
+    docker:
+      - image: cimg/base:current
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run:
+          name: Install jq
+          command: sudo apt-get update && sudo apt-get install -y jq
+      - run:
+          name: Push notification UAT
+          command: |
+            if [ -z "${UAT_SUPER_ADMIN_EMAIL:-}" ] && [ -z "${UAT_SUPER_ADMIN_JWT:-}" ]; then
+              echo "SKIPPED: neither UAT_SUPER_ADMIN_EMAIL nor UAT_SUPER_ADMIN_JWT is set."
+              echo "The push UAT needs a SUPER_ADMIN credential to reach the diagnostics endpoints."
+              echo "Set them as CircleCI project environment variables to enable this gate."
+              exit 0
+            fi
+            ./_bin/cicd/uat-push.sh
+
 workflows:
   # Below is the definition of your workflow.
   # Inside the workflow, you provide the jobs you want to run, e.g this workflow runs the build-and-test job above.
@@ -426,6 +461,13 @@ workflows:
               only:
                 - stage
       - deploy:
+          filters:
+            branches:
+              only:
+                - main
+      - post_deploy_uat:
+          requires:
+            - deploy
           filters:
             branches:
               only:
