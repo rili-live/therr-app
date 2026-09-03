@@ -221,3 +221,110 @@ class UnitEconomicsTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AppActivationTest(unittest.TestCase):
+    """The in-app funnel, which is the only measurement of the app arm's users."""
+
+    def test_real_organic_shape_calls_the_product_question_unviable(self):
+        # 182 installs -> 2 invites. Well past min_conversions_for_verdict on
+        # installs, so this is a judgement, not a small-sample refusal.
+        diagnosis = analyze(
+            fixtures.ads_report([fixtures.app_campaign()]),
+            None, None, Targets(),
+            app_funnel=fixtures.app_funnel(),
+        )
+        self.assertEqual(verdict(diagnosis, "PRODUCT").call, "UNVIABLE")
+        self.assertTrue(any(s.severity == "critical" and s.area == "PRODUCT" for s in diagnosis.signals))
+        self.assertTrue(has_action(diagnosis, "onboarding"))
+
+    def test_healthy_funnel_is_not_condemned(self):
+        diagnosis = analyze(
+            fixtures.ads_report([fixtures.app_campaign()]),
+            None, None, Targets(),
+            app_funnel=fixtures.app_funnel(
+                installs=200, profile_starts=120, phone_verified=100, invites_sent=60,
+                pacts_created=45,
+            ),
+        )
+        self.assertEqual(verdict(diagnosis, "PRODUCT").call, "VIABLE")
+        self.assertFalse(has_action(diagnosis, "onboarding"))
+
+    def test_small_sample_is_refused_rather_than_judged(self):
+        diagnosis = analyze(
+            fixtures.ads_report([fixtures.app_campaign()]),
+            None, None, Targets(),
+            app_funnel=fixtures.app_funnel(installs=12, profile_starts=1, phone_verified=0, invites_sent=0),
+        )
+        self.assertEqual(verdict(diagnosis, "PRODUCT").call, "INSUFFICIENT_DATA")
+        self.assertFalse(has_action(diagnosis, "onboarding"))
+
+    def test_missing_activation_event_is_filed_as_work_not_read_as_zero(self):
+        diagnosis = analyze(
+            fixtures.ads_report([fixtures.app_campaign()]),
+            None, None, Targets(),
+            app_funnel=fixtures.app_funnel(),
+        )
+        self.assertTrue(has_action(diagnosis, "instrument"))
+        evidence = " ".join(s.evidence + s.statement for s in diagnosis.signals)
+        self.assertIn("habit_pact_create", evidence)
+
+    def test_uses_the_pact_event_over_the_invite_proxy_once_it_exists(self):
+        # Invites look fine, pacts do not. The stronger signal must win, or the
+        # proxy would mask exactly the failure it stands in for.
+        diagnosis = analyze(
+            fixtures.ads_report([fixtures.app_campaign()]),
+            None, None, Targets(),
+            app_funnel=fixtures.app_funnel(
+                installs=200, profile_starts=120, phone_verified=100, invites_sent=80,
+                pacts_created=2,
+            ),
+        )
+        self.assertEqual(verdict(diagnosis, "PRODUCT").call, "UNVIABLE")
+
+    def test_absent_funnel_says_nothing_about_the_in_app_funnel(self):
+        # The web-side rule still reports PRODUCT as unanswerable; what must not
+        # happen is an in-app claim built out of no in-app data.
+        diagnosis = analyze(fixtures.ads_report([fixtures.app_campaign()]), None, None, Targets())
+        self.assertEqual(verdict(diagnosis, "PRODUCT").call, "INSUFFICIENT_DATA")
+        text = " ".join(s.statement + s.evidence for s in diagnosis.signals)
+        self.assertNotIn("installs started a profile", text)
+        self.assertFalse(has_action(diagnosis, "instrument"))
+
+
+class ContradictionTest(unittest.TestCase):
+    """A scale-up is only advice if the thing being scaled works."""
+
+    def test_cheap_installs_do_not_recommend_scaling_a_broken_funnel(self):
+        diagnosis = analyze(
+            fixtures.ads_report([fixtures.app_campaign(cost="200", installs=100)]),  # $2 CPI
+            None, None, Targets(),
+            app_funnel=fixtures.app_funnel(),  # the real 1.1% shape
+        )
+        self.assertEqual(verdict(diagnosis, "PRODUCT").call, "UNVIABLE")
+        scale = next(a for a in diagnosis.actions if "budget up" in a.title.lower())
+        self.assertIn("BLOCKED", scale.title)
+        self.assertIn("PRODUCT", scale.rationale)
+        # And it must not outrank the thing that blocks it.
+        blocker = next(a for a in diagnosis.actions if "partner-wall" in a.title.lower())
+        self.assertGreater(scale.priority, blocker.priority)
+
+    def test_scaling_advice_survives_a_healthy_funnel(self):
+        diagnosis = analyze(
+            fixtures.ads_report([fixtures.app_campaign(cost="200", installs=100)]),
+            None, None, Targets(),
+            app_funnel=fixtures.app_funnel(
+                installs=200, profile_starts=120, phone_verified=100, invites_sent=60,
+                pacts_created=45,
+            ),
+        )
+        scale = next(a for a in diagnosis.actions if "budget up" in a.title.lower())
+        self.assertNotIn("BLOCKED", scale.title)
+
+    def test_no_product_verdict_leaves_the_recommendation_alone(self):
+        diagnosis = analyze(
+            fixtures.ads_report([fixtures.app_campaign(cost="200", installs=100)]),
+            None, None, Targets(),
+        )
+        scale = next(a for a in diagnosis.actions if "budget up" in a.title.lower())
+        self.assertNotIn("BLOCKED", scale.title)

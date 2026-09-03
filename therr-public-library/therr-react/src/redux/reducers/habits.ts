@@ -75,6 +75,43 @@ const habits = produce((draft: IHabitsState, action: any) => {
         case HabitsActionTypes.CREATE_PACT:
             draft.pacts.unshift(action.data);
             break;
+        case HabitsActionTypes.RENEW_PACT: {
+            // A renewal replaces its predecessor in the list rather than joining it. The
+            // server already leaves superseded cycles out of the list read; doing the same
+            // thing locally is what stops the old cycle sitting next to the new one — and
+            // still offering its re-commit button — until the next refetch.
+            const renewed = action.data;
+            if (!renewed?.id) {
+                break;
+            }
+
+            const predecessorId = renewed.renewedFromPactId;
+            (['pacts', 'activePacts', 'pendingInvites'] as const).forEach((key) => {
+                if (predecessorId) {
+                    const dropIdx = draft[key].findIndex((p) => p.id === predecessorId);
+                    if (dropIdx > -1) {
+                        draft[key].splice(dropIdx, 1);
+                    }
+                }
+                // Upsert, never append: renewal is idempotent server-side, so a second tap
+                // returns a pact that is already here.
+                const idx = draft[key].findIndex((p) => p.id === renewed.id);
+                if (idx > -1) {
+                    draft[key][idx] = renewed;
+                }
+            });
+
+            if (!draft.pacts.some((p) => p.id === renewed.id)) {
+                draft.pacts.unshift(renewed);
+            }
+            // A renewal with no one left to invite is activated immediately, so it belongs
+            // in the checkin-able list right away. One that is still `pending` joins
+            // activePacts through ACCEPT_PACT, like every other pact.
+            if (renewed.status === 'active' && !draft.activePacts.some((p) => p.id === renewed.id)) {
+                draft.activePacts.push(renewed);
+            }
+            break;
+        }
         case HabitsActionTypes.NUDGE_PACT: {
             // `nudgeResults` is a transient, per-partner outcome list for the
             // caller (toast copy) — keep it out of persisted pact state.
