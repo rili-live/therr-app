@@ -349,13 +349,29 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   linked to the GA4 app property; the manager is what you authenticate *through*,
   not what campaigns are created in. `./therrads auth check` lists what the token
   can actually reach — confirm both before the first `campaign apply`.
+- [ ] **Mark the six new habits events as key events** in GA4 admin on property
+  `267810693`, stream "Friends with Habits": `habit_pact_create`,
+  `habit_invite_sent`, `habit_solo_start`, `habit_checkin_complete`,
+  `habits_paywall_view`, `habits_founder_unlock_purchase`. They start arriving
+  once versionCode 35 reaches the Play production track. An event that is
+  collected but not marked cannot be imported into Ads as a conversion action,
+  and this is the whole point of shipping them.
+- [ ] **Create a Google Ads link on GA4 property `549794383`.** The app property
+  (`267810693`) has had one since 2022; the consolidated web property has
+  **none**, so the web arm has no path to import a conversion even after
+  `sign_up` is marked. GA4 Admin -> Product links -> Google Ads links.
+- [ ] **Mark `sign_up` as a key event** on property `549794383` and import it as
+  the web arm's conversion action. `habits.therr.com/register` fires it on a
+  successful registration, and the landing page fires `store_click` /
+  `register_start`. Without this the Search campaign's `target_cpa: 8.00` has no
+  conversion to count and bids against nothing.
 - [ ] **Set `settings.yaml` -> `product_db.enabled: true`** against the READ
   replica once credentials are sourced. Ads and GA4 alone cannot answer whether
   paid users activate or pay; that join lives only in our own database.
 
 ### Code work this unblocks
 
-- [ ] **Instrument the habits activation and purchase events in TherrMobile.**
+- [x] **Instrument the habits activation and purchase events in TherrMobile.**
   `git grep logEvent` on `niche/HABITS-general` finds no `habit_pact_create`, no
   check-in-complete and no Founder Unlock purchase event, so the in-app funnel
   stops at phone verification: the MODEL question has no GA4 answer at all, and
@@ -371,7 +387,13 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   `ga4.APP_FUNNEL_STEPS` already declares them with `shipped=False`, so the
   reporting side needs no change once they start firing.
   **Mobile-only — belongs on `niche/HABITS-general`, not `general`.**
-- [ ] **Wire the Play Install Referrer API into TherrMobile** so paid installs
+  > Shipped on `niche/HABITS-general` 2026-09-03, in versionCode 35 / 1.5.0.
+  > Six events, all on server-confirmed paths: `habit_pact_create`,
+  > `habit_invite_sent`, `habit_solo_start`, `habit_checkin_complete` (three
+  > call sites, including the push quick-action), `habits_paywall_view`, and
+  > `habits_founder_unlock_purchase` with `value`/`currency`. **Two manual steps
+  > remain — see § Paid acquisition below.**
+- [x] **Wire the Play Install Referrer API into TherrMobile** so paid installs
   are attributable. Read the referrer string on first launch, parse the UTM
   parameters, and include them in the registration payload's `userAcquisition`
   object — `sanitizeUserAcquisition` and `main."userAcquisition"` already exist,
@@ -379,6 +401,15 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   app-install arm's users is inference rather than measurement, and paid installs
   are indistinguishable from organic ones in the funnel.
   **Mobile-only — belongs on `niche/HABITS-general`, not `general`.**
+  > Shipped on `niche/HABITS-general` 2026-09-03, in versionCode 35 / 1.5.0.
+  > First-party `InstallReferrerModule.kt` on the existing `InitialIntentModule`
+  > pattern, parsing in `main/utilities/installReferrer.ts`, attached in both
+  > mobile register paths. No backend change, as predicted. It refuses to treat
+  > Play's own `utm_source=google-play&utm_medium=organic` placeholder as a
+  > campaign. **Unverifiable until a real paid click lands** — the first thing
+  > to check after the campaign starts serving is whether a
+  > `main."userAcquisition"` row appears with
+  > `utmCampaign = 'fwh-app-us-installs-2026q3'`.
 - [ ] **Add accepted-invite counts to the acquisition funnel query** so the viral
   coefficient is measured rather than assumed. `product.py` currently counts
   invites *sent* (the 3-invite solo-tracking unlock); the loop only pays for
