@@ -13,6 +13,7 @@ from therr_ads.ga4 import (
     Ga4Row,
     build_app_funnel,
     detect_crawler_contamination,
+    fetch_app_funnel,
 )
 
 
@@ -85,3 +86,26 @@ class AppFunnelTest(unittest.TestCase):
         self.assertTrue(by_name["first_open"]["instrumented"])
         self.assertFalse(by_name[ACTIVATION_EVENT]["instrumented"])
         self.assertEqual(payload["installs"], 182)
+
+
+class FetchAppFunnelUnconfiguredTest(unittest.TestCase):
+    """The paths that return a funnel without ever calling GA4.
+
+    Both used to build their explanation onto a throwaway report and then
+    return a different, note-less one, so an operator who had not set
+    `ga4.app_property_id` got a silent funnel of zeroes — indistinguishable
+    from an app that nobody had opened — instead of the sentence naming the
+    setting to add.
+    """
+
+    def test_missing_property_id_explains_itself(self):
+        report = fetch_app_funnel("")
+
+        self.assertTrue(report.notes, "an unconfigured funnel must say why it is empty")
+        self.assertIn("app_property_id", " ".join(report.notes))
+
+    def test_missing_property_id_still_returns_the_whole_funnel_shape(self):
+        report = fetch_app_funnel("")
+
+        self.assertEqual(len(report.steps), len(APP_FUNNEL_STEPS))
+        self.assertEqual(report.installs, 0)

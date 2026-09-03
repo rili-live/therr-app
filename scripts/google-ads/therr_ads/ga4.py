@@ -261,18 +261,15 @@ def fetch_app_funnel(app_property_id: str, days: int = 14,
     app's installs and every rate below it is wrong in the flattering direction.
     """
     start, end = date_range(days)
-    report = AppFunnelReport(
-        property_id=app_property_id, stream_name=stream_name,
-        start_date=start, end_date=end, steps=[],
-    )
 
     if not app_property_id:
+        report = build_app_funnel({}, app_property_id, stream_name, start, end)
         report.notes.append(
             "settings.yaml -> ga4.app_property_id is not set, so the in-app funnel was not pulled. "
             "It is 267810693 for Friends with Habits — the Firebase-created property, NOT the "
             "consolidated web property in ga4.property_id."
         )
-        return build_app_funnel({}, app_property_id, stream_name, start, end)
+        return report
 
     try:
         from google.analytics.data_v1beta import BetaAnalyticsDataClient
@@ -283,10 +280,11 @@ def fetch_app_funnel(app_property_id: str, days: int = 14,
             RunReportRequest,
         )
     except ImportError as exc:
+        report = build_app_funnel({}, app_property_id, stream_name, start, end)
         report.notes.append(
             f"google-analytics-data is not installed ({exc}). Run: pip install -r requirements.txt."
         )
-        return build_app_funnel({}, app_property_id, stream_name, start, end)
+        return report
 
     request = RunReportRequest(
         property=f"properties/{app_property_id}",
