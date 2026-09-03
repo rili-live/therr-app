@@ -108,6 +108,7 @@ const PACT: any = {
 
 const buildInstance = (habitsOverrides: any = {}) => {
     const navigate = jest.fn();
+    const setParams = jest.fn();
 
     const props: any = {
         user: { settings: {}, details: { id: CURRENT_USER_ID } },
@@ -118,7 +119,7 @@ const buildInstance = (habitsOverrides: any = {}) => {
             pendingInvites: [],
             ...habitsOverrides,
         },
-        navigation: { navigate, setOptions: jest.fn() },
+        navigation: { navigate, setParams, setOptions: jest.fn() },
         route: { params: { pactId: 'pact-1' } },
         getPactDetails: jest.fn(() => Promise.resolve(PACT)),
         getUserGoals: jest.fn(() => Promise.resolve([])),
@@ -130,7 +131,7 @@ const buildInstance = (habitsOverrides: any = {}) => {
     const instance = new PactDetail(props);
     instance.setState = jest.fn();
 
-    return { instance, navigate };
+    return { instance, navigate, setParams };
 };
 
 /** Collects every element in a rendered React tree, depth-first. */
@@ -229,5 +230,46 @@ describe('PactDetail navigation links', () => {
 
         expect(instance.props.getPactDetails).toHaveBeenCalledWith('pact-1');
         expect(instance.props.getUserGoals).toHaveBeenCalled();
+    });
+
+    /**
+     * Following a renewal chain re-points this screen instead of stacking a copy of
+     * itself, which means the refetch has to be told where it is going. `setParams` is
+     * a navigation dispatch, not a synchronous prop write: `route.params` still names
+     * the pact being left for the rest of the call stack. A refetch reading it would
+     * fetch the cycle the user just navigated away from and never the one they asked
+     * for — and because the list read leaves superseded cycles out of Redux, the screen
+     * would sit on "Pact not found" until a manual pull-to-refresh.
+     */
+    describe('renewal lineage navigation', () => {
+        it('refetches the pact it is navigating to, not the one it is leaving', () => {
+            const { instance, setParams } = buildInstance();
+
+            instance.goToPactDetail('pact-2');
+
+            expect(setParams).toHaveBeenCalledWith({ pactId: 'pact-2' });
+            expect(instance.props.getPactDetails).toHaveBeenCalledWith('pact-2');
+            expect(instance.props.getPactDetails).not.toHaveBeenCalledWith('pact-1');
+        });
+
+        it('refetches the renewed cycle rather than the one that was just superseded', async () => {
+            const { instance, setParams } = buildInstance();
+            instance.props.renewPact = jest.fn(() => Promise.resolve({ id: 'pact-2', durationDays: 30 }));
+
+            await instance.handleRenew();
+
+            expect(setParams).toHaveBeenCalledWith({ pactId: 'pact-2' });
+            expect(instance.props.getPactDetails).toHaveBeenCalledWith('pact-2');
+        });
+
+        it('still refetches the pact in route params on pull-to-refresh', () => {
+            // RefreshControl calls onRefresh with no arguments, so the default
+            // has to keep working.
+            const { instance } = buildInstance();
+
+            instance.handleRefresh();
+
+            expect(instance.props.getPactDetails).toHaveBeenCalledWith('pact-1');
+        });
     });
 });

@@ -114,9 +114,18 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
             || habits.activePacts.find((p: IPact) => p.id === pactId);
     };
 
-    handleRefresh = () => {
+    /**
+     * `overridePactId` exists because `navigation.setParams` is a dispatch, not a
+     * synchronous prop write: `route.params` on `this.props` still names the pact we are
+     * leaving for the rest of this call stack. A refetch that read it would fetch the old
+     * cycle and never the one just navigated to, leaving the screen on "Pact not found"
+     * until the user pulled to refresh. Callers that change the pact pass the new id here.
+     * `onRefresh` on the RefreshControl is called with no arguments, so the default holds
+     * for pull-to-refresh.
+     */
+    handleRefresh = (overridePactId?: string) => {
         const { getPactDetails, getUserGoals, route } = this.props;
-        const { pactId } = route.params;
+        const pactId = overridePactId || route.params.pactId;
 
         this.setState({ isRefreshing: true });
 
@@ -158,7 +167,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
      */
     goToPactDetail = (pactId: string) => {
         this.props.navigation.setParams({ pactId });
-        this.handleRefresh();
+        this.handleRefresh(pactId);
     };
 
     goToUserProfile = (userId: string) => {
@@ -276,7 +285,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
 
                 if (renewed?.id) {
                     navigation.setParams({ pactId: renewed.id });
-                    this.handleRefresh();
+                    this.handleRefresh(renewed.id);
                 } else {
                     navigation.goBack();
                 }

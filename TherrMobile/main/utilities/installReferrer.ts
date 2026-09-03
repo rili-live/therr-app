@@ -46,6 +46,41 @@ const MAX_REFERRER_LENGTH = 1024;
 const STORAGE_KEY = 'therrInstallReferrer';
 const STORAGE_READ_FLAG = 'therrInstallReferrerRead';
 
+/**
+ * How long to wait on Play before treating the read as a failure.
+ *
+ * `InstallReferrerClient` reports its outcomes through a listener, and the
+ * listener is not guaranteed to fire: the binding can be accepted by a Play
+ * Store that then never answers. The native side resolves the promise on every
+ * outcome it is *told* about, but silence is not an outcome, and this promise is
+ * awaited on the registration submit path with the button already disabled — an
+ * unbounded wait there is a sign-up that never completes and cannot be retried
+ * without killing the app.
+ *
+ * Timing out rejects rather than resolving null on purpose: the outer catch then
+ * returns null without writing the read flag, so a device that was merely slow
+ * gets another attempt instead of being cached as "no attribution" forever.
+ */
+const NATIVE_READ_TIMEOUT_MS = 3000;
+
+const readWithTimeout = (read: Promise<any>): Promise<any> => new Promise((resolve, reject) => {
+    const timer = setTimeout(
+        () => reject(new Error('installReferrerTimeout')),
+        NATIVE_READ_TIMEOUT_MS,
+    );
+
+    read.then(
+        (value) => {
+            clearTimeout(timer);
+            resolve(value);
+        },
+        (error) => {
+            clearTimeout(timer);
+            reject(error);
+        },
+    );
+});
+
 export interface IMobileUserAcquisition {
     utmSource?: string;
     utmMedium?: string;
@@ -136,15 +171,20 @@ export const getInstallAcquisition = async (): Promise<IMobileUserAcquisition | 
             return cached ? JSON.parse(cached) : null;
         }
 
-        const result = await NativeModules.InstallReferrer?.getInstallReferrer?.();
+        const pendingRead = NativeModules.InstallReferrer?.getInstallReferrer?.();
+        const result = pendingRead ? await readWithTimeout(Promise.resolve(pendingRead)) : null;
         const acquisition = parseInstallReferrer(result?.referrer);
 
-        // Flag first: a crash between the two writes must not cause a re-read
-        // loop on every launch.
-        await AsyncStorage.setItem(STORAGE_READ_FLAG, 'true');
+        // Value first, flag second. The flag is what makes this read happen once
+        // ever, so writing it before the value it vouches for means a process
+        // killed between the two lands on "already read, nothing there" and
+        // discards a paid install's attribution permanently. In this order the
+        // same kill leaves the flag unset and the next launch simply reads Play
+        // again, which is the cheap half of the pair.
         if (acquisition) {
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(acquisition));
         }
+        await AsyncStorage.setItem(STORAGE_READ_FLAG, 'true');
 
         return acquisition;
     } catch {

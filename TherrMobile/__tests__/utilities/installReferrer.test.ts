@@ -168,5 +168,73 @@ describe('getInstallAcquisition', () => {
 
             await expect(getInstallAcquisition()).resolves.toBeNull();
         });
+
+        it('gives up when Play binds and never calls the listener back', async () => {
+            // The failure this guards is not a rejection, it is silence.
+            // InstallReferrerClient reports outcomes through a listener that is
+            // not guaranteed to fire, and this promise is awaited on the
+            // registration submit path with the button already disabled — so an
+            // unbounded wait is a sign-up that can only be escaped by killing
+            // the app.
+            jest.useFakeTimers();
+
+            try {
+                (NativeModules as any).InstallReferrer.getInstallReferrer
+                    .mockReturnValue(new Promise(() => undefined));
+
+                const pending = getInstallAcquisition();
+
+                await jest.advanceTimersByTimeAsync(5000);
+
+                await expect(pending).resolves.toBeNull();
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it('does not cache "nothing there" after a read that timed out', async () => {
+            // A slow device must get another attempt. Caching the timeout would
+            // make one bad launch discard a paid install's attribution forever.
+            jest.useFakeTimers();
+
+            try {
+                (NativeModules as any).InstallReferrer.getInstallReferrer
+                    .mockReturnValueOnce(new Promise(() => undefined));
+
+                const pending = getInstallAcquisition();
+                await jest.advanceTimersByTimeAsync(5000);
+                await pending;
+
+                jest.useRealTimers();
+
+                (NativeModules as any).InstallReferrer.getInstallReferrer
+                    .mockResolvedValue({ referrer: ATTRIBUTED });
+
+                await expect(getInstallAcquisition()).resolves.toMatchObject({
+                    utmCampaign: 'fwh-app-us-installs-2026q3',
+                });
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it('does not mark the referrer read before the value it vouches for is stored', async () => {
+            // The flag is what makes this read happen once ever. Written first,
+            // a process killed between the two writes leaves "already read,
+            // nothing there" — attribution lost with no way back.
+            const writes: string[] = [];
+            jest.spyOn(AsyncStorage, 'setItem').mockImplementation((key: string) => {
+                writes.push(key);
+                return Promise.resolve();
+            });
+
+            try {
+                await getInstallAcquisition();
+
+                expect(writes).toEqual(['therrInstallReferrer', 'therrInstallReferrerRead']);
+            } finally {
+                (AsyncStorage.setItem as jest.Mock).mockRestore();
+            }
+        });
     });
 });
