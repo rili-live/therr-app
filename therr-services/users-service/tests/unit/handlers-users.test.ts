@@ -8,7 +8,14 @@ import {
     isUserProfileIncomplete,
     redactUserCreds,
 } from '../../src/handlers/helpers/user';
-import { getMe, updateUser, updateUserCoins } from '../../src/handlers/users';
+import {
+    createUser, getMe, updateUser, updateUserCoins,
+} from '../../src/handlers/users';
+// Aliased: two existing tests below declare a local `UsersStore` via require().
+import UsersStoreClass from '../../src/store/UsersStore';
+import UserAchievementsStore from '../../src/store/UserAchievementsStore';
+import VerificationCodesStore from '../../src/store/VerificationCodesStore';
+import { awsSES } from '../../src/api/aws';
 
 // Minimal Express res double that captures the status + payload getMe sends.
 const makeRes = () => {
@@ -916,5 +923,91 @@ describe('Users Handler', () => {
 
             expect(accessLevels.includes(AccessLevels.DASHBOARD_SIGNUP)).to.be.eq(true);
         });
+    });
+});
+
+/**
+ * The birthdate every registration form collects.
+ *
+ * `createUser` hands `createUserHelper` an explicit whitelist rather than the raw body,
+ * and `settingsBirthdate` was missing from it. Nothing failed: the gateway validated the
+ * value, the handler dropped it, and the column was written as DEFAULT — so no account
+ * ever stored a birthdate, and the service's own age check (guarded on the value being
+ * present) never ran on any registration. A field silently not being forwarded looks
+ * identical to a client that never sent one, which is why this is asserted against the
+ * emitted INSERT rather than against the handler's arguments.
+ */
+describe('createUser — settingsBirthdate', () => {
+    const BIRTHDATE = '1990-01-01';
+
+    const stubStores = () => {
+        const userConnection = {
+            read: { query: sinon.stub().resolves({ rows: [] }) },
+            write: { query: sinon.stub().resolves({ rows: [{ id: 'mock-id' }] }) },
+        };
+        sinon.stub(Store, 'users').value(new UsersStoreClass(userConnection));
+        sinon.stub(Store, 'verificationCodes')
+            .value(new VerificationCodesStore({ write: { query: sinon.stub().resolves({}) } }));
+        sinon.stub(Store, 'userAchievements')
+            .value(new UserAchievementsStore({
+                read: { query: sinon.stub().resolves({ rows: [] }) },
+                write: { query: sinon.stub().resolves({ rows: [] }) },
+            } as any));
+        sinon.stub(awsSES, 'sendEmail').resolves({});
+        return userConnection;
+    };
+
+    const makeReq = (body: any) => ({
+        headers: {
+            'x-platform': 'web',
+            'x-brand-variation': 'habits',
+            'x-localecode': 'en-us',
+        },
+        body,
+    });
+
+    const insertSql = (userConnection: any) => userConnection.write.query.args
+        .map((call: any[]) => call[0])
+        .find((sql: string) => sql.includes('insert into "main"."users"'));
+
+    it('writes the submitted birthdate to the users row', async () => {
+        const userConnection = stubStores();
+        const res = makeRes();
+
+        await createUser(makeReq({
+            email: 'birthday@test.com',
+            password: 'strinG123!',
+            settingsBirthdate: BIRTHDATE,
+            hasAgreedToTerms: true,
+        }) as any, res as any, (() => undefined) as any);
+
+        expect(res.statusCode).to.equal(201);
+        const sql = insertSql(userConnection);
+        expect(sql, 'no users INSERT was emitted').to.be.a('string');
+        expect(sql.includes('"settingsBirthdate"')).to.equal(true);
+        // The value, not just the column: the column was always in the INSERT, carrying
+        // DEFAULT, which is exactly what made the dropped field invisible.
+        expect(sql.includes(BIRTHDATE)).to.equal(true);
+    });
+
+    // Second layer only. The gateway rejects an under-age birthdate first, so this covers
+    // a caller reaching the service directly -- and it can only run at all because the
+    // value is now forwarded.
+    it('rejects an under-age birthdate with a 400 rather than a 500', async () => {
+        const userConnection = stubStores();
+        const res = makeRes();
+        const under13 = new Date();
+        under13.setFullYear(under13.getFullYear() - 8);
+
+        await createUser(makeReq({
+            email: 'tooyoung@test.com',
+            password: 'strinG123!',
+            settingsBirthdate: under13.toISOString().split('T')[0],
+            hasAgreedToTerms: true,
+        }) as any, res as any, (() => undefined) as any);
+
+        expect(res.statusCode).to.equal(400);
+        expect(insertSql(userConnection), 'an under-age registration must not insert a row')
+            .to.equal(undefined);
     });
 });

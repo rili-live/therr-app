@@ -8,7 +8,8 @@
             "noUserFound": "Aucun utilisateur trouvé avec le nom d'utilisateur ou le courriel saisi",
             "oneTimeExpired": "Le mot de passe à usage unique a expiré",
             "incorrectUserPass": "Combinaison nom d'utilisateur/mot de passe incorrecte",
-            "invalidPassword": "Le mot de passe est invalide"
+            "invalidPassword": "Le mot de passe est invalide",
+            "invalidBirthdate": "Tu dois avoir au moins 13 ans pour créer un compte"
         },
         "posts": {
             "duplicatePost": "Les publications en double ne sont pas autorisées",
