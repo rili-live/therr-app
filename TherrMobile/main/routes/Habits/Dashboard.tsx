@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import RNFB from 'react-native-blob-util';
 import { FeatureFlags, FilePaths } from 'therr-js-utilities/constants';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { HabitActions } from 'therr-react/redux/actions';
 import {
     IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak, IPact, IPactNudgeResult,
@@ -395,6 +396,17 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                     });
                     return;
                 }
+
+                // Retention, and the only in-app signal that a bought install
+                // turned into a habit rather than a signup. Fired only on this
+                // branch: the isAddingDetail path above is a second call
+                // attaching a photo or note to the check-in this one already
+                // created, and counting it would double every proofed check-in.
+                logEvent(getAnalytics(), 'habit_checkin_complete', {
+                    userId: this.props.user?.details?.id,
+                    source: 'dashboard',
+                    hasProof: false,
+                }).catch((err) => console.log(err));
 
                 // The streak is the reward for the tap, so it has to move now.
                 // CREATE_CHECKIN only updates today's checkins in Redux — the

@@ -119,8 +119,8 @@ android {
         // listing under a separate applicationId. Taking general's numbers here (458 /
         // 3.17.5) would jump this app by 424 codes in one merge and strand every future
         // Habits release below it. Always resolve this conflict toward the niche side.
-        versionCode 34
-        versionName "1.4.0"
+        versionCode 35
+        versionName "1.5.0"
         // App Links hosts for the autoVerify intent-filter in AndroidManifest.xml.
         // Keyed off applicationId (same pattern as the release signingConfig below) so a
         // niche variant only has to change applicationId and the hosts follow.
@@ -223,6 +223,11 @@ tasks.named("clean").configure {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+
+    // Play Install Referrer — the only channel that carries a Google Ads
+    // campaign across the Play Store hop into a paid install. Read once on
+    // first launch by InstallReferrerModule; see main/utilities/installReferrer.ts.
+    implementation 'com.android.installreferrer:installreferrer:2.2'
 
     implementation platform('com.google.firebase:firebase-bom:33.7.0')
     implementation 'com.google.firebase:firebase-analytics'

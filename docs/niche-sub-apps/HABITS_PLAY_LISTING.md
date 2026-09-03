@@ -1,7 +1,14 @@
 # Friends with Habits — Google Play Listing
 
 **Status:** Draft for internal-testing track submission
-**Last Updated:** 2026-05-07
+**Last Updated:** 2026-09-03
+
+> **This doc is a paid-acquisition asset now.** Every ad in both arms of
+> `scripts/google-ads/campaigns/` terminates at this listing, so a stale offer
+> here is a conversion tax on every dollar spent. Between 2026-05 and 2026-09 it
+> advertised "1 active pact" and "$6.99/month coming soon" while the app shipped
+> 5 free habits and a $20 one-time Founder Unlock. Re-read it before any budget
+> change. See `docs/PAID_ACQUISITION_PLAYBOOK.md`.
 **Branch:** `niche/HABITS-general`
 
 This document holds the canonical Play Console listing copy, Data Safety form
@@ -18,8 +25,8 @@ underlying product context this copy is derived from.
 | App name | Friends with Habits |
 | Package name | `com.therr.habits` |
 | Android namespace | `app.therrmobile` |
-| versionCode | `1` |
-| versionName | `0.1.0` |
+| versionCode | `35` |
+| versionName | `1.5.0` |
 | minSdk | 25 |
 | targetSdk | 36 |
 | Default locale | en-US |
@@ -68,19 +75,17 @@ How it works
 3. Check in every day — add a photo or quick note as proof
 4. Watch the streak grow — and keep each other honest
 
-Free tier
-• 1 active pact at a time
+Free
+• Up to 5 active habits
 • Daily photo + note check-ins
-• Streak tracking
+• Streak tracking and milestones
 • Partner activity feed
 • Push reminders
 
-Premium ($6.99/month) — coming soon
-• Unlimited pacts
-• Video proof
-• Custom consequences
-• Health app integrations
-• Advanced insights
+Founding member — $20 once, first 5,000 accounts
+• Every paid feature, free for life
+• Unlimited habits and pacts
+• No subscription, ever
 
 Built on the Therr platform. Your account works across the Therr family of
 apps. We don't need your location, your contacts, or your microphone — just
@@ -208,11 +213,11 @@ via item (2) of the pre-submission checklist above.
 | Credit score | **No** | — | — | — | — |
 | Other financial info | **No** | — | — | — | — |
 
-*Rationale:* Premium tier ($6.99/mo) is **not yet shipped**. When in-app
-purchases launch, payment is handled by Google Play Billing — which Google
-considers to **not** be data collection by the app, so this section may
-remain **No** even post-launch. Re-evaluate if any non-Play payment path
-(e.g. web checkout) is added.
+*Rationale:* The **$20 Founder Unlock has shipped** (Google Play Billing,
+server-verified, product id `habits_lifetime_founder`). Google does not
+consider Play Billing to be data collection by the app, so this section stays
+**No**. Re-evaluate if any non-Play payment path (e.g. web checkout) is added.
+The $6.99/mo subscription tier is still **not built**.
 
 #### 4. Health and fitness
 

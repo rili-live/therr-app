@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { HabitActions } from 'therr-react/redux/actions';
 import { IHabitsState, IUserState } from 'therr-react/types';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -112,6 +113,14 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
     }
 
     componentDidMount() {
+        // The denominator for the purchase event below. Without it a zero
+        // purchase count is unreadable: it cannot distinguish "nobody is
+        // reaching the paywall" from "everybody reaches it and nobody buys",
+        // which are opposite problems with opposite fixes.
+        logEvent(getAnalytics(), 'habits_paywall_view', {
+            userId: this.props.user?.details?.id,
+        }).catch((err) => console.log(err));
+
         this.props.getLifetimeOffer()
             .then((offer: any) => this.prepareStore(offer))
             .catch(() => null)
@@ -190,6 +199,28 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
             // Acknowledged only after the server recorded the purchase — see
             // the note in `habitsBilling.finishPurchase`.
             await finishPurchase(purchase.rawPurchase);
+
+            // The MODEL question's only in-app answer. `value` and `currency`
+            // are what let this import into Google Ads as a VALUE conversion
+            // rather than a bare count, so cost-per-payer can be compared
+            // against the $17.00 the Founder Unlock actually nets after Play's
+            // 15% fee — the ceiling that decides whether paid acquisition can
+            // fund itself at all.
+            //
+            // Fired here, after the SERVER recorded the purchase and before
+            // finishPurchase acknowledges it to Play. Firing on the store's
+            // resolve instead would count purchases that failed verification,
+            // which is the one direction this number must not be wrong in.
+            //
+            // isRecovery marks the path where a first verify failed and the
+            // user was charged days earlier: still exactly one event per
+            // purchase, but attributed to today rather than to the charge.
+            logEvent(getAnalytics(), 'habits_founder_unlock_purchase', {
+                userId: this.props.user?.details?.id,
+                value: 20,
+                currency: 'USD',
+                isRecovery: !!options.isSilent,
+            }).catch((err) => console.log(err));
 
             // The entitlement lives on the user record, not in habits state, so
             // the user has to be refreshed or every gate keeps reading stale
