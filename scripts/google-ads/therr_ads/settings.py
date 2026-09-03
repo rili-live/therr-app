@@ -27,9 +27,32 @@ class SettingsError(RuntimeError):
 
 @dataclass
 class Ga4Settings:
+    """Which GA4 properties the funnel lives in — note the plural.
+
+    The web surfaces (habits.therr.com, therr.com, dashboard) report to the
+    consolidated property; the Friends with Habits Android app reports to a
+    SEPARATE property under the Firebase-created account. Reading only one of
+    them is what produced the long-standing belief that installs were invisible
+    to GA4. See the module docstring in ga4.py for the full topology.
+    """
+
     property_id: str = ""
+    # The Firebase/app property carrying the "Friends with Habits" Android
+    # stream. Distinct from property_id — GA4 cannot join across properties, so
+    # the app funnel and the web funnel are two reports, not two dimensions of
+    # one.
+    app_property_id: str = ""
+    # GA4 data stream name inside app_property_id. Both Therr apps report to the
+    # same property, so without this filter the habits funnel silently includes
+    # the flagship app's installs.
+    app_stream_name: str = "Friends with Habits"
+    # Restricts the web-side report to one hostname. This is the effective
+    # crawler exclusion: the headless crawler walks www.therr.com/spaces/*, and
+    # habits.therr.com reads clean. crawler_guard stays on as the backstop for
+    # whatever it does next.
+    web_hostname: str = ""
     crawler_guard: bool = True
-    surface_dimension_registered: bool = False
+    surface_dimension_registered: bool = True
 
 
 @dataclass
@@ -160,8 +183,11 @@ def load_settings(path: Path | str | None = None) -> Settings:
         limits=BudgetLimits.from_dict(raw.get("limits")),
         ga4=Ga4Settings(
             property_id=str(ga4_raw.get("property_id", "")),
+            app_property_id=str(ga4_raw.get("app_property_id", "")),
+            app_stream_name=str(ga4_raw.get("app_stream_name", "") or "Friends with Habits"),
+            web_hostname=str(ga4_raw.get("web_hostname", "")),
             crawler_guard=bool(ga4_raw.get("crawler_guard", True)),
-            surface_dimension_registered=bool(ga4_raw.get("surface_dimension_registered", False)),
+            surface_dimension_registered=bool(ga4_raw.get("surface_dimension_registered", True)),
         ),
         product_db=ProductDbSettings(
             enabled=bool(product_raw.get("enabled", False)),

@@ -115,6 +115,10 @@ android {
         applicationId "com.therr.habits"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        // Friends with Habits keeps its OWN Play version sequence — it is a separate
+        // listing under a separate applicationId. Taking general's numbers here (458 /
+        // 3.17.5) would jump this app by 424 codes in one merge and strand every future
+        // Habits release below it. Always resolve this conflict toward the niche side.
         versionCode 34
         versionName "1.4.0"
         // App Links hosts for the autoVerify intent-filter in AndroidManifest.xml.
