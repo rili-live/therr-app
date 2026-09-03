@@ -89,11 +89,21 @@ append new items here rather than only printing them once.
   > traffic, then enable the Internal Traffic data filter to Exclude.
   Do this **before** the old GA4 properties are retired, or the consolidated
   property's only history is a baseline inflated roughly 8x.
-- [ ] **Re-register the `surface` custom dimension** now that habits.therr.com
+  > Still open, re-measured 2026-09-03: **2,616 of 3,052 sessions (86%)** over the 30
+  > days to 2 Sep, Singapore/Chrome/desktop, 28 engaged sessions (1.1%). It is confined
+  > to `www.therr.com` — `habits.therr.com` reads clean at 130 sessions / ~15s
+  > engagement — so paid-campaign reporting works around it via
+  > `scripts/google-ads/settings.yaml` → `ga4.web_hostname`. That is a workaround for
+  > one report, not a fix: the property's own totals stay inflated until this is blocked.
+- [x] **Re-register the `surface` custom dimension** now that habits.therr.com
   reports as its own surface (`landing` / `web` / `habits` / `dashboard`). GA4 admin
   -> Custom definitions, event-scoped, parameter `surface`. Without registration the
   value is collected but not reportable, and habits web traffic stays indistinguishable
   from therr.com.
+  > Done — verified 2026-09-03 against property `549794383`: `customEvent:surface`
+  > returns `web` 10,111 / `habits` 600 / `landing` 319 / `dashboard` 77 over the 30
+  > days to 2 Sep. `scripts/google-ads/settings.example.yaml` →
+  > `ga4.surface_dimension_registered` now defaults to `true`.
 - [ ] **Re-submit the habits sitemap to Search Console** — `habits.therr.com/sitemap.xml`
   grew from 3 URLs to 3 + `/blog` + one per cross-post. This subdomain has almost no
   inbound links, so the sitemap is most of how those pages get discovered at all.
@@ -268,9 +278,11 @@ console configuration, and one verification that gates a payments change.
   Configure tag settings → Configure your domains). The tag-side `linker` config is now
   deployed on all surfaces, but it only decorates outbound links — the receiving property
   honours `_gl` only when the admin list includes the domain.
-- [ ] **Register `surface` as an event-scoped custom dimension** in GA4 admin. Every hit now
+- [x] **Register `surface` as an event-scoped custom dimension** in GA4 admin. Every hit now
   carries it (`landing` / `web` / `dashboard`); without registration it is collected but
   not reportable, and the three surfaces cannot be separated after consolidation.
+  > Done — see the verification note under § Analytics & traffic above. This is the same
+  > item; the two entries were written independently.
 - [ ] **Mirror the consolidated GA4 measurement id into `therr-landing`.** The property exists
   and `global-config.js` → `googleAnalyticsKeyUnified` is set to `G-R7CY0Z1ZRM` in all three
   env blocks, so this repo's clients already dual-report. Still owed: the commented block in
@@ -298,6 +310,13 @@ Tooling is built (`scripts/google-ads/`) and both campaign specs validate. These
 are the steps code cannot do. Strategy, thresholds and the decision log live in
 `docs/PAID_ACQUISITION_PLAYBOOK.md`.
 
+> **Read the GA4 baseline before spending.** 5 Jun – 2 Sep 2026, organic, from the
+> "Friends with Habits" Android stream on property `267810693`: **182 installs → 75
+> started a profile (41%) → 14 verified a phone (7.7%) → 2 sent an invite (1.1%)**,
+> with a 26% uninstall rate. Paid traffic is colder than that. The PRODUCT question
+> is therefore already substantially answered, and the instrumentation and
+> onboarding items below are what a campaign is waiting on — not the credentials.
+
 - [ ] **Obtain a Google Ads developer token at Basic access.** Google Ads UI ->
   Tools & Settings -> Setup -> API Center, on the manager account. A newly issued
   token is Test Account level and rejects every call against a real account with
@@ -319,12 +338,39 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   Google Ads links) so installs are reported as conversions. Without the link,
   the App campaign optimises against nothing and `report ads` shows zero installs
   regardless of what actually happened.
+- [ ] **Import the GA4 key events from property `267810693` into Ads as conversion
+  actions.** The link already exists (created 2022 to customer `7604290203`), and
+  `first_open` / `profile_create_start` / `phone_verify_success` /
+  `connection_invites_sent` are already marked as key events — this is Ads UI ->
+  Goals -> Conversions -> New -> Import -> Google Analytics 4, not a build. Use
+  `first_open` for run 1; add the activation events once they carry volume.
+- [ ] **Set `settings.yaml` -> `customer_id: "7604290203"` and `config.yaml` ->
+  `login_customer_id: "3076709152"`.** The operating account is the one already
+  linked to the GA4 app property; the manager is what you authenticate *through*,
+  not what campaigns are created in. `./therrads auth check` lists what the token
+  can actually reach — confirm both before the first `campaign apply`.
 - [ ] **Set `settings.yaml` -> `product_db.enabled: true`** against the READ
   replica once credentials are sourced. Ads and GA4 alone cannot answer whether
   paid users activate or pay; that join lives only in our own database.
 
 ### Code work this unblocks
 
+- [ ] **Instrument the habits activation and purchase events in TherrMobile.**
+  `git grep logEvent` on `niche/HABITS-general` finds no `habit_pact_create`, no
+  check-in-complete and no Founder Unlock purchase event, so the in-app funnel
+  stops at phone verification: the MODEL question has no GA4 answer at all, and
+  PRODUCT is answerable only as far as "did they invite anyone". Add
+  `habit_pact_create` (`routes/Pacts/CreatePactInvite.tsx`),
+  `habit_checkin_complete` (`components/Habits/CheckinButton.tsx` /
+  `CheckinProofSheet.tsx`), `habits_founder_unlock_purchase`
+  (`utilities/habitsBilling.ts`, with `value: 20` and `currency: 'USD'` so it
+  imports as a value conversion) and `habits_paywall_view`
+  (`routes/Habits/UpgradePaywall.tsx`), matching the existing
+  `logEvent(getAnalytics(), ...)` style in `routes/CreateProfile/index.tsx:144`.
+  Then mark each as a key event in GA4 admin on property `267810693`.
+  `ga4.APP_FUNNEL_STEPS` already declares them with `shipped=False`, so the
+  reporting side needs no change once they start firing.
+  **Mobile-only — belongs on `niche/HABITS-general`, not `general`.**
 - [ ] **Wire the Play Install Referrer API into TherrMobile** so paid installs
   are attributable. Read the referrer string on first launch, parse the UTM
   parameters, and include them in the registration payload's `userAcquisition`
