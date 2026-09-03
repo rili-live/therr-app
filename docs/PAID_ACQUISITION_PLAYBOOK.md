@@ -1,6 +1,6 @@
 # Paid Acquisition Playbook — Friends with Habits
 
-**Last Updated:** August 2026
+**Last Updated:** September 2026
 **Status:** Active — tooling built, no campaign has run yet
 **Audience:** The founder, and coding agents generating next-step work items
 **Tooling:** [`scripts/google-ads/`](../scripts/google-ads/README.md)
@@ -187,6 +187,8 @@ human or agent — able to pick up without re-deriving the reasoning.
 
 | Date | Decision | Evidence | Consequence |
 |---|---|---|---|
+| 2026-09-03 | **Instrument before spending.** Both specs stay PAUSED until (a) the habits activation and purchase events ship to the Play production track and (b) a conversion action is imported into Ads. Ads account confirmed as `7604290203`, operating, under manager `3076709152`. | A GA4 review before the first dollar found the tooling's core assumption wrong in our favour and the campaign's premise wrong against us. The app data stream it assumed did not exist does — property `267810693`, stream "Friends with Habits", already Ads-linked, with `first_open` / `profile_create_start` / `phone_verify_success` / `connection_invites_sent` already key events. What it says, organically, 5 Jun – 2 Sep: **182 installs → 75 profiles (41%) → 14 phone-verified (7.7%) → 2 invites sent (1.1%)**, 26% uninstall. | The PRODUCT question is substantially answered before any spend, and the answer is no: at the $2.50 target CPI that is ~$227 per user who invites anyone. Spending ~$900 now would buy a confirmation of a known leak. The onboarding fix moves ahead of the campaign in priority; the campaign becomes the instrument that measures whether the fix worked. |
+| 2026-09-03 | Built the web arm's attribution chain rather than deferring the arm. | `habits.therr.com` had no `/register`, shipped no React bundle so `captureAttribution` never ran, and its only CTA went to the Play Store with no `gtag` event. The chain justifying this arm's higher cost per signup was aspirational — it would have measured nothing. | `/register` + `habitsAttribution.hbs` + landing CTA and click events shipped on `general`. The arm is now worth its budget, but it still needs a conversion action imported into Ads before resuming: property `549794383` has **no Google Ads link at all**, unlike the app property. |
 | 2026-08-28 | Built the tooling; both specs created but not applied. Chose a two-arm structure (cheap-but-blind + expensive-but-measured) rather than a single App campaign. | No paid history exists. An App campaign alone cannot answer the PRODUCT or MODEL questions, because a Play install sets no UTM. | Web arm's higher cost per signup is accepted as the price of attribution. Revisit once the Play Install Referrer lands. |
 
 ---

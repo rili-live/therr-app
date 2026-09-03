@@ -25,6 +25,16 @@ hypothesis: >
   rate, the product works but the channel does not, and the next experiment is
   organic/referral rather than more budget.
 
+  READ THIS WITH THE ORGANIC BASELINE IN HAND. GA4 property 267810693, stream
+  "Friends with Habits", 5 Jun - 2 Sep 2026: 182 installs -> 75 started a
+  profile (41%) -> 14 verified a phone (7.7%) -> 2 sent an invite (1.1%), with a
+  26% uninstall rate. Paid traffic is strictly colder than the organic traffic
+  that produced those numbers, so this campaign should be expected to do worse,
+  not better. That makes CHANNEL the only question this arm can honestly answer
+  on its own: what does an install cost. Whether an install is worth buying is
+  already answered, and the answer is currently no — see
+  docs/PAID_ACQUISITION_PLAYBOOK.md and analysis._rule_app_activation.
+
 campaign:
     name: "FwH-App-US-Installs-2026Q3"
     kind: app_install
@@ -46,10 +56,21 @@ budget:
     delivery: STANDARD
 
 bidding:
-    # Install-volume bidding with a cost target. The alternative
-    # (OPTIMIZE_IN_APP_CONVERSIONS_*) needs a Firebase or Play conversion action
-    # already receiving events, which this app does not have yet — the spec
-    # validator will tell you so if you switch it early.
+    # Install-volume bidding with a cost target, and the right choice for run 1.
+    #
+    # The reason is no longer "no conversion action exists" — one does. GA4
+    # property 267810693 already marks first_open, profile_create_start,
+    # phone_verify_success and connection_invites_sent as key events, and that
+    # property is already linked to Ads accounts 7604290203 and 3076709152, so
+    # importing them is an Ads UI step (Goals -> Conversions -> Import ->
+    # Google Analytics 4), not a build.
+    #
+    # The reason is volume. OPTIMIZE_IN_APP_CONVERSIONS_* needs on the order of
+    # 10 conversions/day to bid on, and at a $20/day budget against a funnel
+    # that produces roughly one activation a month, it would have nothing to
+    # learn from. Switch it at run 2, once the Phase 1 activation events
+    # (habit_pact_create, habit_checkin_complete,
+    # habits_founder_unlock_purchase) are shipped and carrying volume.
     goal: OPTIMIZE_INSTALLS_TARGET_INSTALL_COST
     # Google's bidder needs room. A target this low with a $20/day budget is
     # already below the 50x-budget guidance the validator warns about; that
@@ -97,6 +118,12 @@ tracking:
     # these UTMs are NOT appended to anything and NOT captured in
     # main.userAcquisition. They exist so `therrads report` can label this
     # campaign's rows consistently with the web arm's.
+    #
+    # "Blind" here means blind to ATTRIBUTION, not to behaviour. The GA4 app
+    # stream does show what installs do — `therrads report ga4` prints that
+    # funnel — it just cannot say which of them were bought. The Play Install
+    # Referrer work (docs/WORK_IN_PROGRESS.md, niche/HABITS-general) is what
+    # closes that gap.
     utm_source: google
     utm_medium: cpc
     utm_campaign: fwh-app-us-installs-2026q3
