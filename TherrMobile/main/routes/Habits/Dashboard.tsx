@@ -30,7 +30,7 @@ import { getFreezeConsumed, getStreakSavedByFreeze } from '../../utilities/strea
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { signImageUrl } from '../../utilities/content';
 import { DURATION, showToast } from '../../utilities/toasts';
-import { IHabitWithPactState, splitHabitsByPactState } from './pactState';
+import { IHabitWithPactState, isPactSuperseded, splitHabitsByPactState } from './pactState';
 import { getNudgeErrorMessage, getNudgeOutcomeToast } from '../Pacts/nudgeOutcome';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 import getConfig from '../../utilities/getConfig';
@@ -451,6 +451,20 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         navigation.navigate('PactDetail', { pactId: pact.id });
     };
 
+    /**
+     * Opens the other side of a renewal boundary — the cycle a pact continues, or the
+     * cycle that continues it.
+     *
+     * Takes an id rather than a pact because the target is frequently not in this
+     * screen's list: the list read leaves superseded cycles out, which is the point.
+     * `PactDetail` fetches by id, so the link works whether or not the pact is loaded
+     * here.
+     */
+    handleViewLineagePact = (pactId: string) => {
+        const { navigation } = this.props;
+        navigation.navigate('PactDetail', { pactId });
+    };
+
     // The invite wizard is the single creation flow: it creates the habit goal
     // (from a template or a custom name) and sends the pact invites together.
     // Shared by the floating action, the empty states, and the Sent-tab card's
@@ -722,7 +736,13 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 return this.getOutgoingInvites();
             case 'all':
             default:
-                return habits.pacts || [];
+                // Superseded cycles are already left out of the list read. They are
+                // filtered again here because `getPactDetails` upserts whatever it
+                // fetches into this same list — so opening an old cycle through a
+                // successor's "extended from" link would otherwise put it back on the
+                // dashboard, next to the cycle that replaced it, which is the exact
+                // duplicate this work removes.
+                return (habits.pacts || []).filter((pact) => !isPactSuperseded(pact));
         }
     };
 
@@ -950,6 +970,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 isRespondPending={respondingPactId === item.id}
                 onRenew={() => this.handleRenewPact(item)}
                 isRenewPending={renewingPactId === item.id}
+                onViewSourcePact={this.handleViewLineagePact}
+                onViewSuccessorPact={this.handleViewLineagePact}
                 themeHabits={this.themeHabits}
                 translate={this.translate}
             />

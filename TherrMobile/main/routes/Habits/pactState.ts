@@ -141,6 +141,22 @@ export const splitHabitsByPactState = (
 );
 
 /**
+ * Has this cycle already been continued by a re-commit?
+ *
+ * `supersededByPactId` is derived server-side and names the newest cycle that
+ * continues this pact — absent when the only renewal was declined or abandoned,
+ * which is what makes such a pact re-committable again.
+ *
+ * The list read leaves superseded cycles out, so most screens never see one.
+ * The exception is the pact reached deliberately, through a successor's
+ * "extended from" link: there the pact is history, and it must read as history
+ * rather than offering to start a cycle that already exists.
+ */
+export const isPactSuperseded = (
+    pact: { supersededByPactId?: string | null } | null | undefined,
+): boolean => !!pact?.supersededByPactId;
+
+/**
  * Whether a pact's cycle is over and can therefore be renewed.
  *
  * Mirrors `isPactRenewable` in users-service (`src/utilities/pactHelpers.ts`),
@@ -158,11 +174,23 @@ export const splitHabitsByPactState = (
  * `abandoned` and `pending` are deliberately absent: someone who walked away
  * should start fresh deliberately, and a pending pact never had a cycle to
  * finish.
+ *
+ * The supersession arm has no counterpart in the server helper, because the
+ * server answers the same question in two steps — `isPactRenewable`, then a
+ * separate successor lookup. Here it has to be one answer, since every CTA on
+ * both screens is drawn from this predicate: a cycle that has already been
+ * continued must not offer to continue it a second time. That combination —
+ * the CTA staying live on a pact that had already been renewed — is how one tap
+ * per duplicate pact used to reach the server at all.
  */
 export const isPactRenewable = (
-    pact: { status?: string; endDate?: Date | string | null } | null | undefined,
+    pact: {
+        status?: string;
+        endDate?: Date | string | null;
+        supersededByPactId?: string | null;
+    } | null | undefined,
 ): boolean => {
-    if (!pact) {
+    if (!pact || isPactSuperseded(pact)) {
         return false;
     }
     if (pact.status === 'completed' || pact.status === 'expired') {
