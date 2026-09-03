@@ -119,8 +119,8 @@ android {
         // listing under a separate applicationId. Taking general's numbers here (458 /
         // 3.17.5) would jump this app by 424 codes in one merge and strand every future
         // Habits release below it. Always resolve this conflict toward the niche side.
-        versionCode 35
-        versionName "1.5.0"
+        versionCode 36
+        versionName "1.5.1"
         // App Links hosts for the autoVerify intent-filter in AndroidManifest.xml.
         // Keyed off applicationId (same pattern as the release signingConfig below) so a
         // niche variant only has to change applicationId and the hosts follow.
