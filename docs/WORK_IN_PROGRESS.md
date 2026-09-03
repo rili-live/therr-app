@@ -71,6 +71,37 @@ append new items here rather than only printing them once.
   is the brand whose push routing has actually broken before, so it is arguably
   the one worth covering first.
 
+## Habits pact renewal (added 2026-09-03)
+
+- [ ] **Clean up the duplicate pending renewals already in production.** The
+  re-commit duplicate bug (§ 2.6.3) is fixed going forward, but rows it already
+  created carry no `renewedFromPactId`, so nothing links or hides them — an
+  affected user still sees their duplicates until they are dealt with. They are
+  identifiable as several `pending` pacts by the same `creatorUserId` on the same
+  `habitGoalId`, created within seconds of each other:
+
+  ```sql
+  SELECT "creatorUserId", "habitGoalId", count(*), min("createdAt"), max("createdAt")
+    FROM habits.pacts
+   WHERE status = 'pending' AND "renewedFromPactId" IS NULL
+   GROUP BY 1, 2 HAVING count(*) > 1
+   ORDER BY 3 DESC;
+  ```
+
+  Abandon all but the newest of each group (`UPDATE habits.pacts SET status =
+  'abandoned', "endReason" = 'mutual' WHERE id IN (…)`) rather than deleting
+  them, so any `pact_members` and activity rows stay resolvable. Deliberately
+  **not** done in the migration: which of a set of same-second pacts the user
+  meant to keep is a judgement about their data, not a schema change, and a
+  migration that guessed wrong would be unreviewable after the fact.
+
+- [ ] **Check whether any affected user is left with no live cycle.** Abandoning
+  the extras above is safe, but a user whose *only* remaining renewal was one of
+  the abandoned rows ends up with a habit and no pact. The predecessor becomes
+  re-committable again on its own (an `abandoned` successor un-supersedes it, by
+  design), so the fix is to confirm the ended cycle reappears in their list
+  rather than to hand-create a pact for them.
+
 ## Analytics & traffic (added 2026-08-24, from the GA4 review)
 
 - [ ] **Cut off the headless-Chrome crawler polluting the consolidated property.**
@@ -1788,6 +1819,28 @@ both partners, and the sweep cannot tell a finisher from someone who dropped out
 in week one. Its dedupe key is `pact-ended:<pactId>` with **no date**, the only
 such key in the digest: a pact ends once, and `getExpiredPacts` keeps returning
 it until `expire` lands, so a date would let a retry double-send.
+
+**Follow-up shipped 2026-09-03: renewal is a continuation, not a second pact.**
+As first built, a renewal was a new `habits.pacts` row with nothing recording
+what it was a renewal *of* — so the list rendered the finished cycle beside the
+new one and a re-commit read as the app having duplicated the pact. Worse, the
+"one live cycle per habit" guard read `status = 'active'`, and a renewal with
+partners is created `pending` until the first acceptance: it was invisible to the
+guard, the ended pact kept its still-valid CTA, and each further tap created
+another parallel pending cycle. One tap, one apparent duplicate, no error
+anywhere.
+
+`renewedFromPactId` / `renewalCycleNumber` (migration
+`20260903000001_habits.pacts.renewedFromPactId.js`) record the edge; the reverse
+edge `supersededByPactId` is derived in `PactsStore`, and `GET /habits/pacts`
+leaves superseded cycles out unless asked for `includeSuperseded=true`. Renewal
+itself is now idempotent — a pact that already has a live successor answers
+**200** with that successor instead of creating another, so a double-tap, a
+retry and a stale CTA all converge on the one real cycle. The guard reads
+`getUnfinishedByUserAndHabitGoal`, which counts `pending` as in-flight;
+`getActiveByUserAndHabitGoal` deliberately still does not, because it answers
+"which pacts does this check-in credit" and an unanswered invite must never be
+one of them.
 
 Still open:
 
