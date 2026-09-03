@@ -8,7 +8,8 @@
             "noUserFound": "No user found with the entered username/e-mail",
             "oneTimeExpired": "One-time password has expired",
             "incorrectUserPass": "Incorrect username/password combination",
-            "invalidPassword": "Password is Invalid"
+            "invalidPassword": "Password is Invalid",
+            "invalidBirthdate": "You must be at least 13 years old to create an account"
         },
         "posts": {
             "duplicatePost": "Duplicate posts are not allowed",

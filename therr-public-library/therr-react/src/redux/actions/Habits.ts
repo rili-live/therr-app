@@ -148,14 +148,19 @@ const Habits = {
         return response.data;
     }),
 
-    // Dispatches CREATE_PACT rather than a type of its own: a renewal *is* a
-    // new pact on the same habit goal, and the reducer's job here — put the new
-    // pact into state — is identical. The pact being renewed is refetched with
-    // its new `expired` status on the next list read.
+    // RENEW_PACT rather than CREATE_PACT, which this used to reuse on the grounds that a
+    // renewal *is* a new pact. It is, but the reducer's job is not the same one:
+    //
+    //   - The cycle just superseded has to leave the list. CREATE_PACT only unshifts, so
+    //     both cycles stayed and the re-commit read as the app having duplicated the pact.
+    //   - The response may be a pact already in state. Renewal is idempotent server-side
+    //     (a second tap answers 200 with the existing successor), and unshifting that
+    //     would put the same pact in the list twice — turning a fix for the duplicate into
+    //     another way to see one.
     renewPact: (id: string, durationDays?: number) => (dispatch: any) => PactsService
         .renew(id, durationDays).then((response) => {
             dispatch({
-                type: HabitsActionTypes.CREATE_PACT,
+                type: HabitsActionTypes.RENEW_PACT,
                 data: response.data,
             });
             return response.data;

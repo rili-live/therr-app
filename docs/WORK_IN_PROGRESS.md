@@ -71,6 +71,37 @@ append new items here rather than only printing them once.
   is the brand whose push routing has actually broken before, so it is arguably
   the one worth covering first.
 
+## Habits pact renewal (added 2026-09-03)
+
+- [ ] **Clean up the duplicate pending renewals already in production.** The
+  re-commit duplicate bug (§ 2.6.3) is fixed going forward, but rows it already
+  created carry no `renewedFromPactId`, so nothing links or hides them — an
+  affected user still sees their duplicates until they are dealt with. They are
+  identifiable as several `pending` pacts by the same `creatorUserId` on the same
+  `habitGoalId`, created within seconds of each other:
+
+  ```sql
+  SELECT "creatorUserId", "habitGoalId", count(*), min("createdAt"), max("createdAt")
+    FROM habits.pacts
+   WHERE status = 'pending' AND "renewedFromPactId" IS NULL
+   GROUP BY 1, 2 HAVING count(*) > 1
+   ORDER BY 3 DESC;
+  ```
+
+  Abandon all but the newest of each group (`UPDATE habits.pacts SET status =
+  'abandoned', "endReason" = 'mutual' WHERE id IN (…)`) rather than deleting
+  them, so any `pact_members` and activity rows stay resolvable. Deliberately
+  **not** done in the migration: which of a set of same-second pacts the user
+  meant to keep is a judgement about their data, not a schema change, and a
+  migration that guessed wrong would be unreviewable after the fact.
+
+- [ ] **Check whether any affected user is left with no live cycle.** Abandoning
+  the extras above is safe, but a user whose *only* remaining renewal was one of
+  the abandoned rows ends up with a habit and no pact. The predecessor becomes
+  re-committable again on its own (an `abandoned` successor un-supersedes it, by
+  design), so the fix is to confirm the ended cycle reappears in their list
+  rather than to hand-create a pact for them.
+
 ## Analytics & traffic (added 2026-08-24, from the GA4 review)
 
 - [ ] **Cut off the headless-Chrome crawler polluting the consolidated property.**
@@ -349,13 +380,29 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   linked to the GA4 app property; the manager is what you authenticate *through*,
   not what campaigns are created in. `./therrads auth check` lists what the token
   can actually reach — confirm both before the first `campaign apply`.
+- [ ] **Mark the six new habits events as key events** in GA4 admin on property
+  `267810693`, stream "Friends with Habits": `habit_pact_create`,
+  `habit_invite_sent`, `habit_solo_start`, `habit_checkin_complete`,
+  `habits_paywall_view`, `habits_founder_unlock_purchase`. They start arriving
+  once versionCode 35 reaches the Play production track. An event that is
+  collected but not marked cannot be imported into Ads as a conversion action,
+  and this is the whole point of shipping them.
+- [ ] **Create a Google Ads link on GA4 property `549794383`.** The app property
+  (`267810693`) has had one since 2022; the consolidated web property has
+  **none**, so the web arm has no path to import a conversion even after
+  `sign_up` is marked. GA4 Admin -> Product links -> Google Ads links.
+- [ ] **Mark `sign_up` as a key event** on property `549794383` and import it as
+  the web arm's conversion action. `habits.therr.com/register` fires it on a
+  successful registration, and the landing page fires `store_click` /
+  `register_start`. Without this the Search campaign's `target_cpa: 8.00` has no
+  conversion to count and bids against nothing.
 - [ ] **Set `settings.yaml` -> `product_db.enabled: true`** against the READ
   replica once credentials are sourced. Ads and GA4 alone cannot answer whether
   paid users activate or pay; that join lives only in our own database.
 
 ### Code work this unblocks
 
-- [ ] **Instrument the habits activation and purchase events in TherrMobile.**
+- [x] **Instrument the habits activation and purchase events in TherrMobile.**
   `git grep logEvent` on `niche/HABITS-general` finds no `habit_pact_create`, no
   check-in-complete and no Founder Unlock purchase event, so the in-app funnel
   stops at phone verification: the MODEL question has no GA4 answer at all, and
@@ -371,7 +418,13 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   `ga4.APP_FUNNEL_STEPS` already declares them with `shipped=False`, so the
   reporting side needs no change once they start firing.
   **Mobile-only — belongs on `niche/HABITS-general`, not `general`.**
-- [ ] **Wire the Play Install Referrer API into TherrMobile** so paid installs
+  > Shipped on `niche/HABITS-general` 2026-09-03, in versionCode 35 / 1.5.0.
+  > Six events, all on server-confirmed paths: `habit_pact_create`,
+  > `habit_invite_sent`, `habit_solo_start`, `habit_checkin_complete` (three
+  > call sites, including the push quick-action), `habits_paywall_view`, and
+  > `habits_founder_unlock_purchase` with `value`/`currency`. **Two manual steps
+  > remain — see § Paid acquisition below.**
+- [x] **Wire the Play Install Referrer API into TherrMobile** so paid installs
   are attributable. Read the referrer string on first launch, parse the UTM
   parameters, and include them in the registration payload's `userAcquisition`
   object — `sanitizeUserAcquisition` and `main."userAcquisition"` already exist,
@@ -379,6 +432,15 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   app-install arm's users is inference rather than measurement, and paid installs
   are indistinguishable from organic ones in the funnel.
   **Mobile-only — belongs on `niche/HABITS-general`, not `general`.**
+  > Shipped on `niche/HABITS-general` 2026-09-03, in versionCode 35 / 1.5.0.
+  > First-party `InstallReferrerModule.kt` on the existing `InitialIntentModule`
+  > pattern, parsing in `main/utilities/installReferrer.ts`, attached in both
+  > mobile register paths. No backend change, as predicted. It refuses to treat
+  > Play's own `utm_source=google-play&utm_medium=organic` placeholder as a
+  > campaign. **Unverifiable until a real paid click lands** — the first thing
+  > to check after the campaign starts serving is whether a
+  > `main."userAcquisition"` row appears with
+  > `utmCampaign = 'fwh-app-us-installs-2026q3'`.
 - [ ] **Add accepted-invite counts to the acquisition funnel query** so the viral
   coefficient is measured rather than assumed. `product.py` currently counts
   invites *sent* (the 3-invite solo-tracking unlock); the loop only pays for
@@ -1834,6 +1896,28 @@ both partners, and the sweep cannot tell a finisher from someone who dropped out
 in week one. Its dedupe key is `pact-ended:<pactId>` with **no date**, the only
 such key in the digest: a pact ends once, and `getExpiredPacts` keeps returning
 it until `expire` lands, so a date would let a retry double-send.
+
+**Follow-up shipped 2026-09-03: renewal is a continuation, not a second pact.**
+As first built, a renewal was a new `habits.pacts` row with nothing recording
+what it was a renewal *of* — so the list rendered the finished cycle beside the
+new one and a re-commit read as the app having duplicated the pact. Worse, the
+"one live cycle per habit" guard read `status = 'active'`, and a renewal with
+partners is created `pending` until the first acceptance: it was invisible to the
+guard, the ended pact kept its still-valid CTA, and each further tap created
+another parallel pending cycle. One tap, one apparent duplicate, no error
+anywhere.
+
+`renewedFromPactId` / `renewalCycleNumber` (migration
+`20260903000001_habits.pacts.renewedFromPactId.js`) record the edge; the reverse
+edge `supersededByPactId` is derived in `PactsStore`, and `GET /habits/pacts`
+leaves superseded cycles out unless asked for `includeSuperseded=true`. Renewal
+itself is now idempotent — a pact that already has a live successor answers
+**200** with that successor instead of creating another, so a double-tap, a
+retry and a stale CTA all converge on the one real cycle. The guard reads
+`getUnfinishedByUserAndHabitGoal`, which counts `pending` as in-flight;
+`getActiveByUserAndHabitGoal` deliberately still does not, because it answers
+"which pacts does this check-in credit" and an unanswered invite must never be
+one of them.
 
 Still open:
 

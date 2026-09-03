@@ -309,6 +309,13 @@ const createUser: RequestHandler = (req: any, res: any) => {
                         isDashboardRegistration: req.body.isDashboardRegistration,
                         settingsEmailMarketing: req.body.settingsEmailMarketing,
                         settingsEmailBusMarketing: req.body.settingsEmailBusMarketing,
+                        // Every registration form collects this and the gateway validates it
+                        // (services/users/validation/users.ts), but it was missing from this
+                        // whitelist, so `createUserHelper` always received `undefined`: no
+                        // account has ever stored a birthdate, and the service's own age check
+                        // -- guarded on the value being present -- never ran. Passing it through
+                        // both persists the value and arms that second layer.
+                        settingsBirthdate: req.body.settingsBirthdate,
                         settingsLocale: req.body.settingsLocale || locale,
                         lastName: req.body.lastName,
                         // Prefer the number inside the signed token over anything the client
@@ -486,6 +493,20 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     err,
                     res,
                     message: translate(locale, 'errorMessages.auth.invalidPassword'),
+                    statusCode: 400,
+                });
+            }
+
+            // The gateway rejects an under-age birthdate first, so this fires only for a
+            // caller that reached the service directly. It still has to answer 400 rather
+            // than fall through to the generic 500 below: a rejected age is the client's
+            // input being wrong, and the habits register page renders `body.message`
+            // straight back to the user.
+            if (err?.message === 'invalid-birthdate') {
+                return handleHttpError({
+                    err,
+                    res,
+                    message: translate(locale, 'errorMessages.auth.invalidBirthdate'),
                     statusCode: 400,
                 });
             }
