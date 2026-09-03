@@ -2271,7 +2271,10 @@
                 "cta": "Se réengager pour {days} jours de plus",
                 "successTitle": "Vous êtes réengagé",
                 "successMessage": "{days} jours de plus, la même équipe. Votre série continue.",
-                "error": "Impossible de renouveler le pacte. Veuillez réessayer."
+                "error": "Impossible de renouveler le pacte. Veuillez réessayer.",
+                "cycleLabel": "Cycle {number}",
+                "extendedFrom": "Prolongement du pacte précédent",
+                "continuedAs": "Poursuivi dans un pacte plus récent"
             }
         },
         "pushOptIn": {

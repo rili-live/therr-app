@@ -426,6 +426,43 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         pactCardStatusTextNeutral: {
             color: therrTheme.colors.onSurfaceMuted,
         },
+        // Pact Card / detail — renewal lineage.
+        //
+        // A re-commit creates a new pact on the same habit goal, and the list shows only
+        // the newest cycle. These render the edge across that boundary: which cycle a pact
+        // continues, and (on a pact reached through that link) which newer cycle continues
+        // it. Deliberately quiet — a chip, not a button. The row is a fact about the pact
+        // first and a way to navigate second, and it sits above the partner row so it is
+        // read as part of the pact's identity rather than as one of its actions.
+        pactCardLineageRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            alignSelf: 'flex-start',
+            marginTop: space.sm,
+            paddingVertical: 4,
+            paddingHorizontal: space.sm,
+            borderRadius: radius.sm,
+            backgroundColor: therrTheme.colors.backgroundNeutral,
+        },
+        pactCardLineageRowPressed: {
+            opacity: 0.6,
+        },
+        pactCardLineageText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginHorizontal: 6,
+        },
+        // The cycle count, shown from the second cycle on. A first cycle badged
+        // "cycle 1" is noise; "cycle 3" is the answer to "why have I seen this habit
+        // before", which is the question a renewal list raises.
+        pactCardCycleBadge: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: 2,
+        },
         // Pact Card — pending invite response actions
         pactCardInvitePrompt: {
             fontFamily: therrFontFamily,
