@@ -1,5 +1,5 @@
 import { it, describe, expect, beforeAll, afterAll } from '@jest/globals';
-import { isPactRenewable } from '../../main/routes/Habits/pactState';
+import { isPactRenewable, isPactSuperseded } from '../../main/routes/Habits/pactState';
 
 /**
  * Pact renewal CTA gating.
@@ -68,5 +68,42 @@ describe('isPactRenewable', () => {
         expect(isPactRenewable(undefined)).toBe(false);
         expect(isPactRenewable({} as any)).toBe(false);
         expect(isPactRenewable(pact('active', 'not-a-date'))).toBe(false);
+    });
+
+    /**
+     * The reported bug: each tap of "re-commit" added what looked like a duplicate pact.
+     *
+     * The CTA stayed live on a cycle that had already been continued, because
+     * renewability was purely a question about *this* pact's dates and status — and a
+     * renewal with partners is created `pending`, so nothing about the finished cycle
+     * changed to switch its button off. Every tap therefore started another parallel
+     * cycle. The server is idempotent about it now, but the button should not be there
+     * to press in the first place.
+     */
+    it('does not offer to re-commit a cycle that has already been continued', () => {
+        expect(isPactRenewable({
+            ...pact('expired', '2026-08-25T00:00:00.000Z'),
+            supersededByPactId: 'pact-2',
+        })).toBe(false);
+    });
+
+    // An `abandoned` successor — which is what declining a 1:1 renewal produces — is not
+    // reported in `supersededByPactId`, so the finished cycle stays re-committable. That
+    // is the difference between a partner saying no and the habit being over.
+    it('still offers a cycle whose only renewal was declined', () => {
+        expect(isPactRenewable({
+            ...pact('expired', '2026-08-25T00:00:00.000Z'),
+            supersededByPactId: null,
+        })).toBe(true);
+    });
+});
+
+describe('isPactSuperseded', () => {
+    it('is true only when a successor is actually named', () => {
+        expect(isPactSuperseded({ supersededByPactId: 'pact-2' })).toBe(true);
+        expect(isPactSuperseded({ supersededByPactId: null })).toBe(false);
+        expect(isPactSuperseded({})).toBe(false);
+        expect(isPactSuperseded(null)).toBe(false);
+        expect(isPactSuperseded(undefined)).toBe(false);
     });
 });

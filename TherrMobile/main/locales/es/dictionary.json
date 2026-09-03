@@ -2271,7 +2271,10 @@
                 "cta": "Comprometerse {days} días más",
                 "successTitle": "Te has vuelto a comprometer",
                 "successMessage": "{days} días más, el mismo equipo. Tu racha continúa.",
-                "error": "No se pudo renovar el pacto. Inténtalo de nuevo."
+                "error": "No se pudo renovar el pacto. Inténtalo de nuevo.",
+                "cycleLabel": "Ciclo {number}",
+                "extendedFrom": "Continuación del pacto anterior",
+                "continuedAs": "Continuado en un pacto más reciente"
             }
         },
         "pushOptIn": {

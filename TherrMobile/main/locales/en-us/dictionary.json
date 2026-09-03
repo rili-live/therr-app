@@ -2271,7 +2271,10 @@
                 "cta": "Re-commit for {days} more days",
                 "successTitle": "You're re-committed",
                 "successMessage": "{days} more days, same crew. Your streak keeps going.",
-                "error": "Could not renew this pact. Please try again."
+                "error": "Could not renew this pact. Please try again.",
+                "cycleLabel": "Cycle {number}",
+                "extendedFrom": "Extended from previous pact",
+                "continuedAs": "Continued in a newer pact"
             }
         },
         "pushOptIn": {
