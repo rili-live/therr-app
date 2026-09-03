@@ -341,7 +341,7 @@ const requestAfterCustomPrimer = async (
     await recordDisclosureAccepted(type);
 
     const native = await nativeCheck(type);
-    if (native === 'granted') {
+    if (native === 'granted' && !(await isDisclosurePending(type))) {
         await updateStateFor(type, { lastStatus: 'granted' });
         opts.onGranted?.();
         fireGrantedListeners(type);
