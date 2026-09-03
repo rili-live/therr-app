@@ -8,6 +8,7 @@ import {
     initBilling,
     isBillingSupported,
     requestFounderPurchase,
+    resolvePurchaseValue,
     PURCHASE_TIMEOUT_CODE,
 } from '../../main/utilities/habitsBilling';
 import {
@@ -214,5 +215,77 @@ describe('habitsBilling purchase timeout', () => {
         __emitPurchaseUpdate({ purchaseToken: 'token-abc', id: 'habits_lifetime_founder' });
 
         await expect(pending).resolves.toMatchObject({ purchaseToken: 'token-abc' });
+    });
+});
+
+/**
+ * The conversion value reported to Google Ads.
+ *
+ * This used to be a hardcoded `20 / USD`. It is the number cost-per-payer is
+ * judged on, and a wrong one does not look wrong — it looks like a campaign that
+ * is doing better or worse than it is, and it is fed straight back into bidding.
+ * So: read it from something that knows, and report nothing at all rather than a
+ * plausible guess.
+ */
+describe('resolvePurchaseValue', () => {
+    it('reads the verified purchase, which is what Play charged for this order', () => {
+        expect(resolvePurchaseValue({
+            priceAmountMicros: '20000000',
+            priceCurrencyCode: 'USD',
+        })).toEqual({ value: 20, currency: 'USD' });
+    });
+
+    it('prefers the verified purchase over the price on offer now', () => {
+        // A purchase recovered days after a price change was charged the old
+        // price. The store only knows the new one.
+        const verified = { priceAmountMicros: '20000000', priceCurrencyCode: 'USD' };
+        const productOnOfferNow = { priceAmountMicros: '29990000', priceCurrencyCode: 'USD' };
+
+        expect(resolvePurchaseValue(verified, productOnOfferNow)).toEqual({ value: 20, currency: 'USD' });
+    });
+
+    it('falls back to the store product when the verify response carries no price', () => {
+        expect(resolvePurchaseValue(
+            { productId: 'habits_founder_unlock', priceAmountMicros: null, priceCurrencyCode: null },
+            { oneTimePurchaseOfferDetails: { priceAmountMicros: '20000000', priceCurrencyCode: 'USD' } },
+        )).toEqual({ value: 20, currency: 'USD' });
+    });
+
+    it('reports the buyer\'s own currency rather than assuming USD', () => {
+        // Play charges in local currency and Google Ads takes `currency` at its
+        // word, so labelling €18 as 20 USD overstates revenue silently.
+        expect(resolvePurchaseValue({
+            priceAmountMicros: '18000000',
+            priceCurrencyCode: 'eur',
+        })).toEqual({ value: 18, currency: 'EUR' });
+    });
+
+    it('keeps the third decimal a three-decimal currency actually uses', () => {
+        // BHD, KWD and TND are quoted to thousandths.
+        expect(resolvePurchaseValue({
+            priceAmountMicros: '7550000',
+            priceCurrencyCode: 'KWD',
+        })).toEqual({ value: 7.55, currency: 'KWD' });
+    });
+
+    it('accepts a normalized numeric price when micros are absent', () => {
+        expect(resolvePurchaseValue({ price: 20, currency: 'USD' })).toEqual({ value: 20, currency: 'USD' });
+    });
+
+    it.each([
+        ['nothing at all', undefined],
+        ['null', null],
+        ['a purchase with no price fields', { productId: 'habits_founder_unlock' }],
+        ['a price with no currency', { priceAmountMicros: '20000000' }],
+        ['a currency with no price', { priceCurrencyCode: 'USD' }],
+        ['a malformed currency', { priceAmountMicros: '20000000', priceCurrencyCode: 'dollars' }],
+        ['a zero price', { priceAmountMicros: '0', priceCurrencyCode: 'USD' }],
+        ['an unparseable price', { priceAmountMicros: 'free', priceCurrencyCode: 'USD' }],
+    ])('returns null for %s rather than inventing a number', (_label, source: any) => {
+        expect(resolvePurchaseValue(source)).toBeNull();
+    });
+
+    it('returns null when no source can answer', () => {
+        expect(resolvePurchaseValue(null, undefined, {})).toBeNull();
     });
 });

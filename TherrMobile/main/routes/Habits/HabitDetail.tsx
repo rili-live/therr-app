@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import RNFB from 'react-native-blob-util';
 import { FilePaths } from 'therr-js-utilities/constants';
-import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { HabitActions, MapActions } from 'therr-react/redux/actions';
 import {
     IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IHabitCheckinProof, IStreak,
@@ -29,6 +28,7 @@ import {
 } from '../../utilities/streakFreezes';
 import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
 import { signImageUrl } from '../../utilities/content';
+import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
 import { DURATION, showToast } from '../../utilities/toasts';
 
@@ -256,11 +256,11 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                 // See the note on the same event in Habits/Dashboard.tsx: the
                 // isAddingDetail path above is a second call attaching proof to
                 // the check-in this one created, so only this branch counts.
-                logEvent(getAnalytics(), 'habit_checkin_complete', {
+                logAppEvent('habit_checkin_complete', {
                     userId: this.props.user?.details?.id,
                     source: 'habitDetail',
                     hasProof: false,
-                }).catch((err) => console.log(err));
+                });
 
                 // A freeze was spent covering a day this user missed. Say so
                 // here rather than leaving them to infer it from a streak

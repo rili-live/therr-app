@@ -122,11 +122,17 @@ const truncate = (value: string | null | undefined, max: number): string | undef
  * which is the only way they get tested at all.
  */
 export const parseInstallReferrer = (referrer?: string | null): IMobileUserAcquisition | null => {
-    const raw = truncate(referrer, MAX_REFERRER_LENGTH);
+    const raw = typeof referrer === 'string' ? referrer.trim() : '';
 
     if (!raw || raw === 'not set' || raw === 'not%20set') return null;
 
     const acquisition: IMobileUserAcquisition = { surface: 'mobile' };
+    // Parsed at full length, and only what is *kept* is capped below. Truncating
+    // first would cut a parameter in half whenever the referrer ran past the
+    // column width — and a half-read `utm_campaign` is not a shorter campaign
+    // name, it is a campaign name that never existed, which is worse than
+    // recording nothing.
+    //
     // URLSearchParams handles the + -> space and percent decoding that a manual
     // split does not, and is available in React Native's runtime.
     const params = new URLSearchParams(raw);
@@ -138,18 +144,13 @@ export const parseInstallReferrer = (referrer?: string | null): IMobileUserAcqui
         }
     });
 
-    const isPlayOrganic = acquisition.utmSource === 'google-play' && acquisition.utmMedium === 'organic';
-
-    if (isPlayOrganic || !acquisition.utmSource) {
-        // No campaign in it. Keep the raw string anyway when it carried
-        // something other than Play's placeholder — an unrecognised referrer is
-        // still evidence about where installs come from, and the column exists.
-        if (isPlayOrganic) return null;
-        acquisition.referrer = raw;
-        return acquisition;
+    if (acquisition.utmSource === 'google-play' && acquisition.utmMedium === 'organic') {
+        return null;
     }
 
-    acquisition.referrer = raw;
+    // Kept whether or not a campaign was found. An unrecognised referrer is
+    // still evidence about where installs come from, and the column exists.
+    acquisition.referrer = truncate(raw, MAX_REFERRER_LENGTH);
 
     return acquisition;
 };

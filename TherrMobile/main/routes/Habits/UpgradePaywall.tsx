@@ -9,13 +9,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { HabitActions } from 'therr-react/redux/actions';
 import { IHabitsState, IUserState } from 'therr-react/types';
 import UsersActions from '../../redux/actions/UsersActions';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import translator from '../../utilities/translator';
 import { showToast } from '../../utilities/toasts';
+import { logAppEvent } from '../../utilities/analyticsEvents';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import {
@@ -26,6 +26,7 @@ import {
     initBilling,
     isBillingSupported,
     requestFounderPurchase,
+    resolvePurchaseValue,
     PURCHASE_TIMEOUT_CODE,
 } from '../../utilities/habitsBilling';
 
@@ -92,6 +93,14 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
 
     private themeHabits = buildHabitStyles();
 
+    /**
+     * The store's product, kept off state on purpose: it is read back in
+     * `verifyAndFinish` within the same call stack that recovery sets it in, and
+     * `setState` does not update `this.state` synchronously. State carries the
+     * display string, which is all the render needs.
+     */
+    private storeProduct: any = null;
+
     constructor(props: IUpgradePaywallProps) {
         super(props);
 
@@ -117,9 +126,9 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
         // purchase count is unreadable: it cannot distinguish "nobody is
         // reaching the paywall" from "everybody reaches it and nobody buys",
         // which are opposite problems with opposite fixes.
-        logEvent(getAnalytics(), 'habits_paywall_view', {
+        logAppEvent('habits_paywall_view', {
             userId: this.props.user?.details?.id,
-        }).catch((err) => console.log(err));
+        });
 
         this.props.getLifetimeOffer()
             .then((offer: any) => this.prepareStore(offer))
@@ -156,6 +165,7 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
         const product = await fetchFounderProduct(offer.productId);
 
         if (product) {
+            this.storeProduct = product;
             this.setState({
                 localizedPrice: product.displayPrice || product.localizedPrice || null,
             });
@@ -190,7 +200,7 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
         const { navigation } = this.props;
 
         try {
-            await this.props.verifyLifetimePurchase({
+            const verified = await this.props.verifyLifetimePurchase({
                 platform: 'android',
                 purchaseToken: purchase.purchaseToken,
                 orderId: purchase.orderId,
@@ -203,24 +213,32 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
             // The MODEL question's only in-app answer. `value` and `currency`
             // are what let this import into Google Ads as a VALUE conversion
             // rather than a bare count, so cost-per-payer can be compared
-            // against the $17.00 the Founder Unlock actually nets after Play's
-            // 15% fee — the ceiling that decides whether paid acquisition can
-            // fund itself at all.
+            // against what the Founder Unlock actually nets after Play's 15%
+            // fee — the ceiling that decides whether paid acquisition can fund
+            // itself at all.
             //
             // Fired here, after the SERVER recorded the purchase and before
             // finishPurchase acknowledges it to Play. Firing on the store's
             // resolve instead would count purchases that failed verification,
             // which is the one direction this number must not be wrong in.
             //
+            // The amount comes from the verify response first — that is what the
+            // server read back from Play for this order — and from the store
+            // product only as a fallback. Neither answering means the event goes
+            // out as a plain count: see `resolvePurchaseValue` for why a guess is
+            // worse than a gap.
+            //
             // isRecovery marks the path where a first verify failed and the
             // user was charged days earlier: still exactly one event per
             // purchase, but attributed to today rather than to the charge.
-            logEvent(getAnalytics(), 'habits_founder_unlock_purchase', {
+            const purchaseValue = resolvePurchaseValue(verified?.purchase, this.storeProduct);
+
+            logAppEvent('habits_founder_unlock_purchase', {
                 userId: this.props.user?.details?.id,
-                value: 20,
-                currency: 'USD',
+                value: purchaseValue?.value,
+                currency: purchaseValue?.currency,
                 isRecovery: !!options.isSilent,
-            }).catch((err) => console.log(err));
+            });
 
             // The entitlement lives on the user record, not in habits state, so
             // the user has to be refreshed or every gate keeps reading stale

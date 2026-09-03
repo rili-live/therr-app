@@ -14,10 +14,10 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
-import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { HabitActions } from 'therr-react/redux/actions';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import getConfig from '../../utilities/getConfig';
+import { logAppEvent } from '../../utilities/analyticsEvents';
 import { streakFreezeRuleParams } from '../../utilities/streakFreezes';
 import permissions from '../../utilities/permissionsOrchestrator';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -565,9 +565,9 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             // which understates exactly the outcome the solo unlock exists to
             // produce. Kept distinct from habit_pact_create because the pact is
             // the thing paid acquisition is judged on.
-            logEvent(getAnalytics(), 'habit_solo_start', {
+            logAppEvent('habit_solo_start', {
                 userId: this.props.user?.details?.id,
-            }).catch((err) => console.log(err));
+            });
 
             Toast.show({
                 type: 'success',
@@ -617,19 +617,19 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             // Fired after bulkInvitePact resolves, never before: the server
             // refuses this with a 402 at the free-tier habit cap, and counting
             // an attempt as an activation would report the paywall as success.
-            logEvent(getAnalytics(), 'habit_pact_create', {
+            logAppEvent('habit_pact_create', {
                 userId: this.props.user?.details?.id,
                 partnerCount: selectedPartnerIds.length,
                 pactType: 'accountability',
-            }).catch((err) => console.log(err));
+            });
 
             // Separate from the pact because the solo-tracking unlock counts
             // distinct people invited, not pacts created — one bulk invite can
             // move that counter by several.
-            logEvent(getAnalytics(), 'habit_invite_sent', {
+            logAppEvent('habit_invite_sent', {
                 userId: this.props.user?.details?.id,
                 partnerCount: selectedPartnerIds.length,
-            }).catch((err) => console.log(err));
+            });
 
             const successKey = selectedPartnerIds.length > 1
                 ? 'pages.pacts.wizard.sendMultipleSuccess'

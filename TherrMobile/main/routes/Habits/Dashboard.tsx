@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import RNFB from 'react-native-blob-util';
 import { FeatureFlags, FilePaths } from 'therr-js-utilities/constants';
-import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { HabitActions } from 'therr-react/redux/actions';
 import {
     IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak, IPact, IPactNudgeResult,
@@ -30,6 +29,7 @@ import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
 import { getFreezeConsumed, getStreakSavedByFreeze } from '../../utilities/streakFreezes';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { signImageUrl } from '../../utilities/content';
+import { logAppEvent } from '../../utilities/analyticsEvents';
 import { DURATION, showToast } from '../../utilities/toasts';
 import { IHabitWithPactState, isPactSuperseded, splitHabitsByPactState } from './pactState';
 import { getNudgeErrorMessage, getNudgeOutcomeToast } from '../Pacts/nudgeOutcome';
@@ -402,11 +402,11 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 // branch: the isAddingDetail path above is a second call
                 // attaching a photo or note to the check-in this one already
                 // created, and counting it would double every proofed check-in.
-                logEvent(getAnalytics(), 'habit_checkin_complete', {
+                logAppEvent('habit_checkin_complete', {
                     userId: this.props.user?.details?.id,
                     source: 'dashboard',
                     hasProof: false,
-                }).catch((err) => console.log(err));
+                });
 
                 // The streak is the reward for the tap, so it has to move now.
                 // CREATE_CHECKIN only updates today's checkins in Redux — the

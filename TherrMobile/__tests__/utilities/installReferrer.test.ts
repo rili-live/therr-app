@@ -88,6 +88,20 @@ describe('parseInstallReferrer', () => {
             expect(parsed?.referrer?.length).toBeLessThanOrEqual(1024);
         });
 
+        it('reads a campaign that sits past the raw referrer cap', () => {
+            // The cap applies to what is *kept*, not to what is parsed. Cutting
+            // the string first and parsing the remainder would read
+            // `utm_campaign` half-way through and record a campaign name that
+            // never existed — worse than recording none, because it looks real.
+            const parsed = parseInstallReferrer(
+                `utm_source=google&utm_content=${'x'.repeat(2000)}`
+                + '&utm_campaign=fwh-app-us-installs-2026q3',
+            );
+
+            expect(parsed?.utmCampaign).toBe('fwh-app-us-installs-2026q3');
+            expect(parsed?.referrer?.length).toBeLessThanOrEqual(1024);
+        });
+
         it('never emits a field the sanitizer does not know', () => {
             // sanitizeUserAcquisition drops unknown keys silently, so a stray
             // field is not an error — it is a value that stops being recorded.

@@ -41,6 +41,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { showToast } from '../utilities/toasts';
+import { logAppEvent } from '../utilities/analyticsEvents';
 import getConfig from '../utilities/getConfig';
 import { sendForegroundNotification, wrapOnMessageReceived } from '../utilities/pushNotifications';
 import routes from '../routes';
@@ -1722,11 +1723,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     // retention one there is — the user never opened the app.
                     // Omitting it here would make the notification loop look
                     // like it produces nothing.
-                    logEvent(getAnalytics(), 'habit_checkin_complete', {
+                    logAppEvent('habit_checkin_complete', {
                         userId: this.props.user?.details?.id,
                         source: 'pushAction',
                         hasProof: false,
-                    }).catch((err) => console.log(err));
+                    });
 
                     showToast.success({
                         text1: this.translate('alertTitles.checkinSucceeded'),
