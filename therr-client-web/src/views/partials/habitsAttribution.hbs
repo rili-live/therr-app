@@ -1,0 +1,95 @@
+{{!
+    Marketing attribution capture for the Friends with Habits subdomain.
+
+    WHY THIS EXISTS AS INLINE JS RATHER THAN AN IMPORT
+    habits.therr.com is Handlebars SSR and ships no React bundle, so
+    therr-react's captureAttribution() - the function that does exactly this on
+    www.therr.com, wired up in components/Layout.tsx - never runs on this host.
+    Until this partial existed, habits.therr.com could take a fully tagged
+    ?utm_campaign= click and write nothing anywhere: main."userAcquisition"
+    received nothing from this domain, so the paid "measured arm" measured
+    nothing and every habits signup looked organic.
+
+    THIS MUST STAY IN LOCKSTEP WITH
+      therr-public-library/therr-react/src/utilities/attribution.ts
+    Same storage key, same IUserAcquisition field names, same first-touch rule,
+    same truncation caps, same self-referral exclusion. The server sanitizer
+    (UserAcquisitionStore.sanitizeUserAcquisition) drops unknown keys silently,
+    so a field renamed on one side and not the other does not error - it just
+    stops being recorded. If you change either file, change both.
+
+    Loaded from habitsAnalytics.hbs, which every habits view already includes,
+    so capture happens on the FIRST page of the session whatever page that is -
+    the landing page, a blog post, or an /invite/:userName link. Capturing only
+    on the registration page would attribute every signup to the last click
+    before the form instead of the one that brought the visitor in.
+
+    Storage is sessionStorage, matching attribution.ts: attribution that
+    outlives the visit would credit a months-old campaign for an unrelated
+    signup. Every access is wrapped - private browsing throws on access, not on
+    read, and telemetry must never be what breaks a page.
+
+    Two constraints inherited from habitsAnalytics.hbs, both of which took down
+    every habits page when they were violated:
+      1. No partial call inside this comment. Handlebars executes one even
+         inside an HTML comment.
+      2. No long-form comment delimiter inside this block. The long form ends at
+         the FIRST closing delimiter, even one written as prose.
+}}
+<script>
+    (function () {
+        var KEY = 'therrUserAcquisition';
+        var MAX_UTM = 255;
+        var MAX_REFERRER = 1024;
+        var MAX_PATH = 512;
+
+        function truncate(value, max) {
+            if (!value) { return undefined; }
+            var trimmed = String(value).trim();
+            return trimmed ? trimmed.slice(0, max) : undefined;
+        }
+
+        // A referrer from one of our own properties is the cross-domain hop the
+        // funnel is made of, not an acquisition source. Recording it would
+        // overwrite "arrived from Google" with "arrived from therr.app".
+        function isSelfReferral(referrer) {
+            try {
+                return /(^|\.)therr\.(com|app)$/i.test(new URL(referrer).hostname);
+            } catch (e) {
+                return false;
+            }
+        }
+
+        try {
+            if (!window.sessionStorage) { return; }
+            // First touch wins, and the rule is the PRESENCE of a record, not
+            // whether that record carried a campaign: a session that started
+            // direct and later picked up a utm_* from an internal link was
+            // still acquired directly.
+            if (window.sessionStorage.getItem(KEY)) { return; }
+
+            var params = new URLSearchParams(window.location.search || '');
+            var acquisition = { surface: 'habits' };
+            var utmKeys = [
+                ['utmSource', 'utm_source'],
+                ['utmMedium', 'utm_medium'],
+                ['utmCampaign', 'utm_campaign'],
+                ['utmContent', 'utm_content'],
+                ['utmTerm', 'utm_term']
+            ];
+            utmKeys.forEach(function (pair) {
+                var value = truncate(params.get(pair[1]), MAX_UTM);
+                if (value) { acquisition[pair[0]] = value; }
+            });
+
+            var referrer = truncate(document.referrer, MAX_REFERRER);
+            if (referrer && !isSelfReferral(referrer)) { acquisition.referrer = referrer; }
+
+            // Path only, never the query string - it carries the UTMs already
+            // and anything else on it is not ours to store.
+            acquisition.landingPath = truncate(window.location.pathname, MAX_PATH);
+
+            window.sessionStorage.setItem(KEY, JSON.stringify(acquisition));
+        } catch (e) { /* storage disabled or blocked - attribution is advisory */ }
+    })();
+</script>
