@@ -51,3 +51,10 @@
         document.head.appendChild(tag);
     })();
 </script>
+{{!
+    Attribution capture runs alongside GA4 and on every habits view for the same
+    reason: it must see the FIRST page of the session. It is a separate partial
+    because the two answer different questions - GA4 reports sessions, this
+    writes the record that main."userAcquisition" joins a signup to spend by.
+}}
+{{> habitsAttribution}}

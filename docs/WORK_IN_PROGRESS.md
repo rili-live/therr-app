@@ -71,6 +71,37 @@ append new items here rather than only printing them once.
   is the brand whose push routing has actually broken before, so it is arguably
   the one worth covering first.
 
+## Habits pact renewal (added 2026-09-03)
+
+- [ ] **Clean up the duplicate pending renewals already in production.** The
+  re-commit duplicate bug (§ 2.6.3) is fixed going forward, but rows it already
+  created carry no `renewedFromPactId`, so nothing links or hides them — an
+  affected user still sees their duplicates until they are dealt with. They are
+  identifiable as several `pending` pacts by the same `creatorUserId` on the same
+  `habitGoalId`, created within seconds of each other:
+
+  ```sql
+  SELECT "creatorUserId", "habitGoalId", count(*), min("createdAt"), max("createdAt")
+    FROM habits.pacts
+   WHERE status = 'pending' AND "renewedFromPactId" IS NULL
+   GROUP BY 1, 2 HAVING count(*) > 1
+   ORDER BY 3 DESC;
+  ```
+
+  Abandon all but the newest of each group (`UPDATE habits.pacts SET status =
+  'abandoned', "endReason" = 'mutual' WHERE id IN (…)`) rather than deleting
+  them, so any `pact_members` and activity rows stay resolvable. Deliberately
+  **not** done in the migration: which of a set of same-second pacts the user
+  meant to keep is a judgement about their data, not a schema change, and a
+  migration that guessed wrong would be unreviewable after the fact.
+
+- [ ] **Check whether any affected user is left with no live cycle.** Abandoning
+  the extras above is safe, but a user whose *only* remaining renewal was one of
+  the abandoned rows ends up with a habit and no pact. The predecessor becomes
+  re-committable again on its own (an `abandoned` successor un-supersedes it, by
+  design), so the fix is to confirm the ended cycle reappears in their list
+  rather than to hand-create a pact for them.
+
 ## Analytics & traffic (added 2026-08-24, from the GA4 review)
 
 - [ ] **Cut off the headless-Chrome crawler polluting the consolidated property.**
@@ -89,11 +120,21 @@ append new items here rather than only printing them once.
   > traffic, then enable the Internal Traffic data filter to Exclude.
   Do this **before** the old GA4 properties are retired, or the consolidated
   property's only history is a baseline inflated roughly 8x.
-- [ ] **Re-register the `surface` custom dimension** now that habits.therr.com
+  > Still open, re-measured 2026-09-03: **2,616 of 3,052 sessions (86%)** over the 30
+  > days to 2 Sep, Singapore/Chrome/desktop, 28 engaged sessions (1.1%). It is confined
+  > to `www.therr.com` — `habits.therr.com` reads clean at 130 sessions / ~15s
+  > engagement — so paid-campaign reporting works around it via
+  > `scripts/google-ads/settings.yaml` → `ga4.web_hostname`. That is a workaround for
+  > one report, not a fix: the property's own totals stay inflated until this is blocked.
+- [x] **Re-register the `surface` custom dimension** now that habits.therr.com
   reports as its own surface (`landing` / `web` / `habits` / `dashboard`). GA4 admin
   -> Custom definitions, event-scoped, parameter `surface`. Without registration the
   value is collected but not reportable, and habits web traffic stays indistinguishable
   from therr.com.
+  > Done — verified 2026-09-03 against property `549794383`: `customEvent:surface`
+  > returns `web` 10,111 / `habits` 600 / `landing` 319 / `dashboard` 77 over the 30
+  > days to 2 Sep. `scripts/google-ads/settings.example.yaml` →
+  > `ga4.surface_dimension_registered` now defaults to `true`.
 - [ ] **Re-submit the habits sitemap to Search Console** — `habits.therr.com/sitemap.xml`
   grew from 3 URLs to 3 + `/blog` + one per cross-post. This subdomain has almost no
   inbound links, so the sitemap is most of how those pages get discovered at all.
@@ -268,9 +309,11 @@ console configuration, and one verification that gates a payments change.
   Configure tag settings → Configure your domains). The tag-side `linker` config is now
   deployed on all surfaces, but it only decorates outbound links — the receiving property
   honours `_gl` only when the admin list includes the domain.
-- [ ] **Register `surface` as an event-scoped custom dimension** in GA4 admin. Every hit now
+- [x] **Register `surface` as an event-scoped custom dimension** in GA4 admin. Every hit now
   carries it (`landing` / `web` / `dashboard`); without registration it is collected but
   not reportable, and the three surfaces cannot be separated after consolidation.
+  > Done — see the verification note under § Analytics & traffic above. This is the same
+  > item; the two entries were written independently.
 - [ ] **Mirror the consolidated GA4 measurement id into `therr-landing`.** The property exists
   and `global-config.js` → `googleAnalyticsKeyUnified` is set to `G-R7CY0Z1ZRM` in all three
   env blocks, so this repo's clients already dual-report. Still owed: the commented block in
@@ -298,6 +341,13 @@ Tooling is built (`scripts/google-ads/`) and both campaign specs validate. These
 are the steps code cannot do. Strategy, thresholds and the decision log live in
 `docs/PAID_ACQUISITION_PLAYBOOK.md`.
 
+> **Read the GA4 baseline before spending.** 5 Jun – 2 Sep 2026, organic, from the
+> "Friends with Habits" Android stream on property `267810693`: **182 installs → 75
+> started a profile (41%) → 14 verified a phone (7.7%) → 2 sent an invite (1.1%)**,
+> with a 26% uninstall rate. Paid traffic is colder than that. The PRODUCT question
+> is therefore already substantially answered, and the instrumentation and
+> onboarding items below are what a campaign is waiting on — not the credentials.
+
 - [ ] **Obtain a Google Ads developer token at Basic access.** Google Ads UI ->
   Tools & Settings -> Setup -> API Center, on the manager account. A newly issued
   token is Test Account level and rejects every call against a real account with
@@ -319,13 +369,62 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   Google Ads links) so installs are reported as conversions. Without the link,
   the App campaign optimises against nothing and `report ads` shows zero installs
   regardless of what actually happened.
+- [ ] **Import the GA4 key events from property `267810693` into Ads as conversion
+  actions.** The link already exists (created 2022 to customer `7604290203`), and
+  `first_open` / `profile_create_start` / `phone_verify_success` /
+  `connection_invites_sent` are already marked as key events — this is Ads UI ->
+  Goals -> Conversions -> New -> Import -> Google Analytics 4, not a build. Use
+  `first_open` for run 1; add the activation events once they carry volume.
+- [ ] **Set `settings.yaml` -> `customer_id: "7604290203"` and `config.yaml` ->
+  `login_customer_id: "3076709152"`.** The operating account is the one already
+  linked to the GA4 app property; the manager is what you authenticate *through*,
+  not what campaigns are created in. `./therrads auth check` lists what the token
+  can actually reach — confirm both before the first `campaign apply`.
+- [ ] **Mark the six new habits events as key events** in GA4 admin on property
+  `267810693`, stream "Friends with Habits": `habit_pact_create`,
+  `habit_invite_sent`, `habit_solo_start`, `habit_checkin_complete`,
+  `habits_paywall_view`, `habits_founder_unlock_purchase`. They start arriving
+  once versionCode 35 reaches the Play production track. An event that is
+  collected but not marked cannot be imported into Ads as a conversion action,
+  and this is the whole point of shipping them.
+- [ ] **Create a Google Ads link on GA4 property `549794383`.** The app property
+  (`267810693`) has had one since 2022; the consolidated web property has
+  **none**, so the web arm has no path to import a conversion even after
+  `sign_up` is marked. GA4 Admin -> Product links -> Google Ads links.
+- [ ] **Mark `sign_up` as a key event** on property `549794383` and import it as
+  the web arm's conversion action. `habits.therr.com/register` fires it on a
+  successful registration, and the landing page fires `store_click` /
+  `register_start`. Without this the Search campaign's `target_cpa: 8.00` has no
+  conversion to count and bids against nothing.
 - [ ] **Set `settings.yaml` -> `product_db.enabled: true`** against the READ
   replica once credentials are sourced. Ads and GA4 alone cannot answer whether
   paid users activate or pay; that join lives only in our own database.
 
 ### Code work this unblocks
 
-- [ ] **Wire the Play Install Referrer API into TherrMobile** so paid installs
+- [x] **Instrument the habits activation and purchase events in TherrMobile.**
+  `git grep logEvent` on `niche/HABITS-general` finds no `habit_pact_create`, no
+  check-in-complete and no Founder Unlock purchase event, so the in-app funnel
+  stops at phone verification: the MODEL question has no GA4 answer at all, and
+  PRODUCT is answerable only as far as "did they invite anyone". Add
+  `habit_pact_create` (`routes/Pacts/CreatePactInvite.tsx`),
+  `habit_checkin_complete` (`components/Habits/CheckinButton.tsx` /
+  `CheckinProofSheet.tsx`), `habits_founder_unlock_purchase`
+  (`utilities/habitsBilling.ts`, with `value: 20` and `currency: 'USD'` so it
+  imports as a value conversion) and `habits_paywall_view`
+  (`routes/Habits/UpgradePaywall.tsx`), matching the existing
+  `logEvent(getAnalytics(), ...)` style in `routes/CreateProfile/index.tsx:144`.
+  Then mark each as a key event in GA4 admin on property `267810693`.
+  `ga4.APP_FUNNEL_STEPS` already declares them with `shipped=False`, so the
+  reporting side needs no change once they start firing.
+  **Mobile-only — belongs on `niche/HABITS-general`, not `general`.**
+  > Shipped on `niche/HABITS-general` 2026-09-03, in versionCode 35 / 1.5.0.
+  > Six events, all on server-confirmed paths: `habit_pact_create`,
+  > `habit_invite_sent`, `habit_solo_start`, `habit_checkin_complete` (three
+  > call sites, including the push quick-action), `habits_paywall_view`, and
+  > `habits_founder_unlock_purchase` with `value`/`currency`. **Two manual steps
+  > remain — see § Paid acquisition below.**
+- [x] **Wire the Play Install Referrer API into TherrMobile** so paid installs
   are attributable. Read the referrer string on first launch, parse the UTM
   parameters, and include them in the registration payload's `userAcquisition`
   object — `sanitizeUserAcquisition` and `main."userAcquisition"` already exist,
@@ -333,6 +432,15 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   app-install arm's users is inference rather than measurement, and paid installs
   are indistinguishable from organic ones in the funnel.
   **Mobile-only — belongs on `niche/HABITS-general`, not `general`.**
+  > Shipped on `niche/HABITS-general` 2026-09-03, in versionCode 35 / 1.5.0.
+  > First-party `InstallReferrerModule.kt` on the existing `InitialIntentModule`
+  > pattern, parsing in `main/utilities/installReferrer.ts`, attached in both
+  > mobile register paths. No backend change, as predicted. It refuses to treat
+  > Play's own `utm_source=google-play&utm_medium=organic` placeholder as a
+  > campaign. **Unverifiable until a real paid click lands** — the first thing
+  > to check after the campaign starts serving is whether a
+  > `main."userAcquisition"` row appears with
+  > `utmCampaign = 'fwh-app-us-installs-2026q3'`.
 - [ ] **Add accepted-invite counts to the acquisition funnel query** so the viral
   coefficient is measured rather than assumed. `product.py` currently counts
   invites *sent* (the 3-invite solo-tracking unlock); the loop only pays for
@@ -546,6 +654,7 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   `SUPER_ADMIN_ID` rather than having disappeared. The brand half is the part worth checking by
   hand — these deletes are intentionally unscoped, and a regression that re-scopes them would
   look correct for a single-brand test user.
+- [ ] (2026-08-06) **Play Console + privacy policy steps for the Friends with Habits contacts rejection — the code fix alone will not clear it.** Version code 20 was rejected under the User Data policy ("uploading users' Contact List information to https://api.therr.com/ without an adequate disclosure"). The in-app prominent disclosure is fixed in the app (`PermissionPrimerModal` + `permissions.primer.contacts.*`), but Google re-reviews the console declarations alongside the APK, and all three of these must agree with what the app now says: (1) **Data safety form** for `com.therr.habits` — declare Contacts → *Contacts* as both *collected* and *transferred off device*, purpose "App functionality"/"Account management", not "processed ephemerally" (the invite path persists invitee email/phone in `main.invites` past the request); (2) **Privacy policy** at `https://www.therr.app/privacy-policy.html` must name contact-list collection, the upload, and the retention split the in-app text now promises (non-matching contacts discarded, explicitly-invited contacts retained) — the app links to this URL directly from the disclosure, so a policy that omits contacts contradicts the disclosure the reviewer is reading; (3) in the **appeal/resubmission note**, point the reviewer at the exact screen — Connect tab → "Sync Your Contacts?", and onboarding → "Find your friends" — since the disclosure is behind a tap and reviewers have previously missed it. Do not resubmit as version code 20; the branch is already on 21 / `0.4.9`.
 - [ ] (2026-08-04) **Finish credential sharing now that `/.well-known/assetlinks.json` actually serves.** The `delegate_permission/common.get_login_creds` relation is live on `therr.com`/`www.therr.com` (`app.therrmobile`) and `dashboard.therr.com`, and the web login form now sends `autocomplete="username"` / `"current-password"` so Chrome has a credential worth sharing. Three gaps remain, each a decision rather than an oversight: (1) `assetlinks.habits.json` still declares only `handle_all_urls`, so Friends with Habits (`com.therr.habits`) gets App Links but no credential sharing — add the relation there if HABITS should share credentials with `habits.therr.com`. (2) `get_login_creds` is Android-only; the iOS equivalent is shared web credentials, which needs `webcredentials:therr.com` in `TherrMobile/ios/Therr/Therr{Debug,Release}.entitlements` (currently `applinks:therr.com` only) **and** a `webcredentials: { apps: ['22AN4MZ6H5.com.therr.mobile.Therr'] }` block alongside `applinks` in the `appLinksJson` object in `therr-client-web/src/server-client.tsx`. (3) That same AASA is served at `/apple-app-site-association` but its `/.well-known/` twin is still commented out one line below — Apple's CDN fetches the `.well-known` path, which now works, so uncomment it. Verify on-device after deploy: save a password on the website, then confirm Android offers it in the app — that is the only end-to-end proof the association resolved.
 - [ ] (2026-08-10, notification-queue) **Update `therr-messaging-automator` now that the
   digest dedups.** Sibling repo, separate PR. `src/api/habitsDigest.ts` still documents the
@@ -626,6 +735,15 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 - [ ] (2026-08-02, /quality-peer-review) Decide whether to bump `version` in `therr-public-library/therr-react/src/redux/persistConfig.ts` (currently `1`). `purgeOnLogoutMiddleware` now clears persisted state on logout in web as well as mobile, but only on a *future* logout — browsers and installs that already hold a previous account's `content` / `userConnections` / `notifications` keep them until that account signs out again. A version bump with no migrate function makes redux-persist discard the old payload for everyone on next load, which is the only way to clear the existing leak. Note this is shared config: bumping it purges mobile too, costing one cold feed/notification fetch per user.
 - [ ] (2026-08-01, /quality-peer-review) Niche follow-up on `niche/HABITS-general`: `GET /users-service/habits/goals/` (`getUserHabitGoals`) now returns goals the user **joined** via an accepted pact, not just ones they created. The Habits habit-list UI renders an edit/delete affordance per row, but `updateHabitGoal` and `deleteHabitGoal` both gate on `createdByUserId` and will 403 / no-op for a joined goal. Hide or disable those controls when `goal.createdByUserId !== me`. Backend behaviour is correct and this is UI-only, so it cannot be fixed on `general`.
 - [ ] (2026-08-01, /quality-peer-review) Bump and submit the iOS build for the 3.12.4 release. `TherrMobile/android/app/build.gradle` moved to `versionName 3.12.4` / `versionCode 443`, but `TherrMobile/ios/Therr.xcodeproj/project.pbxproj` is still `MARKETING_VERSION = 1.70.0` / `CURRENT_PROJECT_VERSION = 212`. iOS uses a separate version scheme, so this is a bump-and-submit step, not a value to copy across. (Supersedes the earlier 3.12.1 entry — Android has since moved three times with no matching iOS submission, so the two stores are now three releases apart.)
+- [ ] (2026-07-22, retention work) Schedule the HABITS daily partner-activity
+  digest via therr-messaging-automator — implementation plan in
+  `docs/niche-sub-apps/habits/AUTOMATOR_HABITS_PLAN.md` (Phase 1: task-dispatch
+  trigger in the Cloud Function + a new daily 23:00 UTC Cloud Scheduler job in
+  therr-infra-terraform with body `{"task":"habits-daily-digest"}`). The
+  users-service route (`/habits/pacts/digest/run-daily`) is deliberately not
+  exposed through the API gateway; more than one run per day duplicates
+  streakAtRisk/partnerMissedDay/pactExpiring pushes.
+- [ ] (2026-07-28, dwelling-location-notifications) Run `20260728000001_main.userLocations.dwelling` on production users-service (`npm run migrations:run`). Adds `distinctDayCount` (NOT NULL, default 1) and `lastVisitedAt` (NOT NULL, default now()) to `main.userLocations`, plus a `(userId, distinctDayCount)` index, and backfills both from existing `createdAt`/`updatedAt`/`visitCount`. Additive and defaulted, so applying it ahead of the image is safe; if the image ships first, `GET /users-locations/:userId/dwellings` errors on the unknown columns and `POST /users-locations/:userId` fails on the new upsert clause — which would break background location processing. **Run this migration before or with the users-service deploy.**
 - [ ] (2026-07-21, bot-personas) Run the `005_bot_users.js` seed on production users-service (`npm run seeds:run` from `therr-services/users-service`) — creates 10 persona-matched bot accounts (isBot=true) for therr-ai-automator content generation. Idempotent (fixed UUIDs, ON CONFLICT DO NOTHING). Optionally set `BOT_SEED_PASSWORD` beforehand; bots never log in, so the default hash is only a placeholder.
 - [ ] (2026-07-30, /work-plan) After the reaction-metrics bounds deploy, watch api-gateway for a rise in 400s on `POST /v1/reactions-service/{moment,thought,space,event}-reactions/:id`. Every client today sends `userViewCount: 1` (`TherrMobile/main/routes/Map/TherrMapView.tsx`) and no client sends `userBookmarkPriority`, so legitimate traffic should never trip the new bounds (view count 0–100, bookmark priority 0–100, rating 1–5) — a sustained 400 rate means either a client path nobody mapped or a real abuse attempt, and the two are worth telling apart before widening the range. Note the already-deployed mobile app cannot be force-updated, so a bad assumption here reaches users who cannot upgrade away from it. No migration and no env var; bounds live in `therr-js-utilities/constants` → `Reactions`.
 - [ ] (2026-07-30, /work-plan) One-off data check before trusting space ratings: `rating` was previously unbounded, so any existing `main."spaceReactions"` / `main."eventReactions"` row outside 1–5 is still averaged into the rating shown on public space pages. Query `SELECT COUNT(*) FROM main."spaceReactions" WHERE rating IS NOT NULL AND (rating < 1 OR rating > 5);` (and the same for `eventReactions`) — if it returns non-zero, those rows need clearing or clamping, since the new validation only stops *new* bad writes.
@@ -830,6 +948,18 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   auto-loop), but it needs a per-route opt-in prop rather than hardcoding the path into
   `therr-react`. Worth doing if the API funnel's register→subscribe conversion looks
   lossy.
+- [ ] (2026-08-06, /quality-peer-review) Merge `niche/HABITS-restore-brand-identity` into
+  `niche/HABITS-general` **whenever `general` is merged down**, and expect to repeat the
+  pattern. The brand revert on `general` merges into the niche branch without conflicts and
+  silently un-brands Friends with Habits — nothing fails, the app just builds as Therr. A
+  merge of `general` into any `niche/*` branch should be followed by verifying
+  `brandConfig.ts`, `build.gradle` ids and `app.json` still carry the niche identity.
+  Worth automating as a pre-push check on `niche/*`.
+- [ ] (2026-08-06, /quality-peer-review) The mobile tsc baseline grew by four signatures
+  (`routes/index.tsx` HabitDetail + PactDetail, `MyHabits/index.tsx` TS2322/TS2345) rather
+  than the errors being fixed. The `MyHabits` pair is the endemic `translate: Function`
+  typing issue and is cheap to fix; the two `ConnectedComponent` ones match a long-standing
+  pattern. Worth clearing so the baseline stops ratcheting upward.
 - [ ] (2026-08-06, /quality-peer-review) Convert the Play prominent-disclosure copy to
   `{appName}`. 848389103 landed the mechanism (`BRAND_DISPLAY_NAME` +the `translator.ts`
   wrapper that defaults the param) and a test that guards it, but no dictionary string
@@ -1767,6 +1897,28 @@ in week one. Its dedupe key is `pact-ended:<pactId>` with **no date**, the only
 such key in the digest: a pact ends once, and `getExpiredPacts` keeps returning
 it until `expire` lands, so a date would let a retry double-send.
 
+**Follow-up shipped 2026-09-03: renewal is a continuation, not a second pact.**
+As first built, a renewal was a new `habits.pacts` row with nothing recording
+what it was a renewal *of* — so the list rendered the finished cycle beside the
+new one and a re-commit read as the app having duplicated the pact. Worse, the
+"one live cycle per habit" guard read `status = 'active'`, and a renewal with
+partners is created `pending` until the first acceptance: it was invisible to the
+guard, the ended pact kept its still-valid CTA, and each further tap created
+another parallel pending cycle. One tap, one apparent duplicate, no error
+anywhere.
+
+`renewedFromPactId` / `renewalCycleNumber` (migration
+`20260903000001_habits.pacts.renewedFromPactId.js`) record the edge; the reverse
+edge `supersededByPactId` is derived in `PactsStore`, and `GET /habits/pacts`
+leaves superseded cycles out unless asked for `includeSuperseded=true`. Renewal
+itself is now idempotent — a pact that already has a live successor answers
+**200** with that successor instead of creating another, so a double-tap, a
+retry and a stale CTA all converge on the one real cycle. The guard reads
+`getUnfinishedByUserAndHabitGoal`, which counts `pending` as in-flight;
+`getActiveByUserAndHabitGoal` deliberately still does not, because it answers
+"which pacts does this check-in credit" and an unanswered invite must never be
+one of them.
+
 Still open:
 
 - **The mobile half is not built** — `niche/HABITS-general` must declare the
@@ -2477,6 +2629,15 @@ note that should be honored on a calendar reminder.
   per-family packages: `@react-native-vector-icons/material-icons`,
   `/font-awesome`, `/font-awesome-5`, `/ionicons`, `/octicons`. Removes the
   suppression and unblocks future RN/React upgrades.
+- **HABITS niche only** — Drop `react-native-maps` (and the iOS `Google`
+  subspec / `GoogleMaps` + `Google-Maps-iOS-Utils` pods) from the HABITS
+  build the same way `react-native-background-geolocation` was removed
+  (commit `88d0c18d3`). HABITS has no map feature, so the native Google Maps
+  SDK (and its API-key requirement + Play/App-store location signals) is dead
+  weight. Requires: gate/remove the `Map/*` route imports on the niche,
+  remove the dep from `TherrMobile/package.json`, revert the Podfile maps
+  block on the niche branch only, and re-run `npm install` + `pod install`.
+  Do **not** port to general/THERR/TEEM — those variants use the map.
 
 ---
 

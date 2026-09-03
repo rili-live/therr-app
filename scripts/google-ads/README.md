@@ -131,7 +131,7 @@ possible, it is just never accidental.
 
 ```bash
 ./therrads report ads     --days 14    # impressions, clicks, CPI, ad groups, search terms
-./therrads report ga4     --days 14    # web sessions by campaign, with the crawler guard
+./therrads report ga4     --days 14    # web sessions by campaign + the in-app funnel
 ./therrads report product --days 14    # signups → pacts → invites → check-ins → payers
 ./therrads report funnel  --days 14    # all three
 ./therrads analyze        --days 14    # signals, verdicts, and what to do next
@@ -183,9 +183,10 @@ they are only as good as the window they were computed over.
 python3 -m unittest discover -s tests -t .
 ```
 
-62 tests, no credentials required, no `google-ads` install required — the pure
-layers (`money`, `spec`, `analysis`, `workitems`, the GA4 crawler guard) hold the
-logic worth testing and are deliberately kept importable on their own.
+101 tests, no credentials required, no `google-ads` install required — the pure
+layers (`money`, `spec`, `analysis`, `workitems`, and the GA4 crawler guard and
+in-app funnel builder) hold the logic worth testing and are deliberately kept
+importable on their own.
 
 ## Files
 

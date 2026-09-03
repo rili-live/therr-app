@@ -9,10 +9,18 @@
 # will never be the volume driver. Run it anyway, because it is the only path
 # where a click is connected to a person:
 #
-#   click (utm_campaign) -> habits.therr.com -> registration
-#     -> main."userAcquisition".utmCampaign        (captured by therr-react attribution)
-#       -> habits.pacts / main.invites             (did they activate?)
-#         -> habits.lifetime_purchases             (did they pay the $20?)
+#   click (utm_campaign) -> habits.therr.com                 landing, captures UTMs
+#     -> /register                                            habits/register.hbs
+#       -> main."userAcquisition".utmCampaign                  sanitizeUserAcquisition
+#         -> habits.pacts / main.invites                       (did they activate?)
+#           -> habits.lifetime_purchases                       (did they pay the $20?)
+#
+# Every hop above is real as of the habits/register.hbs commit. It was NOT before
+# that: habits.therr.com had no /register, shipped no React bundle so
+# captureAttribution never ran, and its only CTA went straight to the Play Store.
+# The chain this file's budget is justified by was aspirational, and this arm
+# would have measured nothing. Do not re-point final_url at a page outside
+# habits.therr.com without checking that the attribution partial loads there.
 #
 # Every question the business actually needs answered — which intent converts,
 # what a paying user costs, whether the pact mechanic survives contact with a
@@ -52,6 +60,14 @@ bidding:
     # Cost per acquisition target for the landing-page conversion. Higher than
     # the app arm's target CPI on purpose: a web signup is a fully attributed
     # user, and the extra cost is what the attribution is worth.
+    #
+    # BEFORE RESUMING THIS ARM, import a conversion action into Ads, or there is
+    # nothing for a CPA target to mean. The landing page now fires `store_click`
+    # and `register_start`, and /register fires `sign_up` on success; mark
+    # `sign_up` as a key event in GA4 admin on property 549794383 and import it
+    # under Ads -> Goals -> Conversions -> Import -> Google Analytics 4. Note
+    # that property has NO Ads link yet — unlike the app property — so the link
+    # has to be created first.
     goal: OPTIMIZE_INSTALLS_TARGET_INSTALL_COST
     target_cpa: 8.00
 
@@ -69,6 +85,10 @@ ad_groups:
     # believe the premise the app is built on, so they should convert at a
     # materially better rate even at a higher click price.
     # ---------------------------------------------------------------------
+    # final_url stays the landing page, not /register, on every ad group.
+    # Attribution is captured on first landing and carried in sessionStorage, so
+    # the click is recorded either way, and a cold searcher needs the pitch
+    # before the form. /register is one click away from the hero.
     - name: "accountability-partner"
       match_type: PHRASE
       final_url: "https://habits.therr.com"
