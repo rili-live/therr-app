@@ -1384,7 +1384,7 @@
         "back": "Revenir à l’étape précédente"
       },
       "syncContacts": {
-        "description": "Nous comparons vos contacts aux comptes Therr pour que vous puissiez vous connecter tout de suite. Vos contacts ne sont jamais partagés avec qui que ce soit.",
+        "description": "Découvrez lesquels de vos contacts sont déjà ici. Votre carnet d’adresses est envoyé à nos serveurs pour y chercher des comptes correspondants; nous vous montrerons tous les détails avant que quoi que ce soit ne quitte votre appareil.",
         "continue": "Continuer",
         "skip": "Pas maintenant",
         "errorMessage": "Nous n’avons pas pu synchroniser vos contacts. Veuillez réessayer.",
@@ -2243,7 +2243,10 @@
     "primer": {
       "shared": {
         "allow": "Autoriser",
-        "notNow": "Pas maintenant"
+        "notNow": "Pas maintenant",
+        "agree": "J'accepte",
+        "decline": "Refuser",
+        "privacyPolicy": "Consulte notre politique de confidentialité"
       },
       "notifications": {
         "title": "Reste au courant",
@@ -2254,8 +2257,10 @@
         "body": "Therr a besoin d'accéder à la caméra pour joindre une photo à ta publication."
       },
       "contacts": {
-        "title": "Trouve tes amis plus vite",
-        "body": "Identifie les contacts déjà sur Therr. Ton carnet d'adresses reste sur ton appareil."
+        "title": "{appName} recueille tes contacts",
+        "summary": "{appName} recueille ton carnet d'adresses — les noms, numéros de téléphone et adresses courriel de tes contacts — et l'envoie aux serveurs de Therr, à api.therr.com, afin de repérer les contacts qui utilisent déjà l’application.",
+        "detail": "Tous les contacts de ton carnet d'adresses sont inclus, pas seulement ceux que tu choisis. Nous utilisons ces renseignements pour chercher des comptes correspondants et pour envoyer les invitations que tu décides d'envoyer. Les contacts sans compte correspondant ne sont pas conservés, sauf les personnes que tu invites explicitement : nous gardons leur numéro de téléphone ou leur adresse courriel pour livrer cette invitation et pour éviter de les inviter deux fois. Nous ne vendons jamais tes contacts et ne les partageons pas avec des annonceurs.",
+        "optOut": "C'est facultatif. Tu peux passer cette étape et continuer d'utiliser {appName}, et tu peux désactiver l'accès aux contacts en tout temps dans les réglages de ton appareil."
       }
     }
   },

@@ -247,18 +247,12 @@ const sendOne = async (row: INotificationQueueRow): Promise<void> => {
     // noise from users who simply have no device registered for this brand.
     // 'skipped' says the same thing and stays measurable.
     //
-    // The legacy `users.deviceMobileFirebaseToken` column is read here too, not
-    // just the brand-scoped table: `resolveDeviceTokenForBrand` falls back to it
-    // for users whose device has not re-registered since Phase 2, and skipping
-    // them would silence real recipients to tidy up a log.
-    const [recipient] = await Store.users
-        .findUser({ id: row.userId }, ['deviceMobileFirebaseToken'])
-        .catch(() => [] as { deviceMobileFirebaseToken: string }[]);
-    const deviceToken = await resolveDeviceTokenForBrand(
-        row.brandVariation,
-        row.userId,
-        recipient?.deviceMobileFirebaseToken,
-    ).catch(() => null);
+    // Reads the brand-scoped table and nothing else. This used to also fetch the
+    // user's legacy `users.deviceMobileFirebaseToken` to pass as a fallback, which
+    // meant a row whose brand had no registration still sent — to whichever app
+    // wrote that shared column last. Skipping it here is the correct outcome and
+    // costs one fewer query per row.
+    const deviceToken = await resolveDeviceTokenForBrand(row.brandVariation, row.userId);
     if (!deviceToken) {
         await Store.notificationQueue.markSkipped(row.id, 'no-device-token');
         return;

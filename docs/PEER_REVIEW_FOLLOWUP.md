@@ -19,25 +19,33 @@ TODOs and operational follow-ups.
 
 ### 2. Drop `users.deviceMobileFirebaseToken` legacy column
 
-**Status**: Open
+**Status**: Partially done — read path closed 2026-09-04; the column itself is still written.
 **Origin**: Phase 2 multi-app data isolation rollout
 
-Once mobile clients have re-registered against the new `/users` endpoint that dual-writes to
-`main.userDeviceTokens`, the fallback path in
-`therr-services/users-service/src/utilities/sendEmailAndOrPushNotification.ts` (`resolveDeviceTokenForBrand`)
-can be deleted, and the legacy column can be dropped in a follow-up migration.
+The read-time fallback is **gone**. It was not merely redundant, it was actively wrong: the
+shared column holds whichever branded app registered last, so a brand with no
+`main.userDeviceTokens` row resolved another app's install and delivered there.
+`20260904000001_main.userDeviceTokens.backfill.js` migrated the population the fallback
+legitimately served (accounts resolving to exactly one brand via `users.brandVariations`)
+into real rows, and `resolveDeviceTokenForBrand` now returns `null` when a brand has no row.
 
-**Trigger**: After one full release cycle has elapsed AND the `[brand-scope:shadow]` warnings
-in `userDeviceTokens` access logs are clean (zero hits in the last 7 days). Confirm via the
-ELK dashboard before scheduling the migration.
+What remains is dropping the column. It is still dual-written by `UpdateUser`, and still read
+by **`therr-messaging-automator`** (`src/index.ts`, same fallback shape) — that repo must be
+cut over first, or the leak simply continues through its send path. No CI in either repo
+checks this coupling; see `docs/CROSS_REPO_INTEGRATION.md`.
+
+**Trigger**: after `therr-messaging-automator` drops its own fallback AND
+`notificationQueue` `skipped: no-device-token` counts have settled (a spike immediately after
+this ships is expected and correct — it is the previously-mis-delivered population becoming
+visible).
 
 **Steps**:
 
-1. Add migration `<date>_main.users.dropDeviceMobileFirebaseToken.js` with `dropColumn` /
+1. Mirror the no-fallback change in `therr-messaging-automator/src/index.ts`.
+2. Stop writing the column in `UpdateUser` / `syncDeviceTokenForBrand`.
+3. Add migration `<date>_main.users.dropDeviceMobileFirebaseToken.js` with `dropColumn` /
    `addColumn` symmetry.
-2. Remove `resolveDeviceTokenForBrand` and inline `destinationUser.deviceMobileFirebaseToken`
-   readers in `sendEmailAndOrPushNotification.ts`.
-3. Remove the `clearDeviceToken` overload that operates on the legacy column.
+4. Remove the `clearDeviceToken` overload that operates on the legacy column.
 
 ---
 
