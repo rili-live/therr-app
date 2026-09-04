@@ -18,6 +18,41 @@ REPO_SPECS = Path(__file__).resolve().parent.parent / "campaigns"
 APP_SPEC = REPO_SPECS / "habits-app-install.yaml"
 
 
+def spec_with_media(images: list[str], videos: list[str]):
+    """Load the real app spec with its media lists replaced.
+
+    Rewriting the YAML and re-loading matters: `spec.warnings` is computed at
+    load time, so mutating `spec.assets` afterwards leaves the warnings from the
+    file behind and the assertion below passes or fails on the wrong thing.
+
+    The lists are substituted rather than assumed empty because the shipped spec
+    now carries nine generated frames (see assets/README.md). These tests used
+    to depend on it having none — one of them then failed the moment real
+    creative landed, and the other quietly stopped testing anything at all.
+    """
+    import re
+    import tempfile
+
+    text = APP_SPEC.read_text()
+    for key, values in (("images", images), ("videos", videos)):
+        rendered = "[]" if not values else "[" + ", ".join(f'"{v}"' for v in values) + "]"
+        # Matches the key and everything indented under it, list form or inline.
+        text, count = re.subn(
+            rf"^    {key}:.*?(?=\n    [a-z#]|\n[a-z])",
+            f"    {key}: {rendered}",
+            text,
+            count=1,
+            flags=re.MULTILINE | re.DOTALL,
+        )
+        assert count == 1, f"could not find assets.{key} in {APP_SPEC.name}"
+
+    handle = tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False)
+    handle.write(text)
+    handle.close()
+
+    return load_spec(Path(handle.name))
+
+
 def settings_with(max_daily="50.00", max_total="100.00") -> Settings:
     return Settings(
         customer_id="1234567890",
@@ -71,31 +106,27 @@ class MediaAssetHonestyTest(unittest.TestCase):
     """
 
     def test_plan_flags_media_as_not_uploaded(self):
-        spec = load_spec(APP_SPEC)
-        spec.assets.images = ["hero.png"]
-        spec.assets.videos = ["promo.mp4"]
+        spec = spec_with_media(["hero.png"], ["promo.mp4"])
         rendered = build_plan(spec, settings_with()).render()
         self.assertIn("NOT uploaded", rendered)
         self.assertIn("Google Ads UI", rendered)
 
     def test_plan_stays_quiet_when_there_is_no_media(self):
-        spec = load_spec(APP_SPEC)
-        spec.assets.images = []
-        spec.assets.videos = []
+        spec = spec_with_media([], [])
         self.assertNotIn("NOT uploaded", build_plan(spec, settings_with()).render())
+
+    def test_the_shipped_spec_carries_creative_and_says_it_is_not_uploaded(self):
+        # The frames in assets/habits are listed in the spec but attached by
+        # hand. If that warning ever stops firing, an operator reads the plan as
+        # confirmation the media shipped and the ad serves text-only.
+        spec = load_spec(APP_SPEC)
+        self.assertTrue(spec.assets.images, "the shipped spec should reference the generated frames")
+        self.assertIn("NOT uploaded", build_plan(spec, settings_with()).render())
 
 
 class SpecMediaWarningTest(unittest.TestCase):
     def test_loading_a_spec_with_media_warns_that_it_is_not_uploaded(self):
-        text = APP_SPEC.read_text().replace(
-            "    images: []", '    images: ["hero.png"]'
-        )
-        import tempfile
-
-        handle = tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False)
-        handle.write(text)
-        handle.close()
-        spec = load_spec(Path(handle.name))
+        spec = spec_with_media(["hero.png"], [])
         self.assertTrue(
             any("NOT uploaded by this tool" in w for w in spec.warnings),
             f"expected a media-upload warning, got {spec.warnings}",
