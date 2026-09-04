@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>therrads — Google Ads API Tool Documentation</title>
+<style>
+  @page { size: letter; margin: 0.85in 0.8in; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10.5pt; line-height: 1.5; color: #1a1a1a; margin: 0;
+  }
+  h1 { font-size: 21pt; margin: 0 0 2pt; letter-spacing: -0.02em; }
+  .sub { color: #555; font-size: 11pt; margin: 0 0 3pt; }
+  .meta { color: #777; font-size: 9pt; margin: 0 0 22pt; }
+  h2 {
+    font-size: 12.5pt; margin: 22pt 0 7pt; padding-bottom: 4pt;
+    border-bottom: 1.5px solid #1a1a1a; page-break-after: avoid;
+  }
+  h3 { font-size: 10.5pt; margin: 13pt 0 4pt; page-break-after: avoid; }
+  p { margin: 0 0 8pt; }
+  ul { margin: 0 0 8pt; padding-left: 17pt; }
+  li { margin-bottom: 3pt; }
+  table { width: 100%; border-collapse: collapse; margin: 6pt 0 10pt; font-size: 9.5pt; }
+  th, td { border: 1px solid #cfcfcf; padding: 5pt 7pt; text-align: left; vertical-align: top; }
+  th { background: #f2f2f2; font-weight: 600; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 9pt; background: #f4f4f4;
+         padding: 1px 3px; border-radius: 2px; }
+  pre {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 8pt; line-height: 1.4;
+    background: #f7f7f7; border: 1px solid #ddd; border-left: 3px solid #666;
+    padding: 8pt 10pt; overflow: hidden; white-space: pre-wrap; margin: 6pt 0 10pt;
+    page-break-inside: avoid;
+  }
+  .callout {
+    background: #f0f5fa; border-left: 3px solid #35618f; padding: 8pt 11pt; margin: 10pt 0;
+    page-break-inside: avoid;
+  }
+  .callout strong { color: #24486b; }
+  .kv td:first-child { width: 32%; font-weight: 600; background: #fafafa; }
+  footer { margin-top: 26pt; padding-top: 8pt; border-top: 1px solid #ddd;
+           color: #777; font-size: 8.5pt; }
+</style></head>
+<body>
+
+<h1>therrads</h1>
+<p class="sub">Internal campaign management and performance-analysis tool for the Google Ads API</p>
+<p class="meta">Therr,&nbsp;Inc. &nbsp;·&nbsp; Prepared for a Google Ads API Basic Access application &nbsp;·&nbsp; September 2026</p>
+
+<h2>1. Summary</h2>
+<p><strong>therrads</strong> is an internal, first-party command-line tool that Therr, Inc. uses to
+create and manage Google Ads campaigns for <em>its own advertising account</em>, and to read that
+account's performance back alongside its own product analytics.</p>
+
+<div class="callout">
+  <p style="margin:0"><strong>It is not a product, and it is not offered to anyone.</strong> It is not
+  sold, licensed, distributed, resold, or made available to third parties. It manages no client
+  accounts. It has exactly one operating account and one intended set of users: the internal
+  team at Therr,&nbsp;Inc. that operates the advertiser.</p>
+</div>
+
+<table class="kv">
+  <tr><td>Company</td><td>Therr, Inc.</td></tr>
+  <tr><td>Advertised product</td><td>Friends with Habits — Android app, live on Google Play (<code>com.therr.habits</code>)</td></tr>
+  <tr><td>Manager account</td><td>3076709152 (used as <code>login_customer_id</code> only)</td></tr>
+  <tr><td>Operating account</td><td>7604290203 — the sole account this tool touches</td></tr>
+  <tr><td>Implementation</td><td>Python 3, <code>google-ads</code> official client library v29.2.0</td></tr>
+  <tr><td>Distribution</td><td>None. Source lives in a private company monorepo and runs on operator workstations.</td></tr>
+  <tr><td>Users</td><td>Internal only. No external, client, or customer access of any kind.</td></tr>
+</table>
+
+<h2>2. Business model</h2>
+<p>Therr, Inc. builds consumer mobile applications. The application being advertised, <strong>Friends
+with Habits</strong>, is a habit-tracking app built around accountability partners: each habit is a
+"pact" with a friend, both parties check in daily with photo or note proof, and each can see when the
+other misses a day.</p>
+
+<p>Revenue is direct-to-consumer through Google Play Billing, on a freemium model:</p>
+<ul>
+  <li><strong>Free tier</strong> — up to five active habits, daily check-ins, streak tracking, partner
+  activity feed and reminders. No card required.</li>
+  <li><strong>Founder Unlock</strong> — a <strong>one-time $20 USD purchase</strong> granting every
+  paid feature for life, limited to the first 5,000 accounts. Processed by Google Play Billing and
+  verified server-side.</li>
+</ul>
+
+<p>There is no advertising inventory in the app, no data brokerage, and no resale of any Google
+service or data. Google Ads is used solely to acquire users for the company's own application.</p>
+
+<h2>3. What the tool does</h2>
+<p>Campaigns are defined as version-controlled YAML files in the company's repository, reviewed like
+code, and applied to the Google Ads account by the tool. Performance is read back and joined against
+the company's own Google Analytics 4 properties and product database, so that spend can be evaluated
+against outcomes the Ads account alone cannot see.</p>
+
+<h3>3.1 Command surface</h3>
+<table>
+  <tr><th>Command</th><th>What it does</th><th>Mutates?</th></tr>
+  <tr><td><code>auth login</code> / <code>auth check</code></td><td>OAuth2 installed-app flow; verifies reachable accounts</td><td>No</td></tr>
+  <tr><td><code>campaign validate</code></td><td>Validates a campaign spec offline, with no credentials</td><td>No</td></tr>
+  <tr><td><code>campaign plan</code></td><td>Prints the exact API operations that would be sent</td><td>No</td></tr>
+  <tr><td><code>campaign apply</code></td><td>Creates the campaign, budget, targeting, ad group and ad</td><td>Yes</td></tr>
+  <tr><td><code>campaign budget</code></td><td>Changes a campaign's daily budget</td><td>Yes</td></tr>
+  <tr><td><code>campaign pause</code> / <code>resume</code></td><td>Changes campaign status</td><td>Yes</td></tr>
+  <tr><td><code>campaign list</code></td><td>Lists campaigns and their budgets</td><td>No</td></tr>
+  <tr><td><code>report ads</code> / <code>ga4</code> / <code>product</code> / <code>funnel</code></td><td>Reads performance; joins Ads, GA4 and product data</td><td>No</td></tr>
+  <tr><td><code>analyze</code></td><td>Applies thresholds to the joined data and produces written findings</td><td>No</td></tr>
+</table>
+
+<h3>3.2 Google Ads API surface used</h3>
+<table>
+  <tr><th>Service</th><th>Use</th></tr>
+  <tr><td><code>GoogleAdsService</code></td><td>GAQL reads from <code>campaign</code>, <code>ad_group</code> and <code>search_term_view</code>; batched mutates via <code>MutateOperation</code></td></tr>
+  <tr><td><code>CampaignService</code></td><td>Create campaigns; update status and bidding</td></tr>
+  <tr><td><code>CampaignBudgetService</code></td><td>Create and update daily budgets</td></tr>
+  <tr><td><code>AdGroupService</code></td><td>Create the single ad group an App campaign permits</td></tr>
+  <tr><td><code>GeoTargetConstantService</code></td><td>Resolve geographic targeting constants</td></tr>
+  <tr><td><code>CustomerService</code></td><td><code>listAccessibleCustomers</code>, for the setup check only</td></tr>
+</table>
+<p>Operation types used: <code>CampaignOperation</code>, <code>CampaignBudgetOperation</code>,
+<code>AdGroupOperation</code>, <code>AdGroupAdOperation</code>, <code>AdGroupCriterionOperation</code>,
+<code>CampaignCriterionOperation</code>. The tool does not upload image or video assets; those are
+attached by hand in the Google Ads web interface.</p>
+
+<h2>4. Intended audience</h2>
+<p>The operators of Therr,&nbsp;Inc.'s own advertising account. The tool is run from a terminal on a
+company workstation, against a single account, by internal staff only.</p>
+<p>It has no user interface for anyone else, no hosted deployment, no multi-tenancy, no notion of a
+client or a sub-account, and no mechanism by which a third party could use it. Should the company
+ever wish to offer such a service, it understands that would be a materially different application
+requiring Standard access and a separate review.</p>
+
+<h2>5. Safety controls</h2>
+<p>Because this tool spends money, its safeguards are its most deliberate feature.</p>
+<ul>
+  <li><strong>Nothing mutates without <code>--confirm</code>.</strong> Every mutating command without
+  that flag prints exactly what it would send and exits having sent nothing.</li>
+  <li><strong>Campaigns are created PAUSED.</strong> Enforced by an automated test over every campaign
+  file, so a spec cannot turn a review step into a billing event.</li>
+  <li><strong>Client-side budget ceilings.</strong> A per-campaign cap and an account-wide cap are
+  checked before any request is sent, because two campaigns each under the per-campaign cap are still
+  twice the intended spend.</li>
+  <li><strong>Exact-decimal currency conversion.</strong> All dollar-to-micros conversion goes through
+  one audited function using decimal arithmetic, so a rounding or unit error cannot become an
+  overspend.</li>
+  <li><strong>Read-only product database access</strong>, over a cursor explicitly set read-only.</li>
+  <li><strong>104 automated tests</strong> covering the budget guards, spec validation, the plan
+  builder and the analysis rules. None of them requires credentials, which is deliberate: a test that
+  reaches for a live account is a test that stops being run.</li>
+</ul>
+
+<h2>6. Worked example</h2>
+<p>Below is the real, unedited output of <code>campaign plan</code>, the read-only command an operator
+runs before applying anything. It enumerates every API operation that <code>campaign apply</code>
+would send, and sends none of them.</p>
+
+<pre>$ ./therrads campaign plan campaigns/habits-app-install.yaml
+
+CAMPAIGN PLAN — FwH-App-US-Installs-2026Q3
+  spec:      campaigns/habits-app-install.yaml
+  kind:      app_install
+  status:    PAUSED  (created paused unless the spec says otherwise)
+  budget:    20.0 USD/day = 20.00 USD
+  bidding:   OPTIMIZE_INSTALLS_TARGET_INSTALL_COST @ target CPA 2.5
+  targeting: locations=['2840'] languages=['1000']
+
+OPERATIONS (6):
+  CREATE  CampaignBudget     FwH-App-US-Installs-2026Q3 — daily budget  20.0 USD/day, STANDARD, not shared
+  CREATE  Campaign           FwH-App-US-Installs-2026Q3  APP / MULTI_CHANNEL, status=PAUSED
+  CREATE  CampaignCriterion  geo:2840  location target
+  CREATE  CampaignCriterion  lang:1000  language target
+  CREATE  AdGroup            FwH-App-US-Installs-2026Q3 — ad group  App campaigns allow exactly one
+  CREATE  AdGroupAd          app ad  5 headlines, 4 descriptions
+
+WARNINGS (advisory — apply will proceed):
+  ! assets.videos is empty. App campaigns without a video are limited to Search and a
+  ! narrow Display slice: expect a fraction of the reach at a higher CPI.
+  ! Daily budget 20.00 USD is under 50x the target CPA (125.00 USD recommended).
+
+Nothing sent. To execute:
+  ./therrads campaign apply campaigns/habits-app-install.yaml --confirm</pre>
+
+<h2>7. Data handling</h2>
+<ul>
+  <li>Credentials — developer token, OAuth client and refresh token — are stored in a local file that
+  is excluded from version control and never leaves the operator's workstation.</li>
+  <li>Data retrieved from the Google Ads API is aggregate campaign performance: impressions, clicks,
+  cost, conversions, ad group and search-term totals. No personally identifiable information is
+  requested, stored, or derived.</li>
+  <li>Reports are written to local files for the operator's own use. Nothing retrieved from the API is
+  published, shared with third parties, or sold.</li>
+  <li>The tool makes no use of the Google Ads API on behalf of any party other than Therr, Inc.</li>
+</ul>
+
+<footer>
+  Therr, Inc. — internal tool documentation prepared for a Google Ads API Basic Access application.
+  Contact the applicant for a source walkthrough or a live demonstration on request.
+</footer>
+
+</body></html>
