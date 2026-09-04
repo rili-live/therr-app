@@ -309,6 +309,13 @@ const createUser: RequestHandler = (req: any, res: any) => {
                         isDashboardRegistration: req.body.isDashboardRegistration,
                         settingsEmailMarketing: req.body.settingsEmailMarketing,
                         settingsEmailBusMarketing: req.body.settingsEmailBusMarketing,
+                        // Every registration form collects this and the gateway validates it
+                        // (services/users/validation/users.ts), but it was missing from this
+                        // whitelist, so `createUserHelper` always received `undefined`: no
+                        // account has ever stored a birthdate, and the service's own age check
+                        // -- guarded on the value being present -- never ran. Passing it through
+                        // both persists the value and arms that second layer.
+                        settingsBirthdate: req.body.settingsBirthdate,
                         settingsLocale: req.body.settingsLocale || locale,
                         lastName: req.body.lastName,
                         // Prefer the number inside the signed token over anything the client
@@ -490,6 +497,20 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 });
             }
 
+            // The gateway rejects an under-age birthdate first, so this fires only for a
+            // caller that reached the service directly. It still has to answer 400 rather
+            // than fall through to the generic 500 below: a rejected age is the client's
+            // input being wrong, and the habits register page renders `body.message`
+            // straight back to the user.
+            if (err?.message === 'invalid-birthdate') {
+                return handleHttpError({
+                    err,
+                    res,
+                    message: translate(locale, 'errorMessages.auth.invalidBirthdate'),
+                    statusCode: 400,
+                });
+            }
+
             return handleHttpError({
                 err,
                 res,
@@ -524,13 +545,10 @@ const getMe = (req, res) => {
             // push-notifications-service, whose BackgroundGeolocation requests never carry the
             // x-user-device-token header — would then deliver this brand's notification to the
             // wrong app. Override with the brand-scoped token from main.userDeviceTokens (keyed
-            // on the request's x-brand-variation), falling back to the legacy column when the
-            // device hasn't re-registered against the new table yet.
-            userResult.deviceMobileFirebaseToken = await resolveDeviceTokenForBrand(
-                brandVariation,
-                userId,
-                userResult.deviceMobileFirebaseToken,
-            );
+            // on the request's x-brand-variation). Resolves to null when this brand has no
+            // registration — deliberately, so a consumer sends nothing rather than sending to
+            // whichever app happened to write the shared column last.
+            userResult.deviceMobileFirebaseToken = await resolveDeviceTokenForBrand(brandVariation, userId);
 
             return res.status(200).send(userResult);
         })
@@ -1658,18 +1676,14 @@ const sendUserPushDiagnosticsTest: RequestHandler = (req, res) => {
     // as a falsy value and turn the safe default into a real push to a handset.
     const isDryRun = dryRun !== false;
 
-    return Store.users.findUser({ id }, ['id', 'deviceMobileFirebaseToken'])
+    return Store.users.findUser({ id }, ['id'])
         .then(async (userResults: any[]) => {
             const user = userResults?.[0];
             if (!user) {
                 return handleHttpError({ res, message: 'User not found', statusCode: 404 });
             }
 
-            const deviceToken = await resolveDeviceTokenForBrand(
-                brandVariation as string,
-                id,
-                user.deviceMobileFirebaseToken,
-            );
+            const deviceToken = await resolveDeviceTokenForBrand(brandVariation as string, id);
 
             if (!deviceToken) {
                 // Not an error condition to paper over — this IS the answer when a

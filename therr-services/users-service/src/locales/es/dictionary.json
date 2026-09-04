@@ -8,7 +8,8 @@
             "noUserFound": "No se encontró un usuario con el nombre de usuario/correo electrónico ingresado",
             "oneTimeExpired": "La contraseña de un solo uso ha expirado",
             "incorrectUserPass": "Combinación incorrecta de nombre de usuario/contraseña",
-            "invalidPassword": "La contraseña no es válida"
+            "invalidPassword": "La contraseña no es válida",
+            "invalidBirthdate": "Debes tener al menos 13 años para crear una cuenta"
         },
         "posts": {
             "duplicatePost": "No se permiten publicaciones duplicadas",
