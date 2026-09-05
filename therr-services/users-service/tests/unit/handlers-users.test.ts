@@ -841,6 +841,65 @@ describe('Users Handler', () => {
         });
     });
 
+    describe('updateUser habits push preferences', () => {
+        // Regression: `updateArgs` is an explicit allow-list, and these two columns were
+        // read by the habits digest for months before anything could write them. The
+        // mobile toggles built against them PUT the fields, the allow-list dropped them,
+        // and the handler still answered 202 — so the screen showed a success toast and
+        // the user kept getting every reminder. Nothing errored on either side.
+        const makeReq = (body: any) => ({
+            headers: { 'x-userid': 'user-1', 'x-brand-variation': 'habits' },
+            body,
+        });
+
+        const stubUpdateChain = () => {
+            const updateStub = sinon.stub(Store.users, 'updateUser').resolves([{ id: 'user-1' }] as any);
+            sinon.stub(Store.userOrganizations, 'get').resolves([] as any);
+            return updateStub;
+        };
+
+        it('forwards an explicit false for both preferences to the store', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1',
+                phoneNumber: '+1 317-555-1234',
+                userName: 'someone',
+                isBusinessAccount: false,
+                isCreatorAccount: false,
+                accessLevels: [AccessLevels.DEFAULT],
+            }] as any);
+            const updateStub = stubUpdateChain();
+
+            const res = makeRes();
+            await updateUser(makeReq({
+                settingsPushHabitReminders: false,
+                settingsPushStreakAlerts: false,
+            }), res);
+
+            expect(res.statusCode).to.equal(202);
+            expect(updateStub.firstCall.args[0].settingsPushHabitReminders).to.equal(false);
+            expect(updateStub.firstCall.args[0].settingsPushStreakAlerts).to.equal(false);
+        });
+
+        it('leaves both undefined when the save does not mention them', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1',
+                phoneNumber: '+1 317-555-1234',
+                userName: 'someone',
+                isBusinessAccount: false,
+                isCreatorAccount: false,
+                accessLevels: [AccessLevels.DEFAULT],
+            }] as any);
+            const updateStub = stubUpdateChain();
+
+            const res = makeRes();
+            await updateUser(makeReq({ settingsBio: 'a new bio' }), res);
+
+            expect(res.statusCode).to.equal(202);
+            expect(updateStub.firstCall.args[0].settingsPushHabitReminders).to.be.eq(undefined);
+            expect(updateStub.firstCall.args[0].settingsPushStreakAlerts).to.be.eq(undefined);
+        });
+    });
+
     describe('updateUserCoins', () => {
         // Internal-only route (`PUT /users/:id/coins`, not registered in the gateway) whose
         // sole caller is reactions-service and sends nothing but `settingsTherrCoinTotal`.

@@ -216,7 +216,7 @@ here is what code cannot close.
   the gate is not firing and users are being nagged after they have already done
   the thing. Kill switch is `HABIT_LAST_CHANCE_REMINDERS_ENABLED=false` on
   users-service — no deploy needed.
-- [ ] **Build the push-preference UI, now that two columns are finally read.** The
+- [x] **Build the push-preference UI, now that two columns are finally read.** The
   digest honours `settingsPushHabitReminders` (both daily slots) and
   `settingsPushStreakAlerts` (the evening escalation only) — the first server-side
   reading of any push preference column. No client writes either, so
@@ -224,6 +224,15 @@ here is what code cannot close.
   until `TherrMobile/main/routes/Settings/ManageNotifications.tsx` grows push
   toggles alongside its email ones. Until then a user's only way to turn the
   evening nudge off is the OS switch, which takes everything with it.
+  > Both halves are in as of 2026-09-05. The toggles shipped on
+  > `niche/HABITS-general` (`c45a0bc5`) **before** the server could accept them —
+  > `updateArgs` in `handlers/users.ts` and the param filter in
+  > `UsersStore.updateUser` are both explicit allow-lists and neither named these
+  > columns, so a save returned 202 with the values dropped and the screen showed a
+  > success toast. Both allow-lists now carry them, guarded on `!= null` rather than
+  > truthiness: the digest mutes on an explicit `false` and nothing else, so `false`
+  > is the only value that changes anything. **The write half is on `general` and the
+  > toggles are on the niche branch — the counters stay at 0 until both are out.**
 
 ## Standing items (always re-verify after a deploy that touches the area)
 
@@ -455,6 +464,17 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-09-05, /work-plan) **Watch `remindersMutedByPreference` and
+  `lastChanceMutedByPreference` leave 0 once BOTH halves of the push toggles are out.**
+  The two counters have been structurally pinned at 0, not merely unused: the digest has
+  read `settingsPushHabitReminders` / `settingsPushStreakAlerts` for weeks, but until this
+  deploy no code path could write either column. The toggles are on
+  `niche/HABITS-general` (`c45a0bc5`) and the write half is on `general` — order does not
+  matter, but **both** are required, and neither reports its absence. A user on the old
+  server sees a success toast and keeps every reminder; a user on the old app has a server
+  that would accept a value nothing sends. First non-zero value is the only evidence the
+  pair is wired. No migration and no env var — both columns already exist and default to
+  `true`.
 - [ ] (2026-09-05, /work-plan) **Run the two new migrations after this reaches `main`.**
   maps-service `20260905000000_main.medias_gin_indexes` and users-service
   `20260905000001_main.thoughts.medias` — automated by `_bin/cicd/run-migrations.sh` on `main`
