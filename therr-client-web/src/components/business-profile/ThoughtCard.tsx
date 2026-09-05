@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import {
-    Paper, Text, Group, Badge, Stack, Anchor,
+    Paper, Text, Group, Badge, Stack, Anchor, Image,
 } from '@mantine/core';
 import { formatDate } from '../../utilities/formatDate';
 import EmbeddedThought from '../EmbeddedThought';
 import useTranslation from '../../hooks/useTranslation';
+import getThoughtMediaUri from '../../utilities/getThoughtMediaUri';
 
 interface IThoughtCardProps {
     locale: string;
@@ -17,6 +18,7 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({ locale, thought, onThoughtCl
     const { t: translate } = useTranslation();
     const hashTags = thought.hashTags ? thought.hashTags.split(',').filter(Boolean) : [];
     const thoughtUrl = `/thoughts/${thought.id}`;
+    const mediaUri = getThoughtMediaUri(thought, 400, 400);
 
     const handleClick = (e: React.MouseEvent) => {
         if (onThoughtClick) {
@@ -58,6 +60,16 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({ locale, thought, onThoughtCl
                     <Text size="sm" style={{ whiteSpace: 'pre-wrap' }} lineClamp={4}>
                         {thought.message}
                     </Text>
+                    {mediaUri && (
+                        <Image
+                            src={mediaUri}
+                            alt=""
+                            radius="sm"
+                            h={180}
+                            fit="cover"
+                            loading="lazy"
+                        />
+                    )}
                     {/*
                         A plain repost has an empty message, so without the embed this card would
                         render as a blank tile on the author's profile. Non-interactive because the

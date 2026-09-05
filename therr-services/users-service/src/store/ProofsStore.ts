@@ -51,6 +51,37 @@ export default class ProofsStore {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
+    /**
+     * Record what the content check decided about one proof.
+     *
+     * Separate from `createMany` because the check is asynchronous and must not
+     * hold up the check-in — see `utilities/moderateProofs`. Rows therefore live
+     * briefly at their insert defaults (`pending` / `isSafeForWork: true`), which
+     * is why nothing that exposes a proof beyond its owner may read
+     * `isSafeForWork` alone: `verificationStatus === 'auto_verified'` is the
+     * signal that a check actually ran.
+     */
+    setModerationResult(proofId: string, params: {
+        isSafeForWork: boolean;
+        verificationStatus: string;
+        moderationFlags?: Record<string, unknown>;
+    }) {
+        const queryString = knexBuilder
+            .where({ id: proofId })
+            .update({
+                isSafeForWork: params.isSafeForWork,
+                verificationStatus: params.verificationStatus,
+                moderationFlags: params.moderationFlags ? JSON.stringify(params.moderationFlags) : null,
+                verifiedAt: new Date(),
+                updatedAt: new Date(),
+            })
+            .into(PROOFS_TABLE_NAME)
+            .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows[0]);
+    }
+
     deleteByCheckinId(checkinId: string) {
         const queryString = knexBuilder
             .where({ checkinId })
