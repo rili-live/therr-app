@@ -11,11 +11,12 @@ import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { canRepostThought } from 'therr-js-utilities/content';
+import { Content } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
-import { getUserImageUri } from '../../utilities/content';
+import { getUserContentUri, getUserImageUri } from '../../utilities/content';
 import TherrIcon from '../TherrIcon';
 import RichText from '../RichText';
 import handleMentionPress from '../../utilities/handleMentionPress';
@@ -488,6 +489,20 @@ const ThoughtContent = ({
         parentId: thought.parentId,
         translate,
     });
+    /**
+     * Attached image, if the post has one.
+     *
+     * `media` is normalized to an array by `ThoughtsStore` on every read path; the
+     * `medias` fallback covers a row shaped straight from the column (the journal feed
+     * selects it directly). Only the first image renders — the composer attaches one.
+     *
+     * Resolved against the public ImageKit endpoint, the same way `AreaDisplay` renders
+     * moment and event media. Private-bucket thought media needs the extra signed-URL
+     * round trip the nearby feed makes and is not rendered here yet.
+     */
+    const thoughtMedia = (thought.media || thought.medias || [])
+        .find((m) => m?.path && m?.type === Content.mediaTypes.USER_IMAGE_PUBLIC);
+    const thoughtMediaUri = thoughtMedia ? getUserContentUri(thoughtMedia) : undefined;
     const hasRepliableActions = !thought.isDraft && isRepliable;
     const totalReposts = thought.repostCount ?? 0;
     // Shared with the server's own gate (handlers/thoughts createThought) so the control is
@@ -508,6 +523,14 @@ const ThoughtContent = ({
                     onMentionPress={onMentionPress}
                     numberOfLines={isExpanded ? undefined : 7}
                 />
+                {
+                    !!thoughtMediaUri &&
+                        <Image
+                            source={{ uri: thoughtMediaUri }}
+                            style={themeViewContent.styles.thoughtMediaImage}
+                            resizeMode="cover"
+                        />
+                }
                 {
                     !!thought.isRepost &&
                         <RepostEmbed

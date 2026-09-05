@@ -589,13 +589,19 @@ describe('Users Handler', () => {
             expect(res.body.deviceMobileFirebaseToken).to.equal('therr-device-token');
         });
 
-        it('falls back to the legacy column when no brand-scoped row exists yet', async () => {
+        it('returns no token at all when this brand has no registration', async () => {
+            // The mirror image of the test above, and the direction that actually shipped a
+            // bug: routing used to fall back to the legacy column here, which is shared
+            // across every branded app on the device. A Habits caller therefore received
+            // the user's *Therr* install token and pushed to the wrong app. Since
+            // 20260904000001_main.userDeviceTokens.backfill.js the single-brand users this
+            // protected have real rows, so an empty lookup now means "this brand genuinely
+            // has no device" and must resolve to null.
             sinon.stub(Store.users, 'getUserByConditions').resolves([{
                 id: 'user-1',
-                userName: 'notyetreregistered',
-                deviceMobileFirebaseToken: 'legacy-token',
+                userName: 'therronlyinstall',
+                deviceMobileFirebaseToken: 'therr-install-token',
             }] as any);
-            // Device hasn't re-registered against the new endpoint during the rollout window.
             sinon.stub(Store.userDeviceTokens, 'getTokensForUser').resolves([]);
 
             const req: any = { headers: { 'x-userid': 'user-1', 'x-brand-variation': 'habits' } };
@@ -604,7 +610,7 @@ describe('Users Handler', () => {
             await getMe(req, res);
 
             expect(res.statusCode).to.equal(200);
-            expect(res.body.deviceMobileFirebaseToken).to.equal('legacy-token');
+            expect(res.body.deviceMobileFirebaseToken).to.equal(null);
         });
 
         it('responds exactly once with a 404 when the user does not exist', async () => {

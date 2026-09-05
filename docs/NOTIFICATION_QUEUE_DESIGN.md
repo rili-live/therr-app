@@ -358,10 +358,17 @@ the frequency cap by hitting it.
   `TYPE_SEND_PRIORITY` puts the time-sensitive nudge ahead of the celebration;
   unlisted types sort last.
 - **Rows with no reachable device are skipped, not retried.** `sendOne` resolves
-  the device token up front (brand-scoped table, falling back to the legacy
-  `users.deviceMobileFirebaseToken` column) and marks `skipped: no-device-token`
+  the device token up front — from `main.userDeviceTokens` keyed on the row's
+  `brandVariation`, and from nothing else — and marks `skipped: no-device-token`
   when there is none. Before this, those rows burned all three attempts daily —
   36 production errors in 30 days — and buried real failures in noise.
+- **There is no fallback to `users.deviceMobileFirebaseToken`, deliberately.**
+  That column is shared across every branded app on a device and holds whichever
+  registered last, so falling back to it sent a row's notification to the wrong
+  app rather than to no app — Friends with Habits evening check-ins arriving in
+  Therr, with FCM reporting success. A user with no row for the row's brand is
+  correctly un-addressable; the skip is visible in the queue and self-heals when
+  they next open that app.
 - Sends are sequential within a batch. A burst of 25 concurrent sends from a
   `replicas: 1` pod is a good way to exhaust the write pool, and throughput is
   not the constraint: 30s × 25 is ~3,000/hour/brand.
