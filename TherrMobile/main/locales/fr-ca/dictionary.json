@@ -880,7 +880,9 @@
                 "settingsEmailBackground": "Courriels automatisés de l'application",
                 "on": "Activé",
                 "off": "Désactivé",
-                "myQRCodes": "Gérer mes codes QR"
+                "myQRCodes": "Gérer mes codes QR",
+                "settingsPushHabitReminders": "Rappels quotidiens d’habitudes",
+                "settingsPushStreakAlerts": "Rappels de série en soirée"
             },
             "errorMessages": {
                 "repeatPassword": "Les mots de passe ne correspondent pas",
@@ -1502,7 +1504,8 @@
             "alertMessages": {
                 "notificationSettingsUpdated": "Vos paramètres de notification et d'alerte ont été mis à jour.",
                 "notificationSettingsUpdatedError": "Oups! Une erreur est survenue."
-            }
+            },
+            "pageHeaderPushSettings": "Préférences de notifications"
         },
         "managePreferences": {
             "headerTitle": "Paramètres de contenu",
