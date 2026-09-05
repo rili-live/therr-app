@@ -737,6 +737,19 @@ export default class UsersStore {
             modifiedParams.settingsPushBackground = params.settingsPushBackground;
         }
 
+        // `!= null` rather than a truthiness check, deliberately and load-bearingly here:
+        // `false` is the only value that does anything. Both columns default to `true` and
+        // the digest mutes on an explicit `false` and nothing else (`handlers/habitsDigest`),
+        // so a truthy guard would accept every opt-in and silently discard every opt-out —
+        // the mute would appear to save and then keep sending.
+        if (params.settingsPushHabitReminders != null) {
+            modifiedParams.settingsPushHabitReminders = params.settingsPushHabitReminders;
+        }
+
+        if (params.settingsPushStreakAlerts != null) {
+            modifiedParams.settingsPushStreakAlerts = params.settingsPushStreakAlerts;
+        }
+
         if (params.shouldHideMatureContent != null) {
             modifiedParams.shouldHideMatureContent = params.shouldHideMatureContent;
         }

@@ -951,6 +951,13 @@ const updateUser = (req, res) => {
                 settingsContentAlgorithm: req.body.settingsContentAlgorithm,
                 settingsPushMarketing: req.body.settingsPushMarketing,
                 settingsPushBackground: req.body.settingsPushBackground,
+                // Read by the HABITS daily digest — `settingsPushHabitReminders` gates both
+                // daily slots, `settingsPushStreakAlerts` the evening escalation only. They
+                // were the first push preference columns anything read server-side, and until
+                // now no path wrote them: this allow-list and `UsersStore.updateUser` both
+                // dropped them silently, so the settings screen could not turn either off.
+                settingsPushHabitReminders: req.body.settingsPushHabitReminders,
+                settingsPushStreakAlerts: req.body.settingsPushStreakAlerts,
                 settingsLocale: req.body.settingsLocale,
                 settingsTimezone: rawTimezone,
                 settingsIsAccountSoftDeleted: req.body.settingsIsAccountSoftDeleted,

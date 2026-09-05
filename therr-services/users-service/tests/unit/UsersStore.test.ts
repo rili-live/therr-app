@@ -292,6 +292,57 @@ describe('UsersStore', () => {
             expect(mockStore.write.query.args[0][0].includes(expected)).to.be.equal(true);
         });
 
+        /**
+         * The habits push preferences reached this store for the first time when the settings
+         * screen grew toggles for them. Before that both this filter and the `updateArgs`
+         * allow-list in `handlers/users` omitted them, so a save was accepted and dropped with
+         * no error — the user muted their reminders and kept receiving them.
+         *
+         * `false` is the whole point: both columns default to `true` and the digest mutes on an
+         * explicit `false` and nothing else, so a truthiness guard here would discard every
+         * opt-out while appearing to work.
+         */
+        describe('habits push preferences', () => {
+            const runUpdate = (params: any) => {
+                const mockStore = {
+                    write: {
+                        query: sinon.stub().callsFake(() => Promise.resolve({})),
+                    },
+                };
+                const store = new UsersStore(mockStore);
+                store.updateUser(params, { id: 'user-1' });
+
+                return mockStore.write.query.args[0][0];
+            };
+
+            it('writes an opt-out for the daily reminders', () => {
+                expect(runUpdate({ settingsPushHabitReminders: false }))
+                    .to.include('"settingsPushHabitReminders" = false');
+            });
+
+            it('writes an opt-out for the evening streak alerts', () => {
+                expect(runUpdate({ settingsPushStreakAlerts: false }))
+                    .to.include('"settingsPushStreakAlerts" = false');
+            });
+
+            it('writes an opt-in back again', () => {
+                const sql = runUpdate({
+                    settingsPushHabitReminders: true,
+                    settingsPushStreakAlerts: true,
+                });
+
+                expect(sql).to.include('"settingsPushHabitReminders" = true');
+                expect(sql).to.include('"settingsPushStreakAlerts" = true');
+            });
+
+            it('leaves both columns alone when neither is submitted', () => {
+                const sql = runUpdate({ firstName: 'Test' });
+
+                expect(sql).to.not.include('settingsPushHabitReminders');
+                expect(sql).to.not.include('settingsPushStreakAlerts');
+            });
+        });
+
         it('requires email or id', () => {
             const mockStore = {
                 write: {
