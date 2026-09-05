@@ -455,6 +455,34 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-09-05, /work-plan) **Run the two new migrations after this reaches `main`.**
+  maps-service `20260905000000_main.medias_gin_indexes` and users-service
+  `20260905000001_main.thoughts.medias` — automated by `_bin/cicd/run-migrations.sh` on `main`
+  deploys, so this is a verification step unless `RUN_MIGRATIONS_ON_DEPLOY=false` is set.
+  The GIN indexes are the one worth watching: `createMediaUrls` now runs a `medias @> …`
+  containment probe for any private path the caller does not own, and without the indexes
+  that is a sequential scan on `main.moments` on every nearby-feed render carrying another
+  user's private image. Build them before or with the maps-service rollout, not after.
+- [ ] (2026-09-05, /work-plan) **Watch for private media disappearing from the nearby feed
+  and map after the maps-service deploy.** `POST /media/signed-urls` now omits paths the
+  caller neither owns nor can justify with a moment/space/event, where it previously
+  resolved anything. The intended blast radius is zero — every path a client holds came
+  from a content row — but a resolution path nobody remembered would show up as a missing
+  image with **no error on either side**, the same silent shape as the bug being fixed.
+  Check `NearbyWrapper` / `TherrMapView` render private area images, and `MyDrafts` renders
+  a user's own.
+- [ ] (2026-09-05, /work-plan) **Confirm proof moderation is actually writing.** Nothing
+  fails if it does not — the check is fire-and-forget by design. After a check-in with a
+  photo, `habits.proofs` rows should leave `verificationStatus = 'pending'` for
+  `'auto_verified'` (or `'flagged'`) within seconds. A population stuck at `pending` means
+  `SIGHTENGINE_API_KEY` / `SIGHTENGINE_API_SECRET` are unset on users-service — the moments
+  path has them, but this is the first users-service caller of `checkIsMediaSafeForWork`
+  outside the profile-picture path.
+- [ ] (2026-09-05, /work-plan) **Thought images start appearing for posts made from the
+  already-installed app.** `ThoughtsStore.create` accepts the legacy `media` field, so
+  installs that predate the `EditThought` change stop losing photos as soon as users-service
+  rolls — no app release required. Historical posts stay imageless: their uploads are
+  orphaned objects with no row pointing at them (see § 2.6.7 "Still open").
 - [ ] (2026-09-01, /work-plan) **Ship the `niche/HABITS-general` half of `pactEnded` before
   this reaches production traffic.** Two things are missing there and neither errors: the
   `${notificationActionPrefix}.PACT_ENDED` `<intent-filter>` in
@@ -2034,22 +2062,54 @@ Two decisions worth not re-deriving:
   belongs gets a broken image and no error anywhere. See
   `utilities/checkinProofs.ts`.
 
-Still open, and the reason this is a section rather than a closed line:
+Closed 2026-09-05 (/work-plan), both items.
 
-- [ ] **`POST /maps-service/media/signed-urls` does no authorization.**
-  `createMediaUrls` carries an explicit `// TODO: Check that the user has access
-  to this media` and honours it for nobody: it resolves any path the caller
-  names, and private media resolves to a *deterministic* `IMAGE_KIT_URL_PRIVATE`
-  URL rather than a signed one — so knowing a path is the whole access story.
-  The new endpoint does not widen this (it only ever hands a user their own
-  paths), but proofs are the first private media whose paths follow a guessable
-  shape: `<userId>/content/habits_proof_<habitGoalId>_<epochMs>.jpeg`. Fix the
-  endpoint, not the filename. Scope: `general`, maps-service.
-- [ ] **Proof images are never moderated.** `verificationStatus`,
-  `isSafeForWork` and `moderationFlags` on `habits.proofs` are all still at
-  their insert defaults — nothing writes them. The moments upload path runs
-  Sightengine; the proof path does not. Harmless while proofs are owner-only,
-  **blocking** for 2.6.8, which makes them public.
+**`POST /maps-service/media/signed-urls` now authorizes.** It resolved any path any
+caller named, and private media resolves to a *deterministic* `IMAGE_KIT_URL_PRIVATE`
+URL rather than a signed one — so handing back a URL for a path was equivalent to handing
+back the image, permanently. Three tiers now, in cost order: public-bucket media resolves
+unconditionally (withholding it protects nothing); private media under the caller's own
+`<userId>/` prefix resolves with no database round trip; anything else must be referenced
+by a moment, space or event (`ContentMediaStore.getReferencedPaths`).
+
+That third tier is what keeps the fix non-breaking, and it is not obvious: the nearby feed
+and map legitimately hand a client *other users'* `USER_IMAGE_PRIVATE` paths — they arrive
+inside the area rows, and `NearbyWrapper` collects them into `missingMedias` — so an
+owner-only rule would have blanked those images. It is also what closes the habits case:
+`habits.proofs` paths live in users-service and are referenced by none of those three
+tables, so a proof path is now resolvable only by its owner.
+
+Two things worth not re-deriving:
+
+- **Unresolvable paths are omitted from the response, not rejected.** Clients batch a
+  screenful into one call and already handle a path coming back absent; a 403 for the
+  batch would blank every image in it, including the ones the caller is entitled to. Same
+  choice the reactions write allow-list makes.
+- **The residual gap is deliberate.** "Referenced by content" is weaker than a real
+  visibility check — a caller who knows a path *and* it belongs to a real moment still
+  resolves it. Closing that needs per-content visibility (proximity, connections), which
+  is a much larger change; this refuses the case that had no referent at all.
+- `20260905000000_main.medias_gin_indexes` adds `jsonb_path_ops` GIN indexes on the three
+  `medias` columns. Without them the containment probe is a sequential scan on every
+  nearby-feed render carrying another user's private image.
+
+**Proof images are now moderated.** `utilities/moderateProofs` runs the same
+`checkIsMediaSafeForWork` the moments upload path runs and writes `isSafeForWork` /
+`verificationStatus` / `moderationFlags` via `ProofsStore.setModerationResult`.
+
+Deliberately **not awaited** by the check-in handler and unable to fail it: the check-in
+commits on the first tap (§ 2.6.1), and proofs are owner-only (`canReadProofs`), so an
+unmoderated proof is visible to exactly one person — the uploader. The result matters at
+the moment a proof is *shared*, which is why this is a prerequisite for 2.6.8 rather than
+a gate on check-in.
+
+One asymmetry is load-bearing: `checkIsMediaSafeForWork` fails **closed**, returning false
+when signing or Sightengine throws. That is right for a share gate and wrong for a
+permanent record, so a thrown error is recorded as `pending` — still unverified, still not
+shareable — rather than as `rejected`, which would accuse a user of posting something
+unsafe because a vendor had an outage. Anything that exposes a proof beyond its owner must
+therefore read `verificationStatus === 'auto_verified'`, never `isSafeForWork` alone: rows
+sit briefly at their insert defaults (`pending` / `isSafeForWork: true`).
 
 #### 2.6.7 Thoughts silently drop uploaded images (#2840)
 
@@ -2068,15 +2128,41 @@ The Journal's own comment on `handleCreateGoal` documents the behaviour we do
 not have — "it gets the thought form's public/private toggle, category, hashtags
 and image". Every goal posted with a photo since that shipped has lost the photo.
 
-- [ ] Add a `medias jsonb` column (`[{path, type}]`), matching the
-      moments/spaces convention — **not** the legacy comma-separated `mediaIds`,
-      which areas already migrated away from. Clients then get display for free
-      via the existing `getUserContentUri(media)`.
-- [ ] Add `medias` to the `ThoughtsStore.create` allow-list and hydrate it on
-      the read paths (`getById`, `find`, `getForJournal`), replacing the
-      placeholder `media: {}`.
-- [ ] Render it in `ThoughtDisplay` (mobile) and `ViewThought` / `ThoughtCard`
-      (web). `AreaDisplay` is the working reference.
+Closed 2026-09-05 (/work-plan), the code half.
+
+`20260905000001_main.thoughts.medias` adds `medias jsonb` (`[{path, type, altText}]`),
+matching the moments/spaces/events convention rather than reviving the comma-separated
+`mediaIds`. `mediaIds` is deliberately **left in place**: therr-ai-automator writes
+`main.thoughts` directly, so dropping a column in the same change that adds one risks
+breaking a Cloud Function at its next firing rather than at deploy. Removing it is a later
+contract migration.
+
+`ThoughtsStore.create` now persists it, and `withMedia` hydrates `media` on every read
+path — `getById`, `find` (including their reply rows and their empty branches) and
+`getForJournal`. The old `media: {}` placeholder is gone: it was an *object* on a key
+clients map over, so it would have thrown rather than rendered empty.
+
+Two decisions worth not re-deriving:
+
+- **`create` accepts `media` as well as `medias`.** The deployed mobile composer sends only
+  `media` (`EditThought.signAndUploadImage`) and cannot be force-updated — the same reason
+  `EditMoment` still carries its `createArgs.medias = createArgs.media` line, which
+  `EditThought` was simply missing. Honoring both is what makes already-installed apps stop
+  losing photos on the day this deploys rather than on the day the next release lands.
+- **Only `path`, `type` and `altText` are carried through.** `type` selects the bucket, and
+  maps-service `getBucket` falls through to the **public** bucket for a value it does not
+  recognize — an unfiltered spread is how a private image ends up resolved publicly.
+
+Rendering is in place on `ThoughtDisplay` (mobile) and `ViewThought` / `ThoughtCard` (web,
+via `utilities/getThoughtMediaUri`).
+
+Still open:
+
+- [ ] **Private-bucket thought media does not render.** All three surfaces resolve against
+      the public ImageKit endpoint, the way `AreaDisplay` renders moment and event media. A
+      thought posted with `isPublic: false` gets `USER_IMAGE_PRIVATE` and needs the extra
+      `POST /maps-service/media/signed-urls` round trip the nearby feed makes; until then
+      the image is skipped rather than rendered broken.
 - [ ] Decide what happens to already-orphaned uploads. They are unreferenced
       objects in both buckets with no row pointing at them; a bucket-side
       lifecycle rule is probably cheaper than a reconciliation script.
@@ -2457,8 +2543,6 @@ English-formatted timestamps.
 - `therr-services/maps-service/src/handlers/spaces.ts:347` — Check user is
   part of organization and has access to view (currently any auth'd user can
   view any org space)
-- `therr-services/maps-service/src/handlers/createMediaUrls.ts:8, 11` — More
-  security on media access (verify requesting user has permission)
 - `therr-services/maps-service/src/store/EventsStore.ts:37` — Same
 - `therr-services/maps-service/src/store/MomentsStore.ts:33` — Same
 - `therr-services/maps-service/src/store/SpacesStore.ts:57` — Same
