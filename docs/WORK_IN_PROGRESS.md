@@ -216,14 +216,33 @@ here is what code cannot close.
   the gate is not firing and users are being nagged after they have already done
   the thing. Kill switch is `HABIT_LAST_CHANCE_REMINDERS_ENABLED=false` on
   users-service — no deploy needed.
-- [ ] **Build the push-preference UI, now that two columns are finally read.** The
-  digest honours `settingsPushHabitReminders` (both daily slots) and
-  `settingsPushStreakAlerts` (the evening escalation only) — the first server-side
-  reading of any push preference column. No client writes either, so
-  `remindersMutedByPreference` and `lastChanceMutedByPreference` will sit at 0
-  until `TherrMobile/main/routes/Settings/ManageNotifications.tsx` grows push
-  toggles alongside its email ones. Until then a user's only way to turn the
-  evening nudge off is the OS switch, which takes everything with it.
+- [x] ~~**Build the push-preference UI, now that two columns are finally read.**~~ Done
+  2026-09-05 (/work-plan), in two halves that must both ship before anything changes.
+
+  The write path was blocked in **two** places, not one: the `updateArgs` allow-list in
+  `handlers/users.ts` and the param filter in `UsersStore.updateUser` both omitted the
+  columns, so a save was accepted and dropped with no error anywhere. Both now pass them
+  through (`general`), with regression coverage in `tests/unit/UsersStore.test.ts`.
+
+  The `!= null` guard in the store is load-bearing rather than stylistic: both columns
+  default to `true` and the digest mutes on an explicit `false` and nothing else, so a
+  truthiness check would have accepted every opt-in and silently discarded every opt-out.
+
+  The toggles themselves are on `niche/HABITS-general`
+  (`TherrMobile/main/routes/Settings/ManageNotifications.tsx`), brand-gated to HABITS —
+  these two columns are read only by the habits digest, so they are not preferences the
+  other apps have. The default rule is extracted to `routes/Settings/pushPreferences.ts`
+  with tests: an absent value renders **On**, because absent means opted in. Rendering it
+  Off would report reminders as disabled while they kept arriving, and the next save would
+  write the `false` the screen invented.
+
+- [ ] **Ship both halves before expecting `remindersMutedByPreference` /
+  `lastChanceMutedByPreference` to move off 0.** The users-service half reaches production
+  through `general → stage → main`; the mobile half through
+  `niche/HABITS-general → niche/HABITS-main` and a Play release. Until the backend half is
+  live the toggles render and save without effect, and until the mobile half ships nothing
+  writes the columns at all — so a flat 0 on both counters means "not shipped yet", not
+  "nobody mutes".
 
 ## Standing items (always re-verify after a deploy that touches the area)
 
