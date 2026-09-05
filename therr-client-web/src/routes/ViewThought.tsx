@@ -15,6 +15,7 @@ import {
     Container,
     Divider,
     Group,
+    Image,
     Skeleton,
     Stack,
     Text,
@@ -29,6 +30,7 @@ import EmbeddedThought from '../components/EmbeddedThought';
 import RepostModal from '../components/RepostModal';
 import { formatTimeAgo } from '../utilities/formatDate';
 import getRepostErrorKey from '../utilities/repostErrors';
+import getThoughtMediaUri from '../utilities/getThoughtMediaUri';
 
 const ViewThought: React.FC = () => {
     const { t: translate, locale } = useTranslation();
@@ -354,6 +356,16 @@ const ViewThought: React.FC = () => {
                     <Text size="md" mb="sm" className="thought-card-message">
                         {thought.message}
                     </Text>
+
+                    {getThoughtMediaUri(thought) && (
+                        <Image
+                            src={getThoughtMediaUri(thought)}
+                            alt=""
+                            radius="md"
+                            mb="sm"
+                            fit="contain"
+                        />
+                    )}
 
                     {thought.isRepost && <EmbeddedThought repostOf={thought.repostOf} />}
 

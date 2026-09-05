@@ -21,6 +21,7 @@ import {
 } from '../utilities/streakHelpers';
 import { isUserInPact } from '../utilities/pactHelpers';
 import { canReadProofs, serializeProofs } from '../utilities/checkinProofs';
+import moderateProofs from '../utilities/moderateProofs';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { resolvePactPartnerIds } from './helpers/pactPartners';
 import {
@@ -149,7 +150,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
             // Persist any attached proofs
             if (hasProof) {
                 await Store.proofs.deleteByCheckinId(checkin.id);
-                await Store.proofs.createMany(
+                const createdProofs = await Store.proofs.createMany(
                     proofMedias
                         .filter((m: any) => m && m.path)
                         .map((m: any) => ({
@@ -164,6 +165,19 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                             durationSeconds: m.durationSeconds,
                         })),
                 );
+
+                // Fire-and-forget: the check-in commits on the first tap and must not
+                // wait on a third-party content check, nor fail when it is down. See
+                // `utilities/moderateProofs` for why this is not awaited.
+                moderateProofs(createdProofs).catch((err) => logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['proof moderation dispatch failed'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'checkin.id': checkin.id,
+                    },
+                }));
             }
 
             // Freeze accounting for this request. Reported back on the 201 so

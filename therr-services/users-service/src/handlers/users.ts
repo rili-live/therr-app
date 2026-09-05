@@ -545,13 +545,10 @@ const getMe = (req, res) => {
             // push-notifications-service, whose BackgroundGeolocation requests never carry the
             // x-user-device-token header — would then deliver this brand's notification to the
             // wrong app. Override with the brand-scoped token from main.userDeviceTokens (keyed
-            // on the request's x-brand-variation), falling back to the legacy column when the
-            // device hasn't re-registered against the new table yet.
-            userResult.deviceMobileFirebaseToken = await resolveDeviceTokenForBrand(
-                brandVariation,
-                userId,
-                userResult.deviceMobileFirebaseToken,
-            );
+            // on the request's x-brand-variation). Resolves to null when this brand has no
+            // registration — deliberately, so a consumer sends nothing rather than sending to
+            // whichever app happened to write the shared column last.
+            userResult.deviceMobileFirebaseToken = await resolveDeviceTokenForBrand(brandVariation, userId);
 
             return res.status(200).send(userResult);
         })
@@ -1679,18 +1676,14 @@ const sendUserPushDiagnosticsTest: RequestHandler = (req, res) => {
     // as a falsy value and turn the safe default into a real push to a handset.
     const isDryRun = dryRun !== false;
 
-    return Store.users.findUser({ id }, ['id', 'deviceMobileFirebaseToken'])
+    return Store.users.findUser({ id }, ['id'])
         .then(async (userResults: any[]) => {
             const user = userResults?.[0];
             if (!user) {
                 return handleHttpError({ res, message: 'User not found', statusCode: 404 });
             }
 
-            const deviceToken = await resolveDeviceTokenForBrand(
-                brandVariation as string,
-                id,
-                user.deviceMobileFirebaseToken,
-            );
+            const deviceToken = await resolveDeviceTokenForBrand(brandVariation as string, id);
 
             if (!deviceToken) {
                 // Not an error condition to paper over — this IS the answer when a
