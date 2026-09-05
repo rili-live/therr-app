@@ -149,6 +149,16 @@ const REMINDER_ACTION_KEYS = new Set<string>([
     'PACT_INVITATION',
     'PACT_NUDGE',
     'PACT_EXPIRING',
+    // `pactEnded` sits one step past PACT_EXPIRING in the same lifecycle and is the
+    // only moment renewal is legal at all (`isPactRenewable` is false while a pact is
+    // still inside its window), so it carries the "Start New Cycle" button that the
+    // whole fixed-cycle design turns on. It is data-only — that is what lets the
+    // button exist, since Notifee renders actions and only sees data messages — which
+    // means the channel comes from this set, not from a `channelId` the backend names.
+    // Left unbucketed it landed on "General" at DEFAULT importance: the notification
+    // arrived, the button worked, and only its prominence was wrong, which is why
+    // nothing reported it.
+    'PACT_ENDED',
     // The daily reminder moved from an OS-rendered display notification to
     // data-only so Notifee can render its "Check In" action button — the display
     // path cannot carry one. That also moved the channel decision here: the
