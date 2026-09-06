@@ -174,6 +174,16 @@ const habits = produce((draft: IHabitsState, action: any) => {
             break;
         }
 
+        // Merge, not replace: the share response is only `{ id, sharedThoughtId }`, so overwriting
+        // the row (as UPDATE_CHECKIN does with a full check-in) would drop every other field.
+        case HabitsActionTypes.SHARE_CHECKIN: {
+            const checkinIdx = draft.todayCheckins.findIndex((c) => c.id === action.data.id);
+            if (checkinIdx > -1) {
+                draft.todayCheckins[checkinIdx].sharedThoughtId = action.data.sharedThoughtId;
+            }
+            break;
+        }
+
         // Streaks
         case HabitsActionTypes.GET_USER_STREAKS:
             draft.streaks = action.data || [];

@@ -146,6 +146,10 @@ export interface IHabitCheckin {
     hasProof: boolean;
     proofVerified: boolean;
     contributedToStreak: boolean;
+    // Set once the check-in has been shared publicly — the id of the main.thoughts post that
+    // carries the public copy of the proof. Absent/undefined until shared. Lets the calendar
+    // day show "shared" and deep-link to the post.
+    sharedThoughtId?: string;
     createdAt: string;
     updatedAt: string;
     // Joined fields
@@ -360,6 +364,7 @@ export enum HabitsActionTypes {
     CREATE_CHECKIN = 'CREATE_CHECKIN',
     UPDATE_CHECKIN = 'UPDATE_CHECKIN',
     SKIP_CHECKIN = 'SKIP_CHECKIN',
+    SHARE_CHECKIN = 'SHARE_CHECKIN',
 
     // Streaks
     GET_USER_STREAKS = 'GET_USER_STREAKS',

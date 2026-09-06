@@ -22,6 +22,8 @@ import {
 import { isUserInPact } from '../utilities/pactHelpers';
 import { canReadProofs, serializeProofs } from '../utilities/checkinProofs';
 import moderateProofs from '../utilities/moderateProofs';
+import { copyProofToPublicBucket, deleteSharedCheckinPublicObject } from '../utilities/shareCheckinMedia';
+import { checkIsMediaSafeForWork } from './helpers';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { resolvePactPartnerIds } from './helpers/pactPartners';
 import {
@@ -490,6 +492,124 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' }));
 };
 
+// SHARE — turn a check-in with a proof photo into a public post (main.thoughts).
+//
+// This is the opt-in step past pact visibility (§ 2.6.2): a check-in's proof is owner-only in
+// the private bucket, so making one public is not a flag flip but a copy. The proof image is
+// copied into the public bucket, moderated *on that public copy* (fail-closed — a share can
+// wait on a content check in a way the check-in tap deliberately cannot), and only then does a
+// public `main.thoughts` row get created carrying the copy. The check-in's `sharedThoughtId`
+// records the link so a repeat share is a no-op and the calendar day can deep-link to the post.
+//
+// brandVariation flows from the request headers onto the thought, so a HABITS share is a HABITS
+// thought — which BRAND_THOUGHTS_VISIBILITY already surfaces in the Therr feed too, and keeps
+// out of other niche feeds. No visibility change is needed here for cross-brand reach.
+const shareCheckin: RequestHandler = async (req: any, res: any) => {
+    const {
+        locale,
+        userId,
+        brandVariation,
+    } = parseHeaders(req.headers);
+    const { id } = req.params;
+    const { message } = req.body;
+
+    let checkin;
+    try {
+        checkin = await Store.habitCheckins.getById(id);
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
+    }
+
+    // Ownership is the whole access story for a proof image (see checkinProofs.canReadProofs):
+    // only the check-in's owner may promote it to a public post.
+    const { allowed, error } = canReadProofs(checkin, userId);
+    if (!allowed) {
+        return error === 'notFound'
+            ? handleHttpError({
+                res,
+                message: translate(locale, 'errorMessages.habitCheckins.notFound'),
+                statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
+            })
+            : handleHttpError({
+                res,
+                message: translate(locale, 'errorMessages.habitCheckins.notAuthorizedToView'),
+                statusCode: 403,
+                errorCode: ErrorCodes.NOT_PERMITTED,
+            });
+    }
+
+    // Already shared: return the existing link rather than minting a second post. This is what
+    // makes a double-tap or a retry safe.
+    if (checkin.sharedThoughtId) {
+        return res.status(200).send({ sharedThoughtId: checkin.sharedThoughtId, alreadyShared: true });
+    }
+
+    // A public post needs an image. The proof is what keeps the feed on-topic (a check-in with a
+    // photo), so a check-in with no image proof cannot be shared.
+    let proofs: any[] = [];
+    try {
+        proofs = checkin.hasProof ? await Store.proofs.getByCheckinId(id) : [];
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
+    }
+    const imageProof = (proofs || []).find((p) => p && p.mediaPath && p.mediaType !== 'video');
+    if (!imageProof) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.habitCheckins.shareRequiresImage'),
+            statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
+        });
+    }
+
+    const habitGoal = await Store.habitGoals.getById(checkin.habitGoalId).catch(() => null);
+    const altText = habitGoal?.name ? String(habitGoal.name).substring(0, 255) : '';
+    // Lead-in text: prefer what the client sent, then the check-in note, then the habit name.
+    // The thought column truncates to 255 itself; this just avoids sending an empty post.
+    const leadIn = (message || checkin.notes || habitGoal?.name || '').toString();
+
+    let publicMedia: { path: string; type: string };
+    try {
+        publicMedia = await copyProofToPublicBucket(userId, checkin.id, imageProof.mediaPath);
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
+    }
+
+    // Moderate the PUBLIC copy before it can be seen. `checkIsMediaSafeForWork` fails closed
+    // (returns false on any signing / Sightengine error), which is the right asymmetry for a
+    // share gate: refuse rather than risk exposing unmoderated content.
+    const isSafeForWork = await checkIsMediaSafeForWork([publicMedia]).catch(() => false);
+    if (!isSafeForWork) {
+        await deleteSharedCheckinPublicObject(publicMedia.path);
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.habitCheckins.shareModerationFailed'),
+            statusCode: 422,
+            errorCode: ErrorCodes.NOT_PERMITTED,
+        });
+    }
+
+    try {
+        const [thought] = await Store.thoughts.create(brandVariation, {
+            fromUserId: userId as any,
+            locale,
+            isPublic: true,
+            message: leadIn,
+            medias: [{ path: publicMedia.path, type: publicMedia.type, altText }],
+        });
+
+        await Store.habitCheckins.update(checkin.id, { sharedThoughtId: thought.id });
+
+        return res.status(201).send({ thought, sharedThoughtId: thought.id });
+    } catch (err: any) {
+        // The public copy is already written; leave it for the bucket lifecycle rule rather than
+        // deleting it, since a transient thought-write failure is retryable and the next attempt
+        // overwrites the same deterministic path.
+        return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
+    }
+};
+
 // READ
 const getCheckin: RequestHandler = async (req: any, res: any) => {
     const { locale, userId } = parseHeaders(req.headers);
@@ -739,6 +859,7 @@ const deleteCheckin: RequestHandler = async (req: any, res: any) => {
 
 export {
     createCheckin,
+    shareCheckin,
     getCheckin,
     getCheckinProofs,
     getTodayCheckins,
