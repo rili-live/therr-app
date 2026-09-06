@@ -250,6 +250,17 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             paddingRight: 14,
             paddingBottom: 4,
         },
+        // Attached image on a thought. `aspectRatio` rather than a fixed height so a
+        // portrait photo is not letterboxed; `resizeMode="cover"` at the call site keeps
+        // it filling the frame either way.
+        thoughtMediaImage: {
+            width: '100%',
+            aspectRatio: 4 / 3,
+            borderRadius: 8,
+            marginTop: 4,
+            marginBottom: 8,
+            backgroundColor: isDarkMode ? therrTheme.colors.accent1 : therrTheme.colorVariations.backgroundNeutral,
+        },
         thoughtDistance: {
             color: isDarkMode ? therrTheme.colors.textGray : therrTheme.colors.tertiary,
             width: '100%',
