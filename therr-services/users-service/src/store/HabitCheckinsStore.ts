@@ -34,6 +34,10 @@ export interface IUpdateHabitCheckinParams {
     hasProof?: boolean;
     proofVerified?: boolean;
     contributedToStreak?: boolean;
+    // Set when the check-in is shared publicly — points at the main.thoughts row that
+    // carries the public copy of the proof. Nullable/absent otherwise. See migration
+    // 20260906000001_habits.habit_checkins.sharedThoughtId.js.
+    sharedThoughtId?: string;
 }
 
 export default class HabitCheckinsStore {

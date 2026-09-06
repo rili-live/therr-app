@@ -776,6 +776,11 @@ usersServiceRouter.post('/habits/checkins', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
+// Promote a check-in's proof photo to a public post (main.thoughts)
+usersServiceRouter.post('/habits/checkins/:id/share', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
 usersServiceRouter.put('/habits/checkins/:id/skip', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
