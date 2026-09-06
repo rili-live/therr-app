@@ -341,7 +341,14 @@ const requestAfterCustomPrimer = async (
     await recordDisclosureAccepted(type);
 
     const native = await nativeCheck(type);
-    if (native === 'granted' && !(await isDisclosurePending(type))) {
+    // No `isDisclosurePending` guard here, unlike `requestIfAppropriate` below.
+    // `recordDisclosureAccepted` three lines up has just written the revision that
+    // check compares against, so it could only ever answer false — and a reader who
+    // finds it there reasonably concludes the opposite, that this path can still be
+    // reached with consent outstanding. The OS permission was already held and the
+    // user just accepted the caller's own disclosure; re-prompting would be a no-op
+    // dialog they never see.
+    if (native === 'granted') {
         await updateStateFor(type, { lastStatus: 'granted' });
         opts.onGranted?.();
         fireGrantedListeners(type);
