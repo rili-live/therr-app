@@ -185,6 +185,10 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
             createArgs.media = [{}];
             createArgs.media[0].type = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
             createArgs.media[0].path = response?.data?.path;
+            // The column is `medias` (jsonb), matching moments/spaces/events. `media` is kept
+            // alongside it for the same reason EditMoment keeps both: already-installed apps
+            // send only `media`, and the store accepts either.
+            createArgs.medias = createArgs.media;
 
             const localFileCroppedPath = `${imageDetails?.path}`;
 
