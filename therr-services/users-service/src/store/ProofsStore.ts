@@ -66,15 +66,24 @@ export default class ProofsStore {
         verificationStatus: string;
         moderationFlags?: Record<string, unknown>;
     }) {
+        // `moderationFlags` is omitted rather than nulled when absent. Writing null would
+        // make a later check that reports no flags erase what an earlier one recorded —
+        // the column is the audit trail for why a proof was flagged, so losing it is worse
+        // than leaving a stale entry that `verifiedAt` already dates.
+        const modifiedParams: Record<string, unknown> = {
+            isSafeForWork: params.isSafeForWork,
+            verificationStatus: params.verificationStatus,
+            verifiedAt: new Date(),
+            updatedAt: new Date(),
+        };
+
+        if (params.moderationFlags) {
+            modifiedParams.moderationFlags = JSON.stringify(params.moderationFlags);
+        }
+
         const queryString = knexBuilder
             .where({ id: proofId })
-            .update({
-                isSafeForWork: params.isSafeForWork,
-                verificationStatus: params.verificationStatus,
-                moderationFlags: params.moderationFlags ? JSON.stringify(params.moderationFlags) : null,
-                verifiedAt: new Date(),
-                updatedAt: new Date(),
-            })
+            .update(modifiedParams)
             .into(PROOFS_TABLE_NAME)
             .returning('*')
             .toString();

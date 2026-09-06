@@ -30,6 +30,7 @@ def spec_with_media(images: list[str], videos: list[str]):
     to depend on it having none — one of them then failed the moment real
     creative landed, and the other quietly stopped testing anything at all.
     """
+    import os
     import re
     import tempfile
 
@@ -46,11 +47,17 @@ def spec_with_media(images: list[str], videos: list[str]):
         )
         assert count == 1, f"could not find assets.{key} in {APP_SPEC.name}"
 
+    # `load_spec` reads the file and keeps nothing open on it, so the temp file is
+    # deleted as soon as it returns. `delete=False` plus no cleanup left one file per
+    # call behind in the system temp dir on every test run.
     handle = tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False)
-    handle.write(text)
-    handle.close()
+    try:
+        handle.write(text)
+        handle.close()
 
-    return load_spec(Path(handle.name))
+        return load_spec(Path(handle.name))
+    finally:
+        os.unlink(handle.name)
 
 
 def settings_with(max_daily="50.00", max_total="100.00") -> Settings:
