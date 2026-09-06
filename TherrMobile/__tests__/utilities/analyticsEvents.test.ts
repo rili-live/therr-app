@@ -55,7 +55,7 @@ describe('logAppEvent', () => {
         expect(logEvent).toHaveBeenCalledWith(
             expect.anything(),
             'habits_founder_unlock_purchase',
-            { isRecovery: false },
+            { isRecovery: 'false' },
         );
     });
 
@@ -65,7 +65,35 @@ describe('logAppEvent', () => {
         expect(logEvent).toHaveBeenCalledWith(
             expect.anything(),
             'habit_pact_create',
-            { partnerCount: 0, hasProof: false },
+            // `0` survives as a number; `false` is stringified — see below.
+            { partnerCount: 0, hasProof: 'false' },
+        );
+    });
+
+    it('sends a boolean as a string, because Firebase drops it otherwise', () => {
+        // Firebase constrains a custom param to string | number and applies that
+        // during cloud processing, so a boolean is discarded with no rejection on
+        // the device. `hasProof` and `isRecovery` would never reach GA4 at all, and
+        // a param that never arrives looks exactly like an event nobody fired.
+        logAppEvent('habits_founder_unlock_purchase', { isRecovery: true, hasProof: false });
+
+        expect(logEvent).toHaveBeenCalledWith(
+            expect.anything(),
+            'habits_founder_unlock_purchase',
+            { isRecovery: 'true', hasProof: 'false' },
+        );
+    });
+
+    it('leaves a number a number, so GA4 can still aggregate it', () => {
+        // The purchase value is the one param that has to stay numeric: stringifying
+        // it would make the conversion import a count again, which is the thing
+        // `resolvePurchaseValue` exists to avoid.
+        logAppEvent('habits_founder_unlock_purchase', { value: 19.99, currency: 'USD', partnerCount: 0 });
+
+        expect(logEvent).toHaveBeenCalledWith(
+            expect.anything(),
+            'habits_founder_unlock_purchase',
+            { value: 19.99, currency: 'USD', partnerCount: 0 },
         );
     });
 

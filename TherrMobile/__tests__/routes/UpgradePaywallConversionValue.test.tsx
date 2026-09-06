@@ -78,9 +78,14 @@ describe('habits_founder_unlock_purchase conversion value', () => {
 
         expect(getPurchaseEvent()?.[2]).toMatchObject({
             userId: 'user-1',
+            // Numeric, and it has to stay that way — Google Ads imports this as a
+            // VALUE conversion, which it can only do from a number.
             value: 20,
             currency: 'USD',
-            isRecovery: false,
+            // Stringified by `logAppEvent`: Firebase accepts only string | number
+            // for a custom param and drops a boolean during cloud processing,
+            // without rejecting on the device.
+            isRecovery: 'false',
         });
     });
 
@@ -117,7 +122,7 @@ describe('habits_founder_unlock_purchase conversion value', () => {
         expect(params).toBeDefined();
         expect(params).not.toHaveProperty('value');
         expect(params).not.toHaveProperty('currency');
-        expect(params).toMatchObject({ userId: 'user-1', isRecovery: false });
+        expect(params).toMatchObject({ userId: 'user-1', isRecovery: 'false' });
     });
 
     it('marks the recovery path so a late verify is not read as a fresh sale', async () => {
@@ -127,7 +132,7 @@ describe('habits_founder_unlock_purchase conversion value', () => {
 
         await instance.verifyAndFinish(PURCHASE, { isSilent: true });
 
-        expect(getPurchaseEvent()?.[2]).toMatchObject({ isRecovery: true });
+        expect(getPurchaseEvent()?.[2]).toMatchObject({ isRecovery: 'true' });
     });
 
     it('records nothing when verification fails, because no money was confirmed', async () => {

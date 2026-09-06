@@ -26,15 +26,32 @@ import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
  *      "undefined" rather than omitting the key, which quietly turns a missing
  *      value into a populated wrong one — and a funnel grouped on it then
  *      reports a cohort that does not exist.
+ *   3. **Booleans are sent as strings.** Firebase's own typed event-parameter
+ *      interfaces constrain a custom param to `string | number`
+ *      (`EventParams[key]` in `@react-native-firebase/analytics`), and the
+ *      Android bridge hands a JS boolean to `FirebaseAnalytics.logEvent` as
+ *      `Bundle.putBoolean`, which is outside the set the SDK accepts. Nothing
+ *      rejects: the library's own docs note that parameter limits are applied
+ *      "during cloud processing" and that "the errors will not be seen as
+ *      Promise rejections", so an unsupported param is dropped somewhere
+ *      between the device and the report. `hasProof` and `isRecovery` would
+ *      simply never arrive, and their absence is indistinguishable in GA4 from
+ *      an event nobody fired. Coercing here keeps every call site writing the
+ *      boolean it means.
  *
- * Written out at each call site those two are easy to get subtly different, and
+ * Written out at each call site these are easy to get subtly different, and
  * the difference is invisible until a report is already wrong.
  */
 export const logAppEvent = (name: string, params: Record<string, any> = {}): void => {
     try {
         const defined = Object.keys(params).reduce((acc: Record<string, any>, key) => {
-            if (params[key] !== undefined && params[key] !== null) {
-                acc[key] = params[key];
+            const value = params[key];
+            if (value !== undefined && value !== null) {
+                // See note 3 above. Only booleans are rewritten — a number stays a
+                // number, because GA4 can only aggregate (sum, average) a param it
+                // received as one, and `value` on the purchase event is the whole
+                // reason that event carries a value at all.
+                acc[key] = typeof value === 'boolean' ? String(value) : value;
             }
             return acc;
         }, {});
