@@ -291,6 +291,7 @@ const ViewThought: React.FC = () => {
     }
 
     const hashtags = thought.hashTags ? thought.hashTags.split(',').filter(Boolean) : [];
+    const mediaUri = getThoughtMediaUri(thought);
     const isLiked = thought.reaction?.userHasLiked;
     const isBookmarked = thought.reaction?.userBookmarkCategory;
 
@@ -357,9 +358,9 @@ const ViewThought: React.FC = () => {
                         {thought.message}
                     </Text>
 
-                    {getThoughtMediaUri(thought) && (
+                    {mediaUri && (
                         <Image
-                            src={getThoughtMediaUri(thought)}
+                            src={mediaUri}
                             alt=""
                             radius="md"
                             mb="sm"
