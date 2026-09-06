@@ -496,11 +496,17 @@ const ThoughtContent = ({
      * `medias` fallback covers a row shaped straight from the column (the journal feed
      * selects it directly). Only the first image renders — the composer attaches one.
      *
+     * Picked by `Array.isArray` rather than by truthiness, matching the web
+     * `getThoughtMediaUri`. `media` is the key the areas code uses for a path-keyed URL
+     * *object*, so a non-array reaching here is the plausible shape mistake — and it would
+     * throw on `.find` rather than degrade, on a client that cannot be force-updated.
+     *
      * Resolved against the public ImageKit endpoint, the same way `AreaDisplay` renders
      * moment and event media. Private-bucket thought media needs the extra signed-URL
      * round trip the nearby feed makes and is not rendered here yet.
      */
-    const thoughtMedia = (thought.media || thought.medias || [])
+    const thoughtMediaList = [thought.media, thought.medias].find((list) => Array.isArray(list)) || [];
+    const thoughtMedia = thoughtMediaList
         .find((m) => m?.path && m?.type === Content.mediaTypes.USER_IMAGE_PUBLIC);
     const thoughtMediaUri = thoughtMedia ? getUserContentUri(thoughtMedia) : undefined;
     const hasRepliableActions = !thought.isDraft && isRepliable;

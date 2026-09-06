@@ -737,6 +737,18 @@ export default class UsersStore {
             modifiedParams.settingsPushBackground = params.settingsPushBackground;
         }
 
+        // `!= null` rather than a truthiness check, and that is the whole point of these
+        // two: the habits digest mutes on an explicit `false` and nothing else, so `false`
+        // is the only value a user can send that changes anything. An `undefined` is still
+        // skipped, which is what lets a client PUT a partial settings payload.
+        if (params.settingsPushHabitReminders != null) {
+            modifiedParams.settingsPushHabitReminders = params.settingsPushHabitReminders;
+        }
+
+        if (params.settingsPushStreakAlerts != null) {
+            modifiedParams.settingsPushStreakAlerts = params.settingsPushStreakAlerts;
+        }
+
         if (params.shouldHideMatureContent != null) {
             modifiedParams.shouldHideMatureContent = params.shouldHideMatureContent;
         }

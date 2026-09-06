@@ -951,6 +951,14 @@ const updateUser = (req, res) => {
                 settingsContentAlgorithm: req.body.settingsContentAlgorithm,
                 settingsPushMarketing: req.body.settingsPushMarketing,
                 settingsPushBackground: req.body.settingsPushBackground,
+                // The only two push preferences the server actually reads (the habits
+                // digest: `settingsPushHabitReminders` mutes both daily slots,
+                // `settingsPushStreakAlerts` the evening escalation). They were readable
+                // before they were writable, so the mobile toggles that ship against them
+                // spread the fields into this request and got a 200 with the values
+                // dropped here — a save that reported success and changed nothing.
+                settingsPushHabitReminders: req.body.settingsPushHabitReminders,
+                settingsPushStreakAlerts: req.body.settingsPushStreakAlerts,
                 settingsLocale: req.body.settingsLocale,
                 settingsTimezone: rawTimezone,
                 settingsIsAccountSoftDeleted: req.body.settingsIsAccountSoftDeleted,
