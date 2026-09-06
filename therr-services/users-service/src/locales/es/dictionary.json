@@ -83,7 +83,9 @@
             "notAuthorizedToUpdate": "Solo puedes modificar tu propio registro",
             "notAuthorizedToView": "Solo puedes ver tus propios registros",
             "notFound": "No encontramos ese registro",
-            "notFoundOrNotAuthorizedToDelete": "No encontramos ese registro, o no es tuyo para eliminarlo"
+            "notFoundOrNotAuthorizedToDelete": "No encontramos ese registro, o no es tuyo para eliminarlo",
+            "shareRequiresImage": "Agrega una foto a este registro antes de compartirlo",
+            "shareModerationFailed": "No pudimos compartir este registro ahora. Prueba con otra foto."
         },
         "streaks": {
             "noGraceDaysAvailable": "Ya usaste todos los días de gracia de esta racha",

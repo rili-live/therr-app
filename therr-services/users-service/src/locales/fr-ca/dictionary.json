@@ -83,7 +83,9 @@
             "notAuthorizedToUpdate": "Tu ne peux modifier que ton propre suivi",
             "notAuthorizedToView": "Tu ne peux voir que tes propres suivis",
             "notFound": "Nous n'avons pas trouvé ce suivi",
-            "notFoundOrNotAuthorizedToDelete": "Nous n'avons pas trouvé ce suivi, ou il ne t'appartient pas"
+            "notFoundOrNotAuthorizedToDelete": "Nous n'avons pas trouvé ce suivi, ou il ne t'appartient pas",
+            "shareRequiresImage": "Ajoute une photo à ce suivi avant de le partager",
+            "shareModerationFailed": "Nous n'avons pas pu partager ce suivi pour le moment. Essaie une autre photo."
         },
         "streaks": {
             "noGraceDaysAvailable": "Tu as utilisé toutes les journées de grâce de cette série",
