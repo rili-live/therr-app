@@ -10,12 +10,21 @@ import { FeatureFlags } from 'therr-js-utilities/constants';
  *
  * WHY THE COUNT IS DERIVED RATHER THAN CONSTANT
  *
- * `routes/index.tsx` registers the `Journal` and `Achievements` screens only
+ * `routes/index.tsx` registers the `Journal` and `HabitsFeed` screens only
  * when their flag is on. A tab rendered unconditionally would therefore survive
  * the flag being switched off and call `navigate('Journal')` against a
  * navigator with no such screen — which does nothing at all, no error, no
  * screen change. A kill-switch that leaves a dead button behind has not killed
  * anything, so each tab and its route read the same flag.
+ *
+ * WHY FEED, NOT AWARDS
+ *
+ * The public feed (`ENABLE_HABITS_FEED`) takes the optional-tab slot the Awards
+ * (Achievements) tab used to hold. Achievements is still reachable from the
+ * drawer, so it keeps its route and its `ENABLE_ACHIEVEMENTS` gate — it is only
+ * off the bottom bar. That is why this layout counts the feed flag here and no
+ * longer the achievements flag: the bar shows at most one of these optional
+ * social tabs, and the product chose the feed for it.
  *
  * 5 is also the ceiling `validateFeatureFlags` enforces, and that check is not
  * cosmetic: every tab is `screenWidth / tabCount` wide, so a sixth would push
@@ -28,7 +37,7 @@ const HABITS_TAB_COUNT_MIN = 3;
 
 export interface IHabitsTabLayout {
     isJournalEnabled: boolean;
-    isAchievementsEnabled: boolean;
+    isFeedEnabled: boolean;
     tabCount: number;
     buttonWidth: number;
 }
@@ -41,14 +50,14 @@ export const getHabitsTabLayout = (
     // routes on `requiredFeatures`. A flag that is merely present must not
     // count as enabled, or the tab and the route could disagree.
     const isJournalEnabled = featureFlags[FeatureFlags.ENABLE_HABITS_JOURNAL] === true;
-    const isAchievementsEnabled = featureFlags[FeatureFlags.ENABLE_ACHIEVEMENTS] === true;
+    const isFeedEnabled = featureFlags[FeatureFlags.ENABLE_HABITS_FEED] === true;
     const tabCount = HABITS_TAB_COUNT_MIN
         + (isJournalEnabled ? 1 : 0)
-        + (isAchievementsEnabled ? 1 : 0);
+        + (isFeedEnabled ? 1 : 0);
 
     return {
         isJournalEnabled,
-        isAchievementsEnabled,
+        isFeedEnabled,
         tabCount,
         buttonWidth: screenWidth / tabCount,
     };

@@ -1176,7 +1176,8 @@
                 "achievements": "Logros",
                 "partners": "Amigos",
                 "profile": "Perfil",
-                "journal": "Diario"
+                "journal": "Diario",
+                "feed": "Feed"
             },
             "accessibility": {
                 "habitsWithInvites": "Hábitos, {count} invitación(es) esperando tu respuesta"
@@ -2029,7 +2030,14 @@
                 "cancel": "Cancelar",
                 "addDetailTitle": "Añadir una nota o foto",
                 "addDetailPrompt": "Registrado. Añade lo que quieras recordar (opcional).",
+                "sharePubliclyLabel": "Compartir en el feed",
+                "sharePubliclyHint": "Publica esta foto para que otros te animen.",
+                "sharedTitle": "Compartido en el feed",
+                "shareFailed": "No pudimos compartir este registro. Inténtalo más tarde.",
                 "save": "Guardar"
+            },
+            "feed": {
+                "emptyMessage": "Aún no hay registros compartidos. Comparte uno de los tuyos para empezar el feed."
             },
             "dayDetail": {
                 "title": "{weekday}, {day} de {month}",

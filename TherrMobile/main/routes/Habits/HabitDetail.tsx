@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import RNFB from 'react-native-blob-util';
-import { FilePaths } from 'therr-js-utilities/constants';
+import { FeatureFlags, FilePaths } from 'therr-js-utilities/constants';
 import { HabitActions, MapActions } from 'therr-react/redux/actions';
 import {
     IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IHabitCheckinProof, IStreak,
@@ -31,11 +31,13 @@ import { signImageUrl } from '../../utilities/content';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
 import { DURATION, showToast } from '../../utilities/toasts';
+import getConfig from '../../utilities/getConfig';
 
 interface IHabitDetailDispatchProps {
     getCheckinsByRange: Function;
     getStreakByHabit: Function;
     createCheckin: Function;
+    shareCheckin: Function;
     getCheckinProofs: Function;
     fetchMedia: Function;
 }
@@ -82,6 +84,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getCheckinsByRange: HabitActions.getCheckinsByRange,
     getStreakByHabit: HabitActions.getStreakByHabit,
     createCheckin: HabitActions.createCheckin,
+    shareCheckin: HabitActions.shareCheckin,
     getCheckinProofs: HabitActions.getCheckinProofs,
     fetchMedia: MapActions.fetchMedia,
 }, dispatch);
@@ -214,8 +217,12 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         });
     };
 
-    handleProofSheetConfirm = ({ notes, image }: { notes?: string; image?: ISelectedProofImage }) => {
-        this.submitCheckin({ notes, image });
+    isFeedEnabled = (): boolean => getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_FEED] === true;
+
+    handleProofSheetConfirm = (
+        { notes, image, sharePublicly }: { notes?: string; image?: ISelectedProofImage; sharePublicly?: boolean },
+    ) => {
+        this.submitCheckin({ notes, image, sharePublicly });
     };
 
     /**
@@ -224,8 +231,10 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
      * (`getTodayDateString`), so the local-calendar `toLocalDateKey` used to
      * render the month grid must not be used for the write.
      */
-    submitCheckin = ({ notes, image }: { notes?: string; image?: ISelectedProofImage }) => {
-        const { createCheckin, route } = this.props;
+    submitCheckin = (
+        { notes, image, sharePublicly }: { notes?: string; image?: ISelectedProofImage; sharePublicly?: boolean },
+    ) => {
+        const { createCheckin, shareCheckin, route } = this.props;
         const { habitGoalId } = route.params;
         const isAddingDetail = !!notes || !!image;
 
@@ -247,6 +256,27 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             }))
             .then((checkin: any) => {
                 if (isAddingDetail) {
+                    const wantsShare = sharePublicly && !!image && !!checkin?.id;
+                    if (wantsShare) {
+                        // Fire-and-forget public share of the proof photo — see Dashboard.tsx.
+                        shareCheckin(checkin.id, notes)
+                            .then(() => {
+                                logAppEvent('habit_checkin_shared', {
+                                    userId: this.props.user?.details?.id,
+                                    source: 'habitDetail',
+                                });
+                                showToast.success({
+                                    text1: this.translate('pages.habits.checkinProof.sharedTitle'),
+                                });
+                            })
+                            .catch(() => {
+                                showToast.error({
+                                    text1: this.translate('pages.habits.checkinProof.shareFailed'),
+                                });
+                            });
+                        return;
+                    }
+
                     showToast.success({
                         text1: this.translate('pages.habits.checkinToast.detailSavedTitle'),
                     });
@@ -555,6 +585,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                     isSubmitting={isCheckinLoading}
                     habitName={habitGoal.name}
                     userId={user?.details?.id}
+                    canShare={this.isFeedEnabled()}
                     onCancel={this.handleProofSheetCancel}
                     onConfirm={this.handleProofSheetConfirm}
                     translate={this.translate}

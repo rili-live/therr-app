@@ -103,6 +103,7 @@ interface IHabitsDashboardDispatchProps {
     getPendingInvites: Function;
     getUserHabitEligibility: Function;
     createCheckin: Function;
+    shareCheckin: Function;
     acceptPact: Function;
     declinePact: Function;
     nudgePact: Function;
@@ -145,6 +146,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getPendingInvites: HabitActions.getPendingInvites,
     getUserHabitEligibility: HabitActions.getUserHabitEligibility,
     createCheckin: HabitActions.createCheckin,
+    shareCheckin: HabitActions.shareCheckin,
     acceptPact: HabitActions.acceptPact,
     declinePact: HabitActions.declinePact,
     nudgePact: HabitActions.nudgePact,
@@ -342,14 +344,18 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         });
     };
 
-    handleProofSheetConfirm = ({ notes, image }: { notes?: string; image?: ISelectedProofImage }) => {
+    isFeedEnabled = (): boolean => getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_FEED] === true;
+
+    handleProofSheetConfirm = (
+        { notes, image, sharePublicly }: { notes?: string; image?: ISelectedProofImage; sharePublicly?: boolean },
+    ) => {
         const { proofSheetHabit } = this.state;
 
         if (!proofSheetHabit) {
             return;
         }
 
-        this.submitCheckin(proofSheetHabit, { notes, image });
+        this.submitCheckin(proofSheetHabit, { notes, image, sharePublicly });
     };
 
     /**
@@ -361,9 +367,9 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
      */
     submitCheckin = (
         habitGoal: IHabitGoal,
-        { notes, image }: { notes?: string; image?: ISelectedProofImage },
+        { notes, image, sharePublicly }: { notes?: string; image?: ISelectedProofImage; sharePublicly?: boolean },
     ) => {
-        const { createCheckin, getActiveStreaks } = this.props;
+        const { createCheckin, shareCheckin, getActiveStreaks } = this.props;
         const { checkinLoadingIds } = this.state;
 
         const habitGoalId = habitGoal.id;
@@ -391,6 +397,29 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             }))
             .then((checkin: any) => {
                 if (isAddingDetail) {
+                    // Opt-in public share: only with a photo (the backend copies that proof into
+                    // the public bucket, moderates it, and mints a public post). Fire-and-forget
+                    // — a failed share must not fail the check-in, which already committed.
+                    const wantsShare = sharePublicly && !!image && !!checkin?.id;
+                    if (wantsShare) {
+                        shareCheckin(checkin.id, notes)
+                            .then(() => {
+                                logAppEvent('habit_checkin_shared', {
+                                    userId: this.props.user?.details?.id,
+                                    source: 'dashboard',
+                                });
+                                showToast.success({
+                                    text1: this.translate('pages.habits.checkinProof.sharedTitle'),
+                                });
+                            })
+                            .catch(() => {
+                                showToast.error({
+                                    text1: this.translate('pages.habits.checkinProof.shareFailed'),
+                                });
+                            });
+                        return;
+                    }
+
                     showToast.success({
                         text1: this.translate('pages.habits.checkinToast.detailSavedTitle'),
                     });
@@ -1189,6 +1218,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                     isSubmitting={isSubmittingCheckin}
                     habitName={proofSheetHabit?.name}
                     userId={user?.details?.id}
+                    canShare={this.isFeedEnabled()}
                     onCancel={this.handleProofSheetCancel}
                     onConfirm={this.handleProofSheetConfirm}
                     translate={this.translate}
