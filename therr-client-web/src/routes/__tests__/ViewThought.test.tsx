@@ -12,6 +12,15 @@ const mockReduxState: any = {
     content: { activeThoughts: [] },
 };
 
+// `getUserContentUri` reads `globalConfig[process.env.NODE_ENV]` at module load, and
+// global-config.js declares no `test` env — so importing it at all throws here. Mocked
+// the same way ListSpaces and ViewSpace mock it. ViewThought reaches it transitively
+// through `getThoughtMediaUri`, which renders a thought's attached image.
+jest.mock('../../utilities/getUserContentUri', () => ({
+    __esModule: true,
+    default: () => 'https://example.com/image.jpg',
+}));
+
 jest.mock('react-redux', () => ({
     // The component dispatches thunks and reads the response as a promise, so an identity
     // dispatch is enough — the actions themselves are mocked below.

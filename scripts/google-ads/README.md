@@ -183,7 +183,7 @@ they are only as good as the window they were computed over.
 python3 -m unittest discover -s tests -t .
 ```
 
-101 tests, no credentials required, no `google-ads` install required — the pure
+104 tests, no credentials required, no `google-ads` install required — the pure
 layers (`money`, `spec`, `analysis`, `workitems`, and the GA4 crawler guard and
 in-app funnel builder) hold the logic worth testing and are deliberately kept
 importable on their own.

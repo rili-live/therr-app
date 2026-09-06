@@ -107,9 +107,26 @@ assets:
         - "Track habits with a partner who notices when you skip. Free for five habits."
         - "Build a streak together with photo check-ins and real accountability."
     # Paths relative to this repo root, or existing asset resource names.
-    # Populate before enabling: an App campaign with no image or video assets
-    # falls back to Play listing assets alone and serves almost nowhere.
-    images: []
+    #
+    # NOT UPLOADED BY THIS TOOL. Listed so `campaign plan` can count them and so
+    # there is one record of what the campaign is supposed to be carrying —
+    # binary assets need a separate AssetService upload, and these are attached
+    # by hand in the Ads UI. Regenerate them with
+    # `python3 scripts/google-ads/assets/build_frames.py`; see assets/README.md.
+    images:
+        - scripts/google-ads/assets/habits/landscape-1200x628-streak.png
+        - scripts/google-ads/assets/habits/landscape-1200x628-pact.png
+        - scripts/google-ads/assets/habits/landscape-1200x628-partner.png
+        - scripts/google-ads/assets/habits/square-1200x1200-streak.png
+        - scripts/google-ads/assets/habits/square-1200x1200-pact.png
+        - scripts/google-ads/assets/habits/square-1200x1200-partner.png
+        - scripts/google-ads/assets/habits/portrait-1200x1500-streak.png
+        - scripts/google-ads/assets/habits/portrait-1200x1500-pact.png
+        - scripts/google-ads/assets/habits/portrait-1200x1500-partner.png
+    # Still empty, and it is the expensive gap: without video an App campaign is
+    # limited to Search and a narrow Display slice. App campaign video assets
+    # must be YouTube-HOSTED, so this takes a URL, not a file, and a channel is
+    # a prerequisite. The validator warns on every run until it is filled.
     videos: []
 
 tracking:

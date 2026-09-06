@@ -100,6 +100,24 @@ const REPOST_ORIGINAL_COLUMNS = [
     'createdAt',
 ];
 
+/**
+ * Present a thought's stored `medias` under the `media` key clients already read.
+ *
+ * Every content type here exposes attached media as `media` (`AreaDisplay` and
+ * `getUserContentUri` both key off it), while the column is `medias` — the same split
+ * `MomentsStore` bridges on its own read path. Doing it here means the display side
+ * needs no thought-specific branch.
+ *
+ * Always an array: the read paths previously returned a hard-coded `media: {}`, and a
+ * client that tries to map over an object gets a runtime error rather than an empty list.
+ */
+const withMedia = (thought: any) => {
+    const modified = thought;
+    modified.media = Array.isArray(modified.medias) ? modified.medias : [];
+
+    return modified;
+};
+
 export interface ICreateThoughtParams {
     parentId?: string;
     areaType?: string;
@@ -114,7 +132,13 @@ export interface ICreateThoughtParams {
     message: string;
     notificationMsg?: string;
     mediaIds?: string;
-    media?: any;
+    /**
+     * `media` is what the deployed mobile composer sends; `medias` is the column.
+     * `create` accepts either and normalizes — see the assignment there for why the
+     * older field name has to keep working.
+     */
+    media?: { path: string; type: string; altText?: string }[];
+    medias?: { path: string; type: string; altText?: string }[];
     mentionsIds?: string;
     hashTags?: string;
     maxViews?: number;
@@ -160,6 +184,7 @@ export interface IThoughtJournalRow {
     category: string | null;
     isPublic: boolean;
     hashTags: string | null;
+    medias: { path: string; type: string }[] | null;
 }
 
 export default class ThoughtsStore {
@@ -662,6 +687,10 @@ export default class ThoughtsStore {
                 `${THOUGHTS_TABLE_NAME}.category`,
                 `${THOUGHTS_TABLE_NAME}.isPublic`,
                 `${THOUGHTS_TABLE_NAME}.hashTags`,
+                // The journal's "Share a goal" flow posts an image with the thought, so an
+                // entry that has one has to be able to render it — that was the behaviour
+                // `handleCreateGoal`'s own comment already described.
+                `${THOUGHTS_TABLE_NAME}.medias`,
                 // Aliased in object form, not as "col AS alias" in a string —
                 // knex only splits string aliases on a lowercase " as ".
                 { occurredAt: `${THOUGHTS_TABLE_NAME}.createdAt` },
@@ -763,6 +792,7 @@ export default class ThoughtsStore {
                     'replies.isRepost as replies[].isRepost',
                     'replies.message as replies[].message',
                     'replies.mediaIds as replies[].mediaIds',
+                    'replies.medias as replies[].medias',
                     'replies.mentionsIds as replies[].mentionsIds',
                     'replies.hashTags as replies[].hashTags',
                     'replies.maxViews as replies[].maxViews',
@@ -888,7 +918,7 @@ export default class ThoughtsStore {
                 }, {});
 
                 const mappedThoughts = thoughts.map((thought) => {
-                    const modifiedThought = thought;
+                    const modifiedThought = withMedia(thought);
 
                     // USER
                     const matchingUser = usersMap[modifiedThought.fromUserId];
@@ -903,7 +933,7 @@ export default class ThoughtsStore {
                         // Replies
                         if (options.withReplies) {
                             modifiedThought.replies = modifiedThought.replies.map((reply) => {
-                                const modifiedReply = reply;
+                                const modifiedReply = withMedia(reply);
                                 const matchingReplyUser = usersMap[modifiedReply.fromUserId];
                                 if (matchingReplyUser) {
                                     modifiedReply.user = matchingReplyUser;
@@ -946,8 +976,7 @@ export default class ThoughtsStore {
             }
 
             return {
-                thoughts,
-                media: {},
+                thoughts: thoughts.map(withMedia),
                 users: {},
             };
         });
@@ -1096,7 +1125,7 @@ export default class ThoughtsStore {
                 }, {});
 
                 const mappedThoughts = thoughts.map((thought) => {
-                    const modifiedThought = thought;
+                    const modifiedThought = withMedia(thought);
                     modifiedThought.user = {};
 
                     // USER
@@ -1113,7 +1142,7 @@ export default class ThoughtsStore {
                     // Reply preview authors (for inline thread display in list views)
                     if (options.withReplies) {
                         modifiedThought.replies = (modifiedThought.replies || []).map((reply) => {
-                            const modifiedReply = reply;
+                            const modifiedReply = withMedia(reply);
                             const matchingReplyUser = usersMap[modifiedReply.fromUserId];
                             if (matchingReplyUser) {
                                 modifiedReply.fromUserName = matchingReplyUser.userName;
@@ -1136,8 +1165,7 @@ export default class ThoughtsStore {
             }
 
             return {
-                thoughts,
-                media: {},
+                thoughts: thoughts.map(withMedia),
                 users: {},
                 isLastPage,
             };
@@ -1167,6 +1195,33 @@ export default class ThoughtsStore {
             hashTags: params.hashTags || '',
             maxViews: params.maxViews || 0,
         };
+
+        /**
+         * Attached media, finally persisted.
+         *
+         * Accepts `media` as well as `medias` because the deployed mobile composer sends
+         * only `media` (`EditThought.signAndUploadImage`) and cannot be force-updated —
+         * the same reason `EditMoment` still carries its `createArgs.medias =
+         * createArgs.media` line. Honoring both is what makes already-installed apps stop
+         * losing photos on the day this deploys, rather than on the day the next release
+         * reaches everyone.
+         *
+         * Only `path` and `type` are carried through. The rest of a client's media object
+         * is presentational, and `type` is load-bearing: it selects the bucket, and
+         * maps-service `getBucket` falls through to the **public** bucket for a value it
+         * does not recognize — so an unfiltered spread here is how a private image ends up
+         * resolved against the public bucket.
+         */
+        const attachedMedia = params.medias || params.media;
+        if (Array.isArray(attachedMedia) && attachedMedia.length) {
+            const normalized = attachedMedia
+                .filter((m) => m && m.path && m.type)
+                .map((m) => ({ path: m.path, type: m.type, altText: m.altText }));
+
+            if (normalized.length) {
+                (sanitizedParams as any).medias = JSON.stringify(normalized);
+            }
+        }
 
         /**
          * Coordinates for a post that names a city.
