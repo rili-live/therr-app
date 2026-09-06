@@ -8,7 +8,7 @@ jest.mock('@react-native-firebase/analytics', () => ({
     logEvent: jest.fn(() => Promise.resolve()),
 }));
 
-import { logEvent } from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { logAppEvent } from '../../main/utilities/analyticsEvents';
 
 /**
@@ -23,6 +23,7 @@ describe('logAppEvent', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         (logEvent as jest.Mock).mockImplementation(() => Promise.resolve());
+        (getAnalytics as jest.Mock).mockImplementation(() => ({ __instance: true }));
     });
 
     it('forwards the event name and its defined params', () => {
@@ -82,6 +83,42 @@ describe('logAppEvent', () => {
             // Nothing to await on the caller's side, so let the rejection land.
             await Promise.resolve();
             await Promise.resolve();
+        } finally {
+            logSpy.mockRestore();
+        }
+    });
+
+    it('swallows a synchronous throw from logEvent, which validates its name inline', async () => {
+        // react-native-firebase validates the event name with a bare `throw`, not a
+        // rejected promise, so `.catch()` never sees it. Escaping here would fail the
+        // check-in whose `.then()` this is called from — one the server already
+        // recorded — rather than merely losing the event.
+        (logEvent as jest.Mock).mockImplementation(() => {
+            throw new Error("'name' the event name is reserved and can not be used.");
+        });
+
+        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+
+        try {
+            expect(() => logAppEvent('habit_checkin_complete', { userId: 'user-1' })).not.toThrow();
+        } finally {
+            logSpy.mockRestore();
+        }
+    });
+
+    it('swallows a throw from getAnalytics before the SDK has an app', () => {
+        // `getAnalytics()` resolves the default Firebase app and throws when it does
+        // not exist yet. The paywall calls this first thing in componentDidMount, so
+        // an escape blanks the screen the app earns money on.
+        (getAnalytics as jest.Mock).mockImplementation(() => {
+            throw new Error("No Firebase App '[DEFAULT]' has been created");
+        });
+
+        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+
+        try {
+            expect(() => logAppEvent('habits_paywall_view', { userId: 'user-1' })).not.toThrow();
+            expect(logEvent).not.toHaveBeenCalled();
         } finally {
             logSpy.mockRestore();
         }
