@@ -418,6 +418,26 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         });
     };
 
+    // Open the public post a shared check-in became. ViewThought renders the sparse thought
+    // handed in immediately and merges its own (brand-scoped) fetch on top, so a bare id is
+    // enough; `previousView` sends the back button here rather than to the author's profile.
+    handleViewSharedPost = () => {
+        const { navigation } = this.props;
+        const { selectedDayCheckin } = this.state;
+        const sharedThoughtId = selectedDayCheckin?.sharedThoughtId;
+
+        if (!sharedThoughtId) {
+            return;
+        }
+
+        this.handleDayDetailClose();
+        navigation.navigate('ViewThought', {
+            isMyContent: true,
+            previousView: 'HabitDetail',
+            thought: { id: sharedThoughtId },
+        });
+    };
+
     getTodayCheckin = (): IHabitCheckin | undefined => {
         const { habits, route } = this.props;
         const { habitGoalId } = route.params;
@@ -576,6 +596,9 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                     hasProofError={hasDayProofError}
                     onClose={this.handleDayDetailClose}
                     onRetryProofs={this.handleRetryDayProofs}
+                    onViewSharedPost={selectedDayCheckin?.sharedThoughtId
+                        ? this.handleViewSharedPost
+                        : undefined}
                     translate={this.translate}
                     themeConfirmModal={this.themeConfirmModal}
                     themeButtons={this.themeButtons}
