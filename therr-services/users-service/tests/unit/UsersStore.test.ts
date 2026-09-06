@@ -292,6 +292,49 @@ describe('UsersStore', () => {
             expect(mockStore.write.query.args[0][0].includes(expected)).to.be.equal(true);
         });
 
+        // Regression: the habits digest read `settingsPushHabitReminders` /
+        // `settingsPushStreakAlerts` months before anything could write them, so the
+        // mobile toggles built against those columns PUT the fields, got a 200, and had
+        // the values dropped here. `false` is the only value that changes anything —
+        // the digest mutes on an explicit `false` and treats null/undefined as "on" —
+        // so a truthiness guard would have left the feature exactly as broken.
+        it('writes an explicit false for the two habits push preferences', () => {
+            const mockStore = {
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.updateUser({
+                settingsPushHabitReminders: false,
+                settingsPushStreakAlerts: false,
+            }, {
+                id: 5,
+            });
+
+            const generatedSql = mockStore.write.query.args[0][0];
+            expect(generatedSql.includes(`"settingsPushHabitReminders" = false`)).to.be.equal(true);
+            expect(generatedSql.includes(`"settingsPushStreakAlerts" = false`)).to.be.equal(true);
+        });
+
+        it('omits the habits push preferences when they are not submitted', () => {
+            const mockStore = {
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.updateUser({
+                userName: 'tests',
+            }, {
+                id: 5,
+            });
+
+            const generatedSql = mockStore.write.query.args[0][0];
+            expect(generatedSql.includes('settingsPushHabitReminders')).to.be.equal(false);
+            expect(generatedSql.includes('settingsPushStreakAlerts')).to.be.equal(false);
+        });
+
         it('requires email or id', () => {
             const mockStore = {
                 write: {

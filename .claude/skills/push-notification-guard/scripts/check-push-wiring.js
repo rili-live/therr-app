@@ -526,10 +526,17 @@ let mobileBrandLabel = null;
 
         // Data-only pushes are rendered by Notifee, which picks the channel from
         // the clickActionId suffix. A key in no bucket lands on `default`.
-        const bucketed = new Set([
-            ...(constants.match(/REMINDER_ACTION_KEYS[\s\S]*?\]\)/) || [''])[0].matchAll(/'([A-Z_0-9]+)'/g),
-            ...(constants.match(/REWARD_ACTION_KEYS[\s\S]*?\]\)/) || [''])[0].matchAll(/'([A-Z_0-9]+)'/g),
-        ].map((m) => m[1]));
+        //
+        // Every `*_ACTION_KEYS` set is collected rather than a hardcoded list of
+        // them. This named REMINDER and REWARD only, so when
+        // CONTENT_DISCOVERY_ACTION_KEYS was added for the habits "Friend
+        // Activity" channel its five keys started reporting as unbucketed — and
+        // five false positives are how the one true finding beside them
+        // (PACT_ENDED, in no bucket at all) went unread. A gate nobody believes
+        // is a gate nobody reads.
+        const bucketNames = [...constants.matchAll(/const\s+(\w+_ACTION_KEYS)\s*=\s*new Set<string>\(\[([\s\S]*?)\]\)/g)];
+        const bucketed = new Set(bucketNames
+            .flatMap((m) => [...m[2].matchAll(/'([A-Z_0-9]+)'/g)].map((k) => k[1])));
         // Only data-only pushes go through Notifee, and only those pick their
         // channel from the clickActionId suffix. A display push names its
         // channel in the FCM payload and never reaches this code.
@@ -542,10 +549,16 @@ let mobileBrandLabel = null;
             .flatMap(([, f]) => f.clickKeys);
         const unbucketed = [...new Set(dataOnlyKeys)].filter((k) => !bucketed.has(k)).sort();
         if (unbucketed.length) {
+            // Naming the buckets actually found, rather than a fixed pair, keeps
+            // the remedy correct as channels are added — and makes an empty
+            // `bucketed` (the regex having stopped matching) visible here instead
+            // of arriving disguised as every key being unbucketed.
+            const bucketList = bucketNames.map((m) => m[1]).join(', ') || '(none found — check the regex above)';
             warn('clickaction-channel-default', `${unbucketed.length} data-only intent key(s) fall through to the "default" channel on the "${forBrand}" build`,
                 unbucketed.map((k) => `${k} (${keyToType.get(k)})`).join(', '),
                 `Notifee renders these on the "default" channel at DEFAULT importance — no heads-up banner. If the type `
-                + `is meant to interrupt, add its key to REMINDER_ACTION_KEYS (or REWARD_ACTION_KEYS) in ${P.mobileConstants}. `
+                + `is meant to interrupt, add its key to one of the channel buckets in ${P.mobileConstants} `
+                + `(${bucketList}). `
                 + 'Note Android locks a channel\'s importance at first creation, so this only takes effect on installs '
                 + 'that had not created the channel yet.');
         }

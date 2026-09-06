@@ -216,7 +216,7 @@ here is what code cannot close.
   the gate is not firing and users are being nagged after they have already done
   the thing. Kill switch is `HABIT_LAST_CHANCE_REMINDERS_ENABLED=false` on
   users-service — no deploy needed.
-- [ ] **Build the push-preference UI, now that two columns are finally read.** The
+- [x] **Build the push-preference UI, now that two columns are finally read.** The
   digest honours `settingsPushHabitReminders` (both daily slots) and
   `settingsPushStreakAlerts` (the evening escalation only) — the first server-side
   reading of any push preference column. No client writes either, so
@@ -224,6 +224,15 @@ here is what code cannot close.
   until `TherrMobile/main/routes/Settings/ManageNotifications.tsx` grows push
   toggles alongside its email ones. Until then a user's only way to turn the
   evening nudge off is the OS switch, which takes everything with it.
+  > Both halves are in as of 2026-09-05. The toggles shipped on
+  > `niche/HABITS-general` (`c45a0bc5`) **before** the server could accept them —
+  > `updateArgs` in `handlers/users.ts` and the param filter in
+  > `UsersStore.updateUser` are both explicit allow-lists and neither named these
+  > columns, so a save returned 202 with the values dropped and the screen showed a
+  > success toast. Both allow-lists now carry them, guarded on `!= null` rather than
+  > truthiness: the digest mutes on an explicit `false` and nothing else, so `false`
+  > is the only value that changes anything. **The write half is on `general` and the
+  > toggles are on the niche branch — the counters stay at 0 until both are out.**
 
 ## Standing items (always re-verify after a deploy that touches the area)
 
@@ -455,6 +464,33 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-09-05, /work-plan) **Watch `remindersMutedByPreference` and
+  `lastChanceMutedByPreference` leave 0 once BOTH halves of the push toggles are out.**
+  The two counters have been structurally pinned at 0, not merely unused: the digest has
+  read `settingsPushHabitReminders` / `settingsPushStreakAlerts` for weeks, but until this
+  deploy no code path could write either column. The toggles are on
+  `niche/HABITS-general` (`c45a0bc5`) and the write half is on `general` — order does not
+  matter, but **both** are required, and neither reports its absence. A user on the old
+  server sees a success toast and keeps every reminder; a user on the old app has a server
+  that would accept a value nothing sends. First non-zero value is the only evidence the
+  pair is wired. No migration and no env var — both columns already exist and default to
+  `true`.
+- [ ] (2026-09-05, /work-plan) **Re-check the `PACT_ENDED` channel on an install that
+  already created it.** Android locks a notification channel's importance at first
+  creation, so moving `PACT_ENDED` into `REMINDER_ACTION_KEYS` only reaches devices that
+  had not yet posted on `reminders`. Existing habits installs already created that channel
+  the first time a daily reminder arrived, so they pick up the change for free — but an
+  install that somehow created `default` first keeps the silent behaviour until the user
+  clears app data. Worth one handset check alongside the ended-pact renewal test below
+  rather than a code change.
+- [ ] (2026-09-05, /work-plan) **`LEADERBOARD_RANK_MILESTONE` is unbucketed on the Therr
+  build.** Surfaced by `check-push-wiring.js` once its false positives were cleared. The
+  key is in `REWARD_ACTION_KEYS` on `niche/HABITS-general` but not on `general`, so the
+  Therr app renders the rank-milestone push at DEFAULT importance. Deliberately left alone
+  here: it is a Therr-side product call about whether a leaderboard move should interrupt,
+  and it is outside the habits batch that found it. The deeper issue it points at is that
+  the HABITS channel buckets live only on the niche branch, so `general`'s copy of
+  `getAndroidChannelFromClickActionId` is permanently a subset.
 - [ ] (2026-09-05, /work-plan) **Run the two new migrations after this reaches `main`.**
   maps-service `20260905000000_main.medias_gin_indexes` and users-service
   `20260905000001_main.thoughts.medias` — automated by `_bin/cicd/run-migrations.sh` on `main`
@@ -483,8 +519,8 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   installs that predate the `EditThought` change stop losing photos as soon as users-service
   rolls — no app release required. Historical posts stay imageless: their uploads are
   orphaned objects with no row pointing at them (see § 2.6.7 "Still open").
-- [ ] (2026-09-01, /work-plan) **Ship the `niche/HABITS-general` half of `pactEnded` before
-  this reaches production traffic.** Two things are missing there and neither errors: the
+- [x] ~~**Ship the `niche/HABITS-general` half of `pactEnded` before
+  this reaches production traffic.**~~ Two things are missing there and neither errors: the
   `${notificationActionPrefix}.PACT_ENDED` `<intent-filter>` in
   `TherrMobile/android/app/src/main/AndroidManifest.xml`, and a handler for the `renew-pact`
   press action. Without the filter an installed app ignores the notification outright; with
@@ -494,6 +530,15 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   `node .claude/skills/push-notification-guard/scripts/check-push-wiring.js --brand-branch niche/HABITS-general`
   — that run could not be completed in the session that wrote this (the branch would not
   fetch), so the niche half is **unverified**, not known-good.
+  > **Verified 2026-09-05.** Both halves are on `niche/HABITS-general`: the intent filter
+  > (`7db85fb`) and the `renew-pact` branch in `Layout.tsx`, which reads `pactId` from the
+  > data payload, falls back to the dashboard's `all` tab when it is missing, and defers to
+  > `PactDetail` when the user is signed out. The wiring check now runs clean on that branch.
+  > What the check *did* surface, and this entry did not anticipate, is that `PACT_ENDED` was
+  > in no channel bucket, so the push carrying the primary re-commit CTA rendered at DEFAULT
+  > importance with no heads-up banner — fixed by adding it to `REMINDER_ACTION_KEYS`
+  > alongside `PACT_EXPIRING`, the same lifecycle one step earlier. Handset confirmation is
+  > still the next item below.
 - [ ] (2026-09-01, /work-plan) **Confirm on a handset that the ended-pact push renews.** This
   is link 5 and nothing server-side reports it. Let a HABITS pact pass its `endDate`, run the
   digest, then on a real device confirm: the notification arrives, shows **two** buttons
@@ -1949,12 +1994,27 @@ retry and a stale CTA all converge on the one real cycle. The guard reads
 "which pacts does this check-in credit" and an unanswered invite must never be
 one of them.
 
+**The mobile half shipped on `niche/HABITS-general`** — corrected 2026-09-05, this
+entry previously said it was not built. The `PACT_ENDED` intent filter is in
+`AndroidManifest.xml` (`7db85fb`) and `Layout.tsx` handles the `renew-pact` press
+action: it reads `pactId` off the data payload, renews with no duration override so
+the previous cycle's `durationDays` carries, and falls back to the dashboard's `all`
+tab (not `habits` — that segment does not list finished pacts) when the id is absent.
+
+One thing this section did not anticipate, found by
+`.claude/skills/push-notification-guard/scripts/check-push-wiring.js` on 2026-09-05:
+**`PACT_ENDED` was in no channel bucket.** `pactEnded` is data-only — that is what
+lets the renew button exist at all — so Notifee picks its channel from the
+`clickActionId` suffix, and a key in no bucket lands on `default` at DEFAULT
+importance. The push carrying the primary re-commit CTA arrived with no heads-up
+banner. It is now in `REMINDER_ACTION_KEYS` alongside `PACT_EXPIRING`, the same
+lifecycle one step earlier. Nothing reported this: the notification arrived, the
+button worked, and only its prominence was wrong.
+
 Still open:
 
-- **The mobile half is not built** — `niche/HABITS-general` must declare the
-  `PACT_ENDED` intent filter in `AndroidManifest.xml` and handle the
-  `renew-pact` press action. Until it ships, an installed app ignores the
-  notification entirely; nothing errors on either side.
+- Handset confirmation that the ended-pact push renews (see § Manual Operational
+  Follow-ups). Nothing server-side reports link 5 of this chain.
 - Optional follow-on: a long-form "your pact ended — here's what you built"
   re-commit email in `therr-messaging-automator`, which owns the SES templates
   and unsubscribe-token path (see `docs/HABIT_LIFECYCLE_MESSAGING.md` § Where
