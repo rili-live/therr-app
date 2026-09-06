@@ -2051,6 +2051,8 @@
                 "proofsFailed": "We couldn't load your photos.",
                 "proofsUnavailable": "The photos for this day are no longer available.",
                 "proofImageAlt": "Check-in photo",
+                "sharedToFeed": "Shared to the feed",
+                "viewPost": "View post",
                 "dayAccessibilityLabel": "{month} {day}, view check-in details",
                 "status": {
                     "completed": "Completed",

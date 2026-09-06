@@ -2051,6 +2051,8 @@
                 "proofsFailed": "No pudimos cargar tus fotos.",
                 "proofsUnavailable": "Las fotos de este día ya no están disponibles.",
                 "proofImageAlt": "Foto del registro",
+                "sharedToFeed": "Compartido en el feed",
+                "viewPost": "Ver publicación",
                 "dayAccessibilityLabel": "{day} de {month}, ver detalles del registro",
                 "status": {
                     "completed": "Completado",
