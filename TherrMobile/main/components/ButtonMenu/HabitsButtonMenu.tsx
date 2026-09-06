@@ -102,11 +102,15 @@ const ViewProfileButton = ({
 );
 
 /**
- * HABITS app button menu with Habits, Journal, Awards, Connect, and Profile tabs.
+ * HABITS app button menu with Habits, Journal, Feed, Connect, and Profile tabs.
  *
  * There is no Pacts tab: the pact lists are segments of the Habits screen now,
  * so a second tab pointing at the same screen would only have split the two
- * halves of one flow across the bar. Awards (Achievements) took the slot.
+ * halves of one flow across the bar.
+ *
+ * The optional social slot holds the public Feed (`ENABLE_HABITS_FEED`), which
+ * replaced the Awards (Achievements) tab. Achievements is still reachable from
+ * the drawer, so removing its tab did not remove the feature.
  */
 class HabitsButtonMenu extends ButtonMenu {
     constructor(props) {
@@ -195,13 +199,13 @@ class HabitsButtonMenu extends ButtonMenu {
         const {
             isCompact, translate, themeMenu, user, habits,
         } = (this.props as unknown as IHabitsButtonMenuProps);
-        const { isJournalEnabled, isAchievementsEnabled, buttonWidth } = getTabLayout();
+        const { isJournalEnabled, isFeedEnabled, buttonWidth } = getTabLayout();
         const activeRoute = this.getActiveRoute();
         const isHabitsActive = [
             'HabitsDashboard', 'HabitDetail', 'PactDetail', 'CreatePact', 'CreatePactInvite',
         ].includes(activeRoute);
         const isJournalActive = activeRoute === 'Journal';
-        const isAchievementsActive = ['Achievements', 'AchievementClaim'].includes(activeRoute);
+        const isFeedActive = activeRoute === 'HabitsFeed';
         const isConnectActive = activeRoute === 'Connect';
         // Badge counts only invites awaiting this user's reply, and the landing
         // segment follows it — see `habitsBadgeState.ts` for why the sent-invite
@@ -313,16 +317,17 @@ class HabitsButtonMenu extends ButtonMenu {
                     onPress={() => this.onNavPressDynamic('Journal')}
                 />}
 
-                {/* Achievements Tab — gated on the same flag that registers the route */}
-                {isAchievementsEnabled && <Button
-                    title={!isCompact ? translate('menus.habits.buttons.achievements') : null}
+                {/* Feed Tab — gated on the same flag that registers the route. Replaced the
+                    Awards tab; Achievements now lives in the drawer only. */}
+                {isFeedEnabled && <Button
+                    title={!isCompact ? translate('menus.habits.buttons.feed') : null}
                     buttonStyle={
-                        isAchievementsActive
+                        isFeedActive
                             ? themeMenu.styles.buttonsActive
                             : themeMenu.styles.buttons
                     }
                     containerStyle={[
-                        (isAchievementsActive
+                        (isFeedActive
                             ? themeMenu.styles.buttonContainerActive
                             : themeMenu.styles.buttonContainer),
                         {
@@ -330,22 +335,22 @@ class HabitsButtonMenu extends ButtonMenu {
                         },
                     ]}
                     titleStyle={
-                        isAchievementsActive
+                        isFeedActive
                             ? themeMenu.styles.buttonsTitleActive
                             : themeMenu.styles.buttonsTitle
                     }
                     icon={
-                        <TherrIcon
-                            name="achievement"
+                        <MaterialIcon
+                            name="dynamic-feed"
                             size={24}
                             style={
-                                isAchievementsActive
+                                isFeedActive
                                     ? themeMenu.styles.buttonIconActive
                                     : themeMenu.styles.buttonIcon
                             }
                         />
                     }
-                    onPress={() => this.onNavPressDynamic('Achievements')}
+                    onPress={() => this.onNavPressDynamic('HabitsFeed')}
                 />}
 
                 {/* Connect Tab (for finding partners) */}

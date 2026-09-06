@@ -51,6 +51,8 @@ const baseFeatureFlags = {
     ENABLE_PACTS: false,
     REQUIRE_PACT_ONBOARDING: false,
     ENABLE_HABITS_JOURNAL: false,
+    // Public social feed of shared check-ins. Off by default; enabled per brand below.
+    ENABLE_HABITS_FEED: false,
     ENABLE_HABITS_SOLO: false,
     ENABLE_HABITS_LIFETIME_OFFER: false,
 
@@ -93,6 +95,11 @@ const brandFeatureFlagOverrides = {
         ENABLE_PACTS: true,
         REQUIRE_PACT_ONBOARDING: true,
         ENABLE_HABITS_JOURNAL: true,
+        // Public feed of shared check-ins. On for HABITS, where it replaces the Awards tab in
+        // the bottom bar (Achievements stays reachable from the drawer). To A/B the feed, ship
+        // a build with this off to bank a baseline, then flip it on and compare via
+        // analyticsEvents — there is no per-user cohort framework, so this is a per-build toggle.
+        ENABLE_HABITS_FEED: true,
         // Solo habits still require the user to have sent a pact invite first;
         // this flag only controls whether the affordance exists at all. The
         // server enforces the onboarding gate independently.

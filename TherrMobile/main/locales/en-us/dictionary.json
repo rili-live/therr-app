@@ -1176,7 +1176,8 @@
                 "achievements": "Awards",
                 "partners": "Friends",
                 "profile": "Profile",
-                "journal": "Journal"
+                "journal": "Journal",
+                "feed": "Feed"
             },
             "accessibility": {
                 "habitsWithInvites": "Habits, {count} invite(s) awaiting your reply"
@@ -2029,7 +2030,14 @@
                 "cancel": "Cancel",
                 "addDetailTitle": "Add a note or photo",
                 "addDetailPrompt": "Checked in. Add anything you want to remember (optional).",
+                "sharePubliclyLabel": "Share to the feed",
+                "sharePubliclyHint": "Post this photo publicly so others can cheer you on.",
+                "sharedTitle": "Shared to the feed",
+                "shareFailed": "We couldn't share this check-in. Try again later.",
                 "save": "Save"
+            },
+            "feed": {
+                "emptyMessage": "No shared check-ins yet. Share one of yours to get the feed started."
             },
             "dayDetail": {
                 "title": "{weekday}, {month} {day}",

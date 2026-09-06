@@ -4,14 +4,18 @@ import { getHabitsTabLayout, HABITS_TAB_COUNT_MAX } from '../../main/components/
 
 /**
  * The HABITS tab bar's dependence on ENABLE_HABITS_JOURNAL and
- * ENABLE_ACHIEVEMENTS.
+ * ENABLE_HABITS_FEED.
  *
- * `routes/index.tsx` registers the `Journal` and `Achievements` screens only
+ * `routes/index.tsx` registers the `Journal` and `HabitsFeed` screens only
  * when their flag is on. Either tab used to render unconditionally, so
  * switching the flag off left a visible button calling `navigate('Journal')`
  * against a navigator with no such screen — which does nothing at all: no
  * error, no screen change, no clue. A kill-switch that leaves a dead button
  * behind has not killed anything.
+ *
+ * The optional feed tab replaced the Awards (Achievements) tab; Achievements is
+ * still reachable from the drawer, so the layout counts ENABLE_HABITS_FEED here
+ * and no longer ENABLE_ACHIEVEMENTS.
  *
  * The width arithmetic is pinned alongside it because the two have to move
  * together — a hidden tab whose slot is still reserved leaves a visible gap.
@@ -20,7 +24,7 @@ const SCREEN_WIDTH = 400;
 
 const BOTH_ON = {
     [FeatureFlags.ENABLE_HABITS_JOURNAL]: true,
-    [FeatureFlags.ENABLE_ACHIEVEMENTS]: true,
+    [FeatureFlags.ENABLE_HABITS_FEED]: true,
 };
 
 describe('getHabitsTabLayout', () => {
@@ -28,7 +32,7 @@ describe('getHabitsTabLayout', () => {
         const layout = getHabitsTabLayout(SCREEN_WIDTH, BOTH_ON);
 
         expect(layout.isJournalEnabled).toBe(true);
-        expect(layout.isAchievementsEnabled).toBe(true);
+        expect(layout.isFeedEnabled).toBe(true);
         expect(layout.tabCount).toBe(HABITS_TAB_COUNT_MAX);
         expect(layout.buttonWidth).toBe(80);
     });
@@ -46,13 +50,13 @@ describe('getHabitsTabLayout', () => {
         expect(layout.buttonWidth).toBe(100);
     });
 
-    it('hides the achievements tab and reclaims its width when the flag is off', () => {
+    it('hides the feed tab and reclaims its width when the flag is off', () => {
         const layout = getHabitsTabLayout(SCREEN_WIDTH, {
             ...BOTH_ON,
-            [FeatureFlags.ENABLE_ACHIEVEMENTS]: false,
+            [FeatureFlags.ENABLE_HABITS_FEED]: false,
         });
 
-        expect(layout.isAchievementsEnabled).toBe(false);
+        expect(layout.isFeedEnabled).toBe(false);
         expect(layout.tabCount).toBe(4);
         expect(layout.buttonWidth).toBe(100);
     });
@@ -67,12 +71,12 @@ describe('getHabitsTabLayout', () => {
 
     it('treats a missing flag as off', () => {
         expect(getHabitsTabLayout(SCREEN_WIDTH, {}).isJournalEnabled).toBe(false);
-        expect(getHabitsTabLayout(SCREEN_WIDTH, {}).isAchievementsEnabled).toBe(false);
+        expect(getHabitsTabLayout(SCREEN_WIDTH, {}).isFeedEnabled).toBe(false);
     });
 
     it('treats an absent flag map as off rather than throwing', () => {
         expect(getHabitsTabLayout(SCREEN_WIDTH).isJournalEnabled).toBe(false);
-        expect(getHabitsTabLayout(SCREEN_WIDTH).isAchievementsEnabled).toBe(false);
+        expect(getHabitsTabLayout(SCREEN_WIDTH).isFeedEnabled).toBe(false);
     });
 
     it('requires exactly true, matching how Layout filters routes on requiredFeatures', () => {
@@ -80,19 +84,19 @@ describe('getHabitsTabLayout', () => {
         // would let the tab appear for a route that was never registered.
         const truthyButNotTrue = getHabitsTabLayout(SCREEN_WIDTH, {
             [FeatureFlags.ENABLE_HABITS_JOURNAL]: 1 as any,
-            [FeatureFlags.ENABLE_ACHIEVEMENTS]: 'yes' as any,
+            [FeatureFlags.ENABLE_HABITS_FEED]: 'yes' as any,
         });
 
         expect(truthyButNotTrue.isJournalEnabled).toBe(false);
-        expect(truthyButNotTrue.isAchievementsEnabled).toBe(false);
+        expect(truthyButNotTrue.isFeedEnabled).toBe(false);
     });
 
     it('never exceeds the tab ceiling validateFeatureFlags enforces', () => {
         [true, false].forEach((journal) => {
-            [true, false].forEach((achievements) => {
+            [true, false].forEach((feed) => {
                 const layout = getHabitsTabLayout(SCREEN_WIDTH, {
                     [FeatureFlags.ENABLE_HABITS_JOURNAL]: journal,
-                    [FeatureFlags.ENABLE_ACHIEVEMENTS]: achievements,
+                    [FeatureFlags.ENABLE_HABITS_FEED]: feed,
                 });
 
                 expect(layout.tabCount).toBeLessThanOrEqual(HABITS_TAB_COUNT_MAX);

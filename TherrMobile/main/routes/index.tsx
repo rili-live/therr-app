@@ -21,6 +21,7 @@ import Landing from './Landing';
 import Login from './Login';
 import Map from './Map';
 import Achievements from './Achievements';
+import HabitsFeed from './HabitsFeed';
 import ApiAccess from './ApiAccess';
 import AchievementClaim from './Achievements/AchievementClaim';
 import Leaderboard from './Leaderboard';
@@ -138,6 +139,17 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Achievements',
             requiredFeatures: [FeatureFlags.ENABLE_ACHIEVEMENTS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'HabitsFeed',
+        component: HabitsFeed,
+        options: () => ({
+            title: 'Feed',
+            // Same flag the bottom-bar Feed tab reads — a tab and its route must agree, or the
+            // tab navigates to a screen the navigator never registered. See habitsTabLayout.ts.
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS_FEED],
             access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
