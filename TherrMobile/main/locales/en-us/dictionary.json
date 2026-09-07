@@ -2493,6 +2493,24 @@
                 "purchaseFailed": "That purchase did not go through.",
                 "purchasePending": "Still processing. If you were charged, your unlock will appear here shortly.",
                 "storeUnavailable": "The store is unavailable right now."
+            },
+            "premium": {
+                "sectionTitle": "Or subscribe monthly",
+                "subtitle": "All premium features, billed monthly. Cancel anytime.",
+                "benefits": {
+                    "unlimitedHabits": "Track as many habits as you want",
+                    "unlimitedPacts": "Unlimited pacts with unlimited friends",
+                    "allFeatures": "Every premium feature",
+                    "cancelAnytime": "Cancel anytime"
+                },
+                "buyCta": "Subscribe for {price}",
+                "buyCtaNoPrice": "Subscribe monthly",
+                "subscribing": "Starting subscription…",
+                "owned": "You have an active premium subscription.",
+                "success": {
+                    "title": "You are all set",
+                    "message": "Premium unlocked. Thank you for subscribing."
+                }
             }
         }
     },

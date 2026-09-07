@@ -135,6 +135,51 @@ export const fetchFounderProduct = async (productId: string): Promise<any | null
     }
 };
 
+/**
+ * The subscription equivalent of `fetchFounderProduct`. Queried with
+ * `type: 'subs'` because Play keeps subscriptions and one-time products in
+ * separate catalogues — a subs SKU does not resolve through the `in-app` query
+ * and vice versa. Returns null until the Play Console subscription is created,
+ * so the paywall hides the price rather than inventing one.
+ */
+export const fetchPremiumProduct = async (productId: string): Promise<any | null> => {
+    const iap = getIap();
+
+    if (!iap) {
+        return null;
+    }
+
+    try {
+        const products = await iap.fetchProducts({ skus: [productId], type: 'subs' });
+        return (products || []).find((product: any) => product?.id === productId
+            || product?.productId === productId) || null;
+    } catch {
+        return null;
+    }
+};
+
+/**
+ * The Android offer token to purchase against.
+ *
+ * A Play subscription is bought against a specific base-plan/offer, identified
+ * by an `offerToken`, not against the bare SKU the way a one-time product is —
+ * `requestPurchase` for `type: 'subs'` rejects without one. The first offer on
+ * the base plan is the list-price monthly plan; a fancier offer-selection UI can
+ * come later, but the token has to be threaded through for a purchase to happen
+ * at all. Returns null when the shape has no offers, which the caller treats as
+ * "cannot purchase" rather than guessing.
+ */
+export const getSubscriptionOfferToken = (product: any): string | null => {
+    const offers = product?.subscriptionOfferDetails
+        || product?.subscriptionOfferDetailsAndroid
+        || [];
+
+    const withToken = (Array.isArray(offers) ? offers : [])
+        .find((offer: any) => !!(offer?.offerToken || offer?.offerId));
+
+    return withToken?.offerToken || withToken?.offerId || null;
+};
+
 /** Play reports money in millionths of a currency unit. */
 const MICROS_PER_UNIT = 1000000;
 
@@ -169,6 +214,32 @@ export interface IPurchaseValue {
  * is a number that looks right and is not, and it propagates into every bid
  * decision downstream. The caller omits the fields instead.
  */
+/**
+ * The recurring (list-price) pricing phase of a subscription product, or null.
+ *
+ * A subscription offer's `pricingPhaseList` can lead with a free trial or an
+ * introductory price; the amount that matters for a conversion value is the one
+ * the user actually pays every month, which is the last non-zero phase. Reading
+ * the first phase would report a €0 trial as the purchase value.
+ */
+const readRecurringPricingPhase = (source: any): any | null => {
+    const offers = source?.subscriptionOfferDetails
+        || source?.subscriptionOfferDetailsAndroid;
+
+    if (!Array.isArray(offers) || !offers.length) {
+        return null;
+    }
+
+    const phases = offers[0]?.pricingPhases?.pricingPhaseList
+        || offers[0]?.pricingPhases
+        || [];
+
+    const paidPhases = (Array.isArray(phases) ? phases : [])
+        .filter((phase: any) => Number(phase?.priceAmountMicros) > 0);
+
+    return paidPhases.length ? paidPhases[paidPhases.length - 1] : null;
+};
+
 const readPurchaseValue = (source: any): IPurchaseValue | null => {
     if (!source || typeof source !== 'object') {
         return null;
@@ -176,16 +247,24 @@ const readPurchaseValue = (source: any): IPurchaseValue | null => {
 
     // Android's `fetchProducts` nests the one-time price a level down; a verified
     // purchase row and the library's normalized product shape both hold it flat.
+    // A subscription product nests it deeper still — inside the recurring pricing
+    // phase of a subscription offer — so read that too.
     const offerDetails = source.oneTimePurchaseOfferDetails;
+    const subscriptionPhase = readRecurringPricingPhase(source);
     const currency = source.priceCurrencyCode
         || source.currency
-        || offerDetails?.priceCurrencyCode;
+        || offerDetails?.priceCurrencyCode
+        || subscriptionPhase?.priceCurrencyCode;
 
     if (typeof currency !== 'string' || currency.length !== 3) {
         return null;
     }
 
-    const micros = Number(source.priceAmountMicros ?? offerDetails?.priceAmountMicros);
+    const micros = Number(
+        source.priceAmountMicros
+        ?? offerDetails?.priceAmountMicros
+        ?? subscriptionPhase?.priceAmountMicros,
+    );
 
     if (Number.isFinite(micros) && micros > 0) {
         return {
@@ -211,7 +290,11 @@ export const resolvePurchaseValue = (...sources: any[]): IPurchaseValue | null =
     .find((candidate) => !!candidate) || null;
 
 /**
- * Run a purchase to completion.
+ * Run a purchase to completion — the listener/timeout plumbing shared by the
+ * founder unlock and the premium subscription. Only the `requestArgs` passed to
+ * `iap.requestPurchase` differ between the two (an `in-app` SKU vs a `subs` SKU
+ * with an offer token), so the event handling — which is the subtle part — lives
+ * in one place.
  *
  * `requestPurchase` in v14 is event-based rather than promise-based: the result
  * arrives on `purchaseUpdatedListener` or `purchaseErrorListener`. This wraps
@@ -224,7 +307,10 @@ export const resolvePurchaseValue = (...sources: any[]): IPurchaseValue | null =
  * would leave the user charged with nothing to show. `finishPurchase` is called
  * by the caller after the server returns success.
  */
-export const requestFounderPurchase = (productId: string): Promise<IHabitsPurchaseResult> => {
+const awaitPurchaseResult = (
+    productId: string,
+    requestArgs: any,
+): Promise<IHabitsPurchaseResult> => {
     const iap = getIap();
 
     if (!iap) {
@@ -295,12 +381,7 @@ export const requestFounderPurchase = (productId: string): Promise<IHabitsPurcha
         });
 
         try {
-            iap.requestPurchase({
-                request: {
-                    android: { skus: [productId] },
-                },
-                type: 'in-app',
-            });
+            iap.requestPurchase(requestArgs);
         } catch (err) {
             if (!isSettled) {
                 isSettled = true;
@@ -311,12 +392,49 @@ export const requestFounderPurchase = (productId: string): Promise<IHabitsPurcha
     });
 };
 
+export const requestFounderPurchase = (productId: string): Promise<IHabitsPurchaseResult> => awaitPurchaseResult(
+    productId,
+    {
+        request: {
+            android: { skus: [productId] },
+        },
+        type: 'in-app',
+    },
+);
+
+/**
+ * Run a subscription purchase to completion.
+ *
+ * Differs from the founder purchase only in the request payload: a Play
+ * subscription is bought against a base-plan offer, so the Android request
+ * carries `subscriptionOffers: [{ sku, offerToken }]`. The offer token comes
+ * from `getSubscriptionOfferToken` on the fetched product; without it Play
+ * rejects the request, so the caller resolves it before calling here.
+ */
+export const requestSubscriptionPurchase = (
+    productId: string,
+    offerToken: string,
+): Promise<IHabitsPurchaseResult> => awaitPurchaseResult(
+    productId,
+    {
+        request: {
+            android: {
+                skus: [productId],
+                subscriptionOffers: [{ sku: productId, offerToken }],
+            },
+        },
+        type: 'subs',
+    },
+);
+
 /**
  * Acknowledge the purchase with the store, after the server has recorded it.
  *
- * `isConsumable: false` — this is a one-time, permanent unlock. Consuming it
- * would let the same account buy it again, and would lose the record Play keeps
- * of the entitlement.
+ * `isConsumable: false` — for both the one-time founder unlock and the premium
+ * subscription (a subscription is acknowledged, never consumed). Consuming it
+ * would lose the record Play keeps of the entitlement. The server also
+ * acknowledges directly with the Play Developer API, so a failure here is
+ * recoverable and must not surface as a purchase failure to a user who has paid.
  */
 export const finishPurchase = async (rawPurchase: any): Promise<void> => {
     const iap = getIap();
@@ -366,7 +484,7 @@ const isDifferentProduct = (purchase: any, productId: string): boolean => {
  * Purchases the user already owns — the "restore" path, and the recovery path
  * for a purchase whose verification call failed after the money was taken.
  */
-export const getOwnedFounderPurchase = async (productId: string): Promise<IHabitsPurchaseResult | null> => {
+const getOwnedPurchase = async (productId: string): Promise<IHabitsPurchaseResult | null> => {
     const iap = getIap();
 
     if (!iap) {
@@ -395,3 +513,13 @@ export const getOwnedFounderPurchase = async (productId: string): Promise<IHabit
         return null;
     }
 };
+
+export const getOwnedFounderPurchase = (productId: string): Promise<IHabitsPurchaseResult | null> => getOwnedPurchase(productId);
+
+/**
+ * The subscription equivalent of `getOwnedFounderPurchase` — the restore path,
+ * and the recovery path for a subscription whose verification call failed after
+ * the money was taken. `getAvailablePurchases` returns owned subscriptions
+ * alongside products, so the same match-by-product-id logic serves both.
+ */
+export const getOwnedSubscription = (productId: string): Promise<IHabitsPurchaseResult | null> => getOwnedPurchase(productId);

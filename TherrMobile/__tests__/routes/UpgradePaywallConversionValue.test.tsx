@@ -101,7 +101,7 @@ describe('habits_founder_unlock_purchase conversion value', () => {
 
     it('falls back to the store product when the server returned no price', async () => {
         const { instance } = buildInstance({ purchase: { productId: 'habits_founder_unlock' } });
-        (instance as any).storeProduct = {
+        (instance as any).founderProduct = {
             oneTimePurchaseOfferDetails: { priceAmountMicros: '20000000', priceCurrencyCode: 'USD' },
         };
 

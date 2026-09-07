@@ -2493,6 +2493,24 @@
                 "purchaseFailed": "Esa compra no se completó.",
                 "purchasePending": "Aún se está procesando. Si se te hizo el cargo, tu acceso aparecerá aquí en breve.",
                 "storeUnavailable": "La tienda no está disponible en este momento."
+            },
+            "premium": {
+                "sectionTitle": "O suscríbete mensualmente",
+                "subtitle": "Todas las funciones premium, con facturación mensual. Cancela cuando quieras.",
+                "benefits": {
+                    "unlimitedHabits": "Registra todos los hábitos que quieras",
+                    "unlimitedPacts": "Pactos ilimitados con amigos ilimitados",
+                    "allFeatures": "Todas las funciones premium",
+                    "cancelAnytime": "Cancela cuando quieras"
+                },
+                "buyCta": "Suscribirse por {price}",
+                "buyCtaNoPrice": "Suscribirse mensualmente",
+                "subscribing": "Iniciando suscripción…",
+                "owned": "Tienes una suscripción premium activa.",
+                "success": {
+                    "title": "Todo listo",
+                    "message": "Premium desbloqueado. Gracias por suscribirte."
+                }
             }
         }
     },
