@@ -3,7 +3,7 @@ import { IMobileThemeName } from 'therr-react/types';
 import { therrFontFamily } from '../font';
 import { buttonMenuHeight } from '../navigation/buttonMenu';
 import { shadowMd, shadowSm } from '../elevation';
-import { getTheme, ITherrTheme } from '../themes';
+import { getTheme, ITherrTheme, resolveMobileThemeName } from '../themes';
 
 const collapseOffset = 20;
 
@@ -120,9 +120,10 @@ const quickFiltersButtonTitleBase: any = {
  */
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
+    const resolvedThemeName = resolveMobileThemeName(themeName);
     // Use a brighter badge background in dark mode for better contrast
     // Retro theme has its own distinct palette so only override for 'dark'
-    const badgeBg = themeName === 'dark' ? therrTheme.colors.brandingBlueGreen : therrTheme.colors.tertiary;
+    const badgeBg = resolvedThemeName === 'dark' ? therrTheme.colors.brandingBlueGreen : therrTheme.colors.tertiary;
 
     const styles = StyleSheet.create({
         buttonGroup: {

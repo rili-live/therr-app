@@ -13,12 +13,14 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import QRCode from 'react-native-qrcode-svg';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import { MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { IUserState } from 'therr-react/types';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { Image } from '../../components/BaseImage';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
@@ -26,6 +28,8 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import { buildUserUrl } from '../../utilities/shareUrls';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
 import { IMyQRCodeDetailParams } from './MyQRCodeDetail';
+
+const IS_PROFILE_ONLY = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
 
 const PROFILE_QR_PREVIEW_SIZE = 64;
 
@@ -109,6 +113,9 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
     }
 
     fetchAll = () => {
+        if (IS_PROFILE_ONLY) {
+            return;
+        }
         this.fetchSpaces();
         this.fetchEvents();
         this.fetchGroups();
@@ -165,11 +172,10 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
 
     handleRefresh = () => {
         this.setState({ isRefreshing: true });
-        Promise.allSettled([
-            this.fetchSpaces(),
-            this.fetchEvents(),
-            this.fetchGroups(),
-        ]).finally(() => {
+        const tasks: Promise<unknown>[] = IS_PROFILE_ONLY
+            ? []
+            : [this.fetchSpaces(), this.fetchEvents(), this.fetchGroups()];
+        Promise.allSettled(tasks).finally(() => {
             this.setState({ isRefreshing: false });
         });
     };
@@ -448,39 +454,43 @@ class MyQRCodes extends React.Component<IMyQRCodesProps, IMyQRCodesState> {
                         {this.renderSectionHeader('pages.myQRCodes.sections.profile')}
                         {this.renderProfileCard()}
 
-                        {this.renderSectionHeader('pages.myQRCodes.sections.spaces')}
-                        <View style={staticStyles.sectionBody}>
-                            {this.renderEntitySection(
-                                'space',
-                                this.state.spaces,
-                                this.state.isLoadingSpaces,
-                                'pages.myQRCodes.emptySpaces',
-                                this.mapAreaEntity,
-                            )}
-                        </View>
+                        {!IS_PROFILE_ONLY && (
+                            <>
+                                {this.renderSectionHeader('pages.myQRCodes.sections.spaces')}
+                                <View style={staticStyles.sectionBody}>
+                                    {this.renderEntitySection(
+                                        'space',
+                                        this.state.spaces,
+                                        this.state.isLoadingSpaces,
+                                        'pages.myQRCodes.emptySpaces',
+                                        this.mapAreaEntity,
+                                    )}
+                                </View>
 
-                        {this.renderSectionHeader('pages.myQRCodes.sections.events')}
-                        <View style={staticStyles.sectionBody}>
-                            {this.renderEntitySection(
-                                'event',
-                                this.state.events,
-                                this.state.isLoadingEvents,
-                                'pages.myQRCodes.emptyEvents',
-                                this.mapAreaEntity,
-                            )}
-                        </View>
+                                {this.renderSectionHeader('pages.myQRCodes.sections.events')}
+                                <View style={staticStyles.sectionBody}>
+                                    {this.renderEntitySection(
+                                        'event',
+                                        this.state.events,
+                                        this.state.isLoadingEvents,
+                                        'pages.myQRCodes.emptyEvents',
+                                        this.mapAreaEntity,
+                                    )}
+                                </View>
 
-                        {this.renderSectionHeader('pages.myQRCodes.sections.groups')}
-                        <View style={staticStyles.sectionBody}>
-                            {this.renderEntitySection(
-                                'group',
-                                Object.values(user.myUserGroups || {})
-                                    .filter((ug: any) => ug?.group),
-                                this.state.isLoadingGroups,
-                                'pages.myQRCodes.emptyGroups',
-                                this.mapGroupEntity,
-                            )}
-                        </View>
+                                {this.renderSectionHeader('pages.myQRCodes.sections.groups')}
+                                <View style={staticStyles.sectionBody}>
+                                    {this.renderEntitySection(
+                                        'group',
+                                        Object.values(user.myUserGroups || {})
+                                            .filter((ug: any) => ug?.group),
+                                        this.state.isLoadingGroups,
+                                        'pages.myQRCodes.emptyGroups',
+                                        this.mapGroupEntity,
+                                    )}
+                                </View>
+                            </>
+                        )}
                     </ScrollView>
                 </SafeAreaView>
                 <MainButtonMenu

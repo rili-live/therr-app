@@ -25,8 +25,6 @@ dependencyResolutionManagement {
         maven { url "https://storage.googleapis.com/logrocket-maven/" }
         // Notifee
         maven { url "$rootDir/../node_modules/@notifee/react-native/android/libs" }
-        // Transistorsoft (background-geolocation)
-        maven { url "$rootDir/../node_modules/react-native-background-geolocation/android/libs" }
     }
 }
 

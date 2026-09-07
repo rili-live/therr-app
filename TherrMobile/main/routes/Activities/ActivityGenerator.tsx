@@ -31,6 +31,7 @@ import spacingStyles from '../../styles/layouts/spacing';
 import { ILocationState } from '../../types/redux/location';
 import ConnectionItem from '../Connect/components/ConnectionItem';
 import { getUserContentUri } from '../../utilities/content';
+import { hasUsableCoords } from '../../utilities/coordinates';
 import TherrIcon from '../../components/TherrIcon';
 import { RefreshControl } from 'react-native-gesture-handler';
 import LoadingPlaceholder from './LoadingPlaceholder';
@@ -552,7 +553,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
 
     hasUserLocation = () => {
         const { location } = this.props;
-        return !!(location?.user?.latitude && location?.user?.longitude);
+        return hasUsableCoords(location?.user);
     };
 
     render() {

@@ -1,19 +1,43 @@
 <manifest
   xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools">
-  <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
-  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
   <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
   <uses-permission android:name="android.permission.CAMERA" />
   <uses-permission android:name="android.permission.READ_CONTACTS" />
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+  <!-- READ_MEDIA_IMAGES is intentionally omitted for the Google Play photo/video
+       permissions policy. Image picking uses react-native-image-crop-picker's
+       openPicker(), which goes through the Android system photo picker
+       (ActivityResultContracts.PickVisualMedia) — per-item access with NO persistent
+       media permission. If a transitive dependency ever re-injects this permission on
+       manifest merge, escalate by declaring it here with tools:node="remove" (mirroring
+       the location-permission removals documented below). -->
   <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+  <!-- Google Play Billing (react-native-iap / main/utilities/habitsBilling.ts).
+       Declared explicitly rather than relying on manifest merge: react-native-iap
+       ships an EMPTY android/src/main/AndroidManifest.xml, so the permission only
+       arrives transitively from the Play Billing AAR pulled in by
+       io.github.hyochan.openiap:openiap-google. Play Console will not let you create
+       in-app products or subscriptions until it has an uploaded artifact declaring
+       this permission, so an unlucky dependency change must not be able to silently
+       drop it. Keep it here. -->
+  <uses-permission android:name="com.android.vending.BILLING" />
+
+  <!-- HABITS niche app does not use location. react-native-background-geolocation
+       is removed from package.json on this branch (its Transistorsoft license is
+       per-applicationId and does not cover com.therr.habits). react-native-geolocation-service
+       is still bundled (shared with Therr/Teem) but gated by ENABLE_LOCATION_SERVICES=false.
+       Strip the location permissions it would otherwise inject into the merged manifest
+       so Play Store does not flag the app for undeclared location use. Do NOT port these
+       removals to general/THERR/TEEM — those variants do use location. -->
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove" />
+  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" tools:node="remove" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" tools:node="remove" />
 
   <uses-feature
     android:name="android.hardware.camera"
@@ -31,10 +55,6 @@
     android:allowBackup="false"
     android:extractNativeLibs="false"
     android:theme="@style/AppTheme">
-    <meta-data
-      android:name="com.transistorsoft.locationmanager.license"
-      android:value="7ae51b9238254e95b67105b91d62ee57189cd534ad26a47c73efb2e2cd257b48" />
-
     <activity
       android:name=".MainActivity"
       android:label="@string/app_name"
@@ -185,6 +205,84 @@
       </intent-filter>
       <intent-filter>
         <action android:name="${notificationActionPrefix}.LEADERBOARD_RANK_MILESTONE" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+
+      <!-- HABITS: pact lifecycle, partner activity, streaks and habit reminders. -->
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.PACT_INVITATION" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.PACT_NUDGE" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.PACT_ACCEPTED" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.PACT_DECLINED" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.PACT_COMPLETED" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.PACT_EXPIRING" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <!--
+        PACT_ENDED. The server has been sending this since the digest gained its
+        expiry sweep, and without this filter Android silently no-ops the tap:
+        the notification renders, the "Start New Cycle" button does nothing, and
+        no error is produced on the device or the server. Caught by
+        .claude/skills/push-notification-guard/scripts/check-push-wiring.js,
+        which reads the manifest from whichever branch builds the brand.
+      -->
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.PACT_ENDED" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.PARTNER_CHECKED_IN" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.PARTNER_MISSED_DAY" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.PARTNER_CELEBRATED" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.STREAK_MILESTONE" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.STREAK_AT_RISK" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.STREAK_BROKEN" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.NEW_PERSONAL_RECORD" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.DAILY_HABIT_REMINDER" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.MORNING_MOTIVATION" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.EVENING_CHECK_IN" />
         <category android:name="android.intent.category.DEFAULT" />
       </intent-filter>
 

@@ -20,6 +20,7 @@ import isValidSignupAge, { MINIMUM_SIGNUP_AGE } from 'therr-js-utilities/is-vali
 import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import { Button } from '../../components/BaseButton';
 import { showToast } from '../../utilities/toasts';
+import { getInstallAcquisition } from '../../utilities/installReferrer';
 import translator from '../../utilities/translator';
 import RoundInput from '../../components/Input/Round';
 import PasswordInput from '../../components/Input/PasswordInput';
@@ -327,7 +328,11 @@ export class PhoneSignupFormComponent extends React.Component<
 
         this.setState({ isSubmitting: true, errorMessage: '' });
 
-        this.props
+        // Where this install came from, if Play told us. Resolves null on every
+        // failure path and must never delay or block the registration — hence
+        // the catch, and hence it is awaited rather than raced: the read is a
+        // single cached AsyncStorage hit after the first launch.
+        getInstallAcquisition().catch(() => null).then((userAcquisition) => this.props
             .register({
                 email: email.trim(),
                 // Referral code from the inviter's share link. Sending it is what auto-connects
@@ -346,6 +351,9 @@ export class PhoneSignupFormComponent extends React.Component<
                         isCreatorAccount: accountType === 'creator',
                     }
                     : {}),
+                // Advisory telemetry. The server sanitizes it and drops
+                // anything malformed rather than failing the signup.
+                userAcquisition: userAcquisition || undefined,
             })
             .then(() => this.props.onSuccess({ email: email.trim(), phoneNumber }))
             // Shared with the e-mail sign-up form, so the two paths cannot drift. It maps
@@ -357,7 +365,7 @@ export class PhoneSignupFormComponent extends React.Component<
 
                 this.setState({ isSubmitting: false });
                 this.showFormError(message, title);
-            });
+            }));
     };
 
     openPrivacyPolicy = () => {

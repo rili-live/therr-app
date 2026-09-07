@@ -11,11 +11,13 @@ import { AccessPresets } from '../../main/routes/access';
 /**
  * Guards the landing screen against an innocent-looking route reorder.
  *
- * `Layout.tsx` renders the routes array in order through `.filter(...).map(...)` and never
- * sets `initialRouteName` on `Stack.Navigator`, so React Navigation makes the FIRST route
- * the user is authorized for the landing screen. That coupling is invisible at the call
- * site — nothing in `routes/index.tsx` looks order-sensitive, and a reorder produces no
- * type error and no runtime warning. It only shows up as users landing on the wrong screen.
+ * `Layout.tsx` renders the routes array in order through `.filter(...).map(...)`, and the
+ * `initialRouteName` it passes to `Stack.Navigator` is `undefined` for every brand except
+ * HABITS (see `utilities/brandLandingRoute.ts` and `navigation/BrandInitialRoute.test.ts`).
+ * With no initial route named, React Navigation makes the FIRST route the user is
+ * authorized for the landing screen. That coupling is invisible at the call site — nothing
+ * in `routes/index.tsx` looks order-sensitive, and a reorder produces no type error and no
+ * runtime warning. It only shows up as users landing on the wrong screen.
  *
  * The risk became real when `CreateProfile` moved from
  * `EMAIL_VERIFIED_MISSING_PROPERTIES` to `ANY_AUTHENTICATED`: fully verified users now

@@ -51,13 +51,17 @@ const requestOSCameraPermissions = (storePermissionsResponse) => {
                 PERMISSIONS.IOS.CAMERA,
             ], storePermissionsResponse);
         case 'android':
+            // Only request CAMERA. READ_MEDIA_IMAGES is intentionally NOT requested:
+            // gallery selection goes through openPicker() (the Android system photo
+            // picker), which grants per-item access without any media permission — and
+            // declaring READ_MEDIA_IMAGES violates Google Play's photo/video policy.
+            // WRITE_EXTERNAL_STORAGE is only needed on API < 33 for legacy camera output;
+            // on API 33+ scoped storage handles the camera temp file with no permission.
             return requestAndroidPermission([
                 PermissionsAndroid.PERMISSIONS.CAMERA,
-                (Platform.Version && Platform.Version < 33)
-                    ? PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
-                    : PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-                // PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-                // PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                ...((Platform.Version && Platform.Version < 33)
+                    ? [PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE]
+                    : []),
             ], storePermissionsResponse);
         default:
             return Promise.reject();

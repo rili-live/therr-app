@@ -63,10 +63,27 @@ const INTENT_ACTION_KEYS = [
     'LEADERBOARD_RANK_MILESTONE',
 ];
 
-// The HABITS retention-loop keys (PACT_*, STREAK_*, PARTNER_*, ...) are deliberately not
-// listed here. They exist in `HabitsAndroidIntentActions` but the Therr app does not handle
-// habits pushes, so its manifest correctly declares no filter for them — asserting them on
-// this branch would fail for the right reason. `niche/HABITS-general` carries that half.
+// HABITS-only keys. These are the retention loop — the whole reason the app exists —
+// and they were the ones most conspicuously absent from the manifest.
+const HABITS_INTENT_ACTION_KEYS = [
+    'PACT_INVITATION',
+    'PACT_NUDGE',
+    'PACT_ACCEPTED',
+    'PACT_DECLINED',
+    'PACT_COMPLETED',
+    'PACT_EXPIRING',
+    'PACT_ENDED',
+    'PARTNER_CHECKED_IN',
+    'PARTNER_MISSED_DAY',
+    'PARTNER_CELEBRATED',
+    'STREAK_MILESTONE',
+    'STREAK_AT_RISK',
+    'STREAK_BROKEN',
+    'NEW_PERSONAL_RECORD',
+    'DAILY_HABIT_REMINDER',
+    'MORNING_MOTIVATION',
+    'EVENING_CHECK_IN',
+];
 
 const declaredActions = new Set(
     Array.from(manifest.matchAll(/<action android:name="([^"]+)"\s*\/>/g)).map((m) => m[1]),
@@ -75,6 +92,14 @@ const declaredActions = new Set(
 describe('AndroidManifest push-notification intent filters', () => {
     it('declares an intent filter for every shared intent action key', () => {
         const missing = INTENT_ACTION_KEYS.filter(
+            (key) => !declaredActions.has(`\${notificationActionPrefix}.${key}`),
+        );
+
+        expect(missing).toEqual([]);
+    });
+
+    it('declares an intent filter for every HABITS intent action key', () => {
+        const missing = HABITS_INTENT_ACTION_KEYS.filter(
             (key) => !declaredActions.has(`\${notificationActionPrefix}.${key}`),
         );
 
@@ -100,30 +125,33 @@ describe('AndroidManifest push-notification intent filters', () => {
 });
 
 /**
- * The list above is a literal, and that is deliberate — see the header. But a literal only
- * catches what it already names: a key *added* to the enum and never added here is
+ * The two lists above are literals, and that is deliberate — see the header. But a literal
+ * only catches what it already names: a key *added* to the enum and never added here is
  * invisible, and the manifest assertions pass while the new notification ships untappable.
- * That is how `NEW_THOUGHT_REPOST_RECEIVED` sat uncovered on the HABITS branch.
+ * That is how `NEW_THOUGHT_REPOST_RECEIVED` sat uncovered.
  *
  * So close the loop against the enum's **TypeScript source**, read as text. Reading the
  * source rather than importing the module is what keeps the header's promise: it does not
  * care whether therr-js-utilities' `lib/` output has been built or is stale, and it holds
  * even though this suite must keep working when it has not been.
  *
- * `TherrAndroidIntentActions` is the enum checked here because it is the one the app this
- * branch builds actually receives. `niche/HABITS-general` runs the same guard against
- * `HabitsAndroidIntentActions`, which is a strict superset (41 keys against these 24) —
- * between the two branches every key is covered.
+ * `HabitsAndroidIntentActions` is the one checked because it is a strict superset of the
+ * Therr and Teem enums (41 keys against their 24), so covering it covers every brand.
+ *
+ * `general` carries the same guard against `TherrAndroidIntentActions` and deliberately
+ * omits the HABITS keys — the Therr app does not handle habits pushes, so its manifest
+ * correctly declares no filter for them. When resolving a merge conflict in this file,
+ * each branch keeps its own side; they are not two attempts at one test.
  */
 const ENUM_SOURCE_PATH = path.resolve(
     __dirname,
     '../../therr-public-library/therr-js-utilities/src/constants/enums/PushNotifications.ts',
 );
 
-describe('intent action key list tracks the shared enum', () => {
-    it('names every key in TherrAndroidIntentActions, and no key that is not in it', () => {
+describe('intent action key lists track the shared enum', () => {
+    it('names every key in HabitsAndroidIntentActions, and no key that is not in it', () => {
         const enumSource = fs.readFileSync(ENUM_SOURCE_PATH, 'utf8');
-        const enumBlock = enumSource.match(/enum\s+TherrAndroidIntentActions\s*\{([\s\S]*?)\n\}/);
+        const enumBlock = enumSource.match(/enum\s+HabitsAndroidIntentActions\s*\{([\s\S]*?)\n\}/);
 
         // A rename or restructure of the enum must fail loudly here rather than quietly
         // reducing this test to an assertion about an empty set.
@@ -132,9 +160,11 @@ describe('intent action key list tracks the shared enum', () => {
         const enumKeys = Array.from(enumBlock![1].matchAll(/^\s*([A-Z][A-Z0-9_]*)\s*=/gm)).map((m) => m[1]);
         expect(enumKeys.length).toBeGreaterThan(0);
 
+        const covered = [...INTENT_ACTION_KEYS, ...HABITS_INTENT_ACTION_KEYS];
+
         // Named rather than counted so a failure says which key drifted.
-        expect(enumKeys.filter((key) => !INTENT_ACTION_KEYS.includes(key))).toEqual([]);
-        expect(INTENT_ACTION_KEYS.filter((key) => !enumKeys.includes(key))).toEqual([]);
+        expect(enumKeys.filter((key) => !covered.includes(key))).toEqual([]);
+        expect(covered.filter((key) => !enumKeys.includes(key))).toEqual([]);
     });
 });
 

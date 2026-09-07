@@ -1,4 +1,9 @@
-const BASE_URL = 'https://www.therr.com';
+import { BrandVariations } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
+
+const BASE_URL = CURRENT_BRAND_VARIATION === BrandVariations.HABITS
+    ? 'https://habits.therr.com'
+    : 'https://www.therr.com';
 
 export const getLocaleUrlPrefix = (locale: string): string => {
     if (locale && locale !== 'en-us' && locale !== 'en') {
