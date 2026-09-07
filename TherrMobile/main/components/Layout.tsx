@@ -41,6 +41,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { showToast } from '../utilities/toasts';
+import { logAppEvent } from '../utilities/analyticsEvents';
 import getConfig from '../utilities/getConfig';
 import { sendForegroundNotification, wrapOnMessageReceived } from '../utilities/pushNotifications';
 import routes from '../routes';
@@ -1718,6 +1719,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     ...(checkinPactId ? { pactId: checkinPactId } : {}),
                     status: 'completed',
                 }).then(() => {
+                    // The push quick-action is a real check-in and the highest-
+                    // retention one there is — the user never opened the app.
+                    // Omitting it here would make the notification loop look
+                    // like it produces nothing.
+                    logAppEvent('habit_checkin_complete', {
+                        userId: this.props.user?.details?.id,
+                        source: 'pushAction',
+                        hasProof: false,
+                    });
+
                     showToast.success({
                         text1: this.translate('alertTitles.checkinSucceeded'),
                         text2: this.translate('alertMessages.checkinSucceeded'),

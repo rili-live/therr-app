@@ -71,6 +71,37 @@ append new items here rather than only printing them once.
   is the brand whose push routing has actually broken before, so it is arguably
   the one worth covering first.
 
+## Habits pact renewal (added 2026-09-03)
+
+- [ ] **Clean up the duplicate pending renewals already in production.** The
+  re-commit duplicate bug (§ 2.6.3) is fixed going forward, but rows it already
+  created carry no `renewedFromPactId`, so nothing links or hides them — an
+  affected user still sees their duplicates until they are dealt with. They are
+  identifiable as several `pending` pacts by the same `creatorUserId` on the same
+  `habitGoalId`, created within seconds of each other:
+
+  ```sql
+  SELECT "creatorUserId", "habitGoalId", count(*), min("createdAt"), max("createdAt")
+    FROM habits.pacts
+   WHERE status = 'pending' AND "renewedFromPactId" IS NULL
+   GROUP BY 1, 2 HAVING count(*) > 1
+   ORDER BY 3 DESC;
+  ```
+
+  Abandon all but the newest of each group (`UPDATE habits.pacts SET status =
+  'abandoned', "endReason" = 'mutual' WHERE id IN (…)`) rather than deleting
+  them, so any `pact_members` and activity rows stay resolvable. Deliberately
+  **not** done in the migration: which of a set of same-second pacts the user
+  meant to keep is a judgement about their data, not a schema change, and a
+  migration that guessed wrong would be unreviewable after the fact.
+
+- [ ] **Check whether any affected user is left with no live cycle.** Abandoning
+  the extras above is safe, but a user whose *only* remaining renewal was one of
+  the abandoned rows ends up with a habit and no pact. The predecessor becomes
+  re-committable again on its own (an `abandoned` successor un-supersedes it, by
+  design), so the fix is to confirm the ended cycle reappears in their list
+  rather than to hand-create a pact for them.
+
 ## Analytics & traffic (added 2026-08-24, from the GA4 review)
 
 - [ ] **Cut off the headless-Chrome crawler polluting the consolidated property.**
@@ -89,11 +120,21 @@ append new items here rather than only printing them once.
   > traffic, then enable the Internal Traffic data filter to Exclude.
   Do this **before** the old GA4 properties are retired, or the consolidated
   property's only history is a baseline inflated roughly 8x.
-- [ ] **Re-register the `surface` custom dimension** now that habits.therr.com
+  > Still open, re-measured 2026-09-03: **2,616 of 3,052 sessions (86%)** over the 30
+  > days to 2 Sep, Singapore/Chrome/desktop, 28 engaged sessions (1.1%). It is confined
+  > to `www.therr.com` — `habits.therr.com` reads clean at 130 sessions / ~15s
+  > engagement — so paid-campaign reporting works around it via
+  > `scripts/google-ads/settings.yaml` → `ga4.web_hostname`. That is a workaround for
+  > one report, not a fix: the property's own totals stay inflated until this is blocked.
+- [x] **Re-register the `surface` custom dimension** now that habits.therr.com
   reports as its own surface (`landing` / `web` / `habits` / `dashboard`). GA4 admin
   -> Custom definitions, event-scoped, parameter `surface`. Without registration the
   value is collected but not reportable, and habits web traffic stays indistinguishable
   from therr.com.
+  > Done — verified 2026-09-03 against property `549794383`: `customEvent:surface`
+  > returns `web` 10,111 / `habits` 600 / `landing` 319 / `dashboard` 77 over the 30
+  > days to 2 Sep. `scripts/google-ads/settings.example.yaml` →
+  > `ga4.surface_dimension_registered` now defaults to `true`.
 - [ ] **Re-submit the habits sitemap to Search Console** — `habits.therr.com/sitemap.xml`
   grew from 3 URLs to 3 + `/blog` + one per cross-post. This subdomain has almost no
   inbound links, so the sitemap is most of how those pages get discovered at all.
@@ -175,7 +216,7 @@ here is what code cannot close.
   the gate is not firing and users are being nagged after they have already done
   the thing. Kill switch is `HABIT_LAST_CHANCE_REMINDERS_ENABLED=false` on
   users-service — no deploy needed.
-- [ ] **Build the push-preference UI, now that two columns are finally read.** The
+- [x] **Build the push-preference UI, now that two columns are finally read.** The
   digest honours `settingsPushHabitReminders` (both daily slots) and
   `settingsPushStreakAlerts` (the evening escalation only) — the first server-side
   reading of any push preference column. No client writes either, so
@@ -183,6 +224,15 @@ here is what code cannot close.
   until `TherrMobile/main/routes/Settings/ManageNotifications.tsx` grows push
   toggles alongside its email ones. Until then a user's only way to turn the
   evening nudge off is the OS switch, which takes everything with it.
+  > Both halves are in as of 2026-09-05. The toggles shipped on
+  > `niche/HABITS-general` (`c45a0bc5`) **before** the server could accept them —
+  > `updateArgs` in `handlers/users.ts` and the param filter in
+  > `UsersStore.updateUser` are both explicit allow-lists and neither named these
+  > columns, so a save returned 202 with the values dropped and the screen showed a
+  > success toast. Both allow-lists now carry them, guarded on `!= null` rather than
+  > truthiness: the digest mutes on an explicit `false` and nothing else, so `false`
+  > is the only value that changes anything. **The write half is on `general` and the
+  > toggles are on the niche branch — the counters stay at 0 until both are out.**
 
 ## Standing items (always re-verify after a deploy that touches the area)
 
@@ -268,9 +318,11 @@ console configuration, and one verification that gates a payments change.
   Configure tag settings → Configure your domains). The tag-side `linker` config is now
   deployed on all surfaces, but it only decorates outbound links — the receiving property
   honours `_gl` only when the admin list includes the domain.
-- [ ] **Register `surface` as an event-scoped custom dimension** in GA4 admin. Every hit now
+- [x] **Register `surface` as an event-scoped custom dimension** in GA4 admin. Every hit now
   carries it (`landing` / `web` / `dashboard`); without registration it is collected but
   not reportable, and the three surfaces cannot be separated after consolidation.
+  > Done — see the verification note under § Analytics & traffic above. This is the same
+  > item; the two entries were written independently.
 - [ ] **Mirror the consolidated GA4 measurement id into `therr-landing`.** The property exists
   and `global-config.js` → `googleAnalyticsKeyUnified` is set to `G-R7CY0Z1ZRM` in all three
   env blocks, so this repo's clients already dual-report. Still owed: the commented block in
@@ -298,6 +350,13 @@ Tooling is built (`scripts/google-ads/`) and both campaign specs validate. These
 are the steps code cannot do. Strategy, thresholds and the decision log live in
 `docs/PAID_ACQUISITION_PLAYBOOK.md`.
 
+> **Read the GA4 baseline before spending.** 5 Jun – 2 Sep 2026, organic, from the
+> "Friends with Habits" Android stream on property `267810693`: **182 installs → 75
+> started a profile (41%) → 14 verified a phone (7.7%) → 2 sent an invite (1.1%)**,
+> with a 26% uninstall rate. Paid traffic is colder than that. The PRODUCT question
+> is therefore already substantially answered, and the instrumentation and
+> onboarding items below are what a campaign is waiting on — not the credentials.
+
 - [ ] **Obtain a Google Ads developer token at Basic access.** Google Ads UI ->
   Tools & Settings -> Setup -> API Center, on the manager account. A newly issued
   token is Test Account level and rejects every call against a real account with
@@ -319,13 +378,62 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   Google Ads links) so installs are reported as conversions. Without the link,
   the App campaign optimises against nothing and `report ads` shows zero installs
   regardless of what actually happened.
+- [ ] **Import the GA4 key events from property `267810693` into Ads as conversion
+  actions.** The link already exists (created 2022 to customer `7604290203`), and
+  `first_open` / `profile_create_start` / `phone_verify_success` /
+  `connection_invites_sent` are already marked as key events — this is Ads UI ->
+  Goals -> Conversions -> New -> Import -> Google Analytics 4, not a build. Use
+  `first_open` for run 1; add the activation events once they carry volume.
+- [ ] **Set `settings.yaml` -> `customer_id: "7604290203"` and `config.yaml` ->
+  `login_customer_id: "3076709152"`.** The operating account is the one already
+  linked to the GA4 app property; the manager is what you authenticate *through*,
+  not what campaigns are created in. `./therrads auth check` lists what the token
+  can actually reach — confirm both before the first `campaign apply`.
+- [ ] **Mark the six new habits events as key events** in GA4 admin on property
+  `267810693`, stream "Friends with Habits": `habit_pact_create`,
+  `habit_invite_sent`, `habit_solo_start`, `habit_checkin_complete`,
+  `habits_paywall_view`, `habits_founder_unlock_purchase`. They start arriving
+  once versionCode 35 reaches the Play production track. An event that is
+  collected but not marked cannot be imported into Ads as a conversion action,
+  and this is the whole point of shipping them.
+- [ ] **Create a Google Ads link on GA4 property `549794383`.** The app property
+  (`267810693`) has had one since 2022; the consolidated web property has
+  **none**, so the web arm has no path to import a conversion even after
+  `sign_up` is marked. GA4 Admin -> Product links -> Google Ads links.
+- [ ] **Mark `sign_up` as a key event** on property `549794383` and import it as
+  the web arm's conversion action. `habits.therr.com/register` fires it on a
+  successful registration, and the landing page fires `store_click` /
+  `register_start`. Without this the Search campaign's `target_cpa: 8.00` has no
+  conversion to count and bids against nothing.
 - [ ] **Set `settings.yaml` -> `product_db.enabled: true`** against the READ
   replica once credentials are sourced. Ads and GA4 alone cannot answer whether
   paid users activate or pay; that join lives only in our own database.
 
 ### Code work this unblocks
 
-- [ ] **Wire the Play Install Referrer API into TherrMobile** so paid installs
+- [x] **Instrument the habits activation and purchase events in TherrMobile.**
+  `git grep logEvent` on `niche/HABITS-general` finds no `habit_pact_create`, no
+  check-in-complete and no Founder Unlock purchase event, so the in-app funnel
+  stops at phone verification: the MODEL question has no GA4 answer at all, and
+  PRODUCT is answerable only as far as "did they invite anyone". Add
+  `habit_pact_create` (`routes/Pacts/CreatePactInvite.tsx`),
+  `habit_checkin_complete` (`components/Habits/CheckinButton.tsx` /
+  `CheckinProofSheet.tsx`), `habits_founder_unlock_purchase`
+  (`utilities/habitsBilling.ts`, with `value: 20` and `currency: 'USD'` so it
+  imports as a value conversion) and `habits_paywall_view`
+  (`routes/Habits/UpgradePaywall.tsx`), matching the existing
+  `logEvent(getAnalytics(), ...)` style in `routes/CreateProfile/index.tsx:144`.
+  Then mark each as a key event in GA4 admin on property `267810693`.
+  `ga4.APP_FUNNEL_STEPS` already declares them with `shipped=False`, so the
+  reporting side needs no change once they start firing.
+  **Mobile-only — belongs on `niche/HABITS-general`, not `general`.**
+  > Shipped on `niche/HABITS-general` 2026-09-03, in versionCode 35 / 1.5.0.
+  > Six events, all on server-confirmed paths: `habit_pact_create`,
+  > `habit_invite_sent`, `habit_solo_start`, `habit_checkin_complete` (three
+  > call sites, including the push quick-action), `habits_paywall_view`, and
+  > `habits_founder_unlock_purchase` with `value`/`currency`. **Two manual steps
+  > remain — see § Paid acquisition below.**
+- [x] **Wire the Play Install Referrer API into TherrMobile** so paid installs
   are attributable. Read the referrer string on first launch, parse the UTM
   parameters, and include them in the registration payload's `userAcquisition`
   object — `sanitizeUserAcquisition` and `main."userAcquisition"` already exist,
@@ -333,6 +441,15 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   app-install arm's users is inference rather than measurement, and paid installs
   are indistinguishable from organic ones in the funnel.
   **Mobile-only — belongs on `niche/HABITS-general`, not `general`.**
+  > Shipped on `niche/HABITS-general` 2026-09-03, in versionCode 35 / 1.5.0.
+  > First-party `InstallReferrerModule.kt` on the existing `InitialIntentModule`
+  > pattern, parsing in `main/utilities/installReferrer.ts`, attached in both
+  > mobile register paths. No backend change, as predicted. It refuses to treat
+  > Play's own `utm_source=google-play&utm_medium=organic` placeholder as a
+  > campaign. **Unverifiable until a real paid click lands** — the first thing
+  > to check after the campaign starts serving is whether a
+  > `main."userAcquisition"` row appears with
+  > `utmCampaign = 'fwh-app-us-installs-2026q3'`.
 - [ ] **Add accepted-invite counts to the acquisition funnel query** so the viral
   coefficient is measured rather than assumed. `product.py` currently counts
   invites *sent* (the 3-invite solo-tracking unlock); the loop only pays for
@@ -347,8 +464,63 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
-- [ ] (2026-09-01, /work-plan) **Ship the `niche/HABITS-general` half of `pactEnded` before
-  this reaches production traffic.** Two things are missing there and neither errors: the
+- [ ] (2026-09-05, /work-plan) **Watch `remindersMutedByPreference` and
+  `lastChanceMutedByPreference` leave 0 once BOTH halves of the push toggles are out.**
+  The two counters have been structurally pinned at 0, not merely unused: the digest has
+  read `settingsPushHabitReminders` / `settingsPushStreakAlerts` for weeks, but until this
+  deploy no code path could write either column. The toggles are on
+  `niche/HABITS-general` (`c45a0bc5`) and the write half is on `general` — order does not
+  matter, but **both** are required, and neither reports its absence. A user on the old
+  server sees a success toast and keeps every reminder; a user on the old app has a server
+  that would accept a value nothing sends. First non-zero value is the only evidence the
+  pair is wired. No migration and no env var — both columns already exist and default to
+  `true`.
+- [ ] (2026-09-05, /work-plan) **Re-check the `PACT_ENDED` channel on an install that
+  already created it.** Android locks a notification channel's importance at first
+  creation, so moving `PACT_ENDED` into `REMINDER_ACTION_KEYS` only reaches devices that
+  had not yet posted on `reminders`. Existing habits installs already created that channel
+  the first time a daily reminder arrived, so they pick up the change for free — but an
+  install that somehow created `default` first keeps the silent behaviour until the user
+  clears app data. Worth one handset check alongside the ended-pact renewal test below
+  rather than a code change.
+- [ ] (2026-09-05, /work-plan) **`LEADERBOARD_RANK_MILESTONE` is unbucketed on the Therr
+  build.** Surfaced by `check-push-wiring.js` once its false positives were cleared. The
+  key is in `REWARD_ACTION_KEYS` on `niche/HABITS-general` but not on `general`, so the
+  Therr app renders the rank-milestone push at DEFAULT importance. Deliberately left alone
+  here: it is a Therr-side product call about whether a leaderboard move should interrupt,
+  and it is outside the habits batch that found it. The deeper issue it points at is that
+  the HABITS channel buckets live only on the niche branch, so `general`'s copy of
+  `getAndroidChannelFromClickActionId` is permanently a subset.
+- [ ] (2026-09-05, /work-plan) **Run the two new migrations after this reaches `main`.**
+  maps-service `20260905000000_main.medias_gin_indexes` and users-service
+  `20260905000001_main.thoughts.medias` — automated by `_bin/cicd/run-migrations.sh` on `main`
+  deploys, so this is a verification step unless `RUN_MIGRATIONS_ON_DEPLOY=false` is set.
+  The GIN indexes are the one worth watching: `createMediaUrls` now runs a `medias @> …`
+  containment probe for any private path the caller does not own, and without the indexes
+  that is a sequential scan on `main.moments` on every nearby-feed render carrying another
+  user's private image. Build them before or with the maps-service rollout, not after.
+- [ ] (2026-09-05, /work-plan) **Watch for private media disappearing from the nearby feed
+  and map after the maps-service deploy.** `POST /media/signed-urls` now omits paths the
+  caller neither owns nor can justify with a moment/space/event, where it previously
+  resolved anything. The intended blast radius is zero — every path a client holds came
+  from a content row — but a resolution path nobody remembered would show up as a missing
+  image with **no error on either side**, the same silent shape as the bug being fixed.
+  Check `NearbyWrapper` / `TherrMapView` render private area images, and `MyDrafts` renders
+  a user's own.
+- [ ] (2026-09-05, /work-plan) **Confirm proof moderation is actually writing.** Nothing
+  fails if it does not — the check is fire-and-forget by design. After a check-in with a
+  photo, `habits.proofs` rows should leave `verificationStatus = 'pending'` for
+  `'auto_verified'` (or `'flagged'`) within seconds. A population stuck at `pending` means
+  `SIGHTENGINE_API_KEY` / `SIGHTENGINE_API_SECRET` are unset on users-service — the moments
+  path has them, but this is the first users-service caller of `checkIsMediaSafeForWork`
+  outside the profile-picture path.
+- [ ] (2026-09-05, /work-plan) **Thought images start appearing for posts made from the
+  already-installed app.** `ThoughtsStore.create` accepts the legacy `media` field, so
+  installs that predate the `EditThought` change stop losing photos as soon as users-service
+  rolls — no app release required. Historical posts stay imageless: their uploads are
+  orphaned objects with no row pointing at them (see § 2.6.7 "Still open").
+- [x] ~~**Ship the `niche/HABITS-general` half of `pactEnded` before
+  this reaches production traffic.**~~ Two things are missing there and neither errors: the
   `${notificationActionPrefix}.PACT_ENDED` `<intent-filter>` in
   `TherrMobile/android/app/src/main/AndroidManifest.xml`, and a handler for the `renew-pact`
   press action. Without the filter an installed app ignores the notification outright; with
@@ -358,6 +530,15 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   `node .claude/skills/push-notification-guard/scripts/check-push-wiring.js --brand-branch niche/HABITS-general`
   — that run could not be completed in the session that wrote this (the branch would not
   fetch), so the niche half is **unverified**, not known-good.
+  > **Verified 2026-09-05.** Both halves are on `niche/HABITS-general`: the intent filter
+  > (`7db85fb`) and the `renew-pact` branch in `Layout.tsx`, which reads `pactId` from the
+  > data payload, falls back to the dashboard's `all` tab when it is missing, and defers to
+  > `PactDetail` when the user is signed out. The wiring check now runs clean on that branch.
+  > What the check *did* surface, and this entry did not anticipate, is that `PACT_ENDED` was
+  > in no channel bucket, so the push carrying the primary re-commit CTA rendered at DEFAULT
+  > importance with no heads-up banner — fixed by adding it to `REMINDER_ACTION_KEYS`
+  > alongside `PACT_EXPIRING`, the same lifecycle one step earlier. Handset confirmation is
+  > still the next item below.
 - [ ] (2026-09-01, /work-plan) **Confirm on a handset that the ended-pact push renews.** This
   is link 5 and nothing server-side reports it. Let a HABITS pact pass its `endDate`, run the
   digest, then on a real device confirm: the notification arrives, shows **two** buttons
@@ -652,7 +833,7 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 - [ ] (2026-07-19, /quality-peer-review) Post-deploy verification for the cross-app push fix: on a device with **both** Therr and Friends with Habits installed, confirm a Therr "New Spots Unlocked" push lands in Therr (not Habits), and a Habits streak reminder lands in Habits. **Requires the mobile release carrying the unconditional FCM re-registration** (see the correction below) — installs older than that may never have written a brand-scoped row at all.
   > **Correction (2026-08-31).** The original note here claimed existing installs "self-heal on next launch". They do not. The re-registration was guarded on `user.details.deviceMobileFirebaseToken !== deviceToken`, and that value is the legacy *shared* `users.deviceMobileFirebaseToken` column — every branded app on the device overwrites it in turn, so it says nothing about whether *this* brand has a `main.userDeviceTokens` row. Whenever the shared column already held this app's token the guard skipped `updateUser` entirely and the brand-scoped row was never written; routing then fell back to the shared column and delivered the notification to whichever app registered last. The value is also never written back into Redux by `updateUser`, and the `user` slice is redux-persisted, so a stale snapshot survived app updates. Fixed by removing the guard — but that means an app-store update of the *old* code would not have fixed it; the fix must ship in a build.
 - [ ] (2026-08-31, streak-notification-routing) Verify in production, after the next mobile release, that `GET /v1/users/<userId>/push-diagnostics` (SUPER_ADMIN, `x-brand-variation: habits`) reports `habits` in `brandsRegistered` for a user who holds both apps, and that `platform` reads `android`/`ios` rather than the legacy `mobile`. Until a device re-registers, its legacy `mobile` row is still honoured, so a mixed result during rollout is expected rather than a regression.
-- [ ] **(2026-08-31, streak-notification-routing) Find the producer that sends HABITS pushes with no `x-brand-variation`.** A "Don't Break Your Streak" push was delivered to the *Therr* app for a user whose `main.userDeviceTokens` held correct, distinct `therr` and `habits` rows — so the brand-scoped row was never consulted. Mechanism, all confirmed in code: an empty brand makes `resolveDeviceTokenForBrand` (`sendEmailAndOrPushNotification.ts`) return the **shared legacy** `users.deviceMobileFirebaseToken` column, which is whichever branded app registered last; `getBrandContext` then defaults the push service to THERR (the gateway forwards the header as `''` when absent, `handleServiceRequest.ts`); and `isTypeAllowedForBrand` had no rule stopping a habits-only type under THERR, so it rendered in the wrong app.
+- [ ] **(2026-08-31, streak-notification-routing) Find the producer that sends HABITS pushes with no `x-brand-variation`.** **Partly overtaken (2026-09-04):** `resolveDeviceTokenForBrand` no longer falls back to the shared legacy column in *any* branch — a brandless send now logs at error level and resolves to `null` instead of silently delivering to whichever app registered last, and `isTypeAllowedForBrand` blocks habits-only types under THERR. The mis-delivery is closed; what is still open is identifying the producer, which the error log now names. A "Don't Break Your Streak" push was delivered to the *Therr* app for a user whose `main.userDeviceTokens` held correct, distinct `therr` and `habits` rows — so the brand-scoped row was never consulted. Mechanism, all confirmed in code: an empty brand makes `resolveDeviceTokenForBrand` (`sendEmailAndOrPushNotification.ts`) return the **shared legacy** `users.deviceMobileFirebaseToken` column, which is whichever branded app registered last; `getBrandContext` then defaults the push service to THERR (the gateway forwards the header as `''` when absent, `handleServiceRequest.ts`); and `isTypeAllowedForBrand` had no rule stopping a habits-only type under THERR, so it rendered in the wrong app.
   Both silent halves are now closed — the push service blocks it (`notification-type-not-routed-for-brand`) and users-service warns on the empty-brand fallback — but **the producer is still unidentified, and until it is fixed the affected users get no streak notification at all rather than one in the wrong app.** It is not the habits digest: `habitsDigest` pins `BrandVariations.HABITS` and `notificationQueueWorker` forwards `row.brandVariation`, both covered by tests. Prime suspect is the sibling `therr-messaging-automator`, which pushes directly and walks users per brand (`docs/CROSS_REPO_INTEGRATION.md`). Search production logs for `Push send with no brandVariation` and `HABITS-only notification arrived under a non-HABITS brand` — both carry the user id, and the second carries the `x-brand-variation` the caller actually sent.
 - [ ] (2026-07-18, leaderboards) After one release cycle with clean shadow logs, flip `UserLeaderboardScoresStore` from `'shadow'` to `'enforce'` mode (users-service `src/store/UserLeaderboardScoresStore.ts`).
 - [ ] (2026-07-18, leaderboards) Product/QA note: the HABITS achievement allow-list is re-enabled (habit ladder + socialite + weeklyChampion — reverses the interim a55bce90d policy). Verify in the Friends with Habits build that check-ins surface streak/consistency achievements and that Therr-shaped classes (explorer, influencer…) still do not appear.
@@ -687,8 +868,10 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   shadow logs, flip `BrandScopedStore` mode from `'shadow'` to `'enforce'` in
   `NotificationsStore`, `UserAchievementsStore`, `UserDeviceTokensStore`,
   `DirectMessagesStore`, `ForumsStore`, `ForumMessagesStore` — comments in each
-  store mark this. Same release should also delete the legacy fallback in
-  `resolveDeviceTokenForBrand` once `main.userDeviceTokens` is authoritative.
+  store mark this. (The legacy fallback in `resolveDeviceTokenForBrand` is
+  already deleted as of 2026-09-04.)
+- [ ] **(2026-09-04, device-token-backfill) Mirror the no-fallback token routing into `therr-messaging-automator`.** `src/index.ts` still ends its resolver with `brandScopedToken || user.deviceMobileFirebaseToken` — the exact fallback just deleted from users-service. Until that lands, habits digest **emails and pushes sent from that repo** can still address a user's Therr install. Separate repo, no CI coupling; see `docs/CROSS_REPO_INTEGRATION.md`.
+- [ ] **(2026-09-04, device-token-backfill) Watch `notificationQueue` `skipped: no-device-token` for one week after deploy.** A step up is expected and correct — it is the population that was previously being mis-delivered to the wrong app becoming visible. What would be a real problem is the count failing to decay as users open their apps (mobile writes the brand-scoped row once per session), which would point at registration, not routing.
 - [ ] (2026-04-27, /quality-peer-review) After the dual-write window closes
   (mobile clients have re-registered against `main.userDeviceTokens`), drop the
   legacy `users.deviceMobileFirebaseToken` column in a follow-up migration —
@@ -1275,6 +1458,9 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 
 - [ ] (2026-09-02, /quality-peer-review) **The check-in freshness gate is date-basis-mismatched and silently inert for east-of-UTC users — decide whether to fix it at the writer.** `checkinNudgeFreshness` probes `habits.habit_checkins` using `schedule.morningLocalDate` / `lastChanceLocalDate`, which are the user's **local** calendar dates, but `habit_checkins."scheduledDate"` is written as a **UTC** date: `createCheckin` falls back to `getTodayDateString()` (`new Date().toISOString().split('T')[0]`) and no client has ever sent `scheduledDate` in the body. Wherever the UTC date at the delivery instant differs from the user's local date, the probe matches nothing and the gate fails open. The direction is safe — it can never wrongly silence anyone, because a matching row cannot exist yet at delivery time — but the size of the blind spot is the UTC offset: for `America/Chicago` (today's fallback for every user, since nothing writes `settingsTimezone` until the mobile release ships) it is only the ~30 min between 19:00 and the 19:30 last-chance slot, while for `Pacific/Auckland` the 08:00 morning slot lands at 20:00 UTC the previous day and the gate is inert for that slot entirely. So the protection that `checkinNudgeFreshness`'s own docstring calls "what makes deferring a nudge into the evening safe at all" weakens precisely as the timezone feature starts working. Do **not** patch this by probing both dates: a UTC day spans parts of two local days, so the extra probe would let a check-in from the *previous* local day suppress today's nudge, which is the wrong-suppression failure the module deliberately refuses. The real fix is to make `scheduledDate` the user's local date at the writer — which also touches streak computation, `isHabitDueToday` and `pactMemberStats`, all of which key off the same UTC basis — so it is a scoped piece of work, not a one-liner. Until then, read `lastChanceSent` knowing the gate is not doing as much as the design says.
 
+- [ ] (2026-09-06, /quality-peer-review) **`20260905000000_main.medias_gin_indexes` builds its three GIN indexes with a plain `CREATE INDEX`, which locks the tables it builds on.** Not `CONCURRENTLY`, so each statement takes an `ACCESS EXCLUSIVE` lock on `main."moments"` / `"spaces"` / `"events"` and blocks *reads as well as writes* on that table until the index finishes — the map and nearby feed stall for the duration, not just posting. This is correct-but-blocking rather than wrong: `IF NOT EXISTS` makes it re-runnable, and on today's row counts the build is likely seconds. Check `SELECT pg_size_pretty(pg_total_relation_size('main.moments'))` before the `main` deploy and, if it is large enough to matter, either run the three statements by hand in a low-traffic window ahead of the rollout (the migration then no-ops) or split them into a `CONCURRENTLY` migration — which needs `exports.config = { transaction: false }`, since knex wraps each migration in a transaction and `CREATE INDEX CONCURRENTLY` cannot run inside one. Do **not** skip the indexes: `createMediaUrls` now runs a `medias @> …` containment probe per unowned private path, and unindexed that is a sequential scan on every nearby-feed render carrying one.
+- [ ] (2026-09-06, /quality-peer-review) **Integration tests were NOT run for this batch — run them before promoting to `stage`.** The `general→stage` diff touches maps-service and users-service, but the local Docker daemon could not be started during the review, so only unit tests, lint, typecheck and the repo-wide gates were verified. `npm run docker:dev:up`, then `npm run pr:test:integration:maps` and `npm run pr:test:integration:users`. The maps one matters most: `ContentMediaStore.getReferencedPaths` is hand-written SQL (an OR-chain of `@>` containment predicates plus a `LATERAL jsonb_array_elements` join) and no unit test exercises it against a real Postgres — `tests/unit/mediaAccess.test.ts` covers only the pure partition helpers that decide *whether* to call it.
+
 <!-- skill-followups:end -->
 
 ---
@@ -1789,12 +1975,49 @@ in week one. Its dedupe key is `pact-ended:<pactId>` with **no date**, the only
 such key in the digest: a pact ends once, and `getExpiredPacts` keeps returning
 it until `expire` lands, so a date would let a retry double-send.
 
+**Follow-up shipped 2026-09-03: renewal is a continuation, not a second pact.**
+As first built, a renewal was a new `habits.pacts` row with nothing recording
+what it was a renewal *of* — so the list rendered the finished cycle beside the
+new one and a re-commit read as the app having duplicated the pact. Worse, the
+"one live cycle per habit" guard read `status = 'active'`, and a renewal with
+partners is created `pending` until the first acceptance: it was invisible to the
+guard, the ended pact kept its still-valid CTA, and each further tap created
+another parallel pending cycle. One tap, one apparent duplicate, no error
+anywhere.
+
+`renewedFromPactId` / `renewalCycleNumber` (migration
+`20260903000001_habits.pacts.renewedFromPactId.js`) record the edge; the reverse
+edge `supersededByPactId` is derived in `PactsStore`, and `GET /habits/pacts`
+leaves superseded cycles out unless asked for `includeSuperseded=true`. Renewal
+itself is now idempotent — a pact that already has a live successor answers
+**200** with that successor instead of creating another, so a double-tap, a
+retry and a stale CTA all converge on the one real cycle. The guard reads
+`getUnfinishedByUserAndHabitGoal`, which counts `pending` as in-flight;
+`getActiveByUserAndHabitGoal` deliberately still does not, because it answers
+"which pacts does this check-in credit" and an unanswered invite must never be
+one of them.
+
+**The mobile half shipped on `niche/HABITS-general`** — corrected 2026-09-05, this
+entry previously said it was not built. The `PACT_ENDED` intent filter is in
+`AndroidManifest.xml` (`7db85fb`) and `Layout.tsx` handles the `renew-pact` press
+action: it reads `pactId` off the data payload, renews with no duration override so
+the previous cycle's `durationDays` carries, and falls back to the dashboard's `all`
+tab (not `habits` — that segment does not list finished pacts) when the id is absent.
+
+One thing this section did not anticipate, found by
+`.claude/skills/push-notification-guard/scripts/check-push-wiring.js` on 2026-09-05:
+**`PACT_ENDED` was in no channel bucket.** `pactEnded` is data-only — that is what
+lets the renew button exist at all — so Notifee picks its channel from the
+`clickActionId` suffix, and a key in no bucket lands on `default` at DEFAULT
+importance. The push carrying the primary re-commit CTA arrived with no heads-up
+banner. It is now in `REMINDER_ACTION_KEYS` alongside `PACT_EXPIRING`, the same
+lifecycle one step earlier. Nothing reported this: the notification arrived, the
+button worked, and only its prominence was wrong.
+
 Still open:
 
-- **The mobile half is not built** — `niche/HABITS-general` must declare the
-  `PACT_ENDED` intent filter in `AndroidManifest.xml` and handle the
-  `renew-pact` press action. Until it ships, an installed app ignores the
-  notification entirely; nothing errors on either side.
+- Handset confirmation that the ended-pact push renews (see § Manual Operational
+  Follow-ups). Nothing server-side reports link 5 of this chain.
 - Optional follow-on: a long-form "your pact ended — here's what you built"
   re-commit email in `therr-messaging-automator`, which owns the SES templates
   and unsubscribe-token path (see `docs/HABIT_LIFECYCLE_MESSAGING.md` § Where
@@ -1902,22 +2125,54 @@ Two decisions worth not re-deriving:
   belongs gets a broken image and no error anywhere. See
   `utilities/checkinProofs.ts`.
 
-Still open, and the reason this is a section rather than a closed line:
+Closed 2026-09-05 (/work-plan), both items.
 
-- [ ] **`POST /maps-service/media/signed-urls` does no authorization.**
-  `createMediaUrls` carries an explicit `// TODO: Check that the user has access
-  to this media` and honours it for nobody: it resolves any path the caller
-  names, and private media resolves to a *deterministic* `IMAGE_KIT_URL_PRIVATE`
-  URL rather than a signed one — so knowing a path is the whole access story.
-  The new endpoint does not widen this (it only ever hands a user their own
-  paths), but proofs are the first private media whose paths follow a guessable
-  shape: `<userId>/content/habits_proof_<habitGoalId>_<epochMs>.jpeg`. Fix the
-  endpoint, not the filename. Scope: `general`, maps-service.
-- [ ] **Proof images are never moderated.** `verificationStatus`,
-  `isSafeForWork` and `moderationFlags` on `habits.proofs` are all still at
-  their insert defaults — nothing writes them. The moments upload path runs
-  Sightengine; the proof path does not. Harmless while proofs are owner-only,
-  **blocking** for 2.6.8, which makes them public.
+**`POST /maps-service/media/signed-urls` now authorizes.** It resolved any path any
+caller named, and private media resolves to a *deterministic* `IMAGE_KIT_URL_PRIVATE`
+URL rather than a signed one — so handing back a URL for a path was equivalent to handing
+back the image, permanently. Three tiers now, in cost order: public-bucket media resolves
+unconditionally (withholding it protects nothing); private media under the caller's own
+`<userId>/` prefix resolves with no database round trip; anything else must be referenced
+by a moment, space or event (`ContentMediaStore.getReferencedPaths`).
+
+That third tier is what keeps the fix non-breaking, and it is not obvious: the nearby feed
+and map legitimately hand a client *other users'* `USER_IMAGE_PRIVATE` paths — they arrive
+inside the area rows, and `NearbyWrapper` collects them into `missingMedias` — so an
+owner-only rule would have blanked those images. It is also what closes the habits case:
+`habits.proofs` paths live in users-service and are referenced by none of those three
+tables, so a proof path is now resolvable only by its owner.
+
+Two things worth not re-deriving:
+
+- **Unresolvable paths are omitted from the response, not rejected.** Clients batch a
+  screenful into one call and already handle a path coming back absent; a 403 for the
+  batch would blank every image in it, including the ones the caller is entitled to. Same
+  choice the reactions write allow-list makes.
+- **The residual gap is deliberate.** "Referenced by content" is weaker than a real
+  visibility check — a caller who knows a path *and* it belongs to a real moment still
+  resolves it. Closing that needs per-content visibility (proximity, connections), which
+  is a much larger change; this refuses the case that had no referent at all.
+- `20260905000000_main.medias_gin_indexes` adds `jsonb_path_ops` GIN indexes on the three
+  `medias` columns. Without them the containment probe is a sequential scan on every
+  nearby-feed render carrying another user's private image.
+
+**Proof images are now moderated.** `utilities/moderateProofs` runs the same
+`checkIsMediaSafeForWork` the moments upload path runs and writes `isSafeForWork` /
+`verificationStatus` / `moderationFlags` via `ProofsStore.setModerationResult`.
+
+Deliberately **not awaited** by the check-in handler and unable to fail it: the check-in
+commits on the first tap (§ 2.6.1), and proofs are owner-only (`canReadProofs`), so an
+unmoderated proof is visible to exactly one person — the uploader. The result matters at
+the moment a proof is *shared*, which is why this is a prerequisite for 2.6.8 rather than
+a gate on check-in.
+
+One asymmetry is load-bearing: `checkIsMediaSafeForWork` fails **closed**, returning false
+when signing or Sightengine throws. That is right for a share gate and wrong for a
+permanent record, so a thrown error is recorded as `pending` — still unverified, still not
+shareable — rather than as `rejected`, which would accuse a user of posting something
+unsafe because a vendor had an outage. Anything that exposes a proof beyond its owner must
+therefore read `verificationStatus === 'auto_verified'`, never `isSafeForWork` alone: rows
+sit briefly at their insert defaults (`pending` / `isSafeForWork: true`).
 
 #### 2.6.7 Thoughts silently drop uploaded images (#2840)
 
@@ -1936,15 +2191,41 @@ The Journal's own comment on `handleCreateGoal` documents the behaviour we do
 not have — "it gets the thought form's public/private toggle, category, hashtags
 and image". Every goal posted with a photo since that shipped has lost the photo.
 
-- [ ] Add a `medias jsonb` column (`[{path, type}]`), matching the
-      moments/spaces convention — **not** the legacy comma-separated `mediaIds`,
-      which areas already migrated away from. Clients then get display for free
-      via the existing `getUserContentUri(media)`.
-- [ ] Add `medias` to the `ThoughtsStore.create` allow-list and hydrate it on
-      the read paths (`getById`, `find`, `getForJournal`), replacing the
-      placeholder `media: {}`.
-- [ ] Render it in `ThoughtDisplay` (mobile) and `ViewThought` / `ThoughtCard`
-      (web). `AreaDisplay` is the working reference.
+Closed 2026-09-05 (/work-plan), the code half.
+
+`20260905000001_main.thoughts.medias` adds `medias jsonb` (`[{path, type, altText}]`),
+matching the moments/spaces/events convention rather than reviving the comma-separated
+`mediaIds`. `mediaIds` is deliberately **left in place**: therr-ai-automator writes
+`main.thoughts` directly, so dropping a column in the same change that adds one risks
+breaking a Cloud Function at its next firing rather than at deploy. Removing it is a later
+contract migration.
+
+`ThoughtsStore.create` now persists it, and `withMedia` hydrates `media` on every read
+path — `getById`, `find` (including their reply rows and their empty branches) and
+`getForJournal`. The old `media: {}` placeholder is gone: it was an *object* on a key
+clients map over, so it would have thrown rather than rendered empty.
+
+Two decisions worth not re-deriving:
+
+- **`create` accepts `media` as well as `medias`.** The deployed mobile composer sends only
+  `media` (`EditThought.signAndUploadImage`) and cannot be force-updated — the same reason
+  `EditMoment` still carries its `createArgs.medias = createArgs.media` line, which
+  `EditThought` was simply missing. Honoring both is what makes already-installed apps stop
+  losing photos on the day this deploys rather than on the day the next release lands.
+- **Only `path`, `type` and `altText` are carried through.** `type` selects the bucket, and
+  maps-service `getBucket` falls through to the **public** bucket for a value it does not
+  recognize — an unfiltered spread is how a private image ends up resolved publicly.
+
+Rendering is in place on `ThoughtDisplay` (mobile) and `ViewThought` / `ThoughtCard` (web,
+via `utilities/getThoughtMediaUri`).
+
+Still open:
+
+- [ ] **Private-bucket thought media does not render.** All three surfaces resolve against
+      the public ImageKit endpoint, the way `AreaDisplay` renders moment and event media. A
+      thought posted with `isPublic: false` gets `USER_IMAGE_PRIVATE` and needs the extra
+      `POST /maps-service/media/signed-urls` round trip the nearby feed makes; until then
+      the image is skipped rather than rendered broken.
 - [ ] Decide what happens to already-orphaned uploads. They are unreferenced
       objects in both buckets with no row pointing at them; a bucket-side
       lifecycle rule is probably cheaper than a reconciliation script.
@@ -2325,8 +2606,6 @@ English-formatted timestamps.
 - `therr-services/maps-service/src/handlers/spaces.ts:347` — Check user is
   part of organization and has access to view (currently any auth'd user can
   view any org space)
-- `therr-services/maps-service/src/handlers/createMediaUrls.ts:8, 11` — More
-  security on media access (verify requesting user has permission)
 - `therr-services/maps-service/src/store/EventsStore.ts:37` — Same
 - `therr-services/maps-service/src/store/MomentsStore.ts:33` — Same
 - `therr-services/maps-service/src/store/SpacesStore.ts:57` — Same

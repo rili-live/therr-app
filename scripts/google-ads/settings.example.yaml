@@ -11,7 +11,10 @@
 # The Google Ads account campaigns are created in. Digits only, no dashes.
 # This is the OPERATING account, distinct from `login_customer_id` in
 # config.yaml (the manager account you authenticate through).
-customer_id: "1234567890"
+# 7604290203 is the operating account already linked to GA4 property 267810693
+# (linked 2022, can_manage_clients: false). The manager it sits under,
+# 3076709152, is what goes in config.yaml -> login_customer_id — not here.
+customer_id: "7604290203"
 
 # Hard ceiling, enforced client-side in money.py before any mutate is sent.
 # The Google Ads API will happily accept a daily budget of $10,000 because of a
@@ -29,24 +32,47 @@ limits:
     # Days after campaign start during which edits are discouraged entirely.
     learning_period_days: 7
 
+# The funnel lives in TWO GA4 properties, and GA4 cannot join across them.
+# Reading only the first is what produced the long-standing belief that installs
+# were invisible to GA4. See the module docstring in therr_ads/ga4.py.
 ga4:
-    # Numeric PROPERTY ID for the Data API — NOT the G- measurement id.
+    # WEB. Numeric PROPERTY ID for the Data API — NOT the G- measurement id.
     # 549794383 is "Consolidated Domains", the property `googleAnalyticsKeyUnified`
     # (G-R7CY0Z1ZRM) in global-config.js reports into. Find it under
     # GA4 Admin -> Property settings.
     property_id: "549794383"
 
+    # APP. 267810693 is "therr-app", the Firebase-created property. It carries an
+    # Android data stream named "Friends with Habits" emitting first_open,
+    # profile_create_start, phone_verify_success and connection_invites_sent —
+    # all already key events — and it is already linked to the Ads accounts.
+    # This is the only measurement that exists for the app_install arm.
+    app_property_id: "267810693"
+
+    # Both Therr Android apps report into that property. Without this filter the
+    # habits funnel silently absorbs the flagship app's installs and every rate
+    # below it is wrong in the flattering direction.
+    app_stream_name: "Friends with Habits"
+
+    # Restricts the web report to the host being advertised. This is the
+    # effective crawler exclusion: the headless crawler walks
+    # www.therr.com/spaces/* and does not touch habits.therr.com.
+    web_hostname: "habits.therr.com"
+
     # The consolidated property is polluted by a headless-Chrome crawler (see
-    # docs/WORK_IN_PROGRESS.md § Analytics & traffic). Until that is blocked at
-    # the edge, session totals are inflated roughly 8x. With this true, the
-    # reporting layer flags any report whose shape matches the crawler
-    # signature instead of quietly reporting the inflated number as growth.
+    # docs/WORK_IN_PROGRESS.md § Analytics & traffic) — 2,616 of 3,052 sessions
+    # in the 30 days to 2 Sep 2026, at 1.1% engagement. `web_hostname` above
+    # sidesteps it for this campaign; this stays on as the backstop, flagging
+    # any report whose shape matches the signature rather than quietly reporting
+    # an inflated number as growth.
     crawler_guard: true
 
-    # Registered as an event-scoped custom dimension? While false, the tools
-    # skip `customEvent:surface` breakdowns rather than failing the whole
+    # Registered as an event-scoped custom dimension? It IS registered on
+    # 549794383 and returns data (web / habits / landing / dashboard), so leave
+    # this true unless you point property_id somewhere else. While false, the
+    # tools skip `customEvent:surface` breakdowns rather than failing the whole
     # report — GA4 returns a 400 for an unregistered custom dimension.
-    surface_dimension_registered: false
+    surface_dimension_registered: true
 
 # Read-only Postgres connection for the product-side funnel (`report product`).
 # Reuses the users-service READ replica env vars already in your .env, so there

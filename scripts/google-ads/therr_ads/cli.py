@@ -15,7 +15,7 @@ COMMAND MAP (also in README.md, kept in sync deliberately):
   campaign pause|resume <name>       start/stop spend
 
   report ads [--days N]              Google Ads performance
-  report ga4 [--days N]              GA4 web funnel
+  report ga4 [--days N]              GA4 web sessions + in-app funnel
   report product [--days N]          signups -> pacts -> invites -> payers
   report funnel [--days N]           all three, joined
 
@@ -258,7 +258,9 @@ def _cmd_config_show(args) -> int:
     if settings_path.exists():
         settings = load_settings(settings_path)
         print(f"  customer_id       = {settings.customer_id}")
-        print(f"  ga4.property_id   = {settings.ga4.property_id or '(unset)'}")
+        print(f"  ga4.property_id   = {settings.ga4.property_id or '(unset)'}  (web)")
+        print(f"  ga4.app_property_id = {settings.ga4.app_property_id or '(unset)'}  (app)")
+        print(f"  ga4.web_hostname  = {settings.ga4.web_hostname or '(unset — reports every site)'}")
         print(f"  product_db.enabled= {settings.product_db.enabled}")
         print(f"  max_daily_budget  = {settings.limits.max_daily_budget}")
     else:
@@ -593,9 +595,37 @@ def _cmd_report_ga4(args) -> int:
         days=args.days,
         crawler_guard=settings.ga4.crawler_guard,
         include_surface=settings.ga4.surface_dimension_registered,
+        host_name=settings.ga4.web_hostname,
     )
-    _emit(args, report.to_dict(), _format_ga4(report))
+    app = ga4.fetch_app_funnel(
+        settings.ga4.app_property_id,
+        days=args.days,
+        stream_name=settings.ga4.app_stream_name,
+    )
+    payload = {**report.to_dict(), "app_funnel": app.to_dict()}
+    _emit(args, payload, _format_ga4(report) + _format_app_funnel(app))
     return 0
+
+
+def _format_app_funnel(report) -> str:
+    lines = [
+        "",
+        f"IN-APP FUNNEL (property {report.property_id or '(unset)'}, stream "
+        f"'{report.stream_name}') — {report.start_date} to {report.end_date}",
+        "",
+    ]
+    installs = report.installs
+    for step in report.steps:
+        if not step.instrumented:
+            # Never render a not-yet-emitted event as 0 — a column of zeroes
+            # reads as a product failure rather than a missing logEvent call.
+            lines.append(f"    {step.label:<30} {'not instrumented':>12}   ({step.event_name})")
+            continue
+        share = f"{step.users / installs:.1%}" if installs else "—"
+        lines.append(f"    {step.label:<30} {step.users:>7} users  {share:>7} of installs")
+    for note in report.notes:
+        lines += ["", f"  note: {note}"]
+    return "\n".join(lines) + "\n"
 
 
 def _format_ga4(report) -> str:
@@ -653,15 +683,25 @@ def _cmd_report_funnel(args) -> int:
         days=args.days,
         crawler_guard=settings.ga4.crawler_guard,
         include_surface=settings.ga4.surface_dimension_registered,
+        host_name=settings.ga4.web_hostname,
+    )
+    app_funnel = ga4.fetch_app_funnel(
+        settings.ga4.app_property_id, days=args.days, stream_name=settings.ga4.app_stream_name
     )
     product_report = product.fetch(settings.product_db, days=args.days)
 
     payload = {
         "ads": ads_report.to_dict(),
         "ga4": ga4_report.to_dict(),
+        "app_funnel": app_funnel.to_dict(),
         "product": product_report.to_dict(),
     }
-    text = _format_ads(ads_report) + _format_ga4(ga4_report) + _format_product(product_report)
+    text = (
+        _format_ads(ads_report)
+        + _format_ga4(ga4_report)
+        + _format_app_funnel(app_funnel)
+        + _format_product(product_report)
+    )
     _emit(args, payload, text)
     return 0
 
@@ -680,10 +720,16 @@ def _cmd_analyze(args) -> int:
         days=args.days,
         crawler_guard=settings.ga4.crawler_guard,
         include_surface=settings.ga4.surface_dimension_registered,
+        host_name=settings.ga4.web_hostname,
+    )
+    app_funnel = ga4.fetch_app_funnel(
+        settings.ga4.app_property_id, days=args.days, stream_name=settings.ga4.app_stream_name
     )
     product_report = product.fetch(settings.product_db, days=args.days)
 
-    diagnosis = analysis.analyze(ads_report, ga4_report, product_report, settings.targets)
+    diagnosis = analysis.analyze(
+        ads_report, ga4_report, product_report, settings.targets, app_funnel=app_funnel
+    )
     _emit(args, diagnosis.to_dict(), format_diagnosis(diagnosis))
 
     if args.write_work_items:

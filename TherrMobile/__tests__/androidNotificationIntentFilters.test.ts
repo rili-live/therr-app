@@ -137,6 +137,11 @@ describe('AndroidManifest push-notification intent filters', () => {
  *
  * `HabitsAndroidIntentActions` is the one checked because it is a strict superset of the
  * Therr and Teem enums (41 keys against their 24), so covering it covers every brand.
+ *
+ * `general` carries the same guard against `TherrAndroidIntentActions` and deliberately
+ * omits the HABITS keys — the Therr app does not handle habits pushes, so its manifest
+ * correctly declares no filter for them. When resolving a merge conflict in this file,
+ * each branch keeps its own side; they are not two attempts at one test.
  */
 const ENUM_SOURCE_PATH = path.resolve(
     __dirname,

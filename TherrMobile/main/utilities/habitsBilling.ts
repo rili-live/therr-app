@@ -135,6 +135,81 @@ export const fetchFounderProduct = async (productId: string): Promise<any | null
     }
 };
 
+/** Play reports money in millionths of a currency unit. */
+const MICROS_PER_UNIT = 1000000;
+
+export interface IPurchaseValue {
+    /** Amount in major currency units, e.g. 20 for $20.00. */
+    value: number;
+    /** ISO-4217 code, e.g. "USD". */
+    currency: string;
+}
+
+/**
+ * The amount to report as a conversion value, read off whatever actually knows it.
+ *
+ * WHY THIS IS NOT A CONSTANT
+ * A hardcoded `value: 20, currency: 'USD'` is right only while the Play price is
+ * exactly that, for every buyer. It is wrong for anyone outside the US — Play
+ * charges in local currency and Google Ads takes the `currency` field at its word,
+ * so a €18 purchase reported as 20 USD overstates revenue by whatever the two
+ * happen to differ by — and it stays wrong silently through a price change or a
+ * promotional price, in the one number cost-per-payer is judged on.
+ *
+ * PREFERRED SOURCE FIRST
+ * The verify response is authoritative: `priceAmountMicros` / `priceCurrencyCode`
+ * on it are what the server read back from Google Play for this specific order,
+ * after verification. The store product is the fallback — it is the price on
+ * offer now, which is the same number except for a purchase recovered days after
+ * a price change. Both are read because the recovery path has one and not always
+ * the other.
+ *
+ * RETURNS NULL RATHER THAN A GUESS
+ * A missing conversion value is a gap someone can find and fix. An invented one
+ * is a number that looks right and is not, and it propagates into every bid
+ * decision downstream. The caller omits the fields instead.
+ */
+const readPurchaseValue = (source: any): IPurchaseValue | null => {
+    if (!source || typeof source !== 'object') {
+        return null;
+    }
+
+    // Android's `fetchProducts` nests the one-time price a level down; a verified
+    // purchase row and the library's normalized product shape both hold it flat.
+    const offerDetails = source.oneTimePurchaseOfferDetails;
+    const currency = source.priceCurrencyCode
+        || source.currency
+        || offerDetails?.priceCurrencyCode;
+
+    if (typeof currency !== 'string' || currency.length !== 3) {
+        return null;
+    }
+
+    const micros = Number(source.priceAmountMicros ?? offerDetails?.priceAmountMicros);
+
+    if (Number.isFinite(micros) && micros > 0) {
+        return {
+            // toFixed(6) clears binary-float noise without rounding away the third
+            // decimal that BHD, KWD and TND actually use.
+            value: Number((micros / MICROS_PER_UNIT).toFixed(6)),
+            currency: currency.toUpperCase(),
+        };
+    }
+
+    const price = Number(source.price);
+
+    return Number.isFinite(price) && price > 0
+        ? { value: price, currency: currency.toUpperCase() }
+        : null;
+};
+
+/**
+ * First source that can answer, or null when none can. See `readPurchaseValue`.
+ */
+export const resolvePurchaseValue = (...sources: any[]): IPurchaseValue | null => sources
+    .map(readPurchaseValue)
+    .find((candidate) => !!candidate) || null;
+
 /**
  * Run a purchase to completion.
  *

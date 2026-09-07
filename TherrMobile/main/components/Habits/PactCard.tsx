@@ -4,7 +4,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { IPact, IPactMember } from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
 import { getCheckedInToday } from './PactMemberRow';
-import { isPactRenewable } from '../../routes/Habits/pactState';
+import { isPactRenewable, isPactSuperseded } from '../../routes/Habits/pactState';
 
 interface IPactCardProps {
     pact: IPact;
@@ -21,6 +21,13 @@ interface IPactCardProps {
     // the card stays read-only there.
     onRenew?: () => void;
     isRenewPending?: boolean;
+    // Renewal lineage. A re-commit creates a *new* pact on the same habit goal, so
+    // without a way across the boundary the finished cycle is either invisible (it is
+    // left out of the list) or, when it is on screen, indistinguishable from a
+    // separate pact. Supplying these renders the link in whichever direction the
+    // pact has one; omit them and the card just states the relationship.
+    onViewSourcePact?: (sourcePactId: string) => void;
+    onViewSuccessorPact?: (successorPactId: string) => void;
     themeHabits: {
         colors: ITherrThemeColors;
         styles: any;
@@ -70,6 +77,8 @@ const PactCard: React.FC<IPactCardProps> = ({
     isRespondPending,
     onRenew,
     isRenewPending,
+    onViewSourcePact,
+    onViewSuccessorPact,
     themeHabits,
     translate,
 }) => {
@@ -77,6 +86,7 @@ const PactCard: React.FC<IPactCardProps> = ({
     const partnerMember = pact.members?.find((m) => m.userId !== currentUserId);
     const showInviteActions = !!onAccept && !!onDecline;
     const showRenewAction = !!onRenew && !showInviteActions && isPactRenewable(pact);
+    const cycleNumber = pact.renewalCycleNumber || 1;
 
     // Badge surface, dot and label color move together — a tonal badge is only
     // legible when its foreground matches the tint it sits on.
@@ -103,6 +113,73 @@ const PactCard: React.FC<IPactCardProps> = ({
     };
 
     const statusStyles = getStatusBadgeStyles();
+
+    /**
+     * The link across a renewal boundary, in whichever direction this pact has one.
+     *
+     * Only one is ever drawn. A pact that has been continued is history, and the useful
+     * move from it is forward to the cycle that replaced it; a pact that continues an
+     * earlier one is current, and the useful move is back to what it was built on. A
+     * middle cycle in a long chain has both, and forward wins — it is the one that
+     * answers "so where is my habit now".
+     */
+    const renderLineageLink = () => {
+        const isSuperseded = isPactSuperseded(pact);
+        const targetPactId = isSuperseded ? pact.supersededByPactId : pact.renewedFromPactId;
+        if (!targetPactId) {
+            return null;
+        }
+
+        const onPressTarget = isSuperseded ? onViewSuccessorPact : onViewSourcePact;
+        const label = translate(isSuperseded
+            ? 'pages.pacts.renew.continuedAs'
+            : 'pages.pacts.renew.extendedFrom');
+
+        // Without a handler the relationship is still worth stating — it is why this
+        // pact's numbers start where they do — so the row renders as plain text rather
+        // than a dead button.
+        if (!onPressTarget) {
+            return (
+                <View style={themeHabits.styles.pactCardLineageRow}>
+                    <FontAwesome5Icon
+                        name="history"
+                        size={10}
+                        color={themeHabits.colors.onSurfaceMuted}
+                    />
+                    <Text style={themeHabits.styles.pactCardLineageText}>{label}</Text>
+                </View>
+            );
+        }
+
+        return (
+            <Pressable
+                accessibilityRole="link"
+                accessibilityLabel={label}
+                // Stops the tap reaching the card's own onPress, which would open this
+                // pact instead of the one the link names.
+                onPress={(event) => {
+                    event.stopPropagation();
+                    onPressTarget(targetPactId);
+                }}
+                style={({ pressed }) => [
+                    themeHabits.styles.pactCardLineageRow,
+                    pressed && themeHabits.styles.pactCardLineageRowPressed,
+                ]}
+            >
+                <FontAwesome5Icon
+                    name="history"
+                    size={10}
+                    color={themeHabits.colors.onSurfaceMuted}
+                />
+                <Text style={themeHabits.styles.pactCardLineageText}>{label}</Text>
+                <FontAwesome5Icon
+                    name="chevron-right"
+                    size={9}
+                    color={themeHabits.colors.onSurfaceMuted}
+                />
+            </Pressable>
+        );
+    };
 
     const renderMemberComparison = (member: IPactMember | undefined, label: string) => {
         // `undefined` means the server has not told us — see getCheckedInToday.
@@ -175,8 +252,15 @@ const PactCard: React.FC<IPactCardProps> = ({
                             type: translate(`pages.pacts.pactType.${pact.pactType}`),
                         })}
                     </Text>
+                    {cycleNumber > 1 && (
+                        <Text style={themeHabits.styles.pactCardCycleBadge}>
+                            {translate('pages.pacts.renew.cycleLabel', { number: cycleNumber })}
+                        </Text>
+                    )}
                 </View>
             </View>
+
+            {renderLineageLink()}
 
             {partnerMember && (
                 <View style={themeHabits.styles.pactPartnerRow}>

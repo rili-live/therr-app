@@ -306,6 +306,19 @@ const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
         cacheControl: HABITS_NO_STORE,
         needsApiBase: true,
     },
+    // The paid web arm's conversion page. Until this existed, habits.therr.com
+    // had no registration route at all: every ad click landed on a page whose
+    // only CTA was the Play Store, so main."userAcquisition" received nothing
+    // from this domain and the campaign that justified its budget on full
+    // attribution was measuring nothing. See campaigns/habits-web-landing.yaml.
+    '/register': {
+        view: 'habits/register',
+        title: 'Create your account — Friends with Habits',
+        description: 'Create a free Friends with Habits account. Five habits free, '
+            + 'then pact up with a friend and keep each other on streak.',
+        cacheControl: HABITS_NO_STORE,
+        needsApiBase: true,
+    },
     '/login': {
         view: 'habits/login',
         title: 'Sign in — Friends with Habits',
@@ -501,6 +514,11 @@ app.use(async (req, res, next) => {
             'Disallow: /login',
             'Disallow: /logout',
             'Disallow: /emails/',
+            // /register is deliberately NOT disallowed despite being noindex.
+            // It is a paid-campaign destination, and Google Ads' own crawler
+            // disapproves ads whose landing path it cannot fetch. noindex keeps
+            // it out of the index; a Disallow would additionally stop the
+            // noindex being seen, which is the worse of the two failures.
             '',
             'Sitemap: https://habits.therr.com/sitemap.xml',
             '',

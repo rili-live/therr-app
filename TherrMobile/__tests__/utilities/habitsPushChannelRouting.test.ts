@@ -50,6 +50,13 @@ describe('getAndroidChannelFromClickActionId — HABITS actions', () => {
             'DAILY_HABIT_REMINDER',
             'MORNING_MOTIVATION',
             'EVENING_CHECK_IN',
+            // One step past PACT_EXPIRING in the same lifecycle, and the only
+            // moment renewal is legal — `isPactRenewable` is false while a pact
+            // is still inside its window — so this is the push that carries the
+            // "Start New Cycle" button. It shipped unbucketed and posted on
+            // "General" at DEFAULT importance: it arrived, the button worked,
+            // and only its prominence was wrong, which is why nothing caught it.
+            'PACT_ENDED',
         ])('%s', (key) => {
             expect(getAndroidChannelFromClickActionId(habitsAction(key)).id)
                 .toBe(AndroidChannelIds.reminders);

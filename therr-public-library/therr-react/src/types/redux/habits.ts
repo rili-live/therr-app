@@ -38,6 +38,25 @@ export interface IPact {
     partnerCompletionRate?: number;
     createdAt: string;
     updatedAt: string;
+    /**
+     * The cycle this pact continues, set when it was created by re-commit.
+     *
+     * A renewal is a new pact on the same habit goal rather than a mutation of the old one,
+     * so this is the only thing distinguishing "one habit, second cycle" from "two separate
+     * pacts". Present means the card should offer a way back to the cycle it came from
+     * instead of standing alone.
+     */
+    renewedFromPactId?: string;
+    /** 1 for a first cycle, 2 for its first renewal, and so on. Legacy rows read 1. */
+    renewalCycleNumber?: number;
+    /**
+     * Derived server-side: the newest cycle continuing *this* pact, or absent.
+     *
+     * Set means this pact is history — the list leaves it out by default and only the
+     * successor's "extended from" link reaches it. Absent on a pact whose only renewal was
+     * declined or abandoned, which is what makes such a pact re-committable again.
+     */
+    supersededByPactId?: string;
     // Joined fields
     habitGoalName?: string;
     habitGoalEmoji?: string;
@@ -329,6 +348,7 @@ export enum HabitsActionTypes {
     GET_PENDING_INVITES = 'GET_PENDING_INVITES',
     GET_PACT_DETAILS = 'GET_PACT_DETAILS',
     CREATE_PACT = 'CREATE_PACT',
+    RENEW_PACT = 'RENEW_PACT',
     NUDGE_PACT = 'NUDGE_PACT',
     ACCEPT_PACT = 'ACCEPT_PACT',
     DECLINE_PACT = 'DECLINE_PACT',

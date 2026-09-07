@@ -128,6 +128,28 @@
             text-decoration: none;
             color: #fff;
         }
+        /* Secondary CTA. Outlined rather than filled so the Play Store button
+           stays the primary action for the majority of visitors who are already
+           on a phone — signing up on the web then installing is the longer
+           path, and it exists to be measurable, not to be preferred. */
+        .cta--secondary {
+            background: transparent;
+            color: var(--habits-coral-dark);
+            border: 2px solid var(--habits-coral);
+            margin-left: 0.75rem;
+        }
+        .cta--secondary:hover {
+            background: var(--habits-coral);
+            color: #fff;
+        }
+        .cta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            align-items: center;
+        }
+        .cta-row .cta--secondary { margin-left: 0; }
         .cta-note {
             font-size: 0.875rem;
             color: var(--habits-text-muted);
@@ -537,7 +559,10 @@
                     Friends with Habits account. Hardcoded rather than interpolated
                     because Handlebars escapes '=' in an attribute to &#x3D;.
                 -->
-                <a class="cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get it on Google Play</a>
+                <div class="cta-row">
+                    <a class="cta" id="hero-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get it on Google Play</a>
+                    <a class="cta cta--secondary" id="hero-register-cta" href="/register">Create your account</a>
+                </div>
                 <div class="cta-note">Free to install &mdash; now available to everyone on Google Play. iOS coming next.</div>
                 <div class="cta-note"><strong>Founding member offer:</strong> the first 5,000 accounts get every paid feature free for life for a one-time $20.</div>
             </div>
@@ -694,5 +719,42 @@
     </main>
 
     {{> habitsFooter}}
+
+    {{!
+        Outbound-click tracking for the two hero CTAs.
+
+        Until this existed the landing page fired no gtag event at all, so the
+        paid Search arm had nothing to optimise toward and nothing to import
+        into Google Ads as a conversion action: every click looked identical to
+        a bounce. `store_click` is the app arm's only web-side signal (the Play
+        Store hop is where measurement ends), and `sign_up` on /register is the
+        real conversion. Mark both as key events in GA4 admin, then import them
+        under Ads -> Goals -> Conversions -> Import -> Google Analytics 4.
+
+        gtag is defined by habitsAnalytics but only sends when a measurement id
+        is configured, and the whole thing is guarded regardless: analytics must
+        never be what stops a visitor reaching the store.
+    }}
+    <script>
+        (function () {
+            function track(name, params) {
+                try {
+                    if (typeof window.gtag === 'function') { window.gtag('event', name, params || {}); }
+                } catch (e) { /* no-op */ }
+            }
+            var store = document.getElementById('hero-store-cta');
+            var register = document.getElementById('hero-register-cta');
+            if (store) {
+                store.addEventListener('click', function () {
+                    track('store_click', { link_url: store.href, location: 'hero' });
+                });
+            }
+            if (register) {
+                register.addEventListener('click', function () {
+                    track('register_start', { location: 'hero' });
+                });
+            }
+        })();
+    </script>
 </body>
 </html>

@@ -880,7 +880,9 @@
                 "settingsEmailBackground": "Social App automated e-mails",
                 "on": "On",
                 "off": "Off",
-                "myQRCodes": "Manage My QR Codes"
+                "myQRCodes": "Manage My QR Codes",
+                "settingsPushHabitReminders": "Daily habit reminders",
+                "settingsPushStreakAlerts": "Evening streak reminders"
             },
             "errorMessages": {
                 "repeatPassword": "Passwords do not match",
@@ -1502,7 +1504,8 @@
             "alertMessages": {
                 "notificationSettingsUpdated": "Your notification & alert settings have been updated.",
                 "notificationSettingsUpdatedError": "Oops! Something went wrong."
-            }
+            },
+            "pageHeaderPushSettings": "Push Preferences"
         },
         "managePreferences": {
             "headerTitle": "Content Settings",
@@ -2271,7 +2274,10 @@
                 "cta": "Re-commit for {days} more days",
                 "successTitle": "You're re-committed",
                 "successMessage": "{days} more days, same crew. Your streak keeps going.",
-                "error": "Could not renew this pact. Please try again."
+                "error": "Could not renew this pact. Please try again.",
+                "cycleLabel": "Cycle {number}",
+                "extendedFrom": "Extended from previous pact",
+                "continuedAs": "Continued in a newer pact"
             }
         },
         "pushOptIn": {

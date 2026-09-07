@@ -151,10 +151,13 @@ describe('notificationQueueWorker — un-addressable rows', () => {
         expect(harness.markSkipped.firstCall.args[1]).to.equal('no-device-token');
     });
 
-    it('still sends to a user who only has the legacy token column', async () => {
-        // resolveDeviceTokenForBrand falls back to users.deviceMobileFirebaseToken
-        // for devices that have not re-registered since Phase 2. Skipping them
-        // would silence real recipients to tidy up a log.
+    it('skips a user who has only the legacy token column, never sending to it', async () => {
+        // The legacy users.deviceMobileFirebaseToken column is shared across every
+        // branded app on the device and holds whichever registered last. Sending a
+        // HABITS row to it is what delivered Friends with Habits check-ins into users'
+        // Therr installs. `20260904000001_main.userDeviceTokens.backfill.js` gave the
+        // legitimately-single-brand users real rows; what is left here is the ambiguous
+        // case, and 'no-device-token' is the correct, measurable outcome for it.
         const harness = stubWorker(buildRow(), {
             brandToken: null,
             legacyToken: 'legacy-token',
@@ -162,10 +165,9 @@ describe('notificationQueueWorker — un-addressable rows', () => {
 
         await runNotificationQueueTick();
 
-        expect(harness.markSkipped.called).to.equal(false);
-        expect(harness.internalRestRequest.calledOnce).to.equal(true);
-        expect(harness.internalRestRequest.firstCall.args[1].data.toUserDeviceToken)
-            .to.equal('legacy-token');
+        expect(harness.internalRestRequest.called).to.equal(false);
+        expect(harness.markSkipped.calledOnce).to.equal(true);
+        expect(harness.markSkipped.firstCall.args[1]).to.equal('no-device-token');
     });
 });
 

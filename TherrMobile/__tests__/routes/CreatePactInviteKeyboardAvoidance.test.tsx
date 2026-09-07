@@ -30,6 +30,13 @@ jest.mock('../../main/utilities/permissionsOrchestrator', () => ({
     default: { requestIfAppropriate: jest.fn() },
 }));
 
+// The screen logs habit_pact_create / habit_invite_sent on the send path, and
+// @react-native-firebase/analytics reaches for RNFBAppModule at import time.
+jest.mock('@react-native-firebase/analytics', () => ({
+    getAnalytics: jest.fn(() => ({})),
+    logEvent: jest.fn(() => Promise.resolve()),
+}));
+
 // Imported after the mocks above deliberately — the screen pulls in a chain of
 // native modules at import time.
 import { CreatePactInvite } from '../../main/routes/Pacts/CreatePactInvite';

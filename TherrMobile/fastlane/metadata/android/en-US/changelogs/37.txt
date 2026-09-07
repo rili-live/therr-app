@@ -1,0 +1,9 @@
+What's new:
+• Re-committing to a habit now continues it instead of creating a duplicate
+• See which cycle you're on, and move between linked pacts
+• Photos on journal entries now show in the feed
+• New settings for daily habit and evening streak reminders
+• Clearer reminder notifications
+• Fixes and stability improvements
+
+Thanks for building habits with us!

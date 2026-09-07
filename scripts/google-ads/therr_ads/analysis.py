@@ -28,6 +28,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from decimal import Decimal
 
+from therr_ads.ga4 import ACTIVATION_EVENT, ACTIVATION_PROXY_EVENT
+
 # Google Play's service fee is 15% on the first $1M of annual revenue, so the
 # $20 Founder Unlock nets ~$17. Paid acquisition has to clear the NET, not the
 # sticker price — and for a one-time purchase there is no second payment to
@@ -121,14 +123,24 @@ def _per_unit(total, count) -> Decimal:
     return (Decimal(total) / Decimal(count)).quantize(Decimal("0.01"))
 
 
+def _has_verdict(diagnosis: Diagnosis, area: str) -> bool:
+    return any(v.area == area for v in diagnosis.verdicts)
+
+
 def _money(value) -> str:
     """Money for display. No currency symbol — the account currency is whatever
     settings.yaml says, and inventing a $ here would be wrong for a EUR account."""
     return f"{Decimal(value).quantize(Decimal('0.01'))}"
 
 
-def analyze(ads_report, ga4_report, funnel_report, targets) -> Diagnosis:
-    """Run every rule. `ga4_report` and `funnel_report` may be None."""
+def analyze(ads_report, ga4_report, funnel_report, targets, app_funnel=None) -> Diagnosis:
+    """Run every rule. `ga4_report`, `funnel_report` and `app_funnel` may be None.
+
+    `app_funnel` is the GA4 in-app funnel (ga4.AppFunnelReport). It runs before
+    the product-database rule because for the app_install arm it is the ONLY
+    evidence about what bought users do — the product DB cannot see them, since
+    a Play install sets no UTM.
+    """
     window = f"{ads_report.start_date} to {ads_report.end_date}"
     diagnosis = Diagnosis(window=window)
 
@@ -137,10 +149,44 @@ def analyze(ads_report, ga4_report, funnel_report, targets) -> Diagnosis:
     _rule_ad_group_comparison(diagnosis, ads_report, targets)
     _rule_search_terms(diagnosis, ads_report)
     _rule_data_integrity(diagnosis, ga4_report, funnel_report)
+    _rule_app_activation(diagnosis, app_funnel, targets)
     _rule_product_funnel(diagnosis, ads_report, funnel_report, targets)
     _rule_unit_economics(diagnosis, ads_report, funnel_report, targets)
 
+    # Last, because it reads the verdicts the rules above produced.
+    _reconcile_scale_recommendations(diagnosis)
+
     return diagnosis
+
+
+def _reconcile_scale_recommendations(diagnosis: Diagnosis) -> None:
+    """Stop the report recommending two opposite things at once.
+
+    The CHANNEL rules judge price and the PRODUCT rules judge what the purchase
+    is worth, so a cheap install sitting on top of a funnel nobody survives
+    produces "step budget up by 20%" and "hold budget" in the same output. Both
+    are correct in isolation and the pair is useless — a reader acts on whichever
+    they read first.
+
+    Cost is the weaker claim, so it yields: the scale-up is kept (the CPI finding
+    behind it is still true and still worth knowing) but marked and demoted below
+    the thing blocking it.
+    """
+    product = next((v for v in diagnosis.verdicts if v.area == "PRODUCT"), None)
+    if product is None or product.call != "UNVIABLE":
+        return
+
+    for action in diagnosis.actions:
+        if action.kind != "campaign" or "budget up" not in action.title.lower():
+            continue
+        action.title = f"[BLOCKED by PRODUCT] {action.title}"
+        action.priority = max(action.priority + 1, 3)
+        action.rationale = (
+            "Do not act on this yet. The PRODUCT verdict is UNVIABLE, so the installs this "
+            "would buy more of stop at the same wall — scaling multiplies the leak rather "
+            "than the outcome. The underlying cost finding is still true and is kept here "
+            "because it is what makes the funnel fix worth doing: "
+        ) + action.rationale
 
 
 # ---------------------------------------------------------------------------
@@ -436,17 +482,208 @@ def _rule_data_integrity(diagnosis: Diagnosis, ga4, funnel) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _rule_product_funnel(diagnosis: Diagnosis, ads, funnel, targets) -> None:
-    if funnel is None or not funnel.attributed:
+def _rule_app_activation(diagnosis: Diagnosis, app_funnel, targets) -> None:
+    """PRODUCT, from the GA4 in-app funnel.
+
+    This is the only evidence that exists about the app_install arm's users. A
+    Play install sets no UTM, so `main."userAcquisition"` never sees them and
+    the product-database rule below is structurally blind to the entire volume
+    arm. What GA4's app stream can see — install, profile start, phone verify,
+    invite — is therefore not a nice-to-have breakdown, it is the whole answer.
+
+    Two things this rule refuses to do:
+      - Read an un-emitted event as a zero. `habit_pact_create` does not exist
+        in the shipped app; "0 pacts" would be a false finding about the
+        product rather than a true one about the instrumentation.
+      - Judge on a handful of installs. The install count, not the activation
+        count, is the sample here, and it is gated on the same threshold as
+        everything else.
+    """
+    if app_funnel is None:
+        return
+
+    installs = app_funnel.installs
+    if not installs:
+        return
+
+    pact_step = app_funnel.step(ACTIVATION_EVENT)
+    proxy_step = app_funnel.step(ACTIVATION_PROXY_EVENT)
+    using_proxy = pact_step is None or not pact_step.instrumented
+
+    # The instrumentation gap is a fact regardless of sample size, and it is the
+    # thing that has to be fixed before any of this gets sharper. Report it
+    # before the verdict so the verdict is read with it in view.
+    missing = [name for name in app_funnel.missing_events() if name != ACTIVATION_PROXY_EVENT]
+    if missing:
+        diagnosis.signals.append(
+            Signal(
+                "warning",
+                "DATA",
+                f"{len(missing)} in-app funnel events have never fired: " + ", ".join(missing) + ".",
+                f"GA4 property {app_funnel.property_id}, stream '{app_funnel.stream_name}'. These "
+                "are absent from TherrMobile, not absent from the data — the funnel is truncated, "
+                "not zero. Without habit_pact_create the PRODUCT question is answered by a proxy, "
+                "and without habits_founder_unlock_purchase the MODEL question has no GA4 answer "
+                "at all.",
+            )
+        )
+        diagnosis.actions.append(
+            ActionItem(
+                1,
+                "Instrument the habits activation and purchase events in TherrMobile",
+                "Add logEvent calls for " + ", ".join(missing) + " alongside the existing "
+                "profile_create_start / phone_verify_success calls, and mark them as key events in "
+                "GA4 admin so Google Ads can import them as conversion actions. Include value: 20 "
+                "and currency: 'USD' on the purchase event so it imports as a value conversion. "
+                "Until these exist the App campaign can only bid on installs, and no amount of "
+                "spend produces an answer to the MODEL question. Mobile-only change: it belongs on "
+                "niche/HABITS-general, not general.",
+                target="wip",
+                kind="code",
+            )
+        )
+
+    signups = app_funnel.users_at("profile_create_start")
+    activated = proxy_step.users if using_proxy else pact_step.users
+    activation_label = "sent an invite" if using_proxy else "created a pact"
+
+    if installs < targets.min_conversions_for_verdict:
+        diagnosis.signals.append(
+            Signal(
+                "info",
+                "PRODUCT",
+                f"{installs} installs is below the {targets.min_conversions_for_verdict} threshold "
+                "for a verdict on the in-app funnel.",
+                f"{signups} started a profile, {activated} {activation_label}. Reported, not judged.",
+            )
+        )
         diagnosis.verdicts.append(
             Verdict(
                 "PRODUCT",
                 "INSUFFICIENT_DATA",
-                "No campaign-attributed signups were read from the product database, so what paid "
-                "users do after arriving is unknown. Enable product_db in settings.yaml and run the "
-                "web_landing arm — the app_install arm cannot answer this question at all.",
+                f"{installs} installs in this window is too small a sample to conclude anything "
+                "about what bought users do.",
             )
         )
+        return
+
+    signup_rate = _ratio(signups, installs)
+    activation_rate = _ratio(activated, signups)
+    install_to_activation = _ratio(activated, installs)
+    proxy_caveat = (
+        " Measured by invites sent, because habit_pact_create is not instrumented — the real "
+        "pact rate can only be lower, never higher, since a pact requires an invite."
+        if using_proxy else ""
+    )
+
+    diagnosis.signals.append(
+        Signal(
+            "good" if signup_rate >= targets.min_install_to_signup_rate else "warning",
+            "PRODUCT",
+            f"{signup_rate:.0%} of installs started a profile "
+            f"(target {targets.min_install_to_signup_rate:.0%}).",
+            f"{signups} of {installs} installs, GA4 stream '{app_funnel.stream_name}'.",
+        )
+    )
+
+    healthy = activation_rate >= targets.min_signup_to_pact_rate
+    diagnosis.signals.append(
+        Signal(
+            "good" if healthy else "critical",
+            "PRODUCT",
+            f"{activation_rate:.0%} of in-app signups {activation_label} "
+            f"(target {targets.min_signup_to_pact_rate:.0%}).",
+            f"{activated} of {signups} signups; {install_to_activation:.1%} of all installs."
+            + proxy_caveat,
+        )
+    )
+
+    if healthy and signup_rate >= targets.min_install_to_signup_rate:
+        diagnosis.verdicts.append(
+            Verdict(
+                "PRODUCT",
+                "VIABLE",
+                f"The in-app funnel clears both gates: {signup_rate:.0%} install-to-signup and "
+                f"{activation_rate:.0%} signup-to-activation. Cold users survive the onboarding.",
+            )
+        )
+        return
+
+    if healthy:
+        diagnosis.verdicts.append(
+            Verdict(
+                "PRODUCT",
+                "AT_RISK",
+                f"Users who sign up activate at {activation_rate:.0%}, but only {signup_rate:.0%} of "
+                "installs sign up at all. The leak is above the pact mechanic, in the registration "
+                "wall — a cheaper install does not fix it.",
+            )
+        )
+        diagnosis.actions.append(
+            ActionItem(
+                2,
+                "Cut the registration wall between install and first value",
+                f"{installs - signups} of {installs} installs never started a profile. Every one was "
+                "paid for and none is reachable again. Measure where they stop — the phone "
+                "verification step is the largest single drop in the current funnel — and move as "
+                "much of it as possible after first value rather than before it. "
+                "Mobile-only: niche/HABITS-general.",
+                target="wip",
+                kind="code",
+            )
+        )
+        return
+
+    # The expensive case, and the one the whole exercise exists to detect.
+    cost_note = ""
+    if install_to_activation:
+        implied = _per_unit(targets.max_cpi, install_to_activation)
+        cost_note = (
+            f" At the {_money(targets.max_cpi)} target CPI that is {_money(implied)} per user who "
+            f"{activation_label} — before anyone pays anything."
+        )
+    diagnosis.verdicts.append(
+        Verdict(
+            "PRODUCT",
+            "UNVIABLE",
+            f"Only {activation_rate:.0%} of in-app signups {activation_label}, against a "
+            f"{targets.min_signup_to_pact_rate:.0%} target.{cost_note} The onboarding asks for a "
+            "partner before the app does anything, and cold users do not have one to hand. This is "
+            "a product finding, not a targeting one — buying more installs multiplies it.",
+        )
+    )
+    diagnosis.actions.append(
+        ActionItem(
+            1,
+            "Fix the partner-wall onboarding before buying more installs",
+            f"{activated} of {signups} signups {activation_label}. Paid traffic is strictly colder "
+            "than the organic traffic that produced this rate, so it will not do better. Two "
+            "changes are testable independently: let a new user create and track a habit solo "
+            "before any invite is required, so the app has value at minute one; and make the "
+            "invite step share a link out to where the friend already is rather than requiring "
+            "contacts permission. Hold or reduce campaign budget until one of them moves this "
+            "number — spend is currently buying installs that stop at the same wall.",
+            target="playbook",
+            kind="decision",
+        )
+    )
+
+
+def _rule_product_funnel(diagnosis: Diagnosis, ads, funnel, targets) -> None:
+    if funnel is None or not funnel.attributed:
+        # Only claim the question is unanswerable if the app funnel has not
+        # already answered it. Two PRODUCT verdicts in one report, one of them
+        # "no data", reads as a contradiction rather than as two sources.
+        if not _has_verdict(diagnosis, "PRODUCT"):
+            diagnosis.verdicts.append(
+                Verdict(
+                    "PRODUCT",
+                    "INSUFFICIENT_DATA",
+                    "No campaign-attributed signups were read from the product database, so what paid "
+                    "users do after arriving is unknown. Enable product_db in settings.yaml and run the "
+                    "web_landing arm — the app_install arm cannot answer this question at all.",
+                )
+            )
         return
 
     signups = sum(r.signups for r in funnel.attributed)

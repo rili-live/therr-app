@@ -8,7 +8,7 @@ what lets them run in CI.
 
 from decimal import Decimal
 
-from therr_ads.ga4 import Ga4Report, Ga4Row
+from therr_ads.ga4 import Ga4Report, Ga4Row, build_app_funnel
 from therr_ads.product import FunnelReport, FunnelRow
 from therr_ads.reporting import AdGroupRow, AdsReport, CampaignRow, SearchTermRow
 
@@ -112,4 +112,39 @@ def ga4_report(warnings=None) -> Ga4Report:
         start_date=WINDOW[0],
         end_date=WINDOW[1],
         warnings=warnings or [],
+    )
+
+
+def app_funnel(
+    installs=182,
+    profile_starts=75,
+    phone_verified=14,
+    invites_sent=2,
+    pacts_created=None,
+    checkins=None,
+    purchases=None,
+) -> "object":
+    """The in-app funnel, defaulting to the real organic shape.
+
+    The defaults are the actual Friends with Habits numbers for 5 Jun - 2 Sep
+    2026, so a test that changes nothing is asserting on the situation the
+    campaign is really walking into. `None` means the event does not exist in
+    the app yet, which is a different state from zero and the rules treat it so.
+    """
+    counts = {
+        "first_open": (installs, installs),
+        "profile_create_start": (profile_starts, profile_starts),
+        "phone_verify_success": (phone_verified, phone_verified),
+        "connection_invites_sent": (invites_sent, invites_sent),
+    }
+    for name, value in (
+        ("habit_pact_create", pacts_created),
+        ("habit_checkin_complete", checkins),
+        ("habits_founder_unlock_purchase", purchases),
+    ):
+        if value is not None:
+            counts[name] = (value, value)
+    return build_app_funnel(
+        counts, property_id="267810693", stream_name="Friends with Habits",
+        start_date=WINDOW[0], end_date=WINDOW[1],
     )

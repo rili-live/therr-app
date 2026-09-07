@@ -114,9 +114,18 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
             || habits.activePacts.find((p: IPact) => p.id === pactId);
     };
 
-    handleRefresh = () => {
+    /**
+     * `overridePactId` exists because `navigation.setParams` is a dispatch, not a
+     * synchronous prop write: `route.params` on `this.props` still names the pact we are
+     * leaving for the rest of this call stack. A refetch that read it would fetch the old
+     * cycle and never the one just navigated to, leaving the screen on "Pact not found"
+     * until the user pulled to refresh. Callers that change the pact pass the new id here.
+     * `onRefresh` on the RefreshControl is called with no arguments, so the default holds
+     * for pull-to-refresh.
+     */
+    handleRefresh = (overridePactId?: string) => {
         const { getPactDetails, getUserGoals, route } = this.props;
-        const { pactId } = route.params;
+        const pactId = overridePactId || route.params.pactId;
 
         this.setState({ isRefreshing: true });
 
@@ -146,6 +155,19 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
 
     goToHabitDetail = (habitGoalId: string) => {
         this.props.navigation.navigate('HabitDetail', { habitGoalId });
+    };
+
+    /**
+     * Moves this screen onto another pact rather than pushing a second copy of itself.
+     *
+     * `setParams` + refetch is what `handleRenew` already does for the pact it creates,
+     * and following a renewal chain has the same shape: it is one habit's history, and
+     * stacking a screen per cycle would leave the back button walking the chain in
+     * reverse instead of returning to the list the user came from.
+     */
+    goToPactDetail = (pactId: string) => {
+        this.props.navigation.setParams({ pactId });
+        this.handleRefresh(pactId);
     };
 
     goToUserProfile = (userId: string) => {
@@ -263,7 +285,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
 
                 if (renewed?.id) {
                     navigation.setParams({ pactId: renewed.id });
-                    this.handleRefresh();
+                    this.handleRefresh(renewed.id);
                 } else {
                     navigation.goBack();
                 }
@@ -359,6 +381,37 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         >
             <Text style={this.themeHabits.styles.pactLinkText}>
                 {this.translate('pages.pacts.viewHabitDetails')}
+            </Text>
+            <MaterialIcon
+                name="chevron-right"
+                size={24}
+                color={this.themeHabits.colors.primary3}
+            />
+        </Pressable>
+    );
+
+    /**
+     * A link to the cycle on the other side of a renewal boundary.
+     *
+     * Both directions are offered here, unlike on the card, which draws one. This is
+     * the screen someone is on when they are asking what happened to a habit, and a
+     * cycle in the middle of a chain has an answer in each direction: what it was built
+     * on, and where it went next. The forward link is the one that matters most — the
+     * list leaves superseded cycles out, so without it a user who followed an "extended
+     * from" link back would have no way to the current cycle but the back button.
+     */
+    renderLineageLink = (targetPactId: string, labelKey: string) => (
+        <Pressable
+            accessibilityRole="link"
+            accessibilityLabel={this.translate(labelKey)}
+            onPress={() => this.goToPactDetail(targetPactId)}
+            style={({ pressed }) => [
+                this.themeHabits.styles.pactLinkRow,
+                pressed && this.themeHabits.styles.pactPressedSurface,
+            ]}
+        >
+            <Text style={this.themeHabits.styles.pactLinkText}>
+                {this.translate(labelKey)}
             </Text>
             <MaterialIcon
                 name="chevron-right"
@@ -514,6 +567,13 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                                             type: this.translate(`pages.pacts.pactType.${pact.pactType}`),
                                         })}
                                     </Text>
+                                    {(pact.renewalCycleNumber || 1) > 1 && (
+                                        <Text style={this.themeHabits.styles.pactCardCycleBadge}>
+                                            {this.translate('pages.pacts.renew.cycleLabel', {
+                                                number: pact.renewalCycleNumber,
+                                            })}
+                                        </Text>
+                                    )}
                                 </View>
                             </View>
 
@@ -529,6 +589,15 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                             </View>
 
                             {linkableHabitGoalId && this.renderHabitLink(linkableHabitGoalId)}
+
+                            {!!pact.supersededByPactId && this.renderLineageLink(
+                                pact.supersededByPactId,
+                                'pages.pacts.renew.continuedAs',
+                            )}
+                            {!!pact.renewedFromPactId && this.renderLineageLink(
+                                pact.renewedFromPactId,
+                                'pages.pacts.renew.extendedFrom',
+                            )}
                         </View>
 
                         {this.renderMembersCard(pact, currentUserId)}

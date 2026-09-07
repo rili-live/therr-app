@@ -28,6 +28,7 @@ import {
 } from '../../utilities/streakFreezes';
 import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
 import { signImageUrl } from '../../utilities/content';
+import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
 import { DURATION, showToast } from '../../utilities/toasts';
 
@@ -251,6 +252,15 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                     });
                     return;
                 }
+
+                // See the note on the same event in Habits/Dashboard.tsx: the
+                // isAddingDetail path above is a second call attaching proof to
+                // the check-in this one created, so only this branch counts.
+                logAppEvent('habit_checkin_complete', {
+                    userId: this.props.user?.details?.id,
+                    source: 'habitDetail',
+                    hasProof: false,
+                });
 
                 // A freeze was spent covering a day this user missed. Say so
                 // here rather than leaving them to infer it from a streak

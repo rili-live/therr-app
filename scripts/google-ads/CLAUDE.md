@@ -36,25 +36,59 @@ registration payload's `userAcquisition` object. The server side already exists
 to column width), so this is a mobile-only change — it belongs on
 `niche/HABITS-general`, **not** `general`.
 
-Until then, `habits-web-landing.yaml` is the only measured arm. That is why it
-exists despite costing more per signup.
+Until then, `habits-web-landing.yaml` is the only **attributed** arm. That is why
+it exists despite costing more per signup.
 
-### 2. GA4 cannot see inside the app, and its web numbers are inflated
+"Blind" here means blind to *attribution*, not blind to behaviour: the GA4 app
+stream (§2) does show what installs do, it just cannot say which of them were
+bought. So a paid cohort's activation rate is inferred by watching the aggregate
+move, which is why `_rule_app_activation` compares against the organic baseline
+rather than claiming a per-campaign rate.
 
-- Friends with Habits ships Firebase for **messaging**, not a GA4 app data
-  stream. Installs, first opens, pact creation and the $20 Founder Unlock are
-  invisible to GA4. Never read a GA4 conversion count as an app conversion.
-- The consolidated property (`549794383`, measurement id `G-R7CY0Z1ZRM`) is
-  polluted by a headless-Chrome crawler that produced ~87% of sessions over the
-  60 days to 23 Aug 2026. A GA4 **data filter cannot exclude it** — data filters
-  only support Developer and Internal traffic. `ga4.detect_crawler_contamination`
-  flags it rather than filtering it, because silently dropping rows would make
-  this tool disagree with the GA4 UI for no visible reason.
-- The `surface` custom dimension is **not registered**. Querying
-  `customEvent:surface` returns HTTP 400 for the *whole report*, not an empty
-  column, which is why it sits behind `ga4.surface_dimension_registered`.
+### 2. The funnel lives in two GA4 properties, and one of them was missed
 
-Both GA4 items are tracked in `docs/WORK_IN_PROGRESS.md § Analytics & traffic`.
+This section previously asserted that Friends with Habits had no GA4 app data
+stream and that installs were invisible. **That was wrong**, and it cost this
+tool its most useful data source. The stream exists; it is in the *other*
+property.
+
+| Property | Holds | Notes |
+|---|---|---|
+| `549794383` "Consolidated Domains" | every web surface — habits.therr.com, therr.com, dashboard, therr.app | measurement id `G-R7CY0Z1ZRM` |
+| `267810693` "therr-app" (Firebase) | the Android streams, incl. **"Friends with Habits"** | already linked to Ads accounts `7604290203` and `3076709152` |
+
+The habits stream emits `first_open`, `profile_create_start`,
+`phone_verify_success` and `connection_invites_sent`, **all already marked as key
+events**. So Ads conversion import is a settings step, not a build.
+
+GA4 cannot join across properties, which is why `ga4.py` has two report types
+(`Ga4Report`, `AppFunnelReport`) rather than one with a `platform` dimension.
+
+**What is still genuinely invisible**: the app stream stops at phone
+verification. There is no `habit_pact_create`, no check-in and no Founder Unlock
+purchase event in `TherrMobile`, so the MODEL question has no GA4 answer at all
+and PRODUCT is answerable only as far as "did they invite anyone".
+`APP_FUNNEL_STEPS` declares those steps anyway with `shipped=False`, and
+`_rule_app_activation` files them as work rather than reading an un-emitted
+event as a zero — a column of zeroes reads as a product failure rather than a
+missing `logEvent` call.
+
+**Two property hazards, one of which is now closed:**
+
+- The consolidated property is polluted by a headless-Chrome crawler — **2,616 of
+  3,052 sessions** in the 30 days to 2 Sep 2026, Singapore desktop at 1.1%
+  engagement. A GA4 **data filter cannot exclude it** (data filters only support
+  Developer and Internal traffic). It walks `www.therr.com/spaces/*` and does not
+  touch `habits.therr.com`, so **`ga4.web_hostname` is the effective exclusion**
+  for this campaign; `detect_crawler_contamination` stays on as the backstop and
+  flags rather than filters, because silently dropping rows would make this tool
+  disagree with the GA4 UI for no visible reason. Still open in
+  `docs/WORK_IN_PROGRESS.md § Analytics & traffic`.
+- ~~The `surface` custom dimension is not registered~~ — **it is now**, and
+  returns data (`web` / `habits` / `landing` / `dashboard`).
+  `ga4.surface_dimension_registered` defaults to `true`. The guard stays because
+  an unregistered custom dimension returns HTTP 400 for the *whole report*, not
+  an empty column, so a wrong property id must degrade rather than explode.
 
 ### 3. A one-time $20 unlock is a hard ceiling on CAC
 
@@ -102,7 +136,8 @@ therr_ads/
   client.py      GoogleAdsClient factory + error hints
   campaigns.py   plan/apply, budget and status mutations       (plan is tested)
   reporting.py   GAQL -> normalized rows
-  ga4.py         GA4 Data API + crawler guard             (guard is tested)
+  ga4.py         GA4 Data API, both properties: web sessions +
+                 in-app funnel, + crawler guard            (pure parts tested)
   product.py     the users-service funnel SQL
   analysis.py    rules -> signals, verdicts, actions      (pure, tested)
   workitems.py   writes into WORK_IN_PROGRESS.md          (pure, tested)

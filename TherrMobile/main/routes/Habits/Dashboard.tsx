@@ -29,8 +29,9 @@ import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
 import { getFreezeConsumed, getStreakSavedByFreeze } from '../../utilities/streakFreezes';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { signImageUrl } from '../../utilities/content';
+import { logAppEvent } from '../../utilities/analyticsEvents';
 import { DURATION, showToast } from '../../utilities/toasts';
-import { IHabitWithPactState, splitHabitsByPactState } from './pactState';
+import { IHabitWithPactState, isPactSuperseded, splitHabitsByPactState } from './pactState';
 import { getNudgeErrorMessage, getNudgeOutcomeToast } from '../Pacts/nudgeOutcome';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 import getConfig from '../../utilities/getConfig';
@@ -396,6 +397,17 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                     return;
                 }
 
+                // Retention, and the only in-app signal that a bought install
+                // turned into a habit rather than a signup. Fired only on this
+                // branch: the isAddingDetail path above is a second call
+                // attaching a photo or note to the check-in this one already
+                // created, and counting it would double every proofed check-in.
+                logAppEvent('habit_checkin_complete', {
+                    userId: this.props.user?.details?.id,
+                    source: 'dashboard',
+                    hasProof: false,
+                });
+
                 // The streak is the reward for the tap, so it has to move now.
                 // CREATE_CHECKIN only updates today's checkins in Redux — the
                 // card's streak count comes from `habits.streaks`, which is
@@ -449,6 +461,20 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     handlePactPress = (pact: IPact) => {
         const { navigation } = this.props;
         navigation.navigate('PactDetail', { pactId: pact.id });
+    };
+
+    /**
+     * Opens the other side of a renewal boundary — the cycle a pact continues, or the
+     * cycle that continues it.
+     *
+     * Takes an id rather than a pact because the target is frequently not in this
+     * screen's list: the list read leaves superseded cycles out, which is the point.
+     * `PactDetail` fetches by id, so the link works whether or not the pact is loaded
+     * here.
+     */
+    handleViewLineagePact = (pactId: string) => {
+        const { navigation } = this.props;
+        navigation.navigate('PactDetail', { pactId });
     };
 
     // The invite wizard is the single creation flow: it creates the habit goal
@@ -722,7 +748,13 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 return this.getOutgoingInvites();
             case 'all':
             default:
-                return habits.pacts || [];
+                // Superseded cycles are already left out of the list read. They are
+                // filtered again here because `getPactDetails` upserts whatever it
+                // fetches into this same list — so opening an old cycle through a
+                // successor's "extended from" link would otherwise put it back on the
+                // dashboard, next to the cycle that replaced it, which is the exact
+                // duplicate this work removes.
+                return (habits.pacts || []).filter((pact) => !isPactSuperseded(pact));
         }
     };
 
@@ -950,6 +982,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 isRespondPending={respondingPactId === item.id}
                 onRenew={() => this.handleRenewPact(item)}
                 isRenewPending={renewingPactId === item.id}
+                onViewSourcePact={this.handleViewLineagePact}
+                onViewSuccessorPact={this.handleViewLineagePact}
                 themeHabits={this.themeHabits}
                 translate={this.translate}
             />

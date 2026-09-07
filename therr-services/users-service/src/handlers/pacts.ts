@@ -440,15 +440,28 @@ const withMembers = async (pacts: any[]) => {
     })));
 };
 
+/**
+ * A user's pacts, newest first.
+ *
+ * Cycles that have been continued by a renewal are left out unless
+ * `includeSuperseded=true` is asked for. A renewal is a new row on the same habit goal, so
+ * without this the list grew by one row every time someone re-committed and the newest and
+ * the finished cycle sat next to each other looking like duplicates. The predecessor stays
+ * reachable through its successor's `renewedFromPactId`, which is what the "extended from"
+ * link on the card follows.
+ */
 const getUserPacts: RequestHandler = async (req: any, res: any) => {
     const { userId } = parseHeaders(req.headers);
-    const { status, limit, offset } = req.query;
+    const {
+        status, limit, offset, includeSuperseded,
+    } = req.query;
 
     return Store.pacts.getByUserId(
         userId,
         status,
         limit ? parseInt(limit, 10) : undefined,
         offset ? parseInt(offset, 10) : undefined,
+        includeSuperseded === 'true' || includeSuperseded === true,
     )
         .then(withMembers)
         .then((pacts) => res.status(200).send(pacts))
@@ -985,6 +998,12 @@ const completePact: RequestHandler = async (req: any, res: any) => {
 // its own. Resetting it here would take the article's strongest mechanic away
 // from the user on a day they did nothing wrong.
 //
+// The new row records which cycle it continues (`renewedFromPactId`) and how many
+// cycles deep it is (`renewalCycleNumber`). Without that edge the list had no way
+// to tell "two pacts" from "one pact, second cycle" and rendered both, so a
+// re-commit read as the app duplicating the pact. It is also what makes a second
+// tap idempotent: see the successor check below.
+//
 // Previously-active partners are re-invited as `pending`, not silently
 // re-enrolled. A pact is a mutual commitment for a fixed number of days, and
 // one member tapping "re-commit" must not sign the others up for another 30.
@@ -1041,20 +1060,47 @@ const renewPact: RequestHandler = async (req: any, res: any) => {
             });
         }
 
-        // One live cycle per habit at a time. Without this, tapping renew twice —
-        // or two members each renewing the same ended pact — produces two parallel
-        // pacts on one goal, which the check-in path would then credit twice over.
+        // Re-commit is idempotent. If this cycle has already been continued, hand back
+        // the cycle that continues it instead of starting another one.
         //
-        // `getActiveByUserAndHabitGoal` now excludes anything past its endDate, so
-        // a finished-but-unswept pact — including the very one being renewed —
-        // no longer comes back here. The filter below is kept as a second line of
-        // defence rather than as the fix: this guard is what stands between a
-        // double-tap and two parallel pacts crediting the same check-in twice, and
-        // it should not silently depend on a predicate living in another file. A
-        // regression on either side alone still leaves renewal correct.
-        const livePacts = await Store.pacts.getActiveByUserAndHabitGoal(userId, pact.habitGoalId);
+        // This is the fix for the reported "each tap adds a duplicate". A renewal that
+        // has partners is created `pending` and only becomes `active` on the first
+        // acceptance, so it was invisible to the live-cycle guard below — which reads
+        // `status = 'active'` — and every further tap on the ended pact's still-visible
+        // CTA created another parallel pending cycle. One tap, one apparent duplicate.
+        //
+        // 200 rather than a 409, because from the user's side the intent already
+        // succeeded and a second tap is not an error to explain: they wanted another
+        // cycle on this habit and there is one. The client puts the returned pact into
+        // state exactly as it would a fresh renewal, which also self-heals a list that
+        // had gone stale. 201-vs-200 is what tells the two apart.
+        const existingRenewal = await Store.pacts.getLatestRenewalOf(pact.id);
+        if (existingRenewal) {
+            const existingMembers = await Store.pactMembers.getByPactId(existingRenewal.id);
+            return res.status(200).send(await attachMemberStatsToPact({
+                ...existingRenewal,
+                members: existingMembers,
+            }));
+        }
+
+        // One live cycle per habit at a time. Without this, two members each renewing
+        // the same ended pact — or a renewal raced against a separately created pact on
+        // the same goal — produces two parallel pacts on one goal, which the check-in
+        // path would then credit twice over.
+        //
+        // `getUnfinishedByUserAndHabitGoal` counts `pending` as in-flight, which
+        // `getActiveByUserAndHabitGoal` (the check-in credit path) deliberately does not
+        // — an unanswered invite is a cycle in flight even though no check-in should be
+        // credited to it. It already excludes anything past its endDate, so a
+        // finished-but-unswept pact — including the very one being renewed — does not
+        // come back here. The filter below is kept as a second line of defence rather
+        // than as the fix: this guard is what stands between two members' simultaneous
+        // taps and two parallel pacts crediting the same check-in twice, and it should
+        // not silently depend on a predicate living in another file. A regression on
+        // either side alone still leaves renewal correct.
+        const livePacts = await Store.pacts.getUnfinishedByUserAndHabitGoal(userId, pact.habitGoalId);
         const blockingPacts = livePacts.filter((live: any) => live.id !== pact.id
-            && !shouldExpirePact(live.status, live.endDate ?? null));
+            && (live.status === 'pending' || !shouldExpirePact(live.status, live.endDate ?? null)));
         if (blockingPacts.length) {
             return handleHttpError({
                 res,
@@ -1109,6 +1155,11 @@ const renewPact: RequestHandler = async (req: any, res: any) => {
             durationDays: nextDurationDays,
             consequenceType: pact.consequenceType,
             consequenceDetails: pact.consequenceDetails,
+            renewedFromPactId: pact.id,
+            // Legacy rows carry no cycle number, and a pact with no recorded predecessor
+            // is a first cycle as far as anything can know — so an unset value counts as 1
+            // and its renewal becomes cycle 2.
+            renewalCycleNumber: (pact.renewalCycleNumber || 1) + 1,
         })
             .then(async (renewed) => {
                 await Store.pactMembers.create({

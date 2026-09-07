@@ -122,13 +122,15 @@ describe('Pact renewal — handler', () => {
         pact,
         members,
         livePacts = [],
-    }: { pact: any; members: any[]; livePacts?: any[] }) => {
+        existingRenewal = undefined,
+    }: { pact: any; members: any[]; livePacts?: any[]; existingRenewal?: any }) => {
         sinon.stub(Store.pacts, 'getById').resolves(pact);
         sinon.stub(Store.pactMembers, 'getByPactId')
             .onFirstCall().resolves(members)
             .onSecondCall()
             .resolves(members);
-        sinon.stub(Store.pacts, 'getActiveByUserAndHabitGoal').resolves(livePacts as any);
+        sinon.stub(Store.pacts, 'getLatestRenewalOf').resolves(existingRenewal);
+        sinon.stub(Store.pacts, 'getUnfinishedByUserAndHabitGoal').resolves(livePacts as any);
         sinon.stub(Store.habitGoals, 'getById').resolves({ id: HABIT_GOAL_ID, name: 'Morning run' } as any);
         sinon.stub(Store.habitGoals, 'incrementUsageCount').resolves({} as any);
         sinon.stub(Store.pacts, 'create').callsFake((params: any) => {
@@ -308,7 +310,7 @@ describe('Pact renewal — handler', () => {
         expect(createdPact).to.not.equal(undefined);
     });
 
-    // The live-pact guard reads `getActiveByUserAndHabitGoal`, which filters on
+    // The live-pact guard reads `getUnfinishedByUserAndHabitGoal`, which filters on
     // status alone — so a past-due pact the nightly sweep has not reached yet
     // comes back as "active", including the one being renewed. Counting it made
     // renewing before the sweep return 409, killing the exact same-evening path
@@ -362,5 +364,160 @@ describe('Pact renewal — handler', () => {
 
         expect(statusCode).to.equal(400);
         expect(createdPact).to.equal(undefined);
+    });
+
+    it('records which cycle the renewal continues, and how many cycles deep it is', async () => {
+        stubStores({
+            pact: endedPact({ renewalCycleNumber: 2 }),
+            members: [{ userId: RENEWER, status: 'active', role: 'creator' }],
+        });
+
+        await run();
+
+        // Without this edge nothing distinguishes "two pacts on one habit" from
+        // "one habit, third cycle", and the list renders both — which is what the
+        // duplicate-pact reports were seeing.
+        expect(createdPact.renewedFromPactId).to.equal(PACT_ID);
+        expect(createdPact.renewalCycleNumber).to.equal(3);
+    });
+
+    it('counts a legacy pact with no recorded cycle number as the first one', async () => {
+        stubStores({
+            pact: endedPact(),
+            members: [{ userId: RENEWER, status: 'active', role: 'creator' }],
+        });
+
+        await run();
+
+        expect(createdPact.renewalCycleNumber).to.equal(2);
+    });
+});
+
+/**
+ * The duplicate-pact bug, and why the live-cycle guard could not catch it.
+ *
+ * A renewal that has partners is created `pending` and only becomes `active` on the first
+ * acceptance. The guard read `status = 'active'`, so a pending renewal was invisible to it —
+ * while the ended pact kept its re-commit CTA, because `isPactRenewable` still says yes.
+ * Every further tap therefore created another parallel pending cycle on the same habit goal:
+ * one tap per apparent duplicate in the list, with no error to hint at it.
+ *
+ * Two independent things close it, and the tests below hold both. Either alone would do on a
+ * good day; the pair is what survives a stale client and a second member tapping at the same
+ * moment.
+ */
+describe('Pact renewal — a second tap does not make a second pact', () => {
+    let created: any;
+
+    const buildRes = () => {
+        const captured: { statusCode?: number; body?: any } = {};
+        return {
+            captured,
+            res: {
+                status: (statusCode: number) => {
+                    captured.statusCode = statusCode;
+                    return { send: (payload: any) => { captured.body = payload; return payload; } };
+                },
+            } as any,
+        };
+    };
+
+    const endedPact = (overrides: any = {}) => ({
+        id: PACT_ID,
+        creatorUserId: RENEWER,
+        partnerUserId: PARTNER,
+        habitGoalId: HABIT_GOAL_ID,
+        pactType: 'accountability',
+        status: 'expired',
+        durationDays: 30,
+        endDate: yesterday(),
+        ...overrides,
+    });
+
+    const run = async () => {
+        const { captured, res } = buildRes();
+        await renewPact({
+            headers: { 'x-userid': RENEWER, 'x-localecode': 'en-us', 'x-brand-variation': 'habits' },
+            params: { id: PACT_ID },
+            body: {},
+        } as any, res, (() => undefined) as any);
+        return captured;
+    };
+
+    beforeEach(() => {
+        created = undefined;
+        sinon.stub(Store.pacts, 'getById').resolves(endedPact());
+        sinon.stub(Store.pactMembers, 'getByPactId').resolves([
+            { userId: RENEWER, status: 'active', role: 'creator' },
+            { userId: PARTNER, status: 'active', role: 'partner' },
+        ] as any);
+        sinon.stub(Store.habitGoals, 'getById').resolves({ id: HABIT_GOAL_ID, name: 'Morning run' } as any);
+        sinon.stub(Store.habitGoals, 'incrementUsageCount').resolves({} as any);
+        sinon.stub(Store.pacts, 'create').callsFake((params: any) => {
+            created = { id: 'pact-2', status: 'pending', ...params };
+            return Promise.resolve(created);
+        });
+        sinon.stub(Store.pacts, 'activate').resolves({} as any);
+        sinon.stub(Store.pacts, 'expire').resolves({} as any);
+        sinon.stub(Store.pactMembers, 'create').resolves({ id: 'member-1' } as any);
+        sinon.stub(Store.pactMembers, 'createBulk').callsFake(
+            (rows: any[]) => Promise.resolve(rows.map((row, i) => ({ id: `bulk-${i}`, ...row }))),
+        );
+        sinon.stub(Store.userHabits, 'getOrCreate').resolves({} as any);
+        sinon.stub(Store.users, 'findUser').resolves([] as any);
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    // The primary fix. 200 rather than 409 because from the user's side the intent already
+    // succeeded — they wanted another cycle on this habit and there is one. An error toast
+    // here would be the app apologising for having done what was asked.
+    it('answers 200 with the existing renewal instead of creating another', async () => {
+        const alreadyRenewed = {
+            id: 'pact-2',
+            status: 'pending',
+            habitGoalId: HABIT_GOAL_ID,
+            renewedFromPactId: PACT_ID,
+            renewalCycleNumber: 2,
+        };
+        sinon.stub(Store.pacts, 'getLatestRenewalOf').resolves(alreadyRenewed as any);
+        sinon.stub(Store.pacts, 'getUnfinishedByUserAndHabitGoal').resolves([] as any);
+
+        const { statusCode, body } = await run();
+
+        expect(statusCode).to.equal(200);
+        expect(body.id).to.equal('pact-2');
+        expect((Store.pacts.create as any).called).to.equal(false);
+        expect(created).to.equal(undefined);
+    });
+
+    // The second line of defence, for the case the successor lookup cannot see: another
+    // pact on the same habit goal that is not a renewal of this one. `pending` counts as
+    // in-flight here even though the check-in credit path must never count it.
+    it('refuses when a pending cycle on that habit is already in flight', async () => {
+        sinon.stub(Store.pacts, 'getLatestRenewalOf').resolves(undefined);
+        sinon.stub(Store.pacts, 'getUnfinishedByUserAndHabitGoal').resolves([
+            { id: 'pact-other', status: 'pending', endDate: null },
+        ] as any);
+
+        const { statusCode } = await run();
+
+        expect(statusCode).to.equal(409);
+        expect(created).to.equal(undefined);
+    });
+
+    // A declined 1:1 renewal is `abandoned`, which `getLatestRenewalOf` skips — the cycle it
+    // continued has to become re-committable again, or a partner's decline would strand the
+    // habit with no way forward.
+    it('lets a pact whose renewal was declined be re-committed again', async () => {
+        sinon.stub(Store.pacts, 'getLatestRenewalOf').resolves(undefined);
+        sinon.stub(Store.pacts, 'getUnfinishedByUserAndHabitGoal').resolves([] as any);
+
+        const { statusCode } = await run();
+
+        expect(statusCode).to.equal(201);
+        expect(created.renewedFromPactId).to.equal(PACT_ID);
     });
 });

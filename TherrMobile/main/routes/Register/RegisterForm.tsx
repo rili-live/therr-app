@@ -6,6 +6,7 @@ import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentica
 import { PasswordRegex } from 'therr-js-utilities/constants';
 import isValidSignupAge, { MINIMUM_SIGNUP_AGE } from 'therr-js-utilities/is-valid-signup-age';
 import { showToast } from '../../utilities/toasts';
+import { getInstallAcquisition } from '../../utilities/installReferrer';
 import translator from '../../utilities/translator';
 import { addMargins } from '../../styles';
 import Alert from '../../components/Alert';
@@ -203,8 +204,13 @@ export class RegisterFormComponent extends React.Component<
             prevRegisterError: '',
         });
 
-        this.props
-            .register(creds)
+        // Where this install came from, if Play told us. Advisory telemetry: it
+        // resolves null on every failure path, the server sanitizes it and drops
+        // anything malformed, and it must never delay or block the signup —
+        // hence the catch. After the first launch the read is a cached
+        // AsyncStorage hit, not a service binding.
+        getInstallAcquisition().catch(() => null).then((userAcquisition) => this.props
+            .register({ ...creds, userAcquisition: userAcquisition || undefined })
             .then(() => {
                 this.props.onSuccess();
             })
@@ -213,7 +219,7 @@ export class RegisterFormComponent extends React.Component<
 
                 this.setState({ isSubmitting: false });
                 this.showRegisterError(message, title);
-            });
+            }));
     };
 
     onInputChange = (name: string, value: string) => {
