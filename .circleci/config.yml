@@ -245,25 +245,41 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Skip unless TherrMobile or shared libraries changed
-          # This job runs on every stage->main merge (alongside `deploy`), but the
-          # Therr mobile app only needs a rebuild when the code it bundles changed:
-          # TherrMobile/ itself, or any of the shared libs in therr-public-library/
-          # (therr-react and its transitive deps therr-js-utilities + therr-styles,
-          # all compiled into the JS bundle). Pure-backend deploys (therr-services/,
-          # therr-api-gateway/) must NOT burn an EAS build. stage->main is a real
-          # merge commit, so HEAD^1 is the previous main tip and `HEAD^1..HEAD` is
-          # exactly the delta merged in. If HEAD^1 can't be resolved (shallow clone),
-          # fail open and build rather than silently skip.
+          name: Skip unless the Android versionCode was bumped
+          # This job runs on every stage->main merge (alongside `deploy`), but an EAS
+          # build is only worth its credits when it will produce a NEW Play release.
+          # Google Play rejects any upload whose versionCode already exists on the
+          # track, so building without a versionCode bump makes --auto-submit try to
+          # republish an existing version and fail — burning an EAS build for nothing.
+          # eas.json uses local appVersionSource, so android/app/build.gradle is the
+          # source of truth for versionCode/versionName. stage->main is a real merge
+          # commit, so HEAD^1 is the previous main tip and `HEAD^1..HEAD` is exactly
+          # the delta merged in; we compare the versionCode there against HEAD. If
+          # HEAD^1 or the versionCode can't be resolved (shallow clone, parse change),
+          # fail open and build rather than silently skip a real release.
           command: |
+            GRADLE_PATH="TherrMobile/android/app/build.gradle"
+            get_version_code() {
+              git show "$1:$GRADLE_PATH" 2>/dev/null \
+                | grep -E '^[[:space:]]*versionCode[[:space:]]' \
+                | head -1 \
+                | sed -E 's/^[[:space:]]*versionCode[[:space:]]+//' \
+                | tr -d '[:space:]'
+            }
             BASE="$(git rev-parse --verify --quiet HEAD^1 || true)"
             if [ -z "$BASE" ]; then
               echo "Could not resolve HEAD^1 (shallow clone?) — building to be safe."
-            elif git diff --name-only "$BASE" HEAD | grep -qE '^(TherrMobile/|therr-public-library/)'; then
-              echo "TherrMobile/ or therr-public-library/ changed in this merge — proceeding with EAS build."
             else
-              echo "No TherrMobile/ or therr-public-library/ changes in this merge — skipping EAS build."
-              circleci-agent step halt
+              BASE_CODE="$(get_version_code "$BASE")"
+              HEAD_CODE="$(get_version_code HEAD)"
+              if [ -z "$HEAD_CODE" ]; then
+                echo "Could not read versionCode at HEAD — building to be safe."
+              elif [ "$BASE_CODE" = "$HEAD_CODE" ]; then
+                echo "versionCode unchanged ($HEAD_CODE) — skipping EAS build to avoid republishing an existing Play version."
+                circleci-agent step halt
+              else
+                echo "versionCode bumped ($BASE_CODE -> $HEAD_CODE) — proceeding with EAS build."
+              fi
             fi
       - run:
           name: Install EAS CLI
@@ -295,26 +311,43 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Skip unless TherrMobile or shared libraries changed
+          name: Skip unless the Android versionCode was bumped
           # This job runs on every niche/HABITS-main merge (alongside the mobile
-          # release), but the mobile app only needs a rebuild when the code it
-          # bundles changed: TherrMobile/ itself, or any of the shared libs in
-          # therr-public-library/ (therr-react and its transitive deps
-          # therr-js-utilities + therr-styles, all compiled into the JS bundle).
-          # Pure-backend deploys (therr-services/, therr-api-gateway/) must NOT
-          # burn an EAS build. A release merge is a real merge commit, so HEAD^1
-          # is the previous tip and `HEAD^1..HEAD` is exactly the delta merged in.
-          # If HEAD^1 can't be resolved (shallow clone), fail open and build
-          # rather than silently skip.
+          # release), but an EAS build is only worth its credits when it will
+          # produce a NEW Play release. Google Play rejects any upload whose
+          # versionCode already exists on the track, so building without a
+          # versionCode bump makes --auto-submit try to republish an existing
+          # version and fail — burning an EAS build for nothing. eas.json uses
+          # local appVersionSource, so android/app/build.gradle is the source of
+          # truth for versionCode/versionName (Habits keeps its own version
+          # sequence there). A release merge is a real merge commit, so HEAD^1 is
+          # the previous tip and `HEAD^1..HEAD` is exactly the delta merged in; we
+          # compare the versionCode there against HEAD. If HEAD^1 or the versionCode
+          # can't be resolved (shallow clone, parse change), fail open and build
+          # rather than silently skip a real release.
           command: |
+            GRADLE_PATH="TherrMobile/android/app/build.gradle"
+            get_version_code() {
+              git show "$1:$GRADLE_PATH" 2>/dev/null \
+                | grep -E '^[[:space:]]*versionCode[[:space:]]' \
+                | head -1 \
+                | sed -E 's/^[[:space:]]*versionCode[[:space:]]+//' \
+                | tr -d '[:space:]'
+            }
             BASE="$(git rev-parse --verify --quiet HEAD^1 || true)"
             if [ -z "$BASE" ]; then
               echo "Could not resolve HEAD^1 (shallow clone?) — building to be safe."
-            elif git diff --name-only "$BASE" HEAD | grep -qE '^(TherrMobile/|therr-public-library/)'; then
-              echo "TherrMobile/ or therr-public-library/ changed in this merge — proceeding with EAS build."
             else
-              echo "No TherrMobile/ or therr-public-library/ changes in this merge — skipping EAS build."
-              circleci-agent step halt
+              BASE_CODE="$(get_version_code "$BASE")"
+              HEAD_CODE="$(get_version_code HEAD)"
+              if [ -z "$HEAD_CODE" ]; then
+                echo "Could not read versionCode at HEAD — building to be safe."
+              elif [ "$BASE_CODE" = "$HEAD_CODE" ]; then
+                echo "versionCode unchanged ($HEAD_CODE) — skipping EAS build to avoid republishing an existing Play version."
+                circleci-agent step halt
+              else
+                echo "versionCode bumped ($BASE_CODE -> $HEAD_CODE) — proceeding with EAS build."
+              fi
             fi
       - run:
           name: Install EAS CLI
