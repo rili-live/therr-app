@@ -53,6 +53,10 @@
             "lifetimePurchaseNotCompleted": "Cet achat n'est pas encore complété",
             "lifetimePurchaseNotFound": "Cet achat est introuvable",
             "lifetimeVerificationFailed": "Nous n'avons pas pu vérifier cet achat pour le moment. Réessaie dans un instant.",
+            "premiumAlreadyClaimed": "Cet abonnement a déjà été réclamé par un autre compte",
+            "premiumPurchaseNotActive": "Cet abonnement n'est pas encore actif",
+            "premiumPurchaseNotFound": "Cet abonnement est introuvable",
+            "premiumVerificationFailed": "Nous n'avons pas pu vérifier cet abonnement pour le moment. Réessaie dans un instant.",
             "soloLocked": "Invite {remaining} ami(s) de plus pour débloquer les habitudes que tu suis seul — {required} invitations en tout."
         },
         "user": {

@@ -53,6 +53,10 @@
             "lifetimePurchaseNotCompleted": "Esa compra aún no se ha completado",
             "lifetimePurchaseNotFound": "No se encontró esa compra",
             "lifetimeVerificationFailed": "No pudimos verificar esa compra en este momento. Inténtalo de nuevo en unos instantes.",
+            "premiumAlreadyClaimed": "Otra cuenta ya reclamó esa suscripción",
+            "premiumPurchaseNotActive": "Esa suscripción aún no está activa",
+            "premiumPurchaseNotFound": "No se encontró esa suscripción",
+            "premiumVerificationFailed": "No pudimos verificar esa suscripción en este momento. Inténtalo de nuevo en unos instantes.",
             "soloLocked": "Invita a {remaining} amigo(s) más para desbloquear los hábitos que sigues por tu cuenta: {required} invitaciones en total."
         },
         "user": {

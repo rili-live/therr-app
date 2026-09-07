@@ -19,6 +19,7 @@ const initialState: IHabitsState = {
     journalCursor: null,
     journalHasMore: false,
     lifetimeOffer: null,
+    premiumOffer: null,
     isLoading: false,
 };
 
@@ -287,6 +288,23 @@ const habits = produce((draft: IHabitsState, action: any) => {
             }
             // The habit cap is lifted from here on, so the cached eligibility
             // snapshot would otherwise keep the paywall showing until refetch.
+            if (draft.userHabitEligibility) {
+                draft.userHabitEligibility.isAtHabitLimit = false;
+            }
+            break;
+
+        // Premium subscription offer
+        case HabitsActionTypes.GET_PREMIUM_OFFER:
+            draft.premiumOffer = action.data || null;
+            break;
+        case HabitsActionTypes.VERIFY_PREMIUM_PURCHASE:
+            if (draft.premiumOffer) {
+                draft.premiumOffer.subscription = action.data?.subscription || null;
+                draft.premiumOffer.isEntitled = true;
+            }
+            // Premium lifts the same free-tier cap the founder unlock does, so the
+            // cached eligibility snapshot would otherwise keep the paywall showing
+            // until the next refetch.
             if (draft.userHabitEligibility) {
                 draft.userHabitEligibility.isAtHabitLimit = false;
             }

@@ -593,6 +593,29 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   or charged-back buyer keeps `HABITS_LIFETIME` indefinitely — `habits.lifetime_purchases.status`
   and `LifetimePurchasesStore.setStatus` exist for it, but nothing consumes Play's Real-Time
   Developer Notifications. Until a Pub/Sub subscriber lands, revocations have to be done by hand.
+- [ ] (2026-09-07, premium-6-99-monthly) **Create the Google Play subscription product before the
+  premium tier can sell.** Product id `habits_premium_monthly` on `com.therr.habits`, a
+  **subscription** with a monthly base plan at $6.99 USD, active. Like the founder in-app product,
+  it does not resolve until the app is published on a track that declares
+  `com.android.vending.BILLING`, so it ships on a release, not before one. If the id differs from
+  the default, set `HABITS_PREMIUM_PRODUCT_ID` on the prod users-service — the server validates the
+  id on every verification (and checks it against the subscription's line items) and rejects a
+  token bought under a different SKU. No extra credentials are needed: the same
+  `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` / `GOOGLE_PLAY_PACKAGE_NAME` the founder unlock uses also
+  authorizes `purchases.subscriptionsv2.get` and the subscriptions acknowledge; until they are set,
+  `GET /habits/premium` reports `isStoreConfigured: false` and the client hides the CTA.
+- [ ] (2026-09-07, premium-6-99-monthly) **Run the new migration** on users-service
+  (`20260907000001_habits.subscription_purchases`). Creates `habits.subscription_purchases`; it
+  backfills nothing, so it is safe to run any time before the mobile release ships.
+- [ ] (2026-09-07, premium-6-99-monthly) **Subscription lapse/cancellation is not yet handled.** A
+  subscriber whose renewal fails past the grace period, or who cancels and lets the period end,
+  keeps `HABITS_PREMIUM` until acted on — `habits.subscription_purchases.status` /
+  `.expiryTime` and `SubscriptionPurchasesStore.setStatus` exist for it, but, exactly as with
+  lifetime refunds above, nothing consumes Play's Real-Time Developer Notifications yet. The client
+  verify path only ever writes an entitling state; the downgrade needs the RTDN subscriber (one
+  Pub/Sub consumer can serve both `habits.lifetime_purchases` and `habits.subscription_purchases`).
+  Until it lands, revocations are manual: null out `HABITS_PREMIUM` on the user and set the row's
+  `status`.
 - [ ] (2026-08-14, /work-plan) **Password change from web and dashboard starts working
   after this api-gateway deploy — it has been returning 400.** `PUT /users-service/users/change-password`
   was registered after `PUT /users/:id`, so express matched the param route and

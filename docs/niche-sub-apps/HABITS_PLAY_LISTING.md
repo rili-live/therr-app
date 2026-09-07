@@ -213,11 +213,11 @@ via item (2) of the pre-submission checklist above.
 | Credit score | **No** | — | — | — | — |
 | Other financial info | **No** | — | — | — | — |
 
-*Rationale:* The **$20 Founder Unlock has shipped** (Google Play Billing,
-server-verified, product id `habits_lifetime_founder`). Google does not
+*Rationale:* The **$20 Founder Unlock** (product id `habits_lifetime_founder`)
+and the **$6.99/mo premium subscription** (product id `habits_premium_monthly`)
+have both shipped — Google Play Billing, server-verified. Google does not
 consider Play Billing to be data collection by the app, so this section stays
 **No**. Re-evaluate if any non-Play payment path (e.g. web checkout) is added.
-The $6.99/mo subscription tier is still **not built**.
 
 #### 4. Health and fitness
 

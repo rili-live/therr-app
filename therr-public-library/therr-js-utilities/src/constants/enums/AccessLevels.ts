@@ -18,7 +18,14 @@ enum AccessLevels {
   ORGANIZATIONS_READ = 'user.organizations.read', // Assigned by organization admin when adding a read only user
   ORGANIZATIONS_SUBSCRIBER = 'user.organizations.subscriber', // Assigned by white-label organization admin when adding a subscriber/customer
   API_ACCESS = 'user.api.access', // Granted to dashboard subscribers to enable API key management
-  HABITS_PREMIUM = 'user.habits.premium', // Added by Stripe webhook when a HABITS user activates the premium subscription
+  /**
+   * Added after a verified Google Play subscription to the $6.99/mo premium
+   * tier (users-service habitsPremium handler), and stripped when the
+   * subscription lapses. Distinct from HABITS_LIFETIME so a lapse revocation
+   * never catches a one-time founder; gates read both via
+   * `hasHabitsPremiumEntitlement` rather than testing either directly.
+   */
+  HABITS_PREMIUM = 'user.habits.premium',
   /**
    * Added after a verified Google Play purchase of the one-time founder
    * "free for life" product. Deliberately distinct from HABITS_PREMIUM: a

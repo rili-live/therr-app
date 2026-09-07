@@ -5,9 +5,11 @@ import { Platform } from 'react-native';
 import {
     endBilling,
     finishPurchase,
+    getSubscriptionOfferToken,
     initBilling,
     isBillingSupported,
     requestFounderPurchase,
+    requestSubscriptionPurchase,
     resolvePurchaseValue,
     PURCHASE_TIMEOUT_CODE,
 } from '../../main/utilities/habitsBilling';
@@ -160,6 +162,36 @@ describe('habitsBilling', () => {
         await expect(initBilling()).resolves.toBe(true);
         await endBilling();
     });
+
+    it('asks the store for a subscription with the base-plan offer token', async () => {
+        // A Play subscription is bought against a specific offer, not the bare
+        // SKU; requestPurchase for `type: 'subs'` rejects without an offer token.
+        const pending = requestSubscriptionPurchase('habits_premium_monthly', 'offer-token-1');
+        __emitPurchaseUpdate({ purchaseToken: 'sub-token', id: 'habits_premium_monthly' });
+        await pending;
+
+        expect(requestPurchase).toHaveBeenCalledWith(
+            expect.objectContaining({
+                type: 'subs',
+                request: expect.objectContaining({
+                    android: expect.objectContaining({
+                        skus: ['habits_premium_monthly'],
+                        subscriptionOffers: [{ sku: 'habits_premium_monthly', offerToken: 'offer-token-1' }],
+                    }),
+                }),
+            }),
+        );
+    });
+
+    it('resolves the offer token from a fetched subscription product', () => {
+        expect(getSubscriptionOfferToken({
+            subscriptionOfferDetails: [{ offerToken: 'offer-token-1' }],
+        })).toBe('offer-token-1');
+        // A product with no offers cannot be purchased — the caller treats null
+        // as "not ready" rather than guessing a token.
+        expect(getSubscriptionOfferToken({ subscriptionOfferDetails: [] })).toBeNull();
+        expect(getSubscriptionOfferToken(null)).toBeNull();
+    });
 });
 
 describe('habitsBilling purchase timeout', () => {
@@ -270,6 +302,35 @@ describe('resolvePurchaseValue', () => {
 
     it('accepts a normalized numeric price when micros are absent', () => {
         expect(resolvePurchaseValue({ price: 20, currency: 'USD' })).toEqual({ value: 20, currency: 'USD' });
+    });
+
+    it('reads the recurring price from a subscription product offer', () => {
+        // A subscription nests its price inside the pricing phase of an offer,
+        // not on the product itself.
+        expect(resolvePurchaseValue({
+            subscriptionOfferDetails: [{
+                pricingPhases: {
+                    pricingPhaseList: [
+                        { priceAmountMicros: '6990000', priceCurrencyCode: 'USD' },
+                    ],
+                },
+            }],
+        })).toEqual({ value: 6.99, currency: 'USD' });
+    });
+
+    it('reports the paid phase of a subscription, not a free trial', () => {
+        // A free-trial phase leads with a zero price; reporting it would count
+        // every subscription as worth nothing.
+        expect(resolvePurchaseValue({
+            subscriptionOfferDetails: [{
+                pricingPhases: {
+                    pricingPhaseList: [
+                        { priceAmountMicros: '0', priceCurrencyCode: 'USD' },
+                        { priceAmountMicros: '6990000', priceCurrencyCode: 'USD' },
+                    ],
+                },
+            }],
+        })).toEqual({ value: 6.99, currency: 'USD' });
     });
 
     it.each([
