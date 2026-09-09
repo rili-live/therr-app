@@ -1,4 +1,6 @@
-import { IHabitGoal, IPact, IPactMember } from 'therr-react/types';
+import {
+    IHabitGoal, IPact, IPactMember, IUserHabit,
+} from 'therr-react/types';
 
 /**
  * A habit goal paired with the state of the pact(s) it belongs to. A goal is
@@ -12,6 +14,13 @@ export interface IHabitWithPactState {
     goal: IHabitGoal;
     partnerNames: string[];
     awaitingPartnerNames: string[];
+    /**
+     * The tracking row for this goal, when one is loaded. Carries the id the
+     * archive / continue-solo actions address and the `status` the archived
+     * filter reads. Undefined when the user-habit list has not loaded yet — the
+     * card then renders read-only, without the two decision buttons.
+     */
+    userHabit?: IUserHabit;
 }
 
 const getMemberDisplayName = (member: IPactMember): string => {
@@ -108,37 +117,69 @@ export const hasTrackedHabit = (
  * Splits the habit list by whether its pact has started. Goals with no pact at
  * all are treated as live so a habit can never become un-checkin-able through
  * missing pact data.
+ *
+ * `userHabits` is the tracking registry. When supplied it does two things:
+ *
+ *   - **Hides archived habits.** Archiving is the user saying "stop bugging me
+ *     about this"; the reminders already stop server-side, and the dashboard has
+ *     to match by dropping the row from the active list. Passing an empty list
+ *     (the default) skips the filter, so callers that do not load the registry —
+ *     and the existing unit tests — behave exactly as before.
+ *   - **Attaches the tracking row** to each entry, so the awaiting-partner card
+ *     can offer "continue solo" / "archive" against the right habit id.
+ *
+ * The goal is matched to its tracking row by `habitGoalId`.
  */
 export const splitHabitsByPactState = (
     habitGoals: IHabitGoal[],
     activePacts: IPact[],
     allPacts: IPact[],
     currentUserId?: string,
-): { live: IHabitWithPactState[]; pending: IHabitWithPactState[] } => habitGoals.reduce(
-    (acc: { live: IHabitWithPactState[]; pending: IHabitWithPactState[] }, goal) => {
-        const goalActivePacts = activePacts.filter((p) => p.habitGoalId === goal.id);
-        const goalPendingPacts = allPacts.filter(
-            (p) => p.habitGoalId === goal.id && p.status === 'pending',
-        );
+    userHabits: IUserHabit[] = [],
+): { live: IHabitWithPactState[]; pending: IHabitWithPactState[] } => {
+    const userHabitByGoalId = new Map<string, IUserHabit>();
+    userHabits.forEach((habit) => {
+        userHabitByGoalId.set(habit.habitGoalId, habit);
+    });
 
-        if (goalActivePacts.length > 0 || goalPendingPacts.length === 0) {
-            acc.live.push({
-                goal,
-                partnerNames: getPartnerNames(goalActivePacts, currentUserId, 'active'),
-                awaitingPartnerNames: [],
-            });
-        } else {
-            acc.pending.push({
-                goal,
-                partnerNames: [],
-                awaitingPartnerNames: getPartnerNames(goalPendingPacts, currentUserId),
-            });
-        }
+    return habitGoals.reduce(
+        (acc: { live: IHabitWithPactState[]; pending: IHabitWithPactState[] }, goal) => {
+            const userHabit = userHabitByGoalId.get(goal.id);
 
-        return acc;
-    },
-    { live: [], pending: [] },
-);
+            // An archived habit is intentionally muted — keep it off the active
+            // dashboard entirely. A goal with no tracking row loaded is left in
+            // (undefined status is not "archived"), so an unloaded registry can
+            // never make habits vanish.
+            if (userHabit?.status === 'archived') {
+                return acc;
+            }
+
+            const goalActivePacts = activePacts.filter((p) => p.habitGoalId === goal.id);
+            const goalPendingPacts = allPacts.filter(
+                (p) => p.habitGoalId === goal.id && p.status === 'pending',
+            );
+
+            if (goalActivePacts.length > 0 || goalPendingPacts.length === 0) {
+                acc.live.push({
+                    goal,
+                    partnerNames: getPartnerNames(goalActivePacts, currentUserId, 'active'),
+                    awaitingPartnerNames: [],
+                    userHabit,
+                });
+            } else {
+                acc.pending.push({
+                    goal,
+                    partnerNames: [],
+                    awaitingPartnerNames: getPartnerNames(goalPendingPacts, currentUserId),
+                    userHabit,
+                });
+            }
+
+            return acc;
+        },
+        { live: [], pending: [] },
+    );
+};
 
 /**
  * Has this cycle already been continued by a re-commit?

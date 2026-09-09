@@ -190,4 +190,73 @@ describe('splitHabitsByPactState', () => {
         expect(live).toHaveLength(0);
         expect(pending[0].awaitingPartnerNames).toEqual([]);
     });
+
+    // The archive escape hatch: an archived habit is muted, so it must leave the
+    // active dashboard entirely rather than keep firing its awaiting-partner card.
+    const userHabit = (habitGoalId: string, status: string): any => ({
+        id: `uh-${habitGoalId}`,
+        userId: 'me',
+        habitGoalId,
+        status,
+        startedAt: '2026-01-01T00:00:00.000Z',
+        goalName: `Habit ${habitGoalId}`,
+        goalType: 'build_good',
+        frequencyType: 'daily',
+        isSolo: true,
+        activePactCount: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+
+    it('drops an archived habit from both lists when the registry is supplied', () => {
+        const pendingPact = pact('pact-1', 'goal-1', 'pending', [
+            member('me', 'creator', 'active'),
+            member('friend', 'partner', 'pending', 'Dana'),
+        ]);
+
+        const { live, pending } = splitHabitsByPactState(
+            [goal('goal-1')],
+            [],
+            [pendingPact],
+            'me',
+            [userHabit('goal-1', 'archived')],
+        );
+
+        expect(live).toHaveLength(0);
+        expect(pending).toHaveLength(0);
+    });
+
+    it('attaches the tracking row to an awaiting-partner entry so the card can act on it', () => {
+        const pendingPact = pact('pact-1', 'goal-1', 'pending', [
+            member('me', 'creator', 'active'),
+            member('friend', 'partner', 'pending', 'Dana'),
+        ]);
+
+        const { pending } = splitHabitsByPactState(
+            [goal('goal-1')],
+            [],
+            [pendingPact],
+            'me',
+            [userHabit('goal-1', 'active')],
+        );
+
+        expect(pending).toHaveLength(1);
+        expect(pending[0].userHabit?.id).toBe('uh-goal-1');
+    });
+
+    it('never makes a habit vanish when its tracking row has not loaded', () => {
+        const pendingPact = pact('pact-1', 'goal-1', 'pending', [
+            member('me', 'creator', 'active'),
+            member('friend', 'partner', 'pending', 'Dana'),
+        ]);
+
+        // Registry supplied but empty (e.g. mid-refresh): the goal stays, just
+        // without a tracking row on the entry.
+        const { pending } = splitHabitsByPactState([goal('goal-1')], [], [pendingPact], 'me', []);
+
+        expect(pending).toHaveLength(1);
+        expect(pending[0].userHabit).toBeUndefined();
+    });
 });

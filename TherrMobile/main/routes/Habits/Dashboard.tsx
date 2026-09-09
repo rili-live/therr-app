@@ -7,7 +7,7 @@ import RNFB from 'react-native-blob-util';
 import { FeatureFlags, FilePaths } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
 import {
-    IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak, IPact, IPactNudgeResult,
+    IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak, IPact, IPactNudgeResult, IUserHabit,
 } from 'therr-react/types';
 import { FlatList, RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
@@ -102,11 +102,14 @@ interface IHabitsDashboardDispatchProps {
     getUserPacts: Function;
     getPendingInvites: Function;
     getUserHabitEligibility: Function;
+    getUserHabits: Function;
     createCheckin: Function;
     acceptPact: Function;
     declinePact: Function;
     nudgePact: Function;
     renewPact: Function;
+    archiveUserHabit: Function;
+    continueSoloUserHabit: Function;
 }
 
 interface IStoreProps extends IHabitsDashboardDispatchProps {
@@ -129,6 +132,13 @@ interface IHabitsDashboardState {
     renewingPactId: string | null;
     nudgingPactId: string | null;
     pactIdPendingDecline: string | null;
+    // The awaiting-partner habit whose "continue solo" / "archive" request is in
+    // flight, keyed by goal id so its card can show a spinner while both buttons
+    // are disabled.
+    awaitingActionGoalId: string | null;
+    // The tracking row queued for archive confirmation, or null when the modal is
+    // closed.
+    habitPendingArchive: IUserHabit | null;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -144,11 +154,14 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getUserPacts: HabitActions.getUserPacts,
     getPendingInvites: HabitActions.getPendingInvites,
     getUserHabitEligibility: HabitActions.getUserHabitEligibility,
+    getUserHabits: HabitActions.getUserHabits,
     createCheckin: HabitActions.createCheckin,
     acceptPact: HabitActions.acceptPact,
     declinePact: HabitActions.declinePact,
     nudgePact: HabitActions.nudgePact,
     renewPact: HabitActions.renewPact,
+    archiveUserHabit: HabitActions.archiveUserHabit,
+    continueSoloUserHabit: HabitActions.continueSoloUserHabit,
 }, dispatch);
 
 export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHabitsDashboardState> {
@@ -177,6 +190,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         habitGoals: any;
         activePacts: any;
         pacts: any;
+        userHabits: any;
         userId?: string;
         split: { live: IHabitWithPactState[]; pending: IHabitWithPactState[] };
         rows: IHabitsRow[];
@@ -195,6 +209,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             renewingPactId: null,
             nudgingPactId: null,
             pactIdPendingDecline: null,
+            awaitingActionGoalId: null,
+            habitPendingArchive: null,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -261,7 +277,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     handleRefresh = () => {
         const {
             getUserGoals, getTodayCheckins, getActiveStreaks, getActivePacts, getUserPacts,
-            getPendingInvites, getUserHabitEligibility,
+            getPendingInvites, getUserHabitEligibility, getUserHabits,
         } = this.props;
 
         this.setState({ isRefreshing: true });
@@ -275,6 +291,11 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             // invite is still outstanding — getActivePacts only returns the former.
             getUserPacts(),
             getPendingInvites(),
+            // The tracking registry. Drives the archived filter (an archived habit
+            // leaves the active list) and carries the id the continue-solo/archive
+            // actions address. Failing drops the two decision buttons rather than
+            // blocking the refresh.
+            getUserHabits().catch(() => {}),
             // Feeds the solo-unlock banner below, and the same progress on the
             // onboarding overlay — which renders in place of this screen's
             // children and so never gets a fetch of its own. Failing drops the
@@ -669,6 +690,112 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             });
     };
 
+    /**
+     * "Keep this habit, on my own." Abandons the outstanding invite server-side
+     * and re-gates on the solo-unlock threshold. A 403 `solo-locked` is not an
+     * error to swallow — it is the growth loop telling the user to invite more
+     * friends, so it surfaces the remaining count and points at the invite flow.
+     */
+    handleContinueSolo = (entry: IHabitWithPactState) => {
+        const { continueSoloUserHabit } = this.props;
+        const { userHabit, goal } = entry;
+
+        if (!userHabit || this.state.awaitingActionGoalId) {
+            return;
+        }
+
+        this.setState({ awaitingActionGoalId: goal.id });
+
+        continueSoloUserHabit(userHabit.id)
+            .then(() => {
+                showToast.success({
+                    text1: this.translate('pages.habits.soloContinued.successTitle'),
+                    text2: this.translate('pages.habits.soloContinued.successMessage', { habit: goal.name }),
+                    duration: DURATION.SHORT,
+                });
+                this.handleRefresh();
+            })
+            .catch((err: any) => {
+                const data = err?.response?.data;
+                if (data?.error === 'solo-locked') {
+                    const remaining = typeof data.requiredCount === 'number' && typeof data.invitedCount === 'number'
+                        ? Math.max(data.requiredCount - data.invitedCount, 1)
+                        : undefined;
+                    showToast.info({
+                        text1: this.translate('pages.habits.soloContinued.lockedTitle'),
+                        text2: remaining !== undefined
+                            ? this.translate('pages.habits.soloContinued.lockedMessage', { remaining })
+                            : this.translate('pages.habits.soloContinued.lockedMessageGeneric'),
+                        duration: DURATION.LONG,
+                    });
+                    return;
+                }
+                showToast.error({
+                    text1: this.translate('pages.pacts.errorTitle'),
+                    text2: this.translate('pages.habits.soloContinued.errorMessage'),
+                    duration: DURATION.SHORT,
+                });
+            })
+            .finally(() => {
+                this.setState((prev) => (prev.awaitingActionGoalId === goal.id
+                    ? { ...prev, awaitingActionGoalId: null }
+                    : prev));
+            });
+    };
+
+    handleArchiveHabitPress = (entry: IHabitWithPactState) => {
+        if (!entry.userHabit) {
+            return;
+        }
+        this.setState({ habitPendingArchive: entry.userHabit });
+    };
+
+    handleCancelArchive = () => {
+        this.setState({ habitPendingArchive: null });
+    };
+
+    /**
+     * Archive mutes the habit without walking away from the invite: the pact
+     * stays pending, so if the friend does accept later the server revives the
+     * habit automatically (see users-service acceptPact). The row simply leaves
+     * the active dashboard until then.
+     */
+    handleConfirmArchive = () => {
+        const { archiveUserHabit } = this.props;
+        const { habitPendingArchive } = this.state;
+
+        if (!habitPendingArchive) {
+            return;
+        }
+
+        this.setState({
+            awaitingActionGoalId: habitPendingArchive.habitGoalId,
+            habitPendingArchive: null,
+        });
+
+        archiveUserHabit(habitPendingArchive.id)
+            .then(() => {
+                showToast.success({
+                    text1: this.translate('pages.habits.habitArchived.successTitle'),
+                    text2: this.translate('pages.habits.habitArchived.successMessage'),
+                    duration: DURATION.SHORT,
+                });
+                this.handleRefresh();
+            })
+            .catch(() => {
+                showToast.error({
+                    text1: this.translate('pages.pacts.errorTitle'),
+                    text2: this.translate('pages.habits.habitArchived.errorMessage'),
+                    duration: DURATION.SHORT,
+                });
+            })
+            .finally(() => {
+                this.setState((prev) => (prev.awaitingActionGoalId === habitPendingArchive.habitGoalId
+                    ? { ...prev, awaitingActionGoalId: null }
+                    : prev));
+            });
+    };
+
     setActiveTab = (tab: HabitsTab) => {
         this.setState({ activeTab: tab });
     };
@@ -693,6 +820,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         const habitGoals = habits.habitGoals || [];
         const activePacts = habits.activePacts || [];
         const pacts = habits.pacts || [];
+        const userHabits = habits.userHabits || [];
         const userId = user.details?.id;
         const memo = this.habitsRowsMemo;
 
@@ -700,16 +828,18 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             && memo.habitGoals === habitGoals
             && memo.activePacts === activePacts
             && memo.pacts === pacts
+            && memo.userHabits === userHabits
             && memo.userId === userId) {
             return memo;
         }
 
-        const split = splitHabitsByPactState(habitGoals, activePacts, pacts, userId);
+        const split = splitHabitsByPactState(habitGoals, activePacts, pacts, userId, userHabits);
 
         this.habitsRowsMemo = {
             habitGoals,
             activePacts,
             pacts,
+            userHabits,
             userId,
             split,
             rows: this.buildHabitsRows(split),
@@ -904,7 +1034,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     );
 
     renderHabitsRow = ({ item }: { item: IHabitsRow }) => {
-        const { checkinLoadingIds } = this.state;
+        const { checkinLoadingIds, awaitingActionGoalId } = this.state;
 
         if (item.kind === 'sectionTitle') {
             return (
@@ -917,7 +1047,13 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             );
         }
 
-        const { goal, partnerNames, awaitingPartnerNames } = item.entry;
+        const {
+            goal, partnerNames, awaitingPartnerNames, userHabit,
+        } = item.entry;
+
+        // The two decision buttons only make sense on an awaiting-partner habit
+        // whose tracking row has loaded — that is the row the actions address.
+        const canDecideSoloOrArchive = item.isAwaitingPartner && !!userHabit;
 
         return (
             <HabitCard
@@ -931,6 +1067,9 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 isAwaitingPartner={item.isAwaitingPartner}
                 awaitingPartnerNames={awaitingPartnerNames}
                 partnerNames={partnerNames}
+                onContinueSolo={canDecideSoloOrArchive ? () => this.handleContinueSolo(item.entry) : undefined}
+                onArchive={canDecideSoloOrArchive ? () => this.handleArchiveHabitPress(item.entry) : undefined}
+                isAwaitingActionLoading={awaitingActionGoalId === goal.id}
                 themeHabits={this.themeHabits}
                 translate={this.translate}
             />
@@ -1114,6 +1253,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         const {
             isRefreshing, proofSheetHabit, isSubmittingCheckin, pactIdPendingDecline,
             checkinLoadingIds, respondingPactId, renewingPactId, nudgingPactId,
+            awaitingActionGoalId, habitPendingArchive,
         } = this.state;
         const arePactsEnabled = this.arePactsEnabled();
         const isHabitsTab = this.getEffectiveTab() === 'habits';
@@ -1122,6 +1262,10 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         // it is never `===` to the previous value once any of these moves.
         const extraData = [
             respondingPactId, renewingPactId, nudgingPactId,
+            // The awaiting-partner card's spinner keys off this; without it here the
+            // continue-solo/archive buttons would neither spin nor disable while their
+            // request runs — the same second-tap hole the pact flags close.
+            awaitingActionGoalId,
             // The ids themselves, not the count: one check-in finishing as another starts
             // leaves the size unchanged while the row that should be spinning has moved.
             [...checkinLoadingIds].sort().join(','),
@@ -1201,6 +1345,16 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                     onConfirm={this.handleConfirmDecline}
                     text={this.translate('pages.pacts.confirmDecline')}
                     textConfirm={this.translate('modals.confirmModal.confirm')}
+                    textCancel={this.translate('modals.confirmModal.cancel')}
+                    translate={this.translate}
+                    themeButtons={this.themeButtons}
+                />
+                <ConfirmModal
+                    isVisible={!!habitPendingArchive}
+                    onCancel={this.handleCancelArchive}
+                    onConfirm={this.handleConfirmArchive}
+                    text={this.translate('pages.habits.habitArchived.confirm')}
+                    textConfirm={this.translate('pages.habits.habitArchived.confirmButton')}
                     textCancel={this.translate('modals.confirmModal.cancel')}
                     translate={this.translate}
                     themeButtons={this.themeButtons}
