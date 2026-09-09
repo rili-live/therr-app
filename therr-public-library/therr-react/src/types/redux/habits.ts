@@ -223,6 +223,15 @@ export interface IUserHabit {
     activePactCount: number;
     currentStreak: number;
     longestStreak: number;
+    /**
+     * A pact this user created for this habit that is still `pending` — no invitee
+     * has accepted yet. Null once a partner joins or when the habit was started
+     * solo. Present alongside `isSolo === true` is what marks a habit as "waiting
+     * on a friend" rather than a genuine solo habit, and is the signal behind the
+     * "continue solo or archive?" prompt. Absent on responses from a users-service
+     * that predates it; treat `undefined` like `null`.
+     */
+    pendingPactId?: string | null;
 }
 
 /**
@@ -374,6 +383,7 @@ export enum HabitsActionTypes {
     CREATE_USER_HABIT = 'CREATE_USER_HABIT',
     ARCHIVE_USER_HABIT = 'ARCHIVE_USER_HABIT',
     RESTORE_USER_HABIT = 'RESTORE_USER_HABIT',
+    CONTINUE_SOLO_USER_HABIT = 'CONTINUE_SOLO_USER_HABIT',
 
     // Journal
     GET_JOURNAL_FEED = 'GET_JOURNAL_FEED',

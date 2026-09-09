@@ -230,6 +230,105 @@ const restoreUserHabit: RequestHandler = async (req: any, res: any) => {
 };
 
 /**
+ * Commit to a habit whose invite went unanswered as a personal ("solo") one.
+ *
+ * The situation this exists for: a user creates a habit with a partner, invites
+ * someone, nobody accepts — and meanwhile the daily reminders fire as if it were
+ * an ordinary habit they signed up to do alone. The dashboard offers two ways
+ * out, this and archive. Archiving mutes the habit and keeps the invite open to
+ * auto-revive on acceptance; "continue solo" is the other choice — stop waiting
+ * on anyone and keep the habit, alone.
+ *
+ * So it does two things:
+ *
+ *   1. Enforces the solo-habit constraint. Tracking a habit alone is gated on
+ *      the same invite threshold every solo habit is (see `getSoloInviteProgress`
+ *      and the note atop this file) — an unanswered pact does not buy a pass
+ *      around the growth loop. A user short of the threshold gets the same
+ *      403 `solo-locked` the create path returns, with progress, so the client
+ *      can render "invite N more, or archive" rather than a dead end.
+ *   2. Abandons the outstanding invite(s). This is what makes the two options
+ *      genuinely distinct: after this the habit is solo with nothing pending, so
+ *      it stops being surfaced as "waiting on a friend" and there is nothing left
+ *      to accept. (Archive, by contrast, leaves the pact pending on purpose.)
+ *      The pact rows are abandoned, not deleted, so the invites still count
+ *      toward the user's solo-unlock progress for their other habits.
+ *
+ * The tracking row is already `active` in the common case (the habit has been
+ * tracked since the pact was created), so no capacity slot is consumed and none
+ * is checked. The one exception is a habit the user had archived and is now
+ * un-archiving into solo: reviving occupies a slot, so it is gated exactly like
+ * restore.
+ */
+const continueSoloHabit: RequestHandler = async (req: any, res: any) => {
+    const {
+        locale, userId, brandVariation,
+    } = parseHeaders(req.headers);
+    const { id } = req.params;
+
+    try {
+        const existing = await Store.userHabits.getById(id);
+
+        if (!existing || existing.userId !== userId) {
+            return handleHttpError({
+                res,
+                message: `Habit not found with id ${id}`,
+                statusCode: 404,
+            });
+        }
+
+        // Solo constraint first. Failing closed here is deliberate: wrongly
+        // letting someone bypass the invite requirement cannot be undone once the
+        // habit is theirs, while wrongly denying is a retryable error on a screen
+        // they are already on (mirrors createUserHabit).
+        const soloProgress = await getSoloInviteProgress(userId);
+
+        if (!soloProgress.canCreateSolo) {
+            return res.status(403).send({
+                error: 'solo-locked',
+                message: translate(locale, 'errorMessages.habits.soloLocked', {
+                    remaining: soloProgress.requiredCount - soloProgress.invitedCount,
+                    required: soloProgress.requiredCount,
+                }),
+                invitedCount: soloProgress.invitedCount,
+                requiredCount: soloProgress.requiredCount,
+            });
+        }
+
+        // Reviving an archived habit into solo takes a slot; an already-active one
+        // occupies its slot already. `countActiveByUser` counts only active rows,
+        // so checking before the flip is naturally safe.
+        if (existing.status === 'archived') {
+            const denial = await checkHabitCapacity({ userId, brandVariation, locale });
+
+            if (denial) {
+                return res.status(402).send(denial);
+            }
+
+            await Store.userHabits.setStatus(existing.id, userId, 'active');
+        }
+
+        // Abandon the outstanding invite(s) — pending pacts this user created for
+        // this goal. Abandon rather than delete so the invites keep counting
+        // toward solo-unlock progress; deleting the pact_members would silently
+        // re-lock the user's other habits.
+        const pendingPacts = await Store.pacts.get({
+            creatorUserId: userId,
+            habitGoalId: existing.habitGoalId,
+            status: 'pending',
+        });
+        await Promise.all(pendingPacts.map((pact: any) => Store.pacts.abandon(pact.id, userId, true)));
+
+        const [detail] = await Store.userHabits.getDetailByUser(userId, 'active')
+            .then((rows) => rows.filter((row) => row.habitGoalId === existing.habitGoalId));
+
+        return res.status(200).send(detail || { ...existing, status: 'active' });
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:USER_HABITS_ROUTES:ERROR' });
+    }
+};
+
+/**
  * Whether the caller may start habits on their own yet, how close they are to
  * earning it, and where they stand against the free-tier cap.
  *
@@ -269,4 +368,5 @@ export {
     createUserHabit,
     archiveUserHabit,
     restoreUserHabit,
+    continueSoloHabit,
 };

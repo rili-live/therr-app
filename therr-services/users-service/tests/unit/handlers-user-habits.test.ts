@@ -2,7 +2,9 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import { BrandVariations, HABITS_FREE_HABIT_LIMIT, HABITS_SOLO_UNLOCK_INVITE_COUNT } from 'therr-js-utilities/constants';
 import Store from '../../src/store';
-import { createUserHabit, restoreUserHabit, archiveUserHabit } from '../../src/handlers/userHabits';
+import {
+    createUserHabit, restoreUserHabit, archiveUserHabit, continueSoloHabit,
+} from '../../src/handlers/userHabits';
 
 /**
  * Personal ("solo") habits.
@@ -298,6 +300,117 @@ describe('Solo habits', () => {
             await archiveUserHabit(makeReq({ params: { id: 'uh-1' } }) as any, res, (() => {}) as any);
 
             expect(res.statusCode).to.equal(200);
+        });
+    });
+
+    /**
+     * "Continue solo" is the other half of the escape hatch for a habit whose
+     * invite went unanswered (archive is the first). It has to do two things the
+     * other paths don't, and both are easy to get wrong:
+     *   1. Re-gate on the solo-unlock threshold — an unanswered pact does not buy
+     *      a way around the growth loop.
+     *   2. Abandon the outstanding invite so the habit stops being "waiting on a
+     *      friend", without deleting the pact rows (which would silently re-lock
+     *      the user's other habits by dropping their invite count).
+     */
+    describe('continue solo', () => {
+        let getByIdStub: sinon.SinonStub;
+        let pactsGetStub: sinon.SinonStub;
+        let abandonStub: sinon.SinonStub;
+
+        beforeEach(() => {
+            getByIdStub = sinon.stub(Store.userHabits, 'getById').resolves({
+                id: 'uh-1', userId: 'user-1', habitGoalId: 'goal-1', status: 'active',
+            } as any);
+            pactsGetStub = sinon.stub(Store.pacts, 'get').resolves([
+                { id: 'pact-1', creatorUserId: 'user-1', habitGoalId: 'goal-1', status: 'pending' },
+            ] as any);
+            abandonStub = sinon.stub(Store.pacts, 'abandon').resolves({} as any);
+        });
+
+        it('abandons the outstanding invite and keeps the habit for an eligible user', async () => {
+            const res = makeRes();
+            await continueSoloHabit(makeReq({ params: { id: 'uh-1' } }) as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(200);
+            expect(abandonStub.calledOnceWithExactly('pact-1', 'user-1', true)).to.equal(true);
+            // The habit is already active, so no slot is charged and no status flip.
+            expect(setStatusStub.called).to.equal(false);
+        });
+
+        it('does not consult the cap for an already-active habit', async () => {
+            const res = makeRes();
+            await continueSoloHabit(makeReq({ params: { id: 'uh-1' } }) as any, res, (() => {}) as any);
+
+            // Re-committing an active habit to solo consumes nothing; a cap check
+            // here would 402 a no-op.
+            expect(countActiveStub.called).to.equal(false);
+        });
+
+        it('re-gates on the solo unlock and does not touch the pact when locked', async () => {
+            countInvitedStub.resolves(HABITS_SOLO_UNLOCK_INVITE_COUNT - 1);
+
+            const res = makeRes();
+            await continueSoloHabit(makeReq({ params: { id: 'uh-1' } }) as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(403);
+            expect(res.body.error).to.equal('solo-locked');
+            expect(res.body.requiredCount).to.equal(HABITS_SOLO_UNLOCK_INVITE_COUNT);
+            expect(abandonStub.called).to.equal(false);
+        });
+
+        it('abandons every outstanding invite on the habit, not just one', async () => {
+            pactsGetStub.resolves([
+                { id: 'pact-1', creatorUserId: 'user-1', habitGoalId: 'goal-1', status: 'pending' },
+                { id: 'pact-2', creatorUserId: 'user-1', habitGoalId: 'goal-1', status: 'pending' },
+            ] as any);
+
+            const res = makeRes();
+            await continueSoloHabit(makeReq({ params: { id: 'uh-1' } }) as any, res, (() => {}) as any);
+
+            expect(abandonStub.callCount).to.equal(2);
+        });
+
+        it('un-archives into solo, gated by the cap like restore', async () => {
+            getByIdStub.resolves({
+                id: 'uh-1', userId: 'user-1', habitGoalId: 'goal-1', status: 'archived',
+            } as any);
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT);
+
+            const res = makeRes();
+            await continueSoloHabit(makeReq({ params: { id: 'uh-1' } }) as any, res, (() => {}) as any);
+
+            // Reviving an archived habit takes a slot, so the cap applies here —
+            // and blocks before the pact is touched.
+            expect(res.statusCode).to.equal(402);
+            expect(setStatusStub.called).to.equal(false);
+            expect(abandonStub.called).to.equal(false);
+        });
+
+        it('flips an archived habit active before abandoning the invite when there is room', async () => {
+            getByIdStub.resolves({
+                id: 'uh-1', userId: 'user-1', habitGoalId: 'goal-1', status: 'archived',
+            } as any);
+            countActiveStub.resolves(0);
+
+            const res = makeRes();
+            await continueSoloHabit(makeReq({ params: { id: 'uh-1' } }) as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(200);
+            expect(setStatusStub.firstCall.args[2]).to.equal('active');
+            expect(abandonStub.calledOnce).to.equal(true);
+        });
+
+        it('404s on a habit belonging to someone else', async () => {
+            getByIdStub.resolves({
+                id: 'uh-1', userId: 'someone-else', habitGoalId: 'goal-1', status: 'active',
+            } as any);
+
+            const res = makeRes();
+            await continueSoloHabit(makeReq({ params: { id: 'uh-1' } }) as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(404);
+            expect(abandonStub.called).to.equal(false);
         });
     });
 });

@@ -329,6 +329,18 @@ const Habits = {
             return response.data;
         }),
 
+    // Returns the updated habit detail (or throws the axios error so the caller
+    // can read a 403 `solo-locked` / 402 cap payload and route accordingly). The
+    // reducer merges the detail the same way archive/restore do.
+    continueSoloUserHabit: (id: string) => (dispatch: any) => UserHabitsService.continueSolo(id)
+        .then((response: any) => {
+            dispatch({
+                type: HabitsActionTypes.CONTINUE_SOLO_USER_HABIT,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
     // Journal
     /**
      * Pass `before` to page. The reducer appends rather than replaces when a
