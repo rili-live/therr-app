@@ -222,13 +222,17 @@ const habits = produce((draft: IHabitsState, action: any) => {
             break;
         }
         case HabitsActionTypes.ARCHIVE_USER_HABIT:
-        case HabitsActionTypes.RESTORE_USER_HABIT: {
+        case HabitsActionTypes.RESTORE_USER_HABIT:
+        case HabitsActionTypes.CONTINUE_SOLO_USER_HABIT: {
             const habitIdx = draft.userHabits.findIndex((h) => h.id === action.data?.id);
             if (habitIdx > -1) {
                 // The archive/restore endpoints return the bare tracking row
                 // rather than the joined detail shape, so merge instead of
                 // replacing — otherwise the list loses the goal name and streak
-                // and the row renders blank until the next full fetch.
+                // and the row renders blank until the next full fetch. Merging is
+                // right for continue-solo too: it returns the full detail, so the
+                // merge simply overwrites every field (including the now-null
+                // pendingPactId) while never blanking a row.
                 draft.userHabits[habitIdx] = { ...draft.userHabits[habitIdx], ...action.data };
             }
             break;
