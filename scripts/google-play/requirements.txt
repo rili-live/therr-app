@@ -1,0 +1,17 @@
+# MCP SDK. FastMCP is the decorator-based server in the official SDK; the
+# `mcp.server.fastmcp` import path is stable from 1.2 onward.
+mcp>=1.2.0,<2.0.0
+
+# Cloud Storage — the reports bucket, which is where every install, acquisition
+# and retention number actually lives.
+google-cloud-storage>=2.14.0,<4.0.0
+
+# Discovery-based client for the Play Developer Reporting API (vitals) and the
+# Android Publisher API (track releases). Both are discovery APIs with no
+# hand-written client library, so this is not optional.
+google-api-python-client>=2.100.0,<3.0.0
+
+# Credential resolution for both service-account and gcloud ADC paths.
+google-auth>=2.23.0,<3.0.0
+
+PyYAML>=6.0,<7.0
