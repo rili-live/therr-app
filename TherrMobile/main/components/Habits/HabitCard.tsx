@@ -1,5 +1,7 @@
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import {
+    View, Text, Pressable, ActivityIndicator,
+} from 'react-native';
 import { IHabitGoal, IHabitCheckin, IStreak } from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
 import CheckinButton from './CheckinButton';
@@ -23,6 +25,16 @@ interface IHabitCardProps {
     awaitingPartnerNames?: string[];
     /** Partners already checked into this habit's active pact. */
     partnerNames?: string[];
+    /**
+     * "Keep this habit alone." Present only on an awaiting-partner card whose
+     * tracking row is known. When set, the card offers the solo/archive choice
+     * that ends the annoying reminders for a habit nobody has joined.
+     */
+    onContinueSolo?: () => void;
+    /** "Stop the reminders until a partner joins." Pairs with `onContinueSolo`. */
+    onArchive?: () => void;
+    /** Disables both decision buttons and shows a spinner while a request runs. */
+    isAwaitingActionLoading?: boolean;
     themeHabits: {
         colors: ITherrThemeColors;
         styles: any;
@@ -73,10 +85,14 @@ const HabitCard: React.FC<IHabitCardProps> = ({
     isAwaitingPartner = false,
     awaitingPartnerNames,
     partnerNames,
+    onContinueSolo,
+    onArchive,
+    isAwaitingActionLoading = false,
     themeHabits,
     translate,
 }) => {
     const isCompleted = todayCheckin?.status === 'completed';
+    const showSoloOrArchive = isAwaitingPartner && !!onContinueSolo && !!onArchive;
 
     return (
         <Pressable
@@ -129,6 +145,49 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                         })
                         : translate('pages.habits.awaitingAnyPartnerAcceptance')}
                 </Text>
+            )}
+
+            {showSoloOrArchive && (
+                <View style={themeHabits.styles.habitCardSoloPrompt}>
+                    <Text style={themeHabits.styles.habitCardSoloPromptText}>
+                        {translate('pages.habits.soloOrArchivePrompt')}
+                    </Text>
+                    {isAwaitingActionLoading ? (
+                        <ActivityIndicator
+                            color={themeHabits.colors.primary3}
+                            style={themeHabits.styles.habitCardSoloSpinner}
+                        />
+                    ) : (
+                        <View style={themeHabits.styles.habitCardSoloActions}>
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={translate('pages.habits.continueSolo')}
+                                style={({ pressed }) => [
+                                    themeHabits.styles.habitCardSoloButton,
+                                    pressed && themeHabits.styles.pressedOpacity,
+                                ]}
+                                onPress={onContinueSolo}
+                            >
+                                <Text style={themeHabits.styles.habitCardSoloButtonText}>
+                                    {translate('pages.habits.continueSolo')}
+                                </Text>
+                            </Pressable>
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={translate('pages.habits.archiveHabit')}
+                                style={({ pressed }) => [
+                                    themeHabits.styles.habitCardArchiveButton,
+                                    pressed && themeHabits.styles.pressedOpacity,
+                                ]}
+                                onPress={onArchive}
+                            >
+                                <Text style={themeHabits.styles.habitCardArchiveButtonText}>
+                                    {translate('pages.habits.archiveHabit')}
+                                </Text>
+                            </Pressable>
+                        </View>
+                    )}
+                </View>
             )}
 
             {onCheckin && !isAwaitingPartner && (
