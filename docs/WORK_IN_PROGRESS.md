@@ -135,6 +135,27 @@ append new items here rather than only printing them once.
   > returns `web` 10,111 / `habits` 600 / `landing` 319 / `dashboard` 77 over the 30
   > days to 2 Sep. `scripts/google-ads/settings.example.yaml` →
   > `ga4.surface_dimension_registered` now defaults to `true`.
+- [x] **Exclude the synthetic device farm from the habits app funnel.** GA4 property
+  `267810693`, stream "Friends with Habits", reported 136 new users for 6 Aug – 8 Sep
+  2026. Google Play reported 20 device installs and 49 store-listing acquisitions over
+  the identical window. Breaking GA4 down by `deviceModel` puts 66 of the 136 (49%) on
+  four models: `OnePlus8Pro` (45 users, 45 sessions, country `(not set)`),
+  `sdk_gphone64_arm64` (9), `sdk_gphone_arm64` (6), `Android SDK built for arm64` (6).
+  The `OnePlus8Pro` rows are spread evenly across all twelve historical app versions —
+  roughly four users each on 0.4.10 through 1.5.2 — at one session per user. Nothing
+  human installs twelve versions of an app, and Play only ever serves the newest.
+  > **Not the `__DEV__` gate.** `TherrMobile/main/App.tsx` has called
+  > `setAnalyticsCollectionEnabled(getAnalytics(), !__DEV__)` since 2023 on every
+  > branch, so local debug builds have never reported. These are release builds being
+  > launched by something that is not a user.
+  > **Not fixable with a GA4 data filter** either — same limitation as the crawler
+  > above: only Developer and Internal traffic are filterable, and there is no
+  > `deviceModel` filter. Exclusion has to be query-time, which has the advantage of
+  > being retroactive.
+  Done: `SYNTHETIC_DEVICE_MODELS` in `scripts/google-ads/therr_ads/ga4.py` (applied to
+  `fetch_app_funnel` by default, recorded in every report's `notes`), and a **"Real
+  Users"** segment in GA4 Explore applied to the Funnel exploration. Sanity check when
+  reading either: `first_open` should read **70**, not 136, for 6 Aug – 8 Sep.
 - [ ] **Re-submit the habits sitemap to Search Console** — `habits.therr.com/sitemap.xml`
   grew from 3 URLs to 3 + `/blog` + one per cross-post. This subdomain has almost no
   inbound links, so the sitemap is most of how those pages get discovered at all.
@@ -1816,6 +1837,46 @@ MVP, but several block the **viral** loop in Phase 3.
 - `therr-public-library/therr-react/src/redux/actions/Users.ts:347` —
   RMOBILE-26: SSO logout action (HABITS uses same auth — affects multi-app
   account switching)
+
+#### Watch: phone verification drop-off (HABITS only — added 2026-09-09)
+
+**Not actionable yet. Do not change onboarding on this evidence alone.**
+
+With the synthetic device farm excluded (see § Analytics & traffic), the corrected
+Friends with Habits funnel for 6 Aug – 8 Sep 2026 reads:
+
+| Step | Users |
+|---|---|
+| `first_open` | 70 |
+| `profile_create_start` | 50 |
+| `profile_create_update_phone` | 20 |
+| `phone_verify_success` | 15 |
+
+That is a ~70% loss between starting a profile and finishing verification, on a step
+that happens before the user has seen anything the app does. The hypothesis is that
+verification could move behind the **first pact invite** — solo habits already ship
+behind `ENABLE_HABITS_SOLO` and need no verified identity, whereas inviting someone
+does.
+
+Three reasons this is a watch item and not a task:
+
+1. **The sample is small.** 50 profile starts in 34 days, against 49 Play
+   store-listing acquisitions. One atypical week moves the rate several points.
+2. **The pact and check-in events have only existed since 3 Sep** (`85ce2bb6`), so
+   the steps *below* verification have days of history, not weeks. Optimising a step
+   without seeing what it feeds is how you move a number and lose the funnel.
+3. **`user_image_upload_error` sits in the same flow** — 9 of the 50 profile starters
+   hit it. Some of the drop-off may be that bug rather than the verification step,
+   and fixing a bug is cheaper than restructuring onboarding.
+
+**This is HABITS-only.** It must not be generalised to the Therr app: Therr's
+onboarding assumes a verified phone for connection discovery, its installed base is
+~117 active devices against Habits' ~15, and no equivalent measurement has been done
+on its stream. Any change lands on `niche/HABITS-general` for the mobile UI, with
+`general` carrying only whatever server-side support it needs.
+
+Revisit when there are **two clean months** of post-exclusion data, or after the first
+paid campaign — whichever comes first.
 
 ### 2.3 Direct-message engagement loop
 
