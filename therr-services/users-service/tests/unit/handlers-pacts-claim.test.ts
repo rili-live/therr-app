@@ -580,6 +580,11 @@ describe('Pacts handler — claimPactInvite endpoint', () => {
         // Accepting a pact now also registers the habit as tracked, which is
         // what the free-tier cap counts.
         sinon.stub(Store.userHabits, 'getOrCreate').resolves({} as any);
+        // ...and un-archives it if the accepter or creator had archived the goal
+        // while the invite sat unanswered. A no-op for an already-active row, but
+        // it is a real store call, so it has to be stubbed here or the handler
+        // reaches the database and 500s.
+        sinon.stub(Store.userHabits, 'reviveArchivedByHabit').resolves(undefined as any);
 
         const req = buildReq({ token: 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa' });
         const res = buildRes();

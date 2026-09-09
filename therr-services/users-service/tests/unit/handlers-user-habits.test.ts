@@ -323,7 +323,9 @@ describe('Solo habits', () => {
                 id: 'uh-1', userId: 'user-1', habitGoalId: 'goal-1', status: 'active',
             } as any);
             pactsGetStub = sinon.stub(Store.pacts, 'get').resolves([
-                { id: 'pact-1', creatorUserId: 'user-1', habitGoalId: 'goal-1', status: 'pending' },
+                {
+                    id: 'pact-1', creatorUserId: 'user-1', habitGoalId: 'goal-1', status: 'pending',
+                },
             ] as any);
             abandonStub = sinon.stub(Store.pacts, 'abandon').resolves({} as any);
         });
@@ -361,8 +363,12 @@ describe('Solo habits', () => {
 
         it('abandons every outstanding invite on the habit, not just one', async () => {
             pactsGetStub.resolves([
-                { id: 'pact-1', creatorUserId: 'user-1', habitGoalId: 'goal-1', status: 'pending' },
-                { id: 'pact-2', creatorUserId: 'user-1', habitGoalId: 'goal-1', status: 'pending' },
+                {
+                    id: 'pact-1', creatorUserId: 'user-1', habitGoalId: 'goal-1', status: 'pending',
+                },
+                {
+                    id: 'pact-2', creatorUserId: 'user-1', habitGoalId: 'goal-1', status: 'pending',
+                },
             ] as any);
 
             const res = makeRes();
