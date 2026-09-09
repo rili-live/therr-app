@@ -55,6 +55,18 @@ export interface IUserHabitDetail extends IUserHabitRow {
     activePactCount: number;
     currentStreak: number;
     longestStreak: number;
+    /**
+     * A pact this user created for this habit that is still `pending` — i.e. no
+     * invitee has accepted yet. Null once a partner joins (the pact activates) or
+     * when the habit was started solo in the first place.
+     *
+     * This is what lets a client tell "waiting on a friend" apart from a genuine
+     * solo habit: both read `isSolo = true` (no *active* pact backs them), but
+     * only the former has an outstanding invite. It is the signal behind the
+     * "continue solo or archive?" prompt — a habit whose reminders are firing
+     * while the user waits on someone who may never accept.
+     */
+    pendingPactId: string | null;
 }
 
 /**
@@ -158,7 +170,16 @@ export default class UserHabitsStore {
                 COALESCE(s."currentStreak", 0) AS "currentStreak",
                 COALESCE(s."longestStreak", 0) AS "longestStreak",
                 COALESCE(pact_counts."activePactCount", 0) AS "activePactCount",
-                COALESCE(pact_counts."activePactCount", 0) = 0 AS "isSolo"
+                COALESCE(pact_counts."activePactCount", 0) = 0 AS "isSolo",
+                (
+                    SELECT p."id"
+                    FROM ${PACTS_TABLE_NAME} p
+                    WHERE p."creatorUserId" = uh."userId"
+                        AND p."habitGoalId" = uh."habitGoalId"
+                        AND p."status" = 'pending'
+                    ORDER BY p."createdAt" ASC
+                    LIMIT 1
+                ) AS "pendingPactId"
             FROM ${USER_HABITS_TABLE_NAME} uh
             INNER JOIN ${HABIT_GOALS_TABLE_NAME} g ON g."id" = uh."habitGoalId"
             LEFT JOIN ${STREAKS_TABLE_NAME} s
@@ -294,6 +315,38 @@ export default class UserHabitsStore {
              WHERE "id" = ?::uuid AND "userId" = ?::uuid AND "status" <> ?
              RETURNING *`,
             [nextStatus, nextStatus, id, userId, nextStatus],
+        ).toString();
+
+        return this.db.write.query(queryString)
+            .then((response) => response.rows[0] as IUserHabitRow | undefined);
+    }
+
+    /**
+     * Bring an archived habit back to `active`, addressed by (userId, habitGoalId)
+     * rather than by row id.
+     *
+     * The one caller is pact acceptance: a user who archived a habit while its
+     * invite sat unanswered — to stop the reminders for something they were
+     * waiting on — should have it come back the moment a partner actually joins.
+     * `getOrCreate` deliberately will *not* do this (an archived row must survive
+     * a stray check-in), so reviving is a separate, explicit verb used only where
+     * the resurrection is the intended effect.
+     *
+     * Keyed on the habit rather than the row id because the caller (acceptPact)
+     * holds the pact's habitGoalId, not the creator's tracking-row id, and looking
+     * the id up first would be a redundant round trip. The `status = 'archived'`
+     * guard makes it a no-op (rowCount 0) for a habit that is already active,
+     * which every acceptance after the first will be.
+     */
+    reviveArchivedByHabit(userId: string, habitGoalId: string) {
+        const queryString = knexBuilder.raw(
+            `UPDATE ${USER_HABITS_TABLE_NAME}
+             SET "status" = 'active',
+                 "archivedAt" = NULL,
+                 "updatedAt" = now()
+             WHERE "userId" = ?::uuid AND "habitGoalId" = ?::uuid AND "status" = 'archived'
+             RETURNING *`,
+            [userId, habitGoalId],
         ).toString();
 
         return this.db.write.query(queryString)

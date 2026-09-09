@@ -583,14 +583,27 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
             await Promise.all(streakPromises);
 
             // Tracking rows, mirroring the streak logic above: always for the
-            // accepter, and for the creator only on first acceptance (their row
-            // already exists from createPact — getOrCreate makes the repeat a
-            // no-op, and notably will not resurrect a row they have archived).
-            const trackingPromises: Promise<any>[] = [
-                Store.userHabits.getOrCreate(userId, pact.habitGoalId),
-            ];
+            // accepter, and for the creator only on first acceptance.
+            //
+            // Both go through getOrCreate *and* reviveArchivedByHabit. getOrCreate
+            // deliberately will not resurrect an archived row (a stray check-in must
+            // not un-archive a habit and put the user back over the cap), but a
+            // partner accepting the invite is precisely the event that should:
+            //   - the creator may have archived this habit to stop the reminders
+            //     while nobody had accepted — "revive only if an invitee accepts
+            //     after the fact" is exactly this path;
+            //   - the accepter may have archived the same goal in a past life, and
+            //     they just passed the capacity check above for the slot.
+            // reviveArchivedByHabit is a no-op when the row is already active, so
+            // every acceptance after the first costs one guarded UPDATE and nothing
+            // else.
+            const ensureActiveTracking = async (trackingUserId: string) => {
+                await Store.userHabits.getOrCreate(trackingUserId, pact.habitGoalId);
+                await Store.userHabits.reviveArchivedByHabit(trackingUserId, pact.habitGoalId);
+            };
+            const trackingPromises: Promise<any>[] = [ensureActiveTracking(userId)];
             if (pact.status === 'pending') {
-                trackingPromises.push(Store.userHabits.getOrCreate(pact.creatorUserId, pact.habitGoalId));
+                trackingPromises.push(ensureActiveTracking(pact.creatorUserId));
             }
             await Promise.all(trackingPromises);
 

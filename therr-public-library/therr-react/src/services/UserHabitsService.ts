@@ -55,6 +55,18 @@ class UserHabitsService {
         method: 'put',
         url: `/users-service/habits/user-habits/${id}/restore`,
     });
+
+    /**
+     * Keep a habit whose invite went unanswered as a solo one: abandons the
+     * outstanding pact and re-gates on the solo-unlock threshold. A 403
+     * `solo-locked` (with `invitedCount`/`requiredCount`) means the caller has
+     * not invited enough distinct people yet — the client renders progress rather
+     * than treating it as a hard error.
+     */
+    continueSolo = (id: string) => axios({
+        method: 'put',
+        url: `/users-service/habits/user-habits/${id}/continue-solo`,
+    });
 }
 
 export default new UserHabitsService();
