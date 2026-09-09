@@ -1,0 +1,60 @@
+# ---------------------------------------------------------------------------
+# settings.yaml — copy this file to settings.yaml (gitignored) and fill it in.
+#
+# Nothing here is a secret on its own. It is gitignored because the bucket name
+# identifies the Play developer account, and credentials_path may point at a key.
+# ---------------------------------------------------------------------------
+
+# The Play Console reports bucket. THIS IS NOT IN THE therr-app CLOUD PROJECT —
+# it lives in a Google-owned project attached to the developer account, so
+# `gsutil ls` will never show it and looking for it there wastes an afternoon.
+#
+# Get it from: Play Console -> Download reports -> (any report type) ->
+# "Copy Cloud Storage URI". It looks like:
+#   gs://pubsite_prod_rev_01234567890987654321
+bucket: "gs://pubsite_prod_6296484018560789304"
+
+# The Play listings this tool reads. The key is the nickname you pass as `app`;
+# the package is the Android applicationId and is the join key for every
+# filename in the bucket.
+#
+# NOTE the flagship app's id: it is `app.therrmobile`, NOT `com.therr.mobile`.
+# Guessing the conventional-looking name returns zero rows rather than an error,
+# because a missing report and a wrong package name are indistinguishable.
+apps:
+    habits:
+        package: "com.therr.habits"
+        label: "Friends With Habits"
+    therr:
+        package: "app.therrmobile"
+        label: "Therr"
+
+# Which app a tool call means when it does not say. Friends With Habits is the
+# active consumer bet, so it is the sensible default — but the two apps' numbers
+# are not comparable, and mislabelling one as the other is the mistake this
+# setting exists to make deliberate rather than accidental.
+default_app: habits
+
+# Path to a Play service account JSON key. Leave empty to use your own gcloud
+# credentials instead, which is the fastest way to start:
+#
+#   gcloud auth application-default login \
+#     --scopes=https://www.googleapis.com/auth/cloud-platform,\
+# https://www.googleapis.com/auth/playdeveloperreporting,\
+# https://www.googleapis.com/auth/androidpublisher
+#
+# The default ADC scope set does NOT include the two Play scopes. Without them
+# the bucket tools work and the vitals/releases tools 403, which reads like a
+# Play Console permissions problem and is not. See therr_play/auth.py.
+credentials_path: ""
+
+# Cloud project billed for API calls made with YOUR OWN gcloud credentials.
+# User credentials carry no project, so without this the Play APIs bill to
+# gcloud's shared default client project and refuse with SERVICE_DISABLED
+# naming a project number you have never seen. Ignored for a service account,
+# which brings its own project.
+quota_project: "therr-app"
+
+# Hard cap on rows returned by a single report call, so one careless query with
+# a fine dimension over a long window cannot flood a context window.
+max_rows: 2000
