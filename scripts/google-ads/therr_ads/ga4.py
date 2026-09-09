@@ -158,6 +158,52 @@ APP_FUNNEL_STEPS: tuple[tuple[str, str, bool], ...] = (
     ("habits_founder_unlock_purchase", "bought the Founder Unlock", False),
 )
 
+# Device models that are not people.
+#
+# EVIDENCE (measured 6 Aug - 8 Sep 2026, stream "Friends with Habits"):
+# GA4 reported 136 new users. Google Play reported 20 device installs and 49
+# store-listing acquisitions over the identical window. The gap is one device
+# signature plus emulators:
+#
+#   OnePlus8Pro                    45 new users, 45 sessions, country (not set)
+#   sdk_gphone64_arm64              9
+#   sdk_gphone_arm64                6
+#   Android SDK built for arm64     6
+#                                  --
+#                                  66 of 136 new users (49%)
+#
+# The OnePlus8Pro cluster is spread EVENLY across all twelve historical app
+# versions - roughly four users each on 0.4.10, 0.4.11, 1.0.0, 1.1.1, 1.1.2,
+# 1.2.0, 1.3.2, 1.3.3, 1.3.4, 1.4.0, 1.5.1 and 1.5.2 - at exactly one session
+# per user with no country. Nothing human installs twelve versions of an app,
+# and Play only ever serves the newest, so these cannot be Play installs. It is
+# an automated farm launching every build ever shipped, most likely a device lab
+# or an APK-mirror scraper.
+#
+# WHY THIS IS NOT THE `!__DEV__` GATE. TherrMobile/main/App.tsx has called
+# setAnalyticsCollectionEnabled(getAnalytics(), !__DEV__) since 2023 on every
+# branch, so local debug builds have never reported. These are release builds
+# being launched by something that is not a user.
+#
+# WHY A CONSTANT AND NOT A GA4 FILTER. GA4's built-in data filters only cover
+# `debug_mode` (already excluded by the gate above) and internal traffic (IP
+# based - this is not our IP). There is no ingestion-time filter on deviceModel,
+# so exclusion has to happen at query time here, and in a matching GA4 Explore
+# segment for anyone reading the UI. Being a query-time exclusion also makes it
+# retroactive, which an ingestion filter would not be.
+#
+# WHAT IT DOES AND DOES NOT DISTORT. These devices fire first_open and
+# screen_view, and 7 of them reached profile_create_start, but ZERO reached
+# phone_verify_success and zero reached any habit_* event. So the top of the
+# funnel is inflated and the bottom is clean - which means excluding them makes
+# the drop-off rates larger, not smaller. Removing them is not flattering.
+SYNTHETIC_DEVICE_MODELS: tuple[str, ...] = (
+    "OnePlus8Pro",
+    "sdk_gphone64_arm64",
+    "sdk_gphone_arm64",
+    "Android SDK built for arm64",
+)
+
 # The step the PRODUCT question is really about — "did a cold user do the thing
 # the app is for". Pact creation is the real answer; until it is instrumented,
 # sending an invite is the closest available proxy, and it is a weaker claim.
@@ -253,12 +299,20 @@ def build_app_funnel(counts: dict, property_id: str = "", stream_name: str = "",
 
 
 def fetch_app_funnel(app_property_id: str, days: int = 14,
-                     stream_name: str = "Friends with Habits") -> AppFunnelReport:
+                     stream_name: str = "Friends with Habits",
+                     exclude_synthetic_devices: bool = True) -> AppFunnelReport:
     """Pull the in-app funnel for one data stream.
 
     Both Therr Android apps report into this property, so the stream filter is
     not optional — without it the habits funnel quietly absorbs the flagship
     app's installs and every rate below it is wrong in the flattering direction.
+
+    `exclude_synthetic_devices` drops the automated device farm documented at
+    SYNTHETIC_DEVICE_MODELS, which was 49% of new users in the month to 8 Sep
+    2026. It defaults on, and the report always says so in `notes` — this module
+    reports rather than silently filters, and a funnel that quietly disagreed
+    with the GA4 UI by half its top-line would be worse than one that is loud
+    about why.
     """
     start, end = date_range(days)
 
@@ -291,7 +345,7 @@ def fetch_app_funnel(app_property_id: str, days: int = 14,
         date_ranges=[DateRange(start_date=start, end_date=end)],
         dimensions=[Dimension(name="eventName")],
         metrics=[Metric(name="activeUsers"), Metric(name="eventCount")],
-        dimension_filter=_exact_filter("streamName", stream_name),
+        dimension_filter=_app_funnel_filter(stream_name, exclude_synthetic_devices),
         limit=250,
     )
     try:
@@ -309,6 +363,14 @@ def fetch_app_funnel(app_property_id: str, days: int = 14,
         for row in response.rows
     }
     built = build_app_funnel(counts, app_property_id, stream_name, start, end)
+    if exclude_synthetic_devices:
+        built.notes.append(
+            "Excluded " + str(len(SYNTHETIC_DEVICE_MODELS)) + " synthetic device models ("
+            + ", ".join(SYNTHETIC_DEVICE_MODELS) + "). These were 49% of new users in the month "
+            "to 8 Sep 2026 and reach profile_create_start but never phone_verify_success, so "
+            "excluding them widens the drop-off rates rather than flattering them. To match this "
+            "in the GA4 UI, build an Explore segment excluding the same deviceModel values."
+        )
     missing = built.missing_events()
     if missing:
         built.notes.append(
@@ -324,6 +386,31 @@ def _exact_filter(field_name: str, value: str):
 
     return FilterExpression(
         filter=Filter(field_name=field_name, string_filter=Filter.StringFilter(value=value))
+    )
+
+
+def _app_funnel_filter(stream_name: str, exclude_synthetic: bool = True):
+    """Stream filter, optionally AND-ed with a NOT-IN on the synthetic devices.
+
+    The stream half is mandatory (both Therr apps share this property). The
+    device half is what removes the farm documented at SYNTHETIC_DEVICE_MODELS.
+    """
+    from google.analytics.data_v1beta.types import Filter, FilterExpression, FilterExpressionList
+
+    stream = _exact_filter("streamName", stream_name)
+    if not exclude_synthetic:
+        return stream
+
+    in_list = FilterExpression(
+        filter=Filter(
+            field_name="deviceModel",
+            in_list_filter=Filter.InListFilter(values=list(SYNTHETIC_DEVICE_MODELS)),
+        )
+    )
+    return FilterExpression(
+        and_group=FilterExpressionList(
+            expressions=[stream, FilterExpression(not_expression=in_list)]
+        )
     )
 
 

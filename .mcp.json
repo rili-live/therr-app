@@ -1,0 +1,9 @@
+{
+    "mcpServers": {
+        "google-play": {
+            "type": "stdio",
+            "command": "./scripts/google-play/mcp-server",
+            "args": []
+        }
+    }
+}

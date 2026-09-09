@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# MCP stdio entry point. Resolves its own location so the server starts
+# correctly no matter what working directory the MCP client launches it from —
+# a relative `cwd` in .mcp.json is not reliably honoured across clients, and the
+# failure mode is a server that exits instantly with ModuleNotFoundError.
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$HERE"
+if [ -x "$HERE/.venv/bin/python" ]; then
+    exec "$HERE/.venv/bin/python" -m therr_play.server "$@"
+fi
+echo "scripts/google-play/.venv is missing. Create it with:" >&2
+echo "  cd scripts/google-play && python3 -m venv .venv && \\" >&2
+echo "    .venv/bin/pip install -r requirements.txt" >&2
+exit 1
