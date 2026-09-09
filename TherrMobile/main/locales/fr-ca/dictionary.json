@@ -2020,6 +2020,24 @@
             "pactWithPartners": "Pacte avec {partners}",
             "awaitingPartnerAcceptance": "En attente de l'acceptation de {partners} pour démarrer ce pacte.",
             "awaitingAnyPartnerAcceptance": "En attente de l'acceptation de votre invitation pour démarrer ce pacte.",
+            "soloOrArchivePrompt": "Personne ne s'est joint pour l'instant. Continuer seul ou suspendre les rappels?",
+            "continueSolo": "Continuer en solo",
+            "archiveHabit": "Archiver",
+            "soloContinued": {
+                "successTitle": "En solo, bravo!",
+                "successMessage": "{habit} est maintenant une habitude en solo. Continue cette série!",
+                "lockedTitle": "Presque",
+                "lockedMessage": "Invite {remaining} ami(s) de plus pour suivre des habitudes en solo, ou archive celle-ci pour l'instant.",
+                "lockedMessageGeneric": "Invite quelques amis de plus pour suivre des habitudes en solo, ou archive celle-ci pour l'instant.",
+                "errorMessage": "Impossible de rendre cette habitude solo. Veuillez réessayer."
+            },
+            "habitArchived": {
+                "confirm": "Archiver cette habitude? Les rappels s'arrêtent jusqu'à ce qu'un partenaire accepte votre invitation, puis elle revient automatiquement.",
+                "confirmButton": "Archiver",
+                "successTitle": "Habitude archivée",
+                "successMessage": "Nous arrêtons les rappels. Elle reviendra si un partenaire se joint.",
+                "errorMessage": "Impossible d'archiver cette habitude. Veuillez réessayer."
+            },
             "habitNotFound": "Habitude introuvable",
             "checkinProof": {
                 "notePlaceholder": "Comment ça s'est passé? Une réussite à partager?",

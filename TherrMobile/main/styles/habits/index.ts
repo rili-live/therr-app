@@ -284,6 +284,57 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderTopColor: therrTheme.colors.primary4,
         },
 
+        // "Continue solo / archive?" prompt on an awaiting-partner card — the
+        // escape hatch from reminders for a habit nobody has joined.
+        habitCardSoloPrompt: {
+            marginTop: 12,
+        },
+        habitCardSoloPromptText: {
+            fontFamily: therrFontFamily,
+            fontSize: 13,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginBottom: 10,
+        },
+        habitCardSoloActions: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        habitCardSoloButton: {
+            flex: 1,
+            backgroundColor: therrTheme.colors.brand,
+            borderRadius: 10,
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            alignItems: 'center',
+            marginRight: 8,
+        },
+        habitCardSoloButtonText: {
+            fontFamily: therrFontFamily,
+            fontSize: 14,
+            fontWeight: '600',
+            color: therrTheme.colors.onBrand,
+        },
+        habitCardArchiveButton: {
+            flex: 1,
+            backgroundColor: therrTheme.colors.surface,
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.primary4,
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            alignItems: 'center',
+        },
+        habitCardArchiveButtonText: {
+            fontFamily: therrFontFamily,
+            fontSize: 14,
+            fontWeight: '600',
+            color: therrTheme.colors.textGray,
+        },
+        habitCardSoloSpinner: {
+            alignSelf: 'flex-start',
+            paddingVertical: 10,
+        },
+
         // Calendar
         calendarContainer: {
             backgroundColor: therrTheme.colors.surface,
