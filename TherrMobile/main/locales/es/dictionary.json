@@ -2020,6 +2020,24 @@
             "pactWithPartners": "Pacto con {partners}",
             "awaitingPartnerAcceptance": "Esperando a que {partners} acepte para que comience este pacto.",
             "awaitingAnyPartnerAcceptance": "Esperando a que se acepte tu invitación para que comience este pacto.",
+            "soloOrArchivePrompt": "Nadie se ha unido todavía. ¿Sigues por tu cuenta o pausas los recordatorios?",
+            "continueSolo": "Seguir en solitario",
+            "archiveHabit": "Archivar",
+            "soloContinued": {
+                "successTitle": "Por tu cuenta: ¡genial!",
+                "successMessage": "{habit} ahora es un hábito en solitario. ¡Mantén esa racha!",
+                "lockedTitle": "Ya casi",
+                "lockedMessage": "Invita a {remaining} amigo(s) más para seguir hábitos por tu cuenta, o archiva este por ahora.",
+                "lockedMessageGeneric": "Invita a algunos amigos más para seguir hábitos por tu cuenta, o archiva este por ahora.",
+                "errorMessage": "No pudimos cambiar este hábito a solitario. Inténtalo de nuevo."
+            },
+            "habitArchived": {
+                "confirm": "¿Archivar este hábito? Los recordatorios se detienen hasta que un compañero acepte tu invitación; luego vuelve automáticamente.",
+                "confirmButton": "Archivar",
+                "successTitle": "Hábito archivado",
+                "successMessage": "Detendremos los recordatorios. Volverá si un compañero se une.",
+                "errorMessage": "No pudimos archivar este hábito. Inténtalo de nuevo."
+            },
             "habitNotFound": "Hábito no encontrado",
             "checkinProof": {
                 "notePlaceholder": "¿Cómo te fue? ¿Algún logro para compartir?",
