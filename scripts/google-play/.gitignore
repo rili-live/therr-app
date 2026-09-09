@@ -1,0 +1,18 @@
+# Not secret in itself, but it names the reports bucket and the Play developer
+# account, and may point at a service-account key. settings.example.yaml is the
+# committed shape.
+settings.yaml
+*.local.yaml
+
+# Service account keys. These grant read access to the Play developer account;
+# keep them in ~/.therr/ rather than the repo, but refuse to commit either way.
+*-sa.json
+service-account*.json
+client_secret*.json
+
+out/
+.cache/
+__pycache__/
+*.pyc
+.venv/
+venv/
