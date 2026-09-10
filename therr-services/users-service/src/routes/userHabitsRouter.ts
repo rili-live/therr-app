@@ -5,6 +5,7 @@ import {
     createUserHabit,
     archiveUserHabit,
     restoreUserHabit,
+    continueSoloHabit,
 } from '../handlers/userHabits';
 
 const router = express.Router();
@@ -21,5 +22,8 @@ router.post('/', createUserHabit);
 // UPDATE
 router.put('/:id/archive', archiveUserHabit);
 router.put('/:id/restore', restoreUserHabit);
+// "Stop waiting on the invite — keep this habit alone." Distinct from restore:
+// it also abandons the outstanding pact and enforces the solo-unlock gate.
+router.put('/:id/continue-solo', continueSoloHabit);
 
 export default router;
