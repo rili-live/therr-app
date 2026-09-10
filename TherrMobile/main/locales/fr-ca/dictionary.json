@@ -1176,7 +1176,8 @@
                 "achievements": "Succès",
                 "partners": "Amis",
                 "profile": "Profil",
-                "journal": "Journal"
+                "journal": "Journal",
+                "feed": "Fil"
             },
             "accessibility": {
                 "habitsWithInvites": "Habitudes, {count} invitation(s) en attente de votre réponse"
@@ -2047,7 +2048,14 @@
                 "cancel": "Annuler",
                 "addDetailTitle": "Ajouter une note ou une photo",
                 "addDetailPrompt": "Enregistré. Ajoutez ce que vous voulez retenir (optionnel).",
+                "sharePubliclyLabel": "Partager au fil",
+                "sharePubliclyHint": "Publiez cette photo pour que d'autres vous encouragent.",
+                "sharedTitle": "Partagé au fil",
+                "shareFailed": "Impossible de partager ce suivi. Réessayez plus tard.",
                 "save": "Enregistrer"
+            },
+            "feed": {
+                "emptyMessage": "Aucun suivi partagé pour l'instant. Partagez l'un des vôtres pour lancer le fil."
             },
             "dayDetail": {
                 "title": "{weekday} {day} {month}",
@@ -2061,6 +2069,8 @@
                 "proofsFailed": "Impossible de charger vos photos.",
                 "proofsUnavailable": "Les photos de cette journée ne sont plus disponibles.",
                 "proofImageAlt": "Photo de l'enregistrement",
+                "sharedToFeed": "Partagé au fil",
+                "viewPost": "Voir la publication",
                 "dayAccessibilityLabel": "{day} {month}, voir les détails de l'enregistrement",
                 "status": {
                     "completed": "Complété",

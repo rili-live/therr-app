@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Image, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Dialog, Divider, Portal } from 'react-native-paper';
+import { Dialog, Divider, Portal, Switch } from 'react-native-paper';
 import { ScrollView } from 'react-native-gesture-handler';
 import ImageCropPicker, { Image as CroppedImage } from 'react-native-image-crop-picker';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -32,8 +32,12 @@ interface ICheckinProofSheetProps {
     isSubmitting?: boolean;
     habitName?: string;
     userId?: string;
+    // When true, a "Share publicly" toggle is offered once a photo is attached (gated by the
+    // ENABLE_HABITS_FEED flag upstream). Sharing requires a photo — it is what keeps the feed
+    // on-topic — so the toggle only appears with an image selected.
+    canShare?: boolean;
     onCancel: () => void;
-    onConfirm: (args: { notes?: string; image?: ISelectedProofImage }) => void;
+    onConfirm: (args: { notes?: string; image?: ISelectedProofImage; sharePublicly?: boolean }) => void;
     translate: (key: string, params?: any) => string;
     themeConfirmModal: {
         colors: ITherrThemeColors;
@@ -52,6 +56,7 @@ const CheckinProofSheet: React.FC<ICheckinProofSheetProps> = ({
     isSubmitting = false,
     habitName,
     userId,
+    canShare = false,
     onCancel,
     onConfirm,
     translate,
@@ -61,11 +66,13 @@ const CheckinProofSheet: React.FC<ICheckinProofSheetProps> = ({
     const [notes, setNotes] = useState('');
     const [selectedImage, setSelectedImage] = useState<ISelectedProofImage | null>(null);
     const [imagePreviewPath, setImagePreviewPath] = useState<string>('');
+    const [sharePublicly, setSharePublicly] = useState(false);
 
     const reset = () => {
         setNotes('');
         setSelectedImage(null);
         setImagePreviewPath('');
+        setSharePublicly(false);
     };
 
     const handleCancel = () => {
@@ -78,6 +85,9 @@ const CheckinProofSheet: React.FC<ICheckinProofSheetProps> = ({
         onConfirm({
             notes: trimmed.length ? trimmed : undefined,
             image: selectedImage || undefined,
+            // Sharing requires a photo; never signal share without one even if the toggle was
+            // left on from before the image was removed.
+            sharePublicly: canShare && !!selectedImage && sharePublicly,
         });
         reset();
     };
@@ -242,6 +252,26 @@ const CheckinProofSheet: React.FC<ICheckinProofSheetProps> = ({
                                 </View>
                             )}
                         </View>
+                        {canShare && imagePreviewPath ? (
+                            <View style={localStyles.shareSection}>
+                                <View style={localStyles.shareRow}>
+                                    <View style={localStyles.shareTextContainer}>
+                                        <Text style={[themeConfirmModal.styles.bodyTextBold, localStyles.shareLabel]}>
+                                            {translate('pages.habits.checkinProof.sharePubliclyLabel')}
+                                        </Text>
+                                        <Text style={[themeConfirmModal.styles.bodyText, localStyles.shareHint]}>
+                                            {translate('pages.habits.checkinProof.sharePubliclyHint')}
+                                        </Text>
+                                    </View>
+                                    <Switch
+                                        value={sharePublicly}
+                                        onValueChange={setSharePublicly}
+                                        disabled={isSubmitting}
+                                        color={themeConfirmModal.colors.brand}
+                                    />
+                                </View>
+                            </View>
+                        ) : null}
                     </ScrollView>
                 </Dialog.ScrollArea>
                 <Divider />
@@ -297,6 +327,26 @@ const localStyles = StyleSheet.create({
     photoSection: {
         paddingHorizontal: 10,
         paddingBottom: 10,
+    },
+    shareSection: {
+        paddingHorizontal: 10,
+        paddingBottom: 12,
+    },
+    shareRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 12,
+    },
+    shareTextContainer: {
+        flex: 1,
+    },
+    shareLabel: {
+        fontSize: 15,
+    },
+    shareHint: {
+        fontSize: 12,
+        paddingTop: 2,
     },
     photoButtonRow: {
         flexDirection: 'row',

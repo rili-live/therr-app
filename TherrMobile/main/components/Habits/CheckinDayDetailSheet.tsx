@@ -40,6 +40,11 @@ interface ICheckinDayDetailSheetProps {
     hasProofError: boolean;
     onClose: () => void;
     onRetryProofs: () => void;
+    /**
+     * Opens the public post this check-in was shared as. Passed only when the check-in carries a
+     * `sharedThoughtId`; the sheet renders a "View post" action when both this and the id exist.
+     */
+    onViewSharedPost?: () => void;
     translate: (key: string, params?: any) => string;
     themeConfirmModal: {
         colors: ITherrThemeColors;
@@ -88,6 +93,7 @@ const CheckinDayDetailSheet: React.FC<ICheckinDayDetailSheetProps> = ({
     hasProofError,
     onClose,
     onRetryProofs,
+    onViewSharedPost,
     translate,
     themeConfirmModal,
     themeButtons,
@@ -95,6 +101,8 @@ const CheckinDayDetailSheet: React.FC<ICheckinDayDetailSheetProps> = ({
     if (!date) {
         return null;
     }
+
+    const isShared = !!checkin?.sharedThoughtId;
 
     const statusLabelKey = getStatusLabelKey(checkin);
     const isFuture = isDayInFuture(date, new Date());
@@ -205,6 +213,15 @@ const CheckinDayDetailSheet: React.FC<ICheckinDayDetailSheetProps> = ({
                 )}
 
                 {renderProofs()}
+
+                {isShared && (
+                    <View style={localStyles.sharedRow}>
+                        <MaterialIcon name="public" size={16} color={themeConfirmModal.colors.brand} />
+                        <Text style={[localStyles.sharedText, { color: themeConfirmModal.colors.brand }]}>
+                            {translate('pages.habits.dayDetail.sharedToFeed')}
+                        </Text>
+                    </View>
+                )}
             </>
         );
     };
@@ -240,6 +257,15 @@ const CheckinDayDetailSheet: React.FC<ICheckinDayDetailSheetProps> = ({
                         iconRight={false}
                         themeButtons={themeButtons}
                     />
+                    {isShared && onViewSharedPost && (
+                        <ModalButton
+                            iconName="open-in-new"
+                            title={translate('pages.habits.dayDetail.viewPost')}
+                            onPress={onViewSharedPost}
+                            iconRight={false}
+                            themeButtons={themeButtons}
+                        />
+                    )}
                 </Dialog.Actions>
             </Dialog>
         </Portal>
@@ -264,6 +290,16 @@ const localStyles = StyleSheet.create({
     },
     notesPlaceholder: {
         fontStyle: 'italic',
+    },
+    sharedRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingTop: 12,
+    },
+    sharedText: {
+        fontSize: 13,
+        fontWeight: '600',
     },
     ratingRow: {
         flexDirection: 'row',

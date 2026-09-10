@@ -8,9 +8,11 @@ interface IFeatureDependency {
 // Navigation tab flags for counting visible tabs (across all brands)
 //
 // ENABLE_PACTS is absent because pacts no longer have a tab of their own — they
-// are segments of the habits screen. Achievements took the slot, but only on
-// the HABITS button menu, so it is counted conditionally below rather than
-// listed here (on Therr it is a drawer item, and counting it there would push a
+// are segments of the habits screen. The optional HABITS social tab is the
+// public Feed (ENABLE_HABITS_FEED), which replaced the Awards (Achievements)
+// tab; it is counted conditionally below rather than listed here because it is a
+// tab only on the HABITS button menu (Achievements is now a drawer item on
+// HABITS, and never a tab on Therr — counting either there would push a
 // perfectly valid five-tab bar over the ceiling).
 const NAVIGATION_TAB_FLAGS = [
     FeatureFlags.ENABLE_AREAS,
@@ -23,10 +25,10 @@ const NAVIGATION_TAB_FLAGS = [
 
 const countNavigationTabs = (flags: Record<string, boolean>): number => {
     const listed = NAVIGATION_TAB_FLAGS.filter(flag => flags[flag]).length;
-    const hasAchievementsTab = !!flags[FeatureFlags.ENABLE_HABITS]
-        && !!flags[FeatureFlags.ENABLE_ACHIEVEMENTS];
+    const hasFeedTab = !!flags[FeatureFlags.ENABLE_HABITS]
+        && !!flags[FeatureFlags.ENABLE_HABITS_FEED];
 
-    return listed + (hasAchievementsTab ? 1 : 0);
+    return listed + (hasFeedTab ? 1 : 0);
 };
 
 // Define dependencies (feature X requires feature Y)

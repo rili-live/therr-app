@@ -230,6 +230,19 @@ const Habits = {
             return response.data;
         }),
 
+    // Share a check-in's proof photo publicly as a post. The response carries `sharedThoughtId`
+    // (and the created `thought` on first share); the dispatch merges just that id onto the
+    // matching check-in so the "shared" state shows without a refetch — see the SHARE_CHECKIN
+    // reducer case, which is a merge rather than the full-object replace UPDATE_CHECKIN does.
+    shareCheckin: (id: string, message?: string) => (dispatch: any) => HabitCheckinsService
+        .share(id, message).then((response) => {
+            dispatch({
+                type: HabitsActionTypes.SHARE_CHECKIN,
+                data: { id, sharedThoughtId: response.data?.sharedThoughtId },
+            });
+            return response.data;
+        }),
+
     // Streaks
     getUserStreaks: (isActive?: boolean) => (dispatch: any) => StreaksService
         .getUserStreaks(isActive).then((response: any) => {
