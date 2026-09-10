@@ -56,6 +56,39 @@ export const PURCHASE_TYPE_TEST = 0;
 export const PURCHASE_TYPE_PROMO = 1;
 export const PURCHASE_TYPE_REWARDED = 2;
 
+/**
+ * `subscriptionState` values from `purchases.subscriptionsv2.get`.
+ *
+ * These are string enums in the v2 API, unlike the integer `purchaseState` on a
+ * one-time product. The three that entitle an account are ACTIVE (paying),
+ * IN_GRACE_PERIOD (a renewal charge failed but Play is still retrying and access
+ * continues), and CANCELED (the user turned off auto-renew but has paid through
+ * the end of the current period). EXPIRED, ON_HOLD and PAUSED do not entitle:
+ * ON_HOLD means the grace period elapsed with the charge still failing, and
+ * PAUSED is a user-requested suspension. `isEntitlingSubscriptionState` is the
+ * single place that judgement lives.
+ */
+export const SUBSCRIPTION_STATE_ACTIVE = 'SUBSCRIPTION_STATE_ACTIVE';
+export const SUBSCRIPTION_STATE_CANCELED = 'SUBSCRIPTION_STATE_CANCELED';
+export const SUBSCRIPTION_STATE_IN_GRACE_PERIOD = 'SUBSCRIPTION_STATE_IN_GRACE_PERIOD';
+export const SUBSCRIPTION_STATE_ON_HOLD = 'SUBSCRIPTION_STATE_ON_HOLD';
+export const SUBSCRIPTION_STATE_PAUSED = 'SUBSCRIPTION_STATE_PAUSED';
+export const SUBSCRIPTION_STATE_EXPIRED = 'SUBSCRIPTION_STATE_EXPIRED';
+export const SUBSCRIPTION_STATE_PENDING = 'SUBSCRIPTION_STATE_PENDING';
+
+/** `acknowledgementState` on the v2 subscription resource (string, not int). */
+export const V2_ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED = 'ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED';
+
+/**
+ * A subscription is entitling while it is being paid for. A user who cancels
+ * auto-renew keeps access until the period they already paid for ends — Play
+ * reports that as CANCELED with a future `expiryTime`, not as EXPIRED — so
+ * CANCELED counts here and the expiry check below is what eventually drops it.
+ */
+export const isEntitlingSubscriptionState = (state: string | undefined): boolean => state === SUBSCRIPTION_STATE_ACTIVE
+    || state === SUBSCRIPTION_STATE_IN_GRACE_PERIOD
+    || state === SUBSCRIPTION_STATE_CANCELED;
+
 export interface IPlayProductPurchase {
     purchaseState: number;
     consumptionState?: number;
@@ -71,6 +104,41 @@ export interface IPlayProductPurchase {
      * rewarded (2) purchases. See the constants above.
      */
     purchaseType?: number;
+    regionCode?: string;
+}
+
+/**
+ * One line item of a v2 subscription purchase. The productId lives here rather
+ * than in the path (the v2 get is keyed by token alone), so it is the field the
+ * caller validates the purchase against.
+ */
+export interface IPlaySubscriptionLineItem {
+    productId?: string;
+    /** RFC3339. The moment access lapses if not renewed — the real expiry clock. */
+    expiryTime?: string;
+    autoRenewingPlan?: { autoRenewEnabled?: boolean };
+}
+
+/**
+ * Subset of `purchases.subscriptionsv2.get` this service reads. v2 is used over
+ * v1 because v1's fields (`paymentState`, integer `acknowledgementState`) are
+ * frozen and Google steers new integrations to v2, whose `subscriptionState`
+ * models grace period / on-hold / paused as first-class states rather than
+ * leaving the caller to infer them from timestamps.
+ */
+export interface IPlaySubscriptionPurchase {
+    subscriptionState?: string;
+    acknowledgementState?: string;
+    latestOrderId?: string;
+    startTime?: string;
+    /**
+     * Set only when this token replaces an earlier one (a resubscribe or an
+     * upgrade/downgrade). The store uses it to supersede the row the old token
+     * wrote, so one account never carries two live subscription rows.
+     */
+    linkedPurchaseToken?: string;
+    lineItems?: IPlaySubscriptionLineItem[];
+    testPurchase?: object;
     regionCode?: string;
 }
 
@@ -209,9 +277,66 @@ export const acknowledgeProductPurchase = async (
     });
 };
 
+/**
+ * Fetch the authoritative state of a subscription purchase (v2).
+ *
+ * Unlike the one-time product endpoint this is keyed by token alone — a token
+ * identifies exactly one subscription, and its product id is read back from
+ * `lineItems`. Returns `undefined` for a token Play does not recognise (404),
+ * for the same reason `getProductPurchase` does: an unknown token is a client
+ * problem, not a server fault.
+ */
+export const getSubscriptionPurchase = async (
+    purchaseToken: string,
+): Promise<IPlaySubscriptionPurchase | undefined> => {
+    const headers = await getAuthHeaders();
+    const packageName = getPackageName();
+    const url = `${PLAY_API_BASE}/applications/${encodeURIComponent(packageName)}`
+        + `/purchases/subscriptionsv2/tokens/${encodeURIComponent(purchaseToken)}`;
+
+    try {
+        const response = await axios({ method: 'get', url, headers });
+        return response.data as IPlaySubscriptionPurchase;
+    } catch (err: any) {
+        if (err?.response?.status === 404 || err?.response?.status === 410) {
+            return undefined;
+        }
+        throw err;
+    }
+};
+
+/**
+ * Acknowledge a subscription purchase.
+ *
+ * There is no v2 acknowledge endpoint; the v1 subscriptions acknowledge is the
+ * supported call and it keys off the product id (the "subscriptionId" segment),
+ * which is why the caller must pass the productId read from `lineItems`. Same
+ * three-day auto-refund rule and same repeat-safe behaviour as the product
+ * acknowledge above.
+ */
+export const acknowledgeSubscriptionPurchase = async (
+    productId: string,
+    purchaseToken: string,
+): Promise<void> => {
+    const headers = await getAuthHeaders();
+    const packageName = getPackageName();
+    const url = `${PLAY_API_BASE}/applications/${encodeURIComponent(packageName)}`
+        + `/purchases/subscriptions/${encodeURIComponent(productId)}`
+        + `/tokens/${encodeURIComponent(purchaseToken)}:acknowledge`;
+
+    await axios({
+        method: 'post',
+        url,
+        headers,
+        data: {},
+    });
+};
+
 export default {
     acknowledgeProductPurchase,
+    acknowledgeSubscriptionPurchase,
     getPackageName,
     getProductPurchase,
+    getSubscriptionPurchase,
     isGooglePlayConfigured,
 };

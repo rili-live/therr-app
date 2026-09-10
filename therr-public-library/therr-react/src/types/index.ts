@@ -34,6 +34,8 @@ import {
     IJournalFeedItem,
     IHabitsLifetimePurchase,
     IHabitsLifetimeOffer,
+    IHabitsPremiumSubscription,
+    IHabitsPremiumOffer,
 
     // Messages
     MessageActionTypes,
@@ -136,6 +138,8 @@ export {
     IJournalFeedItem,
     IHabitsLifetimePurchase,
     IHabitsLifetimeOffer,
+    IHabitsPremiumSubscription,
+    IHabitsPremiumOffer,
 
     // Maps
     IMapState,

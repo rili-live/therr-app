@@ -21,4 +21,5 @@ export const PACT_ACTIVITIES_TABLE_NAME = 'habits.pact_activities';
 export const HABIT_PHASES_TABLE_NAME = 'habits.habit_phases';
 export const USER_HABITS_TABLE_NAME = 'habits.user_habits';
 export const LIFETIME_PURCHASES_TABLE_NAME = 'habits.lifetime_purchases';
+export const SUBSCRIPTION_PURCHASES_TABLE_NAME = 'habits.subscription_purchases';
 export const JOURNAL_ENTRIES_TABLE_NAME = 'habits.journal_entries';
