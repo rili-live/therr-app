@@ -6,11 +6,18 @@ import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { showToast } from '../../utilities/toasts';
 import { RefreshControl } from 'react-native-gesture-handler';
-import { achievementsByClass } from 'therr-js-utilities/config';
+import { getAchievementsForBrand } from 'therr-js-utilities/config';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../utilities/translator';
+import {
+    triggerClaimErrorFeedback,
+    triggerClaimPressFeedback,
+    triggerClaimSuccessFeedback,
+} from '../../utilities/rewardFeedback';
+import { recordPositiveSignal } from '../../utilities/appReviewPrompt';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildAchievementStyles } from '../../styles/achievements';
@@ -105,11 +112,19 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
             return;
         }
 
+        // Tactile acknowledgement fires before the request so the button feels
+        // instant even when the network is slow.
+        triggerClaimPressFeedback();
+
         this.setState((prev) => ({
             claimingIds: { ...prev.claimingIds, [userAchievement.id]: true },
         }));
 
         claimMyAchievement(userAchievement.id, userAchievement.unclaimedRewardPts).then(() => {
+            triggerClaimSuccessFeedback();
+            // Counts toward the app-review prompt. Fire-and-forget: a storage failure must
+            // not affect the claim that just succeeded.
+            recordPositiveSignal('achievementClaimed').catch((err) => console.log('APP_REVIEW_SIGNAL_ERROR', err));
             showToast.success({
                 text1: this.translate('alertTitles.coinsReceived'),
                 text2: this.translate('alertMessages.coinsReceived', {
@@ -124,6 +139,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
             getMyAchievements();
             this.onPressAchievement(claimedAchievement, true);
         }).catch(() => {
+            triggerClaimErrorFeedback();
             showToast.error({
                 text1: this.translate('alertTitles.backendErrorMessage'),
                 text2: this.translate('alertMessages.backendErrorMessage'),
@@ -145,6 +161,42 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
             isClaiming,
         });
     };
+
+    goToLeaderboard = () => {
+        const { navigation } = this.props;
+
+        navigation.navigate('Leaderboard');
+    };
+
+    renderLeaderboardLink = () => (
+        <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={this.translate('pages.achievements.buttons.viewLeaderboard')}
+            onPress={this.goToLeaderboard}
+            style={({ pressed }) => [
+                this.themeAchievements.styles.leaderboardLink,
+                pressed && this.themeAchievements.styles.leaderboardLinkPressed,
+            ]}
+        >
+            <View style={this.themeAchievements.styles.leaderboardLinkContent}>
+                <View style={this.themeAchievements.styles.leaderboardIconContainer}>
+                    <FontAwesome5Icon
+                        name="trophy"
+                        size={14}
+                        color={this.themeAchievements.colors.onBrand}
+                    />
+                </View>
+                <Text style={this.themeAchievements.styles.leaderboardLinkText}>
+                    {this.translate('pages.achievements.buttons.viewLeaderboard')}
+                </Text>
+            </View>
+            <FontAwesome5Icon
+                name="chevron-right"
+                size={13}
+                color={this.themeAchievements.colors.onBrand}
+            />
+        </Pressable>
+    );
 
     toggleSection = (sectionTitle: string) => {
         this.setState((prevState) => ({
@@ -196,8 +248,8 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
             });
         }
 
-        // Group completed by achievementClass
-        const classNames = Object.keys(achievementsByClass);
+        // Group completed by achievementClass — restricted to classes available for current brand
+        const classNames = Object.keys(getAchievementsForBrand(CURRENT_BRAND_VARIATION));
         classNames.forEach((className) => {
             if (claimedByClass[className]?.length > 0) {
                 const displayName = className.replace(/([A-Z])/g, ' $1').trim();
@@ -220,16 +272,8 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
 
         if (!section.isCollapsible) {
             return (
-                <View style={{
-                    paddingHorizontal: 14,
-                    paddingVertical: 10,
-                    backgroundColor: this.theme.colors.backgroundGray,
-                }}>
-                    <Text style={{
-                        fontSize: 16,
-                        fontWeight: '700',
-                        color: this.theme.colors.textWhite,
-                    }}>
+                <View style={this.themeAchievements.styles.sectionHeader}>
+                    <Text style={this.themeAchievements.styles.sectionHeaderTitle}>
                         {section.title}
                     </Text>
                 </View>
@@ -238,28 +282,28 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
 
         return (
             <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ expanded: !isCollapsed }}
+                accessibilityLabel={section.title}
                 onPress={() => this.toggleSection(section.title)}
-                style={{
-                    paddingHorizontal: 14,
-                    paddingVertical: 10,
-                    backgroundColor: this.theme.colors.backgroundGray,
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                }}
+                style={({ pressed }) => [
+                    this.themeAchievements.styles.sectionHeader,
+                    pressed && this.themeAchievements.styles.sectionHeaderPressed,
+                ]}
             >
-                <Text style={{
-                    fontSize: 16,
-                    fontWeight: '700',
-                    color: this.theme.colors.textWhite,
-                }}>
-                    {section.title} ({section.totalCount ?? section.data.length})
+                <Text style={this.themeAchievements.styles.sectionHeaderTitle}>
+                    {section.title}
                 </Text>
-                <FontAwesome5Icon
-                    name={isCollapsed ? 'chevron-down' : 'chevron-up'}
-                    size={14}
-                    color={this.theme.colors.textWhite}
-                />
+                <View style={this.themeAchievements.styles.sectionHeaderTrailing}>
+                    <Text style={this.themeAchievements.styles.sectionHeaderCount}>
+                        {section.totalCount ?? section.data.length}
+                    </Text>
+                    <FontAwesome5Icon
+                        name={isCollapsed ? 'chevron-down' : 'chevron-up'}
+                        size={12}
+                        color={this.themeAchievements.colors.onSurfaceMuted}
+                    />
+                </View>
             </Pressable>
         );
     };
@@ -291,10 +335,13 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
                                 handleClaim={() => this.handleClaim(item)}
                                 isClaiming={!!claimingIds[item.id]}
                                 onPressAchievement={() => this.onPressAchievement(item)}
+                                progressText={(params) => this.translate('pages.achievements.info.progressOf', params)}
                                 themeAchievements={this.themeAchievements}
                                 userAchievement={item}
                             />}
                             renderSectionHeader={this.renderSectionHeader}
+                            ListHeaderComponent={this.renderLeaderboardLink()}
+                            contentContainerStyle={this.themeAchievements.styles.listContentContainer}
                             refreshControl={<RefreshControl
                                 refreshing={isRefreshing}
                                 onRefresh={this.handleRefresh}

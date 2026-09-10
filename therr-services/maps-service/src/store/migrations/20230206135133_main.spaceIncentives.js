@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').createTable('spaceIncentives', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').createTable('spaceIncentives', (table) => {
     table.uuid('id').primary().notNullable().defaultTo(knex.raw('uuid_generate_v4()'));
     table.uuid('spaceId')
         .references('id')

@@ -69,9 +69,9 @@ const handleSubscriptionCreateUpdate = async (event) => {
 
     if (eventObject.status === 'trialing') {
         if (normedEmail) {
-            await Store.users.getUsers({
+            await Store.users.getUserByConditions({
                 email: normedEmail,
-            }, {}, {}, ['id', 'email', 'accessLevels']).then(([user]) => {
+            }, undefined, undefined, ['id', 'email', 'accessLevels']).then(([user]) => {
                 if (user) {
                     fetchedUser = user;
 
@@ -118,9 +118,9 @@ const handleSubscriptionCreateUpdate = async (event) => {
         }
     } else if (eventObject.status === 'active') {
         if (normedEmail) {
-            await Store.users.getUsers({
+            await Store.users.getUserByConditions({
                 email: normedEmail,
-            }, {}, {}, ['id', 'email', 'accessLevels']).then(([user]) => {
+            }, undefined, undefined, ['id', 'email', 'accessLevels']).then(([user]) => {
                 if (user) {
                     fetchedUser = user;
                     const userAccessLevels = new Set(user.accessLevels || []);
@@ -172,9 +172,9 @@ const revokeDashboardAccess = async (event) => {
     }
 
     const dashboardAccessLevels = getDashboardAccessLevels();
-    const [user] = await Store.users.getUsers({
+    const [user] = await Store.users.getUserByConditions({
         email: normedEmail,
-    }, {}, {}, ['id', 'email', 'accessLevels']);
+    }, undefined, undefined, ['id', 'email', 'accessLevels']);
 
     if (user) {
         const updatedAccessLevels = (user.accessLevels || [])
@@ -211,9 +211,9 @@ const restoreDashboardAccess = async (event) => {
     const product = await stripe.products.retrieve(eventObject.plan?.product);
     const accessLevel = productIdMap[product.id]?.accessLevel || AccessLevels.DASHBOARD_SUBSCRIBER_BASIC;
 
-    const [user] = await Store.users.getUsers({
+    const [user] = await Store.users.getUserByConditions({
         email: normedEmail,
-    }, {}, {}, ['id', 'email', 'accessLevels']);
+    }, undefined, undefined, ['id', 'email', 'accessLevels']);
 
     if (user) {
         const userAccessLevels = new Set(user.accessLevels || []);

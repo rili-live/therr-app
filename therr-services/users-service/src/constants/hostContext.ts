@@ -43,6 +43,10 @@ interface IBrandConfig {
         fromEmail: string;
         fromEmailTitle: string;
         homepageLinkUri: string;
+        // When set, brand-aware email links (verify, login, etc.) prefer this host
+        // over the global hostFull. Lets niche apps with their own subdomain serve
+        // onboarding pages without bouncing users to therr.com.
+        appHostFull?: string;
         logoRelativePath: string;
         logoAltText: string;
         headerImageRelativePath?: string; // 560 x 190
@@ -112,6 +116,46 @@ const hostContext: IBrandConfigs = {
                 youtube: 'https://www.youtube.com/@therrapp',
                 tiktok: 'https://www.tiktok.com/@therr.app',
             },
+        },
+    },
+    'habits.therr.com': {
+        host: 'habits.therr.com',
+
+        // Branding
+        brandName: 'Friends with Habits',
+        brandShortName: 'Friends with Habits',
+        brandGreeting: 'Hey',
+        brandGoLinkText: 'Open Friends with Habits',
+        websiteName: 'Friends with Habits',
+        contactEmail: 'info@therr.com',
+        instagramHandle: 'therr.app',
+        facebookHandle: 'therrapp',
+        twitterHandle: 'therr_app',
+        parentHomepageName: 'Friends with Habits',
+        parentHomepageUrl: 'https://habits.therr.com',
+        parentAboutUrl: 'https://habits.therr.com',
+        parentBlogUrl: 'https://therr.app/blog',
+        parentBlogName: 'The Official \'Therr\' Blog',
+        parentAppUrl: 'https://habits.therr.com/',
+        parentAppName: 'Friends with Habits',
+        parentContactUrl: 'https://habits.therr.com/',
+
+        // Email Context
+        emailTemplates: {
+            // Coral/navy palette mirrors therr-client-web/src/views/habits/landing.hbs
+            brandBackgroundHexDark: '#102a43',
+            brandBackgroundLight: '#fff8f3',
+            brandAccentHex: '#ff6b35',
+            brandAccentHexDark: '#e0521e',
+            fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@therr.com',
+            fromEmailTitle: 'Friends with Habits',
+            homepageLinkUri: 'https://habits.therr.com',
+            appHostFull: 'https://habits.therr.com',
+            logoRelativePath: 'assets/images/habits-splash-logo-200.png',
+            logoAltText: 'Friends with Habits logo',
+            unsubscribeUrl: 'https://habits.therr.com/emails/unsubscribe',
+            legalBusinessName: 'Therr Inc.',
+            businessCopyrightYear: `${new Date().getFullYear()}`,
         },
     },
     'teem-social.com': {
@@ -286,12 +330,24 @@ export const getHostContext = (host: string, brandVariation?: string) => {
             if (brandVariation === BrandVariations.TEEM) {
                 return hostContext['teem-social.com'];
             }
+            if (brandVariation === BrandVariations.HABITS) {
+                return hostContext['habits.therr.com'];
+            }
         }
         return hostContext['therr.com'];
     }
 
     // For local dev fallback
     if (host === globalConfig[process.env.NODE_ENV].host) {
+        // Mobile/web requests on shared therr.com SSR pod still need brand-aware
+        // email branding when the client signals a niche brand. Without this,
+        // Friends with Habits users get Therr-branded onboarding emails.
+        if (brandVariation === BrandVariations.HABITS) {
+            return hostContext['habits.therr.com'];
+        }
+        if (brandVariation === BrandVariations.TEEM) {
+            return hostContext['teem-social.com'];
+        }
         return hostContext['therr.com'];
     }
 

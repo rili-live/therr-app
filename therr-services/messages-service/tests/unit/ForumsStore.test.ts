@@ -10,14 +10,14 @@ describe('ForumsStore', () => {
 
     describe('countRecords', () => {
         it('queries for total records with filter', () => {
-            const expected = `select count(*) from "main"."forums" where "isPublic" = true`;
+            const expected = `select count(*) from "main"."forums" where "main"."forums"."brandVariation" = 'therr' and "isPublic" = true`;
             const mockStore = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ count: '5' }] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
-            store.countRecords({
+            const store = new ForumsStore(mockStore as any);
+            store.countRecords('therr', {
                 filterBy: 'isPublic',
                 query: true,
             });
@@ -29,14 +29,14 @@ describe('ForumsStore', () => {
     describe('getForum', () => {
         it('queries for a forum by id', () => {
             const forumId = 'forum-123';
-            const expected = `select * from "main"."forums" where "id" = '${forumId}'`;
+            const expected = `select * from "main"."forums" where "id" = '${forumId}' and "brandVariation" = 'therr'`;
             const mockStore = {
                 write: {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
-            store.getForum(forumId);
+            const store = new ForumsStore(mockStore as any);
+            store.getForum('therr', forumId);
 
             expect(mockStore.write.query.args[0][0]).to.be.equal(expected);
         });
@@ -52,8 +52,8 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [mockForum] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
-            const result = await store.getForum('forum-123');
+            const store = new ForumsStore(mockStore as any);
+            const result = await store.getForum('therr', 'forum-123');
 
             expect(result).to.be.an('array');
             expect(result.length).to.equal(1);
@@ -68,8 +68,8 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
-            store.getForums({ authorId: 'user-1' }, null);
+            const store = new ForumsStore(mockStore as any);
+            store.getForums('therr', { authorId: 'user-1' }, null);
 
             const queryString = mockStore.write.query.args[0][0];
             expect(queryString).to.include('select * from "main"."forums"');
@@ -83,8 +83,8 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
-            store.getForums({ authorId: 'user-1' }, null, false);
+            const store = new ForumsStore(mockStore as any);
+            store.getForums('therr', { authorId: 'user-1' }, null, false);
 
             const queryString = mockStore.write.query.args[0][0];
             expect(queryString).to.not.include('"archivedAt" is null');
@@ -96,8 +96,8 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
-            store.getForums({ authorId: 'user-1', title: 'Test' }, { authorId: 'user-1', subtitle: 'Subtitle' });
+            const store = new ForumsStore(mockStore as any);
+            store.getForums('therr', { authorId: 'user-1', title: 'Test' }, { authorId: 'user-1', subtitle: 'Subtitle' });
 
             const queryString = mockStore.write.query.args[0][0];
             expect(queryString).to.include('"authorId"');
@@ -114,8 +114,8 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
-            store.findForums(ids);
+            const store = new ForumsStore(mockStore as any);
+            store.findForums('therr', ids);
 
             const queryString = mockStore.read.query.args[0][0];
             expect(queryString).to.include('select "id", "title" from "main"."forums"');
@@ -132,8 +132,8 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: mockForums })),
                 },
             };
-            const store = new ForumsStore(mockStore);
-            const result = await store.findForums(['forum-1', 'forum-2']);
+            const store = new ForumsStore(mockStore as any);
+            const result = await store.findForums('therr', ['forum-1', 'forum-2']);
 
             expect(result).to.be.an('array');
             expect(result.length).to.equal(2);
@@ -149,8 +149,9 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
+            const store = new ForumsStore(mockStore as any);
             await store.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 2 },
                     order: 'desc',
@@ -170,8 +171,9 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
+            const store = new ForumsStore(mockStore as any);
             await store.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -191,8 +193,9 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
+            const store = new ForumsStore(mockStore as any);
             await store.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -211,8 +214,9 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
+            const store = new ForumsStore(mockStore as any);
             await store.searchForums(
+                'therr',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
                     order: 'desc',
@@ -244,7 +248,7 @@ describe('ForumsStore', () => {
                         .resolves({ rows: [] }),
                 },
             };
-            const store = new ForumsStore(mockStore);
+            const store = new ForumsStore(mockStore as any);
 
             const params: ICreateForumParams = {
                 authorId: 'user-1',
@@ -259,7 +263,7 @@ describe('ForumsStore', () => {
                 iconColor: '#000000',
             };
 
-            const result = await store.createForum(params);
+            const result = await store.createForum('therr', params);
 
             expect(mockStore.write.query.calledTwice).to.be.eq(true);
             expect(result).to.be.an('array');
@@ -283,9 +287,10 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ id: 'forum-123' }] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
+            const store = new ForumsStore(mockStore as any);
 
             await store.updateForum(
+                'therr',
                 { id: 'forum-123', authorId: 'user-1' },
                 { title: ['Updated Title'] },
             );
@@ -303,9 +308,10 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ id: 'forum-123' }] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
+            const store = new ForumsStore(mockStore as any);
 
             const result = await store.updateForum(
+                'therr',
                 { id: 'forum-123' },
                 { description: 'New description' },
             );
@@ -322,9 +328,9 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ id: 'forum-123' }] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
+            const store = new ForumsStore(mockStore as any);
 
-            await store.archiveForum({ id: 'forum-123', authorId: 'user-1' });
+            await store.archiveForum('therr', { id: 'forum-123', authorId: 'user-1' });
 
             const queryString = mockStore.write.query.args[0][0];
             expect(queryString).to.include('update "main"."forums"');
@@ -339,9 +345,9 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ id: 'forum-123' }] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
+            const store = new ForumsStore(mockStore as any);
 
-            const result = await store.archiveForum({ id: 'forum-123', authorId: 'user-1' });
+            const result = await store.archiveForum('therr', { id: 'forum-123', authorId: 'user-1' });
 
             expect(result).to.be.an('array');
             expect(result[0].id).to.equal('forum-123');
@@ -355,9 +361,9 @@ describe('ForumsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({ rows: [{ id: 'forum-123' }] })),
                 },
             };
-            const store = new ForumsStore(mockStore);
+            const store = new ForumsStore(mockStore as any);
 
-            await store.deleteForum('forum-123');
+            await store.deleteForum('therr', 'forum-123');
 
             const queryString = mockStore.write.query.args[0][0];
             expect(queryString).to.include('delete from "main"."forums"');

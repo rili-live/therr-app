@@ -1,11 +1,9 @@
-// eslint-disable-next-line no-shadow
 export interface ILocationState {
     permissions: any;
     settings: any;
     user: any;
 }
 
-// eslint-disable-next-line no-shadow
 export enum LocationActionTypes {
     COARSE_LOCATION_ALLOWED = 'coarse_location_allowed',
     FINE_LOCATION_ALLOWED = 'fine_location_allowed',

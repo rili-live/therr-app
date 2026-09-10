@@ -2,11 +2,16 @@ import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { View } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { INotificationsState } from 'therr-react/types';
 import LocationActions from '../../redux/actions/LocationActions';
 import { ILocationState } from '../../types/redux/location';
-import { buttonMenuHeight, buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
+import {
+    bottomSafeAreaInset,
+    buttonMenuContentHeight,
+    buttonMenuCompactContentHeight,
+} from '../../styles/navigation/buttonMenu';
 import { ITherrThemeColors } from '../../styles/themes';
 
 interface IButtonMenuDispatchProps {
@@ -92,14 +97,25 @@ export class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuSta
         if (!isAbsolute) {
             overrideStyles.position = 'relative';
         }
-        const containerHeight = isCompact ? buttonMenuHeightCompact : buttonMenuHeight;
+        const contentHeight = isCompact ? buttonMenuCompactContentHeight : buttonMenuContentHeight;
 
         return (
-            <View style={[themeMenu.styles.container, overrideStyles, { height: containerHeight }]}>
-                <View style={themeMenu.styles.containerInner}>
-                    {this.props.children}
-                </View>
-            </View>
+            <SafeAreaInsetsContext.Consumer>
+                {(insets) => {
+                    const bottomInset = insets?.bottom ?? bottomSafeAreaInset;
+                    const containerHeight = contentHeight + bottomInset;
+                    return (
+                        <View style={[themeMenu.styles.container, overrideStyles, { height: containerHeight }]}>
+                            <View style={[
+                                themeMenu.styles.containerInner,
+                                { height: containerHeight, paddingBottom: bottomInset },
+                            ]}>
+                                {this.props.children}
+                            </View>
+                        </View>
+                    );
+                }}
+            </SafeAreaInsetsContext.Consumer>
         );
     }
 }

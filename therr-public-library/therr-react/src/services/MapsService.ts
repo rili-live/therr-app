@@ -42,6 +42,19 @@ export interface IGetSpaceMetricsArgs {
     endDate: string;
 }
 
+export type SpaceDisplayKitType = 'coaster' | 'table_tent' | 'window_cling';
+
+export interface IRequestSpaceDisplayKitArgs {
+    spaceId: string;
+    displayType: SpaceDisplayKitType;
+    shippingName?: string;
+    shippingAddress?: string;
+    shippingCity?: string;
+    shippingRegion?: string;
+    shippingPostalCode?: string;
+    shippingCountry?: string;
+}
+
 interface ICreateAreaBody {
     category?: string;
     expiresAt?: any;
@@ -137,6 +150,15 @@ export interface IPlaceDetailsArgs {
     shouldIncludeIntlPhone?: boolean;
     shouldIncludeOpeningHours?: boolean;
     shouldIncludeRating?: boolean;
+}
+
+export interface IPlaceNearbySearchByLocationArgs {
+    latitude: number | string;
+    longitude: number | string;
+    radius: number; // meters
+    type?: string; // e.g. 'restaurant' | 'bar' | 'gym' | 'establishment'
+    keyword?: string;
+    sessiontoken?: string;
 }
 
 export interface IActivityArgs {
@@ -329,6 +351,34 @@ class MapsService {
         });
     };
 
+    submitSpaceCorrection = (
+        spaceId: string,
+        body: { fieldName: 'phoneNumber' | 'websiteUrl' | 'openingHours'; value: unknown },
+        extraHeaders?: Record<string, string>,
+    ) => axios({
+        method: 'post',
+        url: `/maps-service/spaces/${spaceId}/corrections`,
+        data: body,
+        headers: extraHeaders,
+    });
+
+    getSpaceCorrectionsSummary = (spaceId: string) => axios({
+        method: 'get',
+        url: `/maps-service/spaces/${spaceId}/corrections/summary`,
+    });
+
+    requestSpaceDisplayKit = (args: IRequestSpaceDisplayKitArgs) => axios({
+        method: 'post',
+        url: '/maps-service/space-display-requests',
+        data: args,
+    });
+
+    listSpaceDisplayRequests = (params: { status?: string; spaceId?: string; limit?: number; offset?: number } = {}) => axios({
+        method: 'get',
+        url: '/maps-service/space-display-requests',
+        params,
+    });
+
     // Space Pairings
     getSpacePairings = (spaceId: string) => axios({
         method: 'get',
@@ -440,7 +490,6 @@ class MapsService {
                 groupFields = 'address_components,adr_address,business_status,formatted_address,geometry,icon,icon_mask_base_uri,icon_background_color,name,photo,place_id,plus_code,type,url,utc_offset,vicinity,wheelchair_accessible_entrance';
                 break;
             case 'contact':
-                // eslint-disable-next-line max-len
                 groupFields = 'current_opening_hours,formatted_phone_number,international_phone_number,opening_hours,secondary_opening_hours,website';
                 break;
             case 'atmosphere':
@@ -490,6 +539,34 @@ class MapsService {
             headers: {},
         }).finally(() => {
             googleDynamicSessionToken = uuid.v4(); // This must be updated after each call to get place details
+        });
+    };
+
+    // Location-based Google Places Nearby Search (location + radius), used to discover
+    // real-world establishments near a posted moment when no DB space exists nearby.
+    getPlaceNearbySearchByLocation = ({
+        latitude,
+        longitude,
+        radius,
+        type,
+        keyword,
+        sessiontoken,
+    }: IPlaceNearbySearchByLocationArgs) => {
+        let url = `/maps-service/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}`;
+
+        if (type) {
+            url = `${url}&type=${type}`;
+        }
+        if (keyword) {
+            url = `${url}&keyword=${encodeURIComponent(keyword)}`;
+        }
+
+        url = `${url}&sessiontoken=${sessiontoken || googleDynamicSessionToken}`;
+
+        return axios({
+            method: 'get',
+            url,
+            headers: {},
         });
     };
 

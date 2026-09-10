@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaces', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaces', (table) => {
     table.integer('priceRange').defaultTo(2); // 1-5, 5 is the highest
     table.string('foodStyle'); // italian, mexican, etc.
     table.jsonb('openingHours').defaultTo(JSON.stringify({

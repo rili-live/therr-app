@@ -88,6 +88,9 @@ class MyLists extends React.Component<IMyListsProps, IMyListsState> {
                         data={userLists}
                         keyExtractor={(item) => item.id}
                         contentContainerStyle={{ padding: 12 }}
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={5}
+                        windowSize={11}
                         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={this.refresh} />}
                         ListEmptyComponent={() => (
                             !isLoading ? (
@@ -112,6 +115,7 @@ class MyLists extends React.Component<IMyListsProps, IMyListsState> {
                                     <Text style={styles.meta}>
                                         {this.translate('pages.bookmarks.lists.itemCount', { count: item.itemCount ?? 0 })}
                                         {item.isDefault ? ` · ${this.translate('pages.bookmarks.lists.default')}` : ''}
+                                        {item.isPublic ? ` · ${this.translate('pages.bookmarks.lists.publicBadge')}` : ''}
                                     </Text>
                                 </View>
                                 <MaterialIcon name="chevron-right" size={24} color="#aaa" />

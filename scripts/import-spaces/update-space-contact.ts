@@ -120,7 +120,7 @@ async function main() {
     // Update email
     if (args.email && !space.businessEmail) {
       await db.query(
-        `UPDATE main.spaces SET "businessEmail" = $1, "updatedAt" = NOW() WHERE id = $2`,
+        'UPDATE main.spaces SET "businessEmail" = $1, "updatedAt" = NOW() WHERE id = $2',
         [args.email, args.id],
       );
       result.emailUpdated = true;
@@ -130,7 +130,7 @@ async function main() {
     // Update website
     if (args.website && (!space.websiteUrl || space.websiteUrl === '')) {
       await db.query(
-        `UPDATE main.spaces SET "websiteUrl" = $1, "updatedAt" = NOW() WHERE id = $2`,
+        'UPDATE main.spaces SET "websiteUrl" = $1, "updatedAt" = NOW() WHERE id = $2',
         [args.website, args.id],
       );
       result.websiteUpdated = true;
@@ -164,7 +164,9 @@ async function main() {
         const userId = space.fromUserId || args.userId;
         const outcome = await sourceImageForSpace(
           db,
-          { id: args.id, notificationMsg: space.notificationMsg, mediaIds: space.mediaIds, medias: space.medias },
+          {
+            id: args.id, notificationMsg: space.notificationMsg, mediaIds: space.mediaIds, medias: space.medias,
+          },
           websiteUrl,
           userId,
           { log },

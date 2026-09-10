@@ -58,7 +58,7 @@ Users experience degraded UX during API gateway deploys, regional network outage
 
 **Mobile** (`TherrMobile`):
 - Install `@react-native-community/netinfo`
-- Create `TherrMobile/main/services/networkService.ts`:
+- Create `TherrMobile/main/utilities/networkService.ts`:
   - Subscribe to NetInfo state changes
   - Dispatch Redux action on connectivity change
   - Expose `isConnected()` helper

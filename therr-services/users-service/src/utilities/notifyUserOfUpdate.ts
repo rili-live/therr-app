@@ -1,4 +1,5 @@
 import { Notifications, PushNotifications } from 'therr-js-utilities/constants';
+import { getBrandContext } from 'therr-js-utilities/http';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { ICreateNotificationParams } from '../store/NotificationsStore';
 import Store from '../store';
@@ -33,6 +34,8 @@ const getPushNotificationType = (notificationType: Notifications.Types): PushNot
         pushNotificationType = PushNotifications.Types.newSuperLikeReceived;
     } else if (notificationType === Notifications.Types.THOUGHT_REPLY) {
         pushNotificationType = PushNotifications.Types.newThoughtReplyReceived;
+    } else if (notificationType === Notifications.Types.THOUGHT_REPOST) {
+        pushNotificationType = PushNotifications.Types.newThoughtRepostReceived;
     } else if (notificationType === Notifications.Types.NEW_GROUP_MEMBERS) {
         pushNotificationType = PushNotifications.Types.newGroupMembers;
     } else if (notificationType === Notifications.Types.NEW_GROUP_INVITE) {
@@ -61,8 +64,9 @@ export default (
     messageLocaleKey: string;
     messageParams?: any;
 }|undefined> => {
+    const { brandVariation } = getBrandContext(headers);
     const dbNotificationPromise = config.shouldCreateDBNotification
-        ? Store.notifications.createNotification({
+        ? Store.notifications.createNotification(brandVariation, {
             userId: dbNotification.userId,
             type: dbNotification.type, // DB Notification type
             associationId: dbNotification.associationId, // userConnections.id, forum.id, etc.

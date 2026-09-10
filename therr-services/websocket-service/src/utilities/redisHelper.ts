@@ -91,7 +91,9 @@ export class RedisHelper {
             pipeline.del(`users:${user.id}`);
         }
         pipeline.del(`userSockets:${socketId}`);
-        pipeline.exec();
+        // Returned, not fire-and-forget: account deletion awaits this to report whether the
+        // session was actually torn down, and an unawaited pipeline can outlive the response.
+        return pipeline.exec();
     };
 
     public getUserById = async (userId: string): Promise<any> => {

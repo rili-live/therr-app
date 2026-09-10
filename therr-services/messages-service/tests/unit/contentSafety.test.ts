@@ -1,4 +1,3 @@
-/* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import { isTextUnsafe } from '../../src/utilities/contentSafety';
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-sheet';
+import { SheetManager, SheetProps } from 'react-native-actions-sheet';
+import ActionSheet from './BaseActionSheet';
 import { List } from 'react-native-paper';
 import spacingStyles from '../../styles/layouts/spacing';
 import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';

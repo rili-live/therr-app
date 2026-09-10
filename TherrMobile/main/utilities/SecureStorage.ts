@@ -1,14 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MMKV } from 'react-native-mmkv';
 
-// Keys that contain sensitive data and should use secure storage when available
-const SECURE_KEYS = ['therrRefreshToken', 'therrUser'];
+// Keys that contain sensitive data and should use secure storage when available.
+// `therrKnownProfiles` holds no credentials, but it does hold contact info for every account
+// that has signed in on this device, so it gets the same protection.
+const SECURE_KEYS = ['therrRefreshToken', 'therrUser', 'therrKnownProfiles'];
 
 let Keychain: any = null;
 
 try {
     Keychain = require('react-native-keychain');
-} catch (e) {
+} catch {
     // react-native-keychain not installed, fall back to MMKV
 }
 
@@ -19,18 +21,40 @@ const MMKV_NON_SECURE_KEYS = ['therrSession', 'therrUserSettings'];
 
 const mmkv = new MMKV({ id: 'therr-storage' });
 
+// Options applied to every secure Keychain write.
+//  - `service` namespaces our entries (iOS Keychain Services / Android Keystore).
+//  - `accessible = AFTER_FIRST_UNLOCK` keeps tokens readable after a device
+//    reboot once the user has unlocked once, including background / cold
+//    launches (e.g. waking from a push). The library default (WHEN_UNLOCKED)
+//    makes reads fail when the device is locked, which surfaces as a spurious
+//    logout because the refresh token can't be read.
+const getSecureWriteOptions = () => {
+    const options: any = { service: KEYCHAIN_SERVICE };
+    const accessible = Keychain?.ACCESSIBLE?.AFTER_FIRST_UNLOCK;
+    if (accessible) {
+        options.accessible = accessible;
+    }
+    return options;
+};
+
 const SecureStorage = {
     setItem: async (key: string, value: string): Promise<void> => {
+        // Never persist an empty/undefined secret over a (possibly valid)
+        // existing one — that would strand the session. Callers must explicitly
+        // clear via removeItem/multiRemove instead.
+        if (SECURE_KEYS.includes(key) && (value === undefined || value === null || value === '')) {
+            return;
+        }
         if (Keychain && SECURE_KEYS.includes(key)) {
             try {
                 await Keychain.setInternetCredentials(
                     key,
                     key,
                     value,
-                    { service: KEYCHAIN_SERVICE },
+                    getSecureWriteOptions(),
                 );
                 return;
-            } catch (e) {
+            } catch {
                 // Fall through to MMKV
             }
         }
@@ -40,13 +64,13 @@ const SecureStorage = {
     getItem: async (key: string): Promise<string | null> => {
         if (Keychain && SECURE_KEYS.includes(key)) {
             try {
-                const credentials = await Keychain.getInternetCredentials(key);
+                const credentials = await Keychain.getInternetCredentials(key, { service: KEYCHAIN_SERVICE });
                 if (credentials) {
                     return credentials.password;
                 }
                 // Keychain returned nothing — fall through to MMKV / AsyncStorage
                 // (handles pre-migration data)
-            } catch (e) {
+            } catch {
                 // Fall through to MMKV / AsyncStorage
             }
         }
@@ -63,8 +87,8 @@ const SecureStorage = {
     removeItem: async (key: string): Promise<void> => {
         if (Keychain && SECURE_KEYS.includes(key)) {
             try {
-                await Keychain.resetInternetCredentials(key);
-            } catch (e) {
+                await Keychain.resetInternetCredentials({ server: key });
+            } catch {
                 // Continue to also clean MMKV / AsyncStorage
             }
         }
@@ -78,7 +102,7 @@ const SecureStorage = {
 
         if (Keychain && secureKeys.length > 0) {
             await Promise.all(
-                secureKeys.map((key) => Keychain.resetInternetCredentials(key).catch(() => {})),
+                secureKeys.map((key) => Keychain.resetInternetCredentials({ server: key }).catch(() => {})),
             );
         }
 
@@ -101,7 +125,7 @@ const SecureStorage = {
                     if (value) {
                         mmkv.set(key, value);
                     }
-                } catch (e) {
+                } catch {
                     // Per-key migration failed; the flag is still set below so we
                     // don't block startup. Missing data will surface as a re-login
                     // or settings reset at worst — not a crash.
@@ -115,12 +139,12 @@ const SecureStorage = {
                 if (secureFlag) {
                     mmkv.set(MIGRATION_FLAG, secureFlag);
                 }
-            } catch (e) {
+            } catch {
                 // Non-fatal; migrateToSecureStorage will re-check AsyncStorage this run
             }
 
             mmkv.set(MMKV_MIGRATION_FLAG, '1');
-        } catch (e) {
+        } catch {
             // Migration check failed; will retry on next launch
         }
     },
@@ -144,17 +168,17 @@ const SecureStorage = {
                             key,
                             key,
                             value,
-                            { service: KEYCHAIN_SERVICE },
+                            getSecureWriteOptions(),
                         );
                     }
-                } catch (e) {
+                } catch {
                     // Migration failed for this key; getItem fallback will still find it in AsyncStorage
                 }
             }
 
             mmkv.set(MIGRATION_FLAG, '1');
             await AsyncStorage.setItem(MIGRATION_FLAG, '1');
-        } catch (e) {
+        } catch {
             // Migration check failed; will retry on next launch
         }
     },

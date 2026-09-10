@@ -14,6 +14,8 @@ const userConnectionLimitReachedMessage = 'Too many user connection requests';
 const multiInviteLimitReachedMessage = 'Too many invite requests';
 const subscribeLimitReachedMessage = 'Too many requests to subscribe.';
 const unsubscribeLimitReachedMessage = 'Too many requests to unsubscribe.';
+const emailPrecheckLimitReachedMessage = 'Too many email lookup requests, please try again later.';
+const handoffMintLimitReachedMessage = 'Too many app handoff requests, please try again later.';
 
 const loginAttemptLimiter = RateLimit({
     store: RateLimiterRedisStore,
@@ -55,6 +57,9 @@ const userConnectionLimiter = buildRateLimiter(userConnectionLimitReachedMessage
 const multiInviteLimiter = buildRateLimiter(multiInviteLimitReachedMessage, 1, 5);
 const subscribeAttemptLimiter = buildRateLimiter(subscribeLimitReachedMessage);
 const unsubscribeAttemptLimiter = buildRateLimiter(unsubscribeLimitReachedMessage, 3, 60);
+// Generous enough for typed-then-blurred email behavior, tight enough to make enumeration unattractive.
+const emailPrecheckLimiter = buildRateLimiter(emailPrecheckLimitReachedMessage, 10, 1); // 10/min/IP
+const handoffMintLimiter = buildRateLimiter(handoffMintLimitReachedMessage, 10, 5); // 10 codes per 5 min/IP
 
 export {
     loginAttemptLimiter,
@@ -68,4 +73,6 @@ export {
     multiInviteLimiter,
     subscribeAttemptLimiter,
     unsubscribeAttemptLimiter,
+    emailPrecheckLimiter,
+    handoffMintLimiter,
 };

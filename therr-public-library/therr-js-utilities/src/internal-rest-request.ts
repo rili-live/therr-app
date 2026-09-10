@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
+import { httpKeepAliveAgent, httpsKeepAliveAgent } from './http/agents';
 
 interface InternalConfigHeaders {
     authorization?: string;
@@ -38,6 +39,8 @@ const internalRestRequest = (internalConfig: IInternalConfig, axiosConfig: Axios
             sanitizedInternalConfigHeaders[header] = (internalConfig.headers as any)?.[header];
         });
     return axios({
+        httpAgent: httpKeepAliveAgent,
+        httpsAgent: httpsKeepAliveAgent,
         ...axiosConfig,
         headers: {
             ...axiosConfig.headers,

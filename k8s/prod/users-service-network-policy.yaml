@@ -24,5 +24,13 @@ spec:
     - podSelector:
         matchLabels:
           component: server-reactions
+    # Allows the messaging-automator Cloud Function to reach the habits digest
+    # endpoint (POST /v1/habits/pacts/digest/run-daily) via the internal LB.
+    # The LB uses externalTrafficPolicy: Cluster, which SNATs the client to a NODE
+    # IP, so this must be the node subnet -- not the VPC connector range
+    # (10.6.0.0/28). Tightening to the connector range requires switching the LB to
+    # externalTrafficPolicy: Local so the original client IP survives.
+    - ipBlock:
+        cidr: 10.128.0.0/20 # default VPC subnet, us-central1 (GKE node primary range)
   egress:
   - {}

@@ -2,10 +2,22 @@ const { Platform } = require('react-native');
 
 const apiGatewayPort = 7770;
 const websocketPort = 7743;
-// const hostDev = '192.168.1.91'; // Must use computer's ip address for dev to connect socket.io
-// 10.0.2.2 is Android emulator alias for host localhost; iOS simulator uses localhost directly
-const hostDev = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
+// Physical device only: set to your computer's LAN IP so the device can reach the
+// dev API + socket.io (`ipconfig getifaddr en0` on macOS). Leave null otherwise --
+// a hardcoded IP here silently breaks whenever DHCP reassigns your address, which
+// surfaces as a hung login and (via the offline-first axios interceptor, which
+// resolves failed GETs with empty data) as empty lists rather than a visible error.
+const devLanHost = null;
+
+// Default is DHCP-proof: 10.0.2.2 is the Android emulator's alias for host
+// localhost; the iOS simulator shares the host's network and uses localhost.
+const hostDev = devLanHost || (Platform.OS === 'android' ? '10.0.2.2' : 'localhost');
 const hostProd = 'therr.com';
+// The web dashboard is a separate host on purpose: therr.com / www.therr.com are
+// auto-verified App Links captured by this app, so a dashboard link on therr.com would
+// re-open the app instead of the browser. dashboard.therr.com is not in the intent filter.
+const dashboardHostDev = `http://${hostDev}:7071`;
+const dashboardHostProd = 'https://dashboard.therr.com';
 const googleOAuth2WebClientId = '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com';
 
 // Feature flags for enabling/disabling app features
@@ -33,11 +45,14 @@ const featureFlags = {
     ENABLE_FORUMS: true,
     ENABLE_ACTIVITY_SCHEDULER: true,
 
+    // Device / OS Permissions
+    ENABLE_LOCATION_SERVICES: true,
+
     // Search Providers
     ENABLE_MAPBOX_SEARCH: false,
 
     // Monetization
-    ENABLE_COIN_RECHARGE: false,
+    ENABLE_COIN_RECHARGE: true,
 };
 
 // TODO: Find a way to import this from global config
@@ -52,6 +67,7 @@ module.exports = {
         googleOAuth2WebClientIdAndroid: '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com',
         googleOAuth2WebClientIdiOS: '718962923226-os68t9a1pi6giap1l447r3vtshf2ie3c.apps.googleusercontent.com',
         host: hostDev,
+        dashboardHostFull: dashboardHostDev,
         socket: {
             clientPath: '/socketio',
             pingInterval: 1000 * 10,
@@ -73,6 +89,7 @@ module.exports = {
         googleOAuth2WebClientIdiOS: '718962923226-1rhet8adgsvuviutj7ja2006bhcncr87.apps.googleusercontent.com',
         host: hostProd,
         hostFull: `https://${hostProd}`,
+        dashboardHostFull: dashboardHostProd,
         socket: {
             clientPath: '/socketio',
             pingInterval: 1000 * 10,

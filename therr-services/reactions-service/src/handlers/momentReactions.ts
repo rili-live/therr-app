@@ -6,14 +6,20 @@ import Store from '../store';
 import translate from '../utilities/translator';
 import updateAchievements from '../utilities/updateAchievements';
 import sendUserCoinUpdateRequest from '../utilities/sendUserCoinUpdateRequest';
+import validateReactionMetrics from '../utilities/validateReactionMetrics';
+import pickReactionWriteFields from '../utilities/pickReactionWriteFields';
 
 // CREATE/UPDATE
 const createOrUpdateMomentReaction = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate moments on demand
     const {
         locale,
         userId,
     } = parseHeaders(req.headers);
+
+    const metricsError = validateReactionMetrics(req.body);
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
+    }
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
@@ -28,9 +34,12 @@ const createOrUpdateMomentReaction = (req, res) => {
                 userId,
                 momentId: req.params.momentId,
             }, {
-                ...req.body,
+                ...pickReactionWriteFields('moment', req.body),
                 userLocale: locale,
-                userViewCount: reactionsResponse[0].userViewCount + (req.body.userViewCount || 0),
+                // Number() is load-bearing: a JSON body may carry "1" as a string, and
+                // `9 + '1'` concatenates to '91' rather than adding to 10 — inflating the
+                // very total the bounds above exist to cap.
+                userViewCount: reactionsResponse[0].userViewCount + Number(req.body.userViewCount || 0),
             })
                 .then(([momentReaction]) => {
                     // TODO: Should this be a blocking request to ensure update?
@@ -66,7 +75,7 @@ const createOrUpdateMomentReaction = (req, res) => {
         return Store.momentReactions.create({
             userId,
             momentId: req.params.momentId,
-            ...req.body,
+            ...pickReactionWriteFields('moment', req.body),
             userLocale: locale,
         }).then(([reaction]) => res.status(200).send(reaction));
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
@@ -74,12 +83,16 @@ const createOrUpdateMomentReaction = (req, res) => {
 
 // CREATE/UPDATE
 const createOrUpdateMultiMomentReactions = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate moments on demand
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
     if (!userId) {
         return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
+    const metricsError = validateReactionMetrics(req.body);
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
     }
 
     const { momentIds } = req.body;
@@ -90,8 +103,9 @@ const createOrUpdateMultiMomentReactions = (req, res) => {
 
     const validMomentIds = momentIds.filter((id) => !!id);
 
-    const params = { ...req.body };
-    delete params.momentIds;
+    // Allow-listed rather than `{ ...req.body }` minus deletes: `momentIds` is excluded by the
+    // allow-list, as is every server-derived column the spread used to carry through.
+    const params = pickReactionWriteFields('moment', req.body);
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE

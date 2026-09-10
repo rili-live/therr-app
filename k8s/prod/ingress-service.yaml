@@ -28,6 +28,8 @@ spec:
       - api.therr.com
       - www.api.therr.com
       - websocket-service.therr.com
+      - habits.therr.com
+      - www.habits.therr.com
       # - www.websocket-service.therr.com
       # - adsly.app
       # - www.adsly.app
@@ -103,17 +105,26 @@ spec:
             port:
               number: 7743
         pathType: ImplementationSpecific
-  - host: www.websocket-service.therr.com
+  - host: habits.therr.com
     http:
       paths:
       - path: /?(.*)
         backend:
           service:
-            name: websocket-service-cluster-ip-service
+            name: client-cluster-ip-service
             port:
-              number: 7743
+              number: 7070
         pathType: ImplementationSpecific
-        
+  - host: www.habits.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7070
+        pathType: ImplementationSpecific
   # Whitelabel
   # - host: adsly.app
   #   http:

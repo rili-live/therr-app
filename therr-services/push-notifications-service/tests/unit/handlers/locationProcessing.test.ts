@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { Location } from 'therr-js-utilities/constants';
+import { isAtDwellingLocation } from '../../../src/handlers/helpers/dwellingLocations';
 
 describe('Location Processing Handler', () => {
     describe('processUserLocationChange', () => {
@@ -181,58 +182,54 @@ describe('Location Processing Handler', () => {
             });
         });
 
-        describe('home location detection', () => {
-            it('should identify top 3 locations as possible homes', () => {
-                const pastLocations = [
-                    { id: '1', visitCount: 100, isDeclaredHome: false },
-                    { id: '2', visitCount: 80, isDeclaredHome: false },
-                    { id: '3', visitCount: 60, isDeclaredHome: false },
-                    { id: '4', visitCount: 40, isDeclaredHome: false },
-                    { id: '5', visitCount: 20, isDeclaredHome: false },
-                ];
+        describe('dwelling location detection', () => {
+            const dayMs = 1000 * 60 * 60 * 24;
+            const home = { latitude: 37.7749, longitude: -122.4194 };
+            const away = { latitude: 37.7749, longitude: -122.4044 }; // ~1.3km east
 
-                const sortedLocations = pastLocations
-                    .filter((loc) => !loc.isDeclaredHome)
-                    .sort((a, b) => b.visitCount - a.visitCount);
-
-                const possibleHomesCount = 3;
-                const homeLocations = sortedLocations.slice(0, possibleHomesCount);
-
-                expect(homeLocations).to.have.lengthOf(3);
-                expect(homeLocations[0].visitCount).to.equal(100);
-                expect(homeLocations[2].visitCount).to.equal(60);
+            const buildDwelling = (overrides: any = {}) => ({
+                id: 'home',
+                latitude: home.latitude,
+                longitude: home.longitude,
+                isDeclaredHome: false,
+                distinctDayCount: Location.DWELL_MIN_DISTINCT_DAYS,
+                lastVisitedAt: new Date(Date.now() - dayMs).toISOString(),
+                ...overrides,
             });
 
-            it('should exclude declared home locations from sorting', () => {
-                const pastLocations = [
-                    { id: '1', visitCount: 100, isDeclaredHome: true },
-                    { id: '2', visitCount: 80, isDeclaredHome: false },
-                    { id: '3', visitCount: 60, isDeclaredHome: false },
-                ];
+            it('should suppress nearby push notifications while the user is at a dwelling', () => {
+                const isAtDwelling = isAtDwellingLocation([buildDwelling()], home);
 
-                const filteredLocations = pastLocations.filter((loc) => !loc.isDeclaredHome);
-                expect(filteredLocations).to.have.lengthOf(2);
+                expect(isAtDwelling).to.be.eq(true);
             });
 
-            it('should separate home locations from non-home locations', () => {
-                const pastLocations = [
-                    { id: '1', visitCount: 100, isDeclaredHome: false },
-                    { id: '2', visitCount: 80, isDeclaredHome: false },
-                    { id: '3', visitCount: 60, isDeclaredHome: false },
-                    { id: '4', visitCount: 40, isDeclaredHome: false },
-                    { id: '5', visitCount: 20, isDeclaredHome: false },
-                ];
+            it('should allow nearby push notifications once the user leaves the dwelling', () => {
+                const isAtDwelling = isAtDwellingLocation([buildDwelling()], away);
 
-                const possibleHomesCount = 3;
-                const sortedLocations = pastLocations
-                    .filter((loc) => !loc.isDeclaredHome)
-                    .sort((a, b) => b.visitCount - a.visitCount);
+                expect(isAtDwelling).to.be.eq(false);
+            });
 
-                const homeLocations = sortedLocations.slice(0, possibleHomesCount);
-                const nonHomeLocations = sortedLocations.slice(possibleHomesCount);
+            it('should not treat a place visited many times in one day as a dwelling', () => {
+                const coffeeShop = buildDwelling({ id: 'coffee-shop', distinctDayCount: 1, visitCount: 250 });
 
-                expect(homeLocations).to.have.lengthOf(3);
-                expect(nonHomeLocations).to.have.lengthOf(2);
+                expect(isAtDwellingLocation([coffeeShop], home)).to.be.eq(false);
+            });
+
+            it('should treat a multi-day hotel stay as a dwelling', () => {
+                const hotel = buildDwelling({
+                    id: 'hotel',
+                    latitude: away.latitude,
+                    longitude: away.longitude,
+                    distinctDayCount: 3,
+                });
+
+                expect(isAtDwellingLocation([hotel], away)).to.be.eq(true);
+            });
+
+            it('should always treat a declared home as a dwelling', () => {
+                const declared = buildDwelling({ isDeclaredHome: true, distinctDayCount: 1 });
+
+                expect(isAtDwellingLocation([declared], home)).to.be.eq(true);
             });
         });
 

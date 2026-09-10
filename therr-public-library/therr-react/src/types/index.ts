@@ -17,6 +17,24 @@ import {
     IForumsState,
     ForumActionTypes,
 
+    // Habits
+    IHabitGoal,
+    IPact,
+    IPactMember,
+    IPactNudgeResult,
+    IHabitCheckin,
+    IHabitCheckinProof,
+    IStreak,
+    IStreakHistory,
+    IHabitsState,
+    HabitsActionTypes,
+    IUserHabit,
+    IUserHabitEligibility,
+    IJournalEntry,
+    IJournalFeedItem,
+    IHabitsLifetimePurchase,
+    IHabitsLifetimeOffer,
+
     // Messages
     MessageActionTypes,
     IForumMsg,
@@ -39,11 +57,16 @@ import {
     ISocketDetails,
     IUserState,
     IMobileThemeName,
+    IContentAlgorithmName,
 
     // User Connections
     IUserConnection,
     IUserConnectionsState,
     UserConnectionActionTypes,
+
+    // Network
+    INetworkState,
+    NetworkActionTypes,
 
     // User Interface
     IUserInterfaceState,
@@ -96,6 +119,24 @@ export {
     IForumsState,
     ForumActionTypes,
 
+    // Habits
+    IHabitGoal,
+    IPact,
+    IPactMember,
+    IPactNudgeResult,
+    IHabitCheckin,
+    IHabitCheckinProof,
+    IStreak,
+    IStreakHistory,
+    IHabitsState,
+    HabitsActionTypes,
+    IUserHabit,
+    IUserHabitEligibility,
+    IJournalEntry,
+    IJournalFeedItem,
+    IHabitsLifetimePurchase,
+    IHabitsLifetimeOffer,
+
     // Maps
     IMapState,
     MapActionTypes,
@@ -122,11 +163,16 @@ export {
     ISocketDetails,
     IUserState,
     IMobileThemeName,
+    IContentAlgorithmName,
 
     // User Connections
     IUserConnection,
     IUserConnectionsState,
     UserConnectionActionTypes,
+
+    // Network
+    INetworkState,
+    NetworkActionTypes,
 
     // User Interface
     IUserInterfaceState,

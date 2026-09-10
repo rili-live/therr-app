@@ -1,4 +1,3 @@
-/* eslint-disable quotes */
 import { expect } from 'chai';
 import sinon from 'sinon';
 import MomentReactionsStore from '../../src/store/MomentReactionsStore';

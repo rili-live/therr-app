@@ -51,7 +51,7 @@ export class UnderConstructionAppComponent extends React.Component<IUnderConstru
         };
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         document.title = `Therr | ${this.props.translate('pages.goMobile.pageTitle')}`;
     }
 

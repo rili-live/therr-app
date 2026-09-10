@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+# Pre-push gate: run the test suites for packages that changed.
+#
+# This was previously wired through .huskyrc.js (husky v4 format), which husky 9
+# never reads — so there had been no pre-push gate at all since the migration.
+#
+# Tests belong here rather than in pre-commit: they are slow enough that running
+# them on every commit trains you to pass --no-verify, and a push is the point
+# where the work becomes visible to CI and to other branches.
+#
+# To bypass for a legitimate exception: git push --no-verify
+
+# `npm run test:changed` defaults to diffing against `stage`, which on a feature branch
+# means "everything in general that has not been promoted yet" — usually most of the repo.
+# A push gate that slow gets bypassed by habit, so compare against the next branch down
+# the promotion chain instead. Mirrors resolve_diff_base() in _bin/lib/has_diff_changes.sh.
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+case "$branch" in
+  general) base="stage" ;;
+  stage)   base="main" ;;
+  *)       base="general" ;;
+esac
+
+printf '\033[36m→ Running tests for packages changed vs %s...\033[0m\n' "$base"
+
+if ! ./_bin/apply-to-changed.sh 'npm test' "$base"; then
+  printf '\n\033[31m⛔ Tests failed.\033[0m\n'
+  printf '   Fix them before pushing, or bypass with: git push --no-verify\n\n'
+  exit 1
+fi
+
+exit 0

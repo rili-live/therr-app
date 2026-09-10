@@ -1,10 +1,19 @@
-import { achievementsByClass } from 'therr-js-utilities/config';
+import { achievements, achievementsByClass, isAchievementClassEnabledForBrand } from 'therr-js-utilities/config';
 import { Notifications } from 'therr-js-utilities/constants';
+import { getBrandContext } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import Store from '../../store';
 import { ICreateOrUpdateResponse, IDBAchievement } from '../../store/UserAchievementsStore';
 import notifyUserOfUpdate from '../../utilities/notifyUserOfUpdate';
+import { LeaderboardXpValues } from '../../utilities/leaderboardHelpers';
+import { awardLeaderboardPoints } from './leaderboards';
+
+const NO_OP_RESPONSE: ICreateOrUpdateResponse = {
+    created: [],
+    updated: [],
+    action: 'incomplete',
+};
 
 const getAchIdNumber = (id: string) => {
     const arr = id.split('_');
@@ -24,7 +33,19 @@ const createOrUpdateAchievement: (
         return Promise.reject(Error('invalid-achievement-class'));
     }
 
-    return Store.userAchievements.get({
+    const { brandVariation } = getBrandContext(headers as Record<string, any>);
+
+    // Skip when the achievement class isn't enabled for the request's brand. For example,
+    // a HABITS user creating a connection would otherwise trigger 'socialite_1_1' and write
+    // a Therr-themed row stamped with brandVariation='habits' — it passes the SQL brand
+    // filter but surfaces a Therr-shaped achievement (and ACHIEVEMENT_COMPLETED push) in
+    // the niche app. The HABITS class allow-list (see therr-js-utilities/config/achievements)
+    // now also includes the 8 streak/pact-themed classes plus reused `socialite` for invites.
+    if (!isAchievementClassEnabledForBrand(achievementClass, brandVariation)) {
+        return Promise.resolve(NO_OP_RESPONSE);
+    }
+
+    return Store.userAchievements.get(brandVariation, {
         userId: headers['x-userid'] || '',
         achievementTier,
         achievementClass,
@@ -36,12 +57,34 @@ const createOrUpdateAchievement: (
             .filter((key:string) => achievementsInClass[key].tier === achievementTier);
         const tierAchievementsArr = tierAchievementKeys.map((key) => ({ ...achievementsInClass[key], id: key }));
 
-        return Store.userAchievements.updateAndCreateConsecutive({
+        // Progress already banked on the in-progress row before this call — needed below to
+        // compute the XP-eligible delta actually applied by this activity.
+        const priorInProgressCount = (latestAch && !latestAch.completedAt) ? latestAch.progressCount : 0;
+
+        return Store.userAchievements.updateAndCreateConsecutive(brandVariation, {
             userId: headers['x-userid'] || '',
             achievementClass,
             achievementTier,
-        }, progressCount, tierAchievementsArr, latestAch);
+        }, progressCount, tierAchievementsArr, latestAch).then((result) => ({ result, priorInProgressCount }));
     })
+        .then(({ result, priorInProgressCount }) => {
+            // Leaderboard XP: valued off the progress the store actually applied (created rows'
+            // progress + the delta added to the in-progress row), so repeat calls that no-op on
+            // an already-complete tier award nothing — the XP path inherits the achievement
+            // system's idempotency. Completions add the achievement's own `xp` value as a bonus.
+            const createdProgress = result.created.reduce((sum, ach) => sum + (ach.progressCount || 0), 0);
+            const updatedProgress = result.updated.reduce((sum, ach) => sum + (ach.progressCount || 0), 0);
+            const appliedProgress = createdProgress + Math.max(0, updatedProgress - priorInProgressCount);
+            const completionBonusXp = [...result.created, ...result.updated]
+                .filter((ach) => ach.completedAt)
+                .reduce((sum, ach) => sum + (achievements[ach.achievementId]?.xp || 0), 0);
+            const totalXp = (appliedProgress * LeaderboardXpValues.activityUnit) + completionBonusXp;
+            if (totalXp > 0) {
+                awardLeaderboardPoints(headers, totalXp, `achievement:${achievementClass}`);
+            }
+
+            return result;
+        })
         .then((result) => {
             [...result.created, ...result.updated].forEach((achievement) => {
                 // NOTE: Does not include e-mail because scheduler will e-mail users

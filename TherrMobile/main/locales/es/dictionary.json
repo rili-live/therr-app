@@ -52,6 +52,7 @@
     "momentCreatedSuccess": "Momento creado  🎉",
     "momentDraftSuccess": "Momento guardado como borrador",
     "spaceCreatedSuccess": "Reclamaste un espacio",
+    "establishmentSpaceCreated": "Nuevo espacio agregado  📍",
     "spaceRequestSuccess": "Solicitud enviada",
     "ssoLoginError": "Error con inicio de sesión único",
     "startDateAfterEndDate": "Fechas de inicio/fin inválidas",
@@ -63,10 +64,17 @@
     "updated": "¡Actualizado!",
     "exitedGroup": "Has salido del grupo",
     "joinedGroup": "Te uniste al grupo",
+    "userReportSent": "Reporte de usuario enviado",
+    "userBlocked": "Usuario bloqueado",
+    "connectionRemoved": "Conexión eliminada",
     "waitlistSuccess": "¡Registro exitoso!",
     "reactionSent": "¡Reacción enviada!",
     "reactionFailed": "Reacción fallida",
-    "mediaUploadFailed": "Error al cargar imagen"
+    "mediaUploadFailed": "Error al cargar imagen",
+    "tooManyAttempts": "Demasiados intentos",
+    "registerSuccess": "Cuenta creada",
+    "accountNotVerified": "Verifica tu correo",
+    "repostSuccess": "Republicado"
   },
   "alertMessages": {
     "activityCreated": "Se creó un nuevo grupo y evento. Se enviaron invitaciones a cada miembro del grupo.",
@@ -93,6 +101,7 @@
     "momentCreatedSuccess": "¡Tu momento se publicó exitosamente!",
     "momentDraftSuccess": "Tu momento se guardó como borrador exitosamente. ¿Continuar editando?",
     "spaceCreatedSuccess": "¡Has reclamado este espacio exitosamente!",
+    "establishmentSpaceCreated": "¡Gracias! Este lugar ya está en el mapa para que otros lo descubran.",
     "spaceUpdatedSuccess": "¡Tu espacio se actualizó exitosamente!",
     "spaceRequestSuccess": "¡Has solicitado agregar un nuevo espacio de negocio exitosamente!",
     "pleaseTryAgain": "Error de conexión. Por favor, inténtalo de nuevo más tarde.",
@@ -102,13 +111,21 @@
     "draftReminder": "¿Recordaste terminar tu publicación en borrador?",
     "requestClaimSent": "Revisa tu correo electrónico para confirmación y próximos pasos",
     "waitlistSuccess": "Revisa tu correo electrónico para verificar tu cuenta",
-    "mediaUploadFailed": "No se pudo cargar tu imagen. Por favor, inténtalo de nuevo."
+    "mediaUploadFailed": "No se pudo cargar tu imagen. Por favor, inténtalo de nuevo.",
+    "tooManyAttempts": "Espera unos minutos antes de volver a intentarlo.",
+    "phoneRegisterSuccess": "Tu teléfono está verificado. Revisa tu correo para confirmar tu dirección.",
+    "repostSuccess": "Esta publicación ahora aparece en tu perfil",
+    "repostFailed": "No pudimos republicar esto. Inténtalo de nuevo.",
+    "repostDuplicate": "Ya republicaste esta publicación",
+    "repostRestricted": "Solo el autor puede republicar una publicación que no es pública"
   },
   "dateTime": {
     "lessThanHours": "< 1h",
     "hoursSinceDate": "{count}h",
     "daysSinceDate": "{count}d",
-    "yearsSinceDate": "{count}a"
+    "yearsSinceDate": "{count}a",
+    "justNow": "Ahora",
+    "minutesSinceDate": "{count} min"
   },
   "quoteOfTheDay": "Frase del día",
   "dailyQuotes": [
@@ -314,6 +331,15 @@
     "offlineBanner": {
       "tooltip": "Estás sin conexión. Mostrando datos en caché."
     },
+    "offlineIndicator": {
+      "badgeAria": "Sin conexión. Conexión perdida.",
+      "modal": {
+        "title": "Estás sin conexión",
+        "body": "Therr no puede acceder a internet ahora mismo. Puedes seguir viendo el contenido en caché. Pulsa actualizar para volver a comprobar tu conexión.",
+        "refresh": "Actualizar",
+        "dismiss": "Cerrar"
+      }
+    },
     "header": {
       "buttons": {
         "login": "Iniciar sesión"
@@ -340,7 +366,7 @@
         "achievements": "Logros",
         "account": "Configuración de cuenta",
         "addConnection": "Agregar/Invitar conexiones",
-        "bookmarks": "Marcadores",
+        "bookmarks": "Marcadores/Listas",
         "chat": "Mensajes",
         "connections": "Ver conexiones",
         "home": "Inicio",
@@ -374,7 +400,22 @@
       "buttons": {
         "accept": "Aceptar",
         "reject": "Rechazar",
-        "view": "Ver"
+        "view": "Ver",
+        "markRead": "Marcar como leído",
+        "markUnread": "Marcar como no leído"
+      }
+    },
+    "thoughtDisplay": {
+      "viewAllReplies": "Ver las {count} respuestas",
+      "viewReplies": "Ver {count} respuestas",
+      "likeThought": "Me gusta esta publicación",
+      "unlikeThought": "Quitar me gusta de esta publicación",
+      "repostedBy": "{userName} republicó",
+      "repostThought": "Republicar esta publicación",
+      "repostUnavailable": "Esta publicación ya no está disponible",
+      "crossBrandLabels": {
+        "format": "{label}: {message}",
+        "habits": "Actualización de objetivos"
       }
     },
     "userMenu": {
@@ -387,10 +428,23 @@
         "notifications": "Notificaciones",
         "profileSettings": "Configuración de perfil"
       }
+    },
+    "incompleteProfileBanner": {
+      "message": "Termina tu perfil: quedan {count} pasos",
+      "dismiss": "Descartar",
+      "messageSingular": "Termina tu perfil: queda 1 paso"
+    },
+    "profileCompletionLink": {
+      "title": "Termina tu perfil",
+      "stepsLeft": "Quedan {count} pasos",
+      "stepLeft": "Queda 1 paso"
     }
   },
   "forms": {
     "dividerOr": "o",
+    "languageSelector": {
+      "label": "Selecciona tu idioma"
+    },
     "createConnection": {
       "buttons": {
         "submit": "Enviar",
@@ -454,12 +508,20 @@
       "buttons": {
         "login": "Iniciar sesión",
         "signUp": "¿Crear una cuenta?",
-        "forgotPassword": "¿Olvidaste tu contraseña?"
+        "forgotPassword": "¿Olvidaste tu contraseña?",
+        "sendCode": "Enviarme un código",
+        "verifyAndSignIn": "Verificar e iniciar sesión",
+        "resendCode": "¿Reenviar código?",
+        "usePasswordInstead": "Usar una contraseña"
       },
       "defaultTitle": "Iniciar sesión",
       "labels": {
         "password": "Contraseña",
-        "userName": "Correo/Teléfono/Usuario"
+        "userName": "Correo/Teléfono/Usuario",
+        "enterCode": "Ingresa tu código",
+        "switchAccount": "Cambiar de cuenta",
+        "useNumberKeypad": "Usar el teclado numérico",
+        "useLetterKeyboard": "Usar el teclado alfabético"
       },
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde.",
       "invalidUsernamePassword": "Combinación de usuario/contraseña inválida.",
@@ -469,7 +531,14 @@
         "appleButtonTitle": "Iniciar sesión con Apple",
         "googleButtonTitleContinue": "Continuar con Google",
         "googleButtonTitleSignIn": "Iniciar sesión con Google"
-      }
+      },
+      "subtitles": {
+        "codeSentTo": "Enviamos un código de 6 dígitos a {phoneNumber}",
+        "phoneSignInHint": "Te enviaremos un código de 6 dígitos: no necesitas contraseña."
+      },
+      "invalidCode": "Ese código no es válido o ha expirado.",
+      "invalidPhoneNumber": "Ingresa un número de teléfono válido.",
+      "accountNotVerified": "Tu correo electrónico aún no está verificado. Revisa tu bandeja de entrada para encontrar el enlace de verificación."
     },
     "nearbyForm": {
       "buttons": {
@@ -549,6 +618,7 @@
         "insufficientFundsMessage": "El propietario de este espacio no tiene fondos suficientes para enviarte TherrCoin. Les hemos notificado para una actualización.",
         "insufficientFundsMessage2": "¿Continuar creando contenido sin recompensas?"
       },
+      "deleteConfirmation": "¿Estás seguro de que quieres eliminar este momento?",
       "backendSuccessMessage": "¡Tu momento se guardó exitosamente!",
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde."
     },
@@ -725,7 +795,9 @@
       "errorMessages": {
         "invalidPhoneNumber": "El número de teléfono es inválido.",
         "repeatPassword": "Las contraseñas no coinciden",
-        "passwordInsecure": "La contraseña no cumple los requisitos mínimos de seguridad"
+        "passwordInsecure": "La contraseña no cumple los requisitos mínimos de seguridad",
+        "birthdateTooYoung": "Debes tener al menos {minAge} años para registrarte",
+        "accountExists": "Ya existe una cuenta con ese correo o nombre de usuario. Intenta iniciar sesión."
       },
       "labels": {
         "email": "Correo electrónico",
@@ -735,7 +807,8 @@
         "password": "Contraseña",
         "repeatPassword": "Repetir contraseña",
         "userName": "Nombre de usuario",
-        "inviteCode": "Código de invitación (opcional)"
+        "inviteCode": "Código de invitación (opcional)",
+        "birthdate": "Fecha de nacimiento"
       },
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde.",
       "missingEmail": "Por favor, ingresa una dirección de correo válida.",
@@ -744,7 +817,9 @@
       "subtitles": {
         "disclaimer": "Al crear una cuenta, aceptas nuestros ",
         "and": " y ",
-        "inviteCodeHint": "Ingresa el código de invitación de un amigo: ¡ellos ganan 10 monedas y tú ganas 5!"
+        "inviteCodeHint": "Ingresa el código de invitación de un amigo: ¡ellos ganan 10 monedas y tú ganas 5!",
+        "invitedBy": "{inviterName} te invitó a Therr — ¡termina de registrarte para conectar!",
+        "birthdateHint": "Debes tener al menos {minAge} años para usar Therr"
       },
       "validationErrors": {
         "phoneNumber": "Número de teléfono inválido"
@@ -787,7 +862,12 @@
       },
       "errorMessages": {
         "repeatPassword": "Las contraseñas no coinciden",
-        "passwordInsecure": "La nueva contraseña no cumple los requisitos mínimos de seguridad"
+        "passwordInsecure": "La nueva contraseña no cumple los requisitos mínimos de seguridad",
+        "userNameRequired": "El nombre de usuario es obligatorio",
+        "firstNameRequired": "El nombre es obligatorio",
+        "lastNameRequired": "El apellido es obligatorio",
+        "oldPasswordRequired": "Ingresa tu contraseña actual para cambiarla",
+        "newPasswordRequired": "Ingresa una nueva contraseña y repítela abajo"
       },
       "labels": {
         "accountTypeLabel": "Tipo de cuenta: ",
@@ -808,7 +888,8 @@
         "bioHeader": "Biografía",
         "businessAccount": "Negocio",
         "creatorAccount": "Creador",
-        "personalAccount": "Personal"
+        "personalAccount": "Personal",
+        "addYourNamePrompt": "Agrega tu nombre para que tus amigos puedan reconocerte"
       },
       "giftCardProviders": {
         "unselected": "Seleccionar una tarjeta de regalo...",
@@ -857,6 +938,40 @@
     "myQRCodeDetail": {
       "share": "Compartir enlace",
       "copy": "Copiar enlace"
+    },
+    "phoneSignupForm": {
+      "labels": {
+        "enterPhone": "¿Cuál es tu número?",
+        "enterCode": "Ingresa tu código",
+        "enterEmail": "Agrega tu correo",
+        "optionalPassword": "Contraseña (opcional)",
+        "accountType": "¿Qué tipo de cuenta?"
+      },
+      "subtitles": {
+        "enterPhone": "Te enviaremos un código para verificar que eres tú.",
+        "enterEmail": "Lo usamos para recibos, restablecer contraseñas y recuperar tu cuenta.",
+        "optionalPassword": "Puedes omitirla: siempre puedes iniciar sesión con un código.",
+        "accountType": "Este número ya tiene una cuenta, así que elige un tipo diferente para esta.",
+        "accountTypeHint": "Cada número de teléfono puede tener una cuenta personal, una de creador y una de negocio."
+      },
+      "buttons": {
+        "sendCode": "Enviar código",
+        "verify": "Verificar",
+        "changeNumber": "Usar otro número",
+        "useEmailInstead": "Registrarse con correo",
+        "usePhoneInstead": "Registrarse con tu teléfono"
+      },
+      "errorMessages": {
+        "accountExists": "Ya existe una cuenta con este número. Intenta iniciar sesión.",
+        "accountTypeTaken": "Este número ya tiene una cuenta de ese tipo. Elige otro tipo o inicia sesión.",
+        "accountLimitReached": "Este número ya tiene el número máximo de cuentas. Intenta iniciar sesión."
+      }
+    },
+    "passwordInput": {
+      "labels": {
+        "showPassword": "Mostrar contraseña",
+        "hidePassword": "Ocultar contraseña"
+      }
     }
   },
   "interests": {
@@ -1114,6 +1229,9 @@
     "achievements": {
       "headerTitle": "Logros",
       "pageHeader": "Logros",
+      "buttons": {
+        "viewLeaderboard": "Ver tabla de clasificación"
+      },
       "labels": {
         "coinValue": "Valor en monedas",
         "xpValue": "Valor de experiencia"
@@ -1130,7 +1248,8 @@
         "claimTitleInProgress": "{achievementClass}: {achievementTitle}",
         "alreadyClaimed": "Ya has reclamado las recompensas de este logro",
         "unClaimed": "¡Este logro está completo! Regresa y presiona 'reclamar recompensas' para continuar.",
-        "inProgressDescription": "¡Ya casi llegas! ¡Sigue adelante!"
+        "inProgressDescription": "¡Ya casi llegas! ¡Sigue adelante!",
+        "progressOf": "{count} de {total}"
       },
       "sections": {
         "unclaimed": "Reclama tus recompensas",
@@ -1151,6 +1270,36 @@
         "all": "Todos",
         "moments": "Momentos",
         "thoughts": "Pensamientos"
+      }
+    },
+    "apiAccess": {
+      "headerTitle": "Acceso a la API",
+      "pageTitle": "Obtén una clave de API de Therr",
+      "intro": "Las claves de API se administran en el panel web de Therr. Así funciona el proceso.",
+      "steps": {
+        "one": {
+          "title": "Crea una cuenta de negocio",
+          "description": "Regístrate en el panel de Therr con el correo de tu negocio. Un perfil personal de Therr no puede generar claves de API."
+        },
+        "two": {
+          "title": "Elige un plan",
+          "description": "Abre Configuración en el panel y elige una suscripción. Todos los planes de pago incluyen acceso a la API."
+        },
+        "three": {
+          "title": "Genera tu clave",
+          "description": "Ve a Configuración y luego a Claves de API para crear una clave. Se muestra una sola vez, al crearla: cópiala en un lugar seguro."
+        },
+        "four": {
+          "title": "Empieza a construir",
+          "description": "Envía tu clave en el encabezado x-api-key de cada solicitud. La referencia de la API describe todos los endpoints."
+        }
+      },
+      "statusEligible": "Tu cuenta puede crear claves de API. Abre el panel para administrarlas.",
+      "statusNotEligible": "Necesitarás una cuenta de negocio con un plan de pago para crear claves de API.",
+      "buttons": {
+        "manageKeys": "Administrar claves de API",
+        "openDashboard": "Abrir el panel web",
+        "viewDocs": "Leer la referencia de la API"
       }
     },
     "advancedSettings": {
@@ -1194,7 +1343,8 @@
       "buttons": {
         "syncSuccess": "¡Sincronización exitosa!",
         "syncFailed": "Error al sincronizar",
-        "syncContacts": "¿Sincronizar tus contactos?"
+        "syncContacts": "¿Sincronizar tus contactos?",
+        "resyncContacts": "Sincronizar contactos de nuevo"
       },
       "labels": {
         "allUsers": "Todos los usuarios",
@@ -1227,6 +1377,18 @@
         "shareLink": "Compartir un enlace",
         "syncContacts": "Sincronizar contactos",
         "skip": "Omitir por ahora"
+      },
+      "pageHeaderContacts": "Encuentra a tus amigos",
+      "pageSubHeaderContacts": "Sincroniza tus contactos para ver quién ya está aquí",
+      "progress": {
+        "back": "Volver un paso"
+      },
+      "syncContacts": {
+        "description": "Descubre cuáles de tus contactos ya están aquí. Tu lista de contactos se envía a nuestros servidores para buscar cuentas coincidentes; te mostraremos todos los detalles antes de que nada salga de tu dispositivo.",
+        "continue": "Continuar",
+        "skip": "Ahora no",
+        "errorMessage": "No pudimos sincronizar tus contactos. Inténtalo de nuevo.",
+        "permissionsDenied": "El acceso a los contactos está desactivado. Actívalo en la configuración de tu dispositivo para encontrar amigos."
       }
     },
     "cropImage": {
@@ -1234,7 +1396,7 @@
     },
     "directMessage": {
       "inputPlaceholder": "Escribe un mensaje...",
-      "noMessagesFound": "Este es el inicio de tus conversaciones con {userName}"
+      "noMessagesFound": "Sin mensajes recientes con {userName}"
     },
     "editChat": {
       "headerTitleCreate": "Crear un grupo",
@@ -1272,6 +1434,25 @@
     "invite": {
       "headerTitle": "Invitar"
     },
+    "leaderboard": {
+      "headerTitle": "Tabla de clasificación",
+      "tabs": {
+        "thisWeek": "Esta semana",
+        "allTime": "Histórico",
+        "everyone": "Todos",
+        "friends": "Amigos"
+      },
+      "labels": {
+        "you": "Tú",
+        "xpPoints": "{points} XP",
+        "resetsIn": "Se reinicia en {days} día(s)",
+        "yourRank": "Tu puesto: #{rank}"
+      },
+      "info": {
+        "noScores": "Aún no hay puntuaciones esta semana. ¡Usa la aplicación para ganar XP y reclamar tu lugar!",
+        "noFriendScores": "Ninguna de tus conexiones ha ganado XP todavía. ¡Invita a tus amigos a unirse a la competencia!"
+      }
+    },
     "manageNotifications": {
       "headerTitle": "Configuración de correo y alertas",
       "pageHeaderEmailSettings": "Preferencias de correo electrónico",
@@ -1294,7 +1475,12 @@
       },
       "alertMessages": {
         "preferenceSettingsUpdated": "Tus preferencias de cuenta y contenido han sido actualizadas.",
-        "preferenceSettingsUpdatedError": "¡Ups! Algo salió mal."
+        "preferenceSettingsUpdatedError": "¡Ups! Algo salió mal.",
+        "loadInterestsError": "No pudimos cargar tus intereses ahora. Puedes reintentar u omitir por ahora."
+      },
+      "buttons": {
+        "retry": "Reintentar",
+        "skipForNow": "Omitir por ahora"
       }
     },
     "requestSpace": {
@@ -1367,6 +1553,35 @@
         "pairingsDescription": "Lugares perfectos cerca para completar tu salida en {spaceName}",
         "helpful": "Útil",
         "notHelpful": "No útil"
+      },
+      "suggestEdit": {
+        "trigger": "Sugerir una edición",
+        "title": "Sugerir una edición",
+        "description": "¿Viste información incorrecta? Sugiere una corrección. La aplicaremos cuando varias personas estén de acuerdo.",
+        "fieldLabel": "¿Qué necesita actualización?",
+        "valueLabel": "Valor correcto",
+        "phoneOption": "Teléfono",
+        "websiteOption": "Sitio web",
+        "phonePlaceholder": "+34 600 000 000",
+        "websitePlaceholder": "https://ejemplo.com",
+        "normalizedPreview": "Se guardará como",
+        "submit": "Enviar",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "appliedMessage": "¡Gracias! Tu corrección ha sido aplicada.",
+        "pendingMessage": "¡Gracias! Necesitamos {remaining} confirmación(es) más antes de aplicar este cambio.",
+        "ownerClaimedMessage": "¡Gracias! Este negocio tiene un propietario — le hemos reenviado tu sugerencia.",
+        "errorMessage": "Algo salió mal al enviar tu sugerencia. Por favor, intenta de nuevo.",
+        "rateLimited": "Has enviado muchas sugerencias recientemente. Por favor, inténtalo de nuevo más tarde.",
+        "errors": {
+          "EMPTY_PHONE": "Por favor, introduce un número de teléfono.",
+          "INVALID_PHONE": "Eso no parece un número de teléfono válido.",
+          "EMPTY_URL": "Por favor, introduce un sitio web.",
+          "INVALID_URL": "Eso no parece una URL válida.",
+          "INVALID_FIELD_NAME": "Ese campo no se puede editar.",
+          "UNSUPPORTED_FIELD": "Ese campo no se puede editar.",
+          "SPACE_NOT_FOUND": "Este lugar ya no está disponible."
+        }
       }
     },
     "viewMoment": {
@@ -1459,7 +1674,8 @@
       "pageTitle": "Bienvenido",
       "pageSubtitle": "Inicia sesión en Therr para ver lo que te perdiste",
       "userAlerts": {
-        "registerSuccess": "¡Registro exitoso! Revisa tu correo electrónico para la verificación."
+        "registerSuccess": "¡Registro exitoso! Revisa tu correo electrónico para la verificación.",
+        "phoneRegisterSuccess": "¡Cuenta creada! Inicia sesión con un código enviado a tu teléfono."
       }
     },
     "map": {
@@ -1484,6 +1700,14 @@
         "places": "Lugares",
         "events": "Eventos",
         "music": "Música"
+      },
+      "preview": {
+        "activeNearby": "{count} activos cerca de ti",
+        "activeNearbyOne": "1 activo cerca de ti",
+        "nothingNearby": "Aún no hay publicaciones cerca de ti",
+        "createPromptTitle": "Sé el primero en publicar aquí",
+        "createPromptTitleAtSpace": "Sé el primero en {spaceTitle}",
+        "createPromptSubtitle": "Comparte un momento y pon este lugar en el mapa"
       }
     },
     "mapFilteredSearch": {
@@ -1528,7 +1752,40 @@
       "headerTitle": "Notificaciones",
       "pageTitle": "Notificaciones",
       "noNotifications": "No tienes notificaciones en este momento",
-      "markAllRead": "Marcar todo leído"
+      "markAllRead": "Marcar todo leído",
+      "unreadCount": "{count} sin leer",
+      "caughtUp": "Estás al día"
+    },
+    "profileCompletion": {
+      "headerTitle": "Termina tu perfil",
+      "title": "¡Termina tu perfil!",
+      "stepsLeft": "Quedan {count} pasos",
+      "stepLeft": "Queda 1 paso",
+      "continue": "Continuar",
+      "skipped": "Omitido: toca para hacerlo ahora",
+      "allDone": "Tu perfil está completo. ¡No queda nada por hacer aquí!",
+      "steps": {
+        "name": {
+          "label": "Agrega tu nombre",
+          "description": "Para que tus amigos puedan reconocerte"
+        },
+        "interests": {
+          "label": "Elige tus intereses",
+          "description": "Los usamos para mostrarte mejor contenido"
+        },
+        "picture": {
+          "label": "Agrega una foto de perfil",
+          "description": "Los perfiles con foto logran más conexiones"
+        },
+        "phone": {
+          "label": "Verifica tu teléfono",
+          "description": "Mantiene tu cuenta segura"
+        },
+        "contacts": {
+          "label": "Sincroniza tus contactos",
+          "description": "Encuentra amigos que ya están aquí"
+        }
+      }
     },
     "pageNotFound": {
       "pageTitle": "Página no encontrada"
@@ -1543,7 +1800,9 @@
       "buttons": {
         "connect": "Conectar",
         "invite": "Invitar",
-        "inviteSelected": "Invitar seleccionados"
+        "inviteSelected": "Invitar seleccionados",
+        "invited": "Invitado",
+        "inviteSelectedCount": "Invitar seleccionados ({count})"
       },
       "empty": {
         "onApp": "Ninguno de tus contactos está en Therr todavía",
@@ -1554,12 +1813,20 @@
       "alertTitles": {
         "contactInvitesSent": "Invitación exitosa",
         "connectRequestSent": "Solicitud de conexión enviada",
-        "noContactsSelected": "No se seleccionaron contactos"
+        "noContactsSelected": "No se seleccionaron contactos",
+        "noContactInfo": "Sin datos de contacto",
+        "tooManySelected": "Demasiados seleccionados",
+        "inviteFailed": "Invitación no enviada",
+        "phoneVerificationRequired": "Verifica tu teléfono"
       },
       "alertMessages": {
         "contactInvitesSent": "Tus invitaciones están en camino",
         "connectRequestSent": "Tu solicitud de conexión ha sido enviada",
-        "noContactsSelected": "Por favor, selecciona al menos un contacto para invitar"
+        "noContactsSelected": "Por favor, selecciona al menos un contacto para invitar",
+        "noContactInfo": "Este contacto no tiene un número de teléfono ni un correo electrónico al que enviar la invitación",
+        "tooManySelected": "Solo se invitó a los primeros {count} contactos. Selecciona menos para invitar al resto.",
+        "inviteFailed": "No pudimos enviar tus invitaciones. Inténtalo de nuevo.",
+        "phoneVerificationRequired": "Toca aquí para verificar tu número de teléfono y vuelve a enviar las invitaciones"
       }
     },
     "register": {
@@ -1589,12 +1856,18 @@
         "themeDark": "Oscuro",
         "themeRetro": "Retro",
         "enableRewards": "¿Participar?",
-        "isPublic": "¿Perfil público?"
+        "isPublic": "¿Perfil público?",
+        "contentAlgorithm": "Algoritmo del muro",
+        "algorithmPulse": "Pulso",
+        "algorithmFocus": "Enfoque",
+        "algorithmPulseDescription": "Lo que está pasando ahora: las publicaciones más activas y recientes van primero.",
+        "algorithmFocusDescription": "Solo lo que elegiste. Un muro más tranquilo, limitado a tus intereses."
       },
       "alertTitles": {
         "accountUpdated": "Cuenta actualizada",
         "backendErrorMessage": "¡Ups! Algo salió mal.",
-        "insecurePassword": "Contraseña insegura"
+        "insecurePassword": "Contraseña insegura",
+        "incompleteForm": "Revisa tus datos"
       },
       "alertMessages": {
         "accountUpdated": "Actualizado exitosamente."
@@ -1671,7 +1944,13 @@
     "viewThought": {
       "headerTitle": "Pensamientos",
       "reply": "Responder",
-      "replies": "Respuestas"
+      "replies": "Respuestas",
+      "repliesFailed": "No pudimos cargar las respuestas. Inténtalo de nuevo en un momento.",
+      "headerTitleReply": "Respuesta",
+      "partOfThread": "Parte de una conversación",
+      "replyingTo": "Respondiendo a {userName}",
+      "viewParentThought": "Ver la publicación a la que responde",
+      "backToParent": "Volver a la conversación"
     },
     "manageSpaces": {
       "headerTitle": "Mis Negocios",
@@ -1726,7 +2005,21 @@
         "deleteConfirm": "¿Eliminar esta lista? Los espacios guardados serán removidos.",
         "loading": "Cargando lista...",
         "done": "Listo",
-        "spaceUnavailable": "Espacio no disponible"
+        "spaceUnavailable": "Espacio no disponible",
+        "createFailedTitle": "No se pudo crear la lista",
+        "createFailedBody": "Algo salió mal. Revisa tu conexión e inténtalo de nuevo.",
+        "nameTakenBody": "Ya existe una lista con ese nombre.",
+        "makePublic": "Hacer pública",
+        "publicHintOn": "Cualquiera con el enlace puede ver esta lista.",
+        "publicHintOff": "Solo tú puedes ver esta lista.",
+        "publicBadge": "Pública",
+        "shareList": "Compartir lista",
+        "shareMessage": "Mira mi lista \"{listName}\" en Therr: {url}",
+        "publicToggleErrorTitle": "No se pudo actualizar la lista",
+        "publicToggleErrorBody": "Algo salió mal. Inténtalo de nuevo.",
+        "privateConfirmTitle": "¿Hacer esta lista privada?",
+        "privateConfirmBody": "El enlace para compartir dejará de funcionar para quienes se lo enviaste y los motores de búsqueda pueden eliminar esta página. Puedes volver a hacerla pública más tarde.",
+        "privateConfirmAction": "Hacer privada"
       }
     },
     "myQRCodes": {
@@ -1757,6 +2050,27 @@
     }
   },
   "modals": {
+    "appReviewPrompt": {
+      "sentiment": {
+        "header": "¿Te gusta {appName}?",
+        "message": "Últimamente has usado bastante {appName}. ¿Qué te parece hasta ahora?",
+        "notReally": "La verdad, no",
+        "yes": "¡Sí!"
+      },
+      "review": {
+        "header": "¡Nos alegra saberlo!",
+        "message": "¿Te importaría dejar una reseña rápida? Solo toma un momento y ayuda a que otras personas descubran {appName}.",
+        "maybeLater": "Quizás más tarde",
+        "writeReview": "Escribir una reseña"
+      },
+      "feedback": {
+        "header": "Lamentamos oír eso",
+        "message": "Cuéntanos qué no está funcionando y lo revisaremos. Tus comentarios llegan directamente a nuestro equipo.",
+        "noThanks": "No, gracias",
+        "sendFeedback": "Enviar comentarios"
+      },
+      "emailSubject": "Comentarios sobre {appName}"
+    },
     "confirmModal": {
       "agree": "Aceptar",
       "confirm": "Sí",
@@ -1780,6 +2094,12 @@
         "claimSpace": "Los espacios son ubicaciones de negocios públicas. Reclamar un espacio en el mapa te permite declarar la propiedad de la ubicación, incentivar la lealtad de los clientes y moderar el contenido.",
         "requestSpace": "¡Solicita un espacio de negocio público y gana puntos por solicitud! Nos comunicaremos con el propietario para agregarlo al mapa para que puedan comenzar a ofrecer recompensas de lealtad."
       }
+    },
+    "nearbyEstablishment": {
+      "header": "¿Estuviste en alguno de estos?",
+      "description": "Agrega el lugar que visitaste para que otros puedan descubrirlo en el mapa.",
+      "none": "Ninguno de estos",
+      "distanceAway": "a {distance} m"
     },
     "contentOptions": {
       "buttons": {
@@ -1881,6 +2201,18 @@
         "header": "¡Logro obtenido!",
         "message": "¡Comparte tu logro con amigos!"
       }
+    },
+    "accountPicker": {
+      "switchHeader": "Cambiar de cuenta",
+      "chooseHeader": "Elige una cuenta",
+      "useAnotherAccount": "Usar otra cuenta",
+      "removeAccount": "Quitar cuenta guardada"
+    },
+    "repostModal": {
+      "header": "Republicar",
+      "placeholder": "Añade un comentario (opcional)",
+      "confirm": "Republicar",
+      "cancel": "Cancelar"
     }
   },
   "permissions": {
@@ -1891,6 +2223,14 @@
       "buttonNegative": "Denegar",
       "buttonPositive": "Mientras uso la app"
     },
+    "backgroundLocation": {
+      "header": "Acceso a ubicación en segundo plano",
+      "description1": "Esta aplicación recopila tu ubicación precisa en segundo plano, incluso cuando la app está cerrada o no está en uso.",
+      "description2": "Therr usa la ubicación en segundo plano para encontrar recompensas cercanas, habilitar el descubrimiento de contenido local y enviar notificaciones de proximidad. Puedes desactivar esto en la configuración de tu dispositivo en cualquier momento.",
+      "privacyPolicy": "Ver política de privacidad",
+      "accept": "Continuar",
+      "decline": "Ahora no"
+    },
     "locationGps": {
       "header": "¿Ubicación del usuario?",
       "description1": "Esta aplicación quiere cambiar la configuración de tu dispositivo: Usar GPS, Wi-Fi y red celular para la ubicación",
@@ -1899,6 +2239,29 @@
       "no": "NO",
       "yes": "SÍ",
       "close": "Cerrar"
+    },
+    "primer": {
+      "shared": {
+        "allow": "Permitir",
+        "notNow": "Ahora no",
+        "agree": "Acepto",
+        "decline": "No permitir",
+        "privacyPolicy": "Lee nuestra Política de Privacidad"
+      },
+      "notifications": {
+        "title": "Mantente al tanto",
+        "body": "Recibe avisos cuando tus amigos respondan, acepten tus invitaciones o publiquen cerca."
+      },
+      "camera": {
+        "title": "Captura el momento",
+        "body": "Therr necesita acceso a la cámara para adjuntar una foto a tu publicación."
+      },
+      "contacts": {
+        "title": "{appName} recopila tus contactos",
+        "summary": "{appName} recopila tu lista de contactos —los nombres, números de teléfono y correos electrónicos de tus contactos— y la envía a los servidores de Therr en api.therr.com para saber cuáles de tus contactos ya usan la aplicación.",
+        "detail": "Se incluyen todos los contactos de tu agenda, no solo los que elijas. Usamos estos datos para buscar cuentas coincidentes y para enviar las invitaciones que decidas enviar. Los contactos sin una cuenta coincidente no se guardan, salvo las personas a las que invites expresamente: conservamos su número de teléfono o correo electrónico para entregar esa invitación y para no invitarlas dos veces. Nunca vendemos tus contactos ni los compartimos con anunciantes.",
+        "optOut": "Esto es opcional. Puedes omitirlo y seguir usando {appName}, y puedes desactivar el acceso a los contactos en cualquier momento en la configuración de tu dispositivo."
+      }
     }
   },
   "validations": {
@@ -2057,6 +2420,250 @@
       "influencer_1_3_7": {
         "title": "Creatividad imparable",
         "description": "Crea 1,000 momentos"
+      },
+      "habitBuilder_1_1": {
+        "title": "Primeros pasos",
+        "description": "Alcanza una racha de 3 días en un hábito"
+      },
+      "habitBuilder_1_1_1": {
+        "title": "Una semana fuerte",
+        "description": "Alcanza una racha de 7 días en un hábito"
+      },
+      "habitBuilder_1_1_2": {
+        "title": "Maravilla de dos semanas",
+        "description": "Alcanza una racha de 14 días en un hábito"
+      },
+      "habitBuilder_1_1_3": {
+        "title": "Hábito formado",
+        "description": "Alcanza una racha de 30 días en un hábito"
+      },
+      "habitBuilder_1_1_4": {
+        "title": "Dos meses dentro",
+        "description": "Alcanza una racha de 60 días en un hábito"
+      },
+      "habitBuilder_1_1_5": {
+        "title": "Maestro del trimestre",
+        "description": "Alcanza una racha de 90 días en un hábito"
+      },
+      "habitBuilder_1_1_6": {
+        "title": "Héroe de medio año",
+        "description": "Alcanza una racha de 180 días en un hábito"
+      },
+      "habitBuilder_1_1_7": {
+        "title": "Leyenda del hábito",
+        "description": "Alcanza una racha de 365 días en un hábito"
+      },
+      "cleanBreak_1_1": {
+        "title": "Primer día libre",
+        "description": "Completa 1 día sin romper un hábito"
+      },
+      "cleanBreak_1_1_1": {
+        "title": "Tres firmes",
+        "description": "Alcanza una racha limpia de 3 días"
+      },
+      "cleanBreak_1_1_2": {
+        "title": "Una semana limpia",
+        "description": "Alcanza una racha limpia de 7 días"
+      },
+      "cleanBreak_1_1_3": {
+        "title": "Dos semanas claras",
+        "description": "Alcanza una racha limpia de 14 días"
+      },
+      "cleanBreak_1_1_4": {
+        "title": "Treinta días renacido",
+        "description": "Alcanza una racha limpia de 30 días"
+      },
+      "cleanBreak_1_1_5": {
+        "title": "Sesenta días firmes",
+        "description": "Alcanza una racha limpia de 60 días"
+      },
+      "cleanBreak_1_1_6": {
+        "title": "Noventa días reiniciados",
+        "description": "Alcanza una racha limpia de 90 días"
+      },
+      "cleanBreak_1_1_7": {
+        "title": "Medio año libre",
+        "description": "Alcanza una racha limpia de 180 días"
+      },
+      "cleanBreak_1_1_8": {
+        "title": "Un año renacido",
+        "description": "Alcanza una racha limpia de 365 días"
+      },
+      "treasureBuilder_1_1": {
+        "title": "Centavo ahorrado",
+        "description": "Alcanza una racha de 7 días sin gastar"
+      },
+      "treasureBuilder_1_1_1": {
+        "title": "Quincena frugal",
+        "description": "Alcanza una racha de 14 días sin gastar"
+      },
+      "treasureBuilder_1_1_2": {
+        "title": "Coleccionista de monedas",
+        "description": "Alcanza una racha de 30 días sin gastar"
+      },
+      "treasureBuilder_1_1_3": {
+        "title": "Guardián de la bóveda",
+        "description": "Alcanza una racha de 60 días sin gastar"
+      },
+      "treasureBuilder_1_1_4": {
+        "title": "Cazador de tesoros",
+        "description": "Alcanza una racha de 100 días sin gastar"
+      },
+      "treasureBuilder_1_2": {
+        "title": "Primera meta alcanzada",
+        "description": "Completa 1 pacto de ahorro"
+      },
+      "treasureBuilder_1_2_1": {
+        "title": "Fijador de metas",
+        "description": "Completa 3 pactos de ahorro"
+      },
+      "treasureBuilder_1_2_2": {
+        "title": "Constructor de riqueza",
+        "description": "Completa 10 pactos de ahorro"
+      },
+      "consistency_1_1": {
+        "title": "Semana perfecta",
+        "description": "Completa cada check-in programado durante 7 días en un hábito"
+      },
+      "consistency_1_1_1": {
+        "title": "Quincena impecable",
+        "description": "Completa cada check-in programado durante 14 días en un hábito"
+      },
+      "consistency_1_1_2": {
+        "title": "Mes inmaculado",
+        "description": "Completa cada check-in programado durante 30 días en un hábito"
+      },
+      "consistency_1_1_3": {
+        "title": "Trimestre intachable",
+        "description": "Completa cada check-in programado durante 90 días en un hábito"
+      },
+      "consistency_1_2": {
+        "title": "Dos a la vez",
+        "description": "Completa una ventana perfecta de 7 días en 2 hábitos simultáneamente"
+      },
+      "consistency_1_2_1": {
+        "title": "Triple amenaza",
+        "description": "Completa una ventana perfecta de 7 días en 3 hábitos simultáneamente"
+      },
+      "consistency_1_2_2": {
+        "title": "Todo a la vez",
+        "description": "Completa una ventana perfecta de 7 días en 5 hábitos simultáneamente"
+      },
+      "accountability_1_1": {
+        "title": "Primer pacto",
+        "description": "Únete a tu primer pacto"
+      },
+      "accountability_1_1_1": {
+        "title": "Compañero leal",
+        "description": "Completa un pacto al 80% o más"
+      },
+      "accountability_1_1_2": {
+        "title": "Aliado confiable",
+        "description": "Completa 5 pactos al 80% o más"
+      },
+      "accountability_1_1_3": {
+        "title": "Campeón de hábitos",
+        "description": "Completa 25 pactos al 80% o más"
+      },
+      "accountability_1_2": {
+        "title": "Buen acompañante",
+        "description": "Ayuda a un compañero a completar su pacto al 80% o más"
+      },
+      "accountability_1_2_1": {
+        "title": "Entrenador",
+        "description": "Ayuda a 5 compañeros a completar sus pactos al 80% o más"
+      },
+      "accountability_1_2_2": {
+        "title": "Mentor",
+        "description": "Ayuda a 25 compañeros a completar sus pactos al 80% o más"
+      },
+      "resilience_1_1": {
+        "title": "Volver con fuerza",
+        "description": "Reinicia una racha después de que terminó una anterior"
+      },
+      "resilience_1_1_1": {
+        "title": "Fénix",
+        "description": "Supera tu racha más larga después de un reinicio"
+      },
+      "resilience_1_1_2": {
+        "title": "Inquebrantable",
+        "description": "Supera tu racha más larga 5 veces"
+      },
+      "resilience_1_2": {
+        "title": "Segundo aire",
+        "description": "Termina un pacto fuerte después de perder tu racha a mitad de pacto"
+      },
+      "resilience_1_2_1": {
+        "title": "Niño del regreso",
+        "description": "Termina 5 pactos fuerte después de perder tu racha a mitad de pacto"
+      },
+      "socialEnergizer_1_1": {
+        "title": "Animador",
+        "description": "Reacciona a 10 check-ins de tu compañero"
+      },
+      "socialEnergizer_1_1_1": {
+        "title": "Equipo de ánimo",
+        "description": "Reacciona a 50 check-ins de tu compañero"
+      },
+      "socialEnergizer_1_1_2": {
+        "title": "Favorito de la multitud",
+        "description": "Reacciona a 250 check-ins de tu compañero"
+      },
+      "socialEnergizer_1_2": {
+        "title": "Hacedor de hitos",
+        "description": "Celebra un hito de un compañero"
+      },
+      "socialEnergizer_1_2_1": {
+        "title": "Cañón de confeti",
+        "description": "Celebra 25 hitos de compañeros"
+      },
+      "pactPioneer_1_1": {
+        "title": "Iniciador de pactos",
+        "description": "Crea tu primer pacto"
+      },
+      "pactPioneer_1_1_1": {
+        "title": "Hacedor de pactos",
+        "description": "Crea 5 pactos"
+      },
+      "pactPioneer_1_1_2": {
+        "title": "Arquitecto de pactos",
+        "description": "Crea 25 pactos"
+      },
+      "pactPioneer_1_1_3": {
+        "title": "Visionario de pactos",
+        "description": "Crea 100 pactos"
+      },
+      "pactPioneer_1_2": {
+        "title": "Primera invitación enviada",
+        "description": "Invita a tu primer compañero único"
+      },
+      "pactPioneer_1_2_1": {
+        "title": "Efecto de red",
+        "description": "Invita a 10 compañeros únicos en distintos pactos"
+      },
+      "weeklyChampion_1_1": {
+        "title": "Contendiente",
+        "description": "Alcanza el top 10 de la tabla semanal"
+      },
+      "weeklyChampion_1_1_1": {
+        "title": "Contendiente habitual",
+        "description": "Alcanza el top 10 semanal cinco veces más"
+      },
+      "weeklyChampion_1_2": {
+        "title": "Podio",
+        "description": "Alcanza el top 3 de la tabla semanal"
+      },
+      "weeklyChampion_1_2_1": {
+        "title": "Habitual del podio",
+        "description": "Alcanza el top 3 semanal cinco veces más"
+      },
+      "weeklyChampion_1_3": {
+        "title": "Número uno",
+        "description": "Alcanza el puesto #1 de la tabla semanal"
+      },
+      "weeklyChampion_1_3_1": {
+        "title": "Campeón en serie",
+        "description": "Alcanza el puesto #1 de la tabla semanal cinco veces más"
       }
     },
     "profile": {

@@ -21,8 +21,9 @@ import {
     IUserState,
     IUserConnectionsState,
 } from 'therr-react/types';
-import { TabBar, TabView } from 'react-native-tab-view';
+import { TabBar } from 'react-native-tab-view';
 import { showToast } from '../../utilities/toasts';
+import getRepostErrorKey from '../../utilities/repostErrors';
 import { ContentActions } from 'therr-react/redux/actions';
 import UsersActions from '../../redux/actions/UsersActions';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -38,8 +39,12 @@ import translator from '../../utilities/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import UserDisplayHeader from './UserDisplayHeader';
+import ProfileCompletionLink from '../../components/ProfileCompletionLink';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
+import RepostModal from '../../components/Modals/RepostModal';
 import LazyPlaceholder from '../../components/LazyPlaceholder';
+import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
+import CollapsibleHeaderTabView, { ICollapsibleSceneProps } from '../../components/CollapsibleHeaderTabView';
 import AreaCarousel from '../Areas/AreaCarousel';
 import { isMyContent } from '../../utilities/content';
 import { SheetManager } from 'react-native-actions-sheet';
@@ -48,6 +53,7 @@ import { handleAreaReaction, handleThoughtReaction, navToViewContent } from '../
 import TherrIcon from '../../components/TherrIcon';
 import getDirections from '../../utilities/getDirections';
 import { PEOPLE_CAROUSEL_TABS, PROFILE_CAROUSEL_TABS } from '../../constants';
+import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -69,6 +75,7 @@ interface IViewUserDispatchProps {
     createOrUpdateThoughtReaction: Function;
     createOrUpdateSpaceReaction: Function;
     searchThoughts: Function;
+    createThought: Function;
     updateUserInView: Function;
     createUserConnection: Function;
     updateUserConnection: Function;
@@ -95,6 +102,10 @@ interface IViewUserState {
     isRefreshingUserMedia: boolean;
     isRefreshingUserMoments: boolean;
     isRefreshingUserThoughts: boolean;
+    isTabViewLaidOut: boolean;
+    // The thought the repost composer is open for (null when closed).
+    repostTarget: any;
+    isReposting: boolean;
     tabRoutes: { key: string; title: string }[];
     userInViewsMoments: any[];
     userInViewsThoughts: any[];
@@ -115,6 +126,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createOrUpdateThoughtReaction: ContentActions.createOrUpdateThoughtReaction,
     createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
     searchThoughts: UsersActions.searchThoughts,
+    createThought: UsersActions.createThought,
     updateUserInView: UsersActions.updateUserInView,
     createUserConnection: UserConnectionsActions.create,
     updateUserConnection: UserConnectionsActions.update,
@@ -163,6 +175,9 @@ class ViewUser extends React.Component<
             isRefreshingUserMedia: false,
             isRefreshingUserMoments: false,
             isRefreshingUserThoughts: false,
+            isTabViewLaidOut: false,
+            repostTarget: null,
+            isReposting: false,
             tabRoutes,
             userInViewsMoments: [],
             userInViewsThoughts: [],
@@ -191,8 +206,20 @@ class ViewUser extends React.Component<
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.route?.params?.userInView?.id !== this.props.route?.params?.userInView?.id) {
-            const isMe = this.props.route?.params?.userInView?.id === this.props.user.details.id;
+        const prevRouteUserId = prevProps.route?.params?.userInView?.id;
+        const currentRouteUserId = this.props.route?.params?.userInView?.id;
+        const reduxUserInViewId = this.props.user.userInView?.id;
+        const routeParamChanged = prevRouteUserId !== currentRouteUserId;
+        // Fallback: if Redux userInView is stale relative to the route param
+        // (e.g. after returning to this screen via setParams/navigate where
+        // the diff was missed), force a refetch so the UI never keeps the
+        // previous user's data visible.
+        const reduxOutOfSync = !!currentRouteUserId
+            && reduxUserInViewId !== currentRouteUserId
+            && !this.state.isLoading;
+
+        if (routeParamChanged || reduxOutOfSync) {
+            const isMe = currentRouteUserId === this.props.user.details.id;
             const tabRoutes = [
                 { key: PROFILE_CAROUSEL_TABS.THOUGHTS, title: this.translate('menus.headerTabs.thoughts') },
             ];
@@ -298,6 +325,63 @@ class ViewUser extends React.Component<
                 onSelect: (type: IContentSelectionType) => this.onAreaOptionSelect(type, area),
             },
         });
+    };
+
+    handleRepostPress = (thought) => {
+        this.setState({ repostTarget: thought });
+    };
+
+    handleRepostCancel = () => {
+        this.setState({ repostTarget: null });
+    };
+
+    handleRepostConfirm = (message: string) => {
+        const { createThought, user } = this.props;
+        const { repostTarget } = this.state;
+
+        if (!repostTarget?.id) {
+            return;
+        }
+
+        // Hashtags come from the user's own quote only. Carrying the original's tags over would
+        // put the reposter's account in feeds they never chose to post into.
+        const hashTags = message.match(/#[a-z0-9_]+/g) || [];
+        const hashTagsString = [
+            ...new Set(hashTags.map((t) => t.replace(/#/g, ''))),
+        ].join(',');
+
+        this.setState({ isReposting: true });
+
+        createThought({
+            fromUserId: user.details.id,
+            // Reposting is a public act by definition — it surfaces the original to the
+            // reposter's audience, so a private repost would be a no-op with a side effect.
+            isPublic: true,
+            message,
+            hashTags: hashTagsString,
+            repostThoughtId: repostTarget.id,
+            isDraft: false,
+        })
+            .then(() => {
+                this.setState({ repostTarget: null });
+                showToast.success({
+                    text1: this.translate('alertTitles.repostSuccess'),
+                    text2: this.translate('alertMessages.repostSuccess'),
+                });
+            })
+            .catch((error: any) => {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    // 400 is the server's "you already reposted this" duplicate guard. The
+                    // control is gated on the same rule the server enforces, so a 403 means the
+                    // original went non-public between opening the composer and confirming —
+                    // distinct, and not something retrying fixes.
+                    text2: this.translate(getRepostErrorKey(error?.statusCode)),
+                });
+            })
+            .finally(() => {
+                this.setState({ isReposting: false });
+            });
     };
 
     toggleThoughtOptions = (displayThought) => {
@@ -456,7 +540,6 @@ class ViewUser extends React.Component<
                 createOrUpdateEventReaction,
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
-                toggleAreaOptions: this.toggleAreaOptions,
                 translate: this.translate,
             });
         }
@@ -468,7 +551,6 @@ class ViewUser extends React.Component<
         handleThoughtReaction(thought, type, {
             user,
             createOrUpdateThoughtReaction,
-            toggleThoughtOptions: this.toggleThoughtOptions,
             translate: this.translate,
         });
     };
@@ -534,12 +616,16 @@ class ViewUser extends React.Component<
 
         if (activeConfirmModal === 'report-user') {
             UsersService.report(user?.userInView.id);
-            // TODO: Add success toast
+            showToast.success({
+                text1: this.translate('alertTitles.userReportSent'),
+            });
             resetProcessing();
         } else if (activeConfirmModal === 'block-user') {
-            // TODO: Add success toast
             // TODO: RMOBILE-35: ...
             blockUser(user.userInView?.id, user.details.blockedUsers);
+            showToast.success({
+                text1: this.translate('alertTitles.userBlocked'),
+            });
             resetProcessing();
             navigation.navigate('Areas');
         } else if (activeConfirmModal === 'send-connection-request') {
@@ -565,13 +651,15 @@ class ViewUser extends React.Component<
                 resetProcessing();
             });
         } else if (activeConfirmModal === 'remove-connection-request') {
-            // TODO: Add success toast
             updateUserConnection({
                 connection: {
                     isConnectionBroken: true,
                     otherUserId: user.userInView?.id,
                 },
                 user: user.details,
+            });
+            showToast.success({
+                text1: this.translate('alertTitles.connectionRemoved'),
             });
             resetProcessing();
             navigation.navigate('Areas');
@@ -580,15 +668,58 @@ class ViewUser extends React.Component<
         }
     };
 
+    // NOTE: Tab switches deliberately do NOT reset scroll position. CollapsibleHeaderTabView
+    // keeps every tab aligned with the header, so resetting here would fight that sync and
+    // yank the header back open on each swipe.
     onTabSelect = (index: number) => {
-        if (index === 0) {
-            this.carouselMomentsRef?.scrollToOffset({ animated: true, offset: 0 });
-        } else if (index === 1) {
-            this.carouselThoughtsRef?.scrollToOffset({ animated: true, offset: 0 });
-        }
         this.setState({
             activeTabIndex: index,
         });
+    };
+
+    handleTabContainerLayout = (e) => {
+        if (this.state.isTabViewLaidOut) {
+            return;
+        }
+        const { width, height } = e.nativeEvent.layout;
+        if (width > 0 && height > 0) {
+            this.setState({ isTabViewLaidOut: true });
+        }
+    };
+
+    // The collapsible part of the screen: everything above the tab bar.
+    renderProfileHeader = () => {
+        const { navigation, user } = this.props;
+        const isMe = user.userInView?.id === user.details.id;
+
+        return (
+            <>
+                <UserDisplayHeader
+                    goToConnections={this.goToConnections}
+                    navigation={navigation}
+                    isDarkMode={isDarkTheme(user.settings?.mobileThemeName)}
+                    onProfilePicturePress={this.onProfilePicturePress}
+                    onBlockUser={this.onBlockUser}
+                    onConnectionRequest={this.onConnectionRequest}
+                    onMessageUser={this.onMessageUser}
+                    onReportUser={this.onReportUser}
+                    themeForms={this.themeForms}
+                    themeUser={this.themeUser}
+                    translate={this.translate}
+                    user={user}
+                    userInView={user.userInView || {}}
+                />
+                {
+                    isMe &&
+                    <ProfileCompletionLink
+                        navigation={navigation}
+                        translate={this.translate as any}
+                        user={user}
+                        themeName={user.settings?.mobileThemeName}
+                    />
+                }
+            </>
+        );
     };
 
     renderTabBar = props => {
@@ -610,7 +741,7 @@ class ViewUser extends React.Component<
         );
     };
 
-    renderSceneMap = ({ route }) => {
+    renderSceneMap = ({ route, collapsible }: { route: any; collapsible: ICollapsibleSceneProps }) => {
         const { isRefreshingUserMedia, userInViewsThoughts, userInViewsMoments } = this.state;
         const {
             content,
@@ -628,6 +759,7 @@ class ViewUser extends React.Component<
                 return (
                     <AreaCarousel
                         activeData={momentsData}
+                        collapsible={collapsible}
                         content={content}
                         inspectContent={this.goToContent}
                         isLoading={isRefreshingUserMedia}
@@ -658,6 +790,7 @@ class ViewUser extends React.Component<
                 return (
                     <AreaCarousel
                         activeData={thoughtsData}
+                        collapsible={collapsible}
                         content={content}
                         inspectContent={this.goToContent}
                         isLoading={isRefreshingUserMedia}
@@ -666,6 +799,7 @@ class ViewUser extends React.Component<
                         goToViewUser={this.goToViewUser}
                         toggleAreaOptions={noop}
                         toggleThoughtOptions={this.toggleThoughtOptions}
+                        onRepostPress={this.handleRepostPress}
                         translate={this.translate}
                         containerRef={(component) => { this.carouselThoughtsRef = component; }}
                         handleRefresh={this.handleUserThoughtsRefresh}
@@ -696,6 +830,9 @@ class ViewUser extends React.Component<
             confirmModalText,
             isConfirmProcessing,
             isLoading,
+            isReposting,
+            isTabViewLaidOut,
+            repostTarget,
             tabRoutes,
         } = this.state;
 
@@ -707,28 +844,18 @@ class ViewUser extends React.Component<
                         isLoading ?
                             <LottieLoader id="therr-black-rolling" theme={this.themeLoader} /> :
                             <View style={this.themeUser.styles.container}>
-                                <UserDisplayHeader
-                                    goToConnections={this.goToConnections}
-                                    navigation={navigation}
-                                    isDarkMode={isDarkTheme(user.settings?.mobileThemeName)}
-                                    onProfilePicturePress={this.onProfilePicturePress}
-                                    onBlockUser={this.onBlockUser}
-                                    onConnectionRequest={this.onConnectionRequest}
-                                    onMessageUser={this.onMessageUser}
-                                    onReportUser={this.onReportUser}
-                                    themeForms={this.themeForms}
-                                    themeUser={this.themeUser}
-                                    translate={this.translate}
-                                    user={user}
-                                    userInView={user.userInView || {}}
-                                />
-                                <TabView
+                                <CollapsibleHeaderTabView
                                     lazy
                                     lazyPreloadDistance={0}
+                                    headerStyle={this.themeUser.styles.profileHeaderCollapsible}
+                                    listBottomInset={buttonMenuHeight}
                                     navigationState={{
                                         index: activeTabIndex,
                                         routes: tabRoutes,
                                     }}
+                                    onIndexChange={this.onTabSelect}
+                                    onLayout={this.handleTabContainerLayout}
+                                    renderHeader={this.renderProfileHeader}
                                     renderTabBar={this.renderTabBar}
                                     renderScene={this.renderSceneMap}
                                     renderLazyPlaceholder={() => (
@@ -743,10 +870,10 @@ class ViewUser extends React.Component<
                                             <LazyPlaceholder lines={[undefined, undefined]} />
                                         </View>
                                     )}
-                                    onIndexChange={this.onTabSelect}
                                     initialLayout={{ width: viewportWidth }}
                                     style={this.theme.styles.tabviewContainer}
                                 />
+                                {!isTabViewLaidOut && <TabViewLoadingOverlay color={this.theme.colors.textWhite} />}
                             </View>
                     }
                 </SafeAreaView>
@@ -771,6 +898,15 @@ class ViewUser extends React.Component<
                     theme={this.theme}
                     themeButtons={this.themeButtons}
                     themeModal={this.themeConfirmModal}
+                />
+                <RepostModal
+                    isVisible={!!repostTarget}
+                    isSubmitting={isReposting}
+                    onCancel={this.handleRepostCancel}
+                    onConfirm={this.handleRepostConfirm}
+                    thought={repostTarget}
+                    translate={this.translate}
+                    themeButtons={this.themeButtons}
                 />
                 <MainButtonMenu
                     activeRoute="ViewUser"

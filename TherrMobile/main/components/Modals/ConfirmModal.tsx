@@ -1,8 +1,11 @@
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
-import { Dialog, Divider, Portal } from 'react-native-paper';
-import { ScrollView } from 'react-native-gesture-handler';
-import { ITherrThemeColors } from '../../styles/themes';
+import { useSelector } from 'react-redux';
+import { getTheme, ITherrThemeColors } from '../../styles/themes';
+import { fontSizes, fontWeights } from '../../styles/text';
+import { therrFontFamily } from '../../styles/font';
+import { space } from '../../styles/layouts/spacing';
+import BaseModal from './BaseModal';
 import ModalButton from './ModalButton';
 
 interface IConfirmModal {
@@ -18,11 +21,19 @@ interface IConfirmModal {
     textCancel?: string;
     translate: Function;
     width?: string;
-    theme: {
+    /**
+     * @deprecated No longer used internally. ConfirmModal now pulls its theme
+     * from Redux via BaseModal. The prop is accepted to keep ~17 existing call
+     * sites working without changes; remove once those are migrated.
+     */
+    theme?: {
         colors: ITherrThemeColors;
         styles: any;
     };
-    themeModal: {
+    /**
+     * @deprecated Same as `theme` above.
+     */
+    themeModal?: {
         colors: ITherrThemeColors;
         styles: any;
     };
@@ -43,45 +54,25 @@ export default ({
     text2,
     textConfirm,
     textCancel,
-    themeModal,
     themeButtons,
     translate,
     width,
 }: IConfirmModal) => {
-    const extraStyles = width ? { width: width } : {};
+    const themeName = useSelector((state: any) => state?.user?.settings?.mobileThemeName);
+    const therrTheme = getTheme(themeName);
+
+    // When there's no header, the body text becomes the prompt's emphasis,
+    // so it renders larger and heavier (mirrors the prior bodyTextBold path).
+    const showEmphasis = !headerText;
 
     return (
-        <Portal>
-            <Dialog
-                visible={isVisible}
-                onDismiss={onCancel}
-                style={[themeModal.styles.container, extraStyles]}
-            >
-                {
-                    renderImage && renderImage()
-                }
-                {
-                    headerText ?
-                        <>
-                            <Dialog.Title style={themeModal.styles.headerText}>{headerText}</Dialog.Title>
-                            <Divider />
-                            <Dialog.ScrollArea style={[themeModal.styles.body, localStyles.transparentBorder]}>
-                                <ScrollView>
-                                    <Text style={themeModal.styles.bodyText}>{text}</Text>
-                                    {
-                                        text2 && <Text style={themeModal.styles.bodyText}>{text2}</Text>
-                                    }
-                                </ScrollView>
-                            </Dialog.ScrollArea>
-                        </> :
-                        <Dialog.ScrollArea style={localStyles.transparentBorder}>
-                            <ScrollView>
-                                <Text style={themeModal.styles.bodyTextBold}>{text}</Text>
-                            </ScrollView>
-                        </Dialog.ScrollArea>
-                }
-                <Divider />
-                <Dialog.Actions style={themeModal.styles.buttonsContainer}>
+        <BaseModal
+            isVisible={isVisible}
+            onDismiss={onCancel}
+            headerText={headerText}
+            width={width}
+            actions={
+                <>
                     <ModalButton
                         iconName="close"
                         title={textCancel || translate('modals.confirmModal.cancel')}
@@ -99,14 +90,39 @@ export default ({
                         iconRight={false}
                         themeButtons={themeButtons}
                     />
-                </Dialog.Actions>
-            </Dialog>
-        </Portal>
+                </>
+            }
+        >
+            {renderImage ? renderImage() : null}
+            <Text style={[
+                localStyles.bodyText,
+                { color: therrTheme.colors.onSurface },
+                showEmphasis && localStyles.bodyTextEmphasized,
+            ]}>
+                {text}
+            </Text>
+            {text2 ? (
+                <Text style={[localStyles.bodyText, { color: therrTheme.colors.onSurface }]}>
+                    {text2}
+                </Text>
+            ) : null}
+        </BaseModal>
     );
 };
 
 const localStyles = StyleSheet.create({
-    transparentBorder: {
-        borderColor: 'transparent',
+    bodyText: {
+        fontFamily: therrFontFamily,
+        fontSize: fontSizes.md,
+        fontWeight: fontWeights.regular,
+        textAlign: 'center',
+        paddingVertical: space.xs,
+        paddingHorizontal: space.md,
+    },
+    bodyTextEmphasized: {
+        fontSize: fontSizes.xl,
+        fontWeight: fontWeights.semibold,
+        paddingTop: space.md,
+        paddingBottom: space.lg,
     },
 });

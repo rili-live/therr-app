@@ -1,6 +1,6 @@
 {
   "sms": {
-    "yourVerificationCode": "Your Therr app verification code is: {code}"
+    "yourVerificationCode": "Your {brandName} verification code is: {code}"
   },
   "validation": {
     "defaultMessage": "The following parameters are invalid",

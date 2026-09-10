@@ -128,6 +128,75 @@ describe('habits reducer', () => {
         expect(result.pacts[0].id).toBe('p1');
     });
 
+    // RENEW_PACT, not CREATE_PACT. A renewal is a new pact on the same habit goal, so
+    // prepending it and leaving the cycle it continued in place is what made a re-commit
+    // look like the app had duplicated the pact — with the old cycle still offering its
+    // re-commit button.
+    describe('RENEW_PACT', () => {
+        const withPacts = (pacts: any[]) => reducer(reducer(undefined, { type: '@@INIT' }), {
+            type: HabitsActionTypes.GET_USER_PACTS,
+            data: pacts,
+        });
+
+        it('replaces the cycle it continues rather than joining it', () => {
+            const result = reducer(withPacts([{ id: 'p1', status: 'expired' }]), {
+                type: HabitsActionTypes.RENEW_PACT,
+                data: { id: 'p2', status: 'pending', renewedFromPactId: 'p1' },
+            });
+
+            expect(result.pacts.length).toBe(1);
+            expect(result.pacts[0].id).toBe('p2');
+        });
+
+        // Renewal is idempotent server-side: a second tap answers 200 with the successor
+        // that already exists. Unshifting that would put one pact in the list twice, which
+        // is the same symptom by another route.
+        it('does not add the renewal twice when it is already in state', () => {
+            const state = withPacts([{ id: 'p2', status: 'pending', renewedFromPactId: 'p1' }]);
+            const result = reducer(state, {
+                type: HabitsActionTypes.RENEW_PACT,
+                data: {
+                    id: 'p2', status: 'pending', renewedFromPactId: 'p1', durationDays: 30,
+                },
+            });
+
+            expect(result.pacts.length).toBe(1);
+            expect(result.pacts[0].durationDays).toBe(30);
+        });
+
+        it('drops a superseded cycle still sitting in activePacts unswept', () => {
+            const state = reducer(withPacts([{ id: 'p1', status: 'active' }]), {
+                type: HabitsActionTypes.GET_ACTIVE_PACTS,
+                data: [{ id: 'p1', status: 'active' }],
+            });
+            const result = reducer(state, {
+                type: HabitsActionTypes.RENEW_PACT,
+                data: { id: 'p2', status: 'pending', renewedFromPactId: 'p1' },
+            });
+
+            expect(result.activePacts.length).toBe(0);
+            expect(result.pacts.map((p) => p.id)).toEqual(['p2']);
+        });
+
+        // A renewal with nobody left to invite activates immediately, so it is
+        // checkin-able now; a pending one joins activePacts through ACCEPT_PACT.
+        it('puts an immediately-active renewal into activePacts', () => {
+            const result = reducer(withPacts([{ id: 'p1', status: 'expired' }]), {
+                type: HabitsActionTypes.RENEW_PACT,
+                data: { id: 'p2', status: 'active', renewedFromPactId: 'p1' },
+            });
+
+            expect(result.activePacts.map((p) => p.id)).toEqual(['p2']);
+        });
+
+        it('leaves state alone when the payload carries no pact', () => {
+            const state = withPacts([{ id: 'p1', status: 'expired' }]);
+            const result = reducer(state, { type: HabitsActionTypes.RENEW_PACT, data: undefined });
+
+            expect(result.pacts.map((p) => p.id)).toEqual(['p1']);
+        });
+    });
+
     it('handles ACCEPT_PACT (moves from pending to active)', () => {
         const withPending = reducer(initialState, {
             type: HabitsActionTypes.GET_PENDING_INVITES,

@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import * as React from 'react';
 import {
     Anchor, Badge, Group, Paper, Stack, Text, Title,

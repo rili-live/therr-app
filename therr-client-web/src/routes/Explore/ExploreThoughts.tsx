@@ -6,6 +6,7 @@ import { InlineSvg } from 'therr-react/components';
 import {
     ActionIcon,
     Anchor,
+    Avatar,
     Badge,
     Breadcrumbs,
     Button,
@@ -23,9 +24,17 @@ import {
     Tooltip,
 } from '@mantine/core';
 import { Categories } from 'therr-js-utilities/constants';
-import { toIntlLocale } from '../../utilities/formatDate';
+import { canRepostThought } from 'therr-js-utilities/content';
+import { formatTimeAgo } from '../../utilities/formatDate';
+import getUserImageUri from '../../utilities/getUserImageUri';
+import {
+    getRepliesLabelKey, getReplyCount, getTopReply, shouldAutoExpandThread,
+} from '../../utilities/threadPreview';
 import UsersActions from '../../redux/actions/UsersActions';
 import useTranslation from '../../hooks/useTranslation';
+import EmbeddedThought from '../../components/EmbeddedThought';
+import RepostModal from '../../components/RepostModal';
+import getRepostErrorKey from '../../utilities/repostErrors';
 
 const categoryOptions = Categories.ThoughtCategories.map((cat: string) => {
     const label = cat.replace('categories.', '').replace('/', ' / ');
@@ -35,37 +44,94 @@ const categoryOptions = Categories.ThoughtCategories.map((cat: string) => {
 const categoryLabelMap: Record<string, string> = {};
 categoryOptions.forEach((opt) => { categoryLabelMap[opt.value] = opt.label; });
 
-const formatTimeAgo = (dateStr: string, locale: string): string => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    if (Number.isNaN(date.getTime())) return '';
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMin = Math.floor(diffMs / 60000);
-    const diffHr = Math.floor(diffMs / 3600000);
-    const diffDay = Math.floor(diffMs / 86400000);
+interface IThreadPreviewProps {
+    onOpenThread: () => void;
+    replyCount: number;
+    topReply: any;
+}
 
-    if (diffMin < 1) return 'just now';
-    if (diffMin < 60) return `${diffMin}m`;
-    if (diffHr < 24) return `${diffHr}h`;
-    if (diffDay < 7) return `${diffDay}d`;
-    return date.toLocaleDateString(toIntlLocale(locale), { month: 'short', day: 'numeric' });
+/**
+ * Surfaces the top reply inline beneath a post, so the feed reads as a conversation
+ * rather than a wall of isolated posts. Mirrors the mobile ThreadPreview in
+ * `TherrMobile/main/components/UserContent/ThoughtDisplay.tsx`.
+ */
+const ThreadPreview: React.FC<IThreadPreviewProps> = ({ onOpenThread, replyCount, topReply }) => {
+    const navigate = useNavigate();
+    const { t: translate, locale } = useTranslation();
+
+    const handleReplyUserClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        navigate(`/users/${topReply.fromUserId}`);
+    }, [navigate, topReply.fromUserId]);
+
+    // The card itself is clickable; stop the bubble so opening the thread navigates once.
+    const handleContainerClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        onOpenThread();
+    }, [onOpenThread]);
+
+    return (
+        <div className="thought-card-thread-preview" onClick={handleContainerClick}>
+            <Avatar
+                src={getUserImageUri({ details: { media: topReply.fromUserMedia, id: topReply.fromUserId } }, 32)}
+                alt={topReply.fromUserName || ''}
+                size={28}
+                radius="xl"
+                onClick={handleReplyUserClick}
+                className="thought-card-thread-preview-avatar"
+            />
+            <div className="thought-card-thread-preview-body">
+                <Group gap="xs" align="center" mb={2}>
+                    {topReply.fromUserName && (
+                        <Text
+                            fw={600}
+                            size="xs"
+                            onClick={handleReplyUserClick}
+                            className="thought-card-username"
+                        >
+                            {topReply.fromUserName}
+                        </Text>
+                    )}
+                    <Text size="xs" c="dimmed">
+                        {topReply.createdAt && formatTimeAgo(topReply.createdAt, locale, translate)}
+                    </Text>
+                </Group>
+                <Text size="sm" className="thought-card-thread-preview-message">
+                    {topReply.message}
+                </Text>
+                {replyCount > 1 && (
+                    <Text size="xs" c="dimmed" mt={4} className="thought-card-thread-preview-view-all">
+                        {translate('pages.exploreThoughts.viewAllReplies', { count: replyCount })}
+                    </Text>
+                )}
+            </div>
+        </div>
+    );
 };
 
 interface IThoughtCardProps {
     thought: any;
     onLike: (thought: any) => void;
     onBookmark: (thought: any) => void;
+    onRepost: (thought: any) => void;
+    currentUserId?: string;
 }
 
 const ThoughtCard: React.FC<IThoughtCardProps> = ({
-    thought, onLike, onBookmark,
+    thought, onLike, onBookmark, onRepost, currentUserId,
 }) => {
     const navigate = useNavigate();
-    const { locale } = useTranslation();
+    const { t: translate, locale } = useTranslation();
     const isLiked = thought.reaction?.userHasLiked;
     const isBookmarked = thought.reaction?.userBookmarkCategory;
     const hashtags = thought.hashTags ? thought.hashTags.split(',').filter(Boolean) : [];
+    const replyCount = getReplyCount(thought);
+    const topReply = shouldAutoExpandThread(thought) ? getTopReply(thought) : undefined;
+    const repliesLabel = translate(getRepliesLabelKey(replyCount), { count: replyCount });
+    const repostCount = thought.repostCount || 0;
+    // Shared with the server's own gate (handlers/thoughts createThought) so the control is
+    // only ever offered where a repost would actually be accepted.
+    const canRepost = canRepostThought(thought, currentUserId);
 
     const handleUserClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
@@ -79,6 +145,16 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
     return (
         <div className="thought-card thought-card-clickable" onClick={handleCardClick}>
             <div className="thought-card-content">
+                {thought.isRepost && (
+                    // Above the author row, so the card still reads as posted by the reposter —
+                    // the embed below carries the original author's identity.
+                    <Group gap={4} align="center" mb={4} className="thought-card-repost-attribution">
+                        <InlineSvg name="repeat" className="discovered-tile-icon" />
+                        <Text size="xs" c="dimmed" fw={600}>
+                            {translate('pages.exploreThoughts.repostedBy', { userName: thought.fromUserName || '' })}
+                        </Text>
+                    </Group>
+                )}
                 <Group gap="xs" align="center" mb={4}>
                     <Text
                         fw={700}
@@ -89,7 +165,7 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
                         {thought.fromUserName}
                     </Text>
                     <Text size="xs" c="dimmed">
-                        {thought.createdAt && formatTimeAgo(thought.createdAt, locale)}
+                        {thought.createdAt && formatTimeAgo(thought.createdAt, locale, translate)}
                     </Text>
                     {thought.category && categoryLabelMap[thought.category] && (
                         <Text size="xs" c="dimmed" className="thought-card-category">
@@ -101,6 +177,8 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
                 <Text size="sm" mb="xs" className="thought-card-message">
                     {thought.message}
                 </Text>
+
+                {thought.isRepost && <EmbeddedThought repostOf={thought.repostOf} />}
 
                 {hashtags.length > 0 && (
                     <Group gap={6} mb="xs" wrap="wrap">
@@ -148,7 +226,47 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
                             />
                         </ActionIcon>
                     </Tooltip>
+                    {canRepost && (
+                        <Tooltip label={translate('pages.exploreThoughts.repostThought')}>
+                            <Button
+                                variant="subtle"
+                                size="compact-xs"
+                                color="gray"
+                                aria-label={translate('pages.exploreThoughts.repostThought')}
+                                onClick={() => onRepost(thought)}
+                                leftSection={(
+                                    <InlineSvg name="repeat" className="discovered-tile-icon" />
+                                )}
+                                className="thought-card-repost-count"
+                            >
+                                {repostCount || ''}
+                            </Button>
+                        </Tooltip>
+                    )}
+                    <Tooltip label={repliesLabel}>
+                        <Button
+                            variant="subtle"
+                            size="compact-xs"
+                            color="gray"
+                            aria-label={repliesLabel}
+                            onClick={handleCardClick}
+                            leftSection={(
+                                <InlineSvg name="forum" className="discovered-tile-icon" />
+                            )}
+                            className="thought-card-reply-count"
+                        >
+                            {replyCount || ''}
+                        </Button>
+                    </Tooltip>
                 </Group>
+
+                {topReply && (
+                    <ThreadPreview
+                        onOpenThread={handleCardClick}
+                        replyCount={replyCount}
+                        topReply={topReply}
+                    />
+                )}
             </div>
         </div>
     );
@@ -351,12 +469,19 @@ const ExploreThoughts: React.FC = () => {
     const user = useSelector((state: any) => state.user);
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
+    // The thought the repost composer is open for (null when closed).
+    const [repostTarget, setRepostTarget] = useState<any>(null);
+    const [isReposting, setIsReposting] = useState(false);
+    const [repostError, setRepostError] = useState('');
 
     const fetchThoughts = useCallback((page = 1) => {
         const offset = (page - 1) * ITEMS_PER_PAGE;
         const params = {
             withMedia: true,
             withUser: true,
+            // Powers the inline thread previews. The API caps this at a few preview
+            // replies per post and returns the true total as `replyCount`.
+            withReplies: true,
             offset,
             ...content.activeAreasFilters,
             blockedUsers: user.details.blockedUsers,
@@ -407,6 +532,47 @@ const ExploreThoughts: React.FC = () => {
         ) as any);
     }, [dispatch, user?.details?.userName]);
 
+    const handleRepost = useCallback((thought: any) => {
+        setRepostError('');
+        setRepostTarget(thought);
+    }, []);
+
+    const handleRepostConfirm = useCallback((message: string) => {
+        if (!repostTarget?.id) {
+            return;
+        }
+
+        // Hashtags come from the user's own quote only. Carrying the original's tags over would
+        // put the reposter's account in feeds they never chose to post into.
+        const hashTags = message.match(/#[a-z0-9_]+/g) || [];
+        const hashTagsString = [...new Set(hashTags.map((t) => t.replace(/#/g, '')))].join(',');
+
+        setRepostError('');
+        setIsReposting(true);
+
+        dispatch(UsersActions.createThought({
+            fromUserId: user.details.id,
+            // Reposting is a public act by definition — it surfaces the original to the
+            // reposter's audience, so a private repost would be a no-op with a side effect.
+            isPublic: true,
+            message,
+            hashTags: hashTagsString,
+            repostThoughtId: repostTarget.id,
+            locale: user.details.locale || 'en-us',
+        }) as any)
+            .then(() => {
+                setRepostTarget(null);
+                setCurrentPage(1);
+                fetchThoughts(1);
+            })
+            .catch((err: any) => {
+                setRepostError(translate(getRepostErrorKey(err?.statusCode)));
+            })
+            .finally(() => {
+                setIsReposting(false);
+            });
+    }, [dispatch, repostTarget, user.details.id, user.details.locale, fetchThoughts, translate]);
+
     const handlePostSuccess = useCallback(() => {
         setCurrentPage(1);
         fetchThoughts(1);
@@ -429,6 +595,14 @@ const ExploreThoughts: React.FC = () => {
                 </div>
 
                 <ComposeThought onSuccess={handlePostSuccess} />
+
+                <RepostModal
+                    thought={repostTarget}
+                    isSubmitting={isReposting}
+                    error={repostError}
+                    onClose={() => setRepostTarget(null)}
+                    onConfirm={handleRepostConfirm}
+                />
 
                 {isLoading && (
                     <Stack gap="md">
@@ -453,6 +627,8 @@ const ExploreThoughts: React.FC = () => {
                                     thought={thought}
                                     onLike={handleLike}
                                     onBookmark={handleBookmark}
+                                    onRepost={handleRepost}
+                                    currentUserId={user?.details?.id}
                                 />
                             ))}
                         </Stack>

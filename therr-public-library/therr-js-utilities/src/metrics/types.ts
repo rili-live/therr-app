@@ -27,7 +27,6 @@ export abstract class MetricsProvider {
     // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-empty-function
     constructor() {}
 
-    // eslint-disable-next-line class-methods-use-this
     abstract uploadMetric: (
         metric: IMetric,
         dimensions: IMetricDimensions,
@@ -35,6 +34,5 @@ export abstract class MetricsProvider {
         uniqueDbProperties?: IMetricUniqueProperties,
     ) => Promise<any>
 
-    // eslint-disable-next-line class-methods-use-this
     abstract uploadMetrics:(metrics: IMetricCombined[], headers: InternalConfigHeaders) => Promise<any[]>
 }

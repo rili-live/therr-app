@@ -1,4 +1,3 @@
-/* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
 import Store from '../../src/store';
@@ -21,7 +20,7 @@ describe('Direct Messages Handler', () => {
 
             const createDMStub = sinon.stub(Store.directMessages, 'createDirectMessage').resolves([mockMessage]);
 
-            const result = await Store.directMessages.createDirectMessage({
+            const result = await Store.directMessages.createDirectMessage('therr', {
                 message: 'Hello!',
                 toUserId: 'user-2',
                 fromUserId: 'user-1',
@@ -38,7 +37,7 @@ describe('Direct Messages Handler', () => {
         it('should include locale in the message', async () => {
             const createDMStub = sinon.stub(Store.directMessages, 'createDirectMessage').resolves([{ id: 'msg-1' }]);
 
-            await Store.directMessages.createDirectMessage({
+            await Store.directMessages.createDirectMessage('therr', {
                 message: 'Bonjour',
                 toUserId: 'user-2',
                 fromUserId: 'user-1',
@@ -47,14 +46,14 @@ describe('Direct Messages Handler', () => {
             });
 
             expect(createDMStub.calledOnce).to.be.eq(true);
-            const callArgs = createDMStub.args[0][0];
+            const callArgs = createDMStub.args[0][1];
             expect(callArgs.locale).to.equal('fr-fr');
         });
 
         it('should handle unread flag correctly', async () => {
             const createDMStub = sinon.stub(Store.directMessages, 'createDirectMessage').resolves([{ id: 'msg-1' }]);
 
-            await Store.directMessages.createDirectMessage({
+            await Store.directMessages.createDirectMessage('therr', {
                 message: 'Read message',
                 toUserId: 'user-2',
                 fromUserId: 'user-1',
@@ -62,7 +61,7 @@ describe('Direct Messages Handler', () => {
                 locale: 'en-us',
             });
 
-            const callArgs = createDMStub.args[0][0];
+            const callArgs = createDMStub.args[0][1];
             expect(callArgs.isUnread).to.be.eq(false);
         });
     });
@@ -77,6 +76,7 @@ describe('Direct Messages Handler', () => {
             const searchStub = sinon.stub(Store.directMessages, 'searchDirectMessages').resolves(mockMessages);
 
             const result = await Store.directMessages.searchDirectMessages(
+                'therr',
                 'user-1',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -96,6 +96,7 @@ describe('Direct Messages Handler', () => {
             const searchStub = sinon.stub(Store.directMessages, 'searchDirectMessages').resolves([]);
 
             await Store.directMessages.searchDirectMessages(
+                'therr',
                 'user-1',
                 {
                     pagination: { itemsPerPage: 10, pageNumber: 1 },
@@ -108,7 +109,7 @@ describe('Direct Messages Handler', () => {
             );
 
             expect(searchStub.calledOnce).to.be.eq(true);
-            expect(searchStub.args[0][3]).to.equal('true');
+            expect(searchStub.args[0][4]).to.equal('true');
         });
     });
 
@@ -125,7 +126,7 @@ describe('Direct Messages Handler', () => {
 
             const searchLatestStub = sinon.stub(Store.directMessages, 'searchLatestDMs').resolves(mockConversations);
 
-            const result = await Store.directMessages.searchLatestDMs('user-1', {
+            const result = await Store.directMessages.searchLatestDMs('therr', 'user-1', {
                 pagination: { itemsPerPage: 10, pageNumber: 1 },
             });
 
@@ -137,12 +138,12 @@ describe('Direct Messages Handler', () => {
         it('should paginate conversation list', async () => {
             const searchLatestStub = sinon.stub(Store.directMessages, 'searchLatestDMs').resolves([]);
 
-            await Store.directMessages.searchLatestDMs('user-1', {
+            await Store.directMessages.searchLatestDMs('therr', 'user-1', {
                 pagination: { itemsPerPage: 5, pageNumber: 2 },
             });
 
             expect(searchLatestStub.calledOnce).to.be.eq(true);
-            const callArgs = searchLatestStub.args[0][1];
+            const callArgs = searchLatestStub.args[0][2];
             expect(callArgs.pagination.itemsPerPage).to.equal(5);
             expect(callArgs.pagination.pageNumber).to.equal(2);
         });
@@ -152,7 +153,7 @@ describe('Direct Messages Handler', () => {
         it('should count messages with filter', async () => {
             const countStub = sinon.stub(Store.directMessages, 'countRecords').resolves([{ count: '42' }]);
 
-            const result = await Store.directMessages.countRecords({
+            const result = await Store.directMessages.countRecords('therr', {
                 filterBy: 'isUnread',
                 query: true,
             });
@@ -164,7 +165,7 @@ describe('Direct Messages Handler', () => {
         it('should return count without filter', async () => {
             const countStub = sinon.stub(Store.directMessages, 'countRecords').resolves([{ count: '100' }]);
 
-            const result = await Store.directMessages.countRecords({});
+            const result = await Store.directMessages.countRecords('therr', {});
 
             expect(result[0].count).to.equal('100');
         });

@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import moment from 'moment';
-import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
+// eslint-disable-next-line import/extensions, import/no-unresolved
+import { getBrandContext, getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { findUsers } from '../api/usersService';
@@ -8,8 +9,9 @@ import { findUsers } from '../api/usersService';
 // CREATE
 const createDirectMessage = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
+    const { brandVariation } = getBrandContext(req.headers);
 
-    return Store.directMessages.createDirectMessage({
+    return Store.directMessages.createDirectMessage(brandVariation, {
         message: req.body.message,
         toUserId: req.body.toUserId,
         fromUserId: req.body.fromUserId,
@@ -23,6 +25,7 @@ const createDirectMessage = (req, res) => {
 // READ
 const searchDirectMessages: RequestHandler = (req: any, res: any) => {
     const userId = req.headers['x-userid'];
+    const { brandVariation } = getBrandContext(req.headers);
     const {
         filterBy,
         query,
@@ -32,7 +35,7 @@ const searchDirectMessages: RequestHandler = (req: any, res: any) => {
     } = req.query;
     const integerColumns = [];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const searchPromise = Store.directMessages.searchDirectMessages(userId, searchArgs[0], searchArgs[1], shouldCheckReverse);
+    const searchPromise = Store.directMessages.searchDirectMessages(brandVariation, userId, searchArgs[0], searchArgs[1], shouldCheckReverse);
     // const countPromise = Store.directMessages.countRecords({
     //     filterBy,
     //     query,
@@ -62,6 +65,7 @@ const searchMyDirectMessages: RequestHandler = (req: any, res: any) => {
         locale,
         userId,
     } = parseHeaders(req.headers);
+    const { brandVariation } = getBrandContext(req.headers);
     const {
         filterBy,
         query,
@@ -71,7 +75,7 @@ const searchMyDirectMessages: RequestHandler = (req: any, res: any) => {
     const integerColumns = [];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
 
-    return Store.directMessages.searchLatestDMs(userId, searchArgs[0]).then((results) => {
+    return Store.directMessages.searchLatestDMs(brandVariation, userId, searchArgs[0]).then((results) => {
         const userIds = results?.map((result) => (result.toUserId !== userId ? result.toUserId : result.fromUserId));
         // TODO: Fetch user details for display
         return findUsers(req.headers, userIds).then((usersResponse) => {

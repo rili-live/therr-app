@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { Stack } from '@mantine/core';
 import isValidPassword from 'therr-js-utilities/is-valid-password';
+import isValidSignupAge, { MINIMUM_SIGNUP_AGE } from 'therr-js-utilities/is-valid-signup-age';
 import {
     PasswordRequirements,
 } from 'therr-react/components';
@@ -19,6 +20,12 @@ interface IRegisterFormProps {
   onGoogleRegister?: Function;
   title: string;
   inviteCode?: string;
+  // Magic invite-link context. prefillEmail seeds the email field, inviteToken
+  // is forwarded to registration (trusts the invited channel + auto-connects),
+  // and inviterName drives the "invited by" header.
+  prefillEmail?: string;
+  inviteToken?: string;
+  inviterName?: string;
   locale: string;
   translate: (key: string, params?: any) => string;
 }
@@ -40,9 +47,10 @@ export class RegisterFormComponent extends React.Component<
 
         this.state = {
             inputs: {
-                email: '',
+                email: props.prefillEmail || '',
                 password: '',
                 repeatPassword: '',
+                settingsBirthdate: '',
                 hasAgreedToTerms: false,
                 settingsEmailMarketing: true,
                 inviteCode: props.inviteCode || '',
@@ -55,6 +63,7 @@ export class RegisterFormComponent extends React.Component<
     isFormDisabled() {
         return !this.state.inputs.email
             || !this.state.inputs.password
+            || !this.state.inputs.settingsBirthdate
             || !this.state.inputs.hasAgreedToTerms
             || !this.isFormValid();
     }
@@ -62,13 +71,17 @@ export class RegisterFormComponent extends React.Component<
     isFormValid() {
         const { inputs } = this.state;
         return inputs.password === inputs.repeatPassword
-            && isValidPassword(inputs.password);
+            && isValidPassword(inputs.password)
+            && isValidSignupAge(inputs.settingsBirthdate);
     }
 
     onSubmit = () => {
         if (!this.isFormDisabled()) {
             const creds = { ...this.state.inputs };
             delete creds.repeatPassword;
+            if (this.props.inviteToken) {
+                creds.inviteToken = this.props.inviteToken;
+            }
             this.props.register(creds);
         }
     };
@@ -117,6 +130,17 @@ export class RegisterFormComponent extends React.Component<
                 <div className="flex fill max-wide-30">
                     <Stack gap="sm">
                         <h1 className="text-center">{this.props.title}</h1>
+                        {
+                            this.props.inviterName
+                            && (
+                                <h4 className="mb-1 text-center">
+                                    {this.props.translate(
+                                        'components.registerForm.text.invitedBy',
+                                        { inviterName: this.props.inviterName },
+                                    )}
+                                </h4>
+                            )
+                        }
                         {
                             inviteCode
                             && (
@@ -187,6 +211,32 @@ export class RegisterFormComponent extends React.Component<
                             className="password-requirements mb-2 px-2"
                             password={this.state.inputs.password}
                             translate={this.props.translate}
+                        />
+
+                        <MantineInput
+                            type="date"
+                            id="birthdate"
+                            name="settingsBirthdate"
+                            value={this.state.inputs.settingsBirthdate}
+                            onChange={this.onInputChange}
+                            translateFn={this.props.translate}
+                            max={new Date().toISOString().split('T')[0]}
+                            label={this.props.translate(
+                                'components.registerForm.labels.birthdate',
+                            )}
+                            description={this.props.translate(
+                                'components.registerForm.text.birthdateHint',
+                                { minAge: `${MINIMUM_SIGNUP_AGE}` },
+                            )}
+                            error={
+                                this.state.inputs.settingsBirthdate
+                                && !isValidSignupAge(this.state.inputs.settingsBirthdate)
+                                    ? this.props.translate(
+                                        'components.registerForm.text.birthdateTooYoung',
+                                        { minAge: `${MINIMUM_SIGNUP_AGE}` },
+                                    )
+                                    : undefined
+                            }
                         />
 
                         <MantineInput

@@ -515,23 +515,28 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                     })
                     .catch((error: any) => {
                         // TODO: Delete uploaded file on failure to create
+                        let errorMsg: string;
                         if (
                             error.statusCode === 400 ||
                             error.statusCode === 401 ||
                             error.statusCode === 404
                         ) {
-                            this.setState({
-                                errorMsg: `${error.message}${
-                                    error.parameters
-                                        ? '(' + error.parameters.toString() + ')'
-                                        : ''
-                                }`,
-                            });
-                        } else if (error.statusCode >= 500) {
-                            this.setState({
-                                errorMsg: this.translate('forms.editSpace.backendErrorMessage'),
-                            });
+                            errorMsg = `${error.message}${
+                                error.parameters
+                                    ? '(' + error.parameters.toString() + ')'
+                                    : ''
+                            }`;
+                        } else {
+                            // Covers 5xx and errors with no statusCode (network
+                            // failure / timeout). Without an explicit reset here the
+                            // submit button spinner stayed active indefinitely on any
+                            // non-4xx failure, which presented as the form "hanging".
+                            errorMsg = this.translate('forms.editSpace.backendErrorMessage');
                         }
+                        this.setState({
+                            isSubmitting: false,
+                            errorMsg,
+                        });
                     })
                     .finally(() => {
                         Keyboard.dismiss();

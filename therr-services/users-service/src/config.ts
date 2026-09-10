@@ -17,7 +17,9 @@ type RequiredKey =
     | 'DB_PASSWORD_MAIN_READ'
     | 'DB_PASSWORD_MAIN_WRITE'
     | 'DB_PORT_MAIN_READ'
-    | 'DB_PORT_MAIN_WRITE';
+    | 'DB_PORT_MAIN_WRITE'
+    | 'JWT_SECRET'
+    | 'JWT_EMAIL_SECRET';
 
 const requiredKeys: RequiredKey[] = [
     'USERS_SERVICE_API_PORT',
@@ -30,6 +32,8 @@ const requiredKeys: RequiredKey[] = [
     'DB_PASSWORD_MAIN_WRITE',
     'DB_PORT_MAIN_READ',
     'DB_PORT_MAIN_WRITE',
+    'JWT_SECRET',
+    'JWT_EMAIL_SECRET',
 ];
 
 export const validateEnv = (): void => {

@@ -4,10 +4,15 @@ import {
     param,
     query,
 } from 'express-validator';
+import { Reactions } from 'therr-js-utilities/constants';
 
 export const createOrUpdateSpaceReactionValidation = [
+    header('x-userid').exists(),
     param('spaceId').isString().exists(),
-    body('userViewCount').isNumeric().optional(),
+    body('userViewCount').isInt({
+        min: Reactions.USER_VIEW_COUNT_MIN,
+        max: Reactions.USER_VIEW_COUNT_MAX,
+    }).optional(),
     body('userHasActivated').isBoolean().optional(),
     body('userHasLiked').isBoolean().optional(),
     body('userHasSuperLiked').isBoolean().optional(),
@@ -15,8 +20,14 @@ export const createOrUpdateSpaceReactionValidation = [
     body('userHasReported').isBoolean().optional(),
     body('userHasSuperDisliked').isBoolean().optional(),
     body('userBookmarkCategory').optional(),
-    body('userBookmarkPriority').isNumeric().optional(),
-    body('rating').isNumeric().optional(),
+    body('userBookmarkPriority').isInt({
+        min: Reactions.USER_BOOKMARK_PRIORITY_MIN,
+        max: Reactions.USER_BOOKMARK_PRIORITY_MAX,
+    }).optional(),
+    body('rating').isInt({
+        min: Reactions.RATING_MIN,
+        max: Reactions.RATING_MAX,
+    }).optional(),
 ];
 
 export const getSpaceReactionsValidation = [

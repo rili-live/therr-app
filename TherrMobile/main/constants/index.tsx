@@ -1,5 +1,6 @@
 import { AndroidChannel, AndroidImportance } from '@notifee/react-native';
-import { PushNotifications } from 'therr-js-utilities/constants';
+
+import { METERS_PER_MILE } from './units';
 
 // CAROUSEL Constants
 const CAROUSEL_TABS = {
@@ -108,27 +109,51 @@ const getAndroidChannel = (channelId: AndroidChannelIds, vibration = true): Andr
     vibration,
 });
 
+// Every channel the app declares. Used by createAndroidNotificationChannels to
+// register all four up front instead of lazily on first render — see the comment
+// there for why a channel that doesn't exist yet costs us the notification's
+// importance and its user-facing name.
+const getAllAndroidChannels = (): AndroidChannel[] => Object
+    .values(AndroidChannelIds)
+    .map((channelId) => getAndroidChannel(channelId));
+
+// Intent-action click ids are prefixed per brand — e.g.
+//   app.therrmobile.NEW_CONNECTION (Therr)
+//   com.therr.mobile.NEW_CONNECTION (Teem)
+//   com.therr.mobile.habits.NEW_CONNECTION (Habits)
+// — so we classify by the key suffix (the last dot-segment) to keep this
+// function brand-agnostic. Any new intent-action key that isn't listed here
+// falls through to the default channel.
+const REMINDER_ACTION_KEYS = new Set<string>([
+    'LATEST_POST_VIEWCOUNT_STATS',
+    'NEW_CONNECTION',
+    'NEW_CONNECTION_REQUEST',
+    'NEW_DIRECT_MESSAGE',
+    'NEW_GROUP_MESSAGE',
+    'NEW_LIKE_RECEIVED',
+    'NEW_SUPER_LIKE_RECEIVED',
+    'NEW_THOUGHT_REPLY_RECEIVED',
+    'NEW_THOUGHT_REPOST_RECEIVED',
+]);
+
+const REWARD_ACTION_KEYS = new Set<string>([
+    'NUDGE_SPACE_ENGAGEMENT',
+]);
+
+const getIntentActionKey = (clickActionId: string): string => {
+    if (!clickActionId || typeof clickActionId !== 'string') return '';
+    const idx = clickActionId.lastIndexOf('.');
+    return idx >= 0 ? clickActionId.slice(idx + 1) : clickActionId;
+};
+
 const getAndroidChannelFromClickActionId = (clickActionId: string): AndroidChannel => {
-    if (
-        [
-            PushNotifications.AndroidIntentActions.Therr.LATEST_POST_VIEWCOUNT_STATS,
-            PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION,
-            PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST,
-            PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE,
-            PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE,
-            PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED,
-            PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED,
-            PushNotifications.AndroidIntentActions.Therr.NEW_THOUGHT_REPLY_RECEIVED,
-        ].includes(clickActionId)
-    ) {
+    const key = getIntentActionKey(clickActionId);
+
+    if (REMINDER_ACTION_KEYS.has(key)) {
         return getAndroidChannel(AndroidChannelIds.reminders);
     }
 
-    if (
-        [
-            PushNotifications.AndroidIntentActions.Therr.NUDGE_SPACE_ENGAGEMENT,
-        ].includes(clickActionId)
-    ) {
+    if (REWARD_ACTION_KEYS.has(key)) {
         return getAndroidChannel(AndroidChannelIds.rewardUpdates);
     }
 
@@ -180,6 +205,7 @@ export {
     LOCATION_PROCESSING_THROTTLE_MS,
     MAX_DISTANCE_TO_NEARBY_SPACE,
     EST_US_RADIUS_METERS,
+    METERS_PER_MILE,
 
     // RegEx
     youtubeLinkRegex,
@@ -187,6 +213,7 @@ export {
     // Push Notifications
     AndroidChannels,
     AndroidChannelIds,
+    getAllAndroidChannels,
     getAndroidChannel,
     getAndroidChannelFromClickActionId,
 

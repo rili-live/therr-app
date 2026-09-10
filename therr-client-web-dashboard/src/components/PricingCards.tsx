@@ -1,6 +1,5 @@
 /* eslint-disable max-len */
 import React, { useState } from 'react';
-import ReactGA from 'react-ga4';
 import {
     Col,
     Row,
@@ -15,6 +14,7 @@ import CountUp from 'react-countup';
 import {
     faRocket,
 } from '@fortawesome/free-solid-svg-icons';
+import { startCheckout, CheckoutPlan } from '../utilities/startCheckout';
 
 interface IPricingCardsProps {
     eventSource: string;
@@ -25,13 +25,14 @@ const PricingCards = ({
 }: IPricingCardsProps) => {
     const [isPriceMonthly, setIsPriceMonthly] = useState(true);
     const priceType = isPriceMonthly ? 'monthly' : 'annual';
-    const onClickUpgrade = (plan: string) => {
-        ReactGA.event('clicked_upgrade_btn', {
-            source: eventSource,
-            plan,
-        });
-    };
-    const getOnClickUpgrade = (plan: string) => () => onClickUpgrade(plan);
+    // The only surface where the buyer picks both a plan and a billing period,
+    // so it is the only one that passes `billingPeriod` through to Stripe. The
+    // upgrade menus elsewhere sell basic/monthly and say so.
+    const getOnClickUpgrade = (plan: CheckoutPlan) => () => startCheckout({
+        plan,
+        billingPeriod: priceType,
+        eventSource,
+    });
     const togglePriceType = () => {
         setIsPriceMonthly(!isPriceMonthly);
     };
@@ -94,8 +95,6 @@ const PricingCards = ({
                                         <Card.Footer className="border-gray-100 py-4 px-4 mt-4">
                                             <Button
                                                 onClick={getOnClickUpgrade('basic')}
-                                                href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'}
-                                                target="_blank"
                                                 variant="primary"
                                                 className="text-white w-100"
                                             >
@@ -131,8 +130,6 @@ const PricingCards = ({
                                         <Card.Footer className="border-gray-100 py-4 px-4 mt-4">
                                             <Button
                                                 onClick={getOnClickUpgrade('advanced')}
-                                                href={'https://buy.stripe.com/aEUdRI78F0aGePu6op'}
-                                                target="_blank"
                                                 variant="primary"
                                                 className="text-white w-100"
                                             >
@@ -169,8 +166,6 @@ const PricingCards = ({
                                         <Card.Footer className="border-gray-100 py-4 px-4 mt-4">
                                             <Button
                                                 onClick={getOnClickUpgrade('pro')}
-                                                href={'https://buy.stripe.com/8wM14W64Bg9E36M146'}
-                                                target="_blank"
                                                 variant="primary"
                                                 className="text-white w-100"
                                             >

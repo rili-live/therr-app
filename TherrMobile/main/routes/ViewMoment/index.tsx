@@ -205,6 +205,10 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         if (checkIsMyMoment(moment, user)) {
             deleteMoment({ ids: [moment.id] })
                 .then(() => {
+                    this.setState({
+                        isDeleting: false,
+                        isDeleteDialogVisible: false,
+                    });
                     navigation.navigate('Map', {
                         shouldShowPreview: false,
                     });
@@ -415,6 +419,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                     isSuperUser: momentUserIsSuperUser,
                                 }}
                                 areaMedia={momentMedia}
+                                placeholderMediaType="autoplay"
                                 theme={this.theme}
                                 themeForms={this.themeForms}
                                 themeViewArea={this.themeArea}

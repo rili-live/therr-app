@@ -59,3 +59,12 @@ export const getListsForSpaceValidation = [
     header('x-userid').exists(),
     param('spaceId').isUUID(),
 ];
+
+// Public list lookup — x-userid is NOT required (auth-optional).
+// Slug is URL-friendly lowercase with hyphens, max 100 chars (see slugify util).
+export const getPublicUserListValidation = [
+    param('ownerUserId').isUUID(),
+    param('listSlug').isString().isLength({ min: 1, max: 100 }).matches(/^[a-z0-9-]+$/),
+    query('limit').optional().isNumeric(),
+    query('offset').optional().isNumeric(),
+];

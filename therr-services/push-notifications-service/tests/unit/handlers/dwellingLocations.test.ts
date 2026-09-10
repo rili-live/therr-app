@@ -1,0 +1,258 @@
+import { expect } from 'chai';
+import sinon from 'sinon';
+import { Location } from 'therr-js-utilities/constants';
+import {
+    findCurrentDwellingLocation,
+    getDwellingLocationsCached,
+    isAtDwellingLocation,
+    isDwellingLocation,
+} from '../../../src/handlers/helpers/dwellingLocations';
+import * as userLocationHelpers from '../../../src/handlers/helpers/userLocations';
+
+const NOW = new Date('2026-07-28T12:00:00.000Z').getTime();
+const DAY_MS = 1000 * 60 * 60 * 24;
+
+// Golden Gate Park area
+const HOME = {
+    latitude: 37.7749,
+    longitude: -122.4194,
+};
+
+// ~1.3km east of HOME
+const AWAY = {
+    latitude: 37.7749,
+    longitude: -122.4044,
+};
+
+const buildLocation = (overrides: any = {}) => ({
+    id: 'location-1',
+    latitude: HOME.latitude,
+    longitude: HOME.longitude,
+    isDeclaredHome: false,
+    distinctDayCount: Location.DWELL_MIN_DISTINCT_DAYS,
+    lastVisitedAt: new Date(NOW - DAY_MS).toISOString(),
+    ...overrides,
+});
+
+describe('dwellingLocations', () => {
+    describe('isDwellingLocation', () => {
+        it('should qualify a location observed on enough distinct days', () => {
+            expect(isDwellingLocation(buildLocation(), NOW)).to.be.eq(true);
+        });
+
+        it('should not qualify a location observed on too few distinct days', () => {
+            const location = buildLocation({ distinctDayCount: Location.DWELL_MIN_DISTINCT_DAYS - 1 });
+
+            expect(isDwellingLocation(location, NOW)).to.be.eq(false);
+        });
+
+        it('should not qualify a frequently visited location seen on a single day', () => {
+            // A coffee shop can accumulate a high visitCount from background pings in one sitting
+            const location = buildLocation({ distinctDayCount: 1, visitCount: 250 });
+
+            expect(isDwellingLocation(location, NOW)).to.be.eq(false);
+        });
+
+        it('should always qualify a user-declared home', () => {
+            const location = buildLocation({
+                isDeclaredHome: true,
+                distinctDayCount: 1,
+                lastVisitedAt: new Date(NOW - (DAY_MS * 365)).toISOString(),
+            });
+
+            expect(isDwellingLocation(location, NOW)).to.be.eq(true);
+        });
+
+        it('should let a stale dwelling (e.g. last year\'s hotel) decay out', () => {
+            const location = buildLocation({
+                distinctDayCount: 10,
+                lastVisitedAt: new Date(NOW - Location.DWELL_LOCATION_MAX_AGE_MS - DAY_MS).toISOString(),
+            });
+
+            expect(isDwellingLocation(location, NOW)).to.be.eq(false);
+        });
+
+        it('should keep a recent temporary living space qualified', () => {
+            // 4-night hotel stay that ended a week ago
+            const location = buildLocation({
+                distinctDayCount: 4,
+                lastVisitedAt: new Date(NOW - (DAY_MS * 7)).toISOString(),
+            });
+
+            expect(isDwellingLocation(location, NOW)).to.be.eq(true);
+        });
+
+        it('should handle string column values from postgres', () => {
+            const location = buildLocation({
+                distinctDayCount: `${Location.DWELL_MIN_DISTINCT_DAYS}`,
+                lastVisitedAt: new Date(NOW - DAY_MS),
+            });
+
+            expect(isDwellingLocation(location, NOW)).to.be.eq(true);
+        });
+
+        it('should not qualify a location with a missing or unparseable lastVisitedAt', () => {
+            expect(isDwellingLocation(buildLocation({ lastVisitedAt: null }), NOW)).to.be.eq(false);
+            expect(isDwellingLocation(buildLocation({ lastVisitedAt: 'not-a-date' }), NOW)).to.be.eq(false);
+        });
+
+        it('should not throw on a missing location', () => {
+            expect(isDwellingLocation(undefined as any, NOW)).to.be.eq(false);
+        });
+    });
+
+    describe('findCurrentDwellingLocation', () => {
+        it('should match a dwelling the user is standing at', () => {
+            const match = findCurrentDwellingLocation([buildLocation()], HOME, NOW);
+
+            expect(match?.id).to.equal('location-1');
+        });
+
+        it('should match through GPS drift within the dwelling radius', () => {
+            // ~0.0005 degrees latitude is ~55m — inside DWELL_LOCATION_RADIUS_METERS but
+            // far enough to land in a different rounded coordinate cell
+            const drifted = {
+                latitude: HOME.latitude + 0.0005,
+                longitude: HOME.longitude,
+            };
+
+            expect(isAtDwellingLocation([buildLocation()], drifted, NOW)).to.be.eq(true);
+        });
+
+        it('should not match when the user is away from every dwelling', () => {
+            expect(findCurrentDwellingLocation([buildLocation()], AWAY, NOW)).to.be.eq(undefined);
+        });
+
+        it('should not match a nearby location that is not yet a dwelling', () => {
+            const notADwelling = buildLocation({ distinctDayCount: 1 });
+
+            expect(findCurrentDwellingLocation([notADwelling], HOME, NOW)).to.be.eq(undefined);
+        });
+
+        it('should return undefined for an empty or missing dwelling list', () => {
+            expect(findCurrentDwellingLocation([], HOME, NOW)).to.be.eq(undefined);
+            expect(findCurrentDwellingLocation(undefined, HOME, NOW)).to.be.eq(undefined);
+        });
+
+        it('should ignore rows with unusable coordinates', () => {
+            const broken = buildLocation({ latitude: null, longitude: null });
+
+            expect(findCurrentDwellingLocation([broken], HOME, NOW)).to.be.eq(undefined);
+        });
+
+        it('should return undefined when the user location is invalid', () => {
+            const invalid = { latitude: NaN, longitude: NaN };
+
+            expect(findCurrentDwellingLocation([buildLocation()], invalid, NOW)).to.be.eq(undefined);
+        });
+    });
+
+    describe('isAtDwellingLocation', () => {
+        it('should suppress at home and allow while out', () => {
+            const dwellings = [buildLocation()];
+
+            expect(isAtDwellingLocation(dwellings, HOME, NOW)).to.be.eq(true);
+            expect(isAtDwellingLocation(dwellings, AWAY, NOW)).to.be.eq(false);
+        });
+
+        it('should pick whichever dwelling the user is currently at', () => {
+            const hotel = buildLocation({
+                id: 'hotel',
+                latitude: AWAY.latitude,
+                longitude: AWAY.longitude,
+                distinctDayCount: 3,
+            });
+
+            expect(isAtDwellingLocation([buildLocation(), hotel], AWAY, NOW)).to.be.eq(true);
+        });
+    });
+});
+
+describe('getDwellingLocationsCached', () => {
+    const USER_ID = 'user-1';
+    const HEADERS = { 'x-userid': USER_ID } as any;
+    const ROWS = [{
+        id: 'loc-1', latitude: 1, longitude: 2, distinctDayCount: 5,
+    }];
+
+    const buildCache = (cached?: any[]) => ({
+        getDwellings: sinon.stub().resolves(cached),
+        setDwellings: sinon.stub().resolves(),
+    });
+
+    let fetchStub: sinon.SinonStub;
+
+    beforeEach(() => {
+        fetchStub = sinon.stub(userLocationHelpers, 'getUserDwellingLocations');
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    it('serves a cache hit without calling users-service', async () => {
+        const cache = buildCache(ROWS);
+
+        const result = await getDwellingLocationsCached(USER_ID, HEADERS, cache as any);
+
+        expect(result).to.deep.equal(ROWS);
+        // The whole point of the cache: this handler runs on every background location ping.
+        expect(fetchStub.called).to.be.eq(false);
+        expect(cache.setDwellings.called).to.be.eq(false);
+    });
+
+    it('serves a cached empty result without re-fetching', async () => {
+        const cache = buildCache([]);
+
+        const result = await getDwellingLocationsCached(USER_ID, HEADERS, cache as any);
+
+        expect(result).to.have.lengthOf(0);
+        expect(fetchStub.called).to.be.eq(false);
+    });
+
+    it('fetches and populates the cache on a miss', async () => {
+        const cache = buildCache(undefined);
+        fetchStub.resolves({ data: { userLocations: ROWS } });
+
+        const result = await getDwellingLocationsCached(USER_ID, HEADERS, cache as any);
+
+        expect(result).to.deep.equal(ROWS);
+        expect(fetchStub.calledOnceWith(USER_ID, HEADERS)).to.be.eq(true);
+        expect(cache.setDwellings.calledOnceWith(ROWS)).to.be.eq(true);
+    });
+
+    it('caches a successful fetch that returns no dwellings', async () => {
+        const cache = buildCache(undefined);
+        fetchStub.resolves({ data: { userLocations: [] } });
+
+        const result = await getDwellingLocationsCached(USER_ID, HEADERS, cache as any);
+
+        expect(result).to.have.lengthOf(0);
+        // A real "no dwellings yet" answer — the common case for new accounts — is worth
+        // caching, otherwise every ping pays for the round trip.
+        expect(cache.setDwellings.calledOnce).to.be.eq(true);
+    });
+
+    it('does not cache a failed fetch', async () => {
+        const cache = buildCache(undefined);
+        // getUserDwellingLocations swallows its own errors and resolves undefined.
+        fetchStub.resolves(undefined);
+
+        const result = await getDwellingLocationsCached(USER_ID, HEADERS, cache as any);
+
+        expect(result).to.have.lengthOf(0);
+        // Caching [] here would pin "no dwellings" for the full 6-hour TTL and silently
+        // disable suppression for the rest of the window.
+        expect(cache.setDwellings.called).to.be.eq(false);
+    });
+
+    it('does not cache a malformed response body', async () => {
+        const cache = buildCache(undefined);
+        fetchStub.resolves({ data: {} });
+
+        const result = await getDwellingLocationsCached(USER_ID, HEADERS, cache as any);
+
+        expect(result).to.have.lengthOf(0);
+        expect(cache.setDwellings.called).to.be.eq(false);
+    });
+});

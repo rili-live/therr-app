@@ -3,6 +3,13 @@ import { Platform, StyleSheet } from 'react-native';
 import 'react-native-gesture-handler';
 import BaseInput from './';
 
+/**
+ * @deprecated Prefer `<BaseInput variant="round" .../>`. The new variant prop
+ * applies the same containerRound / inputContainerRound / hidden-underline /
+ * roundness=15 overrides this wrapper does today, just without the extra
+ * subclass. This file is kept so existing imports keep working — migrate
+ * incrementally.
+ */
 export class RoundInput extends BaseInput {
     constructor(props) {
         super(props);

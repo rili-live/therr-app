@@ -10,6 +10,7 @@ import subscribersRouter from './subscribersRouter';
 import usersRouter from './usersRouter';
 import userGroupsRouter from './userGroupsRouter';
 import userAchievementsRouter from './userAchievementsRouter';
+import leaderboardsRouter from './leaderboardsRouter';
 import userLocationsRouter from './userLocationsRouter';
 import notificationsRouter from './notificationsRouter';
 import rewardsRouter from './rewardsRouter';
@@ -21,8 +22,12 @@ import userOrganizationsRouter from './userOrganizationsRouter';
 // HABITS routers
 import habitGoalsRouter from './habitGoalsRouter';
 import pactsRouter from './pactsRouter';
+import pactActivitiesRouter from './pactActivitiesRouter';
 import habitCheckinsRouter from './habitCheckinsRouter';
 import streaksRouter from './streaksRouter';
+import userHabitsRouter from './userHabitsRouter';
+import habitsLifetimeRouter from './habitsLifetimeRouter';
+import journalRouter from './journalRouter';
 
 const router = express.Router();
 
@@ -37,6 +42,7 @@ router.use('/rewards', rewardsRouter);
 router.use('/subscribers', subscribersRouter);
 router.use('/thoughts', thoughtsRouter);
 router.use('/users/achievements', userAchievementsRouter);
+router.use('/users/leaderboards', leaderboardsRouter);
 router.use('/users/connections', userConnectionsRouter);
 router.use('/users/notifications', notificationsRouter);
 router.use('/users/interests', userInterestsRouter);
@@ -49,7 +55,11 @@ router.use('/users-groups', userGroupsRouter);
 // HABITS routes
 router.use('/habits/goals', habitGoalsRouter);
 router.use('/habits/pacts', pactsRouter);
+router.use('/habits/pacts', pactActivitiesRouter);
 router.use('/habits/checkins', habitCheckinsRouter);
 router.use('/habits/streaks', streaksRouter);
+router.use('/habits/user-habits', userHabitsRouter);
+router.use('/habits/lifetime', habitsLifetimeRouter);
+router.use('/habits/journal', journalRouter);
 
 export default router;

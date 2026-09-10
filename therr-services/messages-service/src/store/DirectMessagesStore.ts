@@ -1,10 +1,14 @@
 import KnexBuilder, { Knex } from 'knex';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import { getDbCountQueryString } from 'therr-js-utilities/db';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
+import BrandScopedStore, { BrandValue } from './BrandScopedStore';
 import { IConnection } from './connection';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
+// eslint-disable-next-line therr/no-direct-brand-scoped-table -- this is the sanctioned canonical reference
 export const DIRECT_MESSAGES_TABLE_NAME = 'main.directMessages';
 
 export interface ICreateDirectMessageParams {
@@ -24,68 +28,145 @@ export interface IUpdateDirectMessageParams {
     isUnread?: boolean;
 }
 
-export default class DirectMessagesStore {
-    db: IConnection;
-
-    constructor(dbConnection) {
-        this.db = dbConnection;
+export default class DirectMessagesStore extends BrandScopedStore {
+    constructor(dbConnection: IConnection) {
+        // Brand-scoped per docs/NICHE_APP_DATABASE_GUIDELINES.md.
+        // Stays in 'shadow' for one release cycle alongside the other Phase 3 stores.
+        super(dbConnection, DIRECT_MESSAGES_TABLE_NAME, 'shadow');
     }
 
-    countRecords(params) {
+    countRecords(brand: BrandValue, params) {
+        this.assertBrand(brand);
         const queryString = getDbCountQueryString({
             queryBuilder: knexBuilder,
             tableName: DIRECT_MESSAGES_TABLE_NAME,
             params,
-            defaultConditions: {},
+            defaultConditions: { [`${DIRECT_MESSAGES_TABLE_NAME}.brandVariation`]: brand },
         });
 
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
     // eslint-disable-next-line default-param-last
-    searchDirectMessages(userId, conditions: any = {}, returning, shouldCheckReverse?: string) {
-        const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
-        const limit = conditions.pagination.itemsPerPage;
-        let queryString: any = knexBuilder
-            .select((returning && returning.length) ? returning : '*')
-            .from(DIRECT_MESSAGES_TABLE_NAME)
-            .orderBy(`${DIRECT_MESSAGES_TABLE_NAME}.updatedAt`, 'desc');
+    searchDirectMessages(brand: BrandValue, userId, conditions: any = {}, returning, shouldCheckReverse?: string) {
+        this.assertBrand(brand);
+        const offset = Number(conditions.pagination.itemsPerPage) * (Number(conditions.pagination.pageNumber) - 1);
+        const limit = Number(conditions.pagination.itemsPerPage);
+
+        // Allowlist prevents injection when filterBy comes from URL query params.
+        const FILTER_COL_MAP: Record<string, string> = {
+            fromUserId: '"fromUserId"',
+            toUserId: '"toUserId"',
+            isUnread: '"isUnread"',
+            message: '"message"',
+            locale: '"locale"',
+        };
+
+        // filterOperator is a user-controlled query param interpolated raw into the SQL
+        // string (pg cannot parameter-bind an operator). Allowlist it the same way as the
+        // column above — anything unrecognised falls back to '=' so an attacker can't smuggle
+        // SQL through the operator slot (knex.raw only checks binding *count*, not content).
+        const FILTER_OPERATOR_MAP: Record<string, string> = {
+            '=': '=',
+            '!=': '!=',
+            '<>': '<>',
+            '<': '<',
+            '<=': '<=',
+            '>': '>',
+            '>=': '>=',
+            like: 'LIKE',
+            ilike: 'ILIKE',
+        };
+
+        let sql: string;
+        let bindings: any[];
 
         if (conditions.filterBy && conditions.query) {
-            const operator = conditions.filterOperator || '=';
-            const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
-            queryString = queryString.where('toUserId', userId).andWhere(conditions.filterBy, operator, query);
+            const rawOperator = String(conditions.filterOperator || '=').toLowerCase();
+            const pgOperator = FILTER_OPERATOR_MAP[rawOperator] || '=';
+            const query = pgOperator === 'ILIKE' ? `%${conditions.query}%` : conditions.query;
+
             if (shouldCheckReverse === 'true' && conditions.filterBy === 'fromUserId') {
-                queryString = queryString.orWhere('fromUserId', userId)
-                    .andWhere('toUserId', operator, query);
+                // Bidirectional DM thread: messages I received from the other user + messages I sent them.
+                // Explicit parenthesisation ensures each OR branch carries its own brand guard.
+                sql = `
+                    SELECT * FROM "main"."directMessages"
+                    WHERE (
+                        "brandVariation" = ?
+                        AND "toUserId" = ?
+                        AND "fromUserId" = ?
+                    ) OR (
+                        "brandVariation" = ?
+                        AND "fromUserId" = ?
+                        AND "toUserId" = ?
+                    )
+                    ORDER BY "updatedAt" DESC
+                    LIMIT ${limit} OFFSET ${offset}
+                `;
+                bindings = [brand, userId, query, brand, userId, query];
+            } else {
+                const filterCol = FILTER_COL_MAP[conditions.filterBy];
+                if (filterCol) {
+                    sql = `
+                        SELECT * FROM "main"."directMessages"
+                        WHERE "brandVariation" = ?
+                        AND "toUserId" = ?
+                        AND ${filterCol} ${pgOperator} ?
+                        ORDER BY "updatedAt" DESC
+                        LIMIT ${limit} OFFSET ${offset}
+                    `;
+                    bindings = [brand, userId, query];
+                } else {
+                    sql = `
+                        SELECT * FROM "main"."directMessages"
+                        WHERE "brandVariation" = ?
+                        AND "toUserId" = ?
+                        ORDER BY "updatedAt" DESC
+                        LIMIT ${limit} OFFSET ${offset}
+                    `;
+                    bindings = [brand, userId];
+                }
             }
+        } else {
+            sql = `
+                SELECT * FROM "main"."directMessages"
+                WHERE "brandVariation" = ?
+                ORDER BY "updatedAt" DESC
+                LIMIT ${limit} OFFSET ${offset}
+            `;
+            bindings = [brand];
         }
 
-        queryString = queryString
-            .limit(limit)
-            .offset(offset)
-            .toString();
-
-        return this.db.read.query(queryString).then((response) => {
+        const native = knexBuilder.raw(sql, bindings).toSQL().toNative();
+        return this.db.read.query(native.sql, native.bindings as any[]).then((response) => {
             const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
             return configuredResponse;
         });
     }
 
-    searchLatestDMs(userId: string, conditions: any = {}) {
-        const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
-        const limit = conditions.pagination.itemsPerPage;
-        const queryString = knexBuilder.raw(`
+    searchLatestDMs(brand: BrandValue, userId: string, conditions: any = {}) {
+        this.assertBrand(brand);
+        const offset = Number(conditions.pagination.itemsPerPage) * (Number(conditions.pagination.pageNumber) - 1);
+        const limit = Number(conditions.pagination.itemsPerPage);
+        // Brand filter is applied to BOTH the outer SELECT and the inner aggregate so a per-brand
+        // thread is treated as distinct from the cross-brand thread between the same user pair.
+        // Brand and userId are parameter-bound (not interpolated) to keep the no-string-concat
+        // discipline consistent with the rest of the store, even though both values flow from
+        // assertBrand-validated input and the gateway-set x-userid header. limit/offset are
+        // coerced to Number so they're safe to embed numerically.
+        const sql = `
         SELECT
             *
         FROM
             "main"."directMessages"
-        WHERE ((least("fromUserId", "toUserId"), greatest("fromUserId", "toUserId")), "updatedAt")
+        WHERE "brandVariation" = ?
+            AND ((least("fromUserId", "toUserId"), greatest("fromUserId", "toUserId")), "updatedAt")
         in(
             SELECT
                 (least("fromUserId", "toUserId"), greatest("fromUserId", "toUserId")) AS users, max("updatedAt") AS "maxUpdated" FROM "main"."directMessages"
-            WHERE ("fromUserId" = '${userId}'
-                OR "toUserId" = '${userId}')
+            WHERE "brandVariation" = ?
+                AND ("fromUserId" = ?
+                OR "toUserId" = ?)
         GROUP BY
             users
         ORDER BY
@@ -94,15 +175,39 @@ export default class DirectMessagesStore {
         OFFSET ${offset})
         ORDER BY
             "updatedAt" DESC;
-        `).toString();
+        `;
+        const native = knexBuilder.raw(sql, [brand, brand, userId, userId]).toSQL().toNative();
 
-        return this.db.read.query(queryString).then((response) => response.rows);
+        return this.db.read.query(native.sql, native.bindings as any[]).then((response) => response.rows);
     }
 
-    createDirectMessage(params: ICreateDirectMessageParams) {
-        const queryString = knexBuilder.insert(params)
-            .into(DIRECT_MESSAGES_TABLE_NAME)
+    createDirectMessage(brand: BrandValue, params: ICreateDirectMessageParams) {
+        const queryString = this.scopedInsert(brand, { ...params })
             .returning(['id', 'updatedAt'])
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    /**
+     * Deletes every direct message the user sent OR received, across all brands.
+     *
+     * Deliberately unscoped by brand. This only runs from the account-deletion fan-out,
+     * by which point the identity row in main.users is already gone — scoping to the
+     * requesting brand would strand the same user's messages under every other brand
+     * they belonged to, which is the gap this closes rather than a case to preserve.
+     *
+     * Both sides of a thread are removed: a DM has no meaning to the surviving party
+     * once the counterpart account no longer exists, and leaving the received half
+     * behind would keep the deleted user's message content in the database.
+     */
+    deleteByUserId(userId: string) {
+        const queryString = knexBuilder
+            .from(DIRECT_MESSAGES_TABLE_NAME)
+            .where({ fromUserId: userId })
+            .orWhere({ toUserId: userId })
+            .delete()
+            .returning('id')
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);

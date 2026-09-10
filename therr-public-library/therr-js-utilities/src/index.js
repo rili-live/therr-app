@@ -8,8 +8,15 @@ const utilities = [
     // Constants
     'constants/index',
 
+    // Content Ranking (user-selectable feed algorithms)
+    'content-ranking/index',
+
     // Database Helpers
     'db/index',
+
+    // Database Helpers — server only (knex + structural pg connection types)
+    // Excluded from frontend bundles by default; consumers must import 'therr-js-utilities/db-server'.
+    'db-server/index',
 
     // HTTP/REST Helpers
     'http/index',
@@ -28,6 +35,7 @@ const utilities = [
 
     // Utilities
     'calculate-pages',
+    'content',
     'email-validator',
     'format-sql-join-as-json',
     'http-response',
@@ -35,11 +43,14 @@ const utilities = [
     'internal-rest-request',
     'is-valid-input',
     'is-valid-password',
+    'is-valid-signup-age',
     'localization',
     'promiser',
     'sanitizers',
     'scroll-to',
     'normalize-phone-number',
+    'normalize-correction-value',
+    'phone-verification-token',
     'print-logs',
     'log-or-update-span',
     'slugify',

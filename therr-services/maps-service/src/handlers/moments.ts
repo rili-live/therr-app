@@ -622,7 +622,6 @@ const createIntegratedMoment = (req, res) => {
 
     return axios({
         method: 'get',
-        // eslint-disable-next-line max-len
         url: externalIntegrationEndpoint,
     })
         .then((response) => createIntegratedMomentBase({
@@ -1093,7 +1092,7 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
         const connections = connectionsResponse?.data?.results || [];
         fromUserIds = connections
             .map((connection: any) => connection.users.filter((user: any) => user.id !== userId)?.[0]?.id || undefined)
-            .filter((id) => !!id); // eslint-disable-line eqeqeq
+            .filter((id) => !!id);
     }
     const searchPromise = Store.moments.searchMoments(
         req.headers,
@@ -1247,6 +1246,7 @@ const findMoments: RequestHandler = async (req: any, res: any) => {
         lastContentCreatedAt,
         authorId,
         isDraft,
+        shouldHideExpired,
     } = req.body;
 
     return Store.moments.findMoments(req.headers, momentIds, {
@@ -1259,6 +1259,7 @@ const findMoments: RequestHandler = async (req: any, res: any) => {
         withMedia: !!withMedia,
         withUser: !!withUser,
         shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
+        shouldHideExpired: !!shouldHideExpired,
     })
         .then(({ moments, media }) => res.status(200).send({ moments, media }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));

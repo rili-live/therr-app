@@ -18,7 +18,9 @@ function buildOverpassQuery(city: ICityConfig, category: string): string {
     throw new Error(`Unknown category: ${category}. Valid: ${Object.keys(OSM_CATEGORY_MAP).join(', ')}`);
   }
 
-  const { south, west, north, east } = city.bbox;
+  const {
+    south, west, north, east,
+  } = city.bbox;
   const bboxStr = `${south},${west},${north},${east}`;
   const filters: string[] = [];
 
@@ -60,7 +62,7 @@ export async function fetchOsmData(city: ICityConfig, category: string): Promise
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (attempt > 0) {
-      const backoff = INITIAL_BACKOFF_MS * Math.pow(2, attempt - 1);
+      const backoff = INITIAL_BACKOFF_MS * 2 ** (attempt - 1);
       console.log(`  Retry ${attempt}/${MAX_RETRIES} after ${backoff / 1000}s...`);
       await sleep(backoff);
     }

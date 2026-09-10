@@ -3,8 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Stack, Button } from '@mantine/core';
 import useTranslation from '../hooks/useTranslation';
 
-const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=app.therrmobile'; // eslint-disable-line max-len
-const APP_STORE_URL = 'https://apps.apple.com/us/app/therr/id1569988763?platform=iphone'; // eslint-disable-line max-len
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=app.therrmobile';
+const APP_STORE_URL = 'https://apps.apple.com/us/app/therr/id1569988763?platform=iphone';
 
 const InviteLanding: React.FC = () => {
     const { t: translate } = useTranslation();

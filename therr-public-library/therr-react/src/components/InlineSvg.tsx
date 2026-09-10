@@ -22,6 +22,7 @@ const iconMap: { [index: string]: string } = {
     notifications: require('../svg-icons/notifications.svg').toString(),
     people: require('../svg-icons/people.svg').toString(),
     'people-alt': require('../svg-icons/people-alt.svg').toString(),
+    repeat: require('../svg-icons/repeat.svg').toString(),
     therr: require('../svg-icons/therr.svg').toString(),
     'therr-text': require('../svg-icons/therr-text.svg').toString(),
     send: require('../svg-icons/send.svg').toString(),

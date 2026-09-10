@@ -2,6 +2,32 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+// Resolve GOOGLE_APIS_ANDROID_KEY from the process environment first (CI/EAS export it),
+// falling back to TherrMobile/.env — which is gitignored and is where local dev keeps it.
+// Android Studio does not inherit the login shell's environment, so without the .env
+// fallback a Studio build silently bakes in the literal string "null" and Maps fails at
+// runtime. Never hardcode the key here; this file is committed.
+def resolveGoogleApisAndroidKey = {
+    def fromEnv = System.getenv("GOOGLE_APIS_ANDROID_KEY")
+    if (fromEnv?.trim()) {
+        return fromEnv.trim()
+    }
+    def dotenv = rootProject.file("../.env")
+    if (dotenv.exists()) {
+        def match = dotenv.readLines().find { it.trim().startsWith("GOOGLE_APIS_ANDROID_KEY=") }
+        if (match) {
+            def value = match.trim().substring("GOOGLE_APIS_ANDROID_KEY=".length()).trim()
+            value = value.replaceAll(/^["']|["']$/, "")
+            if (value) {
+                return value
+            }
+        }
+    }
+    logger.warn("[therr] GOOGLE_APIS_ANDROID_KEY is unset — Google Maps will not load in this build.")
+    return ""
+}
+def googleApisAndroidKey = resolveGoogleApisAndroidKey()
+
 // background-geolocation
 def background_geolocation_path = "$rootDir/../node_modules/react-native-background-geolocation/android"
 apply from: "${background_geolocation_path}/app.gradle"
@@ -29,7 +55,11 @@ react {
     // debuggableVariants = ["liteDebug", "prodDebug"]
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
-    nodeExecutableAndArgs = ["/Users/zacharyanselm/.nvm/versions/node/v24.12.0/bin/node"]
+    // Only override when the developer's local NVM node is present; EAS build servers use PATH.
+    def localNode = new File("/Users/zacharyanselm/.nvm/versions/node/v24.12.0/bin/node")
+    if (localNode.exists()) {
+        nodeExecutableAndArgs = [localNode.absolutePath]
+    }
     //
     //   The command to run when bundling. By default is 'bundle'
     // bundleCommand = "ram-bundle"
@@ -89,9 +119,41 @@ android {
         applicationId "app.therrmobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 412
-        versionName "3.6.0"
-        manifestPlaceholders = [GOOGLE_APIS_ANDROID_KEY: "${System.getenv("GOOGLE_APIS_ANDROID_KEY")}"]
+        versionCode 458
+        versionName "3.17.5"
+        // App Links hosts for the autoVerify intent-filter in AndroidManifest.xml.
+        // Keyed off applicationId (same pattern as the release signingConfig below) so a
+        // niche variant only has to change applicationId and the hosts follow.
+        //
+        // Every host listed here must serve /.well-known/assetlinks.json delegating to
+        // THIS applicationId — see therr-client-web/src/_static/.well-known/. A host whose
+        // assetlinks names a different package fails verification, and Android 12+ silently
+        // hands the link back to the browser instead of opening the app.
+        def appLinkHostsByAppId = [
+            'com.therr.habits': ['habits.therr.com', 'www.habits.therr.com'],
+        ]
+        def appLinkHosts = appLinkHostsByAppId.getOrDefault(applicationId, ['therr.com', 'www.therr.com'])
+
+        // Prefix for the push-notification click-action intent filters in
+        // AndroidManifest.xml. MUST stay byte-identical to the corresponding enum in
+        // therr-public-library/therr-js-utilities/src/constants/enums/PushNotifications.ts
+        // (`AndroidIntentActions`) — the backend stamps those exact strings onto FCM
+        // display notifications as `android.notification.clickAction`, and an action with
+        // no matching intent-filter makes the notification tap a silent no-op.
+        //
+        // Note this is deliberately NOT derived from applicationId: Habits ships as
+        // `com.therr.habits` but its published intent actions are `com.therr.mobile.habits.*`.
+        def notificationActionPrefixByAppId = [
+            'com.therr.habits': 'com.therr.mobile.habits',
+            'com.therr.mobile.Teem': 'com.therr.mobile',
+        ]
+        manifestPlaceholders = [
+            GOOGLE_APIS_ANDROID_KEY: googleApisAndroidKey,
+            appLinkHost: appLinkHosts[0],
+            appLinkHostWww: appLinkHosts[1],
+            notificationActionPrefix: notificationActionPrefixByAppId
+                .getOrDefault(applicationId, 'app.therrmobile'),
+        ]
         vectorDrawables.useSupportLibrary = true
     }
     signingConfigs {
@@ -102,11 +164,18 @@ android {
             keyPassword 'android'
         }
         release {
-            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
-                storeFile file(MYAPP_UPLOAD_STORE_FILE)
-                storePassword MYAPP_UPLOAD_STORE_PASSWORD
-                keyAlias MYAPP_UPLOAD_KEY_ALIAS
-                keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            // Per-brand upload keystore: each niche variant has its own Play app
+            // (separate applicationId), so it must be signed with its own upload
+            // key. Property prefix is chosen from applicationId; values live in
+            // ~/.gradle/gradle.properties (e.g. HABITS_UPLOAD_STORE_FILE).
+            def uploadKeyPrefix = [
+                'com.therr.habits': 'HABITS',
+            ].getOrDefault(defaultConfig.applicationId, 'MYAPP')
+            if (project.hasProperty("${uploadKeyPrefix}_UPLOAD_STORE_FILE")) {
+                storeFile     file(project.property("${uploadKeyPrefix}_UPLOAD_STORE_FILE"))
+                storePassword project.property("${uploadKeyPrefix}_UPLOAD_STORE_PASSWORD")
+                keyAlias      project.property("${uploadKeyPrefix}_UPLOAD_KEY_ALIAS")
+                keyPassword   project.property("${uploadKeyPrefix}_UPLOAD_KEY_PASSWORD")
             }
         }
     }

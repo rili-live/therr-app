@@ -1,8 +1,26 @@
 import Color from 'color';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../';
 
+const _brandFaded = new Color('#143b54').fade(0.25).toString();
+
 const colors: ITherrThemeColors = {
-    // Main
+    // Semantic aliases — retro keeps brand=teal, but its `brandDark` is the
+    // distinct dark-blue retro accent (today's `primary3`). Surfaces are
+    // retro's teal-tinted backgrounds. `accent` here is a warm teal because
+    // retro doesn't use orange the way light/dark themes do.
+    brand: '#1C7F8A',
+    brandDark: '#143b54',
+    brandFaded: _brandFaded,
+    surface: '#1a6d76',
+    surfaceAlt: '#155862',
+    onSurface: '#fcfeff',
+    onSurfaceMuted: 'rgba(255,255,255,.78)',
+    onBrand: '#fcfeff',
+    border: 'gray',
+    accent: '#1E8A96',
+    onAccent: '#fcfeff',
+
+    // Legacy
     primary: '#1C7F8A',
     primary2: '#20919E',
     primary3: '#143b54',
@@ -48,6 +66,9 @@ const colors: ITherrThemeColors = {
 
     // Alerts
     alertError: '#AC3E59',
+    alertSuccess: '#26B379',
+    alertWarning: '#FDBD2E',
+    alertInfo: '#22A5B4',
 
     // Accents - Alternate color scheme to add variety and reduce blandless
     accent1: '#1E8A96',

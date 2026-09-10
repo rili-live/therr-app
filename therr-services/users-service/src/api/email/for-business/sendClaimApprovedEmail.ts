@@ -1,5 +1,3 @@
-/* eslint-disable quotes */
-/* eslint-disable max-len */
 import sendEmail from '../sendEmail';
 import * as globalConfig from '../../../../../../global-config';
 import { getHostContext } from '../../../constants/hostContext';

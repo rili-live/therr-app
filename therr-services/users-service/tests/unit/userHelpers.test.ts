@@ -57,6 +57,16 @@ describe('userHelpers', () => {
 
             expect(result1.jti).to.not.equal(result2.jti);
         });
+
+        it('includes standard iss/aud/sub/nbf claims', () => {
+            const result = createRefreshToken('user-123');
+            const decoded = jwt.decode(result.token) as any;
+
+            expect(decoded.iss).to.equal('therr-api');
+            expect(decoded.aud).to.equal('therr-app');
+            expect(decoded.sub).to.equal('user-123');
+            expect(decoded.nbf).to.equal(decoded.iat);
+        });
     });
 
     describe('createUserToken', () => {
@@ -122,6 +132,18 @@ describe('userHelpers', () => {
 
             expect(decoded1.jti).to.be.a('string');
             expect(decoded1.jti).to.not.equal(decoded2.jti);
+        });
+
+        it('includes standard iss/aud/sub/nbf claims (and keeps id for back-compat)', () => {
+            const token = createUserToken(mockUser, [], false);
+            const decoded = jwt.decode(token) as any;
+
+            expect(decoded.iss).to.equal('therr-api');
+            expect(decoded.aud).to.equal('therr-app');
+            expect(decoded.sub).to.equal('user-123');
+            expect(decoded.nbf).to.equal(decoded.iat);
+            // `id` must remain — ~40 call sites read decoded.id
+            expect(decoded.id).to.equal('user-123');
         });
     });
 });

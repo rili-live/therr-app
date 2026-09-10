@@ -1,5 +1,4 @@
 // IDs of the elements on page, used to select/focus tabs
-// eslint-disable-next-line no-shadow
 export enum INavMenuContext {
   HEADER_PROFILE = 'header_profile',
   FOOTER_MESSAGES = 'footer_messages',
@@ -30,6 +29,10 @@ export interface ISpace {
     isExclusiveToGroups: boolean;
     category: string;
     region: string;
+    addressStreetAddress?: string;
+    addressLocality?: string;
+    addressRegion?: string;
+    postalCode?: number;
     createdAt: string;
     updatedAt: string;
     geom: string;

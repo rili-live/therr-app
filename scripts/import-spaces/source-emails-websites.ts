@@ -21,7 +21,7 @@ import { searchForWebsite } from './sources/searchWeb';
 import {
   ProcessedType,
   markProcessed,
-  filterProcessedSpaces,
+  processedIdsArray,
   getProcessedStats,
 } from './utils/processedSpaces';
 import { assertDbConnection, createDbPool } from './utils/db';
@@ -134,36 +134,54 @@ interface ISpaceRow {
 async function querySpacesForEmails(db: Pool, args: ICliArgs): Promise<ISpaceRow[]> {
   const conditions = [
     '"businessEmail" IS NULL',
-    `"websiteUrl" != ''`,
+    '"websiteUrl" != \'\'',
     '"websiteUrl" IS NOT NULL',
   ];
-  return querySpacesWithConditions(db, args, conditions);
+  return querySpacesWithConditions(db, args, conditions, [
+    ProcessedType.NO_EMAIL_FOUND,
+    ProcessedType.EMAIL_FOUND,
+  ]);
 }
 
 async function querySpacesForWebsites(db: Pool, args: ICliArgs): Promise<ISpaceRow[]> {
   const conditions = [
-    `("websiteUrl" IS NULL OR "websiteUrl" = '')`,
+    '("websiteUrl" IS NULL OR "websiteUrl" = \'\')',
   ];
-  return querySpacesWithConditions(db, args, conditions);
+  return querySpacesWithConditions(db, args, conditions, [
+    ProcessedType.NO_WEBSITE_FOUND,
+    ProcessedType.WEBSITE_FOUND,
+  ]);
 }
 
-async function querySpacesWithConditions(db: Pool, args: ICliArgs, conditions: string[]): Promise<ISpaceRow[]> {
-  const params: (string | number)[] = [];
-  let paramIdx = 1;
+async function querySpacesWithConditions(
+  db: Pool,
+  args: ICliArgs,
+  conditions: string[],
+  skipTypes: ProcessedType[],
+): Promise<ISpaceRow[]> {
+  const params: (string | number | string[])[] = [];
 
   if (args.city !== 'all') {
     const cityConfig = CITIES[args.city];
     if (cityConfig) {
-      conditions.push(`"addressLocality" ILIKE $${paramIdx}`);
       params.push(`%${cityConfig.name}%`);
-      paramIdx++;
+      conditions.push(`"addressLocality" ILIKE $${params.length}`);
     }
   }
 
   if (args.category !== 'all') {
-    conditions.push(`category = $${paramIdx}`);
     params.push(args.category);
-    paramIdx++;
+    conditions.push(`category = $${params.length}`);
+  }
+
+  // Exclude already-attempted spaces before LIMIT is applied — filtering after
+  // the query meant `--limit 50` mostly returned spaces we had already tried.
+  if (!args.noSkipProcessed) {
+    const processedIds = processedIdsArray(skipTypes);
+    if (processedIds.length > 0) {
+      params.push(processedIds);
+      conditions.push(`id != ALL($${params.length}::uuid[])`);
+    }
   }
 
   let query = `SELECT id, "notificationMsg", category, "websiteUrl", "mediaIds", medias,
@@ -173,8 +191,8 @@ async function querySpacesWithConditions(db: Pool, args: ICliArgs, conditions: s
     ORDER BY RANDOM()`;
 
   if (args.limit > 0) {
-    query += ` LIMIT $${paramIdx}`;
     params.push(args.limit);
+    query += ` LIMIT $${params.length}`;
   }
 
   const result = await db.query(query, params);
@@ -188,23 +206,15 @@ function sleep(ms: number): Promise<void> {
 
 // ── Check if space needs images ──────────────────────────────────────────────
 function spaceNeedsImages(space: ISpaceRow): boolean {
-  return (!space.mediaIds || space.mediaIds === '') && !space.medias;
+  const hasMediaIds = !!space.mediaIds && space.mediaIds !== '';
+  // `medias` is jsonb — an empty array is truthy in JS but means "no media".
+  const hasMedias = Array.isArray(space.medias) ? space.medias.length > 0 : !!space.medias;
+  return !hasMediaIds && !hasMedias;
 }
 
 // ── Process spaces that need emails ──────────────────────────────────────────
 async function processEmailSpaces(db: Pool, args: ICliArgs, counters: ICounters) {
-  let spaces = await querySpacesForEmails(db, args);
-
-  if (!args.noSkipProcessed) {
-    const { filtered, skippedCount } = filterProcessedSpaces(spaces, [
-      ProcessedType.NO_EMAIL_FOUND,
-      ProcessedType.EMAIL_FOUND,
-    ]);
-    if (skippedCount > 0) {
-      console.log(`Skipping ${skippedCount} previously processed space(s) for email lookup.`);
-    }
-    spaces = filtered;
-  }
+  const spaces = await querySpacesForEmails(db, args);
 
   console.log(`Found ${spaces.length} spaces with websites needing email extraction.\n`);
 
@@ -235,7 +245,7 @@ async function processEmailSpaces(db: Pool, args: ICliArgs, counters: ICounters)
         counters.dryRunEmails++;
       } else {
         await db.query(
-          `UPDATE main.spaces SET "businessEmail" = $1, "updatedAt" = NOW() WHERE id = $2`,
+          'UPDATE main.spaces SET "businessEmail" = $1, "updatedAt" = NOW() WHERE id = $2',
           [bestEmail.email, space.id],
         );
         markProcessed(ProcessedType.EMAIL_FOUND, space.id, space.notificationMsg);
@@ -273,18 +283,7 @@ async function processEmailSpaces(db: Pool, args: ICliArgs, counters: ICounters)
 
 // ── Process spaces that need websites ────────────────────────────────────────
 async function processWebsiteSpaces(db: Pool, args: ICliArgs, counters: ICounters) {
-  let spaces = await querySpacesForWebsites(db, args);
-
-  if (!args.noSkipProcessed) {
-    const { filtered, skippedCount } = filterProcessedSpaces(spaces, [
-      ProcessedType.NO_WEBSITE_FOUND,
-      ProcessedType.WEBSITE_FOUND,
-    ]);
-    if (skippedCount > 0) {
-      console.log(`Skipping ${skippedCount} previously processed space(s) for website lookup.`);
-    }
-    spaces = filtered;
-  }
+  const spaces = await querySpacesForWebsites(db, args);
 
   console.log(`Found ${spaces.length} spaces needing website discovery.\n`);
 
@@ -316,7 +315,7 @@ async function processWebsiteSpaces(db: Pool, args: ICliArgs, counters: ICounter
         counters.dryRunWebsites++;
       } else {
         await db.query(
-          `UPDATE main.spaces SET "websiteUrl" = $1, "updatedAt" = NOW() WHERE id = $2`,
+          'UPDATE main.spaces SET "websiteUrl" = $1, "updatedAt" = NOW() WHERE id = $2',
           [searchResult.websiteUrl, space.id],
         );
         markProcessed(ProcessedType.WEBSITE_FOUND, space.id, space.notificationMsg);
@@ -333,7 +332,7 @@ async function processWebsiteSpaces(db: Pool, args: ICliArgs, counters: ICounter
           counters.dryRunEmails++;
         } else {
           await db.query(
-            `UPDATE main.spaces SET "businessEmail" = $1, "updatedAt" = NOW() WHERE id = $2`,
+            'UPDATE main.spaces SET "businessEmail" = $1, "updatedAt" = NOW() WHERE id = $2',
             [bestEmail.email, space.id],
           );
           markProcessed(ProcessedType.EMAIL_FOUND, space.id, space.notificationMsg);

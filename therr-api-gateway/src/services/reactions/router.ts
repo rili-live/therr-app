@@ -33,6 +33,7 @@ import {
     createUserListValidation,
     getUserListsValidation,
     getUserListByIdValidation,
+    getPublicUserListValidation,
     updateUserListValidation,
     deleteUserListValidation,
     addSpaceToListValidation,
@@ -203,6 +204,15 @@ reactionsServiceRouter.get('/user-lists', getUserListsValidation, validate, hand
 }));
 
 reactionsServiceRouter.get('/user-lists/for-space/:spaceId', getListsForSpaceValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'get',
+}));
+
+// Public shareable list fetch — registered BEFORE the `/user-lists/:listId`
+// route so the more specific `/user-lists/public/...` path wins matching.
+// Auth is optional: the `.unless` block in api-gateway/src/index.ts exempts
+// this URL from the JWT middleware.
+reactionsServiceRouter.get('/user-lists/public/:ownerUserId/:listSlug', getPublicUserListValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
     method: 'get',
 }));

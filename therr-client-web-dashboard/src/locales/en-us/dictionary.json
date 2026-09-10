@@ -242,7 +242,47 @@
       "successVerifiedMessage": "Check your e-mail for a link to reset your password"
     },
     "settings": {
-      "pageTitle": "Settings"
+      "pageTitle": "Settings",
+      "apiKeys": {
+        "title": "API Keys",
+        "description": "Generate keys for your applications to call the Therr API, and revoke keys you no longer use.",
+        "manageButton": "Manage API keys"
+      }
+    },
+    "apiKeys": {
+      "pageTitle": "API Keys",
+      "pageDescription": "Create and manage the keys your applications use to call the Therr API.",
+      "viewDocs": "View the API reference",
+      "createTitle": "Create a new key",
+      "nameLabel": "Key name",
+      "namePlaceholder": "e.g. Production server",
+      "createButton": "Create key",
+      "atLimit": "You have reached the limit of {max} active keys. Revoke one to create another.",
+      "listTitle": "Your keys",
+      "emptyState": "You have not created any API keys yet.",
+      "unnamed": "Unnamed key",
+      "neverUsed": "Never used",
+      "revoke": "Revoke",
+      "confirmRevoke": "Revoke \"{keyName}\"? Any application using this key will stop working immediately.",
+      "createdTitle": "Copy your new key now",
+      "createdWarning": "This is the only time the full key will be shown. Store it somewhere safe — if you lose it, you will need to revoke it and create a new one.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "upgradeTitle": "API access requires a subscription",
+      "upgradeDescription": "API keys are included with every paid plan. Choose a plan to start building with the Therr API.",
+      "upgradeButton": "View plans",
+      "table": {
+        "name": "Name",
+        "prefix": "Key prefix",
+        "created": "Created",
+        "lastUsed": "Last used",
+        "actions": "Actions"
+      },
+      "errors": {
+        "loadFailed": "We could not load your API keys. Please refresh and try again.",
+        "createFailed": "We could not create the key. Please try again.",
+        "revokeFailed": "We could not revoke the key. Please try again."
+      }
     },
     "home": {
       "pageTitle": "Home"
@@ -260,7 +300,16 @@
     "login": {
       "pageTitle": "Login",
       "pageHeader": "Sign in to your dashboard",
-      "pageSubheader": "...to view customer metrics"
+      "pageSubheader": "Manage your business listing, campaigns, and customer insights.",
+      "valuePropHeading": "Local marketing, all in one place",
+      "valuePropBody": "{websiteName} is the business dashboard behind the {parentAppName} map. Reach the people who are already nearby, publish to your marketing channels from a single post, and see what actually brings customers through the door.",
+      "valuePropBenefit1": "Claim your business space so nearby customers can find you on the map",
+      "valuePropBenefit2": "Orchestrate campaigns across your marketing channels from one place",
+      "valuePropBenefit3": "Reward loyal customers and pair with local micro-influencers",
+      "valuePropBenefit4": "Track reach, engagement, and customer acquisition as it happens",
+      "newHere": "New to {websiteName}?",
+      "createAccount": "Create a free account",
+      "freeTrialNote": "Creating an account is free. Paid plans start with a 14-day trial you can cancel anytime."
     },
     "influencerPairingResults": {
       "pageTitle": "Local Advocates"

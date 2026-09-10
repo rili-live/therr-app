@@ -10,7 +10,7 @@ const serviceLimitReachedMessage = 'Too many service requests, please try again 
 const genericRateLimiter = RateLimit({
     store: RateLimiterRedisStore,
     windowMs: 1 * 60 * 1000, // 1 minutes
-    max: 1000, // limit each IP to 1000 requests per windowMs
+    max: 300, // limit each IP to 300 requests per windowMs (5 req/s)
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
     statusCode: limitReachedStatusCode,

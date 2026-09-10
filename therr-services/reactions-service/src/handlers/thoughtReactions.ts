@@ -4,17 +4,23 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import updateAchievements from '../utilities/updateAchievements';
+import validateReactionMetrics from '../utilities/validateReactionMetrics';
+import pickReactionWriteFields from '../utilities/pickReactionWriteFields';
 // import sendUserCoinUpdateRequest from '../utilities/sendUserCoinUpdateRequest';
 // import * as globalConfig from '../../../../global-config';
 
 // CREATE/UPDATE
 const createOrUpdateThoughtReaction = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate thoughts on demand
     const {
         locale,
         userId,
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
+
+    const metricsError = validateReactionMetrics(req.body);
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
+    }
 
     return Store.thoughtReactions.get({
         userId,
@@ -29,9 +35,12 @@ const createOrUpdateThoughtReaction = (req, res) => {
                 userId,
                 thoughtId: req.params.thoughtId,
             }, {
-                ...req.body,
+                ...pickReactionWriteFields('thought', req.body),
                 userLocale: locale,
-                userViewCount: reactionsResponse[0].userViewCount + (req.body.userViewCount || 0),
+                // Number() is load-bearing: a JSON body may carry "1" as a string, and
+                // `9 + '1'` concatenates to '91' rather than adding to 10 — inflating the
+                // very total the bounds above exist to cap.
+                userViewCount: reactionsResponse[0].userViewCount + Number(req.body.userViewCount || 0),
                 userHasActivated: true,
             })
                 .then(([thoughtReaction]) => {
@@ -50,7 +59,7 @@ const createOrUpdateThoughtReaction = (req, res) => {
         return Store.thoughtReactions.create({
             userId,
             thoughtId: req.params.thoughtId,
-            ...req.body,
+            ...pickReactionWriteFields('thought', req.body),
             userLocale: locale,
             userHasActivated: true,
         }).then(([reaction]) => res.status(200).send(reaction));
@@ -59,12 +68,16 @@ const createOrUpdateThoughtReaction = (req, res) => {
 
 // CREATE/UPDATE
 const createOrUpdateMultiThoughtReactions = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate thoughts on demand
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
     if (!userId) {
         return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
+    const metricsError = validateReactionMetrics(req.body);
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
     }
 
     const { thoughtIds } = req.body;
@@ -75,8 +88,20 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
 
     const validThoughtIds = thoughtIds.filter((id) => !!id);
 
-    const params = { ...req.body };
-    delete params.thoughtIds;
+    // Allow-listed rather than `{ ...req.body }` minus deletes, so a field nobody enumerated
+    // cannot reach the table. `thoughtIds`, `relevanceScores` and `algorithmKey` are excluded
+    // by that same allow-list and read off `req.body` directly below: the scores are per-thought
+    // and the algorithm key describes the score rather than the row, so spreading either into
+    // the shared param set would stamp it onto every row in the batch — including ones this run
+    // did not score, which is exactly the invariant `algorithmKey` exists to make observable.
+    const params = pickReactionWriteFields('thought', req.body);
+
+    const { algorithmKey } = req.body;
+    const relevanceScores = req.body.relevanceScores || {};
+    const scoreFor = (thoughtId: string) => {
+        const score = Number(relevanceScores[thoughtId]);
+        return Number.isFinite(score) ? score : null;
+    };
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
@@ -90,6 +115,13 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
         });
         let updatedReactions: any[] = [];
         if (existing?.length) {
+            // Scores first, so the bulk update's RETURNING * below reports the fresh values.
+            const scoresForExisting = existing.reduce((acc, reaction) => {
+                const score = scoreFor(reaction.thoughtId);
+                return score == null ? acc : { ...acc, [reaction.thoughtId]: score };
+            }, {});
+            await Store.thoughtReactions.updateRelevanceScores(userId, scoresForExisting, algorithmKey);
+
             await Store.thoughtReactions.update({}, {
                 ...params,
                 userLocale: locale,
@@ -107,6 +139,13 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
                 thoughtId,
                 ...params,
                 userLocale: locale,
+                // Always present (null when unscored) so every row in the multi-row insert
+                // carries the same column set.
+                relevanceScore: scoreFor(thoughtId),
+                scoredAt: scoreFor(thoughtId) == null ? null : new Date(),
+                // Tied to the score for the same reason: an unscored row has no profile to
+                // name, and claiming one would misreport which rows still need re-scoring.
+                algorithmKey: scoreFor(thoughtId) == null ? null : (algorithmKey || null),
             }));
 
         return Store.thoughtReactions.create(createArray).then((createdReactions) => res.status(200).send({
@@ -223,6 +262,54 @@ const countThoughtReactions: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
 };
 
+/**
+ * Like counts for a batch of thoughts, keyed by thoughtId.
+ *
+ * The single-thought variant above is fine for a details view's root thought, but the same
+ * view renders every reply with its own like control — fanning that out into one internal
+ * request per reply is what this exists to avoid.
+ */
+const countMultiThoughtReactions: RequestHandler = async (req: any, res: any) => {
+    const { thoughtIds } = req.body;
+
+    if (!Array.isArray(thoughtIds)) {
+        return handleHttpError({ res, message: 'thoughtIds is required', statusCode: 400 });
+    }
+
+    const validThoughtIds = thoughtIds.filter((id) => !!id);
+
+    return Store.thoughtReactions.getCounts(validThoughtIds, {})
+        .then((results) => res.status(200).send({
+            // Thoughts with zero likes have no rows to group, so they are absent here rather
+            // than zero — callers should default a missing key to 0.
+            counts: results.reduce((acc: any, result: any) => ({
+                ...acc,
+                [result.thoughtId]: parseInt(result.count || 0, 10),
+            }), {}),
+        }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
+};
+
+/**
+ * Clears the requesting user's relevance scores so their stream re-ranks under a new
+ * algorithm. Called by users-service when `settingsContentAlgorithm` changes.
+ *
+ * The user is taken from `x-userid`, never from the body — this only ever resets the caller's
+ * own stream, so it cannot be used to wipe another user's ranking. There is no route for it on
+ * the public API gateway; it is reachable only service-to-service.
+ */
+const resetThoughtRelevanceScores = (req, res) => {
+    const { userId } = parseHeaders(req.headers);
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'User ID is required', statusCode: 400 });
+    }
+
+    return Store.thoughtReactions.resetRelevanceScores(userId)
+        .then((rows) => res.status(200).send({ resetCount: rows?.length || 0 }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
+};
+
 export {
     getThoughtReactions,
     getReactionsByThoughtId,
@@ -230,4 +317,6 @@ export {
     createOrUpdateMultiThoughtReactions,
     findThoughtReactions,
     countThoughtReactions,
+    countMultiThoughtReactions,
+    resetThoughtRelevanceScores,
 };

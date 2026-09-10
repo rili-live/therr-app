@@ -1,17 +1,19 @@
+import { randomUUID } from 'crypto';
 import { RequestHandler } from 'express';
 import {
-    CurrentSocialValuations, ErrorCodes, Notifications, PushNotifications, UserConnectionTypes,
+    CurrentSocialValuations, ErrorCodes, MetricNames, Notifications, PushNotifications, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
-import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
+import { getBrandContext, getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import normalizeEmail from 'normalize-email';
 import emailValidator from 'therr-js-utilities/email-validator';
 import deepEmailValidate from 'deep-email-validator';
+import * as globalConfig from '../../../../global-config';
 import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
-import translate from '../utilities/translator';
+import translate, { translateOptional } from '../utilities/translator';
 import { translateNotification } from './notifications';
 import { createUserHelper } from './helpers/user';
 import sendContactInviteEmail from '../api/email/for-social/sendContactInviteEmail';
@@ -19,11 +21,12 @@ import twilioClient from '../api/twilio';
 import { createOrUpdateAchievement } from './helpers/achievements';
 import { parseConfigValue } from './config';
 import { IFindUsersByContactInfo } from '../store/UsersStore';
+import { getHostContext } from '../constants/hostContext';
+import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { getInterestRanking, logShadowInterestRanking } from '../utilities/interestWeights';
 
-/**
- * Used for sorting interests by a singular value. Set defaults to ensure no zero values.
- */
-const getInterestRanking = (engagementCount: number, score: number) => Math.ceil((engagementCount || 1) / (score || 5));
+// Moved to utilities/interestWeights so the live formula and the shadow candidate it is
+// being compared against live side by side and can be unit-tested together.
 
 const getTherrFromPhoneNumber = (receivingPhoneNumber: string) => {
     if (receivingPhoneNumber.startsWith('+44')) {
@@ -41,7 +44,9 @@ const failsafeBlackListRequest = (email) => Store.blacklistedEmails.get({
 });
 
 // CREATE
-// TODO:RSERV-24: Security, get requestingUserId from user header token
+// RSERV-24 closed: `requestingUserId` still arrives in the body (the deployed mobile
+// app sends it and cannot be force-updated), but it is rejected below unless it matches
+// the `x-userid` header, so the body value can no longer be used to impersonate.
 const createUserConnection: RequestHandler = async (req: any, res: any) => {
     const {
         requestingUserId,
@@ -115,11 +120,13 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     // This is disabled until we can find a better way to handle this.
                     unverifiedUser = await createUserHelper(req.headers, {
                         email: acceptingUserEmail,
-                    }, false, {
-                        fromName: fromUserFullName,
-                        fromEmail: requestingUserEmail,
-                        toEmail: acceptingUserEmail,
-                    }, false);
+                    }, {
+                        userByInviteDetails: {
+                            fromName: fromUserFullName,
+                            fromEmail: requestingUserEmail,
+                            toEmail: acceptingUserEmail,
+                        },
+                    });
                 } else {
                     return handleHttpError({
                         res,
@@ -181,10 +188,15 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             }
 
             if (getResults.length && getResults[0].isConnectionBroken) {
-                // Re-create connection after unconnection
+                // Re-create connection after unconnection.
+                // Both sides of the WHERE must come from the row itself: the lookup above is
+                // reverse-checking, so the existing row is just as likely to be stored as
+                // (other -> me). Pairing the row's `requestingUserId` with `acceptingUser.id`
+                // then yielded `requestingUserId = X AND acceptingUserId = X`, which matches
+                // nothing — the update silently no-op'd and the re-connect never took.
                 connectionPromise = Store.userConnections.updateUserConnection({
                     requestingUserId: getResults[0].requestingUserId,
-                    acceptingUserId: acceptingUser.id as string,
+                    acceptingUserId: getResults[0].acceptingUserId,
                 }, {
                     isConnectionBroken: false,
                     requestStatus: UserConnectionTypes.PENDING,
@@ -252,7 +264,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 brandVariation,
             });
 
-            return connectionPromise.then(([userConnection]) => Store.notifications.createNotification({
+            return connectionPromise.then(([userConnection]) => Store.notifications.createNotification(brandVariation, {
                 userId: acceptingUser.id as string,
                 type: Notifications.Types.CONNECTION_REQUEST_RECEIVED,
                 associationId: userConnection.id,
@@ -353,52 +365,158 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             }
         });
 
+        // 2a. Dedupe by requestingUserId — skip invitees this user already
+        // contacted in the past INVITE_RESEND_COOLDOWN_DAYS days. Without this,
+        // a user can re-trigger the same email/SMS by re-tapping the invite
+        // button. For HABITS where invites are mandatory for pact creation,
+        // that's a high-volume spam vector against the very people the viral
+        // loop depends on. The cooldown still allows legitimate re-invites
+        // after a meaningful gap.
+        const INVITE_RESEND_COOLDOWN_DAYS = 30;
+        const cooldownSinceDate = new Date(Date.now() - INVITE_RESEND_COOLDOWN_DAYS * 24 * 60 * 60 * 1000);
+        const recentInvites = await Store.invites.getRecentByRequestingUser(
+            userId,
+            otherUserEmails.map((e) => e.email).filter(Boolean),
+            otherUserPhoneNumbers.map((p) => p.phoneNumber).filter(Boolean),
+            cooldownSinceDate,
+        ).catch((err) => {
+            // Fail-open on dedupe lookup: better to send a possible duplicate
+            // than to hard-block a legitimate invite. Log so we notice if this
+            // path is consistently failing.
+            logSpan({
+                level: 'warn',
+                messageOrigin: 'API_SERVER',
+                messages: ['Failed to query recent invites for dedupe; allowing send'],
+                traceArgs: { 'error.message': err?.message },
+            });
+            return [] as Array<{ email?: string; phoneNumber?: string }>;
+        });
+
+        const recentInviteEmails = new Set(recentInvites.map((row) => row.email).filter(Boolean) as string[]);
+        const recentInvitePhones = new Set(recentInvites.map((row) => row.phoneNumber).filter(Boolean) as string[]);
+
+        // 2b. De-duplicate within the batch itself. Phone address books routinely
+        // carry the same email/number on multiple contact cards, so inviteList
+        // can contain the same channel twice. A duplicate is fatal to the
+        // upsert below — Postgres rejects an ON CONFLICT DO UPDATE that would
+        // touch the same row twice ("cannot affect row a second time") — which
+        // would drop the entire batch. It would also double-send and
+        // double-reward. Dedupe before any of those read the arrays.
+        const dedupeByKey = <T>(contacts: T[], key: keyof T): T[] => [
+            ...new Map(contacts.map((contact) => [contact[key], contact])).values(),
+        ];
+
+        const sendableEmailContacts = dedupeByKey(
+            otherUserEmails.filter((contact) => !recentInviteEmails.has(contact.email)),
+            'email',
+        );
+        const sendablePhoneContacts = dedupeByKey(
+            otherUserPhoneNumbers.filter((contact) => !recentInvitePhones.has(contact.phoneNumber)),
+            'phoneNumber',
+        );
+
         // NOTE: Current set to 0 coin reward while we debug spammers
-        coinRewardsTotal += (otherUserEmails.length * CurrentSocialValuations.inviteSent) + (otherUserPhoneNumbers.length * CurrentSocialValuations.inviteSent);
+        coinRewardsTotal += (sendableEmailContacts.length * CurrentSocialValuations.inviteSent)
+            + (sendablePhoneContacts.length * CurrentSocialValuations.inviteSent);
 
-        // 2. Send email invites if user does not exist
-        const emailSendPromises: any[] = [];
-        otherUserEmails.forEach((contact) => {
-            emailSendPromises.push(sendContactInviteEmail({
-                subject: `${requestingUserFirstName} ${requestingUserLastName} invited you to Therr app`,
-                locale,
-                toAddresses: [contact.email],
-                agencyDomainName: whiteLabelOrigin,
-                brandVariation,
-            }, {
-                fromName: `${requestingUserFirstName} ${requestingUserLastName}`,
-                fromEmail: requestingUserEmail || '',
-                toEmail: contact.email,
+        // Funnel: outbound invites (email + SMS + in-app requests to existing users)
+        const totalInvitesSent = sendableEmailContacts.length + sendablePhoneContacts.length + existingUsers.length;
+        if (totalInvitesSent > 0) {
+            recordFunnelMetric(MetricNames.FUNNEL_INVITE_SENT, userId, {
+                brandVariation: brandVariation || '',
+            }, String(totalInvitesSent));
+        }
+
+        // 2. Persist the sendable invites first (upsert) so the magic link
+        // embedded in each email/SMS carries the same token as the stored row.
+        // A fresh token is minted per send and refreshed on any pre-existing
+        // row, so an old link can't be reused after a new invite. Existing-user
+        // invites are tracked separately below (they get in-app connection
+        // requests, not magic links).
+        // Invite links must land on the host that belongs to the brand that sent them. A niche
+        // app with its own subdomain sets `appHostFull`, and `habitsSubdomainRoutes` exists
+        // specifically to serve `/invite/link/:token` there; without this, a Friends with
+        // Habits invite bounced the recipient to therr.com. Brands with no subdomain of their
+        // own keep falling back to the global host — note this deliberately does NOT fall back
+        // to `parentHomepageUrl` the way the pact flow does, because for Therr that resolves to
+        // the marketing site (therr.app), which does not serve this route.
+        const contextConfig = getHostContext(whiteLabelOrigin, brandVariation);
+        const hostFull = contextConfig.emailTemplates.appHostFull
+            || `${globalConfig[process.env.NODE_ENV].hostFull}`;
+
+        // Only Therr ships a tagline; every other brand renders the short form.
+        const brandTagline = translateOptional(locale, `invites.phoneTaglines.${brandVariation}`) ?? '';
+        const emailInvitesToPersist = sendableEmailContacts.map((contact) => ({
+            requestingUserId: userId,
+            email: contact.email,
+            isAccepted: false,
+            token: randomUUID(),
+            brandVariation,
+        }));
+        const phoneInvitesToPersist = sendablePhoneContacts.map((contact) => ({
+            requestingUserId: userId,
+            phoneNumber: contact.phoneNumber,
+            isAccepted: false,
+            token: randomUUID(),
+            brandVariation,
+        }));
+
+        const [persistedEmailInvites, persistedPhoneInvites] = await Promise.all([
+            Store.invites.upsertInvitesWithTokens('email', emailInvitesToPersist),
+            Store.invites.upsertInvitesWithTokens('phoneNumber', phoneInvitesToPersist),
+        ]).catch((err) => {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['Failed to persist magic-link invites'],
+                traceArgs: { 'error.message': err?.message },
+            });
+            return [[], []] as Array<Array<{ email?: string; phoneNumber?: string; token: string }>>;
+        });
+
+        // 3. Send email invites (with magic link) to non-existent, dedupe-filtered users
+        const emailSendPromises: any[] = persistedEmailInvites.map((invite) => sendContactInviteEmail({
+            locale,
+            toAddresses: [invite.email as string],
+            agencyDomainName: whiteLabelOrigin,
+            brandVariation,
+        }, {
+            fromName: `${requestingUserFirstName} ${requestingUserLastName}`,
+            fromEmail: requestingUserEmail || '',
+            toEmail: invite.email as string,
+            inviteToken: invite.token,
+        }));
+
+        // 4. Send phone invites (with magic link) to non-existent, dedupe-filtered users
+        const phoneSendPromises: any[] = persistedPhoneInvites.map((invite) => twilioClient.messages
+            .create({
+                body: translate(locale, 'invites.phone', {
+                    name: `${requestingUserFirstName} ${requestingUserLastName}`,
+                    // `brandShortName`, not `brandName`: for Therr the latter is "Therr App",
+                    // which would read "invited you to Therr App — the local community…".
+                    brandName: contextConfig.brandShortName,
+                    brandTagline,
+                    inviteUrl: `${hostFull}/invite/link/${invite.token}`,
+                }),
+                to: invite.phoneNumber as string, // Text this number
+                from: getTherrFromPhoneNumber(invite.phoneNumber as string), // From a valid Twilio number
             }));
-        });
 
-        // 3. Send phone invites if user does not exist
-        const phoneSendPromises: any[] = [];
-        otherUserPhoneNumbers.forEach((contact) => {
-            phoneSendPromises.push(twilioClient.messages
-                .create({
-                    body: translate(locale, 'invites.phone', {
-                        name: `${requestingUserFirstName} ${requestingUserLastName}`,
-                    }),
-                    to: contact.phoneNumber, // Text this number
-                    from: getTherrFromPhoneNumber(contact.phoneNumber), // From a valid Twilio number
-                }));
-        });
-
-        // 4. Create db invites for tracking
-        // TODO: Prevent resending email/phone request if invite already exists
-        Store.invites.createIfNotExist([...existingUsers, ...otherUserEmails, ...otherUserPhoneNumbers]
+        // 5. Track existing-user invites (no magic link needed) and fire the
+        // outbound sends. Achievement progress counts every intended invite.
+        Store.invites.createIfNotExist(existingUsers
             .map((invite) => ({
                 requestingUserId: userId,
                 email: invite.email,
                 phoneNumber: invite.phoneNumber,
                 isAccepted: false,
+                brandVariation,
             })))
             .then((createdIds) => {
                 createOrUpdateAchievement(req.headers, {
                     achievementClass: 'socialite',
                     achievementTier: '1_1',
-                    progressCount: createdIds.length,
+                    progressCount: createdIds.length + persistedEmailInvites.length + persistedPhoneInvites.length,
                 }).catch((err) => {
                     logSpan({
                         level: 'error',
@@ -519,6 +637,9 @@ const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     const requestingUserId = userId;
     const locale = req.headers['x-localecode'] || 'en-us';
+    // Brand-scope contact matching (see getBrandContext — defaults to THERR for legacy tokens)
+    // so niche apps do not suggest or seed MIGHT_KNOW edges to cross-brand accounts.
+    const { brandVariation } = getBrandContext(req.headers);
 
     const { contacts } = req.body;
     const contactEmails: IFindUsersByContactInfo[] = [];
@@ -545,6 +666,7 @@ const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
     return Store.users.findUsersByContactInfo(
         contactsLimitedForPerformance,
         ['id', 'email', 'phoneNumber', 'firstName', 'lastName', 'userName'],
+        brandVariation,
     ).then((users: { id: string; email?: string; phoneNumber?: string; firstName?: string; lastName?: string; userName?: string }[]) => {
         // TODO: Add db constraint to prevent requestingUserId equal to acceptingUserId
         const filteredUsers = users.filter((u) => u.id !== requestingUserId);
@@ -572,21 +694,47 @@ const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
 };
 
 // READ
-const getUserConnection = (req, res) => Store.userConnections.getUserConnections({
-    requestingUserId: req.params.requestingUserId,
-    acceptingUserId: Number(req.query.acceptingUserId),
-})
-    .then((results) => {
-        if (!results.length) {
-            return handleHttpError({
-                res,
-                message: `No user connection found with id, ${req.params.id}.`,
-                statusCode: 404,
-            });
-        }
-        return res.status(200).send(results[0]);
+// `requestingUserId` is a route param, so without this guard any authenticated user could
+// read the connection row of any other pair. Matches the check in `createUserConnection`.
+/**
+ * Deliberately NOT brand-scoped. This reads a single connection by its
+ * (requestingUserId, acceptingUserId) pair — a targeted lookup, not discovery — and the
+ * guard below restricts it to pairs the caller is themselves a member of, so there is no
+ * id-walking path to another user's connections.
+ *
+ * Scoping it would break the case it exists for: a connection formed in one app is a fact
+ * about two identities, and `main.userConnections` records no brand. A user signed into
+ * Habits who is also a Therr user would get a 404 for a connection that demonstrably
+ * exists. Brand scoping belongs on discovery (searchUsers, searchUserPairings,
+ * findUsersByContactInfo), which is where a cross-brand result actually leaks accounts.
+ */
+const getUserConnection = (req, res) => {
+    const { locale, userId } = parseHeaders(req.headers);
+
+    if (`${req.params.requestingUserId}` !== `${userId}`) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.userConnections.mismatchTokenUserId'),
+            statusCode: 403,
+        });
+    }
+
+    return Store.userConnections.getUserConnections({
+        requestingUserId: req.params.requestingUserId,
+        acceptingUserId: Number(req.query.acceptingUserId),
     })
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
+        .then((results) => {
+            if (!results.length) {
+                return handleHttpError({
+                    res,
+                    message: `No user connection found with id, ${req.params.requestingUserId}.`,
+                    statusCode: 404,
+                });
+            }
+            return res.status(200).send(results[0]);
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
+};
 
 const getTopRankedConnections = (req, res) => {
     const {
@@ -636,10 +784,23 @@ const getTopRankedConnections = (req, res) => {
             }).then((results) => {
                 const userIds = results?.reduce((acc, cur) => [...new Set([...acc, cur.requestingUserId, cur.acceptingUserId])], [requestingUserDetails.id]);
 
+                // No column list: getByUserIds selects `userInterests.*` and ignores its
+                // `returning` argument, so affinityScore / negativeCount / lastEngagedAt
+                // already arrive for the shadow comparison below. Passing a list here would
+                // read as though it were filtering the projection when it does nothing —
+                // and naming the new columns explicitly would break this read against a
+                // pre-migration schema, which selecting `*` tolerates.
                 return Store.userInterests.getByUserIds(userIds, {
                     isEnabled: true,
-                }, 'engagementCount', ['userId', 'interestId', 'score', 'engagementCount', 'isEnabled', 'updatedAt'])
+                }, 'engagementCount')
                     .then((userInterests) => {
+                        // Shadow only — the ordering below is still the live engagementCount
+                        // ranking. This measures how far the affinity-based weight would move
+                        // it, so the read path can be flipped on evidence rather than hope.
+                        // Scoped to the requesting user's own rows: mixing several users'
+                        // interests into one ordering would measure nothing meaningful.
+                        logShadowInterestRanking(userId, userInterests.filter((i) => i.userId === userId && i.isEnabled));
+
                         const interestsIdMap = {};
                         userInterests.forEach((uInterest) => {
                             if (uInterest.isEnabled) {
@@ -898,10 +1059,59 @@ const incrementUserConnection = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
 };
 
+// READ (PUBLIC)
+// Resolves a magic invite-link token to the data the invite-landing page
+// needs to pre-fill the signup form and show who invited the user. Public
+// (pre-signup) but keyed on an unguessable UUID token, so exposure is
+// limited to whoever holds the token (the invited contact themselves).
+//
+// Deliberately brand-agnostic on lookup: an invite minted in one brand still resolves
+// when opened from another, and the response carries the invite's own brandVariation so
+// the landing page can route the invitee to the correct app install.
+const getInviteByToken: RequestHandler = async (req: any, res: any) => {
+    const { token } = req.params;
+
+    if (!token) {
+        return handleHttpError({
+            res,
+            message: 'Missing invite token',
+            statusCode: 400,
+        });
+    }
+
+    return Store.invites.getInviteByToken(token)
+        .then((invite) => {
+            if (!invite) {
+                return handleHttpError({
+                    res,
+                    message: 'Invite not found',
+                    statusCode: 404,
+                });
+            }
+
+            const inviterName = (invite.inviterFirstName || invite.inviterLastName)
+                ? [invite.inviterFirstName, invite.inviterLastName].filter(Boolean).join(' ')
+                : (invite.inviterUserName || '');
+
+            return res.status(200).send({
+                email: invite.email || null,
+                phoneNumber: invite.phoneNumber || null,
+                inviterName,
+                isAccepted: invite.isAccepted,
+                // Origin brand of the invite. Intentionally resolved cross-brand rather than
+                // 404'd: the landing page uses this to deep-link the invitee into the app the
+                // invite was actually sent from, instead of dead-ending whoever opened the link.
+                brandVariation: invite.brandVariation,
+            });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
+};
+
 export {
     createUserConnection,
     createOrInviteUserConnections,
     findPeopleYouMayKnow,
+    getInviteByToken,
     getTopRankedConnections,
     getUserConnection,
     searchUserConnections,

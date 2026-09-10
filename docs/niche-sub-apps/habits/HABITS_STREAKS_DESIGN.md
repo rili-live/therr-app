@@ -691,3 +691,35 @@ const AchievementCelebration = ({ achievement, onDismiss }) => (
 - Visual collectibles
 - Profile display
 - Shareable achievements
+
+---
+
+## Follow-up TODOs (achievements system, post-implementation)
+
+The HABITS achievements system shipped on `claude/build-achievements-system-RhI3G` covers the journey end-to-end (streak tiers per goal type, pact creation, accountability, social-energizer, resilience), but a few items were intentionally deferred. Pick them up in roughly this priority order.
+
+### High priority
+
+- [ ] **Verify brand-variation header reliability.** Stage C assumes every authenticated HABITS request carries `x-brand-variation: habits` (parsed by `parseHeaders` and enforced by the allow-list in `helpers/achievements.ts`). Audit `TherrMobile/main/interceptors.ts` and the API gateway forwarding to confirm the header is set on every checkin / pact request — otherwise HABITS users will silently receive the Therr achievement set.
+
+- [ ] **Run the migration in stage and prod.** `20260428000001_habits.habit_goals_addGoalType.js` adds `habits.habit_goals.goalType NOT NULL DEFAULT 'build_good'`. Postgres backfills existing rows, but verify on stage before prod and confirm no in-flight `incrementUsageCount` calls collide.
+
+### Medium priority
+
+- [ ] **Lottie cards for the 8 HABITS classes.** `AchievementTile.tsx` currently reuses 5 existing Therr Lottie animations for the 8 new classes. Dedicated artwork per class (especially `cleanBreak`, `treasureBuilder`, `resilience`) would substantially improve the unboxing moment.
+
+- [ ] **Native-speaker review of es / fr-ca strings.** The 55 new locale keys in `TherrMobile/main/locales/{es,fr-ca}/dictionary.json` were authored as best-effort translations. Have a translator review before HABITS markets to non-English audiences.
+
+- [ ] **Savings-goal amount tracking.** Phase 1 `treasureBuilder` uses no-spend-day streaks and pact completions only. A future iteration could add `targetAmount` / `amountSaved` columns (or a sibling `habits.savings_progress` table) and award per-dollar milestones ("Saved $100 / $500 / $1000").
+
+- [ ] **Backfill achievements for existing HABITS users.** No backfill was run as part of this commit, so users with pre-existing streaks will not have achievement rows for milestones they already passed. A one-time job iterating `habits.streaks` and calling `awardStreakAchievement` with each user's longest historical milestone would close that gap.
+
+### Low priority / opportunistic
+
+- [ ] **Tighten `resilience_1_2` (Second Wind) detection by pact range.** Currently fires when pact completion occurs and `streak_history` includes any reset event. More accurate: filter `streak_history` rows to `eventDate >= pact.startDate AND eventDate <= pact.endDate`.
+
+- [ ] **Surface "next achievement" on the streak detail screen.** The Achievements list shows all tiers, but the streak detail screen does not yet show "X days to your next milestone". Closing this loop on the most-visited screen would tighten engagement.
+
+- [ ] **Multi-habit consistency UI.** Once `consistency_1_2` is wired, surface a "Habits maintained simultaneously" stat on the profile so users can see progress *before* they hit the milestone.
+
+- [ ] **Hard brand isolation in `achievementsByClass`.** Today the union map stays for backwards compat. If/when no remaining caller depends on it, switch all readers to `getAchievementsForBrand(brand)` and remove the union default export from `therr-js-utilities/config/achievements/index.ts`.

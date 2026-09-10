@@ -145,7 +145,7 @@ class Input extends React.Component<any, any> {
         return this.props.onFocus && this.props.onFocus();
     };
 
-    onBlur = () => { // eslint-disable-line arrow-body-style
+    onBlur = () => {
         const modifiedValidationsState = Input.updateValidations(this.props);
         this.setState(modifiedValidationsState);
 

@@ -7,6 +7,7 @@
  * website with a space.
  */
 import { withRetry, isTransientNetworkError } from '../utils/withRetry';
+import { fetchHtml, randomUserAgent } from '../utils/httpFetch';
 
 // Social media, directory, and review sites that are never a business's own website
 const REJECT_DOMAINS = [
@@ -116,19 +117,6 @@ function isConfidentMatch(businessName: string, domain: string, pageTitle?: stri
 interface ISearchResult {
   url: string;
   title: string;
-}
-
-// Rotating User-Agent strings to reduce fingerprinting
-const USER_AGENTS = [
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
-  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-];
-
-function randomUserAgent(): string {
-  return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
 }
 
 /**
@@ -294,28 +282,13 @@ async function webSearch(query: string): Promise<ISearchResult[]> {
  * Fetch the <title> tag from a URL for secondary verification.
  */
 async function fetchPageTitle(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url, {
-      signal: AbortSignal.timeout(8000),
-      redirect: 'follow',
-      headers: {
-        'User-Agent': randomUserAgent(),
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-    });
+  const page = await fetchHtml(url, {
+    timeoutMs: 8000, retries: 0, label: 'searchWeb', quiet: true,
+  });
+  if (!page) return null;
 
-    if (!response.ok) return null;
-
-    const contentType = response.headers.get('content-type') || '';
-    if (!contentType.includes('text/html') && !contentType.includes('application/xhtml')) return null;
-
-    const html = await response.text();
-    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-    return titleMatch?.[1]?.trim() || null;
-  } catch {
-    return null;
-  }
+  const titleMatch = page.html.match(/<title[^>]*>([^<]+)<\/title>/i);
+  return titleMatch?.[1]?.trim() || null;
 }
 
 export interface IWebSearchResult {

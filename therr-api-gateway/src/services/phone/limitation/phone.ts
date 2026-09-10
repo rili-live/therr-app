@@ -23,7 +23,16 @@ const buildRateLimiter = (msg, count = 1, minutes = 1) => RateLimit({
 const verifyPhoneLimiter = buildRateLimiter(limitReachedMessage, 2, 5);
 const verifyPhoneLongLimiter = buildRateLimiter(limitReachedMessage, 5, 24 * 60);
 
+// Passwordless sign-in / sign-up. `start` sends an SMS on every call, so it is capped hard:
+// each request costs real money and is the lever an abuser would pull for SMS pumping.
+// `verify` is cheap but is the code-guessing surface, so it gets a looser per-IP cap and
+// relies on the per-phone attempt counter in the router for the tight bound.
+const phoneAuthStartLimiter = buildRateLimiter(limitReachedMessage, 3, 15);
+const phoneAuthVerifyLimiter = buildRateLimiter(limitReachedMessage, 10, 15);
+
 export {
     verifyPhoneLimiter,
     verifyPhoneLongLimiter,
+    phoneAuthStartLimiter,
+    phoneAuthVerifyLimiter,
 };

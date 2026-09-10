@@ -41,6 +41,7 @@ jest.mock('therr-react/services', () => ({
     },
 }));
 
+import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import initInterceptors from '../main/interceptors';
 import SecureStorage from '../main/utilities/SecureStorage';
 
@@ -307,10 +308,41 @@ describe('interceptors', () => {
                 'therrRefreshToken',
                 'new-refresh-token',
             );
+            // Regression: must dispatch the action type the user reducer actually
+            // handles ('CLIENT:UPDATE_USER'). A plain 'UPDATE_USER' no-ops, leaving
+            // the expired token in Redux and logging the user out on the retry.
             expect(store.dispatch).toHaveBeenCalledWith({
-                type: 'UPDATE_USER',
+                type: SocketClientActionTypes.UPDATE_USER,
                 data: { details: { idToken: 'new-id-token' } },
             });
+        });
+
+        it('does NOT logout or corrupt storage when refresh returns no tokens', async () => {
+            const error401 = {
+                config: {
+                    url: '/api/data', _isRetry: false, headers: {}, adapter: mockAdapter,
+                },
+                response: { status: 401, data: {} },
+                message: 'Unauthorized',
+            };
+
+            // Malformed/empty success body (e.g. an offline fallback object)
+            (SecureStorage.getItem as jest.Mock).mockResolvedValue('old-refresh-token');
+            mockRefreshToken.mockResolvedValue({ data: {} });
+
+            responseInterceptorError(error401).catch(() => {});
+
+            // Let the chain + retries run
+            await flushAsync();
+            await jest.advanceTimersByTimeAsync(3000);
+            await flushAsync();
+            await jest.advanceTimersByTimeAsync(3000);
+            await flushAsync();
+
+            // The refresh token must NOT be overwritten with undefined
+            expect(SecureStorage.setItem).not.toHaveBeenCalledWith('therrRefreshToken', undefined);
+            // And we must not log the user out on a malformed (non-auth) response
+            expect(store.dispatch).not.toHaveBeenCalledWith(mockLogoutAction);
         });
     });
 

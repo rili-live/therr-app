@@ -1,7 +1,10 @@
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { RequestHandler } from 'express';
 import moment from 'moment';
-import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
+// eslint-disable-next-line import/extensions, import/no-unresolved
+import {
+    getBrandContext, getSearchQueryArgs, getSearchQueryString, parseHeaders,
+} from 'therr-js-utilities/http';
 import {
     ErrorCodes,
     GroupRequestStatuses,
@@ -27,6 +30,7 @@ const createActivity = (req, res) => {
         userId,
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
+    const { brandVariation } = getBrandContext(req.headers);
 
     let forumId;
 
@@ -45,7 +49,7 @@ const createActivity = (req, res) => {
         });
     }
 
-    return Store.forums.createForum({
+    return Store.forums.createForum(brandVariation, {
         authorId: userId,
         authorLocale: locale,
         administratorIds: group.administratorIds,
@@ -96,7 +100,7 @@ const createActivity = (req, res) => {
         .catch((err) => {
             if (forumId) {
                 // Delete the forum if we fail to created the associated event
-                Store.forums.deleteForum(forumId).catch((error) => {
+                Store.forums.deleteForum(brandVariation, forumId).catch((error) => {
                     console.log('Failed to delete forum after error');
                     console.log(error);
                 });
@@ -112,8 +116,9 @@ const createForum = async (req, res) => {
         locale,
         userId,
     } = parseHeaders(req.headers);
+    const { brandVariation } = getBrandContext(req.headers);
 
-    const isDuplicate = await Store.forums.getForums({
+    const isDuplicate = await Store.forums.getForums(brandVariation, {
         authorId: userId,
         title: req.body.title,
     }, {
@@ -146,7 +151,7 @@ const createForum = async (req, res) => {
         media.featuredImage = req.body.media[0]?.path;
     }
 
-    return Store.forums.createForum({
+    return Store.forums.createForum(brandVariation, {
         authorId: userId,
         authorLocale: locale,
         administratorIds: req.body.administratorIds,
@@ -189,6 +194,7 @@ const getForum = (req, res) => {
         userId,
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
+    const { brandVariation } = getBrandContext(req.headers);
     const { forumId } = req.params;
     const isAuthenticated = !!userId;
 
@@ -227,7 +233,7 @@ const getForum = (req, res) => {
         .then((response) => {
             const events = response?.data?.results || [];
 
-            return Store.forums.getForum(forumId)
+            return Store.forums.getForum(brandVariation, forumId)
                 .then((forums) => {
                     if (!forums?.length) {
                         return handleHttpError({
@@ -249,7 +255,7 @@ const getForum = (req, res) => {
                     }
 
                     // Update forum to mark most recently updated/active
-                    Store.forums.updateForum({
+                    Store.forums.updateForum(brandVariation, {
                         id: forum.id,
                     }, {}).catch((err) => {
                         console.log(err);
@@ -292,11 +298,12 @@ const findForums: RequestHandler = (req: any, res: any) => {
         locale,
         userId,
     } = parseHeaders(req.headers);
+    const { brandVariation } = getBrandContext(req.headers);
     const {
         ids,
     } = req.body;
 
-    return Store.forums.findForums(ids).then((results) => res.status(200).send(results));
+    return Store.forums.findForums(brandVariation, ids).then((results) => res.status(200).send(results));
 };
 
 const searchForums: RequestHandler = (req: any, res: any) => {
@@ -305,6 +312,7 @@ const searchForums: RequestHandler = (req: any, res: any) => {
         locale,
         userId,
     } = parseHeaders(req.headers);
+    const { brandVariation } = getBrandContext(req.headers);
     const {
         filterBy,
         query,
@@ -317,7 +325,7 @@ const searchForums: RequestHandler = (req: any, res: any) => {
 
     // For unauthenticated users, return only public forums without user/member enrichment
     if (!isAuthenticated) {
-        return Store.forums.searchForums(searchArgs[0], searchArgs[1], {
+        return Store.forums.searchForums(brandVariation, searchArgs[0], searchArgs[1], {
             usersInvitedForumIds: undefined,
             categoryTags: req.body.categoryTags,
             forumIds: req.body.forumIds,
@@ -342,7 +350,7 @@ const searchForums: RequestHandler = (req: any, res: any) => {
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
     }
 
-    const searchPromise = Store.forums.searchForums(searchArgs[0], searchArgs[1], {
+    const searchPromise = Store.forums.searchForums(brandVariation, searchArgs[0], searchArgs[1], {
         usersInvitedForumIds: req.body.usersInvitedForumIds,
         categoryTags: req.body.categoryTags,
         forumIds: req.body.forumIds,
@@ -364,7 +372,7 @@ const searchForums: RequestHandler = (req: any, res: any) => {
 
         // Private groups that the user has an open or accepted invite to
         // TODO: It's probably better for the frontend to request this from a separate endpoint
-        const userMemberGroupsPromise = Store.forums.searchForums(searchArgs[0], searchArgs[1], {
+        const userMemberGroupsPromise = Store.forums.searchForums(brandVariation, searchArgs[0], searchArgs[1], {
             usersInvitedForumIds: validGroupIds,
             categoryTags: req.body.categoryTags,
             forumIds: req.body.forumIds,
@@ -457,6 +465,7 @@ const searchCategories: RequestHandler = (req: any, res: any) => {
 const updateForum = (req, res) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
+    const { brandVariation } = getBrandContext(req.headers);
     const { forumId } = req.params;
 
     const updateParams: any = {
@@ -485,7 +494,7 @@ const updateForum = (req, res) => {
         updateParams.media = JSON.stringify({ featuredImage: req.body.media[0]?.path });
     }
 
-    return Store.forums.updateForum({
+    return Store.forums.updateForum(brandVariation, {
         id: forumId,
         authorId: userId,
     }, updateParams)
@@ -496,9 +505,10 @@ const updateForum = (req, res) => {
 const archiveForum = (req, res) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
+    const { brandVariation } = getBrandContext(req.headers);
     const { forumId } = req.params;
 
-    return Store.forums.archiveForum({
+    return Store.forums.archiveForum(brandVariation, {
         id: forumId,
         authorId: userId,
     })

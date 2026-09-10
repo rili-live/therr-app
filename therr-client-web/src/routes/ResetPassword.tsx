@@ -47,7 +47,7 @@ export class ResetPasswordComponent extends React.Component<IResetPasswordProps,
         };
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         document.title = `Therr | ${this.props.translate('pages.resetPassword.pageTitle')}`;
     }
 

@@ -1,6 +1,10 @@
+import { randomBytes } from 'crypto';
 import { RequestHandler } from 'express';
+import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { AccessLevels, CurrentSocialValuations, OAuthIntegrationProviders } from 'therr-js-utilities/constants';
+import {
+    AccessLevels, BrandVariations, ErrorCodes, MetricNames, OAuthIntegrationProviders, hasValidStandardClaims,
+} from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import { parseHeaders } from 'therr-js-utilities/http';
@@ -10,8 +14,22 @@ import Store from '../store';
 import { createUserToken, createRefreshToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
 import { redactUserCreds, validateCredentials } from './helpers/user';
+import { applyCheckoutSessionAccessLevels } from './helpers/checkoutSessionAccessLevels';
+import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { acceptInvitesOnFirstLogin } from './helpers/inviteAcceptance';
 import TherrEventEmitter from '../api/TherrEventEmitter';
 import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
+import {
+    mintHandoffCode,
+    redeemHandoffCode,
+    cancelHandoffCode,
+} from '../store/redisClient';
+
+// Multi-app brand check. Used to gate writes to user.brandVariations on login (so a malicious
+// x-brand-variation header can't pollute the JSONB array) and to validate handoff endpoints'
+// targetBrand / requestedBrand inputs.
+const isKnownBrand = (brand: any): boolean => typeof brand === 'string'
+    && (Object.values(BrandVariations) as string[]).includes(brand);
 
 // calling normalizeEmail on a userName will have no change
 const userNameOrEmailOrPhone = (user) => normalizeEmail(user.userName?.trim() || user.userEmail?.trim() || user.email?.trim()?.replace(/\s/g, '') || '')
@@ -37,6 +55,230 @@ const basicHash = (input: string) => {
     return hash;
 };
 
+/**
+ * Everything that happens *after* a caller has proven who they are: mint the id/refresh
+ * tokens, run the first-login side effects, bump the audit columns, and shape the response.
+ *
+ * Factored out of `login` so the passwordless phone flow (`loginWithVerifiedPhone` below)
+ * produces a byte-identical session payload instead of a near-copy that drifts. Credential
+ * checking stays with the callers — this function assumes it has already happened.
+ *
+ * `userSearchResults` is the pre-auth DB lookup and may be empty (first-time SSO, where the
+ * user row was created during validation); it is used only to reproduce the original
+ * first-login heuristics and logging.
+ */
+const issueUserSession = async (req: any, res: any, {
+    userDetails,
+    userSearchResults,
+    oauthResponseData,
+    brandVariation,
+    platform,
+}: {
+    userDetails: any;
+    userSearchResults: any[];
+    oauthResponseData?: any;
+    brandVariation: string;
+    platform: string;
+}) => {
+    const user = {
+        ...userDetails,
+        isSSO: !!req.body.isSSO,
+        integrations: {
+            ...decryptIntegrationsAccess(userDetails?.integrationsAccess),
+        },
+    };
+    if (oauthResponseData?.access_token) {
+        // TODO: Store access_tokens encrypted in DB (integrationsAccess) for fetching
+        // TODO: Fetch stored access_tokens and return in integrations object
+        const DEFAULT_60_DAYS_AS_SECONDS = 60 * 60 * 24 * 60; // 60 days
+        user.integrations[OAuthIntegrationProviders.FACEBOOK] = {
+            user_access_token: oauthResponseData.access_token,
+            user_access_token_expires_at: Date.now() + ((oauthResponseData?.expires_in || DEFAULT_60_DAYS_AS_SECONDS) * 1000),
+        };
+    }
+    const userNameEmailPhone = userNameOrEmailOrPhone(userDetails);
+
+    const userEmail = userDetails.email?.trim() || ''; // DB response values should already be normalized
+    const userPhone = userDetails.phoneNumber?.trim()?.replace(/\s/g, ''); // DB response values should already be normalized
+    const userOrgs = await Store.userOrganizations.get({
+        userId: user.id,
+    }).catch((err) => {
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: [err?.message, 'Failed to fetch user organizations for idToken'],
+            traceArgs: {
+                issue: '',
+                port: process.env.USERS_SERVICE_API_PORT,
+                'process.id': process.pid,
+            },
+        });
+        return [];
+    });
+
+    const idToken = createUserToken(user, userOrgs, req.body.rememberMe, brandVariation);
+    const refreshTokenData = createRefreshToken(user.id, req.body.rememberMe, brandVariation);
+    const userHash = basicHash(userNameEmailPhone);
+
+    logSpan({
+        level: 'info',
+        messageOrigin: 'API_SERVER',
+        messages: ['user login success'],
+        traceArgs: {
+            'user.isSSO': req.body.isSSO,
+            'user.loginCount': !userSearchResults?.length ? 1 : userSearchResults[0].loginCount,
+            'user.hash': userHash,
+            'user.id': userDetails.id,
+        },
+    });
+
+    /**
+     * Seed the user's content stream for the new session. Deferred via setImmediate so it
+     * never delays the login response, and ungated (unlike the notifications-poll caller) so a
+     * fresh session always re-seeds.
+     *
+     * `x-userid` is set explicitly rather than inherited from `req.headers`. Login is an
+     * unauthenticated route — the gateway's `authenticateOptional` leaves the header empty on a
+     * fresh sign-in, and `internalRestRequest` forwards it verbatim, so reactions-service's
+     * `createOrUpdateMultiThoughtReactions` rejected the whole batch with a 401 that
+     * `createReactions` caught and logged. The seed silently never happened. That header is
+     * also the identity the reaction rows are written under, and what the distributor resolves
+     * the user's content algorithm from, so it has to name the user who just authenticated.
+     *
+     * This runs here rather than at the lookup in `login` because that point precedes
+     * `validateCredentials`: seeding there fired on failed attempts and let anyone trigger a
+     * run for any account by submitting its email.
+     */
+    setImmediate(() => {
+        TherrEventEmitter.runThoughtDistributorAlgorithm({
+            ...req.headers,
+            'x-userid': userDetails.id,
+        }, [userDetails.id], 'createdAt', 10);
+    });
+
+    // Fire and forget — first-login invite redemption. Marks every
+    // matching pending invite accepted, rewards each inviter, and
+    // guarantees a COMPLETE userConnection between inviter and this
+    // new user (the viral-loop contract: the friend you invited is
+    // in your connections the moment they first sign in).
+    if (!userSearchResults?.length || userSearchResults[0].loginCount < 2) {
+        recordFunnelMetric(MetricNames.FUNNEL_USER_FIRST_LOGIN, userDetails.id, {
+            brandVariation: brandVariation || '',
+            platform: platform || '',
+        });
+
+        acceptInvitesOnFirstLogin(req.headers, {
+            id: userDetails.id,
+            email: userEmail ? normalizeEmail(userEmail.trim()) : undefined,
+            phoneNumber: userPhone || undefined,
+            firstName: userDetails.firstName,
+            lastName: userDetails.lastName,
+        }).catch((err) => {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [err?.message, 'Failed to process first-login invite acceptance'],
+                traceArgs: {
+                    'user.id': userDetails.id,
+                    port: process.env.USERS_SERVICE_API_PORT,
+                    'process.id': process.pid,
+                },
+            });
+        });
+    }
+
+    const updateArgs: any = {
+        accessLevels: JSON.stringify([...new Set(user.accessLevels)]),
+        loginCount: user.loginCount + 1,
+        lastLoginAt: new Date(),
+        integrationsAccess: user.integrations,
+    };
+
+    // `billingEmail` is accepted from the login body and no client sends it today, so an
+    // attacker was free to claim any address here. That matters because `payments.ts`
+    // attributes an incoming Stripe checkout to an account via `getUserByEmail(billingEmail)`
+    // and falls back to `user.billingEmail` when emailing receipts — claiming someone else's
+    // address redirects their subscription and their billing mail.
+    //
+    // Own address: always allowed. Any other address: only if no other account already holds
+    // it as either its login email or its billing email. The write is dropped rather than
+    // failing the login, since a caller who never meant to set it should still get a session.
+    if (req.body.billingEmail) {
+        const requestedBillingEmail = normalizeEmail(`${req.body.billingEmail}`.trim());
+
+        if (requestedBillingEmail === user.email) {
+            updateArgs.billingEmail = requestedBillingEmail;
+        } else {
+            const conflictingUsers = await Store.users.getUserByConditions(
+                { email: requestedBillingEmail },
+                { billingEmail: requestedBillingEmail },
+                undefined,
+                ['id'],
+            ).catch(() => [{ id: 'unknown' }]); // Fail closed: a lookup error must not grant the claim
+
+            const conflict = conflictingUsers.find((u) => `${u.id}` !== `${user.id}`);
+
+            if (conflict) {
+                logSpan({
+                    level: 'warn',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Rejected billingEmail claim already held by another account'],
+                    traceArgs: {
+                        'user.id': user.id,
+                        'user.conflictingId': conflict.id,
+                        port: process.env.USERS_SERVICE_API_PORT,
+                        'process.id': process.pid,
+                    },
+                });
+            } else {
+                updateArgs.billingEmail = requestedBillingEmail;
+            }
+        }
+    }
+
+    return Store.users.updateUser(updateArgs, {
+        id: user.id,
+    }).then((userResponse) => {
+        const finalUser = userResponse[0];
+        // Remove credentials from object
+        redactUserCreds(finalUser);
+        // Track which apps a user actually uses. Fire-and-forget: a failure here
+        // must not block the login response, but we want to log it for observability.
+        // Skip DASHBOARD_THERR for non-business accounts so dashboard sign-ins don't
+        // pollute consumer brand membership records.
+        // Only track brands we recognize. Without this guard a malicious client could
+        // submit `x-brand-variation: <anything>` to pollute the user's brandVariations
+        // array (no SQL injection — it's parameterized — but it would let an attacker
+        // grow the JSONB array unboundedly via repeated logins under different bogus
+        // values, an integrity / DoS angle).
+        const shouldTrackBrand = isKnownBrand(brandVariation)
+            && !(brandVariation === BrandVariations.DASHBOARD_THERR && !finalUser?.isBusinessAccount);
+        if (shouldTrackBrand) {
+            Store.users.upsertBrandVariation(user.id, brandVariation).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Failed to upsert brandVariations on login'],
+                    traceArgs: {
+                        'user.id': user.id,
+                        'brand.variation': brandVariation,
+                    },
+                });
+            });
+        }
+        // TODO: Save, Encrypt, and return stored user integrations
+        // const storedIntegrations = encryptIntegrationsAccess(access);
+        return res.status(201).send({
+            ...finalUser,
+            idToken,
+            refreshToken: refreshTokenData.token,
+            integrations: user.integrations || {},
+            rememberMe: req.body.rememberMe,
+            userOrganizations: userOrgs,
+        });
+    });
+};
+
 // Authenticate user
 const login: RequestHandler = (req: any, res: any) => {
     const {
@@ -48,21 +290,17 @@ const login: RequestHandler = (req: any, res: any) => {
         platform,
     } = parseHeaders(req.headers);
 
-    // const { paymentSessionId } = req.body;
-    // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
+    // Sent by the dashboard when an existing account completes a Stripe checkout
+    // (`PaymentComplete.tsx` redirects to `/login?paymentSessionId=`). Applied below, once
+    // credentials have actually been proven — never off the unauthenticated lookup.
+    const { paymentSessionId } = req.body;
 
-    // TODO: Mitigate user with multiple accounts attached to the same phone number.
-    // Logging in by phone number should attach to all accounts with that phone number and allow them to pick one
-    let userNameEmailPhone = userNameOrEmailOrPhone(req.body);
-    let userEmail = normalizeEmail(req.body.userName?.trim() || req.body.userEmail?.trim() || req.body.email?.trim()?.replace(/\s/g, '') || '');
-    let userPhone = normalizePhoneNumber(
-        req.body.userName?.trim()?.replace(/\s/g, '')
-            || req.body.userEmail?.trim()?.replace(/\s/g, '')
-            || req.body.email?.trim()?.replace(/\s/g, '')
-            || req.body.phoneNumber?.trim()?.replace(/\s/g, '') || '',
-    );
+    // NOTE: When a phone number is attached to more than one account, password login still
+    // resolves to whichever row the OR-lookup returns first. The passwordless flow below
+    // (`phoneAccountLookup` + `loginWithVerifiedPhone`) is the path that lets the user pick.
+    const userNameEmailPhone = userNameOrEmailOrPhone(req.body);
 
-    let userHash = userNameEmailPhone ? basicHash(userNameEmailPhone) : undefined;
+    const userHash = userNameEmailPhone ? basicHash(userNameEmailPhone) : undefined;
     let getUsersPromise;
 
     /**
@@ -88,17 +326,10 @@ const login: RequestHandler = (req: any, res: any) => {
     return getUsersPromise
         .then((userSearchResults) => {
             if (userSearchResults.length) {
-                /**
-                 * This is simply an event trigger. It could be triggered by a user logging in, or any other common event.
-                 * We will probably want to move this to a scheduler to run at a set interval.
-                 *
-                 * Uses createdAt to target recently created users
-                 * Deferred via setImmediate to avoid blocking login response
-                 */
-                setImmediate(() => {
-                    TherrEventEmitter.runThoughtDistributorAlgorithm(req.headers, [userSearchResults[0].id], 'createdAt', 10);
-                });
-
+                // NOTE: the thought distributor used to run here. This point is reached by a
+                // bare username/email/phone lookup, before `validateCredentials` — so it fired
+                // on failed attempts too, and anyone could trigger a seed for any account by
+                // submitting its email. It now runs in `issueUserSession`, past that gate.
                 if (req.body.isDashboard && !userSearchResults[0].isBusinessAccount) {
                     // TODO: Disallow login to dashboard for non-business users
                 }
@@ -135,6 +366,7 @@ const login: RequestHandler = (req: any, res: any) => {
                     res,
                     message: translate(locale, 'errorMessages.auth.accountNotVerified'),
                     statusCode: 401,
+                    errorCode: ErrorCodes.NOT_VERIFIED,
                 });
             }
 
@@ -155,134 +387,16 @@ const login: RequestHandler = (req: any, res: any) => {
                 },
             }, res).then(async ([isValid, userDetails, oauthResponseData]) => {
                 if (isValid) {
-                    const user = {
-                        ...userDetails,
-                        isSSO: !!req.body.isSSO,
-                        integrations: {
-                            ...decryptIntegrationsAccess(userDetails?.integrationsAccess),
-                        },
-                    };
-                    if (oauthResponseData?.access_token) {
-                        // TODO: Store access_tokens encrypted in DB (integrationsAccess) for fetching
-                        // TODO: Fetch stored access_tokens and return in integrations object
-                        const DEFAULT_60_DAYS_AS_SECONDS = 60 * 60 * 24 * 60; // 60 days
-                        user.integrations[OAuthIntegrationProviders.FACEBOOK] = {
-                            user_access_token: oauthResponseData.access_token,
-                            user_access_token_expires_at: Date.now() + ((oauthResponseData?.expires_in || DEFAULT_60_DAYS_AS_SECONDS) * 1000),
-                        };
-                    }
-                    userNameEmailPhone = userNameOrEmailOrPhone(userDetails);
+                    const subscribedUserDetails = paymentSessionId
+                        ? await applyCheckoutSessionAccessLevels(paymentSessionId, userDetails)
+                        : userDetails;
 
-                    userEmail = userDetails.email?.trim() || ''; // DB response values should already be normalized
-                    userPhone = userDetails.phoneNumber?.trim()?.replace(/\s/g, ''); // DB response values should already be normalized
-                    const userOrgs = await Store.userOrganizations.get({
-                        userId: user.id,
-                    }).catch((err) => {
-                        logSpan({
-                            level: 'error',
-                            messageOrigin: 'API_SERVER',
-                            messages: [err?.message, 'Failed to fetch user organizations for idToken'],
-                            traceArgs: {
-                                issue: '',
-                                port: process.env.USERS_SERVICE_API_PORT,
-                                'process.id': process.pid,
-                            },
-                        });
-                        return [];
-                    });
-
-                    const idToken = createUserToken(user, userOrgs, req.body.rememberMe);
-                    const refreshTokenData = createRefreshToken(user.id, req.body.rememberMe);
-                    userHash = basicHash(userNameEmailPhone);
-
-                    logSpan({
-                        level: 'info',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['user login success'],
-                        traceArgs: {
-                            'user.isSSO': req.body.isSSO,
-                            'user.loginCount': !userSearchResults?.length ? 1 : userSearchResults[0].loginCount,
-                            'user.hash': userHash,
-                            'user.id': userDetails.id,
-                        },
-                    });
-
-                    // Fire and forget
-                    // Reward inviting user for first time login
-                    if (!userSearchResults?.length || userSearchResults[0].loginCount < 2) {
-                        let invitesPromise: any;
-                        if (userPhone) {
-                            invitesPromise = Store.invites.getInvitesForPhoneNumber({
-                                phoneNumber: userPhone,
-                                isAccepted: false,
-                            });
-                        } else if (userEmail) {
-                            invitesPromise = Store.invites.getInvitesForEmail({ email: normalizeEmail(userEmail.trim()), isAccepted: false });
-                        } else {
-                            invitesPromise = Promise.resolve([]);
-                        }
-
-                        invitesPromise.then((invites) => {
-                            if (invites.length) {
-                                // TODO: Log response
-                                return Store.invites.updateInvite({ id: invites[0].id }, { isAccepted: true });
-                            }
-
-                            return Promise.resolve();
-                        }).then((response) => {
-                            if (response?.length) {
-                                return Store.users.updateUser({
-                                    settingsTherrCoinTotal: CurrentSocialValuations.invite,
-                                }, {
-                                    id: response[0]?.requestingUserId,
-                                });
-                            }
-
-                            return Promise.resolve();
-                        }).catch((err) => {
-                            logSpan({
-                                level: 'error',
-                                messageOrigin: 'API_SERVER',
-                                messages: [err?.message],
-                                traceArgs: {
-                                    issue: '',
-                                    port: process.env.USERS_SERVICE_API_PORT,
-                                    'process.id': process.pid,
-                                },
-                            });
-                        });
-                    }
-
-                    const updateArgs: any = {
-                        accessLevels: JSON.stringify([...new Set(user.accessLevels)]),
-                        loginCount: user.loginCount + 1,
-                        integrationsAccess: user.integrations,
-                    };
-
-                    if (req.body.billingEmail) {
-                        if (req.body.billingEmail !== user.email) {
-                            // TODO: Improve security so users cannot claim the same billing email as another user
-                            // Send verification e-mail before updating param
-                        }
-                        updateArgs.billingEmail = req.body.billingEmail;
-                    }
-
-                    return Store.users.updateUser(updateArgs, {
-                        id: user.id,
-                    }).then((userResponse) => {
-                        const finalUser = userResponse[0];
-                        // Remove credentials from object
-                        redactUserCreds(finalUser);
-                        // TODO: Save, Encrypt, and return stored user integrations
-                        // const storedIntegrations = encryptIntegrationsAccess(access);
-                        return res.status(201).send({
-                            ...finalUser,
-                            idToken,
-                            refreshToken: refreshTokenData.token,
-                            integrations: user.integrations || {},
-                            rememberMe: req.body.rememberMe,
-                            userOrganizations: userOrgs,
-                        });
+                    return issueUserSession(req, res, {
+                        userDetails: subscribedUserDetails,
+                        userSearchResults,
+                        oauthResponseData,
+                        brandVariation,
+                        platform,
                     });
                 }
 
@@ -300,6 +414,164 @@ const login: RequestHandler = (req: any, res: any) => {
                     message: translate(locale, 'errorMessages.auth.incorrectUserPass'),
                     statusCode: 401,
                 });
+            });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:AUTH_ROUTES:ERROR' }));
+};
+
+// PASSWORDLESS PHONE AUTH
+//
+// The SMS round-trip itself lives in the API gateway (it owns Twilio and the Redis code
+// cache). By the time either handler below runs, the gateway has already proven the caller
+// controls the phone number — these two are the account-side half of that flow.
+
+/**
+ * Minimal, non-sensitive account list for a phone number.
+ *
+ * The gateway calls this twice: before texting a code (to decide whether a code is worth
+ * sending at all) and after validating one (to build the account picker when a number has
+ * several accounts). It returns only what a picker needs to render — never credentials,
+ * email, or access levels. Blocked and soft-deleted accounts are omitted so they neither
+ * appear in the picker nor make a number look "registered" to the sign-up flow.
+ */
+const phoneAccountLookup: RequestHandler = (req: any, res: any) => {
+    const rawPhoneNumber = `${req.body?.phoneNumber || ''}`.trim().replace(/\s/g, '');
+    const phoneNumber = rawPhoneNumber ? normalizePhoneNumber(rawPhoneNumber) : '';
+
+    if (!phoneNumber) {
+        return res.status(200).send({ accountCount: 0, accounts: [] });
+    }
+
+    return Store.users.getAllByPhoneNumber(phoneNumber, [
+        'id',
+        'userName',
+        'firstName',
+        'lastName',
+        'media',
+        'isBusinessAccount',
+        'isCreatorAccount',
+        'isBlocked',
+    ])
+        .then((results) => {
+            const accounts = (results || [])
+                .filter((account) => !account.isBlocked)
+                .map(({ isBlocked, ...account }) => account); // eslint-disable-line @typescript-eslint/no-unused-vars
+
+            return res.status(200).send({
+                accountCount: accounts.length,
+                accounts,
+            });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:AUTH_ROUTES:ERROR' }));
+};
+
+/**
+ * Signs a user in on the strength of a verified phone number — no password involved.
+ *
+ * Trust boundary: this endpoint is internal (users-service is not publicly routable) and is
+ * reachable only via the gateway's `/phone/auth/*` routes, which will not call it until a
+ * texted one-time code has been matched. It therefore performs NO credential check of its
+ * own; it re-validates only that the requested account really is attached to the phone
+ * number, so a compromised or buggy caller still cannot pivot to an arbitrary account.
+ *
+ * `userId` is required whenever the number resolves to more than one account: we refuse to
+ * guess which of a user's personal / creator / business accounts they meant.
+ */
+const loginWithVerifiedPhone: RequestHandler = (req: any, res: any) => {
+    const {
+        locale,
+        brandVariation,
+        platform,
+    } = parseHeaders(req.headers);
+    const rawPhoneNumber = `${req.body?.phoneNumber || ''}`.trim().replace(/\s/g, '');
+    const phoneNumber = rawPhoneNumber ? normalizePhoneNumber(rawPhoneNumber) : '';
+    const requestedUserId = req.body?.userId;
+
+    if (!phoneNumber) {
+        return handleHttpError({
+            res,
+            message: 'A phone number is required',
+            statusCode: 400,
+        });
+    }
+
+    return Store.users.getAllByPhoneNumber(phoneNumber)
+        .then((userSearchResults) => {
+            if (!userSearchResults.length) {
+                logSpan({
+                    level: 'warn',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['phone auth failed: user not found'],
+                    traceArgs: {
+                        'user.hash': basicHash(phoneNumber),
+                    },
+                });
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'errorMessages.auth.noUserFound'),
+                    statusCode: 404,
+                });
+            }
+
+            // Re-bind the requested account to the proven phone number rather than trusting
+            // the caller's id outright. `find` over the phone-scoped result set means an id
+            // for some other account simply isn't there.
+            const userDetails = requestedUserId
+                ? userSearchResults.find((user) => user.id === requestedUserId)
+                : userSearchResults[0];
+
+            if (!userDetails) {
+                return handleHttpError({
+                    res,
+                    message: 'Requested account is not associated with this phone number',
+                    statusCode: 403,
+                });
+            }
+
+            if (!requestedUserId && userSearchResults.length > 1) {
+                return handleHttpError({
+                    res,
+                    message: 'Multiple accounts are associated with this phone number; a userId is required',
+                    statusCode: 400,
+                });
+            }
+
+            if (userDetails.isBlocked) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'errorMessages.auth.accountNotVerified'),
+                    statusCode: 403,
+                });
+            }
+
+            // Same verification gate password login enforces. An account that has never
+            // confirmed its email cannot slip in through the SMS door — phone-first signups
+            // are granted the missing-properties level at creation precisely so they can.
+            if (!(userDetails.accessLevels?.includes(AccessLevels.EMAIL_VERIFIED)
+                || userDetails.accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES))) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'errorMessages.auth.accountNotVerified'),
+                    statusCode: 401,
+                    errorCode: ErrorCodes.NOT_VERIFIED,
+                });
+            }
+
+            // The SMS round-trip just proved this number, so persist that fact. `issueUserSession`
+            // writes the merged set back to the row as part of its normal audit update.
+            const accessLevels = new Set([
+                ...(userDetails.accessLevels || []),
+                AccessLevels.MOBILE_VERIFIED,
+            ]);
+
+            return issueUserSession(req, res, {
+                userDetails: {
+                    ...userDetails,
+                    accessLevels: [...accessLevels],
+                },
+                userSearchResults,
+                brandVariation,
+                platform,
             });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:AUTH_ROUTES:ERROR' }));
@@ -338,6 +610,16 @@ const refreshToken: RequestHandler = async (req: any, res: any) => {
             return handleHttpError({
                 res,
                 message: 'Invalid token type',
+                statusCode: 403,
+            });
+        }
+
+        // Reject forged/foreign refresh tokens whose iss/aud claims don't match.
+        // Legacy refresh tokens (no iss/aud) still pass and upgrade on rotation.
+        if (!hasValidStandardClaims(decoded)) {
+            return handleHttpError({
+                res,
+                message: 'Invalid refresh token',
                 statusCode: 403,
             });
         }
@@ -383,8 +665,15 @@ const refreshToken: RequestHandler = async (req: any, res: any) => {
             },
         };
 
-        const newIdToken = createUserToken(userWithIntegrations, userOrgs, rememberMe);
-        const newRefreshTokenData = createRefreshToken(user.id, rememberMe);
+        // Brand stickiness on refresh: the refresh token represents a session for the brand it
+        // was originally issued under. We re-stamp the new id+refresh tokens with that same brand.
+        // For pre-multi-app refresh tokens that have no `brand` claim, opportunistically upgrade
+        // using the current request's brand-variation header.
+        const { brandVariation: refreshHeaderBrand } = parseHeaders(req.headers);
+        const stickyBrand = decoded.brand || refreshHeaderBrand;
+
+        const newIdToken = createUserToken(userWithIntegrations, userOrgs, rememberMe, stickyBrand);
+        const newRefreshTokenData = createRefreshToken(user.id, rememberMe, stickyBrand);
 
         redactUserCreds(userWithIntegrations);
 
@@ -431,9 +720,220 @@ const verifyToken: RequestHandler = (req: any, res: any) => {
     }
 };
 
+// Pre-computed dummy bcrypt hash. Used to keep precheck timing constant when no user exists,
+// so the response time itself doesn't reveal whether the email is registered. The salt is fixed
+// (precomputed once at module load) so we don't pay a fresh hash cost on every cold start.
+const PRECHECK_DUMMY_HASH = bcrypt.hashSync('precheck-timing-equalizer', 12);
+
+// Email pre-check: tells the client to render the universal "continue" UI (password field +
+// SSO buttons + magic-link option, all visible). Deliberately returns a single neutral hint
+// regardless of account state so the response cannot be used to enumerate registered emails.
+// We still do the DB lookup and a bcrypt compare to keep timing constant with future variants
+// that might attach state to the result.
+const emailPrecheck: RequestHandler = async (req: any, res: any) => {
+    const { locale } = parseHeaders(req.headers);
+    const rawEmail = (req.body?.email || '').toString();
+    const email = normalizeEmail(rawEmail.trim());
+
+    try {
+        const userResults = email
+            ? await Store.users.getUserByConditions({ email })
+            : [];
+        const user = userResults?.[0];
+
+        // Always run bcrypt against the user hash if present, otherwise the dummy hash. Equalizes
+        // wall-clock time so an attacker cannot infer existence from the response latency.
+        await bcrypt.compare('precheck-timing-equalizer', user?.password || PRECHECK_DUMMY_HASH);
+    } catch (err: any) {
+        // Lookup or bcrypt failure must NOT alter the response — falling through gives the same
+        // shape an attacker would see for any input. Log so we can spot a regression internally.
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: [err?.message, 'email-precheck DB/bcrypt failure (response unchanged)'],
+            traceArgs: {},
+        });
+    }
+
+    // Single neutral hint for everyone. The client renders the full continuation UI and lets the
+    // user pick how to proceed; the actual /auth call decides what works. This is the only
+    // enumeration-resistant shape — any per-account branching here leaks existence.
+    return res.status(200).send({
+        status: 'continue',
+        hint: 'continue',
+        message: translate(locale, 'authMessages.emailPrecheckGeneric'),
+    });
+};
+
+// Cross-app handoff. The source app (where the user is signed in) mints a single-use code bound
+// to a target brand. The target app, opened via universal link, redeems that code for fresh
+// tokens stamped with the target brand. This is the first-party analog of OAuth's authorization
+// code flow — but without the consent screen ceremony, since both apps are owned by us and the
+// user has already authenticated to the source app.
+
+const mintHandoff: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+    const rawSourceBrand = (req.headers['x-brand-variation'] as string) || '';
+    const targetBrand = (req.body?.targetBrand || '').toString();
+    const deviceFingerprint = req.body?.deviceFingerprint
+        ? String(req.body.deviceFingerprint).slice(0, 256)
+        : undefined;
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+    if (!isKnownBrand(targetBrand)) {
+        return handleHttpError({ res, message: 'Invalid targetBrand', statusCode: 400 });
+    }
+    // Source brand is informational (it's stored on the Redis entry; redemption only enforces
+    // targetBrand), but accepting arbitrary strings would let a caller embed garbage into the
+    // record — we'd surface that on logs and analytics. Drop unknown values.
+    const sourceBrand = isKnownBrand(rawSourceBrand) ? rawSourceBrand : '';
+    if (sourceBrand && sourceBrand === targetBrand) {
+        return handleHttpError({ res, message: 'Source and target brand cannot match', statusCode: 400 });
+    }
+
+    // 128 bits of entropy → 22 url-safe chars. Big enough that brute-force is hopeless within the
+    // 60s TTL even at the per-IP rate limit. Never log the code itself.
+    const code = randomBytes(16).toString('base64url');
+
+    try {
+        await mintHandoffCode(code, {
+            userId,
+            sourceBrand,
+            targetBrand,
+            deviceFingerprint,
+            issuedAt: Date.now(),
+        });
+    } catch (err: any) {
+        return handleHttpError({
+            res, err, message: 'Failed to mint handoff code', statusCode: 500,
+        });
+    }
+
+    return res.status(200).send({ code, expiresInSeconds: 60, targetBrand });
+};
+
+const redeemHandoff: RequestHandler = async (req: any, res: any) => {
+    const { locale } = parseHeaders(req.headers);
+    const code = (req.body?.code || '').toString();
+    const requestedBrand = (req.body?.brand || '').toString();
+    const headerBrand = (req.headers['x-brand-variation'] as string) || '';
+
+    if (!code || !requestedBrand) {
+        return handleHttpError({ res, message: 'code and brand are required', statusCode: 400 });
+    }
+    // Reject when the request brand isn't a recognized variant. Without this guard, the body
+    // alone could carry an arbitrary string into downstream code paths.
+    if (!isKnownBrand(requestedBrand)) {
+        return handleHttpError({ res, message: 'Invalid brand', statusCode: 400 });
+    }
+    // Require the x-brand-variation header AND require it to match the body. Legitimate niche
+    // apps always set the header via their axios interceptor — its absence indicates a forged
+    // or misconfigured caller. Without this check, an attacker stripping the header could pass
+    // a body-only `brand` value the redeeming environment doesn't actually represent.
+    if (!headerBrand || headerBrand !== requestedBrand) {
+        return handleHttpError({ res, message: 'Brand mismatch', statusCode: 403 });
+    }
+
+    let entry;
+    try {
+        entry = await redeemHandoffCode(code);
+    } catch (err: any) {
+        return handleHttpError({
+            res, err, message: 'Failed to redeem handoff code', statusCode: 500,
+        });
+    }
+
+    if (!entry) {
+        // Either expired, never issued, or already redeemed. Same response either way to avoid
+        // leaking which case it is.
+        return handleHttpError({ res, message: 'Invalid or expired code', statusCode: 410 });
+    }
+
+    if (entry.targetBrand !== requestedBrand) {
+        return handleHttpError({ res, message: 'Code is not valid for this brand', statusCode: 403 });
+    }
+
+    try {
+        const userResults = await Store.users.getUserByConditions({ id: entry.userId });
+        if (!userResults?.length) {
+            return handleHttpError({ res, message: 'User not found', statusCode: 404 });
+        }
+        const dbUser = userResults[0];
+        if (dbUser.isBlocked) {
+            return handleHttpError({ res, message: 'User is blocked', statusCode: 403 });
+        }
+
+        const userOrgs = await Store.userOrganizations.get({ userId: dbUser.id }).catch(() => []);
+
+        const userWithIntegrations = {
+            ...dbUser,
+            isSSO: false,
+            integrations: {
+                ...decryptIntegrationsAccess(dbUser?.integrationsAccess),
+            },
+        };
+
+        const idToken = createUserToken(userWithIntegrations, userOrgs, false, requestedBrand);
+        const refreshTokenData = createRefreshToken(dbUser.id, false, requestedBrand);
+
+        // Track that this user is now active in the target brand. Fire-and-forget.
+        Store.users.upsertBrandVariation(dbUser.id, requestedBrand).catch((err) => {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [err?.message, 'Failed to upsert brandVariations on handoff redeem'],
+                traceArgs: { 'user.id': dbUser.id, 'brand.variation': requestedBrand },
+            });
+        });
+
+        redactUserCreds(userWithIntegrations);
+
+        return res.status(200).send({
+            ...userWithIntegrations,
+            idToken,
+            refreshToken: refreshTokenData.token,
+            integrations: userWithIntegrations.integrations || {},
+            userOrganizations: userOrgs,
+        });
+    } catch (err: any) {
+        return handleHttpError({
+            res, err, message: translate(locale, 'errorMessages.auth.incorrectUserPass'), statusCode: 500,
+        });
+    }
+};
+
+const cancelHandoff: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+    const code = (req.body?.code || '').toString();
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+    if (!code) {
+        return handleHttpError({ res, message: 'code is required', statusCode: 400 });
+    }
+
+    try {
+        await cancelHandoffCode(code);
+        return res.status(200).send({ status: 'cancelled' });
+    } catch (err: any) {
+        return handleHttpError({
+            res, err, message: 'Failed to cancel handoff code', statusCode: 500,
+        });
+    }
+};
+
 export {
     login,
     logout,
     refreshToken,
     verifyToken,
+    emailPrecheck,
+    phoneAccountLookup,
+    loginWithVerifiedPhone,
+    mintHandoff,
+    redeemHandoff,
+    cancelHandoff,
 };

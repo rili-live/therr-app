@@ -4,22 +4,27 @@ import {
     Alert,
     FlatList,
     RefreshControl,
+    Share,
     StyleSheet,
+    Switch,
     Text,
     TouchableOpacity,
     View} from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
+import { slugify } from 'therr-js-utilities/slugify';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { navToViewContent } from '../../utilities/postViewHelpers';
+import { buildPublicListUrl } from '../../utilities/shareUrls';
 
 interface IListDetailDispatchProps {
     fetchUserList: Function;
     deleteUserList: Function;
+    updateUserList: Function;
 }
 
 interface IStoreProps extends IListDetailDispatchProps {
@@ -34,6 +39,7 @@ interface IListDetailProps extends IStoreProps {
 
 interface IListDetailState {
     isLoading: boolean;
+    isTogglingPublic: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -46,6 +52,7 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             fetchUserList: ContentActions.fetchUserList,
             deleteUserList: ContentActions.deleteUserList,
+            updateUserList: ContentActions.updateUserList,
         },
         dispatch,
     );
@@ -57,7 +64,7 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
     constructor(props: IListDetailProps) {
         super(props);
 
-        this.state = { isLoading: true };
+        this.state = { isLoading: true, isTogglingPublic: false };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params?: any) =>
@@ -96,6 +103,61 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
         navToViewContent({ ...space, areaType: 'spaces' }, user, navigation.navigate);
     };
 
+    applyTogglePublic = (list: any, nextValue: boolean) => {
+        const { updateUserList } = this.props;
+        this.setState({ isTogglingPublic: true });
+        updateUserList(list.id, { isPublic: nextValue })
+            .catch((err: any) => {
+                Alert.alert(
+                    this.translate('pages.bookmarks.lists.publicToggleErrorTitle'),
+                    err?.response?.data?.message || this.translate('pages.bookmarks.lists.publicToggleErrorBody'),
+                );
+            })
+            .finally(() => this.setState({ isTogglingPublic: false }));
+    };
+
+    handleTogglePublic = (nextValue: boolean) => {
+        const { content, route } = this.props;
+        const list = content?.activeUserList;
+        if (!list || list.id !== route.params.listId) return;
+
+        // Going public: apply immediately. Going private: confirm first because
+        // anyone who has the share link will start getting a 404, and any SEO
+        // equity the list accumulated will decay until it's republished.
+        if (nextValue) {
+            this.applyTogglePublic(list, true);
+            return;
+        }
+
+        Alert.alert(
+            this.translate('pages.bookmarks.lists.privateConfirmTitle'),
+            this.translate('pages.bookmarks.lists.privateConfirmBody'),
+            [
+                { text: this.translate('pages.bookmarks.lists.cancel'), style: 'cancel' },
+                {
+                    text: this.translate('pages.bookmarks.lists.privateConfirmAction'),
+                    style: 'destructive',
+                    onPress: () => this.applyTogglePublic(list, false),
+                },
+            ],
+        );
+    };
+
+    handleShare = async () => {
+        const { content, user } = this.props;
+        const list = content?.activeUserList;
+        if (!list) return;
+        const locale = user?.settings?.locale || 'en-us';
+        const url = buildPublicListUrl(locale, list.userId, slugify(list.name));
+        try {
+            await Share.share({
+                message: this.translate('pages.bookmarks.lists.shareMessage', { listName: list.name, url }),
+                url, // iOS only
+                title: list.name, // Android only
+            });
+        } catch { /* noop */ }
+    };
+
     handleDelete = () => {
         const { route, deleteUserList, navigation } = this.props;
         Alert.alert(
@@ -118,11 +180,12 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
     };
 
     render() {
-        const { content } = this.props;
+        const { content, user } = this.props;
         const activeUserList = content?.activeUserList;
-        const { isLoading } = this.state;
+        const { isLoading, isTogglingPublic } = this.state;
         const spaces = activeUserList?.spaces || [];
         const items = activeUserList?.items || [];
+        const isOwner = !!(activeUserList && user?.details?.id && activeUserList.userId === user.details.id);
         // Fall back to junction rows if the space lookup came back empty —
         // this surfaces that the list has content even when maps-service is
         // unreachable or a space was deleted.
@@ -139,15 +202,43 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
                 <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
                     <View style={styles.header}>
-                        <Text style={styles.headerTitle}>
+                        <Text style={[styles.headerTitle, { color: this.theme.colors.textWhite }]}>
                             {activeUserList?.name || this.translate('pages.bookmarks.lists.loading')}
                         </Text>
-                        {activeUserList && !activeUserList.isDefault && (
-                            <TouchableOpacity onPress={this.handleDelete} style={styles.deleteBtn}>
+                        {activeUserList && isOwner && activeUserList.isPublic && (
+                            <TouchableOpacity
+                                onPress={this.handleShare}
+                                style={styles.iconBtn}
+                                accessibilityLabel={this.translate('pages.bookmarks.lists.shareList')}
+                            >
+                                <MaterialIcon name="share" size={22} color="#1C7F8A" />
+                            </TouchableOpacity>
+                        )}
+                        {activeUserList && isOwner && !activeUserList.isDefault && (
+                            <TouchableOpacity onPress={this.handleDelete} style={styles.iconBtn}>
                                 <MaterialIcon name="delete-outline" size={22} color="#d32f2f" />
                             </TouchableOpacity>
                         )}
                     </View>
+                    {activeUserList && isOwner && (
+                        <View style={styles.publicRow}>
+                            <View style={styles.publicLabelWrap}>
+                                <Text style={styles.publicLabel}>
+                                    {this.translate('pages.bookmarks.lists.makePublic')}
+                                </Text>
+                                <Text style={styles.publicHint}>
+                                    {activeUserList.isPublic
+                                        ? this.translate('pages.bookmarks.lists.publicHintOn')
+                                        : this.translate('pages.bookmarks.lists.publicHintOff')}
+                                </Text>
+                            </View>
+                            <Switch
+                                value={!!activeUserList.isPublic}
+                                disabled={isTogglingPublic}
+                                onValueChange={this.handleTogglePublic}
+                            />
+                        </View>
+                    )}
                     <FlatList
                         data={rows}
                         keyExtractor={(item: any, index: number) => `${item.id}-${index}`}
@@ -156,7 +247,7 @@ class BookmarkListDetail extends React.Component<IListDetailProps, IListDetailSt
                         ListEmptyComponent={() => (
                             !isLoading ? (
                                 <View style={styles.empty}>
-                                    <Text style={styles.emptyText}>
+                                    <Text style={[styles.emptyText, { color: this.theme.colors.textGray }]}>
                                         {this.translate('pages.bookmarks.lists.emptyList')}
                                     </Text>
                                 </View>
@@ -203,8 +294,31 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '700',
     },
-    deleteBtn: {
+    iconBtn: {
         padding: 6,
+        marginLeft: 4,
+    },
+    publicRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        backgroundColor: '#f5f7f8',
+    },
+    publicLabelWrap: {
+        flex: 1,
+        paddingRight: 12,
+    },
+    publicLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#222',
+    },
+    publicHint: {
+        marginTop: 2,
+        fontSize: 12,
+        color: '#666',
     },
     card: {
         flexDirection: 'row',

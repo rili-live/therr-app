@@ -3,41 +3,46 @@ import React from 'react';
 import 'react-native-gesture-handler';
 import { getMessaging, setBackgroundMessageHandler } from '@react-native-firebase/messaging';
 import { AppRegistry } from 'react-native';
-import { PushNotifications } from 'therr-js-utilities/constants';
 import App from './main/App';
 import { name as appName } from './app.json';
 import configurePromiseRejections from './main/utilities/configurePromiseRejections';
-import { sendBackgroundNotification, wrapOnMessageReceived } from './main/utilities/pushNotifications';
+import { createAndroidNotificationChannels, sendBackgroundNotification, wrapOnMessageReceived } from './main/utilities/pushNotifications';
 import { getAndroidChannelFromClickActionId } from './main/constants';
 
 configurePromiseRejections();
 
+// Register the Android notification channels before anything can post to one.
+// Display notifications (push-notifications-service createNotificationMessage)
+// are rendered by the OS and name a channelId we never see in JS, so the channel
+// has to already exist or the notification lands on the FCM SDK's fallback
+// "Miscellaneous" channel at DEFAULT importance. Fire-and-forget: it resolves
+// long before a push can arrive, and createAndroidNotificationChannels swallows
+// its own errors. Runs here rather than in App.tsx so the background/headless
+// entry point is covered too.
+createAndroidNotificationChannels();
 
-// Step 1.) Add PushNotifications.AndroidIntentActions.Therr to the list bellow and the getAndroidChannelFromClickActionId method
-// Step 2.) Make sure the server side firebase message is data-only
-// Step 3.) Remove navigation logic for clickId in Layout.tsx
-// Step 4.) Update handleNotifeeNotificationEvent in Layout to handle the press action IDs
+
 /** Register background push notification handler */
 setBackgroundMessageHandler(getMessaging(), async remoteMessage => {
     await wrapOnMessageReceived(false, remoteMessage);
 
-    // Handle data-only notifications which will be converted to Notifee notifications with press actions
-    if (
-        [
-            PushNotifications.AndroidIntentActions.Therr.LATEST_POST_VIEWCOUNT_STATS,
-            PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST,
-            PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION,
-            PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE,
-            PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE,
-            PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED,
-            PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED,
-            PushNotifications.AndroidIntentActions.Therr.NEW_THOUGHT_REPLY_RECEIVED,
-            PushNotifications.AndroidIntentActions.Therr.NUDGE_SPACE_ENGAGEMENT,
-        ].includes(remoteMessage?.data?.clickActionId)
-    ) {
+    // Data-only FCM messages sent via push-notifications-service
+    // createDataOnlyMessage() always include `clickActionId`,
+    // `notificationTitle`, and `notificationBody` in their data payload, and
+    // need to be rendered locally via Notifee (iOS silent push + Android
+    // background wake-up). Display-style messages (createNotificationMessage)
+    // render natively via the OS and never reach this handler with those
+    // fields populated. Matching on shape instead of an allowlist means any
+    // new notification type added on the backend works without editing this
+    // file, and it's brand-agnostic (works on Therr, Teem, Habits, etc.).
+    const clickActionId = remoteMessage?.data?.clickActionId;
+    const notificationTitle = remoteMessage?.data?.notificationTitle?.toString() || '';
+    const notificationBody = remoteMessage?.data?.notificationBody?.toString() || '';
+
+    if (clickActionId && (notificationTitle || notificationBody)) {
         const notification = {
-            title: remoteMessage?.data?.notificationTitle?.toString() || '',
-            body: remoteMessage?.data?.notificationBody?.toString() || '',
+            title: notificationTitle,
+            body: notificationBody,
             android: {},
             data: remoteMessage?.data,
         };
@@ -59,7 +64,7 @@ setBackgroundMessageHandler(getMessaging(), async remoteMessage => {
 
         return sendBackgroundNotification(
             notification,
-            getAndroidChannelFromClickActionId(remoteMessage?.data?.clickActionId),
+            getAndroidChannelFromClickActionId(clickActionId),
         )
             .catch((err) => console.log(err));
     }

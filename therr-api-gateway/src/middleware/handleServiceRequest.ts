@@ -32,6 +32,7 @@ const handleServiceRequest = ({
             'x-organizations': req.headers['x-organizations'] || req['x-organizations'] || '',
             'x-therr-origin-host': req.headers.origin?.match(hostRegex)?.[1] || '',
             'x-auth-type': req['x-auth-type'] || '',
+            'x-correction-identity-hash': req.headers['x-correction-identity-hash'] || '',
         },
         method,
         url: `${basePath}${overrideUrl || req.url}`,
@@ -87,10 +88,15 @@ const handleServiceRequest = ({
                 console.log(error);
             }
 
+            // Structured upstream service errors are already sanitized and safe to forward.
+            // Unstructured Node.js errors (network failures, etc.) may contain stack traces or
+            // schema details — suppress them in production; log the raw error server-side above.
+            const clientMessage = error?.response?.data?.message
+                || (process.env.NODE_ENV !== 'production' ? (error?.message || 'Unknown error') : 'An unexpected error occurred');
             return handleHttpError({
                 err: error,
                 res,
-                message: error?.response?.data?.message || error,
+                message: clientMessage,
                 statusCode: error?.response?.data?.statusCode || 500,
                 errorCode: error?.response?.data?.errorCode || 500,
             });

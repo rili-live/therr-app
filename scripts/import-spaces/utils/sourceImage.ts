@@ -22,8 +22,10 @@ export interface ISourceImageInput {
 }
 
 export interface ISourceImageOptions {
-  /** If true, skip GCS upload and DB writes. */
+  /** If true, skip GCS upload and DB writes. Candidates are still validated. */
   dryRun?: boolean;
+  /** Follow /about, /menu, /gallery when the homepage yields nothing. */
+  deep?: boolean;
   /** Optional log prefix (e.g. "[3/50]"). */
   progress?: string;
   /** Logger; defaults to console.log. */
@@ -34,7 +36,12 @@ export type SourceImageOutcome =
   | { status: 'skipped-has-media' }
   | { status: 'no-candidates' }
   | { status: 'no-valid-image' }
-  | { status: 'dry-run'; candidateCount: number }
+  | {
+    status: 'dry-run';
+    candidateCount: number;
+    /** Null when every candidate failed validation — i.e. a real run would also fail. */
+    validated: { source: string; width: number; height: number } | null;
+  }
   | { status: 'uploaded'; imagePath: string; width: number; height: number; contentType: string };
 
 /**
@@ -48,7 +55,9 @@ export async function sourceImageForSpace(
   userId: string,
   options: ISourceImageOptions = {},
 ): Promise<SourceImageOutcome> {
-  const { dryRun = false, progress, log = (m: string) => console.log(m) } = options;
+  const {
+    dryRun = false, deep = false, progress, log = (m: string) => console.log(m),
+  } = options;
   const prefix = progress ? `${progress} ` : '';
 
   // Idempotency: don't re-upload if this space already has media.
@@ -60,18 +69,29 @@ export async function sourceImageForSpace(
     return { status: 'skipped-has-media' };
   }
 
-  const candidates = await crawlForImages(websiteUrl);
+  const candidates = await crawlForImages(websiteUrl, { followSecondaryPages: deep });
   if (candidates.length === 0) {
     return { status: 'no-candidates' };
-  }
-
-  if (dryRun) {
-    return { status: 'dry-run', candidateCount: candidates.length };
   }
 
   for (const candidate of candidates) {
     const validImage = await downloadAndValidateImage(candidate.imageUrl);
     if (!validImage) continue;
+
+    // Validate before branching on dryRun: a dry run that stopped at "found 4
+    // candidates" over-reported, because most candidates fail the 200x200 check.
+    // Validating first makes the dry-run count match what a real run would save.
+    if (dryRun) {
+      return {
+        status: 'dry-run',
+        candidateCount: candidates.length,
+        validated: {
+          source: candidate.source,
+          width: validImage.width,
+          height: validImage.height,
+        },
+      };
+    }
 
     log(`${prefix}  Image found (${candidate.source}): ${validImage.width}x${validImage.height}`);
 
@@ -103,6 +123,10 @@ export async function sourceImageForSpace(
       height: validImage.height,
       contentType: validImage.contentType,
     };
+  }
+
+  if (dryRun) {
+    return { status: 'dry-run', candidateCount: candidates.length, validated: null };
   }
 
   return { status: 'no-valid-image' };

@@ -51,8 +51,17 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
                 style={spacingStyles.flexOne}
                 onPress={() => goToViewUser(connectionDetails.id)}
             >
-                <ListItem.Title>{connectionDetails.userName}</ListItem.Title>
-                <ListItem.Subtitle>{getConnectionSubtitle(connectionDetails) || translate('pages.userProfile.anonymous')}</ListItem.Subtitle>
+                <ListItem.Title numberOfLines={1}>{connectionDetails.userName}</ListItem.Title>
+                {/*
+                  * Clamped because the Messages tab reuses this row with a ~100 character
+                  * message preview as its subtitle. Unclamped it wraps to however many lines
+                  * the message needs, so every row is a different height — which is what
+                  * FlashList's recycler cannot estimate, and what shows up as uneven gaps
+                  * between items.
+                  */}
+                <ListItem.Subtitle numberOfLines={2}>
+                    {getConnectionSubtitle(connectionDetails) || translate('pages.userProfile.anonymous')}
+                </ListItem.Subtitle>
             </Pressable>
             <Pressable onPress={() => onConnectionPress(connectionDetails)}>
                 {
@@ -71,4 +80,14 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
     );
 };
 
-export default ConnectionItem;
+// Custom equality: parent passes inline arrow handlers per render so a default
+// shallow compare would re-render every row on every parent render. Compare the
+// fields that actually drive what's drawn instead.
+export default React.memo(ConnectionItem, (prev, next) => (
+    prev.connectionDetails?.id === next.connectionDetails?.id
+    && prev.connectionDetails?.userName === next.connectionDetails?.userName
+    && prev.connectionDetails?.firstName === next.connectionDetails?.firstName
+    && prev.connectionDetails?.lastName === next.connectionDetails?.lastName
+    && prev.isActive === next.isActive
+    && prev.theme === next.theme
+));

@@ -1,0 +1,16 @@
+{
+    "$comment": "Files that are deliberately duplicated across packages and must stay byte-identical apart from the lines listed in `ignoreLinesMatching`. See scripts/mirrored-files/index.js.",
+    "targets": [
+        {
+            "name": "incrementInterestEngagement",
+            "reason": "Coalescing buffer for interest-engagement writes. Owns per-process mutable state (a Map plus a flush timer), so it cannot move to therr-js-utilities without every consumer sharing one buffer. Duplicated instead — and kept in lockstep by this check.",
+            "files": [
+                "therr-services/maps-service/src/utilities/incrementInterestEngagement.ts",
+                "therr-services/reactions-service/src/utilities/incrementInterestEngagement.ts"
+            ],
+            "ignoreLinesMatching": [
+                "^// NOTE: this file is intentionally identical to the .+ copy of the same$"
+            ]
+        }
+    ]
+}

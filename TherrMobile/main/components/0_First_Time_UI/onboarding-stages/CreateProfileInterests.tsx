@@ -10,7 +10,7 @@ interface ICreateProfileInterestsProps {
     availableInterests: any;
     isDisabled: boolean;
     isLoading: boolean;
-    onChange: (() => void);
+    onChange?: (() => void);
     onSubmit: ((interests: any) => void);
     translate: Function;
     theme: {
@@ -58,7 +58,7 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
     onPressInterest = (interest: any) => {
         const { availableInterests } = this.state;
 
-        this.props.onChange();
+        this.props.onChange?.();
 
         const modifiedInterests = {
             ...availableInterests,
@@ -114,6 +114,13 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
             submitButtonText,
         } = this.props;
         const { availableInterests } = this.state;
+        // Gate the submit button on the actual selection state (the source of
+        // truth lives in this component's state). Relying on a parent-owned
+        // flag left the button stuck disabled when the parent did not re-render
+        // in step with a selection.
+        const hasSelectedInterest = Object.keys(availableInterests).some(
+            (categoryKey) => (availableInterests[categoryKey] || []).some((interest) => interest.isEnabled),
+        );
 
         return (
             <View style={themeSettingsForm.styles.userContainer}>
@@ -172,7 +179,7 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
                         title={submitButtonText}
                         onPress={this.onSubmitInterests}
                         raised={false}
-                        disabled={isDisabled}
+                        disabled={isDisabled || !hasSelectedInterest}
                     />
                 </View>
             </View>

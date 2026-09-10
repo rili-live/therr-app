@@ -52,10 +52,7 @@ const MapBottomSheetContent = ({
     }
 
     return (
-        <>
-            {/* TODO: Add a last element to prevent cuttoff of final item in scroll view */}
-            <NearbyWrapper isInMapView displaySize="medium" navigation={navigation} shouldDisableLocationSendEvent />
-        </>
+        <NearbyWrapper isInMapView displaySize="medium" navigation={navigation} shouldDisableLocationSendEvent />
     );
 };
 

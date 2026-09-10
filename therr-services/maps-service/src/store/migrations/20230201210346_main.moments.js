@@ -1,6 +1,6 @@
 // nearbySpacesSnapshot is used for drafted moments so we can get nearby spaces without requiring location
 // to edit a drafted moment
-exports.up = (knex) => knex.schema.withSchema('main').alterTable('moments', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').alterTable('moments', (table) => {
     table.jsonb('nearbySpacesSnapshot').defaultsTo(JSON.stringify([]));
 });
 

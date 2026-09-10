@@ -1,327 +1,345 @@
 # Claude Code Instructions
 
-## Branch Awareness (Check First)
+Monorepo for Therr App and its niche variants. 13 packages, ~250k LOC.
+Most of what you need is inferable from the filesystem — what follows is the
+subset that is **not**, plus the gotchas that have actually cost time.
 
-Before making code changes, check the current git branch name:
+Package-specific detail lives in each package's own `CLAUDE.md`, which loads
+automatically when you work in that directory. Full doc index: [`docs/README.md`](docs/README.md).
 
-- **`niche/*` branches** (e.g., `niche/TEEM-general`): Changes should be specific to that niche app variant. These branches contain app-specific branding, assets, and configurations.
+## Branch Awareness (check this first)
 
-- **`general` branch**: Contains shared code inherited by all niche apps.
+Before making code changes, check the current git branch.
 
-- **`stage` branch**: Merging `general` → `stage` triggers CI **build** phase.
+- **`general`** — shared code inherited by all niche apps. The only path to production.
+- **`niche/*`** (e.g. `niche/HABITS-general`) — app-variant branding, assets, config.
+- **`stage`** — merging `general` → `stage` triggers the CI **build** phase.
+- **`main`** — merging `stage` → `main` triggers the CI **deploy** phase.
 
-- **`main` branch**: Merging `stage` → `main` triggers CI **deploy** phase to production.
+### Deployment reality
 
-**Important**: If on a `niche/*` branch and a requested change should apply to all niche apps (shared functionality, bug fixes, library updates), ask before proceeding:
-1. Should this change be committed to the current niche branch, or
-2. Should we switch to `general` branch first so all niche apps inherit the change?
+**`niche/*` branches NEVER deploy to production.** There is no CI path from a niche
+branch to `main`. Only `general → stage → main` deploys. Code committed only to a
+`niche/*` branch is dead code — it runs locally, it shows in diffs, it never runs in
+production.
 
-This prevents accidentally putting shared code in niche-specific branches or vice versa.
+`general → stage` builds and publishes `therrapp/<svc>-stage:<sha>` and records what it
+published, per service, in `VERSIONS.txt`. `stage → main` reads that ledger, compares each
+service's published tag against the tag actually running in the cluster, and rolls whatever
+differs. It refuses to deploy — before touching the cluster — when a published image is
+missing or predates the code being promoted, rather than deploying a stale version and
+reporting green. Full detail: [`docs/DEPLOY_PIPELINE.md`](docs/DEPLOY_PIPELINE.md).
 
-### Project Brief Context (Required)
+> `VERSIONS.txt` has exactly one writer: the publish job, on `stage`. Never hand-edit it,
+> and never resolve a merge conflict on it toward anything but the `stage` side — that file
+> is what decides which image version production runs.
 
-Always associate the current context with the appropriate project brief based on the checked out branch:
+These paths **MUST** land on `general` to ever ship:
 
-| Current Branch | Project Brief to Reference |
-|----------------|----------------------------|
-| `general`, `stage`, `main` | `docs/niche-sub-apps/PROJECT_BRIEF.md` (core Therr App) |
-| `niche/HABITS-general` | `docs/niche-sub-apps/HABITS_PROJECT_BRIEF.md` |
-| `niche/TEEM-general` | `docs/niche-sub-apps/TEEM_PROJECT_BRIEF.md` |
-| `niche/<TAG>-general` | `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` |
+- `therr-services/**`, `therr-api-gateway/**` — backend
+- `therr-public-library/**` — shared libraries
+- `**/migrations/**`, `**/*.sql` — schema
+- Root `package.json`, `package-lock.json`, `docker-compose*.yml`, `_bin/**`, `eslint-config/**`
 
-**Pattern**: For any `niche/<TAG>-general` branch, the corresponding project brief is `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` (uppercase TAG with underscores).
+These may stay on a `niche/*` branch:
 
-When working on a branch, read the associated project brief early in the conversation to understand the product context, vision, and specific requirements for that app variant.
+- `TherrMobile/**` — mobile UI, navigation, brand components
+- `therr-client-web/**`, `therr-client-web-dashboard/**` — brand-scoped web UI
+- Brand assets, `brandConfig.ts`, Firebase/Google Services files
+- Locale strings only that variant renders
 
-## Key Dependencies
+**When a task touches both**, split it:
+1. Switch to `general`, commit the shared/backend part there.
+2. `git checkout niche/<TAG>-general && git merge general`
+3. Commit the niche-only part separately.
 
-- **React**: 18.x.x (web clients) - Use hooks, functional components
-- **React Native**: 0.74.3 (TherrMobile) - Has its own package.json with isolated deps
-- **TypeScript**: 4.8.x
-- **Node.js**: 24.12.0 required (see `.nvmrc`)
-- **npm**: 11+ required (enforced by `_bin/prep.sh`)
+Do it in that order. Mixed commits cannot be split cleanly after the fact.
 
-## Code Patterns
+Use `/split-branch-prs` to do this as two PRs (one based on `general`, one on
+`niche/<TAG>-general`) — the supported path when raising PRs, including from the Claude
+Code web app.
 
-### Imports
-- Use TypeScript path aliases defined in `tsconfig.json`
-- Shared libraries: `therr-react/*`, `therr-js-utilities/*`
-- Services import from compiled `lib/` directories
+> **Step 2 is silent in both directions.** Merging `general` into a niche branch is a clean
+> fast-forward that *un-brands the niche app* — no conflict, no failing check, it just builds
+> as Therr. The reverse (brand identity riding along on `general`) once set the flagship
+> app's `applicationId` to `com.therr.habits` and its `versionCode` from 445 to 21, which
+> would have made it unreleasable on Play. Always run `/split-branch-prs verify-brand` after
+> merging `general` down into a `niche/*` branch.
 
-### React
-- Functional components with hooks (no class components)
-- Redux for state management (`@reduxjs/toolkit` 1.9)
-- React Router 6 for web routing
+### Commit separation
 
-### Backend
-- Express handlers follow pattern: `(req, res) => handleServiceRequest(...)`
-- Database: Raw SQL with Knex.js (not ORM)
-- Separate read/write connection pools per service
+Every commit must be landable on a single branch:
 
-### Error Handling
-- Services return HTTP status codes via `http-status` constants
-- Gateway handles auth errors, services handle business logic errors
+- Never mix backend and frontend in one commit.
+- Never mix shared-library and app-specific code in one commit.
+- Never mix two niche variants in one commit.
 
-## Build Commands
+Before staging, run `git diff --cached --name-only` and confirm every path belongs on
+the current branch.
+
+`.husky/pre-commit` enforces this mechanically on `niche/*` branches (installed by
+`npm install` via `"prepare": "husky"`). It also runs locale-parity and lints staged
+files. `.husky/pre-push` runs tests for changed packages. Bypass with `--no-verify`
+only for a genuinely legitimate exception.
+
+Use `/branch-guard` to check the current branch against changed files.
+
+### Switching niche apps locally
 
 ```bash
-npm run build:all:dev   # Build all libraries and services
-npm run build:changed   # Smart rebuild (changed packages only)
-npm run install:all     # Install deps across all packages
+git checkout niche/HABITS-general         # or general, or niche/TEEM-general
+./_bin/switch-brand.sh habits              # habits | therr | teem
+cd TherrMobile && npm start                # terminal 1
+cd TherrMobile && npm run android:habits   # terminal 2
 ```
 
-## Code Quality Requirements
+`switch-brand.sh` rewrites `TherrMobile/main/config/brandConfig.ts`, kills Metro, and
+clears its caches. The `android:<brand>` scripts are thin aliases — brand selection
+comes from `brandConfig.ts`.
 
-**Before completing any code changes, you MUST:**
+### Project brief for the current branch
 
-1. **Run linting** on modified files and fix all errors:
-   ```bash
-   npx eslint <file-path> --fix    # Auto-fix what's possible
-   npx eslint <file-path>          # Check for remaining errors
-   ```
+Read the brief matching your branch early in a session:
 
-2. **For TypeScript files**, ensure no type errors:
-   ```bash
-   npx tsc --noEmit -p <package>/tsconfig.json
-   ```
+| Branch | Brief |
+|---|---|
+| `general`, `stage`, `main` | `docs/niche-sub-apps/PROJECT_BRIEF.md` |
+| `niche/<TAG>-general` | `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` |
 
-3. **Common lint rules** enforced across the codebase:
-   - No unused variables or imports
-   - Consistent indentation (2 spaces)
-   - No `any` types without explicit reason
-   - Prefer `const` over `let` when variable is not reassigned
+Teem is **shelved**; its brief is a stub. Friends With Habits is the active consumer bet
+and is generally available on the Google Play production track.
 
-**Do not consider code changes complete until linting passes with zero errors.**
+## Commands
 
-## Documentation Context
+```bash
+npm run install:all      # install across all packages (use --legacy-peer-deps)
+npm run build:all:dev    # build all libraries and services
+npm run build:changed    # rebuild only changed packages
+npm run lint:changed     # lint changed packages
+npm run test:changed     # test changed packages
+npm run locales:check    # locale dictionary parity across all packages
+npm run test:lint-rules  # unit tests for the custom ESLint rules
+npm run test:bin-scripts # unit tests for decision logic in _bin gate scripts
+npm run test:google-ads  # unit tests for the Google Ads tooling (needs PyYAML)
+npm run k8s:check-services # service registry vs k8s/prod manifests
+npm run k8s:check-waves    # rollout wave plan vs k8s/prod manifests
+```
 
-Read these files when relevant to the task:
+Type-check and lint a specific package:
 
-- `docs/ARCHITECTURE.md` - System design, service boundaries, data layer patterns
-- `docs/MULTI_BRAND_ARCHITECTURE.md` - Brand variation system, header flow, conditional code patterns
-- `docs/NICHE_APP_DATABASE_GUIDELINES.md` - Schema isolation, migration patterns for niche features
-- `docs/niche-sub-apps/PROJECT_BRIEF.md` - Core Therr App product vision and roadmap
-- `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` - Niche app variant context (see "Project Brief Context" above)
-- `docs/LOCALE_URL_ROUTING.md` - Locale-prefixed URL routing, i18n architecture, SEO strategy
-- `docs/NICHE_APP_SETUP_STEPS.md` - Brand variation setup process
-- `docs/TARGET_MARKETS.md` - Consumer and business target market definitions (core Therr App)
-- `docs/FEATURES.md` - **High-level feature list for mobile & web clients. Update this file when adding or removing features.**
+```bash
+npx eslint <path> --fix
+npm run pr:typecheck:<pkg>       # gateway|users|maps|messages|reactions|push|
+                                 # websocket|js-utils|therr-react|web|dashboard
+npm run pr:tsc-baseline:mobile   # mobile gates on "no NEW errors" vs TherrMobile/.tsc-baseline
+```
+
+Or just run `/quality-check`, which groups changed files by package and does both.
+
+## Code Quality
+
+CI enforces lint, type-checking, and tests on every branch (`.circleci/config.yml`).
+Run `/quality-check` before finishing a change rather than relying on CI to tell you.
+
+Conventions worth knowing because they are **not** the common defaults:
+
+- **4-space indentation** (`eslint-config/base.js`), not 2.
+- `max-len` 160.
+- `no-explicit-any` is off, but justify any `any` you add.
+- TherrMobile extends `@react-native`, not airbnb-base.
 
 ## Monorepo Structure
 
 ```
-therr-api-gateway/        # Public API entry point (port 7770)
-therr-services/           # Backend microservices (ports 7771-7775, 7743)
-therr-public-library/     # Shared code (therr-react, therr-js-utilities, therr-styles)
-therr-client-web/         # Main web app (port 7070)
-therr-client-web-dashboard/ # Admin dashboard (port 7071)
-TherrMobile/              # React Native app (isolated deps)
+therr-api-gateway/          # Public API entry (7770)
+therr-services/             # Backend microservices (7771-7775, 7743)
+therr-public-library/       # therr-react, therr-js-utilities, therr-styles
+therr-client-web/           # Main web app (7070)
+therr-client-web-dashboard/ # Admin dashboard (7071)
+TherrMobile/                # React Native (isolated package.json)
+eslint-config/              # Shared config + eslint-plugin-therr (custom rules)
 ```
 
-## When to Abstract Utilities
+No npm workspaces — build order is a hardcoded dependency chain in
+`_bin/apply-to-all.sh`; incrementality is git-diff predicates in
+`_bin/apply-to-changed.sh`. Shared libraries are consumed as compiled `lib/` output,
+so **build them before type-checking or linting consumers**.
 
-Place utility functions in shared libraries only when:
+Most dependencies live in the root `package.json`. TherrMobile has its own.
 
-| Location | When to Use |
-|----------|-------------|
-| `therr-js-utilities/` | Isomorphic code needed by both frontend AND backend (constants, enums, pure functions) |
-| `therr-react/` | React-specific code shared between web AND mobile (components, hooks, Redux, API services) |
-| Service `utilities/` | Backend-only logic used within a single service |
-| Local file | Single-use helper; don't abstract prematurely |
+## Key Dependencies
 
-**Keep it local** unless the function is:
-1. Already duplicated across 2+ packages, OR
-2. Clearly reusable and stable (not likely to diverge per use case)
+- **Node 24.12.0** (`.nvmrc`), npm 11+ (enforced by `_bin/prep.sh`)
+- **TypeScript** 5.9.x
+- **React** 18.2 (web) / 19.2 (mobile) — hooks and functional components, no class components
+- **React Native** 0.86.3, new architecture enabled
+- **Redux Toolkit** 2.5, React Router 6
+- Backend: Express + raw SQL via Knex (not an ORM), separate read/write pools per service
 
-Avoid creating abstractions for hypothetical future reuse.
+Always use `--legacy-peer-deps` for npm installs in `TherrMobile` (not in Docker).
 
-## TanStack Query (React Query) — Case-by-Case Adoption
+## Where to Put Shared Code
 
-TanStack Query is **not** the default data-fetching tool in this codebase — Redux Toolkit with custom action creators is. TanStack Query **may** be introduced for specific, isolated use cases where its features (request deduplication, background refetch, stale-while-revalidate, `useInfiniteQuery`, optimistic mutations) provide clear value over hand-rolled Redux thunks.
+| Location | When |
+|---|---|
+| `therr-js-utilities/` | Isomorphic — needed by both frontend and backend |
+| `therr-react/` | React-specific, shared between web and mobile |
+| Service `utilities/` | Backend-only, single service |
+| Local file | Single use — don't abstract prematurely |
 
-Before reaching for it, check the rules below. When in doubt, stay with Redux.
+Keep it local unless it is already duplicated in 2+ packages, or is clearly reusable and
+stable. Avoid abstractions for hypothetical reuse.
 
-### When it is a good fit
+**Data fetching defaults to Redux Toolkit**, not TanStack Query. TanStack is permitted
+for narrow cases only (infinite scroll, polling, optimistic mutations in a single app) and
+never in `therr-react`. Run `/tanstack-query-check` before introducing it — that skill
+holds the full adoption rules. If unsure: use Redux.
 
-- **New, read-heavy screens** that are self-contained within one app (web, mobile, or dashboard) and do not share state with other features.
-- **Infinite lists / pagination** where `useInfiniteQuery` replaces manual pagination state in Redux.
-- **Mutations with optimistic updates** that don't cascade into other Redux slices.
-- **Polling / background refresh** (`refetchInterval`, `refetchOnReconnect`, `refetchOnWindowFocus`) — especially useful for dashboards.
+## Brand Variations
 
-### When it is NOT appropriate (keep in Redux)
+Variants are defined by the `BrandVariations` enum in
+`therr-js-utilities/src/constants/enums/Branding.ts` and selected by the
+`x-brand-variation` HTTP header. Backend reads it via `getBrandContext(req.headers)`;
+mobile reads `CURRENT_BRAND_VARIATION` from `../config/brandConfig`.
 
-Do not move any of the following to TanStack Query. These slices are tightly coupled to existing infrastructure and splitting them will cause sync bugs:
+Full documentation: `docs/MULTI_BRAND_ARCHITECTURE.md`.
 
-| Slice / feature | Why it stays in Redux |
-|-----------------|-----------------------|
-| `user`, auth, session | Consumed by axios interceptors, socket middleware, route guards, and redux-persist |
-| `notifications`, `messages`, reactions | Pushed by `socket-io-middleware` directly into Redux — TanStack has no socket story |
-| `userConnections`, presence | Updated by WebSocket events |
-| Anything in `therr-react/redux/actions` | Shared across web, dashboard, and mobile; changing shape breaks all three consumers |
-| SSR-rendered data on `therr-client-web` | Server pre-populates `__PRELOADED_STATE__` into Redux; TanStack SSR hydration is a separate integration |
-| Persisted state (see "Offline-First" in docs) | `redux-persist` already caches key slices; TanStack would need a parallel persister |
+### Brand-scoped database tables
 
-### Required precautions before introducing it
+Core tables are `main.*`; niche features get their own schema (`habits.*`). Rows that
+belong to exactly one brand live in **brand-scoped** tables, which must never be read
+without a `brandVariation` predicate.
 
-If a feature genuinely fits the "good fit" list above, follow these rules:
+`eslint-plugin-therr` enforces this: `therr/no-direct-brand-scoped-table` makes any
+direct string reference to a listed table a lint error outside its sanctioned store.
+When adding a table to that set, three things land together — the entry in
+`eslint-config/brand-scoped-tables.js`, a `*Store.ts` extending `BrandScopedStore`, and
+a narrow `// eslint-disable-next-line therr/no-direct-brand-scoped-table` in that store.
+`npm run test:lint-rules` fails if the first two get out of sync.
 
-1. **Scope it to a single app.** Do not add TanStack Query to `therr-react` (the shared library). Add it to `therr-client-web`, `therr-client-web-dashboard`, or `TherrMobile` only, and keep the queries in that app's source.
-2. **Reuse existing API clients.** Call into the singleton services in `therr-react/services` (e.g., `MapsService.searchSpaces`) from inside the `queryFn` — do not reimplement the HTTP layer. This preserves auth headers, brand variation header, and interceptor behavior.
-3. **Do not duplicate state.** If the data you'd put in TanStack is already read from Redux elsewhere, either (a) keep it in Redux, or (b) migrate the other reader too. Never have both.
-4. **Document the decision.** Add a brief comment at the top of the new query file explaining why TanStack was chosen over a Redux action (e.g., "infinite scroll", "needs polling", "optimistic mutation with rollback").
-5. **QueryClient placement.** Provide `QueryClient` at the feature subtree or app root — not inside `therr-react`. Use sensible defaults (`staleTime`, `retry: 1`) so it doesn't thrash on mobile data connections.
-6. **No socket events into the query cache.** If the data is also pushed by WebSocket, pick one: Redux (preferred) or TanStack with manual `queryClient.invalidateQueries` on socket events. Never both.
+Migrations adding the column should default it to `'therr'` (NOT NULL) so legacy rows
+stay visible, with a composite index leading on the most selective column. See
+`20260425000002_main.notifications.brandVariation.js` and
+`docs/NICHE_APP_DATABASE_GUIDELINES.md`. Use `/db-migration-scaffold` to generate
+migrations in the right service and schema.
 
-### Default answer
+> Note: both Cloud Function repos (`therr-ai-automator`, `therr-messaging-automator`)
+> query this database directly and are **not** covered by the lint rule. Check them
+> before renaming or dropping any column they read — see § Sibling Repos below.
 
-If you're unsure whether to use TanStack Query for a new feature: **don't**. Use a Redux action in the existing pattern. The cost of two state paradigms in the same app outweighs the ergonomic gains except for the narrow cases listed above.
+## Sibling Repos
 
-## Package-Level Documentation
+This monorepo is not the whole system. Four sibling repos in the `rili-live` org run in
+production, and two of them **read and write this database directly**, bypassing the
+gateway. No CI in any repo checks these couplings.
 
-Each package has its own `CLAUDE.md` with package-specific details:
+| Repo | Couples to this repo via |
+|---|---|
+| `therr-messaging-automator` | Direct Knex reads (users/maps/reactions) **and writes** (`habits.habit_phases` email watermarks) + `POST /v1/habits/pacts/digest/run-daily` on users-service over the VPC |
+| `therr-ai-automator` | Direct Knex reads **and writes** — it authors `main.thoughts` / `main.thoughtReactions`, and reads its bots' declared homes from `main.userLocations` |
+| `therr-infra-terraform` | Provisions Cloud SQL, the Cloud Functions, Cloud Scheduler, and the internal IP that `k8s/prod` pins |
+| `therr-landing` | Public API only (`/v1/users-service/subscribers/signup`) — not coupled |
 
-| Package | CLAUDE.md Location |
-|---------|-------------------|
-| API Gateway | `therr-api-gateway/CLAUDE.md` |
-| Users Service | `therr-services/users-service/CLAUDE.md` |
-| Maps Service | `therr-services/maps-service/CLAUDE.md` |
-| Messages Service | `therr-services/messages-service/CLAUDE.md` |
-| Reactions Service | `therr-services/reactions-service/CLAUDE.md` |
-| Push Notifications | `therr-services/push-notifications-service/CLAUDE.md` |
-| WebSocket Service | `therr-services/websocket-service/CLAUDE.md` |
-| therr-js-utilities | `therr-public-library/therr-js-utilities/CLAUDE.md` |
-| therr-react | `therr-public-library/therr-react/CLAUDE.md` |
-| therr-styles | `therr-public-library/therr-styles/CLAUDE.md` |
-| Web Client | `therr-client-web/CLAUDE.md` |
-| Dashboard | `therr-client-web-dashboard/CLAUDE.md` |
-| Mobile App | `TherrMobile/CLAUDE.md` |
+The four rules that actually bite:
 
-## Feature Flags & Brand Variations
+1. **Migrations are expand/contract.** A rename here deploys green and breaks a Cloud
+   Function hours later at its next scheduler firing, with no alert. Grep both automators'
+   `src/store/` first.
+2. **Brand-scoping doesn't cross repos.** `therr/no-direct-brand-scoped-table` can't see
+   another repository, and the messaging automator reads `main.notifications` and
+   `main.userAchievements`. Adding a table to `BRAND_SCOPED_TABLES` means mirroring it into
+   that repo's `src/store/brandScoped.ts` too.
+3. **`main.thoughts` rows can be dated in the future** (ai-automator drips a run's output out
+   over ~30h). Any SQL doing arithmetic on `NOW() - "createdAt"` must assume a negative
+   result — an unclamped `POWER()` on one caused an 8-day feed outage.
+4. **The habits digest dedups through `main.notificationQueue`, not through scheduling.**
+   It queues via `enqueueNotification` with period-stamped dedupe keys, and a UNIQUE
+   (brandVariation, userId, dedupeKey) constraint drops a repeat — so a retry, an extra
+   firing or a manual curl is safe. What is *not* safe is a producer whose `dedupeKey`
+   varies per call (anything holding `Date.now()` or a random value), which silently turns
+   dedup off. Sending is done by the users-service worker, gated on
+   `NOTIFICATION_QUEUE_WORKER_ENABLED=true`; with the flag off the digest queues and
+   nothing is delivered.
 
-### Brand Variation System
+Full detail, including the table-by-table coupling surface and the internal-LB network path:
+`docs/CROSS_REPO_INTEGRATION.md`.
 
-The codebase supports multiple app variants via the `BrandVariations` enum:
+## Migrations
 
-```typescript
-// therr-public-library/therr-js-utilities/src/constants/enums/Branding.ts
-export enum BrandVariations {
-    THERR = 'therr',
-    TEEM = 'teem',
-    HABITS = 'habits',
-    // Add new variants here
-}
-```
+Two invariants are enforced by `eslint-plugin-therr` on `src/store/migrations/**`, both
+because the failure they prevent has already happened here:
 
-Brand variation is passed via HTTP header `x-brand-variation` and used to:
-- Customize push notification content
-- Filter content by brand
-- Apply brand-specific business logic
-- Load brand-specific achievements
+- **`no-async-table-builder-callback`** — an `async` callback passed to a Knex table builder
+  silently drops every `table.*` call after the first `await` from the emitted DDL.
+- **`require-idempotent-migration`** — every migration must be safe to run twice. Knex writes
+  the `knex_migrations` row only after the function resolves, so a run killed partway leaves
+  the schema half-changed with no ledger row, and the next deploy re-runs the file from the
+  top and fails on the half it already applied.
 
-For comprehensive documentation, see `docs/MULTI_BRAND_ARCHITECTURE.md`.
+In practice that means: `dropTableIfExists` over `dropTable`, `CREATE INDEX IF NOT EXISTS`
+over `CREATE INDEX`, raw `ADD COLUMN IF NOT EXISTS` / `DROP COLUMN IF EXISTS` over an
+`alterTable` builder callback, and a `hasTable` probe around `createTable`. Not
+`createTableIfNotExists` — Knex itself warns against it and the rule flags it.
 
-### Adding a New Brand Variation
+Only migrations dated at or after `MIGRATION_IDEMPOTENCY_CUTOFF`
+(`eslint-config/migration-idempotency-cutoff.js`) are in scope; the already-deployed back
+catalogue is exempt. That cutoff is a one-way ratchet — `npm run test:lint-rules` fails if it
+is moved forward, or if any migration in scope stops passing.
 
-1. Add to `BrandVariations` enum in `therr-js-utilities`
-2. Update `getHostContext()` in relevant services
-3. Add Firebase config in `push-notifications-service`
-4. Configure mobile app (see `TherrMobile/CLAUDE.md`)
-5. Create niche branch: `git checkout -b niche/<TAG>-general`
+Full substitution table: `docs/NICHE_APP_DATABASE_GUIDELINES.md` → "Idempotency (enforced by
+lint)". Use `/db-migration-scaffold` to generate migrations in the right service and schema.
 
-### Brand-Conditional Code Patterns
+## Localization
 
-**Backend (service layer):**
-```typescript
-import { parseHeaders } from 'therr-js-utilities/http';
-import { BrandVariations } from 'therr-js-utilities/constants';
+Every user-facing string must exist in **all** locales for its package —
+`en-us`, `es`, `fr-ca`. Never add a key to one dictionary without adding it to the others.
 
-const handler = (req, res) => {
-    const { brandVariation } = parseHeaders(req.headers);
+`npm run locales:check` enforces this (also in CI and pre-commit). Use `/i18n-sync` to
+find and scaffold gaps.
 
-    if (brandVariation === BrandVariations.HABITS) {
-        // HABITS-specific logic
-    }
-    // Default behavior
-};
-```
+One non-obvious rule: frontend code that pattern-matches against *translated* text must
+include variants for all three locales, or it silently fails for non-English users. See
+`getHighlightValues()` in `TherrMobile/main/routes/Notifications/Notification.tsx`.
 
-**Mobile (component layer):**
-```typescript
-import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
-import { BrandVariations } from 'therr-js-utilities/constants';
+## Backlog
 
-if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
-    return <HabitsFeature />;
-}
-```
+`docs/WORK_IN_PROGRESS.md` is the prioritized backlog plus the
+**§ Manual Operational Follow-ups** checklist of post-deploy steps humans must do.
 
-### Database Schema Isolation
+At the start of a non-trivial session, scan that section for unchecked `- [ ]` items and
+surface the 1–3 most relevant to the current work. Don't recite the whole list. When you
+fix a TODO, delete its bullet in the same commit. `/work-plan` proposes the next batch.
 
-Brand-specific features should use isolated database schemas:
-- Core tables: `main.*` (users, connections, notifications)
-- Habits features: `habits.*` (pacts, checkins, streaks)
+## Session Memory
 
-See `docs/NICHE_APP_DATABASE_GUIDELINES.md` for migration patterns.
+At session start, read `context/USER.md`, `context/MEMORY.md`, and today's
+`context/memory/{YYYY-MM-DD}.md` if it exists. Keep it to that — these are capped at
+1,375 and 2,500 characters respectively, and mid-session writes only take effect next
+session.
 
-### Feature Flags (Future)
+Log session activity silently to today's daily log (goal, deliverables, decisions, open
+threads). Never announce that you logged something. `/memory-write` handles "remember
+this" / "forget about" requests and enforces the cap.
 
-Feature flags will be implemented via:
-- Backend: Service-level configuration
-- Frontend: Redux state or context
-- Mobile: Similar pattern with AsyncStorage persistence
+For anything older than that — "what did we decide about X", "why is Y written this way",
+"have we hit this before" — use `/memory-recall` rather than reading through
+`context/memory/`. It searches the vector index in a forked context and returns only the
+findings. Never run `memsearch search` directly in the main context. Full protocol:
+`docs/MEMORY_SYSTEM_SETUP.md`.
 
-## Localization / i18n
+## Other Documentation
 
-When adding or modifying user-facing text, always maintain translation strings in **all** locale dictionaries for the relevant package. Never add a key to one dictionary without adding it to all others in that package.
+Read when relevant — see [`docs/README.md`](docs/README.md) for the full index.
 
-### therr-client-web (3 locales)
-- `therr-client-web/src/locales/en-us/dictionary.json` (English)
-- `therr-client-web/src/locales/es/dictionary.json` (Spanish)
-- `therr-client-web/src/locales/fr-ca/dictionary.json` (Canadian French)
-
-Use the `useTranslation` hook (or `withTranslation` HOC for class components) instead of hardcoded strings.
-
-### TherrMobile (3 locales)
-- `TherrMobile/main/locales/en-us/dictionary.json` (English)
-- `TherrMobile/main/locales/es/dictionary.json` (Spanish)
-- `TherrMobile/main/locales/fr-ca/dictionary.json` (Canadian French)
-
-Use the `translator` utility imported from `../../services/translator` instead of hardcoded strings.
-
-### Hardcoded Locale Strings in Frontend Code
-
-When frontend or mobile code contains hardcoded strings that are matched against locale-translated text (e.g., keyword highlighting, substring matching, pattern detection), **always include variants for all supported locales** (currently `en-us`, `es`, and `fr-ca`). The translated message from the server may be in any supported language, so matching only English strings will silently fail for other locales.
-
-Affected locations:
-- `TherrMobile/main/routes/Notifications/Notification.tsx` — `getHighlightValues()` uses keyword matching against translated notification messages
-
-Backend locale dictionaries to reference (in-app notifications use users-service strings; push notifications use push-notifications-service strings):
-- `therr-services/users-service/src/locales/en-us/dictionary.json` (in-app notification list)
-- `therr-services/users-service/src/locales/es/dictionary.json` (in-app notification list)
-- `therr-services/users-service/src/locales/fr-ca/dictionary.json` (in-app notification list)
-- `therr-services/push-notifications-service/src/locales/en-us/dictionary.json` (push notifications only)
-- `therr-services/push-notifications-service/src/locales/fr-ca/dictionary.json` (push notifications only)
-
-## Offline-First Architecture
-
-The app implements an offline-first strategy so users see cached content during network outages or API deploys. The architecture is layered:
-
-1. **Network detection** — `therr-react` exposes a shared `network` Redux slice. Mobile uses `@react-native-community/netinfo`; web uses `online`/`offline` window events. Both dispatch `SET_NETWORK_STATUS`.
-2. **State persistence** — `redux-persist` caches key Redux slices (`user`, `content`, `notifications`, `userConnections`) to AsyncStorage (mobile) or localStorage (web). On app launch, persisted state is rehydrated before rendering.
-3. **Stale-while-revalidate** — Read actions return cached Redux state immediately, then fetch fresh data in the background. If the fetch fails (offline), cached data stays visible with no error shown.
-4. **Graceful axios failure** — The shared axios interceptor catches network errors on GET requests and resolves with empty data instead of throwing, preventing blank screens.
-5. **OfflineBanner** — A dismissable UI banner appears on both platforms when the network is down.
-
-Key files:
-- `therr-react/src/redux/reducers/network.ts` — Network state slice
-- `therr-react/src/utilities/cacheHelpers.ts` — `isOfflineError()` and `isCacheStale()` helpers
-- `TherrMobile/main/services/networkService.ts` — Mobile NetInfo listener
-- `therr-client-web/src/services/networkService.ts` — Web connectivity listener
-
-See `docs/OFFLINE_FIRST_PLAN.md` for the full phased roadmap (Phases 2-5 cover write queue, service worker, image caching, and local DB).
-
-## Notes
-
-- Most npm deps are in root `package.json` (shared across packages)
-- TherrMobile has its own `package.json` with React Native specific deps
-- Always use `--legacy-peer-deps` flag when installing
+- `docs/ARCHITECTURE.md` — system design, service boundaries
+- `docs/CROSS_REPO_INTEGRATION.md` — the four sibling repos and what couples them to this one
+- `docs/MULTI_BRAND_ARCHITECTURE.md` — brand variation system
+- `docs/NICHE_APP_DATABASE_GUIDELINES.md` — schema isolation, migration patterns
+- `docs/NICHE_APP_SETUP_STEPS.md` — creating a new brand variation
+- `docs/FEATURES.md` — **update when adding or removing a feature**
+- `docs/GROWTH_STRATEGY.md` — B2B funnel, the active growth strategy
+- `docs/AUTOMATION_ROADMAP.md` — cross-repo automation priorities
+- `docs/OFFLINE_FIRST_PLAN.md` — offline-first architecture and roadmap
+- `docs/SECRETS_AND_LOCAL_BOOTSTRAP.md` — local dev setup
+- `docs/PROD_DEBUG_CLAUDE.md` — production debugging runbook
+- `docs/MEMORY_SYSTEM_SETUP.md` — the `context/` memory system and session protocol

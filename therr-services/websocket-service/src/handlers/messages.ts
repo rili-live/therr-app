@@ -11,7 +11,7 @@ import {
 import restRequest from '../utilities/restRequest';
 import redisHelper from '../utilities/redisHelper';
 import globalConfig from '../../../../global-config';
-import { FORUM_PREFIX } from './rooms';
+import { getRoomKey } from './rooms';
 import { COMMON_DATE_FORMAT } from '../constants';
 
 const sendDirectMessage = (internalConfig: IInternalConfig, socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
@@ -26,7 +26,7 @@ const sendDirectMessage = (internalConfig: IInternalConfig, socket: socketio.Soc
         },
     }, socket, decodedAuthenticationToken).then(({ data: message }) => {
         // TODO: RFRONT-25 - localize dates
-        const timeFormatted = moment(message.createdAt || Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
+        const timeFormatted = moment(message.createdAt || Date.now()).format(COMMON_DATE_FORMAT);
         socket.emit('action', {
             type: SocketServerActionTypes.SEND_DIRECT_MESSAGE,
             data: {
@@ -151,7 +151,7 @@ const sendForumMessage = (internalConfig: IInternalConfig, socket: socketio.Sock
                 },
             },
         });
-        socket.broadcast.to(`${FORUM_PREFIX}${data.roomId}`).emit(SOCKET_MIDDLEWARE_ACTION, {
+        socket.broadcast.to(getRoomKey(internalConfig.headers?.['x-brand-variation'] as string | undefined, data.roomId)).emit(SOCKET_MIDDLEWARE_ACTION, {
             type: SocketServerActionTypes.SEND_MESSAGE,
             data: {
                 roomId: data.roomId,

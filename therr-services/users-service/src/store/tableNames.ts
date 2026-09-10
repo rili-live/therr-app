@@ -18,3 +18,7 @@ export const STREAKS_TABLE_NAME = 'habits.streaks';
 export const STREAK_HISTORY_TABLE_NAME = 'habits.streak_history';
 export const PROOFS_TABLE_NAME = 'habits.proofs';
 export const PACT_ACTIVITIES_TABLE_NAME = 'habits.pact_activities';
+export const HABIT_PHASES_TABLE_NAME = 'habits.habit_phases';
+export const USER_HABITS_TABLE_NAME = 'habits.user_habits';
+export const LIFETIME_PURCHASES_TABLE_NAME = 'habits.lifetime_purchases';
+export const JOURNAL_ENTRIES_TABLE_NAME = 'habits.journal_entries';

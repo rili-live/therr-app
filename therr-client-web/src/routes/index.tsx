@@ -3,7 +3,7 @@ import { RouteObject } from 'react-router-dom';
 import { AccessCheckType, IAccess } from 'therr-react/types';
 import { AccessLevels, Categories, Cities } from 'therr-js-utilities/constants';
 import { AuthRoute } from 'therr-react/components';
-import { ForumActions, MapActions } from 'therr-react/redux/actions';
+import { ContentActions, ForumActions, MapActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
 
 // SSR-rendered / public routes — keep statically imported for renderToString compatibility
@@ -26,10 +26,14 @@ import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
 import AppFeedback from './AppFeedback';
 import ChildSafety from './ChildSafety';
+import ApiAccess from './ApiAccess';
 import DeleteAccount from './DeleteAccount';
 import InviteLanding from './InviteLanding';
+import InviteLinkLanding from './InviteLinkLanding';
+import ClaimPactLanding from './ClaimPactLanding';
 import Guide from './Guide';
 import GuidesIndex from './Guide/GuidesIndex';
+import PublicListView from './Bookmarks/PublicListView';
 import { getGuide, IPostSection } from '../utilities/guideContent';
 
 // Auth-only routes — lazy-loaded client-side to reduce initial bundle size.
@@ -44,6 +48,7 @@ const lazyLoad = (importFn: () => Promise<{ default: React.ComponentType<any> }>
 const CreateForum = lazyLoad(() => import('./CreateForum'));
 const EditGroup = lazyLoad(() => import('./EditGroup'));
 const CreateProfile = lazyLoad(() => import('./CreateProfile'));
+const VerifyPhone = lazyLoad(() => import('./VerifyPhone'));
 const UserProfile = lazyLoad(() => import('./UserProfile'));
 const ChangePassword = lazyLoad(() => import('./ChangePassword'));
 const EditProfile = lazyLoad(() => import('./EditProfile'));
@@ -127,6 +132,22 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
+        // Standalone phone (re)verification, and the web fallback for the
+        // `therr.com/verify-phone` link that opens the mobile app when it is installed.
+        // ANY rather than ALL: users mid-onboarding hold MISSING_PROPERTIES while users
+        // whose MOBILE_VERIFIED was revoked by a phone change hold plain EMAIL_VERIFIED,
+        // and both need this screen.
+        path: '/verify-phone',
+        element: <AuthRoute
+            component={VerifyPhone}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            })}
+            redirectPath={'/login'}
+        />,
+    },
+    {
         path: '/users/change-password',
         element: <AuthRoute
             component={ChangePassword}
@@ -162,6 +183,13 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <ChildSafety />,
     },
     {
+        // Public API onboarding explainer. Intentionally unauthenticated: it is the
+        // link target from the marketing site, and its CTA adapts to the visitor's
+        // account stage rather than dumping everyone on a login page.
+        path: '/api-access',
+        element: <ApiAccess />,
+    },
+    {
         path: '/delete-account',
         element: <DeleteAccount />,
     },
@@ -178,8 +206,18 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <Register />,
     },
     {
+        // Magic invite-link landing — pre-filled signup from a per-invite token.
+        // More specific than /invite/:username so it takes precedence.
+        path: '/invite/link/:token',
+        element: <InviteLinkLanding />,
+    },
+    {
         path: '/invite/:username',
         element: <InviteLanding />,
+    },
+    {
+        path: '/claim-pact/:token',
+        element: <ClaimPactLanding />,
     },
     {
         path: '/user/profile',
@@ -552,6 +590,12 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <ViewUser onInitMessaging={routePropsConfig.onInitMessaging} />,
         fetchData: (dispatch: any, params: any) => UsersActions.get(params.userId)(dispatch),
     },
+    {
+        // Public profile by username — used by user-profile QR codes.
+        path: '/u/:userName',
+        element: <ViewUser onInitMessaging={routePropsConfig.onInitMessaging} />,
+        fetchData: (dispatch: any, params: any) => UsersActions.getByUserName(params.userName)(dispatch),
+    },
 
     {
         path: '/guides',
@@ -591,6 +635,19 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
                 withMedia: true,
             })(dispatch).catch(() => undefined)));
         },
+    },
+
+    {
+        // Public shareable list page — SSR-rendered for SEO.
+        // Data is fetched via the auth-optional
+        // /user-lists/public/:ownerUserId/:listSlug endpoint and populates
+        // the `activeUserList` Redux slice.
+        path: '/lists/:ownerUserId/:listSlug',
+        element: <PublicListView />,
+        fetchData: (dispatch: any, params: any) => ContentActions.fetchPublicUserList(
+            params.ownerUserId,
+            params.listSlug,
+        )(dispatch).catch(() => undefined),
     },
 
     // If no route matches, return NotFound component

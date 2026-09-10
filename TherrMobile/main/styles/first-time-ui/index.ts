@@ -43,7 +43,7 @@ const landingContentTitle: any = {
     lineHeight: 52,
     fontWeight: '600',
     textAlign: 'center',
-    fontFamily: 'Lexend-Regular',
+    fontFamily: therrFontFamily,
 };
 
 const buildStyles = (themeName?: IMobileThemeName) => {

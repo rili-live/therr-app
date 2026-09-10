@@ -42,18 +42,18 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
 
     isFormDisabled() {
         const { inputs } = this.state;
-        if (this.props.isSubmitting || !inputs.userName || !this.isFormValid()) {
-            return true;
-        }
-        // Business accounts only require firstName; personal accounts require both
-        if (inputs.isBusinessAccount) {
-            return !inputs.firstName;
-        }
-        return !inputs.firstName || !inputs.lastName;
+        // Only a username is required to complete onboarding. First/last name and
+        // phone number are intentionally optional to reduce friction — phone
+        // verification is deferred and prompted contextually later, and enforced
+        // only on phone-sensitive actions (e.g. sending invites). See onboarding
+        // friction review (2026-06) and deferred-phone-verification (2026-07).
+        return this.props.isSubmitting || !inputs.userName || !this.isFormValid();
     }
 
     isFormValid() {
-        return isValidPhoneNumber(this.state.inputs.phoneNumber);
+        // Phone is optional; only block submit if a phone was entered but invalid.
+        const { phoneNumber } = this.state.inputs;
+        return !phoneNumber || phoneNumber === '+1' || isValidPhoneNumber(phoneNumber);
     }
 
     onSubmit = (event: any) => {
@@ -61,6 +61,10 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
 
         if (!this.isFormDisabled()) {
             const updateArgs = { ...this.state.inputs };
+            // Don't submit an empty/invalid phone — the user can add it later.
+            if (!updateArgs.phoneNumber || updateArgs.phoneNumber === '+1' || !isValidPhoneNumber(updateArgs.phoneNumber)) {
+                delete updateArgs.phoneNumber;
+            }
             this.props.onSubmit(updateArgs);
         }
     };
@@ -154,6 +158,9 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                             label={this.props.translate('components.createProfileForm.labels.userName')}
                         />
 
+                        {/* First/last name are optional during onboarding (see isFormDisabled).
+                            Do not mark them isRequired or the input renders a misleading
+                            "required" error once touched, contradicting the deferred-name flow. */}
                         <MantineInput
                             type="text"
                             id="first_name"
@@ -162,7 +169,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                             onChange={this.onInputChange}
                             onEnter={this.onSubmit}
                             translateFn={this.props.translate}
-                            validations={['isRequired']}
+                            validations={[]}
                             label={isBusiness
                                 ? this.props.translate('components.createProfileForm.labels.businessName')
                                 : this.props.translate('components.createProfileForm.labels.firstName')}
@@ -177,7 +184,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                                 onChange={this.onInputChange}
                                 onEnter={this.onSubmit}
                                 translateFn={this.props.translate}
-                                validations={['isRequired']}
+                                validations={[]}
                                 label={this.props.translate('components.createProfileForm.labels.lastName')}
                             />
                         )}
@@ -196,7 +203,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                             />
                         )}
 
-                        <label className="required" htmlFor="phone_number">{this.props.translate('components.createProfileForm.labels.mobilePhone')}:</label>
+                        <label htmlFor="phone_number">{this.props.translate('components.createProfileForm.labels.mobilePhone')}:</label>
                         <div className="form-field">
                             <PhoneInput
                                 defaultCountry="US"
@@ -206,7 +213,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                                 value={this.state.inputs.phoneNumber}
                                 onChange={this.onPhoneInputChange} />
                             {
-                                !isPhoneNumberValid
+                                inputs.phoneNumber && inputs.phoneNumber !== '+1' && !isPhoneNumberValid
                                 && <div className="validation-errors">
                                     <div className="message-container icon-small attention-alert">
                                         <em className="message">

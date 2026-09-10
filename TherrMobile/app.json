@@ -1,4 +1,17 @@
 {
   "name": "Therr",
-  "displayName": "Therr Mobile"
+  "displayName": "Therr Mobile",
+  "expo": {
+    "owner": "therr-inc",
+    "name": "Therr",
+    "slug": "therr-app",
+    "android": {
+      "package": "app.therrmobile"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b071fc20-7290-4ef4-a045-a2fe670e87f1"
+      }
+    }
+  }
 }

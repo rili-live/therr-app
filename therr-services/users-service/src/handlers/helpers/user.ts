@@ -2,12 +2,17 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
 import {
-    AccessLevels, BrandVariations, ReferralRewards, UserConnectionTypes,
+    AccessLevels, BrandVariations, CurrentSocialValuations, ReferralRewards, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
+import { isAchievementClassEnabledForBrand } from 'therr-js-utilities/config';
 import isValidPassword from 'therr-js-utilities/is-valid-password';
+import isValidSignupAge from 'therr-js-utilities/is-valid-signup-age';
+import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import normalizeEmail from 'normalize-email';
+import { getBrandContext } from 'therr-js-utilities/http';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import Store from '../../store';
+import { sanitizeUserAcquisition } from '../../store/UserAcquisitionStore';
 import { hashPassword } from '../../utilities/userHelpers';
 import { validatePassword } from '../../utilities/passwordUtils';
 import generateCode from '../../utilities/generateCode';
@@ -42,6 +47,8 @@ interface IRequiredUserDetails {
     isDashboardRegistration?: boolean;
     settingsEmailMarketing?: boolean;
     settingsEmailBusMarketing?: boolean;
+    settingsBirthdate?: string;
+    settingsLocale?: string;
     accessLevels?: string[];
 }
 
@@ -49,6 +56,45 @@ export interface IUserByInviteDetails {
     fromName: string;
     fromEmail: string;
     toEmail: string;
+}
+
+/**
+ * Everything about *how* a registration arrived, as opposed to *what* the user submitted.
+ * Collected into one bag because the flags are mutually informative (each one relaxes some
+ * part of the verification ceremony) and because a seven-argument positional signature had
+ * become impossible to read at the call sites.
+ */
+export interface ICreateUserOptions {
+    /** Registration came from an OAuth provider that already vouched for the email. */
+    isSSO?: boolean;
+    /** Account is being stubbed out on someone else's behalf (email invite). */
+    userByInviteDetails?: IUserByInviteDetails;
+    /** Registrant typed a friend's referral code. */
+    hasInviteCode?: boolean;
+    /** Magic invite-link token; proves control of whichever channel it was delivered on. */
+    inviteToken?: string;
+    /**
+     * Registration arrived with proof of contact-channel ownership (e.g. a pact claim
+     * token/code delivered to this exact email/phone). Treated like SSO for verification
+     * purposes: access levels are granted up-front and no verification email is sent.
+     */
+    isPreVerified?: boolean;
+    /**
+     * The API gateway validated a texted one-time code for `userDetails.phoneNumber` before
+     * this call (passwordless sign-up). Grants MOBILE_VERIFIED and admits the user to the
+     * app immediately — but, unlike `isPreVerified`, the email is still unproven, so the
+     * verification email is sent as usual.
+     */
+    isPhoneVerified?: boolean;
+    /**
+     * Where this signup came from — the `utm_*` / referrer record the web
+     * clients captured on first landing (therr-react/utilities/attribution).
+     *
+     * Untrusted and advisory. It is sanitized by `sanitizeUserAcquisition`,
+     * written fire-and-forget after the account exists, and grants nothing. A
+     * bad or absent value costs a row of telemetry, never a registration.
+     */
+    userAcquisition?: any;
 }
 
 interface IGetUserHelperArgs {
@@ -63,6 +109,21 @@ interface IGetUserHelperArgs {
 
 const isBrandValid = (brand: string) => Object.values(BrandVariations).includes(brand as BrandVariations);
 
+// Pull the list of brand names this user has actively logged into from the brandVariations
+// JSONB array. Used by public profile pages to gate cross-app discovery CTAs.
+// Excludes inactive memberships and any value not in the BrandVariations enum.
+const deriveAppBrands = (brandVariations: any): string[] => {
+    if (!Array.isArray(brandVariations)) return [];
+    const seen = new Set<string>();
+    brandVariations.forEach((entry: any) => {
+        if (!entry || typeof entry.brand !== 'string') return;
+        if (entry.isActive === false) return;
+        if (!isBrandValid(entry.brand)) return;
+        seen.add(entry.brand);
+    });
+    return Array.from(seen);
+};
+
 /**
  * Removed sensitive information from user response so we don't return it in REST responses
  */
@@ -76,11 +137,25 @@ const redactUserCreds = (dbUser) => {
 };
 
 /**
+ * The single definition of "these two users are connected".
+ *
+ * Deliberately identical to the predicate `UserConnectionsStore.searchUserConnections`
+ * filters the connections list on (`requestStatus = 'complete' AND isConnectionBroken = false`).
+ * The profile response used to answer a looser question — "is there any row that isn't
+ * MIGHT_KNOW" — so a pending, denied, blocked or *broken* row all reported the profile as
+ * connected even though the connections list had already dropped it. Two definitions of
+ * connected on the same pair of users is what produced the mismatch between the two screens.
+ */
+const isCompletedConnection = (connection?: { [key: string]: any }) => !!connection
+    && connection.requestStatus === UserConnectionTypes.COMPLETE
+    && !connection.isConnectionBroken;
+
+/**
  * True if the user profile setting is public or the requesting user is friends with the target user profile
  * @returns boolean
  */
 const isUserInfoPublic = (user, connection) => connection?.isMe || user.settingsIsProfilePublic
-    || (connection?.requestStatus === UserConnectionTypes.COMPLETE && !connection?.isConnectionBroken);
+    || isCompletedConnection(connection);
 
 const getUserProfileResponse = (userResult, friendship: undefined | { [key: string]: any }, connectionCount: number, socialSyncs) => {
     // Only select specific properties should be returned
@@ -107,18 +182,24 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
             ...sanitizedUserResult,
 
             // More details
-            isNotConnected: !friendship || friendship.requestStatus === UserConnectionTypes.MIGHT_KNOW,
-            connectionType: friendship?.requestStatus === UserConnectionTypes.COMPLETE
-                ? friendship.type
+            // `isMe` carries no connection row; keep reporting your own profile as connected
+            // so the client never offers you a Connect button pointed at yourself.
+            isNotConnected: !friendship?.isMe && !isCompletedConnection(friendship),
+            // Same predicate as `isNotConnected` above, for the same reason: a COMPLETE but
+            // broken row would otherwise still report a connection *strength*, so mobile's
+            // `connectionType > 0` checks kept drawing the connection-tier icon on a profile
+            // the rest of this response now calls not connected.
+            connectionType: isCompletedConnection(friendship)
+                ? friendship?.type
                 : 0,
             isPendingConnection: friendship
-                // eslint-disable-next-line max-len
                 ? (friendship.requestStatus === UserConnectionTypes.DENIED
                     || friendship.requestStatus === UserConnectionTypes.PENDING
                     || friendship.requestStatus === UserConnectionTypes.BLOCKED)
                 : false,
             connectionCount,
             socialSyncs,
+            appBrands: deriveAppBrands(userResult.brandVariations),
         };
     }
 
@@ -143,7 +224,6 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
         // More details
         isNotConnected: true,
         isPendingConnection: friendship
-            // eslint-disable-next-line max-len
             ? (friendship.requestStatus === UserConnectionTypes.DENIED
                 || friendship.requestStatus === UserConnectionTypes.PENDING
                 || friendship.requestStatus === UserConnectionTypes.BLOCKED)
@@ -216,50 +296,128 @@ const getUserHelper = ({
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
+// Access-level transitions for profile/settings saves.
+// Returns a JSON-stringified accessLevels array when a transition applies, or
+// undefined when the caller should leave accessLevels untouched.
+//
+// Two transitions, and they are independent:
+//
+// 1. Profile completion — EMAIL_VERIFIED_MISSING_PROPERTIES → EMAIL_VERIFIED.
+//    The reverse demotion (EMAIL_VERIFIED → EMAIL_VERIFIED_MISSING_PROPERTIES)
+//    was intentionally removed in commit f89e98805: a routine settings save
+//    (e.g. theme change) round-trips name/phone fields and would re-evaluate
+//    as "incomplete" against any existing-user row with a falsy required
+//    field, demoting the user and bouncing them back to CreateProfile.
+//
+// 2. Phone change — revokes MOBILE_VERIFIED. That access level is evidence that
+//    a *specific* number was verified via the SMS flow, so it cannot survive the
+//    number being edited to an arbitrary new one through a plain profile save.
+//    The save itself still succeeds; only the trust attached to the old number is
+//    withdrawn, and the user re-earns it through the normal phone-verification
+//    flow. Phone-gated actions (currently bulk `multi-invite`, gated on
+//    MOBILE_VERIFIED at the gateway) return 403 until they do — which the mobile
+//    PhoneContacts screen already surfaces as a "Verify Your Phone" toast.
+const computeAccessLevelsAfterProfileUpdate = (
+    existingAccessLevels: string[] | undefined,
+    isMissingUserProps: boolean,
+    isChangingPhoneNumber = false,
+): string | undefined => {
+    const next = new Set(existingAccessLevels || []);
+    let hasChanged = false;
+
+    if (isChangingPhoneNumber && next.delete(AccessLevels.MOBILE_VERIFIED)) {
+        hasChanged = true;
+    }
+
+    if (!isMissingUserProps && next.delete(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
+        next.add(AccessLevels.EMAIL_VERIFIED);
+        hasChanged = true;
+    }
+
+    return hasChanged ? JSON.stringify([...next]) : undefined;
+};
+
+// A profile is considered "complete" (eligible for EMAIL_VERIFIED) once it has a
+// username. Phone number and first/last name are intentionally NOT required here
+// so new users — especially invited users — can reach the app immediately with
+// minimal friction. Phone verification is deferred: it is prompted contextually
+// and enforced only on phone-sensitive actions (e.g. sending invites), which are
+// gated on MOBILE_VERIFIED at the API gateway rather than on EMAIL_VERIFIED.
+// See onboarding friction review (2026-06) and deferred-phone-verification (2026-07).
 const isUserProfileIncomplete = (updateArgs, existingUser?) => {
-    const isBusiness = updateArgs?.isBusinessAccount || existingUser?.isBusinessAccount;
-
     if (!existingUser) {
-        const requestIsMissingProperties = !updateArgs?.phoneNumber
-            || !updateArgs?.userName
-            || !updateArgs?.firstName
-            || (!isBusiness && !updateArgs?.lastName);
-
-        return requestIsMissingProperties;
+        return !updateArgs?.userName;
     }
 
     // NOTE: The user update query does not nullify missing properties when the respective property already exists in the DB
-    const requestDoesNotCompleteProfile = !(updateArgs.phoneNumber || existingUser.phoneNumber)
-        || !(updateArgs.userName || existingUser.userName)
-        || !(updateArgs.firstName || existingUser.firstName)
-        || (!isBusiness && !(updateArgs.lastName || existingUser.lastName));
-
-    return requestDoesNotCompleteProfile;
+    return !(updateArgs.userName || existingUser.userName);
 };
 
-// eslint-disable-next-line default-param-last
 const createUserHelper = (
     headers: InternalConfigHeaders,
     userDetails: IRequiredUserDetails,
-    // eslint-disable-next-line default-param-last
-    isSSO = false,
-    userByInviteDetails?: IUserByInviteDetails,
-    hasInviteCode = false,
+    options: ICreateUserOptions = {},
 ) => {
+    const {
+        isSSO = false,
+        userByInviteDetails,
+        hasInviteCode = false,
+        inviteToken,
+        isPreVerified = false,
+        isPhoneVerified = false,
+        userAcquisition,
+    } = options;
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
     const verificationCode = { type: codeDetails.type, code: codeDetails.code };
-    // Create a different/random permanent password as a placeholder
-    const shouldGeneratePassword = (isSSO || !!userByInviteDetails);
+    // Create a different/random permanent password as a placeholder.
+    // Phone-first signups are passwordless by design — the user proved the handset and will
+    // keep signing in with a texted code — so they get a placeholder too unless they chose
+    // to set one during the email step.
+    const shouldGeneratePassword = (isSSO || !!userByInviteDetails || (isPhoneVerified && !userDetails.password));
     const password = shouldGeneratePassword ? generateOneTimePassword(8) : (userDetails.password || '');
     const hasAgreedToTerms = !userByInviteDetails;
     let user;
+
+    // Magic invite-link state, populated below once the token resolves.
+    // matchedInvite is the pending invite this signup fulfills; the two
+    // *ChannelVerified flags implement the "skip on the invited channel"
+    // policy — the token proves control only of the contact point it was
+    // delivered to.
+    let matchedInvite: any;
+    let emailChannelVerified = false;
+    let phoneChannelVerified = false;
 
     if (!shouldGeneratePassword && !isValidPassword(password)) {
         throw new Error('invalid-password');
     }
 
-    return Store.verificationCodes.createCode(verificationCode)
+    // Defense-in-depth: the API gateway already validates this, but enforce the
+    // minimum signup age here too so no registration path can bypass it.
+    if (userDetails.settingsBirthdate && !isValidSignupAge(userDetails.settingsBirthdate)) {
+        throw new Error('invalid-birthdate');
+    }
+
+    const resolveInvitePromise = inviteToken
+        ? Store.invites.getInviteByToken(inviteToken).catch(() => undefined)
+        : Promise.resolve(undefined);
+
+    return resolveInvitePromise
+        .then((inviteRow: any) => {
+            if (inviteRow && !inviteRow.isAccepted) {
+                matchedInvite = inviteRow;
+                const inviteEmail = inviteRow.email ? normalizeEmail(inviteRow.email) : '';
+                if (inviteEmail && inviteEmail === normalizeEmail(userDetails.email)) {
+                    emailChannelVerified = true;
+                }
+                if (inviteRow.phoneNumber && userDetails.phoneNumber
+                    && normalizePhoneNumber(inviteRow.phoneNumber) === normalizePhoneNumber(userDetails.phoneNumber)) {
+                    phoneChannelVerified = true;
+                }
+            }
+
+            return Store.verificationCodes.createCode(verificationCode);
+        })
         .then(() => hashPassword(password))
         .then((hash) => {
             const isMissingUserProps = isUserProfileIncomplete(userDetails);
@@ -270,20 +428,40 @@ const createUserHelper = (
             if (userDetails.isDashboardRegistration) {
                 userAccessLevels.add(AccessLevels.DASHBOARD_SIGNUP);
             }
-            if (isSSO) {
+            // Phone-first signup: the texted code proved the handset, which is what admits
+            // the user to the app. EMAIL_VERIFIED* is the gate `login` checks, so it is
+            // granted here on the strength of the phone rather than the email — the email
+            // itself is still unproven and still gets its verification message below.
+            // Squatting a *registered* address remains impossible: the unique constraint on
+            // main.users.email rejects the insert, exactly as on the password signup path.
+            if (isSSO || isPreVerified || isPhoneVerified) {
                 if (isMissingUserProps) {
                     userAccessLevels.add(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
                 } else {
                     userAccessLevels.add(AccessLevels.EMAIL_VERIFIED);
                 }
             }
+            // Trust the invited channel: an emailed token proves the email, an
+            // SMS token proves the phone. We never grant a level for a channel
+            // the token did not reach.
+            if (emailChannelVerified) {
+                userAccessLevels.add(isMissingUserProps
+                    ? AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES
+                    : AccessLevels.EMAIL_VERIFIED);
+            }
+            if (phoneChannelVerified || isPhoneVerified) {
+                userAccessLevels.add(AccessLevels.MOBILE_VERIFIED);
+            }
+            const nowIso = new Date().toISOString();
             return Store.users.createUser({
                 accessLevels: JSON.stringify([...userAccessLevels]),
                 brandVariations: (headers['x-brand-variation'] && isBrandValid(headers['x-brand-variation']))
-                    ? JSON.stringify({
+                    ? JSON.stringify([{
                         brand: headers['x-brand-variation'],
-                        details: {},
-                    })
+                        firstSeenAt: nowIso,
+                        lastSeenAt: nowIso,
+                        isActive: true,
+                    }])
                     : undefined,
                 email: userDetails.email,
                 firstName: userDetails.firstName || undefined,
@@ -292,6 +470,8 @@ const createUserHelper = (
                 isCreatorAccount: userDetails.isCreatorAccount,
                 settingsEmailMarketing: userDetails.settingsEmailMarketing,
                 settingsEmailBusMarketing: userDetails.settingsEmailBusMarketing,
+                settingsBirthdate: userDetails.settingsBirthdate || undefined,
+                settingsLocale: userDetails.settingsLocale || undefined,
                 lastName: userDetails.lastName || undefined,
                 password: hash,
                 phoneNumber: userDetails.phoneNumber || undefined,
@@ -308,6 +488,68 @@ const createUserHelper = (
             user = results[0];
             // Remove credentials from object
             redactUserCreds(user);
+
+            // Marketing attribution. Fire-and-forget, and deliberately not
+            // awaited: this row is the only place the campaign that produced a
+            // signup is recorded, but it is still telemetry, and a failed
+            // INSERT must never turn a successful registration into an error
+            // the user sees.
+            if (userAcquisition) {
+                Store.userAcquisition.createAcquisition(sanitizeUserAcquisition(userAcquisition, {
+                    userId: user.id,
+                    brandVariation: headers['x-brand-variation'],
+                })).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while recording user acquisition'],
+                        traceArgs: { 'error.message': err?.message, 'user.id': user.id },
+                    });
+                });
+            }
+
+            // Magic invite-link acceptance: mark the invite accepted, connect
+            // the two users so the invitee lands in-app already connected, and
+            // reward the inviter. Fire-and-forget — a failure here must not
+            // break the registration response. This sets isAccepted=true up
+            // front, so the auth.ts first-login reward block (which only acts
+            // on isAccepted=false invites) is skipped: no double reward.
+            if (matchedInvite) {
+                Store.invites.updateInvite({ id: matchedInvite.id }, { isAccepted: true }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while accepting invite on token signup'],
+                        traceArgs: { 'error.message': err?.message, inviteId: matchedInvite.id },
+                    });
+                });
+
+                Store.userConnections.createIfNotExist([{
+                    requestingUserId: matchedInvite.requestingUserId,
+                    acceptingUserId: user.id,
+                    requestStatus: UserConnectionTypes.COMPLETE,
+                }]).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while auto-connecting invited user'],
+                        traceArgs: { 'error.message': err?.message, inviteId: matchedInvite.id },
+                    });
+                });
+
+                Store.users.updateUser({
+                    settingsTherrCoinTotal: CurrentSocialValuations.invite,
+                }, {
+                    id: matchedInvite.requestingUserId,
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while rewarding inviter on token signup'],
+                        traceArgs: { 'error.message': err?.message, inviteId: matchedInvite.id },
+                    });
+                });
+            }
 
             if (hasInviteCode) {
                 createOrUpdateAchievement({
@@ -391,46 +633,31 @@ const createUserHelper = (
                 });
             }
 
-            // Fire and forget: Create initial achievement so user is aware of invite rewards
-            Store.userAchievements.create([
-                {
-                    achievementId: 'socialite_1_1',
-                    userId: user.id,
-                    achievementClass: 'socialite',
-                    achievementTier: '1_1',
-                    progressCount: 0,
-                },
-                {
-                    achievementId: 'explorer_1_1',
-                    userId: user.id,
-                    achievementClass: 'explorer',
-                    achievementTier: '1_1',
-                    progressCount: 0,
-                },
-                {
-                    achievementId: 'influencer_1_1',
-                    userId: user.id,
-                    achievementClass: 'influencer',
-                    achievementTier: '1_1',
-                    progressCount: 0,
-                },
-                {
-                    achievementId: 'thinker_1_1',
-                    userId: user.id,
-                    achievementClass: 'thinker',
-                    achievementTier: '1_1',
-                    progressCount: 0,
-                },
-            ]).catch((err) => {
-                logSpan({
-                    level: 'error',
-                    messageOrigin: 'API_SERVER',
-                    messages: ['Error while creating socialite achievements during registration'],
-                    traceArgs: {
-                        'error.message': err?.message,
-                    },
+            // Fire and forget: Create initial achievement so user is aware of invite rewards.
+            // Filter the seed list against the brand's enabled achievement classes — every
+            // current class is Therr-themed, so a Habits/Teem registration seeds nothing
+            // until those brands ship their own classes (see HABITS_PROJECT_BRIEF.md).
+            const { brandVariation: registrationBrand } = getBrandContext(headers as Record<string, any>);
+            const seedAchievements = [
+                { achievementId: 'socialite_1_1', achievementClass: 'socialite', achievementTier: '1_1' },
+                { achievementId: 'explorer_1_1', achievementClass: 'explorer', achievementTier: '1_1' },
+                { achievementId: 'influencer_1_1', achievementClass: 'influencer', achievementTier: '1_1' },
+                { achievementId: 'thinker_1_1', achievementClass: 'thinker', achievementTier: '1_1' },
+            ]
+                .filter((seed) => isAchievementClassEnabledForBrand(seed.achievementClass, registrationBrand))
+                .map((seed) => ({ ...seed, userId: user.id, progressCount: 0 }));
+            if (seedAchievements.length > 0) {
+                Store.userAchievements.create(registrationBrand, seedAchievements).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while creating socialite achievements during registration'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                        },
+                    });
                 });
-            });
+            }
 
             if (isSSO || !!userByInviteDetails) {
                 // TODO: RMOBILE-26: Centralize password requirements
@@ -505,6 +732,22 @@ const createUserHelper = (
                 isDashboardRegistration: userDetails.isDashboardRegistration,
             });
 
+            // Skip the verification round-trip when contact-channel ownership
+            // is already proven:
+            //  - emailChannelVerified: a magic invite-link token was emailed to
+            //    this address and the account is marked email verified above.
+            //  - isPreVerified: a pact claim secret was delivered to this exact
+            //    email/phone — the same ownership proof a verification link
+            //    provides. Skipping removes the leave-the-app-verify-return wall
+            //    between an invitee and their friend's pact.
+            //
+            // Deliberately NOT including isPhoneVerified: a phone-first signup proved the
+            // handset, not the address it typed afterwards. That user is let into the app
+            // right away, but the email still has to earn its own confirmation.
+            if (emailChannelVerified || isPreVerified) {
+                return user;
+            }
+
             // STANDARD USER REGISTRATION
             // TODO: If this bounces, update user email preferences and notify admin
             return sendVerificationEmail({
@@ -544,7 +787,6 @@ interface IValidateCredentials {
     };
 }
 
-// eslint-disable-next-line arrow-body-style
 const validateCredentials = (headers: InternalConfigHeaders, userSearchResults, {
     locale,
     reqBody,
@@ -617,7 +859,7 @@ const validateCredentials = (headers: InternalConfigHeaders, userSearchResults, 
                         firstName: reqBody.userFirstName || fbUserFirstName,
                         lastName: reqBody.userLastName || fbUserLastName,
                         phoneNumber: reqBody.userPhoneNumber || (reqBody.ssoProvider === 'apple' ? 'apple-sso' : undefined),
-                    }, true, undefined, false).then((user) => [true, user, response]);
+                    }, { isSSO: true }).then((user) => [true, user, response]);
                 }
             }
 
@@ -685,6 +927,7 @@ const getUserOrgsIdsFromHeaders = (userOrgs: { [key: string]: string[] }, access
 export {
     getUserHelper,
     isUserProfileIncomplete,
+    computeAccessLevelsAfterProfileUpdate,
     createUserHelper,
     validateCredentials,
     redactUserCreds,

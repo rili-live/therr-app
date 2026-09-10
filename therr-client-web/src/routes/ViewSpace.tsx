@@ -3,10 +3,11 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
+import ReactGA from 'react-ga4';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
-import { IconCheck } from '@tabler/icons-react';
+import { IconCheck, IconPencil } from '@tabler/icons-react';
 import { Categories, Cities, Content } from 'therr-js-utilities/constants';
 import {
     ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
@@ -20,6 +21,7 @@ import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
 import ProgressiveImage from '../components/ProgressiveImage';
 import ListPickerPopover from './Bookmarks/ListPickerPopover';
+import SuggestEditModal from '../components/SuggestEditModal';
 import { getGuidesBySpaceId } from '../utilities/guideContent';
 
 // Only lazy-load on client (Leaflet requires window/document)
@@ -100,6 +102,8 @@ interface IViewSpaceState {
     isLocationLoading: boolean;
     locationError: string;
     isHeroBlank: boolean;
+    isSuggestEditModalOpen: boolean;
+    suggestEditInitialField: 'phoneNumber' | 'websiteUrl' | undefined;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -158,10 +162,12 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             isLocationLoading: false,
             locationError: '',
             isHeroBlank: false,
+            isSuggestEditModalOpen: false,
+            suggestEditInitialField: undefined,
         };
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         const { getSpaceDetails, map, user } = this.props;
         const { spaceId } = this.state;
         const space = map?.spaces[spaceId];
@@ -173,6 +179,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 withRatings: true,
             }).then(({ space: fetchedSpace }) => {
                 document.title = `${fetchedSpace?.notificationMsg} | Therr App`;
+                this.trackSpaceView(fetchedSpace);
                 this.fetchSpaceMoments(spaceId);
                 this.fetchSpacePairings(spaceId);
                 if (this.state.isFromClaimEmail) {
@@ -185,6 +192,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             });
         } else {
             document.title = `${space.notificationMsg} | Therr App`;
+            this.trackSpaceView(space);
             this.fetchSpaceMoments(spaceId);
             this.fetchSpacePairings(spaceId);
             if (this.state.isFromClaimEmail) {
@@ -193,6 +201,48 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             this.restorePendingReview(spaceId, user?.isAuthenticated);
         }
     }
+
+    /**
+     * Funnel steps 2 and 3 of the B2B claim flow (docs/GROWTH_STRATEGY.md):
+     * the indexed space page, and the banner an outreach email lands on.
+     *
+     * Fired here rather than from `render` because render runs many times per
+     * visit — a banner impression counted per render would inflate the top of
+     * the funnel and make every downstream conversion rate look worse than it
+     * is. The banner's visibility depends only on values known at this point,
+     * so one call at load is both correct and sufficient.
+     */
+    trackSpaceView = (space: any) => {
+        if (!space) return;
+
+        const { isFromClaimEmail } = this.state;
+
+        ReactGA.event('view_space', {
+            spaceId: space.id,
+            isClaimed: !space.isUnclaimed,
+            isFromClaimEmail,
+        });
+
+        if (isFromClaimEmail && space.isUnclaimed) {
+            ReactGA.event('claim_banner_view', {
+                spaceId: space.id,
+            });
+        }
+    };
+
+    /** Funnel step 4: the visitor engaged with a claim CTA. */
+    handleClaimCtaClick = (source: 'banner' | 'subtle_cta') => () => {
+        const { user } = this.props;
+        const { spaceId } = this.state;
+
+        ReactGA.event('claim_start', {
+            spaceId,
+            source,
+            isAuthenticated: !!user?.isAuthenticated,
+        });
+
+        this.scrollToClaimSection();
+    };
 
     restorePendingReview = (spaceId: string, isAuthenticated?: boolean) => {
         if (!isAuthenticated || typeof sessionStorage === 'undefined') {
@@ -277,9 +327,22 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         const { spaceId } = this.state;
 
         if (!user?.isAuthenticated) {
+            // Funnel step 5 for an anonymous visitor: the claim intent is real,
+            // but it becomes a registration first. Counted separately so the
+            // registration wall is visible as a funnel stage rather than
+            // looking like a drop-off between start and submit.
+            ReactGA.event('claim_submit', {
+                spaceId,
+                outcome: 'requires_registration',
+            });
             this.props.navigation.navigate(`/register?returnTo=${this.getReturnToPath(spaceId)}`);
             return;
         }
+
+        ReactGA.event('claim_submit', {
+            spaceId,
+            outcome: 'submitted',
+        });
 
         this.setState({ isClaimLoading: true, claimMessage: '', claimMessageType: '' });
         MapsService.claimSpace(spaceId)
@@ -613,7 +676,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             >
                 <Text size="sm" mb="sm">{translate('pages.viewSpace.claimSpace.emailBody')}</Text>
                 <Button
-                    onClick={this.scrollToClaimSection}
+                    onClick={this.handleClaimCtaClick('banner')}
                     variant="filled"
                     size="compact-md"
                     color="teal"
@@ -703,7 +766,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             if (isFromClaimEmail) {
                 return (
                     <Button
-                        onClick={this.scrollToClaimSection}
+                        onClick={this.handleClaimCtaClick('subtle_cta')}
                         variant="light"
                         size="compact-sm"
                         color="teal"
@@ -714,7 +777,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             }
 
             return (
-                <Anchor onClick={this.scrollToClaimSection} size="xs" c="dimmed" style={{ cursor: 'pointer' }}>
+                <Anchor onClick={this.handleClaimCtaClick('subtle_cta')} size="xs" c="dimmed" style={{ cursor: 'pointer' }}>
                     {translate('pages.viewSpace.claimSpace.subtleCTA')}
                 </Anchor>
             );
@@ -946,7 +1009,20 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
         return (
             <>
-                <Title order={3} size="h4" mt="lg">{this.props.translate('pages.viewSpace.headings.contactAndLocation')}</Title>
+                <Group justify="space-between" align="flex-end" mt="lg">
+                    <Title order={3} size="h4">{this.props.translate('pages.viewSpace.headings.contactAndLocation')}</Title>
+                    <Anchor
+                        component="button"
+                        type="button"
+                        size="xs"
+                        onClick={() => this.setState({ isSuggestEditModalOpen: true, suggestEditInitialField: undefined })}
+                    >
+                        <Group gap={4} align="center" wrap="nowrap">
+                            <IconPencil size={12} />
+                            {this.props.translate('pages.viewSpace.suggestEdit.trigger')}
+                        </Group>
+                    </Anchor>
+                </Group>
                 {hasAddress && (
                     <address className="space-address">
                         {space.addressStreetAddress && <Text>{space.addressStreetAddress}</Text>}
@@ -1432,6 +1508,13 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     </Paper>
                 </Stack>
                 {this.renderLoginModal()}
+                <SuggestEditModal
+                    opened={this.state.isSuggestEditModalOpen}
+                    onClose={() => this.setState({ isSuggestEditModalOpen: false })}
+                    spaceId={this.state.spaceId}
+                    initialField={this.state.suggestEditInitialField}
+                    translate={this.props.translate}
+                />
             </Container>
         );
     }

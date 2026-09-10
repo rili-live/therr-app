@@ -450,6 +450,9 @@ class ManageSpaces extends React.PureComponent<IManageSpacesProps, IManageSpaces
                             contentContainerStyle={spacesInView.length === 0 ? staticStyles.listEmptyContent : undefined}
                             onRefresh={this.handleRefresh}
                             refreshing={isRefreshing}
+                            initialNumToRender={6}
+                            maxToRenderPerBatch={5}
+                            windowSize={11}
                         />
                     )}
                 </SafeAreaView>

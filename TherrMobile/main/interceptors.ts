@@ -1,11 +1,14 @@
 import axios from 'axios';
+import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { UsersService } from 'therr-react/services';
 import { isOfflineError } from 'therr-react/utilities/cacheHelpers';
 import SecureStorage from './utilities/SecureStorage';
 import { CURRENT_BRAND_VARIATION } from './config/brandConfig';
+import REQUEST_PLATFORM from './constants/requestPlatform';
 import getConfig from './utilities/getConfig';
 import UsersActions from './redux/actions/UsersActions';
 import { socketIO } from './socket-io-middleware';
+import { isNonRefreshableAuthUrl } from './utilities/authRequestPaths';
 
 const MAX_LOGOUT_ATTEMPTS = 3;
 const MAX_REFRESH_RETRIES = 2;
@@ -15,6 +18,7 @@ let timer: any;
 let numLoadings = 0;
 let logoutAttemptCount = 0;
 let isRefreshing = false;
+let isLoggingOut = false;
 let refreshRetryCount = 0;
 let refreshSubscribers: { resolve: (token: string) => void; reject: (err: any) => void }[] = [];
 const _timeout = 350;
@@ -65,6 +69,10 @@ const onRefreshFailed = (err: any) => {
 
 const handleLogout = (store) => {
     if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
+        // Suppress further refresh-and-retry on subsequent 401s so concurrent
+        // in-flight requests don't fan out into the rejection cascade we saw
+        // when /auth/logout itself returns 401 with an expired idToken.
+        isLoggingOut = true;
         const storedUser = store.getState().user;
         if (storedUser?.details?.id) {
             store.dispatch(UsersActions.updateTour({
@@ -90,7 +98,16 @@ const attemptRefresh = (store) => {
             return UsersService.refreshToken(refreshToken, rememberMe);
         })
         .then(async (response) => {
-            const { idToken: newIdToken, refreshToken: newRefreshToken } = response.data;
+            const { idToken: newIdToken, refreshToken: newRefreshToken } = response?.data || {};
+
+            // Guard against a malformed / empty refresh response (e.g. an offline
+            // fallback object). Without this we'd overwrite the stored refresh
+            // token with `undefined`, wiping the only credential that can recover
+            // the session — and then log the user out. Treat it as a transient
+            // failure so the catch handler can retry instead.
+            if (!newIdToken || !newRefreshToken) {
+                throw new Error('Refresh response missing tokens');
+            }
 
             // Update stored tokens
             const userDetailsStr = await SecureStorage.getItem('therrUser');
@@ -99,9 +116,16 @@ const attemptRefresh = (store) => {
             await SecureStorage.setItem('therrUser', JSON.stringify(userDetails));
             await SecureStorage.setItem('therrRefreshToken', newRefreshToken);
 
-            // Update Redux state
+            // Update Redux state so the request interceptor applies the NEW token
+            // to the retried (and all subsequent) requests. This MUST use the
+            // SocketClientActionTypes.UPDATE_USER action ('CLIENT:UPDATE_USER') —
+            // the user reducer only handles that exact type. Dispatching a plain
+            // 'UPDATE_USER' string silently no-ops, leaving the stale (expired)
+            // token in Redux; the retried request then re-applies that expired
+            // token, gets another 401, and the user is logged out. This was the
+            // root cause of "logged out after installing a new app version".
             store.dispatch({
-                type: 'UPDATE_USER',
+                type: SocketClientActionTypes.UPDATE_USER,
                 data: {
                     details: { idToken: newIdToken },
                 },
@@ -145,6 +169,7 @@ const initInterceptors = (
 ) => {
     // Reset module-level state (safe for re-initialization)
     isRefreshing = false;
+    isLoggingOut = false;
     refreshRetryCount = 0;
     refreshSubscribers = [];
     logoutAttemptCount = 0;
@@ -154,7 +179,7 @@ const initInterceptors = (
     // is incompatible with axios 1.x's xhr adapter
     axios.defaults.adapter = 'fetch';
     axios.defaults.baseURL = baseUrl;
-    axios.defaults.headers['x-platform'] = 'mobile';
+    axios.defaults.headers['x-platform'] = REQUEST_PLATFORM;
     // NICHE - Brand variation is now set via config/brandConfig.ts
     axios.defaults.headers['x-brand-variation'] = CURRENT_BRAND_VARIATION;
 
@@ -188,6 +213,7 @@ const initInterceptors = (
     axios.interceptors.response.use(
         (response) => {
             logoutAttemptCount = 0;
+            isLoggingOut = false;
             if (numLoadings === 0) {
                 return response;
             }
@@ -223,9 +249,32 @@ const initInterceptors = (
             if (error.response) {
                 const is401 = Number(error.response.status) === 401 || Number(error.response.data?.statusCode) === 401;
                 const is403 = Number(error.response.status) === 403 || Number(error.response.data?.statusCode) === 403;
+                const url = originalRequest?.url || '';
+                // Skip refresh-and-retry on the auth endpoints — sign-in, sign-up, and
+                // tear-down — enumerated in `utilities/authRequestPaths`. /auth/logout 401s
+                // are expected when the idToken is expired (which is often why we're logging
+                // out in the first place) and queueing them onto the refresh subscriber list
+                // produces unhandled rejections when the refresh itself fails; the sign-in
+                // endpoints need their 401 to reach the form intact so it can say what
+                // actually went wrong.
+                const isNonRefreshableAuth = isNonRefreshableAuthUrl(url);
 
-                // Attempt token refresh on 401 (but not for refresh requests or 403s)
-                if (is401 && !originalRequest._isRetry && !originalRequest.url?.includes('/auth/token/refresh')) {
+                // Once a logout is in flight, stop running the auth-recovery
+                // path on every concurrent 401/403 — let those requests fail
+                // quietly so they don't fan out into more refresh attempts or
+                // duplicate logout dispatches.
+                if (isLoggingOut) {
+                    if (numLoadings < 2) {
+                        clearTimeout(timer);
+                    }
+                    numLoadings = Math.max(0, numLoadings - 1);
+                    return Promise.reject(
+                        (error && error.response && error.response.data) || error
+                    );
+                }
+
+                // Attempt token refresh on 401 (but not for refresh/logout requests or 403s)
+                if (is401 && !originalRequest._isRetry && !isNonRefreshableAuth) {
                     originalRequest._isRetry = true;
 
                     if (!isRefreshing) {
@@ -251,11 +300,11 @@ const initInterceptors = (
                 // or 403 on auth-specific endpoints (blocked user, invalid token type)
                 if (is401 && originalRequest._isRetry) {
                     handleLogout(store);
-                } else if (is403 && originalRequest.url?.includes('/auth')) {
+                } else if (is403 && url.includes('/auth')) {
                     handleLogout(store);
                 }
             } else if (error) {
-                if (isAuthFailure(error)) {
+                if (isAuthFailure(error) && !isLoggingOut) {
                     // Only logout for definitive auth failures without a response object
                     socketIO.disconnect();
                     handleLogout(store);

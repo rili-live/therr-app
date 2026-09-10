@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
-import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-sheet';
+import { SheetManager, SheetProps } from 'react-native-actions-sheet';
+import ActionSheet from './BaseActionSheet';
 import { List } from 'react-native-paper';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import spacingStyles from '../../styles/layouts/spacing';

@@ -34,7 +34,7 @@ export default (emailParams: ISendNewUserAdminNotificationEmailConfig, templateP
     const htmlConfig = {
         header: `${contextConfig.brandName}: New User Registration 🎉`,
         dearUser,
-        body1: `A new userv (${emailParams.platform}) signed up for the app 🎉 (${JSON.stringify(accountTypeParams)})`,
+        body1: `A new user (${emailParams.platform}, brand: ${emailParams.brandVariation || 'therr'}) signed up for the app 🎉 (${JSON.stringify(accountTypeParams)})`,
     };
 
     return sendEmail({

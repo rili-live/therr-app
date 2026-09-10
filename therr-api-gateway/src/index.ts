@@ -1,6 +1,8 @@
 /* eslint-disable import/no-import-module-exports */
 import tracing from './tracing'; // eslint-disable-line import/order
 import axios from 'axios';
+import * as http from 'http';
+import * as https from 'https';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -10,27 +12,60 @@ import router from './routes';
 import reqLogDecorator from './middleware/reqLogDecorator';
 import { version as packageVersion } from '../package.json';
 import authenticate from './middleware/authenticate';
+import unauthenticatedPaths from './config/unauthenticatedPaths';
 import restrictApiKeyAccess from './middleware/restrictApiKeyAccess';
 import { apiKeyRequestLimiter } from './services/users/limitation/apiKeys';
 import openapiSpec from './docs/openapi.json';
 import getRedocHtml from './docs/redocPage';
+import { assertNoShadowedRoutes } from './utilities/routeOrdering';
 
 tracing.start();
 
 // Axios defaults
 axios.defaults.timeout = 1000 * 30; // 30 Second Request timeout
+// Shared keep-alive agents reuse TCP connections across requests to the same host,
+// avoiding repeated DNS lookups and TCP handshakes on every axios call. Defined here
+// (rather than imported from therr-js-utilities/http) so the isomorphic http barrel stays
+// free of node-only `http`/`https`, which would otherwise break the React Native bundle.
+axios.defaults.httpAgent = new http.Agent({
+    keepAlive: true,
+    maxSockets: 50,
+    maxFreeSockets: 10,
+});
+axios.defaults.httpsAgent = new https.Agent({
+    keepAlive: true,
+    maxSockets: 25,
+    maxFreeSockets: 5,
+});
 
-// NOTE: corsOptions commented out - mobile apps have no concept of CORS
-// const originWhitelist = (process.env.URI_WHITELIST || '').split(',');
-// const corsOptions = {
-//     origin(origin: any, callback: any) {
-//         if (origin === undefined || originWhitelist.indexOf(origin) !== -1) {
-//             callback(null, true);
-//         } else {
-//             callback(new Error('Not allowed by CORS'));
-//         }
-//     },
-// };
+// Mobile apps send no Origin header, so passing `!origin` through is safe and required.
+// Web clients are restricted to the URI_WHITELIST in production so any other browser origin
+// is rejected by CORS preflight before reaching the route handler.
+const originWhitelist = (process.env.URI_WHITELIST || '').split(',').filter(Boolean);
+const corsOptions = {
+    origin(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+        if (!origin || originWhitelist.includes(origin)) {
+            callback(null, true);
+            return;
+        }
+
+        // Resolve to `false` rather than an Error. Passing an Error routes through the
+        // express error handler and returns an opaque 500 with no indication of the cause;
+        // `false` simply omits the Access-Control-Allow-Origin header, which is what the
+        // browser is actually checking. Log the rejected origin so a missing whitelist
+        // entry is diagnosable from traces instead of only from the browser console.
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'API_SERVER',
+            messages: [`CORS rejected origin: ${origin}`],
+            traceArgs: {
+                'cors.rejectedOrigin': origin,
+                'cors.whitelistSize': originWhitelist.length,
+            },
+        });
+        callback(null, false);
+    },
+};
 
 const API_BASE_ROUTE = `/v${packageVersion.split('.')[0]}`;
 
@@ -40,8 +75,7 @@ if (process.env.NODE_ENV !== 'production') {
     app.use(cors());
     app.set('trust proxy', 0);
 } else {
-    // app.use(cors(corsOptions)); // We cannot use cors because mobile apps have no concept of this
-    app.use(cors());
+    app.use(cors(corsOptions));
     app.set('trust proxy', 1);
 }
 
@@ -71,50 +105,9 @@ app.use(/^(?!\/v1\/users-service\/users\/connections\/find-people$)/, express.js
 // Serves static files in the /build/static directory
 app.use(express.static(path.join(__dirname, 'static')));
 
-// Authentication
-app.use(authenticate.unless({
-    path: [
-        { url: '/', methods: ['GET'] }, // healthcheck
-        { url: '/healthcheck', methods: ['GET'] }, // healthcheck
-        { url: '/v1/docs', methods: ['GET'] }, // API documentation
-        { url: '/v1/docs/openapi.json', methods: ['GET'] }, // OpenAPI spec
-        // { url: '/favicon.ico', methods: ['GET'] }, // favicon
-        { url: '/v1/users-service/interests', methods: ['GET'] },
-        { url: '/v1/users-service/rewards/exchange-rate', methods: ['GET'] },
-        { url: '/v1/users-service/emails/bounced', methods: ['POST'] }, // bounced email handler
-        { url: '/v1/users-service/subscribers/signup', methods: ['POST'] }, // email marketing subscribe
-        { url: '/v1/users-service/subscribers/preferences', methods: ['GET'] }, // Update E-mail subscription settings
-        { url: '/v1/users-service/subscribers/unsubscribe', methods: ['POST'] }, // Update E-mail subscription settings
-        { url: '/v1/users-service/subscribers/send-feedback', methods: ['POST'] }, // send feedback
-        { url: '/v1/users-service/auth', methods: ['POST'] }, // login
-        { url: '/v1/users-service/payments/webhook', methods: ['POST'] }, // webhook
-        { url: '/v1/users-service/users', methods: ['POST'] }, // register
-        { url: /\/v1\/users-service\/users\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/, methods: ['GET'] },
-        { url: '/v1/users-service/auth/token/refresh', methods: ['POST'] }, // token refresh
-        { url: '/v1/users-service/users/forgot-password', methods: ['POST'] }, // one time password
-        { url: '/v1/users-service/social-sync/oauth2-tiktok', methods: ['GET'] }, // TikTok OAuth
-        { url: '/v1/users-service/social-sync/oauth2-facebook', methods: ['GET'] }, // Facebook OAuth
-        { url: '/v1/users-service/social-sync/oauth2-dashboard-facebook', methods: ['GET'] }, // Facebook OAuth
-        { url: '/v1/users-service/social-sync/oauth2-instagram', methods: ['GET'] }, // Instagram OAuth
-        { url: /\/v1\/users-service\/users\/verify\/.*/, methods: ['POST'] }, // verify account
-        { url: /\/v1\/users-service\/users\/by-username\/.*/, methods: ['GET'] }, // Get public/private profile
-        { url: /\/v1\/user-files\/.*/, methods: ['GET'] }, // image proxy
-        { url: /\/v1\/maps-service\/place\/*/, methods: ['GET'] }, // Google Maps: Places proxy
-        { url: '/v1/maps-service/geocode', methods: ['GET'] }, // Nominatim geocoding proxy
-        { url: /\/v1\/maps-service\/moments\/.*\/details/, methods: ['POST'] },
-        { url: '/v1/maps-service/spaces/list', methods: ['POST'] },
-        { url: /\/v1\/maps-service\/spaces\/.*\/details/, methods: ['POST'] },
-        { url: /\/v1\/maps-service\/events\/.*\/details/, methods: ['POST'] }, // Public event view (uses authenticateOptional)
-        { url: /\/v1\/maps-service\/events\/search/, methods: ['POST'] }, // Optional for public map view
-        { url: /\/v1\/maps-service\/moments\/search/, methods: ['POST'] }, // Optional for public map view
-        { url: /\/v1\/maps-service\/spaces\/search/, methods: ['POST'] }, // Optional for public map view
-        { url: /\/v1\/maps-service\/spaces\/.*\/pairings$/, methods: ['GET'] }, // Space pairings (optional auth)
-        { url: /\/v1\/maps-service\/spaces\/.*\/pairings\/feedback/, methods: ['POST'] }, // Pairing feedback (optional auth)
-        { url: /\/v1\/maps-service\/cities\/[^/]+\/pulse$/, methods: ['GET'] }, // Public city landing page (uses authenticateOptional)
-        { url: /\/v1\/messages-service\/forums\/[0-9a-f-]+$/, methods: ['GET'] }, // Public group/forum view (uses authenticateOptional)
-        { url: '/v1/messages-service/forums/search', methods: ['POST'] }, // Public forum search (uses authenticateOptional)
-    ],
-}));
+// Authentication. The skip-list lives in its own module so it can be unit-tested;
+// see config/unauthenticatedPaths.ts for why anchoring those patterns matters.
+app.use(authenticate.unless({ path: unauthenticatedPaths }));
 
 // API key access restrictions and rate limiting (after auth, before routes)
 app.use(restrictApiKeyAccess);
@@ -135,6 +128,16 @@ app.get(`${API_BASE_ROUTE}/docs/openapi.json`, (req, res) => { res.json(openapiS
 app.get(`${API_BASE_ROUTE}/docs`, (req, res) => { res.send(getRedocHtml()); });
 
 app.use(API_BASE_ROUTE, router);
+
+// Fail the boot rather than serve a router where a literal route is claimed by an
+// earlier :param sibling. Eight routes were shadowed this way before the check
+// existed; because handleServiceRequest forwards req.url verbatim, seven of them
+// still proxied correctly and only ran the wrong middleware, while
+// PUT /users/change-password 400'd on the other route's isUUID(4) param check.
+// That asymmetry is why this is an assertion and not a code review item -- the
+// latent ones are invisible until one day the middleware differs enough to reject.
+// The same check runs in CI (tests/unit/utilities/routeOrdering.test.ts).
+assertNoShadowedRoutes(router);
 
 const { API_GATEWAY_PORT } = process.env;
 

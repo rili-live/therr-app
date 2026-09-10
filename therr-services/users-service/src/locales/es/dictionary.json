@@ -1,14 +1,59 @@
 {
+    "authMessages": {
+        "emailPrecheckGeneric": "Si este correo está registrado, te guiaremos para iniciar sesión."
+    },
     "errorMessages": {
         "auth": {
             "accountNotVerified": "Cuenta no verificada. Revisa tu correo electrónico para la verificación o navega a /verify-account para reenviar",
             "noUserFound": "No se encontró un usuario con el nombre de usuario/correo electrónico ingresado",
             "oneTimeExpired": "La contraseña de un solo uso ha expirado",
             "incorrectUserPass": "Combinación incorrecta de nombre de usuario/contraseña",
-            "invalidPassword": "La contraseña no es válida"
+            "invalidPassword": "La contraseña no es válida",
+            "invalidBirthdate": "Debes tener al menos 13 años para crear una cuenta"
         },
         "posts": {
-            "duplicatePost": "No se permiten publicaciones duplicadas"
+            "duplicatePost": "No se permiten publicaciones duplicadas",
+            "duplicateRepost": "Ya republicaste esta publicación"
+        },
+        "pacts": {
+            "activityTypeRequired": "Elige qué quieres enviar",
+            "cannotDelete": "Solo puedes eliminar un pacto que hayas creado",
+            "claimTokenRequired": "A ese enlace de invitación le falta el código",
+            "habitGoalRequired": "Se requiere una meta de hábito para crear un pacto",
+            "invalidConsequenceType": "Elige una de estas consecuencias: {allowed}",
+            "invalidDonationAmount": "Indica un monto de donación mayor que cero",
+            "invalidDuration": "Un pacto puede durar {allowed} días",
+            "invalidParams": "Algo en ese pacto no está bien: revisa los datos e inténtalo de nuevo",
+            "invitationBelongsToAnother": "Esa invitación se envió a otra persona",
+            "invitationExpired": "Esa invitación ya venció. Pídele a tu compañero que te envíe otra.",
+            "invitationNotFound": "No encontramos esa invitación",
+            "invitationNotRedeemable": "Esa invitación ya se usó",
+            "inviteesNoneValid": "Elige a alguien que no seas tú para invitar",
+            "inviteesRequired": "Elige al menos a una persona para invitar",
+            "inviteesTooMany": "Puedes invitar hasta {limit} compañeros a la vez",
+            "notAcceptingMembers": "Este pacto ya está completo",
+            "notActive": "Este pacto no está activo",
+            "alreadyRenewed": "Ya tienes un pacto activo para este hábito",
+            "notRenewable": "Este pacto sigue en curso: podrás renovarlo cuando termine",
+            "notFound": "Ese pacto ya no existe",
+            "notInvitedPartner": "Esta invitación se envió a otra persona",
+            "notParticipant": "No formas parte de este pacto",
+            "notPending": "Ya respondiste a este pacto",
+            "nudgeCreatorOnly": "Solo quien creó este pacto puede enviar un recordatorio",
+            "nudgeNoPendingPartners": "Todos ya respondieron a este pacto",
+            "nudgeNotPending": "Este pacto ya comenzó, así que no queda nadie a quien recordar"
+        },
+        "habits": {
+            "freeTierHabitLimitReached": "Las cuentas gratuitas pueden seguir {limit} hábitos a la vez. Archiva uno o desbloquea todo de por vida.",
+            "habitGoalNotFound": "No encontramos ese hábito",
+            "habitGoalRequired": "Se requiere una meta de hábito",
+            "journalBodyRequired": "Escribe algo antes de guardar esta entrada",
+            "journalEntryNotFound": "Entrada del diario no encontrada",
+            "lifetimeAlreadyClaimed": "Otra cuenta ya reclamó esa compra",
+            "lifetimePurchaseNotCompleted": "Esa compra aún no se ha completado",
+            "lifetimePurchaseNotFound": "No se encontró esa compra",
+            "lifetimeVerificationFailed": "No pudimos verificar esa compra en este momento. Inténtalo de nuevo en unos instantes.",
+            "soloLocked": "Invita a {remaining} amigo(s) más para desbloquear los hábitos que sigues por tu cuenta: {required} invitaciones en total."
         },
         "user": {
             "invalidUserNamePassword": "La combinación de usuario/contraseña es incorrecta",
@@ -31,6 +76,29 @@
         },
         "privacy": {
             "restrictedMedia": "Contenido restringido"
+        },
+        "habitCheckins": {
+            "dateRangeRequired": "Elige una fecha de inicio y una de fin",
+            "habitGoalRequired": "Elige un hábito para registrar",
+            "notAuthorizedToUpdate": "Solo puedes modificar tu propio registro",
+            "notAuthorizedToView": "Solo puedes ver tus propios registros",
+            "notFound": "No encontramos ese registro",
+            "notFoundOrNotAuthorizedToDelete": "No encontramos ese registro, o no es tuyo para eliminarlo",
+            "shareRequiresImage": "Agrega una foto a este registro antes de compartirlo",
+            "shareModerationFailed": "No pudimos compartir este registro ahora. Prueba con otra foto."
+        },
+        "streaks": {
+            "noGraceDaysAvailable": "Ya usaste todos los días de gracia de esta racha",
+            "notAuthorizedToModify": "Solo puedes modificar tu propia racha",
+            "notAuthorizedToView": "Solo puedes ver tu propia racha",
+            "notAuthorizedToViewHistory": "Solo puedes ver el historial de tu propia racha",
+            "notFound": "No encontramos esa racha"
+        },
+        "habitGoals": {
+            "cannotDelete": "Solo puedes eliminar un hábito que hayas creado",
+            "cannotModifyTemplate": "Este hábito es una de nuestras plantillas, así que no se puede editar",
+            "nameRequired": "Ponle un nombre a este hábito",
+            "notOwner": "Solo puedes editar un hábito que hayas creado"
         }
     },
     "metrics": {
@@ -43,6 +111,7 @@
         "reactionLikeReceived": "A {userName} le gustó tu publicación",
         "reactionSuperLikeReceived": "¡{userName} le dio super me gusta a tu publicación!",
         "newThoughtReplyReceived": "{userName} respondió a tu publicación",
+        "newThoughtRepostReceived": "{userName} republicó tu publicación",
         "newDmReceived": "Nuevo mensaje de {userName} mientras estabas ausente",
         "newGroupMembers": "{members} se unió a tu grupo, {groupName}",
         "newGroupInvite": "{inviterUserName} te invitó a unirte a {groupName}",
@@ -51,10 +120,19 @@
         "discoveredUniqueSpace": "Alerta de joya oculta — ¡estás cerca de un espacio único!"
     },
     "invites": {
-        "phone": "{name} te invitó a Therr — la app de comunidad local y recompensas. Regístrate aquí para conectar: https://therr.com"
+        "phone": "{name} te invitó a {brandName}{brandTagline}. Regístrate aquí para conectar: {inviteUrl}",
+        "phoneTaglines": {
+            "therr": " — la app de comunidad local y recompensas"
+        },
+        "pact": {
+            "sms": "{fromName} te invitó a un pacto de {brandName}: {habitName}. Instala y abre {claimUrl} — o usa el código {claimCode} al registrarte.",
+            "smsTokenOnly": "{fromName} te invitó a un pacto de {brandName}: {habitName}. Instala la app y abre {claimUrl} para aceptar."
+        }
     },
     "thoughts": {
-        "notFound": "Pensamiento no encontrado"
+        "notFound": "Pensamiento no encontrado",
+        "repostRestricted": "Esta publicación no se puede republicar",
+        "parentAccessRestricted": "Este usuario no tiene permiso para responder a un pensamiento al que no puede acceder"
     },
     "thoughtReactions": {
         "thoughtNotActivated": "Este usuario no tiene permiso para acceder al contenido sin antes activar el pensamiento"
@@ -121,7 +199,11 @@
             "dearUser": "¡Hola {toEmail}!",
             "body1": "¡{fromName} te quiere en {brandName}! También puedes contactarlo/a directamente en {fromEmail}.",
             "body2": "Haz clic abajo para registrarte y comenzar a explorar tu comunidad local.",
-            "postBody1": "Si el botón no funciona, copia y pega este enlace en tu navegador: {linkUrl}"
+            "body2ByBrand": {
+                "habits": "Haz clic abajo para registrarte y ser el cambio: los hábitos duran cuando los construyes con amigos."
+            },
+            "postBody1": "Si el botón no funciona, copia y pega este enlace en tu navegador: {linkUrl}",
+            "subject": "{fromName} te invitó a {brandShortName}"
         },
         "newUserInvite": {
             "header": "¡Tu perfil te está esperando!",
@@ -129,6 +211,16 @@
             "body1": "{fromName} te invitó a conectar en {brandName}. Puedes contactarlo/a directamente en {fromEmail}.",
             "body2": "Haz clic abajo para terminar de configurar tu perfil. Usa esta contraseña temporal para empezar:",
             "postBody1": "Si el botón no funciona, copia y pega este enlace en tu navegador: {linkUrl}"
+        },
+        "pactInvitation": {
+            "header": "{fromName} quiere formar un hábito contigo",
+            "dearUser": "¡Hola {toName}!",
+            "body1": "{fromName} te retó a un pacto en {brandName} para {habitName}. Los hábitos se mantienen mejor cuando un amigo te apoya — únete para lograrlo.",
+            "body2": "Toca el botón para instalar {brandName} y aceptar el pacto, o pega este código en la pantalla de registro:",
+            "body2TokenOnly": "Toca el botón para instalar {brandName} y aceptar el pacto.",
+            "buttonText": "Instalar {brandName}",
+            "postBody1": "Si el botón no funciona, abre este enlace en tu teléfono: {linkUrl} — o ingresa el código {claimCode} en la aplicación.",
+            "postBody1TokenOnly": "Si el botón no funciona, abre este enlace en tu teléfono: {linkUrl}"
         },
         "coinsReceived": {
             "header": "¡Ganaste monedas!",

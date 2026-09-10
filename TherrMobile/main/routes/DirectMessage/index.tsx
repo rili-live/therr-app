@@ -1,5 +1,6 @@
 import React from 'react';
-import { FlatList, View, KeyboardAvoidingView, Platform } from 'react-native';
+import { FlatList, View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/BaseButton';
 import 'react-native-gesture-handler';
@@ -18,6 +19,7 @@ import TherrIcon from '../../components/TherrIcon';
 import LoadingPlaceholder from './LoadingPlaceholder';
 import spacingStyles from '../../styles/layouts/spacing';
 import ListEmpty from '../../components/ListEmpty';
+import permissions from '../../utilities/permissionsOrchestrator';
 
 const ITEMS_PER_PAGE = 50;
 
@@ -45,6 +47,14 @@ interface IDirectMessageState {
     pageNumber: number;
 }
 
+/**
+ * Virtualization window for the message thread. Wider than the default so scrolling back
+ * through history cannot outrun the render batch.
+ */
+const LIST_INITIAL_NUM_TO_RENDER = 10;
+const LIST_MAX_TO_RENDER_PER_BATCH = 10;
+const LIST_WINDOW_SIZE = 21;
+
 const mapStateToProps = (state: any) => ({
     messages: state.messages,
     user: state.user,
@@ -63,7 +73,6 @@ class DirectMessage extends React.Component<
     IDirectMessageProps,
     IDirectMessageState
 > {
-    private flatListRef: any;
     private translate: Function;
     private theme = buildStyles();
     private themeForms = buildFormsStyles();
@@ -167,6 +176,13 @@ class DirectMessage extends React.Component<
                 msgInputVal: '',
             });
 
+            // Engagement-anchored soft-ask. The first DM a user sends is when
+            // the value of receiving notifications becomes obvious. No-op if
+            // already asked, granted, or blocked.
+            permissions.requestIfAppropriate('notifications', {
+                trigger: 'firstMessageSent',
+            });
+
             // Brief cooldown to prevent double-tap
             setTimeout(() => {
                 this.setState({ isSending: false });
@@ -213,61 +229,85 @@ class DirectMessage extends React.Component<
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
+                    {/*
+                      * `behavior` has to be set on Android too. Without it the component is a
+                      * documented no-op, and under edge-to-edge (API 36) the window no longer
+                      * resizes for the keyboard either — so the composer stayed put and the
+                      * keyboard covered it. `automaticOffset` measures this view's true position
+                      * on screen, which is what the hand-tuned iOS `keyboardVerticalOffset={90}`
+                      * used to approximate.
+                      */}
                     <KeyboardAvoidingView
-                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        behavior="padding"
+                        automaticOffset
                         style={this.themeMessage.styles.container}
-                        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
                     >
                         {
                             isLoading ?
-                                <View style={spacingStyles.flex}>
+                                <View style={spacingStyles.flexOne}>
                                     <LoadingPlaceholder />
                                     <LoadingPlaceholder />
                                     <LoadingPlaceholder />
                                     <LoadingPlaceholder />
                                 </View> :
-                                <FlatList
-                                    data={dms}
-                                    inverted
-                                    keyExtractor={(item) => String(item.id || item.key)}
-                                    renderItem={({ item, index }) => {
-                                        // Prefer fromUserId when available (authoritative); fall back
-                                        // to the 'you' name convention for messages cached before
-                                        // fromUserId started being persisted.
-                                        const isFromMe = item.fromUserId
-                                            ? item.fromUserId === user.details?.id
-                                            : !!item.fromUserName?.toLowerCase().includes('you');
-                                        return (
-                                            <TextMessage
-                                                connectionDetails={connectionDetails}
-                                                goToUser={this.goToUser}
-                                                userDetails={user.details}
-                                                message={item}
-                                                isLeft={!isFromMe}
-                                                isFirstOfMessage={this.isFirstOfMessage(dms, index)}
-                                                theme={this.theme}
-                                                themeMessage={this.themeMessage}
-                                                translate={this.translate}
-                                            />
-                                        );
-                                    }}
-                                    ref={(component) => (this.flatListRef = component)}
-                                    style={this.theme.styles.stretch}
-                                    // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
-                                    onEndReached={this.tryLoadMore}
-                                    onEndReachedThreshold={0.5}
-                                    initialNumToRender={15}
-                                    maxToRenderPerBatch={10}
-                                    windowSize={11}
-                                    ListEmptyComponent={<View>
+                                dms.length === 0 ?
+                                    <View style={[spacingStyles.flexOne, { justifyContent: 'center', alignItems: 'center' }]}>
                                         <ListEmpty theme={this.theme} text={this.translate(
                                             'pages.directMessage.noMessagesFound',
                                             {
                                                 userName: connectionDetails.userName,
                                             }
                                         )} />
-                                    </View>}
-                                />
+                                    </View> :
+                                    <View style={spacingStyles.flexOne}>
+                                        <FlatList<any>
+                                            data={dms}
+                                            inverted
+                                            keyExtractor={(item) => String(item.id || item.key)}
+                                            renderItem={({ item, index }) => {
+                                                // Prefer fromUserId when available (authoritative); fall back
+                                                // to the 'you' name convention for messages cached before
+                                                // fromUserId started being persisted.
+                                                const isFromMe = item.fromUserId
+                                                    ? item.fromUserId === user.details?.id
+                                                    : !!item.fromUserName?.toLowerCase().includes('you');
+                                                return (
+                                                    <TextMessage
+                                                        connectionDetails={connectionDetails}
+                                                        goToUser={this.goToUser}
+                                                        userDetails={user.details}
+                                                        message={item}
+                                                        isLeft={!isFromMe}
+                                                        isFirstOfMessage={this.isFirstOfMessage(dms, index)}
+                                                        theme={this.theme}
+                                                        themeMessage={this.themeMessage}
+                                                        translate={this.translate}
+                                                    />
+                                                );
+                                            }}
+                                            onEndReached={this.tryLoadMore}
+                                            onEndReachedThreshold={0.5}
+                                            /*
+                                             * Was a FlashList sized from `estimatedItemSize={60}`.
+                                             * Chat bubbles are the most variable-height rows in the
+                                             * app — a one-word reply and a ten-line paragraph are
+                                             * the same row type — so the recycler positioned cells
+                                             * from that single estimate and corrected them once the
+                                             * real heights arrived, which reads as bubbles landing
+                                             * in the wrong place or a blank gap mid-thread. Same
+                                             * failure as the Connect lists; FlashList v1 offers no
+                                             * per-row size hint, so this is a plain FlatList.
+                                             *
+                                             * `removeClippedSubviews` stays unset (see
+                                             * routes/Areas/AreaCarousel.tsx), and it would be a
+                                             * particularly bad fit here: `inverted` lists are where
+                                             * its missing-content bug is most often reported.
+                                             */
+                                            initialNumToRender={LIST_INITIAL_NUM_TO_RENDER}
+                                            maxToRenderPerBatch={LIST_MAX_TO_RENDER_PER_BATCH}
+                                            windowSize={LIST_WINDOW_SIZE}
+                                        />
+                                    </View>
                         }
                         <View style={this.themeMessage.styles.sendInputsContainer}>
                             <RoundInput

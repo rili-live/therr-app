@@ -11,6 +11,7 @@ import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import SharePromptModal from '../../components/Modals/SharePromptModal';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../utilities/translator';
+import { triggerRewardCelebration } from '../../utilities/rewardFeedback';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
@@ -68,6 +69,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
     private themeMenu = buildMenuStyles();
     private themeAchievements = buildAchievementStyles();
     private interactionHandle: { cancel: () => void } | null = null;
+    private cancelCelebration: (() => void) | null = null;
 
     constructor(props) {
         super(props);
@@ -110,6 +112,13 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
         // push and makes card taps feel unresponsive.
         this.interactionHandle = InteractionManager.runAfterInteractions(() => {
             this.setState({ hasTransitioned: true });
+
+            // Fire the fanfare + haptic ramp only once the push transition is
+            // done, so the audio lands with the confetti rather than under the
+            // still-animating screen.
+            if (isClaiming) {
+                this.cancelCelebration = triggerRewardCelebration();
+            }
         });
 
         this.handleRefresh();
@@ -118,6 +127,12 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
     componentWillUnmount() {
         if (this.interactionHandle) {
             this.interactionHandle.cancel();
+        }
+
+        // Stop any queued haptic taps if the user navigates away mid-celebration.
+        if (this.cancelCelebration) {
+            this.cancelCelebration();
+            this.cancelCelebration = null;
         }
     }
 

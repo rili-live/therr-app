@@ -44,7 +44,7 @@ const renderChatIcon = (item, style = {}) => {
     return (<MaterialIcon key={item.tag} {...props} />);
 };
 
-export default ({
+const GroupTile = ({
     onChatTilePress,
     theme,
     themeButtons,
@@ -141,3 +141,16 @@ export default ({
         </ListItem>
     );
 };
+
+// Custom equality: parent passes inline arrow handlers per render. Compare the
+// fields that drive the visible row instead of churning function refs.
+export default React.memo(GroupTile, (prev, next) => (
+    prev.group?.id === next.group?.id
+    && prev.group?.title === next.group?.title
+    && prev.group?.iconId === next.group?.iconId
+    && prev.group?.iconColor === next.group?.iconColor
+    && prev.user?.myUserGroups?.[prev.group?.id]?.status === next.user?.myUserGroups?.[next.group?.id]?.status
+    && prev.theme === next.theme
+    && prev.themeButtons === next.themeButtons
+    && prev.themeChatTile === next.themeChatTile
+));

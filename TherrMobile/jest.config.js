@@ -1,5 +1,5 @@
 module.exports = {
-    preset: 'react-native',
+    preset: '@react-native/jest-preset',
     globals: {
         window: {}, // This required since we import Therr React library that is compiled for web app (with window)
     },
@@ -17,6 +17,16 @@ module.exports = {
         '@react-native-firebase/messaging': '<rootDir>/__mocks__/firebase/messaging.ts',
         '@invertase/react-native-apple-authentication': '<rootDir>/__mocks__/@invertase/react-native-apple-authentication.js',
         'react-native-device-info': '<rootDir>/__mocks__/react-native-device-info.ts',
+        // Reaches for a JSI native module at import time, which is unavailable under Jest.
+        '^react-native-audio-api$': '<rootDir>/__mocks__/react-native-audio-api.ts',
+        // Calls TurboModuleRegistry.getEnforcing at import time, which throws under Jest.
+        '^react-native-haptic-feedback$': '<rootDir>/__mocks__/react-native-haptic-feedback.ts',
+        // Reaches for its native module at import time, which fails under Jest and takes the
+        // whole App.tsx suite with it.
+        'react-native-keyboard-controller': '<rootDir>/__mocks__/react-native-keyboard-controller.tsx',
+        // `SystemBars` schedules a setImmediate that reads Platform.OS after the Jest
+        // environment is torn down, crashing the worker for any suite that renders a screen.
+        '^react-native-edge-to-edge$': '<rootDir>/__mocks__/react-native-edge-to-edge.tsx',
         '^pretty-format$': '<rootDir>/../node_modules/pretty-format',
     },
     moduleDirectories: ['<rootDir>/node_modules', '<rootDir>../node_modules'],
@@ -29,7 +39,8 @@ module.exports = {
     //     '^.+\\.jsx?$': 'babel-jest',
     // },
     transformIgnorePatterns: [
-        'node_modules/(?!(jest-)?react-native(-.*)?|@react-native|@react-native-community|@react-native-picker|react-redux|validator/es/lib/*)',
+        // eslint-disable-next-line max-len
+        'node_modules/(?!(jest-)?react-native(-.*)?|@react-native|@react-native-community|@react-native-picker|@react-navigation|react-redux|validator/es/lib/*)',
     ],
     testRegex: '/__tests__/.*\\.(tsx?|jsx?)$',
 };

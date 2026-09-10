@@ -1,0 +1,57 @@
+# cert-manager-values.yaml
+#
+# cert-manager is installed via Helm (release "cert-manager", namespace
+# "cert-manager"). It was installed WITHOUT a values file, so all three of its
+# pods ran as BestEffort -- no CPU or memory requests at all.
+#
+# On main-pool (a single e2-small, 940m CPU / ~1.33Gi allocatable, of which
+# kube-system DaemonSets alone request 648m) BestEffort pods are scheduled last
+# and starved first. The result was a chronic restart loop:
+#
+#   cert-manager-webhook      29 restarts
+#   cert-manager-cainjector    1 restart
+#
+# all with "context deadline exceeded" probe failures -- i.e. kubelet's HTTP
+# probe timing out under CPU contention, not the process being unhealthy.
+# A flapping webhook is a TLS-renewal risk, so these pods need a guaranteed
+# scheduler share.
+#
+# Requests below are sized to ~1.5x observed steady-state usage:
+#
+#   pod          observed        request
+#   cainjector   3m  / 43Mi      10m / 64Mi
+#   controller   2m  / 27Mi      10m / 40Mi
+#   webhook      1m  / 10Mi      10m / 24Mi
+#
+# No limits are set deliberately: CPU limits would reintroduce throttling on a
+# node this tight, and these are latency-sensitive control-plane components.
+#
+# NOTE: the installed release reports chart "cert-manager-v1.3.1" but app
+# version "v1.9.0", and sits at Helm revision 1 (never upgraded). Pin
+# --version explicitly when running the upgrade so it does not silently bump
+# cert-manager itself.
+#
+# Usage:
+#   helm repo add jetstack https://charts.jetstack.io && helm repo update
+#   helm upgrade cert-manager jetstack/cert-manager \
+#     --namespace cert-manager \
+#     --version <the currently installed chart version> \
+#     --reuse-values \
+#     -f k8s/prod/values/cert-manager-values.yaml
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 40Mi
+
+cainjector:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+
+webhook:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 24Mi

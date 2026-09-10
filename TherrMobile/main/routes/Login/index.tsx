@@ -12,15 +12,20 @@ import { buildStyles as buildAuthFormStyles } from '../../styles/forms/authentic
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import mixins from '../../styles/mixins';
-import LoginForm from './LoginForm';
+import LoginForm, { LoginMode } from './LoginForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
+import setPreLoginLocale from '../../redux/actions/setPreLoginLocale';
 import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import LanguageSelector from '../../components/LanguageSelector';
 import { getUserImageUri } from '../../utilities/content';
 
 interface ILoginDispatchProps {
     login: Function;
+    loginWithPhone: Function;
+    selectPhoneLoginAccount: Function;
+    setPreLoginLocale: Function;
 }
 
 interface IStoreProps extends ILoginDispatchProps {
@@ -35,6 +40,8 @@ export interface ILoginProps extends IStoreProps {
 
 interface ILoginState {
     isAuthenticating: boolean;
+    /** Mirrors `LoginForm`'s step so the screen can hide chrome mid-sign-in. */
+    loginMode: LoginMode;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -45,6 +52,9 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             login: UsersActions.login,
+            loginWithPhone: UsersActions.loginWithPhone,
+            selectPhoneLoginAccount: UsersActions.selectPhoneLoginAccount,
+            setPreLoginLocale,
         },
         dispatch
     );
@@ -61,13 +71,20 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     constructor(props) {
         super(props);
 
+        this.state = {
+            isAuthenticating: false,
+            loginMode: 'password',
+        };
+
         this.theme = buildStyles(props.user?.settings?.mobileThemeName);
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
         this.themeAuthForm = buildAuthFormStyles(props.user.settings?.mobileThemeName);
         this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
+        // Read from `this.props` (not the captured constructor `props`) so the translation
+        // re-renders live when the pre-login locale changes via the LanguageSelector.
         this.translate = (key: string, params: any): string =>
-            translator(props.user.settings?.locale || 'en-us', key, params);
+            translator(this.props.user.settings?.locale || 'en-us', key, params);
         this.cachedUserDetails = props.user?.details;
     }
 
@@ -83,8 +100,26 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         }
     }
 
+    componentDidUpdate(prevProps: ILoginProps) {
+        const { navigation, route, user } = this.props;
+        if (prevProps.user.settings?.locale !== user.settings?.locale && !route.params?.isVerifySuccess) {
+            navigation.setOptions({
+                title: this.translate('pages.login.headerTitle'),
+            });
+        }
+    }
+
+    onChangeLocale = (locale: string) => {
+        this.props.setPreLoginLocale(locale);
+    };
+
+    onLoginModeChange = (loginMode: LoginMode) => {
+        this.setState({ loginMode });
+    };
+
     render() {
         const { route, user } = this.props;
+        const { loginMode } = this.state;
         const { userMessage } = route?.params || '';
         const pageTitle = this.translate('pages.login.pageTitle');
         const pageSubtitle = this.translate('pages.login.pageSubtitle');
@@ -121,12 +156,36 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                             }
                             <LoginForm
                                 login={this.props.login}
+                                loginWithPhone={this.props.loginWithPhone}
+                                selectPhoneLoginAccount={this.props.selectPhoneLoginAccount}
                                 navigation={this.props.navigation}
                                 themeAlerts={this.themeAlerts}
                                 themeAuthForm={this.themeAuthForm}
                                 themeForms={this.themeForms}
+                                prefillIdentifier={route?.params?.prefillIdentifier}
+                                onModeChange={this.onLoginModeChange}
                                 userMessage={userMessage}
                                 userSettings={user?.settings || {}} />
+                            {
+                                // Only offered on the identifier step. Changing the locale remounts
+                                // the whole navigator (Layout keys its NavigationContainer on locale
+                                // so routes re-translate), which throws away the form's in-memory
+                                // state — the texted code, the number it was sent to, and the
+                                // verification token behind the account picker. Mid-flow that reads
+                                // as being kicked back to the start of sign-in, so the picker is
+                                // taken down until the user is back on a step with nothing to lose.
+                                loginMode === 'password'
+                                    ? (
+                                        <LanguageSelector
+                                            locale={user?.settings?.locale || 'en-us'}
+                                            onChangeLocale={this.onChangeLocale}
+                                            translate={this.translate}
+                                            theme={this.theme}
+                                            containerStyle={this.theme.styles.sectionContainerWide}
+                                        />
+                                    )
+                                    : null
+                            }
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>

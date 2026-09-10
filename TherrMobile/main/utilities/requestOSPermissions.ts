@@ -8,6 +8,10 @@ import {
     PERMISSIONS,
 } from 'react-native-permissions';
 import Contacts from 'react-native-contacts';
+import { FeatureFlags } from 'therr-js-utilities/constants';
+import getConfig from './getConfig';
+
+const isLocationServicesEnabled = () => getConfig()?.featureFlags?.[FeatureFlags.ENABLE_LOCATION_SERVICES] !== false;
 
 const makePermissionsUniform = (permissions) => {
     return permissions;
@@ -81,6 +85,19 @@ const requestOSContactsPermissions = (storePermissionsResponse) => {
 };
 
 const requestOSMapPermissions = (storePermissionsResponse, useFineAccurracy = true) => {
+    if (!isLocationServicesEnabled()) {
+        const denied = Platform.OS === 'ios'
+            ? {
+                [PERMISSIONS.IOS.LOCATION_ALWAYS]: 'denied',
+                [PERMISSIONS.IOS.LOCATION_WHEN_IN_USE]: 'denied',
+            }
+            : {
+                [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]: 'denied',
+                [PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION]: 'denied',
+            };
+        storePermissionsResponse(denied);
+        return Promise.resolve(denied);
+    }
     switch (Platform.OS) {
         case 'ios':
             return requestIOSPermissions([

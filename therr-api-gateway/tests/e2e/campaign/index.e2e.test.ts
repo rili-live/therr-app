@@ -56,7 +56,7 @@ describe('Campaign E2E - Infrastructure Smoke', () => {
 
     it('has PostGIS available for geospatial queries', async () => {
         if (skipTests) return;
-        const rows = await queryMapsDb("SELECT ST_AsText(ST_SetSRID(ST_MakePoint(-86.1581, 39.7684), 4326)) as pt");
+        const rows = await queryMapsDb('SELECT ST_AsText(ST_SetSRID(ST_MakePoint(-86.1581, 39.7684), 4326)) as pt');
         expect(rows[0].pt).to.be.a('string');
     });
 
@@ -68,7 +68,7 @@ describe('Campaign E2E - Infrastructure Smoke', () => {
         expect(coupons).to.be.an('array');
     });
 
-    it('can read from main.userAchievements', async () => {
+    it('can read from the userAchievements table', async () => {
         if (skipTests) return;
         const rows = await queryUsersDb('SELECT 1 as ok FROM "main"."userAchievements" LIMIT 1');
         expect(rows).to.be.an('array');

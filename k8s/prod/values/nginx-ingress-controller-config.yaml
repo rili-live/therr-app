@@ -6,6 +6,17 @@ controller:
     externalTrafficPolicy: "Local"
   nodeSelector:
     cloud.google.com/gke-nodepool: main-pool
+  # main-pool is a single e2-small (940m CPU / ~1.33Gi allocatable) and
+  # kube-system DaemonSets alone request 648m of it. The chart default request
+  # of 100m CPU was 40x observed steady-state usage (~2m) and left the node at
+  # 95% of its CPU request budget, which starved co-located pods and produced
+  # "context deadline exceeded" liveness/readiness failures cluster-wide.
+  # 25m still gives ~12x headroom over observed usage.
+  # Keep memory at the chart default -- nginx spikes on connection churn.
+  resources:
+    requests:
+      cpu: 25m
+      memory: 90Mi
 
 # helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 # helm install nginx-ingress ingress-nginx/ingress-nginx --namespace ingress-nginx -f nginx-ingress-controller-config.yaml

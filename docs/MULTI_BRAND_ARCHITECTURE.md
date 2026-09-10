@@ -72,6 +72,14 @@ export enum BrandVariations {
 | Header Parser | `therr-js-utilities/src/http/parse-headers.ts` | Extracts brand from headers |
 | Inter-service | `therr-js-utilities/src/internal-rest-request.ts` | Preserves header across services |
 
+> **Brand awareness has to be re-implemented outside this repo.** `therr-messaging-automator`
+> reads `main.notifications` and `main.userAchievements` straight from Postgres — no header,
+> no `BrandScopedStore`, and out of reach of `therr/no-direct-brand-scoped-table`. It resolves
+> a primary brand per user in its own store layer. Promoting a table into
+> `BRAND_SCOPED_TABLES` here means mirroring it there in the same batch of work, or that
+> repo's reads silently span brands. See
+> [CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md) §2.
+
 ## Branch Strategy for Multi-Brand Development
 
 | Branch | Purpose | What Goes Here |
@@ -208,6 +216,23 @@ const NavigationGuard = ({ children }) => {
 };
 ```
 
+## Firebase: single project, multiple Android apps (current approach)
+
+For MVP, niche apps share the Therr Friend Firebase project and register as additional Android apps under it:
+
+- **Therr** — `applicationId = app.therrmobile`
+- **Friends with Habits** — `applicationId = com.therr.habits`
+- *(future niches add their own `applicationId`)*
+
+Registering each `applicationId` in Firebase Console adds a `client` entry to a single merged `google-services.json`. That file lives at `TherrMobile/android/app/google-services.json` and serves every brand — Gradle picks the correct client block at build time based on the `applicationId` in `build.gradle`. The Android `namespace` stays `app.therrmobile` across brands so Kotlin source paths don't change.
+
+When to split into separate Firebase projects instead:
+- A brand needs isolated Cloud Messaging quotas or Analytics streams.
+- Crashlytics dashboards must not cross brand boundaries.
+- An acquirer, partner, or legal requirement forces separation.
+
+Until one of those applies, stay on the shared-project model — it removes the need for per-brand service-account key management in `push-notifications-service` and simplifies the `switch-brand.sh` workflow.
+
 ## Push Notifications by Brand
 
 Each brand can have its own Firebase project for push notifications:
@@ -232,6 +257,154 @@ Environment variables for Firebase credentials:
 PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_THERR=<base64>
 PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_HABITS=<base64>
 ```
+
+## Firebase Project Strategy (Mobile Client)
+
+The mobile-client side of Firebase is structured differently from the
+backend push-notification service. Read this section before introducing a
+new brand or attempting to split projects.
+
+### Current state (as of 2026-05)
+
+**Single shared Firebase project (`therr-app`) for all brand variants on the
+mobile client.** Per-brand Firebase config files live in a gitignored vault
+at `_bin/firebase/<brand>/`, and `_bin/switch-brand.sh <brand>` copies the
+matching files into the active build locations every time it runs:
+
+| Source                                              | Destination                                              |
+|-----------------------------------------------------|----------------------------------------------------------|
+| `_bin/firebase/<brand>/google-services.json`        | `TherrMobile/android/app/google-services.json`           |
+| `_bin/firebase/<brand>/GoogleService-Info.plist`    | `TherrMobile/ios/TherrMobile/GoogleService-Info.plist`   |
+
+Each vault file is the unmodified single-app export from Firebase Console —
+no manual merging. After copying, `switch-brand.sh` validates that the
+Android JSON's `package_name` matches the brand's expected `applicationId`
+and prints the registered SHA-1, failing loudly on mismatch. It also
+clears `TherrMobile/android/app/build/generated/res/google-services` so
+Gradle re-derives `default_web_client_id` strings.xml from the new JSON
+on the next build.
+
+The active build files are gitignored and treated as build artifacts; do
+not edit them by hand. See `_bin/firebase/README.md` for the vault
+convention and population procedure.
+
+The Android `namespace` stays `app.therrmobile` across all brands so Kotlin
+source paths don't change. Only the `applicationId` (defined in
+`TherrMobile/android/app/build.gradle`) varies per brand.
+
+**Asymmetry to be aware of:**
+- Mobile client: ONE Firebase project, all brands share it
+- Backend `push-notifications-service`: supports per-brand service-account
+  credentials via env vars (see "Push Notifications by Brand" above)
+
+If a per-brand `PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_<BRAND>` env
+var is configured to point at a *different* Firebase project from the one
+the mobile client registered against, FCM token routing will silently
+break — tokens are scoped to the project they were issued by, and a server
+authenticating as a different project cannot send to them.
+
+**Today both sides resolve to `therr-app`,** so this is consistent. If you
+introduce a brand-specific Firebase service account on the backend, you
+must also split the mobile client to register against the matching project,
+or pushes for that brand will fail to deliver.
+
+### Implications for analytics, crash reporting, and FCM
+
+Because all brands share the `therr-app` Firebase project on the mobile
+client:
+- **Crashlytics** issues from all brands appear in one dashboard, filtered
+  by `applicationId`. To isolate per-brand issue counts you must filter by
+  app in the Firebase Console.
+- **Analytics** events from all brands flow into one property. Build a
+  custom dimension on `app_id` (or use the auto-populated app filter) for
+  per-brand metrics. There is no per-brand Audiences isolation.
+- **FCM tokens** are issued by `therr-app`. The push service authenticates
+  as `therr-app` (default `PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64`)
+  and sends to all brands' tokens through one credential.
+
+This is **fine for MVP** but becomes painful once any brand needs:
+- Independent ownership / access control (a partner team running TEEM
+  shouldn't see Therr's user crashes)
+- Per-brand budget tracking (Firebase billing rolls up to project, not app)
+- Per-brand A/B test surface (Firebase Remote Config / In-App Messaging
+  audiences are project-scoped)
+
+### Risks of the current single-project model
+
+1. **Cross-brand contamination.** A noisy crash in Therr clutters HABITS'
+   Crashlytics dashboard and vice versa. Alert rules on issue count get
+   noisier as brand count grows.
+
+2. **No template-in-repo by default.** A new developer cloning the repo
+   cannot build until they obtain the per-brand vault files out-of-band.
+   Mitigated by `_bin/firebase/README.md` (the populating procedure) and
+   per-brand sanitized templates committed alongside the vault
+   (`_bin/firebase/<brand>/google-services.example.json`).
+   `TherrMobile/android/app/google-services.example.json` is retained as a
+   pointer file listing the per-brand template paths for discoverability
+   in the conventional location.
+
+3. **iOS does not support a merged-file pattern.** Each `BUNDLE_ID`
+   requires its own `GoogleService-Info.plist`. Today only the Therr
+   variant is configured for iOS. When HABITS iOS ships, populate
+   `_bin/firebase/habits/GoogleService-Info.plist` and `switch-brand.sh`
+   will copy it on its own.
+
+### Migration path: when to split into per-brand Firebase projects
+
+> **Not receiving push notifications is not a trigger.** A shared project
+> delivers to every app registered in it, and splitting makes the existing
+> service account a stranger to the brand's tokens — every send then fails with
+> `messaging/mismatched-credential`, and the invalid-token cleanup path deletes
+> the registrations on its way out. Diagnose first with
+> [`PUSH_NOTIFICATIONS_DEBUGGING.md`](./PUSH_NOTIFICATIONS_DEBUGGING.md); the
+> cause is usually `apns-topic`, a wrong-brand device-token row, or a missing
+> APNS auth key — none of which a new project fixes.
+
+Triggers that warrant splitting:
+- A brand variant reaches its first 1k+ MAU and analytics signal noise
+  becomes a real obstacle to product decisions
+- A brand variant gets its first paying customer (premium tier) — payments
+  + per-brand revenue analytics become important
+- A non-founder team takes ownership of a brand variant and needs IAM
+  isolation
+- An incident requires rotating a Firebase API key for one brand without
+  affecting others
+
+Migration playbook (when a trigger fires):
+
+1. Create a new Firebase project for the brand (e.g., `therr-habits`)
+2. Register the brand's Android `applicationId` and iOS `BUNDLE_ID` in the
+   new project; collect SHA-1 fingerprints from existing keystores and
+   register them
+3. Replace the brand's vault entry at
+   `_bin/firebase/<brand>/google-services.json` with the new project's
+   exported block. (Optionally relocate the vault into Gradle's
+   per-flavor source-set path `TherrMobile/android/app/src/<brand>/google-services.json`
+   if migrating to product flavors at the same time.)
+4. Either keep the existing `_bin/switch-brand.sh` copy step (it works
+   unchanged for split projects, since the vault file is now from the
+   brand's own project) OR convert `TherrMobile/android/app/build.gradle`
+   to use Gradle product flavors so per-flavor `google-services.json` is
+   selected automatically without a copy step.
+5. Add a new `PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64_<BRAND>` env var
+   to the backend push service, populated with a service-account export
+   from the new project
+6. **Plan for FCM token re-registration.** Existing users of that brand
+   have tokens scoped to `therr-app` and will not receive pushes from the
+   new project until the next app launch refreshes their token against
+   the new project. Communicate this in a release-notes line, or stagger
+   the rollout (mobile release first; backend env-var swap a week later
+   once token refresh is statistically complete).
+7. Update `docs/SECRETS_AND_LOCAL_BOOTSTRAP.md` with the new project's
+   recovery procedure.
+8. Update `_bin/firebase/<brand>/google-services.example.json` to reflect
+   the brand's new project assignment (and the pointer at
+   `TherrMobile/android/app/google-services.example.json` if the brand
+   list changes).
+
+This work is meaningful (~1 week) and risky (FCM token transition window).
+Do not undertake it speculatively — wait for an actual trigger.
 
 ## WebSocket Brand Context
 

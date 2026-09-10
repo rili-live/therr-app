@@ -73,6 +73,7 @@ const searchActiveMoments = async (req: any, res: any) => {
                     lastContentCreatedAt,
                     authorId,
                     isDraft: false,
+                    shouldHideExpired: true,
                 },
             })
                 .then(async (response) => {
@@ -172,6 +173,7 @@ const searchActiveMomentsByIds = async (req: any, res: any) => {
                     withMedia,
                     withUser,
                     lastContentCreatedAt: new Date(),
+                    shouldHideExpired: true,
                 },
             });
         })

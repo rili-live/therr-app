@@ -369,6 +369,19 @@ const Content = {
             return response?.data;
         })
         .catch((err) => { console.log(err); throw err; }),
+    // Public shareable list fetch — auth-optional. Populates `activeUserList`
+    // via the same reducer case so the read-only web page and SSR can reuse
+    // the existing rendering path.
+    fetchPublicUserList: (ownerUserId: string, listSlug: string, limit = 100, offset = 0) => (dispatch: any) => ReactionsService
+        .fetchPublicUserList(ownerUserId, listSlug, limit, offset)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.FETCH_USER_LIST_DETAILS,
+                data: response?.data,
+            });
+            return response?.data;
+        })
+        .catch((err) => { console.log(err); throw err; }),
     createUserList: (params: {
         name: string;
         description?: string;

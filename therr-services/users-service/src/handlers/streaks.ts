@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+import { ErrorCodes } from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
@@ -13,7 +14,7 @@ import {
 
 // READ
 const getStreak: RequestHandler = async (req: any, res: any) => {
-    const { userId } = parseHeaders(req.headers);
+    const { locale, userId } = parseHeaders(req.headers);
     const { id } = req.params;
 
     return Store.streaks.getById(id)
@@ -21,8 +22,9 @@ const getStreak: RequestHandler = async (req: any, res: any) => {
             if (!streak) {
                 return handleHttpError({
                     res,
-                    message: `Streak not found with id ${id}`,
+                    message: translate(locale, 'errorMessages.streaks.notFound'),
                     statusCode: 404,
+                    errorCode: ErrorCodes.NOT_FOUND,
                 });
             }
 
@@ -30,8 +32,9 @@ const getStreak: RequestHandler = async (req: any, res: any) => {
             if (streak.userId !== userId) {
                 return handleHttpError({
                     res,
-                    message: 'Not authorized to view this streak',
+                    message: translate(locale, 'errorMessages.streaks.notAuthorizedToView'),
                     statusCode: 403,
+                    errorCode: ErrorCodes.NOT_PERMITTED,
                 });
             }
 
@@ -125,7 +128,7 @@ const getStreakByHabit: RequestHandler = async (req: any, res: any) => {
 };
 
 const getPactStreaks: RequestHandler = async (req: any, res: any) => {
-    const { userId } = parseHeaders(req.headers);
+    const { locale, userId } = parseHeaders(req.headers);
     const { pactId } = req.params;
 
     // Verify user is participant in pact
@@ -133,16 +136,18 @@ const getPactStreaks: RequestHandler = async (req: any, res: any) => {
     if (!pact) {
         return handleHttpError({
             res,
-            message: 'Pact not found',
+            message: translate(locale, 'errorMessages.pacts.notFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
     if (pact.creatorUserId !== userId && pact.partnerUserId !== userId) {
         return handleHttpError({
             res,
-            message: 'You are not a participant in this pact',
+            message: translate(locale, 'errorMessages.pacts.notParticipant'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 
@@ -162,7 +167,7 @@ const getPactStreaks: RequestHandler = async (req: any, res: any) => {
 };
 
 const getStreakHistory: RequestHandler = async (req: any, res: any) => {
-    const { userId } = parseHeaders(req.headers);
+    const { locale, userId } = parseHeaders(req.headers);
     const { id } = req.params;
     const { limit } = req.query;
 
@@ -171,16 +176,18 @@ const getStreakHistory: RequestHandler = async (req: any, res: any) => {
     if (!streak) {
         return handleHttpError({
             res,
-            message: `Streak not found with id ${id}`,
+            message: translate(locale, 'errorMessages.streaks.notFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
     if (streak.userId !== userId) {
         return handleHttpError({
             res,
-            message: 'Not authorized to view this streak history',
+            message: translate(locale, 'errorMessages.streaks.notAuthorizedToViewHistory'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 
@@ -223,16 +230,18 @@ const useGraceDay: RequestHandler = async (req: any, res: any) => {
     if (!streak) {
         return handleHttpError({
             res,
-            message: `Streak not found with id ${id}`,
+            message: translate(locale, 'errorMessages.streaks.notFound'),
             statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
         });
     }
 
     if (streak.userId !== userId) {
         return handleHttpError({
             res,
-            message: 'Not authorized to modify this streak',
+            message: translate(locale, 'errorMessages.streaks.notAuthorizedToModify'),
             statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
         });
     }
 

@@ -9,8 +9,17 @@ module.exports = {
         node: true,
         mocha: true,
     },
+    // The gateway builds from base.js rather than createServiceConfig (its path depths
+    // differ), which had left it as the one backend package exempt from the brand-scoped
+    // table rule. It proxies rather than querying today, so this is defence in depth
+    // against the first direct query someone adds here.
+    plugins: [
+        ...(baseConfig.plugins || []),
+        'therr',
+    ],
     rules: {
         ...baseConfig.rules,
+        'therr/no-direct-brand-scoped-table': 'error',
         'import/extensions': [
             'error',
             'always',

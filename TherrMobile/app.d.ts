@@ -11,7 +11,6 @@ declare module '*.svg' {
     export default content;
 }
 
-// TODO
 /// <reference path="../node_modules/@types/react-redux" />
 declare module 'shared/react-redux';
 

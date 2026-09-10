@@ -18,6 +18,7 @@ export interface IUpdateStreakParams {
     longestStreak?: number;
     longestStreakStartDate?: string;
     longestStreakEndDate?: string;
+    gracePeriodDays?: number;
     graceDaysUsed?: number;
     isActive?: boolean;
 }
@@ -86,6 +87,34 @@ export default class StreaksStore {
         return this.get({ pactId }, 'currentStreak');
     }
 
+    /**
+     * Streak rows for many (user, habit goal) pairs in one round trip. Pact
+     * progress is read per member against the pact's habit goal, so a page of
+     * pacts would otherwise fan out a query per member (N+1).
+     *
+     * Keyed on user+goal rather than `pactId` deliberately: `getOrCreate`
+     * reuses an existing user+goal streak when someone who was already
+     * building the habit solo joins a pact, leaving that row's `pactId` null.
+     */
+    getByUserHabitPairs(pairs: { userId: string; habitGoalId: string }[]) {
+        if (!pairs.length) {
+            return Promise.resolve([]);
+        }
+
+        const tuples = pairs.map(() => '(?::uuid, ?::uuid)').join(', ');
+        const bindings = pairs.reduce(
+            (acc: string[], pair) => acc.concat([pair.userId, pair.habitGoalId]),
+            [],
+        );
+
+        const queryString = knexBuilder
+            .from(STREAKS_TABLE_NAME)
+            .whereRaw(`("userId", "habitGoalId") IN (${tuples})`, bindings)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
     getTopStreaks(limit = 10) {
         const queryString = knexBuilder
             .from(STREAKS_TABLE_NAME)
@@ -104,7 +133,10 @@ export default class StreaksStore {
                 ...params,
                 currentStreak: 0,
                 longestStreak: 0,
-                gracePeriodDays: params.gracePeriodDays || 0,
+                // Every new streak starts with 1 streak freeze (grace day);
+                // more are earned at 7+ day milestones, capped at
+                // MAX_GRACE_PERIOD_DAYS (see streakHelpers).
+                gracePeriodDays: params.gracePeriodDays ?? 1,
                 graceDaysUsed: 0,
                 isActive: true,
             })

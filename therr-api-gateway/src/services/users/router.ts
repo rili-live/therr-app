@@ -1,5 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import { param } from 'express-validator';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import * as globalConfig from '../../../../global-config';
@@ -10,6 +11,7 @@ import {
     invalidateApiKeyCache,
     revokeAllUserRefreshTokens,
     revokeRefreshToken,
+    revokeUserBrandRefreshTokens,
     storeRefreshToken,
 } from '../../store/redisClient';
 import { validate } from '../../validation';
@@ -22,11 +24,17 @@ import {
     createRewardsRequestValidation,
 } from './validation/rewards';
 import {
+    blockUserValidation,
     changePasswordValidation,
+    createNotificationValidation,
     createUserValidation,
+    deleteUserValidation,
     forgotPasswordValidation,
+    reportUserValidation,
     resendVerificationValidation,
     searchUsersValidation,
+    sendUserPushDiagnosticsTestValidation,
+    updateUserValidation,
     verifyUserAccountValidation,
 } from './validation/users';
 import {
@@ -52,8 +60,11 @@ import {
     multiInviteLimiter,
     subscribeAttemptLimiter,
     unsubscribeAttemptLimiter,
+    emailPrecheckLimiter,
+    handoffMintLimiter,
 } from './limitation/auth';
 import { createApiKeyValidation, revokeApiKeyValidation } from './validation/apiKeys';
+import { createCheckoutSessionValidation } from './validation/payments';
 import { createUpdateSocialSyncsValidation } from './validation/socialSyncs';
 import {
     createThoughtValidation,
@@ -106,9 +117,20 @@ usersServiceRouter.get('/users/achievements', handleServiceRequest({
     method: 'get',
 }));
 
+usersServiceRouter.get('/users/achievements/:userId/public', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
 usersServiceRouter.post('/users/achievements/:id/claim', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
+}));
+
+// Leaderboards
+usersServiceRouter.get('/users/leaderboards', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
 }));
 
 // Auth
@@ -120,11 +142,11 @@ usersServiceRouter.post('/auth', authenticateOptional, loginAttemptLimiter, auth
     // Store refresh token JTI on login for rotation tracking (fail-open)
     try {
         if (responseData?.refreshToken) {
-            const decoded = jwt.decode(responseData.refreshToken) as { jti?: string; id?: string; exp?: number } | null;
+            const decoded = jwt.decode(responseData.refreshToken) as { jti?: string; id?: string; exp?: number; brand?: string } | null;
             if (decoded?.jti && decoded?.id && decoded?.exp) {
                 const ttl = decoded.exp - Math.floor(Date.now() / 1000);
                 if (ttl > 0) {
-                    storeRefreshToken(decoded.id, decoded.jti, ttl);
+                    storeRefreshToken(decoded.id, decoded.jti, ttl, decoded.brand);
                 }
             }
         }
@@ -138,15 +160,23 @@ usersServiceRouter.post('/auth/logout', logoutUserValidation, validate, async (r
     try {
         const token = req.headers.authorization?.split(' ')[1];
         if (token) {
-            const decoded = jwt.decode(token) as { jti?: string; exp?: number; id?: string } | null;
+            const decoded = jwt.decode(token) as { jti?: string; exp?: number; id?: string; brand?: string } | null;
             if (decoded?.jti && decoded?.exp) {
                 const remainingTtl = decoded.exp - Math.floor(Date.now() / 1000);
                 if (remainingTtl > 0) {
                     await blacklistToken(decoded.jti, remainingTtl);
                 }
-                // Also revoke all refresh tokens for this user
+                // Refresh-token revocation scope:
+                //  - default: per-brand. Logging out of one app does NOT log a user out of sister apps.
+                //  - opt-in `scope=all`: revoke every refresh token for this user across all brands.
+                //  - legacy tokens (no `brand` claim): fall back to the legacy "all" behavior so existing
+                //    sessions continue to receive the safer cascade until they refresh into branded tokens.
                 if (decoded.id) {
-                    await revokeAllUserRefreshTokens(decoded.id);
+                    if (req.body?.scope === 'all' || !decoded.brand) {
+                        await revokeAllUserRefreshTokens(decoded.id);
+                    } else {
+                        await revokeUserBrandRefreshTokens(decoded.id, decoded.brand);
+                    }
                 }
             }
         }
@@ -176,20 +206,21 @@ usersServiceRouter.post('/auth/token/refresh', refreshTokenLimiter, handleServic
 }, (responseData, reqBody) => {
     // Server-side refresh token rotation tracking (fail-open)
     try {
-        // Revoke the old refresh token
+        // Revoke the old refresh token. If it has a brand+id (new shape), target the new key
+        // directly; otherwise fall back to the legacy `refresh-token:<jti>` key.
         if (reqBody?.refreshToken) {
-            const oldDecoded = jwt.decode(reqBody.refreshToken) as { jti?: string } | null;
+            const oldDecoded = jwt.decode(reqBody.refreshToken) as { jti?: string; id?: string; brand?: string } | null;
             if (oldDecoded?.jti) {
-                revokeRefreshToken(oldDecoded.jti);
+                revokeRefreshToken(oldDecoded.jti, { brand: oldDecoded.brand, userId: oldDecoded.id });
             }
         }
         // Store the new refresh token for reuse detection
         if (responseData?.refreshToken) {
-            const newDecoded = jwt.decode(responseData.refreshToken) as { jti?: string; id?: string; exp?: number } | null;
+            const newDecoded = jwt.decode(responseData.refreshToken) as { jti?: string; id?: string; exp?: number; brand?: string } | null;
             if (newDecoded?.jti && newDecoded?.id && newDecoded?.exp) {
                 const ttl = newDecoded.exp - Math.floor(Date.now() / 1000);
                 if (ttl > 0) {
-                    storeRefreshToken(newDecoded.id, newDecoded.jti, ttl);
+                    storeRefreshToken(newDecoded.id, newDecoded.jti, ttl, newDecoded.brand);
                 }
             }
         }
@@ -202,6 +233,46 @@ usersServiceRouter.post('/auth/token/refresh', refreshTokenLimiter, handleServic
             traceArgs: { 'error.message': err instanceof Error ? err.message : String(err) },
         });
     }
+}));
+
+// Email pre-check for multi-app login UX. Always returns 200 with a generic shape to avoid
+// account enumeration. Rate-limited per IP.
+usersServiceRouter.post('/auth/email-precheck', emailPrecheckLimiter, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+// Cross-app handoff. Mint and cancel require an authenticated session (the user is signed in to
+// the source app). Redeem is unauthed because the short-lived single-use code IS the credential;
+// it is exchanged for a fresh idToken+refreshToken stamped with the target brand.
+usersServiceRouter.post('/auth/handoff/mint', handoffMintLimiter, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+usersServiceRouter.post('/auth/handoff/redeem', loginAttemptLimiter, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}, (responseData) => {
+    // Successful handoff = a fresh login. Track the new refresh token the same way /auth does.
+    try {
+        if (responseData?.refreshToken) {
+            const decoded = jwt.decode(responseData.refreshToken) as { jti?: string; id?: string; exp?: number; brand?: string } | null;
+            if (decoded?.jti && decoded?.id && decoded?.exp) {
+                const ttl = decoded.exp - Math.floor(Date.now() / 1000);
+                if (ttl > 0) {
+                    storeRefreshToken(decoded.id, decoded.jti, ttl, decoded.brand);
+                }
+            }
+        }
+    } catch (err) {
+        // Non-critical
+    }
+}));
+
+usersServiceRouter.post('/auth/handoff/cancel', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
 }));
 
 // Rewards
@@ -238,7 +309,19 @@ usersServiceRouter.post('/users/interests/me', validate, handleServiceRequest({
 }));
 
 // Payments
-usersServiceRouter.post('/payments/checkout/sessions/:id', validate, handleServiceRequest({
+// Both checkout routes use authenticateOptional and are exempted from `authenticate` in
+// config/unauthenticatedPaths.ts. Buy-then-register is a supported path, so the buyer may
+// hold no session either when starting checkout or when Stripe returns them to
+// /payment-complete. Optional (not absent) auth so a signed-in buyer still arrives with
+// x-userid, which both handlers prefer over the session's billing email.
+//
+// Registered before the `:id` route below — Express matches in registration
+// order, and `sessions` would otherwise be read as an id.
+usersServiceRouter.post('/payments/checkout/sessions', authenticateOptional, createCheckoutSessionValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.post('/payments/checkout/sessions/:id', authenticateOptional, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
@@ -257,7 +340,17 @@ usersServiceRouter.post('/users/connections', userConnectionLimiter, createUserC
     method: 'post',
 }));
 
-usersServiceRouter.post('/users/connections/multi-invite', multiInviteLimiter, inviteConnectionsValidation, handleServiceRequest({
+// Bulk invite sends email/SMS to arbitrary external contacts — the clearest
+// spam vector. With phone verification now deferred (users can reach
+// EMAIL_VERIFIED with just a username), gate bulk invites on MOBILE_VERIFIED so
+// only phone-verified accounts can fan out invitations. Single connection
+// requests (/users/connections) remain ungated as a core social action.
+usersServiceRouter.post('/users/connections/multi-invite', multiInviteLimiter, authorize(
+    {
+        type: AccessCheckType.ALL,
+        levels: [AccessLevels.MOBILE_VERIFIED],
+    },
+), inviteConnectionsValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
@@ -296,19 +389,44 @@ usersServiceRouter.post('/users', registerAttemptLimiter, createUserValidation, 
     method: 'post',
 }));
 
-usersServiceRouter.post('/users/:id', handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'post',
-}));
+// NOTE: `POST /users/:id` is deliberately registered at the BOTTOM of this file,
+// after every literal `POST /users/<name>` route. Express matches in registration
+// order, so registering it here would shadow /users/search, /users/forgot-password,
+// etc. -- the param route matches first, `id` fails isUUID(4), and `validate`
+// returns a 400 that looks like a client bug rather than a routing bug.
 
 usersServiceRouter.get('/users/me', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
 
-usersServiceRouter.get('/users/:id', authenticateOptional, handleServiceRequest({
+// Push-delivery diagnostics. Declared before '/users/:id' so the more specific
+// path is matched first, and gated to SUPER_ADMIN — it reports another user's
+// device-registration state. See docs/PUSH_NOTIFICATIONS_DEBUGGING.md.
+usersServiceRouter.get('/users/:id/push-diagnostics', authorize(
+    {
+        type: AccessCheckType.ALL,
+        levels: [
+            AccessLevels.SUPER_ADMIN,
+        ],
+    },
+), handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
+}));
+
+// Sends a real push by user id — resolves the device token server-side so
+// verifying delivery never requires reading an FCM token off a handset.
+usersServiceRouter.post('/users/:id/push-diagnostics/send-test', authorize(
+    {
+        type: AccessCheckType.ALL,
+        levels: [
+            AccessLevels.SUPER_ADMIN,
+        ],
+    },
+), sendUserPushDiagnosticsTestValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
 }));
 
 usersServiceRouter.get('/users/by-phone/:phoneNumber', handleServiceRequest({
@@ -321,32 +439,33 @@ usersServiceRouter.get('/users/by-username/:userName', authenticateOptional, han
     method: 'get',
 }));
 
-usersServiceRouter.put('/users/:id', handleServiceRequest({
+// PUBLIC: resolve a magic invite-link token to pre-fill signup data (pre-auth)
+usersServiceRouter.get('/users/invites/:token', emailPrecheckLimiter, [param('token').exists().isUUID(4)], validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
+usersServiceRouter.put('/users/:id/block', blockUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
 
-usersServiceRouter.put('/users/:id/block', handleServiceRequest({
+usersServiceRouter.put('/users/:id/report', reportUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
 
-usersServiceRouter.put('/users/:id/report', handleServiceRequest({
+// `validate` is what turns the chain above into a 400 -- without it express-validator
+// collects the errors and nothing ever reads them. Latent until 2026-08-14, because the
+// route was shadowed by `PUT /users/:id` and never ran; un-shadowing it made the missing
+// check live, so it is fixed here rather than left as the one route in this file that
+// declares a body contract it does not enforce.
+usersServiceRouter.put('/users/change-password', changePasswordValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
 
-usersServiceRouter.put('/users/:id/report', handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'put',
-}));
-
-usersServiceRouter.put('/users/change-password', changePasswordValidation, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'put',
-}));
-
-usersServiceRouter.delete('/users/:id', handleServiceRequest({
+usersServiceRouter.delete('/users/:id', deleteUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'delete',
 }));
@@ -413,7 +532,7 @@ usersServiceRouter.delete('/users-groups/:id', handleServiceRequest({
 }));
 
 // Notifications
-usersServiceRouter.post('/users/notifications', handleServiceRequest({
+usersServiceRouter.post('/users/notifications', createNotificationValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
@@ -438,10 +557,8 @@ usersServiceRouter.post('/social-sync', createUpdateSocialSyncsValidation, handl
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
-usersServiceRouter.get('/social-sync/:userId', handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'get',
-}));
+// The four oauth2 callback routes must precede '/social-sync/:userId' -- they are
+// literal siblings on the same method, and the param route matched all four first.
 usersServiceRouter.get('/social-sync/oauth2-facebook', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
@@ -455,6 +572,10 @@ usersServiceRouter.get('/social-sync/oauth2-instagram', handleServiceRequest({
     method: 'get',
 }));
 usersServiceRouter.get('/social-sync/oauth2-tiktok', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/social-sync/:userId', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
@@ -516,6 +637,277 @@ usersServiceRouter.get('/metrics/:contentUserId', validate, handleServiceRequest
 // Emails
 // TODO: Validate with SNS https://gist.github.com/NEbere/97d53274aa186bd2e69ba774f0afad39
 usersServiceRouter.post('/emails/bounced', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+// HABITS — Habit Goals
+usersServiceRouter.get('/habits/goals/templates', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/goals/public', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/goals/search', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/goals', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.get('/habits/goals', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/goals/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.put('/habits/goals/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.delete('/habits/goals/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'delete',
+}));
+
+// HABITS — Pacts
+usersServiceRouter.get('/habits/pacts/active', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/pacts/invites', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/pacts/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/pacts', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/pacts/bulk-invite', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.post('/habits/pacts/claim', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.post('/habits/pacts', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.put('/habits/pacts/:id/accept', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.put('/habits/pacts/:id/decline', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.put('/habits/pacts/:id/abandon', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.put('/habits/pacts/:id/complete', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.put('/habits/pacts/:id/renew', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+// The nudge route existed in the service, in PactsService and in the mobile
+// PactsList screen, but was never registered here — so every "nudge" a user
+// sent died at the gateway with nothing in the UI to say so.
+usersServiceRouter.put('/habits/pacts/:id/nudge', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.delete('/habits/pacts/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'delete',
+}));
+
+// HABITS — Pact Activities (sub-resource of pacts)
+usersServiceRouter.get('/habits/pacts/:pactId/activities', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/pacts/:pactId/activities', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+// HABITS — Check-ins
+usersServiceRouter.get('/habits/checkins/today', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/checkins/range', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/checkins/pact/:pactId', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+// Registered before `/habits/checkins/:id` so the two-segment path is matched
+// by its own route rather than falling through the enumerated list to a 404.
+// The gateway proxies only routes it names explicitly -- there is no wildcard --
+// so a users-service route with no entry here is unreachable in production even
+// though it exists, tests green, and shows in the diff.
+usersServiceRouter.get('/habits/checkins/:id/proofs', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/checkins/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/checkins', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+// Promote a check-in's proof photo to a public post (main.thoughts)
+usersServiceRouter.post('/habits/checkins/:id/share', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.put('/habits/checkins/:id/skip', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.put('/habits/checkins/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.delete('/habits/checkins/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'delete',
+}));
+
+// HABITS — Streaks
+usersServiceRouter.get('/habits/streaks/active', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/streaks/milestones', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/streaks/top', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/streaks/habit/:habitGoalId', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/streaks/pact/:pactId', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/streaks/:id/history', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/streaks/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/streaks', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.put('/habits/streaks/:id/grace', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+
+// HABITS — Tracked habits (including solo/personal habits)
+// `eligibility` before any `:id` sibling; assertNoShadowedRoutes fails the boot
+// if that ordering regresses.
+usersServiceRouter.get('/habits/user-habits/eligibility', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/habits/user-habits', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/user-habits', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.put('/habits/user-habits/:id/archive', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.put('/habits/user-habits/:id/restore', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.put('/habits/user-habits/:id/continue-solo', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+
+// HABITS — Lifetime founder purchase (Google Play Billing)
+usersServiceRouter.get('/habits/lifetime', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/lifetime/verify', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+// HABITS — Journal
+usersServiceRouter.get('/habits/journal', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/journal', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.put('/habits/journal/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.delete('/habits/journal/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'delete',
+}));
+
+// Catch-all `/users/:id` param routes -- MUST stay last, one per method. Any
+// literal `/users/<name>` route registered below this line is shadowed by its
+// same-method catch-all and rejected with a 400 that reads like a client bug.
+//
+// GET and PUT were moved down here on 2026-08-14; before that they sat with the
+// rest of the /users block and were silently swallowing four literal routes:
+// GET /users/notifications, GET /users/organizations, PUT /users/change-password.
+// `assertNoShadowedRoutes` (src/utilities/routeOrdering.ts) now fails the boot
+// if this ordering regresses, so this comment is enforced rather than advisory.
+usersServiceRouter.get('/users/:id', authenticateOptional, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
+usersServiceRouter.put('/users/:id', updateUserValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+
+usersServiceRouter.post('/users/:id', [param('id').exists().isUUID(4)], validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));

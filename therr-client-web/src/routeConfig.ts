@@ -129,6 +129,14 @@ export default [
         view: 'index',
     },
     {
+        route: '/api-access',
+        head: {
+            title: 'Get a Therr API Key',
+            description: 'How to get a Therr API key: create a business account, choose a plan, generate your key in the dashboard, and start building with our location APIs.',
+        },
+        view: 'index',
+    },
+    {
         route: '/child-safety',
         head: {
             title: 'Child Safety Standards',
@@ -137,12 +145,33 @@ export default [
         view: 'index',
     },
     {
+        // Magic invite-link landing. routeConfig is what registers the Express SSR
+        // handler (see the routeConfig.forEach in server-client.tsx), and there is no
+        // catch-all route — so this entry is what makes the URL embedded in every
+        // invite email/SMS resolve at all. Without it a hard load 404s. Declared
+        // ahead of '/invite/:username', which cannot match a 3-segment path.
+        route: '/invite/link/:token',
+        head: {
+            title: 'Join Therr App',
+            description: 'You have been invited to Therr. Sign up to connect with the friend who invited you and start earning coins together.',
+        },
+        view: 'invite',
+    },
+    {
         route: '/invite/:username',
         head: {
             title: 'Join Therr App',
             description: 'Join the local community and rewards app. Sign up with an invite code and you both earn coins!',
         },
         view: 'invite',
+    },
+    {
+        route: '/claim-pact/:token',
+        head: {
+            title: 'Accept Your Pact | Friends with Habits',
+            description: 'Install Friends with Habits to accept your pact invitation and build a habit with a friend.',
+        },
+        view: 'index',
     },
     {
         route: '/delete-account',
@@ -241,6 +270,16 @@ export default [
         view: 'users',
     },
     {
+        // Username-based public profile, used by user-profile QR codes.
+        // Renders the same ViewUser component as /users/:userId.
+        route: '/u/:userName',
+        head: {
+            title: 'User not Found',
+            description: 'No user was found for the given name.',
+        },
+        view: 'users',
+    },
+    {
         route: '/reset-password',
         head: {
             title: 'Reset Password',
@@ -271,6 +310,16 @@ export default [
             description: 'View your saved bookmarks on Therr. Revisit your favorite moments, spaces, and thoughts.',
         },
         view: 'index',
+    },
+    {
+        route: '/lists/:ownerUserId/:listSlug',
+        head: {
+            // Per-list title/description are injected by server-client.tsx
+            // `renderPublicListView` from the fetched list data.
+            title: 'Public List',
+            description: 'A public list of places on Therr.',
+        },
+        view: 'public-list',
     },
     {
         route: '/go-mobile',

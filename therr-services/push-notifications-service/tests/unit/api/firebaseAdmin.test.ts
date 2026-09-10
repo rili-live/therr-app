@@ -8,19 +8,18 @@ import { BrandVariations, PushNotifications } from 'therr-js-utilities/constants
 
 describe('firebaseAdmin', () => {
     describe('createMessage', () => {
-        before(() => {
-            // Set up environment variable for firebase credentials
-            process.env.PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64 = Buffer.from(JSON.stringify({
-                type: 'service_account',
-                project_id: 'test-project',
-                private_key_id: 'test-key-id',
-                private_key: '-----BEGIN RSA PRIVATE KEY-----\nMIIBogIBAAJBALRiMLAA\n-----END RSA PRIVATE KEY-----\n',
-                client_email: 'test@test.iam.gserviceaccount.com',
-                client_id: '123456789',
-                auth_uri: 'https://accounts.google.com/o/oauth2/auth',
-                token_uri: 'https://oauth2.googleapis.com/token',
-            })).toString('base64');
-        });
+        // NOTE: there was a before() hook here that overwrote
+        // PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64 with a service account
+        // whose private_key was a truncated placeholder, and never restored it.
+        // Nothing in this file imports src/api/firebaseAdmin (see the header
+        // comment — that is the whole reason these assertions are indirect), so
+        // the hook bought nothing. It did leave a globally broken credential
+        // behind for anything that read the var at run time (hooks and test
+        // bodies — static imports resolve during mocha's load phase, before
+        // this ran): admin.credential.cert() parses the key for real and
+        // rejects it with "Too few bytes to read ASN.1 value". tests/setup.ts
+        // now seeds a valid throwaway credential so firebaseAdmin.ts is
+        // importable under test; clobbering it here would undo that.
 
         describe('notification types', () => {
             it('should return false for unknown notification type', () => {

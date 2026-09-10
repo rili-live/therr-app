@@ -162,7 +162,6 @@ class MainButtonMenuAlt extends ButtonMenu {
 
     goToMyProfile = () => {
         const { navigation, user } = this.props;
-        const currentScreen = this.getCurrentScreen();
 
         // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
 
@@ -178,13 +177,11 @@ class MainButtonMenuAlt extends ButtonMenu {
                     },
                 ],
             });
-        } else if (currentScreen === 'ViewUser') {
-            navigation.setParams({
-                userInView: {
-                    id: user.details.id,
-                },
-            });
         } else {
+            // native-stack v6 merges params when navigating to the currently
+            // focused screen and pushes ViewUser otherwise. Unifying both
+            // branches ensures componentDidUpdate fires consistently so the
+            // screen swaps from the previously-viewed user back to self.
             navigation.navigate('ViewUser', {
                 userInView: {
                     id: user.details.id,

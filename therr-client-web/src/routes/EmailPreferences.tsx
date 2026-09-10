@@ -70,7 +70,7 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
         };
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         document.title = `Therr | ${this.props.translate('pages.emailPreferences.pageTitle')}`;
         const { location } = this.props;
 

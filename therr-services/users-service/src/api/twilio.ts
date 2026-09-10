@@ -1,8 +1,23 @@
 import twilio from 'twilio';
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID || ''; // Your Account SID from www.twilio.com/console
-const authToken = process.env.TWILIO_AUTH_TOKEN || ''; // Your Auth Token from www.twilio.com/console
+// Lazy-init so unit tests that transitively import this module don't crash
+// at module load when TWILIO_ACCOUNT_SID is unset — the Twilio constructor
+// throws on an empty SID. The real client is built on first property access.
+let cachedClient: ReturnType<typeof buildClient> | undefined;
 
-const client = new twilio.Twilio(accountSid, authToken);
+function buildClient() {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID || '';
+    const authToken = process.env.TWILIO_AUTH_TOKEN || '';
+    return new twilio.Twilio(accountSid, authToken);
+}
 
-export default client;
+const clientProxy = new Proxy({} as ReturnType<typeof buildClient>, {
+    get(_target, prop) {
+        if (!cachedClient) {
+            cachedClient = buildClient();
+        }
+        return (cachedClient as any)[prop];
+    },
+});
+
+export default clientProxy;

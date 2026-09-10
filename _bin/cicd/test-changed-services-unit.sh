@@ -7,30 +7,34 @@ set -e
 
 source ./_bin/lib/colorize.sh
 source ./_bin/lib/has_diff_changes.sh
+
+# Next branch down the promotion chain. On `general` this is `stage`, not `general`
+# itself — diffing a branch against itself always yields zero changed files.
+DIFF_BASE=$(resolve_diff_base)
 source ./_bin/lib/test-helpers.sh
 
 HAS_GLOBAL_CONFIG_FILE_CHANGES=false
 HAS_ANY_LIBRARY_CHANGES=false
 HAS_UTILITIES_LIBRARY_CHANGES=false
 
-if has_diff_changes general "global-config.js"; then
+if has_diff_changes "$DIFF_BASE" "global-config.js"; then
   HAS_GLOBAL_CONFIG_FILE_CHANGES=true
 fi
 
-if has_diff_changes general "therr-public-library/therr-styles" || \
-  has_diff_changes general "therr-public-library/therr-js-utilities" || \
-  has_diff_changes general "therr-public-library/therr-react"; then
+if has_diff_changes "$DIFF_BASE" "therr-public-library/therr-styles" || \
+  has_diff_changes "$DIFF_BASE" "therr-public-library/therr-js-utilities" || \
+  has_diff_changes "$DIFF_BASE" "therr-public-library/therr-react"; then
   HAS_ANY_LIBRARY_CHANGES=true
 fi
 
-if has_diff_changes general "therr-public-library/therr-js-utilities"; then
+if has_diff_changes "$DIFF_BASE" "therr-public-library/therr-js-utilities"; then
   HAS_UTILITIES_LIBRARY_CHANGES=true
 fi
 
 should_test_service()
 {
   SERVICE_DIR=$1
-  has_diff_changes general $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
+  has_diff_changes "$DIFF_BASE" $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
 # =============================================================================
@@ -39,7 +43,7 @@ should_test_service()
 
 printMessageNeutral "=========================================="
 printMessageNeutral "Running Unit Tests for Changed Services"
-printMessageNeutral "(comparing against general branch)"
+printMessageNeutral "(comparing against ${DIFF_BASE} branch)"
 printMessageNeutral "=========================================="
 
 SERVICES_TESTED=0
@@ -94,7 +98,7 @@ if should_test_service "therr-services/websocket-service"; then
 fi
 
 if [ $SERVICES_TESTED -eq 0 ]; then
-  printMessageNeutral "No service changes detected relative to general. Skipping unit tests."
+  printMessageNeutral "No service changes detected relative to ${DIFF_BASE}. Skipping unit tests."
 else
   printMessageSuccess "Unit tests complete for ${SERVICES_TESTED} service(s) with changes"
 fi

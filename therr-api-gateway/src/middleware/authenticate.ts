@@ -1,9 +1,15 @@
 import jwt from 'jsonwebtoken';
 import unless from 'express-unless';
+import { hasValidStandardClaims } from 'therr-js-utilities/constants';
 import handleHttpError from '../utilities/handleHttpError';
 import isBlacklisted from '../utilities/isBlacklisted';
 import { isTokenBlacklisted } from '../store/redisClient';
 import authenticateApiKey from './authenticateApiKey';
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error('api-gateway: JWT_SECRET environment variable is required');
+}
 
 const verifyJwt = (token: string, secret: string): Promise<any> => new Promise((resolve, reject) => {
     jwt.verify(token, secret, (err, decoded) => {
@@ -22,13 +28,25 @@ const authenticate = async (req, res, next) => {
         }
 
         if (req.headers.authorization?.split(' ')[0] === 'Bearer') {
-            const decoded = await verifyJwt(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET || '');
+            const decoded = await verifyJwt(req.headers.authorization.split(' ')[1], JWT_SECRET);
 
             // Check if token has been revoked (server-side logout)
             if (decoded.jti && await isTokenBlacklisted(decoded.jti)) {
                 return handleHttpError({
                     res,
                     message: 'Token has been revoked',
+                    statusCode: 401,
+                });
+            }
+
+            // Validate standard registered claims (iss/aud). Backward-compatible:
+            // legacy tokens that predate claims-hardening carry no iss/aud and are
+            // allowed through; a token that carries a MISMATCHED claim is rejected
+            // (signals a forged/foreign token).
+            if (!hasValidStandardClaims(decoded)) {
+                return handleHttpError({
+                    res,
+                    message: "Invalid 'authorization.' Token issuer or audience is invalid.",
                     statusCode: 401,
                 });
             }
@@ -40,6 +58,24 @@ const authenticate = async (req, res, next) => {
                     message: "Invalid 'authorization.' User is blocked.",
                     statusCode: 403,
                 });
+            }
+
+            // Multi-app brand binding. New JWTs carry a `brand` claim; reject requests where the
+            // client's x-brand-variation header doesn't match (or is absent — legitimate niche
+            // clients always set it via their axios interceptor). Without the missing-header
+            // case, an attacker could simply strip x-brand-variation to bypass enforcement.
+            // Legacy tokens (no claim) stay exempt so existing sessions keep working until they
+            // refresh into branded tokens. Logout is exempt so users in a confused state can
+            // always sign out.
+            if (decoded?.brand && !req.path.includes('users-service/auth/logout')) {
+                const requestBrand = req.headers['x-brand-variation'];
+                if (!requestBrand || requestBrand !== decoded.brand) {
+                    return handleHttpError({
+                        res,
+                        message: "Invalid 'authorization.' Token brand does not match request brand.",
+                        statusCode: 401,
+                    });
+                }
             }
 
             req['x-userid'] = decoded.id;

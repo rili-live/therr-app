@@ -1,6 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
 import { IConnection } from './connection';
-import { PACT_MEMBERS_TABLE_NAME, USERS_TABLE_NAME } from './tableNames';
+import { PACTS_TABLE_NAME, PACT_MEMBERS_TABLE_NAME, USERS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -16,6 +16,7 @@ export interface IUpdatePactMemberParams {
     status?: string;
     joinedAt?: Date;
     leftAt?: Date;
+    nudgedAt?: Date | null;
     totalCheckins?: number;
     completedCheckins?: number;
     currentStreak?: number;
@@ -24,6 +25,15 @@ export interface IUpdatePactMemberParams {
     shouldMuteNotifs?: boolean;
     dailyReminderTime?: string;
     celebratePartnerCheckins?: boolean;
+    claimToken?: string | null;
+    claimCode?: string | null;
+    claimTokenExpiresAt?: Date | null;
+    invitedVia?: string | null;
+}
+
+export interface IPactInviteClaim {
+    token?: string;
+    code?: string;
 }
 
 export default class PactMembersStore {
@@ -59,6 +69,20 @@ export default class PactMembersStore {
     }
 
     getByPactId(pactId: string) {
+        return this.getByPactIds([pactId]);
+    }
+
+    /**
+     * Members for one or many pacts, hydrated with the display fields the
+     * client needs to name a partner. List endpoints pass the whole page in
+     * one call rather than fanning out per pact (N+1); getByPactId is the
+     * single-pact case of the same query.
+     */
+    getByPactIds(pactIds: string[]) {
+        if (!pactIds.length) {
+            return Promise.resolve([]);
+        }
+
         const queryString = knexBuilder
             .select([
                 `${PACT_MEMBERS_TABLE_NAME}.*`,
@@ -69,7 +93,7 @@ export default class PactMembersStore {
             ])
             .from(PACT_MEMBERS_TABLE_NAME)
             .leftJoin(USERS_TABLE_NAME, `${PACT_MEMBERS_TABLE_NAME}.userId`, `${USERS_TABLE_NAME}.id`)
-            .where(`${PACT_MEMBERS_TABLE_NAME}.pactId`, pactId)
+            .whereIn(`${PACT_MEMBERS_TABLE_NAME}.pactId`, pactIds)
             .orderBy(`${PACT_MEMBERS_TABLE_NAME}.role`, 'asc');
 
         return this.db.read.query(queryString.toString())
@@ -90,6 +114,36 @@ export default class PactMembersStore {
 
     getActiveMembersByUserId(userId: string) {
         return this.getByUserId(userId, 'active');
+    }
+
+    /**
+     * How many *distinct people* this user has ever invited into a pact they
+     * created.
+     *
+     * Backs the solo-habit unlock (`helpers/soloHabitAccess.ts`), which asks
+     * "have they invited the friends we asked them to?" — so it deliberately
+     * counts every partner regardless of invite status. A declined or abandoned
+     * invite still means the user did their part; only their own creator row is
+     * excluded.
+     *
+     * Distinct is load-bearing, not tidiness. This used to count partner rows,
+     * which was indistinguishable from counting people while the threshold was
+     * one. Now that it takes several to unlock, counting rows would let the same
+     * friend be invited to three pacts and satisfy "invite three people" without
+     * a single extra person hearing about the app — which is the entire point of
+     * the requirement.
+     */
+    countDistinctInvitedByCreator(creatorUserId: string): Promise<number> {
+        const queryString = knexBuilder
+            .from(`${PACT_MEMBERS_TABLE_NAME} as pm`)
+            .innerJoin(`${PACTS_TABLE_NAME} as p`, 'p.id', 'pm.pactId')
+            .where('p.creatorUserId', creatorUserId)
+            .andWhere('pm.role', 'partner')
+            .countDistinct('pm.userId as count')
+            .toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => parseInt(response.rows[0]?.count ?? '0', 10));
     }
 
     create(params: ICreatePactMemberParams) {
@@ -150,7 +204,54 @@ export default class PactMembersStore {
         return this.updateByPactAndUser(pactId, userId, {
             status: 'active',
             joinedAt: new Date(),
+            claimToken: null,
+            claimCode: null,
+            claimTokenExpiresAt: null,
         });
+    }
+
+    markNudged(pactId: string, partnerId: string) {
+        return this.updateByPactAndUser(pactId, partnerId, {
+            nudgedAt: new Date(),
+        });
+    }
+
+    /**
+     * Re-points a pending pact_members row to a freshly-registered user when
+     * a Therr connection signs up on Habits with a different user id than the
+     * one we recorded at invite time. Caller is responsible for ensuring the
+     * member is still pending and unexpired.
+     */
+    rebindUserId(memberId: string, userId: string) {
+        const queryString = knexBuilder
+            .where({ id: memberId })
+            .update({ userId, updatedAt: new Date() })
+            .into(PACT_MEMBERS_TABLE_NAME)
+            .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows[0]);
+    }
+
+    findByClaim(claim: IPactInviteClaim) {
+        if (!claim.token && !claim.code) {
+            return Promise.resolve(undefined);
+        }
+
+        const queryString = knexBuilder
+            .from(PACT_MEMBERS_TABLE_NAME)
+            .where((builder) => {
+                if (claim.token) {
+                    builder.orWhere('claimToken', claim.token);
+                }
+                if (claim.code) {
+                    builder.orWhere('claimCode', claim.code);
+                }
+            })
+            .limit(1)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows[0]);
     }
 
     leave(pactId: string, userId: string) {

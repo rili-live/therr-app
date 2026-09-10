@@ -1,6 +1,12 @@
+context/transcripts/
+.memsearch/
+
 # Logs
 logs
 *.log
+
+# Production incident digests (redacted, but may contain residual context — never commit)
+.prod-debug/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -77,7 +83,30 @@ terminals.sh
 
 # GCP
 google-service.json*
+*google-service.json
+
+# Per-brand Firebase config vault (secrets, populated by developers from
+# Firebase Console; copied into TherrMobile/{android,ios} by switch-brand.sh).
+# See _bin/firebase/README.md.
+_bin/firebase/**/google-services.json
+_bin/firebase/**/GoogleService-Info.plist
+
+# Per-brand Firebase config vault (secrets, populated by developers from
+# Firebase Console; copied into TherrMobile/{android,ios} by switch-brand.sh).
+# See _bin/firebase/README.md.
+_bin/firebase/**/google-services.json
+_bin/firebase/**/GoogleService-Info.plist
 
 # android
 bugreport-sdk*
 .aider*
+
+# memsearch vector DB and transcript captures (machine-local, not shared)
+context/transcripts/
+.memsearch/
+
+# Per-service deploy plan, written by _bin/cicd/deploy.sh for run-migrations.sh
+.deploy-plan.tsv
+
+# Tags built in this job, written by _bin/cicd/build.sh for publish.sh
+.build-manifest.tsv

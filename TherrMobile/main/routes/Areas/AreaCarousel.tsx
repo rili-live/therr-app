@@ -15,11 +15,18 @@ import AreaDisplayMedium from '../../components/UserContent/AreaDisplayMedium';
 import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
 import ListEmpty from '../../components/ListEmpty';
 import { getUserContentUri } from '../../utilities/content';
+import { getReplyCount, getTopReply, shouldAutoExpandThread } from '../../utilities/feedRanking';
+import { ICollapsibleSceneProps } from '../../components/CollapsibleHeaderTabView';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 interface IAreaCarouselProps {
     activeData: any;
+    /**
+     * Supplied by CollapsibleHeaderTabView when this carousel is a tab whose scroll
+     * position drives a collapsing header. Omitted everywhere else.
+     */
+    collapsible?: ICollapsibleSceneProps;
     content: any;
     displaySize?: any;
     emptyIconName?: string;
@@ -33,6 +40,8 @@ interface IAreaCarouselProps {
     onEndReached?: any;
     toggleAreaOptions: any;
     toggleThoughtOptions?: any;
+    /** Opens the repost composer. Optional — carousels without one simply hide the control. */
+    onRepostPress?: (thought: any) => void;
     translate: any;
     updateEventReaction: any;
     updateMomentReaction: any;
@@ -53,6 +62,7 @@ const renderItem = ({ item: post }, {
     displaySize,
     inspectContent,
     toggleContentOptions,
+    onRepostPress,
     goToViewMap,
     goToViewUser,
     translate,
@@ -84,6 +94,9 @@ const renderItem = ({ item: post }, {
 
 
     if (!post.areaType) {
+        // Auto-expand engaging threads: surface the top reply inline (like other social feeds)
+        const topReply = shouldAutoExpandThread(post) ? getTopReply(post) : undefined;
+
         return (
             <Pressable
                 key={post.id}
@@ -96,7 +109,10 @@ const renderItem = ({ item: post }, {
                     toggleThoughtOptions={toggleContentOptions}
                     hashtags={post.hashTags ? post.hashTags.split(',') : []}
                     thought={post}
+                    topReply={topReply}
+                    replyCount={getReplyCount(post)}
                     inspectThought={inspectContent} // TODO
+                    onRepostPress={onRepostPress}
                     // TODO: Get username from response
                     user={user}
                     contentUserDetails={userDetails}
@@ -169,6 +185,7 @@ const renderItem = ({ item: post }, {
 
 const AreaCarousel = ({
     activeData,
+    collapsible,
     content,
     displaySize,
     emptyIconName,
@@ -181,6 +198,7 @@ const AreaCarousel = ({
     onEndReached,
     toggleAreaOptions,
     toggleThoughtOptions,
+    onRepostPress,
     translate,
     updateEventReaction,
     updateMomentReaction,
@@ -211,7 +229,8 @@ const AreaCarousel = ({
     }, [mobileThemeName]);
 
     const isUsingBottomSheet = (displaySize === 'small' || displaySize === 'medium');
-    const FlatListComponent = isUsingBottomSheet ? BottomSheetFlatList : FlatList;
+    const FlatListComponent = collapsible?.ScrollComponent
+        || (isUsingBottomSheet ? BottomSheetFlatList : FlatList);
 
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
@@ -237,6 +256,7 @@ const AreaCarousel = ({
             goToViewMap,
             goToViewUser,
             toggleContentOptions,
+            onRepostPress,
             translate,
             theme,
             themeViewPost: itemObj.item.areaType ? themeArea : themeThought,
@@ -247,7 +267,7 @@ const AreaCarousel = ({
         });
     }, [
         media, displaySize, inspectContent, goToViewMap, goToViewUser,
-        toggleAreaOptions, toggleThoughtOptions, translate,
+        toggleAreaOptions, toggleThoughtOptions, onRepostPress, translate,
         theme, themeArea, themeThought, themeForms,
         updateEventReaction, updateMomentReaction, updateSpaceReaction, updateThoughtReaction,
         user, isDarkMode,
@@ -260,6 +280,8 @@ const AreaCarousel = ({
 
     const listHeaderComponent = React.useMemo(
         () => renderHeader(),
+        // renderHeader closes over activeData in the parent; re-run when data changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [renderHeader, activeData]
     );
 
@@ -271,8 +293,14 @@ const AreaCarousel = ({
     );
 
     const refreshControl = React.useMemo(
-        () => <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />,
-        [refreshing, onRefresh]
+        () => (
+            <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                progressViewOffset={collapsible?.progressViewOffset}
+            />
+        ),
+        [refreshing, onRefresh, collapsible?.progressViewOffset]
     );
 
     const listStyle = React.useMemo(
@@ -284,8 +312,19 @@ const AreaCarousel = ({
 
     const setListRef = React.useCallback((component) => {
         containerRef && containerRef(component);
+        collapsible?.registerRef(component);
         return component;
-    }, [containerRef]);
+    }, [containerRef, collapsible]);
+
+    const scrollProps = React.useMemo(() => (collapsible ? {
+        onScroll: collapsible.onScroll,
+        onScrollEndDrag: collapsible.onScrollEndDrag,
+        onMomentumScrollEnd: collapsible.onMomentumScrollEnd,
+        onContentSizeChange: collapsible.onContentSizeChange,
+        scrollEventThrottle: collapsible.scrollEventThrottle,
+        scrollIndicatorInsets: collapsible.scrollIndicatorInsets,
+        contentContainerStyle: collapsible.contentContainerStyle,
+    } : {}), [collapsible]);
 
     // if (Platform.OS === 'ios') {
     //     return (
@@ -323,7 +362,24 @@ const AreaCarousel = ({
                 data={activeData}
                 keyExtractor={keyExtractor}
                 renderItem={flatRenderItem}
-                initialNumToRender={1}
+                /*
+                 * `removeClippedSubviews` is intentionally absent, not merely false.
+                 *
+                 * It was turned on as a perf tune (6b639fe9) and is the direct cause of the
+                 * blank bands in the Discovered feed: on Android it detaches off-screen cells
+                 * from the native view hierarchy, and cells whose height changes after mount —
+                 * which is every post here, since media resolves its aspect ratio
+                 * asynchronously — are frequently never re-attached. The row keeps its slot in
+                 * the layout, so what the user sees is a correctly-sized gap with nothing in
+                 * it. React Native's own docs flag it as "may have bugs (missing content)".
+                 *
+                 * The window below is the actual perf lever, and it has to stay wide enough
+                 * that a fast flick through tall media posts cannot outrun the render batch —
+                 * that was the second half of the same regression.
+                 */
+                initialNumToRender={3}
+                maxToRenderPerBatch={5}
+                windowSize={11}
                 ListEmptyComponent={listEmptyComponent}
                 ListHeaderComponent={listHeaderComponent}
                 ListFooterComponent={listFooterComponent}
@@ -335,6 +391,7 @@ const AreaCarousel = ({
                 style={listStyle}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.65}
+                {...scrollProps}
                 // onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
             />
         </>

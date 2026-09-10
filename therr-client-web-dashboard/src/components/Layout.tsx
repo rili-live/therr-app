@@ -14,6 +14,8 @@ import {
     NotificationActions, SocketActions, MapActions, MessageActions,
 } from 'therr-react/redux/actions';
 import { UsersService } from 'therr-react/services';
+import { captureAttribution } from 'therr-react/utilities/attribution';
+import { getGa4Configs } from 'therr-react/utilities/analytics';
 // import { Loader } from '../library/loader';
 import classNames from 'classnames';
 import { Toast, ToastContainer, ToastProps } from 'react-bootstrap';
@@ -136,7 +138,17 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         // Initialize global interceptors such as 401, 403
         initInterceptors(navigation.navigate, undefined, 300);
 
-        ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKeyDashboard);
+        // Empty only if every GA key is unset. react-ga4 throws on an empty
+        // array rather than no-opping, and this runs in componentDidMount.
+        const gaConfigs = getGa4Configs(globalConfig[process.env.NODE_ENV], 'dashboard');
+        if (gaConfigs.length) {
+            ReactGA.initialize(gaConfigs);
+        }
+
+        // First-touch acquisition for this session. Must run on the initial
+        // mount, before the router replaces the landing URL — that URL is the
+        // only place the campaign tag exists.
+        captureAttribution('dashboard');
 
         document.addEventListener('click', this.handleClick);
         this.setState({

@@ -1,10 +1,11 @@
 import { RequestHandler } from 'express';
-import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
+import { getBrandContext, getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import notifyUserOfUpdate from '../utilities/notifyUserOfUpdate';
 import TherrEventEmitter from '../api/TherrEventEmitter';
+import { DISTRIBUTOR_MIN_SECONDS_BETWEEN_RUNS } from '../utilities/distributorGate';
 // import * as globalConfig from '../../../../global-config';
 
 export const translateNotification = (notification?: {
@@ -69,26 +70,30 @@ const createNotification = (req, res) => {
 };
 
 // READ
-const getNotification = (req, res) => Store.notifications.getNotifications({
-    requestingUserId: req.params.notificationId,
-})
-    .then((results) => {
-        const locale = req.headers['x-localecode'] || 'en-us';
-
-        if (!results.length) {
-            return handleHttpError({
-                res,
-                message: `No notification found with id, ${req.params.notificationId}.`,
-                statusCode: 404,
-            });
-        }
-        return res.status(200).send(translateNotification(results[0], locale));
+const getNotification = (req, res) => {
+    const { brandVariation } = getBrandContext(req.headers);
+    return Store.notifications.getNotifications(brandVariation, {
+        requestingUserId: req.params.notificationId,
     })
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
+        .then((results) => {
+            const locale = req.headers['x-localecode'] || 'en-us';
+
+            if (!results.length) {
+                return handleHttpError({
+                    res,
+                    message: `No notification found with id, ${req.params.notificationId}.`,
+                    statusCode: 404,
+                });
+            }
+            return res.status(200).send(translateNotification(results[0], locale));
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
+};
 
 const searchNotifications: RequestHandler = (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
+    const { brandVariation } = getBrandContext(req.headers);
     const {
         filterBy,
         query,
@@ -97,15 +102,19 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
     } = req.query;
     const integerColumns = ['id'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const searchPromise = Store.notifications.searchNotifications(userId, searchArgs[0]);
+    const searchPromise = Store.notifications.searchNotifications(brandVariation, userId, searchArgs[0]);
 
     /**
      * This is simply an event trigger. It could be triggered by a user logging in, or any other common event.
-     * We will probably want to move this to a scheduler to run at a set interval.
-     * Deferred via setImmediate to avoid blocking notification response
+     * Deferred via setImmediate to avoid blocking notification response.
+     *
+     * This fires on every notifications poll, so it used to scale with polling frequency
+     * rather than with users or content. The gate below caps it to one run per user per
+     * window, turning O(polls) into roughly O(sessions). Login (handlers/auth.ts) is
+     * deliberately ungated so a new session always seeds the stream immediately.
      */
     setImmediate(() => {
-        TherrEventEmitter.runThoughtDistributorAlgorithm(req.headers, [userId], 'updatedAt', 0);
+        TherrEventEmitter.runThoughtDistributorAlgorithm(req.headers, [userId], 'updatedAt', 0, DISTRIBUTOR_MIN_SECONDS_BETWEEN_RUNS);
     });
 
     // const countPromise = Store.notifications.countRecords({
@@ -131,32 +140,35 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
 };
 
 // UPDATE
-const updateNotification = (req, res) => Store.notifications.getNotifications({
-    id: req.params.notificationId,
-})
-    .then((getResults) => {
-        const locale = req.headers['x-localecode'] || 'en-us';
-        const {
-            isUnread,
-        } = req.body;
-
-        if (!getResults.length) {
-            return handleHttpError({
-                res,
-                message: `No notification found with id, ${req.params.notificationId}.`,
-                statusCode: 404,
-            });
-        }
-
-        return Store.notifications
-            .updateNotification({
-                id: req.params.notificationId,
-            }, {
-                isUnread,
-            })
-            .then((results) => res.status(202).send(translateNotification(results[0], locale)));
+const updateNotification = (req, res) => {
+    const { brandVariation } = getBrandContext(req.headers);
+    return Store.notifications.getNotifications(brandVariation, {
+        id: req.params.notificationId,
     })
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
+        .then((getResults) => {
+            const locale = req.headers['x-localecode'] || 'en-us';
+            const {
+                isUnread,
+            } = req.body;
+
+            if (!getResults.length) {
+                return handleHttpError({
+                    res,
+                    message: `No notification found with id, ${req.params.notificationId}.`,
+                    statusCode: 404,
+                });
+            }
+
+            return Store.notifications
+                .updateNotification(brandVariation, {
+                    id: req.params.notificationId,
+                }, {
+                    isUnread,
+                })
+                .then((results) => res.status(202).send(translateNotification(results[0], locale)));
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
+};
 
 export {
     createNotification,

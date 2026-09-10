@@ -4,6 +4,10 @@
       "title": "¡Ganaste una recompensa!",
       "body": "¡Buen trabajo! Acabas de completar un logro. Toca para reclamar tus monedas antes de que expiren."
     },
+    "leaderboardRankMilestone": {
+      "title": "¡Hito en la tabla de clasificación!",
+      "body": "Acabas de subir al puesto #{rank} en la tabla de esta semana. ¡Sigue ganando XP para defender tu lugar!"
+    },
     "connectionRequestAccepted": {
       "title": "¡Estás conectado/a!",
       "body": "{userName} aceptó tu solicitud — ¡saluda e inicia una conversación!",
@@ -79,6 +83,11 @@
       "body": "{userName} respondió a tu publicación — mira lo que dijo",
       "pressActionView": "Ver respuesta"
     },
+    "newThoughtRepostReceived": {
+      "title": "Republicaron tu publicación",
+      "body": "{userName} republicó tu publicación — está llegando a más gente",
+      "pressActionView": "Ver publicación"
+    },
     "newAreasActivated": {
       "title": "¡Nuevos lugares desbloqueados!",
       "body": "Acabas de desbloquear {totalAreasActivated} nueva(s) área(s) — explora lo que se ha compartido cerca"
@@ -99,6 +108,108 @@
     "inviteFriendsReminder": {
       "title": "Trae a tus amigos",
       "body": "¡Comparte tu enlace de invitación y ambos ganarán recompensas cuando tus amigos se unan!"
+    },
+    "streakAtRisk": {
+      "title": "No rompas tu racha",
+      "body": "Tu racha de {streakCount} días en {habitName} está en juego — registra antes de medianoche para mantenerla.",
+      "bodyWithFreeze": "Tu racha de {streakCount} días en {habitName} está en juego. Un congelamiento de racha cubrirá esta noche si fallas (te quedan {freezesRemaining}) — pero si registras, lo guardas para después.",
+      "bodyMultiple": "{habitCount} rachas están en juego — {habitNames}. Registra antes de medianoche para mantenerlas."
+    },
+    "streakFreezeUsed": {
+      "title": "Tu racha sobrevivió",
+      "body": "Faltaste un día en {habitName}, así que un congelamiento de racha lo cubrió — tu racha de {streakCount} días sigue intacta. Te queda(n) {freezesRemaining}."
+    },
+    "streakBroken": {
+      "title": "Racha reiniciada",
+      "body": "Tu racha de {streakCount} días en {habitName} terminó — empieza una nueva hoy."
+    },
+    "streakMilestone": {
+      "title": "¡Meta alcanzada!",
+      "body": "{streakCount} días seguidos en {habitName} — mantén el ritmo."
+    },
+    "newPersonalRecord": {
+      "title": "Nuevo récord personal",
+      "body": "Acabas de superar tu récord anterior en {habitName} de {previousRecordDays} días. ¡Vas por {streakCount}!"
+    },
+    "partnerCheckedIn": {
+      "title": "{partnerName} acaba de registrarse",
+      "body": "{partnerName} llegó al día {streakCount} en {habitName} — no te quedes atrás."
+    },
+    "partnerMissedDay": {
+      "title": "{partnerName} se perdió un día",
+      "body": "{partnerName} no registró {habitName} ayer — envía un poco de aliento."
+    },
+    "partnerCelebrated": {
+      "title": "{partnerName} envió una felicitación",
+      "body": "{partnerName} acaba de animarte — abre la app para ver lo que dijo."
+    },
+    "pactInvitation": {
+      "title": "Te invitaron a un pacto",
+      "body": "{userName} te invitó a hacer {habitName} juntos — la responsabilidad empieza aquí.",
+      "pressActionAccept": "Aceptar",
+      "pressActionView": "Ver"
+    },
+    "pactNudge": {
+      "title": "Un recordatorio amistoso",
+      "body": "{partnerName} sigue esperando que te unas al pacto de {habitName} — la responsabilidad empieza aquí.",
+      "pressActionAccept": "Aceptar",
+      "pressActionView": "Ver"
+    },
+    "pactAccepted": {
+      "title": "¡Pacto aceptado!",
+      "body": "{partnerName} se unió. Ambos están comprometidos con {habitName} — el primer registro inicia la racha."
+    },
+    "pactDeclined": {
+      "title": "Pacto rechazado",
+      "body": "{partnerName} no puede comprometerse con este. Invita a alguien más para mantener viva la meta."
+    },
+    "pactCompleted": {
+      "title": "¡Pacto completado!",
+      "body": "Tú y {partnerName} terminaron su pacto de {habitName} — una victoria para ambos."
+    },
+    "pactExpiring": {
+      "title": "Tu pacto está por terminar",
+      "body": "Quedan {daysRemaining} día(s) en tu pacto de {habitName} — termina con fuerza."
+    },
+    "pactEnded": {
+      "title": "Tu pacto de {habitName} ha terminado",
+      "body": "{durationDays} días completados. La mayoría de los hábitos tardan meses, no semanas — empieza un nuevo ciclo y tu racha continúa."
+    },
+    "dailyHabitReminder": {
+      "title": "Hora de registrarte",
+      "body": "Registra {habitName} hoy — un solo registro pone tu racha en marcha.",
+      "bodyMultiple": "{habitCount} hábitos te esperan hoy — {habitNames}. Un solo registro te pone en marcha."
+    },
+    "morningMotivation": {
+      "title": "Buenos días",
+      "body": "Hoy es una nueva oportunidad para construir el hábito al que te comprometiste. Vamos."
+    },
+    "eveningCheckIn": {
+      "title": "Última oportunidad esta noche",
+      "body": "Tu racha de {streakCount} días en {habitName} termina a medianoche. Un solo registro la mantiene viva.",
+      "bodyWithFreeze": "Tu racha de {streakCount} días en {habitName} termina a medianoche. Un congelamiento de racha te cubrirá (te quedan {freezesRemaining}) — pero si registras ahora, lo guardas para después.",
+      "bodyMultiple": "Última llamada para {habitCount} rachas — {habitNames}. Registra antes de medianoche para mantenerlas."
+    },
+    "habitEstablished": {
+      "title": "{habitName} se está afianzando",
+      "body": "{consistencyPercent}% de constancia en {dayCount} días. Bajaremos el ritmo de los recordatorios diarios — este ya lo dominas."
+    },
+    "habitAutomaticity": {
+      "title": "Este ya es automático",
+      "body": "{dayCount} días de {habitName}. Los estudios sitúan aquí el punto en que un hábito deja de exigir fuerza de voluntad. Recordatorios diarios desactivados — solo te escribiremos de vez en cuando."
+    },
+    "habitMaintenanceCheckIn": {
+      "title": "Revisión de {dayCount} días",
+      "body": "¿Sigues con {habitName}? Llevas un {consistencyPercent}% de constancia desde que bajamos el ritmo. Toca para confirmar que vas bien."
+    },
+    "habitComeback": {
+      "title": "¿Quieres retomar {habitName}?",
+      "body": "Una vez lo mantuviste {bestStreakCount} días — eso no se borra. ¿Empezamos una racha nueva?"
+    },
+    "shared": {
+      "pressActionCheckIn": "Registrarse",
+      "pressActionRenew": "Nuevo ciclo",
+      "pressActionView": "Ver"
     }
   },
   "validation": "No se proporcionaron los parámetros requeridos."

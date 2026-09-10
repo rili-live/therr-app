@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaceIncentiveCoupons', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaceIncentiveCoupons', (table) => {
     table.primary(['spaceIncentiveId', 'userId']);
 });
 

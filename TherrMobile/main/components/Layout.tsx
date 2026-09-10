@@ -2,21 +2,28 @@ import React from 'react';
 import axios from 'axios';
 import qs from 'qs';
 import {
+    AppState,
+    AppStateStatus,
     Image,
     Linking,
+    NativeModules,
+    NativeEventSubscription,
     PermissionsAndroid,
     Platform,
 } from 'react-native';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
 import { getAnalytics, logEvent, logScreenView } from '@react-native-firebase/analytics';
-import { getCrashlytics, setUserId as setCrashlyticsUserId } from '@react-native-firebase/crashlytics';
+import { getCrashlytics, log as crashlyticsLog, recordError, setUserId as setCrashlyticsUserId } from '@react-native-firebase/crashlytics';
 import {
+    getInitialNotification,
     getMessaging,
     getToken,
+    hasPermission,
     onMessage,
+    onNotificationOpenedApp,
     registerDeviceForRemoteMessages,
-    requestPermission,
     AuthorizationStatus,
 } from '@react-native-firebase/messaging';
 import LogRocket from '@logrocket/react-native';
@@ -26,8 +33,9 @@ import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { AccessLevels, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
+import { AccessLevels, BrandVariations, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
+import REQUEST_PLATFORM from '../constants/requestPlatform';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer, type ParamListBase } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -56,11 +64,27 @@ import { buildStyles as buildBottomSheetStyles } from '../styles/bottom-sheet';
 import { buildStyles as buildButtonStyles } from '../styles/buttons';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildModalStyles } from '../styles/modal';
+import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmModal';
 import { buildStyles as buildInfoModalStyles } from '../styles/modal/infoModal';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
+import { buildStyles as buildDisclosureStyles } from '../styles/modal/locationDisclosure';
+import permissions, { PermType } from '../utilities/permissionsOrchestrator';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import BackgroundLocationDisclosureModal from './Modals/BackgroundLocationDisclosureModal';
+import PermissionPrimerModal from './Modals/PermissionPrimerModal';
+import AppReviewPromptModal, { AppReviewPromptOutcome } from './Modals/AppReviewPromptModal';
+import {
+    markReviewPromptCompleted,
+    markReviewPromptDeclined,
+    markReviewPromptShown,
+    shouldShowReviewPrompt,
+} from '../utilities/appReviewPrompt';
+import { openStoreReviewPage } from '../utilities/appStoreReviewLink';
+import { openSupportEmail } from '../utilities/supportContact';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
+import SplashLogoSpinner from './SplashLogoSpinner';
 import HeaderSearchInput from './Input/HeaderSearchInput';
 import HeaderLinkRight from './HeaderLinkRight';
 import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, getAndroidChannel } from '../constants';
@@ -73,17 +97,29 @@ import background3 from '../assets/dinner-overhead-2.webp';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
+import getDeviceTimeZone from '../utilities/deviceTimeZone';
 
 const preLoadImageList = [background1, background2, background3];
+
+// Android app-shortcut intent-action suffixes (long-press launcher icon).
+// Matched by suffix so the same JS handles every brand binary regardless of
+// its package prefix (app.therrmobile.* / com.therr.mobile.* / ...). See
+// android/app/src/main/res/xml/shortcuts.xml.
+const QUICK_ACTION_SUFFIXES = {
+    CREATE_MOMENT: '.QUICK_CREATE_MOMENT',
+    CREATE_THOUGHT: '.QUICK_CREATE_THOUGHT',
+};
 
 const Stack = createNativeStackNavigator<ParamListBase, undefined>();
 
 const getRequestHeaders = (user) => ({
     'x-userid': user?.details?.id,
     'x-localecode':  user?.settings?.locale || 'en-us',
-    'x-platform': 'mobile',
+    'x-platform': REQUEST_PLATFORM,
     'x-brand-variation': CURRENT_BRAND_VARIATION,
 });
+
+const isLocationServicesEnabled = () => getConfig()?.featureFlags?.[FeatureFlags.ENABLE_LOCATION_SERVICES] !== false;
 
 interface ILayoutDispatchProps {
     createUserGroup: Function;
@@ -130,7 +166,25 @@ export interface ILayoutProps extends IStoreProps {
 interface ILayoutState {
     targetRouteView: string;
     targetRouteParams: any;
+    isBackgroundLocationDisclosureVisible: boolean;
+    permissionPrimerType: PermType | null;
+    shouldSpinSplashLogo: boolean;
+    isSplashSpinnerVisible: boolean;
+    isAppReviewPromptVisible: boolean;
 }
+
+const BG_LOCATION_DISCLOSURE_KEY = 'bgLocationDisclosureShown';
+
+/**
+ * Delay before the review prompt is considered on a cold start, measured from the splash
+ * handoff. Long enough that the first screen has settled and the user is looking at their
+ * own content rather than at a loading state.
+ */
+const APP_REVIEW_PROMPT_COLD_START_DELAY_MS = 8000;
+/** Same idea on a warm return, where there is no splash and no first fetch to wait on. */
+const APP_REVIEW_PROMPT_FOREGROUND_DELAY_MS = 3000;
+/** How long the app must have been away for a return to count as the user coming back to it. */
+const APP_REVIEW_PROMPT_MIN_AWAY_MS = 60000;
 
 const mapStateToProps = (state: any) => ({
     content: state.content,
@@ -174,18 +228,30 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private authCredentialListener;
+    private fcmOpenedUnsubscribe;
     private nativeEventListener;
     private translate;
     private unsubscribePushNotifications;
     private urlEventListener;
     private routeNameRef: any = {};
+    // Latest navigation state, mirrored on every state change so it survives the
+    // locale-keyed remount of the NavigationContainer (see `render`).
+    private lastNavigationState: any = undefined;
     private theme = buildStyles();
     private themeBottomSheet = buildBottomSheetStyles();
     private themeButtons = buildButtonStyles();
     private themeForms = buildFormStyles();
     private themeInfoModal = buildInfoModalStyles();
     private themeModal = buildModalStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
     private themeMenu = buildMenuStyles();
+    private themeDisclosure = buildDisclosureStyles();
+    private permissionPrimerResolve: ((allowed: boolean) => void) | null = null;
+    private unsubscribeNotificationsGranted: (() => void) | null = null;
+    private fcmRegistrationStarted = false;
+    private appStateListener: NativeEventSubscription | null = null;
+    private lastBackgroundedAt: number | null = null;
+    private appReviewPromptTimeout: ReturnType<typeof setTimeout> | null = null;
     subscriptions: Subscription[] = [];
 
     constructor(props) {
@@ -194,6 +260,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.state = {
             targetRouteView: '',
             targetRouteParams: {},
+            isBackgroundLocationDisclosureVisible: false,
+            permissionPrimerType: null,
+            shouldSpinSplashLogo: false,
+            isSplashSpinnerVisible: true,
+            isAppReviewPromptVisible: false,
         };
 
         this.reloadTheme();
@@ -208,11 +279,38 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         if (Platform.OS === 'android') {
             Linking.getInitialURL().then(this.handleAppUniversalLinkURL);
+            // App-shortcut cold-start: a shortcut tapped while the app is killed
+            // launches via onCreate (not onNewIntent), so read the launch intent's
+            // action once and route it through the same handler as the warm path.
+            NativeModules.InitialIntent?.getInitialAction?.()
+                .then((action: string | null) => {
+                    if (action) {
+                        this.handleFirebasePushNotificationEvent({ action });
+                    }
+                })
+                .catch((err) => console.log('INITIAL_INTENT_ACTION_ERROR', err));
         }
-        // (Firebase) Push Notifications Click Handler
+        // (Firebase) Push Notifications Click Handler (Android intent-filter path)
         this.nativeEventListener = PlatformNativeEventEmitter?.addListener('new-intent-action', this.handleFirebasePushNotificationEvent);
+
+        // (Firebase) iOS APNS-alert path: tap on a backgrounded-state notification
+        this.fcmOpenedUnsubscribe = onNotificationOpenedApp(getMessaging(), (remoteMessage) => {
+            this.handleRemoteMessageTap(remoteMessage);
+        });
+        // (Firebase) iOS APNS-alert path: tap on a killed-state notification that launched the app
+        getInitialNotification(getMessaging())
+            .then((remoteMessage) => {
+                if (remoteMessage) {
+                    this.handleRemoteMessageTap(remoteMessage);
+                }
+            })
+            .catch((err) => console.log('FCM_INITIAL_NOTIFICATION_ERROR', err));
         // Universal links handler
         this.urlEventListener = Linking.addEventListener('url', this.handleUrlEvent);
+
+        // Returning to the app is the calmest moment we get: nothing is mid-flow and no
+        // other modal is being opened, which is where the review prompt belongs.
+        this.appStateListener = AppState.addEventListener('change', this.handleAppStateChange);
 
         if (appleAuth.isSupported) {
             this.authCredentialListener = appleAuth.onCredentialRevoked(async () => {
@@ -227,47 +325,65 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         socketIO.on('reconnect_attempt', this.handleSocketReconnectAttempt);
         socketIO.on('reconnect', this.handleSocketReconnect);
 
-        this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
-            logEvent(getAnalytics(),'background_location_on_location', {
-                userId: this.props.user?.details?.id,
-            }).catch((err) => console.log(err));
-        }, (error) => {
-            logEvent(getAnalytics(),'background_location_error', {
-                userId: this.props.user?.details?.id,
-            }).catch((err) => console.log(err));
-            console.log('BackgroundGeolocation-[onLocation] ERROR:', error);
-        }));
-        // this.subscriptions.push(BackgroundGeolocation.onMotionChange((event) => {
-        //     console.log('BackgroundGeolocation-[onMotionChange]', event);
-        // }));
-        // this.subscriptions.push(BackgroundGeolocation.onActivityChange((event) => {
-        //     console.log('BackgroundGeolocation-[onActivityChange]', event);
-        // }));
-        this.subscriptions.push(BackgroundGeolocation.onProviderChange((event) => {
-            // Replaces the legacy DeviceEventEmitter.locationProviderStatusChange
-            // listener (emitted by react-native-android-location-services-dialog-box,
-            // which was removed in the New Architecture migration). Fires on
-            // LocationManager.PROVIDERS_CHANGED_ACTION (Android) and authorization
-            // changes (iOS). Reducer checks status === 'enabled'.
-            this.props.updateGpsStatus(event.enabled ? 'enabled' : 'disabled');
-        }));
+        // Gate every BackgroundGeolocation method behind the feature flag, not just
+        // .ready()/.start(). Subscribing to .onLocation / .onProviderChange instantiates
+        // the native TSLocationManager, which fires transistorsoft's license validator;
+        // on niches whose applicationId is not on the license (e.g. HABITS / com.therr.habits)
+        // that produces a runtime license-error log even when the listeners are no-ops.
+        if (isLocationServicesEnabled()) {
+            this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
+                logEvent(getAnalytics(),'background_location_on_location', {
+                    userId: this.props.user?.details?.id,
+                }).catch((err) => console.log(err));
+            }, (error) => {
+                logEvent(getAnalytics(),'background_location_error', {
+                    userId: this.props.user?.details?.id,
+                }).catch((err) => console.log(err));
+                console.log('BackgroundGeolocation-[onLocation] ERROR:', error);
+            }));
+            this.subscriptions.push(BackgroundGeolocation.onProviderChange((event) => {
+                // Replaces the legacy DeviceEventEmitter.locationProviderStatusChange
+                // listener (emitted by react-native-android-location-services-dialog-box,
+                // which was removed in the New Architecture migration). Fires on
+                // LocationManager.PROVIDERS_CHANGED_ACTION (Android) and authorization
+                // changes (iOS). Reducer checks status === 'enabled'.
+                this.props.updateGpsStatus(event.enabled ? 'enabled' : 'disabled');
+            }));
+        }
 
-        this.readyAndStartBackgroundGeolocation();
+        this.checkAndShowBackgroundLocationDisclosure();
         this.prefetchContent();
+
+        // Wire the permissions orchestrator: a single primer modal lives at the
+        // root, opened by any call site that goes through `permissions.request`.
+        permissions.registerPrimerListener(({ type, resolve }) => {
+            this.permissionPrimerResolve = resolve;
+            this.setState({ permissionPrimerType: type });
+        });
+        // Whenever notifications are granted (login already-granted path or
+        // post-primer OS approval), register the FCM device token and the
+        // foreground message handler. Replaces the unconditional chain that
+        // used to run on auth state change.
+        this.unsubscribeNotificationsGranted = permissions.onGranted('notifications', () => {
+            this.registerDeviceForFCM();
+        });
+
+        // If the user is already authenticated at app launch, this is a returning
+        // session. Try the silent FCM registration (no-op if not authorized) and
+        // give the soft-ask a chance via the second-session fallback.
+        if (this.props.user?.isAuthenticated) {
+            this.tryRegisterDeviceTokenIfAuthorized();
+            permissions.requestIfAppropriate('notifications', { trigger: 'secondSession' });
+        }
     }
 
     componentDidUpdate(prevProps: ILayoutProps) {
         const { targetRouteView, targetRouteParams } = this.state;
         const {
             forums,
-            addNotification,
-            location,
             searchCategories,
-            searchActiveMomentsByIds,
-            searchActiveSpacesByIds,
             updateLocationPermissions,
             user,
-            updateUser,
         } = this.props;
 
         if (prevProps.user?.settings?.mobileThemeName !== user?.settings?.mobileThemeName) {
@@ -278,7 +394,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             if (user.isAuthenticated) { // Happens after login
                 const token = user?.details?.idToken;
                 if (token) {
-                    this.readyAndStartBackgroundGeolocation();
+                    this.checkAndShowBackgroundLocationDisclosure();
                 }
 
                 if (user.details?.id) {
@@ -314,99 +430,45 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 }
 
                 if (Platform.OS !== 'ios') {
-                    PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
-                        .then((grantStatus) => {
-                            updateLocationPermissions({
-                                [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]: grantStatus,
+                    if (isLocationServicesEnabled()) {
+                        PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
+                            .then((grantStatus) => {
+                                updateLocationPermissions({
+                                    [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]: grantStatus,
+                                });
                             });
-                        });
-                    PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION)
-                        .then((grantStatus) => {
-                            updateLocationPermissions({
-                                [PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION]: grantStatus,
+                        PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION)
+                            .then((grantStatus) => {
+                                updateLocationPermissions({
+                                    [PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION]: grantStatus,
+                                });
                             });
-                        });
+                    }
                     PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA)
                         .then((grantStatus) => {
                             updateLocationPermissions({
                                 [PermissionsAndroid.PERMISSIONS.CAMERA]: grantStatus,
                             });
                         });
-                } else {
+                } else if (isLocationServicesEnabled()) {
                     checkMultiple([PERMISSIONS.IOS.LOCATION_ALWAYS]).then((statuses) => {
                         updateLocationPermissions(statuses);
                     });
                 }
 
-                this.getIosNotificationPermissions()
-                    .then(() => {
-                        return registerDeviceForRemoteMessages(getMessaging());
-                    })
-                    .then(() => {
-                        // Get the token
-                        return getToken(getMessaging());
-                    })
-                    .then((deviceToken) => {
-                        axios.defaults.headers['x-user-device-token'] = deviceToken;
-                        if (user.details.deviceMobileFirebaseToken !== deviceToken) {
-                            updateUser(user.details.id, { deviceMobileFirebaseToken: deviceToken });
-                        }
-                        this.unsubscribePushNotifications = onMessage(getMessaging(), async remoteMessage => {
-                            await wrapOnMessageReceived(true, remoteMessage);
-
-                            if (remoteMessage?.data?.areasActivated) {
-                                const parsedAreasData = typeof (remoteMessage?.data?.areasActivated) === 'string'
-                                    ? JSON.parse(remoteMessage?.data?.areasActivated)
-                                    : [];
-                                const momentsData = parsedAreasData.filter(area => area.momentId);
-                                const spacesData = parsedAreasData.filter(area => area.spaceId);
-                                if (parsedAreasData.length) {
-                                    sendForegroundNotification({
-                                        title: this.translate('alertTitles.newAreasActivated'),
-                                        body: this.translate('alertMessages.newAreasActivated', {
-                                            total: momentsData.length + spacesData.length,
-                                        }),
-                                        android: {
-                                            pressAction: { id: PushNotifications.PressActionIds.discovered, launchActivity: 'default' },
-                                        },
-                                    }, getAndroidChannel(AndroidChannelIds.contentDiscovery, false));
-                                    if (momentsData.length) {
-                                        searchActiveMomentsByIds({
-                                            userLatitude: location?.user?.latitude,
-                                            userLongitude: location?.user?.longitude,
-                                            withMedia: true,
-                                            withUser: true,
-                                            blockedUsers: user.details.blockedUsers,
-                                            shouldHideMatureContent: user.details.shouldHideMatureContent,
-                                        }, momentsData.map(moment => moment.momentId));
-                                    }
-                                    if (spacesData.length) {
-                                        searchActiveSpacesByIds({
-                                            userLatitude: location?.user?.latitude,
-                                            userLongitude: location?.user?.longitude,
-                                            withMedia: true,
-                                            withUser: true,
-                                            blockedUsers: user.details.blockedUsers,
-                                            shouldHideMatureContent: user.details.shouldHideMatureContent,
-                                        }, spacesData.map(space => space.spaceId));
-                                    }
-                                }
-                                // TODO: Fetch associated media files
-                                // TODO: Fetch and call insertActiveMoments to "activate" moments on map and discovered
-                            }
-                            if (remoteMessage?.data?.notificationData) {
-                                const parsedNotificationData = typeof (remoteMessage?.data?.notificationData) === 'string'
-                                    ? JSON.parse(remoteMessage?.data?.notificationData)
-                                    : {};
-                                addNotification(parsedNotificationData);
-                            }
-                        });
-                    })
-                    .catch((err) => {
-                        console.log('NOTIFICATIONS_ERROR', err);
-                    });
+                // Silent token registration only — no OS prompt fires here.
+                // Notification permission asks are anchored to engagement triggers
+                // and a second-session fallback via permissionsOrchestrator.
+                this.tryRegisterDeviceTokenIfAuthorized();
             } else {
                 BackgroundGeolocation.stop();
+                // Tear down the FCM subscription so a subsequent login re-registers
+                // (refreshes the device token and re-attaches axios headers).
+                if (this.unsubscribePushNotifications) {
+                    this.unsubscribePushNotifications();
+                    this.unsubscribePushNotifications = undefined;
+                }
+                this.fcmRegistrationStarted = false;
             }
         }
     }
@@ -414,6 +476,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     componentWillUnmount() {
         this.nativeEventListener?.remove();
         this.urlEventListener?.remove();
+        this.appStateListener?.remove();
+
+        if (this.appReviewPromptTimeout) {
+            clearTimeout(this.appReviewPromptTimeout);
+            this.appReviewPromptTimeout = null;
+        }
 
         if (this.authCredentialListener) {
             this.authCredentialListener();
@@ -423,7 +491,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         socketIO.off('reconnect', this.handleSocketReconnect);
 
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
+        this.fcmOpenedUnsubscribe && this.fcmOpenedUnsubscribe();
         this.subscriptions.forEach((subscription) => subscription.remove());
+        this.unsubscribeNotificationsGranted?.();
+        this.unsubscribeNotificationsGranted = null;
+        permissions.registerPrimerListener(null);
     }
 
     handleSocketReconnectAttempt = () => {
@@ -436,8 +508,154 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
+    checkAndShowBackgroundLocationDisclosure = () => {
+        if (!isLocationServicesEnabled()) {
+            return;
+        }
+        if (!this.props.user?.isAuthenticated || !this.props.user?.settings?.settingsPushBackground) {
+            return;
+        }
+        AsyncStorage.getItem(BG_LOCATION_DISCLOSURE_KEY).then((value) => {
+            if (value === 'true') {
+                this.readyAndStartBackgroundGeolocation();
+            } else {
+                this.setState({ isBackgroundLocationDisclosureVisible: true });
+            }
+        }).catch(() => {
+            this.readyAndStartBackgroundGeolocation();
+        });
+    };
+
+    handleBackgroundLocationDisclosureAccept = () => {
+        this.setState({ isBackgroundLocationDisclosureVisible: false });
+        AsyncStorage.setItem(BG_LOCATION_DISCLOSURE_KEY, 'true').catch(() => {});
+        this.readyAndStartBackgroundGeolocation();
+    };
+
+    handleBackgroundLocationDisclosureDecline = () => {
+        this.setState({ isBackgroundLocationDisclosureVisible: false });
+        AsyncStorage.setItem(BG_LOCATION_DISCLOSURE_KEY, 'true').catch(() => {});
+    };
+
+    handleAppStateChange = (nextAppState: AppStateStatus) => {
+        if (nextAppState !== 'active') {
+            // Keep the *first* transition away: iOS reports 'inactive' before 'background',
+            // and overwriting would read as a much shorter absence than it was.
+            if (this.lastBackgroundedAt === null) {
+                this.lastBackgroundedAt = Date.now();
+            }
+
+            return;
+        }
+
+        const backgroundedAt = this.lastBackgroundedAt;
+        this.lastBackgroundedAt = null;
+
+        // Only a deliberate return counts. The app also goes inactive for an OS permission
+        // dialog, the camera, and the share sheet — all of which are the middle of a flow the
+        // user started, and the worst possible moment to interrupt with a review prompt.
+        if (backgroundedAt !== null && Date.now() - backgroundedAt >= APP_REVIEW_PROMPT_MIN_AWAY_MS) {
+            this.scheduleAppReviewPromptCheck(APP_REVIEW_PROMPT_FOREGROUND_DELAY_MS);
+        }
+    };
+
+    /**
+     * Whether this is a moment the prompt may interrupt. Everything here is a
+     * "the user is busy with something else" check — eligibility itself (how engaged the
+     * user is, how recently they were last asked) lives in `utilities/appReviewPrompt`.
+     */
+    isAppReviewPromptInterruptible = (): boolean => {
+        const {
+            isAppReviewPromptVisible,
+            isBackgroundLocationDisclosureVisible,
+            isSplashSpinnerVisible,
+            permissionPrimerType,
+        } = this.state;
+
+        return this.isUserAuthenticated()
+            && !isAppReviewPromptVisible
+            && !isBackgroundLocationDisclosureVisible
+            && !isSplashSpinnerVisible
+            && !permissionPrimerType
+            && !this.props.user?.settings?.isTouring;
+    };
+
+    scheduleAppReviewPromptCheck = (delayMs: number) => {
+        // A single pending check at a time. Foregrounding twice in quick succession (a
+        // permission dialog, a share sheet) should not queue up two prompts.
+        if (this.appReviewPromptTimeout) {
+            return;
+        }
+
+        this.appReviewPromptTimeout = setTimeout(() => {
+            this.appReviewPromptTimeout = null;
+            this.checkAppReviewPrompt();
+        }, delayMs);
+    };
+
+    checkAppReviewPrompt = () => {
+        if (!this.isAppReviewPromptInterruptible()) {
+            return;
+        }
+
+        shouldShowReviewPrompt().then((shouldShow) => {
+            // Re-check: the read is async, and a permission primer or the tour may have
+            // opened while it was in flight.
+            if (!shouldShow || !this.isAppReviewPromptInterruptible()) {
+                return;
+            }
+
+            // Stamped on display rather than on an answer, so a prompt the user swipes away
+            // still starts the quiet period.
+            markReviewPromptShown();
+            this.setState({ isAppReviewPromptVisible: true });
+            logEvent(getAnalytics(), 'app_review_prompt_shown', {
+                userId: this.props.user?.details?.id,
+            }).catch((err) => console.log(err));
+        }).catch((err) => console.log('APP_REVIEW_PROMPT_CHECK_ERROR', err));
+    };
+
+    handleAppReviewPromptClose = (outcome: AppReviewPromptOutcome) => {
+        this.setState({ isAppReviewPromptVisible: false });
+
+        logEvent(getAnalytics(), 'app_review_prompt_closed', {
+            userId: this.props.user?.details?.id,
+            outcome,
+        }).catch((err) => console.log(err));
+
+        if (outcome === 'reviewRequested') {
+            openStoreReviewPage().then((didOpen) => {
+                // Only terminal if the store actually opened. If nothing could handle the
+                // link the user never got the chance to review, so leave them askable.
+                if (didOpen) {
+                    markReviewPromptCompleted();
+                }
+            }).catch((err) => console.log('APP_REVIEW_STORE_LINK_ERROR', err));
+
+            return;
+        }
+
+        if (outcome === 'feedbackRequested') {
+            markReviewPromptDeclined();
+            openSupportEmail(this.translate('modals.appReviewPrompt.emailSubject'))
+                .catch((err) => console.log('APP_REVIEW_SUPPORT_LINK_ERROR', err));
+
+            return;
+        }
+
+        if (outcome === 'declined') {
+            markReviewPromptDeclined();
+        }
+
+        // 'dismissed' leaves the user eligible for a later prompt; the shown-stamp above
+        // already started the quiet period.
+    };
+
     // IMPORTANT: This should only be called once per session
     readyAndStartBackgroundGeolocation = () => {
+        if (!isLocationServicesEnabled()) {
+            return;
+        }
         const userToken = this.props?.user?.details?.idToken;
         if (this.props.user?.isAuthenticated && userToken
             && this.props.user?.settings?.settingsPushBackground) {
@@ -510,6 +728,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.themeMenu = buildMenuStyles(themeName);
         this.themeInfoModal = buildInfoModalStyles(themeName);
         this.themeModal = buildModalStyles(themeName);
+        this.themeConfirmModal = buildConfirmModalStyles(themeName);
+        this.themeDisclosure = buildDisclosureStyles(themeName);
         if (shouldForceUpdate) {
             this.forceUpdate();
         }
@@ -531,7 +751,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         } = this.props;
         if (user.isAuthenticated) {
             // Pre-load activated content
-            if (!content?.content?.activeMoments?.length) {
+            if (!content?.activeMoments?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveMoments: true,
                 });
@@ -550,7 +770,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 });
             }
-            if (!content?.content?.activeThoughts?.length) {
+            if (!content?.activeThoughts?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveThoughts: true,
                 });
@@ -569,7 +789,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 });
             }
-            if (!content?.content?.activeEvents?.length) {
+            if (!content?.activeEvents?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveEvents: true,
                 });
@@ -805,23 +1025,84 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         let targetRouteView = '';
         let targetRouteParams: any = {};
         if (data && !Array.isArray(data) && typeof (data) === 'object') {
-            if (data.action === PushNotifications.AndroidIntentActions.Therr.ACHIEVEMENT_COMPLETED
-                || data.action === PushNotifications.AndroidIntentActions.Therr.UNCLAIMED_ACHIEVEMENTS_REMINDER) {
+            // Each native build only declares its own brand's intent filters,
+            // so the action string we receive will already be brand-scoped.
+            // Pick the matching enum so Teem/Habits taps route correctly when
+            // running on those brand binaries.
+            const brandIntents = CURRENT_BRAND_VARIATION === BrandVariations.HABITS
+                ? PushNotifications.AndroidIntentActions.Habits
+                : CURRENT_BRAND_VARIATION === BrandVariations.TEEM
+                    ? PushNotifications.AndroidIntentActions.Teem
+                    : PushNotifications.AndroidIntentActions.Therr;
+
+            if (data.action === brandIntents.ACHIEVEMENT_COMPLETED
+                || data.action === brandIntents.UNCLAIMED_ACHIEVEMENTS_REMINDER) {
                 targetRouteView = 'Achievements';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.CREATE_A_MOMENT_REMINDER) {
+            } else if (data.action === brandIntents.CREATE_A_MOMENT_REMINDER) {
                 targetRouteView = 'Map';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.LATEST_POST_LIKES_STATS) {
+            } else if (data.action === brandIntents.CREATE_YOUR_PROFILE_REMINDER) {
+                targetRouteView = 'ManageAccount';
+            } else if (data.action === brandIntents.COMPLETE_DRAFT_REMINDER) {
+                targetRouteView = 'MyDrafts';
+            } else if (data.action === brandIntents.LATEST_POST_LIKES_STATS
+                || data.action === brandIntents.LATEST_POST_VIEWCOUNT_STATS) {
+                // Author's own post stats — open their profile so they can
+                // see the affected post in the user's content carousel.
                 targetRouteView = 'ViewUser';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.UNREAD_NOTIFICATIONS_REMINDER) {
+                if (user?.details?.id) {
+                    targetRouteParams = { userInView: { id: user.details.id } };
+                }
+            } else if (data.action === brandIntents.UNREAD_NOTIFICATIONS_REMINDER) {
                 targetRouteView = 'Notifications';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.INVITE_FRIENDS_REMINDER) {
+            } else if (data.action === brandIntents.INVITE_FRIENDS_REMINDER) {
                 targetRouteView = 'Invite';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_INVITE
-                || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MEMBERS) {
+            } else if (data.action === brandIntents.NEW_AREAS_ACTIVATED) {
+                targetRouteView = 'Areas';
+            } else if (data.action === brandIntents.NEW_GROUP_INVITE
+                || data.action === brandIntents.NEW_GROUP_MEMBERS) {
                 targetRouteView = 'Groups';
                 targetRouteParams = {
                     activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
                 };
+            } else if (data.action === brandIntents.NEW_GROUP_MESSAGE) {
+                targetRouteView = 'Groups';
+                targetRouteParams = {
+                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+                };
+            } else if (data.action === brandIntents.NEW_DIRECT_MESSAGE) {
+                // Without the conversation's other-user-id we can only land
+                // on the messaging hub; the per-thread navigation happens via
+                // the data-only path on Notifee/handleRemoteMessageTap.
+                targetRouteView = 'Notifications';
+            } else if (data.action === brandIntents.NEW_CONNECTION
+                || data.action === brandIntents.NEW_CONNECTION_REQUEST) {
+                targetRouteView = 'Connect';
+            } else if (data.action === brandIntents.NEW_LIKE_RECEIVED
+                || data.action === brandIntents.NEW_SUPER_LIKE_RECEIVED
+                || data.action === brandIntents.NEW_THOUGHT_REPLY_RECEIVED
+                || data.action === brandIntents.NEW_THOUGHT_REPOST_RECEIVED) {
+                targetRouteView = 'Notifications';
+            } else if (data.action === brandIntents.NUDGE_SPACE_ENGAGEMENT) {
+                targetRouteView = 'Areas';
+            } else if (data.action === brandIntents.POST_VISIT_REVIEW_REMINDER) {
+                targetRouteView = 'BookMarked';
+            } else if (data.action === brandIntents.REPORT_CONFIRMED) {
+                targetRouteView = 'Notifications';
+            } else if (data.action?.endsWith(QUICK_ACTION_SUFFIXES.CREATE_MOMENT)) {
+                // App-shortcut: jump straight into moment creation. EditMoment
+                // destructures route.params (and calls nearbySpaces.find), so we
+                // must pass a non-empty param object. Seed the location from the
+                // user's last-known coords, matching the in-app create button.
+                targetRouteView = 'EditMoment';
+                targetRouteParams = {
+                    imageDetails: {},
+                    nearbySpaces: [],
+                    latitude: user?.details?.lastKnownLatitude,
+                    longitude: user?.details?.lastKnownLongitude,
+                };
+            } else if (data.action?.endsWith(QUICK_ACTION_SUFFIXES.CREATE_THOUGHT)) {
+                // App-shortcut: jump straight into thought creation (no location).
+                targetRouteView = 'EditThought';
             }
         }
 
@@ -833,6 +1114,212 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             RootNavigation.navigate('Login');
         } else if (targetRouteView) {
             RootNavigation.navigate(targetRouteView, targetRouteParams);
+        }
+    };
+
+    /**
+     * Maps a PushNotifications.Types value (carried in `data.type` on every
+     * FCM payload — see push-notifications-service createMessage) to a route.
+     *
+     * Used as the universal fallback in handleNotifeeNotificationEvent so
+     * notifications that lack a notificationPressActionId still land on a
+     * sensible screen instead of dropping the user on the launch view. This
+     * matters most for:
+     *  - iOS APNs alert taps (createNotificationMessage payloads have no
+     *    notificationPressActionId, so handleRemoteMessageTap synthesizes
+     *    `default` and falls through every press-action branch).
+     *  - Android FCM-rendered notifications with no clickAction / unmatched
+     *    intent action.
+     *  - Brand variants whose intent strings don't match the legacy
+     *    handleFirebasePushNotificationEvent checks.
+     */
+    getRouteFromNotificationType = (
+        notificationType: string | undefined,
+        data: { [key: string]: any } | undefined,
+    ): { targetRouteView: string; targetRouteParams: any } | null => {
+        if (!notificationType) {
+            return null;
+        }
+
+        const { user } = this.props;
+        const currentUserId = user?.details?.id;
+
+        // Object payloads are JSON-stringified by the backend
+        // (push-notifications-service firebaseAdmin.ts createMessage), so
+        // parse here defensively rather than assuming a type.
+        const parseObject = (key: string): any => {
+            const value = data?.[key];
+            if (typeof value === 'string') {
+                try {
+                    return JSON.parse(value);
+                } catch {
+                    return null;
+                }
+            }
+            if (typeof value === 'object' && value !== null) {
+                return value;
+            }
+            return null;
+        };
+
+        const area = parseObject('area');
+        const fromUser = parseObject('fromUser');
+        const thought = parseObject('thought');
+        const groupId = typeof data?.groupId === 'string' ? data.groupId : undefined;
+        const postType = typeof data?.postType === 'string' ? data.postType : undefined;
+
+        const buildMomentRoute = (m: any) => ({
+            targetRouteView: 'ViewMoment',
+            targetRouteParams: {
+                isMyContent: m?.fromUserId === currentUserId,
+                previousView: 'Map',
+                moment: { id: m.id },
+                momentDetails: m,
+            },
+        });
+        const buildSpaceRoute = (s: any) => ({
+            targetRouteView: 'ViewSpace',
+            targetRouteParams: {
+                isMyContent: s?.fromUserId === currentUserId,
+                previousView: 'Map',
+                space: { id: s.id },
+                spaceDetails: s,
+            },
+        });
+        const buildThoughtRoute = (t: any) => ({
+            targetRouteView: 'ViewThought',
+            targetRouteParams: {
+                isMyContent: t?.fromUserId === currentUserId,
+                previousView: 'Map',
+                thought: { id: t.id },
+                thoughtDetails: t,
+            },
+        });
+
+        switch (notificationType) {
+            // Automation reminders
+            case PushNotifications.Types.createYourProfileReminder:
+                return { targetRouteView: 'ManageAccount', targetRouteParams: {} };
+            case PushNotifications.Types.createAMomentReminder:
+                return { targetRouteView: 'Map', targetRouteParams: {} };
+            case PushNotifications.Types.completeDraftReminder:
+                return { targetRouteView: 'MyDrafts', targetRouteParams: {} };
+            case PushNotifications.Types.latestPostLikesStats:
+                if (currentUserId) {
+                    return { targetRouteView: 'ViewUser', targetRouteParams: { userInView: { id: currentUserId } } };
+                }
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+            case PushNotifications.Types.latestPostViewcountStats:
+                if (area?.id) return buildMomentRoute(area);
+                if (currentUserId) {
+                    return { targetRouteView: 'ViewUser', targetRouteParams: { userInView: { id: currentUserId } } };
+                }
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+            case PushNotifications.Types.unreadNotificationsReminder:
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+            case PushNotifications.Types.unclaimedAchievementsReminder:
+                return { targetRouteView: 'Achievements', targetRouteParams: {} };
+            case PushNotifications.Types.inviteFriendsReminder:
+                return { targetRouteView: 'Invite', targetRouteParams: {} };
+
+            // Event-driven
+            case PushNotifications.Types.achievementCompleted:
+                return { targetRouteView: 'Achievements', targetRouteParams: {} };
+            case PushNotifications.Types.connectionRequestAccepted:
+            case PushNotifications.Types.newConnectionRequest:
+                if (fromUser?.id) {
+                    return { targetRouteView: 'ViewUser', targetRouteParams: { userInView: { id: fromUser.id } } };
+                }
+                return { targetRouteView: 'Connect', targetRouteParams: {} };
+            case PushNotifications.Types.newDirectMessage:
+                if (fromUser?.id) {
+                    return {
+                        targetRouteView: 'DirectMessage',
+                        targetRouteParams: {
+                            connectionDetails: { id: fromUser.id, userName: fromUser.userName },
+                        },
+                    };
+                }
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+            case PushNotifications.Types.newGroupInvite:
+            case PushNotifications.Types.newGroupMembers:
+                return {
+                    targetRouteView: 'Groups',
+                    targetRouteParams: { activeTab: GROUPS_CAROUSEL_TABS.GROUPS },
+                };
+            case PushNotifications.Types.newGroupMessage:
+                if (groupId) {
+                    return {
+                        targetRouteView: 'ViewGroup',
+                        targetRouteParams: { activeTab: GROUP_CAROUSEL_TABS.CHAT, id: groupId },
+                    };
+                }
+                return {
+                    targetRouteView: 'Groups',
+                    targetRouteParams: { activeTab: GROUPS_CAROUSEL_TABS.GROUPS },
+                };
+            case PushNotifications.Types.newLikeReceived:
+            case PushNotifications.Types.newSuperLikeReceived:
+                if (postType === 'thoughts' && thought?.id) return buildThoughtRoute(thought);
+                if (area?.id) {
+                    if (postType === 'moments') return buildMomentRoute(area);
+                    return buildSpaceRoute(area);
+                }
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+            case PushNotifications.Types.newAreasActivated:
+                return { targetRouteView: 'Areas', targetRouteParams: {} };
+            case PushNotifications.Types.nudgeSpaceEngagement:
+                if (area?.id) return buildSpaceRoute(area);
+                return { targetRouteView: 'Areas', targetRouteParams: {} };
+            case PushNotifications.Types.proximityRequiredMoment:
+                if (area?.id) return buildMomentRoute(area);
+                return { targetRouteView: 'Map', targetRouteParams: {} };
+            case PushNotifications.Types.proximityRequiredSpace:
+                if (area?.id) return buildSpaceRoute(area);
+                return { targetRouteView: 'Map', targetRouteParams: {} };
+            case PushNotifications.Types.newThoughtReplyReceived:
+            case PushNotifications.Types.newThoughtRepostReceived:
+                if (thought?.id) return buildThoughtRoute(thought);
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+            case PushNotifications.Types.postVisitReviewReminder:
+                if (area?.id) return buildSpaceRoute(area);
+                return { targetRouteView: 'BookMarked', targetRouteParams: {} };
+            case PushNotifications.Types.reportConfirmed:
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+
+            // HABITS pact / streak / partner / habit-reminder notifications.
+            // The matching screens (Pact view, Streak view, etc.) don't yet
+            // exist in TherrMobile; route to the in-app notifications list as
+            // a sensible default until those routes ship. Once the screens
+            // land, swap these branches for direct deep links.
+            case PushNotifications.Types.pactInvitation:
+            case PushNotifications.Types.pactAccepted:
+            case PushNotifications.Types.pactDeclined:
+            case PushNotifications.Types.pactCompleted:
+            case PushNotifications.Types.pactExpiring:
+            case PushNotifications.Types.pactEnded:
+            case PushNotifications.Types.partnerCheckedIn:
+            case PushNotifications.Types.partnerMissedDay:
+            case PushNotifications.Types.partnerCelebrated:
+            case PushNotifications.Types.streakMilestone:
+            case PushNotifications.Types.streakAtRisk:
+            case PushNotifications.Types.streakBroken:
+            case PushNotifications.Types.newPersonalRecord:
+            case PushNotifications.Types.dailyHabitReminder:
+            case PushNotifications.Types.morningMotivation:
+            case PushNotifications.Types.eveningCheckIn:
+            // Habit lifecycle milestones and check-ins
+            // (docs/HABIT_LIFECYCLE_MESSAGING.md). Listed here rather than left
+            // to `default` because that returns null — the notification would
+            // render, be tappable, and open nothing.
+            case PushNotifications.Types.habitEstablished:
+            case PushNotifications.Types.habitAutomaticity:
+            case PushNotifications.Types.habitMaintenanceCheckIn:
+            case PushNotifications.Types.habitComeback:
+                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+
+            default:
+                return null;
         }
     };
 
@@ -890,7 +1377,30 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.discovered) {
                 if (isUserAuthorized) {
-                    RootNavigation.navigate('Areas');
+                    const parseIds = (raw: unknown): string[] => {
+                        if (Array.isArray(raw)) {
+                            return raw as string[];
+                        }
+                        if (typeof raw === 'string' && raw.length) {
+                            try {
+                                const parsed = JSON.parse(raw);
+                                return Array.isArray(parsed) ? parsed : [];
+                            } catch {
+                                return [];
+                            }
+                        }
+                        return [];
+                    };
+                    const activatedMomentIds = parseIds(notification?.data?.activatedMomentIds);
+                    const activatedSpaceIds = parseIds(notification?.data?.activatedSpaceIds);
+                    if (activatedMomentIds.length || activatedSpaceIds.length) {
+                        RootNavigation.navigate('ActivatedAreas', {
+                            activatedMomentIds,
+                            activatedSpaceIds,
+                        });
+                    } else {
+                        RootNavigation.navigate('Nearby');
+                    }
                 }
                 return Promise.resolve();
             }
@@ -1035,6 +1545,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 return Promise.resolve();
             }
 
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.leaderboardView) {
+                if (!isUserAuthorized) {
+                    this.setState({
+                        targetRouteView: 'Leaderboard',
+                        targetRouteParams: {},
+                    });
+
+                    return Promise.resolve();
+                }
+
+                RootNavigation.navigate('Leaderboard');
+                return Promise.resolve();
+            }
+
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.userView) {
                 let fromUserDetails: any = {};
                 if (typeof notification?.data?.fromUser === 'string') {
@@ -1110,6 +1634,34 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.discovered) {
                 return Promise.resolve();
             }
+
+            // Fallback: route by notification type when no specific press
+            // action matched. This catches:
+            //  - iOS APNs alert taps for createNotificationMessage payloads
+            //    (no notificationPressActionId is set on the data, so
+            //    handleRemoteMessageTap synthesizes a `default` press action).
+            //  - Android FCM notification-payload taps with no clickAction
+            //    or whose intent action wasn't matched in
+            //    handleFirebasePushNotificationEvent.
+            //  - HABITS / future notification types whose press-action ids
+            //    aren't yet wired up above.
+            // Without this, taps in those scenarios silently leave the user
+            // on the launch screen with no navigation.
+            const notificationType = typeof notification?.data?.type === 'string'
+                ? notification.data.type
+                : undefined;
+            const fallbackRoute = this.getRouteFromNotificationType(notificationType, notification?.data);
+            if (fallbackRoute) {
+                if (!isUserAuthorized) {
+                    this.setState({
+                        targetRouteView: fallbackRoute.targetRouteView,
+                        targetRouteParams: fallbackRoute.targetRouteParams,
+                    });
+                    return Promise.resolve();
+                }
+                RootNavigation.navigate(fallbackRoute.targetRouteView, fallbackRoute.targetRouteParams);
+                return Promise.resolve();
+            }
         }
 
         if (type === EventType.DISMISSED) {
@@ -1129,6 +1681,35 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
     handleNotifeeForegroundNotificationEvent = () => {
         return notifee.onForegroundEvent((event) => this.handleNotifeeNotificationEvent(event, true));
+    };
+
+    /**
+     * On iOS, data-only pushes now arrive as APNS alerts (see
+     * push-notifications-service createDataOnlyMessage). When the OS renders
+     * the alert and the user taps it, the tap comes through the Firebase
+     * messaging module — NOT Notifee — so we normalize the FCM RemoteMessage
+     * into the same event shape that handleNotifeeNotificationEvent expects
+     * and reuse all the existing routing logic.
+     */
+    handleRemoteMessageTap = (remoteMessage: any) => {
+        if (!remoteMessage?.data) {
+            return;
+        }
+        const fakeEvent: any = {
+            type: EventType.PRESS,
+            detail: {
+                notification: {
+                    title: remoteMessage.data.notificationTitle?.toString?.() || '',
+                    body: remoteMessage.data.notificationBody?.toString?.() || '',
+                    data: remoteMessage.data,
+                },
+                pressAction: {
+                    id: remoteMessage.data.notificationPressActionId?.toString?.()
+                        || PushNotifications.PressActionIds.default,
+                },
+            },
+        };
+        this.handleNotifeeNotificationEvent(fakeEvent as Event, false, true);
     };
 
     /**
@@ -1168,6 +1749,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const viewUserFromDesktopRegex = RegExp('users/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewEventRegex = RegExp('events/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewGroupRegex = RegExp('groups/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
+        const viewPublicListRegex = RegExp('lists/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/([a-z0-9-]+)', 'i');
+        const inviteLinkRegex = RegExp('invite/link/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const isUserLoggedIn = isUserAuthenticated(user);
         const isUserMissingProps = UsersService.isAuthorized(
             {
@@ -1224,6 +1807,28 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     targetRouteView: 'Achievements',
                 });
             }
+        } else if (url?.includes('therr.com/api-access') || url?.includes('therr.com/api-keys')) {
+            // therr.com is an auto-verified App Link, so the marketing site's "Get an API key"
+            // CTA opens this app instead of the browser. Without this branch it fell through
+            // to handleOpenByNotifeeNotification and the user hit a dead end. The screen is
+            // public, so route signed-out users there too rather than deferring to targetRouteView.
+            // '/api-keys' is matched as well because older marketing links still point at it.
+            RootNavigation.navigate('ApiAccess');
+        } else if (url?.includes('therr.com/verify-phone')) {
+            // Phone verification lives only inside the CreateProfile stack, so anything that
+            // needs to send a user there — the bulk-invite 403, the profile checklist, an
+            // email or SMS nudge — points at this URL. The web page at the same path is the
+            // fallback for users without the app, and it verifies through the same endpoints.
+            // Signed-out users cannot verify anything, so defer via targetRouteView and let
+            // them land here after login rather than bouncing them to a screen that 401s.
+            if (isUserLoggedIn) {
+                RootNavigation.navigate('CreateProfile', { stage: 'phone' });
+            } else {
+                this.setState({
+                    targetRouteView: 'CreateProfile',
+                    targetRouteParams: { stage: 'phone' },
+                });
+            }
         } else if (url?.includes('therr.com/app-feedback')) {
             if (isUserLoggedIn && !isUserMissingProps) {
                 RootNavigation.navigate('Home');
@@ -1231,6 +1836,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 this.setState({
                     targetRouteView: 'Home',
                 });
+            }
+        } else if (url?.match(inviteLinkRegex)) {
+            // Magic invite link: send unauthenticated users to a pre-filled
+            // signup (Register fetches the invite details from the token).
+            // Already-authenticated users have an account, so ignore.
+            const inviteToken = url.match(inviteLinkRegex)[1];
+            if (!isUserLoggedIn) {
+                RootNavigation.navigate('Register', { inviteToken });
             }
         } else if (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex)) {
             const momentId = (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex))[1];
@@ -1325,26 +1938,158 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     targetRouteParams,
                 });
             }
+        } else if (url?.match(viewPublicListRegex)) {
+            // Public shareable list. For the owner, open MyLists so they can
+            // navigate into their own editable list. For other viewers the
+            // web page at this URL is the read-only experience; we don't yet
+            // render other users' lists inside the app, so fall back to
+            // opening MyLists for authed users / the Home route otherwise.
+            // A dedicated in-app viewer is intentionally deferred to Phase 2.
+            if (isUserLoggedIn && !isUserMissingProps) {
+                RootNavigation.navigate('MyLists');
+            } else {
+                this.setState({ targetRouteView: 'MyLists' });
+            }
         } else if (Platform.OS !== 'ios') {
             // IOS will use the notifee foreground listener instead
             this.handleOpenByNotifeeNotification();
         }
     };
 
-    getIosNotificationPermissions = () => {
-        // TODO: Determine if 2nd then is even necessary
-        return notifee.requestPermission()
-            .then((permissions) => {
-                if (permissions?.authorizationStatus !== 1) {
-                    console.log('Notifee authorization status:', permissions);
-                }
-                return requestPermission(getMessaging());
+    // Silent FCM token registration. Runs at login and on app launch when the
+    // user is already authenticated; only proceeds if the OS-level notification
+    // permission is already authorized, so it never surfaces an OS prompt.
+    // Soft-asks (and the OS prompt itself) are owned by permissionsOrchestrator.
+    tryRegisterDeviceTokenIfAuthorized = async () => {
+        try {
+            const status = await hasPermission(getMessaging());
+            const authorized = status === AuthorizationStatus.AUTHORIZED
+                || status === AuthorizationStatus.PROVISIONAL;
+            if (!authorized) return;
+            this.registerDeviceForFCM();
+        } catch (err) {
+            console.log('NOTIFICATIONS_HAS_PERMISSION_ERROR', err);
+        }
+    };
+
+    registerDeviceForFCM = () => {
+        const {
+            addNotification,
+            location,
+            searchActiveMomentsByIds,
+            searchActiveSpacesByIds,
+            user,
+            updateUser,
+        } = this.props;
+        // Avoid double-subscribing. The token chain is async so the
+        // `unsubscribePushNotifications` ref is only set once getToken resolves;
+        // the synchronous flag closes the race when two callers (e.g. login
+        // transition + orchestrator's onGranted) trigger registration in the
+        // same tick.
+        if (this.fcmRegistrationStarted) return;
+        this.fcmRegistrationStarted = true;
+        registerDeviceForRemoteMessages(getMessaging())
+            .then(() => getToken(getMessaging()))
+            .then((deviceToken) => {
+                axios.defaults.headers['x-user-device-token'] = deviceToken;
+                // Register unconditionally. This was guarded on
+                // `user.details.deviceMobileFirebaseToken !== deviceToken`, but that value is
+                // the legacy *shared* users.deviceMobileFirebaseToken column, which every
+                // branded app on the device overwrites in turn — so it says nothing about
+                // whether THIS brand is registered. `updateUser` is the only path that writes
+                // the brand-scoped main.userDeviceTokens row (via syncDeviceTokenForBrand), so
+                // whenever the shared column already held this app's token the guard skipped
+                // the call and the row was never written at all. Routing then fell back to the
+                // shared column and delivered this brand's pushes to whichever app registered
+                // last — a Friends with Habits streak reminder arriving in Therr. The value is
+                // also never written back into Redux, and the `user` slice is redux-persisted,
+                // so a stale snapshot suppressed re-registration across app updates.
+                //
+                // `fcmRegistrationStarted` above already limits this to one call per app
+                // session, and the server-side upsert is idempotent.
+                //
+                // The device's IANA timezone rides along on the same call.
+                // `main.users.settingsTimezone` has existed since the habits schema
+                // landed and nothing has ever written it, which is why every scheduled
+                // notification went out at one global hour — evening in America/Chicago
+                // and 02:00 in Auckland. Reporting it here rather than through a new
+                // endpoint is deliberate: this is already the one call that happens once
+                // per app session on the push path, so a user who travels re-syncs the
+                // next time they open the app, and a user with push disabled — who
+                // cannot receive a scheduled reminder anyway — costs nothing.
+                //
+                // Sent only when the platform resolves a zone. The server rejects an
+                // unrecognised value with a 400, so passing `undefined` through on the
+                // rare device where `Intl` returns nothing would fail the device-token
+                // registration this call actually exists for.
+                const deviceTimeZone = getDeviceTimeZone();
+                updateUser(user.details.id, {
+                    deviceMobileFirebaseToken: deviceToken,
+                    ...(deviceTimeZone ? { settingsTimezone: deviceTimeZone } : {}),
+                });
+                this.unsubscribePushNotifications = onMessage(getMessaging(), async (remoteMessage) => {
+                    await wrapOnMessageReceived(true, remoteMessage);
+
+                    if (remoteMessage?.data?.areasActivated) {
+                        const parsedAreasData = typeof (remoteMessage?.data?.areasActivated) === 'string'
+                            ? JSON.parse(remoteMessage?.data?.areasActivated)
+                            : [];
+                        const momentsData = parsedAreasData.filter((area) => area.momentId);
+                        const spacesData = parsedAreasData.filter((area) => area.spaceId);
+                        if (parsedAreasData.length) {
+                            sendForegroundNotification({
+                                title: this.translate('alertTitles.newAreasActivated'),
+                                body: this.translate('alertMessages.newAreasActivated', {
+                                    total: momentsData.length + spacesData.length,
+                                }),
+                                android: {
+                                    pressAction: { id: PushNotifications.PressActionIds.discovered, launchActivity: 'default' },
+                                },
+                                data: {
+                                    activatedMomentIds: JSON.stringify(momentsData.map((moment) => moment.momentId)),
+                                    activatedSpaceIds: JSON.stringify(spacesData.map((space) => space.spaceId)),
+                                },
+                            }, getAndroidChannel(AndroidChannelIds.contentDiscovery, false));
+                            if (momentsData.length) {
+                                searchActiveMomentsByIds({
+                                    userLatitude: location?.user?.latitude,
+                                    userLongitude: location?.user?.longitude,
+                                    withMedia: true,
+                                    withUser: true,
+                                    blockedUsers: user.details.blockedUsers,
+                                    shouldHideMatureContent: user.details.shouldHideMatureContent,
+                                }, momentsData.map((moment) => moment.momentId));
+                            }
+                            if (spacesData.length) {
+                                searchActiveSpacesByIds({
+                                    userLatitude: location?.user?.latitude,
+                                    userLongitude: location?.user?.longitude,
+                                    withMedia: true,
+                                    withUser: true,
+                                    blockedUsers: user.details.blockedUsers,
+                                    shouldHideMatureContent: user.details.shouldHideMatureContent,
+                                }, spacesData.map((space) => space.spaceId));
+                            }
+                        }
+                    }
+                    if (remoteMessage?.data?.notificationData) {
+                        const parsedNotificationData = typeof (remoteMessage?.data?.notificationData) === 'string'
+                            ? JSON.parse(remoteMessage?.data?.notificationData)
+                            : {};
+                        addNotification(parsedNotificationData);
+                    }
+                });
             })
-            .then((authStatus) => {
-                const enabled = authStatus === AuthorizationStatus.AUTHORIZED
-                    || authStatus === AuthorizationStatus.PROVISIONAL;
-                if (!enabled) {
-                    console.log('Notifications authorization status:', authStatus);
+            .catch((err) => {
+                console.log('NOTIFICATIONS_ERROR', err);
+                if (!__DEV__) {
+                    try {
+                        const crashlytics = getCrashlytics();
+                        crashlyticsLog(crashlytics, `NOTIFICATIONS_ERROR: ${err?.message || String(err)}`);
+                        recordError(crashlytics, err instanceof Error ? err : new Error(String(err)));
+                    } catch {
+                        // Crashlytics may not be initialized yet on very early startup.
+                    }
                 }
             });
     };
@@ -1389,6 +2134,24 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         return logout(userDetails);
     };
 
+    handlePermissionPrimerAllow = () => {
+        const resolve = this.permissionPrimerResolve;
+        this.permissionPrimerResolve = null;
+        this.setState({ permissionPrimerType: null });
+        resolve?.(true);
+    };
+
+    handlePermissionPrimerNotNow = () => {
+        const resolve = this.permissionPrimerResolve;
+        this.permissionPrimerResolve = null;
+        this.setState({ permissionPrimerType: null });
+        resolve?.(false);
+    };
+
+    handleSplashSpinComplete = () => {
+        this.setState({ isSplashSpinnerVisible: false });
+    };
+
     render() {
         const {
             location,
@@ -1396,53 +2159,78 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             updateGpsStatus,
             user,
         } = this.props;
+        const {
+            isAppReviewPromptVisible,
+            isBackgroundLocationDisclosureVisible,
+            permissionPrimerType,
+            isSplashSpinnerVisible,
+            shouldSpinSplashLogo,
+        } = this.state;
 
         return (
-            <NavigationContainer
+            <>
+                <NavigationContainer
                 // Keyed on locale only so theme toggles do not remount the entire nav tree.
                 // Locale change still requires a remount because route translators close over locale at construction.
-                key={this.props.user?.settings?.locale || 'en-us'}
-                theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
-                ref={navigationRef}
-                onReady={() => {
-                    this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
-                    Promise.allSettled(preLoadImageList.map((image) => {
-                        const img = Image.resolveAssetSource(image).uri;
-                        return Image.prefetch(img);
-                    })).finally(() => {
+                    key={this.props.user?.settings?.locale || 'en-us'}
+                    // Restore the stack the user was already on across that remount. Without this the
+                    // navigator falls back to its first screen, so switching languages from, say, the
+                    // sign-up screen would bounce the user out to the landing/sign-in screen. Route
+                    // names are locale-independent (`translate` returns the key when it is not a
+                    // dictionary path), so a state captured under one locale is valid under any other.
+                    // Undefined on first mount, which is the normal "start at the initial route" case.
+                    initialState={this.lastNavigationState}
+                    theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
+                    ref={navigationRef}
+                    onReady={() => {
+                        this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
+                        this.lastNavigationState = navigationRef?.getRootState();
+                        Promise.allSettled(preLoadImageList.map((image) => {
+                            const img = Image.resolveAssetSource(image).uri;
+                            return Image.prefetch(img);
+                        })).finally(() => {
                         // TODO: Update users lastSessionStartAt property to track user activity
-                        SplashScreen.hide({ fade: true });
-                    });
-                }}
-                onStateChange={async () => {
-                    const previousRouteName = this.routeNameRef.current;
-                    const currentRouteName = navigationRef?.getCurrentRoute()?.name;
-                    if (currentRouteName !== 'Map') {
-                        // Prevent stuck tour on wrong routes
-                        this.props.stopNavigationTour();
-                    }
-
-                    if (previousRouteName !== currentRouteName) {
-                        await logScreenView(getAnalytics(), {
-                            screen_name: currentRouteName,
-                            screen_class: currentRouteName,
-                            is_authenticated: this.isUserAuthenticated() ? 'yes' : 'no',
+                        // Hand off to JS overlay with no fade: the overlay matches the native splash bg
+                        // exactly, so the transition is invisible and the spin starts cleanly.
+                            SplashScreen.hide({ fade: false });
+                            this.setState({ shouldSpinSplashLogo: true });
+                            // AppState never reports the launch itself as a change, so the
+                            // cold-start path has to arm its own check.
+                            this.scheduleAppReviewPromptCheck(APP_REVIEW_PROMPT_COLD_START_DELAY_MS);
                         });
-                    }
-                    this.routeNameRef.current = currentRouteName;
-                }}
-            >
-                <Stack.Navigator
-                    id={undefined}
-                    screenOptions={({ route, navigation }) => {
-                        const themeName = this.props?.user?.settings?.mobileThemeName;
-                        const currentScreen = route.name;
-                        const currentScreenParams = (route.params as Record<string, any>) || {};
-                        const isConnect = currentScreen === 'Connect';
-                        const isAreas = currentScreen === 'Areas';
-                        const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
-                        const isMap = currentScreen === 'Map';
-                        const hasLogoHeaderTitle = currentScreen === 'Login'
+                    }}
+                    onStateChange={async () => {
+                        // Capture synchronously, before any await, so a locale change dispatched
+                        // during this tick still remounts with the up-to-date stack.
+                        this.lastNavigationState = navigationRef?.getRootState();
+                        const previousRouteName = this.routeNameRef.current;
+                        const currentRouteName = navigationRef?.getCurrentRoute()?.name;
+                        if (currentRouteName !== 'Map') {
+                        // Prevent stuck tour on wrong routes
+                            this.props.stopNavigationTour();
+                        }
+
+                        if (previousRouteName !== currentRouteName) {
+                            await logScreenView(getAnalytics(), {
+                                screen_name: currentRouteName,
+                                screen_class: currentRouteName,
+                                is_authenticated: this.isUserAuthenticated() ? 'yes' : 'no',
+                            });
+                        }
+                        this.routeNameRef.current = currentRouteName;
+                    }}
+                >
+                    <Stack.Navigator
+                        id={undefined}
+                        screenOptions={({ route, navigation }) => {
+                            const themeName = this.props?.user?.settings?.mobileThemeName;
+                            const currentScreen = route.name;
+                            const currentScreenParams = (route.params as Record<string, any>) || {};
+                            const isConnect = currentScreen === 'Connect';
+                            const isAreas = currentScreen === 'Areas';
+                            const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
+                            const isMap = currentScreen === 'Map';
+                            const hasLogoHeaderTitle = currentScreen === 'Login'
                             || currentScreen === 'Landing'
                             || currentScreen === 'Home'
                             || currentScreen === 'ForgotPassword'
@@ -1450,216 +2238,252 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             || currentScreen === 'EmailVerification'
                             || currentScreen === 'CreateProfile'
                             || currentScreen === 'Register';
-                        const isAccentPage = currentScreen === 'EditMoment'
+                            const isAccentPage = currentScreen === 'EditMoment'
                             || currentScreen === 'EditSpace'
                             || currentScreen === 'ViewMoment'
                             || currentScreen === 'ViewGroup'
                             || currentScreen === 'ViewSpace';
-                        let headerTitle;
-                        let headerStyle = this.theme.styles.headerStyle;
-                        let headerStyleName: any = 'light';
-                        let headerTitleColor = themeName === 'light'
-                            ? this.theme.colors.primary3
-                            : this.theme.colors.textWhite;
-                        const advancedSearchPlaceholderText = currentScreen === 'Areas'
-                            ? this.translate('components.header.searchContentInput.placeholder')
-                            : this.translate('components.header.searchInput.placeholder');
-                        if (isMoment) {
-                            headerStyleName = 'accent';
-                            headerTitleColor = this.theme.colors.accentLogo;
-                        }
-                        if (isAccentPage) {
-                            headerStyle = this.theme.styles.headerStyleAccent;
-                        }
-                        if (hasLogoHeaderTitle) {
-                            headerTitle = () => <HeaderTherrLogo navigation={navigation} theme={this.theme} />;
-                        }
-                        const isSearchRoute = isAreas || isMap || isConnect;
-                        let searchInputNode: React.ReactNode = null;
-                        if (isAreas) {
-                            searchInputNode = <HeaderSearchInput
-                                isAdvancedSearch
-                                navigation={navigation}
-                                theme={this.theme}
-                                themeForms={this.themeForms}
-                                placeholderText={advancedSearchPlaceholderText}
-                            />;
-                        }
-                        if (isMap) {
-                            searchInputNode = <HeaderSearchInput
-                                navigation={navigation}
-                                theme={this.theme}
-                                themeForms={this.themeForms}
-                                placeholderText={advancedSearchPlaceholderText}
-                            />;
-                        }
-                        if (isConnect) {
-                            searchInputNode = <HeaderSearchUsersInput
-                                navigation={navigation}
-                                theme={this.theme}
-                                themeForms={this.themeForms}
-                            />;
-                        }
-
-                        const headerLeftNode = <HeaderMenuLeft
-                            styleName={headerStyleName}
-                            navigation={navigation}
-                            isAuthenticated={user.isAuthenticated}
-                            isEmailVerifed={this.isUserEmailVerified()}
-                            theme={this.theme}
-                        />;
-                        const headerRightNode = this.shouldShowTopRightMenu() ?
-                            <HeaderMenuRight
-                                currentScreen={currentScreen}
-                                currentScreenParams={currentScreenParams}
-                                navigation={navigation}
-                                notifications={notifications}
-                                styleName={headerStyleName}
-                                isEmailVerifed={this.isUserEmailVerified()}
-                                isVisible={this.shouldShowTopRightMenu()}
-                                location={location}
-                                logout={this.logout}
-                                updateGpsStatus={updateGpsStatus}
-                                user={user}
-                                showActionSheet={this.actionSheetShow}
-                                startNavigationTour={this.props.startNavigationTour}
-                                theme={this.theme}
-                                themeButtons={this.themeButtons}
-                                themeInfoModal={this.themeInfoModal}
-                                themeMenu={this.themeMenu}
-                            /> :
-                            <HeaderLinkRight
-                                navigation={navigation}
-                                themeForms={this.themeForms}
-                                styleName={headerStyleName}
-                            />;
-
-                        const baseOptions: any = {
-                            animation: 'fade',
-                            freezeOnBlur: true,
-                            headerLeft: () => headerLeftNode,
-                            headerRight: () => headerRightNode,
-                            headerTitleStyle: {
-                                ...this.theme.styles.headerTitleStyle,
-                                color: headerTitleColor,
-                                textShadowOffset: { width: 0, height: 0 },
-                                textShadowRadius: 0,
-                            },
-                            headerTitleAlign: 'center',
-                            headerStyle,
-                            headerTransparent: false,
-                            headerBackVisible: false,
-                            headerBackTitle: '',
-                            headerTitle,
-                        };
-
-                        // Use a custom JS header for every route so the left
-                        // logo and right menu button sit flush against the
-                        // screen edges. Native-stack's built-in header adds an
-                        // inset that pushed them inward on non-search routes.
-                        const customHeaderStyle = {
-                            backgroundColor: headerStyle?.backgroundColor,
-                            borderBottomColor: headerStyle?.borderBottomColor,
-                            borderBottomWidth: headerStyle?.borderBottomWidth,
-                        };
-                        baseOptions.header = ({ options: hOpts, route: hRoute }: any) => {
-                            let middleNode: React.ReactNode;
-                            if (isSearchRoute) {
-                                middleNode = (
-                                    <View style={{ flex: 1, flexDirection: 'row', marginHorizontal: 8 }}>
-                                        {searchInputNode}
-                                    </View>
-                                );
-                            } else if (typeof hOpts?.headerTitle === 'function') {
-                                middleNode = (
-                                    <View style={{ flex: 1, alignItems: 'center' }}>
-                                        {hOpts.headerTitle({
-                                            children: hOpts.title ?? hRoute.name,
-                                            tintColor: headerTitleColor,
-                                        })}
-                                    </View>
-                                );
-                            } else {
-                                const titleText = typeof hOpts?.headerTitle === 'string'
-                                    ? hOpts.headerTitle
-                                    : (hOpts?.title ?? hRoute.name);
-                                middleNode = (
-                                    <View style={{ flex: 1, alignItems: 'center' }}>
-                                        <Text
-                                            numberOfLines={1}
-                                            style={[
-                                                this.theme.styles.headerTitleStyle,
-                                                { color: headerTitleColor },
-                                            ]}
-                                        >
-                                            {titleText}
-                                        </Text>
-                                    </View>
-                                );
+                            let headerTitle;
+                            let headerStyle = this.theme.styles.headerStyle;
+                            let headerStyleName: any = 'light';
+                            let headerTitleColor = themeName === 'light'
+                                ? this.theme.colors.primary3
+                                : this.theme.colors.textWhite;
+                            const advancedSearchPlaceholderText = currentScreen === 'Areas'
+                                ? this.translate('components.header.searchContentInput.placeholder')
+                                : this.translate('components.header.searchInput.placeholder');
+                            if (isMoment) {
+                                headerStyleName = 'accent';
+                                headerTitleColor = this.theme.colors.accentLogo;
                             }
-                            return (
-                                <View style={[customHeaderStyle, { paddingTop: getHeaderTopInset() }]}>
-                                    <View style={{
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        height: 52,
-                                        paddingHorizontal: 8,
-                                    }}>
-                                        {headerLeftNode}
-                                        {middleNode}
-                                        {headerRightNode}
-                                    </View>
-                                </View>
-                            );
-                        };
+                            if (isAccentPage) {
+                                headerStyle = this.theme.styles.headerStyleAccent;
+                            }
+                            if (hasLogoHeaderTitle) {
+                                headerTitle = () => <HeaderTherrLogo navigation={navigation} theme={this.theme} />;
+                            }
+                            const isSearchRoute = isAreas || isMap || isConnect;
+                            let searchInputNode: React.ReactNode = null;
+                            if (isAreas) {
+                                searchInputNode = <HeaderSearchInput
+                                    isAdvancedSearch
+                                    navigation={navigation}
+                                    theme={this.theme}
+                                    themeForms={this.themeForms}
+                                    placeholderText={advancedSearchPlaceholderText}
+                                />;
+                            }
+                            if (isMap) {
+                                searchInputNode = <HeaderSearchInput
+                                    navigation={navigation}
+                                    theme={this.theme}
+                                    themeForms={this.themeForms}
+                                    placeholderText={advancedSearchPlaceholderText}
+                                />;
+                            }
+                            if (isConnect) {
+                                searchInputNode = <HeaderSearchUsersInput
+                                    navigation={navigation}
+                                    theme={this.theme}
+                                    themeForms={this.themeForms}
+                                />;
+                            }
 
-                        return baseOptions;
-                    }}
-                >
-                    {routes
-                        .filter((route: any) => {
-                            const routeOptions = route.options && typeof route.options === 'function'
-                                ? route.options()
-                                : {};
+                            const headerLeftNode = <HeaderMenuLeft
+                                styleName={headerStyleName}
+                                navigation={navigation}
+                                isAuthenticated={user.isAuthenticated}
+                                isEmailVerifed={this.isUserEmailVerified()}
+                                theme={this.theme}
+                            />;
+                            const headerRightNode = this.shouldShowTopRightMenu() ?
+                                <HeaderMenuRight
+                                    currentScreen={currentScreen}
+                                    currentScreenParams={currentScreenParams}
+                                    navigation={navigation}
+                                    notifications={notifications}
+                                    styleName={headerStyleName}
+                                    isEmailVerifed={this.isUserEmailVerified()}
+                                    isVisible={this.shouldShowTopRightMenu()}
+                                    location={location}
+                                    logout={this.logout}
+                                    updateGpsStatus={updateGpsStatus}
+                                    user={user}
+                                    showActionSheet={this.actionSheetShow}
+                                    startNavigationTour={this.props.startNavigationTour}
+                                    theme={this.theme}
+                                    themeButtons={this.themeButtons}
+                                    themeInfoModal={this.themeInfoModal}
+                                    themeMenu={this.themeMenu}
+                                /> :
+                                <HeaderLinkRight
+                                    navigation={navigation}
+                                    themeForms={this.themeForms}
+                                    styleName={headerStyleName}
+                                />;
 
-                            // Filter by feature flags first
-                            const requiredFeatures: FeatureFlags[] = routeOptions.requiredFeatures || [];
-                            if (requiredFeatures.length > 0) {
-                                const config = getConfig();
-                                const featureFlags = config.featureFlags || {};
-                                const allFeaturesEnabled = requiredFeatures.every(
-                                    (flag: FeatureFlags) => featureFlags[flag] === true
+                            const baseOptions: any = {
+                                animation: 'fade',
+                                freezeOnBlur: true,
+                                headerLeft: () => headerLeftNode,
+                                headerRight: () => headerRightNode,
+                                headerTitleStyle: {
+                                    ...this.theme.styles.headerTitleStyle,
+                                    color: headerTitleColor,
+                                    textShadowOffset: { width: 0, height: 0 },
+                                    textShadowRadius: 0,
+                                },
+                                headerTitleAlign: 'center',
+                                headerStyle,
+                                headerTransparent: false,
+                                headerBackVisible: false,
+                                headerBackTitle: '',
+                                headerTitle,
+                            };
+
+                            // Use a custom JS header for every route so the left
+                            // logo and right menu button sit flush against the
+                            // screen edges. Native-stack's built-in header adds an
+                            // inset that pushed them inward on non-search routes.
+                            const customHeaderStyle = {
+                                backgroundColor: headerStyle?.backgroundColor,
+                                borderBottomColor: headerStyle?.borderBottomColor,
+                                borderBottomWidth: headerStyle?.borderBottomWidth,
+                            };
+                            baseOptions.header = ({ options: hOpts, route: hRoute }: any) => {
+                                let middleNode: React.ReactNode;
+                                if (isSearchRoute) {
+                                    middleNode = (
+                                        <View style={{ flex: 1, flexDirection: 'row', marginHorizontal: 8 }}>
+                                            {searchInputNode}
+                                        </View>
+                                    );
+                                } else if (typeof hOpts?.headerTitle === 'function') {
+                                    middleNode = (
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            {hOpts.headerTitle({
+                                                children: hOpts.title ?? hRoute.name,
+                                                tintColor: headerTitleColor,
+                                            })}
+                                        </View>
+                                    );
+                                } else {
+                                    const titleText = typeof hOpts?.headerTitle === 'string'
+                                        ? hOpts.headerTitle
+                                        : (hOpts?.title ?? hRoute.name);
+                                    middleNode = (
+                                        <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 8 }}>
+                                            <Text
+                                                numberOfLines={1}
+                                                style={[
+                                                    this.theme.styles.headerTitleStyle,
+                                                    { color: headerTitleColor },
+                                                ]}
+                                            >
+                                                {titleText}
+                                            </Text>
+                                        </View>
+                                    );
+                                }
+                                return (
+                                    <SafeAreaInsetsContext.Consumer>
+                                        {(insets) => (
+                                            <View style={[customHeaderStyle, { paddingTop: insets?.top ?? getHeaderTopInset() }]}>
+                                                <View style={{
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                    height: 52,
+                                                    paddingHorizontal: 8,
+                                                }}>
+                                                    {headerLeftNode}
+                                                    {middleNode}
+                                                    {headerRightNode}
+                                                </View>
+                                            </View>
+                                        )}
+                                    </SafeAreaInsetsContext.Consumer>
                                 );
-                                if (!allFeaturesEnabled) {
+                            };
+
+                            return baseOptions;
+                        }}
+                    >
+                        {routes
+                            .filter((route: any) => {
+                                const routeOptions = route.options && typeof route.options === 'function'
+                                    ? route.options()
+                                    : {};
+
+                                // Filter by feature flags first
+                                const requiredFeatures: FeatureFlags[] = routeOptions.requiredFeatures || [];
+                                if (requiredFeatures.length > 0) {
+                                    const config = getConfig();
+                                    const featureFlags = config.featureFlags || {};
+                                    const allFeaturesEnabled = requiredFeatures.every(
+                                        (flag: FeatureFlags) => featureFlags[flag] === true
+                                    );
+                                    if (!allFeaturesEnabled) {
+                                        return false;
+                                    }
+                                }
+
+                                // Then filter by access control
+                                if (!routeOptions.access) {
+                                    return true;
+                                }
+
+                                if (route.name === 'Landing' && user?.details?.id) {
                                     return false;
                                 }
-                            }
 
-                            // Then filter by access control
-                            if (!routeOptions.access) {
-                                return true;
-                            }
+                                const isAuthorized = UsersService.isAuthorized(
+                                    routeOptions.access,
+                                    user
+                                );
 
-                            if (route.name === 'Landing' && user?.details?.id) {
-                                return false;
-                            }
+                                delete route.options.access;
 
-                            const isAuthorized = UsersService.isAuthorized(
-                                routeOptions.access,
-                                user
-                            );
+                                return isAuthorized;
+                            })
+                            .map((route: any) => {
+                                route.name = this.translate(route.name);
+                                delete route.key;
+                                return <Stack.Screen key={route.name} {...route} />;
+                            })}
+                    </Stack.Navigator>
+                    <BackgroundLocationDisclosureModal
+                        isVisible={isBackgroundLocationDisclosureVisible}
+                        onAccept={this.handleBackgroundLocationDisclosureAccept}
+                        onDecline={this.handleBackgroundLocationDisclosureDecline}
+                        translate={this.translate}
+                        themeDisclosure={this.themeDisclosure}
+                    />
+                    {permissionPrimerType ? (
+                        <PermissionPrimerModal
+                            permissionType={permissionPrimerType}
+                            isVisible={!!permissionPrimerType}
+                            onAllow={this.handlePermissionPrimerAllow}
+                            onNotNow={this.handlePermissionPrimerNotNow}
+                            translate={this.translate}
+                            themeDisclosure={this.themeDisclosure}
+                        />
+                    ) : null}
+                    <AppReviewPromptModal
+                        isVisible={isAppReviewPromptVisible}
+                        onClose={this.handleAppReviewPromptClose}
+                        translate={this.translate}
+                        themeModal={this.themeConfirmModal}
+                        themeButtons={this.themeButtons}
+                    />
 
-                            delete route.options.access;
-
-                            return isAuthorized;
-                        })
-                        .map((route: any) => {
-                            route.name = this.translate(route.name);
-                            delete route.key;
-                            return <Stack.Screen key={route.name} {...route} />;
-                        })}
-                </Stack.Navigator>
-            </NavigationContainer>
+                </NavigationContainer>
+                {isSplashSpinnerVisible ? (
+                    <SplashLogoSpinner
+                        start={shouldSpinSplashLogo}
+                        onAnimationComplete={this.handleSplashSpinComplete}
+                    />
+                ) : null}
+            </>
         );
     }
 }

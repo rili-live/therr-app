@@ -16,11 +16,19 @@ import {
     IHabitGoal,
     IPact,
     IPactMember,
+    IPactNudgeResult,
     IHabitCheckin,
+    IHabitCheckinProof,
     IStreak,
     IStreakHistory,
     IHabitsState,
     HabitsActionTypes,
+    IUserHabit,
+    IUserHabitEligibility,
+    IJournalEntry,
+    IJournalFeedItem,
+    IHabitsLifetimePurchase,
+    IHabitsLifetimeOffer,
 } from './habits';
 import {
     IMapState,
@@ -45,6 +53,7 @@ import {
 } from './reactions';
 import {
     IMobileThemeName,
+    IContentAlgorithmName,
     IUser,
     ISocketDetails,
     IUserState,
@@ -82,11 +91,19 @@ export {
     IHabitGoal,
     IPact,
     IPactMember,
+    IPactNudgeResult,
     IHabitCheckin,
+    IHabitCheckinProof,
     IStreak,
     IStreakHistory,
     IHabitsState,
     HabitsActionTypes,
+    IUserHabit,
+    IUserHabitEligibility,
+    IJournalEntry,
+    IJournalFeedItem,
+    IHabitsLifetimePurchase,
+    IHabitsLifetimeOffer,
 
     // Maps
     IMapState,
@@ -111,6 +128,7 @@ export {
 
     // User
     IMobileThemeName,
+    IContentAlgorithmName,
     IUser,
     ISocketDetails,
     IUserState,

@@ -10,6 +10,19 @@ export const AccessPresets: Record<string, IAccess> = {
         type: AccessCheckType.ALL,
         levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
     },
+    /**
+     * Any signed-in account, whether or not onboarding left properties unset.
+     * Needed by screens that serve both first-run onboarding and later
+     * re-entry — e.g. the guided profile-completion flow, which fully verified
+     * users reach from the "Finish your profile" checklist.
+     */
+    ANY_AUTHENTICATED: {
+        type: AccessCheckType.ANY,
+        levels: [
+            AccessLevels.EMAIL_VERIFIED,
+            AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES,
+        ],
+    },
     PUBLIC_DEFAULT: {
         type: AccessCheckType.NONE,
         levels: [

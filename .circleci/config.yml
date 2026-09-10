@@ -36,6 +36,12 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+          # Pinned rather than left implicit: the daemon version is an input to every
+          # image these jobs build, and an unpinned default moves under us on
+          # CircleCI's schedule. `default` is CircleCI's documented alias for the
+          # current default (Docker 24); moving to 26/27 requires Gen2 resource
+          # classes, so change this deliberately rather than by drift.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
           at: ~/
@@ -60,6 +66,8 @@ jobs:
       - image: cimg/go:1.24.4
     steps:
       - setup_remote_docker:
+          # Pinned — see docker_build_base_image above.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
           at: ~/
@@ -90,6 +98,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+          # Pinned — see docker_build_base_image above.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
           at: ~/
@@ -109,6 +119,70 @@ jobs:
       - run:
           name: Lint changed files
           command: ./_bin/cicd/lint-changed-files.sh
+  typecheck:
+    docker:
+      - image: cimg/node:24.12.0
+    steps:
+      - checkout
+      - run:
+          name: Type-check all packages
+          command: ./_bin/cicd/typecheck.sh
+          no_output_timeout: 20m
+  test_clients:
+    docker:
+      - image: cimg/node:24.12.0
+    steps:
+      - checkout
+      - run:
+          name: Run web, dashboard, and mobile Jest suites
+          command: ./_bin/cicd/test-clients.sh
+          no_output_timeout: 20m
+  deploy_pipeline_gates:
+    # Guards the CI/CD scripts themselves: the service registry against k8s/prod, the
+    # rollout wave plan against the same, and the unit tests for the ledger, the
+    # per-service deploy verdicts and the git-range helpers those two are built on.
+    #
+    # Runs on every branch, before anything can reach stage. These checks decide which
+    # image production runs, and both bugs they were written for were silent — a
+    # service skipped as "No Changes" forever, and a deploy that reported green while
+    # leaving a service on an old image. Nothing else in this config exercises them.
+    #
+    # No `npm ci`: the tests are plain Node with no imports beyond the stdlib, and the
+    # registry/wave checks are bash. `npm run` only needs package.json.
+    docker:
+      - image: cimg/node:24.12.0
+    steps:
+      - checkout
+      - run:
+          name: Service registry vs k8s/prod
+          command: npm run k8s:check-services
+      - run:
+          name: Rollout wave plan vs k8s/prod
+          command: npm run k8s:check-waves
+      - run:
+          name: Unit tests for _bin decision logic
+          command: npm run test:bin-scripts
+  google_ads_tooling_tests:
+    # Unit tests for scripts/google-ads (the paid-acquisition tooling). Nothing
+    # else in this config runs Python, and these tests guard the budget ceiling
+    # that decides how much real money a `campaign apply` or `campaign resume`
+    # can commit — an unrun test there is indistinguishable from no test.
+    #
+    # cimg/python rather than the node image: only PyYAML is needed, because the
+    # tested modules are deliberately importable without the google-ads client
+    # or any credentials. Keep it that way — a test that needs a live account is
+    # a test that never runs here.
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - checkout
+      - run:
+          name: Install the one pure-Python test dependency
+          command: pip install --quiet "PyYAML>=6.0,<7.0"
+      - run:
+          name: Unit tests for the Google Ads campaign tooling
+          working_directory: scripts/google-ads
+          command: python3 -m unittest discover -s tests -t . --verbose
   docker_build_test_publish_images:
     docker:
       - image: cimg/go:1.24.4
@@ -121,6 +195,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+          # Pinned — see docker_build_base_image above.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
             at: ~/
@@ -138,15 +214,9 @@ jobs:
       - run:
           name: Run Integration Tests on Microservices
           command: ./_bin/cicd/test-microservices-integration.sh
-      - run:
-          name: Run Campaign E2E Suite (full, cross-service)
-          # Uses therr-ci-network + postgres-ci + redis-ci set up by the
-          # integration tests above. Runs the Treasure Hunt launch flows
-          # against the built api-gateway image.
-          command: ./_bin/cicd/test-campaign-e2e.sh full
       - add_ssh_keys:
           fingerprints:
-            - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
+            - "SHA256:RQGJpv9BjVSmabmSV9DshSyQe7yrxI6meRAi7AkuAB8"
       - run:
           name: Publish Docker Images
           command: ./_bin/cicd/publish.sh
@@ -185,27 +255,106 @@ jobs:
           name: Teardown Test DB Infrastructure
           command: ./_bin/cicd/teardown-test-db.sh
           when: always
-  eas_build_android_preview:
+  eas_build_therr_android:
     docker:
       - image: cimg/node:24.12.0
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_PASSWORD
-    environment:
-      CICD_BRANCH: << pipeline.git.branch >>
     steps:
       - checkout
       - run:
-          name: Install EAS CLI
-          command: npm install -g eas-cli
+          name: Skip unless the Android versionCode was bumped
+          # This job runs on every stage->main merge (alongside `deploy`), but an EAS
+          # build is only worth its credits when it will produce a NEW Play release.
+          # Google Play rejects any upload whose versionCode already exists on the
+          # track, so building without a versionCode bump makes --auto-submit try to
+          # republish an existing version and fail — burning an EAS build for nothing.
+          # eas.json uses local appVersionSource, so android/app/build.gradle is the
+          # source of truth for versionCode/versionName. stage->main is a real merge
+          # commit, so HEAD^1 is the previous main tip and `HEAD^1..HEAD` is exactly
+          # the delta merged in; we compare the versionCode there against HEAD. If
+          # HEAD^1 or the versionCode can't be resolved (shallow clone, parse change),
+          # fail open and build rather than silently skip a real release.
+          command: |
+            GRADLE_PATH="TherrMobile/android/app/build.gradle"
+            get_version_code() {
+              git show "$1:$GRADLE_PATH" 2>/dev/null \
+                | grep -E '^[[:space:]]*versionCode[[:space:]]' \
+                | head -1 \
+                | sed -E 's/^[[:space:]]*versionCode[[:space:]]+//' \
+                | tr -d '[:space:]'
+            }
+            BASE="$(git rev-parse --verify --quiet HEAD^1 || true)"
+            if [ -z "$BASE" ]; then
+              echo "Could not resolve HEAD^1 (shallow clone?) — building to be safe."
+            else
+              BASE_CODE="$(get_version_code "$BASE")"
+              HEAD_CODE="$(get_version_code HEAD)"
+              if [ -z "$HEAD_CODE" ]; then
+                echo "Could not read versionCode at HEAD — building to be safe."
+              elif [ "$BASE_CODE" = "$HEAD_CODE" ]; then
+                echo "versionCode unchanged ($HEAD_CODE) — skipping EAS build to avoid republishing an existing Play version."
+                circleci-agent step halt
+              else
+                echo "versionCode bumped ($BASE_CODE -> $HEAD_CODE) — proceeding with EAS build."
+              fi
+            fi
       - run:
-          name: Build Android Preview APK via EAS (free tier)
-          # Publishes an internal-distribution APK for partner testers. Uses
-          # EAS Build free tier (30 builds/mo). EXPO_TOKEN is configured in
-          # the CircleCI context.
+          name: Install EAS CLI
+          # cimg/node runs as the non-root `circleci` user, which cannot write to
+          # the global npm prefix (/usr/local/lib/node_modules) -> EACCES. cimg
+          # images grant passwordless sudo, so install globally as root. Pin the
+          # version for reproducible CI (eas.json requires >= 15.0.0).
+          command: sudo npm install -g eas-cli@18.11.0
+      - run:
+          name: Build THERR Android (EAS cloud build)
+          # EXPO_TOKEN must be set as a CircleCI project-level environment variable.
+          # GOOGLE_APIS_ANDROID_KEY must be stored as an EAS env var attached to the
+          # build's environment (see docs/SECRETS_AND_LOCAL_BOOTSTRAP.md).
+          #
+          # --auto-submit submits the built AAB to the Play Internal track using
+          # the `therr-internal` submit profile in eas.json. Requires the Google
+          # Play service-account key to be configured on EAS (already done).
+          #
+          # no_output_timeout: EAS builds queue before they run, and the CLI
+          # prints nothing while waiting in the queue. CircleCI's default
+          # no-output timeout is 10 minutes, which kills this step on any
+          # non-trivial queue wait even though the build itself succeeds. 40m
+          # covers a long queue plus the ~15-20m Android build. Note the
+          # submission is registered with EAS server-side at build-creation
+          # time, so a killed CLI does not cancel the Play upload — but it does
+          # abort the job before the release-notes step below can run, which is
+          # why raising this matters rather than just letting it fail.
+          #
+          # Deliberately NOT using --no-wait: the release-notes step needs the
+          # build to have landed on the track before it polls, and would burn
+          # its 15m poll window against an empty track if this returned early.
+          no_output_timeout: 40m
           command: |
             cd TherrMobile
-            eas build --platform android --profile preview --non-interactive
+            eas build \
+              --platform android \
+              --profile therr-internal \
+              --non-interactive \
+              --auto-submit
+      - run:
+          name: Populate Google Play release notes
+          # EAS Submit uploads the AAB but does NOT set the user-facing "What's
+          # new" release notes. This step pushes them to the same internal-track
+          # release via the Google Play Developer API, reading the text from
+          # TherrMobile/fastlane/metadata/android/<locale>/changelogs/. The
+          # script is zero-dependency (Node built-ins only), polls until the
+          # EAS submission lands the versionCode on the track, and exits 0
+          # (skips) if GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is not configured.
+          #
+          # GOOGLE_PLAY_SERVICE_ACCOUNT_JSON must be set as a CircleCI
+          # project-level env var: the full Play service-account key JSON with
+          # the "Release manager" permission (see docs/SECRETS_AND_LOCAL_BOOTSTRAP.md).
+          command: |
+            if [ -z "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" ]; then
+              echo "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON not set — skipping release-notes population."
+            else
+              node TherrMobile/_scripts/populate-play-release-notes.mjs
+            fi
+
   deploy:
     docker:
       - image: cimg/gcp:2025.01
@@ -217,6 +366,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
+          # Pinned — see docker_build_base_image above.
+          version: default
           docker_layer_caching: true
       - attach_workspace:
             at: ~/
@@ -230,15 +381,57 @@ jobs:
             echo "export USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> ~/.bashrc
             source ~/.bashrc
             echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
-            gcloud --quiet config set project therr-app
-            gcloud --quiet config set compute/zone us-central1-a
-            gcloud container clusters get-credentials cluster-1
+            # Defaults target therr-prod-1, the live production cluster. The old cluster-1
+            # default was removed when that cluster was deleted — leaving it would have meant
+            # that losing the CircleCI env var silently redirected deploys at a cluster that
+            # no longer exists. Cutover to a new cluster is still done by setting
+            # GKE_CLUSTER / GKE_ZONE (and optionally GKE_PROJECT) as CircleCI project env
+            # vars — no code merge needed. Keep the defaults pointing at whatever is live.
+            gcloud --quiet config set project "${GKE_PROJECT:-therr-app}"
+            gcloud --quiet config set compute/zone "${GKE_ZONE:-us-central1-a}"
+            gcloud container clusters get-credentials "${GKE_CLUSTER:-therr-prod-1}" \
+              --zone "${GKE_ZONE:-us-central1-a}"
       - add_ssh_keys:
           fingerprints:
-            - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
+            - "SHA256:RQGJpv9BjVSmabmSV9DshSyQe7yrxI6meRAi7AkuAB8"
       - run:
           name: Deploy Changes To GKE
           command: ./_bin/cicd/deploy.sh
+
+  # Post-deploy verification that the push pipeline still works against the live
+  # cluster. Runs after `deploy` has rolled the new images out, and every send is
+  # an FCM dry run, so nothing is delivered and no user-visible state changes.
+  #
+  # Deliberately NOT part of the `deploy` job: a failure here means the deployed
+  # code is bad, not that the rollout failed, and keeping it separate leaves the
+  # rollout's own success/failure signal unambiguous.
+  #
+  # Requires UAT_SUPER_ADMIN_EMAIL / UAT_SUPER_ADMIN_PASSWORD (a SUPER_ADMIN
+  # account) as CircleCI project env vars. Optionally UAT_USER_ID to add the
+  # real-registered-device check. Without any of them the job reports why it
+  # could not run and passes — an unconfigured gate must not block deploys, but
+  # it must also not look like a passing check. See _bin/cicd/uat-push.sh.
+  post_deploy_uat:
+    docker:
+      - image: cimg/base:current
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run:
+          name: Install jq
+          command: sudo apt-get update && sudo apt-get install -y jq
+      - run:
+          name: Push notification UAT
+          command: |
+            if [ -z "${UAT_SUPER_ADMIN_EMAIL:-}" ] && [ -z "${UAT_SUPER_ADMIN_JWT:-}" ]; then
+              echo "SKIPPED: neither UAT_SUPER_ADMIN_EMAIL nor UAT_SUPER_ADMIN_JWT is set."
+              echo "The push UAT needs a SUPER_ADMIN credential to reach the diagnostics endpoints."
+              echo "Set them as CircleCI project environment variables to enable this gate."
+              exit 0
+            fi
+            ./_bin/cicd/uat-push.sh
 
 workflows:
   # Below is the definition of your workflow.
@@ -266,16 +459,24 @@ workflows:
           filters:
             branches:
               ignore:
-                - general
                 - stage
                 - main
       - lint_changed_files:
           filters:
             branches:
               ignore:
-                - general
-                - stage
                 - main
+      # Unfiltered: type errors and client-test failures must be caught on every
+      # branch, including `general` and `stage`. Neither job was running anywhere
+      # before — tsc appeared nowhere in this config, and the ~1,314 web/dashboard/
+      # mobile Jest cases had no job at all.
+      - typecheck
+      - test_clients
+      # Also unfiltered: the deploy scripts decide what production runs, so a drift
+      # between the service registry and k8s/prod must fail on the branch that
+      # introduces it, not on the promotion that trips over it.
+      - deploy_pipeline_gates
+      - google_ads_tooling_tests
       - docker_build_test_publish_images:
           requires:
           - docker_build_base_image
@@ -284,8 +485,13 @@ workflows:
               only:
                 - stage
       - test-e2e-critical-path:
-          # Runs the campaign-critical subset on every PR (not on stage/main
-          # where the full suite runs as part of docker_build_test_publish_images).
+          # Runs the campaign-critical subset on every PR. The full suite
+          # (`test-campaign-e2e.sh full`) is deliberately NOT wired into
+          # docker_build_test_publish_images: that job's preceding step,
+          # test-microservices-integration.sh, tears down postgres-ci/redis-ci
+          # and therr-ci-network via `trap cleanup EXIT`, so a full run there
+          # would fail on a missing network and block the stage publish.
+          # Wire it up only alongside its own setup/teardown.
           requires:
           - docker_build_base_image
           filters:
@@ -294,16 +500,22 @@ workflows:
                 - general
                 - stage
                 - main
-      - eas_build_android_preview:
-          # Produce an installable Android APK for campaign partner testers
-          # whenever we publish new stage images.
-          requires:
-          - docker_build_test_publish_images
+      - deploy:
           filters:
             branches:
               only:
-                - stage
-      - deploy:
+                - main
+      - post_deploy_uat:
+          requires:
+            - deploy
+          filters:
+            branches:
+              only:
+                - main
+
+  therr_mobile_release:
+    jobs:
+      - eas_build_therr_android:
           filters:
             branches:
               only:

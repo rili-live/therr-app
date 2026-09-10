@@ -1,5 +1,6 @@
 import React from 'react';
-import { ScrollView, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CommonActions } from '@react-navigation/native';
 import { Button } from '../components/BaseButton';
@@ -227,7 +228,18 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView edges={[]}  style={this.theme.styles.safeAreaView}>
-                    <ScrollView style={this.theme.styles.bodyFlex} contentContainerStyle={this.theme.styles.bodyScrollSmall}>
+                    {/*
+                      * Keyboard-aware, not a plain ScrollView: `bodyScrollSmall` centers the form,
+                      * so the email field sits mid-screen and the Android keyboard covers it. The
+                      * window does not resize under edge-to-edge (API 36), so only scrolling the
+                      * focused input into view keeps it visible.
+                      */}
+                    <KeyboardAwareScrollView
+                        contentInsetAdjustmentBehavior="automatic"
+                        style={this.theme.styles.bodyFlex}
+                        contentContainerStyle={this.theme.styles.bodyScrollSmall}
+                        keyboardShouldPersistTaps="handled"
+                    >
                         <View style={this.theme.styles.sectionContainerAlt}>
                             <Text style={this.theme.styles.sectionTitle}>
                                 {pageHeader}
@@ -274,7 +286,7 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
                                 disabled={this.isFormDisabled()}
                             />
                         </View>
-                    </ScrollView>
+                    </KeyboardAwareScrollView>
                 </SafeAreaView>
             </>
         );
