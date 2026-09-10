@@ -135,6 +135,27 @@ append new items here rather than only printing them once.
   > returns `web` 10,111 / `habits` 600 / `landing` 319 / `dashboard` 77 over the 30
   > days to 2 Sep. `scripts/google-ads/settings.example.yaml` →
   > `ga4.surface_dimension_registered` now defaults to `true`.
+- [x] **Exclude the synthetic device farm from the habits app funnel.** GA4 property
+  `267810693`, stream "Friends with Habits", reported 136 new users for 6 Aug – 8 Sep
+  2026. Google Play reported 20 device installs and 49 store-listing acquisitions over
+  the identical window. Breaking GA4 down by `deviceModel` puts 66 of the 136 (49%) on
+  four models: `OnePlus8Pro` (45 users, 45 sessions, country `(not set)`),
+  `sdk_gphone64_arm64` (9), `sdk_gphone_arm64` (6), `Android SDK built for arm64` (6).
+  The `OnePlus8Pro` rows are spread evenly across all twelve historical app versions —
+  roughly four users each on 0.4.10 through 1.5.2 — at one session per user. Nothing
+  human installs twelve versions of an app, and Play only ever serves the newest.
+  > **Not the `__DEV__` gate.** `TherrMobile/main/App.tsx` has called
+  > `setAnalyticsCollectionEnabled(getAnalytics(), !__DEV__)` since 2023 on every
+  > branch, so local debug builds have never reported. These are release builds being
+  > launched by something that is not a user.
+  > **Not fixable with a GA4 data filter** either — same limitation as the crawler
+  > above: only Developer and Internal traffic are filterable, and there is no
+  > `deviceModel` filter. Exclusion has to be query-time, which has the advantage of
+  > being retroactive.
+  Done: `SYNTHETIC_DEVICE_MODELS` in `scripts/google-ads/therr_ads/ga4.py` (applied to
+  `fetch_app_funnel` by default, recorded in every report's `notes`), and a **"Real
+  Users"** segment in GA4 Explore applied to the Funnel exploration. Sanity check when
+  reading either: `first_open` should read **70**, not 136, for 6 Aug – 8 Sep.
 - [ ] **Re-submit the habits sitemap to Search Console** — `habits.therr.com/sitemap.xml`
   grew from 3 URLs to 3 + `/blog` + one per cross-post. This subdomain has almost no
   inbound links, so the sitemap is most of how those pages get discovered at all.
@@ -1459,7 +1480,10 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 - [ ] (2026-09-02, /quality-peer-review) **The check-in freshness gate is date-basis-mismatched and silently inert for east-of-UTC users — decide whether to fix it at the writer.** `checkinNudgeFreshness` probes `habits.habit_checkins` using `schedule.morningLocalDate` / `lastChanceLocalDate`, which are the user's **local** calendar dates, but `habit_checkins."scheduledDate"` is written as a **UTC** date: `createCheckin` falls back to `getTodayDateString()` (`new Date().toISOString().split('T')[0]`) and no client has ever sent `scheduledDate` in the body. Wherever the UTC date at the delivery instant differs from the user's local date, the probe matches nothing and the gate fails open. The direction is safe — it can never wrongly silence anyone, because a matching row cannot exist yet at delivery time — but the size of the blind spot is the UTC offset: for `America/Chicago` (today's fallback for every user, since nothing writes `settingsTimezone` until the mobile release ships) it is only the ~30 min between 19:00 and the 19:30 last-chance slot, while for `Pacific/Auckland` the 08:00 morning slot lands at 20:00 UTC the previous day and the gate is inert for that slot entirely. So the protection that `checkinNudgeFreshness`'s own docstring calls "what makes deferring a nudge into the evening safe at all" weakens precisely as the timezone feature starts working. Do **not** patch this by probing both dates: a UTC day spans parts of two local days, so the extra probe would let a check-in from the *previous* local day suppress today's nudge, which is the wrong-suppression failure the module deliberately refuses. The real fix is to make `scheduledDate` the user's local date at the writer — which also touches streak computation, `isHabitDueToday` and `pactMemberStats`, all of which key off the same UTC basis — so it is a scoped piece of work, not a one-liner. Until then, read `lastChanceSent` knowing the gate is not doing as much as the design says.
 
 - [ ] (2026-09-06, /quality-peer-review) **`20260905000000_main.medias_gin_indexes` builds its three GIN indexes with a plain `CREATE INDEX`, which locks the tables it builds on.** Not `CONCURRENTLY`, so each statement takes an `ACCESS EXCLUSIVE` lock on `main."moments"` / `"spaces"` / `"events"` and blocks *reads as well as writes* on that table until the index finishes — the map and nearby feed stall for the duration, not just posting. This is correct-but-blocking rather than wrong: `IF NOT EXISTS` makes it re-runnable, and on today's row counts the build is likely seconds. Check `SELECT pg_size_pretty(pg_total_relation_size('main.moments'))` before the `main` deploy and, if it is large enough to matter, either run the three statements by hand in a low-traffic window ahead of the rollout (the migration then no-ops) or split them into a `CONCURRENTLY` migration — which needs `exports.config = { transaction: false }`, since knex wraps each migration in a transaction and `CREATE INDEX CONCURRENTLY` cannot run inside one. Do **not** skip the indexes: `createMediaUrls` now runs a `medias @> …` containment probe per unowned private path, and unindexed that is a sequential scan on every nearby-feed render carrying one.
-- [ ] (2026-09-06, /quality-peer-review) **Integration tests were NOT run for this batch — run them before promoting to `stage`.** The `general→stage` diff touches maps-service and users-service, but the local Docker daemon could not be started during the review, so only unit tests, lint, typecheck and the repo-wide gates were verified. `npm run docker:dev:up`, then `npm run pr:test:integration:maps` and `npm run pr:test:integration:users`. The maps one matters most: `ContentMediaStore.getReferencedPaths` is hand-written SQL (an OR-chain of `@>` containment predicates plus a `LATERAL jsonb_array_elements` join) and no unit test exercises it against a real Postgres — `tests/unit/mediaAccess.test.ts` covers only the pure partition helpers that decide *whether* to call it.
+
+- [ ] (2026-09-09, /quality-peer-review) **Verify `PUT /users-service/habits/user-habits/:id/continue-solo` end-to-end through the deployed gateway.** The route is wired at all three hops on `general` (users-service handler + router, gateway proxy entry, `UserHabitsService.continueSolo` + redux action in `therr-react`) and a `routeOrdering` parity test now asserts the gateway entry alongside `archive`/`restore` — but there is still **no consumer on `general`**, because the prompt that calls it is Habits dashboard UI living on `niche/HABITS-general`. That is the same shape as the `checkins/:id/proofs` item above, which shipped unreachable and surfaced later as an apparent client bug. Confirm against `stage` with a real habit id that has a pending pact: expect 200 with `pendingPactId: null` in the returned detail, a `403 solo-locked` carrying `invitedCount`/`requiredCount` for a user under `HABITS_SOLO_UNLOCK_INVITE_COUNT`, and `402` for an archived habit at the free-tier cap.
+
+- [ ] (2026-09-09, /quality-peer-review) **`scripts/google-play/settings.yaml` was un-tracked from git — re-create it on any other machine, and treat the bucket id as already published.** The file was committed by the google-play MCP work even though `scripts/google-play/.gitignore` lists it and its own header says "copy this file to settings.yaml (gitignored)"; `git rm --cached` now matches that stated intent and the local copy is untouched. Two consequences: (a) any other clone/CI checkout no longer gets it, so `./therrplay` and the `google-play` MCP server there need `cp settings.example.yaml settings.yaml` and the real bucket filled in (`gs://pubsite_prod_6296484018560789304`, from Play Console -> Download reports -> Copy Cloud Storage URI); (b) the removal does **not** rewrite history — the bucket id, which per the file's own comment identifies the Play developer account, remains in every commit from `72e611929` onward. It is low-sensitivity (read access still requires Google auth), so the call is whether to leave it; do not rewrite `general`'s history casually to scrub it.
 
 <!-- skill-followups:end -->
 
@@ -1816,6 +1840,46 @@ MVP, but several block the **viral** loop in Phase 3.
 - `therr-public-library/therr-react/src/redux/actions/Users.ts:347` —
   RMOBILE-26: SSO logout action (HABITS uses same auth — affects multi-app
   account switching)
+
+#### Watch: phone verification drop-off (HABITS only — added 2026-09-09)
+
+**Not actionable yet. Do not change onboarding on this evidence alone.**
+
+With the synthetic device farm excluded (see § Analytics & traffic), the corrected
+Friends with Habits funnel for 6 Aug – 8 Sep 2026 reads:
+
+| Step | Users |
+|---|---|
+| `first_open` | 70 |
+| `profile_create_start` | 50 |
+| `profile_create_update_phone` | 20 |
+| `phone_verify_success` | 15 |
+
+That is a ~70% loss between starting a profile and finishing verification, on a step
+that happens before the user has seen anything the app does. The hypothesis is that
+verification could move behind the **first pact invite** — solo habits already ship
+behind `ENABLE_HABITS_SOLO` and need no verified identity, whereas inviting someone
+does.
+
+Three reasons this is a watch item and not a task:
+
+1. **The sample is small.** 50 profile starts in 34 days, against 49 Play
+   store-listing acquisitions. One atypical week moves the rate several points.
+2. **The pact and check-in events have only existed since 3 Sep** (`85ce2bb6`), so
+   the steps *below* verification have days of history, not weeks. Optimising a step
+   without seeing what it feeds is how you move a number and lose the funnel.
+3. **`user_image_upload_error` sits in the same flow** — 9 of the 50 profile starters
+   hit it. Some of the drop-off may be that bug rather than the verification step,
+   and fixing a bug is cheaper than restructuring onboarding.
+
+**This is HABITS-only.** It must not be generalised to the Therr app: Therr's
+onboarding assumes a verified phone for connection discovery, its installed base is
+~117 active devices against Habits' ~15, and no equivalent measurement has been done
+on its stream. Any change lands on `niche/HABITS-general` for the mobile UI, with
+`general` carrying only whatever server-side support it needs.
+
+Revisit when there are **two clean months** of post-exclusion data, or after the first
+paid campaign — whichever comes first.
 
 ### 2.3 Direct-message engagement loop
 

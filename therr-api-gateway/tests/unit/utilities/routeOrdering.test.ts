@@ -164,6 +164,19 @@ describe('routeOrdering utility', () => {
             expect(paths).to.include('/users-service/habits/checkins/:id');
         });
 
+        // Same failure mode, the mutating half of the habits surface. These are
+        // the routes `UserHabitsService` calls; a missing entry here 404s at the
+        // edge with the service, the shared client and their tests all green.
+        it('proxies every habits user-habit mutation the shared client calls', () => {
+            const paths = collectRoutes(gatewayRouter)
+                .filter((route) => route.method === 'put')
+                .map((route) => route.path);
+
+            expect(paths).to.include('/users-service/habits/user-habits/:id/archive');
+            expect(paths).to.include('/users-service/habits/user-habits/:id/restore');
+            expect(paths).to.include('/users-service/habits/user-habits/:id/continue-solo');
+        });
+
         it('exposes no unreachable routes', () => {
             const routes = collectRoutes(gatewayRouter);
 

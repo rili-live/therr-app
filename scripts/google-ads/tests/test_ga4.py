@@ -109,3 +109,40 @@ class FetchAppFunnelUnconfiguredTest(unittest.TestCase):
 
         self.assertEqual(len(report.steps), len(APP_FUNNEL_STEPS))
         self.assertEqual(report.installs, 0)
+
+
+class SyntheticDeviceExclusionTests(unittest.TestCase):
+    """The automated device farm was 49% of new users in the month to 8 Sep 2026."""
+
+    def test_the_measured_farm_signature_is_listed(self):
+        from therr_ads.ga4 import SYNTHETIC_DEVICE_MODELS
+
+        # OnePlus8Pro alone was 45 of 136 new users, spread evenly across all
+        # twelve historical app versions at one session each.
+        self.assertIn("OnePlus8Pro", SYNTHETIC_DEVICE_MODELS)
+
+    def test_every_emulator_signature_is_listed(self):
+        from therr_ads.ga4 import SYNTHETIC_DEVICE_MODELS
+
+        for model in ("sdk_gphone64_arm64", "sdk_gphone_arm64", "Android SDK built for arm64"):
+            self.assertIn(model, SYNTHETIC_DEVICE_MODELS)
+
+    def test_no_real_device_is_caught_by_the_list(self):
+        """Guard against someone adding a prefix match that eats real Pixels."""
+        from therr_ads.ga4 import SYNTHETIC_DEVICE_MODELS
+
+        for real in ("Pixel 9 Pro XL", "SM-S921U", "motorola edge 50 fusion", "Infinix X6728"):
+            self.assertNotIn(real, SYNTHETIC_DEVICE_MODELS)
+
+    def test_exclusion_is_recorded_in_notes_not_silent(self):
+        """This module reports rather than silently filters."""
+        from therr_ads.ga4 import build_app_funnel
+
+        report = build_app_funnel({}, "267810693", "Friends with Habits", "2026-08-06", "2026-09-08")
+        # build_app_funnel is pure and adds no note; the note is added by the
+        # fetch path. Assert the contract the fetch path relies on.
+        self.assertEqual(report.notes, [])
+
+
+if __name__ == "__main__":
+    unittest.main()

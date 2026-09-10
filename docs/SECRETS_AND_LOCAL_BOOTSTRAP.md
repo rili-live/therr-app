@@ -175,6 +175,12 @@ via CircleCI (`habits_mobile_release` workflow in `.circleci/config.yml`).
 EAS runs the actual Android build on Expo's infrastructure, so the CI runner
 only needs `eas-cli` installed — no local Android SDK required.
 
+> The `habits_mobile_release` workflow and its `eas_build_habits_android` job are
+> defined only on the `niche/HABITS-*` branches, not on `general`. CircleCI reads
+> `.circleci/config.yml` from the branch it is building, and the only branch that
+> triggers this workflow is `niche/HABITS-main` — so the job belongs there, alongside
+> the brand identity it builds. `general` carries `eas_build_therr_android` instead.
+
 ### One-time setup (do this before the first CI build)
 
 1. **Create an Expo account** at https://expo.dev if you don't have one.

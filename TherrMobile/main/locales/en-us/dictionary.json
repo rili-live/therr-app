@@ -2020,6 +2020,24 @@
             "pactWithPartners": "Pact with {partners}",
             "awaitingPartnerAcceptance": "Waiting for {partners} to accept before this pact starts.",
             "awaitingAnyPartnerAcceptance": "Waiting for your invite to be accepted before this pact starts.",
+            "soloOrArchivePrompt": "No one has joined yet. Keep going on your own, or pause the reminders?",
+            "continueSolo": "Continue solo",
+            "archiveHabit": "Archive",
+            "soloContinued": {
+                "successTitle": "You're on your own — nice.",
+                "successMessage": "{habit} is now a solo habit. Keep that streak going!",
+                "lockedTitle": "Almost there",
+                "lockedMessage": "Invite {remaining} more friend(s) to track habits on your own — or archive this one for now.",
+                "lockedMessageGeneric": "Invite a few more friends to track habits on your own — or archive this one for now.",
+                "errorMessage": "We couldn't switch this habit to solo. Please try again."
+            },
+            "habitArchived": {
+                "confirm": "Archive this habit? Reminders stop until a partner accepts your invite — then it comes back automatically.",
+                "confirmButton": "Archive",
+                "successTitle": "Habit archived",
+                "successMessage": "We'll stop the reminders. It'll return if a partner joins.",
+                "errorMessage": "We couldn't archive this habit. Please try again."
+            },
             "habitNotFound": "Habit not found",
             "checkinProof": {
                 "notePlaceholder": "How did it go? Any wins to share?",
