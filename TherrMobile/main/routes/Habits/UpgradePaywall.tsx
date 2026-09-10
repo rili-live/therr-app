@@ -22,10 +22,14 @@ import {
     endBilling,
     finishPurchase,
     fetchFounderProduct,
+    fetchPremiumProduct,
     getOwnedFounderPurchase,
+    getOwnedSubscription,
+    getSubscriptionOfferToken,
     initBilling,
     isBillingSupported,
     requestFounderPurchase,
+    requestSubscriptionPurchase,
     resolvePurchaseValue,
     PURCHASE_TIMEOUT_CODE,
 } from '../../utilities/habitsBilling';
@@ -33,6 +37,8 @@ import {
 interface IUpgradePaywallDispatchProps {
     getLifetimeOffer: Function;
     verifyLifetimePurchase: Function;
+    getPremiumOffer: Function;
+    verifyPremiumPurchase: Function;
     getMe: Function;
 }
 
@@ -49,7 +55,12 @@ export interface IUpgradePaywallProps extends IStoreProps {
 interface IUpgradePaywallState {
     isLoading: boolean;
     isPurchasing: boolean;
+    isSubscribing: boolean;
     localizedPrice: string | null;
+    premiumPrice: string | null;
+    // The subscribe button appears only once an offer token is resolved, since a
+    // Play subscription cannot be purchased without one.
+    isPremiumReady: boolean;
 }
 
 const mapStateToProps = (state) => ({
@@ -60,10 +71,12 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getLifetimeOffer: HabitActions.getLifetimeOffer,
     verifyLifetimePurchase: HabitActions.verifyLifetimePurchase,
+    getPremiumOffer: HabitActions.getPremiumOffer,
+    verifyPremiumPurchase: HabitActions.verifyPremiumPurchase,
     getMe: UsersActions.getMe,
 }, dispatch);
 
-const BENEFIT_KEYS = [
+const FOUNDER_BENEFIT_KEYS = [
     'unlimitedHabits',
     'unlimitedPacts',
     'allFutureFeatures',
@@ -71,16 +84,25 @@ const BENEFIT_KEYS = [
     'noSubscription',
 ];
 
+const PREMIUM_BENEFIT_KEYS = [
+    'unlimitedHabits',
+    'unlimitedPacts',
+    'allFeatures',
+    'cancelAnytime',
+];
+
 /**
- * The founder offer: one payment, premium for life, for the first N accounts.
+ * The two ways to lift the free-tier limits, on one screen:
+ *   - the founder offer — one payment, premium for life, for the first N
+ *     accounts (Google Play in-app product); and
+ *   - the $6.99/month premium subscription (Google Play subscription).
  *
- * Three independent conditions have to hold before the buy button appears, and
- * each hides it for a different reason:
- *   - the store module is present and the platform is Android (iOS has no
- *     server-side receipt verification yet, so a purchase there could not be
- *     honoured);
- *   - the server reports Play credentials configured (`isStoreConfigured`);
- *   - seats remain.
+ * Both grant `HABITS_PREMIUM`/`HABITS_LIFETIME` server-side, so a single
+ * `isEntitled` (from either offer) hides every CTA once the account is paid. Each
+ * CTA has its own gate: the store module must be present and Android (iOS has no
+ * server-side receipt verification yet), the server must report Play credentials
+ * configured, and — for the founder offer — seats must remain, while the
+ * subscribe button additionally waits for an offer token to resolve.
  *
  * The screen is reachable both from a 402 (`habit-limit-reached`) and from a
  * direct tap, so it reads `route.params.reason` to decide whether to lead with
@@ -94,12 +116,16 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
     private themeHabits = buildHabitStyles();
 
     /**
-     * The store's product, kept off state on purpose: it is read back in
-     * `verifyAndFinish` within the same call stack that recovery sets it in, and
-     * `setState` does not update `this.state` synchronously. State carries the
-     * display string, which is all the render needs.
+     * The store products, kept off state on purpose: they are read back within
+     * the same call stack that recovery sets them in, and `setState` does not
+     * update `this.state` synchronously. State carries the display strings and
+     * readiness flag, which is all the render needs.
      */
-    private storeProduct: any = null;
+    private founderProduct: any = null;
+
+    private premiumProduct: any = null;
+
+    private premiumOfferToken: string | null = null;
 
     constructor(props: IUpgradePaywallProps) {
         super(props);
@@ -107,7 +133,10 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
         this.state = {
             isLoading: true,
             isPurchasing: false,
+            isSubscribing: false,
             localizedPrice: null,
+            premiumPrice: null,
+            isPremiumReady: false,
         };
 
         const themeName = props.user.settings?.mobileThemeName;
@@ -122,7 +151,7 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
     }
 
     componentDidMount() {
-        // The denominator for the purchase event below. Without it a zero
+        // The denominator for the purchase events below. Without it a zero
         // purchase count is unreadable: it cannot distinguish "nobody is
         // reaching the paywall" from "everybody reaches it and nobody buys",
         // which are opposite problems with opposite fixes.
@@ -130,8 +159,11 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
             userId: this.props.user?.details?.id,
         });
 
-        this.props.getLifetimeOffer()
-            .then((offer: any) => this.prepareStore(offer))
+        Promise.all([
+            this.props.getLifetimeOffer().catch(() => null),
+            this.props.getPremiumOffer().catch(() => null),
+        ])
+            .then(([lifetimeOffer, premiumOffer]) => this.prepareStore(lifetimeOffer, premiumOffer))
             .catch(() => null)
             .finally(() => {
                 this.setState({ isLoading: false });
@@ -145,14 +177,20 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
     }
 
     /**
-     * Open the store connection and read the real localized price.
+     * Open the store connection and read the real localized prices.
      *
      * Also recovers a purchase that completed but was never verified — if the
      * verify call failed (offline, server restart) the user is charged and
      * unentitled, and the only way back is to notice the owned purchase here.
      */
-    prepareStore = async (offer: any) => {
-        if (!offer?.productId || !isBillingSupported()) {
+    prepareStore = async (lifetimeOffer: any, premiumOffer: any) => {
+        if (!isBillingSupported()) {
+            return;
+        }
+
+        const isEntitled = !!lifetimeOffer?.isEntitled || !!premiumOffer?.isEntitled;
+
+        if (!lifetimeOffer?.productId && !premiumOffer?.productId) {
             return;
         }
 
@@ -162,29 +200,54 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
             return;
         }
 
-        const product = await fetchFounderProduct(offer.productId);
+        if (lifetimeOffer?.productId) {
+            const product = await fetchFounderProduct(lifetimeOffer.productId);
 
-        if (product) {
-            this.storeProduct = product;
-            this.setState({
-                localizedPrice: product.displayPrice || product.localizedPrice || null,
-            });
+            if (product) {
+                this.founderProduct = product;
+                this.setState({
+                    localizedPrice: product.displayPrice || product.localizedPrice || null,
+                });
+            }
         }
 
-        if (!offer.purchase && !offer.isEntitled) {
-            await this.recoverOwnedPurchase(offer.productId);
+        if (premiumOffer?.productId) {
+            const product = await fetchPremiumProduct(premiumOffer.productId);
+
+            if (product) {
+                this.premiumProduct = product;
+                this.premiumOfferToken = getSubscriptionOfferToken(product);
+                this.setState({
+                    premiumPrice: product.displayPrice || product.localizedPrice || null,
+                    isPremiumReady: !!this.premiumOfferToken,
+                });
+            }
+        }
+
+        if (!isEntitled) {
+            // Recover a purchase whose verification never landed. Founder first
+            // — a lifetime unlock supersedes the need for a subscription — then
+            // the subscription.
+            if (lifetimeOffer?.productId && !lifetimeOffer?.purchase) {
+                const recovered = await this.recoverOwnedFounderPurchase(lifetimeOffer.productId);
+
+                if (recovered) {
+                    return;
+                }
+            }
+
+            if (premiumOffer?.productId && !premiumOffer?.subscription) {
+                await this.recoverOwnedSubscription(premiumOffer.productId);
+            }
         }
     };
 
     /**
-     * Verify a purchase the store says the account already owns.
-     *
-     * Two callers, both recovery: opening the screen (a verify that failed
-     * after the money was taken), and a purchase that timed out without the
-     * store ever answering. Returns whether anything was recovered so the
-     * timeout path knows whether it still owes the user a message.
+     * Verify a founder purchase the store says the account already owns. Returns
+     * whether anything was recovered so callers know whether they still owe the
+     * user a message.
      */
-    recoverOwnedPurchase = async (productId: string): Promise<boolean> => {
+    recoverOwnedFounderPurchase = async (productId: string): Promise<boolean> => {
         const owned = await getOwnedFounderPurchase(productId);
 
         if (!owned) {
@@ -192,6 +255,18 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
         }
 
         await this.verifyAndFinish(owned, { isSilent: true });
+
+        return true;
+    };
+
+    recoverOwnedSubscription = async (productId: string): Promise<boolean> => {
+        const owned = await getOwnedSubscription(productId);
+
+        if (!owned) {
+            return false;
+        }
+
+        await this.verifyPremiumAndFinish(owned, { isSilent: true });
 
         return true;
     };
@@ -210,28 +285,7 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
             // the note in `habitsBilling.finishPurchase`.
             await finishPurchase(purchase.rawPurchase);
 
-            // The MODEL question's only in-app answer. `value` and `currency`
-            // are what let this import into Google Ads as a VALUE conversion
-            // rather than a bare count, so cost-per-payer can be compared
-            // against what the Founder Unlock actually nets after Play's 15%
-            // fee — the ceiling that decides whether paid acquisition can fund
-            // itself at all.
-            //
-            // Fired here, after the SERVER recorded the purchase and before
-            // finishPurchase acknowledges it to Play. Firing on the store's
-            // resolve instead would count purchases that failed verification,
-            // which is the one direction this number must not be wrong in.
-            //
-            // The amount comes from the verify response first — that is what the
-            // server read back from Play for this order — and from the store
-            // product only as a fallback. Neither answering means the event goes
-            // out as a plain count: see `resolvePurchaseValue` for why a guess is
-            // worse than a gap.
-            //
-            // isRecovery marks the path where a first verify failed and the
-            // user was charged days earlier: still exactly one event per
-            // purchase, but attributed to today rather than to the charge.
-            const purchaseValue = resolvePurchaseValue(verified?.purchase, this.storeProduct);
+            const purchaseValue = resolvePurchaseValue(verified?.purchase, this.founderProduct);
 
             logAppEvent('habits_founder_unlock_purchase', {
                 userId: this.props.user?.details?.id,
@@ -254,6 +308,51 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
         } catch {
             // Silent on the recovery path — the user did not ask for this, and
             // a toast about a purchase they made days ago would be confusing.
+            if (!options.isSilent) {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    text2: this.translate('pages.upgrade.errors.verifyFailed'),
+                });
+            }
+        }
+    };
+
+    verifyPremiumAndFinish = async (purchase: any, options: { isSilent?: boolean } = {}) => {
+        const { navigation } = this.props;
+
+        try {
+            const verified = await this.props.verifyPremiumPurchase({
+                platform: 'android',
+                purchaseToken: purchase.purchaseToken,
+                orderId: purchase.orderId,
+            });
+
+            // A subscription is acknowledged, never consumed — same call as the
+            // founder unlock, after the server has recorded it.
+            await finishPurchase(purchase.rawPurchase);
+
+            // The verify response does not carry a subscription price, so the
+            // store product (its recurring pricing phase) is the source of the
+            // conversion value. Reported after the SERVER recorded the purchase,
+            // so a failed verification never counts as a conversion.
+            const purchaseValue = resolvePurchaseValue(verified?.subscription, this.premiumProduct);
+
+            logAppEvent('habits_premium_subscription_purchase', {
+                userId: this.props.user?.details?.id,
+                value: purchaseValue?.value,
+                currency: purchaseValue?.currency,
+                isRecovery: !!options.isSilent,
+            });
+
+            await this.props.getMe().catch(() => null);
+
+            showToast.success({
+                text1: this.translate('pages.upgrade.premium.success.title'),
+                text2: this.translate('pages.upgrade.premium.success.message'),
+            });
+
+            navigation.goBack();
+        } catch {
             if (!options.isSilent) {
                 showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
@@ -287,43 +386,105 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
             const purchase = await requestFounderPurchase(offer.productId);
             await this.verifyAndFinish(purchase);
         } catch (err: any) {
-            // A user cancelling out of the Play sheet is not an error worth a
-            // toast — it is the second most common outcome of tapping "buy".
-            const isCancelled = err?.code === 'E_USER_CANCELLED'
-                || `${err?.message || ''}`.toLowerCase().includes('cancel');
-
-            if (err?.code === PURCHASE_TIMEOUT_CODE) {
-                // The store went quiet; the purchase may still land. Check
-                // whether it already did before saying anything, and never
-                // claim it failed — the user may well have been charged.
-                const recovered = await this.recoverOwnedPurchase(offer.productId);
-
-                if (!recovered) {
-                    showToast.info({
-                        text1: this.translate('pages.upgrade.errors.purchasePending'),
-                    });
-                }
-            } else if (!isCancelled) {
-                showToast.error({
-                    text1: this.translate('alertTitles.backendErrorMessage'),
-                    text2: this.translate('pages.upgrade.errors.purchaseFailed'),
-                });
-            }
+            this.handlePurchaseError(err, () => this.recoverOwnedFounderPurchase(offer.productId));
         } finally {
             this.setState({ isPurchasing: false });
         }
     };
 
+    handleSubscribe = async () => {
+        const { habits } = this.props;
+        const offer = habits.premiumOffer;
+
+        if (!offer?.productId) {
+            return;
+        }
+
+        this.setState({ isSubscribing: true });
+
+        try {
+            const connected = await initBilling();
+
+            if (!connected) {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    text2: this.translate('pages.upgrade.errors.storeUnavailable'),
+                });
+                return;
+            }
+
+            // The offer token is fetched with the product; recover it here if the
+            // first fetch missed it, so a slow catalogue load does not dead-end
+            // the button.
+            if (!this.premiumOfferToken && this.premiumProduct) {
+                this.premiumOfferToken = getSubscriptionOfferToken(this.premiumProduct);
+            }
+
+            if (!this.premiumOfferToken) {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    text2: this.translate('pages.upgrade.errors.storeUnavailable'),
+                });
+                return;
+            }
+
+            const purchase = await requestSubscriptionPurchase(offer.productId, this.premiumOfferToken);
+            await this.verifyPremiumAndFinish(purchase);
+        } catch (err: any) {
+            this.handlePurchaseError(err, () => this.recoverOwnedSubscription(offer.productId));
+        } finally {
+            this.setState({ isSubscribing: false });
+        }
+    };
+
+    /**
+     * Shared purchase-error handling for both flows. A user cancelling out of the
+     * Play sheet is the second most common outcome of tapping buy and is not
+     * worth a toast; a timeout may still land, so it triggers recovery and never
+     * claims failure; anything else is a real error.
+     */
+    handlePurchaseError = async (err: any, recover: () => Promise<boolean>) => {
+        const isCancelled = err?.code === 'E_USER_CANCELLED'
+            || `${err?.message || ''}`.toLowerCase().includes('cancel');
+
+        if (err?.code === PURCHASE_TIMEOUT_CODE) {
+            const recovered = await recover();
+
+            if (!recovered) {
+                showToast.info({
+                    text1: this.translate('pages.upgrade.errors.purchasePending'),
+                });
+            }
+        } else if (!isCancelled) {
+            showToast.error({
+                text1: this.translate('alertTitles.backendErrorMessage'),
+                text2: this.translate('pages.upgrade.errors.purchaseFailed'),
+            });
+        }
+    };
+
     render() {
         const { habits, navigation, route } = this.props;
-        const { isLoading, isPurchasing, localizedPrice } = this.state;
-        const offer = habits.lifetimeOffer;
+        const {
+            isLoading, isPurchasing, isSubscribing, localizedPrice, premiumPrice, isPremiumReady,
+        } = this.state;
+        const lifetimeOffer = habits.lifetimeOffer;
+        const premiumOffer = habits.premiumOffer;
         const reason = route?.params?.reason;
 
-        const canPurchase = !!offer
-            && !offer.isEntitled
-            && !offer.isSoldOut
-            && offer.isStoreConfigured
+        const isEntitled = !!lifetimeOffer?.isEntitled || !!premiumOffer?.isEntitled;
+        const hasAnyOffer = !!lifetimeOffer || !!premiumOffer;
+
+        const canPurchase = !!lifetimeOffer
+            && !isEntitled
+            && !lifetimeOffer.isSoldOut
+            && lifetimeOffer.isStoreConfigured
+            && isBillingSupported();
+
+        const canSubscribe = !!premiumOffer
+            && !isEntitled
+            && premiumOffer.isStoreConfigured
+            && isPremiumReady
             && isBillingSupported();
 
         return (
@@ -352,12 +513,12 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
                             </View>
                         )}
 
-                        {/* The offer call can fail — offline, or an app build
-                            that reached Play ahead of the backend that serves
-                            `/habits/lifetime`. Without this branch the screen
-                            renders a title and nothing else, including no way
-                            back, which strands anyone the 402 sent here. */}
-                        {!isLoading && !offer && (
+                        {/* Both offer calls can fail — offline, or an app build
+                            that reached Play ahead of the backend. Without this
+                            branch the screen renders a title and nothing else,
+                            including no way back, which strands anyone the 402
+                            sent here. */}
+                        {!isLoading && !hasAnyOffer && (
                             <View style={this.themeHabits.styles.dashboardSection}>
                                 <Text style={this.themeHabits.styles.dashboardSubtitle}>
                                     {this.translate('pages.upgrade.unavailable')}
@@ -374,12 +535,36 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
                             </View>
                         )}
 
-                        {!isLoading && !!offer && (
+                        {!isLoading && isEntitled && (
+                            <View style={this.themeHabits.styles.dashboardSection}>
+                                <Text style={this.themeHabits.styles.dashboardSubtitle}>
+                                    {lifetimeOffer?.purchase?.founderNumber
+                                        ? this.translate('pages.upgrade.ownedWithNumber', {
+                                            number: lifetimeOffer.purchase.founderNumber,
+                                        })
+                                        : (lifetimeOffer?.isEntitled
+                                            ? this.translate('pages.upgrade.owned')
+                                            : this.translate('pages.upgrade.premium.owned'))}
+                                </Text>
+                                <Pressable
+                                    accessibilityRole="button"
+                                    style={this.themeHabits.styles.emptyStateActionButton}
+                                    onPress={() => navigation.goBack()}
+                                >
+                                    <Text style={this.themeHabits.styles.emptyStateActionLabel}>
+                                        {this.translate('pages.upgrade.notNow')}
+                                    </Text>
+                                </Pressable>
+                            </View>
+                        )}
+
+                        {/* Founder offer */}
+                        {!isLoading && !isEntitled && !!lifetimeOffer && (
                             <View style={this.themeHabits.styles.dashboardSection}>
                                 <Text style={this.themeHabits.styles.dashboardSectionTitle}>
                                     {this.translate('pages.upgrade.benefitsTitle')}
                                 </Text>
-                                {BENEFIT_KEYS.map((key) => (
+                                {FOUNDER_BENEFIT_KEYS.map((key) => (
                                     <Text key={key} style={this.themeHabits.styles.dashboardSubtitle}>
                                         {`•  ${this.translate(`pages.upgrade.benefits.${key}`)}`}
                                     </Text>
@@ -388,34 +573,18 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
                                 {/* Scarcity is only credible if it is real, so the
                                     remaining count comes from the server rather
                                     than from a hardcoded number. */}
-                                {!offer.isSoldOut && (
+                                {!lifetimeOffer.isSoldOut && (
                                     <Text style={this.themeHabits.styles.dashboardSubtitle}>
                                         {this.translate('pages.upgrade.seatsRemaining', {
-                                            remaining: offer.remaining,
-                                            total: offer.total,
+                                            remaining: lifetimeOffer.remaining,
+                                            total: lifetimeOffer.total,
                                         })}
                                     </Text>
                                 )}
 
-                                {offer.isEntitled && (
-                                    <Text style={this.themeHabits.styles.dashboardSubtitle}>
-                                        {offer.purchase?.founderNumber
-                                            ? this.translate('pages.upgrade.ownedWithNumber', {
-                                                number: offer.purchase.founderNumber,
-                                            })
-                                            : this.translate('pages.upgrade.owned')}
-                                    </Text>
-                                )}
-
-                                {!offer.isEntitled && offer.isSoldOut && (
+                                {lifetimeOffer.isSoldOut && (
                                     <Text style={this.themeHabits.styles.dashboardSubtitle}>
                                         {this.translate('pages.upgrade.soldOut')}
-                                    </Text>
-                                )}
-
-                                {!offer.isEntitled && !offer.isSoldOut && !canPurchase && (
-                                    <Text style={this.themeHabits.styles.dashboardSubtitle}>
-                                        {this.translate('pages.upgrade.unavailable')}
                                     </Text>
                                 )}
 
@@ -439,17 +608,65 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
                                         </Text>
                                     </Pressable>
                                 )}
-
-                                <Pressable
-                                    accessibilityRole="button"
-                                    style={this.themeHabits.styles.emptyStateActionButton}
-                                    onPress={() => navigation.goBack()}
-                                >
-                                    <Text style={this.themeHabits.styles.emptyStateActionLabel}>
-                                        {this.translate('pages.upgrade.notNow')}
-                                    </Text>
-                                </Pressable>
                             </View>
+                        )}
+
+                        {/* Premium subscription */}
+                        {!isLoading && !isEntitled && !!premiumOffer && (
+                            <View style={this.themeHabits.styles.dashboardSection}>
+                                <Text style={this.themeHabits.styles.dashboardSectionTitle}>
+                                    {this.translate('pages.upgrade.premium.sectionTitle')}
+                                </Text>
+                                <Text style={this.themeHabits.styles.dashboardSubtitle}>
+                                    {this.translate('pages.upgrade.premium.subtitle')}
+                                </Text>
+                                {PREMIUM_BENEFIT_KEYS.map((key) => (
+                                    <Text key={key} style={this.themeHabits.styles.dashboardSubtitle}>
+                                        {`•  ${this.translate(`pages.upgrade.premium.benefits.${key}`)}`}
+                                    </Text>
+                                ))}
+
+                                {canSubscribe && (
+                                    <Pressable
+                                        accessibilityRole="button"
+                                        accessibilityState={{ disabled: isSubscribing }}
+                                        disabled={isSubscribing}
+                                        style={[
+                                            this.themeHabits.styles.emptyStateActionButton,
+                                            isSubscribing && { opacity: 0.6 },
+                                        ]}
+                                        onPress={this.handleSubscribe}
+                                    >
+                                        <Text style={this.themeHabits.styles.emptyStateActionLabel}>
+                                            {isSubscribing
+                                                ? this.translate('pages.upgrade.premium.subscribing')
+                                                : (premiumPrice
+                                                    ? this.translate('pages.upgrade.premium.buyCta', {
+                                                        price: premiumPrice,
+                                                    })
+                                                    : this.translate('pages.upgrade.premium.buyCtaNoPrice'))}
+                                        </Text>
+                                    </Pressable>
+                                )}
+
+                                {!canSubscribe && premiumOffer.isStoreConfigured && isBillingSupported() && (
+                                    <Text style={this.themeHabits.styles.dashboardSubtitle}>
+                                        {this.translate('pages.upgrade.unavailable')}
+                                    </Text>
+                                )}
+                            </View>
+                        )}
+
+                        {!isLoading && hasAnyOffer && !isEntitled && (
+                            <Pressable
+                                accessibilityRole="button"
+                                style={this.themeHabits.styles.emptyStateActionButton}
+                                onPress={() => navigation.goBack()}
+                            >
+                                <Text style={this.themeHabits.styles.emptyStateActionLabel}>
+                                    {this.translate('pages.upgrade.notNow')}
+                                </Text>
+                            </Pressable>
                         )}
                     </ScrollView>
                 </SafeAreaView>

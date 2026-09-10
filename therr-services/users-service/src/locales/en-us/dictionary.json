@@ -53,6 +53,10 @@
             "lifetimePurchaseNotCompleted": "That purchase has not completed yet",
             "lifetimePurchaseNotFound": "That purchase could not be found",
             "lifetimeVerificationFailed": "We could not verify that purchase right now. Please try again shortly.",
+            "premiumAlreadyClaimed": "That subscription has already been claimed by another account",
+            "premiumPurchaseNotActive": "That subscription is not active yet",
+            "premiumPurchaseNotFound": "That subscription could not be found",
+            "premiumVerificationFailed": "We could not verify that subscription right now. Please try again shortly.",
             "soloLocked": "Invite {remaining} more friend(s) to unlock habits you track on your own — {required} invites total."
         },
         "user": {

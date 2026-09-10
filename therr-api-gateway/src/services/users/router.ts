@@ -870,6 +870,16 @@ usersServiceRouter.post('/habits/lifetime/verify', handleServiceRequest({
     method: 'post',
 }));
 
+// HABITS — Premium subscription ($6.99/month, Google Play Billing)
+usersServiceRouter.get('/habits/premium', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/premium/verify', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
 // HABITS — Journal
 usersServiceRouter.get('/habits/journal', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,

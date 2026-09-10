@@ -2493,6 +2493,24 @@
                 "purchaseFailed": "Cet achat n'a pas abouti.",
                 "purchasePending": "Toujours en cours de traitement. Si tu as été facturé, ton accès apparaîtra ici sous peu.",
                 "storeUnavailable": "La boutique est indisponible pour le moment."
+            },
+            "premium": {
+                "sectionTitle": "Ou abonne-toi chaque mois",
+                "subtitle": "Toutes les fonctionnalités premium, facturées mensuellement. Annule à tout moment.",
+                "benefits": {
+                    "unlimitedHabits": "Suis autant d'habitudes que tu veux",
+                    "unlimitedPacts": "Pactes illimités avec des amis illimités",
+                    "allFeatures": "Toutes les fonctionnalités premium",
+                    "cancelAnytime": "Annule à tout moment"
+                },
+                "buyCta": "S'abonner pour {price}",
+                "buyCtaNoPrice": "S'abonner chaque mois",
+                "subscribing": "Démarrage de l'abonnement…",
+                "owned": "Tu as un abonnement premium actif.",
+                "success": {
+                    "title": "Tout est prêt",
+                    "message": "Premium débloqué. Merci de t'être abonné."
+                }
             }
         }
     },
