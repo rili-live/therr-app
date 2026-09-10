@@ -90,12 +90,14 @@ describe('QR Check-in Flow - Campaign E2E', () => {
             createdSpaceIds.push(space.id);
 
             // Mirror the spaceMetrics handler's insert shape. Column names
-            // intentionally minimal — the schema has many optional fields.
+            // intentionally minimal — the schema has many optional fields — but
+            // `region` is NOT NULL with no default, and the jsonb column is
+            // `dimensions` (there is no `dimensionSources`).
             await execMapsDb(
                 `INSERT INTO "main"."spaceMetrics"
-                    ("spaceId", name, value, "valueType", "userId", "dimensionSources")
-                 VALUES ($1, $2, $3, $4, $5, $6)`,
-                [space.id, 'userCheckIn', 1, 'integer', checkingInUser.id, JSON.stringify({ campaign: 'treasure_hunt' })],
+                    ("spaceId", region, name, value, "valueType", "userId", dimensions)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [space.id, 'us', 'userCheckIn', 1, 'integer', checkingInUser.id, JSON.stringify({ campaign: 'treasure_hunt' })],
             );
 
             const metrics = await queryMapsDb(

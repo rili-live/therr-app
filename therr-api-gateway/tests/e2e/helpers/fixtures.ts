@@ -87,7 +87,7 @@ export const createTestUser = async (overrides: Partial<ITestUser> = {}): Promis
 };
 
 /**
- * Seed a Space row in main.spaces with a PostGIS geography point.
+ * Seed a Space row in main.spaces with the PostGIS shape SpacesStore.create writes.
  */
 export const createTestSpace = async (
     fromUserId: string,
@@ -99,11 +99,22 @@ export const createTestSpace = async (
     const longitude = overrides.longitude ?? -86.1581;
     const addressReadable = overrides.addressReadable ?? `Campaign E2E Space ${id.slice(0, 8)}`;
 
-    // PostGIS point + standard columns. Kept minimal — tests that need richer
+    // PostGIS columns must match what SpacesStore.create writes, not just "a point":
+    // `main.spaces.geom` is geometry(Polygon,4326) — a radius buffer, not a point — and
+    // proximity reads go through `geomCenter` (geometry(Point,4326)), so a row without it
+    // is invisible to every space query. Kept minimal otherwise; tests that need richer
     // space data should insert additional columns explicitly.
     const sql = `
-        INSERT INTO main.spaces (id, "fromUserId", "addressReadable", latitude, longitude, geom, "isPublic", radius, category)
-        VALUES ($1, $2, $3, $4, $5, ST_SetSRID(ST_MakePoint($5, $4), 4326)::geography, true, 25, 'uncategorized')
+        INSERT INTO main.spaces (
+            id, "fromUserId", "addressReadable", latitude, longitude, geom, "geomCenter",
+            "notificationMsg", region, "isPublic", radius, category
+        )
+        VALUES (
+            $1, $2, $3, $4, $5,
+            ST_SetSRID(ST_Buffer(ST_MakePoint($5, $4)::geography, 25)::geometry, 4326),
+            ST_SetSRID(ST_MakePoint($5, $4), 4326),
+            'campaign e2e space', 'us', true, 25, 'uncategorized'
+        )
         RETURNING id, "fromUserId", "addressReadable", latitude, longitude;
     `;
     const result = await conn.maps.write.query(sql, [id, fromUserId, addressReadable, latitude, longitude]);
@@ -111,8 +122,11 @@ export const createTestSpace = async (
 };
 
 /**
- * Seed a Moment row in main.moments with a PostGIS geography point.
- * Proximity queries compare the requester's location against the moment's geom.
+ * Seed a Moment row in main.moments with a PostGIS point.
+ *
+ * `geom` is geometry(Point,4326) — matching MomentsStore, which writes
+ * `ST_SetSRID(ST_MakePoint(lon, lat), 4326)` and casts to geography only at read time
+ * so ST_DWithin's distance is in metres. Writing a geography here is a type error.
  */
 export const createTestMoment = async (
     fromUserId: string,
@@ -125,8 +139,14 @@ export const createTestMoment = async (
     const radius = overrides.radius ?? 50;
 
     const sql = `
-        INSERT INTO main.moments (id, "fromUserId", latitude, longitude, radius, geom, "isPublic", category, message)
-        VALUES ($1, $2, $3, $4, $5, ST_SetSRID(ST_MakePoint($4, $3), 4326)::geography, true, 'uncategorized', 'campaign e2e moment')
+        INSERT INTO main.moments (
+            id, "fromUserId", latitude, longitude, radius, geom,
+            "notificationMsg", region, "isPublic", category, message
+        )
+        VALUES (
+            $1, $2, $3, $4, $5, ST_SetSRID(ST_MakePoint($4, $3), 4326),
+            'campaign e2e moment', 'us', true, 'uncategorized', 'campaign e2e moment'
+        )
         RETURNING id, "fromUserId", latitude, longitude, radius;
     `;
     const result = await conn.maps.write.query(sql, [id, fromUserId, latitude, longitude, radius]);
@@ -148,11 +168,22 @@ export const createTestEvent = async (
     const scheduleStopAt = overrides.scheduleStopAt ?? new Date(Date.now() + 26 * 60 * 60 * 1000);
 
     const sql = `
-        INSERT INTO main.events (id, "fromUserId", latitude, longitude, geom, "scheduleStartAt", "scheduleStopAt", "isPublic", category, message, radius)
-        VALUES ($1, $2, $3, $4, ST_SetSRID(ST_MakePoint($4, $3), 4326)::geography, $5, $6, true, 'uncategorized', 'campaign e2e event', 50)
+        INSERT INTO main.events (
+            id, "fromUserId", "groupId", latitude, longitude, geom, "scheduleStartAt", "scheduleStopAt",
+            "notificationMsg", region, "isPublic", category, message, radius
+        )
+        VALUES (
+            $1, $2, $7, $3, $4, ST_SetSRID(ST_MakePoint($4, $3), 4326), $5, $6,
+            'campaign e2e event', 'us', true, 'uncategorized', 'campaign e2e event', 50
+        )
         RETURNING id, "fromUserId", latitude, longitude, "scheduleStartAt", "scheduleStopAt";
     `;
-    const result = await conn.maps.write.query(sql, [id, fromUserId, latitude, longitude, scheduleStartAt, scheduleStopAt]);
+    // `groupId` is NOT NULL with no FK — an event belongs to a group in production, and the
+    // campaign flows never read it, so a standalone uuid per fixture keeps rows independent.
+    const result = await conn.maps.write.query(
+        sql,
+        [id, fromUserId, latitude, longitude, scheduleStartAt, scheduleStopAt, randomUUID()],
+    );
     return result.rows[0];
 };
 

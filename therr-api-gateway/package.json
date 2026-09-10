@@ -14,7 +14,7 @@
     "test": "../node_modules/.bin/mocha -r ../node_modules/ts-node/register -r tsconfig-paths/register --config .mocharc.js './tests/unit/**/*.test.ts' './tests/integration/**/*.test.ts' --exit",
     "test:unit": "../node_modules/.bin/mocha -r ../node_modules/ts-node/register -r tsconfig-paths/register --config .mocharc.js './tests/unit/**/*.test.ts' --exit",
     "test:integration": "../node_modules/.bin/mocha -r ../node_modules/ts-node/register -r tsconfig-paths/register --config .mocharc.js './tests/integration/**/*.test.ts' --exit",
-    "test:e2e": "../node_modules/.bin/mocha -r ../node_modules/ts-node/register -r tsconfig-paths/register --config .mocharc.e2e.js --exit",
+    "test:e2e": "../node_modules/.bin/mocha -r ../node_modules/ts-node/register -r tsconfig-paths/register --config .mocharc.e2e.js './tests/e2e/**/*.test.ts' --exit",
     "test:e2e:critical": "../node_modules/.bin/mocha -r ../node_modules/ts-node/register -r tsconfig-paths/register --config .mocharc.e2e.js './tests/e2e/campaign/{referralFlow,qrCheckinFlow,spaceIncentiveFlow}.e2e.test.ts' --exit",
     "test:coverage": "../node_modules/.bin/nyc --config ./nyc.config.js npm run test"
   },

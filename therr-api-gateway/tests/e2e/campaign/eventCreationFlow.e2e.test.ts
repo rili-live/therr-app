@@ -105,7 +105,7 @@ describe('Event Creation Flow - Campaign E2E', () => {
             // anchor — within a typical campaign zone.
             const rows = await queryMapsDb(
                 `SELECT id FROM "main"."events"
-                  WHERE ST_DWithin(geom, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 1000)
+                  WHERE ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 1000)
                     AND id = $3`,
                 [ANCHOR_LON, ANCHOR_LAT, event.id],
             );
@@ -125,7 +125,7 @@ describe('Event Creation Flow - Campaign E2E', () => {
 
             const rows = await queryMapsDb(
                 `SELECT id FROM "main"."events"
-                  WHERE ST_DWithin(geom, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 1000)
+                  WHERE ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 1000)
                     AND id = $3`,
                 [FAR_LON, FAR_LAT, event.id],
             );

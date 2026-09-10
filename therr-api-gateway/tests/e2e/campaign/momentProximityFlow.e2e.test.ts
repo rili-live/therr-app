@@ -104,7 +104,7 @@ describe('Moment Proximity Flow - Campaign E2E', () => {
 
             const rows = await queryMapsDb(
                 `SELECT id FROM "main"."moments"
-                  WHERE ST_DWithin(geom, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 500)
+                  WHERE ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 500)
                     AND id = $3`,
                 [ANCHOR_LON, ANCHOR_LAT, moment.id],
             );
@@ -124,7 +124,7 @@ describe('Moment Proximity Flow - Campaign E2E', () => {
 
             const rows = await queryMapsDb(
                 `SELECT id FROM "main"."moments"
-                  WHERE ST_DWithin(geom, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 500)
+                  WHERE ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 500)
                     AND id = $3`,
                 [FAR_LON, FAR_LAT, moment.id],
             );

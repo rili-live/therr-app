@@ -177,11 +177,19 @@ const habits = produce((draft: IHabitsState, action: any) => {
 
         // Merge, not replace: the share response is only `{ id, sharedThoughtId }`, so overwriting
         // the row (as UPDATE_CHECKIN does with a full check-in) would drop every other field.
+        //
+        // Both collections, because a check-in is shared from either place: `todayCheckins` backs
+        // the dashboard, and `checkins` is the range load the calendar and day sheet render. A
+        // share from a past day only ever touches `checkins`, so updating `todayCheckins` alone
+        // leaves the calendar showing "not shared" until the next refetch — which is the refetch
+        // this merge exists to avoid.
         case HabitsActionTypes.SHARE_CHECKIN: {
-            const checkinIdx = draft.todayCheckins.findIndex((c) => c.id === action.data.id);
-            if (checkinIdx > -1) {
-                draft.todayCheckins[checkinIdx].sharedThoughtId = action.data.sharedThoughtId;
-            }
+            (['todayCheckins', 'checkins'] as const).forEach((key) => {
+                const checkinIdx = draft[key].findIndex((c) => c.id === action.data.id);
+                if (checkinIdx > -1) {
+                    draft[key][checkinIdx].sharedThoughtId = action.data.sharedThoughtId;
+                }
+            });
             break;
         }
 

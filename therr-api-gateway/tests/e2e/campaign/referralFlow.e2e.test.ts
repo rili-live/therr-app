@@ -167,7 +167,9 @@ describe('Referral Flow - Campaign E2E', () => {
             const row = await getUserById(invitee.id);
             expect(row).to.exist;
             expect(row.email).to.include('campaign-e2e-');
-            const accessLevels = JSON.parse(row.accessLevels);
+            // `accessLevels` is jsonb, so node-postgres hands back a parsed array already;
+            // JSON.parse-ing it stringifies the array first and throws.
+            const { accessLevels } = row;
             expect(accessLevels).to.include('user.default');
         });
     });

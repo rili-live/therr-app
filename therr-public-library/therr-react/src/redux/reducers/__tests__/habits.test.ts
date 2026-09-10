@@ -291,6 +291,46 @@ describe('habits reducer', () => {
         expect(result.todayCheckins[0].status).toBe('completed');
     });
 
+    it('handles SHARE_CHECKIN by merging sharedThoughtId without dropping other fields', () => {
+        const populated = reducer(initialState, {
+            type: HabitsActionTypes.GET_TODAY_CHECKINS,
+            data: [{ id: 'c1', status: 'completed', hasProof: true }],
+        });
+        const result = reducer(populated, {
+            type: HabitsActionTypes.SHARE_CHECKIN,
+            data: { id: 'c1', sharedThoughtId: 't1' },
+        });
+        expect(result.todayCheckins[0].sharedThoughtId).toBe('t1');
+        expect(result.todayCheckins[0].status).toBe('completed');
+        expect(result.todayCheckins[0].hasProof).toBe(true);
+    });
+
+    it('marks a range-loaded check-in shared, so the calendar updates without a refetch', () => {
+        const populated = reducer(initialState, {
+            type: HabitsActionTypes.GET_CHECKINS_BY_RANGE,
+            data: [{ id: 'c-past', status: 'completed', scheduledDate: '2026-09-01' }],
+        });
+        const result = reducer(populated, {
+            type: HabitsActionTypes.SHARE_CHECKIN,
+            data: { id: 'c-past', sharedThoughtId: 't2' },
+        });
+        expect(result.checkins[0].sharedThoughtId).toBe('t2');
+        expect(result.checkins[0].scheduledDate).toBe('2026-09-01');
+    });
+
+    it('leaves both check-in collections untouched when the shared id is not loaded', () => {
+        const populated = reducer(initialState, {
+            type: HabitsActionTypes.GET_TODAY_CHECKINS,
+            data: [{ id: 'c1', status: 'completed' }],
+        });
+        const result = reducer(populated, {
+            type: HabitsActionTypes.SHARE_CHECKIN,
+            data: { id: 'unknown', sharedThoughtId: 't3' },
+        });
+        expect(result.todayCheckins[0].sharedThoughtId).toBeUndefined();
+        expect(result.checkins.length).toBe(0);
+    });
+
     // Streaks
     it('handles GET_USER_STREAKS', () => {
         const result = reducer(initialState, {

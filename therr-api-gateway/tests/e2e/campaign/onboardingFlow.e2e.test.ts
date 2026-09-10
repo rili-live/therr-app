@@ -71,7 +71,9 @@ describe('Onboarding Flow - Campaign E2E', () => {
             createdUserIds.push(user.id);
 
             const row = await getUserById(user.id);
-            const accessLevels = JSON.parse(row.accessLevels);
+            // `accessLevels` is jsonb, so node-postgres hands back a parsed array already;
+            // JSON.parse-ing it stringifies the array first and throws.
+            const { accessLevels } = row;
             expect(accessLevels).to.include('user.default');
         });
 

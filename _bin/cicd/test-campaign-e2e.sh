@@ -23,11 +23,9 @@ source ./_bin/lib/test-helpers.sh
 CURRENT_BRANCH=${CICD_BRANCH:-$CIRCLE_BRANCH}
 echo "Current branch is $CURRENT_BRANCH"
 
-# Determine suffix for staging vs production-bound images (matches the
-# pattern used by test-microservices-integration.sh).
-[[ "$CURRENT_BRANCH" = "stage" ]] && SUFFIX="-stage" || SUFFIX=""
-
-# Critical-path only for PR builds; full suite on stage/main.
+# Critical-path only for PR builds; full suite on stage/main. The workflow filter
+# currently keeps this job off stage/main entirely, so the full branch only fires
+# when the script is invoked by hand — keep it working rather than assuming.
 MODE="${1:-critical}"
 if [[ "$CURRENT_BRANCH" = "stage" ]] || [[ "$CURRENT_BRANCH" = "main" ]]; then
   MODE="full"
@@ -41,8 +39,25 @@ else
   printMessageNeutral "Running CRITICAL-path campaign E2E (referral + qrCheckin + spaceIncentive)"
 fi
 
-GATEWAY_IMAGE="therrapp/api-gateway${SUFFIX}:latest"
+# build-changed-services.sh tags the gateway unsuffixed on every branch, so this
+# is the only tag that step ever produces.
+GATEWAY_IMAGE="therrapp/api-gateway:latest"
 
+# That step only builds the gateway when therr-api-gateway, therr-js-utilities or
+# global-config.js changed, so on a PR touching only another package the image is
+# absent here. Without this guard `docker run` silently PULLS whatever
+# therrapp/api-gateway:latest happens to be on DockerHub and the suite reports
+# green against code that is not the code under review.
+if ! docker image inspect "$GATEWAY_IMAGE" > /dev/null 2>&1; then
+  printMessageNeutral "No locally-built $GATEWAY_IMAGE; building it so the suite runs against this commit"
+  docker build -t "$GATEWAY_IMAGE" -f ./therr-api-gateway/Dockerfile \
+    --build-arg NODE_VERSION="${NODE_VERSION:-24.12.0}" ./therr-api-gateway
+fi
+
+# No `cd` before the command: the image's final WORKDIR is already
+# /app/therr-api-gateway (see therr-api-gateway/Dockerfile), so `cd therr-api-gateway`
+# resolves to a path that does not exist and `&&` swallows the test run entirely.
+# This matches how run_integration_tests in _bin/lib/test-helpers.sh invokes a service image.
 # shellcheck disable=SC2046
 docker run --rm \
   --network therr-ci-network \
@@ -50,7 +65,8 @@ docker run --rm \
   -e USERS_SERVICE_DATABASE=therr_dev_users \
   -e MAPS_SERVICE_DATABASE=therr_dev_maps \
   -e NODE_ENV=test \
-  $GATEWAY_IMAGE /bin/sh -c "cd therr-api-gateway && $CMD" || {
+  -e CI=true \
+  $GATEWAY_IMAGE /bin/sh -c "$CMD" || {
     printMessageError "Campaign E2E suite failed"
     exit 1
   }
