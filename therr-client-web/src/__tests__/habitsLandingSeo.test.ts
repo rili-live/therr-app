@@ -74,6 +74,30 @@ describe('habits landing page SEO markup', () => {
         );
     });
 
+    it('renders the brand motto and keeps the JSON-LD slogans byte-identical to it', () => {
+        // The motto is written in three places (visible copy, WebSite.slogan,
+        // MobileApplication.slogan). Nothing rejects a partial edit, so a reworded
+        // tagline silently leaves two stale copies in the structured data.
+        const MOTTO = "Friends don't let friends give up on change.";
+        expect(template).toContain(`<p class="motto">${MOTTO}</p>`);
+
+        const slogans = getJsonLd()['@graph']
+            .filter((node) => node.slogan)
+            .map((node) => node.slogan);
+        expect(slogans).toHaveLength(2);
+        slogans.forEach((slogan) => expect(slogan).toBe(MOTTO));
+    });
+
+    it('keeps the motto out of the h1', () => {
+        // The headline has to carry the head term this page ranks for; the motto is
+        // additive brand copy and must not displace it.
+        const h1 = template.match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
+        if (!h1) {
+            throw new Error('No h1 found in habits/landing.hbs');
+        }
+        expect(h1[1]).not.toContain('give up on change');
+    });
+
     it('has exactly one h1', () => {
         expect(template.match(/<h1[\s>]/g)).toHaveLength(1);
     });
