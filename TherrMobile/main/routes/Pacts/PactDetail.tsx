@@ -22,7 +22,9 @@ import { PactMemberRow } from '../../components/Habits';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
+import { buildStyles as buildMenuStyles, buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import { buildStyles as buildModalStyles } from '../../styles/modal/confirmModal';
 
@@ -75,6 +77,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
     private theme = buildStyles();
     private themeButtons = buildButtonStyles();
     private themeHabits = buildHabitStyles();
+    private themeMenu = buildMenuStyles();
     private themeModal = buildModalStyles();
 
     constructor(props: IPactDetailProps) {
@@ -90,6 +93,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
         this.themeHabits = buildHabitStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params?: any) =>
             translator(props.user.settings?.locale || 'en-us', key, params);
@@ -519,32 +523,45 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
 
         if (!pact) {
             return (
-                <SafeAreaView edges={['bottom']} style={this.theme.styles.safeAreaView}>
-                    <View style={this.themeHabits.styles.emptyStateContainer}>
-                        {isRefreshing
-                            ? <ActivityIndicator size="large" color={this.theme.colors.primary3} />
-                            : (
-                                <Text style={this.themeHabits.styles.emptyStateTitle}>
-                                    {this.translate('pages.pacts.pactNotFound')}
-                                </Text>
-                            )}
-                    </View>
-                </SafeAreaView>
+                <>
+                    <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
+                    <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
+                        <View style={this.themeHabits.styles.emptyStateContainer}>
+                            {isRefreshing
+                                ? <ActivityIndicator size="large" color={this.theme.colors.primary3} />
+                                : (
+                                    <Text style={this.themeHabits.styles.emptyStateTitle}>
+                                        {this.translate('pages.pacts.pactNotFound')}
+                                    </Text>
+                                )}
+                        </View>
+                    </SafeAreaView>
+                    {/* A pact reached by a stale deep link or notification may not resolve;
+                        the menu is the way back to a main page rather than a dead end. */}
+                    <MainButtonMenu
+                        navigation={this.props.navigation}
+                        onActionButtonPress={this.handleRefresh}
+                        translate={this.translate}
+                        user={user}
+                        themeMenu={this.themeMenu}
+                    />
+                </>
             );
         }
 
         return (
             <>
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-                {/* `edges={['bottom']}`: Layout pads the header, but this screen has no
-                    ButtonMenu and its ScrollView runs to the bottom edge. React Native's
-                    own SafeAreaView is a no-op on Android, so that last row sat under the
-                    gesture handle. */}
+                {/* `edges={[]}`: Layout pads the header and the MainButtonMenu below pads
+                    the bottom, so this view applies no inset of its own. The ScrollView
+                    reserves `buttonMenuHeight` of bottom padding so its last row clears the
+                    fixed menu. */}
                 <SafeAreaView
-                    edges={['bottom']}
+                    edges={[]}
                     style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}
                 >
                     <ScrollView
+                        contentContainerStyle={{ paddingBottom: buttonMenuHeight + 16 }}
                         refreshControl={
                             <RefreshControl
                                 refreshing={isRefreshing}
@@ -688,6 +705,13 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                         )}
                     </ScrollView>
                 </SafeAreaView>
+                <MainButtonMenu
+                    navigation={this.props.navigation}
+                    onActionButtonPress={this.handleRefresh}
+                    translate={this.translate}
+                    user={user}
+                    themeMenu={this.themeMenu}
+                />
 
                 <ConfirmModal
                     isVisible={showConfirmModal}
