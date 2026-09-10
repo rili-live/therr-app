@@ -1566,6 +1566,14 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 
 - [ ] (2026-09-10, /quality-peer-review) **`.mocharc.e2e.js` does not load `tests/setup.ts` the way `.mocharc.js` does — fine today, a trap the first time an E2E test imports a router.** The gateway's normal mocha config requires `./tests/setup.ts`, which seeds `TWILIO_ACCOUNT_SID`, `JWT_SECRET`, `JWT_EMAIL_SECRET` and `NODE_ENV` before any module reads them at import time, and installs the outbound-SMS stubs so nothing under `tests/` can reach Twilio with a developer's real credentials. The E2E config deliberately does not, and that is currently harmless because the suite imports nothing but `pg`. The moment one of these tests imports the real gateway router — which is the whole point of the follow-up above — `middleware/authenticate` throws at import on the missing secret, and the failure will read as a broken test rather than a missing config line. Add the `require` at the same time the suite starts making HTTP calls, not before (loading it now would pull Twilio stubs into a suite that has no use for them).
 
+- [ ] (2026-09-10, /quality-peer-review) **Run the check-in share migration** on users-service
+  (`20260906000001_habits.habit_checkins.sharedThoughtId`). Adds the nullable `sharedThoughtId`
+  column and its partial index to `habits.habit_checkins`. It backfills nothing and is safe to run
+  any time, but the share endpoint writes that column on every successful share, so until it runs
+  `POST /habits/checkins/:id/share` fails *after* the public image copy and the `main.thoughts`
+  row already exist — the handler rolls the post back, so the visible symptom is a 500 on share
+  rather than silent corruption. The premium migration item above is a separate file; both are needed.
+
 <!-- skill-followups:end -->
 
 ---

@@ -134,6 +134,23 @@ export default class SubscriptionPurchasesStore {
                 return client.query(existingQuery).then((response) => response.rows[0]);
             })
             .then((existing) => {
+                // A token already bound to another account must never be re-pointed by an
+                // update. `writableColumns` sets `userId`, so without this the row is simply
+                // reassigned and the second account is granted the first account's paid
+                // subscription — the exact replay the UNIQUE(purchaseToken) index exists to
+                // stop, defeated by writing through it instead of inserting past it.
+                //
+                // The handler checks this too and answers a clean 409, but its read happens
+                // outside this transaction: two concurrent verifies of the same stolen token
+                // can both see "unclaimed" before either writes. This is the check that holds
+                // under that race, so failing loudly here is correct even though it surfaces
+                // as a 500 — an error beats a silent transfer of a paid entitlement.
+                if (existing && existing.userId !== params.userId) {
+                    throw new Error(
+                        `Subscription purchaseToken is already bound to user ${existing.userId}`,
+                    );
+                }
+
                 const writableColumns = {
                     userId: params.userId,
                     platform: params.platform,

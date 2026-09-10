@@ -614,6 +614,36 @@ const shareCheckin: RequestHandler = async (req: any, res: any) => {
         return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
     }
 
+    // ThoughtsStore.create does not honour `isPublic: true` unconditionally — it runs the lead-in
+    // text through `isTextUnsafe` and forces `isPublic: false` / `isMatureContent: true` when that
+    // trips. A private thought is not a share: nothing renders it in any feed. Left unchecked the
+    // handler would still stamp `sharedThoughtId` and answer 201, so the user is told the check-in
+    // was shared, sees it nowhere, and can never retry — the repeat-share short-circuit below makes
+    // the failure permanent. Treat it as the moderation rejection it is: roll the post back, drop
+    // the public copy, and reuse the same 422 the image check returns.
+    if (thought && thought.isPublic === false) {
+        await Store.thoughts.deleteThoughts({ fromUserId: userId, ids: [thought.id] })
+            .catch((rollbackErr: any) => logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['Failed to roll back a non-public shared check-in post'],
+                traceArgs: {
+                    'error.message': rollbackErr?.message,
+                    'checkin.id': checkin.id,
+                    'thought.id': thought.id,
+                    'user.id': userId,
+                },
+            }));
+        await deleteSharedCheckinPublicObject(publicMedia.path);
+
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.habitCheckins.shareModerationFailed'),
+            statusCode: 422,
+            errorCode: ErrorCodes.NOT_PERMITTED,
+        });
+    }
+
     // Writing `sharedThoughtId` is the whole dedupe mechanism — it is what makes the repeat-share
     // short-circuit above work. If the post is created and this write fails, the post is live and
     // public but unreferenced, so the user's next share mints a SECOND post and nothing anywhere
