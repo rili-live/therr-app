@@ -13,10 +13,12 @@ import { RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
+import { buildStyles as buildMenuStyles, buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import {
     CheckinButton, CheckinDayDetailSheet, CheckinProofSheet, HabitCalendar, StreakWidget,
 } from '../../components/Habits';
@@ -92,6 +94,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetailState> {
     private translate: (key: string, params?: any) => string;
     private theme = buildStyles();
+    private themeMenu = buildMenuStyles();
     private themeHabits = buildHabitStyles();
     private themeConfirmModal = buildConfirmModalStyles();
     private themeButtons = buildButtonsStyles();
@@ -114,6 +117,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             hasDayProofError: false,
         };
 
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeHabits = buildHabitStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
@@ -468,28 +472,41 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
 
         if (!habitGoal) {
             return (
-                <SafeAreaView edges={['bottom']} style={this.theme.styles.safeAreaView}>
-                    <View style={this.themeHabits.styles.emptyStateContainer}>
-                        <Text style={this.themeHabits.styles.emptyStateTitle}>
-                            {this.translate('pages.habits.habitNotFound')}
-                        </Text>
-                    </View>
-                </SafeAreaView>
+                <>
+                    <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
+                    <SafeAreaView edges={[]} style={this.theme.styles.safeAreaView}>
+                        <View style={this.themeHabits.styles.emptyStateContainer}>
+                            <Text style={this.themeHabits.styles.emptyStateTitle}>
+                                {this.translate('pages.habits.habitNotFound')}
+                            </Text>
+                        </View>
+                    </SafeAreaView>
+                    {/* A habit reached by a stale deep link or notification may not resolve;
+                        the menu is the way back to a main page rather than a dead end. */}
+                    <MainButtonMenu
+                        navigation={this.props.navigation}
+                        onActionButtonPress={this.handleRefresh}
+                        translate={this.translate}
+                        user={user}
+                        themeMenu={this.themeMenu}
+                    />
+                </>
             );
         }
 
         return (
             <>
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
-                {/* `edges={['bottom']}`: Layout pads the header, but this screen has no
-                    ButtonMenu and its ScrollView runs to the bottom edge. React Native's
-                    own SafeAreaView is a no-op on Android, so that last row sat under the
-                    gesture handle. */}
+                {/* `edges={[]}`: Layout pads the header and the MainButtonMenu below pads
+                    the bottom, so this view applies no inset of its own. The ScrollView
+                    reserves `buttonMenuHeight` of bottom padding so its last row clears the
+                    fixed menu. */}
                 <SafeAreaView
-                    edges={['bottom']}
+                    edges={[]}
                     style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}
                 >
                     <ScrollView
+                        contentContainerStyle={{ paddingBottom: buttonMenuHeight + 16 }}
                         refreshControl={
                             <RefreshControl
                                 refreshing={isRefreshing}
@@ -581,6 +598,13 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                         )}
                     </ScrollView>
                 </SafeAreaView>
+                <MainButtonMenu
+                    navigation={this.props.navigation}
+                    onActionButtonPress={this.handleRefresh}
+                    translate={this.translate}
+                    user={user}
+                    themeMenu={this.themeMenu}
+                />
                 <CheckinDayDetailSheet
                     isVisible={!!selectedDay}
                     date={selectedDay}
