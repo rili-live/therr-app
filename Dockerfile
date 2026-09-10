@@ -8,7 +8,7 @@ RUN apk add --no-cache libc6-compat
 # Needed for bcrypt
 RUN apk add --no-cache python3 make g++
 
-RUN npm i npm@latest -g
+RUN npm i npm@11 -g
 
 # Create app directory
 WORKDIR /app
@@ -27,6 +27,10 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 RUN npm rebuild bcrypt --build-from-source
+
+# The library build scripts invoke this to emit declaration barrels for the
+# bundled subpaths. Copied after the installs so editing it does not bust them.
+COPY ./_bin/generate-declaration-barrels.js ./_bin/
 
 # Install and build styles library
 WORKDIR /app/therr-public-library/therr-styles

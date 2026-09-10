@@ -8,7 +8,7 @@ import { IConnection } from './connection';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
-// eslint-disable-next-line no-restricted-syntax -- this is the sanctioned canonical reference
+// eslint-disable-next-line therr/no-direct-brand-scoped-table -- this is the sanctioned canonical reference
 export const FORUM_MESSAGES_TABLE_NAME = 'main.forumMessages';
 
 export interface ICreateForumMessageParams {
@@ -80,6 +80,24 @@ export default class ForumMessagesStore extends BrandScopedStore {
     createForumMessage(brand: BrandValue, params: ICreateForumMessageParams) {
         const queryString = this.scopedInsert(brand, { ...params })
             .returning(['id', 'updatedAt'])
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    /**
+     * Deletes every forum message authored by the user, across all brands.
+     *
+     * Unscoped by brand for the same reason as DirectMessagesStore.deleteByUserId —
+     * see the comment there. Other members' messages in the same forums are untouched;
+     * only rows this user wrote are removed.
+     */
+    deleteByUserId(userId: string) {
+        const queryString = knexBuilder
+            .from(FORUM_MESSAGES_TABLE_NAME)
+            .where({ fromUserId: userId })
+            .delete()
+            .returning('id')
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);

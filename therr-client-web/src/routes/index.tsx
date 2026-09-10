@@ -26,8 +26,10 @@ import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
 import AppFeedback from './AppFeedback';
 import ChildSafety from './ChildSafety';
+import ApiAccess from './ApiAccess';
 import DeleteAccount from './DeleteAccount';
 import InviteLanding from './InviteLanding';
+import InviteLinkLanding from './InviteLinkLanding';
 import ClaimPactLanding from './ClaimPactLanding';
 import Guide from './Guide';
 import GuidesIndex from './Guide/GuidesIndex';
@@ -46,6 +48,7 @@ const lazyLoad = (importFn: () => Promise<{ default: React.ComponentType<any> }>
 const CreateForum = lazyLoad(() => import('./CreateForum'));
 const EditGroup = lazyLoad(() => import('./EditGroup'));
 const CreateProfile = lazyLoad(() => import('./CreateProfile'));
+const VerifyPhone = lazyLoad(() => import('./VerifyPhone'));
 const UserProfile = lazyLoad(() => import('./UserProfile'));
 const ChangePassword = lazyLoad(() => import('./ChangePassword'));
 const EditProfile = lazyLoad(() => import('./EditProfile'));
@@ -129,6 +132,22 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
+        // Standalone phone (re)verification, and the web fallback for the
+        // `therr.com/verify-phone` link that opens the mobile app when it is installed.
+        // ANY rather than ALL: users mid-onboarding hold MISSING_PROPERTIES while users
+        // whose MOBILE_VERIFIED was revoked by a phone change hold plain EMAIL_VERIFIED,
+        // and both need this screen.
+        path: '/verify-phone',
+        element: <AuthRoute
+            component={VerifyPhone}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            })}
+            redirectPath={'/login'}
+        />,
+    },
+    {
         path: '/users/change-password',
         element: <AuthRoute
             component={ChangePassword}
@@ -164,6 +183,13 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <ChildSafety />,
     },
     {
+        // Public API onboarding explainer. Intentionally unauthenticated: it is the
+        // link target from the marketing site, and its CTA adapts to the visitor's
+        // account stage rather than dumping everyone on a login page.
+        path: '/api-access',
+        element: <ApiAccess />,
+    },
+    {
         path: '/delete-account',
         element: <DeleteAccount />,
     },
@@ -178,6 +204,12 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/register',
         element: <Register />,
+    },
+    {
+        // Magic invite-link landing — pre-filled signup from a per-invite token.
+        // More specific than /invite/:username so it takes precedence.
+        path: '/invite/link/:token',
+        element: <InviteLinkLanding />,
     },
     {
         path: '/invite/:username',

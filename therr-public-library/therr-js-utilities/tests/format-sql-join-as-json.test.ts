@@ -1,4 +1,3 @@
-/* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import formatSqlJoinAsJson from '../src/format-sql-join-as-json';
 

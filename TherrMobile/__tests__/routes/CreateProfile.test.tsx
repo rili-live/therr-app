@@ -82,8 +82,18 @@ jest.mock('../../main/utilities/areaUtils', () => ({
     getImagePreviewPath: jest.fn(),
 }));
 
+const mockSyncMobileContacts = jest.fn().mockResolvedValue({ contacts: [], matchedUsers: [] });
 jest.mock('../../main/utilities/contacts', () => ({
-    synceMobileContacts: jest.fn().mockResolvedValue({ contacts: [], matchedUsers: [] }),
+    synceMobileContacts: (...args: any[]) => mockSyncMobileContacts(...args),
+}));
+
+const mockMarkContactsSynced = jest.fn().mockResolvedValue({});
+const mockMarkContactsSkipped = jest.fn().mockResolvedValue({});
+const mockMarkInterestsSelected = jest.fn().mockResolvedValue({});
+jest.mock('../../main/utilities/profileCompletion', () => ({
+    markContactsSynced: (...args: any[]) => mockMarkContactsSynced(...args),
+    markContactsSkipped: (...args: any[]) => mockMarkContactsSkipped(...args),
+    markInterestsSelected: (...args: any[]) => mockMarkInterestsSelected(...args),
 }));
 
 const mockStore = {
@@ -122,6 +132,8 @@ const buildProps = (overrides: any = {}) => ({
         navigate: jest.fn(),
         push: jest.fn(),
         setOptions: jest.fn(),
+        goBack: jest.fn(),
+        canGoBack: jest.fn().mockReturnValue(true),
     },
     route: { params: {} },
     user: mockUser,
@@ -188,6 +200,105 @@ describe('CreateProfile (onboarding flow)', () => {
             const { ref } = renderCreateProfile(buildProps());
             act(() => { ref.current!.onContinue(); });
             expect(ref.current!.state.stage).toBe('phone');
+        });
+
+        it('advances phone → contacts so the contact-sync ask is a real step', async () => {
+            const { ref } = renderCreateProfile(buildProps());
+            act(() => { ref.current!.onPhoneInputChange('phoneNumber', '+15555555555', true); });
+            await act(async () => {
+                ref.current!.onSubmit('phone');
+                await Promise.resolve();
+            });
+            expect(ref.current!.state.stage).toBe('contacts');
+        });
+
+        it('starts at the stage the profile checklist hands off', () => {
+            const { ref } = renderCreateProfile(buildProps({
+                route: { params: { stage: 'contacts', isGuidedStep: true } },
+            }));
+            expect(ref.current!.state.stage).toBe('contacts');
+        });
+    });
+
+    describe('Guided progress', () => {
+        it('numbers each stage so the progress bar fills as the user advances', () => {
+            const { ref } = renderCreateProfile(buildProps());
+
+            expect(ref.current!.getStageStepNumber('details')).toBe(1);
+            expect(ref.current!.getStageStepNumber('interests')).toBe(2);
+            expect(ref.current!.getStageStepNumber('picture')).toBe(3);
+            expect(ref.current!.getStageStepNumber('phone')).toBe(4);
+            expect(ref.current!.getStageStepNumber('contacts')).toBe(5);
+            // `invite` sits past the tracked stages — the bar reads as full.
+            expect(ref.current!.getStageStepNumber('invite')).toBe(5);
+        });
+
+        it('steps backward through the flow rather than leaving the screen', () => {
+            const props = buildProps({ route: { params: { stage: 'picture' } } });
+            const { ref } = renderCreateProfile(props);
+
+            act(() => { ref.current!.onGoBackStage(); });
+
+            expect(ref.current!.state.stage).toBe('interests');
+            expect(props.navigation.goBack).not.toHaveBeenCalled();
+        });
+
+        it('leaves the screen when backing out of the first stage', () => {
+            const props = buildProps();
+            const { ref } = renderCreateProfile(props);
+
+            act(() => { ref.current!.onGoBackStage(); });
+
+            expect(props.navigation.goBack).toHaveBeenCalled();
+        });
+    });
+
+    describe('Contact sync step', () => {
+        it('records the sync so the checklist and people list both see it as done', async () => {
+            const props = buildProps();
+            const { ref } = renderCreateProfile(props);
+
+            await act(async () => {
+                await ref.current!.onSyncContacts();
+            });
+
+            expect(mockMarkContactsSynced).toHaveBeenCalledWith('user-123');
+            expect(props.navigation.navigate).toHaveBeenCalledWith('PhoneContacts', expect.any(Object));
+            expect(ref.current!.state.isSyncingContacts).toBe(false);
+        });
+
+        it('surfaces an error and clears the spinner when the sync fails', async () => {
+            mockSyncMobileContacts.mockRejectedValueOnce(new Error('permissions-denied'));
+            const props = buildProps();
+            const { ref } = renderCreateProfile(props);
+
+            await act(async () => {
+                await ref.current!.onSyncContacts();
+            });
+
+            expect(ref.current!.state.isSyncingContacts).toBe(false);
+            expect(ref.current!.state.errorMsg).toBeTruthy();
+            expect(mockMarkContactsSynced).not.toHaveBeenCalled();
+            expect(props.navigation.navigate).not.toHaveBeenCalledWith('PhoneContacts', expect.any(Object));
+        });
+
+        it('records a skip and moves on to the invite stage during first-run onboarding', () => {
+            const { ref } = renderCreateProfile(buildProps({ route: { params: { stage: 'contacts' } } }));
+
+            act(() => { ref.current!.onSkipContactsSync(); });
+
+            expect(mockMarkContactsSkipped).toHaveBeenCalledWith('user-123');
+            expect(ref.current!.state.stage).toBe('invite');
+        });
+
+        it('returns to the profile instead of the invite stage when entered from the checklist', () => {
+            const props = buildProps({ route: { params: { stage: 'contacts', isGuidedStep: true } } });
+            const { ref } = renderCreateProfile(props);
+
+            act(() => { ref.current!.onSkipContactsSync(); });
+
+            expect(props.navigation.goBack).toHaveBeenCalled();
+            expect(props.navigation.navigate).not.toHaveBeenCalledWith('Map');
         });
     });
 

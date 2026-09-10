@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { AccessLevels } from 'therr-js-utilities/constants';
+import { AccessLevels, MetricNames } from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
 import normalizeEmail from 'normalize-email';
 import handleHttpError from '../utilities/handleHttpError';
@@ -11,6 +11,7 @@ import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
 import { sendVerificationEmail } from '../api/email';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 import { isUserProfileIncomplete, redactUserCreds } from './helpers/user';
+import recordFunnelMetric from '../utilities/recordFunnelMetric';
 
 const createOneTimePassword = (req, res) => {
     const {
@@ -57,6 +58,7 @@ const verifyUserAccount = (req, res) => {
     const {
         token,
     } = req.params;
+    const { brandVariation } = parseHeaders(req.headers);
 
     let decodedToken;
 
@@ -150,10 +152,19 @@ const verifyUserAccount = (req, res) => {
                         const userOrgs = await Store.userOrganizations.get({
                             userId: verifiedUser.id,
                         }).catch(() => []);
-                        const idToken = createUserToken(verifiedUser, userOrgs);
-                        const refreshTokenData = createRefreshToken(verifiedUser.id);
+                        // Bind the auto-login tokens to the brand that requested
+                        // verification, exactly as the login path does. Without this the
+                        // tokens carry no `brand` claim at all, and the gateway's
+                        // brand-binding check treats a claimless token as legacy and
+                        // exempt — so a session that starts here silently opts out of it.
+                        const idToken = createUserToken(verifiedUser, userOrgs, false, brandVariation);
+                        const refreshTokenData = createRefreshToken(verifiedUser.id, false, brandVariation);
 
                         redactUserCreds(verifiedUser);
+
+                        recordFunnelMetric(MetricNames.FUNNEL_USER_VERIFIED, verifiedUser.id, {
+                            brandVariation: (brandVariation as string) || '',
+                        });
 
                         return res.status(200).send({
                             message: 'Account successfully verified',

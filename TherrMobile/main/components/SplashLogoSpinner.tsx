@@ -78,7 +78,7 @@ const SplashLogoSpinner = ({ start, onAnimationComplete }: ISplashLogoSpinnerPro
 
 const styles = StyleSheet.create({
     overlay: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         backgroundColor: BOOTSPLASH_BACKGROUND,
         justifyContent: 'center',
         alignItems: 'center',

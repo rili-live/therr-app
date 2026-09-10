@@ -1,6 +1,6 @@
 # Therr App - Feature List
 
-**Last Updated:** March 2026
+**Last Updated:** August 2026
 **Scope:** TherrMobile (React Native) and therr-client-web (React SSR)
 
 > **For AI agents:** Update this file whenever you add, remove, or significantly change a feature.
@@ -15,11 +15,18 @@
 - **Google OAuth** — social sign-in on both platforms
 - **Apple OAuth** — social sign-in (mobile)
 - **Phone verification** — optional during profile creation
+- **Passwordless phone sign-in** (mobile) — entering a phone number in the sign-in field swaps the password step for a texted 6-digit code (`POST /v1/phone/auth/start` → `/auth/verify`). Enumeration-safe: the "code sent" response is identical whether or not an account exists. When a number is attached to several accounts, an account picker completes sign-in via `/auth/select`
+- **Phone-first sign-up** (mobile) — verify a phone number by SMS, then add an e-mail and (optionally) an invite code; the account is created already `MOBILE_VERIFIED` and a password is optional. The e-mail still receives its normal verification message
+- **Accounts per phone number** — brand-configurable cap (`getMaxAccountsPerPhone`): Therr allows one personal + one creator + one business account per number, Friends with Habits allows exactly one. When a number already holds an account, sign-up asks which type the new one is and offers only the free types; a first account still picks its type on the profile-creation screen
+- **Remembered profiles** (mobile) — the sign-in field pre-fills the account last used on the device, with a chevron that opens a switcher to change accounts, remove a saved one, or start fresh. Stored locally through `SecureStorage`; holds no credentials or tokens
 - **Password reset** — forgot-password email flow
 - **Account types** — personal, business, and creator accounts
 - **Organization management** — business account grouping
 
 ### User Profiles
+- **Guided profile completion (mobile)** — a single-row "Finish your profile" link on the user's own profile summarizes how many steps are left and opens the dedicated `ProfileCompletion` screen, which lists the remaining steps (name, interests, photo, phone, contact sync) with a progress bar; each row hands off to the matching stage of the guided `CreateProfile` flow, which carries a Duolingo-style step progress bar and per-stage back navigation. The home-feed nudge banner reads the same step model. The link disappears once every step is resolved
+- **Contact sync step (mobile)** — a first-class onboarding stage that asks to match phone contacts against existing accounts, with an explicit "Not Now". A completed sync is recorded per user, which collapses the sync prompt on the people list to a single "sync again" link
+- **Collapsing profile header (mobile)** — the profile photo, bio, socials and action buttons scroll away as the user moves down a content tab and slide back in on the way up, leaving the tab bar pinned to the top. Every tab shares one header position, so switching tabs never makes it jump
 - **Profile editing** — name, bio, profile picture, privacy settings
 - **View other users** — public profile with content tabs (spaces, events, thoughts)
 - **User search & discovery** — search by username, "people you may know" suggestions
@@ -32,12 +39,23 @@
 - **Group chat** — real-time forum messaging within groups
 - **Group events** — events associated with a group
 - **Invite friends** — referral system with TherrCoin rewards
+- **Magic invite links** — per-invite tokenized links (`/invite/link/:token`) that pre-fill the invitee's known email/phone, trust the invited channel (emailed token → email verified, SMS token → phone verified), auto-accept the invite, and auto-connect the two users on signup
+- **Deferred phone verification** — users reach the app with just a username; phone is optional at onboarding and enforced only on phone-sensitive actions (bulk invites require `MOBILE_VERIFIED`)
 
 ### Location-Based Content
 - **Moments** — geo-tagged ephemeral photo posts; proximity-gated visibility, max view limits
 - **Spaces** — persistent location/business pages; claim storefronts, menu/reservation/order URLs, ratings, check-ins
 - **Events** — time-bound location happenings; start/stop scheduling, group/space association
 - **Thoughts** — micro-posts with categories, reply threads, mentions, hashtags
+- **Ranked social feed (mobile)** — Discoveries/Thoughts tabs ordered by engagement score (recency decay × likes/replies/views × category affinity from the user's own reactions); backend stream activation ranks candidates by the same scoring contract. Both sides read the curve from the user's selected content algorithm (see § Content Algorithms), so client re-ranking and server activation agree
+- **Auto-expanded thread previews (mobile & web)** — engaging thought threads show their top reply inline with a "View all N replies" link (Twitter-style); each post card also carries a reply-count control. Auto-expand criteria are shared: 2+ replies always expand, single-reply threads need a like signal on the parent or the reply
+- **Nested reply counts (mobile & web)** — in the thought details view only, each reply renders a reply icon with its own nested reply count; tapping it opens that reply's details view so threads can be walked one level at a time
+- **Inline reply likes (mobile)** — replies in the thought details view carry their own like control with an optimistic toggle (reverted if the request fails), so a reply can be liked without opening it. `getThoughtDetails` returns each reply's like count and the requesting user's reaction
+- **Parent thread context (mobile & web)** — a thought that is itself a reply opens with a quoted "Replying to @user" banner above it, linking up to the post it answers, plus a "Back to Thread" action and a breadcrumb/header that reads "Reply". `getThoughtDetails` takes `withParent` and returns `thought.parent` (author + message). The parent is only returned when the caller could open it in its own right — public, authored by them, or already activated — and is never activated as a side effect of viewing a reply. `createThought` applies the same test to `parentId` before minting a reply, so "is a reply of X" cannot be used to reach an X the author was never allowed to see
+- **Local posts in a new user's feed** — thoughts can carry their own coordinates (`main.thoughts.latitude/longitude/locality`), and the stream distributor runs a third candidate query for posts about where the user lives, boosted above equally hot general content (`localMatchBoost`). The home point comes from `main.userLocations` — a declared home, an established dwelling, or, for an account minutes old, its first location ping. Sharing a location re-seeds the stream immediately (gated on the same per-user window as the notifications poll) rather than waiting for the next sign-in
+- **City detection on human posts** — a public top-level thought joins its city's local feed when it clears two gates: it explicitly names exactly one city (`detectLocality`, matched against the existing `Cities` catalog), **and** its author is within `LOCAL_AUTHOR_MAX_DISTANCE_METERS` (60km) of that city. Post text is user-controlled, so the proximity gate is what stops anyone from farming a city's feed by typing its name; the distance is measured from the same point the feed uses to pick that user's local content, so you can only tag a city whose local feed you would be served. Nothing is accepted from the request body. Names that double as people or as the same city in another state (Austin, Charlotte, Arlington) additionally need a place cue — "in Austin", "Austin, TX" — **or** an author who lives there, since locals name their own city bare constantly and their location is what disambiguates it; names that collide with an ordinary word (Phoenix, Mesa, Aurora) always need the cue, because where someone lives says nothing about which sense they meant. A post naming two cities is left untagged rather than assigned one of them
+- **Location-aware bots** *(pending — this repo's half only)* — `therr-ai-automator` accounts with a declared home city are seeded here (`006_local_bot_users.js`) and the distributor will surface their local posts, but as of 2026-08-22 the automator does not yet read those homes or stamp coordinates on what it writes, so no bot content is location-tagged in production yet. Until it ships, `detectLocality` on human posts is the only source of local content
+- **Reposts (mobile & web)** — re-share a thought to your own audience, with an optional quote. A repost is an ordinary `main.thoughts` row whose `repostThoughtId` points at the original (`isRepost` is derived server-side from that column, never trusted from the client); an empty message is a plain repost, a non-empty one is a quote repost. Every read path hydrates `repostOf` (the original plus its author) and `repostCount`, re-applying the caller's brand filter to the original — so a deleted, mature-flagged, or cross-brand original degrades to an "unavailable" embed rather than a blank card. Reposting a repost collapses onto the root so embeds never nest and credit never drifts to the intermediate reposter; a non-public thought can only be reposted by its own author; the original's author gets a `THOUGHT_REPOST` in-app and push notification
 - **Content categories** — 20+ categories (food, music, nature, art, gaming, etc.)
 - **Media uploads** — image upload with CDN (ImageKit), YouTube video embedding
 
@@ -54,11 +72,15 @@
 - **TherrCoin currency** — earned through social actions, check-ins, referrals
 - **XP system** — experience points from achievements
 - **Points exchange** — redeem accumulated rewards
+- **Reward claim celebration (mobile)** — claiming an achievement reward plays a synthesized coin "ka-ching" on grant and a full fanfare synced to the confetti animation on the claim screen, each paired with an escalating haptic ramp. Sounds are generated at runtime via `react-native-audio-api` (no bundled audio files) using an `ambient`/`mixWithOthers` session, so they honor the iOS ringer switch and never interrupt the user's music; haptics honor the Android system haptics setting
+- **Leaderboards** — Duolingo-style weekly (Monday UTC reset) + all-time XP rankings with Everyone/Friends scopes, per-brand (works for Therr and Friends with Habits). XP accrues from achievement progress and habit check-ins/streak milestones; separate from the spendable TherrCoin balance. Opt-out via `settingsIsLeaderboardEnabled`. Climbing into the weekly top 10 / top 3 / #1 triggers a rank-milestone push notification and `weeklyChampion` achievement progress
 
 ### Notifications
-- **Push notifications** — Firebase Cloud Messaging; location-triggered, brand-specific templates
+- **Push notifications** — Firebase Cloud Messaging; location-triggered. Copy is brand-agnostic; `brandVariation` selects the Firebase app, the APNS topic, the Android accent colour and the intent action, and gates which *types* a brand may receive at all — Therr's map/moment/space retention copy is never sent to a Friends with Habits handset
+- **Notification action buttons** — Android notifications can carry actions rendered by Notifee (`data.notificationLinkPressActions`). Habits check-in nudges offer a one-press "Check In" that completes the check-in from the tray without opening the app, and falls back to a "View" action whenever the notification stands in for more than one habit
 - **In-app notifications** — real-time via WebSocket; mark read, notification history
 - **Notification channels** — default, content discovery, reward updates, reminders (Android)
+- **Dwelling-aware notification muting** — nearby-search push notifications are suppressed while the user is at a place they live or are staying (home, apartment, hotel, extended stay). A `main.userLocations` row becomes a "dwelling" once observed across multiple distinct calendar days, or when explicitly declared home; stale dwellings decay after 30 days without a visit. Areas are still discovered, activated, and recorded in the in-app notification list — only the interruptive push is muted
 
 ### Campaigns & Business Tools
 - **Campaigns** — create/manage marketing campaigns with status tracking and ad goals
@@ -78,6 +100,14 @@
 - **Pre-login language switcher** — change locale on the Login/Register screens before authenticating; selection persists to the new account on signup (`settingsLocale`)
 - **Notification preferences** — per-channel enable/disable
 - **Mature content filter** — toggle visibility of mature content
+- **Feed algorithm picker (mobile)** — choose how content is ranked; stored on `main.users.settingsContentAlgorithm` (see § Content Algorithms)
+
+### Content Algorithms
+- **Selectable ranking profiles** — one scoring contract in `therr-js-utilities/content-ranking` drives both server-side stream activation (users-service thought distributor) and client-side carousel re-ranking. Each profile is a weight vector over recency/engagement/interest/geo plus policy knobs (candidate pool size, activation batch range, per-author diversity cap, hard interest filter), overridable per-deploy via `ALGO_<KEY>_<FIELD>` env vars
+- **Pulse** (default) — "what's happening right now"; recency and engagement dominant. Reproduces the pre-abstraction production hot score exactly, so existing users see no reshuffle
+- **Focus** — "only what you chose"; hard-filtered to declared interests, smaller batches, lower volume. Falls back to unfiltered candidates for users with no interests, so SSO/onboarding-skip accounts never get an empty feed
+- **Wander** — geo-dominant local discovery; implemented but not yet user-selectable (the API gateway validates against `SELECTABLE_CONTENT_ALGORITHMS`, not the full enum). `main.thoughts` now has coordinates, but only the minority of posts that are about a place carry them, so a geo-dominant profile would rank those few above the whole feed; local content instead reaches every profile through the distributor's local candidate query
+- **Switching rebuilds the stream** — changing the setting NULLs previously-activated relevance scores (they're only comparable within the profile that produced it) and releases the distributor throttle so the next poll re-seeds. Activated rows are stamped with the `algorithmKey` that scored them
 
 ### Payments
 - **Stripe integration** — web/subscription payments
@@ -95,12 +125,14 @@
 - **Phone contacts integration** — sync contacts for friend invitations
 - **Camera & image picker** — capture/select photos with crop and compression
 - **Get directions** — open native maps for navigation to locations
-- **Haptic feedback** — vibration feedback on key interactions
+- **Haptic feedback** — vibration feedback on key interactions, including the achievement reward-claim celebration ramp
 - **Secure storage** — encrypted local storage for sensitive data
 - **Location disclosure modal** — privacy explanation for location permissions
 - **Nearby content carousels** — swipeable tabs for discoveries, events, thoughts, news
 - **Draft management** — save and resume content drafts
 - **Animated onboarding** — landing page with background carousel
+- **Android app shortcuts** — long-press the launcher icon for quick links straight into Create Moment / Create Thought
+- **App review prompt** — after several delight moments (a posted moment, a claimed reward) and a few days of use, asks whether the user is enjoying the app; "yes" links to that brand's store listing to write a review, "not really" opens a support email instead. Rate-limited and one-way: opting out or reviewing is permanent per install
 
 ---
 
@@ -148,7 +180,7 @@ These flags control which features are enabled per brand variant. Set in `TherrM
 
 ## Niche App Extensions
 
-### Habits System (Friends With Habits — `BrandVariations.HABITS`)
+### Habits System (Friends with Habits — `BrandVariations.HABITS`)
 
 - **Habit goals** — create from templates or custom; frequency config (daily/weekly/custom), target days; goal-orientation (`goalType`: build_good / break_bad / savings_goal / maintenance)
 - **Pacts** — accountability partnerships; invite partners, set consequences (donation/dare/custom)
@@ -157,6 +189,12 @@ These flags control which features are enabled per brand variant. Set in `TherrM
 - **Real-time pact updates** — WebSocket events for partner check-ins, celebrations, encouragement
 - **Pact status management** — pending, active, completed, abandoned, completed lifecycle
 - **HABITS achievements** — 8 brand-scoped achievement classes (habitBuilder, cleanBreak, treasureBuilder, consistency, accountability, resilience, socialEnergizer, pactPioneer) plus reused `socialite` for invite virality. Filtered per-brand via `getAchievementsForBrand()`. **Follow-up TODOs** (multi-habit consistency, partner-streak attribution, brand-header audit, lottie cards, etc.) — see `docs/niche-sub-apps/habits/HABITS_STREAKS_DESIGN.md` § "Follow-up TODOs"
+- **Tracked habits & solo habits** — `habits.user_habits` is the registry of habits a user is actually tracking, whether or not a pact backs one. "Solo" is derived (no active pact covers the habit), so a habit whose pact ends quietly becomes personal instead of disappearing. Starting a habit alone unlocks once the user has invited `HABITS_SOLO_UNLOCK_INVITE_COUNT` (default 3, env-overridable) **distinct people** to a pact — invites *sent*, so a friend who never accepts cannot strand the inviter. Both `GET /habits/user-habits/eligibility` and the 403 `solo-locked` denial carry `invitedCount`/`requiredCount` so the client renders progress ("2 of 3 friends invited") rather than a bare refusal; the wizard's partner step is skippable only once unlocked. The unlock is checked before the habit cap, so a locked user at the cap gets 403, never a paywall. Archiving is the lossless way to free a slot; check-ins, streaks and journal entries all survive it
+- **Journal** — a day-grouped feed merging six sources newest-first: user-authored notes (`habits.journal_entries`, optionally tagged to a habit), check-ins, earned achievements, streak milestones, habit starts, and goals the user posted (`main.thoughts`, which is where a HABITS "goal" lives). Paginated by an exclusive cursor on `(occurredAt, id)` rather than an offset, since an offset cannot stay stable across six interleaved sources. Achievements are read through the brand-scoped `UserAchievementsStore` and goals through the per-brand thoughts allowlist, so neither a user's Therr achievements nor their Therr posts leak into their Habits journal. Tapping a goal opens the thought view; posting one from the journal returns there rather than to the profile
+- **Free tier & founder unlock** — free accounts track 5 active habits (`HABITS_FREE_HABIT_LIMIT`); exceeding it returns HTTP 402 with paywall metadata from `assertHabitCapacity`, the single enforcement point for pact create, pact accept, solo start and restore. The first 5,000 accounts can buy a one-time $20 "free for life" unlock through Google Play Billing, verified and acknowledged server-side against the Play Developer API and granted as `AccessLevels.HABITS_LIFETIME` — see `docs/niche-sub-apps/habits/HABITS_PAYMENT_WORKFLOW.md`
+- **Daily habit reminders** — the digest's reminder pass walks `habits.user_habits` rather than `habits.pacts`, which is what makes it the only notification path that reaches a solo habit or a user whose streak sits at zero (the pact-driven half warns only about a live streak, so a new user and a user who just broke a streak both received nothing at all). Every check-in nudge a run decides on — pact-backed or solo — is rolled up into **one** notification per user per day (`checkin-nudge:<date>`), so someone tracking four habits is nudged once rather than four times; a live streak on any of them gets the stronger `streakAtRisk` copy, citing the longest streak at stake. A single-habit nudge carries the goal id and so offers the one-press check-in. Cadence-aware (`isHabitDueToday` honours `targetDaysOfWeek`, then `frequencyType`/`frequencyCount`, so a 3x/week habit is not nudged seven days a week), taper-aware (an established habit's reminders thin out and then stop, per the lifecycle engine), and deduped per user per day through `main.notificationQueue`. Kill switch `HABIT_DAILY_REMINDERS_ENABLED=false`; the worker's 5/user/day cap still applies on top
+- **Local-time reminders & the evening "last chance" nudge** — one Cloud Scheduler firing produces two per-user delivery slots instead of one global one. The digest reads `main.users.settingsTimezone` (reported by the mobile client on every push registration) plus the long-dormant `settingsPreferredReminderTime` / `settingsQuietHoursStart` / `settingsQuietHoursEnd` columns, and stamps each queue row with an explicit `scheduledFor`: the streak-status nudge lands in the user's local morning, and a `eveningCheckIn` "last chance" reminder mid-to-late in their own evening. Before this, "run it in the evening" meant evening in `America/Chicago` — Berlin got its morning nudge at 16:00 and Auckland got "check in before midnight" at 02:00. Four rules bound the second push so it is an escalation rather than volume: only a **live streak** qualifies (nothing to lose, no second push), it must fit inside the user's own evening at least four hours after the morning slot or it is dropped, `settingsPushHabitReminders` / `settingsPushStreakAlerts` are honoured (the first server-side reading of *any* push preference column), and the queue worker re-reads `habits.habit_checkins` at send time and skips the row entirely if the user has checked in since — which on a working day is most of them. Kill switch `HABIT_LAST_CHANCE_REMINDERS_ENABLED=false` stops the evening slot and leaves local scheduling intact
+- **Habit lifecycle messaging** — per-habit phases (`forming` → `established` → `maintaining`, plus `lapsed`) that decide how often the app may nudge about a habit. Adaptive gates pair a day floor with the user's own trailing consistency (21 days + 90%/14d to taper nudging to every third day; 66 days + 85%/28d to stop it), then 30/60/90-day maintenance check-ins verify the habit held after support was withdrawn, and a self-compassion-framed comeback offer proposes a fresh streak when it didn't. Push side in the users-service digest, long-form email side in `therr-messaging-automator`. Off by default behind `HABIT_PHASE_ENGINE_ENABLED` — see `docs/HABIT_LIFECYCLE_MESSAGING.md`
 
 ---
 
@@ -167,7 +205,7 @@ All variants share the same backend and auth system. Current variants defined in
 | Variant | Key | Description |
 |---------|-----|-------------|
 | Therr | `therr` | Core location-based social network |
-| Friends With Habits | `habits` | Accountability and habit tracking |
+| Friends with Habits | `habits` | Accountability and habit tracking |
 | Teem | `teem` | Community/team features |
 | Otaku | `otaku` | Niche interest communities |
 | Appy Social | `appy_social` | General social variant |

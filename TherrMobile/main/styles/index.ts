@@ -50,8 +50,6 @@ const loaderStyles = StyleSheet.create({
 
 export const logoStyles = {
     elevation: 1,
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 5,
 };
 
 const getBodyStyles = (theme) => ({
@@ -373,15 +371,15 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         headerTitleStyle: {
             fontSize: 20,
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'monospace',
+            fontFamily: therrFontFamily,
             alignSelf: 'center',
             textAlign: 'center',
             justifyContent: 'center',
             flex: 1,
-            letterSpacing: Platform.OS === 'ios' ? 1 : 2,
+            letterSpacing: 0,
             lineHeight: HEADER_HEIGHT,
             overflow: 'hidden',
-            fontWeight: 'bold',
+            fontWeight: '600',
         },
         headerTitleLogoText: {
             ...headerTitleStyles,

@@ -4,6 +4,7 @@ import Content from './Content';
 import ErrorCodes from './ErrorCodes';
 import FilePaths from './FilePaths';
 import Location from './Location';
+import Reactions from './Reactions';
 import LogLevelMap, { ILogLevel } from './LogLevelMap';
 import {
     CurrentSocialValuations,
@@ -39,10 +40,39 @@ import {
     getReadableBrands,
 } from './brandThoughtsVisibility';
 import {
+    BRAND_NAMES,
+    DEFAULT_BRAND_NAME,
+    getBrandName,
+} from './brandNames';
+import {
+    IBrandAppStore,
+    APP_STORES_BY_BRAND,
+    getBrandAppStore,
+    getPlayStoreUrl,
+    getAppStoreUrl,
+} from './brandAppStores';
+import {
+    PhoneAccountType,
+    PHONE_ACCOUNT_TYPES,
+    MAX_ACCOUNTS_PER_PHONE_BY_BRAND,
+    DEFAULT_MAX_ACCOUNTS_PER_PHONE,
+    getMaxAccountsPerPhone,
+    getPhoneAccountType,
+    getAvailablePhoneAccountTypes,
+} from './phoneAccounts';
+import {
     FeatureFlags,
-    HABITS_FREE_PACT_LIMIT,
-    DEFAULT_HABITS_FREE_PACT_LIMIT,
+    HABITS_FREE_HABIT_LIMIT,
+    DEFAULT_HABITS_FREE_HABIT_LIMIT,
+    HABITS_SOLO_UNLOCK_INVITE_COUNT,
+    DEFAULT_HABITS_SOLO_UNLOCK_INVITE_COUNT,
+    HABITS_LIFETIME_FOUNDER_LIMIT,
+    DEFAULT_HABITS_LIFETIME_FOUNDER_LIMIT,
 } from './enums/FeatureFlags';
+import {
+    HABITS_PREMIUM_ACCESS_LEVELS,
+    hasHabitsPremiumEntitlement,
+} from './habitsEntitlements';
 import {
     HabitGoalTypes,
     HabitGoalType,
@@ -76,10 +106,24 @@ export {
     AccessLevels,
     BrandVariations,
     BRAND_THOUGHTS_VISIBILITY,
+    BRAND_NAMES,
+    DEFAULT_BRAND_NAME,
+    getBrandName,
+    IBrandAppStore,
+    APP_STORES_BY_BRAND,
+    getBrandAppStore,
+    getPlayStoreUrl,
+    getAppStoreUrl,
     getReadableBrands,
     FeatureFlags,
-    HABITS_FREE_PACT_LIMIT,
-    DEFAULT_HABITS_FREE_PACT_LIMIT,
+    HABITS_FREE_HABIT_LIMIT,
+    DEFAULT_HABITS_FREE_HABIT_LIMIT,
+    HABITS_SOLO_UNLOCK_INVITE_COUNT,
+    DEFAULT_HABITS_SOLO_UNLOCK_INVITE_COUNT,
+    HABITS_LIFETIME_FOUNDER_LIMIT,
+    DEFAULT_HABITS_LIFETIME_FOUNDER_LIMIT,
+    HABITS_PREMIUM_ACCESS_LEVELS,
+    hasHabitsPremiumEntitlement,
     HabitGoalTypes,
     HabitGoalType,
     CampaignTypes,
@@ -99,12 +143,20 @@ export {
     MetricNames,
     MetricValueTypes,
     Location,
+    Reactions,
     ILogLevel,
     LogLevelMap,
     Notifications,
     OAuthIntegrationProviders,
     PushNotifications,
     PasswordRegex,
+    PhoneAccountType,
+    PHONE_ACCOUNT_TYPES,
+    MAX_ACCOUNTS_PER_PHONE_BY_BRAND,
+    DEFAULT_MAX_ACCOUNTS_PER_PHONE,
+    getMaxAccountsPerPhone,
+    getPhoneAccountType,
+    getAvailablePhoneAccountTypes,
     CurrentSocialValuations,
     CurrentMomentValuations,
     CurrentCheckInValuations,

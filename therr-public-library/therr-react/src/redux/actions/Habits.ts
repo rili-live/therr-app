@@ -3,6 +3,9 @@ import HabitGoalsService, { ICreateHabitGoalBody, IUpdateHabitGoalBody } from '.
 import PactsService, { ICreatePactBody, IBulkInvitePactBody } from '../../services/PactsService';
 import HabitCheckinsService, { ICreateCheckinBody, IUpdateCheckinBody } from '../../services/HabitCheckinsService';
 import StreaksService from '../../services/StreaksService';
+import UserHabitsService, { ICreateUserHabitBody } from '../../services/UserHabitsService';
+import JournalService, { ICreateJournalEntryBody, IUpdateJournalEntryBody } from '../../services/JournalService';
+import HabitsLifetimeService, { IVerifyLifetimePurchaseBody } from '../../services/HabitsLifetimeService';
 
 const Habits = {
     // Habit Goals
@@ -145,6 +148,24 @@ const Habits = {
         return response.data;
     }),
 
+    // RENEW_PACT rather than CREATE_PACT, which this used to reuse on the grounds that a
+    // renewal *is* a new pact. It is, but the reducer's job is not the same one:
+    //
+    //   - The cycle just superseded has to leave the list. CREATE_PACT only unshifts, so
+    //     both cycles stayed and the re-commit read as the app having duplicated the pact.
+    //   - The response may be a pact already in state. Renewal is idempotent server-side
+    //     (a second tap answers 200 with the existing successor), and unshifting that
+    //     would put the same pact in the list twice — turning a fix for the duplicate into
+    //     another way to see one.
+    renewPact: (id: string, durationDays?: number) => (dispatch: any) => PactsService
+        .renew(id, durationDays).then((response) => {
+            dispatch({
+                type: HabitsActionTypes.RENEW_PACT,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
     // Checkins
     getTodayCheckins: (habitGoalId?: string) => (dispatch: any) => HabitCheckinsService
         .getTodayCheckins(habitGoalId).then((response: any) => {
@@ -164,6 +185,22 @@ const Habits = {
                 data: response.data,
             });
             return response.data;
+        }),
+
+    /**
+     * Proof media for one check-in.
+     *
+     * Deliberately dispatches nothing. Proofs are per-day-sheet data — opened,
+     * looked at, closed — and the only place to put them in the habits slice
+     * would be alongside `checkins`, where they would need invalidating on
+     * every month change and every re-check-in for a benefit no screen has.
+     * Kept as an action rather than a direct service call so the connected
+     * screens keep reaching data through one channel.
+     */
+    getCheckinProofs: (checkinId: string) => () => HabitCheckinsService
+        .getProofs(checkinId).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
+            return response.data?.proofs || [];
         }),
 
     createCheckin: (data: ICreateCheckinBody) => (dispatch: any) => HabitCheckinsService
@@ -189,6 +226,19 @@ const Habits = {
             dispatch({
                 type: HabitsActionTypes.SKIP_CHECKIN,
                 data: response.data,
+            });
+            return response.data;
+        }),
+
+    // Share a check-in's proof photo publicly as a post. The response carries `sharedThoughtId`
+    // (and the created `thought` on first share); the dispatch merges just that id onto the
+    // matching check-in so the "shared" state shows without a refetch — see the SHARE_CHECKIN
+    // reducer case, which is a merge rather than the full-object replace UPDATE_CHECKIN does.
+    shareCheckin: (id: string, message?: string) => (dispatch: any) => HabitCheckinsService
+        .share(id, message).then((response) => {
+            dispatch({
+                type: HabitsActionTypes.SHARE_CHECKIN,
+                data: { id, sharedThoughtId: response.data?.sharedThoughtId },
             });
             return response.data;
         }),
@@ -239,6 +289,148 @@ const Habits = {
         });
         return response.data;
     }),
+
+    // Tracked habits (solo/personal)
+    getUserHabits: (status?: 'active' | 'archived') => (dispatch: any) => {
+        dispatch({ type: HabitsActionTypes.HABITS_LOADING });
+        return UserHabitsService.getUserHabits(status).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
+            dispatch({
+                type: HabitsActionTypes.GET_USER_HABITS,
+                data: response.data,
+            });
+            return response.data;
+        }).finally(() => {
+            dispatch({ type: HabitsActionTypes.HABITS_LOADED });
+        });
+    },
+
+    getUserHabitEligibility: () => (dispatch: any) => UserHabitsService.getEligibility()
+        .then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
+            dispatch({
+                type: HabitsActionTypes.GET_USER_HABIT_ELIGIBILITY,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
+    startUserHabit: (data: ICreateUserHabitBody) => (dispatch: any) => UserHabitsService.create(data)
+        .then((response: any) => {
+            dispatch({
+                type: HabitsActionTypes.CREATE_USER_HABIT,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
+    archiveUserHabit: (id: string) => (dispatch: any) => UserHabitsService.archive(id)
+        .then((response: any) => {
+            dispatch({
+                type: HabitsActionTypes.ARCHIVE_USER_HABIT,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
+    restoreUserHabit: (id: string) => (dispatch: any) => UserHabitsService.restore(id)
+        .then((response: any) => {
+            dispatch({
+                type: HabitsActionTypes.RESTORE_USER_HABIT,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
+    // Returns the updated habit detail (or throws the axios error so the caller
+    // can read a 403 `solo-locked` / 402 cap payload and route accordingly). The
+    // reducer merges the detail the same way archive/restore do.
+    continueSoloUserHabit: (id: string) => (dispatch: any) => UserHabitsService.continueSolo(id)
+        .then((response: any) => {
+            dispatch({
+                type: HabitsActionTypes.CONTINUE_SOLO_USER_HABIT,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
+    // Journal
+    /**
+     * Pass `before` to page. The reducer appends rather than replaces when a
+     * cursor was supplied, so a paged load cannot wipe the feed the user is
+     * already scrolled into.
+     */
+    getJournalFeed: (options: { before?: string | null; limit?: number } = {}) => (dispatch: any) => {
+        if (!options.before) {
+            dispatch({ type: HabitsActionTypes.HABITS_LOADING });
+        }
+        return JournalService.getFeed(options).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
+            dispatch({
+                type: options.before
+                    ? HabitsActionTypes.APPEND_JOURNAL_FEED
+                    : HabitsActionTypes.GET_JOURNAL_FEED,
+                data: response.data,
+            });
+            return response.data;
+        }).finally(() => {
+            if (!options.before) {
+                dispatch({ type: HabitsActionTypes.HABITS_LOADED });
+            }
+        });
+    },
+
+    createJournalEntry: (data: ICreateJournalEntryBody) => (dispatch: any) => JournalService.create(data)
+        .then((response: any) => {
+            dispatch({
+                type: HabitsActionTypes.CREATE_JOURNAL_ENTRY,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
+    updateJournalEntry: (id: string, data: IUpdateJournalEntryBody) => (dispatch: any) => JournalService
+        .update(id, data).then((response: any) => {
+            dispatch({
+                type: HabitsActionTypes.UPDATE_JOURNAL_ENTRY,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
+    deleteJournalEntry: (id: string) => (dispatch: any) => JournalService.delete(id)
+        .then((response: any) => {
+            dispatch({
+                type: HabitsActionTypes.DELETE_JOURNAL_ENTRY,
+                data: { id },
+            });
+            return response.data;
+        }),
+
+    // Lifetime founder offer
+    getLifetimeOffer: () => (dispatch: any) => HabitsLifetimeService.getOffer()
+        .then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
+            dispatch({
+                type: HabitsActionTypes.GET_LIFETIME_OFFER,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
+    /**
+     * Returns the granted access levels alongside the purchase so the caller
+     * can refresh the user record — the entitlement lives on the user, not in
+     * habits state, and the paywall must not linger after a successful buy.
+     */
+    verifyLifetimePurchase: (data: IVerifyLifetimePurchaseBody) => (dispatch: any) => HabitsLifetimeService
+        .verifyPurchase(data).then((response: any) => {
+            dispatch({
+                type: HabitsActionTypes.VERIFY_LIFETIME_PURCHASE,
+                data: response.data,
+            });
+            return response.data;
+        }),
 
     // Reset
     reset: () => (dispatch: any) => {

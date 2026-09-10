@@ -1,6 +1,7 @@
 import * as express from 'express';
 import {
     getUserLocations,
+    getUserDwellingLocations,
     createUserLocations,
     updateUserLocation,
 } from '../handlers/userLocations';
@@ -8,6 +9,7 @@ import {
 const router = express.Router();
 
 // READ
+router.get('/:userId/dwellings', getUserDwellingLocations);
 router.get('/:userId', getUserLocations);
 
 // WRITE

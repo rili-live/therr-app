@@ -13,10 +13,15 @@ const initialState: IHabitsState = {
     streaks: [],
     activeStreaks: [],
     milestones: [],
+    userHabits: [],
+    userHabitEligibility: null,
+    journalFeed: [],
+    journalCursor: null,
+    journalHasMore: false,
+    lifetimeOffer: null,
     isLoading: false,
 };
 
-// eslint-disable-next-line default-param-last
 const habits = produce((draft: IHabitsState, action: any) => {
     switch (action.type) {
         // Loading
@@ -70,6 +75,43 @@ const habits = produce((draft: IHabitsState, action: any) => {
         case HabitsActionTypes.CREATE_PACT:
             draft.pacts.unshift(action.data);
             break;
+        case HabitsActionTypes.RENEW_PACT: {
+            // A renewal replaces its predecessor in the list rather than joining it. The
+            // server already leaves superseded cycles out of the list read; doing the same
+            // thing locally is what stops the old cycle sitting next to the new one — and
+            // still offering its re-commit button — until the next refetch.
+            const renewed = action.data;
+            if (!renewed?.id) {
+                break;
+            }
+
+            const predecessorId = renewed.renewedFromPactId;
+            (['pacts', 'activePacts', 'pendingInvites'] as const).forEach((key) => {
+                if (predecessorId) {
+                    const dropIdx = draft[key].findIndex((p) => p.id === predecessorId);
+                    if (dropIdx > -1) {
+                        draft[key].splice(dropIdx, 1);
+                    }
+                }
+                // Upsert, never append: renewal is idempotent server-side, so a second tap
+                // returns a pact that is already here.
+                const idx = draft[key].findIndex((p) => p.id === renewed.id);
+                if (idx > -1) {
+                    draft[key][idx] = renewed;
+                }
+            });
+
+            if (!draft.pacts.some((p) => p.id === renewed.id)) {
+                draft.pacts.unshift(renewed);
+            }
+            // A renewal with no one left to invite is activated immediately, so it belongs
+            // in the checkin-able list right away. One that is still `pending` joins
+            // activePacts through ACCEPT_PACT, like every other pact.
+            if (renewed.status === 'active' && !draft.activePacts.some((p) => p.id === renewed.id)) {
+                draft.activePacts.push(renewed);
+            }
+            break;
+        }
         case HabitsActionTypes.NUDGE_PACT: {
             // `nudgeResults` is a transient, per-partner outcome list for the
             // caller (toast copy) — keep it out of persisted pact state.
@@ -132,6 +174,16 @@ const habits = produce((draft: IHabitsState, action: any) => {
             break;
         }
 
+        // Merge, not replace: the share response is only `{ id, sharedThoughtId }`, so overwriting
+        // the row (as UPDATE_CHECKIN does with a full check-in) would drop every other field.
+        case HabitsActionTypes.SHARE_CHECKIN: {
+            const checkinIdx = draft.todayCheckins.findIndex((c) => c.id === action.data.id);
+            if (checkinIdx > -1) {
+                draft.todayCheckins[checkinIdx].sharedThoughtId = action.data.sharedThoughtId;
+            }
+            break;
+        }
+
         // Streaks
         case HabitsActionTypes.GET_USER_STREAKS:
             draft.streaks = action.data || [];
@@ -162,6 +214,97 @@ const habits = produce((draft: IHabitsState, action: any) => {
             }
             break;
         }
+
+        // Tracked habits (solo/personal)
+        case HabitsActionTypes.GET_USER_HABITS:
+            draft.userHabits = action.data?.userHabits || [];
+            break;
+        case HabitsActionTypes.GET_USER_HABIT_ELIGIBILITY:
+            draft.userHabitEligibility = action.data || null;
+            break;
+        case HabitsActionTypes.CREATE_USER_HABIT: {
+            const existingIdx = draft.userHabits.findIndex((h) => h.id === action.data?.id);
+            if (existingIdx > -1) {
+                draft.userHabits[existingIdx] = action.data;
+            } else {
+                draft.userHabits.unshift(action.data);
+            }
+            break;
+        }
+        case HabitsActionTypes.ARCHIVE_USER_HABIT:
+        case HabitsActionTypes.RESTORE_USER_HABIT:
+        case HabitsActionTypes.CONTINUE_SOLO_USER_HABIT: {
+            const habitIdx = draft.userHabits.findIndex((h) => h.id === action.data?.id);
+            if (habitIdx > -1) {
+                // The archive/restore endpoints return the bare tracking row
+                // rather than the joined detail shape, so merge instead of
+                // replacing — otherwise the list loses the goal name and streak
+                // and the row renders blank until the next full fetch. Merging is
+                // right for continue-solo too: it returns the full detail, so the
+                // merge simply overwrites every field (including the now-null
+                // pendingPactId) while never blanking a row.
+                draft.userHabits[habitIdx] = { ...draft.userHabits[habitIdx], ...action.data };
+            }
+            break;
+        }
+
+        // Journal
+        case HabitsActionTypes.GET_JOURNAL_FEED:
+            draft.journalFeed = action.data?.items || [];
+            draft.journalCursor = action.data?.nextCursor || null;
+            draft.journalHasMore = !!action.data?.hasMore;
+            break;
+        case HabitsActionTypes.APPEND_JOURNAL_FEED:
+            draft.journalFeed.push(...(action.data?.items || []));
+            draft.journalCursor = action.data?.nextCursor || null;
+            draft.journalHasMore = !!action.data?.hasMore;
+            break;
+        case HabitsActionTypes.CREATE_JOURNAL_ENTRY:
+            // Prepended optimistically in feed shape so a new note appears at
+            // the top of today without waiting for a refetch.
+            draft.journalFeed.unshift({
+                id: action.data.id,
+                type: 'note',
+                occurredAt: action.data.occurredAt,
+                entryDate: action.data.entryDate,
+                body: action.data.body,
+                habitGoalId: action.data.habitGoalId,
+            });
+            break;
+        case HabitsActionTypes.UPDATE_JOURNAL_ENTRY: {
+            const entryIdx = draft.journalFeed.findIndex(
+                (item) => item.type === 'note' && item.id === action.data?.id,
+            );
+            if (entryIdx > -1) {
+                draft.journalFeed[entryIdx] = {
+                    ...draft.journalFeed[entryIdx],
+                    body: action.data.body,
+                    habitGoalId: action.data.habitGoalId,
+                };
+            }
+            break;
+        }
+        case HabitsActionTypes.DELETE_JOURNAL_ENTRY:
+            draft.journalFeed = draft.journalFeed.filter(
+                (item) => !(item.type === 'note' && item.id === action.data?.id),
+            );
+            break;
+
+        // Lifetime founder offer
+        case HabitsActionTypes.GET_LIFETIME_OFFER:
+            draft.lifetimeOffer = action.data || null;
+            break;
+        case HabitsActionTypes.VERIFY_LIFETIME_PURCHASE:
+            if (draft.lifetimeOffer) {
+                draft.lifetimeOffer.purchase = action.data?.purchase || null;
+                draft.lifetimeOffer.isEntitled = true;
+            }
+            // The habit cap is lifted from here on, so the cached eligibility
+            // snapshot would otherwise keep the paywall showing until refetch.
+            if (draft.userHabitEligibility) {
+                draft.userHabitEligibility.isAtHabitLimit = false;
+            }
+            break;
 
         // Reset
         case HabitsActionTypes.RESET_HABITS:

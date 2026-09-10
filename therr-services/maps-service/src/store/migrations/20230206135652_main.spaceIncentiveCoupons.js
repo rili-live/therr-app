@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').createTable('spaceIncentiveCoupons', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').createTable('spaceIncentiveCoupons', (table) => {
     table.uuid('spaceIncentiveId')
         .references('id')
         .inTable('main.spaceIncentives')

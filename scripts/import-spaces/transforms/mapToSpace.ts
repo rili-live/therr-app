@@ -2,7 +2,9 @@
  * Transforms OSM elements into Therr space insert params.
  */
 import { IOsmElement } from '../sources/osm';
-import { ICityConfig, OSM_TO_THERR_CATEGORY, SPACE_RADIUS_METERS, DEFAULT_LOCALE } from '../config';
+import {
+  ICityConfig, OSM_TO_THERR_CATEGORY, SPACE_RADIUS_METERS, DEFAULT_LOCALE,
+} from '../config';
 import { parseOsmHours } from './parseHours';
 
 export interface ISpaceInsertParams {

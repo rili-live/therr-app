@@ -45,6 +45,29 @@ export const getMilestoneProgress = (currentStreak: number): { nextMilestone: nu
 };
 
 /**
+ * Parse any accepted date value to local midnight of the calendar date it
+ * represents. Date-only strings (YYYY-MM-DD) are treated as that calendar
+ * date rather than UTC midnight: `new Date('2026-07-22')` parses as UTC
+ * midnight, so in any timezone west of UTC it lands on the evening of Jul 21
+ * local, and `.setHours(0,0,0,0)` then snaps it to Jul 21 — every date-only
+ * value silently shifts back a day and streak-gap math is off by one. Date
+ * objects and full datetime strings keep their local calendar date, matching
+ * the convention in normalizeDateString.
+ */
+const toLocalMidnight = (value: string | Date): Date => {
+    if (typeof value === 'string') {
+        const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+        if (dateOnlyMatch) {
+            const [, year, month, day] = dateOnlyMatch;
+            return new Date(Number(year), Number(month) - 1, Number(day));
+        }
+    }
+    const d = new Date(value);
+    d.setHours(0, 0, 0, 0);
+    return d;
+};
+
+/**
  * Calculate if a day was missed based on last completed date
  * Takes into account that habits might not be daily (e.g., 3x per week)
  */
@@ -60,8 +83,7 @@ export const wasDayMissed = (
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const lastCompleted = new Date(lastCompletedDate);
-    lastCompleted.setHours(0, 0, 0, 0);
+    const lastCompleted = toLocalMidnight(lastCompletedDate);
 
     const daysDiff = Math.floor((today.getTime() - lastCompleted.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -101,6 +123,75 @@ export const canUseGracePeriod = (
     gracePeriodDays: number,
     graceDaysUsed: number,
 ): boolean => gracePeriodDays > 0 && graceDaysUsed < gracePeriodDays;
+
+/**
+ * Whole days between two dates (date-only comparison; positive when `later`
+ * is after `earlier`). Accepts date strings or Date objects.
+ */
+export const getDaysBetweenDates = (earlier: string | Date, later: string | Date): number => {
+    const a = toLocalMidnight(earlier);
+    const b = toLocalMidnight(later);
+    return Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
+};
+
+/**
+ * Normalize a date value (Date or ISO/date string) to YYYY-MM-DD for
+ * comparison against checkin scheduledDate strings.
+ */
+export const normalizeDateString = (date: string | Date): string => {
+    const d = toLocalMidnight(date);
+    const month = `${d.getMonth() + 1}`.padStart(2, '0');
+    const day = `${d.getDate()}`.padStart(2, '0');
+    return `${d.getFullYear()}-${month}-${day}`;
+};
+
+/**
+ * Count the required days that were missed between the last completed
+ * check-in and the current check-in, respecting the habit's cadence.
+ * 0 means the streak is intact (same-day or on-cadence completion).
+ *
+ * The check-in flow uses this to decide whether to consume streak-freeze
+ * (grace) days or reset the streak — see createCheckin in handlers/habitCheckins.ts.
+ */
+export const countMissedDaysForStreak = (
+    lastCompletedDate: string | Date,
+    checkinDate: string,
+    frequencyType: string,
+    targetDaysOfWeek?: number[],
+): number => {
+    const daysDiff = getDaysBetweenDates(lastCompletedDate, checkinDate);
+    if (daysDiff <= 1) {
+        return 0;
+    }
+
+    if (frequencyType === 'weekly' && targetDaysOfWeek?.length) {
+        // Count target days strictly between last completion and this check-in
+        let missed = 0;
+        for (let i = 1; i < daysDiff; i += 1) {
+            const d = toLocalMidnight(lastCompletedDate);
+            d.setDate(d.getDate() + i);
+            if (targetDaysOfWeek.includes(d.getDay())) {
+                missed += 1;
+            }
+        }
+        return missed;
+    }
+
+    if (frequencyType === 'weekly') {
+        // X-times-per-week habits get full-week flexibility; only a gap of
+        // more than one whole week counts as a single miss event.
+        return Math.floor(daysDiff / 7) > 1 ? 1 : 0;
+    }
+
+    // Daily cadence: every uncompleted day in the gap is a miss
+    return daysDiff - 1;
+};
+
+/**
+ * Maximum earnable streak freezes (grace days). New streaks start with 1;
+ * each 7+ day milestone earns one more, capped here.
+ */
+export const MAX_GRACE_PERIOD_DAYS = 3;
 
 /**
  * Format streak for display
@@ -201,3 +292,81 @@ export const isPhoenixMoment = (
     streakAfter: number,
     previousLongestStreak: number,
 ): boolean => streakAfter > previousLongestStreak && previousLongestStreak >= 7;
+
+/**
+ * Is this habit due today?
+ *
+ * The gate on the daily reminder. Without it a "3x per week" habit gets nudged
+ * seven days a week, which is the single fastest way to teach a user that the
+ * app's reminders are noise — the anti-pattern
+ * docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md warns costs DAU rather than
+ * lifting it.
+ *
+ * Three cadence shapes, in priority order:
+ *
+ *   1. `targetDaysOfWeek` set → due only on those weekdays, whatever
+ *      `frequencyType` says. An explicit schedule is the strongest signal the
+ *      user has given us and always wins.
+ *   2. `daily` → due every day.
+ *   3. Everything else (a `weekly`/`custom` count with no fixed days) → there
+ *      is no day to anchor on, so "due" is derived from the gap since the last
+ *      completion: a 3x/week habit is due once roughly every other day. This
+ *      reads `lastCompletedDate` off the streak row the caller already has
+ *      rather than counting check-ins, so it costs no extra query.
+ *
+ * `today` is a YYYY-MM-DD string and is parsed as UTC, matching
+ * `getTodayDateString()` and the UTC convention in habitLifecycleContext. Using
+ * local parsing here would put the weekday one day off for every host west of
+ * UTC — see the note on `toLocalMidnight` above for the same hazard.
+ */
+export const isHabitDueToday = (
+    habit: {
+        frequencyType?: string | null;
+        frequencyCount?: number | null;
+        targetDaysOfWeek?: number[] | null;
+        lastCompletedDate?: string | Date | null;
+    },
+    today: string,
+): boolean => {
+    const todayUtc = new Date(`${String(today).slice(0, 10)}T00:00:00.000Z`);
+    if (Number.isNaN(todayUtc.getTime())) {
+        // An unparseable date is a bug in the caller, not a reason to spam. Stay
+        // silent rather than reminding on a day we cannot identify.
+        return false;
+    }
+
+    if (habit.targetDaysOfWeek?.length) {
+        return habit.targetDaysOfWeek.includes(todayUtc.getUTCDay());
+    }
+
+    const frequencyType = habit.frequencyType || 'daily';
+    if (frequencyType === 'daily') {
+        return true;
+    }
+
+    // Never completed → due now. This is deliberately the permissive branch: a
+    // habit someone set up and never started is exactly who a reminder is for.
+    if (!habit.lastCompletedDate) {
+        return true;
+    }
+
+    // Clamped into 1..7. A malformed frequencyCount (0, null, negative, NaN)
+    // therefore degrades to once a week — the quiet direction. Leaving it
+    // unclamped would either divide by zero or produce an interval so large the
+    // habit is never reminded again, and both are silent failures; over-
+    // reminding on bad data would at least be visible, but it is visible to the
+    // user, as spam.
+    const perWeek = Math.max(1, Math.min(7, Number(habit.frequencyCount) || 1));
+    const intervalDays = Math.max(1, Math.floor(7 / perWeek));
+    const lastCompletedUtc = new Date(
+        `${normalizeDateString(habit.lastCompletedDate).slice(0, 10)}T00:00:00.000Z`,
+    );
+    if (Number.isNaN(lastCompletedUtc.getTime())) {
+        return true;
+    }
+
+    const daysSince = Math.floor(
+        (todayUtc.getTime() - lastCompletedUtc.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    return daysSince >= intervalDays;
+};

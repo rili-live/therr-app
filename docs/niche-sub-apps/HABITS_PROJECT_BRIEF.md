@@ -21,7 +21,22 @@ Core Therr App is pursuing a B2B-first strategy (local business directory → em
 These niche apps are a branch and/or child app of Therr App. The general idea is for a niche app to inherit the core foundations of Therr with unique, niche branding, content filtering specific to that branding, and some simple customizations that are controlled by feature flags.
 
 **Core Innovation:**  
-Unlike traditional habit trackers (solo experience), 'Therr: Friends With Habits' makes accountability partners mandatory. You literally cannot use the app without inviting at least one friend. This creates exponential organic growth.
+Unlike traditional habit trackers, where partners are an afterthought, 'Therr: Friends With Habits' is built around accountability pacts: inviting someone is the first thing the app asks you to do, and every surface leads with partner progress. That is the organic growth loop.
+
+> **Revised August 2026 — the invite requirement became a visible threshold.**
+> Pacts still need a partner and always will. What changed is habits tracked
+> *alone*: they used to unlock on a single invite sent, which no UI ever
+> mentioned, so the requirement read as an unexplained wall rather than as
+> something to earn. Solo tracking now unlocks at **three distinct people
+> invited** (`HABITS_SOLO_UNLOCK_INVITE_COUNT`, env-overridable), and every
+> surface that can refuse it shows the progress toward it instead.
+>
+> Raising the bar while making it visible is the trade: three invites is more
+> asked of the user than one, but a target they can watch themselves approach is
+> a reason to invite the next friend, where an invisible one-invite toll was
+> only a reason to leave. Invites *sent* count, in any state, so a friend who
+> never installs the app cannot strand the inviter — and the count is of people,
+> not invitations, so inviting one friend to three pacts unlocks nothing.
 
 ---
 
@@ -98,16 +113,30 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 ## PRODUCT FEATURES
 
 ### MVP (Weeks 3-6) - FREE TIER
-- ✅ Create **1 active pact** at a time
-- ✅ Invite friends to be accountability partners (REQUIRED)
+- ✅ Track **5 active habits** at a time (revised 2026-08 — see the note below)
+- ✅ Invite friends to be accountability partners (REQUIRED to get started)
+- ✅ Track habits on your own — unlocked by inviting 3 friends, shown as progress
 - ✅ Daily check-in system with photo/note proof
+- ✅ Journal — day-grouped feed of check-ins, achievements, milestones and notes
 - ✅ Activity feed showing partner progress
 - ✅ Push notifications when partner completes/misses
 - ✅ Basic streak tracking
 - ✅ Weekly summary email
 
-### PREMIUM TIER ($6.99/month)
-- ✅ **Unlimited active pacts**
+> **The free-tier limit changed from "1 active pact" to "5 active habits" in
+> August 2026.** Capping pacts penalised the exact behaviour the app exists to
+> encourage: a user with one habit and four accountability partners hit the
+> limit, while a user with five solo habits and no friends did not. The limit
+> now counts habits tracked, which is also the number a user can see on their
+> own dashboard. Archiving a habit frees a slot and loses nothing.
+
+### FOUNDER UNLOCK ($20 once, first 5,000 accounts)
+One payment, premium forever. Sold through Google Play Billing and granted as
+`AccessLevels.HABITS_LIFETIME`. Lifts the habit cap and every current and
+future premium gate. See `habits/HABITS_PAYMENT_WORKFLOW.md`.
+
+### PREMIUM TIER ($6.99/month — not yet built)
+- ✅ **Unlimited active habits and pacts**
 - ✅ Custom consequences with auto-enforcement
 - ✅ Video proof of habit completion
 - ✅ Advanced analytics and insights
@@ -243,16 +272,19 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 
 ---
 
-### Phase 4: Monetization — PENDING
+### Phase 4: Monetization — IN PROGRESS
 **Goal:** Implement freemium model and revenue generation
 
-- [ ] Freemium paywall (1 pact free, unlimited premium)
-- [ ] In-app purchase flows (iOS & Android)
+- [x] Freemium paywall (5 habits free; 402 with paywall metadata past that)
+- [x] Founder "free for life" unlock — $20 once, first 5,000 accounts
+- [x] In-app purchase flow (Android / Google Play Billing, server-verified)
+- [ ] iOS in-app purchase (StoreKit verification)
+- [ ] Refund handling via Play Real-Time Developer Notifications
 - [ ] Premium analytics dashboard
 - [ ] Video proof uploads (premium feature)
 - [ ] Custom consequences builder
 - [ ] Apple Health / Google Fit integration
-- [ ] Subscription management
+- [ ] Recurring subscription management
 
 **Deliverable:** Revenue-generating premium tier
 

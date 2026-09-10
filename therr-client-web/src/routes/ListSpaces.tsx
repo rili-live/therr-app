@@ -132,7 +132,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         };
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         const { map, routeParams } = this.props;
         const { searchQuery, searchLat, searchLng } = this.state;
         const { categorySlug, citySlug, pageNumber: pn } = routeParams;

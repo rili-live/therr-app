@@ -1,8 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { NavigateFunction } from 'react-router-dom';
+import { Link, NavigateFunction } from 'react-router-dom';
 import {
+    Card,
     Col,
     Row,
     Button,
@@ -161,6 +162,18 @@ export class SettingsComponent extends React.Component<ISettingsProps, ISettings
                             brandContext={brandContext}
                             user={user}
                         />
+                    </Col>
+
+                    <Col xs={12} xl={10} xxl={8}>
+                        <Card border="light" className="bg-white shadow-sm mb-4 text-center">
+                            <Card.Body>
+                                <h5>{this.translate('pages.settings.apiKeys.title')}</h5>
+                                <p>{this.translate('pages.settings.apiKeys.description')}</p>
+                                <Button variant="primary" as={Link as any} to="/settings/api-keys">
+                                    {this.translate('pages.settings.apiKeys.manageButton')}
+                                </Button>
+                            </Card.Body>
+                        </Card>
                     </Col>
                 </Row>
                 <ToastContainer className="p-3" position={'bottom-end'}>

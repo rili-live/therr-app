@@ -89,7 +89,7 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
         };
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         const { getMomentDetails, map } = this.props;
         const { momentId } = this.state;
         const moment = map?.moments[momentId];

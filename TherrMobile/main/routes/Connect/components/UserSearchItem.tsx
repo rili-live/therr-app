@@ -62,8 +62,10 @@ const UserSearchItem: React.FunctionComponent<IUserSearchItemProps> = ({
                 />
             </Pressable>
             <View style={spacingStyles.flexOne}>
-                <ListItem.Title>{userDetails.userName}</ListItem.Title>
-                <ListItem.Subtitle>{getUserSubtitle(userDetails) || translate('pages.userProfile.anonymous')}</ListItem.Subtitle>
+                <ListItem.Title numberOfLines={1}>{userDetails.userName}</ListItem.Title>
+                <ListItem.Subtitle numberOfLines={1}>
+                    {getUserSubtitle(userDetails) || translate('pages.userProfile.anonymous')}
+                </ListItem.Subtitle>
             </View>
             <View>
                 {

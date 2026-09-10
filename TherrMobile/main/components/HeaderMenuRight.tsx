@@ -4,6 +4,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, runOnJS
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Badge, Drawer } from 'react-native-paper';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { Button } from './BaseButton';
 import { Image } from './BaseImage';
 import { CommonActions } from '@react-navigation/native';
@@ -19,6 +20,9 @@ import translator from '../utilities/translator';
 import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 import { resetInterestsRedirectBypass } from '../utilities/interestsRedirectGuard';
+import { getUnclaimedAchievementsCount } from '../utilities/achievements';
+import { getHeaderTopInset } from '../styles';
+import { bottomSafeAreaInset } from '../styles/navigation/buttonMenu';
 import { ITherrThemeColors } from '../styles/themes';
 import { getUserImageUri } from '../utilities/content';
 import UsersActions from '../redux/actions/UsersActions';
@@ -48,7 +52,7 @@ interface IDrawerOverlayProps {
     children: React.ReactNode;
 }
 
-const DrawerOverlay: React.FC<IDrawerOverlayProps> = ({
+export const DrawerOverlay: React.FC<IDrawerOverlayProps> = ({
     isOpen,
     onRequestClose,
     onTransitionEnd,
@@ -133,16 +137,43 @@ const DrawerOverlay: React.FC<IDrawerOverlayProps> = ({
             visible={isMounted}
             onRequestClose={onRequestClose}
             transparent={true}
+            // The drawer is full-bleed by design: its own window must be
+            // edge-to-edge on every Android version so the inset padding below
+            // is applied exactly once. Without these, older Android insets the
+            // modal window itself and the padding double-counts.
+            statusBarTranslucent={true}
+            navigationBarTranslucent={true}
         >
-            <Animated.View style={[{ flex: 1 }, backdropStyle]}>
-                <Pressable onPress={onRequestClose} style={overlayStyle}>
-                    <Animated.View style={[drawerContainerStyle, drawerStyle]}>
-                        <Pressable style={drawerBodyStyle} onPress={() => { /* Prevent dismissal when tapping inside */ }}>
-                            {children}
-                        </Pressable>
-                    </Animated.View>
-                </Pressable>
-            </Animated.View>
+            <SafeAreaInsetsContext.Consumer>
+                {(insets) => {
+                    // Under edge-to-edge the modal draws behind the status bar
+                    // and the display cutout, so the drawer's own content (the
+                    // avatar/username header) has to be pushed below the inset
+                    // or it lands under the clock and the camera hole-punch.
+                    // `initialWindowMetrics` is the cold-start fallback; the
+                    // measured context value replaces it after first layout.
+                    const topInset = insets?.top ?? getHeaderTopInset();
+                    const bottomInset = insets?.bottom ?? bottomSafeAreaInset;
+
+                    return (
+                        <Animated.View style={[{ flex: 1 }, backdropStyle]}>
+                            <Pressable onPress={onRequestClose} style={overlayStyle}>
+                                <Animated.View
+                                    style={[
+                                        drawerContainerStyle,
+                                        { paddingTop: topInset, paddingBottom: bottomInset },
+                                        drawerStyle,
+                                    ]}
+                                >
+                                    <Pressable style={drawerBodyStyle} onPress={() => { /* Prevent dismissal when tapping inside */ }}>
+                                        {children}
+                                    </Pressable>
+                                </Animated.View>
+                            </Pressable>
+                        </Animated.View>
+                    );
+                }}
+            </SafeAreaInsetsContext.Consumer>
         </Modal>
     );
 };
@@ -443,6 +474,8 @@ class HeaderMenuRight extends React.PureComponent<
         const { isModalVisible, isPointsInfoModalVisible } = this.state;
         const unreadCount: number = notifications?.messages?.filter(m => m.isUnread)?.length || 0;
         const hasNotifications = unreadCount > 0;
+        const unclaimedAchievementsCount: number = getUnclaimedAchievementsCount(user?.achievements);
+        const hasUnclaimedAchievements = unclaimedAchievementsCount > 0;
         // let imageStyle = themeMenu.styles.toggleIcon;
 
         // if (styleName === 'light') {
@@ -574,7 +607,7 @@ class HeaderMenuRight extends React.PureComponent<
                         isOpen={isModalVisible}
                         onRequestClose={this.handleRequestDrawerClose}
                         onTransitionEnd={this.handleDrawerTransitionEnd}
-                        overlayStyle={theme.styles.overlay}
+                        overlayStyle={themeMenu.styles.overlay}
                         drawerContainerStyle={themeMenu.styles.overlayContainer}
                         drawerBodyStyle={themeMenu.styles.container}
                     >
@@ -658,7 +691,7 @@ class HeaderMenuRight extends React.PureComponent<
                         >
                             <Drawer.Section>
                                 <FeatureGate feature={FeatureFlags.ENABLE_NOTIFICATIONS}>
-                                    <View style={themeMenu.styles.notificationsItemContainer}>
+                                    <View style={themeMenu.styles.menuItemContainer}>
                                         <Drawer.Item
                                             label={this.translate('components.headerMenuRight.menuItems.notifications')}
                                             icon={() => (
@@ -677,7 +710,7 @@ class HeaderMenuRight extends React.PureComponent<
                                         />
                                         {
                                             hasNotifications && (
-                                                <Badge style={themeMenu.styles.notificationBadge} size={20}>
+                                                <Badge style={themeMenu.styles.menuItemBadge} size={20}>
                                                     {unreadCount}
                                                 </Badge>
                                             )
@@ -685,22 +718,31 @@ class HeaderMenuRight extends React.PureComponent<
                                     </View>
                                 </FeatureGate>
                                 <FeatureGate feature={FeatureFlags.ENABLE_ACHIEVEMENTS}>
-                                    <Drawer.Item
-                                        label={this.translate('components.headerMenuRight.menuItems.achievements')}
-                                        icon={() => (
-                                            <TherrIcon
-                                                style={
-                                                    currentScreen === 'Achievements'
-                                                        ? themeMenu.styles.iconStyleActive
-                                                        : themeMenu.styles.iconStyle
-                                                }
-                                                name="achievement"
-                                                size={24}
-                                            />
-                                        )}
-                                        active={currentScreen === 'Achievements'}
-                                        onPress={() => this.navTo('Achievements')}
-                                    />
+                                    <View style={themeMenu.styles.menuItemContainer}>
+                                        <Drawer.Item
+                                            label={this.translate('components.headerMenuRight.menuItems.achievements')}
+                                            icon={() => (
+                                                <TherrIcon
+                                                    style={
+                                                        currentScreen === 'Achievements'
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
+                                                    }
+                                                    name="achievement"
+                                                    size={24}
+                                                />
+                                            )}
+                                            active={currentScreen === 'Achievements'}
+                                            onPress={() => this.navTo('Achievements')}
+                                        />
+                                        {
+                                            hasUnclaimedAchievements && (
+                                                <Badge style={themeMenu.styles.menuItemBadge} size={20}>
+                                                    {unclaimedAchievementsCount}
+                                                </Badge>
+                                            )
+                                        }
+                                    </View>
                                 </FeatureGate>
                                 <FeatureGate feature={FeatureFlags.ENABLE_CONNECT}>
                                     <Drawer.Item

@@ -1,20 +1,38 @@
 import { RequestHandler } from 'express';
 import {
-    AccessLevels, COIN_PACKAGE_IDS, ErrorCodes, ReferralRewards, UserConnectionTypes,
+    AccessLevels,
+    COIN_PACKAGE_IDS,
+    ErrorCodes,
+    MetricNames,
+    PushNotifications,
+    ReferralRewards,
+    UserConnectionTypes,
+    getAvailablePhoneAccountTypes,
+    getMaxAccountsPerPhone,
+    getPhoneAccountType,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
-import { parseHeaders } from 'therr-js-utilities/http';
+import { verifyPhoneVerificationToken } from 'therr-js-utilities/phone-verification-token';
+import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
+import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import handleHttpError from '../utilities/handleHttpError';
+import * as globalConfig from '../../../../global-config';
 import Store from '../store';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import syncDeviceTokenForBrand from '../utilities/syncDeviceTokenForBrand';
+import handleContentAlgorithmChange from '../utilities/handleContentAlgorithmChange';
+import sendEmailAndOrPushNotification, { resolveDeviceTokenForBrand } from '../utilities/sendEmailAndOrPushNotification';
 import sendUserDeletedEmail from '../api/email/admin/sendUserDeletedEmail';
 import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequestEmail';
 import {
     createUserHelper, getUserHelper, isUserProfileIncomplete, computeAccessLevelsAfterProfileUpdate, redactUserCreds,
 } from './helpers/user';
-import { isMatchingInvitee } from './helpers/pactRedemption';
+import { resolveAccessLevelsForAccountEmail } from './helpers/checkoutSessionAccessLevels';
+import { isClaimCodePreVerified, isMatchingInvitee } from './helpers/pactRedemption';
+import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
+import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { isValidTimeZone } from '../utilities/localReminderSchedule';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
 import { createOrUpdateAchievement } from './helpers/achievements';
@@ -27,6 +45,18 @@ import {
     verifyUserAccount,
     resendVerification,
 } from './userVerification';
+
+/**
+ * Whether a `phoneNumber` value is an actual handset.
+ *
+ * Apple SSO signups deliberately write the sentinel `'apple-sso'` into that column
+ * (`createUserHelper`), and every one of those rows carries the same value — so counting "the
+ * accounts on this number" for it would return the entire Apple SSO cohort and refuse them all.
+ */
+const isPhoneNumberLike = (value?: string) => /^\+?[\d\s\-().]{7,}$/.test(`${value || ''}`);
+
+/** Digits only, for comparing two spellings of the same number. See `phoneNumberMatchCandidates`. */
+const toPhoneNumberDigits = (value?: string) => `${value || ''}`.replace(/[^\d]/g, '');
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => {
@@ -56,15 +86,50 @@ const createUser: RequestHandler = (req: any, res: any) => {
         inviteCode,
     } = req.body;
 
-    return Store.users.findUser(req.body)
-        .then((findResults) => {
+    // Passwordless sign-up: the API gateway texted a one-time code to this number and, on a
+    // correct answer, minted a short-lived signed token naming it. An absent/expired/forged
+    // token simply yields `undefined` here and registration proceeds as an ordinary
+    // email+password signup — there is no path where a bad token grants anything.
+    const verifiedPhoneNumber = verifyPhoneVerificationToken(req.body.phoneVerificationToken, 'register')?.phoneNumber;
+
+    const registrationPhoneNumber = verifiedPhoneNumber || req.body.phoneNumber;
+
+    return Promise.all([
+        // E-mail and username uniqueness is absolute. Phone number is not: one number may hold
+        // up to one account per type (personal/creator/business), capped per brand, so it gets
+        // the dedicated check below instead of being OR'd into this lookup.
+        Store.users.findUser({
+            ...req.body,
+            phoneNumber: undefined,
+        }),
+        isPhoneNumberLike(registrationPhoneNumber)
+            ? Store.users.getAllByPhoneNumber(registrationPhoneNumber, ['id', 'isBusinessAccount', 'isCreatorAccount'])
+            : Promise.resolve([]),
+    ])
+        .then(([findResults, existingPhoneAccounts]) => {
             if (findResults.length) {
                 return handleHttpError({
                     res,
-                    message: 'Username, e-mail, and phone number must be unique. A user already exists.',
+                    message: 'Username and e-mail must be unique. A user already exists.',
                     statusCode: 400,
                     errorCode: ErrorCodes.USER_EXISTS,
                 });
+            }
+
+            if (existingPhoneAccounts.length) {
+                const availableAccountTypes = getAvailablePhoneAccountTypes(existingPhoneAccounts, brandVariation);
+                const requestedAccountType = getPhoneAccountType(req.body);
+
+                if (!availableAccountTypes.includes(requestedAccountType)) {
+                    return handleHttpError({
+                        res,
+                        message: getMaxAccountsPerPhone(brandVariation) > 1
+                            ? `This phone number already has a ${requestedAccountType} account.`
+                            : 'An account already exists for this phone number.',
+                        statusCode: 400,
+                        errorCode: ErrorCodes.TOO_MANY_ACCOUNTS,
+                    });
+                }
             }
 
             let getSubsAccessLvlsPromise: Promise<AccessLevels[]> = Promise.resolve([]);
@@ -146,7 +211,20 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     return [];
                 });
             } else if (paymentSessionId) {
-                // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
+                // The dashboard sends this after a completed Stripe checkout
+                // (`PaymentComplete.tsx` redirects to `/register?paymentSessionId=`), so the
+                // plan the user just bought becomes an access level on the account being
+                // created rather than waiting on the subscription webhook.
+                //
+                // Scoped to the address they paid with: a session id is a bearer token for a
+                // purchase, not for an account, so without the match any registration quoting
+                // a leaked id would inherit that subscription's plan. Mismatches resolve to
+                // no levels and the registration still succeeds — see
+                // `resolveAccessLevelsForAccountEmail`.
+                getSubsAccessLvlsPromise = resolveAccessLevelsForAccountEmail(paymentSessionId, req.body.email, {
+                    'user.email': req.body.email,
+                    handler: 'createUser',
+                });
             }
 
             // PACT-XXXX codes are pact-invite claims, not username referrals.
@@ -209,27 +287,86 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 });
             }
 
-            return getSubsAccessLvlsPromise.then((levels) => createUserHelper(
-                req.headers,
-                {
+            return getSubsAccessLvlsPromise.then(async (levels) => {
+                // A registration carrying a valid PACT-XXXX claim whose
+                // contact info matches the original invitee has already proven
+                // channel ownership — grant verified access up-front and skip
+                // the verification-email wall (the biggest drop-off point
+                // between an invitee and their friend's pact).
+                const isPreVerifiedByPactClaim = await isClaimCodePreVerified(pactClaimCode, {
                     email: req.body.email,
-                    password: req.body.password,
-                    firstName: req.body.firstName,
-                    isBusinessAccount: req.body.isBusinessAccount,
-                    isCreatorAccount: req.body.isCreatorAccount,
-                    isDashboardRegistration: req.body.isDashboardRegistration,
-                    settingsEmailMarketing: req.body.settingsEmailMarketing,
-                    settingsEmailBusMarketing: req.body.settingsEmailBusMarketing,
-                    settingsLocale: req.body.settingsLocale || locale,
-                    lastName: req.body.lastName,
                     phoneNumber: req.body.phoneNumber,
-                    userName: req.body.userName,
-                    accessLevels: levels,
-                },
-                false,
-                undefined,
-                !!inviteCode,
-            ).then(async (user) => {
+                });
+
+                return createUserHelper(
+                    req.headers,
+                    {
+                        email: req.body.email,
+                        password: req.body.password,
+                        firstName: req.body.firstName,
+                        isBusinessAccount: req.body.isBusinessAccount,
+                        isCreatorAccount: req.body.isCreatorAccount,
+                        isDashboardRegistration: req.body.isDashboardRegistration,
+                        settingsEmailMarketing: req.body.settingsEmailMarketing,
+                        settingsEmailBusMarketing: req.body.settingsEmailBusMarketing,
+                        // Every registration form collects this and the gateway validates it
+                        // (services/users/validation/users.ts), but it was missing from this
+                        // whitelist, so `createUserHelper` always received `undefined`: no
+                        // account has ever stored a birthdate, and the service's own age check
+                        // -- guarded on the value being present -- never ran. Passing it through
+                        // both persists the value and arms that second layer.
+                        settingsBirthdate: req.body.settingsBirthdate,
+                        settingsLocale: req.body.settingsLocale || locale,
+                        lastName: req.body.lastName,
+                        // Prefer the number inside the signed token over anything the client
+                        // typed: the token is the only version we have actually texted.
+                        phoneNumber: verifiedPhoneNumber || req.body.phoneNumber,
+                        userName: req.body.userName,
+                        accessLevels: levels,
+                    },
+                    {
+                        hasInviteCode: !!inviteCode,
+                        inviteToken: req.body.inviteToken,
+                        isPreVerified: isPreVerifiedByPactClaim,
+                        isPhoneVerified: !!verifiedPhoneNumber,
+                        userAcquisition: req.body.userAcquisition,
+                    },
+                );
+            }).then(async (user) => {
+                let registrationSource = 'organic';
+                if (pactClaimCode) {
+                    registrationSource = 'pact-claim';
+                } else if (inviteCode) {
+                    registrationSource = 'referral-code';
+                }
+                recordFunnelMetric(MetricNames.FUNNEL_USER_REGISTERED, user?.id, {
+                    brandVariation: brandVariation || '',
+                    platform: platform || '',
+                    source: registrationSource,
+                });
+
+                // Username-referral path (share link / "invite code" field):
+                // the registrant explicitly entered the inviter's code, so
+                // connect them immediately. Fire-and-forget — registration
+                // must succeed even if the referral linkage fails.
+                if (inviteCode && !pactClaimCode && user?.id) {
+                    Store.users.findUser({ userName: inviteCode })
+                        .then((inviterRows) => {
+                            if (inviterRows?.length) {
+                                return ensureCompletedUserConnection(inviterRows[0].id, user.id);
+                            }
+                            return null;
+                        })
+                        .catch((err) => {
+                            logSpan({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['Failed to connect referral inviter to new user'],
+                                traceArgs: { 'error.message': err?.message, 'user.id': user.id },
+                            });
+                        });
+                }
+
                 if (pactClaimCode && user?.id) {
                     // Best-effort: link the new user to the pending pact_members
                     // row keyed by claimCode and activate it. Done out-of-band
@@ -281,6 +418,54 @@ const createUser: RequestHandler = (req: any, res: any) => {
                             }
                             if (pact && (pact.status === 'pending' || pact.status === 'active')) {
                                 await Store.pactMembers.activate(member.pactId, user.id);
+
+                                recordFunnelMetric(MetricNames.FUNNEL_PACT_INVITE_ACCEPTED, user.id, {
+                                    brandVariation: brandVariation || '',
+                                    via: 'signup-claim',
+                                });
+
+                                // Mirror acceptPact's post-activation effects — without
+                                // these, a signup-time redemption left the pact with no
+                                // streak rows (check-ins would start from a broken state)
+                                // and the inviter never learned their invitee joined.
+                                const streakPromises: Promise<any>[] = [
+                                    Store.streaks.getOrCreate(user.id, pact.habitGoalId, member.pactId),
+                                ];
+                                if (pact.status === 'pending') {
+                                    streakPromises.push(Store.streaks.getOrCreate(pact.creatorUserId, pact.habitGoalId, member.pactId));
+                                }
+                                await Promise.all(streakPromises);
+
+                                // Invited-user-is-connected-to-inviter contract: the
+                                // pact creator and the newly registered invitee become
+                                // connections immediately.
+                                ensureCompletedUserConnection(pact.creatorUserId, user.id).catch((connErr) => {
+                                    logSpan({
+                                        level: 'error',
+                                        messageOrigin: 'API_SERVER',
+                                        messages: ['Failed to connect pact creator and claimed invitee on signup'],
+                                        traceArgs: { 'error.message': connErr?.message, pactId: member.pactId },
+                                    });
+                                });
+
+                                // Re-engage the inviter: their friend just joined and
+                                // the pact is live. Fire-and-forget.
+                                sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
+                                    authorization: req.headers?.authorization,
+                                    fromUser: { id: user.id, userName: user.userName || user.firstName || '' },
+                                    locale,
+                                    toUserId: pact.creatorUserId,
+                                    type: PushNotifications.Types.pactAccepted,
+                                    whiteLabelOrigin,
+                                    brandVariation,
+                                }).catch((notifyErr) => {
+                                    logSpan({
+                                        level: 'error',
+                                        messageOrigin: 'API_SERVER',
+                                        messages: ['Failed to notify pact creator of signup-time claim'],
+                                        traceArgs: { 'error.message': notifyErr?.message, pactId: member.pactId },
+                                    });
+                                });
                             }
                         } else if (memberIsRedeemable && !identityMatches) {
                             logSpan({
@@ -300,7 +485,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     }
                 }
                 return res.status(201).send(user);
-            }));
+            });
         })
         .catch((err) => {
             if (err?.message === 'invalid-password') {
@@ -308,6 +493,20 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     err,
                     res,
                     message: translate(locale, 'errorMessages.auth.invalidPassword'),
+                    statusCode: 400,
+                });
+            }
+
+            // The gateway rejects an under-age birthdate first, so this fires only for a
+            // caller that reached the service directly. It still has to answer 400 rather
+            // than fall through to the generic 500 below: a rejected age is the client's
+            // input being wrong, and the habits register page renders `body.message`
+            // straight back to the user.
+            if (err?.message === 'invalid-birthdate') {
+                return handleHttpError({
+                    err,
+                    res,
+                    message: translate(locale, 'errorMessages.auth.invalidBirthdate'),
                     statusCode: 400,
                 });
             }
@@ -323,9 +522,10 @@ const createUser: RequestHandler = (req: any, res: any) => {
 // READ
 const getMe = (req, res) => {
     const userId = req.headers['x-userid'];
+    const { brandVariation } = getBrandContext(req.headers);
 
     return Store.users.getUserByConditions({ id: userId, settingsIsAccountSoftDeleted: false })
-        .then((results) => {
+        .then(async (results) => {
             if (!results.length) {
                 return handleHttpError({
                     res,
@@ -338,9 +538,20 @@ const getMe = (req, res) => {
             // Remove credentials from object
             redactUserCreds(userResult);
 
-            return userResult;
+            // Multi-app isolation (Phase 2): the legacy users.deviceMobileFirebaseToken column
+            // is overwritten whenever a second branded app (e.g. Habits) registers on the same
+            // device, so it can point at another brand's app install. Consumers that read this
+            // endpoint for push routing — notably background-location processing in
+            // push-notifications-service, whose BackgroundGeolocation requests never carry the
+            // x-user-device-token header — would then deliver this brand's notification to the
+            // wrong app. Override with the brand-scoped token from main.userDeviceTokens (keyed
+            // on the request's x-brand-variation). Resolves to null when this brand has no
+            // registration — deliberately, so a consumer sends nothing rather than sending to
+            // whichever app happened to write the shared column last.
+            userResult.deviceMobileFirebaseToken = await resolveDeviceTokenForBrand(brandVariation, userId);
+
+            return res.status(200).send(userResult);
         })
-        .then((user) => res.status(200).send(user))
         .catch((err) => handleHttpError({
             err,
             res,
@@ -349,6 +560,12 @@ const getMe = (req, res) => {
 };
 
 // READ
+/**
+ * Deliberately NOT brand-scoped. This is a profile-by-id lookup, which is reached from a
+ * shared link rather than from discovery, so a Habits user opening a link to a Therr
+ * profile should still see it. Brand scoping belongs on discovery and contact-matching
+ * paths (searchUsers, searchUserPairings, findUsersByContactInfo), not here.
+ */
 const getUser = (req, res) => {
     const authHeader = req.headers.authorization; // undefined if user is not logged in
     const userId = req.headers['x-userid'];
@@ -376,6 +593,7 @@ const getUser = (req, res) => {
 const getUserByPhoneNumber = (req, res) => {
     const userId = req.headers['x-userid'];
     const { phoneNumber } = req.params;
+    const { brandVariation } = parseHeaders(req.headers);
 
     return Store.users.getUserById(userId, ['email', 'phoneNumber', 'isBusinessAccount', 'isCreatorAccount']).then((userSearchResults) => {
         if (!userSearchResults.length) {
@@ -386,46 +604,25 @@ const getUserByPhoneNumber = (req, res) => {
             });
         }
 
-        return Store.users.getByPhoneNumber(phoneNumber).then((results) => {
+        return Store.users.getAllByPhoneNumber(phoneNumber, ['id', 'isBusinessAccount', 'isCreatorAccount']).then((results) => {
             const requestingUser = userSearchResults[0];
-            if (!results.length) {
-                // 1st account with this phone number
-                return res.status(200).send({
-                    isSecondAccount: false,
-                    isThirdAccount: false,
-                    existingUsers: results,
+            // Re-verifying the number already on your own profile is not competing with
+            // yourself for a slot, so your own row never counts against the cap.
+            const otherAccounts = results.filter((result) => result.id !== userId);
+            const availableAccountTypes = getAvailablePhoneAccountTypes(otherAccounts, brandVariation);
+
+            if (!availableAccountTypes.includes(getPhoneAccountType(requestingUser))) {
+                return res.status(400).send({
+                    existingUsers: otherAccounts,
+                    errorCode: ErrorCodes.TOO_MANY_ACCOUNTS,
+                    statusCode: 400,
                 });
-            }
-            if (results.length === 1 && (
-                results[0].isBusinessAccount !== requestingUser.isBusinessAccount
-                || results[0].isCreatorAccount !== requestingUser.isCreatorAccount)
-            ) {
-                // 2nd account with this phone number
-                return res.status(200).send({
-                    isSecondAccount: true,
-                    isThirdAccount: false,
-                    existingUsers: results,
-                });
-            }
-            // TODO: Unit test
-            if (results.length > 1) {
-                const hasExistingBusAccount = results.find((result) => result.isBusinessAccount);
-                const hasExistingCreatorAccount = results.find((result) => result.isCreatorAccount);
-                if ((requestingUser.isBusinessAccount && !hasExistingBusAccount)
-                    || (requestingUser.isCreatorAccount && !hasExistingCreatorAccount)) {
-                    // 3rd account with this phone number
-                    return res.status(200).send({
-                        isSecondAccount: false,
-                        isThirdAccount: true,
-                        existingUsers: results,
-                    });
-                }
             }
 
-            return res.status(400).send({
-                existingUsers: results,
-                errorCode: ErrorCodes.TOO_MANY_ACCOUNTS,
-                statusCode: 400,
+            return res.status(200).send({
+                isSecondAccount: otherAccounts.length === 1,
+                isThirdAccount: otherAccounts.length === 2,
+                existingUsers: otherAccounts,
             });
         });
     });
@@ -435,6 +632,10 @@ const getUserByPhoneNumber = (req, res) => {
 /**
  * IMPORTANT - This is a public endpoint without optional authorization
  * Consider any and all implications of data that is returned
+ *
+ * Deliberately NOT brand-scoped, for the same reason as getUser above: this backs public,
+ * SEO-indexed profile pages reached by direct link. Scoping it would 404 valid cross-brand
+ * profile links. See getUser for where brand scoping does belong.
  */
 const getUserByUserName = (req, res) => {
     const authHeader = req.headers.authorization; // undefined if user is not logged in
@@ -475,6 +676,10 @@ const findUsers: RequestHandler = (req: any, res: any) => Store.users.findUsers(
 
 const searchUsers: RequestHandler = (req: any, res: any) => {
     const userId = req.headers['x-userid']; // undefined if user is not logged in
+    // Discovery is brand-scoped: identity-shared main.users has no brand column, so we
+    // filter on brandVariations enrollment. getBrandContext defaults to THERR for legacy
+    // tokens with no x-brand-variation header, matching the column's default membership.
+    const { brandVariation } = getBrandContext(req.headers);
 
     const {
         ids,
@@ -492,6 +697,10 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
             .then((connections) => Store.users.findUsers({
                 ids: connections
                     .map((con) => (con.requestingUserId === userId ? con.acceptingUserId : con.requestingUserId)),
+                // Brand-scope People-You-May-Know too. Without this, the mightKnow list leaks
+                // cross-brand accounts (contact-matched Therr users showing inside Habits) even
+                // though the primary searchUsers results are already brand-scoped.
+                brandVariation,
             }))
         : Promise.resolve([]);
 
@@ -502,6 +711,7 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
         queryColumnName,
         limit: actualLimit,
         offset: actualOffset,
+        brandVariation,
     }, true, true);
 
     return Promise.all([mightKnowPromise, searchPromise])
@@ -529,6 +739,10 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
  */
 const searchUserPairings: RequestHandler = (req: any, res: any) => {
     const userId = req.headers['x-userid']; // undefined if user is not logged in
+    // Brand-scoped for the same reason as its sibling searchUsers above: this is a
+    // discovery surface, so without the filter a niche dashboard pairs its users with
+    // accounts from another brand. getBrandContext defaults to THERR for legacy tokens.
+    const { brandVariation } = getBrandContext(req.headers);
 
     // TODO: Implement prediction algorithm to find users relevant to the requesting user
 
@@ -549,6 +763,7 @@ const searchUserPairings: RequestHandler = (req: any, res: any) => {
         queryColumnName,
         limit: actualLimit,
         offset: actualOffset,
+        brandVariation,
     })
         .then((results) => {
             res.status(200).send({
@@ -695,6 +910,21 @@ const updateUser = (req, res) => {
                 });
             }
 
+            // The user's IANA timezone. Rejected rather than coerced: this is the
+            // only input to per-user reminder scheduling
+            // (`utilities/localReminderSchedule.ts`), and a junk value stored here
+            // is invisible — every digest run would quietly fall back to the
+            // default zone and the user would keep receiving reminders at the
+            // wrong hour with nothing reporting why.
+            const rawTimezone = req.body.settingsTimezone;
+            if (rawTimezone !== undefined && rawTimezone !== null && !isValidTimeZone(rawTimezone)) {
+                return handleHttpError({
+                    res,
+                    message: 'Invalid settingsTimezone (expected an IANA timezone, e.g. America/New_York)',
+                    statusCode: 400,
+                });
+            }
+
             // TODO: Don't allow updating phone number unless user phone number is already verified
             const updateArgs: any = {
                 firstName: req.body.firstName,
@@ -717,9 +947,20 @@ const updateUser = (req, res) => {
                 settingsEmailBackground: req.body.settingsEmailBackground,
                 settingsThemeName: req.body.settingsThemeName,
                 settingsIsProfilePublic: req.body.settingsIsProfilePublic,
+                settingsIsLeaderboardEnabled: req.body.settingsIsLeaderboardEnabled,
+                settingsContentAlgorithm: req.body.settingsContentAlgorithm,
                 settingsPushMarketing: req.body.settingsPushMarketing,
                 settingsPushBackground: req.body.settingsPushBackground,
+                // The only two push preferences the server actually reads (the habits
+                // digest: `settingsPushHabitReminders` mutes both daily slots,
+                // `settingsPushStreakAlerts` the evening escalation). They were readable
+                // before they were writable, so the mobile toggles that ship against them
+                // spread the fields into this request and got a 200 with the values
+                // dropped here — a save that reported success and changed nothing.
+                settingsPushHabitReminders: req.body.settingsPushHabitReminders,
+                settingsPushStreakAlerts: req.body.settingsPushStreakAlerts,
                 settingsLocale: req.body.settingsLocale,
+                settingsTimezone: rawTimezone,
                 settingsIsAccountSoftDeleted: req.body.settingsIsAccountSoftDeleted,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
                 autoRechargeEnabled: rawAutoRechargeEnabled,
@@ -727,17 +968,43 @@ const updateUser = (req, res) => {
                 autoRechargePackageId: rawAutoRechargePackageId,
             };
 
+            // A phone number holds at most one account of each type. `createUser` enforces that
+            // at sign-up, but both halves of the pair stay editable afterwards — without this,
+            // two accounts sharing a number could each edit their way to `business`, or an
+            // account could move onto a number whose slot for its type is already filled.
+            //
+            // Deliberately only checked when the type or the number actually changes. Rows that
+            // predate the cap (or were seeded around it) would otherwise fail every unrelated
+            // profile save, locking their owners out of editing a bio.
+            const currentUser = userSearchResults[0];
+            // `undefined` means "leave as-is" here for the same reason it does in
+            // `UsersStore.updateUser`, which only writes these when explicitly true or false.
+            const nextAccountType = getPhoneAccountType({
+                isBusinessAccount: req.body.isBusinessAccount ?? currentUser.isBusinessAccount,
+                isCreatorAccount: req.body.isCreatorAccount ?? currentUser.isCreatorAccount,
+            });
+            const nextPhoneNumber = req.body.phoneNumber || currentUser.phoneNumber;
+            const isChangingAccountType = nextAccountType !== getPhoneAccountType(currentUser);
+            const isChangingPhoneNumber = toPhoneNumberDigits(nextPhoneNumber)
+                !== toPhoneNumberDigits(currentUser.phoneNumber);
+
+            const phoneAccountsPromise: Promise<any[]> = (isChangingAccountType || isChangingPhoneNumber)
+                && isPhoneNumberLike(nextPhoneNumber)
+                ? Store.users.getAllByPhoneNumber(nextPhoneNumber, ['id', 'isBusinessAccount', 'isCreatorAccount'])
+                : Promise.resolve([]);
+
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
             const nextAccessLevels = computeAccessLevelsAfterProfileUpdate(
                 userSearchResults[0].accessLevels,
                 isMissingUserProps,
+                isChangingPhoneNumber,
             );
             if (nextAccessLevels) {
                 updateArgs.accessLevels = nextAccessLevels;
             }
 
-            return Promise.all([passwordPromise, orgsPromise, mediaPromise])
-                .then(([passwordResult, orgsResult, isMediaSafeForWork]) => {
+            return Promise.all([passwordPromise, orgsPromise, mediaPromise, phoneAccountsPromise])
+                .then(([passwordResult, orgsResult, isMediaSafeForWork, phoneAccounts]) => {
                     if (!isMediaSafeForWork) {
                         return handleHttpError({
                             res,
@@ -745,6 +1012,22 @@ const updateUser = (req, res) => {
                             statusCode: 400,
                         });
                     }
+
+                    // Empty unless the check above was warranted. Your own row never counts
+                    // against you — it is the one being updated.
+                    const otherPhoneAccounts = phoneAccounts.filter((account) => account.id !== userId);
+                    if (otherPhoneAccounts.length
+                        && !getAvailablePhoneAccountTypes(otherPhoneAccounts, brandVariation).includes(nextAccountType)) {
+                        return handleHttpError({
+                            res,
+                            message: getMaxAccountsPerPhone(brandVariation) > 1
+                                ? `This phone number already has a ${nextAccountType} account.`
+                                : 'Another account already uses this phone number.',
+                            statusCode: 400,
+                            errorCode: ErrorCodes.TOO_MANY_ACCOUNTS,
+                        });
+                    }
+
                     return Store.users
                         .updateUser(updateArgs, {
                             id: userId,
@@ -756,6 +1039,16 @@ const updateUser = (req, res) => {
 
                             // Phase 2 dual-write to brand-scoped token table. Fire-and-forget; legacy column above stays authoritative until cutover.
                             syncDeviceTokenForBrand(req.headers, user.id, req.body.deviceMobileFirebaseToken);
+
+                            // Fire-and-forget: a failure here leaves a stale ordering that the
+                            // next distributor run corrects. It must never fail the settings
+                            // save the user actually asked for.
+                            handleContentAlgorithmChange(
+                                req.headers,
+                                userId,
+                                currentUser.settingsContentAlgorithm,
+                                req.body.settingsContentAlgorithm,
+                            );
 
                             const userOrgs = await Store.userOrganizations.get({
                                 userId: user.id,
@@ -811,6 +1104,17 @@ const updateUser = (req, res) => {
         });
 };
 
+/**
+ * Deliberately NOT brand-scoped, and it should stay that way. The handler already 403s
+ * unless the route param equals the caller's own id, so the update is keyed on the single
+ * identity row of the person making the request — `main.users` has no brand column, and
+ * membership lives in the `brandVariations` JSONB array.
+ *
+ * Adding a brandContainment predicate here would be actively wrong: a user whose
+ * `brandVariations` array has not yet picked up the brand they are signed in under would
+ * match zero rows, and this update reports success without reading rowCount, so their
+ * location would silently stop being recorded. There is no cross-brand read to leak.
+ */
 const updateLastKnownLocation = (req, res) => {
     const {
         locale,
@@ -879,23 +1183,27 @@ const updatePhoneVerification = (req, res) => Store.users.findUser({ id: req.par
         statusCode: 400,
     }));
 
+/**
+ * Increments the caller's TherrCoin balance. Internal-only: `PUT /users/:id/coins` is not
+ * registered in the api-gateway router, and its sole caller is reactions-service's
+ * `sendUserCoinUpdateRequest`, which sends `settingsTherrCoinTotal` and nothing else.
+ *
+ * This resolves the "Investigate security issue / Lockdown updateUser" markers that sat here.
+ * The handler used to assemble the same broad `updateArgs` as `updateUser` — `phoneNumber`,
+ * `userName`, `media`, `deviceMobileFirebaseToken`, `accessLevels` — but without any of
+ * `updateUser`'s guards: no accounts-per-phone cap, no media-safety check, no username
+ * uniqueness handling. It was a second, weaker write path onto the same columns, reachable by
+ * anything that could reach the service port. It is now scoped to the one field its caller
+ * sends, so the broad path no longer exists to be locked down.
+ *
+ * The password branch went with it: no caller has ever sent `password`/`oldPassword` here, and
+ * `updateUserPassword` below is the real, gateway-registered path for that.
+ */
 const updateUserCoins = (req, res) => {
-    const {
-        locale,
-        userId,
-        whiteLabelOrigin,
-        brandVariation,
-    } = parseHeaders(req.headers);
+    const { userId } = parseHeaders(req.headers);
 
-    return Store.users.getUserById(userId)
+    return Store.users.getUserById(userId, ['id', 'settingsPushBackground'])
         .then((userSearchResults) => {
-            const {
-                email,
-                password,
-                oldPassword,
-                userName,
-            } = req.body;
-
             if (!userSearchResults.length) {
                 return handleHttpError({
                     res,
@@ -904,88 +1212,34 @@ const updateUserCoins = (req, res) => {
                 });
             }
 
-            // TODO: If password, validate and update password
-            let passwordPromise: Promise<any> = Promise.resolve();
-
-            if (password && oldPassword) {
-                passwordPromise = updatePassword({
-                    hashedPassword: userSearchResults[0].password,
-                    inputPassword: oldPassword,
-                    locale,
-                    oneTimePassword: userSearchResults[0].oneTimePassword,
-                    res,
-                    emailArgs: {
-                        email,
-                        userName,
-                    },
-                    newPassword: password,
-                    userId,
-                    whiteLabelOrigin,
-                    brandVariation,
-                }).catch((e) => {
-                    logSpan({
-                        level: 'error',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['bad password update'],
-                        traceArgs: {
-                            'error.message': e?.message,
-                            'error.response': e?.response?.data,
-                        },
-                    });
-                    throw new Error('bad-password');
-                });
-            }
-
-            const updateArgs: any = {
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                media: req.body.media,
-                phoneNumber: req.body.phoneNumber,
-                hasAgreedToTerms: req.body.hasAgreedToTerms,
-                userName: req.body.userName,
-                deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
-                shouldHideMatureContent: req.body.shouldHideMatureContent,
-            };
+            // NOTE: `UsersStore.updateUser` treats `settingsTherrCoinTotal` as a *delta* — it
+            // calls `.increment()` on the column, and skips anything not `> 0`. The previous
+            // code passed `userSearchResults[0] + req.body.settingsTherrCoinTotal`: the whole
+            // user row, not the column, so the sum stringified to "[object Object]<delta>",
+            // failed the `> 0` guard, and no coins were ever awarded through this route.
+            // Negative valuations are still dropped by that same store-side guard — a
+            // pre-existing behaviour, left alone here so this fix doesn't start applying
+            // penalties that have never applied.
+            const coinDelta = Number(req.body.settingsTherrCoinTotal);
 
             // IMPORTANT: Only reward users who opt-in to background push notifications
             // TODO: Weight reward based on settingsPushTopics opt-in (Each with its own valuation)
             // TODO: increment/decrement should be stored on block-chain for auditability
-            if (req.body.settingsTherrCoinTotal && userSearchResults[0].settingsPushBackground) {
-                // increment/decrement
-                updateArgs.settingsTherrCoinTotal = userSearchResults[0] + req.body.settingsTherrCoinTotal;
+            if (!Number.isFinite(coinDelta) || coinDelta === 0 || !userSearchResults[0].settingsPushBackground) {
+                return res.status(202).send({ id: userId });
             }
 
-            const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
-            const nextAccessLevels = computeAccessLevelsAfterProfileUpdate(
-                userSearchResults[0].accessLevels,
-                isMissingUserProps,
-            );
-            if (nextAccessLevels) {
-                updateArgs.accessLevels = nextAccessLevels;
-            }
+            return Store.users
+                .updateUser({ settingsTherrCoinTotal: coinDelta }, {
+                    id: userId,
+                })
+                .then((results) => {
+                    const user = results[0];
+                    // Remove credentials from object
+                    redactUserCreds(user);
 
-            passwordPromise
-                .then(() => Store.users
-                    .updateUser(updateArgs, {
-                        id: userId,
-                    })
-                    .then((results) => {
-                        const user = results[0];
-                        // Remove credentials from object
-                        redactUserCreds(user);
-
-                        // Phase 2 dual-write to brand-scoped token table.
-                        syncDeviceTokenForBrand(req.headers, user.id, req.body.deviceMobileFirebaseToken);
-
-                        // TODO: Investigate security issue
-                        // Lockdown updateUser
-                        return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent pollution
-                    }))
-                .catch((e) => handleHttpError({
-                    res,
-                    message: translate(locale, 'User/password combination is incorrect'),
-                    statusCode: 400,
-                }));
+                    return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent pollution
+                });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
@@ -1108,13 +1362,31 @@ const deleteUser = (req, res) => {
 
     return Store.users.deleteUsers({ id: req.params.id })
         .then(([deletedUser]) => {
-            // TODO: Delete notifications in users service
-            // TODO: Delete messages in messages service
-            // TODO: Delete forums, forumMessages in messages service
-            requestToDeleteUserData(req.headers);
+            // Notifications live in this service, so they are deleted directly rather than
+            // over the internal fan-out. Both are unscoped by brand — the identity row is
+            // gone, so there is no brand under which the rows should survive.
+            const localDeletes = Promise.all([
+                Store.notifications.deleteByUserId(userId),
+                Store.notificationQueue.deleteByUserId(userId),
+            ]).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Failed to delete user notifications'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'error.origin': 'deleteUser',
+                        'user.deletedId': userId,
+                    },
+                });
+            });
 
-            // TODO: Delete user session from redis in websocket-service
+            // Deliberately not awaited before responding: the account row is already gone,
+            // so the user's deletion has taken effect regardless of how long the fan-out
+            // takes. Failures are logged per-service rather than surfaced to the client.
             // TODO: Delete user media data from cloud storage
+            localDeletes.then(() => requestToDeleteUserData(req.headers));
+
             sendUserDeletedEmail({
                 subject: '😞 User Account Deleted',
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
@@ -1164,16 +1436,25 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
 
             redactUserCreds(users[0]);
 
-            return Promise.all([
+            const user = users[0];
+
+            // Fire-and-forget the claim-request notification emails. These are
+            // best-effort admin/business notifications and must NOT gate the HTTP
+            // response. Previously they were awaited via Promise.all before the
+            // 200 was sent, so any AWS SES latency (slow/unreachable endpoint, SDK
+            // retry backoff) blocked the response. With no client-side request
+            // timeout on mobile, that surfaced as the "request a space" submit
+            // hanging indefinitely. Respond immediately; log email failures.
+            Promise.all([
                 sendClaimPendingReviewEmail({
                     subject: 'Business Space Request in Review',
                     locale,
-                    toAddresses: [users[0].email],
+                    toAddresses: [user.email],
                     agencyDomainName: whiteLabelOrigin,
                     brandVariation,
                     recipientIdentifiers: {
-                        id: users[0].id,
-                        accountEmail: users[0].email,
+                        id: user.id,
+                        accountEmail: user.email,
                     },
                 }, {
                     spaceName: title || notificationMsg,
@@ -1191,16 +1472,27 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
                     description,
                     userId,
                 }),
-            ]).then(() => users[0]);
+            ]).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Failed to send space claim request emails'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'user.id': userId,
+                    },
+                });
+            });
+
+            return res.status(200).send({
+                message: 'Request sent to admin',
+                user: {
+                    accessLevels: user.accessLevels,
+                    isBusinessAccount: user.isBusinessAccount,
+                    email: user.email,
+                },
+            });
         })
-        .then((user) => res.status(200).send({
-            message: 'Request sent to admin',
-            user: {
-                accessLevels: user.accessLevels,
-                isBusinessAccount: user.isBusinessAccount,
-                email: user.email,
-            },
-        }))
         .catch((err) => handleHttpError({
             err,
             res,
@@ -1300,12 +1592,151 @@ const clearUserDeviceToken: RequestHandler = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
 
+// Diagnostics (SUPER_ADMIN at the gateway): does this user have a device token
+// registered, and under which brand?
+//
+// This is the link in the push chain that fails most quietly. `syncDeviceTokenForBrand`
+// is fire-and-forget by design, so a failed write leaves no trace in the user-facing
+// response; and the brand it files under comes from the client's `x-brand-variation`
+// header, so a mismatched build registers a perfectly valid token that push routing
+// will never look up.
+//
+// Token values are never returned — only a fingerprint (prefix + length), which is
+// enough to confirm the device the user is holding matches the row, and useless to
+// anyone who intercepts the response.
+const getUserPushDiagnostics: RequestHandler = (req, res) => {
+    const { id } = req.params;
+    const { brandVariation } = getBrandContext(req.headers);
+
+    return Promise.all([
+        Store.users.findUser({ id }, ['id', 'deviceMobileFirebaseToken', 'settingsLocale']),
+        Store.userDeviceTokens.getAllTokensForUserAcrossBrands(id),
+    ])
+        .then(([userResults, tokenRows]) => {
+            const user = userResults?.[0];
+            if (!user) {
+                return handleHttpError({
+                    res,
+                    message: 'User not found',
+                    statusCode: 404,
+                });
+            }
+
+            const fingerprint = (token?: string | null) => (token
+                ? { prefix: String(token).slice(0, 12), length: String(token).length }
+                : null);
+
+            const rows = (tokenRows || []).map((row: any) => ({
+                brandVariation: row.brandVariation,
+                platform: row.platform,
+                updatedAt: row.updatedAt,
+                createdAt: row.createdAt,
+                token: fingerprint(row.token),
+            }));
+
+            const brandsRegistered = Array.from(new Set(rows.map((r) => r.brandVariation)));
+
+            return res.status(200).send({
+                userId: id,
+                // The brand this request was made under, for comparison against
+                // brandsRegistered — a user who only appears under 'therr' will
+                // never receive a 'habits' push, and vice versa.
+                requestedBrand: String(brandVariation || ''),
+                isRegisteredForRequestedBrand: brandsRegistered.includes(String(brandVariation)),
+                brandsRegistered,
+                deviceTokens: rows,
+                legacy: {
+                    // Pre-Phase-2 column. Push routing falls back to it when no
+                    // brand-scoped row exists, which means a user can receive
+                    // pushes for the *wrong* brand while looking correctly
+                    // unregistered above.
+                    hasDeviceMobileFirebaseToken: !!user.deviceMobileFirebaseToken,
+                    token: fingerprint(user.deviceMobileFirebaseToken),
+                },
+                settingsLocale: user.settingsLocale || null,
+            });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
+
+// Diagnostics (SUPER_ADMIN at the gateway): send a real test push to a user by id.
+//
+// The push-notifications-service test endpoint takes a raw FCM device token, which
+// nothing in the system hands you — the diagnostics endpoints deliberately return
+// only a fingerprint, and reading one off a handset means adb/Xcode. This variant
+// resolves the brand-scoped token server-side, so verifying delivery needs only a
+// user id and takes seconds.
+//
+// It resolves the token through the same `resolveDeviceTokenForBrand` the real
+// notification path uses, so a token this can't find is a token production can't
+// find either — a negative result here is itself the diagnosis.
+const sendUserPushDiagnosticsTest: RequestHandler = (req, res) => {
+    const { id } = req.params;
+    const {
+        authorization,
+        brandVariation,
+        locale,
+    } = parseHeaders(req.headers);
+
+    const { type, dryRun, viaProductionPath } = req.body || {};
+    // Normalized here rather than relying on a destructure default, which only
+    // fills in for `undefined` — an explicit `null` would otherwise be forwarded
+    // as a falsy value and turn the safe default into a real push to a handset.
+    const isDryRun = dryRun !== false;
+
+    return Store.users.findUser({ id }, ['id'])
+        .then(async (userResults: any[]) => {
+            const user = userResults?.[0];
+            if (!user) {
+                return handleHttpError({ res, message: 'User not found', statusCode: 404 });
+            }
+
+            const deviceToken = await resolveDeviceTokenForBrand(brandVariation as string, id);
+
+            if (!deviceToken) {
+                // Not an error condition to paper over — this IS the answer when a
+                // user reports missing pushes, and it stops the caller chasing FCM.
+                return res.status(200).send({
+                    sent: false,
+                    reason: 'no-device-token',
+                    message: `No device token is registered for user ${id} under brand `
+                        + `"${brandVariation}". The app has never completed FCM registration for `
+                        + 'this brand — check OS notification permission and that the build\'s '
+                        + 'CURRENT_BRAND_VARIATION matches. Nothing would reach this device.',
+                });
+            }
+
+            return internalRestRequest({ headers: req.headers as any }, {
+                method: 'post',
+                url: `${globalConfig[process.env.NODE_ENV].basePushNotificationsServiceRoute}`
+                    + '/notifications/diagnostics/send-test',
+                headers: {
+                    authorization,
+                    'x-localecode': locale,
+                    'x-userid': id,
+                },
+                data: {
+                    deviceToken, type, dryRun: isDryRun, viaProductionPath,
+                },
+            })
+                .then((response: any) => res.status(200).send({ sent: true, ...response.data }))
+                // A non-2xx from the push service is a real diagnostic result, not a
+                // gateway failure — forward its body verbatim so the FCM error code survives.
+                .catch((err: any) => res.status(err?.response?.status || 502).send(
+                    err?.response?.data || { sent: false, reason: 'push-service-unreachable', message: err?.message },
+                ));
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
+
 export {
     createUser,
     getMe,
     getUser,
     getUserByPhoneNumber,
     getUserByUserName,
+    getUserPushDiagnostics,
+    sendUserPushDiagnosticsTest,
     getUsers,
     findUsers,
     searchUsers,

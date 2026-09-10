@@ -155,7 +155,7 @@ export default class MomentsStore {
 
         if ((params.filterBy && params.filterBy !== 'distance')) {
             if (params.filterBy === 'fromUserIds') {
-                queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
+                queryString = queryString.andWhere((builder) => {
                     builder.whereIn('fromUserId', fromUserIds);
                 });
             } else if (params.query != undefined) { // eslint-disable-line eqeqeq
@@ -217,14 +217,14 @@ export default class MomentsStore {
             const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
 
             if (conditions.filterBy === 'fromUserIds') {
-                queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
+                queryString = queryString.andWhere((builder) => {
                     builder.whereIn('fromUserId', fromUserIds);
                     if (includePublicResults) {
                         builder.orWhere({ isPublic: true });
                     }
                 });
             } else {
-                queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
+                queryString = queryString.andWhere((builder) => {
                     builder.where(conditions.filterBy, operator, query);
                     if (includePublicResults) {
                         builder.orWhere({ isPublic: true });
@@ -267,7 +267,6 @@ export default class MomentsStore {
         });
     }
 
-    // eslint-disable-next-line default-param-last
     searchMyMoments(
         internalReqHeaders: InternalConfigHeaders,
         userId: string,
@@ -293,10 +292,10 @@ export default class MomentsStore {
         if (modifiedConditions.longitude && modifiedConditions.latitude) {
             // NOTE: Cast to a geography type to search distance within n meters
             queryString = queryString.where(knexBuilder.raw('ST_DWithin(geom::geography, ST_MakePoint(?, ?)::geography, ?)', [modifiedConditions.longitude, modifiedConditions.latitude, proximityMax])) // eslint-disable-line max-len
-                .andWhere(requirements) // eslint-disable-line quotes, max-len
+                .andWhere(requirements)
                 .orderByRaw('ST_Distance(geom::geography, ST_MakePoint(?, ?)::geography) ASC', [modifiedConditions.longitude, modifiedConditions.latitude]);
         } else {
-            queryString = queryString.where(requirements) // eslint-disable-line quotes, max-len
+            queryString = queryString.where(requirements)
                 .orderBy('createdAt', 'desc');
         }
 

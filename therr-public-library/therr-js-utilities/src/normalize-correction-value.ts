@@ -35,14 +35,28 @@ const stableStringify = (value: unknown): string => {
     return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify(obj[k])}`).join(',')}}`;
 };
 
+// Matches an explicit URL scheme. The negative lookahead keeps `example.com:8080`
+// classified as a bare host with a port rather than an `example.com:` scheme, and
+// dots are excluded from the scheme charset (legal per RFC 3986 but unused in
+// practice) so `example.com:abc` isn't read as a scheme either.
+const URL_SCHEME_REGEX = /^([a-zA-Z][a-zA-Z0-9+-]*):(?!\d)/;
+
+// The last hostname label has to look like a TLD. `URL` lowercases and punycodes
+// international hostnames before we see them, so `xn--` forms must pass too.
+const TLD_REGEX = /^([a-z]{2,}|xn--[a-z0-9-]+)$/;
+
 const normalizeWebsiteUrl = (raw: string): NormalizeResult<string> => {
     const trimmed = raw.trim();
     if (!trimmed) return { ok: false, error: 'EMPTY_URL' };
 
-    let withScheme = trimmed;
-    if (!/^https?:\/\//i.test(withScheme)) {
-        withScheme = `https://${withScheme}`;
+    // Only prepend a scheme when there is none. Testing for `https?://` alone
+    // meant any other scheme got one glued on the front, and `ftp://example.com`
+    // canonicalized to the nonsense `https://ftp//example.com`.
+    const schemeMatch = trimmed.match(URL_SCHEME_REGEX);
+    if (schemeMatch && !/^https?$/i.test(schemeMatch[1])) {
+        return { ok: false, error: 'INVALID_URL' };
     }
+    const withScheme = schemeMatch ? trimmed : `https://${trimmed}`;
 
     let url: URL;
     try {
@@ -53,8 +67,21 @@ const normalizeWebsiteUrl = (raw: string): NormalizeResult<string> => {
 
     if (!url.hostname) return { ok: false, error: 'INVALID_URL' };
 
-    let host = url.hostname.toLowerCase();
+    // Trailing dots are a legal FQDN form; drop them so `example.com.` buckets
+    // with `example.com` rather than failing the label checks below.
+    let host = url.hostname.toLowerCase().replace(/\.+$/, '');
+    // Unconditional, so `www.notaurl` and `notaurl` reach the TLD check below as
+    // the same host rather than one passing and the other failing.
     if (host.startsWith('www.')) host = host.slice(4);
+
+    // A hostname with no TLD is not a business website: `notaurl` used to sail
+    // through as `https://notaurl`. This also rejects bare IPs and IPv6 literals.
+    const labels = host.split('.');
+    if (labels.length < 2
+        || labels.some((label) => !label)
+        || !TLD_REGEX.test(labels[labels.length - 1])) {
+        return { ok: false, error: 'INVALID_URL' };
+    }
 
     // Drop default ports
     let port = url.port;

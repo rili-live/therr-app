@@ -571,10 +571,12 @@ describe('Route Configuration - Authenticated Routes', () => {
 // ============================================================================
 
 describe('Email Verification Gates', () => {
-    // CreateProfile route - requires EMAIL_VERIFIED_MISSING_PROPERTIES
+    // CreateProfile route - any signed-in account. It serves both first-run
+    // onboarding and the guided re-entry from the "Finish your profile"
+    // checklist, so a fully verified user must still be able to reach it.
     const createProfileRouteAccess: IAccess = {
-        type: AccessCheckType.ALL,
-        levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+        type: AccessCheckType.ANY,
+        levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
     };
 
     describe('CreateProfile route (profile completion gate)', () => {
@@ -603,14 +605,14 @@ describe('Email Verification Gates', () => {
             expect(isAuthorized(createProfileRouteAccess, user)).toBe(false);
         });
 
-        it('should NOT be accessible to users already fully verified', () => {
+        it('should be accessible to users already fully verified (guided re-entry)', () => {
             const user: IUserState = {
                 details: {
                     id: 'user-123',
                     accessLevels: [AccessLevels.EMAIL_VERIFIED],
                 },
             };
-            expect(isAuthorized(createProfileRouteAccess, user)).toBe(false);
+            expect(isAuthorized(createProfileRouteAccess, user)).toBe(true);
         });
     });
 
@@ -819,11 +821,23 @@ describe('Route Filtering Logic', () => {
             }),
         },
         {
+            name: 'Map',
+            options: () => ({
+                access: {
+                    type: AccessCheckType.NONE,
+                    levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                },
+            }),
+        },
+        {
+            // Mirrors routes/index.tsx: reachable by any signed-in account so the
+            // "Finish your profile" checklist can re-enter the guided flow, and
+            // ordered after Map so Map stays the landing screen for verified users.
             name: 'CreateProfile',
             options: () => ({
                 access: {
-                    type: AccessCheckType.ALL,
-                    levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                    type: AccessCheckType.ANY,
+                    levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 },
             }),
         },
@@ -960,9 +974,11 @@ describe('Route Filtering Logic', () => {
             expect(visibleRoutes.some(r => r.name === 'Register')).toBe(false);
         });
 
-        it('should NOT show CreateProfile route (already verified)', () => {
+        it('should show CreateProfile route (guided profile completion re-entry)', () => {
+            // The "Finish your profile" checklist navigates verified users back
+            // into the guided flow, so the route has to stay registered.
             const visibleRoutes = filterRoutes(mockRoutes, verifiedUser);
-            expect(visibleRoutes.some(r => r.name === 'CreateProfile')).toBe(false);
+            expect(visibleRoutes.some(r => r.name === 'CreateProfile')).toBe(true);
         });
 
         it('should show Areas route', () => {
@@ -978,6 +994,33 @@ describe('Route Filtering Logic', () => {
         it('should show ForgotPassword route (no access config)', () => {
             const visibleRoutes = filterRoutes(mockRoutes, verifiedUser);
             expect(visibleRoutes.some(r => r.name === 'ForgotPassword')).toBe(true);
+        });
+    });
+
+    describe('Initial route (first authorized route wins)', () => {
+        // Layout renders the filtered routes in array order and never sets
+        // `initialRouteName`, so whichever route survives filtering first becomes
+        // the screen the app opens on. Opening CreateProfile for an already
+        // onboarded user would be a hard regression, so pin the ordering here.
+        const onboardingUser: IUserState = {
+            details: {
+                id: 'user-123',
+                accessLevels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            },
+        };
+        const verifiedUser: IUserState = {
+            details: {
+                id: 'user-123',
+                accessLevels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        };
+
+        it('opens onboarding users on CreateProfile', () => {
+            expect(filterRoutes(mockRoutes, onboardingUser)[0].name).toBe('CreateProfile');
+        });
+
+        it('opens fully verified users on Map, not CreateProfile', () => {
+            expect(filterRoutes(mockRoutes, verifiedUser)[0].name).toBe('Map');
         });
     });
 });
@@ -1223,8 +1266,8 @@ describe('Complete Route Access Matrix', () => {
             isPublic: true,
         },
         CreateProfile: {
-            type: AccessCheckType.ALL,
-            levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            type: AccessCheckType.ANY,
+            levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
         },
         Map: {
             type: AccessCheckType.NONE,
@@ -1391,8 +1434,8 @@ describe('Complete Route Access Matrix', () => {
             expect(isAuthorized(routeConfigs.Register, user)).toBe(false);
         });
 
-        it('CreateProfile should NOT be accessible', () => {
-            expect(isAuthorized(routeConfigs.CreateProfile, user)).toBe(false);
+        it('CreateProfile should be accessible (guided profile completion)', () => {
+            expect(isAuthorized(routeConfigs.CreateProfile, user)).toBe(true);
         });
 
         it('Areas should be accessible', () => {

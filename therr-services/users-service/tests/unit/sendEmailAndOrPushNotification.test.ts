@@ -1,16 +1,18 @@
 /**
- * Phase 6 verification scenario 3 (token-routing half).
+ * Brand-scoped push routing — the guard that decides which app a notification lands in.
  *
- * resolveDeviceTokenForBrand is the upstream guard that prevents push routing leaks.
- * It looks up the device token from main.userDeviceTokens filtered by brand. Whatever
- * token it returns is what gets handed to push-notifications-service and ultimately to
- * the brand-keyed Firebase Admin app. If this function regressed and ignored the brand
- * argument, a Habits notification would route through the Therr-registered token (and
- * therefore via the Therr Firebase project) — exactly the leak Phase 2 closed.
+ * A device token identifies one app *install*. Therr and Friends with Habits ship from a
+ * single Firebase project, so FCM accepts either app's token from either brand's service
+ * account: a mis-addressed push does not error, it renders in the wrong app under the wrong
+ * name. `resolveDeviceTokenForBrand` is the only thing that prevents it.
  *
- * The legacy fallback to users.deviceMobileFirebaseToken stays in place until mobile
- * clients have re-registered against the new endpoint and shadow logs are clean. These
- * tests pin both the brand-scoped lookup and the fallback shape.
+ * These tests pin the post-backfill contract: the brand-scoped lookup is authoritative and
+ * there is NO fallback to the shared `users.deviceMobileFirebaseToken` column. That fallback
+ * is what delivered Friends with Habits evening check-ins to users' Therr installs — the
+ * brand had no row, so routing reached for the shared column, which belongs to whichever
+ * branded app registered last. `20260904000001_main.userDeviceTokens.backfill.js` migrated
+ * the population it legitimately served into real rows; resolving to null for everyone else
+ * is the point, not a gap.
  */
 import { expect } from 'chai';
 import sinon from 'sinon';
@@ -30,69 +32,63 @@ describe('resolveDeviceTokenForBrand', () => {
             { token: 'habits-device-token' } as any,
         ]);
 
-        await resolveDeviceTokenForBrand('habits', 'user-1', 'legacy-therr-token');
+        await resolveDeviceTokenForBrand('habits', 'user-1');
 
         expect(stub.calledOnce).to.equal(true);
         expect(stub.firstCall.args[0]).to.equal('habits');
         expect(stub.firstCall.args[1]).to.equal('user-1');
     });
 
-    it('returns the brand-scoped token when one exists, ignoring the legacy column', async () => {
+    it('returns the brand-scoped token when one exists', async () => {
         sinon.stub(Store.userDeviceTokens, 'getTokensForUser').resolves([
             { token: 'habits-device-token' } as any,
         ]);
 
-        const result = await resolveDeviceTokenForBrand('habits', 'user-1', 'legacy-therr-token');
+        const result = await resolveDeviceTokenForBrand('habits', 'user-1');
 
-        // The whole point of Phase 2: when the new table has a row, the legacy column
-        // must NOT be used — otherwise a user who registered Therr first would have
-        // their Habits notifications routed via the Therr Firebase project.
         expect(result).to.equal('habits-device-token');
     });
 
-    it('falls back to the legacy token only when the new table has no row', async () => {
-        sinon.stub(Store.userDeviceTokens, 'getTokensForUser').resolves([]);
-
-        const result = await resolveDeviceTokenForBrand('habits', 'user-1', 'legacy-therr-token');
-
-        expect(result).to.equal('legacy-therr-token');
-    });
-
-    it('falls back gracefully when the store query throws', async () => {
-        sinon.stub(Store.userDeviceTokens, 'getTokensForUser').rejects(new Error('db down'));
-
-        const result = await resolveDeviceTokenForBrand('habits', 'user-1', 'legacy-therr-token');
-
-        expect(result).to.equal('legacy-therr-token');
-    });
-
-    it('returns the legacy token without querying when brand is empty', async () => {
-        const stub = sinon.stub(Store.userDeviceTokens, 'getTokensForUser');
-
-        const result = await resolveDeviceTokenForBrand('', 'user-1', 'legacy-therr-token');
-
-        expect(stub.called).to.equal(false);
-        expect(result).to.equal('legacy-therr-token');
-    });
-
-    it('returns the legacy token without querying when toUserId is empty', async () => {
-        const stub = sinon.stub(Store.userDeviceTokens, 'getTokensForUser');
-
-        const result = await resolveDeviceTokenForBrand('habits', '', 'legacy-therr-token');
-
-        expect(stub.called).to.equal(false);
-        expect(result).to.equal('legacy-therr-token');
-    });
-
-    it('does not cross brands — Habits caller cannot get a Therr-registered token', async () => {
+    it('returns null when this brand has no registration — never another brand\'s token', async () => {
+        // THE regression under test. A user with a Therr install and no `habits` row must
+        // resolve to nothing, so the send is skipped as 'no-device-token'. Returning any
+        // token here delivers a Habits notification to the user's Therr app.
         const stub = sinon.stub(Store.userDeviceTokens, 'getTokensForUser');
         stub.withArgs('habits', 'user-1').resolves([]);
         stub.withArgs('therr', 'user-1').resolves([{ token: 'therr-device-token' } as any]);
 
-        const result = await resolveDeviceTokenForBrand('habits', 'user-1', null);
+        const result = await resolveDeviceTokenForBrand('habits', 'user-1');
 
-        // Brand-scoped lookup returned [], so the function falls back to the (null) legacy
-        // token — never to the Therr-brand token from a different store row.
+        expect(result).to.equal(null);
+    });
+
+    it('returns null rather than a token when the store query throws', async () => {
+        // A read-pool blip must not degrade into "send it somewhere". It is logged at
+        // error level so an outage stays distinguishable from users with no device.
+        sinon.stub(Store.userDeviceTokens, 'getTokensForUser').rejects(new Error('db down'));
+
+        const result = await resolveDeviceTokenForBrand('habits', 'user-1');
+
+        expect(result).to.equal(null);
+    });
+
+    it('returns null without querying when brand is empty', async () => {
+        // An absent brand is a caller bug. It used to resolve the shared legacy column,
+        // which is exactly how a brandless producer leaked into the Therr app.
+        const stub = sinon.stub(Store.userDeviceTokens, 'getTokensForUser');
+
+        const result = await resolveDeviceTokenForBrand('', 'user-1');
+
+        expect(stub.called).to.equal(false);
+        expect(result).to.equal(null);
+    });
+
+    it('returns null without querying when toUserId is empty', async () => {
+        const stub = sinon.stub(Store.userDeviceTokens, 'getTokensForUser');
+
+        const result = await resolveDeviceTokenForBrand('habits', '');
+
+        expect(stub.called).to.equal(false);
         expect(result).to.equal(null);
     });
 });
@@ -111,14 +107,12 @@ describe('resolveDeviceTokensForBrand (multi-user fan-out)', () => {
             { id: 'user-3', deviceMobileFirebaseToken: 'legacy-3' },
         ]);
 
-        // The whole point of the plural variant: a single round-trip for the whole group,
-        // not one query per recipient.
         expect(stub.calledOnce).to.equal(true);
         expect(stub.firstCall.args[0]).to.equal('habits');
         expect(stub.firstCall.args[1]).to.deep.equal(['user-1', 'user-2', 'user-3']);
     });
 
-    it('replaces deviceMobileFirebaseToken with brand-scoped token where one exists', async () => {
+    it('replaces the legacy token with the brand-scoped one, and nulls the rest', async () => {
         sinon.stub(Store.userDeviceTokens, 'getTokensForUsers').resolves([
             { userId: 'user-1', token: 'habits-token-1' },
             { userId: 'user-3', token: 'habits-token-3' },
@@ -130,11 +124,11 @@ describe('resolveDeviceTokensForBrand (multi-user fan-out)', () => {
             { id: 'user-3', deviceMobileFirebaseToken: 'legacy-3' },
         ]);
 
-        // user-1 and user-3 have re-registered against the new endpoint — their pushes
-        // must route via the brand-scoped token. user-2 hasn't yet — keep their legacy
-        // token as the fallback so the rollout doesn't silently drop notifications.
+        // user-2 has no habits registration. Their legacy token belongs to whichever
+        // branded app registered last, so it must be dropped, not substituted — the
+        // caller filters nulls out of the fan-out.
         expect(result[0].deviceMobileFirebaseToken).to.equal('habits-token-1');
-        expect(result[1].deviceMobileFirebaseToken).to.equal('legacy-2');
+        expect(result[1].deviceMobileFirebaseToken).to.equal(null);
         expect(result[2].deviceMobileFirebaseToken).to.equal('habits-token-3');
     });
 
@@ -164,7 +158,7 @@ describe('resolveDeviceTokensForBrand (multi-user fan-out)', () => {
         });
     });
 
-    it('falls back gracefully when the store query throws', async () => {
+    it('drops the batch rather than falling back when the store query throws', async () => {
         sinon.stub(Store.userDeviceTokens, 'getTokensForUsers').rejects(new Error('db down'));
 
         const result = await resolveDeviceTokensForBrand('habits', [
@@ -172,20 +166,21 @@ describe('resolveDeviceTokensForBrand (multi-user fan-out)', () => {
             { id: 'user-2', deviceMobileFirebaseToken: 'legacy-2' },
         ]);
 
-        // A DB blip during a group fan-out must not silently drop the entire push batch
-        // for everyone — fall through to legacy tokens so users still get notified.
-        expect(result[0].deviceMobileFirebaseToken).to.equal('legacy-1');
-        expect(result[1].deviceMobileFirebaseToken).to.equal('legacy-2');
+        // Delivering a group message to everyone's wrong app is worse than delivering it
+        // to no one, and the sender is not waiting on the push.
+        expect(result[0].deviceMobileFirebaseToken).to.equal(null);
+        expect(result[1].deviceMobileFirebaseToken).to.equal(null);
     });
 
-    it('returns input untouched when brand is empty (no query)', async () => {
+    it('nulls every token when brand is empty (no query)', async () => {
         const stub = sinon.stub(Store.userDeviceTokens, 'getTokensForUsers');
 
-        const input = [{ id: 'user-1', deviceMobileFirebaseToken: 'legacy-1' }];
-        const result = await resolveDeviceTokensForBrand('', input);
+        const result = await resolveDeviceTokensForBrand('', [
+            { id: 'user-1', deviceMobileFirebaseToken: 'legacy-1' },
+        ]);
 
         expect(stub.called).to.equal(false);
-        expect(result).to.equal(input);
+        expect(result[0].deviceMobileFirebaseToken).to.equal(null);
     });
 
     it('returns empty input untouched (no query)', async () => {
@@ -195,21 +190,5 @@ describe('resolveDeviceTokensForBrand (multi-user fan-out)', () => {
 
         expect(stub.called).to.equal(false);
         expect(result).to.deep.equal([]);
-    });
-
-    it('does not cross brands — Habits fan-out cannot pick up Therr-registered tokens', async () => {
-        const stub = sinon.stub(Store.userDeviceTokens, 'getTokensForUsers');
-        stub.withArgs('habits', sinon.match.array).resolves([]);
-        stub.withArgs('therr', sinon.match.array).resolves([
-            { userId: 'user-1', token: 'therr-token-1' },
-        ] as any);
-
-        const result = await resolveDeviceTokensForBrand('habits', [
-            { id: 'user-1', deviceMobileFirebaseToken: null },
-        ]);
-
-        // Brand-scoped lookup returned [] for habits — keep the (null) legacy fallback,
-        // never reach across into Therr's brand-scoped row.
-        expect(result[0].deviceMobileFirebaseToken).to.equal(null);
     });
 });

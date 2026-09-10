@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').alterTable('moments', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').alterTable('moments', (table) => {
     table.jsonb('interestsKeys').notNullable().defaultTo(JSON.stringify([]));
 
     table.index('interestsKeys', 'idx_moments_interests_keys', {

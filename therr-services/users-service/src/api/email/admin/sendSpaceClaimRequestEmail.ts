@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import sendEmail from '../sendEmail';
 
 export interface ISendSpaceClaimRequestEmailConfig {

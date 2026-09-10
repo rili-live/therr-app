@@ -108,6 +108,26 @@ export default class UserConnectionsStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    /**
+     * IDs of every user with an accepted (COMPLETE) connection to `userId`, regardless of
+     * which side initiated. Used to scope the friends leaderboard pool.
+     */
+    getAcceptedConnectionUserIds(userId: string): Promise<string[]> {
+        const queryString = knexBuilder.select(['requestingUserId', 'acceptingUserId'])
+            .from(USER_CONNECTIONS_TABLE_NAME)
+            .where({ requestStatus: UserConnectionTypes.COMPLETE })
+            .andWhere((builder) => builder.where({
+                requestingUserId: userId,
+            }).orWhere({
+                acceptingUserId: userId,
+            }))
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows
+            .map((row) => (row.requestingUserId === userId ? row.acceptingUserId : row.requestingUserId))
+            .filter((id) => !!id && id !== userId));
+    }
+
     getMightKnowUserConnections(userId: string, conditions = {}, limit = 100) {
         const queryString = knexBuilder.select('*')
             .from(USER_CONNECTIONS_TABLE_NAME)
@@ -200,18 +220,14 @@ export default class UserConnectionsStore {
             .innerJoin(USERS_TABLE_NAME, function () {
                 if (conditions?.userId) {
                     this.on(function () {
-                        // eslint-disable-next-line max-len
                         this.on(knexBuilder.raw('("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != ?)', [conditions.userId]));
-                        // eslint-disable-next-line max-len
                         this.orOn(knexBuilder.raw('("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != ?)', [conditions.userId]));
                     });
                 } else if (conditions.filterBy === 'acceptingUserId' && conditions.query && (!conditions.filterOperator || conditions.filterOperator === '=')) {
                     // NOTE: This is a backwards compatibility implementation due to gross usage of this method
                     this.on(function () {
-                        // eslint-disable-next-line max-len
                         this.on(knexBuilder.raw('("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != ?)', [conditions.query]));
                         if (shouldCheckReverse) {
-                            // eslint-disable-next-line max-len
                             this.orOn(knexBuilder.raw('("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != ?)', [conditions.query]));
                         }
                     });
@@ -219,10 +235,8 @@ export default class UserConnectionsStore {
                 } else if (conditions.filterBy === 'requestingUserId' && conditions.query && (!conditions.filterOperator || conditions.filterOperator === '=')) {
                     // NOTE: This is a backwards compatibility implementation due to gross usage of this method
                     this.on(function () {
-                        // eslint-disable-next-line max-len
                         this.on(knexBuilder.raw('("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != ?)', [conditions.query]));
                         if (shouldCheckReverse) {
-                            // eslint-disable-next-line max-len
                             this.orOn(knexBuilder.raw('("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != ?)', [conditions.query]));
                         }
                     });
@@ -241,7 +255,6 @@ export default class UserConnectionsStore {
 
         if (conditions.userId) {
             queryString = queryString.andWhere(knexBuilder.raw(
-                // eslint-disable-next-line max-len
                 '("userConnections"."requestingUserId" = ? OR "userConnections"."acceptingUserId" = ?)',
                 [conditions.userId, conditions.userId],
             ));

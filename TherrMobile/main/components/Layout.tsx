@@ -2,8 +2,12 @@ import React from 'react';
 import axios from 'axios';
 import qs from 'qs';
 import {
+    AppState,
+    AppStateStatus,
     Image,
     Linking,
+    NativeModules,
+    NativeEventSubscription,
     PermissionsAndroid,
     Platform,
 } from 'react-native';
@@ -31,6 +35,7 @@ import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUse
 import { ContentActions, ForumActions, NotificationActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { AccessLevels, BrandVariations, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
+import REQUEST_PLATFORM from '../constants/requestPlatform';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer, type ParamListBase } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -59,6 +64,7 @@ import { buildStyles as buildBottomSheetStyles } from '../styles/bottom-sheet';
 import { buildStyles as buildButtonStyles } from '../styles/buttons';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildModalStyles } from '../styles/modal';
+import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmModal';
 import { buildStyles as buildInfoModalStyles } from '../styles/modal/infoModal';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
 import { buildStyles as buildDisclosureStyles } from '../styles/modal/locationDisclosure';
@@ -66,6 +72,15 @@ import permissions, { PermType } from '../utilities/permissionsOrchestrator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BackgroundLocationDisclosureModal from './Modals/BackgroundLocationDisclosureModal';
 import PermissionPrimerModal from './Modals/PermissionPrimerModal';
+import AppReviewPromptModal, { AppReviewPromptOutcome } from './Modals/AppReviewPromptModal';
+import {
+    markReviewPromptCompleted,
+    markReviewPromptDeclined,
+    markReviewPromptShown,
+    shouldShowReviewPrompt,
+} from '../utilities/appReviewPrompt';
+import { openStoreReviewPage } from '../utilities/appStoreReviewLink';
+import { openSupportEmail } from '../utilities/supportContact';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
@@ -82,15 +97,25 @@ import background3 from '../assets/dinner-overhead-2.webp';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
+import getDeviceTimeZone from '../utilities/deviceTimeZone';
 
 const preLoadImageList = [background1, background2, background3];
+
+// Android app-shortcut intent-action suffixes (long-press launcher icon).
+// Matched by suffix so the same JS handles every brand binary regardless of
+// its package prefix (app.therrmobile.* / com.therr.mobile.* / ...). See
+// android/app/src/main/res/xml/shortcuts.xml.
+const QUICK_ACTION_SUFFIXES = {
+    CREATE_MOMENT: '.QUICK_CREATE_MOMENT',
+    CREATE_THOUGHT: '.QUICK_CREATE_THOUGHT',
+};
 
 const Stack = createNativeStackNavigator<ParamListBase, undefined>();
 
 const getRequestHeaders = (user) => ({
     'x-userid': user?.details?.id,
     'x-localecode':  user?.settings?.locale || 'en-us',
-    'x-platform': 'mobile',
+    'x-platform': REQUEST_PLATFORM,
     'x-brand-variation': CURRENT_BRAND_VARIATION,
 });
 
@@ -145,9 +170,21 @@ interface ILayoutState {
     permissionPrimerType: PermType | null;
     shouldSpinSplashLogo: boolean;
     isSplashSpinnerVisible: boolean;
+    isAppReviewPromptVisible: boolean;
 }
 
 const BG_LOCATION_DISCLOSURE_KEY = 'bgLocationDisclosureShown';
+
+/**
+ * Delay before the review prompt is considered on a cold start, measured from the splash
+ * handoff. Long enough that the first screen has settled and the user is looking at their
+ * own content rather than at a loading state.
+ */
+const APP_REVIEW_PROMPT_COLD_START_DELAY_MS = 8000;
+/** Same idea on a warm return, where there is no splash and no first fetch to wait on. */
+const APP_REVIEW_PROMPT_FOREGROUND_DELAY_MS = 3000;
+/** How long the app must have been away for a return to count as the user coming back to it. */
+const APP_REVIEW_PROMPT_MIN_AWAY_MS = 60000;
 
 const mapStateToProps = (state: any) => ({
     content: state.content,
@@ -197,17 +234,24 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private unsubscribePushNotifications;
     private urlEventListener;
     private routeNameRef: any = {};
+    // Latest navigation state, mirrored on every state change so it survives the
+    // locale-keyed remount of the NavigationContainer (see `render`).
+    private lastNavigationState: any = undefined;
     private theme = buildStyles();
     private themeBottomSheet = buildBottomSheetStyles();
     private themeButtons = buildButtonStyles();
     private themeForms = buildFormStyles();
     private themeInfoModal = buildInfoModalStyles();
     private themeModal = buildModalStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
     private themeMenu = buildMenuStyles();
     private themeDisclosure = buildDisclosureStyles();
     private permissionPrimerResolve: ((allowed: boolean) => void) | null = null;
     private unsubscribeNotificationsGranted: (() => void) | null = null;
     private fcmRegistrationStarted = false;
+    private appStateListener: NativeEventSubscription | null = null;
+    private lastBackgroundedAt: number | null = null;
+    private appReviewPromptTimeout: ReturnType<typeof setTimeout> | null = null;
     subscriptions: Subscription[] = [];
 
     constructor(props) {
@@ -220,6 +264,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             permissionPrimerType: null,
             shouldSpinSplashLogo: false,
             isSplashSpinnerVisible: true,
+            isAppReviewPromptVisible: false,
         };
 
         this.reloadTheme();
@@ -234,6 +279,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         if (Platform.OS === 'android') {
             Linking.getInitialURL().then(this.handleAppUniversalLinkURL);
+            // App-shortcut cold-start: a shortcut tapped while the app is killed
+            // launches via onCreate (not onNewIntent), so read the launch intent's
+            // action once and route it through the same handler as the warm path.
+            NativeModules.InitialIntent?.getInitialAction?.()
+                .then((action: string | null) => {
+                    if (action) {
+                        this.handleFirebasePushNotificationEvent({ action });
+                    }
+                })
+                .catch((err) => console.log('INITIAL_INTENT_ACTION_ERROR', err));
         }
         // (Firebase) Push Notifications Click Handler (Android intent-filter path)
         this.nativeEventListener = PlatformNativeEventEmitter?.addListener('new-intent-action', this.handleFirebasePushNotificationEvent);
@@ -252,6 +307,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             .catch((err) => console.log('FCM_INITIAL_NOTIFICATION_ERROR', err));
         // Universal links handler
         this.urlEventListener = Linking.addEventListener('url', this.handleUrlEvent);
+
+        // Returning to the app is the calmest moment we get: nothing is mid-flow and no
+        // other modal is being opened, which is where the review prompt belongs.
+        this.appStateListener = AppState.addEventListener('change', this.handleAppStateChange);
 
         if (appleAuth.isSupported) {
             this.authCredentialListener = appleAuth.onCredentialRevoked(async () => {
@@ -417,6 +476,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     componentWillUnmount() {
         this.nativeEventListener?.remove();
         this.urlEventListener?.remove();
+        this.appStateListener?.remove();
+
+        if (this.appReviewPromptTimeout) {
+            clearTimeout(this.appReviewPromptTimeout);
+            this.appReviewPromptTimeout = null;
+        }
 
         if (this.authCredentialListener) {
             this.authCredentialListener();
@@ -470,6 +535,120 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     handleBackgroundLocationDisclosureDecline = () => {
         this.setState({ isBackgroundLocationDisclosureVisible: false });
         AsyncStorage.setItem(BG_LOCATION_DISCLOSURE_KEY, 'true').catch(() => {});
+    };
+
+    handleAppStateChange = (nextAppState: AppStateStatus) => {
+        if (nextAppState !== 'active') {
+            // Keep the *first* transition away: iOS reports 'inactive' before 'background',
+            // and overwriting would read as a much shorter absence than it was.
+            if (this.lastBackgroundedAt === null) {
+                this.lastBackgroundedAt = Date.now();
+            }
+
+            return;
+        }
+
+        const backgroundedAt = this.lastBackgroundedAt;
+        this.lastBackgroundedAt = null;
+
+        // Only a deliberate return counts. The app also goes inactive for an OS permission
+        // dialog, the camera, and the share sheet — all of which are the middle of a flow the
+        // user started, and the worst possible moment to interrupt with a review prompt.
+        if (backgroundedAt !== null && Date.now() - backgroundedAt >= APP_REVIEW_PROMPT_MIN_AWAY_MS) {
+            this.scheduleAppReviewPromptCheck(APP_REVIEW_PROMPT_FOREGROUND_DELAY_MS);
+        }
+    };
+
+    /**
+     * Whether this is a moment the prompt may interrupt. Everything here is a
+     * "the user is busy with something else" check — eligibility itself (how engaged the
+     * user is, how recently they were last asked) lives in `utilities/appReviewPrompt`.
+     */
+    isAppReviewPromptInterruptible = (): boolean => {
+        const {
+            isAppReviewPromptVisible,
+            isBackgroundLocationDisclosureVisible,
+            isSplashSpinnerVisible,
+            permissionPrimerType,
+        } = this.state;
+
+        return this.isUserAuthenticated()
+            && !isAppReviewPromptVisible
+            && !isBackgroundLocationDisclosureVisible
+            && !isSplashSpinnerVisible
+            && !permissionPrimerType
+            && !this.props.user?.settings?.isTouring;
+    };
+
+    scheduleAppReviewPromptCheck = (delayMs: number) => {
+        // A single pending check at a time. Foregrounding twice in quick succession (a
+        // permission dialog, a share sheet) should not queue up two prompts.
+        if (this.appReviewPromptTimeout) {
+            return;
+        }
+
+        this.appReviewPromptTimeout = setTimeout(() => {
+            this.appReviewPromptTimeout = null;
+            this.checkAppReviewPrompt();
+        }, delayMs);
+    };
+
+    checkAppReviewPrompt = () => {
+        if (!this.isAppReviewPromptInterruptible()) {
+            return;
+        }
+
+        shouldShowReviewPrompt().then((shouldShow) => {
+            // Re-check: the read is async, and a permission primer or the tour may have
+            // opened while it was in flight.
+            if (!shouldShow || !this.isAppReviewPromptInterruptible()) {
+                return;
+            }
+
+            // Stamped on display rather than on an answer, so a prompt the user swipes away
+            // still starts the quiet period.
+            markReviewPromptShown();
+            this.setState({ isAppReviewPromptVisible: true });
+            logEvent(getAnalytics(), 'app_review_prompt_shown', {
+                userId: this.props.user?.details?.id,
+            }).catch((err) => console.log(err));
+        }).catch((err) => console.log('APP_REVIEW_PROMPT_CHECK_ERROR', err));
+    };
+
+    handleAppReviewPromptClose = (outcome: AppReviewPromptOutcome) => {
+        this.setState({ isAppReviewPromptVisible: false });
+
+        logEvent(getAnalytics(), 'app_review_prompt_closed', {
+            userId: this.props.user?.details?.id,
+            outcome,
+        }).catch((err) => console.log(err));
+
+        if (outcome === 'reviewRequested') {
+            openStoreReviewPage().then((didOpen) => {
+                // Only terminal if the store actually opened. If nothing could handle the
+                // link the user never got the chance to review, so leave them askable.
+                if (didOpen) {
+                    markReviewPromptCompleted();
+                }
+            }).catch((err) => console.log('APP_REVIEW_STORE_LINK_ERROR', err));
+
+            return;
+        }
+
+        if (outcome === 'feedbackRequested') {
+            markReviewPromptDeclined();
+            openSupportEmail(this.translate('modals.appReviewPrompt.emailSubject'))
+                .catch((err) => console.log('APP_REVIEW_SUPPORT_LINK_ERROR', err));
+
+            return;
+        }
+
+        if (outcome === 'declined') {
+            markReviewPromptDeclined();
+        }
+
+        // 'dismissed' leaves the user eligible for a later prompt; the shown-stamp above
+        // already started the quiet period.
     };
 
     // IMPORTANT: This should only be called once per session
@@ -549,6 +728,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.themeMenu = buildMenuStyles(themeName);
         this.themeInfoModal = buildInfoModalStyles(themeName);
         this.themeModal = buildModalStyles(themeName);
+        this.themeConfirmModal = buildConfirmModalStyles(themeName);
         this.themeDisclosure = buildDisclosureStyles(themeName);
         if (shouldForceUpdate) {
             this.forceUpdate();
@@ -571,7 +751,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         } = this.props;
         if (user.isAuthenticated) {
             // Pre-load activated content
-            if (!content?.content?.activeMoments?.length) {
+            if (!content?.activeMoments?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveMoments: true,
                 });
@@ -590,7 +770,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 });
             }
-            if (!content?.content?.activeThoughts?.length) {
+            if (!content?.activeThoughts?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveThoughts: true,
                 });
@@ -609,7 +789,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 });
             }
-            if (!content?.content?.activeEvents?.length) {
+            if (!content?.activeEvents?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveEvents: true,
                 });
@@ -899,7 +1079,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteView = 'Connect';
             } else if (data.action === brandIntents.NEW_LIKE_RECEIVED
                 || data.action === brandIntents.NEW_SUPER_LIKE_RECEIVED
-                || data.action === brandIntents.NEW_THOUGHT_REPLY_RECEIVED) {
+                || data.action === brandIntents.NEW_THOUGHT_REPLY_RECEIVED
+                || data.action === brandIntents.NEW_THOUGHT_REPOST_RECEIVED) {
                 targetRouteView = 'Notifications';
             } else if (data.action === brandIntents.NUDGE_SPACE_ENGAGEMENT) {
                 targetRouteView = 'Areas';
@@ -907,6 +1088,21 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteView = 'BookMarked';
             } else if (data.action === brandIntents.REPORT_CONFIRMED) {
                 targetRouteView = 'Notifications';
+            } else if (data.action?.endsWith(QUICK_ACTION_SUFFIXES.CREATE_MOMENT)) {
+                // App-shortcut: jump straight into moment creation. EditMoment
+                // destructures route.params (and calls nearbySpaces.find), so we
+                // must pass a non-empty param object. Seed the location from the
+                // user's last-known coords, matching the in-app create button.
+                targetRouteView = 'EditMoment';
+                targetRouteParams = {
+                    imageDetails: {},
+                    nearbySpaces: [],
+                    latitude: user?.details?.lastKnownLatitude,
+                    longitude: user?.details?.lastKnownLongitude,
+                };
+            } else if (data.action?.endsWith(QUICK_ACTION_SUFFIXES.CREATE_THOUGHT)) {
+                // App-shortcut: jump straight into thought creation (no location).
+                targetRouteView = 'EditThought';
             }
         }
 
@@ -1082,6 +1278,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 if (area?.id) return buildSpaceRoute(area);
                 return { targetRouteView: 'Map', targetRouteParams: {} };
             case PushNotifications.Types.newThoughtReplyReceived:
+            case PushNotifications.Types.newThoughtRepostReceived:
                 if (thought?.id) return buildThoughtRoute(thought);
                 return { targetRouteView: 'Notifications', targetRouteParams: {} };
             case PushNotifications.Types.postVisitReviewReminder:
@@ -1100,6 +1297,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             case PushNotifications.Types.pactDeclined:
             case PushNotifications.Types.pactCompleted:
             case PushNotifications.Types.pactExpiring:
+            case PushNotifications.Types.pactEnded:
             case PushNotifications.Types.partnerCheckedIn:
             case PushNotifications.Types.partnerMissedDay:
             case PushNotifications.Types.partnerCelebrated:
@@ -1110,6 +1308,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             case PushNotifications.Types.dailyHabitReminder:
             case PushNotifications.Types.morningMotivation:
             case PushNotifications.Types.eveningCheckIn:
+            // Habit lifecycle milestones and check-ins
+            // (docs/HABIT_LIFECYCLE_MESSAGING.md). Listed here rather than left
+            // to `default` because that returns null — the notification would
+            // render, be tappable, and open nothing.
+            case PushNotifications.Types.habitEstablished:
+            case PushNotifications.Types.habitAutomaticity:
+            case PushNotifications.Types.habitMaintenanceCheckIn:
+            case PushNotifications.Types.habitComeback:
                 return { targetRouteView: 'Notifications', targetRouteParams: {} };
 
             default:
@@ -1339,6 +1545,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 return Promise.resolve();
             }
 
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.leaderboardView) {
+                if (!isUserAuthorized) {
+                    this.setState({
+                        targetRouteView: 'Leaderboard',
+                        targetRouteParams: {},
+                    });
+
+                    return Promise.resolve();
+                }
+
+                RootNavigation.navigate('Leaderboard');
+                return Promise.resolve();
+            }
+
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.userView) {
                 let fromUserDetails: any = {};
                 if (typeof notification?.data?.fromUser === 'string') {
@@ -1530,6 +1750,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const viewEventRegex = RegExp('events/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewGroupRegex = RegExp('groups/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewPublicListRegex = RegExp('lists/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/([a-z0-9-]+)', 'i');
+        const inviteLinkRegex = RegExp('invite/link/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const isUserLoggedIn = isUserAuthenticated(user);
         const isUserMissingProps = UsersService.isAuthorized(
             {
@@ -1586,6 +1807,28 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     targetRouteView: 'Achievements',
                 });
             }
+        } else if (url?.includes('therr.com/api-access') || url?.includes('therr.com/api-keys')) {
+            // therr.com is an auto-verified App Link, so the marketing site's "Get an API key"
+            // CTA opens this app instead of the browser. Without this branch it fell through
+            // to handleOpenByNotifeeNotification and the user hit a dead end. The screen is
+            // public, so route signed-out users there too rather than deferring to targetRouteView.
+            // '/api-keys' is matched as well because older marketing links still point at it.
+            RootNavigation.navigate('ApiAccess');
+        } else if (url?.includes('therr.com/verify-phone')) {
+            // Phone verification lives only inside the CreateProfile stack, so anything that
+            // needs to send a user there — the bulk-invite 403, the profile checklist, an
+            // email or SMS nudge — points at this URL. The web page at the same path is the
+            // fallback for users without the app, and it verifies through the same endpoints.
+            // Signed-out users cannot verify anything, so defer via targetRouteView and let
+            // them land here after login rather than bouncing them to a screen that 401s.
+            if (isUserLoggedIn) {
+                RootNavigation.navigate('CreateProfile', { stage: 'phone' });
+            } else {
+                this.setState({
+                    targetRouteView: 'CreateProfile',
+                    targetRouteParams: { stage: 'phone' },
+                });
+            }
         } else if (url?.includes('therr.com/app-feedback')) {
             if (isUserLoggedIn && !isUserMissingProps) {
                 RootNavigation.navigate('Home');
@@ -1593,6 +1836,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 this.setState({
                     targetRouteView: 'Home',
                 });
+            }
+        } else if (url?.match(inviteLinkRegex)) {
+            // Magic invite link: send unauthenticated users to a pre-filled
+            // signup (Register fetches the invite details from the token).
+            // Already-authenticated users have an account, so ignore.
+            const inviteToken = url.match(inviteLinkRegex)[1];
+            if (!isUserLoggedIn) {
+                RootNavigation.navigate('Register', { inviteToken });
             }
         } else if (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex)) {
             const momentId = (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex))[1];
@@ -1741,9 +1992,41 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             .then(() => getToken(getMessaging()))
             .then((deviceToken) => {
                 axios.defaults.headers['x-user-device-token'] = deviceToken;
-                if (user.details.deviceMobileFirebaseToken !== deviceToken) {
-                    updateUser(user.details.id, { deviceMobileFirebaseToken: deviceToken });
-                }
+                // Register unconditionally. This was guarded on
+                // `user.details.deviceMobileFirebaseToken !== deviceToken`, but that value is
+                // the legacy *shared* users.deviceMobileFirebaseToken column, which every
+                // branded app on the device overwrites in turn — so it says nothing about
+                // whether THIS brand is registered. `updateUser` is the only path that writes
+                // the brand-scoped main.userDeviceTokens row (via syncDeviceTokenForBrand), so
+                // whenever the shared column already held this app's token the guard skipped
+                // the call and the row was never written at all. Routing then fell back to the
+                // shared column and delivered this brand's pushes to whichever app registered
+                // last — a Friends with Habits streak reminder arriving in Therr. The value is
+                // also never written back into Redux, and the `user` slice is redux-persisted,
+                // so a stale snapshot suppressed re-registration across app updates.
+                //
+                // `fcmRegistrationStarted` above already limits this to one call per app
+                // session, and the server-side upsert is idempotent.
+                //
+                // The device's IANA timezone rides along on the same call.
+                // `main.users.settingsTimezone` has existed since the habits schema
+                // landed and nothing has ever written it, which is why every scheduled
+                // notification went out at one global hour — evening in America/Chicago
+                // and 02:00 in Auckland. Reporting it here rather than through a new
+                // endpoint is deliberate: this is already the one call that happens once
+                // per app session on the push path, so a user who travels re-syncs the
+                // next time they open the app, and a user with push disabled — who
+                // cannot receive a scheduled reminder anyway — costs nothing.
+                //
+                // Sent only when the platform resolves a zone. The server rejects an
+                // unrecognised value with a 400, so passing `undefined` through on the
+                // rare device where `Intl` returns nothing would fail the device-token
+                // registration this call actually exists for.
+                const deviceTimeZone = getDeviceTimeZone();
+                updateUser(user.details.id, {
+                    deviceMobileFirebaseToken: deviceToken,
+                    ...(deviceTimeZone ? { settingsTimezone: deviceTimeZone } : {}),
+                });
                 this.unsubscribePushNotifications = onMessage(getMessaging(), async (remoteMessage) => {
                     await wrapOnMessageReceived(true, remoteMessage);
 
@@ -1876,7 +2159,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             updateGpsStatus,
             user,
         } = this.props;
-        const { isBackgroundLocationDisclosureVisible, permissionPrimerType, isSplashSpinnerVisible, shouldSpinSplashLogo } = this.state;
+        const {
+            isAppReviewPromptVisible,
+            isBackgroundLocationDisclosureVisible,
+            permissionPrimerType,
+            isSplashSpinnerVisible,
+            shouldSpinSplashLogo,
+        } = this.state;
 
         return (
             <>
@@ -1884,10 +2173,18 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 // Keyed on locale only so theme toggles do not remount the entire nav tree.
                 // Locale change still requires a remount because route translators close over locale at construction.
                     key={this.props.user?.settings?.locale || 'en-us'}
+                    // Restore the stack the user was already on across that remount. Without this the
+                    // navigator falls back to its first screen, so switching languages from, say, the
+                    // sign-up screen would bounce the user out to the landing/sign-in screen. Route
+                    // names are locale-independent (`translate` returns the key when it is not a
+                    // dictionary path), so a state captured under one locale is valid under any other.
+                    // Undefined on first mount, which is the normal "start at the initial route" case.
+                    initialState={this.lastNavigationState}
                     theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
                     ref={navigationRef}
                     onReady={() => {
                         this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
+                        this.lastNavigationState = navigationRef?.getRootState();
                         Promise.allSettled(preLoadImageList.map((image) => {
                             const img = Image.resolveAssetSource(image).uri;
                             return Image.prefetch(img);
@@ -1897,9 +2194,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         // exactly, so the transition is invisible and the spin starts cleanly.
                             SplashScreen.hide({ fade: false });
                             this.setState({ shouldSpinSplashLogo: true });
+                            // AppState never reports the launch itself as a change, so the
+                            // cold-start path has to arm its own check.
+                            this.scheduleAppReviewPromptCheck(APP_REVIEW_PROMPT_COLD_START_DELAY_MS);
                         });
                     }}
                     onStateChange={async () => {
+                        // Capture synchronously, before any await, so a locale change dispatched
+                        // during this tick still remounts with the up-to-date stack.
+                        this.lastNavigationState = navigationRef?.getRootState();
                         const previousRouteName = this.routeNameRef.current;
                         const currentRouteName = navigationRef?.getCurrentRoute()?.name;
                         if (currentRouteName !== 'Map') {
@@ -2069,7 +2372,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                         ? hOpts.headerTitle
                                         : (hOpts?.title ?? hRoute.name);
                                     middleNode = (
-                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                        <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 8 }}>
                                             <Text
                                                 numberOfLines={1}
                                                 style={[
@@ -2165,6 +2468,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             themeDisclosure={this.themeDisclosure}
                         />
                     ) : null}
+                    <AppReviewPromptModal
+                        isVisible={isAppReviewPromptVisible}
+                        onClose={this.handleAppReviewPromptClose}
+                        translate={this.translate}
+                        themeModal={this.themeConfirmModal}
+                        themeButtons={this.themeButtons}
+                    />
+
                 </NavigationContainer>
                 {isSplashSpinnerVisible ? (
                     <SplashLogoSpinner

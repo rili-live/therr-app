@@ -72,11 +72,17 @@ write.on('error', (err, _client) => {
     });
 });
 
-// Graceful shutdown: drain pools on SIGTERM (k8s pod eviction)
-let isShuttingDown = false;
-const shutdownPools = () => {
-    if (isShuttingDown) return;
-    isShuttingDown = true;
+// Graceful shutdown: drain pools on k8s pod eviction.
+//
+// This deliberately does NOT register its own SIGTERM handler and does NOT call
+// process.exit. Draining the pools the instant SIGTERM landed killed requests
+// that were still in flight, because the HTTP server had not been closed yet.
+// index.ts owns the shutdown sequence — stop accepting connections, let in-flight
+// requests finish, drain pools, exit — and calls this at the right point in it.
+let drainPromise: Promise<void> | null = null;
+
+export const drainPools = (): Promise<void> => {
+    if (drainPromise) return drainPromise;
 
     logSpan({
         level: 'info',
@@ -84,14 +90,10 @@ const shutdownPools = () => {
         messages: ['Draining database connection pools'],
         traceArgs: { source: 'users-service' },
     });
-    Promise.all([read.end(), write.end()]).then(() => {
-        process.exit(0);
-    }).catch(() => {
-        process.exit(1);
-    });
-};
+    drainPromise = Promise.all([read.end(), write.end()]).then(() => undefined);
 
-process.on('SIGTERM', shutdownPools);
+    return drainPromise;
+};
 
 export default {
     read,

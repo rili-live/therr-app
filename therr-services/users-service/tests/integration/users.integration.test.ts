@@ -201,7 +201,10 @@ describe('Integration Tests - User Flows', () => {
             const foundUsers = await usersStore.findUser({ phoneNumber: testPhone });
 
             expect(foundUsers.length).to.equal(1);
-            expect(foundUsers[0].phoneNumber).to.equal(testPhone);
+            // `createUser` normalizes on write, so the stored value is the canonical display
+            // dialect rather than the compact E.164 that was submitted. The lookup still finds
+            // it because `findUser` matches the whole candidate set.
+            expect(foundUsers[0].phoneNumber).to.equal('+1 317-555-9999');
         });
     });
 
@@ -300,6 +303,40 @@ describe('Integration Tests - User Flows', () => {
             );
 
             expect(updatedUsers[0].loginCount).to.equal((createdUsers[0].loginCount || 0) + 1);
+        });
+
+        it('should record lastLoginAt on user update', async () => {
+            if (skipTests) return;
+
+            const testEmail = `${TEST_EMAIL_PREFIX}last-login-at${TEST_EMAIL_DOMAIN}`;
+            const hashedPassword = await bcrypt.hash('TestPassword123!', 10);
+
+            const testUser: ICreateUserParams = {
+                email: testEmail,
+                password: hashedPassword,
+                firstName: 'Last',
+                lastName: 'Login',
+                userName: 'lastloginat',
+                hasAgreedToTerms: true,
+                accessLevels: JSON.stringify([AccessLevels.DEFAULT]),
+                verificationCodes: JSON.stringify({ email: {} }),
+            };
+
+            const createdUsers = await usersStore.createUser(testUser);
+            createdUserIds.push(createdUsers[0].id);
+
+            // A user who has never logged in has no lastLoginAt
+            expect(createdUsers[0].lastLoginAt).to.equal(null);
+
+            // Mirrors the updateArgs the login handler builds
+            const loginAt = new Date();
+            const updatedUsers = await usersStore.updateUser(
+                { loginCount: (createdUsers[0].loginCount || 0) + 1, lastLoginAt: loginAt },
+                { id: createdUsers[0].id },
+            );
+
+            expect(updatedUsers[0].lastLoginAt).to.be.an.instanceOf(Date);
+            expect(updatedUsers[0].lastLoginAt.getTime()).to.equal(loginAt.getTime());
         });
     });
 

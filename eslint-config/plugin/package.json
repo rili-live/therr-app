@@ -1,0 +1,8 @@
+{
+  "name": "eslint-plugin-therr",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Repo-local ESLint rules enforcing Therr architectural invariants.",
+  "main": "index.js",
+  "license": "UNLICENSED"
+}

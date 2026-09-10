@@ -1,4 +1,3 @@
-/* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { AccessLevels } from 'therr-js-utilities/constants';
@@ -45,7 +44,7 @@ const makeSubscriptionEvent = (type: string, overrides: any = {}) => ({
 });
 
 describe('Payment Webhook Handlers', () => {
-    let getUsersStub: sinon.SinonStub;
+    let getUserByConditionsStub: sinon.SinonStub;
     let updateUserStub: sinon.SinonStub;
 
     beforeEach(() => {
@@ -92,12 +91,12 @@ describe('Payment Webhook Handlers', () => {
                     AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
                 ],
             };
-            getUsersStub = sinon.stub(Store.users, 'getUsers').resolves([mockUser]);
+            getUserByConditionsStub = sinon.stub(Store.users, 'getUserByConditions').resolves([mockUser]);
 
             const event = makeSubscriptionEvent('customer.subscription.deleted', { status: 'canceled' });
             await handleSubscriptionDeleted(event);
 
-            expect(getUsersStub.calledOnce).to.be.eq(true);
+            expect(getUserByConditionsStub.calledOnce).to.be.eq(true);
             expect(updateUserStub.calledOnce).to.be.eq(true);
 
             const updateArgs = updateUserStub.args[0];
@@ -120,7 +119,7 @@ describe('Payment Webhook Handlers', () => {
                     AccessLevels.DASHBOARD_SUBSCRIBER_PRO,
                 ],
             };
-            getUsersStub = sinon.stub(Store.users, 'getUsers').resolves([mockUser]);
+            getUserByConditionsStub = sinon.stub(Store.users, 'getUserByConditions').resolves([mockUser]);
 
             const event = makeSubscriptionEvent('customer.subscription.deleted');
             await handleSubscriptionDeleted(event);
@@ -130,7 +129,7 @@ describe('Payment Webhook Handlers', () => {
         });
 
         it('should not call updateUser when user is not found', async () => {
-            getUsersStub = sinon.stub(Store.users, 'getUsers').resolves([]);
+            getUserByConditionsStub = sinon.stub(Store.users, 'getUserByConditions').resolves([]);
 
             const event = makeSubscriptionEvent('customer.subscription.deleted');
             await handleSubscriptionDeleted(event);
@@ -143,12 +142,12 @@ describe('Payment Webhook Handlers', () => {
             sinon.stub(stripe.customers, 'retrieve').resolves({ ...mockCustomer, email: '' } as any);
             sinon.stub(stripe.products, 'retrieve').resolves(mockProduct as any);
             updateUserStub = sinon.stub(Store.users, 'updateUser').resolves([{ id: 'user-123' }]);
-            getUsersStub = sinon.stub(Store.users, 'getUsers').resolves([]);
+            getUserByConditionsStub = sinon.stub(Store.users, 'getUserByConditions').resolves([]);
 
             const event = makeSubscriptionEvent('customer.subscription.deleted');
             await handleSubscriptionDeleted(event);
 
-            expect(getUsersStub.called).to.be.eq(false);
+            expect(getUserByConditionsStub.called).to.be.eq(false);
             expect(updateUserStub.called).to.be.eq(false);
         });
     });
@@ -163,7 +162,7 @@ describe('Payment Webhook Handlers', () => {
                     AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
                 ],
             };
-            getUsersStub = sinon.stub(Store.users, 'getUsers').resolves([mockUser]);
+            getUserByConditionsStub = sinon.stub(Store.users, 'getUserByConditions').resolves([mockUser]);
 
             const event = makeSubscriptionEvent('customer.subscription.paused', { status: 'paused' });
             await handleSubscriptionPaused(event);
@@ -182,7 +181,7 @@ describe('Payment Webhook Handlers', () => {
                 email: 'business@example.com',
                 accessLevels: [AccessLevels.DEFAULT],
             };
-            getUsersStub = sinon.stub(Store.users, 'getUsers').resolves([mockUser]);
+            getUserByConditionsStub = sinon.stub(Store.users, 'getUserByConditions').resolves([mockUser]);
 
             const event = makeSubscriptionEvent('customer.subscription.resumed');
             await handleSubscriptionResumed(event);
@@ -199,7 +198,7 @@ describe('Payment Webhook Handlers', () => {
                 email: 'business@example.com',
                 accessLevels: [AccessLevels.DEFAULT, AccessLevels.DASHBOARD_SUBSCRIBER_BASIC],
             };
-            getUsersStub = sinon.stub(Store.users, 'getUsers').resolves([mockUser]);
+            getUserByConditionsStub = sinon.stub(Store.users, 'getUserByConditions').resolves([mockUser]);
 
             const event = makeSubscriptionEvent('customer.subscription.resumed');
             await handleSubscriptionResumed(event);

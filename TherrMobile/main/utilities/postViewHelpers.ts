@@ -4,19 +4,27 @@ import { getReactionUpdateArgs } from './reactions';
 import { showToast } from './toasts';
 
 
+/**
+ * NOTE: these handlers deliberately do NOT close the options sheet.
+ *
+ * `ContentOptionsSheet` already calls `SheetManager.hide` before invoking `onSelect`, so the
+ * sheet is on its way out before the reaction request is even sent. Until d858e5606 the
+ * options UI was a `<AreaOptionsModal isVisible={...}>` driven by a real toggle, and calling
+ * `toggleAreaOptions` in `.finally()` closed it once the request settled. That same call now
+ * resolves to `SheetManager.show(...)`, so it re-opened the sheet a few hundred milliseconds
+ * after the user dismissed it.
+ */
 const handleAreaReaction = (selectedArea, reactionType: ISelectionType, {
     user,
     createOrUpdateEventReaction,
     createOrUpdateMomentReaction,
     createOrUpdateSpaceReaction,
-    toggleAreaOptions,
     translate,
 }: {
     user: any;
     createOrUpdateEventReaction: Function;
     createOrUpdateMomentReaction: Function;
     createOrUpdateSpaceReaction: Function;
-    toggleAreaOptions: Function;
     translate?: Function;
 }) => {
     const requestArgs: any = getReactionUpdateArgs(reactionType);
@@ -39,36 +47,25 @@ const handleAreaReaction = (selectedArea, reactionType: ISelectionType, {
     if (selectedArea.areaType === 'events') {
         createOrUpdateEventReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName)
             .then(onSuccess)
-            .catch(onError)
-            .finally(() => {
-                toggleAreaOptions(selectedArea);
-            });
+            .catch(onError);
     } else if (selectedArea.areaType === 'spaces') {
         createOrUpdateSpaceReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName)
             .then(onSuccess)
-            .catch(onError)
-            .finally(() => {
-                toggleAreaOptions(selectedArea);
-            });
+            .catch(onError);
     } else if (selectedArea.areaType === 'moments') {
         createOrUpdateMomentReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName)
             .then(onSuccess)
-            .catch(onError)
-            .finally(() => {
-                toggleAreaOptions(selectedArea);
-            });
+            .catch(onError);
     }
 };
 
 const handleThoughtReaction = (selectedArea, reactionType: ISelectionType, {
     user,
     createOrUpdateThoughtReaction,
-    toggleThoughtOptions,
     translate,
 }: {
     user: any;
     createOrUpdateThoughtReaction: Function;
-    toggleThoughtOptions: Function;
     translate?: Function;
 }) => {
     const requestArgs: any = getReactionUpdateArgs(reactionType);
@@ -87,9 +84,6 @@ const handleThoughtReaction = (selectedArea, reactionType: ISelectionType, {
                     text1: translate('alertTitles.reactionFailed'),
                 });
             }
-        })
-        .finally(() => {
-            toggleThoughtOptions(selectedArea);
         });
 };
 

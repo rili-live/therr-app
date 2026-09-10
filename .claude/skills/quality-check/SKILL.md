@@ -57,10 +57,16 @@ npx eslint <file1> <file2> ... --no-error-on-unmatched-pattern
 
 **With `--fix`:**
 ```bash
-npx eslint <file1> <file2> ... --fix --no-error-on-unmatched-pattern
+npx eslint <file1> <file2> ... --fix-type problem,suggestion,layout --fix --no-error-on-unmatched-pattern
 ```
 
 Pass all changed files for that package in a single invocation. If the package has no `.eslintrc.js` (e.g., `therr-styles`), skip ESLint for that package.
+
+Keep `--fix-type problem,suggestion,layout` on any fixing invocation. `eslint-config/base.js`
+sets `reportUnusedDisableDirectives`, so a bare `--fix` silently deletes stale
+`eslint-disable` comments anywhere in the files you pass — a change nobody asked for, in
+files you were only checking. See the note in `eslint-config/base.js` for why those
+comments should only be removed deliberately.
 
 ## Step 4: Run TypeScript type-check per package
 

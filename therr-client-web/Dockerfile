@@ -4,7 +4,7 @@ FROM therrapp/service-dependencies AS builder
 ARG BUILD_MODE=production
 ENV BUILD_MODE $BUILD_MODE
 
-RUN npm i npm@latest -g
+RUN npm i npm@11 -g
 
 WORKDIR /app
 

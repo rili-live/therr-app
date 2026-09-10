@@ -1,4 +1,3 @@
-/* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { BrandVariations } from 'therr-js-utilities/constants';
@@ -10,6 +9,7 @@ import {
     isOnHabits,
 } from '../../src/utilities/dispatchPactInvitation';
 import { isMatchingInvitee } from '../../src/handlers/helpers/pactRedemption';
+import { emailOutbox, resetOutboxes, smsOutbox } from '../helpers/outboundStubs';
 
 describe('Pacts handler — claim flow', () => {
     afterEach(() => {
@@ -106,6 +106,36 @@ describe('Pacts handler — claim flow', () => {
             whiteLabelOrigin: 'habits.therr.com',
             locale: 'en-us',
         };
+        const originalSender = process.env.TWILIO_SENDER_PHONE_NUMBER;
+
+        // The two dispatch branches below hit real transports: email goes out
+        // over AWS SES and the SMS fallback bills a Twilio message. Both are
+        // stubbed at the SDK boundary by tests/setup.ts, so sends land in the
+        // outboxes instead of leaving the machine — assert on them rather than
+        // letting them fire unobserved.
+        beforeEach(() => {
+            resetOutboxes();
+            // Pin the sender so the SMS branch is exercised identically whether
+            // or not the developer's .env defines one. Without this the branch
+            // silently no-ops in CI and sends for real locally.
+            process.env.TWILIO_SENDER_PHONE_NUMBER = '+15551234567';
+            // sendEmail() consults the blacklist before dispatching; stub both
+            // lookups so the email branch doesn't depend on a live database.
+            sinon.stub(Store.blacklistedEmails, 'get').resolves([]);
+            sinon.stub(Store.users, 'getUserByEmail').resolves([]);
+        });
+
+        after(() => {
+            if (originalSender === undefined) {
+                delete process.env.TWILIO_SENDER_PHONE_NUMBER;
+            } else {
+                process.env.TWILIO_SENDER_PHONE_NUMBER = originalSender;
+            }
+        });
+
+        // Dispatch is deliberately fire-and-forget behind a store lookup, so the
+        // send lands a few microtasks after dispatchPactInvitation resolves.
+        const flushDispatch = () => new Promise((resolve) => { setImmediate(resolve); });
 
         it('short-circuits with isOnBrand=true when the partner is active on Habits', async () => {
             sinon.stub(Store.users, 'findUser').resolves([{
@@ -117,10 +147,14 @@ describe('Pacts handler — claim flow', () => {
             const updateSpy = sinon.spy(Store.pactMembers, 'update');
 
             const result = await dispatchPactInvitation(baseArgs);
+            await flushDispatch();
 
             expect(result.isOnBrand).to.be.eq(true);
             expect(result.claimToken).to.be.eq(undefined);
             expect(updateSpy.called).to.be.eq(false);
+            // On-brand partners get a push from the caller, never an email/SMS.
+            expect(emailOutbox).to.have.lengthOf(0);
+            expect(smsOutbox).to.have.lengthOf(0);
         });
 
         it('mints a token + code and writes them to pact_members for an off-brand partner', async () => {
@@ -134,6 +168,7 @@ describe('Pacts handler — claim flow', () => {
             const updateStub = sinon.stub(Store.pactMembers, 'update').resolves({} as any);
 
             const result = await dispatchPactInvitation(baseArgs);
+            await flushDispatch();
 
             expect(result.isOnBrand).to.be.eq(false);
             expect(result.claimToken).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
@@ -144,22 +179,64 @@ describe('Pacts handler — claim flow', () => {
             expect(writePayload.claimToken).to.equal(result.claimToken);
             expect(writePayload.claimCode).to.equal(result.claimCode);
             expect(writePayload.invitedVia).to.equal('email');
+            // Exactly one email, no SMS — delivery is single-channel.
+            expect(smsOutbox).to.have.lengthOf(0);
+            expect(emailOutbox).to.have.lengthOf(1);
+            expect(emailOutbox[0].toAddresses).to.deep.equal(['p@example.com']);
+            expect(emailOutbox[0].html).to.contain(result.claimCode);
         });
 
         it('falls back to invitedVia=sms when the partner has only a phone on file', async () => {
             sinon.stub(Store.users, 'findUser').resolves([{
                 id: 'partner-1',
                 email: null,
-                phoneNumber: '+13175551234',
+                // NANP reserved fictitious range (555-0100..555-0199): this is
+                // the one fixture in the file that reaches a dispatch path, so
+                // if the Twilio stub ever regresses it dials nobody.
+                phoneNumber: '+13175550123',
                 isUnclaimed: false,
                 brandVariations: [],
             }]);
             sinon.stub(Store.pactMembers, 'update').resolves({} as any);
 
             const result = await dispatchPactInvitation(baseArgs);
+            await flushDispatch();
 
             expect(result.isOnBrand).to.be.eq(false);
             expect(result.invitedVia).to.equal('sms');
+            // Exactly one SMS, no email — delivery is single-channel.
+            expect(emailOutbox).to.have.lengthOf(0);
+            expect(smsOutbox).to.have.lengthOf(1);
+            expect(smsOutbox[0].to).to.equal('+13175550123');
+            expect(smsOutbox[0].from).to.equal('+15551234567');
+            expect(smsOutbox[0].body).to.contain(result.claimCode);
+        });
+
+        // `getSmsSender` returns undefined when no Twilio number is configured for the
+        // recipient's country, and the SMS branch then sends nothing. Reporting
+        // `invitedVia: 'sms'` anyway told the nudge caller the invite went out, which marked
+        // the partner nudged and burned their 7-day cooldown on a message nobody received.
+        it('reports an SMS-only partner as undeliverable when no Twilio sender is configured', async () => {
+            delete process.env.TWILIO_SENDER_PHONE_NUMBER;
+            sinon.stub(Store.users, 'findUser').resolves([{
+                id: 'partner-1',
+                email: null,
+                phoneNumber: '+13175550123',
+                isUnclaimed: false,
+                brandVariations: [],
+            }]);
+            const updateSpy = sinon.spy(Store.pactMembers, 'update');
+
+            const result = await dispatchPactInvitation(baseArgs);
+            await flushDispatch();
+
+            expect(result.isOnBrand).to.be.eq(false);
+            expect(result.invitedVia).to.be.eq(undefined);
+            expect(result.undeliverableReason).to.equal('noContactMethod');
+            // Nothing was sent, so no claim token should have been minted onto the row either.
+            expect(updateSpy.called).to.be.eq(false);
+            expect(emailOutbox).to.have.lengthOf(0);
+            expect(smsOutbox).to.have.lengthOf(0);
         });
 
         it('skips dispatch entirely when the partner has neither email nor phone', async () => {
@@ -173,10 +250,13 @@ describe('Pacts handler — claim flow', () => {
             const updateSpy = sinon.spy(Store.pactMembers, 'update');
 
             const result = await dispatchPactInvitation(baseArgs);
+            await flushDispatch();
 
             expect(result.isOnBrand).to.be.eq(false);
             expect(result.claimToken).to.be.eq(undefined);
             expect(updateSpy.called).to.be.eq(false);
+            expect(emailOutbox).to.have.lengthOf(0);
+            expect(smsOutbox).to.have.lengthOf(0);
         });
 
         it('treats an isUnclaimed user as having no email (placeholder accounts get skipped)', async () => {
@@ -190,9 +270,14 @@ describe('Pacts handler — claim flow', () => {
             const updateSpy = sinon.spy(Store.pactMembers, 'update');
 
             const result = await dispatchPactInvitation(baseArgs);
+            await flushDispatch();
 
             expect(result.isOnBrand).to.be.eq(false);
             expect(updateSpy.called).to.be.eq(false);
+            // Placeholder accounts must never be mailed — the address is not
+            // one the user gave us, so a send here is a hard bounce.
+            expect(emailOutbox).to.have.lengthOf(0);
+            expect(smsOutbox).to.have.lengthOf(0);
         });
 
         it('returns isOnBrand=false (silent) when the partner cannot be found', async () => {
@@ -274,6 +359,11 @@ describe('Pacts handler — claim flow', () => {
 
             expect(caught).to.equal(fatalErr);
             expect(updateStub.callCount).to.equal(1);
+            // Nothing is dispatched when the row never persisted — otherwise the
+            // invitee gets a claim code the database has no record of.
+            await flushDispatch();
+            expect(emailOutbox).to.have.lengthOf(0);
+            expect(smsOutbox).to.have.lengthOf(0);
         });
     });
 });
@@ -487,6 +577,14 @@ describe('Pacts handler — claimPactInvite endpoint', () => {
         sinon.stub(Store.pacts, 'activate').resolves({ id: 'pact-42', status: 'active' });
         sinon.stub(Store.pactMembers, 'activate').resolves({} as any);
         sinon.stub(Store.streaks, 'getOrCreate').resolves({} as any);
+        // Accepting a pact now also registers the habit as tracked, which is
+        // what the free-tier cap counts.
+        sinon.stub(Store.userHabits, 'getOrCreate').resolves({} as any);
+        // ...and un-archives it if the accepter or creator had archived the goal
+        // while the invite sat unanswered. A no-op for an already-active row, but
+        // it is a real store call, so it has to be stubbed here or the handler
+        // reaches the database and 500s.
+        sinon.stub(Store.userHabits, 'reviveArchivedByHabit').resolves(undefined as any);
 
         const req = buildReq({ token: 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa' });
         const res = buildRes();

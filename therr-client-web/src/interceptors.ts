@@ -113,7 +113,6 @@ const initInterceptors = (
                                 }
 
                                 // Update stored tokens
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 let userDetails: any = {};
                                 try {
                                     const storedUserStr = sessionStorage.getItem('therrUser') || localStorage.getItem('therrUser');

@@ -13,12 +13,12 @@ const containerStyles: any = {
     marginRight: '2%',
 };
 
-const getMessageStyles = (theme: ITherrTheme, themeName: string) => ({
+const getMessageStyles = (theme: ITherrTheme, themeName?: IMobileThemeName) => ({
     color: themeName === 'light' ? theme.colors.accentTextBlack : theme.colors.textWhite,
     fontSize: 16,
 });
 
-const getMessageDateStyles = (theme: ITherrTheme, themeName: string) => ({
+const getMessageDateStyles = (theme: ITherrTheme, themeName?: IMobileThemeName) => ({
     ...getMessageStyles(theme, themeName),
     fontSize: 11,
     color: theme.colors.textBlack,

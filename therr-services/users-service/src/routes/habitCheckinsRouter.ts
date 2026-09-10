@@ -1,7 +1,9 @@
 import * as express from 'express';
 import {
     createCheckin,
+    shareCheckin,
     getCheckin,
+    getCheckinProofs,
     getTodayCheckins,
     getCheckinsByDateRange,
     getPactCheckins,
@@ -16,10 +18,14 @@ const router = express.Router();
 router.get('/today', getTodayCheckins);
 router.get('/range', getCheckinsByDateRange);
 router.get('/pact/:pactId', getPactCheckins);
+router.get('/:id/proofs', getCheckinProofs);
 router.get('/:id', getCheckin);
 
 // CREATE
 router.post('/', createCheckin);
+
+// SHARE — promote a check-in's proof photo to a public post (main.thoughts)
+router.post('/:id/share', shareCheckin);
 
 // UPDATE
 router.put('/:id', updateCheckin);

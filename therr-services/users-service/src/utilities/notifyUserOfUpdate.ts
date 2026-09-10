@@ -34,6 +34,8 @@ const getPushNotificationType = (notificationType: Notifications.Types): PushNot
         pushNotificationType = PushNotifications.Types.newSuperLikeReceived;
     } else if (notificationType === Notifications.Types.THOUGHT_REPLY) {
         pushNotificationType = PushNotifications.Types.newThoughtReplyReceived;
+    } else if (notificationType === Notifications.Types.THOUGHT_REPOST) {
+        pushNotificationType = PushNotifications.Types.newThoughtRepostReceived;
     } else if (notificationType === Notifications.Types.NEW_GROUP_MEMBERS) {
         pushNotificationType = PushNotifications.Types.newGroupMembers;
     } else if (notificationType === Notifications.Types.NEW_GROUP_INVITE) {

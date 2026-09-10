@@ -1,5 +1,6 @@
 import { CAROUSEL_TABS } from '../constants';
 import { SELECT_ALL } from './categories';
+import { rankFeedPosts } from './feedRanking';
 
 interface IPost {
     createdAt: any;
@@ -72,6 +73,11 @@ interface IGetActiveDataArgs {
     shouldIncludeMoments?: boolean;
     shouldIncludeSpaces?: boolean;
     translate: any;
+    /**
+     * The user's `settingsContentAlgorithm`. Only consulted when sortBy is 'ranked'; the
+     * other sort modes are explicit orderings the user asked for, not algorithmic ones.
+     */
+    contentAlgorithm?: string;
 }
 
 export default ({
@@ -84,6 +90,7 @@ export default ({
     shouldIncludeMoments,
     shouldIncludeSpaces,
     translate,
+    contentAlgorithm,
 }: IGetActiveDataArgs, sortBy = 'createdAt', categories: string[] = [SELECT_ALL]) => {
     if (activeTab === CAROUSEL_TABS.NEWS) {
         return [];
@@ -132,6 +139,10 @@ export default ({
         sortedData.filter(areaOrThought => categories.includes(areaOrThought.category)
             || categories.map((cat) => translate(cat)).includes(areaOrThought.category)
             || categories.map((cat) => cat.replace('categories.', '')).includes(areaOrThought.category));
+
+    if (sortBy === 'ranked') {
+        return rankFeedPosts(filteredData, contentAlgorithm);
+    }
 
     return filteredData;
 };

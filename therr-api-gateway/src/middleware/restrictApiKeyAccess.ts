@@ -27,8 +27,18 @@ const ALLOWED_PATTERNS: { method: string; pattern: RegExp }[] = [
     { method: 'GET', pattern: /^\/v1\/users-service\/users\/[0-9a-f-]+$/ },
     { method: 'GET', pattern: /^\/v1\/users-service\/interests$/ },
 
+    // Users service - create a thought/reply as the key's own user. Posting content
+    // (including replies, which notify the parent author) is already permitted via JWT;
+    // this lets server-side automation (e.g. therr-ai-automator) post on the bot's own
+    // behalf without minting a JWT. Account management/auth/payments remain blocked.
+    { method: 'POST', pattern: /^\/v1\/users-service\/thoughts$/ },
+
     // Reactions service - read
     { method: 'GET', pattern: /^\/v1\/reactions-service\// },
+
+    // Reactions service - react to a thought as the key's own user (like/activate).
+    // Scoped to the thought-reactions write path only; other reaction writes stay blocked.
+    { method: 'POST', pattern: /^\/v1\/reactions-service\/thought-reactions\// },
 
     // User metrics
     { method: 'GET', pattern: /^\/v1\/users-service\/metrics\// },

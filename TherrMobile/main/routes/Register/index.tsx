@@ -6,6 +6,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import 'react-native-gesture-handler';
 import { showToast } from '../../utilities/toasts';
 import { IUserState } from 'therr-react/types';
+import { UsersService } from 'therr-react/services';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildAuthFormStyles } from '../../styles/forms/authenticationForms';
@@ -14,10 +15,12 @@ import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildFTUIStyles } from '../../styles/first-time-ui';
 import RegisterForm from './RegisterForm';
+import PhoneSignupForm, { PhoneSignupStep } from './PhoneSignupForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
 import setPreLoginLocale from '../../redux/actions/setPreLoginLocale';
 import translator from '../../utilities/translator';
+import spacingStyles from '../../styles/layouts/spacing';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import LanguageSelector from '../../components/LanguageSelector';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
@@ -36,10 +39,22 @@ interface IStoreProps extends IRegisterDispatchProps {
 // Regular component props
 export interface IRegisterProps extends IStoreProps {
     navigation: any;
+    route?: any;
 }
 
 interface IRegisterState {
     isEULAVisible: boolean;
+    prefillEmail: string;
+    inviterName: string;
+    /**
+     * Which sign-up path is on screen. Phone-first is the default because it asks for one
+     * thing the user knows by heart and gets them a working sign-in method immediately; the
+     * classic email + password form is one tap away and is forced for invite links, whose
+     * whole premise is a specific email address.
+     */
+    signupMethod: 'phone' | 'email';
+    /** Mirrors `PhoneSignupForm`'s step so the screen can hide chrome mid-sign-up. */
+    phoneSignupStep: PhoneSignupStep;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -71,6 +86,12 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
 
         this.state = {
             isEULAVisible: false,
+            prefillEmail: '',
+            inviterName: '',
+            // An invite link carries the invitee's email and grants verified access on that
+            // channel — routing them through phone verification would throw that away.
+            signupMethod: props.route?.params?.inviteToken ? 'email' : 'phone',
+            phoneSignupStep: 'phone',
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -90,6 +111,22 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         this.props.navigation.setOptions({
             title: this.translate('pages.register.headerTitle'),
         });
+
+        // Magic invite link: resolve the token to pre-fill the invitee's known
+        // email and show who invited them. Best-effort — signup still works if
+        // the token can't be resolved.
+        const inviteToken = this.props.route?.params?.inviteToken;
+        if (inviteToken) {
+            UsersService.getInviteByToken(inviteToken)
+                .then((response: any) => {
+                    const invite = response?.data || {};
+                    this.setState({
+                        prefillEmail: invite.email || '',
+                        inviterName: invite.inviterName || '',
+                    });
+                })
+                .catch(() => { /* ignore unknown/expired token */ });
+        }
     }
 
     componentDidUpdate(prevProps: IRegisterProps) {
@@ -114,6 +151,38 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         });
     };
 
+    /**
+     * Phone-first signups land on the sign-in screen already able to get in — their number is
+     * verified, so a texted code works right away. The message therefore nudges them to
+     * confirm the email they just entered rather than implying they are locked out.
+     */
+    onPhoneSignupSuccess = ({ phoneNumber }: { phoneNumber: string }) => {
+        showToast.success({
+            text1: this.translate('alertTitles.registerSuccess'),
+            text2: this.translate('alertMessages.phoneRegisterSuccess'),
+        });
+        this.props.navigation.navigate('Login', {
+            userMessage: this.translate('pages.login.userAlerts.phoneRegisterSuccess'),
+            // The account has never signed in, so there is no remembered profile to pre-fill
+            // from. Hand the number over directly, which also puts the sign-in form straight
+            // into its SMS mode — one tap from a code.
+            prefillIdentifier: phoneNumber,
+        });
+    };
+
+    onPhoneSignupStepChange = (phoneSignupStep: PhoneSignupStep) => {
+        this.setState({ phoneSignupStep });
+    };
+
+    setSignupMethod = (signupMethod: 'phone' | 'email') => {
+        // Switching away unmounts the phone form, so the step it reports is stale from here on.
+        this.setState({ signupMethod, phoneSignupStep: 'phone' });
+    };
+
+    goToLogin = () => {
+        this.props.navigation.navigate('Login');
+    };
+
     goToMap = () => {
         this.props.navigation.navigate('Map');
     };
@@ -126,7 +195,11 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
     };
 
     render() {
-        const { isEULAVisible } = this.state;
+        const { isEULAVisible, phoneSignupStep, signupMethod } = this.state;
+        // Same reasoning as the sign-in screen: a locale change remounts the navigator and wipes
+        // the form's in-memory state, so the picker comes down once there is a verified number
+        // (or a code in flight) to lose. The email form is a single step with nothing at stake.
+        const isLanguageSelectorVisible = signupMethod === 'email' || phoneSignupStep === 'phone';
         const pageTitle = this.translate('pages.register.pageTitle');
         const pageSubtitle = this.translate('pages.register.pageSubtitle');
         const pageSubtitleMapPreviewLink = this.translate('pages.register.pageSubtitleMapPreviewLink');
@@ -148,24 +221,57 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                     {pageSubtitle} <Text onPress={this.goToMap} style={this.themeForms.styles.buttonLink}>{pageSubtitleMapPreviewLink}</Text>
                                 </Text>
                             </View>
-                            <LanguageSelector
-                                locale={this.props.user?.settings?.locale || 'en-us'}
-                                onChangeLocale={this.onChangeLocale}
-                                translate={this.translate}
-                                theme={this.theme}
-                                containerStyle={this.theme.styles.sectionContainerWide}
-                            />
-                            <RegisterForm
-                                login={this.props.login}
-                                register={this.props.register}
-                                onSuccess={this.onSuccess}
-                                theme={this.theme}
-                                themeAlerts={this.themeAlerts}
-                                themeAuthForm={this.themeAuthForm}
-                                themeForms={this.themeForms}
-                                toggleEULA={this.toggleEULA}
-                                userSettings={this.props.user?.settings || {}}
-                            />
+                            {
+                                isLanguageSelectorVisible
+                                    ? (
+                                        <LanguageSelector
+                                            locale={this.props.user?.settings?.locale || 'en-us'}
+                                            onChangeLocale={this.onChangeLocale}
+                                            translate={this.translate}
+                                            theme={this.theme}
+                                            // Unlike Login, the selector sits *above* the form here, so it
+                                            // needs real separation from the first step's heading —
+                                            // otherwise "What's your number?" reads as its caption.
+                                            containerStyle={[this.theme.styles.sectionContainerWide, spacingStyles.marginBotXl]}
+                                        />
+                                    )
+                                    : null
+                            }
+                            {
+                                signupMethod === 'phone'
+                                    ? (
+                                        <PhoneSignupForm
+                                            register={this.props.register}
+                                            onSuccess={this.onPhoneSignupSuccess}
+                                            onSwitchToEmailSignup={() => this.setSignupMethod('email')}
+                                            onSwitchToSignIn={this.goToLogin}
+                                            onStepChange={this.onPhoneSignupStepChange}
+                                            theme={this.theme}
+                                            themeAlerts={this.themeAlerts}
+                                            themeAuthForm={this.themeAuthForm}
+                                            themeForms={this.themeForms}
+                                            toggleEULA={this.toggleEULA}
+                                            userSettings={this.props.user?.settings || {}}
+                                        />
+                                    )
+                                    : (
+                                        <RegisterForm
+                                            login={this.props.login}
+                                            register={this.props.register}
+                                            onSuccess={this.onSuccess}
+                                            onSwitchToPhoneSignup={() => this.setSignupMethod('phone')}
+                                            theme={this.theme}
+                                            themeAlerts={this.themeAlerts}
+                                            themeAuthForm={this.themeAuthForm}
+                                            themeForms={this.themeForms}
+                                            toggleEULA={this.toggleEULA}
+                                            userSettings={this.props.user?.settings || {}}
+                                            inviteToken={this.props.route?.params?.inviteToken}
+                                            prefillEmail={this.state.prefillEmail}
+                                            inviterName={this.state.inviterName}
+                                        />
+                                    )
+                            }
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>

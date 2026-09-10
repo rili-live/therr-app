@@ -4,6 +4,7 @@ import * as path from 'path';
 import compression from 'compression';
 import express from 'express';
 import expressStaticGzip from 'express-static-gzip';
+import hbs from 'hbs';
 import helmet from 'helmet';
 import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
@@ -20,6 +21,7 @@ import {
     BrandVariations, Categories, Cities, Content,
 } from 'therr-js-utilities/constants';
 import { buildSpaceSlug } from 'therr-js-utilities/slugify';
+import { getGa4Configs } from 'therr-react/utilities/analytics';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
@@ -30,6 +32,18 @@ import {
     getGuide, getPublishedGuides, resolveGuideForLocale, getCategoryUrlSlug,
 } from './utilities/guideContent';
 import { buildGuideSchemas } from './utilities/guideJsonLd';
+import {
+    IHabitsInviteRouteMatch, UUID_V4_RE, matchHabitsInviteRoute,
+} from './utilities/habitsSubdomainRoutes';
+import {
+    HABITS_BLOG_LIST_DESCRIPTION,
+    HABITS_BLOG_LIST_TITLE,
+    HABITS_BLOG_POSTS,
+    buildHabitsBlogJsonLd,
+    isHabitsBlogListPath,
+    matchHabitsBlogPost,
+} from './utilities/habitsBlog';
+import { HABITS_HOSTS, resolveAssetLinksFileName } from './utilities/wellKnownAssets';
 
 axios.defaults.baseURL = (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute;
 axios.defaults.headers['x-platform'] = 'desktop';
@@ -132,6 +146,8 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://*.tile.openstreetmap.org',
                     'https://*.basemaps.cartocdn.com',
                     'https://unpkg.com',
+                    // LaunchKiwi badge on the Friends with Habits landing page
+                    'https://launchkiwi.com',
                 ],
                 workerSrc: ["'self'", 'blob:'],
             },
@@ -141,17 +157,52 @@ if (process.env.NODE_ENV !== 'development') {
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
+// Shared chunks of markup (currently the Friends with Habits footer) that would
+// otherwise be copy-pasted into every .hbs view and drift apart.
+//
+// `registerPartials` reads the directory asynchronously, but hbs queues any
+// render that arrives while registration is in flight and replays it once the
+// partials are on the instance, so there is no boot race to guard against.
+// The instance must be the same one express resolves for the 'hbs' view engine
+// — it is, because webpack leaves `hbs` external and both requires land on the
+// single copy in the root node_modules.
+hbs.registerPartials(path.join(__dirname, 'views/partials'));
+
 // Digital Asset Links — must be served per-brand on the matching hostname so
 // Android App Links verification picks up the correct package + cert fingerprint.
-// Runs before expressStaticGzip; otherwise habits.therr.com would receive the
-// default Therr file from /.well-known/assetlinks.json.
-app.get('/.well-known/assetlinks.json', (req, res, next) => {
-    if (req.hostname === 'habits.therr.com' || req.hostname === 'www.habits.therr.com') {
-        res.setHeader('Cache-Control', 'public, max-age=3600');
-        return res.sendFile(path.join(__dirname, '/../build/static/.well-known/assetlinks.habits.json'));
-    }
-    return next();
+//
+// This cannot be left to expressStaticGzip, and could not use a bare __dirname
+// path. Both of those failed in production:
+//
+//   1. express-static-gzip@3 bundles its own serve-static@2/send@1, whose
+//      `dotfiles` default is 'ignore' and which dropped send@0's exemption for
+//      paths whose *final* segment is not itself a dotfile. Every request under
+//      `/.well-known/` therefore 404'd out of the static middleware and fell
+//      through to the SSR catch-all, which answered 200 with a "Not Found" HTML
+//      page — Google's verifier saw HTML where it wanted JSON.
+//   2. webpack bundles this server with `node.__dirname: true`, which compiles
+//      `__dirname` to the *relative* string "src". serve-static resolves a
+//      relative root against cwd so it kept working, but `res.sendFile()` throws
+//      "path must be absolute" on a relative path — that was the 500 on
+//      habits.therr.com. `path.resolve` pins it to an absolute path.
+//
+// Registered before expressStaticGzip so the per-host file wins, and before the
+// bare-domain → www redirect further down, because App Links verification does
+// not follow redirects: therr.com has to answer 200 itself, not 301 to www.
+const WELL_KNOWN_DIR = path.resolve(__dirname, '../build/static/.well-known');
+app.get('/.well-known/assetlinks.json', (req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.type('application/json');
+    return res.sendFile(resolveAssetLinksFileName(req.hostname), { root: WELL_KNOWN_DIR });
 });
+
+// Every other /.well-known file (apple-app-site-association, security.txt, …).
+// Mounted at the prefix so the dotfile segment is consumed by the mount path and
+// never reaches serve-static's dotfiles check — see (1) above.
+app.use('/.well-known', express.static(WELL_KNOWN_DIR, {
+    index: false,
+    setHeaders: (res) => res.setHeader('Cache-Control', 'public, max-age=3600'),
+}));
 
 // Define the folder that will be used for static assets
 // Serves pre-compressed .br and .gz files when the client supports them
@@ -194,7 +245,8 @@ app.use((req, res, next) => {
 // www.habits.therr.com to client-cluster-ip-service:7070 — the same pod that
 // serves therr.com. This middleware short-circuits those requests before the
 // rest of the Therr SSR pipeline runs.
-const HABITS_HOSTS = new Set(['habits.therr.com', 'www.habits.therr.com']);
+// HABITS_HOSTS is shared with the Digital Asset Links route above — see
+// ./utilities/wellKnownAssets.
 interface IHabitsRendererEntry {
     view: string;
     title: string;
@@ -206,13 +258,36 @@ interface IHabitsRendererEntry {
     // into the template (Handlebars triple-stash safe-string for raw JSON).
     needsApiBase?: boolean;
 }
+/**
+ * Measurement ids for the habits views, as a JSON string for the analytics partial.
+ *
+ * Derived from the same `getGa4Configs` the React clients call, so habits.therr.com
+ * cannot drift onto a different property than therr.com. Computed once at boot —
+ * `globalConfig` does not change per request.
+ *
+ * `'habits'` is its own attribution surface: the subdomain shares a registrable
+ * domain and a serving pod with therr.com, so without a distinct `surface` value
+ * its traffic is unsplittable from the main web app in every GA4 report.
+ *
+ * serialize-javascript escapes `<`, `>` and `&`, which is what makes this safe to
+ * interpolate into a `<script>` body via a Handlebars triple-stash.
+ */
+const HABITS_GA_MEASUREMENT_IDS_JSON = serialize(
+    getGa4Configs(globalConfig[process.env.NODE_ENV] || globalConfig.production, 'habits')
+        .map(({ trackingId }) => trackingId),
+    { isJSON: true },
+);
 const HABITS_DEFAULT_CACHE = 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400';
 const HABITS_NO_STORE = 'no-store';
 const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
     '/': {
         view: 'habits/landing',
-        title: 'Friends with Habits — Habits that stick when a friend\'s on the hook too',
-        description: 'Build habits that actually stick. Pact with a friend, check in daily, keep each other on streak.',
+        // Brand name first, then the head term the page is actually competing for.
+        // The old title led with the tagline and ran past ~70 chars, so SERPs
+        // truncated it before reaching any keyword.
+        title: 'Friends with Habits — Habit Tracker with an Accountability Partner',
+        description: 'A free habit tracker built around accountability partners. Make a pact with a friend, '
+            + 'check in daily with photo proof, and keep each other on streak.',
     },
     '/privacy-policy': {
         view: 'habits/privacy-policy',
@@ -231,10 +306,30 @@ const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
         cacheControl: HABITS_NO_STORE,
         needsApiBase: true,
     },
+    // The paid web arm's conversion page. Until this existed, habits.therr.com
+    // had no registration route at all: every ad click landed on a page whose
+    // only CTA was the Play Store, so main."userAcquisition" received nothing
+    // from this domain and the campaign that justified its budget on full
+    // attribution was measuring nothing. See campaigns/habits-web-landing.yaml.
+    '/register': {
+        view: 'habits/register',
+        title: 'Create your account — Friends with Habits',
+        description: 'Create a free Friends with Habits account. Five habits free, '
+            + 'then pact up with a friend and keep each other on streak.',
+        cacheControl: HABITS_NO_STORE,
+        needsApiBase: true,
+    },
     '/login': {
         view: 'habits/login',
         title: 'Sign in — Friends with Habits',
         description: 'Sign in to your Friends with Habits account.',
+        cacheControl: HABITS_NO_STORE,
+        needsApiBase: true,
+    },
+    '/logout': {
+        view: 'habits/logout',
+        title: 'Sign out — Friends with Habits',
+        description: 'Sign out of your Friends with Habits account.',
         cacheControl: HABITS_NO_STORE,
         needsApiBase: true,
     },
@@ -245,19 +340,251 @@ const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
         cacheControl: HABITS_NO_STORE,
         needsApiBase: true,
     },
+    // Habits counterpart of the React /verify-phone route on www.therr.com. Both are the
+    // no-app fallback for the therr.com/verify-phone link, which opens the mobile app when
+    // it is installed — and this host is a verified App Link for com.therr.habits, so
+    // without this entry a HABITS user without the app hit the allowlist 404 instead.
+    '/verify-phone': {
+        view: 'habits/verify-phone',
+        title: 'Verify your phone — Friends with Habits',
+        description: 'Confirm your phone number for Friends with Habits.',
+        cacheControl: HABITS_NO_STORE,
+        needsApiBase: true,
+    },
 };
 // Public profile path on the Habits subdomain — used by user-profile QR codes.
 // Format: /u/:userName  (alphanumeric, dot, dash, underscore — keep tight to avoid abuse)
 const HABITS_PROFILE_PATH_RE = /^\/u\/([A-Za-z0-9._-]{1,64})\/?$/;
 
+// The inviter lookup blocks the invite landing's render, and axios has no default
+// timeout — without this a stalled gateway holds the SSR request open indefinitely
+// instead of degrading to the generic headline this resolver already falls back to.
+const HABITS_INVITER_LOOKUP_TIMEOUT_MS = 4000;
+
+/**
+ * Resolves the display name (and avatar) of whoever sent an invite, for the
+ * invite landing's headline. Best-effort by design: the invite is still valid and
+ * still worth an install CTA when the lookup fails, so every failure path returns
+ * empty values rather than propagating.
+ */
+const resolveHabitsInviter = async (match: IHabitsInviteRouteMatch): Promise<{
+    inviterName: string;
+    avatarUri: string;
+}> => {
+    const empty = { inviterName: '', avatarUri: '' };
+
+    // These lookups render a Friends with Habits page, but axios' module-level default
+    // is THERR (correct for the React app, which never serves this host). Without the
+    // override, `by-username` — which IS brand-scoped, via getBrandContext + brandVariations
+    // enrollment — resolves a habits inviter against the therr brand and finds nothing for
+    // a habits-only account. This resolver is best-effort, so that surfaced as the generic
+    // headline rather than an error: the invite silently lost "X wants to make a pact with you".
+    const habitsHeaders = { 'x-brand-variation': BrandVariations.HABITS };
+
+    try {
+        if (match.kind === 'invite-username') {
+            const response = await axios.get(
+                `/users-service/users/by-username/${encodeURIComponent(match.value)}`,
+                { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS, headers: habitsHeaders },
+            );
+            const inviter = response?.data;
+            if (!inviter?.userName) {
+                return empty;
+            }
+            const displayName = inviter.isBusinessAccount
+                ? inviter.firstName
+                : [inviter.firstName, inviter.lastName].filter(Boolean).join(' ').trim();
+            return {
+                inviterName: displayName || inviter.userName,
+                // Only a real profile picture. getUserImageUri falls back to a robohash
+                // avatar keyed on user id, which reads as broken next to "X invited you" —
+                // the initial placeholder in the template is the better empty state.
+                avatarUri: inviter.media?.profilePicture
+                    ? getUserImageUri({ details: inviter }, 480)
+                    : '',
+            };
+        }
+
+        // Token landings ('/invite/link/:token'). The endpoint validates a v4 UUID,
+        // so anything else is a malformed link — skip the round-trip and fall back
+        // to the generic headline.
+        if (match.kind === 'invite-link' && UUID_V4_RE.test(match.value)) {
+            // Sent for consistency; this endpoint resolves invites cross-brand on purpose,
+            // so the invitee can be deep-linked into whichever app the invite came from.
+            const response = await axios.get(
+                `/users-service/users/invites/${encodeURIComponent(match.value)}`,
+                { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS, headers: habitsHeaders },
+            );
+            return {
+                inviterName: response?.data?.inviterName || '',
+                avatarUri: '',
+            };
+        }
+    } catch (err) {
+        return empty;
+    }
+
+    return empty;
+};
+
+/**
+ * Invite, magic-invite-link, and pact-claim landings for habits.therr.com.
+ *
+ * These URLs are minted by the HABITS brand itself — invite emails and SMS build
+ * them from hostContext's `appHostFull` (https://habits.therr.com), and pact
+ * invitations point at /claim-pact/:token on the same host. The React SSR routes
+ * that back them only serve www.therr.com, so on this host every one of them used
+ * to fall through to the hard 404 at the end of this middleware.
+ *
+ * An unresolvable username or token still renders the page: 404ing someone who
+ * followed a real invite is the bug being fixed, and the install CTA is useful
+ * regardless of whether the lookup succeeded.
+ */
+const renderHabitsInviteView = async (req, res, match: IHabitsInviteRouteMatch) => {
+    const { inviterName, avatarUri } = await resolveHabitsInviter(match);
+    const firstInitial = inviterName ? inviterName.trim().charAt(0).toUpperCase() : '';
+
+    let heading: string;
+    let title: string;
+    let body: string;
+    let description: string;
+
+    if (match.kind === 'claim-pact') {
+        heading = inviterName
+            ? `${inviterName} wants to make a pact with you`
+            : 'You have a pact invitation';
+        title = 'Your pact invitation | Friends with Habits';
+        body = 'A pact is a daily habit you and a friend commit to together. Install Friends with Habits to accept it and start your streak.';
+        description = 'Accept your pact invitation on Friends with Habits and start building a daily habit with a friend.';
+    } else {
+        heading = inviterName
+            ? `${inviterName} invited you to Friends with Habits`
+            : 'You have been invited to Friends with Habits';
+        title = inviterName
+            ? `${inviterName} invited you | Friends with Habits`
+            : 'Your invite | Friends with Habits';
+        body = 'Habits stick when a friend is on the hook too. Install the app, pact up, and check in daily to keep each other on streak.';
+        description = 'Join Friends with Habits — pact with a friend, check in daily, and keep each other on streak.';
+    }
+
+    // Personal, token-bearing URLs: never cached by a shared proxy.
+    res.setHeader('Cache-Control', HABITS_NO_STORE);
+
+    // Values are handed to Handlebars raw; `{{value}}` HTML-escapes by default and
+    // pre-escaping here would double-encode names containing & < > " '.
+    return res.render('habits/invite', {
+        title,
+        description,
+        canonicalUrl: `https://habits.therr.com${req.path}`,
+        heading,
+        body,
+        ctaNote: 'Free to install. Available on Google Play — iOS coming next.',
+        inviterName,
+        avatarUri,
+        hasAvatar: !!avatarUri,
+        firstInitial,
+        // Surfaced so a user who installs first can still find their pact by code.
+        inviteCodeLabel: match.kind === 'claim-pact' ? 'Your pact code' : '',
+        inviteCode: match.kind === 'claim-pact' ? match.value : '',
+    });
+};
+
 app.use(async (req, res, next) => {
     if (!HABITS_HOSTS.has(req.hostname)) {
         return next();
     }
+    // Set on res.locals rather than passed per `res.render` call: Express merges
+    // locals into every view's context, so a habits view added later inherits
+    // analytics without anyone remembering to wire it. That is the failure this
+    // fixes — the views were never tagged at all, and nothing failed loudly.
+    res.locals.gaMeasurementIdsJson = HABITS_GA_MEASUREMENT_IDS_JSON;
+    // Crawler policy for this host. Deliberately permissive to AI retrieval agents —
+    // GEO discovery is the point of this subdomain — but the personal, token-bearing
+    // and auth-sensitive paths are kept out of the crawl budget. They already carry
+    // `<meta name="robots" content="noindex">`; this stops the fetch as well.
     if (req.path === '/robots.txt') {
         res.type('text/plain');
         res.setHeader('Cache-Control', 'public, max-age=3600');
-        return res.send('User-agent: *\nAllow: /\n');
+        return res.send([
+            'User-agent: *',
+            'Allow: /',
+            'Disallow: /invite/',
+            'Disallow: /claim-pact/',
+            'Disallow: /verify-account',
+            'Disallow: /login',
+            'Disallow: /logout',
+            'Disallow: /emails/',
+            // /register is deliberately NOT disallowed despite being noindex.
+            // It is a paid-campaign destination, and Google Ads' own crawler
+            // disapproves ads whose landing path it cannot fetch. noindex keeps
+            // it out of the index; a Disallow would additionally stop the
+            // noindex being seen, which is the worse of the two failures.
+            '',
+            'Sitemap: https://habits.therr.com/sitemap.xml',
+            '',
+        ].join('\n'));
+    }
+    // Without this, a brand-new subdomain with no inbound links has no discovery
+    // path at all beyond the therr.app footer link.
+    if (req.path === '/sitemap.xml') {
+        const today = new Date().toISOString().split('T')[0];
+        const urls = [
+            { loc: 'https://habits.therr.com/', priority: '1.0', changefreq: 'weekly' },
+            { loc: 'https://habits.therr.com/blog', priority: '0.8', changefreq: 'weekly' },
+            // Generated from the same list the routes serve, so a new cross-post is
+            // never published without a sitemap entry — this subdomain has almost no
+            // inbound links, so the sitemap is most of how a page gets discovered.
+            ...HABITS_BLOG_POSTS.map((post) => ({
+                loc: post.canonicalUrl,
+                priority: '0.7',
+                changefreq: 'monthly',
+            })),
+            { loc: 'https://habits.therr.com/privacy-policy', priority: '0.4', changefreq: 'yearly' },
+            { loc: 'https://habits.therr.com/terms-of-service', priority: '0.4', changefreq: 'yearly' },
+        ].map(({ loc, priority, changefreq }) => `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>`
+            + `\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`);
+        res.type('application/xml');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.send('<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n'
+            + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            + `${urls.join('\n')}\n</urlset>`);
+    }
+    // The app-wide /llms.txt route is registered *after* this middleware and is
+    // therr.com-specific anyway, so on this host it used to hit the hard 404 below.
+    if (req.path === '/llms.txt') {
+        res.type('text/plain');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.sendFile('habits-llms.txt', { root: path.resolve(__dirname, '../build/static') });
+    }
+    if (isHabitsBlogListPath(req.path)) {
+        res.setHeader('Cache-Control', HABITS_DEFAULT_CACHE);
+        return res.render('habits/blog-list', {
+            title: HABITS_BLOG_LIST_TITLE,
+            description: HABITS_BLOG_LIST_DESCRIPTION,
+            canonicalUrl: 'https://habits.therr.com/blog',
+            posts: HABITS_BLOG_POSTS,
+        });
+    }
+    // Returns null for an unknown slug as well as a non-blog path, so a mistyped
+    // URL falls through to the 404 below rather than rendering an empty post.
+    const blogPost = matchHabitsBlogPost(req.path);
+    if (blogPost) {
+        res.setHeader('Cache-Control', HABITS_DEFAULT_CACHE);
+        return res.render('habits/blog-post', {
+            // `title` is the <title> tag and carries the brand suffix; `postTitle`
+            // is the <h1>, which should not repeat it.
+            title: `${blogPost.title} — Friends with Habits`,
+            postTitle: blogPost.title,
+            description: blogPost.description,
+            keywords: blogPost.keywords,
+            canonicalUrl: blogPost.canonicalUrl,
+            date: blogPost.date,
+            dateDisplay: blogPost.dateDisplay,
+            author: blogPost.author,
+            bodyHtml: blogPost.bodyHtml,
+            relatedLandingUrl: blogPost.relatedLandingUrl,
+            jsonLd: buildHabitsBlogJsonLd(blogPost),
+        });
     }
     const profileMatch = req.path.match(HABITS_PROFILE_PATH_RE);
     if (profileMatch) {
@@ -309,6 +636,10 @@ app.use(async (req, res, next) => {
             });
         }
     }
+    const inviteMatch = matchHabitsInviteRoute(req.path);
+    if (inviteMatch) {
+        return renderHabitsInviteView(req, res, inviteMatch);
+    }
     const renderer = HABITS_ROUTE_RENDERERS[req.path];
     if (!renderer) {
         return res.status(404).type('text/plain').send('Not found');
@@ -336,7 +667,14 @@ app.get('/opensearch.xml', express.static(path.join(__dirname, '/../build/static
 
 // AI crawler policy — complements robots.txt with per-LLM-agent permissions.
 // Served at both /ai.txt and /.well-known/ai.txt (the emerging canonical location).
-app.get(['/ai.txt', '/.well-known/ai.txt'], express.static(path.join(__dirname, '/../build/static/ai.txt')));
+// express.static() takes a directory, not a file, so the previous form here never
+// served anything; /ai.txt only worked because expressStaticGzip had already
+// answered it, and /.well-known/ai.txt 404'd.
+app.get(['/ai.txt', '/.well-known/ai.txt'], (req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.type('text/plain');
+    return res.sendFile('ai.txt', { root: path.resolve(__dirname, '../build/static') });
+});
 
 // IndexNow key file endpoint for Bing/Yandex verification
 // Key must be alphanumeric/hyphens only (8-128 chars) to prevent route injection
@@ -368,7 +706,6 @@ const setSitemapCache = (key: string, xml: string) => {
 };
 
 // Build URL entries for English (unprefixed), Spanish (/es), and French Canadian (/fr) versions
-// eslint-disable-next-line max-len
 const buildUrlSet = (loc: string, lastmod: string, priority: string) => {
     const esLoc = loc === '/' ? '/es' : `/es${loc}`;
     const frLoc = loc === '/' ? '/fr' : `/fr${loc}`;
@@ -397,7 +734,6 @@ const fetchSpacesPage = async (pageNumber: number): Promise<any[]> => {
 // latitude=0&longitude=0 with a global distanceOverride fetches all events regardless of location
 const fetchEventsPage = async (pageNumber: number): Promise<any[]> => {
     const response = await axios.post(
-        // eslint-disable-next-line max-len
         `/maps-service/events/search?itemsPerPage=${ITEMS_PER_SITEMAP}&pageNumber=${pageNumber}&latitude=0&longitude=0`,
         { distanceOverride: 40075 * (1000 / 2) },
     );
@@ -492,15 +828,12 @@ app.get('/sitemap.xml', async (req, res) => {
         `  <sitemap>\n    <loc>https://www.therr.com/sitemap-city-categories.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`,
         `  <sitemap>\n    <loc>https://www.therr.com/sitemap-guides.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`,
         ...Array.from({ length: totalSpacePages }, (_, i) => (
-            // eslint-disable-next-line max-len
             `  <sitemap>\n    <loc>https://www.therr.com/sitemap-spaces-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
         )),
         ...Array.from({ length: totalEventPages }, (_, i) => (
-            // eslint-disable-next-line max-len
             `  <sitemap>\n    <loc>https://www.therr.com/sitemap-events-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
         )),
         ...Array.from({ length: totalGroupPages }, (_, i) => (
-            // eslint-disable-next-line max-len
             `  <sitemap>\n    <loc>https://www.therr.com/sitemap-groups-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
         )),
     ];
@@ -542,6 +875,7 @@ app.get('/sitemap-static.xml', (req, res) => {
         { loc: '/locations', priority: '0.9' },
         { loc: '/locations/cities', priority: '0.9' },
         { loc: '/locations/categories', priority: '0.9' },
+        { loc: '/api-access', priority: '0.6' },
         ...categoryUrls,
         ...cityUrls,
     ];
@@ -688,7 +1022,6 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
         });
         // Google accepts up to 1000 images per URL but most sites limit for file size
         return imageUrls.slice(0, 10).map((url) => (
-            // eslint-disable-next-line max-len
             `    <image:image>\n      <image:loc>${url.replace(/&/g, '&amp;')}</image:loc>\n    </image:image>`
         )).join('\n');
     };
@@ -831,7 +1164,7 @@ const appLinksJson = {
 
 // Apple universal link (Opens ios app when clicking therr URLs from mobile)
 app.get('/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
-// app.get('/.well-known/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
+app.get('/.well-known/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
 
 // Redirect bare domain to www (preserves path and query string)
 app.use((req, res, next) => {
@@ -1653,7 +1986,6 @@ const renderLocationsView = (req, res, config, {
         description = `Find the best ${categoryLabel.toLowerCase()} near you. Browse listings, read reviews, see hours, and get directions on Therr.`;
     } else if (searchQuery) {
         title = `Spaces near ${searchQuery} - ${config.head.title}`;
-        // eslint-disable-next-line max-len
         description = `Discover local businesses, restaurants, and events near ${searchQuery}. Browse listings, read reviews, and get directions on Therr.`;
     } else {
         title = config.head.title;
@@ -2541,6 +2873,7 @@ const publicRoutePatterns = [
     /^\/invite\/[^/]+$/,
     /^\/lists\/[^/]+\/[a-z0-9-]+$/,
     /^\/child-safety$/,
+    /^\/api-access$/,
     /^\/go-mobile$/,
     /^\/app-feedback$/,
     /^\/reset-password$/,

@@ -1,4 +1,8 @@
-import ApiService from './ApiService';
+import ApiService, {
+    IPhoneAuthAccount,
+    IPhoneAuthSelectArgs,
+    IPhoneAuthVerifyArgs,
+} from './ApiService';
 import CampaignsService from './CampaignsService';
 import ForumsService from './ForumsService';
 import MapsService,
@@ -21,9 +25,15 @@ import HabitGoalsService, { ICreateHabitGoalBody, IUpdateHabitGoalBody } from '.
 import PactsService, { ICreatePactBody } from './PactsService';
 import HabitCheckinsService, { ICreateCheckinBody, IUpdateCheckinBody } from './HabitCheckinsService';
 import StreaksService from './StreaksService';
+import UserHabitsService, { ICreateUserHabitBody, ICreateUserHabitGoalBody } from './UserHabitsService';
+import JournalService, { ICreateJournalEntryBody, IUpdateJournalEntryBody } from './JournalService';
+import HabitsLifetimeService, { IVerifyLifetimePurchaseBody } from './HabitsLifetimeService';
 
 export {
     ApiService,
+    IPhoneAuthAccount,
+    IPhoneAuthSelectArgs,
+    IPhoneAuthVerifyArgs,
     CampaignsService,
     ForumsService,
     MapsService,
@@ -49,4 +59,12 @@ export {
     ICreateCheckinBody,
     IUpdateCheckinBody,
     StreaksService,
+    UserHabitsService,
+    ICreateUserHabitBody,
+    ICreateUserHabitGoalBody,
+    JournalService,
+    ICreateJournalEntryBody,
+    IUpdateJournalEntryBody,
+    HabitsLifetimeService,
+    IVerifyLifetimePurchaseBody,
 };

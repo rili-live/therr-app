@@ -194,7 +194,6 @@ class ActivatedAreas extends React.Component<IActivatedAreasProps, IActivatedAre
                 createOrUpdateEventReaction,
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
-                toggleAreaOptions: this.toggleAreaOptions,
                 translate: this.translate,
             });
         }

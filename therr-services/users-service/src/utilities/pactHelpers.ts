@@ -61,6 +61,49 @@ export const shouldExpirePact = (
 };
 
 /**
+ * Whether a pact's cycle is over and can therefore be renewed.
+ *
+ * An `active` pact that is merely past its endDate counts as finished: the
+ * digest's sweep will have marked it `expired`, but renewal must not depend on
+ * that job having run — a user who opens the app before the nightly digest
+ * would otherwise be told their finished pact is "still running".
+ *
+ * `abandoned` is deliberately absent. Someone who walked away from a pact
+ * should start a fresh one deliberately rather than re-run the one they quit,
+ * and `pending` never had a cycle to finish in the first place.
+ */
+export const isPactRenewable = (
+    pact: { status: PactStatus | string; endDate?: Date | string | null } | null | undefined,
+): boolean => {
+    if (!pact) {
+        return false;
+    }
+    if (pact.status === 'completed' || pact.status === 'expired') {
+        return true;
+    }
+    return pact.status === 'active' && shouldExpirePact(pact.status as PactStatus, pact.endDate ?? null);
+};
+
+/**
+ * Who carries over into the renewed cycle, given the previous cycle's members
+ * and whoever tapped renew.
+ *
+ * Only members who were actually *in* the last cycle come along — `left` and
+ * `removed` opted out, and a `pending` invitee never accepted, so re-inviting
+ * any of them would turn a renewal into a fresh round of asking people who
+ * already said no (or never answered). The renewer is excluded because they
+ * join the new pact as its creator.
+ */
+export const selectRenewalInvitees = (
+    members: { userId?: string; status?: string }[],
+    renewerUserId: string,
+): string[] => Array.from(new Set(members
+    .filter((member) => member?.userId
+        && member.userId !== renewerUserId
+        && (member.status === 'active' || member.status === 'completed'))
+    .map((member) => member.userId as string)));
+
+/**
  * Check if a pact invitation has expired (default: 7 days)
  */
 export const hasInvitationExpired = (
@@ -149,6 +192,57 @@ export const getPartnerUserId = (
     return null;
 };
 
+export interface IPactPartnerMember {
+    pactId: string;
+    userId: string;
+    status?: string;
+    shouldMuteNotifs?: boolean;
+    celebratePartnerCheckins?: boolean;
+}
+
+/**
+ * Everyone other than `userId` who should hear about their activity, across a
+ * set of pacts, deduplicated.
+ *
+ * `getPartnerUserId` only understands 1:1 pacts — a group pact leaves
+ * `partnerUserId` null and tracks everyone in pact_members — so membership is
+ * the source of truth here, with getPartnerUserId as the fallback for 1:1
+ * pacts that pre-date pact_members and have no member rows at all.
+ *
+ * `onlyCelebrating` applies each recipient's own per-pact notification
+ * preferences (`shouldMuteNotifs`, `celebratePartnerCheckins`). Pass it for
+ * pushes; leave it off for silent side effects like achievement credit, which
+ * a muted member should still receive.
+ */
+export const selectPactPartnerIds = (
+    pacts: { id: string; creatorUserId: string; partnerUserId: string | null }[],
+    membersByPactId: Record<string, IPactPartnerMember[]>,
+    userId: string,
+    { onlyCelebrating = false }: { onlyCelebrating?: boolean } = {},
+): string[] => {
+    const partnerIds = new Set<string>();
+
+    pacts.forEach((pact) => {
+        const members = membersByPactId[pact.id] || [];
+
+        if (!members.length) {
+            const legacyPartnerId = getPartnerUserId(userId, pact.creatorUserId, pact.partnerUserId);
+            if (legacyPartnerId) {
+                partnerIds.add(legacyPartnerId);
+            }
+            return;
+        }
+
+        members
+            .filter((member) => member.userId !== userId && member.status === 'active')
+            .filter((member) => !onlyCelebrating
+                || (!member.shouldMuteNotifs && member.celebratePartnerCheckins !== false))
+            .forEach((member) => partnerIds.add(member.userId));
+    });
+
+    return [...partnerIds];
+};
+
 /**
  * Check if user is the creator of the pact
  */
@@ -189,16 +283,22 @@ export const getPactStatusInfo = (status: PactStatus): { label: string; color: s
 /**
  * Validate pact creation parameters
  */
+/**
+ * Returns a dictionary key rather than a finished sentence, so the caller can render it in the
+ * requesting user's locale. The allowed values travel alongside as `errorParams` because they are
+ * data, not copy — a translator should not have to re-list them in every language.
+ */
 export const validatePactParams = (params: {
     durationDays?: number;
     consequenceType?: string;
     consequenceDetails?: object;
-}): { valid: boolean; error?: string } => {
+}): { valid: boolean; errorKey?: string; errorParams?: { [key: string]: any } } => {
     const validDurations = [7, 14, 30, 60, 90];
     if (params.durationDays && !validDurations.includes(params.durationDays)) {
         return {
             valid: false,
-            error: `Duration must be one of: ${validDurations.join(', ')} days`,
+            errorKey: 'errorMessages.pacts.invalidDuration',
+            errorParams: { allowed: validDurations.join(', ') },
         };
     }
 
@@ -206,7 +306,8 @@ export const validatePactParams = (params: {
     if (params.consequenceType && !validConsequenceTypes.includes(params.consequenceType as ConsequenceType)) {
         return {
             valid: false,
-            error: `Consequence type must be one of: ${validConsequenceTypes.join(', ')}`,
+            errorKey: 'errorMessages.pacts.invalidConsequenceType',
+            errorParams: { allowed: validConsequenceTypes.join(', ') },
         };
     }
 
@@ -215,7 +316,7 @@ export const validatePactParams = (params: {
         if (!details.amount || details.amount <= 0) {
             return {
                 valid: false,
-                error: 'Donation amount must be greater than 0',
+                errorKey: 'errorMessages.pacts.invalidDonationAmount',
             };
         }
     }

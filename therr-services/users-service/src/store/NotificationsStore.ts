@@ -11,7 +11,7 @@ import { USER_CONNECTIONS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
-// eslint-disable-next-line no-restricted-syntax -- this is the sanctioned canonical reference
+// eslint-disable-next-line therr/no-direct-brand-scoped-table -- this is the sanctioned canonical reference
 export const NOTIFICATIONS_TABLE_NAME = 'main.notifications';
 
 export interface ICreateNotificationParams {
@@ -127,6 +127,25 @@ export default class NotificationsStore extends BrandScopedStore {
         };
         const queryString = this.scopedInsert(brand, modifiedParams)
             .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    /**
+     * Deletes every notification addressed to the user, across all brands.
+     *
+     * Deliberately unscoped by brand: this only runs from account deletion, after the
+     * identity row in main.users is gone. Scoping to the requesting brand would leave
+     * notifications behind under every other brand the user belonged to — which is the
+     * orphan this closes, not a case to preserve.
+     */
+    deleteByUserId(userId: string) {
+        const queryString = knexBuilder
+            .from(NOTIFICATIONS_TABLE_NAME)
+            .where({ userId })
+            .delete()
+            .returning('id')
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);

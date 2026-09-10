@@ -2,7 +2,7 @@
 
 ## Overview
 
-React Native 0.83.6 mobile app (iOS + Android) for the Therr social platform. React 19.2.0. Has its own `package.json` isolated from the monorepo root. Android package: `app.therrmobile`, native code in Kotlin.
+React Native 0.86.3 mobile app (iOS + Android) for the Therr social platform. React 19.2.3. Has its own `package.json` isolated from the monorepo root. Android package: `app.therrmobile`, native code in Kotlin.
 
 ## Directory Structure
 
@@ -99,9 +99,32 @@ The module resolution is complex due to the monorepo. Understanding this prevent
    - `shared/*` -> root `node_modules/*`
 
 4. **Patches** (`patches/`, applied via `postinstall`):
-   - `react-native+0.80.0.patch`
+   - `react-native+0.86.3.patch`
+   - `react-native-screens+4.27.0.patch`
+   - `react-native-worklets+0.11.4.patch`
    - `@react-native-community+slider+5.1.2.patch`
+   - `react-native-actions-sheet+0.9.8.patch`
    - `react-native-tab-view+3.5.2.patch`
+
+   Patch filenames pin an **exact** version. When you bump a patched package the
+   patch stops applying — regenerate it rather than renaming the file. Run
+   `/mobile-dep-guard` after any dependency change; it cross-checks every patch
+   against the installed (or lockfile-resolved) version.
+
+   `react-native+0.86.3.patch` carries **two** hunks. Besides the `StatusBarModule.kt`
+   one described under § Edge-to-Edge, it restores `StyleSheet.absoluteFillObject`,
+   which 0.86 removed from `Libraries/StyleSheet/StyleSheetExports.js`. Our own code no
+   longer uses it, but several dependencies still spread it — react-native-paper's
+   `Modal` (so every `<Dialog>`), `Menu`, `FABGroup`, `BottomNavigationBar`,
+   `TouchableRipple`, `ActivityIndicator`; react-native-bootsplash;
+   react-native-country-picker-modal. Spreading `undefined` is legal JS and yields `{}`,
+   so those overlays silently lose `position: 'absolute'` and lay out in flow instead —
+   a Paper dialog drops to the bottom of the screen and its scrim covers only part of it,
+   with no error anywhere. Unlike the Kotlin hunk, this one is JS and **does** reach the
+   bundle. Keep it until every consumer has stopped using the removed API.
+
+   When regenerating, exclude Gradle's build cache or it lands in the patch:
+   `npx patch-package react-native --exclude '(package-lock\.json|\.npmignore|yarn\.lock|/\.gradle/)'`
 
 **When adding a new shared library dependency**: Add it to root `package.json`, then ensure Metro can find it via `extraNodeModules` or the Proxy fallback.
 
@@ -128,6 +151,26 @@ Three themes: light (default), dark, retro. Selected via `user.settings.mobileTh
 ### Push Notifications
 
 Firebase Cloud Messaging + Notifee. Android channels defined in `main/constants/index.tsx` (default, contentDiscovery, rewardUpdates, reminders). FCM setup in `main/utilities/pushNotifications.ts`.
+
+### Sound Effects & Haptics
+
+Celebratory feedback lives in `main/utilities/rewardFeedback.ts` (used by the
+achievement reward-claim flow). Two rules govern it:
+
+- **Sounds are synthesized, not bundled.** `react-native-audio-api` exposes a
+  Web Audio graph; cues are built from oscillators + gain envelopes rather than
+  shipped as mp3/m4a. Keeps bundle size flat and avoids per-platform codec
+  differences. Add new cues as note/offset tables next to the existing ones.
+- **Audio is required lazily inside a `try`/`catch`.** It is a JSI native module,
+  so an unrebuilt native project (or Jest) must degrade to a silent no-op — never
+  a crash. The `AudioContext` is cached, then closed on an idle timer so a rare
+  cue does not hold an audio session open for the whole app session.
+
+The iOS session is configured `ambient` + `mixWithOthers`, so effects honor the
+ringer switch and never pause the user's music. Haptics go through
+`react-native-haptic-feedback` with `ignoreAndroidSystemSettings: false`, which
+honors the system haptics toggle. Both packages are mocked under
+`__mocks__/` and wired up in `jest.config.js`.
 
 ### Brand Variation
 
@@ -160,7 +203,9 @@ Android targets API 36, which enforces edge-to-edge — system bars are always t
 - Bottom inset for the button menu comes from `bottomSafeAreaInset` in `main/styles/navigation/buttonMenu.ts`. Reuse it on any bottom-anchored surface (action sheets, footers). It carries a 16dp Android fallback for the cold-start case; surfaces that need pixel-perfect bottom padding should subscribe to `SafeAreaInsetsContext` and prefer the measured value when present.
 - For `<SafeAreaView>` from `react-native-safe-area-context`: most authenticated screens use `edges={[]}` because the parent `Layout` already pads the header (top) and the global `ButtonMenu` pads the bottom. Only set explicit `edges` when a screen renders without that scaffolding (e.g., full-bleed pre-auth screens) or extends to the bottom edge with no `ButtonMenu`.
 - Forms that need the keyboard to push content up should use `KeyboardAvoidingView` from `react-native-keyboard-controller` (not the built-in one from `react-native`). `KeyboardProvider` is mounted in `App.tsx`, and `android:windowSoftInputMode="adjustResize"` in `AndroidManifest.xml` is the correct mode under edge-to-edge.
-- **Deprecated Android 15 APIs (Play Console pre-launch report):** Never call `Window.setStatusBarColor`/`getStatusBarColor`/`setNavigationBarColor`/`getNavigationBarColor`. They are deprecated no-ops under API 35+ and the Play Console flags any bytecode reference to them. Our native `EdgeToEdgeModule.kt` deliberately avoids the navigation-bar color getters/setters (it only toggles `setDecorFitsSystemWindows` + `isNavigationBarContrastEnforced`). React Native core's `StatusBarModule` still references the deprecated status-bar color getter/setter, so it is neutralized via `patches/react-native+0.83.6.patch` (`getTypedExportedConstants` no longer reads the getter; `setColor`'s `runGuarded` no longer references the setter). **If you bump the `react-native` version, regenerate that patch** — edit the installed `StatusBarModule.kt` and run `npx patch-package react-native`, then re-verify the Play Console report.
+- **Deprecated Android 15 APIs (Play Console pre-launch report):** Never call `Window.setStatusBarColor`/`getStatusBarColor`/`setNavigationBarColor`/`getNavigationBarColor`. They are deprecated no-ops under API 35+ and the Play Console flags any bytecode reference to them. Our native `EdgeToEdgeModule.kt` deliberately avoids the navigation-bar color getters/setters (it only toggles `setDecorFitsSystemWindows` + `isNavigationBarContrastEnforced`). React Native core's `StatusBarModule` still references the deprecated status-bar color getter/setter, so it is neutralized via `patches/react-native+0.86.3.patch` (`getTypedExportedConstants` no longer reads the getter; `setColor`'s `runGuarded` no longer references the setter). **If you bump the `react-native` version, regenerate that patch** — edit the installed `StatusBarModule.kt` and run `npx patch-package react-native`, then re-verify the Play Console report.
+
+  > **Caveat, verified 2026-08-31 against a signed 0.86.3 release APK: that patch does not currently reach the build.** Gradle resolves `com.facebook.react:react-android` as a prebuilt AAR from Maven (there is no `react.buildFromSource` property and no `:ReactAndroid` task runs), so the patched Kotlin source is never compiled. Disassembling the release APK still shows `StatusBarModule$b` carrying the `ValueAnimator` + `setStatusBarColor` code the patch deletes. The APK also references the deprecated setters from `androidx.activity`, `com.google.android.material`, `com.swmansion.rnscreens.ScreenViewManager`, and RN's own `views/view` — so this patch alone was never going to clear the pre-launch report. Keep it (it is harmless and documents intent), but treat the Play Console finding as open and re-check it against a real APK rather than assuming the patch handles it.
 
 ## Common Debugging
 
@@ -178,5 +223,37 @@ Before completing changes:
 npm run lint:fix   # Auto-fix
 npm run lint       # Verify zero errors
 ```
+
+Type-checking here is a **baseline** gate, not a zero-error gate — the app carries a
+backlog of errors inherited from the RN 0.83 upgrade. Run `npm run pr:tsc-baseline:mobile`
+from the repo root; it fails only on error signatures absent from
+`TherrMobile/.tsc-baseline`. That file is the authority on the count — read it rather
+than trusting a number quoted in prose, which drifts every time errors are fixed. Never
+run the baseline script with `--update` to clear a failure.
+
+### The baseline reports one error that is not yours
+
+`react-native-background-geolocation` is a licensed package. It is declared in
+`TherrMobile/package.json` but will not install without credentials, so on most dev
+machines it is simply absent from `node_modules` and the baseline check reports:
+
+```
+TherrMobile/main/components/Layout.tsx  TS2307  Cannot find module 'react-native-background-geolocation'
+```
+
+That is an artifact of the local install, not a regression, and it is **not** in the
+baseline because CI installs the package successfully. Confirm it by checking whether the
+package resolves — `ls TherrMobile/node_modules/react-native-background-geolocation` — and
+whether `Layout.tsx` is even in your diff. If that is the only signature reported, treat
+the check as passing and say so; do not add it to the baseline, and do not add an ambient
+declaration to paper over it, which would also hide a genuinely missing dependency.
+
+Three mobile-specific skills cover what lint and tsc cannot:
+
+| Skill | When |
+|---|---|
+| `/mobile-crash-guard` | After changing anything under `main/**` — audits for runtime-only failure classes (native modules at import time, missing effect cleanup, unguarded nav params and API fields, safe-area/system-bar regressions) |
+| `/mobile-dep-guard` | After adding, upgrading, or removing a dependency — checks the Metro/Babel/tsconfig/Jest/patch-package wiring matrix that silently breaks on device |
+| `/mobile-release-preflight` | Before cutting an EAS or Gradle release build — brand/branch agreement, version bump, patch drift, deprecated Android 15 APIs, locale parity |
 
 See root `CLAUDE.md` for full requirements.

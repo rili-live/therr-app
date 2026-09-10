@@ -15,7 +15,20 @@ enum MetricNames {
   SPACE_UNCLAIMED_EMAIL_SENT = 'space.marketing.unclaimedEmailSent',
 
   // USER
-  USER_CONTENT_PREF_CAT_PREFIX = 'user.content.preferences.categories.'
+  USER_CONTENT_PREF_CAT_PREFIX = 'user.content.preferences.categories.',
+
+  // FUNNEL — onboarding & viral-loop instrumentation. Dimensions carry
+  // brandVariation and (where relevant) acquisition source so per-brand
+  // conversion and viral coefficient can be computed from userMetrics alone.
+  FUNNEL_USER_REGISTERED = 'funnel.user.registered',
+  FUNNEL_USER_VERIFIED = 'funnel.user.verified',
+  FUNNEL_USER_FIRST_LOGIN = 'funnel.user.firstLogin',
+  FUNNEL_INVITE_SENT = 'funnel.invite.sent',
+  FUNNEL_INVITE_ACCEPTED = 'funnel.invite.accepted',
+  FUNNEL_PACT_CREATED = 'funnel.pact.created',
+  FUNNEL_PACT_INVITE_SENT = 'funnel.pact.inviteSent',
+  FUNNEL_PACT_INVITE_ACCEPTED = 'funnel.pact.inviteAccepted',
+  FUNNEL_HABIT_CHECKIN = 'funnel.habit.checkin'
 }
 
 export default MetricNames;

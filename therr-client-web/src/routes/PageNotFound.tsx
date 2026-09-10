@@ -33,7 +33,7 @@ export class PageNotFoundComponent extends React.Component<IPageNotFoundProps, I
         this.state = {};
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         document.title = `Therr | ${this.props.translate('pages.pageNotFound.pageTitle')}`;
     }
 

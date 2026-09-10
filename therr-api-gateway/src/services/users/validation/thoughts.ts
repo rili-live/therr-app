@@ -10,6 +10,7 @@ export const getThoughtDetailsValidation = [
     param('thoughtId').exists(),
     body('withUser').isBoolean().optional(),
     body('withReplies').isBoolean().optional(),
+    body('withParent').isBoolean().optional(),
 ];
 
 export const createThoughtValidation = [
@@ -20,6 +21,9 @@ export const createThoughtValidation = [
     body('isPublic').isBoolean().optional(),
     body('isDraft').isBoolean().optional(),
     body('isRepost').isBoolean().optional(),
+    // The id of the thought being re-shared. `isRepost` is derived from this server-side
+    // (ThoughtsStore.create), so a client sending only the boolean creates an ordinary post.
+    body('repostThoughtId').isUUID().optional(),
     body('message').isString().exists(),
     body('mediaIds').isString().optional(),
     body('mentionsIds').isString().optional(),

@@ -1,5 +1,3 @@
-/* eslint-disable react/display-name */
-/* eslint-disable arrow-body-style */
 import * as React from 'react';
 import { useRoutes } from 'react-router-dom';
 import getRoutes from '../routes';

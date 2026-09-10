@@ -32,6 +32,11 @@ export interface PermState {
     osAskedAt?: number;
     lastStatus?: Status;
     appVersionAtLastAsk?: string;
+    /**
+     * Which revision of the prominent disclosure the user has affirmatively accepted.
+     * Only set for types listed in DISCLOSURE_REVISION.
+     */
+    disclosureAcceptedRevision?: number;
 }
 
 export interface RequestOptions {
@@ -56,6 +61,26 @@ type PrimerListener = (req: PrimerRequest) => void;
 const STORAGE_KEY = 'therrPermissionPrompts';
 const SOFT_ASK_CAP = 2;
 const noopStore = () => {};
+
+/**
+ * Permission types whose data leaves the device, and therefore require a Google Play
+ * "Prominent Disclosure" — an in-app screen naming the data, saying it is uploaded to
+ * our servers and why, accepted by an affirmative tap — *before* any collection.
+ *
+ * Holding the OS permission is NOT consent for this purpose. The runtime permission
+ * dialog only says the app can read contacts; it says nothing about the upload, and
+ * Play policy is explicit that the OS dialog cannot serve as the disclosure. So the
+ * gate below is deliberately independent of `nativeCheck`: a user who granted
+ * READ_CONTACTS under an earlier, inadequate disclosure must see the current one
+ * before we read their address book again.
+ *
+ * Bump the revision whenever the disclosure's substance changes (what we collect,
+ * where it goes, what we keep) so previously-consented users re-consent. Cosmetic
+ * copy edits do not need a bump.
+ */
+const DISCLOSURE_REVISION: Partial<Record<PermType, number>> = {
+    contacts: 1,
+};
 
 let cache: Record<string, PermState> | null = null;
 let primerListener: PrimerListener | null = null;
@@ -95,6 +120,19 @@ const updateStateFor = async (type: PermType, patch: Partial<PermState>) => {
     const prev = all[type] || { softAskDismissCount: 0 };
     const next = { ...all, [type]: { ...prev, ...patch } };
     await persistState(next);
+};
+
+const isDisclosurePending = async (type: PermType): Promise<boolean> => {
+    const required = DISCLOSURE_REVISION[type];
+    if (!required) return false;
+    const state = await getStateFor(type);
+    return (state.disclosureAcceptedRevision || 0) < required;
+};
+
+const recordDisclosureAccepted = async (type: PermType): Promise<void> => {
+    const required = DISCLOSURE_REVISION[type];
+    if (!required) return;
+    await updateStateFor(type, { disclosureAcceptedRevision: required });
 };
 
 const checkNotifications = async (): Promise<Status> => {
@@ -203,12 +241,17 @@ const fireGrantedListeners = (type: PermType) => {
 
 const request = async (type: PermType, opts: RequestOptions): Promise<RequestResult> => {
     const native = await nativeCheck(type);
-    if (native === 'granted') {
+    const disclosurePending = await isDisclosurePending(type);
+
+    // An outstanding disclosure outranks an existing OS grant — see DISCLOSURE_REVISION.
+    if (native === 'granted' && !disclosurePending) {
         await updateStateFor(type, { lastStatus: 'granted' });
         opts.onGranted?.();
         fireGrantedListeners(type);
         return { status: 'granted', source: 'cached' };
     }
+    // Blocked short-circuits either way: the OS will not let us read the data, so there
+    // is nothing to disclose and no prompt that could change the outcome.
     if (native === 'blocked') {
         await updateStateFor(type, { lastStatus: 'blocked' });
         opts.onDenied?.('os');
@@ -219,7 +262,9 @@ const request = async (type: PermType, opts: RequestOptions): Promise<RequestRes
     const currentVersion = DeviceInfo.getVersion();
     const sameVersion = state.appVersionAtLastAsk === currentVersion;
 
-    if (sameVersion && (state.softAskDismissCount || 0) >= SOFT_ASK_CAP) {
+    // The soft-ask cap throttles nagging for a permission we do not have. It must never
+    // suppress a pending disclosure, or the feature could run on a stale consent.
+    if (!disclosurePending && sameVersion && (state.softAskDismissCount || 0) >= SOFT_ASK_CAP) {
         return { status: 'denied', source: 'cached' };
     }
 
@@ -242,6 +287,18 @@ const request = async (type: PermType, opts: RequestOptions): Promise<RequestRes
         return { status: 'denied', source: 'soft' };
     }
 
+    await recordDisclosureAccepted(type);
+
+    if (native === 'granted') {
+        // The OS permission was already held; the disclosure was the only thing
+        // outstanding, and the user just accepted it. Re-prompting the OS here would
+        // be a no-op dialog the user never sees.
+        await updateStateFor(type, { lastStatus: 'granted' });
+        opts.onGranted?.();
+        fireGrantedListeners(type);
+        return { status: 'granted', source: 'soft' };
+    }
+
     const status = await performOSRequest(type, opts.storePermissionsResponse || noopStore);
     await updateStateFor(type, {
         osAskedAt: Date.now(),
@@ -259,7 +316,7 @@ const request = async (type: PermType, opts: RequestOptions): Promise<RequestRes
 
 const requestIfAppropriate = async (type: PermType, opts: RequestOptions): Promise<void> => {
     const native = await nativeCheck(type);
-    if (native === 'granted') {
+    if (native === 'granted' && !(await isDisclosurePending(type))) {
         await updateStateFor(type, { lastStatus: 'granted' });
         opts.onGranted?.();
         fireGrantedListeners(type);

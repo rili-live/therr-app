@@ -20,7 +20,6 @@ export const configureTranslator = (translations: Record<string, Record<string, 
             return null;
         }
         const propertyArray = key.split('.');
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let translatedValue: any = translations[locale];
         propertyArray.forEach((property: string) => {
             if (!translatedValue || !translatedValue[property]) {
@@ -32,11 +31,10 @@ export const configureTranslator = (translations: Record<string, Record<string, 
 
         // Easter Eag
         if (propertyArray[0] === 'quoteOfTheDay') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const localeTranslations = translations[locale] as any;
             const totalQuotes = localeTranslations.dailyQuotes.length - 1;
             const index = Math.floor(Math.random() * totalQuotes);
-            return `${localeTranslations.dailyQuotes[index].quote} - ${localeTranslations.dailyQuotes[index].author}`; // eslint-disable-line max-len
+            return `${localeTranslations.dailyQuotes[index].quote} - ${localeTranslations.dailyQuotes[index].author}`;
         }
 
         if (translatedValue && typeof translatedValue === 'string' && typeof params === 'object' && params != null) {

@@ -14,6 +14,8 @@ import {
 } from 'therr-react/components';
 import { NotificationActions, SocketActions, MessageActions } from 'therr-react/redux/actions';
 import { UsersService } from 'therr-react/services';
+import { captureAttribution } from 'therr-react/utilities/attribution';
+import { getGa4Configs } from 'therr-react/utilities/analytics';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 import Header from './Header';
@@ -115,7 +117,17 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         initInterceptors(navigation.navigate, undefined, 300);
         startNetworkListener(store.dispatch);
 
-        ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKey);
+        // Empty only if every GA key is unset. react-ga4 throws on an empty
+        // array rather than no-opping, and this runs in componentDidMount.
+        const gaConfigs = getGa4Configs(globalConfig[process.env.NODE_ENV], 'web');
+        if (gaConfigs.length) {
+            ReactGA.initialize(gaConfigs);
+        }
+
+        // First-touch acquisition for this session. Must run on the initial
+        // mount, before the router replaces the landing URL — that URL is the
+        // only place the campaign tag exists.
+        captureAttribution('web');
 
         document.addEventListener('click', this.handleClick);
         this.setState({

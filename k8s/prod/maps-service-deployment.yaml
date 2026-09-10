@@ -5,8 +5,19 @@ metadata:
   namespace: default
 spec:
   replicas: 1
+  # Recreate tore down the old pod BEFORE the new one existed. At replicas: 1 that
+  # is a guaranteed zero-endpoint window on every deploy, and kube-proxy answers a
+  # ClusterIP with no endpoints by refusing the connection — so the gateway saw
+  # ECONNREFUSED on 7773 rather than a retryable timeout. maxUnavailable: 0 keeps
+  # the running pod serving until the replacement passes its readiness probe.
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  # A pod that answers /healthcheck once and then dies shouldn't retire the old one.
+  minReadySeconds: 15
+  progressDeadlineSeconds: 300
   selector:
     matchLabels:
       component: server-maps
@@ -18,6 +29,12 @@ spec:
         layer: services-internal
     spec:
       serviceAccountName: therr-k8s-service-account
+      # src/index.ts has no SIGTERM handler, so the process exits as soon as the
+      # signal lands. The preStop sleep is what buys the drain: it holds the
+      # container open while kube-proxy removes this pod from the Service, so no
+      # new requests arrive and in-flight ones finish. 30s leaves 15s of slack
+      # past the sleep.
+      terminationGracePeriodSeconds: 30
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -73,6 +90,13 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 2
+        # Endpoint removal and SIGTERM race each other. Sleeping here keeps the
+        # process serving while kube-proxy/ingress finish dropping this pod from
+        # rotation, so the gateway stops seeing connection-refused mid-deploy.
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 15"]
         env:
         - name: MAPS_SERVICE_API_PORT
           value: "7773"
@@ -154,6 +178,15 @@ spec:
           # Replace DB_PORT with the port the proxy should listen on
           - "--port=5432"
           - "--max-connections=20"
+
+          # This is a plain container, not a native sidecar, so it receives
+          # SIGTERM at the same instant the app container's preStop hook starts —
+          # and by default the proxy closes its listener immediately, which is the
+          # "accept tcp 127.0.0.1:5432: use of closed network connection" line in
+          # production logs. Outlast the app's preStop sleep while staying under
+          # terminationGracePeriodSeconds: 30. The proxy still exits early once
+          # its open connection count reaches zero.
+          - "--max-sigterm-delay=27s"
           - "therr-app:us-central1:therr-db-main-prod-14"
         securityContext:
           # The default Cloud SQL proxy image runs as the

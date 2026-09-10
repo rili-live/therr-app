@@ -4,16 +4,22 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
+import validateReactionMetrics from '../utilities/validateReactionMetrics';
+import pickReactionWriteFields from '../utilities/pickReactionWriteFields';
 
 // CREATE/UPDATE
 const createOrUpdateEventReaction = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate events on demand
     const {
         authorization,
         locale,
         userId,
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
+
+    const metricsError = validateReactionMetrics(req.body, { withRating: true });
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
+    }
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
@@ -26,9 +32,12 @@ const createOrUpdateEventReaction = (req, res) => {
                 userId,
                 eventId: req.params.eventId,
             }, {
-                ...req.body,
+                ...pickReactionWriteFields('event', req.body),
                 userLocale: locale,
-                userViewCount: existing[0].userViewCount + (req.body.userViewCount || 0),
+                // Number() is load-bearing: a JSON body may carry "1" as a string, and
+                // `9 + '1'` concatenates to '91' rather than adding to 10 — inflating the
+                // very total the bounds above exist to cap.
+                userViewCount: existing[0].userViewCount + Number(req.body.userViewCount || 0),
             })
                 .then(([eventReaction]) => {
                     const event = existing[0];
@@ -42,7 +51,7 @@ const createOrUpdateEventReaction = (req, res) => {
         return Store.eventReactions.create({
             userId,
             eventId: req.params.eventId,
-            ...req.body,
+            ...pickReactionWriteFields('event', req.body),
             userLocale: locale,
         }).then(([reaction]) => res.status(200).send(reaction));
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:EVENT_REACTIONS_ROUTES:ERROR' }));
@@ -50,12 +59,16 @@ const createOrUpdateEventReaction = (req, res) => {
 
 // CREATE/UPDATE
 const createOrUpdateMultiEventReactions = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate events on demand
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
     if (!userId) {
         return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
+    const metricsError = validateReactionMetrics(req.body, { withRating: true });
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
     }
 
     const { eventIds } = req.body;
@@ -66,8 +79,9 @@ const createOrUpdateMultiEventReactions = (req, res) => {
 
     const validEventIds = eventIds.filter((id) => !!id);
 
-    const params = { ...req.body };
-    delete params.eventIds;
+    // Allow-listed rather than `{ ...req.body }` minus deletes: `eventIds` is excluded by the
+    // allow-list, as is every server-derived column the spread used to carry through.
+    const params = pickReactionWriteFields('event', req.body);
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
@@ -108,7 +122,6 @@ const createOrUpdateMultiEventReactions = (req, res) => {
 };
 
 const createOrUpdateMultiUserReactions = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate events on demand
     const locale = req.headers['x-localecode'] || 'en-us';
 
     const { eventId, userIds } = req.body;
@@ -117,14 +130,22 @@ const createOrUpdateMultiUserReactions = (req, res) => {
         return handleHttpError({ res, message: 'eventId is required', statusCode: 400 });
     }
 
+    const metricsError = validateReactionMetrics(req.body, { withRating: true });
+    if (metricsError) {
+        return handleHttpError({ res, message: metricsError, statusCode: 400 });
+    }
+
     if (!userIds?.length) {
         return handleHttpError({ res, message: 'userIds is required', statusCode: 400 });
     }
 
     const validUserIds = userIds.filter((id) => !!id);
 
-    const params = { ...req.body };
-    delete params.userIds;
+    // Allow-listed rather than `{ ...req.body }` minus deletes. This route writes rows for *other*
+    // users (every member of the event's group), so an unfiltered spread let its caller set any
+    // column on someone else's reaction. `userIds` and `eventId` are excluded by the allow-list;
+    // `eventId` is applied explicitly per row below.
+    const params = pickReactionWriteFields('event', req.body);
 
     return Store.eventReactions.get({
         eventId,

@@ -20,6 +20,7 @@ const entry = {};
 utilities.forEach((utilityPath) => {
     if (utilityPath === 'constants/index'
         || utilityPath === 'config/index'
+        || utilityPath === 'content-ranking/index'
         || utilityPath === 'db/index'
         || utilityPath === 'db-server/index'
         || utilityPath === 'http/index'

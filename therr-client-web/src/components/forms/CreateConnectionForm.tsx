@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React from 'react';
 import { Alert, Stack } from '@mantine/core';
 import PhoneInput, { flags, isValidPhoneNumber } from 'react-phone-number-input';

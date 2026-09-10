@@ -6,10 +6,20 @@ import { AppRegistry } from 'react-native';
 import App from './main/App';
 import { name as appName } from './app.json';
 import configurePromiseRejections from './main/utilities/configurePromiseRejections';
-import { sendBackgroundNotification, wrapOnMessageReceived } from './main/utilities/pushNotifications';
+import { createAndroidNotificationChannels, sendBackgroundNotification, wrapOnMessageReceived } from './main/utilities/pushNotifications';
 import { getAndroidChannelFromClickActionId } from './main/constants';
 
 configurePromiseRejections();
+
+// Register the Android notification channels before anything can post to one.
+// Display notifications (push-notifications-service createNotificationMessage)
+// are rendered by the OS and name a channelId we never see in JS, so the channel
+// has to already exist or the notification lands on the FCM SDK's fallback
+// "Miscellaneous" channel at DEFAULT importance. Fire-and-forget: it resolves
+// long before a push can arrive, and createAndroidNotificationChannels swallows
+// its own errors. Runs here rather than in App.tsx so the background/headless
+// entry point is covered too.
+createAndroidNotificationChannels();
 
 
 /** Register background push notification handler */

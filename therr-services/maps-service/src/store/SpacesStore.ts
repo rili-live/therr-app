@@ -196,7 +196,7 @@ export default class SpacesStore {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
 
-            queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
+            queryString = queryString.andWhere((builder) => {
                 builder.where(conditions.filterBy, operator, query);
                 if (includePublicResults) {
                     builder.orWhere({ isPublic: true });
@@ -336,7 +336,7 @@ export default class SpacesStore {
 
         if ((params.filterBy && params.filterBy !== 'distance')) {
             if (params.filterBy === 'fromUserIds') {
-                queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
+                queryString = queryString.andWhere((builder) => {
                     builder.whereIn('fromUserId', fromUserIds);
                 });
             } else if (params.query != undefined) { // eslint-disable-line eqeqeq
@@ -402,7 +402,7 @@ export default class SpacesStore {
         if (conditions.filterBy !== 'isClaimPending') {
             firstWhere.isClaimPending = false; // hide pending claim requests
         }
-        const hasGeoCoordinates = conditions.longitude != null && conditions.latitude != null; // eslint-disable-line eqeqeq
+        const hasGeoCoordinates = conditions.longitude != null && conditions.latitude != null;
         const isUserIdFilter = conditions.filterBy === 'fromUserIds' && fromUserIds.length > 0;
 
         let queryString: any = knexBuilder
@@ -435,14 +435,14 @@ export default class SpacesStore {
             }
 
             if (conditions.filterBy === 'fromUserIds') {
-                queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
+                queryString = queryString.andWhere((builder) => {
                     builder.whereIn('fromUserId', fromUserIds);
                     if (includePublicResults) {
                         builder.orWhere({ isPublic: true });
                     }
                 });
             } else {
-                queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
+                queryString = queryString.andWhere((builder) => {
                     builder.where(conditions.filterBy, operator, query);
                     if (includePublicResults) {
                         builder.orWhere({ isPublic: true });
@@ -658,7 +658,6 @@ export default class SpacesStore {
             addressLocality: params.addressLocality,
             postalCode: params.postalCode,
             priceRange: params.priceRange,
-            // eslint-disable-next-line max-len
             geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${radius})::geometry, 4326)`),
         };
 

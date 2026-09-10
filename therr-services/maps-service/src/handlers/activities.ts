@@ -21,7 +21,6 @@ const getNearbyConnections = async (req, res) => {
         headers: req.headers,
     }, {
         method: 'get',
-        // eslint-disable-next-line max-len
         url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections/ranked?distanceMeters=${distanceOrDefault}`,
         headers: {
             authorization,

@@ -12,14 +12,39 @@ spec:
     email: "info@therr.com"
     privateKeySecretRef:
       name: letsencrypt-prod
+    # DNS-01, not HTTP-01.
+    #
+    # HTTP-01 proves domain control by serving a token over the ingress that
+    # public DNS already points at. That makes it impossible to issue a
+    # certificate for a cluster BEFORE cutting traffic to it -- the challenge
+    # would be routed to the currently-live cluster and fail. It is also
+    # unreliable behind Cloudflare's orange-cloud proxy.
+    #
+    # DNS-01 proves control by writing a TXT record in the therr.com zone via
+    # the Cloudflare API, so any cluster holding the API token can issue valid
+    # certificates regardless of where the A records currently point. This is
+    # what lets a green cluster hold real certs days before cutover.
+    #
+    # REQUIRED: secret `cloudflare-api-token` (key `api-token`) must exist in
+    # the `cert-manager` namespace of EVERY cluster this issuer is applied to.
+    # Note that issuer.yaml lives in k8s/prod/, and deploy.sh runs
+    # `kubectl apply -f k8s/prod` wholesale -- so this issuer lands on every
+    # cluster. A cluster missing the secret goes NotReady and silently stops
+    # renewing certificates; existing certs keep serving until they expire.
+    #
+    # Token scope: Zone -> DNS -> Edit, on the therr.com zone only.
+    #
+    # A single 'therr.com' dnsZone matches subdomains too -- cert-manager
+    # selects the most specific matching zone, so 'www.therr.com' and
+    # 'habits.therr.com' both resolve to this solver.
     solvers:
-    - http01:
-        ingress:
-          class: nginx
+    - dns01:
+        cloudflare:
+          apiTokenSecretRef:
+            name: cloudflare-api-token
+            key: api-token
       selector:
         dnsZones:
         - 'therr.com'
-        - '*.therr.com'
         # Whitelabel
         # - 'adsly.app'
-        # - '*.adsly.app'

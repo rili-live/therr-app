@@ -68,13 +68,18 @@ const BaseModal = ({
                 dismissable={dismissable}
                 style={[localStyles.container, containerStyle]}
             >
+                {/*
+                  * Must be a View, not a Fragment. Paper's Dialog clones its first child with a
+                  * `style` prop, and a Fragment accepts none — React warns "Invalid prop `style`
+                  * supplied to `React.Fragment`" and the style is dropped.
+                  */}
                 {headerText ? (
-                    <>
+                    <View style={localStyles.headerContainer}>
                         <Dialog.Title style={[localStyles.headerText, { color: therrTheme.colors.onSurface }]}>
                             {headerText}
                         </Dialog.Title>
                         <Divider />
-                    </>
+                    </View>
                 ) : null}
                 <Dialog.ScrollArea style={[localStyles.body, localStyles.transparentBorder]}>
                     <ScrollView>
@@ -103,6 +108,11 @@ const localStyles = StyleSheet.create({
         // Default width used when caller doesn't pass `width`.
         width: '85%',
         alignSelf: 'center',
+    },
+    headerContainer: {
+        // Cancels the `marginTop: 24` Paper injects into the first child. Header spacing is
+        // owned by `headerText.paddingTop`; the injected style is first in the array, so ours wins.
+        marginTop: 0,
     },
     headerText: {
         fontFamily: therrFontFamily,

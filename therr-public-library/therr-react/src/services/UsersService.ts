@@ -7,6 +7,7 @@ import {
     ISearchQuery,
     IUserState,
 } from '../types';
+import type { IUserAcquisition } from '../utilities/attribution';
 
 interface ILoginCredentials {
     userName: string;
@@ -18,13 +19,35 @@ interface ILogoutCredentials {
 }
 
 interface IRegisterCredentials {
-    firstName: string;
-    lastName: string;
+    // Email is the only universally required field. Names and username are collected during
+    // profile creation, and password is optional on the phone-first path below — the shape
+    // used to over-declare these as required, which no caller actually satisfied.
     email: string;
-    phoneNumber: string;
-    userName: string;
-    password: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    userName?: string;
+    password?: string;
+    settingsBirthdate?: string;
+    settingsLocale?: string;
     inviteCode?: string;
+    // Magic invite-link token: trusts the invited contact channel and
+    // auto-connects the user to the inviter on signup.
+    inviteToken?: string;
+    // Account type, when the sign-up flow collects it up-front. Only the phone-first path does
+    // today, and only for a number that already holds an account — the cap is one account per
+    // type, so the type can no longer be deferred to profile creation. Everyone else omits
+    // these and picks their type on the CreateProfile screen as before.
+    isBusinessAccount?: boolean;
+    isCreatorAccount?: boolean;
+    // Short-lived proof of phone ownership from POST /v1/phone/register/verify. When present,
+    // the account is created already phone-verified and `password` may be omitted.
+    phoneVerificationToken?: string;
+    // Where this signup came from — captured on first landing by
+    // `utilities/attribution` and written to `main.userAcquisition`. Advisory
+    // telemetry only: a malformed or absent value must never fail a
+    // registration, and nothing here may grant access.
+    userAcquisition?: IUserAcquisition;
 }
 
 export interface ISearchUsersArgs {
@@ -68,6 +91,12 @@ interface ICreateThoughtBody {
     locale: string;
     isPublic?: boolean;
     isRepost?: boolean;
+    /**
+     * Id of the thought being re-shared. The server derives `isRepost` from this, so sending
+     * `isRepost` alone creates an ordinary post. An empty `message` is a plain repost; a
+     * non-empty one is a quote repost.
+     */
+    repostThoughtId?: string;
     message: string;
     mediaIds?: string;
     mentionsIds?: string;
@@ -78,14 +107,27 @@ interface ICreateThoughtBody {
 interface IGetThoughtDetailsArgs {
     withUser?: boolean;
     withReplies?: boolean;
+    /**
+     * Attaches `thought.parent` (author + message snippet) when the thought is a reply, so the
+     * details view can show it belongs to a thread and link back up to it.
+     */
+    withParent?: boolean;
 }
 
 interface IDeleteThoughtsBody {
     ids: string[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ISearchThoughtsArgs {}
+
+export interface ICreateCheckoutSessionArgs {
+    /** One of the dashboard's plan slugs: basic | advanced | pro. */
+    plan: string;
+    billingPeriod?: 'monthly' | 'annual';
+    /** Same-origin path to return to if the buyer abandons checkout. */
+    cancelPath?: string;
+    userAcquisition?: IUserAcquisition;
+}
 
 export interface ISocialSyncs {
     syncs: {
@@ -139,6 +181,13 @@ class UsersService {
     getByUserName = (userName: string) => axios({
         method: 'get',
         url: `/users-service/users/by-username/${userName}`,
+    });
+
+    // Resolves a magic invite-link token to pre-fill data (email/phone/inviter).
+    // Public/pre-auth — used by the invite-landing page before the user has an account.
+    getInviteByToken = (token: string) => axios({
+        method: 'get',
+        url: `/users-service/users/invites/${token}`,
     });
 
     getMe = () => axios({
@@ -300,6 +349,23 @@ class UsersService {
         url: `/users-service/users/achievements/${userId}/public`,
     });
 
+    // Leaderboards
+    getLeaderboard = (args?: {
+        scope?: 'global' | 'connections';
+        period?: 'week' | 'allTime';
+        limit?: number;
+    }) => {
+        const queryParams = [
+            `scope=${args?.scope || 'global'}`,
+            `period=${args?.period || 'week'}`,
+            ...(args?.limit ? [`limit=${args.limit}`] : []),
+        ].join('&');
+        return axios({
+            method: 'get',
+            url: `/users-service/users/leaderboards?${queryParams}`,
+        });
+    };
+
     requestRewardsExchange = (amount: number, provider: string) => axios({
         method: 'post',
         url: '/users-service/rewards',
@@ -400,6 +466,21 @@ class UsersService {
     activateSubscription = (sessionId: string) => axios({
         method: 'post',
         url: `/users-service/payments/checkout/sessions/${sessionId}`,
+    });
+
+    /**
+     * Start a Stripe Checkout Session and get back the URL to send the browser
+     * to. Navigate in the *same tab*: the returning `/payment-complete` page is
+     * where the GA4 `purchase` event fires, and a new tab is a new GA4 session
+     * with no memory of the campaign that produced the sale.
+     *
+     * `userAcquisition` is copied into the session's Stripe metadata so the
+     * campaign survives independently of the browser session.
+     */
+    createCheckoutSession = (data: ICreateCheckoutSessionArgs) => axios({
+        method: 'post',
+        url: '/users-service/payments/checkout/sessions',
+        data,
     });
 
     createCustomerPortalSession = (returnUrl?: string) => axios({

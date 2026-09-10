@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-sheet';
+import { SheetManager, SheetProps } from 'react-native-actions-sheet';
+import ActionSheet from './BaseActionSheet';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import spacingStyles from '../../styles/layouts/spacing';
 import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';

@@ -8,7 +8,7 @@ import { IConnection } from './connection';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
-// eslint-disable-next-line no-restricted-syntax -- this is the sanctioned canonical reference
+// eslint-disable-next-line therr/no-direct-brand-scoped-table -- this is the sanctioned canonical reference
 export const DIRECT_MESSAGES_TABLE_NAME = 'main.directMessages';
 
 export interface ICreateDirectMessageParams {
@@ -184,6 +184,30 @@ export default class DirectMessagesStore extends BrandScopedStore {
     createDirectMessage(brand: BrandValue, params: ICreateDirectMessageParams) {
         const queryString = this.scopedInsert(brand, { ...params })
             .returning(['id', 'updatedAt'])
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    /**
+     * Deletes every direct message the user sent OR received, across all brands.
+     *
+     * Deliberately unscoped by brand. This only runs from the account-deletion fan-out,
+     * by which point the identity row in main.users is already gone — scoping to the
+     * requesting brand would strand the same user's messages under every other brand
+     * they belonged to, which is the gap this closes rather than a case to preserve.
+     *
+     * Both sides of a thread are removed: a DM has no meaning to the surviving party
+     * once the counterpart account no longer exists, and leaving the received half
+     * behind would keep the deleted user's message content in the database.
+     */
+    deleteByUserId(userId: string) {
+        const queryString = knexBuilder
+            .from(DIRECT_MESSAGES_TABLE_NAME)
+            .where({ fromUserId: userId })
+            .orWhere({ toUserId: userId })
+            .delete()
+            .returning('id')
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);

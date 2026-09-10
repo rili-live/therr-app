@@ -1,7 +1,6 @@
 
 import React from 'react';
 import {
-    Image as RNImage,
     StyleProp,
     StyleSheet,
     View,
@@ -15,12 +14,16 @@ import missingImageStorefront from '../../assets/missing-image-storefront.json';
 import missingImageIdea from '../../assets/missing-image-idea.json';
 import missingImageMusic from '../../assets/missing-image-music.json';
 import missingImageNature from '../../assets/missing-image-nature.json';
-
-const placeholderMedia = require('../../assets/placeholder-content-media.png');
+import BrandedMediaPlaceholder from './BrandedMediaPlaceholder';
+import { ITherrThemeColors } from '../../styles/themes';
 
 interface IMissingImagePlaceholder {
     area: any;
     themeViewArea: any;
+    theme: {
+        styles: any;
+        colors: ITherrThemeColors;
+    };
     placeholderMediaType?: string;
     dimensions?: {
         height: number;
@@ -32,6 +35,7 @@ interface IMissingImagePlaceholder {
 const MissingImagePlaceholder = ({
     area,
     themeViewArea,
+    theme,
     placeholderMediaType,
     dimensions,
 }: IMissingImagePlaceholder) => {
@@ -65,7 +69,12 @@ const MissingImagePlaceholder = ({
         }
 
         return (
-            <View style={[themeViewArea.styles.cardImage, dimensions ? dimensions : {}, localStyles.container]}>
+            <View style={[
+                themeViewArea.styles.cardImage,
+                dimensions ? dimensions : {},
+                localStyles.container,
+                { backgroundColor: theme.colors.surfaceAlt },
+            ]}>
                 <LottieView
                     source={missingImage}
                     resizeMode="contain"
@@ -78,12 +87,18 @@ const MissingImagePlaceholder = ({
         );
     }
 
+    // Uncategorized content used to fall back to a generic grey "broken image"
+    // PNG, which read as a load failure rather than as "no photo yet". The
+    // branded placeholder is theme-derived, so it also picks up any niche
+    // brand's palette without shipping a per-brand asset.
     return (
         <View style={[themeViewArea.styles.cardImage, dimensions ? dimensions : {}, localStyles.container]}>
-            <RNImage
-                source={placeholderMedia}
-                style={localStyles.fallbackImage}
-                resizeMode="cover"
+            <BrandedMediaPlaceholder
+                seed={area?.id}
+                areaType={area?.areaType}
+                width={dimensions?.width}
+                height={dimensions?.height}
+                theme={theme}
             />
         </View>
     );
@@ -92,7 +107,6 @@ const MissingImagePlaceholder = ({
 const localStyles = StyleSheet.create({
     container: {
         overflow: 'hidden',
-        backgroundColor: '#f0f0f0',
     },
     lottie: {
         flex: 1,
@@ -100,10 +114,6 @@ const localStyles = StyleSheet.create({
     lottieEvent: {
         flex: 1,
         margin: '5%',
-    },
-    fallbackImage: {
-        flex: 1,
-        width: '100%',
     },
 });
 

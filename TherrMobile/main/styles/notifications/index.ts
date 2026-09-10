@@ -1,123 +1,222 @@
 import { StyleSheet } from 'react-native';
+import Color from 'color';
 import { IMobileThemeName } from 'therr-react/types';
-import { getTheme } from '../themes';
+import { getTheme, ITherrTheme } from '../themes';
+import { therrFontFamily } from '../font';
+import { fontSizes, fontWeights, lineHeights } from '../text';
+import { space } from '../layouts/spacing';
+import { radius } from '../radii';
+import { shadowSm } from '../elevation';
+import { buttonMenuHeight } from '../navigation/buttonMenu';
 
-const messageContainerStyle: any = {
-    display: 'flex',
-    flex: 1,
-    flexDirection: 'column',
+// Width of the colored rail down the left edge of an unread row. Unread state
+// is carried by three signals at once — the rail, a tinted surface and a dot —
+// because the previous single signal (a near-white background tint) was
+// invisible in the light theme, and color alone is not an accessible cue.
+const UNREAD_RAIL_WIDTH = 3;
+const ICON_SIZE = 40;
+
+// A 44dp square is the smallest comfortable touch target on both platforms
+// (iOS HIG 44pt / Material 48dp with the surrounding row padding).
+export const READ_TOGGLE_HIT_SIZE = 44;
+export const NOTIFICATION_ICON_SIZE = ICON_SIZE;
+
+const tint = (color: string, alpha: number) => new Color(color).alpha(alpha).string();
+
+const getRowStyle = (theme: ITherrTheme): any => ({
+    flexDirection: 'row',
     alignItems: 'flex-start',
-    justifyContent: 'center',
-};
-
-const notificationStyle: any = {
-    textAlign: 'left',
-    fontSize: 16,
-};
-
-const notifications = StyleSheet.create({
-    container: {
-        marginTop: 20,
-    },
-    // FlashList only accepts padding/background-color in contentContainerStyle;
-    // mirror the legacy `container` margin as top padding instead.
-    flashListContentContainer: {
-        paddingTop: 20,
-    },
-    markAllReadContainer: {
-        alignItems: 'flex-end',
-        paddingRight: 14,
-        paddingBottom: 14,
-    },
-    firstChildNotification: {
-        borderTopWidth: 1,
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    otherChildNotification: {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
+    paddingVertical: space.lg,
+    paddingRight: space.md,
+    paddingLeft: space.lg,
+    borderLeftWidth: UNREAD_RAIL_WIDTH,
+    borderLeftColor: 'transparent',
+    backgroundColor: theme.colors.surface,
 });
 
-const getRootStyle: any = (theme) => ({
-    display: 'flex',
-    marginLeft: 14,
-    marginRight: 14,
-    padding: 10,
-    paddingBottom: 12,
-    paddingTop: 12,
-    borderRadius: 0,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.accentAlt,
+const notifications = StyleSheet.create({
+    // Clears the floating bottom nav, which previously overlapped the last row.
+    listContentContainer: {
+        paddingBottom: buttonMenuHeight + space.lg,
+    },
 });
 
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
+
     const styles = StyleSheet.create({
-        rootUnread: {
-            ...getRootStyle(therrTheme),
-            backgroundColor: therrTheme.colors.backgroundGray,
-        },
-        rootRead: {
-            ...getRootStyle(therrTheme),
-            backgroundColor: 'transparent',
-        },
-        actionsContainer: {
-            display: 'flex',
+        // ------------------------------------------------------------------
+        // List header
+        // ------------------------------------------------------------------
+        listHeader: {
             flexDirection: 'row',
-            justifyContent: 'flex-end',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: space.lg,
+            paddingTop: space.lg,
+            paddingBottom: space.md,
         },
-        actionButton: {
-            marginLeft: 5,
+        listHeaderTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.bold,
+            letterSpacing: 0.8,
+            textTransform: 'uppercase',
+            color: therrTheme.colors.onSurfaceMuted,
         },
-        actionButtonText: {
-            color: therrTheme.colors.textWhite,
-            paddingLeft: 5,
+        // A tonal chip rather than a bare text link — it reads as an action and
+        // gives the tap target real bounds.
+        markAllReadButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            minHeight: 36,
+            paddingHorizontal: space.md,
+            borderRadius: radius.pill,
+            backgroundColor: tint(therrTheme.colors.brand, 0.12),
         },
-        messageContainerUnread: {
-            ...messageContainerStyle,
-            paddingRight: 35,
+        markAllReadButtonPressed: {
+            backgroundColor: tint(therrTheme.colors.brand, 0.22),
         },
-        messageContainerRead: {
-            ...messageContainerStyle,
-            paddingRight: 35,
+        markAllReadText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.brand,
+            marginLeft: space.xs,
         },
-        dateContainer: {
-            marginTop: 6,
+
+        // ------------------------------------------------------------------
+        // Row
+        // ------------------------------------------------------------------
+        rootRead: {
+            ...getRowStyle(therrTheme),
         },
-        dateText: {
-            color: therrTheme.colors.textGray,
+        rootUnread: {
+            ...getRowStyle(therrTheme),
+            borderLeftColor: therrTheme.colors.brand,
+            backgroundColor: tint(therrTheme.colors.brand, 0.06),
         },
-        unread: {
-            ...notificationStyle,
-            color: therrTheme.colors.brandingBlueGreen,
+        // Inset hairline: starts past the icon column so the list reads as
+        // grouped rows instead of a stack of full-width rules.
+        rowDivider: {
+            height: StyleSheet.hairlineWidth,
+            marginLeft: space.lg + ICON_SIZE + space.md,
+            backgroundColor: therrTheme.colors.accentDivider,
         },
-        read: {
-            ...notificationStyle,
-            color: therrTheme.colors.textWhite,
+
+        iconContainer: {
+            width: ICON_SIZE,
+            height: ICON_SIZE,
+            borderRadius: radius.circle,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: space.md,
+        },
+
+        messageContainer: {
+            flex: 1,
+            paddingRight: space.sm,
+        },
+        messageRead: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            lineHeight: fontSizes.md * lineHeights.normal,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        messageUnread: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            lineHeight: fontSizes.md * lineHeights.normal,
+            color: therrTheme.colors.onSurface,
+            fontWeight: fontWeights.medium,
+        },
+        // Highlighted spans stay in the brand hue and lean on weight rather
+        // than the old hyperlink-blue, which read as a broken link.
+        highlightRead: {
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
         },
         highlightUnread: {
-            ...notificationStyle,
-            color: therrTheme.colors.hyperlink,
-            fontWeight: 'bold' as const,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.brand,
         },
-        highlightRead: {
-            ...notificationStyle,
-            color: therrTheme.colors.hyperlink,
-            fontWeight: 'bold' as const,
+
+        metaRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: space.xs,
         },
-        iconContainerStyle: {
-            position: 'absolute',
-            right: 10,
+        dateText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        unreadDot: {
+            width: 6,
+            height: 6,
+            borderRadius: radius.circle,
+            backgroundColor: therrTheme.colors.brand,
+            marginRight: space.sm,
+        },
+
+        // ------------------------------------------------------------------
+        // Inline connection-request actions
+        // ------------------------------------------------------------------
+        actionsContainer: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            marginTop: space.md,
+        },
+        actionButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            minHeight: 36,
+            paddingHorizontal: space.md,
+            borderRadius: radius.pill,
+            marginRight: space.sm,
+            marginTop: space.xs,
+        },
+        actionButtonPrimary: {
+            backgroundColor: therrTheme.colors.brand,
+            ...shadowSm,
+        },
+        actionButtonSecondary: {
+            backgroundColor: 'transparent',
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
+        },
+        actionButtonPressed: {
+            opacity: 0.75,
+        },
+        actionButtonPrimaryText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onBrand,
+            marginLeft: space.xs,
+        },
+        actionButtonSecondaryText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginLeft: space.xs,
+        },
+
+        // ------------------------------------------------------------------
+        // Read / unread toggle
+        // ------------------------------------------------------------------
+        readToggle: {
+            width: READ_TOGGLE_HIT_SIZE,
+            height: READ_TOGGLE_HIT_SIZE,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
         iconUnread: {
-            color: therrTheme.colors.brandingBlueGreen,
+            color: therrTheme.colors.brand,
         },
         iconRead: {
-            color: therrTheme.colors.accent1Fade,
+            color: therrTheme.colors.onSurfaceMuted,
         },
     });
 
@@ -130,4 +229,5 @@ const buildStyles = (themeName?: IMobileThemeName) => {
 export {
     buildStyles,
     notifications,
+    tint,
 };

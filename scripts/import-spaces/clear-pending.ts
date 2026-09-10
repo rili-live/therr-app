@@ -120,7 +120,7 @@ interface IWhereClause {
 }
 
 function buildWhereClause(args: ICliArgs): IWhereClause {
-  const conditions: string[] = [`"isClaimPending" = true`];
+  const conditions: string[] = ['"isClaimPending" = true'];
   const params: (string | number | string[])[] = [];
   let idx = 1;
 

@@ -26,9 +26,9 @@ describe('createOrUpdateAchievement — brand gating', () => {
     });
 
     it('no-ops on a niche brand (HABITS) for a Therr-themed class and never touches the achievements store', async () => {
-        // Per `achievementClassesByBrand`, no current class is allow-listed for HABITS.
-        // Until HABITS-specific classes ship (per HABITS_PROJECT_BRIEF.md), every
-        // achievement attempt under HABITS short-circuits before any DB read/write.
+        // `explorer` is content-coupled to Therr and stays outside the HABITS
+        // allow-list even after the habit ladder was enabled — a HABITS user's
+        // Therr-shaped activity still short-circuits before any DB read/write.
         const getStub = sinon.stub(Store.userAchievements, 'get');
         const updateAndCreateStub = sinon.stub(Store.userAchievements, 'updateAndCreateConsecutive');
 
@@ -75,17 +75,19 @@ describe('createOrUpdateAchievement — brand gating', () => {
         expect(updateAndCreateStub.called).to.equal(false);
     });
 
-    it('no-ops on HABITS for `consistency` (formerly allow-listed; pulled out per a55bce90d)', async () => {
-        // `consistency` is content-coupled to Therr's check-in surface today;
-        // HABITS will ship its own streak-themed class later. Until then the
-        // class must not produce a HABITS-stamped userAchievement row or
-        // ACHIEVEMENT_COMPLETED notification. When HABITS-native classes land
-        // and HABITS gains its own allow-list, flip this back to a positive
-        // assertion (and re-add a comment in `achievementClassesByBrand`).
-        const getStub = sinon.stub(Store.userAchievements, 'get');
-        const updateAndCreateStub = sinon.stub(Store.userAchievements, 'updateAndCreateConsecutive');
+    it('proceeds on HABITS for `consistency` (habit ladder allow-listed in the 2026-07 leaderboards release)', async () => {
+        // The interim "HABITS earns nothing" policy from a55bce90d ended when the
+        // habit-themed ladder + socialite + weeklyChampion were allow-listed for
+        // HABITS. Streak/consistency awards from habit check-ins now persist rows
+        // stamped with the habits brand.
+        const getStub = sinon.stub(Store.userAchievements, 'get').resolves([]);
+        const updateAndCreateStub = sinon.stub(Store.userAchievements, 'updateAndCreateConsecutive').resolves({
+            created: [],
+            updated: [],
+            action: 'incomplete',
+        } as any);
 
-        const result = await createOrUpdateAchievement({
+        await createOrUpdateAchievement({
             authorization: 'Bearer test',
             'x-userid': 'user-1',
             'x-brand-variation': BrandVariations.HABITS,
@@ -97,22 +99,21 @@ describe('createOrUpdateAchievement — brand gating', () => {
             progressCount: 1,
         });
 
-        expect(getStub.called, 'consistency is not in HABITS allow-list — must no-op').to.equal(false);
-        expect(updateAndCreateStub.called).to.equal(false);
-        expect(result).to.deep.equal({ created: [], updated: [], action: 'incomplete' });
+        expect(getStub.calledOnce, 'consistency is HABITS-enabled — must proceed').to.equal(true);
+        expect(getStub.firstCall.args[0]).to.equal(BrandVariations.HABITS);
+        expect(updateAndCreateStub.calledOnce).to.equal(true);
+        expect(updateAndCreateStub.firstCall.args[0]).to.equal(BrandVariations.HABITS);
     });
 
-    it('no-ops on HABITS for `socialite` (pact-invite virality currently uncredited)', async () => {
-        // The pact-invite flow calls into createOrUpdateAchievement with `socialite`
-        // for HABITS users. With the current allow-list policy ("HABITS earns
-        // nothing"), those calls quietly no-op — invite credit is deferred until
-        // HABITS gets its own achievement ladder OR `socialite` is explicitly
-        // re-added to the HABITS allow-list. This test pins the current policy;
-        // when the product decision changes, flip back to a positive assertion.
-        const getStub = sinon.stub(Store.userAchievements, 'get');
-        const updateAndCreateStub = sinon.stub(Store.userAchievements, 'updateAndCreateConsecutive');
+    it('proceeds on HABITS for `socialite` (pact-invite virality credited again)', async () => {
+        const getStub = sinon.stub(Store.userAchievements, 'get').resolves([]);
+        const updateAndCreateStub = sinon.stub(Store.userAchievements, 'updateAndCreateConsecutive').resolves({
+            created: [],
+            updated: [],
+            action: 'incomplete',
+        } as any);
 
-        const result = await createOrUpdateAchievement({
+        await createOrUpdateAchievement({
             authorization: 'Bearer test',
             'x-userid': 'user-1',
             'x-brand-variation': BrandVariations.HABITS,
@@ -124,9 +125,9 @@ describe('createOrUpdateAchievement — brand gating', () => {
             progressCount: 1,
         });
 
-        expect(getStub.called, 'socialite is not in HABITS allow-list — must no-op').to.equal(false);
-        expect(updateAndCreateStub.called).to.equal(false);
-        expect(result).to.deep.equal({ created: [], updated: [], action: 'incomplete' });
+        expect(getStub.calledOnce, 'socialite is HABITS-enabled — must proceed').to.equal(true);
+        expect(updateAndCreateStub.calledOnce).to.equal(true);
+        expect(updateAndCreateStub.firstCall.args[0]).to.equal(BrandVariations.HABITS);
     });
 
     it('proceeds normally on the THERR brand', async () => {

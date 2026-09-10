@@ -51,8 +51,17 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
                 style={spacingStyles.flexOne}
                 onPress={() => goToViewUser(connectionDetails.id)}
             >
-                <ListItem.Title>{connectionDetails.userName}</ListItem.Title>
-                <ListItem.Subtitle>{getConnectionSubtitle(connectionDetails) || translate('pages.userProfile.anonymous')}</ListItem.Subtitle>
+                <ListItem.Title numberOfLines={1}>{connectionDetails.userName}</ListItem.Title>
+                {/*
+                  * Clamped because the Messages tab reuses this row with a ~100 character
+                  * message preview as its subtitle. Unclamped it wraps to however many lines
+                  * the message needs, so every row is a different height — which is what
+                  * FlashList's recycler cannot estimate, and what shows up as uneven gaps
+                  * between items.
+                  */}
+                <ListItem.Subtitle numberOfLines={2}>
+                    {getConnectionSubtitle(connectionDetails) || translate('pages.userProfile.anonymous')}
+                </ListItem.Subtitle>
             </Pressable>
             <Pressable onPress={() => onConnectionPress(connectionDetails)}>
                 {

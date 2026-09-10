@@ -168,6 +168,121 @@ This requires Play Console support intervention and can take 1–2 weeks.
 
 ---
 
+## EAS (Expo Application Services) — HABITS Android CI/CD
+
+The `niche/HABITS-main` branch triggers an EAS cloud build + Google Play submit
+via CircleCI (`habits_mobile_release` workflow in `.circleci/config.yml`).
+EAS runs the actual Android build on Expo's infrastructure, so the CI runner
+only needs `eas-cli` installed — no local Android SDK required.
+
+> The `habits_mobile_release` workflow and its `eas_build_habits_android` job are
+> defined only on the `niche/HABITS-*` branches, not on `general`. CircleCI reads
+> `.circleci/config.yml` from the branch it is building, and the only branch that
+> triggers this workflow is `niche/HABITS-main` — so the job belongs there, alongside
+> the brand identity it builds. `general` carries `eas_build_therr_android` instead.
+
+### One-time setup (do this before the first CI build)
+
+1. **Create an Expo account** at https://expo.dev if you don't have one.
+
+2. **Link the project to EAS** from the `TherrMobile` directory:
+   ```bash
+   cd TherrMobile
+   npm install -g eas-cli
+   eas login
+   eas init --id <new-project-id>   # or let eas init auto-create the project
+   ```
+   After `eas init`, commit the updated `app.json` — it will have the real
+   `projectId` replacing `REPLACE_WITH_EAS_PROJECT_ID`, and `owner` set to
+   your Expo username.
+
+3. **Upload the HABITS keystore to EAS credentials**:
+   ```bash
+   eas credentials
+   ```
+   Select **Android** → **habits-internal** → "Upload an existing keystore",
+   then provide `habits-upload.keystore`
+   (see keystore section below). EAS stores it encrypted; the CI job will
+   download it at build time via `credentialsSource: "remote"` in `eas.json`.
+
+4. **Store the Google Maps API key as an EAS secret**:
+   ```bash
+   eas env:create --scope project --name GOOGLE_APIS_ANDROID_KEY \
+     --value <key> --visibility secret
+   ```
+   Use the Android-restricted Maps SDK key for `com.therr.habits`.
+   (On `eas-cli` < 16 this command was `eas secret:create`; it is now
+   `eas env:create`. Verify which environment(s) — `production`/`preview` —
+   the secret should target; `--scope project` applies to all by default.)
+
+5. **Store the Google Play service account key as an EAS secret**:
+   ```bash
+   eas env:create --scope project --name EXPO_GOOGLE_PLAY_SERVICE_ACCOUNT_KEY_JSON \
+     --type file --value ./path-to-service-account.json --visibility secret
+   ```
+   This is the service account JSON from the Google Play Console that has
+   "Release manager" or "Release" permissions on the `com.therr.habits` listing.
+   EAS Submit reads it automatically when `EXPO_GOOGLE_PLAY_SERVICE_ACCOUNT_KEY_JSON`
+   is set.
+
+   > Google Play prerequisite: the `com.therr.habits` app listing must already
+   > exist in Play Console, and **one AAB must have been uploaded to the
+   > Internal track manually** (Google rejects the first API-driven submit until
+   > a build has been promoted by hand). Create the service account under
+   > Play Console → Setup → API access and grant it "Release manager".
+
+6. **Add `EXPO_TOKEN` to CircleCI project environment variables**:
+   - Generate a token at https://expo.dev/settings/access-tokens
+   - In CircleCI: Project Settings → Environment Variables → `EXPO_TOKEN`
+
+7. **Merge the pipeline onto the trigger branch**. The CI workflow only fires
+   on `niche/HABITS-main`, so `eas.json`, the `eas_build_habits_android` job,
+   and the linked `app.json` (with the real `projectId`) must be merged down
+   from `niche/HABITS-general`:
+   ```bash
+   git checkout niche/HABITS-main && git pull --ff-only
+   git merge niche/HABITS-general
+   git push origin niche/HABITS-main   # this push triggers habits_mobile_release
+   ```
+   Do **not** push `niche/HABITS-main` until steps 1–6 are complete — the
+   pushed build/submit will fail at auth without `EXPO_TOKEN` and the EAS
+   secrets in place.
+
+---
+
+### CircleCI env var: `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`
+
+**What it is:** The full JSON key for a Google Play service account, used by
+`TherrMobile/_scripts/populate-play-release-notes.mjs` (run in the
+`eas_build_therr_android` CircleCI job) to push the user-facing "What's new"
+release notes to the Play internal track after `eas build --auto-submit`.
+EAS Submit uploads the AAB but does not manage release notes, so this closes
+that gap.
+
+**Required scope:** The service account must have the **Release manager**
+permission on the Therr Play listing (Play Console → Users & permissions).
+This is the *same* service account already configured on EAS for
+`--auto-submit`; you are reusing its key JSON, just also storing it in
+CircleCI.
+
+**Why gitignored / secret:** The key can publish releases and edit the store
+listing. Treat as high-sensitivity. It is stored as a CircleCI project-level
+environment variable (paste the entire JSON as the value), **not** committed.
+
+**Setup:**
+1. CircleCI → Project Settings → Environment Variables → Add Variable.
+2. Name: `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`; Value: the full service-account
+   JSON (single line is fine).
+3. If unset, the CI step logs a skip and the pipeline still succeeds — release
+   notes simply won't be updated until the var is added.
+
+**Regenerate from upstream if lost:**
+Google Cloud Console → project `therr-app` → IAM & Admin → Service Accounts →
+the Play publisher account → Keys → Add key → JSON. Then re-grant it access in
+Play Console if needed.
+
+---
+
 ### `TherrMobile/android/app/habits-upload.keystore` (planned, not yet created)
 
 **What it will be:** Android upload signing key for the Friends with Habits

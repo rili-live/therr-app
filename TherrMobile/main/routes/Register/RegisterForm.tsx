@@ -10,6 +10,7 @@ import translator from '../../utilities/translator';
 import { addMargins } from '../../styles';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
+import PasswordInput from '../../components/Input/PasswordInput';
 import PasswordRequirements from '../../components/Input/PasswordRequirements';
 import { ITherrThemeColors, ITherrThemeColorVariations, isDarkTheme } from '../../styles/themes';
 import { ISSOUserDetails } from '../Login/LoginForm';
@@ -18,16 +19,23 @@ import OrDivider from '../../components/Input/OrDivider';
 import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
 import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
 import spacingStyles from '../../styles/layouts/spacing';
+import { getLoginErrorCopy, getRegistrationErrorCopy } from '../../utilities/authErrors';
 
 // Regular component props
 interface IRegisterFormProps {
     alert?: string;
     onSuccess: Function;
+    /** Omitted when the phone path isn't offered (e.g. arriving via a magic invite link). */
+    onSwitchToPhoneSignup?: () => void;
     register: Function;
     login: Function;
     title?: string;
     toggleEULA: Function;
     userSettings: any;
+    // Magic invite-link context (set when arriving via /invite/link/:token).
+    inviteToken?: string;
+    prefillEmail?: string;
+    inviterName?: string;
     theme: {
         styles: any;
     };
@@ -61,13 +69,15 @@ export class RegisterFormComponent extends React.Component<
     IRegisterFormProps,
     IRegisterFormState
 > {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: IRegisterFormProps) {
         super(props);
 
         this.state = {
-            inputs: {},
+            inputs: {
+                email: props.prefillEmail || '',
+            },
             passwordErrorMessage: '',
             prevRegisterError: '',
             isSubmitting: false,
@@ -78,6 +88,16 @@ export class RegisterFormComponent extends React.Component<
         // Read from `this.props` so labels re-translate when the pre-login locale changes.
         this.translate = (key: string, params: any) =>
             translator(this.props.userSettings?.locale || 'en-us', key, params);
+    }
+
+    componentDidUpdate(prevProps: IRegisterFormProps) {
+        // The invite email resolves asynchronously in the parent; seed the field
+        // once it arrives, without clobbering anything the user has typed.
+        if (prevProps.prefillEmail !== this.props.prefillEmail
+            && this.props.prefillEmail
+            && !this.state.inputs.email) {
+            this.onInputChange('email', this.props.prefillEmail);
+        }
     }
 
     isFormValid = () => {
@@ -95,6 +115,19 @@ export class RegisterFormComponent extends React.Component<
             || isSubmitting;
     };
 
+    /**
+     * Both halves of an error, every time: an inline alert that stays put, plus a toast for
+     * the cases where the alert is scrolled off screen. The form used to show only one or the
+     * other depending on which check failed.
+     */
+    showRegisterError = (message: string, title = this.translate('alertTitles.registrationError')) => {
+        this.setState({ prevRegisterError: message });
+        showToast.error({
+            text1: title,
+            text2: message,
+        });
+    };
+
     getMaxBirthdate = () => new Date();
 
     getDefaultBirthdate = () => {
@@ -107,10 +140,9 @@ export class RegisterFormComponent extends React.Component<
         this.setState({ isBirthdatePickerOpen: false });
 
         if (!isValidSignupAge(date)) {
-            showToast.error({
-                text1: this.translate('alertTitles.registrationError'),
-                text2: this.translate('forms.registerForm.errorMessages.birthdateTooYoung', { minAge: `${MINIMUM_SIGNUP_AGE}` }),
-            });
+            this.showRegisterError(
+                this.translate('forms.registerForm.errorMessages.birthdateTooYoung', { minAge: `${MINIMUM_SIGNUP_AGE}` }),
+            );
             return;
         }
 
@@ -129,59 +161,46 @@ export class RegisterFormComponent extends React.Component<
         }
 
         if (!inputs.email) {
-            showToast.error({
-                text1: this.translate('alertTitles.registrationError'),
-                text2: this.translate('forms.registerForm.missingEmail'),
-            });
+            this.showRegisterError(this.translate('forms.registerForm.missingEmail'));
             return;
         }
         if (!inputs.password) {
-            showToast.error({
-                text1: this.translate('alertTitles.registrationError'),
-                text2: this.translate('forms.registerForm.missingPassword'),
-            });
+            this.showRegisterError(this.translate('forms.registerForm.missingPassword'));
             return;
         }
         if (!inputs.repeatPassword) {
-            showToast.error({
-                text1: this.translate('alertTitles.registrationError'),
-                text2: this.translate('forms.registerForm.missingRepeatPassword'),
-            });
+            this.showRegisterError(this.translate('forms.registerForm.missingRepeatPassword'));
             return;
         }
         if (!this.isFormValid()) {
-            showToast.error({
-                text1: this.translate('alertTitles.registrationError'),
-                text2: this.translate('forms.registerForm.errorMessages.repeatPassword'),
-            });
+            this.showRegisterError(this.translate('forms.registerForm.errorMessages.repeatPassword'));
             return;
         }
         if (!PasswordRegex.test(inputs.password)) {
-            this.setState({
-                prevRegisterError: this.translate(
-                    'forms.registerForm.errorMessages.passwordInsecure'
-                ),
-            });
+            this.showRegisterError(this.translate('forms.registerForm.errorMessages.passwordInsecure'));
             return;
         }
         if (!inputs.settingsBirthdate || !isValidSignupAge(inputs.settingsBirthdate)) {
-            showToast.error({
-                text1: this.translate('alertTitles.registrationError'),
-                text2: this.translate('forms.registerForm.errorMessages.birthdateTooYoung', { minAge: `${MINIMUM_SIGNUP_AGE}` }),
-            });
+            this.showRegisterError(
+                this.translate('forms.registerForm.errorMessages.birthdateTooYoung', { minAge: `${MINIMUM_SIGNUP_AGE}` }),
+            );
             return;
         }
 
-        const creds = {
+        const creds: any = {
             ...inputs,
             // Persist the language chosen on the pre-login switcher to the new account so the
             // user's verification email and first session match their selected locale.
             settingsLocale: this.props.userSettings?.locale || 'en-us',
         };
         delete creds.repeatPassword;
+        if (this.props.inviteToken) {
+            creds.inviteToken = this.props.inviteToken;
+        }
 
         this.setState({
             isSubmitting: true,
+            prevRegisterError: '',
         });
 
         this.props
@@ -190,26 +209,10 @@ export class RegisterFormComponent extends React.Component<
                 this.props.onSuccess();
             })
             .catch((error: any) => {
-                if (
-                    error.statusCode === 400
-                ) {
-                    this.setState({
-                        prevRegisterError: `${error.message}${
-                            error.parameters
-                                ? ' error (' + error.parameters.toString() + ')'
-                                : ''
-                        }`,
-                    });
-                } else {
-                    this.setState({
-                        prevRegisterError: this.translate(
-                            'forms.registerForm.backendErrorMessage'
-                        ),
-                    });
-                }
-                this.setState({
-                    isSubmitting: false,
-                });
+                const { title, message } = getRegistrationErrorCopy(error, this.translate);
+
+                this.setState({ isSubmitting: false });
+                this.showRegisterError(message, title);
             });
     };
 
@@ -267,32 +270,20 @@ export class RegisterFormComponent extends React.Component<
 
         this.setState({
             isSubmitting: true,
+            prevRegisterError: '',
         });
         this.props
             .login(loginArgs, {
                 googleSSOIdToken: ssoUserDetails?.idToken,
             })
+            // Same mapping the sign-in screen uses. This used to be a hand-rolled copy that had
+            // already drifted from it: no toast, and no branch at all for a rejection that was
+            // neither 4xx nor 5xx, which left SSO failures here completely silent.
             .catch((error: any) => {
-                if (
-                    error.statusCode === 400 ||
-                    error.statusCode === 401 ||
-                    error.statusCode === 404
-                ) {
-                    this.setState({
-                        prevRegisterError: this.translate(
-                            'forms.loginForm.invalidUsernamePassword'
-                        ),
-                    });
-                } else if (error.statusCode >= 500) {
-                    this.setState({
-                        prevRegisterError: this.translate(
-                            'forms.loginForm.backendErrorMessage'
-                        ),
-                    });
-                }
-                this.setState({
-                    isSubmitting: false,
-                });
+                const { title, message } = getLoginErrorCopy(error, this.translate);
+
+                this.setState({ isSubmitting: false });
+                this.showRegisterError(message, title);
             });
     };
 
@@ -302,22 +293,23 @@ export class RegisterFormComponent extends React.Component<
         });
 
         if (err?.message?.includes('The user canceled the sign in request')) {
+            // The user's own choice, not an error to report back.
             return;
         } else if (err?.message?.includes('com.apple.AuthenticationServices.AuthorizationError')) {
-            showToast.error({
-                text1: this.translate('alertTitles.errorWithAppleSSO'),
-                text2: this.translate('alertMessages.errorWithAppleSSO'),
-            });
+            this.showRegisterError(
+                this.translate('alertMessages.errorWithAppleSSO'),
+                this.translate('alertTitles.errorWithAppleSSO'),
+            );
         } else if (err?.message?.includes('RNGoogleSignInError')) {
-            showToast.error({
-                text1: this.translate('alertTitles.errorWithGoogleSSO'),
-                text2: this.translate('alertMessages.errorWithGoogleSSO'),
-            });
+            this.showRegisterError(
+                this.translate('alertMessages.errorWithGoogleSSO'),
+                this.translate('alertTitles.errorWithGoogleSSO'),
+            );
         } else {
-            showToast.error({
-                text1: this.translate('alertTitles.backendErrorMessage'),
-                text2: this.translate('alertMessages.backendErrorMessage'),
-            });
+            this.showRegisterError(
+                this.translate('alertMessages.backendErrorMessage'),
+                this.translate('alertTitles.backendErrorMessage'),
+            );
         }
     };
 
@@ -358,6 +350,15 @@ export class RegisterFormComponent extends React.Component<
 
         return (
             <>
+                {
+                    this.props.inviterName
+                        ? (
+                            <Text style={[theme.styles.sectionDescription, { textAlign: 'center', marginBottom: 16 }]}>
+                                {this.translate('forms.registerForm.subtitles.invitedBy', { inviterName: this.props.inviterName })}
+                            </Text>
+                        )
+                        : null
+                }
                 <RoundInput
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -407,9 +408,8 @@ export class RegisterFormComponent extends React.Component<
                         <PasswordRequirements translate={this.translate} password={this.state.inputs.password} themeForms={themeForms} />
                 }
                 {/* TODO: RMOBILE-26: Centralize password requirements */}
-                <RoundInput
-                    autoCapitalize="none"
-                    autoCorrect={false}
+                <PasswordInput
+                    variant="round"
                     placeholder={this.translate(
                         'forms.registerForm.labels.password'
                     )}
@@ -417,20 +417,14 @@ export class RegisterFormComponent extends React.Component<
                     onChangeText={(text) =>
                         this.onInputChange('password', text)
                     }
-                    secureTextEntry={true}
-                    rightIcon={
-                        <TherrIcon
-                            name="key"
-                            size={26}
-                            color={themeAlerts.colors.placeholderTextColorAlt}
-                        />
-                    }
+                    translate={this.translate}
+                    iconColor={themeAlerts.colors.placeholderTextColorAlt}
                     themeForms={themeForms}
                     containerStyle={{ marginBottom: 14 }}
+                    testID="register-password"
                 />
-                <RoundInput
-                    autoCapitalize="none"
-                    autoCorrect={false}
+                <PasswordInput
+                    variant="round"
                     placeholder={this.translate(
                         'forms.registerForm.labels.repeatPassword'
 
@@ -440,17 +434,12 @@ export class RegisterFormComponent extends React.Component<
                         this.onInputChange('repeatPassword', text)
                     }
                     errorMessage={passwordErrorMessage}
-                    secureTextEntry={true}
                     onSubmitEditing={this.onSubmit}
-                    rightIcon={
-                        <TherrIcon
-                            name="secure"
-                            size={26}
-                            color={themeAlerts.colors.placeholderTextColorAlt}
-                        />
-                    }
+                    translate={this.translate}
+                    iconColor={themeAlerts.colors.placeholderTextColorAlt}
                     themeForms={themeForms}
                     containerStyle={{ marginBottom: 14 }}
+                    testID="register-repeat-password"
                 />
                 <Pressable onPress={() => this.setState({ isBirthdatePickerOpen: true })}>
                     <View pointerEvents="none">
@@ -530,6 +519,20 @@ export class RegisterFormComponent extends React.Component<
                         themeForms={themeForms}
                         containerStyle={spacingStyles.marginVertXLg}
                     />
+                    {
+                        this.props.onSwitchToPhoneSignup
+                            ? (
+                                <View style={themeForms.styles.moreLinksContainer}>
+                                    <Button
+                                        type="clear"
+                                        titleStyle={themeForms.styles.buttonLink}
+                                        title={this.translate('forms.phoneSignupForm.buttons.usePhoneInstead')}
+                                        onPress={this.props.onSwitchToPhoneSignup}
+                                    />
+                                </View>
+                            )
+                            : null
+                    }
                     <View style={themeAuthForm.styles.submitButtonContainer}>
                         <GoogleSignInButton
                             disabled={this.state.isSubmitting}

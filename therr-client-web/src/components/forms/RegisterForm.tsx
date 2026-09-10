@@ -20,6 +20,12 @@ interface IRegisterFormProps {
   onGoogleRegister?: Function;
   title: string;
   inviteCode?: string;
+  // Magic invite-link context. prefillEmail seeds the email field, inviteToken
+  // is forwarded to registration (trusts the invited channel + auto-connects),
+  // and inviterName drives the "invited by" header.
+  prefillEmail?: string;
+  inviteToken?: string;
+  inviterName?: string;
   locale: string;
   translate: (key: string, params?: any) => string;
 }
@@ -41,7 +47,7 @@ export class RegisterFormComponent extends React.Component<
 
         this.state = {
             inputs: {
-                email: '',
+                email: props.prefillEmail || '',
                 password: '',
                 repeatPassword: '',
                 settingsBirthdate: '',
@@ -73,6 +79,9 @@ export class RegisterFormComponent extends React.Component<
         if (!this.isFormDisabled()) {
             const creds = { ...this.state.inputs };
             delete creds.repeatPassword;
+            if (this.props.inviteToken) {
+                creds.inviteToken = this.props.inviteToken;
+            }
             this.props.register(creds);
         }
     };
@@ -121,6 +130,17 @@ export class RegisterFormComponent extends React.Component<
                 <div className="flex fill max-wide-30">
                     <Stack gap="sm">
                         <h1 className="text-center">{this.props.title}</h1>
+                        {
+                            this.props.inviterName
+                            && (
+                                <h4 className="mb-1 text-center">
+                                    {this.props.translate(
+                                        'components.registerForm.text.invitedBy',
+                                        { inviterName: this.props.inviterName },
+                                    )}
+                                </h4>
+                            )
+                        }
                         {
                             inviteCode
                             && (

@@ -103,7 +103,7 @@ function parseArgs(): ICliArgs {
 // ── Main ─────────────────────────────────────────────────────────────────────
 async function main() {
   const args = parseArgs();
-  console.log(`\nImport Spaces CLI`);
+  console.log('\nImport Spaces CLI');
   console.log(`  Source:   ${args.source}`);
   console.log(`  City:     ${args.city}`);
   console.log(`  Category: ${args.category}`);

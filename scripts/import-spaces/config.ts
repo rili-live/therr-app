@@ -29,7 +29,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'IL',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 41.6445, west: -87.9401, north: 42.0230, east: -87.5240 },
+    bbox: {
+      south: 41.6445, west: -87.9401, north: 42.0230, east: -87.5240,
+    },
   },
   naperville: {
     name: 'Naperville',
@@ -38,7 +40,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'IL',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 41.5458, west: -88.4443, north: 41.9458, east: -88.0443 },
+    bbox: {
+      south: 41.5458, west: -88.4443, north: 41.9458, east: -88.0443,
+    },
   },
   detroit: {
     name: 'Detroit',
@@ -47,7 +51,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'MI',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 41.3290, west: -84.0452, north: 42.9290, east: -82.0452 },
+    bbox: {
+      south: 41.3290, west: -84.0452, north: 42.9290, east: -82.0452,
+    },
   },
   'los-angeles': {
     name: 'Los Angeles',
@@ -56,7 +62,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'CA',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 33.7037, west: -118.6682, north: 34.3373, east: -118.1553 },
+    bbox: {
+      south: 33.7037, west: -118.6682, north: 34.3373, east: -118.1553,
+    },
   },
   seattle: {
     name: 'Seattle',
@@ -65,7 +73,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'WA',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 47.4919, west: -122.4360, north: 47.7341, east: -122.2360 },
+    bbox: {
+      south: 47.4919, west: -122.4360, north: 47.7341, east: -122.2360,
+    },
   },
   portland: {
     name: 'Portland',
@@ -74,7 +84,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'OR',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 45.4321, west: -122.8367, north: 45.6528, east: -122.4720 },
+    bbox: {
+      south: 45.4321, west: -122.8367, north: 45.6528, east: -122.4720,
+    },
   },
   eugene: {
     name: 'Eugene',
@@ -83,7 +95,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'OR',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 43.9888, west: -123.2087, north: 44.0918, east: -123.0366 },
+    bbox: {
+      south: 43.9888, west: -123.2087, north: 44.0918, east: -123.0366,
+    },
   },
   indianapolis: {
     name: 'Indianapolis',
@@ -92,7 +106,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'IN',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 39.6318, west: -86.3285, north: 39.9260, east: -85.9538 },
+    bbox: {
+      south: 39.6318, west: -86.3285, north: 39.9260, east: -85.9538,
+    },
   },
   'new-york': {
     name: 'New York',
@@ -101,7 +117,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'NY',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 40.4774, west: -74.2591, north: 40.9176, east: -73.7004 },
+    bbox: {
+      south: 40.4774, west: -74.2591, north: 40.9176, east: -73.7004,
+    },
   },
   // ── United States (Spanish-speaking) ────────────────────────────────────
   miami: {
@@ -111,7 +129,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'FL',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 25.7090, west: -80.3200, north: 25.8560, east: -80.1390 },
+    bbox: {
+      south: 25.7090, west: -80.3200, north: 25.8560, east: -80.1390,
+    },
   },
   'san-antonio': {
     name: 'San Antonio',
@@ -120,7 +140,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'TX',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 29.2866, west: -98.7506, north: 29.6516, east: -98.2896 },
+    bbox: {
+      south: 29.2866, west: -98.7506, north: 29.6516, east: -98.2896,
+    },
   },
   houston: {
     name: 'Houston',
@@ -129,7 +151,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'TX',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 29.5233, west: -95.7880, north: 30.1105, east: -95.0144 },
+    bbox: {
+      south: 29.5233, west: -95.7880, north: 30.1105, east: -95.0144,
+    },
   },
   'el-paso': {
     name: 'El Paso',
@@ -138,7 +162,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'TX',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 31.6200, west: -106.6350, north: 31.9660, east: -106.2060 },
+    bbox: {
+      south: 31.6200, west: -106.6350, north: 31.9660, east: -106.2060,
+    },
   },
   dallas: {
     name: 'Dallas',
@@ -147,7 +173,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'TX',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 32.6200, west: -96.9990, north: 33.0237, east: -96.4637 },
+    bbox: {
+      south: 32.6200, west: -96.9990, north: 33.0237, east: -96.4637,
+    },
   },
   phoenix: {
     name: 'Phoenix',
@@ -156,7 +184,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'AZ',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 33.2900, west: -112.3240, north: 33.8950, east: -111.9260 },
+    bbox: {
+      south: 33.2900, west: -112.3240, north: 33.8950, east: -111.9260,
+    },
   },
   philadelphia: {
     name: 'Philadelphia',
@@ -165,7 +195,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'PA',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 39.8670, west: -75.2803, north: 40.1379, east: -74.9557 },
+    bbox: {
+      south: 39.8670, west: -75.2803, north: 40.1379, east: -74.9557,
+    },
   },
   'san-francisco': {
     name: 'San Francisco',
@@ -174,7 +206,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'CA',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 37.7034, west: -122.5270, north: 37.8324, east: -122.3482 },
+    bbox: {
+      south: 37.7034, west: -122.5270, north: 37.8324, east: -122.3482,
+    },
   },
   denver: {
     name: 'Denver',
@@ -183,7 +217,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'CO',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 39.6143, west: -105.1099, north: 39.9142, east: -104.7002 },
+    bbox: {
+      south: 39.6143, west: -105.1099, north: 39.9142, east: -104.7002,
+    },
   },
   atlanta: {
     name: 'Atlanta',
@@ -192,7 +228,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'GA',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 33.6490, west: -84.5516, north: 33.8869, east: -84.2898 },
+    bbox: {
+      south: 33.6490, west: -84.5516, north: 33.8869, east: -84.2898,
+    },
   },
   // ── United States (lesser-known / fast-growing) ──────────────────────────
   boise: {
@@ -202,7 +240,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'ID',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 43.5300, west: -116.3600, north: 43.7200, east: -116.1100 },
+    bbox: {
+      south: 43.5300, west: -116.3600, north: 43.7200, east: -116.1100,
+    },
   },
   huntsville: {
     name: 'Huntsville',
@@ -211,7 +251,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'AL',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 34.6000, west: -86.7000, north: 34.7500, east: -86.5000 },
+    bbox: {
+      south: 34.6000, west: -86.7000, north: 34.7500, east: -86.5000,
+    },
   },
   spokane: {
     name: 'Spokane',
@@ -220,7 +262,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'WA',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 47.5800, west: -117.5500, north: 47.7800, east: -117.2800 },
+    bbox: {
+      south: 47.5800, west: -117.5500, north: 47.7800, east: -117.2800,
+    },
   },
   'salt-lake-city': {
     name: 'Salt Lake City',
@@ -229,7 +273,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'UT',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 40.6800, west: -112.1000, north: 40.8100, east: -111.8200 },
+    bbox: {
+      south: 40.6800, west: -112.1000, north: 40.8100, east: -111.8200,
+    },
   },
   richmond: {
     name: 'Richmond',
@@ -238,7 +284,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'VA',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 37.4800, west: -77.5700, north: 37.6000, east: -77.3800 },
+    bbox: {
+      south: 37.4800, west: -77.5700, north: 37.6000, east: -77.3800,
+    },
   },
   chattanooga: {
     name: 'Chattanooga',
@@ -247,7 +295,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'TN',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 34.9700, west: -85.4000, north: 35.1200, east: -85.1800 },
+    bbox: {
+      south: 34.9700, west: -85.4000, north: 35.1200, east: -85.1800,
+    },
   },
   'des-moines': {
     name: 'Des Moines',
@@ -256,7 +306,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'IA',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 41.5400, west: -93.7100, north: 41.6900, east: -93.5000 },
+    bbox: {
+      south: 41.5400, west: -93.7100, north: 41.6900, east: -93.5000,
+    },
   },
   greenville: {
     name: 'Greenville',
@@ -265,7 +317,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'SC',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 34.7700, west: -82.4800, north: 34.8900, east: -82.3000 },
+    bbox: {
+      south: 34.7700, west: -82.4800, north: 34.8900, east: -82.3000,
+    },
   },
   'fort-collins': {
     name: 'Fort Collins',
@@ -274,7 +328,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'CO',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 40.4900, west: -105.1700, north: 40.6500, east: -105.0000 },
+    bbox: {
+      south: 40.4900, west: -105.1700, north: 40.6500, east: -105.0000,
+    },
   },
   bozeman: {
     name: 'Bozeman',
@@ -283,7 +339,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'MT',
     country: 'United States',
     countryCode: 'US',
-    bbox: { south: 45.6100, west: -111.1200, north: 45.7200, east: -110.9200 },
+    bbox: {
+      south: 45.6100, west: -111.1200, north: 45.7200, east: -110.9200,
+    },
   },
   // ── Mexico ───────────────────────────────────────────────────────────────
   'mexico-city': {
@@ -293,7 +351,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'CDMX',
     country: 'Mexico',
     countryCode: 'MX',
-    bbox: { south: 19.1887, west: -99.3500, north: 19.5928, east: -98.9603 },
+    bbox: {
+      south: 19.1887, west: -99.3500, north: 19.5928, east: -98.9603,
+    },
   },
   guadalajara: {
     name: 'Guadalajara',
@@ -302,7 +362,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'JAL',
     country: 'Mexico',
     countryCode: 'MX',
-    bbox: { south: 20.5800, west: -103.4500, north: 20.7600, east: -103.2500 },
+    bbox: {
+      south: 20.5800, west: -103.4500, north: 20.7600, east: -103.2500,
+    },
   },
   monterrey: {
     name: 'Monterrey',
@@ -311,7 +373,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'NL',
     country: 'Mexico',
     countryCode: 'MX',
-    bbox: { south: 25.5700, west: -100.4500, north: 25.8200, east: -100.2000 },
+    bbox: {
+      south: 25.5700, west: -100.4500, north: 25.8200, east: -100.2000,
+    },
   },
   // ── Canada (French-speaking) ─────────────────────────────────────────────
   montreal: {
@@ -321,7 +385,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'QC',
     country: 'Canada',
     countryCode: 'CA',
-    bbox: { south: 45.4100, west: -73.9742, north: 45.7047, east: -73.4742 },
+    bbox: {
+      south: 45.4100, west: -73.9742, north: 45.7047, east: -73.4742,
+    },
   },
   'quebec-city': {
     name: 'Quebec City',
@@ -330,7 +396,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'QC',
     country: 'Canada',
     countryCode: 'CA',
-    bbox: { south: 46.7500, west: -71.3500, north: 46.9200, east: -71.1500 },
+    bbox: {
+      south: 46.7500, west: -71.3500, north: 46.9200, east: -71.1500,
+    },
   },
   gatineau: {
     name: 'Gatineau',
@@ -339,7 +407,9 @@ export const CITIES: Record<string, ICityConfig> = {
     regionCode: 'QC',
     country: 'Canada',
     countryCode: 'CA',
-    bbox: { south: 45.4200, west: -75.8500, north: 45.5300, east: -75.5700 },
+    bbox: {
+      south: 45.4200, west: -75.8500, north: 45.5300, east: -75.5700,
+    },
   },
 };
 

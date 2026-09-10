@@ -3,7 +3,6 @@ import { passthroughAndLogErrors } from './utils';
 
 const getMe = (accessToken) => axios({
     method: 'get',
-    // eslint-disable-next-line max-len
     url: `https://graph.facebook.com/v18.0/me?fields=id,first_name,last_name,email&access_token=${accessToken}`,
 }).catch((err) => ({
     data: {
@@ -16,7 +15,6 @@ const getMe = (accessToken) => axios({
  */
 const getMyAccounts = (accessToken) => axios({
     method: 'get',
-    // eslint-disable-next-line max-len
     url: `https://graph.facebook.com/v18.0/me/accounts?access_token=${accessToken}`,
 }).catch((err) => ({
     data: {

@@ -35,8 +35,26 @@ export interface IBaseInputProps extends TextInputProps {
     inputStyle?: any;
     label?: string;
     labelStyle?: any;
+    /**
+     * Forwarded to the underlying Paper TextInput, which exposes focus/blur/clear.
+     * A plain `ref` can't do this — BaseInput is a class component, so `ref` resolves
+     * to the BaseInput instance rather than the text input.
+     */
+    inputRef?: React.Ref<any>;
     rightIcon?: React.ReactNode;
     leftIcon?: React.ReactNode;
+    /**
+     * Paper adornments, forwarded to the underlying TextInput untouched (they land in
+     * `textInputProps`, which is spread last and so wins over `rightIcon`/`leftIcon`).
+     *
+     * Use these — not `rightIcon`/`leftIcon` — for anything that must actually appear.
+     * Paper only renders an adornment whose element type is `TextInput.Icon` or
+     * `TextInput.Affix`; `getAdornmentConfig` assigns any other element a config entry with
+     * no type, which renders nothing. The `rightIcon`/`leftIcon` props below wrap their node
+     * in a plain `<View>`, so what they pass is dropped on the floor.
+     */
+    right?: React.ReactNode;
+    left?: React.ReactNode;
     rightIconContainerStyle?: any;
     leftIconContainerStyle?: any;
     errorMessage?: string;
@@ -73,6 +91,7 @@ export class BaseInput extends React.Component<IBaseInputProps, any> {
             inputStyle,
             label,
             labelStyle: _labelStyle,
+            inputRef,
             rightIcon,
             leftIcon,
             rightIconContainerStyle: _rightIconContainerStyle,
@@ -153,6 +172,7 @@ export class BaseInput extends React.Component<IBaseInputProps, any> {
         return (
             <View style={containerStyle ?? variantContainerStyle}>
                 <PaperTextInput
+                    ref={inputRef}
                     mode={mode}
                     label={label}
                     cursorColor={themeForms.colors.selectionColor as unknown as string}

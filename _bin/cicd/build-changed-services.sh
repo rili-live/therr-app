@@ -7,40 +7,43 @@ set -e
 source ./_bin/lib/colorize.sh
 source ./_bin/lib/has_diff_changes.sh
 
+# Next branch down the promotion chain — see resolve_diff_base.
+DIFF_BASE=$(resolve_diff_base)
+
 NODE_VERSION=${NODE_VERSION:-"24.12.0"}
 
 HAS_GLOBAL_CONFIG_FILE_CHANGES=false
 HAS_ANY_LIBRARY_CHANGES=false
 HAS_UTILITIES_LIBRARY_CHANGES=false
 
-if has_diff_changes general "global-config.js"; then
+if has_diff_changes "$DIFF_BASE" "global-config.js"; then
   HAS_GLOBAL_CONFIG_FILE_CHANGES=true
 fi
 
-if has_diff_changes general "therr-public-library/therr-styles" || \
-  has_diff_changes general "therr-public-library/therr-js-utilities" || \
-  has_diff_changes general "therr-public-library/therr-react"; then
+if has_diff_changes "$DIFF_BASE" "therr-public-library/therr-styles" || \
+  has_diff_changes "$DIFF_BASE" "therr-public-library/therr-js-utilities" || \
+  has_diff_changes "$DIFF_BASE" "therr-public-library/therr-react"; then
   HAS_ANY_LIBRARY_CHANGES=true
 fi
 
-if has_diff_changes general "therr-public-library/therr-js-utilities"; then
+if has_diff_changes "$DIFF_BASE" "therr-public-library/therr-js-utilities"; then
   HAS_UTILITIES_LIBRARY_CHANGES=true
 fi
 
 should_build_web_app()
 {
-  has_diff_changes general "therr-client-web" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
+  has_diff_changes "$DIFF_BASE" "therr-client-web" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
 should_build_web_app_dashboard()
 {
-  has_diff_changes general "therr-client-web-dashboard" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
+  has_diff_changes "$DIFF_BASE" "therr-client-web-dashboard" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
 should_build_service()
 {
   SERVICE_DIR=$1
-  has_diff_changes general $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
+  has_diff_changes "$DIFF_BASE" $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
 SERVICES_BUILT=0

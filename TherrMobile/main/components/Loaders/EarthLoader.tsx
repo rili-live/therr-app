@@ -26,7 +26,7 @@ export default ({ visible, speed }) => {
 
 const localStyles = StyleSheet.create({
     overlay: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         backgroundColor: OVERLAY_LIGHT,
         alignItems: 'center',
         justifyContent: 'center',

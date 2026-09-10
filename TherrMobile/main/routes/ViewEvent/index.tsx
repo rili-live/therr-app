@@ -8,7 +8,7 @@ import {
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button as PaperButton, Dialog, Portal, Switch, Text as PaperText, TextInput as PaperTextInput } from 'react-native-paper';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView, useKeyboardState } from 'react-native-keyboard-controller';
 import { IContentState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { ReactionsService } from 'therr-react/services';
@@ -123,6 +123,11 @@ const ViewEvent = ({
 
     // Refs
     const scrollViewRef = useRef<any>(null);
+
+    // Keyboard. The RSVP dialog holds a guest-count input, and nothing in React Native Paper
+    // moves a dialog for the keyboard — under edge-to-edge (API 36) the window does not resize
+    // either, so the input and the save button sat behind it.
+    const keyboardHeight = useKeyboardState((state) => state.height);
 
     // Themes
     const theme = buildStyles(user.settings?.mobileThemeName);
@@ -377,6 +382,7 @@ const ViewEvent = ({
                                 isSuperUser: eventUserIsSuperUser,
                             }}
                             areaMedia={eventMedia}
+                            placeholderMediaType="autoplay"
                             theme={theme}
                             themeForms={themeForms}
                             themeViewArea={themeArea}
@@ -435,10 +441,19 @@ const ViewEvent = ({
 
             {/* RSVP Modal */}
             <Portal>
+                {/*
+                  * Paper centers a dialog in its full-screen wrapper, and centering accounts for
+                  * the child's margins — so a bottom margin of one keyboard height lifts the
+                  * dialog by half of it, which is exactly enough to clear the keyboard whenever
+                  * the dialog is shorter than the space above it. Preferred over absolute
+                  * positioning, which would have to net out the wrapper's own safe-area inset.
+                  */}
                 <Dialog
                     visible={isAttendingModalVisible}
                     onDismiss={() => setIsAttendingModalVisible(false)}
-                    style={localStyles.rsvpDialog}
+                    style={keyboardHeight > 0
+                        ? [localStyles.rsvpDialog, { marginBottom: keyboardHeight }]
+                        : localStyles.rsvpDialog}
                 >
                     <Dialog.Title>
                         {translate('forms.editEvent.modal.attendingModal.title')}

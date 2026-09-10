@@ -344,7 +344,7 @@ const UserDisplayHeader = ({
                             buttonStyle={themeForms.styles.buttonPrimarySmall}
                             titleStyle={[themeForms.styles.buttonTitleSmall, spacingStyles.padRtSm]}
                             title={translate('user.profile.buttons.editProfile')}
-                            onPress={() => navigation.navigate('Settings')}
+                            onPress={() => navigation.navigate('Settings', { scrollToSection: 'userProfile' })}
                             icon={
                                 <TherrIcon
                                     name="edit"

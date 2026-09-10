@@ -10,6 +10,7 @@ import { Image } from '../../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import RNFB from 'react-native-blob-util';
 import { showToast } from '../../utilities/toasts';
+import { recordPositiveSignal } from '../../utilities/appReviewPrompt';
 import { IUserState, IContentState } from 'therr-react/types';
 import { ReactionActions, MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
@@ -665,6 +666,11 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     };
 
     showSharePrompt = () => {
+        // Every successful post path funnels through here, which makes it the one place to
+        // count "the user published something" toward the app-review prompt. Fire-and-forget:
+        // a storage failure must not affect the post that just succeeded.
+        recordPositiveSignal('momentShared').catch((err) => console.log('APP_REVIEW_SIGNAL_ERROR', err));
+
         this.setState({
             isSharePromptVisible: true,
         });

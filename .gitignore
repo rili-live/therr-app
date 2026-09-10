@@ -4,6 +4,9 @@ context/transcripts/
 # Logs
 logs
 *.log
+
+# Production incident digests (redacted, but may contain residual context — never commit)
+.prod-debug/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -101,3 +104,9 @@ bugreport-sdk*
 # memsearch vector DB and transcript captures (machine-local, not shared)
 context/transcripts/
 .memsearch/
+
+# Per-service deploy plan, written by _bin/cicd/deploy.sh for run-migrations.sh
+.deploy-plan.tsv
+
+# Tags built in this job, written by _bin/cicd/build.sh for publish.sh
+.build-manifest.tsv

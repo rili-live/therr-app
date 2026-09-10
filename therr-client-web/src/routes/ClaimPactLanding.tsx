@@ -1,24 +1,40 @@
 import * as React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Stack } from '@mantine/core';
+import ReactGA from 'react-ga4';
 import useTranslation from '../hooks/useTranslation';
 
-const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=app.therrmobile';
-const APP_STORE_URL = 'https://apps.apple.com/us/app/therr/id1569988763?platform=iphone';
+// Friends with Habits applicationId — NOT the Therr app. Sending a pact
+// invitee to the Therr listing would install an app that cannot claim the
+// pact. (No HABITS iOS app exists yet; re-add the App Store badge with the
+// HABITS bundle once it ships.)
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.therr.habits';
 
 const ClaimPactLanding: React.FC = () => {
     const { t: translate } = useTranslation();
     const { token } = useParams<{ token: string }>();
-    const [isMobile, setIsMobile] = React.useState(false);
 
     React.useEffect(() => {
         document.title = `Friends with Habits | ${translate('pages.claimPactLanding.title')}`;
-
-        if (typeof window !== 'undefined' && window.navigator) {
-            const ua = window.navigator.userAgent.toLowerCase();
-            setIsMobile(ua.indexOf('android') > -1 || ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1);
-        }
     }, [translate]);
+
+    // The HABITS claim flow, which is a separate funnel from the B2B space
+    // claim: an invitee lands here from a pact invite and has to leave the web
+    // entirely to finish. The store click is therefore the last thing this
+    // property can observe, and the gap between the two events is the whole
+    // drop-off — measured once here rather than inferred from install counts.
+    React.useEffect(() => {
+        ReactGA.event('pact_claim_landing_view', {
+            hasToken: !!token,
+        });
+    }, [token]);
+
+    const onStoreClick = () => {
+        ReactGA.event('pact_claim_store_click', {
+            hasToken: !!token,
+            store: 'play',
+        });
+    };
 
     return (
         <div id="page_claim_pact_landing" className="flex-box space-evenly center row wrap-reverse">
@@ -37,30 +53,18 @@ const ClaimPactLanding: React.FC = () => {
                             {translate('pages.claimPactLanding.instructions')}
                         </p>
 
-                        {isMobile && (
-                            <div className="flex-box row space-evenly" style={{ gap: '1rem' }}>
-                                <a href={APP_STORE_URL} target="_blank" rel="noreferrer">
-                                    <img
-                                        src="/assets/images/apple-store-download-button.svg"
-                                        alt="Download Friends with Habits on the App Store"
-                                        className="max-100"
-                                        width="150"
-                                        height="50"
-                                        loading="lazy"
-                                    />
-                                </a>
-                                <a href={PLAY_STORE_URL} target="_blank" rel="noreferrer">
-                                    <img
-                                        src="/assets/images/play-store-download-button.svg"
-                                        alt="Download Friends with Habits on Google Play"
-                                        className="max-100"
-                                        width="150"
-                                        height="50"
-                                        loading="lazy"
-                                    />
-                                </a>
-                            </div>
-                        )}
+                        <div className="flex-box row space-evenly" style={{ gap: '1rem' }}>
+                            <a href={PLAY_STORE_URL} target="_blank" rel="noreferrer" onClick={onStoreClick}>
+                                <img
+                                    src="/assets/images/play-store-download-button.svg"
+                                    alt="Download Friends with Habits on Google Play"
+                                    className="max-100"
+                                    width="150"
+                                    height="50"
+                                    loading="lazy"
+                                />
+                            </a>
+                        </div>
 
                         {token && (
                             <p className="text-center" style={{ wordBreak: 'break-all' }}>

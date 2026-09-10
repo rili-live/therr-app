@@ -30,6 +30,25 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         text: {
             paddingBottom: 5,
         },
+        textEmphasis: {
+            fontWeight: '700',
+            paddingBottom: 10,
+        },
+        textLink: {
+            color: therrTheme.colors.primary3,
+            textDecorationLine: 'underline',
+            paddingTop: 8,
+        },
+        // The dialog container centers its children, which would shrink the scroll area
+        // to the width of its longest line; the explicit full width keeps the disclosure
+        // text left-aligned and justified against the dialog edges.
+        scrollArea: {
+            width: '100%',
+            paddingHorizontal: 16,
+        },
+        scrollContent: {
+            paddingVertical: 4,
+        },
     });
 
     return ({

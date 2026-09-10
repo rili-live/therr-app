@@ -167,10 +167,15 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         }
     };
 
-    navigateToDashboard = () => {
+    /**
+     * `targetPath` must be passed explicitly, never by wiring this straight to onClick —
+     * the click event would be serialized into the returnTo param.
+     */
+    navigateToDashboard = (targetPath?: string) => {
         const { settings } = this.props.user;
         const dashboardOrigin = globalConfig[process.env.NODE_ENV].dashboardHostFull;
         const rememberMe = settings?.rememberMe ? '1' : '0';
+        const returnToParam = targetPath ? `&returnTo=${encodeURIComponent(targetPath)}` : '';
 
         // Open the dashboard tab synchronously (still inside the click gesture)
         // so the browser doesn't block it as a popup, then redirect it once the
@@ -189,7 +194,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 if (!code) {
                     throw new Error('Missing handoff code');
                 }
-                const dashboardUrl = `${dashboardOrigin}/sso?code=${encodeURIComponent(code)}&rm=${rememberMe}`;
+                const dashboardUrl = `${dashboardOrigin}/sso?code=${encodeURIComponent(code)}&rm=${rememberMe}${returnToParam}`;
                 if (newTab) {
                     newTab.location.href = dashboardUrl;
                 } else {
@@ -218,7 +223,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                         className="menu-item left-icon"
                         leftSection={<InlineSvg name="dashboard" />}
                         text={this.props.translate('components.userMenu.buttons.businessDashboard')}
-                        onClick={this.navigateToDashboard}
+                        onClick={() => this.navigateToDashboard()}
                         variant="subtle"
                         fullWidth
                     />

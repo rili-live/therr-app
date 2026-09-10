@@ -1,6 +1,12 @@
 import { expect } from 'chai';
 import normalizeCorrectionValue from '../src/normalize-correction-value';
 
+// TS doesn't narrow this generic discriminated union through the `.ok` flag, so
+// reach for the failure field explicitly (same workaround as SuggestEditModal).
+const errorCodeOf = (result: ReturnType<typeof normalizeCorrectionValue>): string | null => (
+    result.ok ? null : (result as { error: string }).error
+);
+
 describe('normalizeCorrectionValue', () => {
     describe('phoneNumber', () => {
         it('returns E.164 for a US number without country code (defaults to US)', () => {
@@ -100,6 +106,64 @@ describe('normalizeCorrectionValue', () => {
             if (a.ok && b.ok) {
                 expect(a.normalized).to.equal(b.normalized);
             }
+        });
+
+        it('keeps a non-default port', () => {
+            const result = normalizeCorrectionValue('websiteUrl', 'http://example.com:8080/x');
+            expect(result.ok).to.equal(true);
+            if (result.ok) {
+                expect(result.normalized).to.equal('http://example.com:8080/x');
+            }
+        });
+
+        it('ignores a trailing FQDN dot', () => {
+            const a = normalizeCorrectionValue('websiteUrl', 'https://example.com.');
+            const b = normalizeCorrectionValue('websiteUrl', 'https://example.com');
+            expect(a.ok && b.ok).to.equal(true);
+            if (a.ok && b.ok) {
+                expect(a.normalized).to.equal(b.normalized);
+            }
+        });
+
+        it('punycodes an international hostname', () => {
+            const result = normalizeCorrectionValue('websiteUrl', 'https://café.fr');
+            expect(result.ok).to.equal(true);
+            if (result.ok) {
+                expect(result.normalized).to.equal('https://xn--caf-dma.fr');
+            }
+        });
+
+        it('rejects a non-http scheme instead of prefixing https onto it', () => {
+            // Regressions: `ftp://example.com` used to normalize to the nonsense
+            // `https://ftp//example.com`, and `mailto:hello@example.com` quietly
+            // became a claim that the business website is `https://example.com`.
+            // `javascript:` was already rejected (invalid port) and is pinned here
+            // so it stays that way. Disable is for the test data, not for code.
+            // eslint-disable-next-line no-script-url
+            ['ftp://example.com', 'mailto:hello@example.com', 'javascript:alert(1)'].forEach((value) => {
+                const result = normalizeCorrectionValue('websiteUrl', value);
+                expect(errorCodeOf(result), value).to.equal('INVALID_URL');
+            });
+        });
+
+        it('rejects a hostname with no TLD', () => {
+            // Regression: `notaurl` used to be accepted as `https://notaurl`.
+            ['notaurl', 'https://localhost', 'https://localhost:3000', 'www.notaurl'].forEach((value) => {
+                const result = normalizeCorrectionValue('websiteUrl', value);
+                expect(errorCodeOf(result), value).to.equal('INVALID_URL');
+            });
+        });
+
+        it('rejects bare IP addresses', () => {
+            ['https://192.168.1.1', 'https://[::1]'].forEach((value) => {
+                const result = normalizeCorrectionValue('websiteUrl', value);
+                expect(result.ok, value).to.equal(false);
+            });
+        });
+
+        it('rejects a host left as a bare TLD after www. is stripped', () => {
+            // `www.com` used to canonicalize to the meaningless `https://com`.
+            expect(errorCodeOf(normalizeCorrectionValue('websiteUrl', 'https://www.com'))).to.equal('INVALID_URL');
         });
 
         it('rejects empty string', () => {

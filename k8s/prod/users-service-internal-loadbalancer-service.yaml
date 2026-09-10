@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-service-internal-loadbalancer-service
+  annotations:
+    networking.gke.io/load-balancer-type: "Internal"
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Cluster
+  # Reserved by therr-infra-terraform (google_compute_address.users_service_ilb).
+  # Terraform must be applied first; paste its `users_service_ilb_ip` output here.
+  # NOTE: spec.loadBalancerIP is deprecated upstream but is still the supported way
+  # to pin a GKE internal LB to a reserved address.
+  loadBalancerIP: "10.128.15.235"
+  selector:
+    component: server-users
+  ports:
+  - name: tcp-port
+    protocol: TCP
+    port: 7771
+    targetPort: 7771 # Users Service

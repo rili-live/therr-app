@@ -9,7 +9,8 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-sheet';
+import { SheetManager, SheetProps } from 'react-native-actions-sheet';
+import ActionSheet from './BaseActionSheet';
 import { useDispatch, useSelector } from 'react-redux';
 import { ContentActions } from 'therr-react/redux/actions';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -99,7 +100,6 @@ const ListPickerSheet = (props: SheetProps<'list-picker-sheet'>) => {
             setIsCreating(false);
         } catch (err: any) {
             if (__DEV__) {
-                // eslint-disable-next-line no-console
                 console.warn('[ListPickerSheet] createUserList failed', err?.response?.status, err?.response?.data || err?.message);
             }
             const isConflict = Number(err?.response?.status) === 409;
@@ -120,7 +120,12 @@ const ListPickerSheet = (props: SheetProps<'list-picker-sheet'>) => {
     });
 
     return (
-        <ActionSheet id={props.sheetId}>
+        <ActionSheet
+            id={props.sheetId}
+            // The list below is a plain RN FlatList; a swipe-to-dismiss pan handler would
+            // compete with it for vertical drags, and this sheet also hosts a TextInput.
+            gestureEnabled={false}
+        >
             <View style={[
                 spacingStyles.fullWidth,
                 spacingStyles.alignStart,

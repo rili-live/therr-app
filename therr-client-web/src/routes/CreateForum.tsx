@@ -91,7 +91,7 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
         };
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
+    componentDidMount() {
         const {
             forums,
             searchCategories,

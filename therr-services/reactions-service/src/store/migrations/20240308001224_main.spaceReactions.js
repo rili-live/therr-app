@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaceReactions', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaceReactions', (table) => {
     table.index(['userId', 'userHasActivated', 'userHasReported']);
 });
 

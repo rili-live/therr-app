@@ -30,12 +30,73 @@ This section links to project brief documentation for the core app and each nich
 ### Niche Sub Apps
 - [HABITS_PROJECT_BRIEF.md](./niche-sub-apps/HABITS_PROJECT_BRIEF.md) - "Friends With Habits" app variation
 - [TEEM_PROJECT_BRIEF.md](./niche-sub-apps/TEEM_PROJECT_BRIEF.md) - Teem app variation
+- [PRIORITIZED_PROJECT_BRIEF.md](./niche-sub-apps/PRIORITIZED_PROJECT_BRIEF.md) - "Prioritized" family chore/allowance app (proposed, no code yet)
 
-## Technical Documentation
+## Documentation Index
 
-- [Architecture](./ARCHITECTURE.md) - System design, microservices, data layer, and technical decisions
-- [Niche App Setup](./NICHE_APP_SETUP_STEPS.md) - Steps to create a new brand variation app
+Every document in this directory, grouped by what you'd be doing when you need it.
+Keep this complete — anything not listed here is effectively invisible to both new
+contributors and coding agents, which is how more than half of these docs previously
+went unread.
 
-## Guidelines
+### Architecture & platform
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — system design, service boundaries, data layer
+- [CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md) — the four sibling repos, the tables the Cloud Functions read directly, the habits digest network path
+- [MULTI_BRAND_ARCHITECTURE.md](./MULTI_BRAND_ARCHITECTURE.md) — brand variation system, header flow
+- [NICHE_APP_DATABASE_GUIDELINES.md](./NICHE_APP_DATABASE_GUIDELINES.md) — schema isolation, migration patterns
+- [NICHE_APP_SETUP_STEPS.md](./NICHE_APP_SETUP_STEPS.md) — creating a new brand variation
+- [OFFLINE_FIRST_PLAN.md](./OFFLINE_FIRST_PLAN.md) — offline-first architecture and phased roadmap
+- [ALGORITHM_AUDIT.md](./ALGORITHM_AUDIT.md) — content ranking and feed algorithm review
 
-Write clean code.
+### Working here
+- [SECRETS_AND_LOCAL_BOOTSTRAP.md](./SECRETS_AND_LOCAL_BOOTSTRAP.md) — local dev setup and secrets
+- [WORK_IN_PROGRESS.md](./WORK_IN_PROGRESS.md) — prioritized backlog + manual operational follow-ups
+- [PEER_REVIEW_FOLLOWUP.md](./PEER_REVIEW_FOLLOWUP.md) — deferred items from peer reviews
+- [FEATURES.md](./FEATURES.md) — feature list for mobile and web (**update when adding/removing features**)
+- [MEMORY_SYSTEM_SETUP.md](./MEMORY_SYSTEM_SETUP.md) — the `context/` memory system
+
+### Operations & debugging
+- [DEPLOY_PIPELINE.md](./DEPLOY_PIPELINE.md) — general → stage → main: what `VERSIONS.txt` records, how the deploy decides per service, and the silent-staleness failures it now refuses
+- [PROD_DEBUG_CLAUDE.md](./PROD_DEBUG_CLAUDE.md) — production debugging runbook
+- [PUSH_NOTIFICATIONS_DEBUGGING.md](./PUSH_NOTIFICATIONS_DEBUGGING.md) — why a push didn't arrive; the diagnostics endpoints, and why a separate Firebase project per brand is usually the wrong fix
+- [NOTIFICATION_QUEUE_DESIGN.md](./NOTIFICATION_QUEUE_DESIGN.md) — the deduplicated, schedulable notification queue; what must land before send frequency goes up
+- [HABIT_LIFECYCLE_MESSAGING.md](./HABIT_LIFECYCLE_MESSAGING.md) — habit phases and adaptive taper; why "21 days" is a myth, what Lally (2010) actually measured, and the split between push (users-service) and email (messaging automator)
+- [CLOUDFLARE_CDN.md](./CLOUDFLARE_CDN.md) — CDN configuration
+- [AUTOMATION_ROADMAP.md](./AUTOMATION_ROADMAP.md) — cross-repo automation priorities, ranked
+
+### Growth & marketing
+- [GROWTH_STRATEGY.md](./GROWTH_STRATEGY.md) — B2B-first funnel; the active growth strategy
+- [TARGET_MARKETS.md](./TARGET_MARKETS.md) — consumer and business target markets
+- [PAID_ACQUISITION_PLAYBOOK.md](./PAID_ACQUISITION_PLAYBOOK.md) — Google Ads strategy, thresholds and decision log for Friends with Habits (tooling: `scripts/google-ads/`)
+- [QR_CODE_MAIL_CAMPAIGN.md](./QR_CODE_MAIL_CAMPAIGN.md) — direct mail campaign
+- [PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md](./PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md) — push engagement plan
+- [CONTENT_CREATION_FLYWHEEL.md](./CONTENT_CREATION_FLYWHEEL.md) — raising moment supply as input to the B2B funnel
+
+### Content pipeline
+- [CONTENT_GUIDES.md](./CONTENT_GUIDES.md) — editorial guides overview
+- [CONTENT_GUIDES_ROADMAP.md](./CONTENT_GUIDES_ROADMAP.md) — roadmap
+- [CONTENT_LOCALE_FIRST_PLAN.md](./CONTENT_LOCALE_FIRST_PLAN.md) — locale-first generation
+- [CONTENT_MOMENT_DRIVEN_PLAN.md](./CONTENT_MOMENT_DRIVEN_PLAN.md) — moment-driven guides
+- [CONTENT_HASHTAG_GUIDES_PLAN.md](./CONTENT_HASHTAG_GUIDES_PLAN.md) — hashtag guides
+- [CONTENT_WALKABLE_CLUSTERS_PLAN.md](./CONTENT_WALKABLE_CLUSTERS_PLAN.md) — walkable clusters
+
+### Mobile & migrations
+- [RN_NEW_ARCHITECTURE_MIGRATION.md](./RN_NEW_ARCHITECTURE_MIGRATION.md) — React Native new architecture
+- [PLAID_REWARDS_IMPLEMENTATION.md](./PLAID_REWARDS_IMPLEMENTATION.md) — Plaid rewards integration
+
+### Niche app design docs
+- [niche-sub-apps/habits/](./niche-sub-apps/habits/) — Friends With Habits design docs (9 documents)
+
+## Cross-repo context
+
+Therr spans five repositories. `therr-app` is the product monorepo; the marketing site,
+two GCP Cloud Functions, and the Terraform infrastructure live separately. Both Cloud
+Functions query this repository's database directly, so schema changes here can break
+them with no CI signal in either repo.
+
+Read [CROSS_REPO_INTEGRATION.md](./CROSS_REPO_INTEGRATION.md) before any migration that
+renames or drops a column, before adding a table to `BRAND_SCOPED_TABLES`, and before
+touching the users-service internal load balancer or NetworkPolicy in `k8s/prod`.
+
+If a `~/Code/therr-workspace` checkout exists locally, its `CLAUDE.md` and
+`docs/CROSS_REPO_ARCHITECTURE.md` add the operational/runbook view across all five repos.

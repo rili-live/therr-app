@@ -21,7 +21,9 @@ import Landing from './Landing';
 import Login from './Login';
 import Map from './Map';
 import Achievements from './Achievements';
+import ApiAccess from './ApiAccess';
 import AchievementClaim from './Achievements/AchievementClaim';
+import Leaderboard from './Leaderboard';
 import ActivatedAreas from './Areas/ActivatedAreas';
 import Areas from './Areas';
 import Connect from './Connect';
@@ -32,6 +34,7 @@ import EmailVerification from './EmailVerification';
 import ForgotPassword from './ForgotPassword';
 import Nearby from './Areas/Nearby';
 import Notifications from './Notifications';
+import ProfileCompletion from './ProfileCompletion';
 import Register from './Register';
 import Settings from './Settings';
 import ManageAccount from './Settings/ManageAccount';
@@ -88,20 +91,38 @@ const routes: RouteConfig<
         }),
     },
     {
-        name: 'CreateProfile',
-        component: CreateProfile,
-        options: () => ({
-            title: 'Create Profile',
-            access: AccessPresets.EMAIL_VERIFIED_MISSING_PROPERTIES,
-        }),
-    },
-    {
         name: 'Map',
         component: Map,
         options: () => ({
             title: 'Map',
             requiredFeatures: [FeatureFlags.ENABLE_MAP],
             access: AccessPresets.PUBLIC_PARTIAL,
+        }),
+    },
+    {
+        // ORDER IS LOAD-BEARING: Layout renders these in array order and does not
+        // set `initialRouteName`, so the first route the user is authorized for
+        // becomes the landing screen. `CreateProfile` must sit AFTER `Map`:
+        //   - onboarding users (missing properties) fail Landing/Login/Map, so
+        //     CreateProfile is their first surviving route — first-run onboarding;
+        //   - fully verified users now also match CreateProfile (they re-enter it
+        //     from the "Finish your profile" checklist), and Map keeps its place
+        //     as their landing screen only because it comes first.
+        name: 'CreateProfile',
+        component: CreateProfile,
+        options: () => ({
+            title: 'Create Profile',
+            access: AccessPresets.ANY_AUTHENTICATED,
+        }),
+    },
+    {
+        // Sits after `CreateProfile` for the same ordering reason: onboarding
+        // users must land on CreateProfile, not on the checklist that links to it.
+        name: 'ProfileCompletion',
+        component: ProfileCompletion,
+        options: () => ({
+            title: 'Finish Your Profile',
+            access: AccessPresets.ANY_AUTHENTICATED,
         }),
     },
     {
@@ -136,6 +157,15 @@ const routes: RouteConfig<
         component: AchievementClaim,
         options: () => ({
             title: 'AchievementClaim',
+            requiredFeatures: [FeatureFlags.ENABLE_ACHIEVEMENTS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'Leaderboard',
+        component: Leaderboard,
+        options: () => ({
+            title: 'Leaderboard',
             requiredFeatures: [FeatureFlags.ENABLE_ACHIEVEMENTS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),
@@ -302,6 +332,17 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Settings',
             access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        // Public on purpose: this screen is the landing target for the therr.com/api-access
+        // App Link, and a signed-out visitor who taps that link must see the instructions
+        // rather than be bounced to a login wall with no explanation.
+        name: 'ApiAccess',
+        component: ApiAccess,
+        options: () => ({
+            title: 'API Access',
+            access: AccessPresets.PUBLIC_DEFAULT,
         }),
     },
     {

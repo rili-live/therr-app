@@ -15,6 +15,7 @@ import {
     Container,
     Divider,
     Group,
+    Image,
     Skeleton,
     Stack,
     Text,
@@ -22,26 +23,17 @@ import {
     Title,
     Tooltip,
 } from '@mantine/core';
+import { canRepostThought } from 'therr-js-utilities/content';
 import UsersActions from '../redux/actions/UsersActions';
 import useTranslation from '../hooks/useTranslation';
-
-const formatTimeAgo = (dateStr: string): string => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMin = Math.floor(diffMs / 60000);
-    const diffHr = Math.floor(diffMs / 3600000);
-    const diffDay = Math.floor(diffMs / 86400000);
-
-    if (diffMin < 1) return 'just now';
-    if (diffMin < 60) return `${diffMin}m`;
-    if (diffHr < 24) return `${diffHr}h`;
-    if (diffDay < 7) return `${diffDay}d`;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
+import EmbeddedThought from '../components/EmbeddedThought';
+import RepostModal from '../components/RepostModal';
+import { formatTimeAgo } from '../utilities/formatDate';
+import getRepostErrorKey from '../utilities/repostErrors';
+import getThoughtMediaUri from '../utilities/getThoughtMediaUri';
 
 const ViewThought: React.FC = () => {
-    const { t: translate } = useTranslation();
+    const { t: translate, locale } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { thoughtId } = useParams<{ thoughtId: string }>();
@@ -54,6 +46,11 @@ const ViewThought: React.FC = () => {
     const [replyMessage, setReplyMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [replyError, setReplyError] = useState('');
+    // The thought the repost composer is open for (null when closed). The root thought and any
+    // reply can each be reposted, so this holds the target rather than a plain boolean.
+    const [repostTarget, setRepostTarget] = useState<any>(null);
+    const [isReposting, setIsReposting] = useState(false);
+    const [repostError, setRepostError] = useState('');
     const repliesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -75,6 +72,7 @@ const ViewThought: React.FC = () => {
         const detailsPromise = dispatch(UsersActions.getThoughtDetails(tId, {
             withUser: true,
             withReplies: true,
+            withParent: true,
         }) as any);
         const reactionPromise = cachedThought?.reaction
             ? Promise.resolve(cachedThought.reaction)
@@ -183,14 +181,81 @@ const ViewThought: React.FC = () => {
             });
     }, [dispatch, replyMessage, thoughtId, user.details.id, translate]);
 
+    const handleRepost = useCallback((t: any) => {
+        setRepostError('');
+        setRepostTarget(t);
+    }, []);
+
+    const handleRepostConfirm = useCallback((message: string) => {
+        if (!repostTarget?.id) {
+            return;
+        }
+
+        const targetId = repostTarget.id;
+        // Hashtags come from the user's own quote only. Carrying the original's tags over would
+        // put the reposter's account in feeds they never chose to post into.
+        const hashTags = message.match(/#[a-z0-9_]+/g) || [];
+        const hashTagsString = [...new Set(hashTags.map((t) => t.replace(/#/g, '')))].join(',');
+
+        setRepostError('');
+        setIsReposting(true);
+
+        dispatch(UsersActions.createThought({
+            fromUserId: user.details.id,
+            // Reposting is a public act by definition — it surfaces the original to the
+            // reposter's audience, so a private repost would be a no-op with a side effect.
+            isPublic: true,
+            message,
+            hashTags: hashTagsString,
+            repostThoughtId: targetId,
+        }) as any)
+            .then(() => {
+                setRepostTarget(null);
+                // The details endpoint is not re-fetched, so bump the count locally to keep the
+                // control from rendering its pre-repost value for the rest of the visit.
+                if (targetId === thought?.id) {
+                    setThought((prev: any) => ({ ...prev, repostCount: (prev?.repostCount || 0) + 1 }));
+                } else {
+                    setReplies((prev) => prev.map((r) => (r.id === targetId
+                        ? { ...r, repostCount: (r.repostCount || 0) + 1 }
+                        : r)));
+                }
+            })
+            .catch((err: any) => {
+                setRepostError(translate(getRepostErrorKey(err?.statusCode)));
+            })
+            .finally(() => {
+                setIsReposting(false);
+            });
+    }, [dispatch, repostTarget, user.details.id, thought?.id, translate]);
+
     const handleUserClick = useCallback((userId: string) => {
         navigate(`/users/${userId}`);
     }, [navigate]);
 
+    // Drills into a reply's own details view, where its nested replies become the thread
+    const handleInspectReply = useCallback((replyId: string) => {
+        navigate(`/thoughts/${replyId}`);
+    }, [navigate]);
+
+    // Present only when the post being viewed is a reply
+    const parentThought = thought?.parent;
+
     const breadcrumbs = [
         <Anchor component={Link} to="/" key="home" size="sm">{translate('pages.navigation.home')}</Anchor>,
         <Anchor component={Link} to="/posts/thoughts" key="thoughts" size="sm">{translate('pages.navigation.thoughts')}</Anchor>,
-        <Text size="sm" key="thought">{translate('pages.viewThought.headerTitle')}</Text>,
+        ...(parentThought?.id
+            ? [
+                <Anchor component={Link} to={`/thoughts/${parentThought.id}`} key="parent" size="sm">
+                    {translate('pages.viewThought.parentThread')}
+                </Anchor>,
+            ]
+            : []),
+        <Text size="sm" key="thought">
+            {parentThought?.id
+                ? translate('pages.viewThought.headerTitleReply')
+                : translate('pages.viewThought.headerTitle')}
+        </Text>,
     ];
 
     if (isLoading) {
@@ -226,6 +291,7 @@ const ViewThought: React.FC = () => {
     }
 
     const hashtags = thought.hashTags ? thought.hashTags.split(',').filter(Boolean) : [];
+    const mediaUri = getThoughtMediaUri(thought);
     const isLiked = thought.reaction?.userHasLiked;
     const isBookmarked = thought.reaction?.userBookmarkCategory;
 
@@ -234,8 +300,46 @@ const ViewThought: React.FC = () => {
             <Stack gap="lg">
                 <Breadcrumbs>{breadcrumbs}</Breadcrumbs>
 
+                {/*
+                    Thread context. Without it a reply renders exactly like a top-level thought,
+                    so the post it answers — and the rest of the conversation — is invisible.
+                */}
+                {parentThought?.id && (
+                    <Anchor
+                        component={Link}
+                        to={`/thoughts/${parentThought.id}`}
+                        className="view-thought-parent"
+                        underline="never"
+                        aria-label={translate('pages.viewThought.viewParentThought')}
+                    >
+                        <Group gap="xs" align="center" mb={4} wrap="nowrap">
+                            <InlineSvg name="forum" className="discovered-tile-icon" />
+                            <Text size="xs" fw={700}>
+                                {parentThought.fromUserName
+                                    ? translate('pages.viewThought.replyingTo', { userName: parentThought.fromUserName })
+                                    : translate('pages.viewThought.partOfThread')}
+                            </Text>
+                        </Group>
+                        {parentThought.message && (
+                            <Text size="sm" c="dimmed" lineClamp={2}>
+                                {parentThought.message}
+                            </Text>
+                        )}
+                    </Anchor>
+                )}
+
                 {/* Main thought */}
                 <div className="view-thought-main">
+                    {thought.isRepost && (
+                        <Group gap={4} align="center" mb={4} className="thought-card-repost-attribution">
+                            <InlineSvg name="repeat" className="discovered-tile-icon" />
+                            <Text size="xs" c="dimmed" fw={600}>
+                                {translate('pages.exploreThoughts.repostedBy', {
+                                    userName: thought.fromUserName || thought.fromUserFirstName || '',
+                                })}
+                            </Text>
+                        </Group>
+                    )}
                     <Group gap="xs" align="center" mb={4}>
                         <Text
                             fw={700}
@@ -246,13 +350,25 @@ const ViewThought: React.FC = () => {
                             {thought.fromUserName || thought.fromUserFirstName}
                         </Text>
                         <Text size="xs" c="dimmed">
-                            {thought.createdAt && formatTimeAgo(thought.createdAt)}
+                            {thought.createdAt && formatTimeAgo(thought.createdAt, locale, translate)}
                         </Text>
                     </Group>
 
                     <Text size="md" mb="sm" className="thought-card-message">
                         {thought.message}
                     </Text>
+
+                    {mediaUri && (
+                        <Image
+                            src={mediaUri}
+                            alt=""
+                            radius="md"
+                            mb="sm"
+                            fit="contain"
+                        />
+                    )}
+
+                    {thought.isRepost && <EmbeddedThought repostOf={thought.repostOf} />}
 
                     {hashtags.length > 0 && (
                         <Group gap={6} mb="sm" wrap="wrap">
@@ -295,6 +411,23 @@ const ViewThought: React.FC = () => {
                                 </ActionIcon>
                             </Tooltip>
                         )}
+                        {user?.isAuthenticated && canRepostThought(thought, user.details.id) && (
+                            <Tooltip label={translate('pages.exploreThoughts.repostThought')}>
+                                <Button
+                                    variant="subtle"
+                                    size="compact-xs"
+                                    color="gray"
+                                    aria-label={translate('pages.exploreThoughts.repostThought')}
+                                    onClick={() => handleRepost(thought)}
+                                    leftSection={(
+                                        <InlineSvg name="repeat" className="discovered-tile-icon" />
+                                    )}
+                                    className="thought-card-repost-count"
+                                >
+                                    {thought.repostCount || ''}
+                                </Button>
+                            </Tooltip>
+                        )}
                     </Group>
                 </div>
 
@@ -315,6 +448,8 @@ const ViewThought: React.FC = () => {
                             {replies.map((reply) => {
                                 const replyHashtags = reply.hashTags ? reply.hashTags.split(',').filter(Boolean) : [];
                                 const replyIsLiked = reply.reaction?.userHasLiked;
+                                const replyReplyCount = reply.replyCount || 0;
+                                const viewRepliesLabel = translate('pages.viewThought.viewReplies', { count: replyReplyCount });
                                 return (
                                     <div key={reply.id} className="thought-card">
                                         <div className="thought-card-content">
@@ -328,7 +463,7 @@ const ViewThought: React.FC = () => {
                                                     {reply.fromUserName || reply.fromUserFirstName || user.details.userName}
                                                 </Text>
                                                 <Text size="xs" c="dimmed">
-                                                    {reply.createdAt && formatTimeAgo(reply.createdAt)}
+                                                    {reply.createdAt && formatTimeAgo(reply.createdAt, locale, translate)}
                                                 </Text>
                                             </Group>
 
@@ -346,8 +481,8 @@ const ViewThought: React.FC = () => {
                                                 </Group>
                                             )}
 
-                                            {user?.isAuthenticated && (
-                                                <Group gap="md" className="thought-card-reactions">
+                                            <Group gap="md" className="thought-card-reactions">
+                                                {user?.isAuthenticated && (
                                                     <Tooltip label={replyIsLiked ? 'Unlike' : 'Like'}>
                                                         <ActionIcon
                                                             variant="subtle"
@@ -361,8 +496,40 @@ const ViewThought: React.FC = () => {
                                                             />
                                                         </ActionIcon>
                                                     </Tooltip>
-                                                </Group>
-                                            )}
+                                                )}
+                                                {user?.isAuthenticated && canRepostThought(reply, user.details.id) && (
+                                                    <Tooltip label={translate('pages.exploreThoughts.repostThought')}>
+                                                        <Button
+                                                            variant="subtle"
+                                                            size="compact-xs"
+                                                            color="gray"
+                                                            aria-label={translate('pages.exploreThoughts.repostThought')}
+                                                            onClick={() => handleRepost(reply)}
+                                                            leftSection={(
+                                                                <InlineSvg name="repeat" className="discovered-tile-icon" />
+                                                            )}
+                                                            className="thought-card-repost-count"
+                                                        >
+                                                            {reply.repostCount || ''}
+                                                        </Button>
+                                                    </Tooltip>
+                                                )}
+                                                <Tooltip label={viewRepliesLabel}>
+                                                    <Button
+                                                        variant="subtle"
+                                                        size="compact-xs"
+                                                        color="gray"
+                                                        aria-label={viewRepliesLabel}
+                                                        onClick={() => handleInspectReply(reply.id)}
+                                                        leftSection={(
+                                                            <InlineSvg name="forum" className="discovered-tile-icon" />
+                                                        )}
+                                                        className="thought-card-reply-count"
+                                                    >
+                                                        {replyReplyCount}
+                                                    </Button>
+                                                </Tooltip>
+                                            </Group>
                                         </div>
                                     </div>
                                 );
@@ -407,14 +574,33 @@ const ViewThought: React.FC = () => {
                     </Text>
                 )}
 
-                {/* Back button */}
-                <Button
-                    variant="outline"
-                    onClick={() => navigate('/posts/thoughts')}
-                    size="sm"
-                >
-                    {translate('pages.viewThought.backToThoughts')}
-                </Button>
+                <RepostModal
+                    thought={repostTarget}
+                    isSubmitting={isReposting}
+                    error={repostError}
+                    onClose={() => setRepostTarget(null)}
+                    onConfirm={handleRepostConfirm}
+                />
+
+                {/* Back buttons */}
+                <Group gap="sm">
+                    {parentThought?.id && (
+                        <Button
+                            variant="outline"
+                            onClick={() => navigate(`/thoughts/${parentThought.id}`)}
+                            size="sm"
+                        >
+                            {translate('pages.viewThought.backToParent')}
+                        </Button>
+                    )}
+                    <Button
+                        variant={parentThought?.id ? 'subtle' : 'outline'}
+                        onClick={() => navigate('/posts/thoughts')}
+                        size="sm"
+                    >
+                        {translate('pages.viewThought.backToThoughts')}
+                    </Button>
+                </Group>
             </Stack>
         </Container>
     );

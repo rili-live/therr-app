@@ -113,6 +113,8 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
         this.props.goHome();
     };
 
+    // Deliberately does not touch instance state — a full reload discards it anyway.
+    // eslint-disable-next-line class-methods-use-this
     handleRefreshConnection = () => {
         if (typeof window !== 'undefined') {
             window.location.reload();

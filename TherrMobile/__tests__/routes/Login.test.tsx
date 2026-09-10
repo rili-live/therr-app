@@ -18,6 +18,14 @@ jest.mock('react-redux', () => ({
     useSelector: (selector: (state: any) => any) => selector({ user: { settings: {} } }),
 }));
 
+// The form reads remembered profiles on mount. Stub the module so these tests neither touch
+// device storage nor get a surprise pre-filled identifier.
+jest.mock('../../main/utilities/rememberedProfiles', () => ({
+    getRememberedProfiles: jest.fn(() => Promise.resolve([])),
+    rememberCurrentUser: jest.fn(() => Promise.resolve()),
+    forgetProfile: jest.fn(() => Promise.resolve([])),
+}));
+
 jest.mock('react-native-toast-message', () => {
     const MockToast = () => null;
     MockToast.show = jest.fn();
@@ -79,6 +87,8 @@ const defaultProps = {
         navigate: jest.fn(),
     },
     login: jest.fn(),
+    loginWithPhone: jest.fn(),
+    selectPhoneLoginAccount: jest.fn(),
     userSettings: { mobileThemeName: 'light' },
     themeAuthForm: { styles: mockStyles },
     themeAlerts: {
