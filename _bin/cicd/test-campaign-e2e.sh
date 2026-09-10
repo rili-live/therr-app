@@ -11,8 +11,10 @@
 # therr_dev_maps), which is where campaign-blocking bugs hide.
 #
 # Prereqs: setup-test-db.sh has been run (sets up postgres-ci + redis-ci +
-# therr-ci-network), and both users-service + maps-service migrations have
-# been applied to their respective DBs.
+# therr-ci-network). setup-test-db.sh CREATES the databases but does not migrate
+# them, so this script applies both services' migrations itself — without that the
+# suite connects successfully to an empty schema and every test fails on a missing
+# relation.
 
 set -e
 
@@ -39,20 +41,42 @@ else
   printMessageNeutral "Running CRITICAL-path campaign E2E (referral + qrCheckin + spaceIncentive)"
 fi
 
-# build-changed-services.sh tags the gateway unsuffixed on every branch, so this
-# is the only tag that step ever produces.
+# build-changed-services.sh tags every image unsuffixed on every branch, so these
+# are the only tags that step ever produces.
 GATEWAY_IMAGE="therrapp/api-gateway:latest"
+USERS_IMAGE="therrapp/users-service:latest"
+MAPS_IMAGE="therrapp/maps-service:latest"
 
-# That step only builds the gateway when therr-api-gateway, therr-js-utilities or
+# That step only builds a service when that service, therr-js-utilities or
 # global-config.js changed, so on a PR touching only another package the image is
-# absent here. Without this guard `docker run` silently PULLS whatever
-# therrapp/api-gateway:latest happens to be on DockerHub and the suite reports
-# green against code that is not the code under review.
-if ! docker image inspect "$GATEWAY_IMAGE" > /dev/null 2>&1; then
-  printMessageNeutral "No locally-built $GATEWAY_IMAGE; building it so the suite runs against this commit"
-  docker build -t "$GATEWAY_IMAGE" -f ./therr-api-gateway/Dockerfile \
-    --build-arg NODE_VERSION="${NODE_VERSION:-24.12.0}" ./therr-api-gateway
-fi
+# absent here. Without this guard `docker run` silently PULLS whatever tag happens
+# to be on DockerHub and the suite reports green against code that is not the code
+# under review.
+ensure_image()
+{
+  local IMAGE=$1
+  local DOCKERFILE=$2
+  local CONTEXT=$3
+
+  if docker image inspect "$IMAGE" > /dev/null 2>&1; then
+    return 0
+  fi
+
+  printMessageNeutral "No locally-built $IMAGE; building it so the suite runs against this commit"
+  docker build -t "$IMAGE" -f "$DOCKERFILE" \
+    --build-arg NODE_VERSION="${NODE_VERSION:-24.12.0}" "$CONTEXT"
+}
+
+ensure_image "$GATEWAY_IMAGE" ./therr-api-gateway/Dockerfile ./therr-api-gateway
+ensure_image "$USERS_IMAGE" ./therr-services/users-service/Dockerfile ./therr-services/users-service
+ensure_image "$MAPS_IMAGE" ./therr-services/maps-service/Dockerfile ./therr-services/maps-service
+
+# Migrate both databases. The suite reads main.users out of therr_dev_users and
+# main.spaces / moments / events / spaceIncentives out of therr_dev_maps, and
+# setup-test-db.sh leaves both empty — `SELECT 1` still succeeds against an empty
+# database, so nothing upstream of here notices.
+run_migrations "USERS_SERVICE" "therr_dev_users" "$USERS_IMAGE"
+run_migrations "MAPS_SERVICE" "therr_dev_maps" "$MAPS_IMAGE"
 
 # No `cd` before the command: the image's final WORKDIR is already
 # /app/therr-api-gateway (see therr-api-gateway/Dockerfile), so `cd therr-api-gateway`
