@@ -241,6 +241,17 @@ describe('HabitsDashboard habits row memo', () => {
         expect(instance.getHabitsRows()).not.toBe(first);
     });
 
+    it('still memoizes when a Redux list has not loaded yet', () => {
+        // A `|| []` fallback allocates a fresh array per call, so an input the store
+        // has not populated (here the user-habit registry) would miss the memo on
+        // every render and rebuild every row — silently undoing the memo for the
+        // whole screen. The fallback must be one shared identity.
+        const instance: any = withHabit(buildInstance('habits'));
+        delete instance.props.habits.userHabits;
+
+        expect(instance.getHabitsRows()).toBe(instance.getHabitsRows());
+    });
+
     it('derives the split and the rows from one shared entry', () => {
         // `render` reads both — the rows for the list, the split for the header's
         // progress summary — so computing them separately did the work twice.

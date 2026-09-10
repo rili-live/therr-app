@@ -164,6 +164,9 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     continueSoloUserHabit: HabitActions.continueSoloUserHabit,
 }, dispatch);
 
+// Shared identity for every "not loaded yet" list read by the habits memo below.
+const EMPTY_LIST: any[] = [];
+
 export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHabitsDashboardState> {
     private translate: (key: string, params?: any) => string;
     private theme = buildStyles();
@@ -744,7 +747,10 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     };
 
     handleArchiveHabitPress = (entry: IHabitWithPactState) => {
-        if (!entry.userHabit) {
+        // Same in-flight guard as continue-solo: only one decision runs at a
+        // time. Without it, confirming an archive on a second card reassigns
+        // `awaitingActionGoalId` and the first card's spinner clears early.
+        if (!entry.userHabit || this.state.awaitingActionGoalId) {
             return;
         }
         this.setState({ habitPendingArchive: entry.userHabit });
@@ -817,10 +823,14 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
      */
     private getHabitsMemo = () => {
         const { habits, user } = this.props;
-        const habitGoals = habits.habitGoals || [];
-        const activePacts = habits.activePacts || [];
-        const pacts = habits.pacts || [];
-        const userHabits = habits.userHabits || [];
+        // `EMPTY_LIST`, not a fresh `[]`: the memo compares these by identity, and a
+        // literal fallback allocates a new array on every call — so any input the
+        // store has not populated yet would miss the memo forever and rebuild every
+        // row on every render, which is the exact cost this memo exists to avoid.
+        const habitGoals = habits.habitGoals || EMPTY_LIST;
+        const activePacts = habits.activePacts || EMPTY_LIST;
+        const pacts = habits.pacts || EMPTY_LIST;
+        const userHabits = habits.userHabits || EMPTY_LIST;
         const userId = user.details?.id;
         const memo = this.habitsRowsMemo;
 
