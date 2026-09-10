@@ -97,6 +97,18 @@
                the hero sits directly under the header's own border-bottom. */
             border-top: none;
         }
+        /* The brand motto. Deliberately not the h1: the headline has to carry the
+           head term this page competes for ("habits", "friend"), and a motto that
+           reads well to a person indexes badly. It sits above the headline instead,
+           where it is the first thing read and costs the h1 nothing. */
+        .hero .motto {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--habits-coral-dark);
+            margin: 0 0 0.875rem;
+        }
         .hero h1 {
             font-size: 2.25rem;
             font-weight: 800;
@@ -364,6 +376,7 @@
         }
         @media (min-width: 640px) {
             .hero { padding: 6rem 0 4rem; }
+            .hero .motto { font-size: 1rem; }
             .hero h1 { font-size: 3rem; }
             .hero p.lede { font-size: 1.25rem; }
             .step-list { grid-template-columns: repeat(3, 1fr); gap: 2rem; }
@@ -390,6 +403,7 @@
           "url": "https://habits.therr.com/",
           "name": "Friends with Habits",
           "description": "A free habit tracker built around accountability partners.",
+          "slogan": "Friends don't let friends give up on change.",
           "inLanguage": "en-US",
           "publisher": { "@id": "https://www.therr.app/#organization" }
         },
@@ -423,6 +437,7 @@
           "alternateName": "Therr: Friends With Habits",
           "url": "https://habits.therr.com/",
           "description": "A habit tracker that requires an accountability partner. Make a pact with a friend, check in daily with a photo or note as proof, and build a shared streak.",
+          "slogan": "Friends don't let friends give up on change.",
           "applicationCategory": "LifestyleApplication",
           "applicationSubCategory": "Habit Tracker",
           "operatingSystem": "Android 8.0 and up",
@@ -551,6 +566,7 @@
     <main>
         <section class="hero">
             <div class="container">
+                <p class="motto">Friends don't let friends give up on change.</p>
                 <h1>Habits that stick when a friend's on the hook too.</h1>
                 <p class="lede">Most habit apps let you give up in private. Friends with Habits doesn't. Pact with a friend, check in daily, and keep each other on streak.</p>
                 <!--
