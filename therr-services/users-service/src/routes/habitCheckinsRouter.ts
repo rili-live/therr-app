@@ -1,6 +1,7 @@
 import * as express from 'express';
 import {
     createCheckin,
+    shareCheckin,
     getCheckin,
     getCheckinProofs,
     getTodayCheckins,
@@ -22,6 +23,9 @@ router.get('/:id', getCheckin);
 
 // CREATE
 router.post('/', createCheckin);
+
+// SHARE — promote a check-in's proof photo to a public post (main.thoughts)
+router.post('/:id/share', shareCheckin);
 
 // UPDATE
 router.put('/:id', updateCheckin);
