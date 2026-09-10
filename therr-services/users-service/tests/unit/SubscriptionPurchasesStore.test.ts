@@ -104,4 +104,45 @@ describe('SubscriptionPurchasesStore.upsertByPurchaseToken', () => {
         expect(client.queries).to.not.include('COMMIT');
         expect(client.released).to.equal(true);
     });
+
+    /**
+     * Timestamps reach the store as `new Date(<string from Play>)`. An unparseable
+     * string gives an `Invalid Date`, which is truthy — so the previous
+     * `d ? d.toISOString() : null` threw a RangeError and 500'd a purchase that had
+     * already been verified and paid for, over a reporting-only column.
+     */
+    describe('timestamp coercion', () => {
+        it('stores an unparseable startTime as NULL rather than throwing', async () => {
+            const { store, client } = makeStore(null);
+
+            const result = await store.upsertByPurchaseToken(params({
+                startTime: new Date('not-a-date'),
+            }));
+
+            expect(result.wasAlreadyRecorded).to.equal(false);
+            const insert = client.queries.find((q) => q.trim().toLowerCase().startsWith('insert'));
+            expect(insert).to.be.a('string');
+            expect(insert).to.not.contain('Invalid Date');
+        });
+
+        it('stores an unparseable expiryTime as NULL rather than throwing', async () => {
+            const { store } = makeStore(null);
+
+            const result = await store.upsertByPurchaseToken(params({
+                expiryTime: new Date('also-not-a-date'),
+            }));
+
+            expect(result.wasAlreadyRecorded).to.equal(false);
+        });
+
+        it('still writes a valid timestamp through as an ISO string', async () => {
+            const { store, client } = makeStore(null);
+            const startTime = new Date('2026-09-01T00:00:00.000Z');
+
+            await store.upsertByPurchaseToken(params({ startTime }));
+
+            const insert = client.queries.find((q) => q.trim().toLowerCase().startsWith('insert'));
+            expect(insert).to.contain('2026-09-01T00:00:00.000Z');
+        });
+    });
 });

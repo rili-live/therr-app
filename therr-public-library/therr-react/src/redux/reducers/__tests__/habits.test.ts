@@ -397,6 +397,58 @@ describe('habits reducer', () => {
         expect(Array.from(result.pacts)).toEqual([]);
     });
 
+    // Premium subscription
+    //
+    // A verify does not imply a preceding GET_PREMIUM_OFFER — restore-purchases, or a
+    // store callback arriving after the paywall unmounted, both verify against an empty
+    // slice. Guarding only on an existing offer made those paths silently no-op and left
+    // the paywall up until the next refetch.
+    it('handles VERIFY_PREMIUM_PURCHASE when the offer was already loaded', () => {
+        const populated = reducer(initialState, {
+            type: HabitsActionTypes.GET_PREMIUM_OFFER,
+            data: {
+                productId: 'habits_premium_monthly',
+                isEntitled: false,
+                subscription: null,
+                isStoreConfigured: true,
+            },
+        });
+        const result = reducer(populated, {
+            type: HabitsActionTypes.VERIFY_PREMIUM_PURCHASE,
+            data: { subscription: { id: 'sub-1', productId: 'habits_premium_monthly' } },
+        });
+
+        expect(result.premiumOffer?.isEntitled).toBe(true);
+        expect(result.premiumOffer?.subscription?.id).toBe('sub-1');
+        expect(result.premiumOffer?.productId).toBe('habits_premium_monthly');
+    });
+
+    it('builds the premium offer on verify when none had been fetched', () => {
+        const result = reducer(initialState, {
+            type: HabitsActionTypes.VERIFY_PREMIUM_PURCHASE,
+            data: { subscription: { id: 'sub-1', productId: 'habits_premium_monthly' } },
+        });
+
+        expect(result.premiumOffer).not.toBe(null);
+        expect(result.premiumOffer?.isEntitled).toBe(true);
+        expect(result.premiumOffer?.subscription?.id).toBe('sub-1');
+        expect(result.premiumOffer?.productId).toBe('habits_premium_monthly');
+        expect(result.premiumOffer?.isStoreConfigured).toBe(true);
+    });
+
+    it('clears the habit-limit flag on verify so the paywall does not linger', () => {
+        const populated = reducer(initialState, {
+            type: HabitsActionTypes.GET_USER_HABIT_ELIGIBILITY,
+            data: { isAtHabitLimit: true },
+        });
+        const result = reducer(populated, {
+            type: HabitsActionTypes.VERIFY_PREMIUM_PURCHASE,
+            data: { subscription: { id: 'sub-1' } },
+        });
+
+        expect(result.userHabitEligibility?.isAtHabitLimit).toBe(false);
+    });
+
     it('returns state unchanged for unknown action', () => {
         const result = reducer(initialState, { type: 'UNKNOWN_ACTION' });
         expect(result).toBe(initialState);
