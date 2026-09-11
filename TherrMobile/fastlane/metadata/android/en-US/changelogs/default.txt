@@ -1,7 +1,7 @@
 What's new in this update:
-• A smoother, faster map and feed
+• Smoother, faster habit tracking and pacts
 • More reliable when you're offline or on a weak connection
-• Fixes for messaging and notifications
+• Fixes for reminders and notifications
 • General performance and stability improvements
 
-Thanks for using Therr! Have feedback? Reach us from the in-app settings.
+Thanks for building habits with us! Have feedback? Reach us from the in-app settings.
