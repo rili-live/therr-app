@@ -3,6 +3,7 @@ import sinon from 'sinon';
 import Store from '../../src/store';
 import * as shareCheckinMedia from '../../src/utilities/shareCheckinMedia';
 import * as handlerHelpers from '../../src/handlers/helpers';
+import * as reactionsApi from '../../src/api/reactions';
 import { shareCheckin } from '../../src/handlers/habitCheckins';
 
 /**
@@ -47,6 +48,8 @@ describe('HABITS check-in public share', () => {
     let deleteThoughtsStub: sinon.SinonStub;
     let updateCheckinStub: sinon.SinonStub;
     let deletePublicObjectStub: sinon.SinonStub;
+    let findThoughtsStub: sinon.SinonStub;
+    let createReactionsStub: sinon.SinonStub;
 
     beforeEach(() => {
         sinon.stub(Store.habitCheckins, 'getById').resolves({
@@ -73,6 +76,22 @@ describe('HABITS check-in public share', () => {
         createThoughtStub = sinon.stub(Store.thoughts, 'create');
         deleteThoughtsStub = sinon.stub(Store.thoughts, 'deleteThoughts').resolves([] as any);
         updateCheckinStub = sinon.stub(Store.habitCheckins, 'update').resolves({} as any);
+        findThoughtsStub = sinon.stub(Store.thoughts, 'find').resolves({
+            thoughts: [{
+                id: 'thought-1',
+                isPublic: true,
+                fromUserId: 'user-1',
+                fromUserName: 'runner',
+                fromUserMedia: { profilePicture: 'p.jpg' },
+                replies: [],
+            }],
+            users: {},
+            isLastPage: true,
+        } as any);
+        createReactionsStub = sinon.stub(reactionsApi, 'createReactions').resolves({
+            created: [{ thoughtId: 'thought-1', userId: 'user-1', userHasActivated: true }],
+            updated: [],
+        } as any);
     });
 
     afterEach(() => {
@@ -89,6 +108,63 @@ describe('HABITS check-in public share', () => {
         expect(res.body.sharedThoughtId).to.equal('thought-1');
         expect(updateCheckinStub.calledOnce).to.equal(true);
         expect(updateCheckinStub.firstCall.args[1]).to.deep.equal({ sharedThoughtId: 'thought-1' });
+    });
+
+    // The feed renders only thoughts the viewer has activated, and activation is otherwise
+    // the distributor's job — gated, ranked, and never guaranteed. An author who cannot see
+    // their own share reads it as a failed share.
+    it('activates the post for the author, pinned above distributor-scored rows', async () => {
+        createThoughtStub.resolves([{ id: 'thought-1', isPublic: true }]);
+
+        const res = makeRes();
+        await shareCheckin(makeReq() as any, res, (() => {}) as any);
+
+        expect(createReactionsStub.calledOnce).to.equal(true);
+        const [thoughtIds, , relevanceScores] = createReactionsStub.firstCall.args;
+        expect(thoughtIds).to.deep.equal(['thought-1']);
+        // Hot scores are single digits; anything the distributor writes must sort below this.
+        expect(relevanceScores['thought-1']).to.be.greaterThan(1000);
+    });
+
+    it('returns the post in feed shape so the client can insert it into its stream directly', async () => {
+        createThoughtStub.resolves([{ id: 'thought-1', isPublic: true }]);
+
+        const res = makeRes();
+        await shareCheckin(makeReq() as any, res, (() => {}) as any);
+
+        expect(findThoughtsStub.calledOnce).to.equal(true);
+        expect(findThoughtsStub.firstCall.args[0]).to.equal('habits');
+        expect(findThoughtsStub.firstCall.args[1]).to.deep.equal(['thought-1']);
+        expect(findThoughtsStub.firstCall.args[3]).to.include({ withUser: true, withReplies: true });
+
+        expect(res.body.thought).to.include({ id: 'thought-1', fromUserName: 'runner', likeCount: 0 });
+        expect(res.body.thought.reaction).to.include({ userHasActivated: true });
+        expect(res.body.thought.replies).to.deep.equal([]);
+    });
+
+    it('still answers 201 with the raw post when activation or hydration fails — the share already committed', async () => {
+        createThoughtStub.resolves([{ id: 'thought-1', isPublic: true, fromUserId: 'user-1' }]);
+        findThoughtsStub.rejects(new Error('read replica down'));
+        createReactionsStub.rejects(new Error('reactions-service unreachable'));
+
+        const res = makeRes();
+        await shareCheckin(makeReq() as any, res, (() => {}) as any);
+
+        expect(res.statusCode).to.equal(201);
+        expect(res.body.sharedThoughtId).to.equal('thought-1');
+        expect(res.body.thought).to.include({ id: 'thought-1', fromUserId: 'user-1' });
+        expect(res.body.thought.reaction).to.deep.equal({ userHasActivated: true });
+    });
+
+    it('does not activate anything when the share is refused', async () => {
+        createThoughtStub.resolves([{ id: 'thought-1', isPublic: false }]);
+
+        const res = makeRes();
+        await shareCheckin(makeReq() as any, res, (() => {}) as any);
+
+        expect(res.statusCode).to.equal(422);
+        expect(createReactionsStub.called).to.equal(false);
+        expect(findThoughtsStub.called).to.equal(false);
     });
 
     it('refuses the share when the created thought came back private', async () => {

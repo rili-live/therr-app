@@ -23,6 +23,7 @@ import { isUserInPact } from '../utilities/pactHelpers';
 import { canReadProofs, serializeProofs } from '../utilities/checkinProofs';
 import moderateProofs from '../utilities/moderateProofs';
 import { copyProofToPublicBucket, deleteSharedCheckinPublicObject } from '../utilities/shareCheckinMedia';
+import { createReactions } from '../api/reactions';
 import { checkIsMediaSafeForWork } from './helpers';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { resolvePactPartnerIds } from './helpers/pactPartners';
@@ -512,6 +513,13 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 // check-in would be stamped `sharedThoughtId` (making a retry a permanent no-op), and the
 // post would be invisible in every feed forever, since every read filters on a known brand.
 // getBrandContext defaults to THERR, which is what handlers/thoughts.ts does for the same call.
+// Pins an author's own share to the top of their stream. Distributor scores are hot scores
+// (`(replies + 1) / (ageHours + offset)^gravity`, times a boost of a few ×), so anything in
+// the thousands is already unreachable; a million leaves room without approaching float limits.
+// A later distributor run that re-selects the post overwrites this with a real score, which is
+// the intended hand-off into the ranked stream.
+const OWN_SHARE_RELEVANCE_SCORE = 1_000_000;
+
 const shareCheckin: RequestHandler = async (req: any, res: any) => {
     const {
         locale,
@@ -668,7 +676,55 @@ const shareCheckin: RequestHandler = async (req: any, res: any) => {
         return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
     }
 
-    return res.status(201).send({ thought, sharedThoughtId: thought.id });
+    // The post exists, but the feed only renders thoughts the viewer has an activated
+    // reaction row for, and those rows are written by the distributor — at login, or on a
+    // 15-minute-gated ping — and only when the post wins a slot on hot score. So without this
+    // the author's own share is invisible to them for anywhere from minutes to forever.
+    //
+    // Two things happen together, mirroring what createThought already does for a composed post:
+    //  - activate the post for the author, with a relevance score that pins it above anything
+    //    the distributor scores (hot scores are single digits: `(replies + 1) / age^gravity`,
+    //    and the stream orders `relevanceScore DESC NULLS LAST`, so an unscored row would sink
+    //    to the bottom and a later refresh would drop it off page one again);
+    //  - re-read the post through the same `find` the feed uses, so the response carries the
+    //    author fields (`fromUserName`, `fromUserMedia`, ...) the card renders from, and the
+    //    client can insert it into its persisted stream as-is.
+    //
+    // Both are best-effort: the share has already committed and is idempotent, so a failure
+    // here must not surface as a failed share. The fallback is the raw row, which the client
+    // can still render (the author is the viewer, so their own name and avatar are local).
+    const [feedThought, activation] = await Promise.all([
+        Store.thoughts.find(brandVariation, [thought.id], { limit: 1 }, { withUser: true, withReplies: true })
+            .then((result) => result?.thoughts?.[0] || thought)
+            .catch(() => thought),
+        createReactions([thought.id], req.headers, { [thought.id]: OWN_SHARE_RELEVANCE_SCORE })
+            .catch((err: any) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Failed to activate a shared check-in post for its author'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'checkin.id': checkin.id,
+                        'thought.id': thought.id,
+                        'user.id': userId,
+                    },
+                });
+                return undefined;
+            }),
+    ]);
+    const activated: any = activation && !('error' in activation) ? activation : undefined;
+    const reaction = activated?.created?.[0] || activated?.updated?.[0] || { userHasActivated: true };
+
+    return res.status(201).send({
+        thought: {
+            ...feedThought,
+            reaction,
+            likeCount: 0,
+            replies: feedThought.replies || [],
+        },
+        sharedThoughtId: thought.id,
+    });
 };
 
 // READ
