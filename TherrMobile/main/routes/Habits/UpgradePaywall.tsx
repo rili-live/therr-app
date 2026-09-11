@@ -92,6 +92,38 @@ const PREMIUM_BENEFIT_KEYS = [
 ];
 
 /**
+ * Which "you already have this" line to show an entitled account.
+ *
+ * Decided from evidence of what was bought, not from `isEntitled`: both offer
+ * endpoints compute `isEntitled` from the same `hasHabitsPremiumEntitlement`,
+ * which is true for a founder AND for a monthly subscriber, so the lifetime
+ * offer's flag cannot tell the two apart — reading it told every subscriber
+ * they had lifetime access. A founder is identified by the recorded purchase, a
+ * subscriber by the active subscription row; an account entitled without either
+ * (an admin) gets the generic line.
+ */
+export const getOwnedCopy = (
+    lifetimeOffer: any,
+    premiumOffer: any,
+): { key: string; params?: Record<string, any> } => {
+    const founderNumber = lifetimeOffer?.purchase?.founderNumber;
+
+    if (founderNumber) {
+        return { key: 'pages.upgrade.ownedWithNumber', params: { number: founderNumber } };
+    }
+
+    if (lifetimeOffer?.purchase) {
+        return { key: 'pages.upgrade.owned' };
+    }
+
+    if (premiumOffer?.subscription) {
+        return { key: 'pages.upgrade.premium.owned' };
+    }
+
+    return { key: 'pages.upgrade.owned' };
+};
+
+/**
  * The two ways to lift the free-tier limits, on one screen:
  *   - the founder offer — one payment, premium for life, for the first N
  *     accounts (Google Play in-app product); and
@@ -538,13 +570,10 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
                         {!isLoading && isEntitled && (
                             <View style={this.themeHabits.styles.dashboardSection}>
                                 <Text style={this.themeHabits.styles.dashboardSubtitle}>
-                                    {lifetimeOffer?.purchase?.founderNumber
-                                        ? this.translate('pages.upgrade.ownedWithNumber', {
-                                            number: lifetimeOffer.purchase.founderNumber,
-                                        })
-                                        : (lifetimeOffer?.isEntitled
-                                            ? this.translate('pages.upgrade.owned')
-                                            : this.translate('pages.upgrade.premium.owned'))}
+                                    {(() => {
+                                        const owned = getOwnedCopy(lifetimeOffer, premiumOffer);
+                                        return this.translate(owned.key, owned.params);
+                                    })()}
                                 </Text>
                                 <Pressable
                                     accessibilityRole="button"
