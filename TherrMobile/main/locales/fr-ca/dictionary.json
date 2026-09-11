@@ -2667,7 +2667,8 @@
             },
             "achievementEarned": {
                 "header": "Réalisation obtenue!",
-                "message": "Partagez votre réalisation avec des amis!"
+                "message": "Partagez votre réalisation avec des amis!",
+                "shareMessage": "Je viens d'obtenir la réalisation {achievementClass} sur {appName}! {url}"
             }
         },
         "accountPicker": {
