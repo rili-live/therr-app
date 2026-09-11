@@ -12,6 +12,7 @@ import SharePromptModal from '../../components/Modals/SharePromptModal';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../utilities/translator';
 import { triggerRewardCelebration } from '../../utilities/rewardFeedback';
+import { buildAchievementsShareUrl } from '../../utilities/shareUrls';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
@@ -253,6 +254,14 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
         // const pageHeaderAchievements = this.translate('pages.achievements.pageHeader');
         const { userAchievement } = route.params;
         // const achievement = achievementsByClass[userAchievement.achievementClass][userAchievement.achievementId];
+        // The share copy used to name Therr and link therr.com verbatim, which on the
+        // Friends with Habits app advertised the wrong product. `{appName}` resolves per
+        // brand in the translator; the URL follows the brand in shareUrls.
+        const shareUrl = buildAchievementsShareUrl(user.settings?.locale || 'en-us');
+        const shareMessage = this.translate('modals.sharePrompt.achievementEarned.shareMessage', {
+            achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, ' $1').toLowerCase(),
+            url: shareUrl,
+        });
 
         return (
             <>
@@ -317,8 +326,8 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                     isVisible={isSharePromptVisible}
                     headerText={this.translate('modals.sharePrompt.achievementEarned.header')}
                     message={this.translate('modals.sharePrompt.achievementEarned.message')}
-                    shareMessage={`I just earned the ${userAchievement.achievementClass} achievement on Therr! https://www.therr.com`}
-                    shareUrl="https://www.therr.com"
+                    shareMessage={shareMessage}
+                    shareUrl={shareUrl}
                     shareTitle={this.translate('modals.sharePrompt.achievementEarned.header')}
                     onDismiss={this.onDismissSharePrompt}
                     translate={this.translate}

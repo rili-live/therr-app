@@ -2667,7 +2667,8 @@
             },
             "achievementEarned": {
                 "header": "Achievement Earned!",
-                "message": "Share your achievement with friends!"
+                "message": "Share your achievement with friends!",
+                "shareMessage": "I just earned the {achievementClass} achievement on {appName}! {url}"
             }
         },
         "accountPicker": {
