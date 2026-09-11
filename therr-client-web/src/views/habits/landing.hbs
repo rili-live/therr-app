@@ -10,7 +10,7 @@
     <!-- Allow full snippets and large image previews so AI answer engines and SERPs
          can surface the definition + FAQ copy below rather than a truncated stub. -->
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-    <meta name="theme-color" content="#102a43">
+    <meta name="theme-color" content="#2e2140">
     <meta property="og:site_name" content="Friends with Habits">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="en_US">
@@ -35,110 +35,181 @@
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&display=swap">
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon-habits.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon-habits.png">
     <style>
+        /*
+            Palette is the app's own: the chameleon body gradient (#5B4273 → #6E5C85)
+            and forehead stripe (#F6C94A → #D49617) from habits-logo.svg, which is the
+            same source TherrMobile/main/styles/themes/index.ts samples for the HABITS
+            brand overrides. The page used to run navy + coral next to a purple logo;
+            one palette across the icon, the app and this site is what makes the
+            chameleon read as a brand rather than a mascot.
+        */
         :root {
-            --habits-navy: #102a43;
-            --habits-coral: #ff6b35;
-            --habits-coral-dark: #e0521e;
-            --habits-cream: #fff8f3;
-            --habits-text: #243b53;
-            --habits-text-muted: #627d98;
-            --habits-border: #d9e2ec;
+            --fwh-plum: #2e2140;
+            --fwh-plum-deep: #1f1630;
+            --fwh-purple: #5b4273;
+            --fwh-purple-mid: #6e5c85;
+            --fwh-purple-soft: #ece6f3;
+            --fwh-purple-tint: #f6f2fa;
+            --fwh-gold: #f6c94a;
+            --fwh-gold-dark: #d49617;
+            --fwh-gold-deep: #a86f05;
+            --fwh-cream: #fbf7f1;
+            --fwh-white: #ffffff;
+            --fwh-text: #3a2f4a;
+            --fwh-text-muted: #6f6582;
+            --fwh-border: #e6dfee;
+            --fwh-shadow: 0 18px 40px -20px rgba(46, 33, 64, 0.35);
+            --fwh-radius: 1.25rem;
+            /* The climbing rig is sized from the viewport and the content column makes
+               room for it: --fwh-rig-inset is how much of the rig would land on the
+               centred 1080px column, and .container adds exactly that to its right
+               padding. Wide screens have a free gutter and pay nothing; a phone gives
+               up a strip on the right so copy and chameleon never share a pixel. */
+            --fwh-rig-w: clamp(3rem, 11vw, 11rem);
+            --fwh-gutter: max(0px, (100vw - 1080px) / 2);
+            --fwh-rig-inset: max(0px, var(--fwh-rig-w) + 0.5rem - var(--fwh-gutter));
+            --fwh-rig-outline: clamp(1px, var(--fwh-rig-w) / 88, 2px);
         }
         *, *::before, *::after { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         html, body {
             margin: 0;
             padding: 0;
             font-family: 'Lexend', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             font-size: 16px;
             line-height: 1.6;
-            color: var(--habits-text);
-            background: var(--habits-cream);
+            color: var(--fwh-text);
+            background: var(--fwh-cream);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
-        a { color: var(--habits-coral-dark); text-decoration: none; }
+        body { overflow-x: hidden; }
+        a { color: var(--fwh-purple); text-decoration: none; }
         a:hover { text-decoration: underline; }
+        :focus-visible { outline: 3px solid var(--fwh-gold); outline-offset: 3px; }
         .container {
-            max-width: 720px;
+            max-width: 1080px;
             margin: 0 auto;
-            padding: 0 1.5rem;
+            padding: 0 calc(1.5rem + var(--fwh-rig-inset)) 0 clamp(1rem, 4vw, 1.5rem);
         }
+        .container--narrow { max-width: 760px; }
+        .eyebrow {
+            display: inline-block;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--fwh-gold-deep);
+            margin: 0 0 0.75rem;
+        }
+        .eyebrow::before {
+            content: '';
+            display: inline-block;
+            width: 1.5rem;
+            height: 3px;
+            border-radius: 3px;
+            background: var(--fwh-gold);
+            vertical-align: middle;
+            margin-right: 0.625rem;
+        }
+
+        /* ---------- Header ---------- */
         header.site-header {
-            padding: 1.25rem 0;
-            border-bottom: 1px solid var(--habits-border);
-            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            padding: 0.75rem 0;
+            background: rgba(251, 247, 241, 0.86);
+            -webkit-backdrop-filter: saturate(160%) blur(12px);
+            backdrop-filter: saturate(160%) blur(12px);
+            border-bottom: 1px solid rgba(46, 33, 64, 0.08);
         }
         header.site-header .container {
             display: flex;
             align-items: center;
+            gap: 1rem;
+        }
+        header.site-header .brand-link {
+            display: flex;
+            align-items: center;
             gap: 0.625rem;
+            color: var(--fwh-plum);
+            text-decoration: none;
         }
         header.site-header .brand-mark {
-            width: 2rem;
-            height: 2rem;
+            width: 2.25rem;
+            height: 2.25rem;
             display: block;
+            border-radius: 0.6rem;
+            box-shadow: 0 2px 8px rgba(46, 33, 64, 0.15);
         }
         header.site-header .brand {
             font-weight: 800;
-            font-size: 1.125rem;
-            color: var(--habits-navy);
+            font-size: 1.0625rem;
             letter-spacing: -0.01em;
+            white-space: nowrap;
         }
-        .hero {
-            padding: 4rem 0 3rem;
-            text-align: center;
-            /* The generic `section` rule below adds a top border between sections;
-               the hero sits directly under the header's own border-bottom. */
-            border-top: none;
-        }
-        /* The brand motto. Deliberately not the h1: the headline has to carry the
-           head term this page competes for ("habits", "friend"), and a motto that
-           reads well to a person indexes badly. It sits above the headline instead,
-           where it is the first thing read and costs the h1 nothing. */
-        .hero .motto {
-            font-size: 0.9375rem;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: var(--habits-coral-dark);
-            margin: 0 0 0.875rem;
-        }
-        .hero h1 {
-            font-size: 2.25rem;
-            font-weight: 800;
-            line-height: 1.15;
-            color: var(--habits-navy);
-            margin: 0 0 1rem;
-            letter-spacing: -0.02em;
-        }
-        .hero p.lede {
-            font-size: 1.125rem;
-            color: var(--habits-text-muted);
-            margin: 0 0 2rem;
-            max-width: 540px;
+        nav.site-nav {
+            display: none;
             margin-left: auto;
-            margin-right: auto;
+            gap: 1.75rem;
         }
-        .cta {
-            display: inline-block;
-            padding: 0.875rem 1.75rem;
-            background: var(--habits-coral);
-            color: #fff;
+        nav.site-nav a {
+            white-space: nowrap;
             font-weight: 600;
+            font-size: 0.9375rem;
+            color: var(--fwh-text-muted);
+            transition: color 0.15s ease;
+        }
+        nav.site-nav a:hover { color: var(--fwh-plum); text-decoration: none; }
+        .header-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .header-actions .sign-in {
+            display: none;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            color: var(--fwh-purple);
+        }
+
+        /* ---------- Buttons ---------- */
+        .cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.9375rem 1.75rem;
+            background: var(--fwh-gold);
+            color: var(--fwh-plum);
+            font-weight: 700;
             font-size: 1rem;
+            line-height: 1.2;
+            white-space: nowrap;
             border-radius: 999px;
-            transition: background 0.15s ease;
+            box-shadow: 0 8px 20px -8px rgba(212, 150, 23, 0.8);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
         }
         .cta:hover {
-            background: var(--habits-coral-dark);
+            background: #ffd45c;
             text-decoration: none;
-            color: #fff;
+            color: var(--fwh-plum);
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px -8px rgba(212, 150, 23, 0.9);
+        }
+        .cta svg { width: 1.125rem; height: 1.125rem; flex: none; }
+        .cta--small {
+            padding: 0.625rem 1.125rem;
+            font-size: 0.875rem;
+            box-shadow: none;
         }
         /* Secondary CTA. Outlined rather than filled so the Play Store button
            stays the primary action for the majority of visitors who are already
@@ -146,171 +217,350 @@
            path, and it exists to be measurable, not to be preferred. */
         .cta--secondary {
             background: transparent;
-            color: var(--habits-coral-dark);
-            border: 2px solid var(--habits-coral);
-            margin-left: 0.75rem;
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.55);
+            box-shadow: none;
         }
         .cta--secondary:hover {
-            background: var(--habits-coral);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #fff;
             color: #fff;
+            box-shadow: none;
         }
         .cta-row {
             display: flex;
             flex-wrap: wrap;
             gap: 0.75rem;
-            justify-content: center;
             align-items: center;
         }
-        .cta-row .cta--secondary { margin-left: 0; }
         .cta-note {
             font-size: 0.875rem;
-            color: var(--habits-text-muted);
-            margin-top: 0.75rem;
+            color: rgba(255, 255, 255, 0.72);
+            margin-top: 1rem;
         }
-        /* Founder offer. Rendered as a bordered card rather than a plain section so the
-           limited-availability offer reads as a distinct object on the page — it is the
-           one block here with a price and a deadline attached. */
-        .founder-card {
-            background: #fff;
-            border: 2px solid var(--habits-coral);
-            border-radius: 1rem;
-            padding: 2rem 1.5rem;
-            text-align: center;
-        }
-        .founder-badge {
-            display: inline-block;
-            background: var(--habits-coral);
-            color: #fff;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            padding: 0.3125rem 0.75rem;
-            border-radius: 999px;
-            margin-bottom: 1rem;
-        }
-        section.founder h2 {
-            margin: 0 0 0.75rem;
-            font-size: 1.75rem;
-        }
-        .founder-lede {
-            color: var(--habits-text-muted);
-            max-width: 480px;
-            margin: 0 auto 1.5rem;
-        }
-        .founder-list {
-            list-style: none;
-            padding: 0;
-            margin: 0 auto 1.5rem;
-            max-width: 420px;
-            display: grid;
-            gap: 0.75rem;
-            text-align: left;
-        }
-        .founder-list li {
-            padding-left: 1.75rem;
+        .cta-note strong { color: var(--fwh-gold); font-weight: 700; }
+
+        /* ---------- Hero ---------- */
+        .hero {
             position: relative;
-            color: var(--habits-text-muted);
-            font-size: 0.9375rem;
+            overflow: hidden;
+            color: #fff;
+            background: radial-gradient(120% 90% at 85% 10%, #4a3560 0%, transparent 60%),
+                        radial-gradient(90% 70% at 10% 100%, #3d2c55 0%, transparent 55%),
+                        linear-gradient(160deg, var(--fwh-plum) 0%, var(--fwh-plum-deep) 100%);
+            padding: 3.5rem 0 4.5rem;
         }
-        .founder-list li::before {
+        .hero::before,
+        .hero::after {
             content: '';
             position: absolute;
-            left: 0;
-            top: 0.45em;
-            width: 0.625rem;
-            height: 0.625rem;
             border-radius: 50%;
-            background: var(--habits-coral);
+            pointer-events: none;
+            filter: blur(60px);
         }
-        .founder-note {
+        .hero::before {
+            width: 420px; height: 420px;
+            right: -140px; top: -160px;
+            background: rgba(246, 201, 74, 0.18);
+        }
+        .hero::after {
+            width: 360px; height: 360px;
+            left: -160px; bottom: -200px;
+            background: rgba(110, 92, 133, 0.6);
+        }
+        .hero .container {
+            position: relative;
+            display: grid;
+            gap: 3rem;
+            align-items: center;
+        }
+        /* The brand motto. Deliberately not the h1: the headline has to carry the
+           head term this page competes for ("habits", "friend"), and a motto that
+           reads well to a person indexes badly. It sits above the headline instead,
+           where it is the first thing read and costs the h1 nothing. */
+        .hero .motto {
             font-size: 0.8125rem;
-            color: var(--habits-text-muted);
-            margin: 0 auto;
-            max-width: 460px;
-        }
-        section {
-            padding: 3rem 0;
-            border-top: 1px solid var(--habits-border);
-        }
-        section h2 {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--habits-navy);
-            margin: 0 0 1.25rem;
-        }
-        section.steps h2,
-        section.why h2 {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        /* Definitional answer block — the paragraph most likely to be lifted verbatim
-           by an AI answer engine, so it leads the page body and names the entity. */
-        section.definition p {
-            font-size: 1.0625rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--fwh-gold);
             margin: 0 0 1rem;
         }
+        .hero h1 {
+            font-size: clamp(2rem, 5.2vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1.08;
+            color: #fff;
+            margin: 0 0 1.25rem;
+            letter-spacing: -0.025em;
+        }
+        .hero h1 em {
+            font-style: normal;
+            color: var(--fwh-gold);
+            position: relative;
+            white-space: nowrap;
+        }
+        .hero p.lede {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.78);
+            margin: 0 0 2rem;
+            max-width: 520px;
+        }
+        .hero-copy { text-align: left; }
+
+        /* Product visual: a pact card the way it looks in the app, with the
+           chameleon peeking over its top edge. Pure HTML/CSS so it stays crisp,
+           weighs nothing and inherits the palette. */
+        /* The face is a 6.25rem-wide box (5rem tall at the symbol's 724:580 ratio) whose
+           eyes end 3.9rem down and whose smile starts at 4.4rem. The card edge sits at
+           4.25rem so the eyes clear it and the mouth is hidden — a peek, not a portrait.
+           The hands share the face's box and right offset so they stay under the eyes
+           at every width; they overlap the edge so the fingers curl over onto the card. */
+        .hero-visual {
+            position: relative;
+            max-width: 400px;
+            width: 100%;
+            margin: 2.5rem auto 0;
+            padding-top: 4.25rem;
+        }
+        .pact-card {
+            position: relative;
+            z-index: 2;
+            background: #fff;
+            color: var(--fwh-text);
+            border-radius: 1.5rem;
+            padding: 1.375rem 1.375rem 1.25rem;
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+        .pact-card__head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.75rem 0.875rem;
+            margin-bottom: 1.125rem;
+        }
+        .pact-card__meta { flex: 1 1 6.5rem; min-width: 0; }
+        .pact-card__avatars { display: flex; }
+        .avatar {
+            width: 2.5rem; height: 2.5rem;
+            border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.875rem; color: #fff;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 6px rgba(46, 33, 64, 0.2);
+        }
+        .avatar--a { background: linear-gradient(135deg, #6e5c85, #5b4273); }
+        .avatar--b { background: linear-gradient(135deg, #d49617, #b57c0c); margin-left: -0.75rem; }
+        .pact-card__title { margin: 0; font-weight: 700; font-size: 1rem; color: var(--fwh-plum); line-height: 1.25; white-space: nowrap; }
+        .pact-card__sub { margin: 0.125rem 0 0; font-size: 0.8125rem; color: var(--fwh-text-muted); }
+        .streak-pill {
+            margin-left: auto;
+            flex: none;
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            background: var(--fwh-purple-tint);
+            color: var(--fwh-purple);
+            font-weight: 700; font-size: 0.8125rem;
+            padding: 0.375rem 0.625rem;
+            border-radius: 999px;
+            border: 1px solid var(--fwh-purple-soft);
+        }
+        .streak-pill svg { width: 0.9rem; height: 0.9rem; }
+        .checkin-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+        .checkin {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.625rem 0.75rem;
+            border-radius: 0.875rem;
+            background: var(--fwh-cream);
+            font-size: 0.875rem;
+        }
+        .checkin__thumb {
+            width: 2.25rem; height: 2.25rem; flex: none;
+            border-radius: 0.625rem;
+            background: linear-gradient(135deg, #b8a7cc, #6e5c85);
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .checkin__thumb--note { background: linear-gradient(135deg, #ffe08a, #d49617); }
+        .checkin__thumb svg { width: 1.125rem; height: 1.125rem; }
+        .checkin__text { flex: 1; min-width: 0; }
+        .checkin__who { font-weight: 700; color: var(--fwh-plum); display: block; line-height: 1.3; }
+        .checkin__what { color: var(--fwh-text-muted); font-size: 0.8125rem; display: block; }
+        .checkin__tick {
+            width: 1.5rem; height: 1.5rem; flex: none;
+            border-radius: 50%;
+            background: #2f9e6b;
+            color: #fff;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .checkin__tick svg { width: 0.875rem; height: 0.875rem; }
+        .pact-card__foot {
+            margin-top: 0.875rem;
+            padding-top: 0.875rem;
+            border-top: 1px dashed var(--fwh-border);
+            font-size: 0.8125rem;
+            color: var(--fwh-text-muted);
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .pact-card__foot strong { color: var(--fwh-plum); }
+        .day-dots { display: inline-flex; gap: 3px; margin-left: auto; }
+        .day-dots i {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--fwh-purple-mid);
+            display: block;
+        }
+        .day-dots i.today { background: var(--fwh-gold); box-shadow: 0 0 0 3px rgba(246, 201, 74, 0.3); }
+        .peeker {
+            position: absolute;
+            z-index: 1;
+            top: 0;
+            right: 1.75rem;
+            width: 6.25rem;
+            height: auto;
+            filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
+        }
+        .peeker-hands {
+            position: absolute;
+            z-index: 3;
+            top: 3.6rem;
+            right: 1.75rem;
+            width: 6.25rem;
+            height: auto;
+            filter: drop-shadow(0 2px 3px rgba(46, 33, 64, 0.25));
+        }
+        .chip-row {
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1.25rem;
+            margin-top: 1.75rem;
+            font-size: 0.8125rem;
+            color: rgba(255, 255, 255, 0.66);
+        }
+        .chip-row span { display: inline-flex; align-items: center; gap: 0.4rem; }
+        .chip-row svg { width: 1rem; height: 1rem; color: var(--fwh-gold); }
+
+        /* ---------- Sections ---------- */
+        section { padding: 4.5rem 0; }
+        section.alt { background: var(--fwh-white); }
+        section h2 {
+            font-size: clamp(1.75rem, 3.2vw, 2.375rem);
+            font-weight: 800;
+            line-height: 1.15;
+            color: var(--fwh-plum);
+            margin: 0 0 1.25rem;
+            letter-spacing: -0.02em;
+        }
+        .section-head { max-width: 640px; margin: 0 auto 2.75rem; text-align: center; }
+        .section-head h2 { margin-bottom: 0.75rem; }
+        .section-head p { margin: 0; color: var(--fwh-text-muted); font-size: 1.0625rem; }
+
+        /* Definitional answer block — the paragraph most likely to be lifted verbatim
+           by an AI answer engine, so it leads the page body and names the entity. */
+        section.definition { padding-top: 4rem; }
+        section.definition .container { display: grid; gap: 1.5rem; }
+        section.definition h2 { margin-bottom: 0; }
+        section.definition p {
+            font-size: 1.125rem;
+            margin: 0 0 1rem;
+            line-height: 1.7;
+        }
         section.definition p:last-child { margin-bottom: 0; }
+
         .step-list {
             list-style: none;
             padding: 0;
             margin: 0;
             display: grid;
-            gap: 1.5rem;
+            gap: 1.25rem;
+            counter-reset: step;
         }
-        .step-list li {
-            display: flex;
-            gap: 1rem;
-            align-items: flex-start;
+        .step-card {
+            position: relative;
+            background: var(--fwh-white);
+            border: 1px solid var(--fwh-border);
+            border-radius: var(--fwh-radius);
+            padding: 1.75rem 1.5rem 1.5rem;
+            box-shadow: var(--fwh-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
+        .step-card:hover { transform: translateY(-3px); box-shadow: 0 24px 48px -22px rgba(46, 33, 64, 0.45); }
+        .step-icon {
+            width: 3.25rem; height: 3.25rem;
+            border-radius: 1rem;
+            background: var(--fwh-purple-tint);
+            color: var(--fwh-purple);
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 1.125rem;
+        }
+        .step-icon svg { width: 1.625rem; height: 1.625rem; }
         .step-num {
-            flex: 0 0 2.25rem;
-            width: 2.25rem;
-            height: 2.25rem;
-            aspect-ratio: 1 / 1;
+            position: absolute;
+            top: 1.25rem; right: 1.25rem;
+            width: 2rem; height: 2rem;
             border-radius: 50%;
-            background: var(--habits-coral);
-            color: #fff;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
+            background: var(--fwh-gold);
+            color: var(--fwh-plum);
+            font-weight: 800;
+            font-size: 0.875rem;
+            display: inline-flex; align-items: center; justify-content: center;
         }
         .step-body h3 {
-            margin: 0.25rem 0 0.25rem;
-            font-size: 1.0625rem;
+            margin: 0 0 0.375rem;
+            font-size: 1.125rem;
             font-weight: 700;
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
         }
         .step-body p {
             margin: 0;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
             font-size: 0.9375rem;
         }
-        section.why { text-align: center; }
-        section.why p {
-            color: var(--habits-text-muted);
-            max-width: 520px;
-            margin: 0 auto 1rem;
+
+        /* Why: two stat cards with a bar that makes the gap visible. */
+        .stat-grid {
+            display: grid;
+            gap: 1.25rem;
+            margin-bottom: 1.75rem;
         }
-        section.why .stat {
-            font-size: 2.5rem;
+        .stat-card {
+            background: var(--fwh-white);
+            border: 1px solid var(--fwh-border);
+            border-radius: var(--fwh-radius);
+            padding: 1.75rem 1.5rem;
+            box-shadow: var(--fwh-shadow);
+        }
+        .stat-card .stat {
+            font-size: 3.25rem;
             font-weight: 800;
-            color: var(--habits-coral);
             line-height: 1;
-            margin: 0.5rem 0;
+            letter-spacing: -0.03em;
+            color: var(--fwh-purple);
+            margin: 0 0 0.75rem;
         }
-        section.why .stat-secondary {
-            color: var(--habits-text-muted);
-            font-size: 2rem;
+        .stat-card--dim .stat { color: var(--fwh-text-muted); }
+        .stat-bar {
+            height: 0.625rem;
+            border-radius: 999px;
+            background: var(--fwh-purple-soft);
+            overflow: hidden;
+            margin-bottom: 1rem;
         }
+        .stat-bar i {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--fwh-purple-mid), var(--fwh-purple));
+        }
+        .stat-card--dim .stat-bar i { background: #b9b0c6; }
+        .stat-card p { margin: 0; color: var(--fwh-text-muted); font-size: 0.9375rem; }
+        .stat-card p strong { color: var(--fwh-plum); }
         .source-note {
             font-size: 0.8125rem;
-            color: var(--habits-text-muted);
-            margin: 1.5rem auto 0;
-            max-width: 520px;
+            color: var(--fwh-text-muted);
+            margin: 0 auto;
+            max-width: 640px;
+            text-align: center;
         }
+
         .compare-list {
             list-style: none;
             padding: 0;
@@ -319,36 +569,170 @@
             gap: 1rem;
         }
         .compare-list li {
-            padding-left: 1.75rem;
-            position: relative;
-            color: var(--habits-text-muted);
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            background: var(--fwh-white);
+            border: 1px solid var(--fwh-border);
+            border-radius: 1rem;
+            padding: 1.125rem 1.25rem;
+            color: var(--fwh-text-muted);
+            font-size: 0.9375rem;
         }
-        .compare-list li::before {
+        .compare-list .tick {
+            flex: none;
+            width: 1.75rem; height: 1.75rem;
+            border-radius: 50%;
+            background: var(--fwh-gold);
+            color: var(--fwh-plum);
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-top: 0.1rem;
+        }
+        .compare-list .tick svg { width: 1rem; height: 1rem; }
+        .compare-list strong { color: var(--fwh-plum); font-weight: 700; display: block; margin-bottom: 0.125rem; }
+
+        /* Founder offer. Rendered as a bordered card rather than a plain section so the
+           limited-availability offer reads as a distinct object on the page — it is the
+           one block here with a price and a deadline attached. */
+        .founder-card {
+            position: relative;
+            background: linear-gradient(#fff, #fff) padding-box,
+                        linear-gradient(135deg, var(--fwh-gold) 0%, var(--fwh-purple-mid) 100%) border-box;
+            border: 2px solid transparent;
+            border-radius: 1.5rem;
+            padding: 2.5rem 1.5rem 2.25rem;
+            text-align: center;
+            box-shadow: 0 30px 60px -30px rgba(46, 33, 64, 0.5);
+            max-width: 720px;
+            margin: 0 auto;
+        }
+        .founder-badge {
+            display: inline-block;
+            background: var(--fwh-plum);
+            color: var(--fwh-gold);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 0.375rem 0.875rem;
+            border-radius: 999px;
+            margin-bottom: 1.25rem;
+        }
+        section.founder h2 {
+            margin: 0 0 0.75rem;
+            font-size: clamp(2rem, 4vw, 2.75rem);
+        }
+        section.founder h2 span { color: var(--fwh-gold-deep); }
+        .founder-lede {
+            color: var(--fwh-text-muted);
+            max-width: 520px;
+            margin: 0 auto 1.75rem;
+            font-size: 1.0625rem;
+        }
+        .founder-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 auto 1.5rem;
+            max-width: 440px;
+            display: grid;
+            gap: 0.75rem;
+            text-align: left;
+        }
+        .founder-list li {
+            padding-left: 2rem;
+            position: relative;
+            color: var(--fwh-text);
+            font-size: 0.9375rem;
+        }
+        .founder-list li::before {
             content: '';
             position: absolute;
             left: 0;
-            top: 0.6em;
-            width: 0.625rem;
-            height: 0.625rem;
+            top: 0.2em;
+            width: 1.25rem;
+            height: 1.25rem;
             border-radius: 50%;
-            background: var(--habits-coral);
+            background: var(--fwh-gold);
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='10' fill='black'/%3E%3Cpath d='M6 10.5l2.6 2.6L14 7.7' stroke='white' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='10' fill='black'/%3E%3Cpath d='M6 10.5l2.6 2.6L14 7.7' stroke='white' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
         }
-        .compare-list strong { color: var(--habits-text); font-weight: 700; }
-        .faq-item { margin: 0 0 1.75rem; }
-        .faq-item:last-child { margin-bottom: 0; }
+        .founder-note {
+            font-size: 0.8125rem;
+            color: var(--fwh-text-muted);
+            margin: 0 auto;
+            max-width: 460px;
+        }
+
+        .faq-grid { display: grid; gap: 1rem; }
+        .faq-item {
+            margin: 0;
+            background: var(--fwh-white);
+            border: 1px solid var(--fwh-border);
+            border-radius: 1rem;
+            padding: 1.25rem 1.375rem;
+        }
         .faq-item h3 {
             font-size: 1.0625rem;
             font-weight: 700;
-            color: var(--habits-navy);
-            margin: 0 0 0.375rem;
+            color: var(--fwh-plum);
+            margin: 0 0 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        .faq-item h3::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.55em;
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background: var(--fwh-gold);
         }
         .faq-item p {
             margin: 0;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
+            font-size: 0.9375rem;
         }
-        section.featured {
-            padding: 2rem 0;
+
+        /* Closing CTA band. */
+        section.closer {
+            padding: 0 0 4rem;
+            background: transparent;
+        }
+        .closer-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1.75rem;
+            background: radial-gradient(90% 80% at 100% 0%, #4a3560 0%, transparent 55%),
+                        linear-gradient(150deg, var(--fwh-plum) 0%, var(--fwh-plum-deep) 100%);
+            color: #fff;
+            padding: 3rem 1.5rem;
             text-align: center;
+            box-shadow: 0 40px 80px -40px rgba(46, 33, 64, 0.7);
+        }
+        .closer-card h2 { color: #fff; margin-bottom: 0.75rem; }
+        .closer-card p { color: rgba(255, 255, 255, 0.75); max-width: 520px; margin: 0 auto 1.75rem; }
+        .closer-card .cta-row { justify-content: center; }
+        .closer-mascot {
+            width: 5.5rem;
+            height: auto;
+            margin: 0 auto 1rem;
+            display: block;
+            filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.35));
+        }
+
+        section.featured {
+            padding: 0 0 3.5rem;
+            text-align: center;
+        }
+        section.featured .featured-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--fwh-text-muted);
+            margin: 0 0 0.75rem;
         }
         section.featured a { display: inline-block; line-height: 0; }
         section.featured img {
@@ -356,31 +740,156 @@
             max-width: 100%;
             height: auto;
         }
+
         footer.site-footer {
-            padding: 2rem 0 3rem;
-            border-top: 1px solid var(--habits-border);
-            background: #fff;
+            padding: 2.5rem 0 3rem;
+            border-top: 1px solid var(--fwh-border);
+            background: var(--fwh-white);
             text-align: center;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
             font-size: 0.875rem;
         }
         footer.site-footer .footer-links {
             margin-bottom: 0.75rem;
         }
         footer.site-footer .footer-links a {
-            margin: 0 0.5rem;
-            color: var(--habits-text-muted);
+            margin: 0 0.625rem;
+            color: var(--fwh-text-muted);
+            font-weight: 600;
         }
         footer.site-footer .footer-family {
             margin-top: 0.5rem;
         }
+
+        /* ---------- The climbing chameleon ----------
+           A fixed rig down the right-hand edge: a vine the full height of the
+           viewport and a chameleon that climbs it as the page scrolls. Position is
+           driven by --climb (0 at the top of the page, 1 at the bottom), which the
+           script below sets from scroll progress; the transition on the transform
+           is what makes the climb read as movement rather than a jump, and being a
+           transform it stays on the compositor on phones. Every dimension in here
+           derives from --fwh-rig-w (see :root), which the content column reserves. */
+        .climb-rig {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: var(--fwh-rig-w);
+            height: 100vh;
+            height: 100dvh;
+            /* Above the sticky header: the top of the climb is behind it otherwise. The
+               rig's column starts past the header's content box, so nothing is covered. */
+            z-index: 45;
+            pointer-events: none;
+        }
+        .climb-rig .vine {
+            position: absolute;
+            top: -20px;
+            bottom: -20px;
+            right: calc(var(--fwh-rig-w) * 0.26);
+            width: calc(var(--fwh-rig-w) * 0.068);
+            border-radius: 999px;
+            background: linear-gradient(180deg, #4f8a4c 0%, #3e7040 50%, #4f8a4c 100%);
+            box-shadow: inset -3px 0 0 rgba(0, 0, 0, 0.18), 0 6px 14px rgba(46, 33, 64, 0.25);
+        }
+        .climb-rig .leaf {
+            position: absolute;
+            width: calc(var(--fwh-rig-w) * 0.26);
+            height: auto;
+            right: calc(var(--fwh-rig-w) * 0.227);
+            filter: drop-shadow(0 4px 6px rgba(46, 33, 64, 0.25));
+        }
+        .climb-rig .leaf--flip { transform: scaleX(-1); right: calc(var(--fwh-rig-w) * 0.08); }
+        .climber {
+            position: absolute;
+            right: 0;
+            width: var(--fwh-rig-w);
+            height: auto;
+            top: 82vh;
+            transform: translateY(calc(-50% - 62vh * var(--climb, 0)));
+            transition: transform 0.5s cubic-bezier(0.22, 0.8, 0.3, 1);
+            will-change: transform;
+            filter: drop-shadow(var(--fwh-rig-outline) 0 0 #fff8f1)
+                    drop-shadow(calc(-1 * var(--fwh-rig-outline)) 0 0 #fff8f1)
+                    drop-shadow(0 var(--fwh-rig-outline) 0 #fff8f1)
+                    drop-shadow(0 calc(-1 * var(--fwh-rig-outline)) 0 #fff8f1)
+                    drop-shadow(0 14px 18px rgba(46, 33, 64, 0.3));
+        }
+        .climber .limb {
+            transform-box: fill-box;
+            transform-origin: 0% 50%;
+        }
+        .climber .grip { transform-box: fill-box; transform-origin: 50% 50%; }
+        .climber .torso { transform-box: fill-box; transform-origin: 50% 50%; }
+        .climber .pupil { transition: transform 0.12s ease-out; }
+        .climber .tongue {
+            transform-box: fill-box;
+            transform-origin: 100% 50%;
+            transform: scaleX(0);
+        }
+        .climber.is-climbing .limb--near-front,
+        .climber.is-climbing .limb--far-rear { animation: fwh-step 0.5s ease-in-out infinite alternate; }
+        .climber.is-climbing .limb--near-rear,
+        .climber.is-climbing .limb--far-front { animation: fwh-step 0.5s ease-in-out infinite alternate-reverse; }
+        .climber.is-climbing .torso { animation: fwh-bob 0.5s ease-in-out infinite alternate; }
+        .climber.is-zap .tongue { animation: fwh-zap 0.9s cubic-bezier(0.2, 0.9, 0.3, 1) 1; }
+        @keyframes fwh-step {
+            from { transform: rotate(-7deg); }
+            to { transform: rotate(7deg); }
+        }
+        @keyframes fwh-bob {
+            from { transform: translateY(1.5px) rotate(-0.6deg); }
+            to { transform: translateY(-1.5px) rotate(0.6deg); }
+        }
+        @keyframes fwh-zap {
+            0% { transform: scaleX(0); }
+            30% { transform: scaleX(1); }
+            55% { transform: scaleX(1); }
+            100% { transform: scaleX(0); }
+        }
+
         @media (min-width: 640px) {
-            .hero { padding: 6rem 0 4rem; }
-            .hero .motto { font-size: 1rem; }
-            .hero h1 { font-size: 3rem; }
+            .hero { padding: 4.5rem 0 5rem; }
+            .hero .motto { font-size: 0.875rem; }
             .hero p.lede { font-size: 1.25rem; }
-            .step-list { grid-template-columns: repeat(3, 1fr); gap: 2rem; }
-            .step-list li { flex-direction: column; text-align: center; align-items: center; }
+            .step-list { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+            .stat-grid { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+            .faq-grid { grid-template-columns: 1fr 1fr; }
+            .closer-card { padding: 4rem 3rem; }
+            .founder-card { padding: 3rem 2.5rem 2.75rem; }
+        }
+        @media (min-width: 900px) {
+            header.site-header { padding: 0.875rem 0; }
+            .header-actions { gap: 1.25rem; }
+            .header-actions .sign-in { display: inline; }
+            .hero { padding: 5.5rem 0 6.5rem; }
+            .hero .container {
+                grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+                gap: 4rem;
+            }
+            .hero-visual { margin: 0 0 0 auto; }
+            section.definition .container { grid-template-columns: 0.8fr 1.2fr; gap: 3rem; align-items: start; }
+            section { padding: 5.5rem 0; }
+        }
+        @media (min-width: 1024px) {
+            nav.site-nav { display: flex; }
+            .header-actions { margin-left: 1.5rem; }
+        }
+        @media (max-width: 899px) {
+            /* Five stacked drop-shadows are a GPU cost a phone notices while scrolling,
+               and at this size the sticker outline is a pixel wide anyway. */
+            .climber { filter: drop-shadow(0 6px 10px rgba(46, 33, 64, 0.3)); }
+        }
+        @media (max-width: 539px) {
+            /* Logo tile, wordmark and store button do not fit the column a phone has
+               left once the rig is reserved; the tile carries the brand on its own and
+               the link keeps its accessible name. */
+            header.site-header .brand { display: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .climber { transition: none; top: 55vh; transform: translateY(-50%); }
+            .climber .pupil { transition: none; }
+            .step-card, .cta { transition: none; }
         }
     </style>
     <!--
@@ -556,62 +1065,201 @@
     {{> habitsAnalytics}}
 </head>
 <body>
+    <!--
+        Shared vector defs. The chameleon face is the logo's own geometry
+        (habits-logo.svg minus its white tile) so the mascot on this page and the
+        icon on the phone are literally the same drawing. Referenced with <use> by
+        the hero peeker and the closing band; the climber further down is drawn
+        inline because its limbs are animated individually, which <use> can't reach.
+    -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <defs>
+            <linearGradient id="fwh-body" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#5B4273"/>
+                <stop offset="55%" stop-color="#6E5C85"/>
+                <stop offset="100%" stop-color="#7C8094"/>
+            </linearGradient>
+            <linearGradient id="fwh-stripe" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#F6C94A"/>
+                <stop offset="100%" stop-color="#D49617"/>
+            </linearGradient>
+            <symbol id="fwh-face" viewBox="150 200 724 580">
+                <path d="M 437 335 Q 512 205 587 335 Q 722 482 757 629 Q 832 759 682 759 Q 512 779 342 759 Q 192 759 267 629 Q 302 482 437 335 Z" fill="url(#fwh-body)"/>
+                <path d="M 494 325 Q 494 305 512 305 Q 530 305 530 325 L 525 477 Q 525 493 512 493 Q 499 493 499 477 Z" fill="url(#fwh-stripe)"/>
+                <circle cx="260" cy="510" r="148" fill="url(#fwh-body)"/>
+                <circle cx="260" cy="510" r="95" fill="#FFFFFF"/>
+                <circle cx="280" cy="517" r="44" fill="#2E2140"/>
+                <circle cx="294" cy="504" r="15" fill="#FFFFFF"/>
+                <circle cx="272" cy="525" r="5" fill="#FFFFFF" opacity="0.8"/>
+                <circle cx="764" cy="510" r="148" fill="url(#fwh-body)"/>
+                <circle cx="764" cy="510" r="95" fill="#FFFFFF"/>
+                <circle cx="744" cy="517" r="44" fill="#2E2140"/>
+                <circle cx="730" cy="504" r="15" fill="#FFFFFF"/>
+                <circle cx="752" cy="525" r="5" fill="#FFFFFF" opacity="0.8"/>
+                <circle cx="488" cy="653" r="11" fill="#2E2140" opacity="0.62"/>
+                <circle cx="536" cy="653" r="11" fill="#2E2140" opacity="0.62"/>
+                <path d="M 418 718 Q 512 762 606 718" stroke="#2E2140" stroke-width="12" fill="none" stroke-linecap="round"/>
+            </symbol>
+            <symbol id="fwh-check" viewBox="0 0 20 20">
+                <path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </symbol>
+            <symbol id="fwh-play" viewBox="0 0 24 24">
+                <path d="M4 3.5v17c0 .6.7 1 1.2.7l14.3-8.5c.5-.3.5-1 0-1.3L5.2 2.8C4.7 2.5 4 2.9 4 3.5z" fill="currentColor"/>
+            </symbol>
+        </defs>
+    </svg>
+
     <header class="site-header">
         <div class="container">
-            <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
-            <span class="brand">Friends with Habits</span>
+            <a class="brand-link" href="/" aria-label="Friends with Habits home">
+                <img class="brand-mark" src="/assets/images/habits-logo.svg" width="36" height="36" alt="">
+                <span class="brand">Friends with Habits</span>
+            </a>
+            <nav class="site-nav" aria-label="Page sections">
+                <a href="#how-it-works">How it works</a>
+                <a href="#why-it-works">Why it works</a>
+                <a href="#founder-offer">Founder offer</a>
+                <a href="#faq">FAQ</a>
+                <a href="/blog">Blog</a>
+            </nav>
+            <div class="header-actions">
+                <a class="sign-in" href="/login">Sign in</a>
+                <a class="cta cta--small" id="header-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">
+                    <svg aria-hidden="true"><use href="#fwh-play"/></svg>
+                    Get the app
+                </a>
+            </div>
         </div>
     </header>
 
     <main>
         <section class="hero">
             <div class="container">
-                <p class="motto">Friends don't let friends give up on change.</p>
-                <h1>Habits that stick when a friend's on the hook too.</h1>
-                <p class="lede">Most habit apps let you give up in private. Friends with Habits doesn't. Pact with a friend, check in daily, and keep each other on streak.</p>
-                <!--
-                    Friends with Habits applicationId — NOT app.therrmobile. Sending a
-                    visitor to the Therr listing installs an app that cannot open a
-                    Friends with Habits account. Hardcoded rather than interpolated
-                    because Handlebars escapes '=' in an attribute to &#x3D;.
-                -->
-                <div class="cta-row">
-                    <a class="cta" id="hero-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get it on Google Play</a>
-                    <a class="cta cta--secondary" id="hero-register-cta" href="/register">Create your account</a>
+                <div class="hero-copy">
+                    <p class="motto">Friends don't let friends give up on change.</p>
+                    <h1>Habits that stick when a friend's <em>on the hook</em> too.</h1>
+                    <p class="lede">Most habit apps let you give up in private. Friends with Habits doesn't. Pact with a friend, check in daily, and keep each other on streak.</p>
+                    <!--
+                        Friends with Habits applicationId — NOT app.therrmobile. Sending a
+                        visitor to the Therr listing installs an app that cannot open a
+                        Friends with Habits account. Hardcoded rather than interpolated
+                        because Handlebars escapes '=' in an attribute to &#x3D;.
+                    -->
+                    <div class="cta-row">
+                        <a class="cta" id="hero-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">
+                            <svg aria-hidden="true"><use href="#fwh-play"/></svg>
+                            Get it on Google Play
+                        </a>
+                        <a class="cta cta--secondary" id="hero-register-cta" href="/register">Create your account</a>
+                    </div>
+                    <div class="cta-note">Free to install &mdash; now available to everyone on Google Play. iOS coming next.</div>
+                    <div class="cta-note"><strong>Founding member offer:</strong> the first 5,000 accounts get every paid feature free for life for a one-time $20.</div>
+                    <div class="chip-row" aria-label="Highlights">
+                        <span><svg aria-hidden="true"><use href="#fwh-check"/></svg> No subscription</span>
+                        <span><svg aria-hidden="true"><use href="#fwh-check"/></svg> No waitlist</span>
+                        <span><svg aria-hidden="true"><use href="#fwh-check"/></svg> Photo-proof check-ins</span>
+                    </div>
                 </div>
-                <div class="cta-note">Free to install &mdash; now available to everyone on Google Play. iOS coming next.</div>
-                <div class="cta-note"><strong>Founding member offer:</strong> the first 5,000 accounts get every paid feature free for life for a one-time $20.</div>
+
+                <div class="hero-visual" aria-hidden="true">
+                    <svg class="peeker" viewBox="0 0 724 580"><use href="#fwh-face"/></svg>
+                    <div class="pact-card">
+                        <div class="pact-card__head">
+                            <div class="pact-card__avatars">
+                                <span class="avatar avatar--a">M</span>
+                                <span class="avatar avatar--b">T</span>
+                            </div>
+                            <div class="pact-card__meta">
+                                <p class="pact-card__title">Morning run</p>
+                                <p class="pact-card__sub">Maya &amp; Theo &middot; every day, 6:30am</p>
+                            </div>
+                            <span class="streak-pill">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2s1 3.5-1 6c-1.3 1.6-3 2.4-3 5a5 5 0 0 0 10 0c0-4-3-5-3-8 0 0-1 1.5-2 2-1-2-1-5-1-5z" fill="#d49617"/></svg>
+                                23-day streak
+                            </span>
+                        </div>
+                        <ul class="checkin-list">
+                            <li class="checkin">
+                                <span class="checkin__thumb">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg>
+                                </span>
+                                <span class="checkin__text">
+                                    <span class="checkin__who">Maya checked in</span>
+                                    <span class="checkin__what">Photo proof &middot; 6:41am &middot; "5k, done before coffee"</span>
+                                </span>
+                                <span class="checkin__tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span>
+                            </li>
+                            <li class="checkin">
+                                <span class="checkin__thumb checkin__thumb--note">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M8 12h8M8 16h6"/></svg>
+                                </span>
+                                <span class="checkin__text">
+                                    <span class="checkin__who">Theo checked in</span>
+                                    <span class="checkin__what">Note &middot; 7:02am &middot; "Rain. Ran anyway. You owe me."</span>
+                                </span>
+                                <span class="checkin__tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span>
+                            </li>
+                        </ul>
+                        <div class="pact-card__foot">
+                            <span>Both in today &mdash; <strong>streak +1</strong></span>
+                            <span class="day-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i class="today"></i></span>
+                        </div>
+                    </div>
+                    <svg class="peeker-hands" viewBox="0 0 100 26">
+                        <rect x="18" y="0" width="24" height="26" rx="12" fill="#6E5C85"/>
+                        <rect x="58" y="0" width="24" height="26" rx="12" fill="#6E5C85"/>
+                        <path d="M24 12v8M30 13v9M36 12v8M64 12v8M70 13v9M76 12v8" fill="none" stroke="#5B4273" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </div>
             </div>
         </section>
 
         <section class="definition">
             <div class="container">
-                <h2>What is Friends with Habits?</h2>
-                <p>Friends with Habits is a habit-tracking app that requires an accountability partner. Instead of tracking a habit alone, you make a pact with a friend: you both commit to the same daily habit, you both check in with proof, and you both see it when the other one misses.</p>
-                <p>It is free, made by <a href="https://www.therr.app/" rel="noopener">Therr, Inc.</a>, and out now on Android through Google Play while an iOS version is in the works.</p>
+                <div>
+                    <p class="eyebrow">What it is</p>
+                    <h2>What is Friends with Habits?</h2>
+                </div>
+                <div>
+                    <p>Friends with Habits is a habit-tracking app that requires an accountability partner. Instead of tracking a habit alone, you make a pact with a friend: you both commit to the same daily habit, you both check in with proof, and you both see it when the other one misses.</p>
+                    <p>It is free, made by <a href="https://www.therr.app/" rel="noopener">Therr, Inc.</a>, and out now on Android through Google Play while an iOS version is in the works.</p>
+                </div>
             </div>
         </section>
 
-        <section class="steps">
+        <section class="steps alt" id="how-it-works">
             <div class="container">
-                <h2>How it works</h2>
+                <div class="section-head">
+                    <p class="eyebrow">How it works</p>
+                    <h2>Three steps. Two people. One streak.</h2>
+                    <p>A pact takes a minute to set up and a friend to keep. Everything else is just showing up.</p>
+                </div>
                 <ol class="step-list">
-                    <li>
+                    <li class="step-card">
                         <span class="step-num">1</span>
+                        <span class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l3-3 5 5 3-3 5 5"/><path d="M4 17h16"/><path d="M4 5h5"/></svg>
+                        </span>
                         <div class="step-body">
                             <h3>Create a pact</h3>
-                            <p>Pick a habit — workout, reading, meditation, anything daily.</p>
+                            <p>Pick a habit — workout, reading, meditation, anything daily. Set the time you'll both show up.</p>
                         </div>
                     </li>
-                    <li>
+                    <li class="step-card">
                         <span class="step-num">2</span>
+                        <span class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M17 8v6M14 11h6"/></svg>
+                        </span>
                         <div class="step-body">
                             <h3>Invite a friend</h3>
                             <p>You can't do this alone. Your friend joins and becomes your accountability partner.</p>
                         </div>
                     </li>
-                    <li>
+                    <li class="step-card">
                         <span class="step-num">3</span>
+                        <span class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg>
+                        </span>
                         <div class="step-body">
                             <h3>Check in daily</h3>
                             <p>Add a photo or quick note as proof. Watch the streak grow together.</p>
@@ -621,13 +1269,25 @@
             </div>
         </section>
 
-        <section class="why">
+        <section class="why" id="why-it-works">
             <div class="container">
-                <h2>Why accountability changes everything</h2>
-                <div class="stat">95%</div>
-                <p>How often people follow through on a goal when they have a standing accountability appointment with someone else.</p>
-                <div class="stat stat-secondary">10%</div>
-                <p>How often the same goal gets done when it stays an idea you never commit to anyone. Solo apps can't bridge that gap. We make accountability the default.</p>
+                <div class="section-head">
+                    <p class="eyebrow">Why it works</p>
+                    <h2>Why accountability changes everything</h2>
+                    <p>The same goal, the same person, the same month. The only difference is whether someone else is expecting you.</p>
+                </div>
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat">95%</div>
+                        <div class="stat-bar" aria-hidden="true"><i style="width: 95%"></i></div>
+                        <p><strong>With a partner.</strong> How often people follow through on a goal when they have a standing accountability appointment with someone else.</p>
+                    </div>
+                    <div class="stat-card stat-card--dim">
+                        <div class="stat">10%</div>
+                        <div class="stat-bar" aria-hidden="true"><i style="width: 10%"></i></div>
+                        <p><strong>On your own.</strong> How often the same goal gets done when it stays an idea you never commit to anyone. Solo apps can't bridge that gap. We make accountability the default.</p>
+                    </div>
+                </div>
                 <!--
                     Cited rather than asserted: these two figures are the top and bottom
                     rungs of the ASTD commitment ladder, and an uncited "95%" is both a
@@ -637,15 +1297,18 @@
             </div>
         </section>
 
-        <section class="compare">
-            <div class="container">
-                <h2>How it's different from other habit trackers</h2>
+        <section class="compare alt">
+            <div class="container container--narrow">
+                <div class="section-head">
+                    <p class="eyebrow">The difference</p>
+                    <h2>How it's different from other habit trackers</h2>
+                </div>
                 <ul class="compare-list">
-                    <li><strong>A partner is required, not optional.</strong> Streaks, Habitify, Done and most other habit apps are built for one person. Here a pact needs two, so there is no version of the app where nobody notices you stopped.</li>
-                    <li><strong>Check-ins carry proof.</strong> Every daily check-in takes a photo or a note, so a streak is evidence rather than a tap.</li>
-                    <li><strong>The streak is shared.</strong> You and your partner are on the same streak, so a missed day costs both of you — the reason it is uncomfortable is the reason it works.</li>
-                    <li><strong>It is free to start.</strong> No waitlist, no invite code, no card. Install it and make your first pact.</li>
-                    <li><strong>No subscription to sign up for.</strong> Free accounts track 5 active habits. The first 5,000 accounts can lift that permanently with a one-time $20 founder unlock instead of a monthly bill.</li>
+                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div><strong>A partner is required, not optional.</strong> Streaks, Habitify, Done and most other habit apps are built for one person. Here a pact needs two, so there is no version of the app where nobody notices you stopped.</div></li>
+                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div><strong>Check-ins carry proof.</strong> Every daily check-in takes a photo or a note, so a streak is evidence rather than a tap.</div></li>
+                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div><strong>The streak is shared.</strong> You and your partner are on the same streak, so a missed day costs both of you — the reason it is uncomfortable is the reason it works.</div></li>
+                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div><strong>It is free to start.</strong> No waitlist, no invite code, no card. Install it and make your first pact.</div></li>
+                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div><strong>No subscription to sign up for.</strong> Free accounts track 5 active habits. The first 5,000 accounts can lift that permanently with a one-time $20 founder unlock instead of a monthly bill.</div></li>
                 </ul>
             </div>
         </section>
@@ -657,11 +1320,11 @@
             external checkout for in-app digital content is the Play policy problem that
             rail was chosen to avoid. This block advertises the offer; Play collects it.
         -->
-        <section class="founder">
+        <section class="founder" id="founder-offer">
             <div class="container">
                 <div class="founder-card">
                     <div class="founder-badge">Founding member offer</div>
-                    <h2>$20 once. Free for life.</h2>
+                    <h2><span>$20 once.</span> Free for life.</h2>
                     <p class="founder-lede">The first 5,000 accounts can unlock everything permanently for a single $20 payment. No subscription, no renewal, nothing to cancel.</p>
                     <ul class="founder-list">
                         <li>No cap on active habits &mdash; free accounts track 5 at a time</li>
@@ -673,36 +1336,58 @@
             </div>
         </section>
 
-        <section class="faq">
+        <section class="faq alt" id="faq">
             <div class="container">
-                <h2>Frequently asked questions</h2>
-                <div class="faq-item">
-                    <h3>Is Friends with Habits free?</h3>
-                    <p>Yes. Friends with Habits is free to download and free to use, with no waitlist, no invite code and no card. A free account tracks up to 5 active habits at a time, and archiving a habit you have finished with frees a slot back up.</p>
+                <div class="section-head">
+                    <p class="eyebrow">FAQ</p>
+                    <h2>Frequently asked questions</h2>
                 </div>
-                <div class="faq-item">
-                    <h3>What is the founder free-for-life unlock?</h3>
-                    <p>The first 5,000 accounts can pay $20 once and never pay again. The founder unlock removes the 5-habit limit and includes every premium feature we add later, for life. There is no subscription attached to it and nothing to cancel. You buy it inside the app through Google Play, and once 5,000 people have claimed it the offer is gone for good.</p>
+                <div class="faq-grid">
+                    <div class="faq-item">
+                        <h3>Is Friends with Habits free?</h3>
+                        <p>Yes. Friends with Habits is free to download and free to use, with no waitlist, no invite code and no card. A free account tracks up to 5 active habits at a time, and archiving a habit you have finished with frees a slot back up.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>What is the founder free-for-life unlock?</h3>
+                        <p>The first 5,000 accounts can pay $20 once and never pay again. The founder unlock removes the 5-habit limit and includes every premium feature we add later, for life. There is no subscription attached to it and nothing to cancel. You buy it inside the app through Google Play, and once 5,000 people have claimed it the offer is gone for good.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>What is a pact?</h3>
+                        <p>A pact is a daily habit that you and a friend commit to together — a workout, a reading session, a meditation, a language lesson, anything you want to do every day. The pact holds the habit, the schedule, and the streak that the two of you share.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Do I need a friend to use the app?</h3>
+                        <p>Yes, and that is deliberate. A pact needs two people, so you invite a friend when you create one. Solo habit trackers let you quit in private, which is the failure mode this app exists to remove. If your friend has not installed the app yet, your invite link walks them through it.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>How do daily check-ins work?</h3>
+                        <p>Each day you check in on your pact and attach a photo or a short note as proof. Your partner sees the check-in, you see theirs, and the shared streak grows for every day you both show up. Miss a day and the streak resets for both of you.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Is Friends with Habits available on iPhone?</h3>
+                        <p>Not yet. Friends with Habits is on Android via Google Play today, and an iOS version is next on the roadmap. Your account works across every Therr app, so an account you create on Android will carry over.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Who makes Friends with Habits?</h3>
+                        <p>Friends with Habits is built by Therr, Inc., the company behind the <a href="https://www.therr.app/" rel="noopener">Therr app</a> for local discovery and community. The two apps share one account system, so a single Therr login works for both.</p>
+                    </div>
                 </div>
-                <div class="faq-item">
-                    <h3>What is a pact?</h3>
-                    <p>A pact is a daily habit that you and a friend commit to together — a workout, a reading session, a meditation, a language lesson, anything you want to do every day. The pact holds the habit, the schedule, and the streak that the two of you share.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Do I need a friend to use the app?</h3>
-                    <p>Yes, and that is deliberate. A pact needs two people, so you invite a friend when you create one. Solo habit trackers let you quit in private, which is the failure mode this app exists to remove. If your friend has not installed the app yet, your invite link walks them through it.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>How do daily check-ins work?</h3>
-                    <p>Each day you check in on your pact and attach a photo or a short note as proof. Your partner sees the check-in, you see theirs, and the shared streak grows for every day you both show up. Miss a day and the streak resets for both of you.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Is Friends with Habits available on iPhone?</h3>
-                    <p>Not yet. Friends with Habits is on Android via Google Play today, and an iOS version is next on the roadmap. Your account works across every Therr app, so an account you create on Android will carry over.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Who makes Friends with Habits?</h3>
-                    <p>Friends with Habits is built by Therr, Inc., the company behind the <a href="https://www.therr.app/" rel="noopener">Therr app</a> for local discovery and community. The two apps share one account system, so a single Therr login works for both.</p>
+            </div>
+        </section>
+
+        <section class="closer">
+            <div class="container">
+                <div class="closer-card">
+                    <svg class="closer-mascot" viewBox="0 0 724 580" aria-hidden="true"><use href="#fwh-face"/></svg>
+                    <h2>Make your first pact tonight.</h2>
+                    <p>Pick the habit you keep putting off, send one invite, and let a friend make quitting the harder option.</p>
+                    <div class="cta-row">
+                        <a class="cta" id="closer-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">
+                            <svg aria-hidden="true"><use href="#fwh-play"/></svg>
+                            Get it on Google Play
+                        </a>
+                        <a class="cta cta--secondary" id="closer-register-cta" href="/register">Create your account</a>
+                    </div>
                 </div>
             </div>
         </section>
@@ -724,6 +1409,7 @@
         -->
         <section class="featured">
             <div class="container">
+                <p class="featured-label">As seen on</p>
                 <a href="https://launchkiwi.com/p/friends-with-habits" target="_blank" rel="noopener">
                     <picture>
                         <source srcset="https://launchkiwi.com/badge-dark.svg" media="(prefers-color-scheme: dark)">
@@ -736,8 +1422,79 @@
 
     {{> habitsFooter}}
 
+    <!--
+        The climbing chameleon. Drawn facing the copy, gripping the vine on its
+        right. Limb classes are what the stepping animation targets; the pupil is
+        moved by the cursor and the tongue fires when the founder card scrolls into
+        view. Decorative only, so hidden from assistive tech.
+    -->
+    <div class="climb-rig" aria-hidden="true">
+        <div class="vine"></div>
+        <svg class="leaf" style="top: 14%" viewBox="0 0 46 30"><path d="M2 28 C 4 8, 26 0, 44 4 C 40 22, 22 32, 2 28 Z" fill="#5e9e57"/><path d="M4 27 C 16 20, 28 12, 42 5" fill="none" stroke="#3e7040" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <svg class="leaf leaf--flip" style="top: 38%" viewBox="0 0 46 30"><path d="M2 28 C 4 8, 26 0, 44 4 C 40 22, 22 32, 2 28 Z" fill="#6aae62"/><path d="M4 27 C 16 20, 28 12, 42 5" fill="none" stroke="#3e7040" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <svg class="leaf" style="top: 63%" viewBox="0 0 46 30"><path d="M2 28 C 4 8, 26 0, 44 4 C 40 22, 22 32, 2 28 Z" fill="#5e9e57"/><path d="M4 27 C 16 20, 28 12, 42 5" fill="none" stroke="#3e7040" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <svg class="leaf leaf--flip" style="top: 86%" viewBox="0 0 46 30"><path d="M2 28 C 4 8, 26 0, 44 4 C 40 22, 22 32, 2 28 Z" fill="#6aae62"/><path d="M4 27 C 16 20, 28 12, 42 5" fill="none" stroke="#3e7040" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <svg class="climber" id="fwh-climber" viewBox="0 0 240 320">
+            <defs>
+                <linearGradient id="fwh-climber-body" x1="60" y1="90" x2="160" y2="250" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#5B4273"/>
+                    <stop offset="55%" stop-color="#6E5C85"/>
+                    <stop offset="100%" stop-color="#7C8094"/>
+                </linearGradient>
+                <linearGradient id="fwh-climber-stripe" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#F6C94A"/>
+                    <stop offset="100%" stop-color="#D49617"/>
+                </linearGradient>
+            </defs>
+            <!-- Far-side limbs, drawn first so the body covers their roots. -->
+            <g class="limb limb--far-front">
+                <path d="M 112 120 Q 145 116 166 100" fill="none" stroke="#4a3560" stroke-width="13" stroke-linecap="round"/>
+                <circle class="grip" cx="169" cy="97" r="9" fill="#4a3560"/>
+            </g>
+            <g class="limb limb--far-rear">
+                <path d="M 118 206 Q 150 214 166 232" fill="none" stroke="#4a3560" stroke-width="13" stroke-linecap="round"/>
+                <circle class="grip" cx="169" cy="236" r="9" fill="#4a3560"/>
+            </g>
+            <!-- Tail: two strokes so the curl tapers. -->
+            <path d="M 120 236 C 128 268, 94 292, 78 272" fill="none" stroke="#6E5C85" stroke-width="14" stroke-linecap="round"/>
+            <path d="M 78 272 C 68 258, 90 244, 98 260 C 101 268, 92 274, 88 268" fill="none" stroke="#5B4273" stroke-width="9" stroke-linecap="round"/>
+            <g class="torso">
+                <ellipse cx="104" cy="168" rx="44" ry="74" transform="rotate(-14 104 168)" fill="url(#fwh-climber-body)"/>
+                <path d="M 100 100 C 145 125, 152 200, 128 238" fill="none" stroke="url(#fwh-climber-stripe)" stroke-width="9" stroke-linecap="round" opacity="0.95"/>
+                <circle cx="90" cy="158" r="6" fill="#c9bbd9" opacity="0.7"/>
+                <circle cx="104" cy="192" r="5" fill="#c9bbd9" opacity="0.7"/>
+                <circle cx="82" cy="132" r="4" fill="#c9bbd9" opacity="0.7"/>
+                <!-- Head with the logo's crest, eye turret, nostril and smile. -->
+                <path d="M 58 68 C 66 28, 104 24, 114 62 Z" fill="#5B4273"/>
+                <circle cx="84" cy="84" r="36" fill="url(#fwh-climber-body)"/>
+                <path d="M 86 40 L 90 64" fill="none" stroke="url(#fwh-climber-stripe)" stroke-width="6" stroke-linecap="round"/>
+                <circle cx="74" cy="80" r="17" fill="#5B4273"/>
+                <circle cx="74" cy="80" r="11" fill="#FFFFFF"/>
+                <g class="pupil" id="fwh-climber-pupil">
+                    <circle cx="72" cy="81" r="5.5" fill="#2E2140"/>
+                    <circle cx="74" cy="79" r="2" fill="#FFFFFF"/>
+                </g>
+                <circle cx="54" cy="92" r="2.2" fill="#2E2140" opacity="0.5"/>
+                <path d="M 56 100 Q 70 110 84 104" fill="none" stroke="#2E2140" stroke-width="3.5" stroke-linecap="round"/>
+                <g class="tongue">
+                    <path d="M 58 102 L 8 96" fill="none" stroke="#e5507a" stroke-width="5" stroke-linecap="round"/>
+                    <circle cx="8" cy="96" r="4.5" fill="#e5507a"/>
+                </g>
+            </g>
+            <!-- Near-side limbs on top. -->
+            <g class="limb limb--near-front">
+                <path d="M 118 128 Q 150 128 166 108" fill="none" stroke="#6E5C85" stroke-width="15" stroke-linecap="round"/>
+                <circle class="grip" cx="169" cy="105" r="10" fill="#6E5C85"/>
+            </g>
+            <g class="limb limb--near-rear">
+                <path d="M 122 214 Q 150 226 166 244" fill="none" stroke="#6E5C85" stroke-width="15" stroke-linecap="round"/>
+                <circle class="grip" cx="169" cy="247" r="10" fill="#6E5C85"/>
+            </g>
+        </svg>
+    </div>
+
     {{!
-        Outbound-click tracking for the two hero CTAs.
+        Outbound-click tracking for the store and register CTAs.
 
         Until this existed the landing page fired no gtag event at all, so the
         paid Search arm had nothing to optimise toward and nothing to import
@@ -746,6 +1503,9 @@
         Store hop is where measurement ends), and `sign_up` on /register is the
         real conversion. Mark both as key events in GA4 admin, then import them
         under Ads -> Goals -> Conversions -> Import -> Google Analytics 4.
+
+        `location` distinguishes the header, hero and closing-band copies of each
+        CTA so the report can say which placement earns its click.
 
         gtag is defined by habitsAnalytics but only sends when a measurement id
         is configured, and the whole thing is guarded regardless: analytics must
@@ -758,17 +1518,116 @@
                     if (typeof window.gtag === 'function') { window.gtag('event', name, params || {}); }
                 } catch (e) { /* no-op */ }
             }
-            var store = document.getElementById('hero-store-cta');
-            var register = document.getElementById('hero-register-cta');
-            if (store) {
-                store.addEventListener('click', function () {
-                    track('store_click', { link_url: store.href, location: 'hero' });
-                });
+            function bindStore(id, location) {
+                var el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('click', function () {
+                        track('store_click', { link_url: el.href, location: location });
+                    });
+                }
             }
-            if (register) {
-                register.addEventListener('click', function () {
-                    track('register_start', { location: 'hero' });
-                });
+            function bindRegister(id, location) {
+                var el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('click', function () {
+                        track('register_start', { location: location });
+                    });
+                }
+            }
+            bindStore('hero-store-cta', 'hero');
+            bindStore('header-store-cta', 'header');
+            bindStore('closer-store-cta', 'closer');
+            bindRegister('hero-register-cta', 'hero');
+            bindRegister('closer-register-cta', 'closer');
+        })();
+    </script>
+    {{!
+        The climbing chameleon. Purely decorative: every branch here degrades to
+        "the chameleon sits still" and none of it touches the copy or the CTAs.
+        Scroll progress -> --climb (the CSS does the easing); a class toggled while
+        the page is actually moving drives the leg animation; the pupil tracks a
+        fine pointer; the tongue fires once each time the founder card is on screen.
+        Reduced-motion visitors get a parked chameleon and no pupil tracking.
+    }}
+    <script>
+        (function () {
+            var climber = document.getElementById('fwh-climber');
+            if (!climber || !('requestAnimationFrame' in window)) { return; }
+            var reduceMotion = false;
+            try {
+                reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+            } catch (e) { /* no-op */ }
+
+            var ticking = false;
+            var stillTimer = null;
+            function update() {
+                ticking = false;
+                var doc = document.documentElement;
+                var max = Math.max(1, doc.scrollHeight - window.innerHeight);
+                var progress = Math.min(1, Math.max(0, (window.scrollY || window.pageYOffset || 0) / max));
+                climber.style.setProperty('--climb', progress.toFixed(4));
+            }
+            function onScroll() {
+                if (!ticking) {
+                    ticking = true;
+                    window.requestAnimationFrame(update);
+                }
+                if (reduceMotion) { return; }
+                climber.classList.add('is-climbing');
+                if (stillTimer) { clearTimeout(stillTimer); }
+                stillTimer = setTimeout(function () { climber.classList.remove('is-climbing'); }, 280);
+            }
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', onScroll, { passive: true });
+            update();
+
+            if (!reduceMotion) {
+                var pupil = document.getElementById('fwh-climber-pupil');
+                var finePointer = false;
+                try {
+                    finePointer = !!(window.matchMedia && window.matchMedia('(pointer: fine)').matches);
+                } catch (e) { /* no-op */ }
+                if (pupil && finePointer) {
+                    var pointerTicking = false;
+                    var lastX = 0;
+                    var lastY = 0;
+                    document.addEventListener('mousemove', function (event) {
+                        lastX = event.clientX;
+                        lastY = event.clientY;
+                        if (pointerTicking) { return; }
+                        pointerTicking = true;
+                        window.requestAnimationFrame(function () {
+                            pointerTicking = false;
+                            var box = climber.getBoundingClientRect();
+                            if (!box.width) { return; }
+                            // Eye centre in screen space: (74, 80) in a 240x320 viewBox.
+                            var scale = box.width / 240;
+                            var eyeX = box.left + 74 * scale;
+                            var eyeY = box.top + 80 * scale;
+                            var dx = lastX - eyeX;
+                            var dy = lastY - eyeY;
+                            var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                            var reach = Math.min(4.5, dist / 60);
+                            pupil.setAttribute('transform', 'translate(' + (dx / dist * reach).toFixed(2) + ' ' + (dy / dist * reach).toFixed(2) + ')');
+                        });
+                    }, { passive: true });
+                }
+            }
+
+            var founder = document.querySelector('.founder-card');
+            if (founder && 'IntersectionObserver' in window && !reduceMotion) {
+                var zapTimer = null;
+                new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) { return; }
+                        climber.classList.remove('is-zap');
+                        // Force a reflow so re-adding the class restarts the animation.
+                        void climber.offsetWidth; // eslint-disable-line no-void
+                        climber.classList.add('is-zap');
+                        if (zapTimer) { clearTimeout(zapTimer); }
+                        zapTimer = setTimeout(function () { climber.classList.remove('is-zap'); }, 1000);
+                    });
+                }, { threshold: 0.6 }).observe(founder);
             }
         })();
     </script>
