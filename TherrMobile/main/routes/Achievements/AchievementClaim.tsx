@@ -7,6 +7,9 @@ import { bindActionCreators } from 'redux';
 import LottieView from 'lottie-react-native';
 import { IUserState } from 'therr-react/types';
 import { achievementsByClass } from 'therr-js-utilities/config';
+import { BrandVariations } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
+import HabitsAchievementBadge from '../../components/Achievements/HabitsAchievementBadge';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import SharePromptModal from '../../components/Modals/SharePromptModal';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -24,13 +27,19 @@ import { ScrollView } from 'react-native-gesture-handler';
 import TherrIcon from '../../components/TherrIcon';
 
 const achievementConfetti = require('../../assets/achievement-confetti-2.json');
+// Therr's card art, keyed like AchievementTile's. A Habits class has no entry here
+// and never did — on Friends with Habits the card is HabitsAchievementBadge.
 const cardImagesLottie = {
     explorer: require('../../assets/explorer-card.json'),
     influencer: require('../../assets/influencer-card.json'),
     socialite: require('../../assets/socialite-card.json'),
     communityLeader: require('../../assets/socialite-card.json'),
     thinker: require('../../assets/thinker-card.json'),
+    weeklyChampion: require('../../assets/influencer-card.json'),
 };
+const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
+/** Glyph size on the claim card, which is 212dp tall against the tile's 92. */
+const CLAIM_CARD_ICON_SIZE = 72;
 
 interface IAchievementClaimDispatchProps {
     claimMyAchievement: Function;
@@ -288,10 +297,17 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                                 />
                             )}
                             <View style={this.themeAchievements.styles.cardImageContainerLarge}>
-                                <View style={this.themeAchievements.styles.cardImageLarge}>
-                                    {hasTransitioned && (
+                                <View style={[this.themeAchievements.styles.cardImageLarge, IS_HABITS && localStyles.badgeCard]}>
+                                    {IS_HABITS ? (
+                                        <HabitsAchievementBadge
+                                            achievementClass={userAchievement.achievementClass}
+                                            isComplete={!!userAchievement.completedAt}
+                                            iconSize={CLAIM_CARD_ICON_SIZE}
+                                            theme={this.themeAchievements}
+                                        />
+                                    ) : hasTransitioned && (
                                         <LottieView
-                                            source={cardImagesLottie[userAchievement.achievementClass]}
+                                            source={cardImagesLottie[userAchievement.achievementClass] || cardImagesLottie.explorer}
                                             resizeMode="cover"
                                             speed={2.4}
                                             autoPlay
@@ -357,6 +373,12 @@ const localStyles = StyleSheet.create({
         position: 'absolute',
         width: '100%',
         height: '100%',
+    },
+    // The Lottie cards carry their own rounded frame; the badge fills its box edge to
+    // edge, so the box supplies the corners.
+    badgeCard: {
+        borderRadius: 16,
+        overflow: 'hidden',
     },
 });
 

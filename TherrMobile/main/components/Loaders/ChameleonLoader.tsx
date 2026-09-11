@@ -14,6 +14,26 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { ITherrThemeColors } from '../../styles/themes';
+import {
+    EYE_SOCKET_RADIUS,
+    EYE_WHITE_RADIUS,
+    FACE_ASPECT,
+    FACE_VIEW_BOX,
+    HEAD_PATH,
+    HIGHLIGHT_OFFSET,
+    HIGHLIGHT_RADIUS,
+    LEFT_EYE,
+    LEFT_PUPIL,
+    NOSTRIL_OPACITY,
+    NOSTRIL_RADIUS,
+    NOSTRILS,
+    PUPIL_RADIUS,
+    RIGHT_EYE,
+    RIGHT_PUPIL,
+    SMILE_PATH,
+    SMILE_STROKE_WIDTH,
+    STRIPE_PATH,
+} from '../Chameleon/geometry';
 
 /**
  * The Friends with Habits loader: the chameleon from the app icon, changing colour
@@ -22,8 +42,9 @@ import { ITherrThemeColors } from '../../styles/themes';
  * Two properties matter here, and they are the same two `BrandedMediaPlaceholder`
  * is built on:
  *
- * 1. **The drawing is the logo's own geometry** (`assets/habits-logo.svg`, minus its
- *    white tile), so the loader, the icon and the landing page are one chameleon.
+ * 1. **The drawing is the logo's own geometry** (`components/Chameleon/geometry`, the
+ *    one copy every in-app chameleon shares), so the loader, the icon and the
+ *    landing page are one chameleon. The still version is `ChameleonFace`.
  * 2. **Every colour comes from the active theme**, so no baked Lottie has to be
  *    re-exported when the palette moves, and the colour cycle is literally the
  *    brand palette — brand purple to teal to lime and back.
@@ -32,16 +53,6 @@ import { ITherrThemeColors } from '../../styles/themes';
  * globe, a taco, a sports car. Fine for a local-discovery app, off-brand for a
  * habit tracker with a mascot.
  */
-
-/** The logo's 1024-unit canvas, cropped to the face. */
-const VIEW_BOX = '150 200 724 580';
-const VIEW_BOX_ASPECT = 580 / 724;
-
-const LEFT_PUPIL = { cx: 280, cy: 517 };
-const RIGHT_PUPIL = { cx: 744, cy: 517 };
-/** The pupil highlight sits up and to the right of the pupil in the logo. */
-const HIGHLIGHT_OFFSET = { dx: 14, dy: -13 };
-const PUPIL_RADIUS = 44;
 
 /**
  * Where the eyes look, in logo units, as the gaze keyframes `look` walks through:
@@ -138,35 +149,37 @@ const ChameleonLoader = ({
     const rightHighlightProps = useAnimatedProps(gaze(RIGHT_PUPIL, HIGHLIGHT_OFFSET));
 
     return (
-        <View style={[styles.frame, { width: size, height: size * VIEW_BOX_ASPECT }]} testID={testID}>
-            <Svg width="100%" height="100%" viewBox={VIEW_BOX}>
+        <View style={[styles.frame, { width: size, height: size * FACE_ASPECT }]} testID={testID}>
+            <Svg width="100%" height="100%" viewBox={FACE_VIEW_BOX}>
                 {/* Head */}
-                <AnimatedPath
-                    animatedProps={skinProps}
-                    d="M 437 335 Q 512 205 587 335 Q 722 482 757 629 Q 832 759 682 759 Q 512 779 342 759 Q 192 759 267 629 Q 302 482 437 335 Z"
-                />
+                <AnimatedPath animatedProps={skinProps} d={HEAD_PATH} />
                 {/* Forehead stripe */}
-                <Path
-                    d="M 494 325 Q 494 305 512 305 Q 530 305 530 325 L 525 477 Q 525 493 512 493 Q 499 493 499 477 Z"
-                    fill={colors.accent}
-                />
+                <Path d={STRIPE_PATH} fill={colors.accent} />
                 {/* Left eye */}
-                <AnimatedCircle animatedProps={leftSocketProps} cx="260" cy="510" r="148" />
-                <Circle cx="260" cy="510" r="95" fill={colors.brandingWhite} />
+                <AnimatedCircle animatedProps={leftSocketProps} cx={LEFT_EYE.cx} cy={LEFT_EYE.cy} r={EYE_SOCKET_RADIUS} />
+                <Circle cx={LEFT_EYE.cx} cy={LEFT_EYE.cy} r={EYE_WHITE_RADIUS} fill={colors.brandingWhite} />
                 <AnimatedCircle animatedProps={leftPupilProps} r={PUPIL_RADIUS} fill={colors.brandingBlack} />
-                <AnimatedCircle animatedProps={leftHighlightProps} r="15" fill={colors.brandingWhite} />
+                <AnimatedCircle animatedProps={leftHighlightProps} r={HIGHLIGHT_RADIUS} fill={colors.brandingWhite} />
                 {/* Right eye */}
-                <AnimatedCircle animatedProps={rightSocketProps} cx="764" cy="510" r="148" />
-                <Circle cx="764" cy="510" r="95" fill={colors.brandingWhite} />
+                <AnimatedCircle animatedProps={rightSocketProps} cx={RIGHT_EYE.cx} cy={RIGHT_EYE.cy} r={EYE_SOCKET_RADIUS} />
+                <Circle cx={RIGHT_EYE.cx} cy={RIGHT_EYE.cy} r={EYE_WHITE_RADIUS} fill={colors.brandingWhite} />
                 <AnimatedCircle animatedProps={rightPupilProps} r={PUPIL_RADIUS} fill={colors.brandingBlack} />
-                <AnimatedCircle animatedProps={rightHighlightProps} r="15" fill={colors.brandingWhite} />
+                <AnimatedCircle animatedProps={rightHighlightProps} r={HIGHLIGHT_RADIUS} fill={colors.brandingWhite} />
                 {/* Nostrils and smile */}
-                <Circle cx="488" cy="653" r="11" fill={colors.brandingBlack} opacity={0.62} />
-                <Circle cx="536" cy="653" r="11" fill={colors.brandingBlack} opacity={0.62} />
+                {NOSTRILS.map((nostril) => (
+                    <Circle
+                        key={nostril.cx}
+                        cx={nostril.cx}
+                        cy={nostril.cy}
+                        r={NOSTRIL_RADIUS}
+                        fill={colors.brandingBlack}
+                        opacity={NOSTRIL_OPACITY}
+                    />
+                ))}
                 <Path
-                    d="M 418 718 Q 512 762 606 718"
+                    d={SMILE_PATH}
                     stroke={colors.brandingBlack}
-                    strokeWidth={12}
+                    strokeWidth={SMILE_STROKE_WIDTH}
                     strokeLinecap="round"
                     fill="none"
                 />
