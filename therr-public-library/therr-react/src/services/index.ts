@@ -28,6 +28,7 @@ import StreaksService from './StreaksService';
 import UserHabitsService, { ICreateUserHabitBody, ICreateUserHabitGoalBody } from './UserHabitsService';
 import JournalService, { ICreateJournalEntryBody, IUpdateJournalEntryBody } from './JournalService';
 import HabitsLifetimeService, { IVerifyLifetimePurchaseBody } from './HabitsLifetimeService';
+import HabitsPremiumService, { IVerifyPremiumPurchaseBody } from './HabitsPremiumService';
 
 export {
     ApiService,
@@ -67,4 +68,6 @@ export {
     IUpdateJournalEntryBody,
     HabitsLifetimeService,
     IVerifyLifetimePurchaseBody,
+    HabitsPremiumService,
+    IVerifyPremiumPurchaseBody,
 };

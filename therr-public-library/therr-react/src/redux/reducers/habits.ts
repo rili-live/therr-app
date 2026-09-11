@@ -19,6 +19,7 @@ const initialState: IHabitsState = {
     journalCursor: null,
     journalHasMore: false,
     lifetimeOffer: null,
+    premiumOffer: null,
     isLoading: false,
 };
 
@@ -174,6 +175,24 @@ const habits = produce((draft: IHabitsState, action: any) => {
             break;
         }
 
+        // Merge, not replace: the share response is only `{ id, sharedThoughtId }`, so overwriting
+        // the row (as UPDATE_CHECKIN does with a full check-in) would drop every other field.
+        //
+        // Both collections, because a check-in is shared from either place: `todayCheckins` backs
+        // the dashboard, and `checkins` is the range load the calendar and day sheet render. A
+        // share from a past day only ever touches `checkins`, so updating `todayCheckins` alone
+        // leaves the calendar showing "not shared" until the next refetch — which is the refetch
+        // this merge exists to avoid.
+        case HabitsActionTypes.SHARE_CHECKIN: {
+            (['todayCheckins', 'checkins'] as const).forEach((key) => {
+                const checkinIdx = draft[key].findIndex((c) => c.id === action.data.id);
+                if (checkinIdx > -1) {
+                    draft[key][checkinIdx].sharedThoughtId = action.data.sharedThoughtId;
+                }
+            });
+            break;
+        }
+
         // Streaks
         case HabitsActionTypes.GET_USER_STREAKS:
             draft.streaks = action.data || [];
@@ -291,6 +310,40 @@ const habits = produce((draft: IHabitsState, action: any) => {
             }
             // The habit cap is lifted from here on, so the cached eligibility
             // snapshot would otherwise keep the paywall showing until refetch.
+            if (draft.userHabitEligibility) {
+                draft.userHabitEligibility.isAtHabitLimit = false;
+            }
+            break;
+
+        // Premium subscription offer
+        case HabitsActionTypes.GET_PREMIUM_OFFER:
+            draft.premiumOffer = action.data || null;
+            break;
+        // Build the offer when it is missing rather than dropping the result on the floor.
+        // A verify does not imply a preceding GET_PREMIUM_OFFER: a restore-purchases flow, or
+        // a purchase completed from a store callback after the paywall unmounted, verifies
+        // against an empty slice. Guarding on `if (draft.premiumOffer)` alone made those paths
+        // silently no-op, leaving `isEntitled` false and the paywall up until the next refetch
+        // — which is exactly the stale state the eligibility reset below exists to prevent.
+        //
+        // `isStoreConfigured: true` is not an assumption: the server only reaches a successful
+        // verify by calling Play, so a response here proves the credentials are in place. The
+        // productId comes off the returned subscription, which is the SKU that was just bought.
+        case HabitsActionTypes.VERIFY_PREMIUM_PURCHASE:
+            if (draft.premiumOffer) {
+                draft.premiumOffer.subscription = action.data?.subscription || null;
+                draft.premiumOffer.isEntitled = true;
+            } else {
+                draft.premiumOffer = {
+                    productId: action.data?.subscription?.productId || '',
+                    isEntitled: true,
+                    subscription: action.data?.subscription || null,
+                    isStoreConfigured: true,
+                };
+            }
+            // Premium lifts the same free-tier cap the founder unlock does, so the
+            // cached eligibility snapshot would otherwise keep the paywall showing
+            // until the next refetch.
             if (draft.userHabitEligibility) {
                 draft.userHabitEligibility.isAtHabitLimit = false;
             }

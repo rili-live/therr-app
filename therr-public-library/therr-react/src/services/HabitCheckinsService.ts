@@ -88,6 +88,20 @@ class HabitCheckinsService {
         });
     };
 
+    /**
+     * Share a check-in's proof photo publicly as a post (main.thoughts).
+     *
+     * The backend copies the private proof image into the public bucket, moderates the copy,
+     * creates a public thought carrying it, and records the link on the check-in. Idempotent:
+     * a check-in that is already shared returns `{ sharedThoughtId, alreadyShared: true }`
+     * without creating a second post. `message` is an optional lead-in for the post.
+     */
+    share = (id: string, message?: string) => axios({
+        method: 'post',
+        url: `/users-service/habits/checkins/${id}/share`,
+        data: { message },
+    });
+
     update = (id: string, data: IUpdateCheckinBody) => axios({
         method: 'put',
         url: `/users-service/habits/checkins/${id}`,

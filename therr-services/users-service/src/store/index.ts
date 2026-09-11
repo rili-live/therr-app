@@ -37,6 +37,7 @@ import ProofsStore from './ProofsStore';
 import PactActivitiesStore from './PactActivitiesStore';
 import UserHabitsStore from './UserHabitsStore';
 import LifetimePurchasesStore from './LifetimePurchasesStore';
+import SubscriptionPurchasesStore from './SubscriptionPurchasesStore';
 import JournalEntriesStore from './JournalEntriesStore';
 
 class Store {
@@ -117,6 +118,8 @@ class Store {
 
     lifetimePurchases: LifetimePurchasesStore;
 
+    subscriptionPurchases: SubscriptionPurchasesStore;
+
     journalEntries: JournalEntriesStore;
 
     constructor(dbConnection) {
@@ -164,6 +167,7 @@ class Store {
         this.pactActivities = new PactActivitiesStore(this.db);
         this.userHabits = new UserHabitsStore(this.db);
         this.lifetimePurchases = new LifetimePurchasesStore(this.db);
+        this.subscriptionPurchases = new SubscriptionPurchasesStore(this.db);
         this.journalEntries = new JournalEntriesStore(this.db);
     }
 }

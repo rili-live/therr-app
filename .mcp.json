@@ -4,6 +4,11 @@
             "type": "stdio",
             "command": "./scripts/google-play/mcp-server",
             "args": []
+        },
+        "github": {
+            "type": "stdio",
+            "command": "./scripts/github/mcp-server",
+            "args": []
         }
     }
 }

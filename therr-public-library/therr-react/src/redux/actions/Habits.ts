@@ -6,6 +6,7 @@ import StreaksService from '../../services/StreaksService';
 import UserHabitsService, { ICreateUserHabitBody } from '../../services/UserHabitsService';
 import JournalService, { ICreateJournalEntryBody, IUpdateJournalEntryBody } from '../../services/JournalService';
 import HabitsLifetimeService, { IVerifyLifetimePurchaseBody } from '../../services/HabitsLifetimeService';
+import HabitsPremiumService, { IVerifyPremiumPurchaseBody } from '../../services/HabitsPremiumService';
 
 const Habits = {
     // Habit Goals
@@ -230,6 +231,19 @@ const Habits = {
             return response.data;
         }),
 
+    // Share a check-in's proof photo publicly as a post. The response carries `sharedThoughtId`
+    // (and the created `thought` on first share); the dispatch merges just that id onto the
+    // matching check-in so the "shared" state shows without a refetch — see the SHARE_CHECKIN
+    // reducer case, which is a merge rather than the full-object replace UPDATE_CHECKIN does.
+    shareCheckin: (id: string, message?: string) => (dispatch: any) => HabitCheckinsService
+        .share(id, message).then((response) => {
+            dispatch({
+                type: HabitsActionTypes.SHARE_CHECKIN,
+                data: { id, sharedThoughtId: response.data?.sharedThoughtId },
+            });
+            return response.data;
+        }),
+
     // Streaks
     getUserStreaks: (isActive?: boolean) => (dispatch: any) => StreaksService
         .getUserStreaks(isActive).then((response: any) => {
@@ -414,6 +428,31 @@ const Habits = {
         .verifyPurchase(data).then((response: any) => {
             dispatch({
                 type: HabitsActionTypes.VERIFY_LIFETIME_PURCHASE,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
+    // Premium subscription offer
+    getPremiumOffer: () => (dispatch: any) => HabitsPremiumService.getOffer()
+        .then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
+            dispatch({
+                type: HabitsActionTypes.GET_PREMIUM_OFFER,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
+    /**
+     * Returns the granted access levels alongside the subscription so the caller
+     * can refresh the user record — the entitlement lives on the user, not in
+     * habits state, and the paywall must not linger after a successful subscribe.
+     */
+    verifyPremiumPurchase: (data: IVerifyPremiumPurchaseBody) => (dispatch: any) => HabitsPremiumService
+        .verifyPurchase(data).then((response: any) => {
+            dispatch({
+                type: HabitsActionTypes.VERIFY_PREMIUM_PURCHASE,
                 data: response.data,
             });
             return response.data;
