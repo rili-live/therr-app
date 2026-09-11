@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Dialog, Divider, Portal, Switch } from 'react-native-paper';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -32,10 +32,15 @@ interface ICheckinProofSheetProps {
     isSubmitting?: boolean;
     habitName?: string;
     userId?: string;
-    // When true, a "Share publicly" toggle is offered once a photo is attached (gated by the
-    // ENABLE_HABITS_FEED flag upstream). Sharing requires a photo — it is what keeps the feed
-    // on-topic — so the toggle only appears with an image selected.
+    // When true, a "Share to the feed" row is shown (gated by the ENABLE_HABITS_FEED flag
+    // upstream). Sharing requires a photo — it is what keeps the feed on-topic — so the switch
+    // is disabled until an image is attached, but the row is always visible: a control that
+    // only appears after an unrelated action is a control nobody finds.
     canShare?: boolean;
+    // Initial position of the share switch each time the sheet opens. Callers pass the user's
+    // profile-visibility setting: someone with a public profile has already said they want an
+    // audience, so their check-ins default to shared; a private profile defaults to off.
+    defaultSharePublicly?: boolean;
     onCancel: () => void;
     onConfirm: (args: { notes?: string; image?: ISelectedProofImage; sharePublicly?: boolean }) => void;
     translate: (key: string, params?: any) => string;
@@ -57,6 +62,7 @@ const CheckinProofSheet: React.FC<ICheckinProofSheetProps> = ({
     habitName,
     userId,
     canShare = false,
+    defaultSharePublicly = false,
     onCancel,
     onConfirm,
     translate,
@@ -66,13 +72,22 @@ const CheckinProofSheet: React.FC<ICheckinProofSheetProps> = ({
     const [notes, setNotes] = useState('');
     const [selectedImage, setSelectedImage] = useState<ISelectedProofImage | null>(null);
     const [imagePreviewPath, setImagePreviewPath] = useState<string>('');
-    const [sharePublicly, setSharePublicly] = useState(false);
+    const [sharePublicly, setSharePublicly] = useState(defaultSharePublicly);
+
+    // The sheet stays mounted between openings (it is a Portal toggled by `isVisible`), so
+    // the initial state above only applies once. Re-seed on every open so a settings change
+    // made after mount — or a settings fetch that resolved after it — is honoured.
+    useEffect(() => {
+        if (isVisible) {
+            setSharePublicly(defaultSharePublicly);
+        }
+    }, [isVisible, defaultSharePublicly]);
 
     const reset = () => {
         setNotes('');
         setSelectedImage(null);
         setImagePreviewPath('');
-        setSharePublicly(false);
+        setSharePublicly(defaultSharePublicly);
     };
 
     const handleCancel = () => {
@@ -158,39 +173,29 @@ const CheckinProofSheet: React.FC<ICheckinProofSheetProps> = ({
                         <Text style={[themeConfirmModal.styles.bodyText, localStyles.prompt]}>
                             {translate('pages.habits.checkinProof.addDetailPrompt')}
                         </Text>
-                        <View style={localStyles.inputContainer}>
-                            <TextInput
-                                value={notes}
-                                onChangeText={setNotes}
-                                placeholder={translate('pages.habits.checkinProof.notePlaceholder')}
-                                placeholderTextColor={themeConfirmModal.colors.textGray}
-                                multiline
-                                maxLength={MAX_NOTE_LENGTH}
-                                style={[
-                                    localStyles.input,
-                                    {
-                                        color: themeConfirmModal.colors.textWhite,
-                                        borderColor: themeConfirmModal.colors.textGray,
-                                    },
-                                ]}
-                                editable={!isSubmitting}
-                            />
-                            <Text style={[localStyles.counter, { color: themeConfirmModal.colors.textGray }]}>
-                                {notes.length}/{MAX_NOTE_LENGTH}
-                            </Text>
-                        </View>
                         <View style={localStyles.photoSection}>
                             {imagePreviewPath ? (
-                                <View style={localStyles.previewContainer}>
+                                // A compact strip rather than a full-width preview: the image is
+                                // already cropped square by the picker, and a large preview is what
+                                // pushed the share row below the fold.
+                                <View style={[localStyles.previewRow, { borderColor: themeConfirmModal.colors.textGray }]}>
                                     <Image
                                         source={{ uri: imagePreviewPath }}
-                                        style={localStyles.previewImage}
+                                        style={localStyles.previewThumb}
                                     />
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[themeConfirmModal.styles.bodyText, localStyles.previewLabel]}
+                                    >
+                                        {translate('pages.habits.checkinProof.photoAttached')}
+                                    </Text>
                                     <Pressable
                                         onPress={removeImage}
                                         disabled={isSubmitting}
                                         style={localStyles.removeButton}
                                         hitSlop={8}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={translate('pages.habits.checkinProof.removePhoto')}
                                     >
                                         <MaterialIcon name="close" size={18} color="#fff" />
                                     </Pressable>
@@ -252,26 +257,50 @@ const CheckinProofSheet: React.FC<ICheckinProofSheetProps> = ({
                                 </View>
                             )}
                         </View>
-                        {canShare && imagePreviewPath ? (
+                        {canShare ? (
                             <View style={localStyles.shareSection}>
-                                <View style={localStyles.shareRow}>
+                                <View style={[localStyles.shareRow, imagePreviewPath ? null : localStyles.shareRowInactive]}>
                                     <View style={localStyles.shareTextContainer}>
                                         <Text style={[themeConfirmModal.styles.bodyTextBold, localStyles.shareLabel]}>
                                             {translate('pages.habits.checkinProof.sharePubliclyLabel')}
                                         </Text>
                                         <Text style={[themeConfirmModal.styles.bodyText, localStyles.shareHint]}>
-                                            {translate('pages.habits.checkinProof.sharePubliclyHint')}
+                                            {translate(imagePreviewPath
+                                                ? 'pages.habits.checkinProof.sharePubliclyHint'
+                                                : 'pages.habits.checkinProof.sharePubliclyNeedsPhoto')}
                                         </Text>
                                     </View>
                                     <Switch
-                                        value={sharePublicly}
+                                        value={!!imagePreviewPath && sharePublicly}
                                         onValueChange={setSharePublicly}
-                                        disabled={isSubmitting}
+                                        disabled={isSubmitting || !imagePreviewPath}
                                         color={themeConfirmModal.colors.brand}
+                                        accessibilityLabel={translate('pages.habits.checkinProof.sharePubliclyLabel')}
                                     />
                                 </View>
                             </View>
                         ) : null}
+                        <View style={localStyles.inputContainer}>
+                            <TextInput
+                                value={notes}
+                                onChangeText={setNotes}
+                                placeholder={translate('pages.habits.checkinProof.notePlaceholder')}
+                                placeholderTextColor={themeConfirmModal.colors.textGray}
+                                multiline
+                                maxLength={MAX_NOTE_LENGTH}
+                                style={[
+                                    localStyles.input,
+                                    {
+                                        color: themeConfirmModal.colors.textWhite,
+                                        borderColor: themeConfirmModal.colors.textGray,
+                                    },
+                                ]}
+                                editable={!isSubmitting}
+                            />
+                            <Text style={[localStyles.counter, { color: themeConfirmModal.colors.textGray }]}>
+                                {notes.length}/{MAX_NOTE_LENGTH}
+                            </Text>
+                        </View>
                     </ScrollView>
                 </Dialog.ScrollArea>
                 <Divider />
@@ -338,6 +367,9 @@ const localStyles = StyleSheet.create({
         justifyContent: 'space-between',
         gap: 12,
     },
+    shareRowInactive: {
+        opacity: 0.6,
+    },
     shareTextContainer: {
         flex: 1,
     },
@@ -371,22 +403,25 @@ const localStyles = StyleSheet.create({
         letterSpacing: 0.2,
         textAlign: 'center',
     },
-    previewContainer: {
-        position: 'relative',
-        width: '100%',
-        aspectRatio: 1,
-        borderRadius: 8,
-        overflow: 'hidden',
+    previewRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        borderWidth: 1,
+        borderRadius: 10,
+        padding: 8,
     },
-    previewImage: {
-        width: '100%',
-        height: '100%',
+    previewThumb: {
+        width: 64,
+        height: 64,
+        borderRadius: 8,
         resizeMode: 'cover',
     },
+    previewLabel: {
+        flex: 1,
+        fontSize: 14,
+    },
     removeButton: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
         width: 28,
         height: 28,
         borderRadius: 14,

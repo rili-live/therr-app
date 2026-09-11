@@ -633,6 +633,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                     habitName={habitGoal.name}
                     userId={user?.details?.id}
                     canShare={this.isFeedEnabled()}
+                    defaultSharePublicly={this.isFeedEnabled() && !!user?.settings?.settingsIsProfilePublic}
                     onCancel={this.handleProofSheetCancel}
                     onConfirm={this.handleProofSheetConfirm}
                     translate={this.translate}

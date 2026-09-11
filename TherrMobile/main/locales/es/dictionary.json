@@ -2050,6 +2050,9 @@
                 "addDetailPrompt": "Registrado. Añade lo que quieras recordar (opcional).",
                 "sharePubliclyLabel": "Compartir en el feed",
                 "sharePubliclyHint": "Publica esta foto para que otros te animen.",
+                "sharePubliclyNeedsPhoto": "Agrega una foto para compartir este registro en el feed.",
+                "photoAttached": "Foto adjunta",
+                "removePhoto": "Quitar foto",
                 "sharedTitle": "Compartido en el feed",
                 "shareFailed": "No pudimos compartir este registro. Inténtalo más tarde.",
                 "save": "Guardar"

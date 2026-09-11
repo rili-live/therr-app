@@ -1373,6 +1373,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                     habitName={proofSheetHabit?.name}
                     userId={user?.details?.id}
                     canShare={this.isFeedEnabled()}
+                    defaultSharePublicly={this.isFeedEnabled() && !!user?.settings?.settingsIsProfilePublic}
                     onCancel={this.handleProofSheetCancel}
                     onConfirm={this.handleProofSheetConfirm}
                     translate={this.translate}

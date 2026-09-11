@@ -2050,6 +2050,9 @@
                 "addDetailPrompt": "Checked in. Add anything you want to remember (optional).",
                 "sharePubliclyLabel": "Share to the feed",
                 "sharePubliclyHint": "Post this photo publicly so others can cheer you on.",
+                "sharePubliclyNeedsPhoto": "Add a photo to share this check-in to the feed.",
+                "photoAttached": "Photo attached",
+                "removePhoto": "Remove photo",
                 "sharedTitle": "Shared to the feed",
                 "shareFailed": "We couldn't share this check-in. Try again later.",
                 "save": "Save"
