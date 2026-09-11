@@ -70,10 +70,14 @@
                room for it: --fwh-rig-inset is how much of the rig would land on the
                centred 1080px column, and .container adds exactly that to its right
                padding. Wide screens have a free gutter and pay nothing; a phone gives
-               up a strip on the right so copy and chameleon never share a pixel. */
+               up a strip on the right. Only the chameleon's body is reserved, not its
+               whole box: the sprite occupies the middle ~55% of the rig's width (the
+               rest is the vine and the room the tongue and tail swing through), and
+               reserving all of it left a phone with an empty 5rem gutter beside four
+               words of copy. The tongue may cross a line end mid-zap; that is fine. */
             --fwh-rig-w: clamp(3rem, 11vw, 11rem);
             --fwh-gutter: max(0px, (100vw - 1080px) / 2);
-            --fwh-rig-inset: max(0px, var(--fwh-rig-w) + 0.5rem - var(--fwh-gutter));
+            --fwh-rig-inset: max(0px, var(--fwh-rig-w) * 0.55 - var(--fwh-gutter));
             --fwh-rig-outline: clamp(1px, var(--fwh-rig-w) / 88, 2px);
         }
         *, *::before, *::after { box-sizing: border-box; }
