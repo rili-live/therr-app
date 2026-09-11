@@ -1,4 +1,5 @@
 import { HabitsActionTypes } from '../../types/redux/habits';
+import { ContentActionTypes } from '../../types/redux/content';
 import HabitGoalsService, { ICreateHabitGoalBody, IUpdateHabitGoalBody } from '../../services/HabitGoalsService';
 import PactsService, { ICreatePactBody, IBulkInvitePactBody } from '../../services/PactsService';
 import HabitCheckinsService, { ICreateCheckinBody, IUpdateCheckinBody } from '../../services/HabitCheckinsService';
@@ -235,12 +236,26 @@ const Habits = {
     // (and the created `thought` on first share); the dispatch merges just that id onto the
     // matching check-in so the "shared" state shows without a refetch — see the SHARE_CHECKIN
     // reducer case, which is a merge rather than the full-object replace UPDATE_CHECKIN does.
+    //
+    // On a first share the post is also inserted at the head of the active-thoughts stream, the
+    // way `createThought` does for a composed post. The server activates it for the author
+    // too, so the next feed fetch agrees — but the feed is otherwise fed by the distributor, and
+    // an author whose own share is not in front of them the moment it succeeds reads it as a
+    // failed share. `content` is a redux-persist whitelisted slice, so the row survives a cold
+    // start until the server copy replaces it.
     shareCheckin: (id: string, message?: string) => (dispatch: any) => HabitCheckinsService
         .share(id, message).then((response) => {
             dispatch({
                 type: HabitsActionTypes.SHARE_CHECKIN,
                 data: { id, sharedThoughtId: response.data?.sharedThoughtId },
             });
+            const thought = response.data?.thought;
+            if (thought?.id && !response.data?.alreadyShared) {
+                dispatch({
+                    type: ContentActionTypes.INSERT_ACTIVE_THOUGHTS,
+                    data: [thought],
+                });
+            }
             return response.data;
         }),
 

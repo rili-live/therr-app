@@ -203,6 +203,28 @@ spec:
             secretKeyRef:
               name: tiktok-app-secret
               key: TIKTOKAPPSECRET
+        # GCS + Sightengine, mirrored from maps-service. users-service reads and writes user
+        # media directly for habit check-in proofs (upload moderation in utilities/moderateProofs,
+        # and the private -> public bucket copy behind POST /habits/checkins/:id/share) and for
+        # profile pictures. Without these, `api/aws.ts` builds a Storage client with empty
+        # credentials and `checkIsMediaSafeForWork` fails closed: every proof is flagged and
+        # every share returns 500.
+        - name: MAPS_SERVICE_GOOGLE_CREDENTIALS_BASE64
+          valueFrom:
+            secretKeyRef:
+              name: maps-service-google-app-credentials
+              key: MAPS_SERVICE_GOOGLE_APP_CREDENTIALS
+        - name: BUCKET_PUBLIC_USER_DATA
+          value: "therr-public-user-data"
+        - name: BUCKET_PRIVATE_USER_DATA
+          value: "therr-private-user-data"
+        - name: SIGHTENGINE_API_KEY
+          value: "109708716"
+        - name: SIGHTENGINE_API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: sightengineapisecret
+              key: SIGHTENGINE_API_SECRET
         - name: DB_USER_MAIN_WRITE
           value: "therrAppUser"
         - name: DB_HOST_MAIN_WRITE
