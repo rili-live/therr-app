@@ -1156,10 +1156,11 @@
                     </div>
                     <div class="cta-note">Free to install &mdash; now available to everyone on Google Play. iOS coming next.</div>
                     <div class="cta-note"><strong>Founding member offer:</strong> the first 5,000 accounts get every paid feature free for life for a one-time $20.</div>
-                    <div class="chip-row" aria-label="Highlights">
-                        <span><svg aria-hidden="true"><use href="#fwh-check"/></svg> No subscription</span>
-                        <span><svg aria-hidden="true"><use href="#fwh-check"/></svg> No waitlist</span>
-                        <span><svg aria-hidden="true"><use href="#fwh-check"/></svg> Photo-proof check-ins</span>
+                    <!-- role="list" so the aria-label is announced; a bare div's label is ignored. -->
+                    <div class="chip-row" role="list" aria-label="Highlights">
+                        <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> No subscription</span>
+                        <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> No waitlist</span>
+                        <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> Photo-proof check-ins</span>
                     </div>
                 </div>
 
