@@ -302,12 +302,17 @@
         /* Product visual: a pact card the way it looks in the app, with the
            chameleon peeking over its top edge. Pure HTML/CSS so it stays crisp,
            weighs nothing and inherits the palette. */
+        /* The face is a 6.25rem-wide box (5rem tall at the symbol's 724:580 ratio) whose
+           eyes end 3.9rem down and whose smile starts at 4.4rem. The card edge sits at
+           4.25rem so the eyes clear it and the mouth is hidden — a peek, not a portrait.
+           The hands share the face's box and right offset so they stay under the eyes
+           at every width; they overlap the edge so the fingers curl over onto the card. */
         .hero-visual {
             position: relative;
             max-width: 400px;
             width: 100%;
             margin: 2.5rem auto 0;
-            padding-top: 3.25rem;
+            padding-top: 4.25rem;
         }
         .pact-card {
             position: relative;
@@ -325,7 +330,7 @@
             gap: 0.75rem 0.875rem;
             margin-bottom: 1.125rem;
         }
-        .pact-card__meta { flex: 1 1 9rem; min-width: 0; }
+        .pact-card__meta { flex: 1 1 6.5rem; min-width: 0; }
         .pact-card__avatars { display: flex; }
         .avatar {
             width: 2.5rem; height: 2.5rem;
@@ -406,10 +411,11 @@
         .peeker-hands {
             position: absolute;
             z-index: 3;
-            top: 2.9rem;
-            right: 2.1rem;
-            width: 5.5rem;
+            top: 3.6rem;
+            right: 1.75rem;
+            width: 6.25rem;
             height: auto;
+            filter: drop-shadow(0 2px 3px rgba(46, 33, 64, 0.25));
         }
         .chip-row {
             position: relative;
@@ -1178,10 +1184,10 @@
                             <span class="day-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i class="today"></i></span>
                         </div>
                     </div>
-                    <svg class="peeker-hands" viewBox="0 0 88 22">
-                        <path d="M6 20 C 4 8, 20 4, 24 10 C 30 4, 42 10, 34 20 Z" fill="#6E5C85"/>
-                        <path d="M54 20 C 52 8, 68 4, 72 10 C 78 4, 90 10, 82 20 Z" fill="#6E5C85"/>
-                        <path d="M10 14 q4 -5 8 0 M18 12 q4 -5 8 0 M58 14 q4 -5 8 0 M66 12 q4 -5 8 0" fill="none" stroke="#5B4273" stroke-width="1.5" stroke-linecap="round"/>
+                    <svg class="peeker-hands" viewBox="0 0 100 26">
+                        <rect x="18" y="0" width="24" height="26" rx="12" fill="#6E5C85"/>
+                        <rect x="58" y="0" width="24" height="26" rx="12" fill="#6E5C85"/>
+                        <path d="M24 12v8M30 13v9M36 12v8M64 12v8M70 13v9M76 12v8" fill="none" stroke="#5B4273" stroke-width="1.8" stroke-linecap="round"/>
                     </svg>
                 </div>
             </div>
