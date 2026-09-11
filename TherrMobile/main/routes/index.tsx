@@ -62,7 +62,7 @@ import ViewUser from './ViewUser';
 // HABITS routes
 import { HabitsDashboard, HabitDetail, UpgradePaywall } from './Habits';
 import Journal from './Journal';
-import { PactDetail, CreatePactInvite, HabitsPushOptIn } from './Pacts';
+import { PactDetail, CreatePactInvite, HabitsPushOptIn, AddPactMembers } from './Pacts';
 import { AccessPresets } from './access';
 import { editStackOptions, momentStackOptions, viewStackOptions } from './stackOptions';
 
@@ -609,6 +609,15 @@ const routes: RouteConfig<
         component: CreatePactInvite,
         options: () => ({
             title: 'Invite a Friend',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'AddPactMembers',
+        component: AddPactMembers,
+        options: () => ({
+            title: 'Add Members',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),

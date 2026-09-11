@@ -29,6 +29,57 @@ const getMemberDisplayName = (member: IPactMember): string => {
 };
 
 /**
+ * A pact must keep at least this many members to remain a pact. Mirrors
+ * `MIN_PACT_MEMBERS` in users-service (`utilities/pactStreak.ts`), which is the authority —
+ * the server re-checks removal and 409s one that would drop below it, so a drift here only
+ * shows the wrong affordance rather than corrupting anything.
+ */
+export const MIN_PACT_MEMBERS = 2;
+
+/**
+ * Whether the current user may add or remove members on this pact: only the creator, and only
+ * while the pact is still live (pending or active) and not a finished cycle awaiting re-commit.
+ */
+export const canManagePactMembers = (
+    pact: { creatorUserId?: string; status?: string } | null | undefined,
+    currentUserId?: string,
+): boolean => {
+    if (!pact || !currentUserId || pact.creatorUserId !== currentUserId) {
+        return false;
+    }
+    if (isPactRenewable(pact)) {
+        return false;
+    }
+    return pact.status === 'active' || pact.status === 'pending';
+};
+
+/**
+ * Whether a specific member may be removed by the creator right now.
+ *
+ * A pending invite is always removable (rescinding it never touches the active group). An
+ * active member is removable only while more than the minimum would remain — otherwise the
+ * last remaining member takes the continue-solo path instead. Uses the server-derived
+ * `activeMemberCount`; when it is absent (older service) an active member is treated as not
+ * removable, the safe direction, since the floor cannot be verified client-side.
+ */
+export const canRemovePactMember = (
+    pact: { activeMemberCount?: number } | null | undefined,
+    member: { role?: string; status?: string } | null | undefined,
+): boolean => {
+    if (!pact || !member || member.role !== 'partner') {
+        return false;
+    }
+    if (member.status === 'pending') {
+        return true;
+    }
+    if (member.status !== 'active') {
+        return false;
+    }
+    return typeof pact.activeMemberCount === 'number'
+        && pact.activeMemberCount - 1 >= MIN_PACT_MEMBERS;
+};
+
+/**
  * Names of everyone but the current user who is a partner on the given pacts,
  * optionally narrowed to a single membership status.
  */

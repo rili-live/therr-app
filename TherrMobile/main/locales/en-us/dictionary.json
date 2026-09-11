@@ -2153,6 +2153,31 @@
             "abandonError": "Failed to abandon pact. Please try again.",
             "confirmDecline": "Are you sure you want to decline this pact invitation?",
             "confirmAbandon": "Are you sure you want to abandon this pact? Your progress will be lost.",
+            "confirmRemoveMember": "Remove {name} from this pact?",
+            "addMembers": "Add members",
+            "addMembersTitle": "Add members",
+            "addMembersSubtitle": "Choose friends to invite into this pact.",
+            "addMembersEmpty": "You don't have any connections to add yet.",
+            "addMembersCta": "Invite {count} to the pact",
+            "addMembersSuccessTitle": "Invites sent",
+            "addMembersSuccessMessage": "Invited {count} to the pact.",
+            "addMembersError": "We couldn't add those members. Please try again.",
+            "removeMemberAction": "Remove {name}",
+            "removeMemberSuccess": "Member removed from the pact.",
+            "removeMemberError": "We couldn't remove that member. Please try again.",
+            "pactStreak": {
+                "title": "Pact streak",
+                "currentLabel": "Current",
+                "longestLabel": "Best",
+                "explainer": "Your pact streak grows on any day most of you check in — a couple of misses won't break it."
+            },
+            "solo": {
+                "prompt": "You're the last one keeping this pact. Want to continue it on your own?",
+                "cta": "Continue solo",
+                "successTitle": "You're going solo",
+                "successMessage": "This pact will keep going with just you.",
+                "error": "We couldn't continue this pact solo. Please try again."
+            },
             "onboarding": {
                 "title": "Start with a Friend",
                 "subtitle": "{appName} is built for two — or more. Invite a friend, or form a group around a shared goal (like saving for a vacation), and build habits you'll hold each other to.",

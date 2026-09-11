@@ -13,6 +13,8 @@ interface IPactMemberRowProps {
     onPress: () => void;
     /** Omitted when direct messaging is unavailable for the brand. */
     onMessagePress?: () => void;
+    /** Creator-only. Present makes this member removable from the pact. */
+    onRemovePress?: () => void;
     themeHabits: {
         colors: ITherrThemeColors;
         styles: any;
@@ -73,6 +75,7 @@ const PactMemberRow: React.FC<IPactMemberRowProps> = ({
     isDivided,
     onPress,
     onMessagePress,
+    onRemovePress,
     themeHabits,
     translate,
 }) => {
@@ -153,6 +156,23 @@ const PactMemberRow: React.FC<IPactMemberRowProps> = ({
                         name="chat-bubble-outline"
                         size={20}
                         color={themeHabits.colors.primary3}
+                    />
+                </Pressable>
+            )}
+            {onRemovePress && (
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={translate('pages.pacts.removeMemberAction', { name })}
+                    onPress={onRemovePress}
+                    style={({ pressed }) => [
+                        themeHabits.styles.pactMemberAction,
+                        pressed && themeHabits.styles.pactPressedSurface,
+                    ]}
+                >
+                    <MaterialIcon
+                        name="person-remove"
+                        size={20}
+                        color={themeHabits.colors.alertError || themeHabits.colors.textGray}
                     />
                 </Pressable>
             )}
