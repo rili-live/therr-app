@@ -3,7 +3,15 @@ import { ActivityIndicator, Pressable, View, Text } from 'react-native';
 import LottieView from 'lottie-react-native';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { achievementsByClass } from 'therr-js-utilities/config';
+import { BrandVariations } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
+import HabitsAchievementBadge from '../../components/Achievements/HabitsAchievementBadge';
 
+// Therr's card art. The Habits classes used to borrow from this set ("Habit
+// Builder" wore the explorer's compass); on Friends with Habits every class now
+// renders HabitsAchievementBadge instead, so only classes Therr itself can earn
+// are listed. `weeklyChampion` is brand-agnostic — every brand with a leaderboard
+// earns it — and keeps its Lottie on Therr.
 const cardImagesLottie: { [key: string]: any } = {
     communityLeader: require('../../assets/socialite-card.json'),
     explorer: require('../../assets/explorer-card.json'),
@@ -11,18 +19,9 @@ const cardImagesLottie: { [key: string]: any } = {
     localPatron: require('../../assets/local-patron-card.json'),
     socialite: require('../../assets/socialite-card.json'),
     thinker: require('../../assets/thinker-card.json'),
-    // HABITS classes — reuse existing Lottie animations to avoid new design assets
-    accountability: require('../../assets/socialite-card.json'),
-    cleanBreak: require('../../assets/thinker-card.json'),
-    consistency: require('../../assets/influencer-card.json'),
-    habitBuilder: require('../../assets/explorer-card.json'),
-    pactPioneer: require('../../assets/socialite-card.json'),
-    resilience: require('../../assets/thinker-card.json'),
-    socialEnergizer: require('../../assets/socialite-card.json'),
-    treasureBuilder: require('../../assets/local-patron-card.json'),
-    // Leaderboard rank milestones — reuse an existing Lottie until a trophy asset ships
     weeklyChampion: require('../../assets/influencer-card.json'),
 };
+const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
 
 const lottieFillStyle = { position: 'absolute' as const, width: '100%' as const, height: '100%' as const };
 
@@ -60,13 +59,21 @@ const AchievementTile = ({
             <View style={themeAchievements.styles.achievementTileContainer}>
                 <View style={themeAchievements.styles.cardImageContainer}>
                     <View style={themeAchievements.styles.cardImage}>
-                        <LottieView
-                            source={cardImagesLottie[userAchievement.achievementClass] || cardImagesLottie.explorer}
-                            resizeMode="cover"
-                            speed={1}
-                            progress={0}
-                            style={lottieFillStyle}
-                        />
+                        {IS_HABITS ? (
+                            <HabitsAchievementBadge
+                                achievementClass={userAchievement.achievementClass}
+                                isComplete={isComplete}
+                                theme={themeAchievements}
+                            />
+                        ) : (
+                            <LottieView
+                                source={cardImagesLottie[userAchievement.achievementClass] || cardImagesLottie.explorer}
+                                resizeMode="cover"
+                                speed={1}
+                                progress={0}
+                                style={lottieFillStyle}
+                            />
+                        )}
                     </View>
                 </View>
                 <View style={themeAchievements.styles.tileTextContainer}>
