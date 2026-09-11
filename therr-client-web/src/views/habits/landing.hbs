@@ -66,6 +66,15 @@
             --fwh-border: #e6dfee;
             --fwh-shadow: 0 18px 40px -20px rgba(46, 33, 64, 0.35);
             --fwh-radius: 1.25rem;
+            /* The climbing rig is sized from the viewport and the content column makes
+               room for it: --fwh-rig-inset is how much of the rig would land on the
+               centred 1080px column, and .container adds exactly that to its right
+               padding. Wide screens have a free gutter and pay nothing; a phone gives
+               up a strip on the right so copy and chameleon never share a pixel. */
+            --fwh-rig-w: clamp(3rem, 11vw, 11rem);
+            --fwh-gutter: max(0px, (100vw - 1080px) / 2);
+            --fwh-rig-inset: max(0px, var(--fwh-rig-w) + 0.5rem - var(--fwh-gutter));
+            --fwh-rig-outline: clamp(1px, var(--fwh-rig-w) / 88, 2px);
         }
         *, *::before, *::after { box-sizing: border-box; }
         html { scroll-behavior: smooth; }
@@ -87,7 +96,7 @@
         .container {
             max-width: 1080px;
             margin: 0 auto;
-            padding: 0 1.5rem;
+            padding: 0 calc(1.5rem + var(--fwh-rig-inset)) 0 clamp(1rem, 4vw, 1.5rem);
         }
         .container--narrow { max-width: 760px; }
         .eyebrow {
@@ -278,7 +287,7 @@
             margin: 0 0 1rem;
         }
         .hero h1 {
-            font-size: clamp(2.25rem, 5.2vw, 3.5rem);
+            font-size: clamp(2rem, 5.2vw, 3.5rem);
             font-weight: 800;
             line-height: 1.08;
             color: #fff;
@@ -753,19 +762,20 @@
         }
 
         /* ---------- The climbing chameleon ----------
-           A fixed rig down the right-hand gutter: a vine the full height of the
+           A fixed rig down the right-hand edge: a vine the full height of the
            viewport and a chameleon that climbs it as the page scrolls. Position is
            driven by --climb (0 at the top of the page, 1 at the bottom), which the
-           script below sets from scroll progress; the transition on `top` is what
-           makes the climb read as movement rather than a jump. Only mounted where
-           the page has a gutter to spare — below 1200px it would sit on the copy. */
+           script below sets from scroll progress; the transition on the transform
+           is what makes the climb read as movement rather than a jump, and being a
+           transform it stays on the compositor on phones. Every dimension in here
+           derives from --fwh-rig-w (see :root), which the content column reserves. */
         .climb-rig {
-            display: none;
             position: fixed;
             top: 0;
             right: 0;
-            width: 176px;
+            width: var(--fwh-rig-w);
             height: 100vh;
+            height: 100dvh;
             /* Above the sticky header: the top of the climb is behind it otherwise. The
                rig's column starts past the header's content box, so nothing is covered. */
             z-index: 45;
@@ -775,30 +785,33 @@
             position: absolute;
             top: -20px;
             bottom: -20px;
-            right: 46px;
-            width: 12px;
+            right: calc(var(--fwh-rig-w) * 0.26);
+            width: calc(var(--fwh-rig-w) * 0.068);
             border-radius: 999px;
             background: linear-gradient(180deg, #4f8a4c 0%, #3e7040 50%, #4f8a4c 100%);
             box-shadow: inset -3px 0 0 rgba(0, 0, 0, 0.18), 0 6px 14px rgba(46, 33, 64, 0.25);
         }
         .climb-rig .leaf {
             position: absolute;
-            width: 46px;
+            width: calc(var(--fwh-rig-w) * 0.26);
             height: auto;
-            right: 40px;
+            right: calc(var(--fwh-rig-w) * 0.227);
             filter: drop-shadow(0 4px 6px rgba(46, 33, 64, 0.25));
         }
-        .climb-rig .leaf--flip { transform: scaleX(-1); right: 14px; }
+        .climb-rig .leaf--flip { transform: scaleX(-1); right: calc(var(--fwh-rig-w) * 0.08); }
         .climber {
             position: absolute;
             right: 0;
-            width: 176px;
+            width: var(--fwh-rig-w);
             height: auto;
-            top: calc(82vh - 62vh * var(--climb, 0));
-            transform: translateY(-50%);
-            transition: top 0.5s cubic-bezier(0.22, 0.8, 0.3, 1);
-            filter: drop-shadow(2px 0 0 #fff8f1) drop-shadow(-2px 0 0 #fff8f1)
-                    drop-shadow(0 2px 0 #fff8f1) drop-shadow(0 -2px 0 #fff8f1)
+            top: 82vh;
+            transform: translateY(calc(-50% - 62vh * var(--climb, 0)));
+            transition: transform 0.5s cubic-bezier(0.22, 0.8, 0.3, 1);
+            will-change: transform;
+            filter: drop-shadow(var(--fwh-rig-outline) 0 0 #fff8f1)
+                    drop-shadow(calc(-1 * var(--fwh-rig-outline)) 0 0 #fff8f1)
+                    drop-shadow(0 var(--fwh-rig-outline) 0 #fff8f1)
+                    drop-shadow(0 calc(-1 * var(--fwh-rig-outline)) 0 #fff8f1)
                     drop-shadow(0 14px 18px rgba(46, 33, 64, 0.3));
         }
         .climber .limb {
@@ -861,12 +874,20 @@
             nav.site-nav { display: flex; }
             .header-actions { margin-left: 1.5rem; }
         }
-        @media (min-width: 1200px) {
-            .climb-rig { display: block; }
+        @media (max-width: 899px) {
+            /* Five stacked drop-shadows are a GPU cost a phone notices while scrolling,
+               and at this size the sticker outline is a pixel wide anyway. */
+            .climber { filter: drop-shadow(0 6px 10px rgba(46, 33, 64, 0.3)); }
+        }
+        @media (max-width: 539px) {
+            /* Logo tile, wordmark and store button do not fit the column a phone has
+               left once the rig is reserved; the tile carries the brand on its own and
+               the link keeps its accessible name. */
+            header.site-header .brand { display: none; }
         }
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
-            .climber { transition: none; top: 55vh; }
+            .climber { transition: none; top: 55vh; transform: translateY(-50%); }
             .climber .pupil { transition: none; }
             .step-card, .cta { transition: none; }
         }
