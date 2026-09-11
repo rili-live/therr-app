@@ -61,6 +61,10 @@ export interface IUpdatePactParams {
     winnerId?: string;
     creatorCompletionRate?: number;
     partnerCompletionRate?: number;
+    currentPactStreak?: number;
+    longestPactStreak?: number;
+    lastPactStreakDate?: string;
+    isSolo?: boolean;
 }
 
 export default class PactsStore {
@@ -437,6 +441,28 @@ export default class PactsStore {
             status: 'expired',
             endReason: 'expired',
         });
+    }
+
+    /**
+     * Write the derived shared-streak counters after a day is credited. Kept separate from the
+     * general `update` so the check-in path expresses intent ("advance the pact streak") rather
+     * than assembling a column bag, and so a streak write never accidentally rides along with a
+     * status/completion update.
+     */
+    updatePactStreak(
+        id: string,
+        params: { currentPactStreak: number; longestPactStreak: number; lastPactStreakDate: string },
+    ) {
+        return this.update(id, params);
+    }
+
+    /**
+     * Convert an active pact to solo — the last remaining member chose to continue alone. The
+     * pact stays `active` with its one member; `isSolo` is what distinguishes it from a group
+     * pact still waiting on partners to accept.
+     */
+    setSolo(id: string) {
+        return this.update(id, { isSolo: true });
     }
 
     delete(id: string, userId: string) {

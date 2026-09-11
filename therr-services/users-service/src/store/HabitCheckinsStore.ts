@@ -1,6 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
 import { IConnection } from './connection';
-import { HABIT_CHECKINS_TABLE_NAME, HABIT_GOALS_TABLE_NAME } from './tableNames';
+import { HABIT_CHECKINS_TABLE_NAME, HABIT_GOALS_TABLE_NAME, PACT_MEMBERS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -316,6 +316,37 @@ export default class HabitCheckinsStore {
         return this.db.read.query(queryString).then((response) => new Set<string>(
             response.rows.map((row: any) => `${row.userId}:${row.habitGoalId}`),
         ));
+    }
+
+    /**
+     * How many of a pact's *active* members have a completed check-in for the pact's habit
+     * goal on `date` — the numerator of the pact's majority test.
+     *
+     * Counts distinct members joined through `pact_members`, not check-in rows tagged with the
+     * pactId: a check-in stamps a single `pactId` even when its habit goal backs several pacts,
+     * so counting by that column would undercount a member who belongs to more than one pact on
+     * the goal. Membership + (userId, habitGoalId, scheduledDate) is the reliable pairing, and
+     * it rides the check-ins UNIQUE constraint's key columns.
+     *
+     * `date` is a habit day as the service counts them (UTC, via getTodayDateString), matching
+     * what the write path stores in `scheduledDate`.
+     */
+    countCompletedActiveMembersForPact(pactId: string, habitGoalId: string, date: string): Promise<number> {
+        const queryString = knexBuilder.raw(
+            `SELECT COUNT(DISTINCT pm."userId")::int AS count
+            FROM ${PACT_MEMBERS_TABLE_NAME} pm
+            JOIN ${HABIT_CHECKINS_TABLE_NAME} c
+                ON c."userId" = pm."userId"
+                AND c."habitGoalId" = ?::uuid
+                AND c.status = 'completed'
+                AND c."scheduledDate" = ?::date
+            WHERE pm."pactId" = ?::uuid
+                AND pm.status = 'active'`,
+            [habitGoalId, date, pactId],
+        ).toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => parseInt(response.rows[0]?.count ?? '0', 10));
     }
 
     create(params: ICreateHabitCheckinParams) {

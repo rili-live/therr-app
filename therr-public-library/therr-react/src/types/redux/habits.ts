@@ -57,6 +57,24 @@ export interface IPact {
      * declined or abandoned, which is what makes such a pact re-committable again.
      */
     supersededByPactId?: string;
+    /**
+     * The shared ("pact") streak — the group's own streak, distinct from each member's personal
+     * streak. Advances on any day a majority of the pact's active members check in. All three
+     * are optional: a client can be talking to a users-service that predates the feature, in
+     * which case they are absent (treat as 0 / none) rather than zero — render nothing.
+     */
+    currentPactStreak?: number;
+    longestPactStreak?: number;
+    lastPactStreakDate?: string;
+    /** True once the last remaining member opted to continue the pact solo. */
+    isSolo?: boolean;
+    /**
+     * Derived server-side. How many members are actively participating right now (the majority
+     * denominator, and what gates add/remove), and whether the sole remaining member should be
+     * shown the continue-solo offer.
+     */
+    activeMemberCount?: number;
+    canContinueSolo?: boolean;
     // Joined fields
     habitGoalName?: string;
     habitGoalEmoji?: string;
@@ -407,6 +425,10 @@ export enum HabitsActionTypes {
     ACCEPT_PACT = 'ACCEPT_PACT',
     DECLINE_PACT = 'DECLINE_PACT',
     ABANDON_PACT = 'ABANDON_PACT',
+    // Upsert a pact in place from a returned, hydrated pact — used by member add/remove and
+    // solo continuation, which all change the membership or shape of an existing pact rather
+    // than creating or ending one.
+    UPDATE_PACT = 'UPDATE_PACT',
 
     // Checkins
     GET_TODAY_CHECKINS = 'GET_TODAY_CHECKINS',

@@ -147,6 +147,21 @@ const habits = produce((draft: IHabitsState, action: any) => {
             }
             break;
         }
+        case HabitsActionTypes.UPDATE_PACT: {
+            // Member add/remove and solo continuation each return the same pact with a changed
+            // membership/shape. Upsert it wherever it already lives; never append, so a stale
+            // action cannot resurrect a pact that has since left a list.
+            const updatedPact = action.data;
+            if (updatedPact?.id) {
+                (['pacts', 'activePacts', 'pendingInvites'] as const).forEach((key) => {
+                    const idx = draft[key].findIndex((p) => p.id === updatedPact.id);
+                    if (idx > -1) {
+                        draft[key][idx] = updatedPact;
+                    }
+                });
+            }
+            break;
+        }
 
         // Checkins
         case HabitsActionTypes.GET_TODAY_CHECKINS:
