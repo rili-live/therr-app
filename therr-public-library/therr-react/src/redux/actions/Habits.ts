@@ -168,6 +168,32 @@ const Habits = {
             return response.data;
         }),
 
+    addPactMembers: (id: string, partnerUserIds: string[]) => (dispatch: any) => PactsService
+        .addMembers(id, partnerUserIds).then((response) => {
+            dispatch({
+                type: HabitsActionTypes.UPDATE_PACT,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
+    removePactMember: (id: string, userId: string) => (dispatch: any) => PactsService
+        .removeMember(id, userId).then((response) => {
+            dispatch({
+                type: HabitsActionTypes.UPDATE_PACT,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
+    continueSoloPact: (id: string) => (dispatch: any) => PactsService.continueSolo(id).then((response) => {
+        dispatch({
+            type: HabitsActionTypes.UPDATE_PACT,
+            data: response.data,
+        });
+        return response.data;
+    }),
+
     // Checkins
     getTodayCheckins: (habitGoalId?: string) => (dispatch: any) => HabitCheckinsService
         .getTodayCheckins(habitGoalId).then((response: any) => {

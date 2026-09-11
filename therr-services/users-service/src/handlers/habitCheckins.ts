@@ -20,6 +20,7 @@ import {
     MAX_GRACE_PERIOD_DAYS,
 } from '../utilities/streakHelpers';
 import { isUserInPact } from '../utilities/pactHelpers';
+import { computeNextPactStreak, hasReachedMajority } from '../utilities/pactStreak';
 import { canReadProofs, serializeProofs } from '../utilities/checkinProofs';
 import moderateProofs from '../utilities/moderateProofs';
 import { copyProofToPublicBucket, deleteSharedCheckinPublicObject } from '../utilities/shareCheckinMedia';
@@ -228,16 +229,32 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                         habitGoal.frequencyType || 'daily',
                         habitGoal.targetDaysOfWeek,
                     );
-                    if (missedDays > 0) {
+
+                    // Majority-day protection: a day the user's pact carried (a majority of its
+                    // active members checked in) is not held against the user's personal streak.
+                    // The group won that day; the rules should not reset a member for a day they
+                    // were covered on. Only days strictly inside the gap count — the endpoints are
+                    // the user's own last completion and today's check-in. Freezes are spent only
+                    // on days that remain missed after this forgiveness.
+                    const coveredDays = pacts.length
+                        ? await Store.pactStreakDays.countCoveredDatesForPacts(
+                            pacts.map((p: any) => p.id),
+                            lastCompletedStr,
+                            checkinDate,
+                        )
+                        : 0;
+                    const effectiveMissed = Math.max(0, missedDays - coveredDays);
+
+                    if (effectiveMissed > 0) {
                         const graceAvailable = (streak.gracePeriodDays || 0) - (streak.graceDaysUsed || 0);
-                        if (missedDays <= graceAvailable) {
+                        if (effectiveMissed <= graceAvailable) {
                             // eslint-disable-next-line no-plusplus
-                            for (let i = 0; i < missedDays; i++) {
+                            for (let i = 0; i < effectiveMissed; i++) {
                                 // eslint-disable-next-line no-await-in-loop
                                 await Store.streaks.useGraceDay(streak.id);
                             }
                             await Store.streaks.recordGraceUsed(streak.id, userId, checkinDate, streak.currentStreak);
-                            graceDaysConsumed = missedDays;
+                            graceDaysConsumed = effectiveMissed;
                             streakSavedByFreeze = streak.currentStreak;
                         } else {
                             await Store.streaks.recordMissed(streak.id, userId, checkinDate, streak.currentStreak);
@@ -422,6 +439,58 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                             );
                             return Store.pactMembers.updateCompletionRate(member.id);
                         }));
+
+                    // Shared pact streak. This check-in may be the one that pushes a pact's
+                    // active members to a majority for today — if so, credit the day once and
+                    // advance the group's streak. Evaluated on every qualifying check-in (not
+                    // just the majority-crossing one) because whichever member's check-in
+                    // crosses the threshold cannot be known in advance; the ledger's UNIQUE
+                    // (pactId, streakDate) makes the credit idempotent, so only the first one
+                    // through advances the streak and the rest no-op.
+                    await Promise.all(pacts.map(async (p: any) => {
+                        const [activeMemberCount, completedTodayCount] = await Promise.all([
+                            Store.pactMembers.countActiveByPactId(p.id),
+                            Store.habitCheckins.countCompletedActiveMembersForPact(p.id, habitGoalId, checkinDate),
+                        ]);
+
+                        if (!hasReachedMajority(completedTodayCount, activeMemberCount)) {
+                            return;
+                        }
+
+                        const credited = await Store.pactStreakDays.create({
+                            pactId: p.id,
+                            streakDate: checkinDate,
+                            activeMemberCount,
+                            completedCount: completedTodayCount,
+                        });
+                        // Someone else already won the day for this pact — nothing to advance.
+                        if (!credited) {
+                            return;
+                        }
+
+                        const nextPactStreak = computeNextPactStreak({
+                            lastPactStreakDate: p.lastPactStreakDate,
+                            currentPactStreak: p.currentPactStreak || 0,
+                            streakDate: checkinDate,
+                            frequencyType: habitGoal.frequencyType,
+                            targetDaysOfWeek: habitGoal.targetDaysOfWeek,
+                        });
+                        await Store.pacts.updatePactStreak(p.id, {
+                            currentPactStreak: nextPactStreak,
+                            longestPactStreak: Math.max(nextPactStreak, Number(p.longestPactStreak) || 0),
+                            lastPactStreakDate: checkinDate,
+                        });
+                    })).catch((err) => {
+                        // Best-effort: the personal check-in has already committed and been
+                        // credited. A failure computing the shared streak must not fail the
+                        // check-in — the next qualifying check-in re-evaluates the same day.
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['Error evaluating shared pact streak'],
+                            traceArgs: { 'error.message': err?.message, habitGoalId },
+                        });
+                    });
 
                     // Notify partners. Someone in two pacts on this same habit
                     // is told once, not once per pact.
