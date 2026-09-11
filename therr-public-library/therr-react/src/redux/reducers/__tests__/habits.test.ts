@@ -291,6 +291,46 @@ describe('habits reducer', () => {
         expect(result.todayCheckins[0].status).toBe('completed');
     });
 
+    it('handles SHARE_CHECKIN by merging sharedThoughtId without dropping other fields', () => {
+        const populated = reducer(initialState, {
+            type: HabitsActionTypes.GET_TODAY_CHECKINS,
+            data: [{ id: 'c1', status: 'completed', hasProof: true }],
+        });
+        const result = reducer(populated, {
+            type: HabitsActionTypes.SHARE_CHECKIN,
+            data: { id: 'c1', sharedThoughtId: 't1' },
+        });
+        expect(result.todayCheckins[0].sharedThoughtId).toBe('t1');
+        expect(result.todayCheckins[0].status).toBe('completed');
+        expect(result.todayCheckins[0].hasProof).toBe(true);
+    });
+
+    it('marks a range-loaded check-in shared, so the calendar updates without a refetch', () => {
+        const populated = reducer(initialState, {
+            type: HabitsActionTypes.GET_CHECKINS_BY_RANGE,
+            data: [{ id: 'c-past', status: 'completed', scheduledDate: '2026-09-01' }],
+        });
+        const result = reducer(populated, {
+            type: HabitsActionTypes.SHARE_CHECKIN,
+            data: { id: 'c-past', sharedThoughtId: 't2' },
+        });
+        expect(result.checkins[0].sharedThoughtId).toBe('t2');
+        expect(result.checkins[0].scheduledDate).toBe('2026-09-01');
+    });
+
+    it('leaves both check-in collections untouched when the shared id is not loaded', () => {
+        const populated = reducer(initialState, {
+            type: HabitsActionTypes.GET_TODAY_CHECKINS,
+            data: [{ id: 'c1', status: 'completed' }],
+        });
+        const result = reducer(populated, {
+            type: HabitsActionTypes.SHARE_CHECKIN,
+            data: { id: 'unknown', sharedThoughtId: 't3' },
+        });
+        expect(result.todayCheckins[0].sharedThoughtId).toBeUndefined();
+        expect(result.checkins.length).toBe(0);
+    });
+
     // Streaks
     it('handles GET_USER_STREAKS', () => {
         const result = reducer(initialState, {
@@ -355,6 +395,58 @@ describe('habits reducer', () => {
             type: SocketClientActionTypes.LOGOUT,
         });
         expect(Array.from(result.pacts)).toEqual([]);
+    });
+
+    // Premium subscription
+    //
+    // A verify does not imply a preceding GET_PREMIUM_OFFER — restore-purchases, or a
+    // store callback arriving after the paywall unmounted, both verify against an empty
+    // slice. Guarding only on an existing offer made those paths silently no-op and left
+    // the paywall up until the next refetch.
+    it('handles VERIFY_PREMIUM_PURCHASE when the offer was already loaded', () => {
+        const populated = reducer(initialState, {
+            type: HabitsActionTypes.GET_PREMIUM_OFFER,
+            data: {
+                productId: 'habits_premium_monthly',
+                isEntitled: false,
+                subscription: null,
+                isStoreConfigured: true,
+            },
+        });
+        const result = reducer(populated, {
+            type: HabitsActionTypes.VERIFY_PREMIUM_PURCHASE,
+            data: { subscription: { id: 'sub-1', productId: 'habits_premium_monthly' } },
+        });
+
+        expect(result.premiumOffer?.isEntitled).toBe(true);
+        expect(result.premiumOffer?.subscription?.id).toBe('sub-1');
+        expect(result.premiumOffer?.productId).toBe('habits_premium_monthly');
+    });
+
+    it('builds the premium offer on verify when none had been fetched', () => {
+        const result = reducer(initialState, {
+            type: HabitsActionTypes.VERIFY_PREMIUM_PURCHASE,
+            data: { subscription: { id: 'sub-1', productId: 'habits_premium_monthly' } },
+        });
+
+        expect(result.premiumOffer).not.toBe(null);
+        expect(result.premiumOffer?.isEntitled).toBe(true);
+        expect(result.premiumOffer?.subscription?.id).toBe('sub-1');
+        expect(result.premiumOffer?.productId).toBe('habits_premium_monthly');
+        expect(result.premiumOffer?.isStoreConfigured).toBe(true);
+    });
+
+    it('clears the habit-limit flag on verify so the paywall does not linger', () => {
+        const populated = reducer(initialState, {
+            type: HabitsActionTypes.GET_USER_HABIT_ELIGIBILITY,
+            data: { isAtHabitLimit: true },
+        });
+        const result = reducer(populated, {
+            type: HabitsActionTypes.VERIFY_PREMIUM_PURCHASE,
+            data: { subscription: { id: 'sub-1' } },
+        });
+
+        expect(result.userHabitEligibility?.isAtHabitLimit).toBe(false);
     });
 
     it('returns state unchanged for unknown action', () => {

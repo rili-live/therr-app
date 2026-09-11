@@ -303,12 +303,31 @@ include variants for all three locales, or it silently fails for non-English use
 
 ## Backlog
 
-`docs/WORK_IN_PROGRESS.md` is the prioritized backlog plus the
-**§ Manual Operational Follow-ups** checklist of post-deploy steps humans must do.
+The backlog has **two halves, and they are one list**:
 
-At the start of a non-trivial session, scan that section for unchecked `- [ ]` items and
-surface the 1–3 most relevant to the current work. Don't recite the whole list. When you
-fix a TODO, delete its bullet in the same commit. `/work-plan` proposes the next batch.
+- `docs/WORK_IN_PROGRESS.md` — the curated half: code TODOs tiered by business value,
+  plus the **§ Manual Operational Follow-ups** checklist of post-deploy steps humans
+  must do.
+- **GitHub issues** (`rili-live/therr-app`) — the inbox half: work deferred out of a
+  session, and anything a collaborator needs to see.
+
+They are joined by a `(#number)` suffix on the backlog heading, with the issue's
+`## Backlog` line naming that section back. Both directions — an unlinked pair gets
+planned twice.
+
+At the start of a non-trivial session, scan § Manual Operational Follow-ups for unchecked
+`- [ ]` items and surface the 1–3 most relevant to the current work. Don't recite the
+whole list.
+
+**Deferring work you find mid-session:** when you hit something real that is out of scope
+for what you are building, don't widen the task and don't leave it in the transcript —
+`/github-issues defer <one line>` files it in one command, inferring the branch from the
+paths and the context from the session. It does not need a `WORK_IN_PROGRESS.md` entry;
+`/work-plan` reads open issues directly.
+
+`/work-plan` proposes the next batch from **both** halves, de-dupes them, and closes or
+comments on the issues its batch touched. When you fix a TODO, delete its bullet in the
+same commit — and close its issue if the heading carries one.
 
 ## Session Memory
 

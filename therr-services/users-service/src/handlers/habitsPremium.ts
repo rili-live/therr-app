@@ -4,7 +4,7 @@ import {
     BrandVariations,
     hasHabitsPremiumEntitlement,
 } from 'therr-js-utilities/constants';
-import { parseHeaders } from 'therr-js-utilities/http';
+import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
@@ -101,6 +101,21 @@ const findLineItem = (playSub: IPlaySubscriptionPurchase, productId: string) => 
  */
 const getPremiumOffer: RequestHandler = async (req: any, res: any) => {
     const { userId } = parseHeaders(req.headers);
+    const { brandVariation, hasExplicitBrand } = getBrandContext(req.headers);
+
+    // The SKU is a Friends with Habits subscription on a Friends with Habits Play
+    // listing; a Therr or Teem client can never complete this purchase, so it must
+    // not be offered one.
+    //
+    // Keyed on `hasExplicitBrand`, NOT on `brandVariation` alone, and the difference
+    // decides whether the paywall works at all. getBrandContext defaults a missing or
+    // unrecognized `x-brand-variation` to THERR, so testing `brandVariation !== HABITS`
+    // would suppress the offer for every client that does not send the header — which
+    // is what a legacy install is, and the deployed app cannot be force-updated. The
+    // sibling lifetime handler makes the same call the other way round, defaulting a
+    // missing brand to HABITS (`brandVariation || BrandVariations.HABITS`). Suppress
+    // only when a client has explicitly declared itself as some other brand.
+    const isBrandSupported = !hasExplicitBrand || brandVariation === BrandVariations.HABITS;
 
     try {
         const [subscription, [user]] = await Promise.all([
@@ -113,9 +128,19 @@ const getPremiumOffer: RequestHandler = async (req: any, res: any) => {
             // Reported independently of `subscription` because entitlement can
             // come from elsewhere — a SUPER_ADMIN, or a lifetime founder — and
             // the paywall should stay hidden for those accounts too.
+            //
+            // Answered truthfully even for an unsupported brand: it describes the
+            // caller's own account, and the free-tier gates read the access level
+            // regardless of which client is asking.
             isEntitled: hasHabitsPremiumEntitlement((user?.accessLevels as string[]) || []),
-            subscription: serializeSubscription(subscription),
-            isStoreConfigured: isGooglePlayConfigured(),
+            // A Habits subscription is not another brand's business to render.
+            subscription: isBrandSupported ? serializeSubscription(subscription) : null,
+            // Doubles as the "cannot buy here" signal. Deployed clients already hide
+            // the CTA on this flag, so reusing it is what makes the guard effective
+            // without a client release; `isBrandSupported` below is the honest reason,
+            // for a client new enough to read it.
+            isStoreConfigured: isBrandSupported && isGooglePlayConfigured(),
+            isBrandSupported,
         });
     } catch (err: any) {
         return handleHttpError({ err, res, message: 'SQL:HABITS_PREMIUM_ROUTES:ERROR' });

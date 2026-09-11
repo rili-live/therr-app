@@ -349,8 +349,19 @@ export interface IHabitsPremiumOffer {
     /** True for any entitled account, including admins and lifetime founders. */
     isEntitled: boolean;
     subscription: IHabitsPremiumSubscription | null;
-    /** False when the server has no Play credentials — the CTA must stay hidden. */
+    /**
+     * False when the server has no Play credentials, and also when the calling client
+     * declared a brand that cannot buy this SKU — either way the CTA must stay hidden.
+     * Read `isBrandSupported` to tell the two apart.
+     */
     isStoreConfigured: boolean;
+    /**
+     * False when the client sent an `x-brand-variation` other than HABITS. The premium
+     * subscription is a Friends with Habits product on a Friends with Habits Play
+     * listing, so no other brand can complete the purchase. Optional because clients
+     * predating the field simply see `isStoreConfigured: false` and hide the CTA.
+     */
+    isBrandSupported?: boolean;
 }
 
 // State Interface

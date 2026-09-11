@@ -344,4 +344,72 @@ describe('HABITS premium offer endpoint', () => {
         expect(res.body.subscription).to.equal(null);
         expect(res.body.isEntitled).to.equal(false);
     });
+
+    /**
+     * The SKU is a Friends with Habits product on a Friends with Habits Play listing.
+     * The guard has to suppress it for a client that says it is another brand, without
+     * suppressing it for a client that says nothing at all — getBrandContext defaults a
+     * missing header to THERR, so keying on the brand alone would hide the paywall from
+     * every legacy Habits install, which cannot be force-updated.
+     */
+    describe('brand scoping', () => {
+        beforeEach(() => {
+            sinon.stub(googlePlay, 'isGooglePlayConfigured').returns(true);
+            sinon.stub(Store.subscriptionPurchases, 'getActiveByUserId').resolves({
+                id: 'sub-1', userId: 'user-1', status: 'active',
+            } as any);
+            sinon.stub(Store.users, 'findUser').resolves([
+                { id: 'user-1', accessLevels: [AccessLevels.DEFAULT, AccessLevels.HABITS_PREMIUM] },
+            ]);
+        });
+
+        it('offers the subscription to a habits client', async () => {
+            const res = makeRes();
+            await getPremiumOffer(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.body.isBrandSupported).to.equal(true);
+            expect(res.body.isStoreConfigured).to.equal(true);
+            expect(res.body.subscription).to.not.equal(null);
+        });
+
+        it('withholds the offer from a client that declares another brand', async () => {
+            const res = makeRes();
+            await getPremiumOffer(
+                makeReq({ headers: { 'x-brand-variation': 'therr' } }) as any,
+                res,
+                (() => {}) as any,
+            );
+
+            expect(res.body.isBrandSupported).to.equal(false);
+            // The flag deployed clients already gate the CTA on.
+            expect(res.body.isStoreConfigured).to.equal(false);
+            expect(res.body.subscription).to.equal(null);
+        });
+
+        it('still reports entitlement truthfully to an unsupported brand', async () => {
+            // It describes the caller's own account, and the free-tier gates read the
+            // access level whichever client is asking.
+            const res = makeRes();
+            await getPremiumOffer(
+                makeReq({ headers: { 'x-brand-variation': 'therr' } }) as any,
+                res,
+                (() => {}) as any,
+            );
+
+            expect(res.body.isEntitled).to.equal(true);
+        });
+
+        it('still offers the subscription when no brand header is sent at all', async () => {
+            // A legacy install. getBrandContext calls this THERR; treating that as a
+            // real brand declaration would hide the paywall from every one of them.
+            const req: any = makeReq();
+            delete req.headers['x-brand-variation'];
+
+            const res = makeRes();
+            await getPremiumOffer(req, res, (() => {}) as any);
+
+            expect(res.body.isBrandSupported).to.equal(true);
+            expect(res.body.isStoreConfigured).to.equal(true);
+        });
+    });
 });

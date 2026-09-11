@@ -141,8 +141,28 @@ const checkIsMediaSafeForWork = (media: { type: string, path: string }[]): Promi
                 return false;
             });
         }
+
+        // Media to moderate, but no bucket to sign it from — `getBucket` returns the
+        // BUCKET_PUBLIC_USER_DATA / BUCKET_PRIVATE_USER_DATA env var, so this is an
+        // unset or misspelled variable, not a content decision. Returning true here
+        // silently auto-approved every image: no signed URL, no Sightengine call, no
+        // log line, and the two call sites that gate on this (utilities/moderateProofs
+        // and the check-in public share in handlers/habitCheckins) both document it as
+        // failing closed. Fail closed for real, and say why.
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: ['Cannot moderate media: no bucket resolved for media type; failing closed'],
+            traceArgs: {
+                'media.type': media[0].type,
+                'media.count': media.length,
+            },
+        });
+
+        return Promise.resolve(false);
     }
 
+    // No media supplied — nothing to moderate, so nothing to reject.
     return Promise.resolve(true);
 };
 

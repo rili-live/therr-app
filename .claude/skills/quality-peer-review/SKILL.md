@@ -2,8 +2,8 @@
 name: quality-peer-review
 description: Peer review the diff between general and stage branches. Implements low-risk improvements, fixes bugs, adds regression tests for bugfixes where valuable, resolves quality issues, and notes deployment steps. Runs local integration tests when the diff touches backend services (requires Docker Compose infrastructure for that case only).
 user-invocable: true
-allowed-tools: Bash(docker*), Bash(git*), Bash(npx*), Bash(npm*), Bash(node*), Bash(./_bin/*), Read, Glob, Grep, Edit, Write, Agent
-argument-hint: [--dry-run]
+allowed-tools: Bash(docker*), Bash(git*), Bash(npx*), Bash(npm*), Bash(node*), Bash(./_bin/*), Bash(gh issue*), Bash(gh search*), mcp__github__list_issues, mcp__github__search_issues, mcp__github__issue_write, mcp__github__add_issue_comment, Read, Glob, Grep, Edit, Write, Agent
+argument-hint: [--dry-run] [--no-defer]
 ---
 
 # Peer Review: general → stage
@@ -576,6 +576,30 @@ Drop clauses from the message that don't apply (no tests added, no bugs fixed). 
    changes. Or: "None identified.">
 ```
 
+
+---
+
+## Step 8: Offer to defer what you did not implement
+
+Category C suggestions, and any Category A bug you decided not to fix here, exist
+only in this report. The report scrolls away; the finding is lost. **Offer to file
+the ones worth keeping as GitHub issues**, in one line, at the end of the run:
+
+> "3 of the suggestions above are worth keeping — file them as issues? (`/github-issues defer`)"
+
+Skip this step under `--dry-run` (filing an issue is a write) or `--no-defer`, and say
+in the report that the findings were not persisted anywhere.
+
+Then file the ones the user takes, per `/github-issues` § `defer`: the finding you
+already wrote is the issue body, and the paths you already have decide the branch.
+
+Judgement, not volume — **do not file every Category C item.** File a suggestion when
+it names a specific file and a specific consequence, and skip it when it is a general
+observation ("this could be abstracted"). A tracker full of vague suggestions is one
+nobody reads, and it makes `/work-plan` worse rather than better.
+
+Never file for something this run already fixed. The commit is the record.
+
 ---
 
 ## Rules
@@ -589,3 +613,4 @@ Drop clauses from the message that don't apply (no tests added, no bugs fixed). 
 - **Do not implement Category C suggestions** — report them only.
 - **`--dry-run` means no writes of any kind** — no edits, no `docs/WORK_IN_PROGRESS.md` append, no commit, no `--fix` on ESLint.
 - When in doubt about whether a change is safe, skip it and add it to the Suggestions section instead.
+- **Report-only findings are not durable.** Before finishing, offer to defer the specific ones as GitHub issues — a suggestion that names a file and a consequence is worth an issue; a general observation is not.

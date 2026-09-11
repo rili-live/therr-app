@@ -1,6 +1,6 @@
 # Work In Progress — TODO Backlog & Manual Steps
 
-**Last Updated:** August 2026
+**Last Updated:** September 2026
 **Audience:** Developers and coding agents
 **Status:** Living document — update when TODOs are resolved or added
 
@@ -13,6 +13,11 @@
 >
 > **Related trackers:**
 >
+> - **GitHub issues** (`rili-live/therr-app`) — the *inbox* half of this backlog.
+>   Work found mid-session that is out of scope for what is being built right then
+>   is deferred into an issue by `/github-issues defer`, in one command. `/work-plan`
+>   reads this file **and** the open issues, and de-dupes them. See
+>   § The two halves of this backlog below for the cross-link convention.
 > - `docs/PEER_REVIEW_FOLLOWUP.md` — narrower scope: items deferred during
 >   `general → stage` peer reviews (e.g., shared-store unification, shadow→
 >   enforce flips, mobile tsc baseline payoff). Use that file when the work
@@ -36,12 +41,50 @@
   When skills (`/quality-peer-review`, `/quality-peer-review-niche`,
   `/seo-audit`, etc.) discover a manual step required after a code deploy,
   append it to **§ Manual Operational Follow-ups** with a checkbox.
+  When you find work mid-session that is real but **out of scope for what you
+  are building right now**, do not widen the task and do not leave it in the
+  transcript — defer it with `/github-issues defer` and keep going. One command,
+  one line back. `/work-plan` picks it up next session.
 - **Developers:** Use this as the prioritized backlog when you have spare
   time. Tier 1 items are the only ones that should pre-empt active feature
   work on the current niche/general branch.
 - **Plausibility:** This audit removed dead-code, debug-print, and duplicate
   TODOs. Everything below has been confirmed plausible against the current
   codebase (April 2026 audit).
+
+---
+
+## The two halves of this backlog
+
+This file and the repo's **GitHub issues** are one list, split by how work
+arrives:
+
+| | This file | GitHub issues |
+|---|---|---|
+| **Holds** | Long-standing code TODOs, tiered by business value, plus the post-deploy steps a human must run | Work deferred out of a session, and anything that needs to be visible or assignable to someone outside one |
+| **Ordered by** | Tier 1 → 5 | Not ordered. `/work-plan` assigns a provisional tier when it picks one up |
+| **Written by** | A person or agent curating the backlog | `/github-issues defer`, in one command, mid-task |
+| **Read by** | `/work-plan`, and anyone with spare time | `/work-plan`, and collaborators |
+
+They are joined by a **`(#number)` suffix on the heading** of any section that
+has an issue — see § 2.6.7 and § 2.6.8 for the live examples. The issue's own
+`## Backlog` line names the section back. Both directions, always, or
+`/work-plan` proposes the same job twice under two names.
+
+Three consequences worth stating outright, because each is the opposite of what
+you would guess:
+
+- **A deferred issue does not need an entry here.** An issue is a complete
+  record; `/work-plan` reads it directly. Requiring both would make deferral cost
+  two writes and grow this file every time anyone notices anything. An issue gets
+  promoted into a tier when it earns one, not on the way in.
+- **Most entries here do not need an issue.** File one when someone outside the
+  session needs to see the work.
+- **Manual Operational Follow-ups never become issues.** They are a checklist for
+  whoever holds the credentials, and their value is that they are short and in one
+  place.
+
+To reconcile the two after a drifting stretch: `/github-issues sync`.
 
 ---
 
@@ -954,6 +997,15 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   shared corporate/office egress IP collectively count against one bucket and may
   trip the lower ceiling. If false positives appear, raise the limit or move to a
   per-user/token keyed limiter.
+- [ ] (2026-06-21, manual) Run the `20260422000000_main.userLists_slug` migration
+  on the reactions-service database (`cd therr-services/reactions-service && npm run
+  migrations:run`). Without it the `main.userLists.slug` column does not exist, and
+  because `createUserList` / `updateUserList` always write `slug` (NULL for private
+  lists) the INSERT fails with `column "slug" does not exist` → 500
+  `SQL:USER_LISTS_ROUTES:CREATE_ERROR` → the mobile picker shows "couldn't create
+  list". Adding a space to an existing list is unaffected (it never writes a
+  `userLists` column beyond `itemCount`), which is why only NEW-list creation breaks.
+  Reproduced locally: insert-with-slug fails pre-migration, succeeds post-migration.
 - [ ] (2026-07-26, /quality-peer-review) First feed load after the relevance
   rollout reshuffles for every existing user: rows activated before the migration
   have `relevanceScore IS NULL` and sort last (`NULLS LAST`). Expected and in the
@@ -1507,6 +1559,20 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 - [ ] (2026-09-09, /quality-peer-review) **Verify `PUT /users-service/habits/user-habits/:id/continue-solo` end-to-end through the deployed gateway.** The route is wired at all three hops on `general` (users-service handler + router, gateway proxy entry, `UserHabitsService.continueSolo` + redux action in `therr-react`) and a `routeOrdering` parity test now asserts the gateway entry alongside `archive`/`restore` — but there is still **no consumer on `general`**, because the prompt that calls it is Habits dashboard UI living on `niche/HABITS-general`. That is the same shape as the `checkins/:id/proofs` item above, which shipped unreachable and surfaced later as an apparent client bug. Confirm against `stage` with a real habit id that has a pending pact: expect 200 with `pendingPactId: null` in the returned detail, a `403 solo-locked` carrying `invitedCount`/`requiredCount` for a user under `HABITS_SOLO_UNLOCK_INVITE_COUNT`, and `402` for an archived habit at the free-tier cap.
 
 - [ ] (2026-09-09, /quality-peer-review) **`scripts/google-play/settings.yaml` was un-tracked from git — re-create it on any other machine, and treat the bucket id as already published.** The file was committed by the google-play MCP work even though `scripts/google-play/.gitignore` lists it and its own header says "copy this file to settings.yaml (gitignored)"; `git rm --cached` now matches that stated intent and the local copy is untouched. Two consequences: (a) any other clone/CI checkout no longer gets it, so `./therrplay` and the `google-play` MCP server there need `cp settings.example.yaml settings.yaml` and the real bucket filled in (`gs://pubsite_prod_6296484018560789304`, from Play Console -> Download reports -> Copy Cloud Storage URI); (b) the removal does **not** rewrite history — the bucket id, which per the file's own comment identifies the Play developer account, remains in every commit from `72e611929` onward. It is low-sensitivity (read access still requires Google auth), so the call is whether to leave it; do not rewrite `general`'s history casually to scrub it.
+
+- [ ] (2026-09-10, /quality-peer-review) **Point the campaign E2E job at the API before treating its green check as flow coverage.** The suite now runs and passes (36/36, migrations wired into `_bin/cicd/test-campaign-e2e.sh`), but it makes no HTTP call anywhere — each of the eight `therr-api-gateway/tests/e2e/campaign/*` suites seeds rows with raw SQL, re-implements in the test what the handler does, and asserts the value it just wrote. `referralFlow` literally comments "Simulate what the users handler does on signup with inviteCode" and then runs the `UPDATE main.users SET settingsTherrCoinTotal` itself; `achievementUnlockFlow` sets `unclaimedRewardPts = 0` and then asserts it is 0. What that genuinely catches is **schema drift** — and it earned its keep immediately, since the fixtures did not match the schema at all (wrong geometry type on three tables, four missing NOT NULL columns, a column name that does not exist). What it cannot catch is a handler regression: stop paying the inviter entirely and every test stays green. So the `test-e2e-critical-path` job comment claiming it catches "the 3 highest-stakes regressions (referral payout, QR check-in, Space Incentive redemption)" overstates it. Either boot the gateway in the job and drive the flows over HTTP with real auth, or retitle the job to "cross-service schema smoke" so nobody reads it as flow coverage. Deferred deliberately — CI passing is the near-term bar.
+
+- [ ] (2026-09-10, /quality-peer-review) **Decide whether the campaign E2E suite should run on `stage`/`main` at all, and drop the dead `full` mode if not.** `test-campaign-e2e.sh` forces `MODE=full` when the branch is `stage` or `main`, but the workflow filter added alongside it (`branches: ignore: [general, stage, main]`) keeps the job off exactly those branches, so the full 36-test suite only ever runs when someone invokes the script by hand. The `.circleci/config.yml` comment explains why it is not wired into `docker_build_test_publish_images` — that job's preceding step tears down `postgres-ci`/`redis-ci` and `therr-ci-network` via `trap cleanup EXIT` — which is a real constraint, not an oversight. The options are to give the full suite its own job with its own setup/teardown on `stage`, or to delete the `full` branch from the script so the file stops describing behaviour that cannot happen. Left working as-is for now.
+
+- [ ] (2026-09-10, /quality-peer-review) **`.mocharc.e2e.js` does not load `tests/setup.ts` the way `.mocharc.js` does — fine today, a trap the first time an E2E test imports a router.** The gateway's normal mocha config requires `./tests/setup.ts`, which seeds `TWILIO_ACCOUNT_SID`, `JWT_SECRET`, `JWT_EMAIL_SECRET` and `NODE_ENV` before any module reads them at import time, and installs the outbound-SMS stubs so nothing under `tests/` can reach Twilio with a developer's real credentials. The E2E config deliberately does not, and that is currently harmless because the suite imports nothing but `pg`. The moment one of these tests imports the real gateway router — which is the whole point of the follow-up above — `middleware/authenticate` throws at import on the missing secret, and the failure will read as a broken test rather than a missing config line. Add the `require` at the same time the suite starts making HTTP calls, not before (loading it now would pull Twilio stubs into a suite that has no use for them).
+
+- [ ] (2026-09-10, /quality-peer-review) **Run the check-in share migration** on users-service
+  (`20260906000001_habits.habit_checkins.sharedThoughtId`). Adds the nullable `sharedThoughtId`
+  column and its partial index to `habits.habit_checkins`. It backfills nothing and is safe to run
+  any time, but the share endpoint writes that column on every successful share, so until it runs
+  `POST /habits/checkins/:id/share` fails *after* the public image copy and the `main.thoughts`
+  row already exist — the handler rolls the post back, so the visible symptom is a 500 on share
+  rather than silent corruption. The premium migration item above is a separate file; both are needed.
 
 <!-- skill-followups:end -->
 
@@ -2884,19 +2950,49 @@ note that should be honored on a calendar reminder.
 1. Remove (or update) the source TODO comment as part of the same commit.
 2. Delete the corresponding bullet in `WORK_IN_PROGRESS.md` (do **not** strike
    through; the file is not a journal).
-3. If the TODO referenced a ticket prefix (`RSERV-`, `RFRONT-`, `RMOBILE-`,
+3. **If the heading carries a `(#number)`, close that issue too** — same sitting,
+   `state_reason: completed`, with the commit linked. Deleting the bullet and
+   leaving the issue open means `/work-plan` re-proposes work that already
+   shipped, which is the single most expensive way these two trackers can
+   disagree. Verify against the code before closing, never against this file's
+   claim that it is done.
+4. If the TODO referenced a ticket prefix (`RSERV-`, `RFRONT-`, `RMOBILE-`,
    `RDATA-`), search the file for siblings — these are usually clusters that
    were intended to be closed together.
 
+> **A commit on a `niche/*` branch closes nothing.** Only `general → stage → main`
+> deploys (root `CLAUDE.md` § Deployment reality). Comment on the issue saying
+> where the work landed; close it when it reaches `general`.
+
 ## When discovering a new TODO
 
-Add it to the appropriate tier. If you can't decide between two tiers, place
-it lower (the cost of under-prioritizing is a delay; the cost of over-
-prioritizing is wasted top-of-list attention).
+Two destinations, and the choice is about **when the work will be looked at**,
+not about how important it is:
+
+- **Mid-session, out of scope for what you are building** → `/github-issues defer`.
+  One command. It does not belong in this file until it has earned a tier, and
+  stopping to place it in one is exactly the friction that loses it.
+- **Curating the backlog, or the item is a long-standing known gap** → add it to
+  the appropriate tier here. If you can't decide between two tiers, place it lower
+  (the cost of under-prioritizing is a delay; the cost of over-prioritizing is
+  wasted top-of-list attention).
+
+Either way, **check the other tracker first** — grep this file, and search the
+issues — so one job does not end up with two records.
 
 Use the same one-line format as existing entries: `path:line — short verb-
 phrase description`. Keep it terse — this file is read by humans and agents
 many times more often than it's written.
+
+## When an entry here gets a GitHub issue
+
+Append ` (#<number>)` to the section heading — `#### 2.6.7 Thoughts silently drop
+uploaded images (#2840)` — and make the issue's `## Backlog` line name the
+section back. Commit the cross-link. An uncommitted one is worse than none: the
+next checkout sees two unlinked records of one job.
+
+Do **not** delete the entry from this file when it gains an issue. The tier is
+information the issue does not carry.
 
 ## When adding a Manual Operational Follow-up
 
@@ -2917,9 +3013,16 @@ section — this list is meant to be short.
 
 `WORK_IN_PROGRESS.md` (this file) is for long-standing code TODOs and
 post-deploy operational steps. `PEER_REVIEW_FOLLOWUP.md` is for residue
-deferred during a specific peer review. If a peer-review item is
-broadly applicable beyond that single review, link it from here too. Don't
-duplicate the body — a one-line cross-reference is enough.
+deferred during a specific peer review. **GitHub issues** are for work deferred
+out of a session and for anything a collaborator needs to see — see § The two
+halves of this backlog. If a peer-review item is broadly applicable beyond that
+single review, link it from here too. Don't duplicate the body — a one-line
+cross-reference is enough.
+
+The failure mode to watch for is not overlap, it is **silent disagreement**: an
+issue open against work this file says is closed, or a bullet here for something
+an issue closed last month. `/work-plan` reports that drift as a side effect of
+every run; `/github-issues sync` fixes it deliberately.
 
 ## Audit cadence
 
@@ -2931,3 +3034,12 @@ followed by tier reassignment) is cheap and worth running:
   Tier 5 or remove)
 - Whenever the file grows past ~600 lines (signals stale entries
   accumulating)
+
+> **This file is currently ~3,000 lines, five times that trigger.** The growth is
+> mostly § Manual Operational Follow-ups and the skill-followups block, which are
+> append-only by design and have no delete step that anyone runs. Two things
+> reduce it, and neither is deleting content wholesale: work the ops checklist
+> down (a completed follow-up is **deleted**, not moved to a Done section), and
+> let new deferrals land in GitHub issues rather than here. Re-tiering the closed
+> § 2.6 subsections into a one-line "closed, see git history" is the other
+> obvious win when someone has an hour.

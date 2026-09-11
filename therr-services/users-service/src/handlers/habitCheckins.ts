@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import {
     ErrorCodes, HabitGoalType, MetricNames, PushNotifications,
 } from 'therr-js-utilities/constants';
-import { parseHeaders } from 'therr-js-utilities/http';
+import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
@@ -504,12 +504,20 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 // brandVariation flows from the request headers onto the thought, so a HABITS share is a HABITS
 // thought — which BRAND_THOUGHTS_VISIBILITY already surfaces in the Therr feed too, and keeps
 // out of other niche feeds. No visibility change is needed here for cross-brand reach.
+//
+// It is read with getBrandContext, NOT parseHeaders, and the difference is not cosmetic:
+// parseHeaders returns '' for a missing x-brand-variation header, and ThoughtsStore.create
+// does not extend BrandScopedStore, so nothing asserts the value — withBrandOnInsert would
+// write brandVariation = '' straight into main.thoughts. The share would return 201, the
+// check-in would be stamped `sharedThoughtId` (making a retry a permanent no-op), and the
+// post would be invisible in every feed forever, since every read filters on a known brand.
+// getBrandContext defaults to THERR, which is what handlers/thoughts.ts does for the same call.
 const shareCheckin: RequestHandler = async (req: any, res: any) => {
     const {
         locale,
         userId,
-        brandVariation,
     } = parseHeaders(req.headers);
+    const { brandVariation } = getBrandContext(req.headers);
     const { id } = req.params;
     const { message } = req.body;
 
@@ -590,24 +598,77 @@ const shareCheckin: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    let thought;
     try {
-        const [thought] = await Store.thoughts.create(brandVariation, {
+        [thought] = await Store.thoughts.create(brandVariation, {
             fromUserId: userId as any,
             locale,
             isPublic: true,
             message: leadIn,
             medias: [{ path: publicMedia.path, type: publicMedia.type, altText }],
         });
-
-        await Store.habitCheckins.update(checkin.id, { sharedThoughtId: thought.id });
-
-        return res.status(201).send({ thought, sharedThoughtId: thought.id });
     } catch (err: any) {
         // The public copy is already written; leave it for the bucket lifecycle rule rather than
         // deleting it, since a transient thought-write failure is retryable and the next attempt
         // overwrites the same deterministic path.
         return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
     }
+
+    // ThoughtsStore.create does not honour `isPublic: true` unconditionally — it runs the lead-in
+    // text through `isTextUnsafe` and forces `isPublic: false` / `isMatureContent: true` when that
+    // trips. A private thought is not a share: nothing renders it in any feed. Left unchecked the
+    // handler would still stamp `sharedThoughtId` and answer 201, so the user is told the check-in
+    // was shared, sees it nowhere, and can never retry — the repeat-share short-circuit below makes
+    // the failure permanent. Treat it as the moderation rejection it is: roll the post back, drop
+    // the public copy, and reuse the same 422 the image check returns.
+    if (thought && thought.isPublic === false) {
+        await Store.thoughts.deleteThoughts({ fromUserId: userId, ids: [thought.id] })
+            .catch((rollbackErr: any) => logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['Failed to roll back a non-public shared check-in post'],
+                traceArgs: {
+                    'error.message': rollbackErr?.message,
+                    'checkin.id': checkin.id,
+                    'thought.id': thought.id,
+                    'user.id': userId,
+                },
+            }));
+        await deleteSharedCheckinPublicObject(publicMedia.path);
+
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.habitCheckins.shareModerationFailed'),
+            statusCode: 422,
+            errorCode: ErrorCodes.NOT_PERMITTED,
+        });
+    }
+
+    // Writing `sharedThoughtId` is the whole dedupe mechanism — it is what makes the repeat-share
+    // short-circuit above work. If the post is created and this write fails, the post is live and
+    // public but unreferenced, so the user's next share mints a SECOND post and nothing anywhere
+    // records why. Roll the post back so a retry is clean; if even the rollback fails, log the id
+    // so the orphan is findable instead of silent.
+    try {
+        await Store.habitCheckins.update(checkin.id, { sharedThoughtId: thought.id });
+    } catch (err: any) {
+        await Store.thoughts.deleteThoughts({ fromUserId: userId, ids: [thought.id] })
+            .catch((rollbackErr: any) => logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['Orphaned shared check-in post: link write failed and rollback failed'],
+                traceArgs: {
+                    'error.message': rollbackErr?.message,
+                    'checkin.id': checkin.id,
+                    'thought.id': thought.id,
+                    'user.id': userId,
+                },
+            }));
+
+        return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
+    }
+
+    return res.status(201).send({ thought, sharedThoughtId: thought.id });
 };
 
 // READ

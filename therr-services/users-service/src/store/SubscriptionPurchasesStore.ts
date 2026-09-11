@@ -4,6 +4,28 @@ import { SUBSCRIPTION_PURCHASES_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
+/**
+ * Timestamps arrive as `new Date(<RFC3339 string from Play>)`, and an unparseable
+ * string yields an `Invalid Date` — which is truthy, so a plain `d ? d.toISOString()
+ * : null` calls `toISOString()` on it and throws a `RangeError`. That surfaces as a
+ * 500 on an otherwise-good purchase: the token verified, the user paid, and the
+ * write fails on a field neither the gate nor the entitlement reads.
+ *
+ * `expiryTime` is incidentally protected upstream (the handler's entitlement check
+ * compares it against `Date.now()`, and `NaN > n` is false, so a bad expiry is
+ * rejected as non-entitling before it reaches this store). `startTime` has no such
+ * check and is reporting-only. Neither is worth failing a paid purchase over, so an
+ * unparseable timestamp is stored as NULL — the same value used when Play omits the
+ * field entirely — rather than thrown.
+ */
+const toIsoOrNull = (value: Date | null | undefined): string | null => {
+    if (!value || Number.isNaN(value.getTime())) {
+        return null;
+    }
+
+    return value.toISOString();
+};
+
 export type SubscriptionPurchaseStatus = 'active' | 'canceled' | 'expired' | 'revoked' | 'on_hold' | 'paused';
 
 export interface ISubscriptionPurchaseRow {
@@ -134,6 +156,23 @@ export default class SubscriptionPurchasesStore {
                 return client.query(existingQuery).then((response) => response.rows[0]);
             })
             .then((existing) => {
+                // A token already bound to another account must never be re-pointed by an
+                // update. `writableColumns` sets `userId`, so without this the row is simply
+                // reassigned and the second account is granted the first account's paid
+                // subscription — the exact replay the UNIQUE(purchaseToken) index exists to
+                // stop, defeated by writing through it instead of inserting past it.
+                //
+                // The handler checks this too and answers a clean 409, but its read happens
+                // outside this transaction: two concurrent verifies of the same stolen token
+                // can both see "unclaimed" before either writes. This is the check that holds
+                // under that race, so failing loudly here is correct even though it surfaces
+                // as a 500 — an error beats a silent transfer of a paid entitlement.
+                if (existing && existing.userId !== params.userId) {
+                    throw new Error(
+                        `Subscription purchaseToken is already bound to user ${existing.userId}`,
+                    );
+                }
+
                 const writableColumns = {
                     userId: params.userId,
                     platform: params.platform,
@@ -143,8 +182,8 @@ export default class SubscriptionPurchasesStore {
                     status: params.status,
                     subscriptionState: params.subscriptionState ?? null,
                     autoRenewing: params.autoRenewing ?? null,
-                    startTime: params.startTime ? params.startTime.toISOString() : null,
-                    expiryTime: params.expiryTime ? params.expiryTime.toISOString() : null,
+                    startTime: toIsoOrNull(params.startTime),
+                    expiryTime: toIsoOrNull(params.expiryTime),
                     priceAmountMicros,
                     priceCurrencyCode: params.priceCurrencyCode ?? null,
                     verificationPayload: params.verificationPayload
