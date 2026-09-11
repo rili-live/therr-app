@@ -412,8 +412,10 @@
             position: absolute;
             z-index: 1;
             top: 0;
-            right: 1.75rem;
-            width: 6.25rem;
+            /* The face box is 800 units wide to the hands' 724 (the eye turrets need
+               the extra 38 a side or they clip); same scale, centred on the hands. */
+            right: 1.42rem;
+            width: 6.9rem;
             height: auto;
             filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
         }
@@ -715,7 +717,7 @@
         .closer-card p { color: rgba(255, 255, 255, 0.75); max-width: 520px; margin: 0 auto 1.75rem; }
         .closer-card .cta-row { justify-content: center; }
         .closer-mascot {
-            width: 5.5rem;
+            width: 6.1rem;
             height: auto;
             margin: 0 auto 1rem;
             display: block;
@@ -823,8 +825,8 @@
         .climber .pupil { transition: transform 0.12s ease-out; }
         .climber .tongue {
             transform-box: fill-box;
-            transform-origin: 100% 50%;
-            transform: scaleX(0);
+            transform-origin: 50% 100%;
+            transform: scaleY(0);
         }
         .climber.is-climbing .limb--near-front,
         .climber.is-climbing .limb--far-rear { animation: fwh-step 0.5s ease-in-out infinite alternate; }
@@ -841,10 +843,10 @@
             to { transform: translateY(-1.5px) rotate(0.6deg); }
         }
         @keyframes fwh-zap {
-            0% { transform: scaleX(0); }
-            30% { transform: scaleX(1); }
-            55% { transform: scaleX(1); }
-            100% { transform: scaleX(0); }
+            0% { transform: scaleY(0); }
+            30% { transform: scaleY(1); }
+            55% { transform: scaleY(1); }
+            100% { transform: scaleY(0); }
         }
 
         @media (min-width: 640px) {
@@ -1083,7 +1085,7 @@
                 <stop offset="0%" stop-color="#F6C94A"/>
                 <stop offset="100%" stop-color="#D49617"/>
             </linearGradient>
-            <symbol id="fwh-face" viewBox="150 200 724 580">
+            <symbol id="fwh-face" viewBox="112 200 800 580">
                 <path d="M 437 335 Q 512 205 587 335 Q 722 482 757 629 Q 832 759 682 759 Q 512 779 342 759 Q 192 759 267 629 Q 302 482 437 335 Z" fill="url(#fwh-body)"/>
                 <path d="M 494 325 Q 494 305 512 305 Q 530 305 530 325 L 525 477 Q 525 493 512 493 Q 499 493 499 477 Z" fill="url(#fwh-stripe)"/>
                 <circle cx="260" cy="510" r="148" fill="url(#fwh-body)"/>
@@ -1162,7 +1164,7 @@
                 </div>
 
                 <div class="hero-visual" aria-hidden="true">
-                    <svg class="peeker" viewBox="0 0 724 580"><use href="#fwh-face"/></svg>
+                    <svg class="peeker" viewBox="0 0 800 580"><use href="#fwh-face"/></svg>
                     <div class="pact-card">
                         <div class="pact-card__head">
                             <div class="pact-card__avatars">
@@ -1378,7 +1380,7 @@
         <section class="closer">
             <div class="container">
                 <div class="closer-card">
-                    <svg class="closer-mascot" viewBox="0 0 724 580" aria-hidden="true"><use href="#fwh-face"/></svg>
+                    <svg class="closer-mascot" viewBox="0 0 800 580" aria-hidden="true"><use href="#fwh-face"/></svg>
                     <h2>Make your first pact tonight.</h2>
                     <p>Pick the habit you keep putting off, send one invite, and let a friend make quitting the harder option.</p>
                     <div class="cta-row">
@@ -1424,9 +1426,9 @@
 
     <!--
         The climbing chameleon. Drawn facing the copy, gripping the vine on its
-        right. Limb classes are what the stepping animation targets; the pupil is
-        moved by the cursor and the tongue fires when the founder card scrolls into
-        view. Decorative only, so hidden from assistive tech.
+        right, snout pointed up the vine. Limb classes are what the stepping
+        animation targets; the pupil is moved by the cursor and the tongue fires
+        upward when the founder card scrolls into view. Decorative only, so hidden from assistive tech.
     -->
     <div class="climb-rig" aria-hidden="true">
         <div class="vine"></div>
@@ -1464,21 +1466,23 @@
                 <circle cx="90" cy="158" r="6" fill="#c9bbd9" opacity="0.7"/>
                 <circle cx="104" cy="192" r="5" fill="#c9bbd9" opacity="0.7"/>
                 <circle cx="82" cy="132" r="4" fill="#c9bbd9" opacity="0.7"/>
-                <!-- Head with the logo's crest, eye turret, nostril and smile. -->
+                <!-- Head: snout at the top pointing up the vine, so the mouth is the vertical
+                     line on the crown and the tongue fires upward; the logo's forehead stripe
+                     runs across the left of the head, below the eye turret. -->
                 <path d="M 58 68 C 66 28, 104 24, 114 62 Z" fill="#5B4273"/>
                 <circle cx="84" cy="84" r="36" fill="url(#fwh-climber-body)"/>
-                <path d="M 86 40 L 90 64" fill="none" stroke="url(#fwh-climber-stripe)" stroke-width="6" stroke-linecap="round"/>
+                <path d="M 55 99 L 79 104" fill="none" stroke="url(#fwh-climber-stripe)" stroke-width="6" stroke-linecap="round"/>
                 <circle cx="74" cy="80" r="17" fill="#5B4273"/>
                 <circle cx="74" cy="80" r="11" fill="#FFFFFF"/>
                 <g class="pupil" id="fwh-climber-pupil">
                     <circle cx="72" cy="81" r="5.5" fill="#2E2140"/>
                     <circle cx="74" cy="79" r="2" fill="#FFFFFF"/>
                 </g>
-                <circle cx="54" cy="92" r="2.2" fill="#2E2140" opacity="0.5"/>
-                <path d="M 56 100 Q 70 110 84 104" fill="none" stroke="#2E2140" stroke-width="3.5" stroke-linecap="round"/>
+                <circle cx="78" cy="48" r="2.2" fill="#2E2140" opacity="0.5"/>
+                <path d="M 85 40 Q 97 52 92 66" fill="none" stroke="#2E2140" stroke-width="3.5" stroke-linecap="round"/>
                 <g class="tongue">
-                    <path d="M 58 102 L 8 96" fill="none" stroke="#e5507a" stroke-width="5" stroke-linecap="round"/>
-                    <circle cx="8" cy="96" r="4.5" fill="#e5507a"/>
+                    <path d="M 85 42 L 83 8" fill="none" stroke="#e5507a" stroke-width="5" stroke-linecap="round"/>
+                    <circle cx="83" cy="8" r="4.5" fill="#e5507a"/>
                 </g>
             </g>
             <!-- Near-side limbs on top. -->
