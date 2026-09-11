@@ -1,0 +1,7 @@
+Nouveautés :
+• Votre suivi partagé apparaît maintenant immédiatement en haut de votre Fil
+• L'interrupteur « Partager au fil » est toujours visible lors d'un suivi, et activé par défaut si votre profil est public
+• Un aperçu photo plus petit pour que l'option de partage reste visible
+• Corrections et améliorations de la stabilité
+
+Merci de bâtir vos habitudes avec nous!
