@@ -571,13 +571,19 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   image with **no error on either side**, the same silent shape as the bug being fixed.
   Check `NearbyWrapper` / `TherrMapView` render private area images, and `MyDrafts` renders
   a user's own.
-- [ ] (2026-09-05, /work-plan) **Confirm proof moderation is actually writing.** Nothing
-  fails if it does not — the check is fire-and-forget by design. After a check-in with a
-  photo, `habits.proofs` rows should leave `verificationStatus = 'pending'` for
-  `'auto_verified'` (or `'flagged'`) within seconds. A population stuck at `pending` means
-  `SIGHTENGINE_API_KEY` / `SIGHTENGINE_API_SECRET` are unset on users-service — the moments
-  path has them, but this is the first users-service caller of `checkIsMediaSafeForWork`
-  outside the profile-picture path.
+- [ ] (2026-09-11) **Verify check-in sharing and proof moderation after the users-service
+  env fix rolls.** Confirmed 2026-09-11: `k8s/prod/users-service-deployment.yaml` had none of
+  `MAPS_SERVICE_GOOGLE_CREDENTIALS_BASE64`, `BUCKET_PUBLIC_USER_DATA`,
+  `BUCKET_PRIVATE_USER_DATA`, `SIGHTENGINE_API_KEY`, `SIGHTENGINE_API_SECRET` — only
+  maps-service did. So `POST /habits/checkins/:id/share` threw on `storage.bucket('')` (the
+  "we couldn't share this check-in" toast) and `moderateProofs` failed closed, flagging every
+  proof. The manifest now mirrors maps-service. After `stage → main`: (1) share a check-in
+  with a photo and confirm a 201 and the post at the top of the author's Feed; (2) check
+  `habits.proofs` rows written after the roll reach `'auto_verified'` rather than `'flagged'`;
+  (3) decide what to do with the proofs flagged before the fix — they were rejected for lack
+  of credentials, not for content, so a one-off re-moderation of
+  `verificationStatus = 'flagged' AND "moderationFlags"->>'provider' = 'sightengine'` rows
+  created before the roll is the honest correction.
 - [ ] (2026-09-05, /work-plan) **Thought images start appearing for posts made from the
   already-installed app.** `ThoughtsStore.create` accepts the legacy `media` field, so
   installs that predate the `EditThought` change stop losing photos as soon as users-service
