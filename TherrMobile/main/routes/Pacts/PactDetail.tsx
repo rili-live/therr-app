@@ -10,7 +10,7 @@ import permissions from '../../utilities/permissionsOrchestrator';
 import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
 // Shared so the pending-pact wording can't drift between the card and this screen.
 import { getStatusText } from '../../components/Habits/PactCard';
-import { isPactRenewable } from '../Habits/pactState';
+import { isPactRenewable, canManagePactMembers, canRemovePactMember } from '../Habits/pactState';
 import getPactTimeline from '../../utilities/pactTimeline';
 import getConfig from '../../utilities/getConfig';
 import { IUserState, IHabitsState, IPact, IPactMember } from 'therr-react/types';
@@ -35,6 +35,8 @@ interface IPactDetailDispatchProps {
     declinePact: Function;
     abandonPact: Function;
     renewPact: Function;
+    continueSoloPact: Function;
+    removePactMember: Function;
 }
 
 interface IStoreProps extends IPactDetailDispatchProps {
@@ -55,7 +57,9 @@ interface IPactDetailState {
     isRefreshing: boolean;
     isActionLoading: boolean;
     showConfirmModal: boolean;
-    confirmAction: 'decline' | 'abandon' | null;
+    confirmAction: 'decline' | 'abandon' | 'removeMember' | null;
+    /** The member the removal confirm is targeting, set only for confirmAction === 'removeMember'. */
+    memberToRemove: IPactMember | null;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -70,6 +74,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     declinePact: HabitActions.declinePact,
     abandonPact: HabitActions.abandonPact,
     renewPact: HabitActions.renewPact,
+    continueSoloPact: HabitActions.continueSoloPact,
+    removePactMember: HabitActions.removePactMember,
 }, dispatch);
 
 export class PactDetail extends React.Component<IPactDetailProps, IPactDetailState> {
@@ -88,6 +94,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
             isActionLoading: false,
             showConfirmModal: false,
             confirmAction: null,
+            memberToRemove: null,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -228,11 +235,46 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
     };
 
     handleConfirmAction = () => {
-        const { declinePact, abandonPact, route, navigation } = this.props;
+        const { declinePact, abandonPact, removePactMember, route, navigation } = this.props;
         const { pactId } = route.params;
-        const { confirmAction } = this.state;
+        const { confirmAction, memberToRemove } = this.state;
 
         this.setState({ isActionLoading: true, showConfirmModal: false });
+
+        // Member removal stays on this screen (the pact lives on for everyone else); decline and
+        // abandon end the user's involvement, so they pop back to the list.
+        if (confirmAction === 'removeMember') {
+            const targetUserId = memberToRemove?.userId;
+            if (!targetUserId) {
+                this.setState({ isActionLoading: false, confirmAction: null, memberToRemove: null });
+                return;
+            }
+            removePactMember(pactId, targetUserId)
+                .then(() => {
+                    Toast.show({
+                        type: 'success',
+                        text1: this.translate('pages.pacts.successTitle'),
+                        text2: this.translate('pages.pacts.removeMemberSuccess'),
+                        visibilityTime: 2000,
+                    });
+                    this.handleRefresh();
+                })
+                .catch((error: any) => {
+                    const apiMessage = error?.statusCode && typeof error?.message === 'string'
+                        ? error.message
+                        : '';
+                    Toast.show({
+                        type: 'error',
+                        text1: this.translate('pages.pacts.errorTitle'),
+                        text2: apiMessage || this.translate('pages.pacts.removeMemberError'),
+                        visibilityTime: 3000,
+                    });
+                })
+                .finally(() => {
+                    this.setState({ isActionLoading: false, confirmAction: null, memberToRemove: null });
+                });
+            return;
+        }
 
         const action = confirmAction === 'decline' ? declinePact : abandonPact;
         const successKey = confirmAction === 'decline' ? 'declinedMessage' : 'abandonedMessage';
@@ -257,8 +299,51 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                 });
             })
             .finally(() => {
-                this.setState({ isActionLoading: false, confirmAction: null });
+                this.setState({ isActionLoading: false, confirmAction: null, memberToRemove: null });
             });
+    };
+
+    handleRemoveMember = (member: IPactMember) => {
+        this.setState({ showConfirmModal: true, confirmAction: 'removeMember', memberToRemove: member });
+    };
+
+    handleContinueSolo = () => {
+        const { continueSoloPact, route } = this.props;
+        const { pactId } = route.params;
+
+        this.setState({ isActionLoading: true });
+
+        continueSoloPact(pactId)
+            .then(() => {
+                Toast.show({
+                    type: 'success',
+                    text1: this.translate('pages.pacts.solo.successTitle'),
+                    text2: this.translate('pages.pacts.solo.successMessage'),
+                    visibilityTime: 3000,
+                });
+                this.handleRefresh();
+            })
+            .catch((error: any) => {
+                const apiMessage = error?.statusCode && typeof error?.message === 'string'
+                    ? error.message
+                    : '';
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.errorTitle'),
+                    text2: apiMessage || this.translate('pages.pacts.solo.error'),
+                    visibilityTime: 3000,
+                });
+            })
+            .finally(() => {
+                this.setState({ isActionLoading: false });
+            });
+    };
+
+    goToAddMembers = (pact: IPact) => {
+        this.props.navigation.navigate('AddPactMembers', {
+            pactId: pact.id,
+            habitName: pact.habitGoalName,
+        });
     };
 
     /**
@@ -318,7 +403,21 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
     };
 
     handleCancelConfirm = () => {
-        this.setState({ showConfirmModal: false, confirmAction: null });
+        this.setState({ showConfirmModal: false, confirmAction: null, memberToRemove: null });
+    };
+
+    getConfirmText = (confirmAction: IPactDetailState['confirmAction']): string => {
+        if (confirmAction === 'decline') {
+            return this.translate('pages.pacts.confirmDecline');
+        }
+        if (confirmAction === 'removeMember') {
+            const { memberToRemove } = this.state;
+            const name = memberToRemove?.firstName
+                || memberToRemove?.userName
+                || this.translate('pages.pacts.partnerFallback');
+            return this.translate('pages.pacts.confirmRemoveMember', { name });
+        }
+        return this.translate('pages.pacts.confirmAbandon');
     };
 
     renderMemberStats = (
@@ -427,8 +526,11 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
 
     renderMembersCard = (pact: IPact, currentUserId: string) => {
         const otherMembers = (pact.members || []).filter((m) => m.userId !== currentUserId);
+        const canManageMembers = canManagePactMembers(pact, currentUserId);
 
-        if (!otherMembers.length) {
+        // With member management the creator always needs this card — it holds the "add members"
+        // button even on a pact with no partners yet (a solo pact they want to reopen).
+        if (!otherMembers.length && !canManageMembers) {
             return null;
         }
 
@@ -448,10 +550,98 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                         onMessagePress={isDirectMessagingEnabled && member.userName
                             ? () => this.goToDirectMessage(member)
                             : undefined}
+                        onRemovePress={canManageMembers && canRemovePactMember(pact, member)
+                            ? () => this.handleRemoveMember(member)
+                            : undefined}
                         themeHabits={this.themeHabits}
                         translate={this.translate}
                     />
                 ))}
+                {canManageMembers && (
+                    <Button
+                        buttonStyle={[this.themeButtons.styles.btnClear, { marginTop: 12 }]}
+                        titleStyle={this.themeButtons.styles.btnTitleBlack}
+                        icon={(
+                            <MaterialIcon
+                                name="person-add"
+                                size={20}
+                                color={this.themeHabits.colors.primary3}
+                                style={{ marginRight: 8 }}
+                            />
+                        )}
+                        title={this.translate('pages.pacts.addMembers')}
+                        onPress={() => this.goToAddMembers(pact)}
+                    />
+                )}
+            </View>
+        );
+    };
+
+    /**
+     * The shared pact streak — the group's own streak, distinct from each member's. Shown on the
+     * detail screen for an active pact once the group has built one. The number carries across a
+     * renewal, so it is not gated on the current cycle's age.
+     */
+    renderPactStreakCard = (pact: IPact) => {
+        if (pact.status !== 'active' || !pact.currentPactStreak) {
+            return null;
+        }
+
+        return (
+            <View style={this.themeHabits.styles.streakWidgetContainer}>
+                <Text style={this.themeHabits.styles.streakWidgetTitle}>
+                    {this.translate('pages.pacts.pactStreak.title')}
+                </Text>
+                <View style={this.themeHabits.styles.pactComparisonContainer}>
+                    <View style={this.themeHabits.styles.pactComparisonItem}>
+                        <Text style={this.themeHabits.styles.pactComparisonValue}>
+                            {'🔥 '}{pact.currentPactStreak}
+                        </Text>
+                        <Text style={this.themeHabits.styles.pactComparisonLabel}>
+                            {this.translate('pages.pacts.pactStreak.currentLabel')}
+                        </Text>
+                    </View>
+                    {!!pact.longestPactStreak && (
+                        <View style={this.themeHabits.styles.pactComparisonItem}>
+                            <Text style={this.themeHabits.styles.pactComparisonValue}>
+                                {pact.longestPactStreak}
+                            </Text>
+                            <Text style={this.themeHabits.styles.pactComparisonLabel}>
+                                {this.translate('pages.pacts.pactStreak.longestLabel')}
+                            </Text>
+                        </View>
+                    )}
+                </View>
+                <Text style={this.themeHabits.styles.streakMilestoneText}>
+                    {this.translate('pages.pacts.pactStreak.explainer')}
+                </Text>
+            </View>
+        );
+    };
+
+    /**
+     * Offered only when the server says this is the last active member of a group pact
+     * (`canContinueSolo`). Keeping the pact going alone is a deliberate opt-in, not the default
+     * outcome of everyone else leaving.
+     */
+    renderContinueSoloCard = (pact: IPact, isActionLoading: boolean) => {
+        if (!pact.canContinueSolo) {
+            return null;
+        }
+
+        return (
+            <View style={this.themeHabits.styles.streakWidgetContainer}>
+                <Text style={this.themeHabits.styles.pactCardInvitePrompt}>
+                    {this.translate('pages.pacts.solo.prompt')}
+                </Text>
+                <Button
+                    buttonStyle={this.themeButtons.styles.btnLargeWithText}
+                    titleStyle={this.themeButtons.styles.btnLargeTitle}
+                    title={this.translate('pages.pacts.solo.cta')}
+                    onPress={this.handleContinueSolo}
+                    loading={isActionLoading}
+                    disabled={isActionLoading}
+                />
             </View>
         );
     };
@@ -619,6 +809,10 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
 
                         {this.renderMembersCard(pact, currentUserId)}
 
+                        {this.renderPactStreakCard(pact)}
+
+                        {this.renderContinueSoloCard(pact, isActionLoading)}
+
                         {isActive && pact.members && pact.members.length > 1 && (
                             <View style={this.themeHabits.styles.streakWidgetContainer}>
                                 <Text style={this.themeHabits.styles.streakWidgetTitle}>
@@ -717,11 +911,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                     isVisible={showConfirmModal}
                     onCancel={this.handleCancelConfirm}
                     onConfirm={this.handleConfirmAction}
-                    text={this.translate(
-                        confirmAction === 'decline'
-                            ? 'pages.pacts.confirmDecline'
-                            : 'pages.pacts.confirmAbandon',
-                    )}
+                    text={this.getConfirmText(confirmAction)}
                     textConfirm={this.translate('modals.confirmModal.confirm')}
                     textCancel={this.translate('modals.confirmModal.cancel')}
                     translate={this.translate}

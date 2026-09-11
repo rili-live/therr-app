@@ -2153,6 +2153,31 @@
             "abandonError": "No se pudo abandonar el pacto. Inténtalo de nuevo.",
             "confirmDecline": "¿Estás seguro de que quieres rechazar esta invitación al pacto?",
             "confirmAbandon": "¿Estás seguro de que quieres abandonar este pacto? Se perderá tu progreso.",
+            "confirmRemoveMember": "¿Quitar a {name} de este pacto?",
+            "addMembers": "Agregar miembros",
+            "addMembersTitle": "Agregar miembros",
+            "addMembersSubtitle": "Elige amigos para invitar a este pacto.",
+            "addMembersEmpty": "Todavía no tienes conexiones para agregar.",
+            "addMembersCta": "Invitar a {count} al pacto",
+            "addMembersSuccessTitle": "Invitaciones enviadas",
+            "addMembersSuccessMessage": "Invitaste a {count} al pacto.",
+            "addMembersError": "No pudimos agregar a esos miembros. Inténtalo de nuevo.",
+            "removeMemberAction": "Quitar a {name}",
+            "removeMemberSuccess": "Miembro quitado del pacto.",
+            "removeMemberError": "No pudimos quitar a ese miembro. Inténtalo de nuevo.",
+            "pactStreak": {
+                "title": "Racha del pacto",
+                "currentLabel": "Actual",
+                "longestLabel": "Mejor",
+                "explainer": "La racha del pacto crece cualquier día que la mayoría registra su avance: un par de faltas no la rompen."
+            },
+            "solo": {
+                "prompt": "Eres la última persona en este pacto. ¿Quieres continuarlo por tu cuenta?",
+                "cta": "Continuar en solitario",
+                "successTitle": "Continúas en solitario",
+                "successMessage": "Este pacto seguirá solo contigo.",
+                "error": "No pudimos continuar este pacto en solitario. Inténtalo de nuevo."
+            },
             "onboarding": {
                 "title": "Empieza con un amigo",
                 "subtitle": "{appName} está hecho para dos — o más. Invita a un amigo o forma un grupo en torno a una meta compartida (como ahorrar para unas vacaciones) y construyan hábitos a los que se comprometan juntos.",

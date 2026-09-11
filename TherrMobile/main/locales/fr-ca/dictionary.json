@@ -2153,6 +2153,31 @@
             "abandonError": "Impossible d'abandonner le pacte. Veuillez réessayer.",
             "confirmDecline": "Êtes-vous sûr de vouloir refuser cette invitation au pacte?",
             "confirmAbandon": "Êtes-vous sûr de vouloir abandonner ce pacte? Vos progrès seront perdus.",
+            "confirmRemoveMember": "Retirer {name} de ce pacte?",
+            "addMembers": "Ajouter des membres",
+            "addMembersTitle": "Ajouter des membres",
+            "addMembersSubtitle": "Choisis des amis à inviter dans ce pacte.",
+            "addMembersEmpty": "Tu n'as pas encore de relations à ajouter.",
+            "addMembersCta": "Inviter {count} au pacte",
+            "addMembersSuccessTitle": "Invitations envoyées",
+            "addMembersSuccessMessage": "Tu as invité {count} au pacte.",
+            "addMembersError": "Nous n'avons pas pu ajouter ces membres. Réessaie.",
+            "removeMemberAction": "Retirer {name}",
+            "removeMemberSuccess": "Membre retiré du pacte.",
+            "removeMemberError": "Nous n'avons pas pu retirer ce membre. Réessaie.",
+            "pactStreak": {
+                "title": "Série du pacte",
+                "currentLabel": "Actuelle",
+                "longestLabel": "Record",
+                "explainer": "La série du pacte progresse chaque jour où la majorité fait son suivi — quelques oublis ne la brisent pas."
+            },
+            "solo": {
+                "prompt": "Tu es la dernière personne à tenir ce pacte. Veux-tu le continuer seul(e)?",
+                "cta": "Continuer en solo",
+                "successTitle": "Tu continues en solo",
+                "successMessage": "Ce pacte continuera avec toi seul(e).",
+                "error": "Nous n'avons pas pu continuer ce pacte en solo. Réessaie."
+            },
             "onboarding": {
                 "title": "Commence avec un ami",
                 "subtitle": "{appName} est conçu pour deux — ou plus. Invite un ami ou forme un groupe autour d'un objectif commun (comme épargner pour des vacances) et bâtissez ensemble des habitudes dont vous vous tiendrez responsables.",
