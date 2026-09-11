@@ -5,9 +5,10 @@ import AccessLevels from './enums/AccessLevels';
  *
  * Three entries, three different reasons:
  *   - HABITS_LIFETIME — the one-time founder purchase (Google Play Billing).
- *   - HABITS_PREMIUM  — reserved for a future recurring subscription. Nothing
- *     writes it today; it is listed here so that adding a subscription later
- *     requires no change at any gate.
+ *   - HABITS_PREMIUM  — the $6.99/month recurring subscription (Google Play
+ *     Billing), granted by the users-service habitsPremium handler on a verified
+ *     purchase and stripped when the subscription lapses. Listing it here is why
+ *     the subscription required no change at any free-tier gate.
  *   - SUPER_ADMIN     — so support and QA can reproduce a paid account without
  *     a real purchase.
  */

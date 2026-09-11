@@ -53,6 +53,10 @@
             "lifetimePurchaseNotCompleted": "That purchase has not completed yet",
             "lifetimePurchaseNotFound": "That purchase could not be found",
             "lifetimeVerificationFailed": "We could not verify that purchase right now. Please try again shortly.",
+            "premiumAlreadyClaimed": "That subscription has already been claimed by another account",
+            "premiumPurchaseNotActive": "That subscription is not active yet",
+            "premiumPurchaseNotFound": "That subscription could not be found",
+            "premiumVerificationFailed": "We could not verify that subscription right now. Please try again shortly.",
             "soloLocked": "Invite {remaining} more friend(s) to unlock habits you track on your own — {required} invites total."
         },
         "user": {
@@ -83,7 +87,9 @@
             "notAuthorizedToUpdate": "You can only change your own check-in",
             "notAuthorizedToView": "You can only view your own check-ins",
             "notFound": "We couldn't find that check-in",
-            "notFoundOrNotAuthorizedToDelete": "We couldn't find that check-in, or it isn't yours to delete"
+            "notFoundOrNotAuthorizedToDelete": "We couldn't find that check-in, or it isn't yours to delete",
+            "shareRequiresImage": "Add a photo to this check-in before sharing it",
+            "shareModerationFailed": "We couldn't share this check-in right now. Please try a different photo."
         },
         "streaks": {
             "noGraceDaysAvailable": "You've used every grace day on this streak",

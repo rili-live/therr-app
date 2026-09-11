@@ -29,6 +29,8 @@ import {
     IJournalFeedItem,
     IHabitsLifetimePurchase,
     IHabitsLifetimeOffer,
+    IHabitsPremiumSubscription,
+    IHabitsPremiumOffer,
 } from './habits';
 import {
     IMapState,
@@ -104,6 +106,8 @@ export {
     IJournalFeedItem,
     IHabitsLifetimePurchase,
     IHabitsLifetimeOffer,
+    IHabitsPremiumSubscription,
+    IHabitsPremiumOffer,
 
     // Maps
     IMapState,

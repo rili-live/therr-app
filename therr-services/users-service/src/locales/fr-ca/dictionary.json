@@ -53,6 +53,10 @@
             "lifetimePurchaseNotCompleted": "Cet achat n'est pas encore complété",
             "lifetimePurchaseNotFound": "Cet achat est introuvable",
             "lifetimeVerificationFailed": "Nous n'avons pas pu vérifier cet achat pour le moment. Réessaie dans un instant.",
+            "premiumAlreadyClaimed": "Cet abonnement a déjà été réclamé par un autre compte",
+            "premiumPurchaseNotActive": "Cet abonnement n'est pas encore actif",
+            "premiumPurchaseNotFound": "Cet abonnement est introuvable",
+            "premiumVerificationFailed": "Nous n'avons pas pu vérifier cet abonnement pour le moment. Réessaie dans un instant.",
             "soloLocked": "Invite {remaining} ami(s) de plus pour débloquer les habitudes que tu suis seul — {required} invitations en tout."
         },
         "user": {
@@ -83,7 +87,9 @@
             "notAuthorizedToUpdate": "Tu ne peux modifier que ton propre suivi",
             "notAuthorizedToView": "Tu ne peux voir que tes propres suivis",
             "notFound": "Nous n'avons pas trouvé ce suivi",
-            "notFoundOrNotAuthorizedToDelete": "Nous n'avons pas trouvé ce suivi, ou il ne t'appartient pas"
+            "notFoundOrNotAuthorizedToDelete": "Nous n'avons pas trouvé ce suivi, ou il ne t'appartient pas",
+            "shareRequiresImage": "Ajoute une photo à ce suivi avant de le partager",
+            "shareModerationFailed": "Nous n'avons pas pu partager ce suivi pour le moment. Essaie une autre photo."
         },
         "streaks": {
             "noGraceDaysAvailable": "Tu as utilisé toutes les journées de grâce de cette série",

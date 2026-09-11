@@ -220,25 +220,41 @@ jobs:
       - run:
           name: Publish Docker Images
           command: ./_bin/cicd/publish.sh
-  test-e2e-staging:
+  test-e2e-critical-path:
     docker:
-      - image: google/cloud-sdk
+      - image: cimg/go:1.24.4
         auth:
           username: $DOCKERHUB_USER
           password: $DOCKERHUB_PASSWORD
     environment:
       CICD_BRANCH: << pipeline.git.branch >>
+      GIT_SHA: << pipeline.git.revision >>
     steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - attach_workspace:
-            at: ~/
+          at: ~/
+      - load_deps_image:
+          for: e2e-critical
       - run:
-          name: Apply Stage w/ Kubectl
-          # No-op. There is no stage cluster: the k8s/test manifests this step used to apply
-          # were deleted after the GKE migration, having gone unused for years.
-          command: echo "No stage cluster — nothing to apply"
+          name: Login to DockerHub
+          command: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
       - run:
-          name: Run Integration Tests
-          command: echo "Hello, Integration Tests"
+          name: Build API Gateway Image for E2E
+          command: ./_bin/cicd/build-changed-services.sh
+      - run:
+          name: Setup Test DB Infrastructure
+          command: ./_bin/cicd/setup-test-db.sh
+      - run:
+          name: Run Critical-Path Campaign E2E (referral + QR + incentive)
+          # Fast subset on every PR to catch the 3 highest-stakes regressions
+          # (referral payout, QR check-in, Space Incentive redemption).
+          command: ./_bin/cicd/test-campaign-e2e.sh critical
+      - run:
+          name: Teardown Test DB Infrastructure
+          command: ./_bin/cicd/teardown-test-db.sh
+          when: always
   eas_build_therr_android:
     docker:
       - image: cimg/node:24.12.0
@@ -468,14 +484,22 @@ workflows:
             branches:
               only:
                 - stage
-      - test-e2e-staging:
+      - test-e2e-critical-path:
+          # Runs the campaign-critical subset on every PR. The full suite
+          # (`test-campaign-e2e.sh full`) is deliberately NOT wired into
+          # docker_build_test_publish_images: that job's preceding step,
+          # test-microservices-integration.sh, tears down postgres-ci/redis-ci
+          # and therr-ci-network via `trap cleanup EXIT`, so a full run there
+          # would fail on a missing network and block the stage publish.
+          # Wire it up only alongside its own setup/teardown.
           requires:
-          - docker_build_test_publish_images
           - docker_build_base_image
           filters:
             branches:
-              only:
+              ignore:
+                - general
                 - stage
+                - main
       - deploy:
           filters:
             branches:

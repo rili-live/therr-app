@@ -2,8 +2,8 @@
 name: quality-peer-review-niche
 description: Peer review the work about to ship to Google Play on the current niche/* branch (vs origin/niche/<TAG>-main on a -general or -main branch — the merge that triggers the Android Play build — or vs origin/niche/<TAG>-general on a feature branch). Separately detects backend and shared-library leaks against origin/general and cherry-picks clean backend-only commits introduced on this branch over to general. Implements low-risk improvements, fixes bugs, adds regression tests for bugfixes where valuable, and resolves quality issues. Requires local Docker Compose infrastructure to be running.
 user-invocable: true
-allowed-tools: Bash(docker*), Bash(git*), Bash(npx*), Bash(npm*), Bash(node*), Read, Glob, Grep, Edit, Write, Agent
-argument-hint: [--dry-run]
+allowed-tools: Bash(docker*), Bash(git*), Bash(npx*), Bash(npm*), Bash(node*), Bash(gh issue*), Bash(gh search*), mcp__github__list_issues, mcp__github__search_issues, mcp__github__issue_write, mcp__github__add_issue_comment, Read, Glob, Grep, Edit, Write, Agent
+argument-hint: [--dry-run] [--no-defer]
 ---
 
 # Peer Review: niche/* new work
@@ -759,6 +759,30 @@ Output a structured summary:
   <Or: "None identified.">
 ```
 
+
+---
+
+## Step 10: Offer to defer what you did not implement
+
+Category C suggestions, and any Category A bug you decided not to fix here, exist
+only in this report. The report scrolls away; the finding is lost. **Offer to file
+the ones worth keeping as GitHub issues**, in one line, at the end of the run:
+
+> "3 of the suggestions above are worth keeping — file them as issues? (`/github-issues defer`)"
+
+Skip this step under `--dry-run` (filing an issue is a write) or `--no-defer`, and say
+in the report that the findings were not persisted anywhere.
+
+Then file the ones the user takes, per `/github-issues` § `defer`: the finding you
+already wrote is the issue body, and the paths you already have decide the branch.
+
+Judgement, not volume — **do not file every Category C item.** File a suggestion when
+it names a specific file and a specific consequence, and skip it when it is a general
+observation ("this could be abstracted"). A tracker full of vague suggestions is one
+nobody reads, and it makes `/work-plan` worse rather than better.
+
+Never file for something this run already fixed. The commit is the record.
+
 ---
 
 ## Rules
@@ -773,3 +797,4 @@ Output a structured summary:
 - **Do not implement Category C suggestions** — report them only.
 - **If a niche-side fix would require changing a must-be-on-general path**, do not make the change here — report it as a Category C item directing the user to make the fix on `general`.
 - When in doubt about whether a change is safe, skip it and add it to the Suggestions section instead.
+- **Report-only findings are not durable.** Before finishing, offer to defer the specific ones as GitHub issues — a suggestion that names a file and a consequence is worth an issue; a general observation is not.

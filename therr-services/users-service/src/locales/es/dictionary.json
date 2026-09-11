@@ -53,6 +53,10 @@
             "lifetimePurchaseNotCompleted": "Esa compra aún no se ha completado",
             "lifetimePurchaseNotFound": "No se encontró esa compra",
             "lifetimeVerificationFailed": "No pudimos verificar esa compra en este momento. Inténtalo de nuevo en unos instantes.",
+            "premiumAlreadyClaimed": "Otra cuenta ya reclamó esa suscripción",
+            "premiumPurchaseNotActive": "Esa suscripción aún no está activa",
+            "premiumPurchaseNotFound": "No se encontró esa suscripción",
+            "premiumVerificationFailed": "No pudimos verificar esa suscripción en este momento. Inténtalo de nuevo en unos instantes.",
             "soloLocked": "Invita a {remaining} amigo(s) más para desbloquear los hábitos que sigues por tu cuenta: {required} invitaciones en total."
         },
         "user": {
@@ -83,7 +87,9 @@
             "notAuthorizedToUpdate": "Solo puedes modificar tu propio registro",
             "notAuthorizedToView": "Solo puedes ver tus propios registros",
             "notFound": "No encontramos ese registro",
-            "notFoundOrNotAuthorizedToDelete": "No encontramos ese registro, o no es tuyo para eliminarlo"
+            "notFoundOrNotAuthorizedToDelete": "No encontramos ese registro, o no es tuyo para eliminarlo",
+            "shareRequiresImage": "Agrega una foto a este registro antes de compartirlo",
+            "shareModerationFailed": "No pudimos compartir este registro ahora. Prueba con otra foto."
         },
         "streaks": {
             "noGraceDaysAvailable": "Ya usaste todos los días de gracia de esta racha",

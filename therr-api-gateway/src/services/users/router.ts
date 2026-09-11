@@ -776,6 +776,11 @@ usersServiceRouter.post('/habits/checkins', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
+// Promote a check-in's proof photo to a public post (main.thoughts)
+usersServiceRouter.post('/habits/checkins/:id/share', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
 usersServiceRouter.put('/habits/checkins/:id/skip', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
@@ -861,6 +866,16 @@ usersServiceRouter.get('/habits/lifetime', handleServiceRequest({
     method: 'get',
 }));
 usersServiceRouter.post('/habits/lifetime/verify', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+// HABITS — Premium subscription ($6.99/month, Google Play Billing)
+usersServiceRouter.get('/habits/premium', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/premium/verify', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));

@@ -26,6 +26,11 @@ enum FeatureFlags {
     ENABLE_PACTS = 'ENABLE_PACTS',
     REQUIRE_PACT_ONBOARDING = 'REQUIRE_PACT_ONBOARDING',
     ENABLE_HABITS_JOURNAL = 'ENABLE_HABITS_JOURNAL',
+    // Public social feed of shared check-ins (see docs/WORK_IN_PROGRESS.md 2.6.8).
+    // Off by default so it can ship dark and be flipped on per brand build; when on
+    // for HABITS it replaces the Awards tab in the bottom bar. A tab and its route
+    // read this same flag — see TherrMobile habitsTabLayout.ts for why.
+    ENABLE_HABITS_FEED = 'ENABLE_HABITS_FEED',
     ENABLE_HABITS_SOLO = 'ENABLE_HABITS_SOLO',
     ENABLE_HABITS_LIFETIME_OFFER = 'ENABLE_HABITS_LIFETIME_OFFER',
 

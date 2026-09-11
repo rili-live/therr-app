@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# MCP stdio entry point for the GitHub MCP server (github/github-mcp-server).
+#
+# Why a wrapper rather than a bare command in .mcp.json:
+#
+#   1. .mcp.json is committed. A GitHub token must never be written into it, so
+#      the token is fetched at launch from the `gh` keyring instead of living in
+#      the repo, a dotfile, or the environment.
+#   2. The toolset list is pinned here (see below) rather than left to the
+#      server's default, which loads 44 tools where the skills use 8.
+#   3. Missing prerequisites can fail with an instruction instead of a broken
+#      pipe. An MCP server that exits silently shows up in Claude Code only as a
+#      server that "failed to connect", with no reason attached.
+#
+# Anything printed here MUST go to stderr — stdout is the JSON-RPC channel, and
+# one stray line on it desynchronizes the protocol.
+set -euo pipefail
+
+# `issues` and `labels` cover every tool /github-issues and /work-plan call:
+#   add_issue_comment  get_label     issue_read   issue_write  label_write
+#   list_issue_fields  list_issues   list_label   search_issues
+#   list_issue_types   sub_issue_write
+# `default` would add pull_requests, repos, users, copilot and context — 44
+# tools, none of which those skills reference. Widen this only alongside a skill
+# that actually needs the extra surface; every tool loaded costs context in
+# every session, whether or not it is called.
+TOOLSETS="${THERR_GITHUB_MCP_TOOLSETS:-issues,labels}"
+
+if ! command -v github-mcp-server >/dev/null 2>&1; then
+    echo "github-mcp-server is not installed. Install it with:" >&2
+    echo "  brew install github-mcp-server" >&2
+    echo "(other options: https://github.com/github/github-mcp-server)" >&2
+    exit 1
+fi
+
+# An explicit token wins — CI, or a contributor who would rather use a scoped
+# PAT than their gh login. Otherwise borrow gh's, which is already scoped to
+# 'repo' and stored in the OS keyring rather than on disk.
+if [ -z "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]; then
+    if ! command -v gh >/dev/null 2>&1; then
+        echo "No GITHUB_PERSONAL_ACCESS_TOKEN set and the gh CLI is not installed." >&2
+        echo "Either:  brew install gh && gh auth login" >&2
+        echo "or:      export GITHUB_PERSONAL_ACCESS_TOKEN=<token with 'repo' scope>" >&2
+        exit 1
+    fi
+    if ! GITHUB_PERSONAL_ACCESS_TOKEN="$(gh auth token 2>/dev/null)" || [ -z "$GITHUB_PERSONAL_ACCESS_TOKEN" ]; then
+        echo "gh is installed but not authenticated. Run:" >&2
+        echo "  gh auth login" >&2
+        echo "Then restart Claude Code — MCP servers connect once, at startup." >&2
+        exit 1
+    fi
+    export GITHUB_PERSONAL_ACCESS_TOKEN
+fi
+
+exec github-mcp-server stdio --toolsets "$TOOLSETS" "$@"

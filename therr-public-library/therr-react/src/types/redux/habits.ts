@@ -146,6 +146,10 @@ export interface IHabitCheckin {
     hasProof: boolean;
     proofVerified: boolean;
     contributedToStreak: boolean;
+    // Set once the check-in has been shared publicly — the id of the main.thoughts post that
+    // carries the public copy of the proof. Absent/undefined until shared. Lets the calendar
+    // day show "shared" and deep-link to the post.
+    sharedThoughtId?: string;
     createdAt: string;
     updatedAt: string;
     // Joined fields
@@ -320,6 +324,46 @@ export interface IHabitsLifetimeOffer {
     isStoreConfigured: boolean;
 }
 
+// Premium subscription ($6.99/month) Types
+export interface IHabitsPremiumSubscription {
+    id: string;
+    userId: string;
+    platform: string;
+    productId: string;
+    status: 'active' | 'canceled' | 'expired' | 'revoked' | 'on_hold' | 'paused';
+    subscriptionState?: string | null;
+    autoRenewing?: boolean | null;
+    startTime?: string | null;
+    /** When access lapses if not renewed. Drives the "renews on"/"expires on" copy. */
+    expiryTime?: string | null;
+    orderId?: string | null;
+    priceAmountMicros?: string | null;
+    priceCurrencyCode?: string | null;
+    acknowledgedAt?: string | null;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface IHabitsPremiumOffer {
+    productId: string;
+    /** True for any entitled account, including admins and lifetime founders. */
+    isEntitled: boolean;
+    subscription: IHabitsPremiumSubscription | null;
+    /**
+     * False when the server has no Play credentials, and also when the calling client
+     * declared a brand that cannot buy this SKU — either way the CTA must stay hidden.
+     * Read `isBrandSupported` to tell the two apart.
+     */
+    isStoreConfigured: boolean;
+    /**
+     * False when the client sent an `x-brand-variation` other than HABITS. The premium
+     * subscription is a Friends with Habits product on a Friends with Habits Play
+     * listing, so no other brand can complete the purchase. Optional because clients
+     * predating the field simply see `isStoreConfigured: false` and hide the CTA.
+     */
+    isBrandSupported?: boolean;
+}
+
 // State Interface
 export interface IHabitsState {
     habitGoals: IHabitGoal[];
@@ -339,6 +383,7 @@ export interface IHabitsState {
     journalCursor: string | null;
     journalHasMore: boolean;
     lifetimeOffer: IHabitsLifetimeOffer | null;
+    premiumOffer: IHabitsPremiumOffer | null;
     isLoading: boolean;
 }
 
@@ -369,6 +414,7 @@ export enum HabitsActionTypes {
     CREATE_CHECKIN = 'CREATE_CHECKIN',
     UPDATE_CHECKIN = 'UPDATE_CHECKIN',
     SKIP_CHECKIN = 'SKIP_CHECKIN',
+    SHARE_CHECKIN = 'SHARE_CHECKIN',
 
     // Streaks
     GET_USER_STREAKS = 'GET_USER_STREAKS',
@@ -395,6 +441,10 @@ export enum HabitsActionTypes {
     // Lifetime founder offer
     GET_LIFETIME_OFFER = 'GET_LIFETIME_OFFER',
     VERIFY_LIFETIME_PURCHASE = 'VERIFY_LIFETIME_PURCHASE',
+
+    // Premium subscription offer
+    GET_PREMIUM_OFFER = 'GET_PREMIUM_OFFER',
+    VERIFY_PREMIUM_PURCHASE = 'VERIFY_PREMIUM_PURCHASE',
 
     // Loading
     HABITS_LOADING = 'HABITS_LOADING',
