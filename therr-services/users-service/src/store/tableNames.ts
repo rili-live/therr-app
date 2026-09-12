@@ -13,6 +13,7 @@ export const USER_ORGANIZATIONS_TABLE_NAME = 'main.userOrganizations';
 export const HABIT_GOALS_TABLE_NAME = 'habits.habit_goals';
 export const PACTS_TABLE_NAME = 'habits.pacts';
 export const PACT_MEMBERS_TABLE_NAME = 'habits.pact_members';
+export const PACT_STREAK_DAYS_TABLE_NAME = 'habits.pact_streak_days';
 export const HABIT_CHECKINS_TABLE_NAME = 'habits.habit_checkins';
 export const STREAKS_TABLE_NAME = 'habits.streaks';
 export const STREAK_HISTORY_TABLE_NAME = 'habits.streak_history';

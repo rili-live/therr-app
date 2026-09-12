@@ -117,6 +117,35 @@ class PactsService {
         data: durationDays ? { durationDays } : {},
     });
 
+    /**
+     * Invite more people into an existing pact. Creator only, and only while the pact is still
+     * live (pending or active). New invitees join as `pending` and become `active` on accept.
+     * Answers 200 with the hydrated pact (members + derived stats).
+     */
+    addMembers = (id: string, partnerUserIds: string[]) => axios({
+        method: 'post',
+        url: `/users-service/habits/pacts/${id}/members`,
+        data: { partnerUserIds },
+    });
+
+    /**
+     * Remove a member from a pact. Creator only. Refused (409) when it would drop the pact
+     * below the two-member minimum — the last remaining member takes `continueSolo` instead.
+     */
+    removeMember = (id: string, userId: string) => axios({
+        method: 'delete',
+        url: `/users-service/habits/pacts/${id}/members/${userId}`,
+    });
+
+    /**
+     * The last remaining active member opts to keep the pact going alone. Answers 200 with the
+     * pact now flagged solo; 409 if more than one member is still active or it is already solo.
+     */
+    continueSolo = (id: string) => axios({
+        method: 'put',
+        url: `/users-service/habits/pacts/${id}/continue-solo`,
+    });
+
     delete = (id: string) => axios({
         method: 'delete',
         url: `/users-service/habits/pacts/${id}`,
