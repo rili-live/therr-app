@@ -535,6 +535,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                 isCompleted={isCompletedToday}
                                 isLoading={isCheckinLoading}
                                 onPress={this.handleCheckin}
+                                onAddDetail={this.handleAddCheckinDetail}
+                                addDetailTitle={this.translate('pages.habits.checkinProof.addDetailButton')}
                                 title={this.translate('pages.habits.checkin')}
                                 completedTitle={this.translate('pages.habits.completed')}
                                 themeHabits={this.themeHabits}

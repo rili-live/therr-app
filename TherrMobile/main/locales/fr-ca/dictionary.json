@@ -2047,6 +2047,7 @@
                 "uploadFailed": "Impossible de téléverser votre photo. Réessayez.",
                 "cancel": "Annuler",
                 "addDetailTitle": "Ajouter une note ou une photo",
+                "addDetailButton": "Ajouter une note ou une photo",
                 "addDetailPrompt": "Enregistré. Ajoutez ce que vous voulez retenir (optionnel).",
                 "sharePubliclyLabel": "Partager au fil",
                 "sharePubliclyHint": "Publiez cette photo pour que d'autres vous encouragent.",

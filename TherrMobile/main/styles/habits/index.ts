@@ -66,6 +66,31 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         checkinButtonIcon: {
             color: therrTheme.colors.brandingWhite,
         },
+        // Wraps the completed button and its "add a note or photo" link so the
+        // link sits directly beneath the button rather than beside it.
+        checkinButtonWithDetailContainer: {
+            alignSelf: 'stretch',
+        },
+        checkinAddDetailButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            alignSelf: 'center',
+            marginTop: 2,
+            marginBottom: 4,
+            paddingVertical: 6,
+            paddingHorizontal: 12,
+            gap: 6,
+        },
+        checkinAddDetailText: {
+            fontFamily: therrFontFamily,
+            fontSize: 14,
+            fontWeight: '600',
+            color: therrTheme.colors.primary3,
+        },
+        checkinAddDetailIcon: {
+            color: therrTheme.colors.primary3,
+        },
 
         // Streak Widget
         streakWidgetContainer: {

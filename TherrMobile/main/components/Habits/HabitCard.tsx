@@ -13,6 +13,12 @@ interface IHabitCardProps {
     streak?: IStreak;
     onPress?: () => void;
     onCheckin?: () => void;
+    /**
+     * "Add a note or photo" for a check-in already logged today. Surfaced by
+     * CheckinButton only once the habit is completed, so a missed or dismissed
+     * proof sheet is still reachable.
+     */
+    onAddCheckinDetail?: () => void;
     isCheckinLoading?: boolean;
     showStreak?: boolean;
     /**
@@ -80,6 +86,7 @@ const HabitCard: React.FC<IHabitCardProps> = ({
     streak,
     onPress,
     onCheckin,
+    onAddCheckinDetail,
     isCheckinLoading = false,
     showStreak = true,
     isAwaitingPartner = false,
@@ -196,6 +203,8 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                         isCompleted={isCompleted}
                         isLoading={isCheckinLoading}
                         onPress={onCheckin}
+                        onAddDetail={onAddCheckinDetail}
+                        addDetailTitle={translate('pages.habits.checkinProof.addDetailButton')}
                         title={translate('pages.habits.checkin')}
                         completedTitle={translate('pages.habits.completed')}
                         themeHabits={themeHabits}
