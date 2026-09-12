@@ -724,6 +724,19 @@ usersServiceRouter.put('/habits/pacts/:id/renew', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
+usersServiceRouter.put('/habits/pacts/:id/continue-solo', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+// HABITS — Pact members (add/remove people from an existing pact)
+usersServiceRouter.post('/habits/pacts/:id/members', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.delete('/habits/pacts/:id/members/:userId', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'delete',
+}));
 // The nudge route existed in the service, in PactsService and in the mobile
 // PactsList screen, but was never registered here — so every "nudge" a user
 // sent died at the gateway with nothing in the UI to say so.

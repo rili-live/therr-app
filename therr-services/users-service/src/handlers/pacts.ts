@@ -29,6 +29,7 @@ import {
     selectRenewalInvitees,
     shouldExpirePact,
 } from '../utilities/pactHelpers';
+import { canContinueSolo, canRemoveMember } from '../utilities/pactStreak';
 import {
     awardPactPioneerCreatedAchievement,
     awardPactPioneerInvitesAchievement,
@@ -1277,6 +1278,277 @@ const renewPact: RequestHandler = async (req: any, res: any) => {
     }
 };
 
+// ADD MEMBERS — invite more people into an existing pact. Only the creator can add, and only
+// to a pact that is still live (pending or active). Group pacts grow this way after creation;
+// a 1:1 pact becomes a group pact the first time a third person is added. New members are
+// created `pending` and dispatched the same cross-app invitation as bulkInvitePact — they join
+// as `active` only when they accept.
+const addPactMembers: RequestHandler = async (req: any, res: any) => {
+    const {
+        locale,
+        userId,
+        userName,
+        authorization,
+        whiteLabelOrigin,
+        brandVariation,
+    } = parseHeaders(req.headers);
+    const { id } = req.params;
+    const { partnerUserIds } = req.body || {};
+
+    const pact = await Store.pacts.getById(id);
+    if (!pact) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.notFound'),
+            statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
+        });
+    }
+
+    if (pact.creatorUserId !== userId) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.addMembersCreatorOnly'),
+            statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
+        });
+    }
+
+    if (pact.status !== 'pending' && pact.status !== 'active') {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.notAcceptingMembers'),
+            statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
+        });
+    }
+
+    if (!Array.isArray(partnerUserIds) || partnerUserIds.length === 0) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.inviteesRequired'),
+            statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
+        });
+    }
+
+    // Exclude the creator and anyone already on the pact in any non-terminal state — re-adding
+    // a `left`/`removed` member is allowed (a fresh pending invite), but an active or still
+    // pending member must not get a duplicate row (the UNIQUE (pactId, userId) would reject it
+    // anyway; filtering first gives a clean message instead of a SQL error).
+    const existingMembers = await Store.pactMembers.getByPactId(id);
+    const blockedIds = new Set(
+        existingMembers
+            .filter((m: any) => m.status === 'active' || m.status === 'pending')
+            .map((m: any) => m.userId),
+    );
+    const invitees = dedupeUserIds(partnerUserIds).filter((inviteeId) => inviteeId !== userId && !blockedIds.has(inviteeId));
+
+    if (invitees.length === 0) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.inviteesNoneValid'),
+            statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
+        });
+    }
+    if (invitees.length > MAX_BULK_INVITEES) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.inviteesTooMany', { limit: MAX_BULK_INVITEES }),
+            statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
+        });
+    }
+
+    const habitGoal = await Store.habitGoals.getById(pact.habitGoalId);
+    const habitName = habitGoal?.name || 'your habit';
+
+    try {
+        const newMembers = await Store.pactMembers.createBulk(invitees.map((partnerId) => ({
+            pactId: id,
+            userId: partnerId,
+            role: 'partner' as const,
+            status: 'pending',
+        })));
+
+        recordFunnelMetric(MetricNames.FUNNEL_PACT_INVITE_SENT, userId, {
+            brandVariation: brandVariation || '',
+        }, String(invitees.length));
+
+        newMembers.forEach((member: any) => {
+            const toUserId = member.userId;
+            dispatchPactInvitation({
+                pactMemberId: member.id,
+                partnerUserId: toUserId,
+                fromUserName: userName,
+                habitName,
+                brandVariation,
+                whiteLabelOrigin,
+                locale,
+            }).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Error dispatching pact member-add invitation'],
+                    traceArgs: { 'error.message': err?.message, toUserId },
+                });
+                return { isOnBrand: true };
+            }).then((dispatchResult) => {
+                if (!dispatchResult.isOnBrand) {
+                    return undefined;
+                }
+                return sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
+                    authorization,
+                    fromUser: { id: userId, userName },
+                    locale,
+                    toUserId,
+                    type: PushNotifications.Types.pactInvitation,
+                    whiteLabelOrigin,
+                    brandVariation,
+                });
+            }).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Error sending pact member-add notification'],
+                    traceArgs: { 'error.message': err?.message, toUserId },
+                });
+            });
+        });
+
+        awardPactPioneerInvitesAchievement(req.headers, invitees.length);
+        awardSocialiteInviteAchievement(req.headers, invitees.length);
+
+        const members = await Store.pactMembers.getByPactId(id);
+        return res.status(200).send(await attachMemberStatsToPact({ ...pact, members }));
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' });
+    }
+};
+
+// REMOVE MEMBER — the creator removes a partner from the pact. Refused when it would drop the
+// pact below the two-member minimum: at that point the remaining member takes the deliberate
+// continue-solo path instead (see continueSoloPact) rather than being left alone as a side
+// effect of removing someone else. The removed member's personal streak is untouched — it is
+// keyed on (userId, habitGoalId) and belongs to them, not the pact.
+const removePactMember: RequestHandler = async (req: any, res: any) => {
+    const { locale, userId } = parseHeaders(req.headers);
+    const { id, userId: targetUserId } = req.params;
+
+    const pact = await Store.pacts.getById(id);
+    if (!pact) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.notFound'),
+            statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
+        });
+    }
+
+    if (pact.creatorUserId !== userId) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.removeMemberCreatorOnly'),
+            statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
+        });
+    }
+
+    if (targetUserId === pact.creatorUserId) {
+        // The creator leaving is abandonment, not removal — a different endpoint with different
+        // consequences for everyone else.
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.cannotRemoveCreator'),
+            statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
+        });
+    }
+
+    const member = await Store.pactMembers.getByPactAndUser(id, targetUserId);
+    if (!member || (member.status !== 'active' && member.status !== 'pending')) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.memberNotFound'),
+            statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
+        });
+    }
+
+    // Only an *active* member counts against the floor — removing a still-pending invite never
+    // reduces the group that is actually carrying the pact.
+    if (member.status === 'active') {
+        const activeMemberCount = await Store.pactMembers.countActiveByPactId(id);
+        if (!canRemoveMember(activeMemberCount)) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'errorMessages.pacts.removeMemberBelowMinimum'),
+                statusCode: 409,
+                errorCode: ErrorCodes.BAD_REQUEST,
+            });
+        }
+    }
+
+    try {
+        await Store.pactMembers.remove(id, targetUserId);
+        const members = await Store.pactMembers.getByPactId(id);
+        return res.status(200).send(await attachMemberStatsToPact({ ...pact, members }));
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' });
+    }
+};
+
+// CONTINUE SOLO — the last remaining active member opts to keep the pact going alone rather
+// than let it wind down. The pact stays `active`; `isSolo` records the choice so the shared
+// streak keeps advancing on the solo member's own check-ins (majority of one) and the offer is
+// not shown again. Only the sole remaining active member may call this.
+const continueSoloPact: RequestHandler = async (req: any, res: any) => {
+    const { locale, userId } = parseHeaders(req.headers);
+    const { id } = req.params;
+
+    const pact = await Store.pacts.getById(id);
+    if (!pact) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.notFound'),
+            statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
+        });
+    }
+
+    const member = await Store.pactMembers.getByPactAndUser(id, userId);
+    if (!member || member.status !== 'active') {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.notParticipant'),
+            statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
+        });
+    }
+
+    const activeMemberCount = await Store.pactMembers.countActiveByPactId(id);
+    if (!canContinueSolo({ status: pact.status, isSolo: pact.isSolo, activeMemberCount })) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.cannotContinueSolo'),
+            statusCode: 409,
+            errorCode: ErrorCodes.BAD_REQUEST,
+        });
+    }
+
+    try {
+        await Store.pacts.setSolo(id);
+        const [updatedPact, members] = await Promise.all([
+            Store.pacts.getById(id),
+            Store.pactMembers.getByPactId(id),
+        ]);
+        return res.status(200).send(await attachMemberStatsToPact({ ...updatedPact, members }));
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' });
+    }
+};
+
 const deletePact: RequestHandler = async (req: any, res: any) => {
     const { locale, userId } = parseHeaders(req.headers);
     const { id } = req.params;
@@ -1460,5 +1732,8 @@ export {
     abandonPact,
     completePact,
     renewPact,
+    addPactMembers,
+    removePactMember,
+    continueSoloPact,
     deletePact,
 };
