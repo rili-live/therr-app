@@ -2485,7 +2485,8 @@
                 "checkinSkipped": "Skipped {habit}",
                 "goalChip": "Goal",
                 "goalAccessibility": "Open this goal",
-                "editAccessibility": "Edit this entry"
+                "editAccessibility": "Edit this entry",
+                "checkinAccessibility": "Open this check-in"
             },
             "errors": {
                 "loadFailed": "We could not load your journal.",

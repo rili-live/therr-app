@@ -19,7 +19,21 @@ interface IJournalEntryRowProps {
     onPress?: (item: IJournalFeedItem) => void;
     /** Opens a posted goal in the thought view. */
     onPressGoal?: (item: IJournalFeedItem) => void;
+    /**
+     * Opens a check-in: the post it was shared to when there is one, otherwise the
+     * habit detail. The screen decides which; this only reports the tap.
+     */
+    onPressCheckin?: (item: IJournalFeedItem) => void;
 }
+
+/**
+ * A check-in row is tappable when there is somewhere to go: the shared post it links
+ * to, or — failing that — the habit it belongs to. Both are usually present, so in
+ * practice every check-in opens something; this guards the rare row with neither.
+ */
+const isCheckinLinkable = (item: IJournalFeedItem): boolean => (
+    item.type === 'checkin' && !!(item.meta?.sharedThoughtId || item.habitGoalId)
+);
 
 /**
  * One line of the journal.
@@ -94,24 +108,32 @@ const JournalEntryRow = ({
     translate,
     onPress,
     onPressGoal,
+    onPressCheckin,
 }: IJournalEntryRowProps) => {
     const time = formatEntryTime(item.occurredAt, locale);
     const habitLabel = item.goalName
         ? `${item.goalName}${item.goalEmoji ? ` ${item.goalEmoji}` : ''}`
         : null;
     const isGoal = item.type === 'goal';
-    // Notes open the composer; goals open the post they came from. Everything
-    // else is a record of something that happened, with nothing to open or edit.
+    const checkinLinkable = isCheckinLinkable(item);
+    // Notes open the composer; goals open the post they came from; a check-in opens
+    // its shared post or the habit detail. Everything else is a record of something
+    // that happened, with nothing to open or edit.
     let handlePress: ((pressed: IJournalFeedItem) => void) | undefined;
     if (isGoal) {
         handlePress = onPressGoal;
     } else if (item.type === 'note') {
         handlePress = onPress;
+    } else if (checkinLinkable) {
+        handlePress = onPressCheckin;
     }
 
-    const accessibilityLabel = isGoal
-        ? translate('pages.journal.entry.goalAccessibility')
-        : translate('pages.journal.entry.editAccessibility');
+    let accessibilityLabel = translate('pages.journal.entry.editAccessibility');
+    if (isGoal) {
+        accessibilityLabel = translate('pages.journal.entry.goalAccessibility');
+    } else if (checkinLinkable) {
+        accessibilityLabel = translate('pages.journal.entry.checkinAccessibility');
+    }
 
     const content = (
         <View style={[themeJournal.styles.entry, { borderLeftColor: swatch.accent }]}>
