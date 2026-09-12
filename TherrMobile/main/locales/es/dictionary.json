@@ -2047,6 +2047,7 @@
                 "uploadFailed": "No pudimos subir tu foto. Inténtalo de nuevo.",
                 "cancel": "Cancelar",
                 "addDetailTitle": "Añadir una nota o foto",
+                "addDetailButton": "Añadir una nota o foto",
                 "addDetailPrompt": "Registrado. Añade lo que quieras recordar (opcional).",
                 "sharePubliclyLabel": "Compartir en el feed",
                 "sharePubliclyHint": "Publica esta foto para que otros te animen.",

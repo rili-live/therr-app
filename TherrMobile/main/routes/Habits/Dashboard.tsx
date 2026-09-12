@@ -1101,6 +1101,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 streak={this.getStreakForHabit(goal.id)}
                 onPress={() => this.handleHabitPress(goal)}
                 onCheckin={() => this.handleCheckin(goal)}
+                onAddCheckinDetail={() => this.handleAddCheckinDetail(goal)}
                 isCheckinLoading={checkinLoadingIds.has(goal.id)}
                 showStreak={true}
                 isAwaitingPartner={item.isAwaitingPartner}
