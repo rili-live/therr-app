@@ -111,15 +111,18 @@ export class AddPactMembers extends React.Component<IAddPactMembersProps, IAddPa
     }
 
     getFriends = (): IConnectionDetails[] => {
-        const { user, userConnections } = this.props;
+        const { user, userConnections, route } = this.props;
         const currentUserId = user.details?.id || '';
         const connections = (userConnections?.activeConnections || userConnections?.connections || []) as any[];
+        // Passed by PactDetail: anyone already active or invited, whom the server would drop from
+        // the request anyway. Absent when reached some other way, in which case nothing is hidden.
+        const existingMemberIds = new Set<string>(route?.params?.existingMemberIds || []);
 
         const byId: { [id: string]: IConnectionDetails } = {};
         const friends: IConnectionDetails[] = [];
         connections.forEach((c: any) => {
             const partner = resolvePartnerDetails(c, currentUserId);
-            if (partner?.id && partner.id !== currentUserId && !byId[partner.id]) {
+            if (partner?.id && partner.id !== currentUserId && !byId[partner.id] && !existingMemberIds.has(partner.id)) {
                 byId[partner.id] = partner;
                 friends.push(partner);
             }

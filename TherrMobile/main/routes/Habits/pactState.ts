@@ -39,12 +39,21 @@ export const MIN_PACT_MEMBERS = 2;
 /**
  * Whether the current user may add or remove members on this pact: only the creator, and only
  * while the pact is still live (pending or active) and not a finished cycle awaiting re-commit.
+ *
+ * Also requires the server-derived `activeMemberCount`, which only a users-service that has the
+ * member add/remove routes hydrates. The mobile release and the backend release ship on
+ * independent pipelines, so an app that offered "add members" against an older service would
+ * 404 at the gateway on every tap; hiding the affordance until the field appears is the safe
+ * direction, the same one `canRemovePactMember` takes.
  */
 export const canManagePactMembers = (
-    pact: { creatorUserId?: string; status?: string } | null | undefined,
+    pact: { creatorUserId?: string; status?: string; activeMemberCount?: number } | null | undefined,
     currentUserId?: string,
 ): boolean => {
     if (!pact || !currentUserId || pact.creatorUserId !== currentUserId) {
+        return false;
+    }
+    if (typeof pact.activeMemberCount !== 'number') {
         return false;
     }
     if (isPactRenewable(pact)) {
@@ -52,6 +61,18 @@ export const canManagePactMembers = (
     }
     return pact.status === 'active' || pact.status === 'pending';
 };
+
+/**
+ * Ids of everyone still on the pact — active members and open invites. These are the people
+ * the add-members picker must not offer: the server drops them from the request (a `left` or
+ * `removed` member may be re-invited, an active or pending one may not), so offering them
+ * would either 400 with nothing else selected or make the "invited N" toast overcount.
+ */
+export const getNonTerminalPactMemberIds = (
+    pact: { members?: Array<{ userId?: string; status?: string }> } | null | undefined,
+): string[] => (pact?.members || [])
+    .filter((m) => !!m?.userId && (m.status === 'active' || m.status === 'pending'))
+    .map((m) => m.userId as string);
 
 /**
  * Whether a specific member may be removed by the creator right now.

@@ -10,7 +10,9 @@ import permissions from '../../utilities/permissionsOrchestrator';
 import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
 // Shared so the pending-pact wording can't drift between the card and this screen.
 import { getStatusText } from '../../components/Habits/PactCard';
-import { isPactRenewable, canManagePactMembers, canRemovePactMember } from '../Habits/pactState';
+import {
+    isPactRenewable, canManagePactMembers, canRemovePactMember, getNonTerminalPactMemberIds,
+} from '../Habits/pactState';
 import getPactTimeline from '../../utilities/pactTimeline';
 import getConfig from '../../utilities/getConfig';
 import { IUserState, IHabitsState, IPact, IPactMember } from 'therr-react/types';
@@ -343,6 +345,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         this.props.navigation.navigate('AddPactMembers', {
             pactId: pact.id,
             habitName: pact.habitGoalName,
+            existingMemberIds: getNonTerminalPactMemberIds(pact),
         });
     };
 
