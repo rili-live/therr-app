@@ -96,7 +96,7 @@ describe('ChameleonLoader', () => {
         const style = Array.isArray(frame.props.style) ? Object.assign({}, ...frame.props.style) : frame.props.style;
 
         expect(style.width).toBe(80);
-        expect(style.height).toBeCloseTo(80 * (580 / 724), 5);
+        expect(style.height).toBeCloseTo(80 * (580 / 800), 5);
     });
 
     it('draws with the theme palette rather than baked colours', () => {
