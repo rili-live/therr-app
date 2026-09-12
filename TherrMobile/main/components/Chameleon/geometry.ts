@@ -7,9 +7,14 @@
  * the logo's 1024-unit canvas; `FACE_VIEW_BOX` crops that canvas to the face.
  */
 
-export const FACE_VIEW_BOX = '150 200 724 580';
+// The eye turrets are the widest part of the face: centres at x=260 and x=764,
+// radius 148, so the ink runs from x=112 to x=912 (width 800). A narrower box
+// clips a slice off each turret — the `150 200 724 580` crop this replaced cut
+// 38 units off both. Widened to hold the full turrets, matching the web
+// landing's #fwh-face symbol.
+export const FACE_VIEW_BOX = '112 200 800 580';
 /** height / width of the cropped face. */
-export const FACE_ASPECT = 580 / 724;
+export const FACE_ASPECT = 580 / 800;
 
 export const HEAD_PATH = 'M 437 335 Q 512 205 587 335 Q 722 482 757 629 Q 832 759 682 759 Q 512 779 342 759 Q 192 759 267 629 Q 302 482 437 335 Z';
 export const STRIPE_PATH = 'M 494 325 Q 494 305 512 305 Q 530 305 530 325 L 525 477 Q 525 493 512 493 Q 499 493 499 477 Z';

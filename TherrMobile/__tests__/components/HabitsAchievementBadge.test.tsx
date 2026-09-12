@@ -97,7 +97,7 @@ describe('HabitsAchievementBadge', () => {
         const face = tree.root.findByType(ChameleonFace);
         const frame = flattenStyle(face.parent!.props.style);
         expect(frame.width).toBeCloseTo(72 * 0.62, 5);
-        expect(frame.height).toBeCloseTo(frame.width * (580 / 724), 5);
+        expect(frame.height).toBeCloseTo(frame.width * (580 / 800), 5);
         // Below the edge by a fraction of its own height, so the eyes stay on the card.
         expect(frame.bottom).toBeCloseTo(-frame.height * 0.3, 5);
         // Sticker outline so the face reads on a ground close to its own skin.
