@@ -2047,6 +2047,7 @@
                 "uploadFailed": "We couldn't upload your photo. Try again.",
                 "cancel": "Cancel",
                 "addDetailTitle": "Add a note or photo",
+                "addDetailButton": "Add a note or photo",
                 "addDetailPrompt": "Checked in. Add anything you want to remember (optional).",
                 "sharePubliclyLabel": "Share to the feed",
                 "sharePubliclyHint": "Post this photo publicly so others can cheer you on.",
