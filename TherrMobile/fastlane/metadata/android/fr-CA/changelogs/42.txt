@@ -1,0 +1,8 @@
+Nouveautés :
+• Voici le caméléon : un nouvel indicateur de chargement et des cartes de réussites redessinées aux couleurs de votre thème
+• Série de pacte : votre groupe gagne une série partagée chaque jour où la majorité fait son suivi
+• Ajoutez des amis à un pacte que vous avez créé, ou continuez en solo si vous êtes le dernier
+• Déjà fait votre suivi? Touchez « Ajouter une note ou une photo » à tout moment pour l'ajouter à aujourd'hui
+• Corrige un plantage au lancement dans la version 1.7.0
+
+Merci de bâtir vos habitudes avec nous!

@@ -25,8 +25,8 @@ underlying product context this copy is derived from.
 | App name | Friends with Habits |
 | Package name | `com.therr.habits` |
 | Android namespace | `app.therrmobile` |
-| versionCode | `41` |
-| versionName | `1.7.0` |
+| versionCode | `42` |
+| versionName | `1.7.1` |
 | minSdk | 25 |
 | targetSdk | 36 |
 | Default locale | en-US |
