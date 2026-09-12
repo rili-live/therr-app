@@ -71,6 +71,12 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             display: 'flex',
             flexDirection: 'row',
             paddingLeft: 4,
+            // The post body (message, attached image, reaction row) sits in a flex column that
+            // fills the width to the right of the author avatar. Without a right inset it runs
+            // flush to the card edge — a full-width image then touches the screen edge on the
+            // right while the avatar insets it on the left, which reads as lopsided. This gutter
+            // gives the image (and the wrapped message) symmetric breathing room on the right.
+            paddingRight: 12,
         },
         thoughtAuthorContainer: {
             display: 'flex',
