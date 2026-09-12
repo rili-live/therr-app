@@ -66,6 +66,26 @@ const GLANCE_MS = 380;
 const HOLD_MS = 720;
 const COLOUR_CYCLE_MS = 4800;
 
+const NO_OFFSET = { dx: 0, dy: 0 };
+
+/**
+ * Where a pupil (or its highlight) sits for the current gaze keyframe. Runs on the UI
+ * runtime — hence the directive — so it is a plain function of its arguments and the
+ * module-level gaze tables, never of anything held by the component.
+ */
+export const gazeAt = (
+    base: { cx: number; cy: number },
+    offset: { dx: number; dy: number },
+    lookValue: number,
+): { cx: number; cy: number } => {
+    'worklet';
+
+    return {
+        cx: base.cx + offset.dx + interpolate(lookValue, GAZE_STOPS, GAZE_DX),
+        cy: base.cy + offset.dy + interpolate(lookValue, GAZE_STOPS, GAZE_DY),
+    };
+};
+
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -139,14 +159,15 @@ const ChameleonLoader = ({
         ),
     }));
 
-    const gaze = (base: { cx: number; cy: number }, offset = { dx: 0, dy: 0 }) => () => ({
-        cx: base.cx + offset.dx + interpolate(look.value, GAZE_STOPS, GAZE_DX),
-        cy: base.cy + offset.dy + interpolate(look.value, GAZE_STOPS, GAZE_DY),
-    });
-    const leftPupilProps = useAnimatedProps(gaze(LEFT_PUPIL));
-    const rightPupilProps = useAnimatedProps(gaze(RIGHT_PUPIL));
-    const leftHighlightProps = useAnimatedProps(gaze(LEFT_PUPIL, HIGHLIGHT_OFFSET));
-    const rightHighlightProps = useAnimatedProps(gaze(RIGHT_PUPIL, HIGHLIGHT_OFFSET));
+    // Each callback is written inline so the worklets babel plugin sees it as the
+    // argument of useAnimatedProps and compiles it for the UI runtime. A factory that
+    // *returned* the callback (the previous shape) produced a plain JS function, and
+    // the UI runtime's first frame threw "Tried to synchronously call a Remote
+    // Function" — a fatal crash on every Habits screen that shows a loader.
+    const leftPupilProps = useAnimatedProps(() => gazeAt(LEFT_PUPIL, NO_OFFSET, look.value));
+    const rightPupilProps = useAnimatedProps(() => gazeAt(RIGHT_PUPIL, NO_OFFSET, look.value));
+    const leftHighlightProps = useAnimatedProps(() => gazeAt(LEFT_PUPIL, HIGHLIGHT_OFFSET, look.value));
+    const rightHighlightProps = useAnimatedProps(() => gazeAt(RIGHT_PUPIL, HIGHLIGHT_OFFSET, look.value));
 
     return (
         <View style={[styles.frame, { width: size, height: size * FACE_ASPECT }]} testID={testID}>

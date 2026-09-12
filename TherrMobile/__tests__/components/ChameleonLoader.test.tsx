@@ -20,6 +20,8 @@ import {
  * wiring is. `jest.mock` factories may only close over names prefixed `mock`.
  */
 const mockCancelAnimation = jest.fn();
+/** Every callback handed to useAnimatedProps, so the worklet check below can inspect it. */
+const mockAnimatedPropsFactories: Function[] = [];
 
 jest.mock('react-native-reanimated', () => {
     const { View } = require('react-native');
@@ -33,7 +35,10 @@ jest.mock('react-native-reanimated', () => {
         __esModule: true,
         default: { View, createAnimatedComponent },
         useSharedValue: (value: number) => ({ value }),
-        useAnimatedProps: (factory: any) => factory(),
+        useAnimatedProps: (factory: any) => {
+            mockAnimatedPropsFactories.push(factory);
+            return factory();
+        },
         withTiming: (toValue: number) => toValue,
         withSequence: (...animations: any[]) => animations[animations.length - 1],
         withRepeat: (animation: any) => animation,
@@ -61,6 +66,24 @@ const findByFill = (tree: renderer.ReactTestRenderer, fill: string) => tree.root
 describe('ChameleonLoader', () => {
     beforeEach(() => {
         mockCancelAnimation.mockClear();
+        mockAnimatedPropsFactories.length = 0;
+    });
+
+    it('hands useAnimatedProps only compiled worklets (release 1.7.0 crashed on a plain closure)', () => {
+        // babel-jest runs react-native-worklets/plugin (babel.config.js), which stamps
+        // __workletHash on every function it compiles for the UI runtime. A callback
+        // built by a factory — `useAnimatedProps(gaze(LEFT_PUPIL))` — is a plain JS
+        // function the plugin never sees, and on device the UI runtime's first frame
+        // dies with "[Worklets] Tried to synchronously call a Remote Function".
+        act(() => {
+            renderer.create(<ChameleonLoader theme={theme} />);
+        });
+
+        // Head, two eye sockets, two pupils, two highlights.
+        expect(mockAnimatedPropsFactories).toHaveLength(7);
+        mockAnimatedPropsFactories.forEach((factory) => {
+            expect(typeof (factory as any).__workletHash).toBe('number');
+        });
     });
 
     it('renders at the requested width and the logo aspect', () => {
