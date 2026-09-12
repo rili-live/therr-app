@@ -254,10 +254,14 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         // portrait photo is not letterboxed; `resizeMode="cover"` at the call site keeps
         // it filling the frame either way.
         thoughtMediaImage: {
-            width: '100%',
+            // `alignSelf: 'stretch'` rather than `width: '100%'` so the right margin insets the
+            // frame instead of overflowing it — the image now lines up with the message text's
+            // right edge (which carries the same 14 right inset via `thoughtMessage.paddingRight`).
+            alignSelf: 'stretch',
             aspectRatio: 4 / 3,
             borderRadius: 8,
             marginTop: 4,
+            marginRight: 14,
             marginBottom: 8,
             backgroundColor: isDarkMode ? therrTheme.colors.accent1 : therrTheme.colorVariations.backgroundNeutral,
         },
