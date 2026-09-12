@@ -13,6 +13,9 @@ import {
     abandonPact,
     completePact,
     renewPact,
+    addPactMembers,
+    removePactMember,
+    continueSoloPact,
     deletePact,
 } from '../handlers/pacts';
 import runDailyHabitsDigest from '../handlers/habitsDigest';
@@ -42,6 +45,11 @@ router.put('/:id/decline', declinePact);
 router.put('/:id/abandon', abandonPact);
 router.put('/:id/complete', completePact);
 router.put('/:id/renew', renewPact);
+router.put('/:id/continue-solo', continueSoloPact);
+
+// MEMBERS
+router.post('/:id/members', addPactMembers);
+router.delete('/:id/members/:userId', removePactMember);
 
 // DELETE
 router.delete('/:id', deletePact);

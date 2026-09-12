@@ -7,6 +7,7 @@ import {
     ZERO_PACT_MEMBER_STATS,
 } from '../../utilities/pactMemberStats';
 import { getTodayDateString } from '../../utilities/streakHelpers';
+import { canContinueSolo } from '../../utilities/pactStreak';
 
 interface IStatsTarget {
     key: string;
@@ -19,6 +20,26 @@ interface IStatsTarget {
 const statsKey = (pactId: string, userId: string) => `${pactId}:${userId}`;
 
 const withStats = (member: any, stats: IPactMemberStats) => ({ ...member, ...stats });
+
+/**
+ * Attach the pact-level fields the client needs to render the group without recomputing them:
+ * how many members are actively participating (the majority denominator, and what decides
+ * whether add/remove is offered) and whether the last remaining member should be shown the
+ * continue-solo offer. Derived from the already-loaded members, so no extra query.
+ */
+const withPactSummary = (pact: any, members: any[]) => {
+    const activeMemberCount = members.filter((m: any) => m?.status === 'active').length;
+    return {
+        ...pact,
+        members,
+        activeMemberCount,
+        canContinueSolo: canContinueSolo({
+            status: pact?.status,
+            isSolo: pact?.isSolo,
+            activeMemberCount,
+        }),
+    };
+};
 
 /**
  * Replaces the stored (and permanently zeroed — see utilities/pactMemberStats)
@@ -70,10 +91,10 @@ export const attachPactMemberStats = async (pacts: any[]): Promise<any[]> => {
     // Nothing measurable (all pending / not yet started): zero out rather than
     // pass the stale columns through.
     if (!targets.length) {
-        return pacts.map((pact) => ({
-            ...pact,
-            members: (pact?.members || []).map((member: any) => withStats(member, ZERO_PACT_MEMBER_STATS)),
-        }));
+        return pacts.map((pact) => withPactSummary(
+            pact,
+            (pact?.members || []).map((member: any) => withStats(member, ZERO_PACT_MEMBER_STATS)),
+        ));
     }
 
     // The service's UTC habit day, matching what the check-in write path
@@ -113,18 +134,15 @@ export const attachPactMemberStats = async (pacts: any[]): Promise<any[]> => {
     return pacts.map((pact) => {
         const members = pact?.members || [];
         if (!windowsByPactId[pact?.id]) {
-            return { ...pact, members: members.map((member: any) => withStats(member, ZERO_PACT_MEMBER_STATS)) };
+            return withPactSummary(pact, members.map((member: any) => withStats(member, ZERO_PACT_MEMBER_STATS)));
         }
 
-        return {
-            ...pact,
-            members: members.map((member: any) => withStats(member, buildPactMemberStats({
-                scheduledCount: scheduledByPactId[pact.id] || 0,
-                completedCheckins: completedCounts[statsKey(pact.id, member.userId)] || 0,
-                streak: streaksByPair[`${member.userId}:${pact.habitGoalId}`],
-                checkedInToday: completedToday.has(`${member.userId}:${pact.habitGoalId}`),
-            }))),
-        };
+        return withPactSummary(pact, members.map((member: any) => withStats(member, buildPactMemberStats({
+            scheduledCount: scheduledByPactId[pact.id] || 0,
+            completedCheckins: completedCounts[statsKey(pact.id, member.userId)] || 0,
+            streak: streaksByPair[`${member.userId}:${pact.habitGoalId}`],
+            checkedInToday: completedToday.has(`${member.userId}:${pact.habitGoalId}`),
+        }))));
     });
 };
 

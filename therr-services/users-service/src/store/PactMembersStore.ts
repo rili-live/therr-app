@@ -104,6 +104,23 @@ export default class PactMembersStore {
         return this.get({ pactId, userId }).then((results) => results[0]);
     }
 
+    /**
+     * How many members are actively participating in a pact right now — the denominator for
+     * the majority threshold and the floor checks for member removal / solo continuation.
+     * Counts `active` only: `pending` invitees have not joined, and `left`/`removed`/`completed`
+     * members are no longer carrying the pact day to day.
+     */
+    countActiveByPactId(pactId: string): Promise<number> {
+        const queryString = knexBuilder
+            .from(PACT_MEMBERS_TABLE_NAME)
+            .where({ pactId, status: 'active' })
+            .count('id as count')
+            .toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => parseInt(response.rows[0]?.count ?? '0', 10));
+    }
+
     getByUserId(userId: string, status?: string) {
         const conditions: any = { userId };
         if (status) {
@@ -257,6 +274,18 @@ export default class PactMembersStore {
     leave(pactId: string, userId: string) {
         return this.updateByPactAndUser(pactId, userId, {
             status: 'left',
+            leftAt: new Date(),
+        });
+    }
+
+    /**
+     * Creator removed this member from the pact. Distinct from `leave` (the member left of
+     * their own accord) only by status — `removed` vs `left` — so the two are told apart in
+     * history and in the renewal invitee filter, which carries neither forward.
+     */
+    remove(pactId: string, userId: string) {
+        return this.updateByPactAndUser(pactId, userId, {
+            status: 'removed',
             leftAt: new Date(),
         });
     }

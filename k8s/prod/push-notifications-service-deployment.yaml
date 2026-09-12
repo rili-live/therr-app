@@ -54,8 +54,13 @@ spec:
                   values:
                   - server-push-notifications
               topologyKey: kubernetes.io/hostname
-      nodeSelector:
-        cloud.google.com/gke-preemptible: "true"
+      # No hard nodeSelector on the preemptible pool. On 2026-09-11 GCE reclaimed both
+      # preemptible nodes within five minutes; with replicas: 1 and this label as a
+      # hard requirement the Pod was Unschedulable ("2 node(s) didn't match Pod's
+      # node affinity/selector") until the pool came back, and the Service had no
+      # endpoints for ~13 minutes. The nodeAffinity preference above still lands it
+      # on the preemptible pool whenever one is available; it can fall back to the
+      # main pool while the preemptible pool is cycling.
       containers:
       - name: server-push-notifications
         image: therrapp/push-notifications-service:latest
