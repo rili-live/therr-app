@@ -52,6 +52,8 @@ interface ICollapsibleHeaderTabViewProps {
     lazyPreloadDistance?: number;
     /** Extra bottom padding for every list (e.g. to clear a bottom button menu). */
     listBottomInset?: number;
+    /** Extra top padding for every list, below the overlay (e.g. to clear the tab bar's shadow). */
+    listTopInset?: number;
     navigationState: { index: number; routes: any[] };
     onIndexChange: (index: number) => void;
     onLayout?: (event: LayoutChangeEvent) => void;
@@ -65,23 +67,26 @@ interface ICollapsibleHeaderTabViewProps {
 /**
  * Content padding/min-height for a scene's list.
  *
- * `paddingTop` clears the overlay (header + tab bar). `minHeight` guarantees the
- * list can always scroll at least a full header's worth, so a tab holding one item
- * — or none — can never strand the header in a collapsed state with no way to
- * scroll back up and reopen it.
+ * `paddingTop` clears the overlay (header + tab bar), plus `topInset` for scenes whose
+ * first item needs breathing room below the tab bar rather than sitting flush against
+ * it. `minHeight` guarantees the list can always scroll at least a full header's worth,
+ * so a tab holding one item — or none — can never strand the header in a collapsed
+ * state with no way to scroll back up and reopen it.
  */
 export const getSceneContentContainerStyle = ({
     containerHeight,
     headerHeight,
     tabBarHeight,
     bottomInset = 0,
+    topInset = 0,
 }: {
     containerHeight: number;
     headerHeight: number;
     tabBarHeight: number;
     bottomInset?: number;
+    topInset?: number;
 }): ViewStyle => ({
-    paddingTop: headerHeight + tabBarHeight,
+    paddingTop: headerHeight + tabBarHeight + topInset,
     paddingBottom: bottomInset,
     minHeight: containerHeight + headerHeight,
 });
@@ -148,6 +153,7 @@ const CollapsibleHeaderTabView = ({
     lazy,
     lazyPreloadDistance,
     listBottomInset = 0,
+    listTopInset = 0,
     navigationState,
     onIndexChange,
     onLayout,
@@ -302,7 +308,8 @@ const CollapsibleHeaderTabView = ({
         headerHeight,
         tabBarHeight,
         bottomInset: listBottomInset,
-    }), [containerHeight, headerHeight, tabBarHeight, listBottomInset]);
+        topInset: listTopInset,
+    }), [containerHeight, headerHeight, tabBarHeight, listBottomInset, listTopInset]);
 
     const collapsiblePropsByKey = React.useMemo(() => {
         const propsByKey: { [key: string]: ICollapsibleSceneProps } = {};

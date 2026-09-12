@@ -50,6 +50,7 @@ import requestLocationServiceActivation from '../../utilities/requestLocationSer
 import { isLocationPermissionGranted } from '../../utilities/requestOSPermissions';
 import getNearbySpaces from '../../utilities/getNearbySpaces';
 import { isUserAuthenticated } from '../../utilities/authUtils';
+import { hasUsableCoords } from '../../utilities/coordinates';
 
 const { width: screenWidth } = Dimensions.get('window');
 const pairingCardWidth = getScrollerCardWidth(screenWidth);
@@ -459,7 +460,7 @@ const ViewSpace = ({
             }
             return Promise.resolve(false);
         }).then((shouldAbort) => {
-            if (!shouldAbort && location.user?.latitude && location.user?.longitude) {
+            if (!shouldAbort && hasUsableCoords(location.user)) {
                 const userCenter = {
                     latitude: location.user.latitude,
                     longitude: location.user.longitude,

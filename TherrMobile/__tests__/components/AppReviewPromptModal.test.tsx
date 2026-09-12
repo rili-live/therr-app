@@ -5,7 +5,9 @@ import React from 'react';
 import renderer, { act } from 'react-test-renderer';
 
 // Note: import explicitly to use the types shipped with jest.
-import { it, describe, beforeEach, expect } from '@jest/globals';
+import {
+    it, describe, beforeEach, afterEach, expect, jest,
+} from '@jest/globals';
 
 import { Provider as PaperProvider } from 'react-native-paper';
 import AppReviewPromptModal from '../../main/components/Modals/AppReviewPromptModal';
@@ -57,6 +59,13 @@ const collectText = (node: any, found: string[] = []): string[] => {
 
 const renderedText = (component: renderer.ReactTestRenderer) => collectText(component.toJSON());
 
+// Every tree rendered by a test, so afterEach can unmount it. Paper's Modal starts a 220ms
+// `Animated.timing` on each visibility change; a tree left mounted when the file finishes keeps
+// firing animation frames after Jest has torn the environment down, and the first frame that
+// lazily requires `Animated` from react-native is reported as an import-after-teardown error —
+// which makes Jest exit 1 with every test green, and the CI test job with it.
+const mounted: renderer.ReactTestRenderer[] = [];
+
 const renderModal = async (props: any = {}) => {
     let component: renderer.ReactTestRenderer;
     await act(async () => {
@@ -73,6 +82,8 @@ const renderModal = async (props: any = {}) => {
             </PaperProvider>,
         );
     });
+
+    mounted.push(component!);
 
     return component!;
 };
@@ -91,7 +102,21 @@ describe('AppReviewPromptModal', () => {
     let onClose: jest.Mock;
 
     beforeEach(() => {
+        jest.useFakeTimers();
         onClose = jest.fn();
+    });
+
+    afterEach(async () => {
+        // Drain the pending animation frames, then unmount, while the environment is alive.
+        await act(async () => {
+            jest.runOnlyPendingTimers();
+        });
+        mounted.splice(0).forEach((component) => {
+            act(() => {
+                component.unmount();
+            });
+        });
+        jest.useRealTimers();
     });
 
     it('asks about sentiment before it mentions a review', async () => {

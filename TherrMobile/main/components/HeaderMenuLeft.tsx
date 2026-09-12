@@ -6,10 +6,16 @@ import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { NetworkActionTypes } from 'therr-react/types';
 import 'react-native-gesture-handler';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import TherrIcon from '../components/TherrIcon';
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import getConfig from '../utilities/getConfig';
 import { checkIsConnected } from '../utilities/networkService';
 import translator from '../utilities/translator';
+
+const LOGO_GLYPH_NAME = CURRENT_BRAND_VARIATION === BrandVariations.HABITS
+    ? 'cami-glyph'
+    : 'therr-logo';
 
 export interface IHeaderMenuLeftProps {
     isAuthenticated: boolean;
@@ -49,6 +55,10 @@ const HeaderMenuLeft = ({
         const isMapEnabled = getConfig()?.featureFlags?.ENABLE_MAP === true;
         if (isAuthenticated && !isEmailVerifed) {
             navigation.navigate('CreateProfile');
+            return;
+        }
+        if (!isAuthenticated && CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+            navigation.navigate('Landing');
             return;
         }
         if (isMapEnabled) {
@@ -99,7 +109,7 @@ const HeaderMenuLeft = ({
                   which collapsed the icon to 0×0 and made it invisible.
                 */}
                 <TherrIcon
-                    name="therr-logo"
+                    name={LOGO_GLYPH_NAME}
                     size={26}
                     style={[logoStyle]}
                     onPress={handlePress}

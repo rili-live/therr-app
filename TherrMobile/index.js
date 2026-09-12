@@ -6,8 +6,12 @@ import { AppRegistry } from 'react-native';
 import App from './main/App';
 import { name as appName } from './app.json';
 import configurePromiseRejections from './main/utilities/configurePromiseRejections';
+import notifee, { EventType } from '@notifee/react-native';
+import { PushNotifications } from 'therr-js-utilities/constants';
 import { createAndroidNotificationChannels, sendBackgroundNotification, wrapOnMessageReceived } from './main/utilities/pushNotifications';
 import { getAndroidChannelFromClickActionId } from './main/constants';
+import completeCheckinInBackground from './main/utilities/backgroundCheckin';
+import translate from './main/utilities/translator';
 
 configurePromiseRejections();
 
@@ -70,6 +74,57 @@ setBackgroundMessageHandler(getMessaging(), async remoteMessage => {
     }
 
     return Promise.resolve();
+});
+
+/**
+ * Notifee background events — the one-press check-in.
+ *
+ * Registered HERE rather than in Layout.tsx on purpose. Notifee requires its
+ * background event handler at module top level: the handler in Layout.tsx is
+ * inside the React tree, so it only exists while the app process is alive, and
+ * an action pressed on a killed app reaches nothing (a body tap is recovered
+ * later by getInitialNotification; an action press is not — the app opens on
+ * whatever screen it left, and the check-in never happens).
+ *
+ * Only `habitCheckin` is handled here. Every other press action navigates, and
+ * navigation needs the React tree — those stay in Layout.tsx, which the app
+ * launch that follows the press will run.
+ */
+notifee.onBackgroundEvent(async ({ type, detail }) => {
+    const { notification, pressAction } = detail || {};
+
+    if (type !== EventType.ACTION_PRESS || pressAction?.id !== PushNotifications.PressActionIds.habitCheckin) {
+        return;
+    }
+
+    const habitGoalId = notification?.data?.habitGoalId;
+    const pactId = notification?.data?.pactId;
+    const { didCheckIn, locale } = await completeCheckinInBackground({
+        habitGoalId: habitGoalId ? String(habitGoalId) : '',
+        pactId: pactId ? String(pactId) : undefined,
+    });
+
+    if (notification?.id) {
+        await notifee.cancelNotification(notification.id).catch(() => undefined);
+    }
+
+    // Always replace the notification the press dismissed, success or not.
+    // Saying nothing on failure would read as "it worked" — and the usual cause
+    // is an expired session, which only the app can resolve, so the failure
+    // notification opens the habit for the user to finish there.
+    const copyKey = didCheckIn ? 'checkinSucceeded' : 'checkinFailed';
+
+    return sendBackgroundNotification(
+        {
+            title: translate(locale, `alertTitles.${copyKey}`),
+            body: translate(locale, `alertMessages.${copyKey}`),
+            android: {
+                pressAction: { id: PushNotifications.PressActionIds.checkinView, launchActivity: 'default' },
+            },
+            data: notification?.data,
+        },
+        getAndroidChannelFromClickActionId(notification?.data?.clickActionId),
+    ).catch((err) => console.log(err));
 });
 
 AppRegistry.registerComponent(appName, () => App);

@@ -7,11 +7,15 @@ import { bindActionCreators } from 'redux';
 import LottieView from 'lottie-react-native';
 import { IUserState } from 'therr-react/types';
 import { achievementsByClass } from 'therr-js-utilities/config';
+import { BrandVariations } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
+import HabitsAchievementBadge from '../../components/Achievements/HabitsAchievementBadge';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import SharePromptModal from '../../components/Modals/SharePromptModal';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../utilities/translator';
 import { triggerRewardCelebration } from '../../utilities/rewardFeedback';
+import { buildAchievementsShareUrl } from '../../utilities/shareUrls';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
@@ -23,13 +27,19 @@ import { ScrollView } from 'react-native-gesture-handler';
 import TherrIcon from '../../components/TherrIcon';
 
 const achievementConfetti = require('../../assets/achievement-confetti-2.json');
+// Therr's card art, keyed like AchievementTile's. A Habits class has no entry here
+// and never did — on Friends with Habits the card is HabitsAchievementBadge.
 const cardImagesLottie = {
     explorer: require('../../assets/explorer-card.json'),
     influencer: require('../../assets/influencer-card.json'),
     socialite: require('../../assets/socialite-card.json'),
     communityLeader: require('../../assets/socialite-card.json'),
     thinker: require('../../assets/thinker-card.json'),
+    weeklyChampion: require('../../assets/influencer-card.json'),
 };
+const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
+/** Glyph size on the claim card, which is 212dp tall against the tile's 92. */
+const CLAIM_CARD_ICON_SIZE = 72;
 
 interface IAchievementClaimDispatchProps {
     claimMyAchievement: Function;
@@ -253,6 +263,14 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
         // const pageHeaderAchievements = this.translate('pages.achievements.pageHeader');
         const { userAchievement } = route.params;
         // const achievement = achievementsByClass[userAchievement.achievementClass][userAchievement.achievementId];
+        // The share copy used to name Therr and link therr.com verbatim, which on the
+        // Friends with Habits app advertised the wrong product. `{appName}` resolves per
+        // brand in the translator; the URL follows the brand in shareUrls.
+        const shareUrl = buildAchievementsShareUrl(user.settings?.locale || 'en-us');
+        const shareMessage = this.translate('modals.sharePrompt.achievementEarned.shareMessage', {
+            achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, ' $1').toLowerCase(),
+            url: shareUrl,
+        });
 
         return (
             <>
@@ -279,10 +297,17 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                                 />
                             )}
                             <View style={this.themeAchievements.styles.cardImageContainerLarge}>
-                                <View style={this.themeAchievements.styles.cardImageLarge}>
-                                    {hasTransitioned && (
+                                <View style={[this.themeAchievements.styles.cardImageLarge, IS_HABITS && localStyles.badgeCard]}>
+                                    {IS_HABITS ? (
+                                        <HabitsAchievementBadge
+                                            achievementClass={userAchievement.achievementClass}
+                                            isComplete={!!userAchievement.completedAt}
+                                            iconSize={CLAIM_CARD_ICON_SIZE}
+                                            theme={this.themeAchievements}
+                                        />
+                                    ) : hasTransitioned && (
                                         <LottieView
-                                            source={cardImagesLottie[userAchievement.achievementClass]}
+                                            source={cardImagesLottie[userAchievement.achievementClass] || cardImagesLottie.explorer}
                                             resizeMode="cover"
                                             speed={2.4}
                                             autoPlay
@@ -317,8 +342,8 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                     isVisible={isSharePromptVisible}
                     headerText={this.translate('modals.sharePrompt.achievementEarned.header')}
                     message={this.translate('modals.sharePrompt.achievementEarned.message')}
-                    shareMessage={`I just earned the ${userAchievement.achievementClass} achievement on Therr! https://www.therr.com`}
-                    shareUrl="https://www.therr.com"
+                    shareMessage={shareMessage}
+                    shareUrl={shareUrl}
                     shareTitle={this.translate('modals.sharePrompt.achievementEarned.header')}
                     onDismiss={this.onDismissSharePrompt}
                     translate={this.translate}
@@ -348,6 +373,12 @@ const localStyles = StyleSheet.create({
         position: 'absolute',
         width: '100%',
         height: '100%',
+    },
+    // The Lottie cards carry their own rounded frame; the badge fills its box edge to
+    // edge, so the box supplies the corners.
+    badgeCard: {
+        borderRadius: 16,
+        overflow: 'hidden',
     },
 });
 

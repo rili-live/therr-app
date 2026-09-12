@@ -1,0 +1,7 @@
+What's new:
+• Your shared check-in now shows at the top of your Feed right away
+• The "Share to the feed" switch is always visible when you check in, and defaults on if your profile is public
+• A smaller photo preview so the share option stays in view
+• Fixes and stability improvements
+
+Thanks for building habits with us!

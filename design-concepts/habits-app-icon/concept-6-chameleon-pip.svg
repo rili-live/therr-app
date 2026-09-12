@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="pip-body" x1="220" y1="260" x2="804" y2="820" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#6B5180"/>
+      <stop offset="60%"  stop-color="#7A7088"/>
+      <stop offset="100%" stop-color="#839A8E"/>
+    </linearGradient>
+    <linearGradient id="pip-casque" x1="470" y1="170" x2="554" y2="310" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"  stop-color="#C9ABDC"/>
+      <stop offset="100%" stop-color="#8A6BA8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" rx="225" fill="#2E2140"/>
+
+  <!-- Casque (soft rounded crest on top) -->
+  <path d="M 478 290
+           Q 512 180 546 290
+           Q 530 302 512 302
+           Q 494 302 478 290 Z"
+        fill="url(#pip-casque)"/>
+
+  <!-- Head body: rounded squircle, slightly wider than tall for friendly feel -->
+  <path d="M 512 280
+           C 710 280 812 395 812 548
+           C 812 702 692 818 512 818
+           C 332 818 212 702 212 548
+           C 212 395 314 280 512 280 Z"
+        fill="url(#pip-body)"/>
+
+  <!-- Left eye: big round, with pupil offset slightly inward/down + highlight -->
+  <circle cx="395" cy="480" r="96" fill="#EBDDF2"/>
+  <circle cx="408" cy="492" r="40" fill="#2E2140"/>
+  <circle cx="420" cy="478" r="13" fill="#FFFFFF"/>
+
+  <!-- Right eye -->
+  <circle cx="629" cy="480" r="96" fill="#EBDDF2"/>
+  <circle cx="616" cy="492" r="40" fill="#2E2140"/>
+  <circle cx="628" cy="478" r="13" fill="#FFFFFF"/>
+
+  <!-- Subtle friendly smile -->
+  <path d="M 458 712 Q 512 748 566 712"
+        stroke="#2E2140" stroke-width="11" fill="none"
+        stroke-linecap="round"/>
+</svg>

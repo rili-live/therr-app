@@ -2,7 +2,7 @@
 
 ## Overview
 
-React Native 0.86.3 mobile app (iOS + Android) for the Therr social platform. React 19.2.3. Has its own `package.json` isolated from the monorepo root. Android package: `app.therrmobile`, native code in Kotlin.
+React Native 0.86.3 mobile app (iOS + Android) for the Therr social platform. React 19.2.3. Has its own `package.json` isolated from the monorepo root. Android namespace `app.therrmobile`; `applicationId` varies by niche (`app.therrmobile` on Therr, `com.therr.habits` on Friends with Habits). Native code in Kotlin. New Architecture (`newArchEnabled=true`) + Hermes.
 
 ## Directory Structure
 
@@ -100,11 +100,12 @@ The module resolution is complex due to the monorepo. Understanding this prevent
 
 4. **Patches** (`patches/`, applied via `postinstall`):
    - `react-native+0.86.3.patch`
-   - `react-native-screens+4.27.0.patch`
-   - `react-native-worklets+0.11.4.patch`
    - `@react-native-community+slider+5.1.2.patch`
    - `react-native-actions-sheet+0.9.8.patch`
    - `react-native-tab-view+3.5.2.patch`
+   - `react-native-nitro-modules+0.35.10.patch`
+   - `react-native-screens+4.27.0.patch` (RTTI fix required for New Architecture)
+   - `react-native-worklets+0.11.4.patch` (prefab headers race fix for Reanimated 4)
 
    Patch filenames pin an **exact** version. When you bump a patched package the
    patch stops applying — regenerate it rather than renaming the file. Run
@@ -151,6 +152,37 @@ Three themes: light (default), dark, retro. Selected via `user.settings.mobileTh
 ### Push Notifications
 
 Firebase Cloud Messaging + Notifee. Android channels defined in `main/constants/index.tsx` (default, contentDiscovery, rewardUpdates, reminders). FCM setup in `main/utilities/pushNotifications.ts`.
+
+### Icon Fonts
+
+`TherrIcon` (`main/components/TherrIcon.tsx`) is an IcoMoon set rendered by
+react-native-vector-icons, which draws an icon as a bare `<Text>` — so the laid-out
+box is the glyph's **advance width**, and an outline sitting in the wrong place inside
+that advance cannot be recovered by centering the box.
+
+TrueType requires a glyph's left side bearing (`hmtx`) to equal its bounding box's
+`xMin` (`glyf`). When they disagree, FreeType — the rasterizer under both Android and
+iOS — slides the outline by `lsb - xMin` so the ink meets the advertised bearing.
+Commit `6e6d6882d` rebuilt TherrFont from IcoMoon to add one glyph (`cami-glyph`); the
+rebuild recalculated every `xMin` but left every `lsb` at 0, dragging all 95 icons left
+by their own bearing — 3px for `trophy`, 8px for `dots-horiz`, 11px for `idea` at 24dp
+on a 2.625-density screen. Three separate commits tried to fix this in layout
+(fixed-size wrappers, `includeFontPadding: false`, nudge transforms); none could have
+worked.
+
+Only the niche branches were affected, because `general` never took the rebuild.
+
+`resources/fonts/fix-icon-font-bearings.py` restores `lsb == xMin`. It changes no
+outline coordinates, so the result renders pixel-identically to the font `general`
+ships. It is idempotent — **run it after any IcoMoon export of TherrFont**, and write
+both checked-in copies (`resources/fonts/` and `android/app/src/main/assets/fonts/`).
+`__tests__/assets/therrIconFont.test.ts` fails if a bad export is committed or the two
+copies drift apart.
+
+Font changes are native assets: they need a rebuild, not a Metro reload.
+
+Do **not** run it against `SSOFont.ttf` — those glyphs are fragments of layered
+multi-color logos whose bearings are load-bearing.
 
 ### Sound Effects & Haptics
 

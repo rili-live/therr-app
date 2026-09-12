@@ -27,6 +27,12 @@ module.exports = {
         // `SystemBars` schedules a setImmediate that reads Platform.OS after the Jest
         // environment is torn down, crashing the worker for any suite that renders a screen.
         '^react-native-edge-to-edge$': '<rootDir>/__mocks__/react-native-edge-to-edge.tsx',
+        // Nitro (JSI) module — reaches for native code at import time. `habitsBilling`
+        // requires it lazily so an unmocked import would degrade rather than crash, but
+        // that silently turns every billing path into a no-op instead of testing it.
+        '^react-native-iap$': '<rootDir>/__mocks__/react-native-iap.ts',
+        // The JSI peer behind react-native-iap; installs bindings at import time.
+        '^react-native-nitro-modules$': '<rootDir>/__mocks__/react-native-nitro-modules.ts',
         '^pretty-format$': '<rootDir>/../node_modules/pretty-format',
     },
     moduleDirectories: ['<rootDir>/node_modules', '<rootDir>../node_modules'],

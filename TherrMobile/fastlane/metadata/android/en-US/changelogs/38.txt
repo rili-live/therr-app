@@ -1,0 +1,7 @@
+What's new:
+• Waiting on a friend to accept? Keep the habit going on your own, or archive it to stop the reminders
+• Archived habits return automatically if your partner joins later
+• A faster habits dashboard
+• Fixes and stability improvements
+
+Thanks for building habits with us!

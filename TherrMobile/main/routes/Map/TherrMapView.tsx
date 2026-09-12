@@ -41,6 +41,7 @@ import mapCustomStyle from '../../styles/map/googleCustom';
 import MarkerIcon from './MarkerIcon';
 import { getUserContentUri, isMyContent } from '../../utilities/content';
 import { orderAreaPreviewStrip, rankAreaPreviews } from '../../utilities/feedRanking';
+import { hasUsableCoords, isUsableCoordinate } from '../../utilities/coordinates';
 import AreaDisplayCard from '../../components/UserContent/AreaDisplayCard';
 import AreaCreatePromptCard from '../../components/UserContent/AreaCreatePromptCard';
 import { isUserAuthenticated } from '../../utilities/authUtils';
@@ -52,6 +53,8 @@ const CARD_HEIGHT = areaPreviewCardHeight;
 const CARD_WIDTH = IS_SMALL_SCREEN ? viewPortWidth / 3 : CARD_HEIGHT - 70;
 // NOTE: distanceTo() returns meters; getReadableDistance() expects miles. The conversion
 // factor is shared via ../../constants so this file and utilities/feedRanking cannot drift.
+//
+// Height of the strip's title row, above the cards.
 const PREVIEW_HEADER_HEIGHT = 22;
 // const CARD_WIDTH = viewPortWidth / 4;
 // const spaceBubbleWidth = viewPortWidth / 8;
@@ -304,7 +307,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                             areaInPreviewIndex: index,
                         });
                         const { latitude, longitude } = areasInPreview[index] || {};
-                        if (latitude && longitude) {
+                        if (isUsableCoordinate(latitude) && isUsableCoordinate(longitude)) {
                             const { map } = this.props;
                             let animationLatitudeDelta = PRIMARY_LATITUDE_DELTA * 2;
                             let animationLongitudeDelta = PRIMARY_LONGITUDE_DELTA * 2;
@@ -355,7 +358,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     });
 
     onPoiClick = (e) => {
-        if (e?.nativeEvent?.coordinate?.latitude && e?.nativeEvent?.coordinate?.longitude) {
+        if (hasUsableCoords(e?.nativeEvent?.coordinate)) {
             const passThroughEvent: any = {
                 nativeEvent: {
                     coordinate: {
@@ -583,7 +586,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
             // Label with user's location if available, but score against distance from pressedCoord
             const areasWithDistance = baseAreas
-                .filter((a: any) => a.latitude && a.longitude).map((area: any) => {
+                .filter((a: any) => hasUsableCoords(a)).map((area: any) => {
                     const milesFromPress = distanceTo({
                         lon: pressedCoords.longitude,
                         lat: pressedCoords.latitude,
@@ -591,7 +594,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         lon: area.longitude,
                         lat: area.latitude,
                     }) / METERS_PER_MILE;
-                    const milesFromUser = !(location?.user?.longitude && location?.user?.latitude)
+                    const milesFromUser = !hasUsableCoords(location?.user)
                         ? milesFromPress
                         : distanceTo({
                             lon: location?.user?.longitude,
@@ -866,11 +869,15 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
     getLatitudeDelta = () => {
         const { map, route, user } = this.props;
-        if (route.params?.latitude) {
+        // `isUsableCoordinate`, not truthiness: a route param of exactly 0 is a real
+        // latitude, and dropping it here picks the wrong zoom for the region the
+        // caller asked for.
+        if (isUsableCoordinate(route.params?.latitude)) {
             return SECONDARY_LATITUDE_DELTA;
         }
 
-        if (user?.details?.lastKnownLatitude && user?.details?.lastKnownLongitude) {
+        if (isUsableCoordinate(user?.details?.lastKnownLatitude)
+            && isUsableCoordinate(user?.details?.lastKnownLongitude)) {
             return MAX_ANIMATION_LATITUDE_DELTA;
         }
         return map.hasUserLocationLoaded ? PRIMARY_LATITUDE_DELTA : INITIAL_LATITUDE_DELTA;
@@ -878,11 +885,12 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
     getLongitudeDelta = () => {
         const { map, route, user } = this.props;
-        if (route.params?.longitude) {
+        if (isUsableCoordinate(route.params?.longitude)) {
             return SECONDARY_LONGITUDE_DELTA;
         }
 
-        if (user?.details?.lastKnownLatitude && user?.details?.lastKnownLongitude) {
+        if (isUsableCoordinate(user?.details?.lastKnownLatitude)
+            && isUsableCoordinate(user?.details?.lastKnownLongitude)) {
             return MAX_ANIMATION_LONGITUDE_DELTA;
         }
         return map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA;

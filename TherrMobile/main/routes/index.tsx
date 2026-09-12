@@ -21,6 +21,7 @@ import Landing from './Landing';
 import Login from './Login';
 import Map from './Map';
 import Achievements from './Achievements';
+import HabitsFeed from './HabitsFeed';
 import ApiAccess from './ApiAccess';
 import AchievementClaim from './Achievements/AchievementClaim';
 import Leaderboard from './Leaderboard';
@@ -55,8 +56,13 @@ import ManageSpaces from './ManageSpaces';
 import MyQRCodes from './MyQRCodes';
 import MyQRCodeDetail from './MyQRCodes/MyQRCodeDetail';
 import Invite from './Invite';
+import MyHabits from './MyHabits';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
+// HABITS routes
+import { HabitsDashboard, HabitDetail, UpgradePaywall } from './Habits';
+import Journal from './Journal';
+import { PactDetail, CreatePactInvite, HabitsPushOptIn, AddPactMembers } from './Pacts';
 import { AccessPresets } from './access';
 import { editStackOptions, momentStackOptions, viewStackOptions } from './stackOptions';
 
@@ -100,9 +106,11 @@ const routes: RouteConfig<
         }),
     },
     {
-        // ORDER IS LOAD-BEARING: Layout renders these in array order and does not
-        // set `initialRouteName`, so the first route the user is authorized for
-        // becomes the landing screen. `CreateProfile` must sit AFTER `Map`:
+        // ORDER IS LOAD-BEARING: Layout renders these in array order, and for any
+        // brand `Layout.getBrandInitialRouteName()` does not answer for (today:
+        // everything except HABITS) it sets no `initialRouteName`, so the first
+        // route the user is authorized for becomes the landing screen.
+        // `CreateProfile` must sit AFTER `Map`:
         //   - onboarding users (missing properties) fail Landing/Login/Map, so
         //     CreateProfile is their first surviving route — first-run onboarding;
         //   - fully verified users now also match CreateProfile (they re-enter it
@@ -131,6 +139,17 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Achievements',
             requiredFeatures: [FeatureFlags.ENABLE_ACHIEVEMENTS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'HabitsFeed',
+        component: HabitsFeed,
+        options: () => ({
+            title: 'Feed',
+            // Same flag the bottom-bar Feed tab reads — a tab and its route must agree, or the
+            // tab navigates to a screen the navigator never registered. See habitsTabLayout.ts.
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS_FEED],
             access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
@@ -524,6 +543,92 @@ const routes: RouteConfig<
             requiredFeatures: [FeatureFlags.ENABLE_THOUGHTS],
             access: AccessPresets.EMAIL_VERIFIED,
             ...viewStackOptions,
+        }),
+    },
+    {
+        name: 'MyHabits',
+        component: MyHabits,
+        options: () => ({
+            title: 'My Habits',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    // HABITS routes
+    {
+        // Holds the pact invite lists too, as segments — the former `PactsList`
+        // screen. Gated on ENABLE_HABITS alone rather than also on
+        // ENABLE_PACTS, which the screen reads itself to decide whether to
+        // render those segments at all.
+        name: 'HabitsDashboard',
+        component: HabitsDashboard,
+        options: () => ({
+            title: 'My Habits',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'HabitDetail',
+        component: HabitDetail,
+        options: () => ({
+            title: 'Habit Details',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'Journal',
+        component: Journal,
+        options: () => ({
+            title: 'Journal',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS_JOURNAL],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'UpgradePaywall',
+        component: UpgradePaywall,
+        options: () => ({
+            title: 'Free For Life',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'PactDetail',
+        component: PactDetail,
+        options: () => ({
+            title: 'Pact Details',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'CreatePactInvite',
+        component: CreatePactInvite,
+        options: () => ({
+            title: 'Invite a Friend',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'AddPactMembers',
+        component: AddPactMembers,
+        options: () => ({
+            title: 'Add Members',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'HabitsPushOptIn',
+        component: HabitsPushOptIn,
+        options: () => ({
+            title: 'Notifications',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
 ];

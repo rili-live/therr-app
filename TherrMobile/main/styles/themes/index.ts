@@ -6,6 +6,7 @@ import lightTheme from './light';
 import darkTheme from './dark';
 import retroTheme from './retro';
 import { getPaperTheme } from './paper';
+import { resolveMobileThemeName } from './resolveThemeName';
 
 
 export const isDarkTheme = (name?: IMobileThemeName) => name !== 'light';
@@ -57,7 +58,20 @@ const brandColorOverrides: Partial<
 > = {
     [BrandVariations.THERR]: {},
     [BrandVariations.TEEM]: {},
-    [BrandVariations.HABITS]: {},
+    // Sampled from TherrMobile/main/assets/habits-icons/adaptive-foreground.svg —
+    // chameleon body gradient (#5B4273 → #6E5C85 → #7C8094) and stripe (#D49617).
+    [BrandVariations.HABITS]: {
+        brand: '#6E5C85',
+        brandDark: '#5B4273',
+        brandFaded: 'rgba(91, 66, 115, 0.4)',
+        onBrand: '#fcfeff',
+        accent: '#D49617',
+        onAccent: '#fcfeff',
+        primary3: '#6E5C85',
+        primary4: '#5B4273',
+        secondary: '#D49617',
+        brandingBlueGreen: '#6E5C85',
+    },
     [BrandVariations.OTAKU]: {},
     [BrandVariations.PARALLELS]: {},
     [BrandVariations.APPY_SOCIAL]: {},
@@ -69,7 +83,12 @@ const brandColorVariationOverrides: Partial<
 > = {
     [BrandVariations.THERR]: {},
     [BrandVariations.TEEM]: {},
-    [BrandVariations.HABITS]: {},
+    [BrandVariations.HABITS]: {
+        primary3LightFade: 'rgba(110, 92, 133, 0.85)',
+        primary3Fade: 'rgba(110, 92, 133, 0.75)',
+        primary3Disabled: '#8a79a0',
+        primary4Fade: 'rgba(91, 66, 115, 0.5)',
+    },
     [BrandVariations.OTAKU]: {},
     [BrandVariations.PARALLELS]: {},
     [BrandVariations.APPY_SOCIAL]: {},
@@ -82,8 +101,9 @@ export const getTheme = (
     name?: IMobileThemeName,
     brand?: BrandVariations,
 ): ITherrTheme => {
-    const baseTheme = baseThemeFor(name);
     const resolvedBrand = brand ?? CURRENT_BRAND_VARIATION;
+    const resolvedName = resolveMobileThemeName(name, resolvedBrand);
+    const baseTheme = baseThemeFor(resolvedName);
     const colorOverride = brandColorOverrides[resolvedBrand];
     const variationOverride = brandColorVariationOverrides[resolvedBrand];
 
@@ -101,6 +121,7 @@ export const getTheme = (
 };
 
 export { getPaperTheme };
+export { resolveMobileThemeName };
 
 export interface ITherrThemeColors {
     // -----------------------------------------------------------------------

@@ -80,6 +80,25 @@ describe('getSceneContentContainerStyle', () => {
         expect(withInset.minHeight).toBe(withoutInset.minHeight);
     });
 
+    it('should add the top inset below the overlay so a card list clears the tab bar shadow', () => {
+        const withInset = getSceneContentContainerStyle({
+            containerHeight: CONTAINER_HEIGHT,
+            headerHeight: HEADER_HEIGHT,
+            tabBarHeight: TAB_BAR_HEIGHT,
+            topInset: 12,
+        });
+        const withoutInset = getSceneContentContainerStyle({
+            containerHeight: CONTAINER_HEIGHT,
+            headerHeight: HEADER_HEIGHT,
+            tabBarHeight: TAB_BAR_HEIGHT,
+        });
+
+        expect(withInset.paddingTop).toBe(HEADER_HEIGHT + TAB_BAR_HEIGHT + 12);
+        // The inset is spacing, not scroll range — the header must still collapse the
+        // same amount whether or not a brand asks for the extra gap.
+        expect(withInset.minHeight).toBe(withoutInset.minHeight);
+    });
+
     it('should stay benign before anything has been measured', () => {
         const style = getSceneContentContainerStyle({
             containerHeight: 0,

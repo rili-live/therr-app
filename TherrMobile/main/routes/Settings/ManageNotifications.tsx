@@ -7,6 +7,8 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
+import { BrandVariations } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import { showToast } from '../../utilities/toasts';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -18,6 +20,16 @@ import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/settingsForm';
 import { buildStyles as buildModalStyles } from '../../styles/modal';
 import spacingStyles from '../../styles/layouts/spacing';
+import getHabitsPushPreferences from './pushPreferences';
+
+/**
+ * These two columns are read only by the HABITS daily digest
+ * (users-service `handlers/habitsDigest`), so the section is gated rather than shown to
+ * every brand. The gate is belt-and-braces on this branch — `niche/HABITS-general` only
+ * ever builds the Habits app — but it keeps the screen correct if this file is ever
+ * shared, and it documents who the toggles belong to.
+ */
+const isHabitsApp = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
 import BaseStatusBar from '../../components/BaseStatusBar';
 
 interface IManageNotificationsDispatchProps {
@@ -127,6 +139,9 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
                 settingsEmailMessages: props.user.settings.settingsEmailMessages,
                 settingsEmailReminders: props.user.settings.settingsEmailReminders,
                 settingsEmailBackground: props.user.settings.settingsEmailBackground,
+                // An absent value renders as On, because absent means opted in. See
+                // `getHabitsPushPreferences` for why.
+                ...getHabitsPushPreferences(props.user.settings),
             },
             isSubmitting: false,
         };
@@ -211,6 +226,7 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
         const { navigation, user } = this.props;
         const  { inputs, isSubmitting } = this.state;
         const pageHeaderAdvancedSettings = this.translate('pages.manageNotifications.pageHeaderEmailSettings');
+        const pageHeaderPushSettings = this.translate('pages.manageNotifications.pageHeaderPushSettings');
 
         return (
             <>
@@ -309,6 +325,38 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
                                     disabled={isSubmitting}
                                 />
                             </View>
+                            {
+                                isHabitsApp &&
+                                    <>
+                                        <View style={this.theme.styles.sectionContainer}>
+                                            <Text style={this.theme.styles.sectionTitle}>
+                                                {pageHeaderPushSettings}
+                                            </Text>
+                                        </View>
+                                        <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                            <NotificationSettingSwitch
+                                                label={this.translate('forms.settings.buttons.settingsPushHabitReminders')}
+                                                value={inputs.settingsPushHabitReminders}
+                                                onChange={() => this.onSwitchChange('settingsPushHabitReminders')}
+                                                theme={this.theme}
+                                                themeForms={this.themeForms}
+                                                themeModal={this.themeModal}
+                                                translate={this.translate}
+                                                disabled={isSubmitting}
+                                            />
+                                            <NotificationSettingSwitch
+                                                label={this.translate('forms.settings.buttons.settingsPushStreakAlerts')}
+                                                value={inputs.settingsPushStreakAlerts}
+                                                onChange={() => this.onSwitchChange('settingsPushStreakAlerts')}
+                                                theme={this.theme}
+                                                themeForms={this.themeForms}
+                                                themeModal={this.themeModal}
+                                                translate={this.translate}
+                                                disabled={isSubmitting}
+                                            />
+                                        </View>
+                                    </>
+                            }
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>

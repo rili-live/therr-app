@@ -1,0 +1,7 @@
+Novedades:
+• Tu registro compartido ahora aparece de inmediato al inicio de tu Feed
+• El interruptor "Compartir en el feed" siempre está visible al registrar, y viene activado si tu perfil es público
+• Una vista previa de foto más pequeña para que la opción de compartir siga a la vista
+• Correcciones y mejoras de estabilidad
+
+¡Gracias por construir hábitos con nosotros!

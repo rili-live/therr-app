@@ -29,23 +29,19 @@ import {
 import LogRocket from '@logrocket/react-native';
 import SplashScreen from 'react-native-bootsplash';
 import notifee, { Event, EventType } from '@notifee/react-native';
-import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
-import { ContentActions, ForumActions, NotificationActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
+import { IUIState } from '../types/redux/ui';
+import { ContentActions, ForumActions, HabitActions, NotificationActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { AccessLevels, BrandVariations, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
-import REQUEST_PLATFORM from '../constants/requestPlatform';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer, type ParamListBase } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { showToast } from '../utilities/toasts';
-import BackgroundGeolocation, {
-    Config,
-    Subscription,
-} from 'react-native-background-geolocation';
+import { logAppEvent } from '../utilities/analyticsEvents';
 import getConfig from '../utilities/getConfig';
 import { sendForegroundNotification, wrapOnMessageReceived } from '../utilities/pushNotifications';
 import routes from '../routes';
@@ -70,7 +66,6 @@ import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal'
 import { buildStyles as buildDisclosureStyles } from '../styles/modal/locationDisclosure';
 import permissions, { PermType } from '../utilities/permissionsOrchestrator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import BackgroundLocationDisclosureModal from './Modals/BackgroundLocationDisclosureModal';
 import PermissionPrimerModal from './Modals/PermissionPrimerModal';
 import AppReviewPromptModal, { AppReviewPromptOutcome } from './Modals/AppReviewPromptModal';
 import {
@@ -91,10 +86,11 @@ import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, getAndroi
 import { socketIO, updateSocketToken } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
 import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
-import background1 from '../assets/dinner-burgers.webp';
-import background2 from '../assets/dinner-overhead.webp';
-import background3 from '../assets/dinner-overhead-2.webp';
+import background1 from '../assets/landing-jungle.webp';
+import background2 from '../assets/landing-tree.webp';
+import background3 from '../assets/landing-chameleon.webp';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
+import { getBrandInitialRouteName } from '../utilities/brandLandingRoute';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
 import getDeviceTimeZone from '../utilities/deviceTimeZone';
@@ -112,18 +108,15 @@ const QUICK_ACTION_SUFFIXES = {
 
 const Stack = createNativeStackNavigator<ParamListBase, undefined>();
 
-const getRequestHeaders = (user) => ({
-    'x-userid': user?.details?.id,
-    'x-localecode':  user?.settings?.locale || 'en-us',
-    'x-platform': REQUEST_PLATFORM,
-    'x-brand-variation': CURRENT_BRAND_VARIATION,
-});
-
 const isLocationServicesEnabled = () => getConfig()?.featureFlags?.[FeatureFlags.ENABLE_LOCATION_SERVICES] !== false;
 
 interface ILayoutDispatchProps {
     createUserGroup: Function;
     deleteUserGroup: Function;
+    getActivePacts: Function;
+    acceptPact: Function;
+    renewPact: Function;
+    createCheckin: Function;
     getMyAchievements: Function;
     getUserGroups: Function;
     logout: Function;
@@ -154,6 +147,7 @@ interface IStoreProps extends ILayoutDispatchProps {
     forums: IForumsState;
     location: ILocationState;
     notifications: INotificationsState;
+    ui: IUIState;
     user: IUserState;
 }
 
@@ -166,14 +160,11 @@ export interface ILayoutProps extends IStoreProps {
 interface ILayoutState {
     targetRouteView: string;
     targetRouteParams: any;
-    isBackgroundLocationDisclosureVisible: boolean;
     permissionPrimerType: PermType | null;
     shouldSpinSplashLogo: boolean;
     isSplashSpinnerVisible: boolean;
     isAppReviewPromptVisible: boolean;
 }
-
-const BG_LOCATION_DISCLOSURE_KEY = 'bgLocationDisclosureShown';
 
 /**
  * Delay before the review prompt is considered on a cold start, measured from the splash
@@ -191,6 +182,7 @@ const mapStateToProps = (state: any) => ({
     forums: state.forums,
     location: state.location,
     notifications: state.notifications,
+    ui: state.ui,
     user: state.user,
 });
 
@@ -199,6 +191,10 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             createUserGroup: UsersActions.createUserGroup,
             deleteUserGroup: UsersActions.deleteUserGroup,
+            getActivePacts: HabitActions.getActivePacts,
+            acceptPact: HabitActions.acceptPact,
+            renewPact: HabitActions.renewPact,
+            createCheckin: HabitActions.createCheckin,
             getMyAchievements: UsersActions.getMyAchievements,
             getUserGroups: UsersActions.getUserGroups,
             logout: UsersActions.logout,
@@ -252,7 +248,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private appStateListener: NativeEventSubscription | null = null;
     private lastBackgroundedAt: number | null = null;
     private appReviewPromptTimeout: ReturnType<typeof setTimeout> | null = null;
-    subscriptions: Subscription[] = [];
 
     constructor(props) {
         super(props);
@@ -260,7 +255,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.state = {
             targetRouteView: '',
             targetRouteParams: {},
-            isBackgroundLocationDisclosureVisible: false,
             permissionPrimerType: null,
             shouldSpinSplashLogo: false,
             isSplashSpinnerVisible: true,
@@ -325,33 +319,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         socketIO.on('reconnect_attempt', this.handleSocketReconnectAttempt);
         socketIO.on('reconnect', this.handleSocketReconnect);
 
-        // Gate every BackgroundGeolocation method behind the feature flag, not just
-        // .ready()/.start(). Subscribing to .onLocation / .onProviderChange instantiates
-        // the native TSLocationManager, which fires transistorsoft's license validator;
-        // on niches whose applicationId is not on the license (e.g. HABITS / com.therr.habits)
-        // that produces a runtime license-error log even when the listeners are no-ops.
-        if (isLocationServicesEnabled()) {
-            this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
-                logEvent(getAnalytics(),'background_location_on_location', {
-                    userId: this.props.user?.details?.id,
-                }).catch((err) => console.log(err));
-            }, (error) => {
-                logEvent(getAnalytics(),'background_location_error', {
-                    userId: this.props.user?.details?.id,
-                }).catch((err) => console.log(err));
-                console.log('BackgroundGeolocation-[onLocation] ERROR:', error);
-            }));
-            this.subscriptions.push(BackgroundGeolocation.onProviderChange((event) => {
-                // Replaces the legacy DeviceEventEmitter.locationProviderStatusChange
-                // listener (emitted by react-native-android-location-services-dialog-box,
-                // which was removed in the New Architecture migration). Fires on
-                // LocationManager.PROVIDERS_CHANGED_ACTION (Android) and authorization
-                // changes (iOS). Reducer checks status === 'enabled'.
-                this.props.updateGpsStatus(event.enabled ? 'enabled' : 'disabled');
-            }));
-        }
-
-        this.checkAndShowBackgroundLocationDisclosure();
         this.prefetchContent();
 
         // Wire the permissions orchestrator: a single primer modal lives at the
@@ -368,10 +335,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             this.registerDeviceForFCM();
         });
 
-        // If the user is already authenticated at app launch, this is a returning
-        // session. Try the silent FCM registration (no-op if not authorized) and
-        // give the soft-ask a chance via the second-session fallback.
         if (this.props.user?.isAuthenticated) {
+            // Persisted-session launch: componentDidUpdate's auth-transition gate
+            // doesn't fire when the user is already authenticated at mount, so
+            // reset to the brand-appropriate landing screen here.
+            if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+                this.resetToHabitsLanding();
+            }
+            // Returning session: try silent FCM registration and give the
+            // soft-ask a chance via the second-session fallback.
             this.tryRegisterDeviceTokenIfAuthorized();
             permissions.requestIfAppropriate('notifications', { trigger: 'secondSession' });
         }
@@ -392,10 +364,25 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         if (user?.isAuthenticated !== prevProps.user?.isAuthenticated) {
             if (user.isAuthenticated) { // Happens after login
-                const token = user?.details?.idToken;
-                if (token) {
-                    this.checkAndShowBackgroundLocationDisclosure();
-                }
+                // One-shot drain: if the user opened a /claim-pact/<token> link
+                // before authenticating, redeem it now so the inviter's gate
+                // (PactOnboardingGuard) can lift on their first refresh.
+                AsyncStorage.getItem('pendingPactClaimToken')
+                    .then((pendingToken) => {
+                        if (!pendingToken) return undefined;
+                        return axios.post('/users-service/habits/pacts/claim', { token: pendingToken })
+                            .then(() => {
+                                // Refresh active pacts so PactOnboardingGuard lifts
+                                // immediately — without this the invitee's first
+                                // screen is an empty gate until manual refresh.
+                                this.props.getActivePacts();
+                            })
+                            .finally(() => AsyncStorage.removeItem('pendingPactClaimToken'));
+                    })
+                    .catch((err) => {
+                        console.log('PACT_CLAIM_DRAIN_ERROR', err?.message);
+                        AsyncStorage.removeItem('pendingPactClaimToken').catch(() => undefined);
+                    });
 
                 if (user.details?.id) {
                     setCrashlyticsUserId(getCrashlytics(), user.details?.id?.toString());
@@ -409,7 +396,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     }
                 }
 
-                if (targetRouteView) {
+                if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+                    // HABITS has its own dashboard; the targetRouteView path
+                    // below routes through Areas, which is feature-flagged off
+                    // for HABITS and would otherwise leave the user on a
+                    // fallback screen (e.g., Home) after login.
+                    this.resetToHabitsLanding();
+                } else if (targetRouteView) {
                     RootNavigation.reset({
                         index: 0,
                         routes: [
@@ -421,7 +414,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
                 this.prefetchContent();
 
-                if (!forums?.forumCategories || !forums.forumCategories.length) {
+                const featureFlags = getConfig().featureFlags || {};
+                if (featureFlags.ENABLE_FORUMS && (!forums?.forumCategories || !forums.forumCategories.length)) {
                     searchCategories({
                         itemsPerPage: 100,
                         pageNumber: 1,
@@ -461,7 +455,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 // and a second-session fallback via permissionsOrchestrator.
                 this.tryRegisterDeviceTokenIfAuthorized();
             } else {
-                BackgroundGeolocation.stop();
                 // Tear down the FCM subscription so a subsequent login re-registers
                 // (refreshes the device token and re-attaches axios headers).
                 if (this.unsubscribePushNotifications) {
@@ -492,11 +485,61 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
         this.fcmOpenedUnsubscribe && this.fcmOpenedUnsubscribe();
-        this.subscriptions.forEach((subscription) => subscription.remove());
         this.unsubscribeNotificationsGranted?.();
         this.unsubscribeNotificationsGranted = null;
         permissions.registerPrimerListener(null);
     }
+
+    // For HABITS, the first authenticated reset goes to a one-time push opt-in
+    // screen (the highest-leverage retention lever — the user needs to know
+    // when their pact invite is accepted). Subsequent launches skip straight
+    // to HabitsDashboard.
+    //
+    // If the user only has EMAIL_VERIFIED_MISSING_PROPERTIES (and not full
+    // EMAIL_VERIFIED), HabitsDashboard is filtered out of the navigator by the
+    // route-filter below (it requires AccessPresets.EMAIL_VERIFIED), and the
+    // reset would silently fail with a "RESET was not handled" warning while
+    // the user lands on whichever fallback route their access level allows.
+    // Route them to CreateProfile instead so they can complete their profile
+    // and self-upgrade to EMAIL_VERIFIED.
+    resetToHabitsLanding = async () => {
+        if (!isUserEmailVerified(this.props.user)) {
+            this.resetToRouteIfNeeded('CreateProfile');
+            return;
+        }
+        let optInShown = 'true';
+        try {
+            optInShown = (await AsyncStorage.getItem('HABITS_PUSH_OPTIN_SHOWN')) || '';
+        } catch {
+            // best-effort — fall through to dashboard if AsyncStorage is broken
+            optInShown = 'true';
+        }
+        const target = optInShown ? 'HabitsDashboard' : 'HabitsPushOptIn';
+        this.resetToRouteIfNeeded(target);
+    };
+
+    /**
+     * The navigator now mounts directly on the brand landing screen (see
+     * `getBrandInitialRouteName`), so the persisted-session reset is usually a
+     * no-op. Dispatching it anyway remounted the landing screen and re-ran its
+     * fetches for no reason, so only reset when the stack is not already
+     * exactly `[routeName]`.
+     */
+    resetToRouteIfNeeded = (routeName: string) => {
+        const currentRouteName = RootNavigation.getCurrentRoute()?.name;
+        const stackDepth = navigationRef.isReady()
+            ? (navigationRef.getRootState()?.routes?.length || 0)
+            : 0;
+
+        if (currentRouteName === routeName && stackDepth <= 1) {
+            return;
+        }
+
+        RootNavigation.reset({
+            index: 0,
+            routes: [{ name: routeName }],
+        });
+    };
 
     handleSocketReconnectAttempt = () => {
         updateSocketToken(this.props.user);
@@ -506,35 +549,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (this.props.user && this.props.user.isAuthenticated) {
             this.props.refreshConnection(this.props.user);
         }
-    };
-
-    checkAndShowBackgroundLocationDisclosure = () => {
-        if (!isLocationServicesEnabled()) {
-            return;
-        }
-        if (!this.props.user?.isAuthenticated || !this.props.user?.settings?.settingsPushBackground) {
-            return;
-        }
-        AsyncStorage.getItem(BG_LOCATION_DISCLOSURE_KEY).then((value) => {
-            if (value === 'true') {
-                this.readyAndStartBackgroundGeolocation();
-            } else {
-                this.setState({ isBackgroundLocationDisclosureVisible: true });
-            }
-        }).catch(() => {
-            this.readyAndStartBackgroundGeolocation();
-        });
-    };
-
-    handleBackgroundLocationDisclosureAccept = () => {
-        this.setState({ isBackgroundLocationDisclosureVisible: false });
-        AsyncStorage.setItem(BG_LOCATION_DISCLOSURE_KEY, 'true').catch(() => {});
-        this.readyAndStartBackgroundGeolocation();
-    };
-
-    handleBackgroundLocationDisclosureDecline = () => {
-        this.setState({ isBackgroundLocationDisclosureVisible: false });
-        AsyncStorage.setItem(BG_LOCATION_DISCLOSURE_KEY, 'true').catch(() => {});
     };
 
     handleAppStateChange = (nextAppState: AppStateStatus) => {
@@ -567,14 +581,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     isAppReviewPromptInterruptible = (): boolean => {
         const {
             isAppReviewPromptVisible,
-            isBackgroundLocationDisclosureVisible,
             isSplashSpinnerVisible,
             permissionPrimerType,
         } = this.state;
 
         return this.isUserAuthenticated()
             && !isAppReviewPromptVisible
-            && !isBackgroundLocationDisclosureVisible
             && !isSplashSpinnerVisible
             && !permissionPrimerType
             && !this.props.user?.settings?.isTouring;
@@ -651,74 +663,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // already started the quiet period.
     };
 
-    // IMPORTANT: This should only be called once per session
-    readyAndStartBackgroundGeolocation = () => {
-        if (!isLocationServicesEnabled()) {
-            return;
-        }
-        const userToken = this.props?.user?.details?.idToken;
-        if (this.props.user?.isAuthenticated && userToken
-            && this.props.user?.settings?.settingsPushBackground) {
-            const backgroundConfig: Config = {
-                // Geolocation Config
-                desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_MEDIUM,
-                distanceFilter: 15,
-                // Activity Recognition
-                stopTimeout: 5,
-                // Application config
-                // debug: true, // <-- enable this hear sounds for background-geolocation life-cycle.
-                logLevel: BackgroundGeolocation.LOG_LEVEL_ERROR,
-                stopOnTerminate: false,   // <-- Allow the background-service to continue tracking when user closes the app.
-                startOnBoot: true,        // <-- Auto start tracking when device is powered-up.
-                triggerActivities: 'on_foot, walking, running',
-                notification: {
-                    color: this.theme.colors.primary3,
-                    smallIcon: 'drawable/ic_notification_icon',
-                    text: this.translate('alertTitles.backgroundLocationNotification'),
-                    channelName: this.translate('alertTitles.backgroundLocationNotificationChannel'),
-                    // channelId: AndroidChannelIds.rewardsFinder,
-                    priority: BackgroundGeolocation.NOTIFICATION_PRIORITY_MIN,
-                },
-                backgroundPermissionRationale: {
-                    title: this.translate('alertTitles.backgroundLocation'),
-                    message: this.translate('alertMessages.backgroundLocation'),
-                    positiveAction: this.translate('alertActions.acceptBackgroundLocation'),
-                },
-                disableLocationAuthorizationAlert: true,
-                // locationAuthorizationAlert
-                locationUpdateInterval: 1000 * 60,
-                // HTTP / SQLite config
-                url: `${getConfig().baseApiGatewayRoute}/push-notifications-service/location/process-user-background-location`,
-                batchSync: false,       // <-- [Default: false] Set true to sync locations to server in a single HTTP request.
-                autoSync: true,         // <-- [Default: true] Set true to sync each location to server as it arrives.
-                headers: {              // <-- Optional HTTP headers
-                    ...getRequestHeaders(this?.props?.user),
-                    authorization: `Bearer ${userToken}`,
-                },
-                params: {               // <-- Optional HTTP params
-                    // 'auth_token': 'maybe_your_server_authenticates_via_token_YES?',
-                    userId: this.props?.user?.details?.id,
-                    platformOS: Platform.OS,
-                    deviceModel: DeviceInfo.getModel(),
-                    isDeviceTablet: DeviceInfo.isTablet(),
-                },
-            };
-
-            /// 2. ready the plugin.
-            BackgroundGeolocation.ready(backgroundConfig).then((state) => {
-                logEvent(getAnalytics(),'background_location_ready', {
-                    isEnabled: state.enabled,
-                    userId: this.props.user?.details?.id,
-                }).catch((err) => console.log(err));
-
-                // Start background location
-                if (this.props.user?.isAuthenticated && userToken) {
-                    BackgroundGeolocation.start();
-                }
-            });
-        }
-    };
-
     reloadTheme = (shouldForceUpdate: boolean = false) => {
         const themeName = this.props?.user?.settings?.mobileThemeName;
         this.theme = buildStyles(themeName);
@@ -750,8 +694,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             completePrefetchRequest,
         } = this.props;
         if (user.isAuthenticated) {
+            // Skip data fetches for features the current brand has disabled.
+            // Otherwise we hit endpoints (e.g., /reactions-service/moments/active/search)
+            // for content the brand never displays, generating 401/404 noise and
+            // — worst case — auth-recovery cascades on a still-valid session.
+            const featureFlags = getConfig().featureFlags || {};
+
             // Pre-load activated content
-            if (!content?.activeMoments?.length) {
+            if (featureFlags.ENABLE_MOMENTS && !content?.activeMoments?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveMoments: true,
                 });
@@ -770,7 +720,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 });
             }
-            if (!content?.activeThoughts?.length) {
+            if (featureFlags.ENABLE_THOUGHTS && !content?.activeThoughts?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveThoughts: true,
                 });
@@ -789,7 +739,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 });
             }
-            if (!content?.activeEvents?.length) {
+            if (featureFlags.ENABLE_EVENTS && !content?.activeEvents?.length) {
                 beginPrefetchRequest({
                     isLoadingActiveEvents: true,
                 });
@@ -809,58 +759,70 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 });
             }
 
-            // Pre-load notifications
-            beginPrefetchRequest({
-                isLoadingAchievements: true,
-                isLoadingUsers: true,
-                isLoadingGroups: true,
-                isLoadingNotifications: true,
-            });
-            searchNotifications({
-                filterBy: 'userId',
-                query: user.details.id,
-                itemsPerPage: 20,
-                pageNumber: 1,
-                order: 'desc',
-            }).catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingNotifications: false,
+            if (featureFlags.ENABLE_NOTIFICATIONS) {
+                beginPrefetchRequest({
+                    isLoadingNotifications: true,
                 });
-            });
+                searchNotifications({
+                    filterBy: 'userId',
+                    query: user.details.id,
+                    itemsPerPage: 20,
+                    pageNumber: 1,
+                    order: 'desc',
+                }).catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingNotifications: false,
+                    });
+                });
+            }
 
-            // Pre-load achievements
-            getMyAchievements().catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingAchievements: false,
+            if (featureFlags.ENABLE_ACHIEVEMENTS) {
+                beginPrefetchRequest({
+                    isLoadingAchievements: true,
                 });
-            });
+                getMyAchievements().catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingAchievements: false,
+                    });
+                });
+            }
 
-            searchUsers(
-                {
-                    query: '',
-                    limit: DEFAULT_PAGE_SIZE,
-                    offset: 0,
-                    withMedia: true,
-                },
-            ).catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingUsers: false,
+            if (featureFlags.ENABLE_CONNECT) {
+                beginPrefetchRequest({
+                    isLoadingUsers: true,
                 });
-            });
+                searchUsers(
+                    {
+                        query: '',
+                        limit: DEFAULT_PAGE_SIZE,
+                        offset: 0,
+                        withMedia: true,
+                    },
+                ).catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingUsers: false,
+                    });
+                });
+            }
 
-            getUserGroups().catch((err) => {
-                console.log(err);
-            }).finally(() => {
-                completePrefetchRequest({
-                    isLoadingGroups: false,
+            if (featureFlags.ENABLE_GROUPS) {
+                beginPrefetchRequest({
+                    isLoadingGroups: true,
                 });
-            });
+                getUserGroups().catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingGroups: false,
+                    });
+                });
+            }
         }
     };
 
@@ -1035,6 +997,27 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     ? PushNotifications.AndroidIntentActions.Teem
                     : PushNotifications.AndroidIntentActions.Therr;
 
+            // The HABITS-only keys (PACT_*, PARTNER_*, STREAK_*,
+            // DAILY_HABIT_REMINDER, MORNING_MOTIVATION, EVENING_CHECK_IN) exist
+            // on HabitsAndroidIntentActions and on neither of the other two, so
+            // reading them off the union is a compile error even though the
+            // comparison is exactly what we want at runtime: on a Therr binary
+            // the lookup is `undefined` and no habits branch can match, which is
+            // correct — that build declares no habits intent filters, so the
+            // action string can never arrive.
+            //
+            // `?? '\u0000'` rather than `undefined` so an FCM payload with no
+            // `action` cannot accidentally equal a missing key.
+            const brandIntent = (key: string): string => (brandIntents as Record<string, string | undefined>)[key] ?? '\u0000';
+
+            // Intent extras arrive as strings and are absent unless the backend
+            // put them in the FCM data map.
+            const intentData = data as Record<string, any>;
+            const intentPactId = typeof intentData.pactId === 'string' && intentData.pactId ? intentData.pactId : undefined;
+            const intentHabitGoalId = typeof intentData.habitGoalId === 'string' && intentData.habitGoalId
+                ? intentData.habitGoalId
+                : undefined;
+
             if (data.action === brandIntents.ACHIEVEMENT_COMPLETED
                 || data.action === brandIntents.UNCLAIMED_ACHIEVEMENTS_REMINDER) {
                 targetRouteView = 'Achievements';
@@ -1088,6 +1071,41 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteView = 'BookMarked';
             } else if (data.action === brandIntents.REPORT_CONFIRMED) {
                 targetRouteView = 'Notifications';
+            } else if (data.action === brandIntent('PACT_INVITATION')
+                || data.action === brandIntent('PACT_NUDGE')) {
+                targetRouteView = 'HabitsDashboard';
+                targetRouteParams = { initialTab: 'pending' };
+            } else if (data.action === brandIntent('PACT_ACCEPTED')
+                || data.action === brandIntent('PACT_DECLINED')
+                || data.action === brandIntent('PACT_COMPLETED')
+                || data.action === brandIntent('PACT_EXPIRING')
+                || data.action === brandIntent('PARTNER_CHECKED_IN')
+                || data.action === brandIntent('PARTNER_MISSED_DAY')
+                || data.action === brandIntent('PARTNER_CELEBRATED')) {
+                // The manifest has declared every one of these actions since the
+                // habits work landed, but none of them were compared here — so
+                // `targetRouteView` stayed '' and the `else if (targetRouteView)`
+                // below was falsy: tapping a habits notification on the Android
+                // intent path navigated nowhere at all.
+                //
+                // `data.pactId` reaches the intent extras only when the backend
+                // put it in the FCM data map, which it now does; without it the
+                // dashboard is the honest destination.
+                targetRouteView = intentPactId ? 'PactDetail' : 'HabitsDashboard';
+                targetRouteParams = intentPactId ? { pactId: intentPactId } : {};
+            } else if (data.action === brandIntent('STREAK_AT_RISK')
+                || data.action === brandIntent('DAILY_HABIT_REMINDER')
+                || data.action === brandIntent('MORNING_MOTIVATION')
+                || data.action === brandIntent('EVENING_CHECK_IN')) {
+                targetRouteView = intentHabitGoalId ? 'HabitDetail' : 'HabitsDashboard';
+                targetRouteParams = intentHabitGoalId
+                    ? { habitGoalId: intentHabitGoalId }
+                    : { initialTab: 'habits' };
+            } else if (data.action === brandIntent('STREAK_MILESTONE')
+                || data.action === brandIntent('STREAK_BROKEN')
+                || data.action === brandIntent('NEW_PERSONAL_RECORD')) {
+                targetRouteView = intentHabitGoalId ? 'HabitDetail' : 'MyHabits';
+                targetRouteParams = intentHabitGoalId ? { habitGoalId: intentHabitGoalId } : {};
             } else if (data.action?.endsWith(QUICK_ACTION_SUFFIXES.CREATE_MOMENT)) {
                 // App-shortcut: jump straight into moment creation. EditMoment
                 // destructures route.params (and calls nearbySpaces.find), so we
@@ -1167,6 +1185,29 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const thought = parseObject('thought');
         const groupId = typeof data?.groupId === 'string' ? data.groupId : undefined;
         const postType = typeof data?.postType === 'string' ? data.postType : undefined;
+        // HABITS routing ids. The backend promotes these out of the copy config
+        // into the FCM data map (push-notifications-service firebaseAdmin.ts) —
+        // before that they were carried all the way from the producer, used to
+        // render the body, and dropped, which is why every habits notification
+        // could only ever open a list.
+        //
+        // `habitGoalId` is present only when the notification names exactly one
+        // habit: the digest rolls a user's whole day into one nudge, and a
+        // roll-up covering three habits has no single habit to open.
+        const habitGoalId = typeof data?.habitGoalId === 'string' && data.habitGoalId ? data.habitGoalId : undefined;
+        const pactId = typeof data?.pactId === 'string' && data.pactId ? data.pactId : undefined;
+
+        // Falls back to the dashboard rather than to the in-app Notifications
+        // list. That list has no habits rows at all — `Notifications.Types`
+        // (therr-js-utilities) declares none — so routing there was a dead end
+        // that looked like a broken notification.
+        const buildPactRoute = () => (pactId
+            ? { targetRouteView: 'PactDetail', targetRouteParams: { pactId } }
+            : { targetRouteView: 'HabitsDashboard', targetRouteParams: {} });
+
+        const buildHabitRoute = (initialTab?: string) => (habitGoalId
+            ? { targetRouteView: 'HabitDetail', targetRouteParams: { habitGoalId } }
+            : { targetRouteView: 'HabitsDashboard', targetRouteParams: initialTab ? { initialTab } : {} });
 
         const buildMomentRoute = (m: any) => ({
             targetRouteView: 'ViewMoment',
@@ -1288,11 +1329,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 return { targetRouteView: 'Notifications', targetRouteParams: {} };
 
             // HABITS pact / streak / partner / habit-reminder notifications.
-            // The matching screens (Pact view, Streak view, etc.) don't yet
-            // exist in TherrMobile; route to the in-app notifications list as
-            // a sensible default until those routes ship. Once the screens
-            // land, swap these branches for direct deep links.
             case PushNotifications.Types.pactInvitation:
+                return { targetRouteView: 'HabitsDashboard', targetRouteParams: { initialTab: 'pending' } };
+
+            case PushNotifications.Types.pactNudge:
+                return { targetRouteView: 'HabitsDashboard', targetRouteParams: { initialTab: 'pending' } };
+
+            // Pact state and partner activity — the pact is the subject, so the
+            // pact is the destination.
             case PushNotifications.Types.pactAccepted:
             case PushNotifications.Types.pactDeclined:
             case PushNotifications.Types.pactCompleted:
@@ -1301,22 +1345,31 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             case PushNotifications.Types.partnerCheckedIn:
             case PushNotifications.Types.partnerMissedDay:
             case PushNotifications.Types.partnerCelebrated:
-            case PushNotifications.Types.streakMilestone:
+                return buildPactRoute();
+
+            // Anything asking the user to check in opens the habit itself, with
+            // the dashboard's habits segment when it cannot name one — that is
+            // the segment listing the habits the user can check in on.
             case PushNotifications.Types.streakAtRisk:
-            case PushNotifications.Types.streakBroken:
-            case PushNotifications.Types.newPersonalRecord:
             case PushNotifications.Types.dailyHabitReminder:
             case PushNotifications.Types.morningMotivation:
             case PushNotifications.Types.eveningCheckIn:
-            // Habit lifecycle milestones and check-ins
-            // (docs/HABIT_LIFECYCLE_MESSAGING.md). Listed here rather than left
-            // to `default` because that returns null — the notification would
-            // render, be tappable, and open nothing.
-            case PushNotifications.Types.habitEstablished:
-            case PushNotifications.Types.habitAutomaticity:
             case PushNotifications.Types.habitMaintenanceCheckIn:
             case PushNotifications.Types.habitComeback:
-                return { targetRouteView: 'Notifications', targetRouteParams: {} };
+                return buildHabitRoute('habits');
+
+            // Celebrations and lifecycle milestones
+            // (docs/HABIT_LIFECYCLE_MESSAGING.md). The habit's own history is
+            // what the copy refers to; MyHabits is the fallback because a
+            // milestone with no habit id is still about the user's habits.
+            case PushNotifications.Types.streakMilestone:
+            case PushNotifications.Types.streakBroken:
+            case PushNotifications.Types.newPersonalRecord:
+            case PushNotifications.Types.habitEstablished:
+            case PushNotifications.Types.habitAutomaticity:
+                return habitGoalId
+                    ? { targetRouteView: 'HabitDetail', targetRouteParams: { habitGoalId } }
+                    : { targetRouteView: 'MyHabits', targetRouteParams: {} };
 
             default:
                 return null;
@@ -1631,6 +1684,202 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 return Promise.resolve();
             }
 
+            // HABITS action buttons.
+            //
+            // Before this, none of the four habits PressActionIds had a branch
+            // here at all: the backend has been stamping `pactView` /
+            // `pactAccept` / `checkinView` / `streakView` on every habits push
+            // since they shipped, and every one of them fell through to the
+            // type fallback below, which sent the user to the in-app
+            // Notifications list — a screen with no habits rows in it.
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.habitCheckin) {
+                // The killed-app case is handled by notifee.onBackgroundEvent in
+                // TherrMobile/index.js, which completes the check-in without
+                // opening the app. This branch is the warm path (foreground, or
+                // a background event while the tree is alive), where using the
+                // normal redux action keeps the dashboard in sync rather than
+                // leaving it showing an un-checked-in habit.
+                const checkinHabitGoalId = typeof notification?.data?.habitGoalId === 'string'
+                    ? notification.data.habitGoalId
+                    : undefined;
+                const checkinPactId = typeof notification?.data?.pactId === 'string'
+                    ? notification.data.pactId
+                    : undefined;
+
+                if (!isUserAuthorized || !checkinHabitGoalId) {
+                    this.setState({
+                        targetRouteView: 'HabitsDashboard',
+                        targetRouteParams: { initialTab: 'habits' },
+                    });
+                    return Promise.resolve();
+                }
+
+                return this.props.createCheckin({
+                    habitGoalId: checkinHabitGoalId,
+                    ...(checkinPactId ? { pactId: checkinPactId } : {}),
+                    status: 'completed',
+                }).then(() => {
+                    // The push quick-action is a real check-in and the highest-
+                    // retention one there is — the user never opened the app.
+                    // Omitting it here would make the notification loop look
+                    // like it produces nothing.
+                    logAppEvent('habit_checkin_complete', {
+                        userId: this.props.user?.details?.id,
+                        source: 'pushAction',
+                        hasProof: false,
+                    });
+
+                    showToast.success({
+                        text1: this.translate('alertTitles.checkinSucceeded'),
+                        text2: this.translate('alertMessages.checkinSucceeded'),
+                    });
+                }).catch(() => {
+                    // Falls through to the habit rather than only toasting: the
+                    // press already dismissed the notification, so an error with
+                    // no destination leaves the user with nothing to act on.
+                    showToast.error({
+                        text1: this.translate('alertTitles.checkinFailed'),
+                    });
+                    RootNavigation.navigate('HabitDetail', { habitGoalId: checkinHabitGoalId });
+                });
+            }
+
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.pactAccept) {
+                const acceptPactId = typeof notification?.data?.pactId === 'string'
+                    ? notification.data.pactId
+                    : undefined;
+
+                if (!acceptPactId) {
+                    this.setState({
+                        targetRouteView: 'HabitsDashboard',
+                        targetRouteParams: { initialTab: 'pending' },
+                    });
+                    return Promise.resolve();
+                }
+
+                const pactRouteParams = { pactId: acceptPactId };
+
+                if (!isUserAuthorized) {
+                    this.setState({
+                        targetRouteView: 'PactDetail',
+                        targetRouteParams: pactRouteParams,
+                    });
+                    return Promise.resolve();
+                }
+
+                // Mirrors the connection-request branch above: mutate, report,
+                // then land the user on the thing they just acted on either way.
+                return this.props.acceptPact(acceptPactId).then(() => {
+                    showToast.success({
+                        text1: this.translate('alertTitles.pactAccepted'),
+                    });
+                }).catch(() => {
+                    showToast.error({
+                        text1: this.translate('alertTitles.backendErrorMessage'),
+                    });
+                }).finally(() => {
+                    RootNavigation.navigate('PactDetail', pactRouteParams);
+                });
+            }
+
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.pactRenew) {
+                // "Start New Cycle" on the `pactEnded` push. Without this branch
+                // the id falls through to the type fallback below, which routes
+                // to the pact — so the button renders, opens the pact, and
+                // renews nothing, behaving identically to the "View" button
+                // beside it. Nothing reports that: the press dismisses the
+                // notification and the user is left on a screen that looks right.
+                const renewPactId = typeof notification?.data?.pactId === 'string'
+                    ? notification.data.pactId
+                    : undefined;
+                // Display-only, and the server re-reads the real value when it
+                // renews — so a missing or stale one costs the toast its number,
+                // never the cycle its length.
+                const renewDurationDays = Number(notification?.data?.durationDays) || 0;
+
+                if (!renewPactId) {
+                    // 'all' rather than 'habits': the notification is about a
+                    // pact, and 'all' is the segment that lists finished ones.
+                    // (`normalizeInitialTab` silently falls back to 'habits' for
+                    // any unrecognised value, so a wrong name here would not
+                    // error — it would just quietly land on the wrong list.)
+                    this.setState({
+                        targetRouteView: 'HabitsDashboard',
+                        targetRouteParams: { initialTab: 'all' },
+                    });
+                    return Promise.resolve();
+                }
+
+                const renewRouteParams = { pactId: renewPactId };
+
+                if (!isUserAuthorized) {
+                    this.setState({
+                        targetRouteView: 'PactDetail',
+                        targetRouteParams: renewRouteParams,
+                    });
+                    return Promise.resolve();
+                }
+
+                // No duration override, matching the dashboard CTA: the evidence
+                // behind renewal measures the *fixed cycle*, not its length, so
+                // `renewPact` reuses the previous cycle's `durationDays`. The
+                // renewal is a new pact rather than a mutation, so the streak in
+                // `habits.streaks` carries across the boundary untouched.
+                // Reuses the dashboard CTA's strings rather than adding a second
+                // set: the two entry points renew the same thing, and copy that
+                // drifts between them is copy a user can catch us on.
+                return this.props.renewPact(renewPactId).then(() => {
+                    showToast.success({
+                        text1: this.translate('pages.pacts.renew.successTitle'),
+                        text2: renewDurationDays
+                            ? this.translate('pages.pacts.renew.successMessage', { days: renewDurationDays })
+                            : undefined,
+                    });
+                }).catch((error: any) => {
+                    // The server re-checks renewability and 409s a stale CTA —
+                    // most often because a partner already renewed, leaving a
+                    // live cycle on the habit. That body is localized and names
+                    // the real reason, and the axios interceptor rejects with it
+                    // verbatim (hence `error.message`, not `error.response.data`).
+                    // A rejection carrying no `statusCode` never reached the API.
+                    const apiMessage = error?.statusCode && typeof error?.message === 'string'
+                        ? error.message
+                        : '';
+
+                    showToast.error({
+                        text1: this.translate('pages.pacts.errorTitle'),
+                        text2: apiMessage || this.translate('pages.pacts.renew.error'),
+                    });
+                }).finally(() => {
+                    // Land on the pact either way. A renewal that succeeded has
+                    // a new cycle to show, and one that failed needs somewhere
+                    // to act — the press already dismissed the notification.
+                    RootNavigation.navigate('PactDetail', renewRouteParams);
+                });
+            }
+
+            if (notification?.id
+                && (pressAction?.id === PushNotifications.PressActionIds.pactView
+                    || pressAction?.id === PushNotifications.PressActionIds.checkinView
+                    || pressAction?.id === PushNotifications.PressActionIds.streakView)) {
+                // Navigation only — the destination is exactly what the type
+                // fallback resolves, so reuse it rather than restating the
+                // habit/pact/dashboard precedence in a second place.
+                const habitsRoute = this.getRouteFromNotificationType(
+                    typeof notification?.data?.type === 'string' ? notification.data.type : undefined,
+                    notification?.data,
+                );
+
+                if (habitsRoute) {
+                    if (!isUserAuthorized) {
+                        this.setState(habitsRoute);
+                        return Promise.resolve();
+                    }
+                    RootNavigation.navigate(habitsRoute.targetRouteView, habitsRoute.targetRouteParams);
+                }
+                return Promise.resolve();
+            }
+
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.discovered) {
                 return Promise.resolve();
             }
@@ -1741,6 +1990,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     handleAppUniversalLinkURL = (url) => {
         const { user } = this.props;
         const urlSplit = url?.split('?') || [];
+        const claimPactRegex = RegExp('claim-pact/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewMomentRegex = RegExp('moments/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/view', 'i');
         const viewMomentFromDesktopRegex = RegExp('moments/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewSpaceRegex = RegExp('spaces/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/view', 'i');
@@ -1767,7 +2017,32 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             user
         );
 
-        if (url?.includes('therr.com/?access_token=')) {
+        if (url?.match(claimPactRegex)) {
+            // Cross-app pact invite. The email/SMS sent by users-service points
+            // here; on tap we either claim immediately (authed) or stash the
+            // token for the post-login drain (unauthed first launch).
+            const claimToken = (url.match(claimPactRegex) || [])[1];
+            if (claimToken) {
+                if (isUserLoggedIn && !isUserMissingProps) {
+                    axios.post('/users-service/habits/pacts/claim', { token: claimToken })
+                        .then(() => {
+                            this.props.getActivePacts();
+                            RootNavigation.navigate('Notifications');
+                        })
+                        .catch((err) => {
+                            console.log('PACT_CLAIM_ERROR', err?.message);
+                            RootNavigation.navigate('Notifications');
+                        });
+                } else {
+                    AsyncStorage.setItem('pendingPactClaimToken', claimToken).catch((err) => {
+                        console.log('PACT_CLAIM_STORE_ERROR', err?.message);
+                    });
+                    this.setState({
+                        targetRouteView: 'Notifications',
+                    });
+                }
+            }
+        } else if (url?.includes('therr.com/?access_token=')) {
             // Route for 3rd party OAuth (Facebook, Instagram, etc.)
             // TODO: This is needs updated and tested
             const urlWithNoHash = url.split('#_');
@@ -1956,10 +2231,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
-    // Silent FCM token registration. Runs at login and on app launch when the
-    // user is already authenticated; only proceeds if the OS-level notification
-    // permission is already authorized, so it never surfaces an OS prompt.
-    // Soft-asks (and the OS prompt itself) are owned by permissionsOrchestrator.
     tryRegisterDeviceTokenIfAuthorized = async () => {
         try {
             const status = await hasPermission(getMessaging());
@@ -2123,14 +2394,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             targetRouteParams: {},
         });
 
-        this.subscriptions.forEach((subscription) => subscription.remove());
-        BackgroundGeolocation.stop().catch((err) => {
-            console.error(`Failed to stop background location after logout: ${err}`);
-            logEvent(getAnalytics(),'background_location_stop_error', {
-                userId: this.props.user?.details?.id,
-            }).catch((logErr) => console.log(logErr));
-        });
-
         return logout(userDetails);
     };
 
@@ -2161,7 +2424,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         } = this.props;
         const {
             isAppReviewPromptVisible,
-            isBackgroundLocationDisclosureVisible,
             permissionPrimerType,
             isSplashSpinnerVisible,
             shouldSpinSplashLogo,
@@ -2222,6 +2484,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 >
                     <Stack.Navigator
                         id={undefined}
+                        // Mount straight onto the brand's landing screen instead of
+                        // rendering the first authorized route and resetting away
+                        // from it a frame later.
+                        initialRouteName={getBrandInitialRouteName(user)}
                         screenOptions={({ route, navigation }) => {
                             const themeName = this.props?.user?.settings?.mobileThemeName;
                             const currentScreen = route.name;
@@ -2432,7 +2698,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     return true;
                                 }
 
-                                if (route.name === 'Landing' && user?.details?.id) {
+                                if (route.name === 'Landing' && user?.isAuthenticated) {
                                     return false;
                                 }
 
@@ -2451,13 +2717,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 return <Stack.Screen key={route.name} {...route} />;
                             })}
                     </Stack.Navigator>
-                    <BackgroundLocationDisclosureModal
-                        isVisible={isBackgroundLocationDisclosureVisible}
-                        onAccept={this.handleBackgroundLocationDisclosureAccept}
-                        onDecline={this.handleBackgroundLocationDisclosureDecline}
-                        translate={this.translate}
-                        themeDisclosure={this.themeDisclosure}
-                    />
                     {permissionPrimerType ? (
                         <PermissionPrimerModal
                             permissionType={permissionPrimerType}

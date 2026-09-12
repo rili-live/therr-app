@@ -28,10 +28,6 @@ def resolveGoogleApisAndroidKey = {
 }
 def googleApisAndroidKey = resolveGoogleApisAndroidKey()
 
-// background-geolocation
-def background_geolocation_path = "$rootDir/../node_modules/react-native-background-geolocation/android"
-apply from: "${background_geolocation_path}/app.gradle"
-
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -116,11 +112,15 @@ android {
     // }
 
     defaultConfig {
-        applicationId "app.therrmobile"
+        applicationId "com.therr.habits"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 458
-        versionName "3.17.5"
+        // Friends with Habits keeps its OWN Play version sequence — it is a separate
+        // listing under a separate applicationId. Taking general's numbers here (458 /
+        // 3.17.5) would jump this app by 424 codes in one merge and strand every future
+        // Habits release below it. Always resolve this conflict toward the niche side.
+        versionCode 42
+        versionName "1.7.1"
         // App Links hosts for the autoVerify intent-filter in AndroidManifest.xml.
         // Keyed off applicationId (same pattern as the release signingConfig below) so a
         // niche variant only has to change applicationId and the hosts follow.
@@ -201,8 +201,6 @@ android {
             minifyEnabled enableProguardInReleaseBuilds
             shrinkResources enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-            // background_geolocation requires custom Proguard Rules
-            proguardFiles "${background_geolocation_path}/proguard-rules.pro"
         }
     }
 }
@@ -225,6 +223,11 @@ tasks.named("clean").configure {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+
+    // Play Install Referrer — the only channel that carries a Google Ads
+    // campaign across the Play Store hop into a paid install. Read once on
+    // first launch by InstallReferrerModule; see main/utilities/installReferrer.ts.
+    implementation 'com.android.installreferrer:installreferrer:2.2'
 
     implementation platform('com.google.firebase:firebase-bom:33.7.0')
     implementation 'com.google.firebase:firebase-analytics'

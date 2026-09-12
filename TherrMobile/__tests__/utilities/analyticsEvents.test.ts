@@ -1,0 +1,160 @@
+import {
+    it, describe, expect, beforeEach, jest,
+} from '@jest/globals';
+
+jest.mock('@react-native-firebase/analytics', () => ({
+    __esModule: true,
+    getAnalytics: jest.fn(() => ({ __instance: true })),
+    logEvent: jest.fn(() => Promise.resolve()),
+}));
+
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
+import { logAppEvent } from '../../main/utilities/analyticsEvents';
+
+/**
+ * Both behaviours here exist because their absence is silent.
+ *
+ * A rejected `logEvent` inside a check-in or a purchase would surface to the
+ * user as that action failing, and an `undefined` param reaches Firebase as the
+ * string "undefined" — a funnel grouped on `userId` then reports a cohort that
+ * does not exist rather than reporting a gap.
+ */
+describe('logAppEvent', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        (logEvent as jest.Mock).mockImplementation(() => Promise.resolve());
+        (getAnalytics as jest.Mock).mockImplementation(() => ({ __instance: true }));
+    });
+
+    it('forwards the event name and its defined params', () => {
+        logAppEvent('habit_checkin_complete', { userId: 'user-1', source: 'dashboard' });
+
+        expect(logEvent).toHaveBeenCalledWith(
+            expect.anything(),
+            'habit_checkin_complete',
+            { userId: 'user-1', source: 'dashboard' },
+        );
+    });
+
+    it('omits an undefined param rather than sending the string "undefined"', () => {
+        // `userId` is read off a user record a push-driven path may not have
+        // loaded. Firebase records undefined as a literal, turning a missing
+        // value into a populated wrong one.
+        logAppEvent('habit_checkin_complete', { userId: undefined, source: 'pushAction' });
+
+        expect(logEvent).toHaveBeenCalledWith(
+            expect.anything(),
+            'habit_checkin_complete',
+            { source: 'pushAction' },
+        );
+    });
+
+    it('omits a null param for the same reason', () => {
+        logAppEvent('habits_founder_unlock_purchase', { value: null, currency: null, isRecovery: false });
+
+        expect(logEvent).toHaveBeenCalledWith(
+            expect.anything(),
+            'habits_founder_unlock_purchase',
+            { isRecovery: 'false' },
+        );
+    });
+
+    it('keeps a falsy-but-real value', () => {
+        logAppEvent('habit_pact_create', { partnerCount: 0, hasProof: false });
+
+        expect(logEvent).toHaveBeenCalledWith(
+            expect.anything(),
+            'habit_pact_create',
+            // `0` survives as a number; `false` is stringified — see below.
+            { partnerCount: 0, hasProof: 'false' },
+        );
+    });
+
+    it('sends a boolean as a string, because Firebase drops it otherwise', () => {
+        // Firebase constrains a custom param to string | number and applies that
+        // during cloud processing, so a boolean is discarded with no rejection on
+        // the device. `hasProof` and `isRecovery` would never reach GA4 at all, and
+        // a param that never arrives looks exactly like an event nobody fired.
+        logAppEvent('habits_founder_unlock_purchase', { isRecovery: true, hasProof: false });
+
+        expect(logEvent).toHaveBeenCalledWith(
+            expect.anything(),
+            'habits_founder_unlock_purchase',
+            { isRecovery: 'true', hasProof: 'false' },
+        );
+    });
+
+    it('leaves a number a number, so GA4 can still aggregate it', () => {
+        // The purchase value is the one param that has to stay numeric: stringifying
+        // it would make the conversion import a count again, which is the thing
+        // `resolvePurchaseValue` exists to avoid.
+        logAppEvent('habits_founder_unlock_purchase', { value: 19.99, currency: 'USD', partnerCount: 0 });
+
+        expect(logEvent).toHaveBeenCalledWith(
+            expect.anything(),
+            'habits_founder_unlock_purchase',
+            { value: 19.99, currency: 'USD', partnerCount: 0 },
+        );
+    });
+
+    it('swallows a rejection so measurement cannot break what it measures', async () => {
+        (logEvent as jest.Mock).mockImplementation(
+            () => Promise.reject(new Error('analytics not initialized')),
+        );
+
+        // The helper logs the swallowed error; keep it out of the test output.
+        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+
+        try {
+            expect(() => logAppEvent('habits_paywall_view', { userId: 'user-1' })).not.toThrow();
+
+            // Nothing to await on the caller's side, so let the rejection land.
+            await Promise.resolve();
+            await Promise.resolve();
+        } finally {
+            logSpy.mockRestore();
+        }
+    });
+
+    it('swallows a synchronous throw from logEvent, which validates its name inline', async () => {
+        // react-native-firebase validates the event name with a bare `throw`, not a
+        // rejected promise, so `.catch()` never sees it. Escaping here would fail the
+        // check-in whose `.then()` this is called from — one the server already
+        // recorded — rather than merely losing the event.
+        (logEvent as jest.Mock).mockImplementation(() => {
+            throw new Error("'name' the event name is reserved and can not be used.");
+        });
+
+        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+
+        try {
+            expect(() => logAppEvent('habit_checkin_complete', { userId: 'user-1' })).not.toThrow();
+        } finally {
+            logSpy.mockRestore();
+        }
+    });
+
+    it('swallows a throw from getAnalytics before the SDK has an app', () => {
+        // `getAnalytics()` resolves the default Firebase app and throws when it does
+        // not exist yet. The paywall calls this first thing in componentDidMount, so
+        // an escape blanks the screen the app earns money on.
+        (getAnalytics as jest.Mock).mockImplementation(() => {
+            throw new Error("No Firebase App '[DEFAULT]' has been created");
+        });
+
+        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+
+        try {
+            expect(() => logAppEvent('habits_paywall_view', { userId: 'user-1' })).not.toThrow();
+            expect(logEvent).not.toHaveBeenCalled();
+        } finally {
+            logSpy.mockRestore();
+        }
+    });
+
+    it('is callable with no params at all', () => {
+        logAppEvent('habit_solo_start');
+
+        expect(logEvent).toHaveBeenCalledWith(expect.anything(), 'habit_solo_start', {});
+    });
+});

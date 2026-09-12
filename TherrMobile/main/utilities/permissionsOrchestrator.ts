@@ -22,6 +22,9 @@ export type Trigger =
     | 'firstMomentPosted'
     | 'firstMessageSent'
     | 'firstConnectionAccepted'
+    | 'pactCreate'
+    | 'pactAccept'
+    | 'habitsOnboarding'
     | 'secondSession';
 
 type Status = 'granted' | 'denied' | 'blocked';
@@ -314,6 +317,59 @@ const request = async (type: PermType, opts: RequestOptions): Promise<RequestRes
     return { status, source: 'os' };
 };
 
+/**
+ * For call sites that render their own full-screen explainer instead of the shared
+ * primer modal (e.g. the HABITS onboarding push opt-in screen). Skips `showPrimer`
+ * — the caller IS the primer — but keeps everything else the orchestrator owns:
+ * the persisted `osAskedAt` / `lastStatus` state, and the `onGranted` fan-out that
+ * triggers FCM device-token registration in Layout.
+ *
+ * Calling `notifee.requestPermission()` directly instead of this leaves the device
+ * token unregistered until the next cold start (Layout only registers on mount or
+ * on an auth transition), so the user receives no pushes at all for the rest of the
+ * session they opted in — and, because `osAskedAt` never gets stamped, the
+ * second-session fallback re-prompts someone who already answered.
+ *
+ * For a type listed in DISCLOSURE_REVISION, the caller's own screen must carry the full
+ * prominent disclosure (data collected, that it is uploaded to our servers, why) and
+ * only call this after an affirmative tap — reaching here records that consent.
+ */
+const requestAfterCustomPrimer = async (
+    type: PermType,
+    opts: Partial<RequestOptions> = {},
+): Promise<Status> => {
+    await recordDisclosureAccepted(type);
+
+    const native = await nativeCheck(type);
+    // No `isDisclosurePending` guard here, unlike `requestIfAppropriate` below.
+    // `recordDisclosureAccepted` three lines up has just written the revision that
+    // check compares against, so it could only ever answer false — and a reader who
+    // finds it there reasonably concludes the opposite, that this path can still be
+    // reached with consent outstanding. The OS permission was already held and the
+    // user just accepted the caller's own disclosure; re-prompting would be a no-op
+    // dialog they never see.
+    if (native === 'granted') {
+        await updateStateFor(type, { lastStatus: 'granted' });
+        opts.onGranted?.();
+        fireGrantedListeners(type);
+        return 'granted';
+    }
+
+    const status = await performOSRequest(type, opts.storePermissionsResponse || noopStore);
+    await updateStateFor(type, {
+        osAskedAt: Date.now(),
+        lastStatus: status,
+        appVersionAtLastAsk: DeviceInfo.getVersion(),
+    });
+    if (status === 'granted') {
+        opts.onGranted?.();
+        fireGrantedListeners(type);
+    } else {
+        opts.onDenied?.('os');
+    }
+    return status;
+};
+
 const requestIfAppropriate = async (type: PermType, opts: RequestOptions): Promise<void> => {
     const native = await nativeCheck(type);
     if (native === 'granted' && !(await isDisclosurePending(type))) {
@@ -351,6 +407,7 @@ export const onGranted = (type: PermType, fn: () => void): (() => void) => {
 
 const permissions = {
     request,
+    requestAfterCustomPrimer,
     requestIfAppropriate,
     getStatus,
     maybeShowSecondSessionFallback,

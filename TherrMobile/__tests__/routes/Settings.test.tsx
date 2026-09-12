@@ -1,6 +1,8 @@
 import 'react-native';
 import React from 'react';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import { Settings } from '../../main/routes/Settings/index';
+import { CURRENT_BRAND_VARIATION } from '../../main/config/brandConfig';
 
 // Note: test renderer must be required after react-native.
 import renderer, { act } from 'react-test-renderer';
@@ -128,7 +130,11 @@ describe('Settings', () => {
             });
             const instance = component!.getInstance() as Settings;
 
-            expect(instance.state.selectedTheme).toBe('retro');
+            // HABITS has no legible retro palette yet, so Settings resolves a
+            // persisted 'retro' down to 'dark' there (see styles/themes/resolveThemeName.ts).
+            const expectedTheme = CURRENT_BRAND_VARIATION === BrandVariations.HABITS ? 'dark' : 'retro';
+
+            expect(instance.state.selectedTheme).toBe(expectedTheme);
         });
 
         it('should initialize ad opt-in from user settings', () => {

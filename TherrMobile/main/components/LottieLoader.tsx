@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import LottieView from 'lottie-react-native';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import claimASpace from '../assets/claim-a-space.json';
 import karaokeLoader from '../assets/karaoke.json';
 import happySwingLoader from '../assets/happy-swing.json';
@@ -11,6 +12,9 @@ import tacoLoader from '../assets/taco.json';
 import carLoader from '../assets/sports-car.json';
 import zeppelinLoader from '../assets/zeppelin.json';
 import therrBlackRolling from '../assets/therr-logo-black-rolling.json';
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
+import { ITherrThemeColors } from '../styles/themes';
+import ChameleonLoader from './Loaders/ChameleonLoader';
 
 export type ILottieId = 'claim-a-space'
     | 'donut'
@@ -24,7 +28,9 @@ export type ILottieId = 'claim-a-space'
     | 'therr-black-rolling';
 export interface ILottieLoaderProps {
     id: ILottieId;
+    /** The result of `styles/loaders#buildStyles`, which spreads the theme's `colors` alongside `styles`. */
     theme: {
+        colors: ITherrThemeColors;
         styles: any;
     }
 }
@@ -36,6 +42,19 @@ export default ({
     let containerStyles: any = {};
     let textStyles: any = {};
     let source: any = carLoader;
+
+    // Every Lottie below is Therr's — the wordmark, a spinning globe, a taco, a
+    // sports car — and the screens that pick one at random pick from that set.
+    // Friends with Habits has a mascot, so it gets the mascot, whatever id the
+    // screen asked for.
+    if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+        return (
+            <View style={theme.styles.defaultContainer}>
+                <ChameleonLoader theme={theme} />
+                <Text style={theme.styles.defaultText}>Loading...</Text>
+            </View>
+        );
+    }
 
     switch (id) {
         case 'claim-a-space':

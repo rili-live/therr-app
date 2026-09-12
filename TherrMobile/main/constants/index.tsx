@@ -1,4 +1,6 @@
 import { AndroidChannel, AndroidImportance } from '@notifee/react-native';
+import { BrandVariations } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 
 import { METERS_PER_MILE } from './units';
 
@@ -27,6 +29,10 @@ const PROFILE_CAROUSEL_TABS = {
     THOUGHTS: 'people',
     MEDIA: 'groups',
     MOMENTS: 'moments',
+    // HABITS profile tabs (Friends with Habits niche app)
+    GOALS: 'goals',
+    PACTS: 'pacts',
+    ACHIEVEMENTS: 'achievements',
 };
 
 const HAPTIC_FEEDBACK_TYPE = 'soft';
@@ -81,25 +87,27 @@ enum AndroidChannelIds {
     reminders = 'reminders'
 }
 
+const isHabits = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
+
 const AndroidChannels = {
     default: {
         id: 'default',
-        name: 'Other',
+        name: isHabits ? 'General' : 'Other',
         importance: AndroidImportance.DEFAULT,
     },
     contentDiscovery: {
         id: 'contentDiscovery',
-        name: 'Content Discovery',
+        name: isHabits ? 'Friend Activity' : 'Content Discovery',
         importance: AndroidImportance.DEFAULT,
     },
     rewardUpdates: {
         id: 'rewardUpdates',
-        name: 'Reward Updates',
+        name: isHabits ? 'Streak Updates' : 'Reward Updates',
         importance: AndroidImportance.HIGH,
     },
     reminders: {
         id: 'reminders',
-        name: 'Reminders',
+        name: isHabits ? 'Habit Reminders' : 'Reminders',
         importance: AndroidImportance.HIGH,
     },
 };
@@ -134,10 +142,50 @@ const REMINDER_ACTION_KEYS = new Set<string>([
     'NEW_SUPER_LIKE_RECEIVED',
     'NEW_THOUGHT_REPLY_RECEIVED',
     'NEW_THOUGHT_REPOST_RECEIVED',
+    // HABITS — time-sensitive nudges. These are the retention loop; on the
+    // DEFAULT-importance channel they post silently with no heads-up banner,
+    // which is indistinguishable from "push isn't working" to a user.
+    'STREAK_AT_RISK',
+    'PACT_INVITATION',
+    'PACT_NUDGE',
+    'PACT_EXPIRING',
+    // `pactEnded` sits one step past PACT_EXPIRING in the same lifecycle and is the
+    // only moment renewal is legal at all (`isPactRenewable` is false while a pact is
+    // still inside its window), so it carries the "Start New Cycle" button that the
+    // whole fixed-cycle design turns on. It is data-only — that is what lets the
+    // button exist, since Notifee renders actions and only sees data messages — which
+    // means the channel comes from this set, not from a `channelId` the backend names.
+    // Left unbucketed it landed on "General" at DEFAULT importance: the notification
+    // arrived, the button worked, and only its prominence was wrong, which is why
+    // nothing reported it.
+    'PACT_ENDED',
+    // The daily reminder moved from an OS-rendered display notification to
+    // data-only so Notifee can render its "Check In" action button — the display
+    // path cannot carry one. That also moved the channel decision here: the
+    // backend no longer names a `channelId`, this set does. Without these three
+    // the reminder posts on the DEFAULT-importance "General" channel with no
+    // heads-up banner, which is indistinguishable from "push isn't working".
+    'DAILY_HABIT_REMINDER',
+    'MORNING_MOTIVATION',
+    'EVENING_CHECK_IN',
 ]);
 
 const REWARD_ACTION_KEYS = new Set<string>([
     'NUDGE_SPACE_ENGAGEMENT',
+    // HABITS — "Streak Updates" channel. Celebratory milestones.
+    'STREAK_MILESTONE',
+    'NEW_PERSONAL_RECORD',
+    'LEADERBOARD_RANK_MILESTONE',
+]);
+
+// HABITS — "Friend Activity" channel. Partner/pact state changes: worth
+// surfacing, but not urgent enough for a HIGH-importance heads-up.
+const CONTENT_DISCOVERY_ACTION_KEYS = new Set<string>([
+    'PARTNER_CHECKED_IN',
+    'PARTNER_MISSED_DAY',
+    'PARTNER_CELEBRATED',
+    'PACT_ACCEPTED',
+    'PACT_COMPLETED',
 ]);
 
 const getIntentActionKey = (clickActionId: string): string => {
@@ -155,6 +203,10 @@ const getAndroidChannelFromClickActionId = (clickActionId: string): AndroidChann
 
     if (REWARD_ACTION_KEYS.has(key)) {
         return getAndroidChannel(AndroidChannelIds.rewardUpdates);
+    }
+
+    if (CONTENT_DISCOVERY_ACTION_KEYS.has(key)) {
+        return getAndroidChannel(AndroidChannelIds.contentDiscovery);
     }
 
     return getAndroidChannel(AndroidChannelIds.default);

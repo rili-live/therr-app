@@ -1,7 +1,7 @@
 Novedades de esta actualización:
-• Un mapa y un feed más fluidos y rápidos
+• Seguimiento de hábitos y pactos más fluido y rápido
 • Mayor fiabilidad sin conexión o con señal débil
-• Correcciones en mensajes y notificaciones
+• Correcciones en recordatorios y notificaciones
 • Mejoras generales de rendimiento y estabilidad
 
-¡Gracias por usar Therr! ¿Comentarios? Escríbenos desde los ajustes de la app.
+¡Gracias por construir hábitos con nosotros! ¿Comentarios? Escríbenos desde los ajustes de la app.

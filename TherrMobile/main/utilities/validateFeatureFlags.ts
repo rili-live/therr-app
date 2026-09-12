@@ -5,19 +5,43 @@ interface IFeatureDependency {
     requires: FeatureFlags[];
 }
 
-// Navigation tab flags for counting visible tabs
+// Navigation tab flags for counting visible tabs (across all brands)
+//
+// ENABLE_PACTS is absent because pacts no longer have a tab of their own — they
+// are segments of the habits screen. The optional HABITS social tab is the
+// public Feed (ENABLE_HABITS_FEED), which replaced the Awards (Achievements)
+// tab; it is counted conditionally below rather than listed here because it is a
+// tab only on the HABITS button menu (Achievements is now a drawer item on
+// HABITS, and never a tab on Therr — counting either there would push a
+// perfectly valid five-tab bar over the ceiling).
 const NAVIGATION_TAB_FLAGS = [
     FeatureFlags.ENABLE_AREAS,
     FeatureFlags.ENABLE_GROUPS,
     FeatureFlags.ENABLE_MAP,
     FeatureFlags.ENABLE_CONNECT,
+    FeatureFlags.ENABLE_HABITS,
+    FeatureFlags.ENABLE_HABITS_JOURNAL,
 ];
+
+const countNavigationTabs = (flags: Record<string, boolean>): number => {
+    const listed = NAVIGATION_TAB_FLAGS.filter(flag => flags[flag]).length;
+    const hasFeedTab = !!flags[FeatureFlags.ENABLE_HABITS]
+        && !!flags[FeatureFlags.ENABLE_HABITS_FEED];
+
+    return listed + (hasFeedTab ? 1 : 0);
+};
 
 // Define dependencies (feature X requires feature Y)
 const FEATURE_DEPENDENCIES: IFeatureDependency[] = [
     { feature: FeatureFlags.ENABLE_EVENTS, requires: [FeatureFlags.ENABLE_MAP] },
     { feature: FeatureFlags.ENABLE_ACTIVITY_SCHEDULER, requires: [FeatureFlags.ENABLE_GROUPS] },
     { feature: FeatureFlags.ENABLE_FORUMS, requires: [FeatureFlags.ENABLE_GROUPS] },
+    // The journal reads check-ins, streak milestones and habit starts; without
+    // habits there is nothing for it to show.
+    { feature: FeatureFlags.ENABLE_HABITS_JOURNAL, requires: [FeatureFlags.ENABLE_HABITS] },
+    { feature: FeatureFlags.ENABLE_HABITS_SOLO, requires: [FeatureFlags.ENABLE_HABITS] },
+    // The offer exists to lift the habit cap, which only the habits flow has.
+    { feature: FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER, requires: [FeatureFlags.ENABLE_HABITS] },
 ];
 
 export const validateFeatureFlags = (flags: Record<string, boolean>): string[] => {
@@ -38,8 +62,7 @@ export const validateFeatureFlags = (flags: Record<string, boolean>): string[] =
 
     // Validate tab count (3-5 tabs required for good UI)
     // Note: Profile tab is always shown, so we need 2-4 additional tabs
-    const enabledTabCount = NAVIGATION_TAB_FLAGS.filter(flag => flags[flag]).length;
-    const totalTabsWithProfile = enabledTabCount + 1; // +1 for Profile tab (always shown)
+    const totalTabsWithProfile = countNavigationTabs(flags) + 1; // +1 for Profile tab (always shown)
 
     if (totalTabsWithProfile < 3) {
         errors.push(

@@ -12,8 +12,9 @@ import { bindActionCreators } from 'redux';
 import { Button as PaperButton, Divider, Text as PaperText, TextInput as PaperTextInput } from 'react-native-paper';
 import { KeyboardAwareScrollView, KeyboardStickyView, useKeyboardState } from 'react-native-keyboard-controller';
 import { IContentState, IUserState } from 'therr-react/types';
-import { FeatureFlags } from 'therr-js-utilities/constants';
+import { BrandVariations, FeatureFlags } from 'therr-js-utilities/constants';
 import { ContentActions } from 'therr-react/redux/actions';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import UsersActions from '../../redux/actions/UsersActions';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
@@ -39,6 +40,11 @@ import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import { navToViewContent } from '../../utilities/postViewHelpers';
 import { showToast } from '../../utilities/toasts';
 import getRepostErrorKey from '../../utilities/repostErrors';
+
+const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
+// On HABITS the "thought" backend hosts the user's Goals feed; surface goal-specific copy.
+const HEADER_TITLE_KEY = IS_HABITS ? 'pages.viewThought.headerTitleGoal' : 'pages.viewThought.headerTitle';
+const DELETE_CONFIRM_KEY = IS_HABITS ? 'forms.editThought.deleteConfirmationGoal' : 'forms.editThought.deleteConfirmation';
 
 const localStyles = StyleSheet.create({
     contentContainer: {
@@ -288,7 +294,7 @@ const ViewThought = ({
         navigation.setOptions({
             title: parentThought?.id
                 ? translate('pages.viewThought.headerTitleReply')
-                : translate('pages.viewThought.headerTitle'),
+                : translate(HEADER_TITLE_KEY),
         });
     }, [parentThought?.id, navigation, translate]);
 
@@ -305,12 +311,15 @@ const ViewThought = ({
             navToViewContent(parentThought?.id ? parentThought : {
                 id: fetchedThought.parentId,
             }, user, navigation.replace);
-        } else if (previousView && (previousView === 'Areas' || previousView === 'Notifications')) {
-            if (previousView === 'Areas') {
-                navigation.goBack();
-            } else if (previousView === 'Notifications') {
-                navigation.navigate('Notifications');
-            }
+        } else if (previousView === 'Areas') {
+            navigation.goBack();
+        } else if (previousView === 'Notifications' || previousView === 'Journal') {
+            // Named routes rather than a pop: both are reached from the button
+            // menu, so the screen the user came from may not be on the stack at
+            // all. Falling through to the default below would send someone who
+            // opened a goal from their journal to the map, which the HABITS app
+            // does not even show.
+            navigation.navigate(previousView);
         } else {
             navigation.navigate('Map', {
                 shouldShowPreview: false,
@@ -758,7 +767,7 @@ const ViewThought = ({
                 isVisible={isDeleteDialogVisible}
                 onCancel={() => setIsDeleteDialogVisible(false)}
                 onConfirm={handleDeleteConfirm}
-                text={translate('forms.editThought.deleteConfirmation')}
+                text={translate(DELETE_CONFIRM_KEY)}
                 textConfirm={translate('forms.editThought.buttons.confirm')}
                 textCancel={translate('forms.editThought.buttons.cancel')}
                 translate={translate}

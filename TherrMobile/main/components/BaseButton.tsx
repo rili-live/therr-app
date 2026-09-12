@@ -47,8 +47,13 @@ interface IButtonProps {
     onPress?: (event?: GestureResponderEvent) => void;
     accessibilityLabel?: string;
     testID?: string;
+    /**
+     * Style for a wrapper around `icon` — the RNE-compatible way to space an
+     * icon away from the title. Only applied when provided, so buttons that
+     * don't pass it keep rendering the icon with no extra view in between.
+     */
+    iconContainerStyle?: StyleProp<ViewStyle>;
     // Silently ignored RNE props to avoid TS errors in consumers
-    iconContainerStyle?: any;
     TouchableComponent?: any;
 }
 
@@ -180,6 +185,7 @@ export const Button = ({
     disabledStyle,
     disabledTitleStyle,
     icon,
+    iconContainerStyle,
     iconRight,
     iconTop,
     loading,
@@ -227,11 +233,15 @@ export const Button = ({
             </Text>
         ) : null;
 
+        const iconElement = icon != null && iconContainerStyle
+            ? <View style={iconContainerStyle}>{icon}</View>
+            : icon;
+
         if (iconRight) {
-            return <>{titleElement}{icon}</>;
+            return <>{titleElement}{iconElement}</>;
         }
 
-        return <>{icon}{titleElement}</>;
+        return <>{iconElement}{titleElement}</>;
     };
 
     const button = (
