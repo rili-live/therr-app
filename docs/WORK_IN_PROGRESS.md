@@ -1612,6 +1612,8 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   runs finalize one day per user). The messaging-automator gives each attempt 300s
   (`HABITS_DIGEST_TIMEOUT_MS`) with one retry; a timeout is safe (both halves are idempotent)
   but means reminders were not sent that morning. Introduced by d687f97b0.
+- [ ] (2026-09-13, /quality-peer-review-niche) **Ship the daily-streak backend before the Habits 1.7.3 (44) Play build.** `d687f97b0` + `2b106dec4` are on `general` but not `stage`/`main`. The mobile build degrades silently without them (every celebration fetch 404s and is swallowed; `timeZone` on check-in is ignored), so shipping first means the release's headline feature is inert until the backend lands. Order: `general → stage → main`, confirm the 5 `20260913*` users-service migrations ran, then `niche/HABITS-general → niche/HABITS-main`.
+- [ ] (2026-09-13, /quality-peer-review-niche) **After both halves are live, cold-start Habits ≥ 1.7.3 on a Monday** and confirm a podium placement from the closed week shows on launch (not only after a background/foreground) — the cold-start path was added by 7f91d1239 and has no rendered test.
 <!-- skill-followups:end -->
 
 ---
