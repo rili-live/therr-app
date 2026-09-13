@@ -3,7 +3,7 @@ import {
     IDailyStreakPendingPlacement,
     IDailyStreakWeekDay,
 } from 'therr-react/types';
-import { RootNavigation } from '../components/RootNavigation';
+import { navigationRef, RootNavigation } from '../components/RootNavigation';
 
 /**
  * What a celebration screen renders. Every field is decided server-side — the client never
@@ -87,6 +87,13 @@ class CelebrationQueue {
 
     flush() {
         if (this.blockers > 0 || this.isPresenting || !this.queue.length) {
+            return;
+        }
+        // `RootNavigation.navigate` is a silent no-op until the container is ready. Shifting
+        // and marking `isPresenting` before that would drop the celebration AND wedge the queue
+        // for the rest of the session, since nothing would ever call `onDismissed`. Leave it
+        // queued; the next enqueue / unblock re-flushes once the navigator is up.
+        if (!navigationRef.isReady()) {
             return;
         }
         const next = this.queue.shift();

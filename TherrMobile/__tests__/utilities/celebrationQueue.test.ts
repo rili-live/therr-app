@@ -17,11 +17,21 @@ import {
 
 // Prefixed `mock` so Jest allows the hoisted factory below to reference it.
 const mockNavigate = jest.fn();
+// Mutable so a test can stand in for the window between app launch and the navigator's
+// `onReady`, when `RootNavigation.navigate` is a silent no-op.
+const mockIsReady = { value: true };
 
 jest.mock('../../main/components/RootNavigation', () => ({
     __esModule: true,
-    navigationRef: { isReady: () => true },
-    RootNavigation: { navigate: (...args: any[]) => (mockNavigate as any)(...args) },
+    navigationRef: { isReady: () => mockIsReady.value },
+    // Mirrors the real helper, which drops the call outright until the container is ready.
+    RootNavigation: {
+        navigate: (...args: any[]) => {
+            if (mockIsReady.value) {
+                (mockNavigate as any)(...args);
+            }
+        },
+    },
 }));
 
 import celebrationQueue, {
@@ -100,6 +110,44 @@ describe('celebrationQueue — blocking', () => {
 
         celebrationQueue.unblock();
         expect(navigate).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('celebrationQueue — navigator readiness', () => {
+    beforeEach(() => {
+        navigate.mockClear();
+        celebrationQueue.reset();
+        mockIsReady.value = true;
+    });
+
+    it('holds a celebration enqueued before the navigator is ready, and presents it once it is', () => {
+        // Regression: `flush` used to shift the item and mark itself presenting before calling
+        // `RootNavigation.navigate`, which no-ops until the container is ready. The celebration
+        // was lost AND the queue believed a screen was up, so nothing presented for the rest of
+        // the session — every later enqueue waited on an `onDismissed` that could never come.
+        mockIsReady.value = false;
+        celebrationQueue.enqueue(placement());
+
+        expect(navigate).not.toHaveBeenCalled();
+        expect(celebrationQueue.size).toBe(1);
+
+        mockIsReady.value = true;
+        celebrationQueue.flush();
+
+        expect(navigate).toHaveBeenCalledTimes(1);
+        expect(navigate).toHaveBeenCalledWith('Celebration', expect.objectContaining({ type: 'placement' }));
+    });
+
+    it('is not wedged by an enqueue that raced the navigator: a later enqueue still presents', () => {
+        mockIsReady.value = false;
+        celebrationQueue.enqueue(placement());
+        mockIsReady.value = true;
+
+        celebrationQueue.enqueue(streak());
+
+        expect(navigatedTypes()).toEqual(['placement']);
+        celebrationQueue.onDismissed();
+        expect(navigatedTypes()).toEqual(['placement', 'streak']);
     });
 });
 

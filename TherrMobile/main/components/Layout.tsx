@@ -77,7 +77,7 @@ import {
 import { openStoreReviewPage } from '../utilities/appStoreReviewLink';
 import { openSupportEmail } from '../utilities/supportContact';
 import { navigationRef, RootNavigation } from './RootNavigation';
-import { enqueueCelebrationsFromSummary } from '../utilities/celebrationQueue';
+import celebrationQueue, { enqueueCelebrationsFromSummary } from '../utilities/celebrationQueue';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
 import SplashLogoSpinner from './SplashLogoSpinner';
@@ -457,6 +457,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 // Notification permission asks are anchored to engagement triggers
                 // and a second-session fallback via permissionsOrchestrator.
                 this.tryRegisterDeviceTokenIfAuthorized();
+
+                // A fresh sign-in is a return too: the cold-start fetch above ran before
+                // there was a session to ask about.
+                this.fetchAndQueueCelebrations();
             } else {
                 // Tear down the FCM subscription so a subsequent login re-registers
                 // (refreshes the device token and re-attaches axios headers).
@@ -465,6 +469,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     this.unsubscribePushNotifications = undefined;
                 }
                 this.fcmRegistrationStarted = false;
+                // Anything still queued belongs to the account that just left; the next
+                // sign-in fetches its own.
+                celebrationQueue.reset();
             }
         }
     }
@@ -2490,6 +2497,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             // AppState never reports the launch itself as a change, so the
                             // cold-start path has to arm its own check.
                             this.scheduleAppReviewPromptCheck(APP_REVIEW_PROMPT_COLD_START_DELAY_MS);
+                            // Same reason: a placement that closed overnight is most often
+                            // discovered on a cold start the next morning, not a foreground.
+                            // Here rather than componentDidMount because the queue needs a
+                            // ready navigator to present. No-op when not signed in.
+                            this.fetchAndQueueCelebrations();
                         });
                     }}
                     onStateChange={async () => {
