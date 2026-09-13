@@ -144,6 +144,41 @@ describe('handlers/thoughts getThoughtDetails (parent thread context)', () => {
         expect(hasUserReactedStub.called).to.equal(false);
     });
 
+    // A plain top-level post (a shared check-in) makes exactly one reactions call on the way to
+    // rendering its thread — the like count — plus, when it has replies, a best-effort activation
+    // write. Neither is the thread. A reactions-service hiccup on either used to reject the whole
+    // details response, which the client surfaced as "we couldn't load the replies" over a thread
+    // it could otherwise show. Both must now degrade rather than 500.
+    const buildPublicPost = (replies: any[] = []) => ({
+        id: PARENT_ID,
+        fromUserId: OTHER_USER_ID,
+        isPublic: true,
+        message: 'a shared check-in',
+        replies,
+    });
+
+    it('still returns the thread when the like-count lookup fails', async () => {
+        (reactionsApi.countReactions as sinon.SinonStub).rejects(new Error('reactions-service down'));
+
+        const payload = await runWith(buildPublicPost());
+
+        expect(res.status.calledWith(200)).to.equal(true);
+        expect(payload.thought.id).to.equal(PARENT_ID);
+        expect(payload.thought.likeCount).to.equal(0);
+    });
+
+    it('still returns the thread when reply activation fails', async () => {
+        createReactionsStub.rejects(new Error('reactions-service down'));
+
+        const payload = await runWith(buildPublicPost([
+            { id: REPLY_ID, fromUserId: OTHER_USER_ID, createdAt: new Date().toISOString() },
+        ]));
+
+        expect(res.status.calledWith(200)).to.equal(true);
+        expect(payload.thought.id).to.equal(PARENT_ID);
+        expect(payload.thought.replies.map((reply: any) => reply.id)).to.include(REPLY_ID);
+    });
+
     it('does not pay for a parent lookup when withParent was not requested', async () => {
         getByIdStub.resolves({ thoughts: [buildOwnReply()], users: {} });
 

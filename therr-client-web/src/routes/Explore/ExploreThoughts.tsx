@@ -12,6 +12,7 @@ import {
     Button,
     Container,
     Group,
+    Image,
     NativeSelect,
     Skeleton,
     Stack,
@@ -27,6 +28,7 @@ import { Categories } from 'therr-js-utilities/constants';
 import { canRepostThought } from 'therr-js-utilities/content';
 import { formatTimeAgo } from '../../utilities/formatDate';
 import getUserImageUri from '../../utilities/getUserImageUri';
+import getThoughtMediaUri from '../../utilities/getThoughtMediaUri';
 import {
     getRepliesLabelKey, getReplyCount, getTopReply, shouldAutoExpandThread,
 } from '../../utilities/threadPreview';
@@ -129,6 +131,10 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
     const topReply = shouldAutoExpandThread(thought) ? getTopReply(thought) : undefined;
     const repliesLabel = translate(getRepliesLabelKey(replyCount), { count: replyCount });
     const repostCount = thought.repostCount || 0;
+    // Attached image, if the post has a renderable public one — a shared Friends with
+    // Habits check-in carries its proof photo here, and composed posts can attach one.
+    // Mirrors ViewThought and the mobile ThoughtDisplay; private media is not rendered.
+    const mediaUri = getThoughtMediaUri(thought, 600, 600);
     // Shared with the server's own gate (handlers/thoughts createThought) so the control is
     // only ever offered where a repost would actually be accepted.
     const canRepost = canRepostThought(thought, currentUserId);
@@ -177,6 +183,17 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
                 <Text size="sm" mb="xs" className="thought-card-message">
                     {thought.message}
                 </Text>
+
+                {mediaUri && (
+                    <Image
+                        src={mediaUri}
+                        alt=""
+                        radius="md"
+                        mb="xs"
+                        fit="contain"
+                        className="thought-card-media"
+                    />
+                )}
 
                 {thought.isRepost && <EmbeddedThought repostOf={thought.repostOf} />}
 

@@ -87,6 +87,24 @@ const hapticFeedbackOptions = {
     ignoreAndroidSystemSettings: false,
 };
 
+/**
+ * Newest-first, addressable replies only.
+ *
+ * Shared by the initial seed and the details refetch so the thread renders the same way from
+ * either source. The seed comes from the thought handed over in route params: every screen that
+ * opens this one (the feed, a profile, the journal) already loads its thoughts `withReplies`, so
+ * the replies are in hand before the details request resolves. Rendering them immediately — the
+ * way the post body itself already renders from route params — is what keeps a transient details
+ * or reactions-service hiccup from turning a working thread into the "we couldn't load the
+ * replies" error, which is all the user ever saw when the enrichment request failed.
+ *
+ * The id filter guards against a backend that has not yet shipped the phantom-reply fix: an
+ * id-less reply renders as an empty card, inflates the reply count, and cannot be opened.
+ */
+const sortReplies = (list: any[]): any[] => (list || [])
+    .filter((reply) => !!reply?.id)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
 const SendIcon = ({ disabled, colors }: { disabled: boolean; colors: { active: string; inactive: string } }) => (
     <TherrIcon name="send" size={22} color={disabled ? colors.inactive : colors.active} />
 );
@@ -194,7 +212,9 @@ const ViewThought = ({
     );
 
     // State
-    const [replies, setReplies] = useState<any[]>([]);
+    // Seeded from the thought handed over in route params (the opening screen loaded it
+    // `withReplies`), so the thread is on screen before the details refetch resolves.
+    const [replies, setReplies] = useState<any[]>(() => sortReplies(route.params?.thought?.replies));
     const [inputMessage, setInputMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -256,23 +276,31 @@ const ViewThought = ({
             withReplies: true,
             withParent: true,
         }).then((response) => {
-            setFetchedThought(response?.thought || {});
-            setReplies(
-                // The id filter guards against a backend that has not yet shipped the
-                // phantom-reply fix: an id-less reply renders as an empty card, inflates the
-                // reply count, and cannot be opened.
-                response?.thought?.replies?.filter((reply) => !!reply?.id).sort(
-                    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-                ) || []
-            );
+            // An offline fallback resolves to undefined (see the interceptor); keep the
+            // route-param seed rather than blanking the thread out to an empty response.
+            if (!response?.thought) {
+                return;
+            }
+            setFetchedThought(response.thought);
+            setReplies(sortReplies(response.thought.replies));
         }).catch(() => {
             // Deliberately not navigating away: the thought passed through route params is
             // enough to render the post itself, and bouncing the user back to the feed on a
             // transient failure reads as "tapping a reply does nothing".
-            showToast.error({
-                text1: translate('alertTitles.backendErrorMessage'),
-                text2: translate('pages.viewThought.repliesFailed'),
-            });
+            //
+            // The replies are already on screen too, seeded from the same route-param thought,
+            // so this refetch only misses enrichment (the parent banner, replies past the feed's
+            // preview cap, fresh reaction state). Surfacing the error only when there was nothing
+            // to fall back on keeps the common feed path — where the thread is already visible —
+            // from flashing "we couldn't load the replies" over content the user can plainly see,
+            // while a deep link straight into a thought (which carries no preloaded replies) still
+            // reports the failure.
+            if (!sortReplies(thought.replies).length) {
+                showToast.error({
+                    text1: translate('alertTitles.backendErrorMessage'),
+                    text2: translate('pages.viewThought.repliesFailed'),
+                });
+            }
         });
 
         const unsubscribeNavListener = navigation.addListener('beforeRemove', () => {

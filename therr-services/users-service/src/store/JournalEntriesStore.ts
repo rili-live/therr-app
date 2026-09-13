@@ -221,7 +221,11 @@ export default class JournalEntriesStore {
                     jsonb_build_object(
                         'status', c."status",
                         'selfRating', c."selfRating",
-                        'hasProof', c."hasProof"
+                        'hasProof', c."hasProof",
+                        -- The public post this check-in was shared to, if any. The
+                        -- journal links a check-in row to that post; a row with no
+                        -- share links to the habit detail instead (client-side).
+                        'sharedThoughtId', c."sharedThoughtId"
                     ) AS "meta"
                 FROM ${HABIT_CHECKINS_TABLE_NAME} c
                 WHERE c."userId" = ?::uuid
