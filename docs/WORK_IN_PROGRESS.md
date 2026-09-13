@@ -1580,6 +1580,9 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   row already exist — the handler rolls the post back, so the visible symptom is a 500 on share
   rather than silent corruption. The premium migration item above is a separate file; both are needed.
 
+- [ ] (2026-09-12, /quality-peer-review-niche) **Halt the Friends with Habits 1.7.0 (versionCode 41) rollout in Play Console** if it is still staged — it crashes on first frame (`ChameleonLoader` passed `useAnimatedProps` a factory-built closure the worklets plugin never compiled; fixed in `ad27118d4`, shipping as 1.7.1 / 42 from `niche/HABITS-main@0a4d36f53`). Promote 42 the moment it clears review.
+- [ ] (2026-09-12, /quality-peer-review-niche) **Ship `6dc1823fb` (pact member add/remove, continue-solo, shared pact streak) via `general → stage → main`** and run `20260911000001_habits.pacts.pactStreak.js` + `20260911000002_habits.pact_streak_days.js` at each step. Habits 1.7.x is already on Play advertising these in its release notes; the app feature-detects on `activeMemberCount` / `currentPactStreak` / `canContinueSolo` and hides every affordance until the users-service that hydrates them is live, so nothing breaks — users just cannot reach the features yet.
+- [ ] (2026-09-12, /quality-peer-review-niche) **After that backend lands on `main`, verify on a handset running Habits ≥ 1.7.1** that a pact creator sees "Add members" on PactDetail and the pact-streak card on an active pact — the first proof the mobile ↔ backend pair is wired end to end.
 <!-- skill-followups:end -->
 
 ---

@@ -535,7 +535,13 @@ const getThoughtDetails = (req, res) => {
                 }
 
                 let createReactionsPromise = Promise.resolve({});
-                countReactionsPromise = countReactions(thoughtId, req.headers);
+                // Fail-soft: the like count is enrichment, not the thread itself. This is the
+                // only reactions call on the path of a plain top-level post (a shared check-in,
+                // say), so an unguarded rejection here 500s the whole details response — the
+                // client reads that as "we couldn't load the replies" and blanks a thread it
+                // could otherwise render. Degrade to a zero count instead, matching the soft
+                // handling `countReactionsByThoughtId`/`findReactionsByUser` already apply below.
+                countReactionsPromise = countReactions(thoughtId, req.headers).catch(() => ({ count: '0' }));
 
                 const replyIds = (thought.replies || []).map((reply) => reply.id).filter((id) => !!id);
                 // Activating this thought too (when it is itself a reply) keeps a reply reachable
@@ -548,7 +554,12 @@ const getThoughtDetails = (req, res) => {
 
                 // Activate child thoughts otherwise
                 if (idsToActivate.length) {
-                    createReactionsPromise = createReactions(idsToActivate, req.headers);
+                    // Best-effort: activation keeps a reply reachable on its own later, but the
+                    // thread must still render if the write fails. `createReactions` already
+                    // swallows a 403 but rethrows every other error, which would otherwise reject
+                    // the whole details fetch and hide replies that loaded fine — the write's
+                    // result is not read below (only its rejection matters), so drop it softly.
+                    createReactionsPromise = createReactions(idsToActivate, req.headers).catch(() => ({}));
                 }
 
                 // Access to a reply is not access to the thought it replies to. `createThought`

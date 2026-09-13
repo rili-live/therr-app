@@ -1,4 +1,4 @@
-import { BrandVariations } from 'therr-js-utilities/constants';
+import { BrandVariations, HABIT_CHECKIN_THOUGHT_CATEGORY } from 'therr-js-utilities/constants';
 import translator from '../../main/utilities/translator';
 import { formatCrossBrandMessage, getCrossBrandLabelKey } from '../../main/utilities/crossBrandPostLabel';
 
@@ -61,6 +61,29 @@ describe('crossBrandPostLabel', () => {
                 translate: translate('en-us'),
                 currentBrand: BrandVariations.HABITS,
             })).toBe('Run 3x this week');
+        });
+
+        // A shared check-in is a photo post, not a composed goal, so it must NOT carry the
+        // "Goals update:" pre-text even when read cross-brand. The server marks it with
+        // HABIT_CHECKIN_THOUGHT_CATEGORY; only composed goal updates keep the label.
+        it('leaves a shared check-in post untouched, even read cross-brand', () => {
+            expect(formatCrossBrandMessage({
+                message: 'Ran 5k this morning',
+                brandVariation: BrandVariations.HABITS,
+                category: HABIT_CHECKIN_THOUGHT_CATEGORY,
+                translate: translate('en-us'),
+                currentBrand: BrandVariations.THERR,
+            })).toBe('Ran 5k this morning');
+        });
+
+        it('still labels a composed goal (a non-check-in category) read cross-brand', () => {
+            expect(formatCrossBrandMessage({
+                message: 'Run 3x this week',
+                brandVariation: BrandVariations.HABITS,
+                category: 'uncategorized',
+                translate: translate('en-us'),
+                currentBrand: BrandVariations.THERR,
+            })).toBe('Goals update: Run 3x this week');
         });
 
         it('leaves replies untouched — they inherit their parent\'s context', () => {

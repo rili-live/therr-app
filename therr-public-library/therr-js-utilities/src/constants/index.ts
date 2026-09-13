@@ -102,6 +102,15 @@ export const SERVER_PREFIX = 'SERVER';
 export const WEB_CLIENT_PREFIX = 'CLIENT';
 export const SOCKET_MIDDLEWARE_ACTION = 'action';
 
+// The `main.thoughts.category` stamped on a post minted from a Friends with Habits
+// check-in share (see users-service handlers/habitCheckins shareCheckin). It is the
+// one signal that separates a shared check-in from a composed goal update at read
+// time: both are HABITS-brand thoughts, but only a composed goal should carry the
+// "Goals update:" cross-brand label in the Therr feed — a check-in post reads as a
+// bare photo post with no pre-text. Kept out of `Categories.ThoughtCategories` on
+// purpose so it never appears as a pickable category or drives interest mapping.
+export const HABIT_CHECKIN_THOUGHT_CATEGORY = 'habit-checkin';
+
 export {
     AccessLevels,
     BrandVariations,
