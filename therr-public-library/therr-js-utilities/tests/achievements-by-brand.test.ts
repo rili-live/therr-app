@@ -6,12 +6,14 @@
  * allow-list decides which classes a brand may EARN.
  *
  * Policy as of the 2026-07 leaderboards release:
- *   - THERR / DASHBOARD_THERR earn every class.
+ *   - THERR / DASHBOARD_THERR earn every class except the HABITS-only ones.
  *   - HABITS earns the streak/pact-themed ladder (accountability, cleanBreak,
  *     consistency, habitBuilder, pactPioneer, resilience, socialEnergizer,
  *     treasureBuilder) plus `socialite` (invite virality) and `weeklyChampion`
  *     (leaderboard rank milestones). This ends the interim "HABITS earns
  *     nothing" policy from a55bce90d.
+ *   - `dailyStreak` (2026-09, celebrations release) is HABITS-only: no other
+ *     brand has a daily check-in to streak on.
  *   - TEEM and other brands still earn nothing until they get their own list.
  */
 import { expect } from 'chai';
@@ -22,10 +24,14 @@ import {
     isAchievementClassEnabledForBrand,
 } from '../src/config/achievements';
 
+// Classes only HABITS may earn — excluded from the "THERR earns everything" expectation.
+const HABITS_ONLY_CLASSES = ['dailyStreak'];
+
 const HABITS_ENABLED_CLASSES = [
     'accountability',
     'cleanBreak',
     'consistency',
+    'dailyStreak',
     'habitBuilder',
     'pactPioneer',
     'resilience',
@@ -38,16 +44,17 @@ const HABITS_ENABLED_CLASSES = [
 describe('isAchievementClassEnabledForBrand', () => {
     const allClasses = Object.keys(achievementsByClass);
 
-    it('allows every class for the THERR brand', () => {
+    it('allows every class except the HABITS-only ones for the THERR brand', () => {
         allClasses.forEach((cls) => {
+            const expected = !HABITS_ONLY_CLASSES.includes(cls);
             expect(
                 isAchievementClassEnabledForBrand(cls, BrandVariations.THERR),
-                `expected ${cls} to be enabled for THERR`,
-            ).to.equal(true);
+                `expected ${cls} enablement for THERR to be ${expected}`,
+            ).to.equal(expected);
         });
     });
 
-    it('allows exactly the habit ladder + socialite + weeklyChampion for HABITS', () => {
+    it('allows exactly the habit ladder + dailyStreak + socialite + weeklyChampion for HABITS', () => {
         allClasses.forEach((cls) => {
             const expected = HABITS_ENABLED_CLASSES.includes(cls);
             expect(

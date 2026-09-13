@@ -415,11 +415,20 @@ export const onCheckinCompleted = async ({
         return null;
     }
 
-    const completedOnDay = await Store.habitCheckins.countCompletedOnLocalDate(userId, localDate);
+    const [completedOnDay, existing] = await Promise.all([
+        Store.habitCheckins.countCompletedOnLocalDate(userId, localDate),
+        Store.userDailyStreaks.getOrCreate(userId),
+    ]);
     const isFirstForDay = completedOnDay === 1;
 
-    if (localDate === yesterday) {
-        await rewindDailyStreak(userId, yesterday);
+    // A day the evaluator has already finalized must be re-opened, not overwritten: the live
+    // apply would upsert it as upheld but leave a borrowed freeze spent and a reset's
+    // bookkeeping in place. That is always yesterday's case, and it is today's whenever the
+    // scheduled pass judged this user's day in a zone ahead of their real one (no saved
+    // `settingsTimezone`, device west of the America/Chicago fallback).
+    const isFinalized = !!existing.lastEvaluatedDate && existing.lastEvaluatedDate >= localDate;
+    if (localDate === yesterday || isFinalized) {
+        await rewindDailyStreak(userId, localDate);
     }
     const state = await syncDailyStreak(userId, today, headers);
 

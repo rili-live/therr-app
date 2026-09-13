@@ -117,10 +117,10 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Friends with Habits keeps its OWN Play version sequence — it is a separate
         // listing under a separate applicationId. Taking general's numbers here (459 /
-        // 3.17.6) would jump this app by 416 codes in one merge and strand every future
+        // 3.17.6) would jump this app by 415 codes in one merge and strand every future
         // Habits release below it. Always resolve this conflict toward the niche side.
-        versionCode 43
-        versionName "1.7.2"
+        versionCode 44
+        versionName "1.7.3"
         // App Links hosts for the autoVerify intent-filter in AndroidManifest.xml.
         // Keyed off applicationId (same pattern as the release signingConfig below) so a
         // niche variant only has to change applicationId and the hosts follow.

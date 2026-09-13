@@ -41,9 +41,7 @@ export const CLASS_ART: { [achievementClass: string]: IClassArt } = {
     accountability: { icon: 'handshake', color: 'brand', ink: 'light' },
     cleanBreak: { icon: 'shield-alt', color: 'accentBlue', ink: 'light' },
     consistency: { icon: 'calendar-check', color: 'accentTeal', ink: 'light' },
-    // The app-level daily streak, across all habits — a flame, matching the chip on the
-    // leaderboard row and the hero on the celebration screen.
-    dailyStreak: { icon: 'fire', color: 'brandingOrange', ink: 'light' },
+    dailyStreak: { icon: 'fire', color: 'ternary2', ink: 'dark' },
     habitBuilder: { icon: 'seedling', color: 'accentLime', ink: 'light' },
     pactPioneer: { icon: 'flag', color: 'accentPurple', ink: 'light' },
     resilience: { icon: 'mountain', color: 'brandDark', ink: 'light' },

@@ -59,15 +59,18 @@ Email sending is in `src/api/email/`:
 ## Database Tables
 
 ### main schema
-Key tables: `users`, `userConnections`, `userGroups`, `notifications`, `userAchievements`, `subscribers`, `campaigns`
+Key tables: `users`, `userConnections`, `userGroups`, `notifications`, `userAchievements`, `subscribers`, `campaigns`,
+`userLeaderboardScores`, `leaderboardPeriodResults` (brand-scoped — read only through their `*Store.ts`)
 
 ### habits schema (HABITS app)
 - `habit_goals` - Habit templates and user-created goals
 - `pacts` - Accountability partnerships
 - `pact_members` - Membership with per-user stats
 - `habit_checkins` - Daily completion records
-- `streaks` - Streak state per user/habit
+- `streaks` - Streak state per user/habit (also the freeze pool the daily streak borrows from)
 - `streak_history` - Event log for analytics
+- `user_daily_streaks` - App-level daily streak, one row per user across all habits
+- `daily_streak_days` - Per-(user, local day) ledger behind it; see `utilities/dailyStreak.ts` for the rules
 
 ## Related Services
 
