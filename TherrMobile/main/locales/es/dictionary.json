@@ -2485,7 +2485,8 @@
                 "checkinSkipped": "Omitiste {habit}",
                 "goalChip": "Meta",
                 "goalAccessibility": "Abrir esta meta",
-                "editAccessibility": "Editar esta entrada"
+                "editAccessibility": "Editar esta entrada",
+                "checkinAccessibility": "Abrir este registro"
             },
             "errors": {
                 "loadFailed": "No pudimos cargar tu diario.",

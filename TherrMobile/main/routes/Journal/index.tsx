@@ -245,6 +245,35 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
         });
     };
 
+    /**
+     * A check-in row links to the post it was shared to, when it has one — the same
+     * `ViewThought` screen a goal row opens, since a shared check-in is a thought.
+     * A check-in that was never shared has no post, so it falls back to the habit
+     * detail (the calendar the check-in lives on). `JournalEntryRow` only makes the
+     * row pressable when one of these targets exists.
+     */
+    handleOpenCheckin = (item: IJournalFeedItem) => {
+        const { navigation } = this.props;
+        const sharedThoughtId = item.meta?.sharedThoughtId;
+
+        if (sharedThoughtId) {
+            navigation.navigate('ViewThought', {
+                // The journal only ever contains the viewer's own content.
+                isMyContent: true,
+                previousView: 'Journal',
+                // Only the id is known here; `ViewThought` fetches the rest. Unlike a
+                // goal row, the feed does not carry the shared post's body/category.
+                thought: { id: sharedThoughtId },
+                thoughtDetails: {},
+            });
+            return;
+        }
+
+        if (item.habitGoalId) {
+            navigation.navigate('HabitDetail', { habitGoalId: item.habitGoalId });
+        }
+    };
+
     openComposer = (entry?: IJournalFeedItem) => {
         this.setState({
             isCreateMenuVisible: false,
@@ -397,6 +426,7 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
                                                 translate={this.translate as (key: string, params?: any) => string}
                                                 onPress={this.openComposer}
                                                 onPressGoal={this.handleOpenGoal}
+                                                onPressCheckin={this.handleOpenCheckin}
                                             />
                                         </View>
                                     </View>

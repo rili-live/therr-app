@@ -2485,7 +2485,8 @@
                 "checkinSkipped": "Tu as sauté {habit}",
                 "goalChip": "Objectif",
                 "goalAccessibility": "Ouvrir cet objectif",
-                "editAccessibility": "Modifier cette entrée"
+                "editAccessibility": "Modifier cette entrée",
+                "checkinAccessibility": "Ouvrir ce pointage"
             },
             "errors": {
                 "loadFailed": "Nous n'avons pas pu charger ton journal.",

@@ -112,13 +112,67 @@ describe('JournalEntryRow', () => {
         expect(onPressGoal).not.toHaveBeenCalled();
     });
 
-    it('leaves event rows unpressable', () => {
-        // A milestone or a check-in is a record of something that happened;
-        // there is nothing to open and nothing to edit.
+    it('leaves a milestone row unpressable', () => {
+        // A milestone is a record of something that happened; there is nothing to
+        // open and nothing to edit.
         const component = render({
             item: buildItem({ type: 'milestone', body: null, meta: { milestoneReached: 7 } }),
             onPress: jest.fn(),
             onPressGoal: jest.fn(),
+            onPressCheckin: jest.fn(),
+        });
+
+        expect(findPressables(component)).toHaveLength(0);
+    });
+
+    it('opens a shared check-in through the check-in handler', () => {
+        // A check-in that was shared links to the post it produced.
+        const onPressCheckin = jest.fn();
+        const item = buildItem({
+            id: 'checkin-1',
+            type: 'checkin',
+            body: null,
+            habitGoalId: 'habit-a',
+            goalName: 'Running',
+            meta: { status: 'completed', sharedThoughtId: 'thought-9' },
+        });
+        const component = render({ item, onPressCheckin });
+
+        act(() => {
+            findPressables(component)[0].props.onPress();
+        });
+
+        expect(onPressCheckin).toHaveBeenCalledWith(item);
+    });
+
+    it('makes a check-in with a habit but no shared post pressable (falls back to habit detail)', () => {
+        const onPressCheckin = jest.fn();
+        const item = buildItem({
+            id: 'checkin-2',
+            type: 'checkin',
+            body: null,
+            habitGoalId: 'habit-a',
+            goalName: 'Running',
+            meta: { status: 'completed' },
+        });
+        const component = render({ item, onPressCheckin });
+
+        expect(findPressables(component).length).toBeGreaterThan(0);
+        act(() => {
+            findPressables(component)[0].props.onPress();
+        });
+        expect(onPressCheckin).toHaveBeenCalledWith(item);
+    });
+
+    it('leaves a check-in with neither a shared post nor a habit unpressable', () => {
+        const component = render({
+            item: buildItem({
+                type: 'checkin',
+                body: null,
+                habitGoalId: null,
+                meta: { status: 'completed' },
+            }),
+            onPressCheckin: jest.fn(),
         });
 
         expect(findPressables(component)).toHaveLength(0);
