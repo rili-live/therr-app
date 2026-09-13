@@ -28,6 +28,18 @@ export const getPreviousPeriodStart = (now: Date = new Date()): string => {
 };
 
 /**
+ * The last period each brand closed in this process. `hasResultsForPeriod` cannot tell a period
+ * that was closed with no participants from one never closed, so without this a brand whose
+ * previous week had no scores would re-run the ranking INSERT ... SELECT on every summary read,
+ * all week. One key per brand: it rotates on its own when the period does, and a restart only
+ * costs one extra (idempotent) close.
+ */
+const closedPeriodByBrand = new Map<string, string>();
+
+/** Test affordance: forget which periods this process has already closed. */
+export const resetClosedPeriodMemo = () => closedPeriodByBrand.clear();
+
+/**
  * Close the most recently elapsed period for a brand if it has not been closed yet: rank every
  * participant and write `main.leaderboardPeriodResults` (ties share a placement; league columns
  * NULL). Idempotent — the store's INSERT ... ON CONFLICT DO NOTHING means a scheduled close and a
@@ -39,11 +51,15 @@ export const getPreviousPeriodStart = (now: Date = new Date()): string => {
  */
 export const closeElapsedLeaderboardPeriod = async (brand: BrandValue, now: Date = new Date()): Promise<number> => {
     const periodStart = getPreviousPeriodStart(now);
-    const alreadyClosed = await Store.leaderboardPeriodResults.hasResultsForPeriod(brand, periodStart);
-    if (alreadyClosed) {
+    if (closedPeriodByBrand.get(String(brand)) === periodStart) {
         return 0;
     }
-    return Store.leaderboardPeriodResults.closePeriod(brand, periodStart);
+    const alreadyClosed = await Store.leaderboardPeriodResults.hasResultsForPeriod(brand, periodStart);
+    const written = alreadyClosed ? 0 : await Store.leaderboardPeriodResults.closePeriod(brand, periodStart);
+    // Remembered only once the close has actually happened — a throw above leaves the next
+    // read to try again.
+    closedPeriodByBrand.set(String(brand), periodStart);
+    return written;
 };
 
 /**

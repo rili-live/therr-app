@@ -112,6 +112,35 @@ export const getLocalDate = (timeZone: string, at: Date = new Date()): string =>
     return parts ? parts.date : fromUtcDate(at);
 };
 
+/**
+ * The zone whose local day is furthest ahead (UTC+14, no DST). When a user's own zone cannot be
+ * resolved, "today" in this zone is the latest calendar date any client on Earth can honestly
+ * report, so clamping to it rejects nothing legitimate.
+ */
+const LATEST_LOCAL_DAY_TIME_ZONE = 'Pacific/Kiritimati';
+
+/**
+ * The latest local day a "celebrated" report may name.
+ *
+ * With a resolvable zone (saved `settingsTimezone`, else the device zone on the request) that
+ * is the user's own today. Without one it is the latest today anywhere, NOT the service
+ * fallback zone: a client east of that fallback would have its real today clamped to the
+ * fallback's yesterday, and the next summary read would offer the same celebration again.
+ * Anything later than the bound is a skewed clock or a hand-made request, and is pulled back to
+ * it so it cannot silence celebrations until that day arrives. Earlier dates pass through.
+ */
+export const clampCelebratedDate = (
+    requestedDate: string,
+    { settingsTimezone, deviceTimezone }: { settingsTimezone: unknown; deviceTimezone?: unknown },
+    now: Date = new Date(),
+): string => {
+    const hasOwnZone = isValidTimeZone(settingsTimezone) || isValidTimeZone(deviceTimezone);
+    const latest = hasOwnZone
+        ? getLocalDate(resolveCheckinTimeZone(settingsTimezone, deviceTimezone), now)
+        : getLocalDate(LATEST_LOCAL_DAY_TIME_ZONE, now);
+    return requestedDate > latest ? latest : requestedDate;
+};
+
 /** How many days into the past a check-in may be backdated and still move the daily streak. */
 export const MAX_BACKDATE_DAYS = 1;
 

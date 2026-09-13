@@ -312,9 +312,9 @@ const Habits = {
      * the screen has already been shown, so a failed write must not leave the queue believing
      * a celebration is still owed and re-showing it on the next foreground.
      */
-    markDailyStreakCelebrated: (date: string) => (dispatch: any) => {
+    markDailyStreakCelebrated: (date: string, timeZone?: string) => (dispatch: any) => {
         dispatch({ type: HabitsActionTypes.DAILY_STREAK_CELEBRATED, data: { date } });
-        return DailyStreakService.markCelebrated(date).then((response: any) => response?.data);
+        return DailyStreakService.markCelebrated(date, timeZone).then((response: any) => response?.data);
     },
 
     acknowledgePlacement: (periodId: string) => (dispatch: any) => {
