@@ -22,6 +22,8 @@ import {
 import { resolveReminderSchedule } from '../utilities/localReminderSchedule';
 import { createNameResolvers } from '../utilities/notificationNames';
 import { IUserHabitReminderRow } from '../store/UserHabitsStore';
+import { evaluateAllDailyStreaks } from './helpers/dailyStreak';
+import { closeElapsedLeaderboardPeriods } from './helpers/leaderboardPeriods';
 
 // Upper bound per run so a runaway pact count can't turn the digest into a
 // multi-minute request. Raise (or page the query) when active pacts approach
@@ -174,6 +176,11 @@ interface IDigestCounters {
     // installs report their timezone on push registration; a flat line means
     // the mobile half never shipped, and this is the only place that shows it.
     usersWithoutTimezone: number;
+    // App-level daily streak: users whose local yesterday this run finalized (the same
+    // idempotent pass POST /habits/daily-streak/evaluate-all runs), and leaderboard periods
+    // closed per brand. Both best-effort — a failure here is logged, not fatal to the digest.
+    dailyStreaksEvaluated: number;
+    dailyStreakErrors: number;
 }
 
 /**
@@ -295,10 +302,34 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         remindersMutedByPreference: 0,
         lastChanceMutedByPreference: 0,
         usersWithoutTimezone: 0,
+        dailyStreaksEvaluated: 0,
+        dailyStreakErrors: 0,
     };
 
     const today = getTodayDateString();
     const yesterday = normalizeDateString(new Date(Date.now() - MS_PER_DAY));
+
+    // Daily-streak finalization and leaderboard period close ride the digest's once-a-day
+    // firing so they run in production without a second scheduler job. Both are idempotent,
+    // so the dedicated internal endpoint can additionally run hourly without double effect.
+    // Runs first: the streak state the reminders below describe should be as of yesterday.
+    await Promise.all([
+        evaluateAllDailyStreaks()
+            .then((result) => {
+                counters.dailyStreaksEvaluated = result.usersEvaluated;
+                counters.dailyStreakErrors = result.errors;
+            })
+            .catch((err: any) => {
+                counters.dailyStreakErrors += 1;
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Daily streak evaluate-all failed inside the habits digest'],
+                    traceArgs: { 'error.message': err?.message },
+                });
+            }),
+        closeElapsedLeaderboardPeriods(),
+    ]);
 
     /**
      * Resolves true when a row was queued. `enqueueNotification` never throws, so

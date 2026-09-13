@@ -4,6 +4,7 @@ import HabitGoalsService, { ICreateHabitGoalBody, IUpdateHabitGoalBody } from '.
 import PactsService, { ICreatePactBody, IBulkInvitePactBody } from '../../services/PactsService';
 import HabitCheckinsService, { ICreateCheckinBody, IUpdateCheckinBody } from '../../services/HabitCheckinsService';
 import StreaksService from '../../services/StreaksService';
+import DailyStreakService from '../../services/DailyStreakService';
 import UserHabitsService, { ICreateUserHabitBody } from '../../services/UserHabitsService';
 import JournalService, { ICreateJournalEntryBody, IUpdateJournalEntryBody } from '../../services/JournalService';
 import HabitsLifetimeService, { IVerifyLifetimePurchaseBody } from '../../services/HabitsLifetimeService';
@@ -237,6 +238,16 @@ const Habits = {
                 type: HabitsActionTypes.CREATE_CHECKIN,
                 data: response.data,
             });
+            // The check-in response carries the app-level daily streak as of this check-in,
+            // including whether a celebration is owed. Storing it here means the celebration
+            // runs off the same response that produced it rather than a follow-up fetch that
+            // could resolve after the toast has already gone.
+            if (response.data?.dailyStreak) {
+                dispatch({
+                    type: HabitsActionTypes.SET_DAILY_STREAK,
+                    data: response.data.dailyStreak,
+                });
+            }
             return response.data;
         }),
 
@@ -284,6 +295,32 @@ const Habits = {
             }
             return response.data;
         }),
+
+    // Daily streak (app-level, across all habits)
+    getDailyStreak: (timeZone?: string) => (dispatch: any) => DailyStreakService
+        .getMine(timeZone).then((response: any) => {
+            if (response?.isOfflineFallback) return undefined;
+            dispatch({
+                type: HabitsActionTypes.GET_DAILY_STREAK,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
+    /**
+     * Gate today's celebration server-side, then clear it locally. Dispatched optimistically:
+     * the screen has already been shown, so a failed write must not leave the queue believing
+     * a celebration is still owed and re-showing it on the next foreground.
+     */
+    markDailyStreakCelebrated: (date: string, timeZone?: string) => (dispatch: any) => {
+        dispatch({ type: HabitsActionTypes.DAILY_STREAK_CELEBRATED, data: { date } });
+        return DailyStreakService.markCelebrated(date, timeZone).then((response: any) => response?.data);
+    },
+
+    acknowledgePlacement: (periodId: string) => (dispatch: any) => {
+        dispatch({ type: HabitsActionTypes.ACKNOWLEDGE_PLACEMENT, data: { periodId } });
+        return DailyStreakService.acknowledgePlacement(periodId).then((response: any) => response?.data);
+    },
 
     // Streaks
     getUserStreaks: (isActive?: boolean) => (dispatch: any) => StreaksService

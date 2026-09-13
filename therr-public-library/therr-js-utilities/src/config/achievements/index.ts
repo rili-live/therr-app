@@ -5,6 +5,7 @@ import cleanBreak from './cleanBreak';
 import communityLeader from './communityLeader';
 import consistency from './consistency';
 import critic from './critic';
+import dailyStreak from './dailyStreak';
 import entrepreneur from './entrepreneur';
 import eventPlanner from './eventPlanner';
 import explorer from './explorer';
@@ -43,6 +44,7 @@ const achievements: { [key: string]: IAchievement } = {
     ...communityLeader,
     ...consistency,
     ...critic,
+    ...dailyStreak,
     ...entrepreneur,
     ...eventPlanner,
     ...explorer,
@@ -69,6 +71,7 @@ export const achievementsByClass: { [key: string]: { [key: string]: IAchievement
     communityLeader,
     consistency,
     critic,
+    dailyStreak,
     entrepreneur,
     eventPlanner,
     explorer,
@@ -127,6 +130,9 @@ const habitsClassNames = [
     'accountability',
     'cleanBreak',
     'consistency',
+    // App-level daily streak (across all habits) — the class the celebration screens celebrate.
+    // HABITS-only by design: no other brand has a daily check-in to streak on.
+    'dailyStreak',
     'habitBuilder',
     'pactPioneer',
     'resilience',

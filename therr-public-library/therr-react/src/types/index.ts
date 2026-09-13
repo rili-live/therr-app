@@ -36,6 +36,10 @@ import {
     IHabitsLifetimeOffer,
     IHabitsPremiumSubscription,
     IHabitsPremiumOffer,
+    IDailyStreak,
+    IDailyStreakWeekDay,
+    IDailyStreakPendingCelebration,
+    IDailyStreakPendingPlacement,
 
     // Messages
     MessageActionTypes,
@@ -140,6 +144,10 @@ export {
     IHabitsLifetimeOffer,
     IHabitsPremiumSubscription,
     IHabitsPremiumOffer,
+    IDailyStreak,
+    IDailyStreakWeekDay,
+    IDailyStreakPendingCelebration,
+    IDailyStreakPendingPlacement,
 
     // Maps
     IMapState,
