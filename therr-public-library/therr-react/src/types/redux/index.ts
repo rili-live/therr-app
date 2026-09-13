@@ -31,6 +31,10 @@ import {
     IHabitsLifetimeOffer,
     IHabitsPremiumSubscription,
     IHabitsPremiumOffer,
+    IDailyStreak,
+    IDailyStreakWeekDay,
+    IDailyStreakPendingCelebration,
+    IDailyStreakPendingPlacement,
 } from './habits';
 import {
     IMapState,
@@ -108,6 +112,10 @@ export {
     IHabitsLifetimeOffer,
     IHabitsPremiumSubscription,
     IHabitsPremiumOffer,
+    IDailyStreak,
+    IDailyStreakWeekDay,
+    IDailyStreakPendingCelebration,
+    IDailyStreakPendingPlacement,
 
     // Maps
     IMapState,
