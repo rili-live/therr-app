@@ -24,3 +24,5 @@ export const USER_HABITS_TABLE_NAME = 'habits.user_habits';
 export const LIFETIME_PURCHASES_TABLE_NAME = 'habits.lifetime_purchases';
 export const SUBSCRIPTION_PURCHASES_TABLE_NAME = 'habits.subscription_purchases';
 export const JOURNAL_ENTRIES_TABLE_NAME = 'habits.journal_entries';
+export const USER_DAILY_STREAKS_TABLE_NAME = 'habits.user_daily_streaks';
+export const DAILY_STREAK_DAYS_TABLE_NAME = 'habits.daily_streak_days';

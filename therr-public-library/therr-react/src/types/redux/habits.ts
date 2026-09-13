@@ -383,6 +383,48 @@ export interface IHabitsPremiumOffer {
 }
 
 // State Interface
+/**
+ * The app-level daily streak: one streak per user across every habit, in the user's own
+ * timezone. Distinct from `IStreak`, which is per habit goal. Mirrors the users-service
+ * `GET /habits/daily-streak/me` response — see DailyStreakService.
+ */
+export interface IDailyStreakWeekDay {
+    date: string;
+    /** 0 = Monday … 6 = Sunday. */
+    dow: number;
+    status: 'upheld' | 'frozen' | 'missed' | 'future' | 'pending';
+    isToday: boolean;
+}
+
+export interface IDailyStreakPendingCelebration {
+    kind: 'day' | 'milestone';
+    streak: number;
+    isPerfectWeek: boolean;
+    isNewLongest: boolean;
+}
+
+export interface IDailyStreakPendingPlacement {
+    periodId: string;
+    periodStart: string;
+    periodEnd: string;
+    placement: number;
+    participants: number;
+    score: number;
+    /** Reserved for leagues; always null today. */
+    leagueFrom: string | null;
+    leagueTo: string | null;
+}
+
+export interface IDailyStreak {
+    currentStreak: number;
+    longestStreak: number;
+    today: string;
+    timeZone?: string;
+    week: IDailyStreakWeekDay[];
+    pendingCelebration: IDailyStreakPendingCelebration | null;
+    pendingPlacements?: IDailyStreakPendingPlacement[];
+}
+
 export interface IHabitsState {
     habitGoals: IHabitGoal[];
     templates: IHabitGoal[];
@@ -402,6 +444,8 @@ export interface IHabitsState {
     journalHasMore: boolean;
     lifetimeOffer: IHabitsLifetimeOffer | null;
     premiumOffer: IHabitsPremiumOffer | null;
+    /** App-level daily streak; null until first fetched. */
+    dailyStreak: IDailyStreak | null;
     isLoading: boolean;
 }
 
@@ -437,6 +481,14 @@ export enum HabitsActionTypes {
     UPDATE_CHECKIN = 'UPDATE_CHECKIN',
     SKIP_CHECKIN = 'SKIP_CHECKIN',
     SHARE_CHECKIN = 'SHARE_CHECKIN',
+
+    // Daily streak (app-level, across all habits)
+    GET_DAILY_STREAK = 'GET_DAILY_STREAK',
+    // Written from the check-in response, which carries the streak as of that check-in so the
+    // celebration can run without a second round trip.
+    SET_DAILY_STREAK = 'SET_DAILY_STREAK',
+    DAILY_STREAK_CELEBRATED = 'DAILY_STREAK_CELEBRATED',
+    ACKNOWLEDGE_PLACEMENT = 'ACKNOWLEDGE_PLACEMENT',
 
     // Streaks
     GET_USER_STREAKS = 'GET_USER_STREAKS',
