@@ -1488,11 +1488,17 @@
                 "you": "You",
                 "xpPoints": "{points} XP",
                 "resetsIn": "Resets in {days} day(s)",
-                "yourRank": "Your rank: #{rank}"
+                "yourRank": "Your rank: #{rank}",
+                "dailyStreakAccessibility": "{count} day streak"
             },
             "info": {
                 "noScores": "No scores yet this week. Use the app to earn XP and claim your spot!",
                 "noFriendScores": "None of your connections have earned XP yet. Invite friends to join the competition!"
+            },
+            "placementCard": {
+                "title": "You finished {placement}th of {participants} last week",
+                "subtitle": "Week of {period} · {score} pts",
+                "dismiss": "Dismiss"
             }
         },
         "manageNotifications": {
@@ -2541,6 +2547,48 @@
                     "title": "You are all set",
                     "message": "Premium unlocked. Thank you for subscribing."
                 }
+            }
+        },
+        "celebration": {
+            "weekdaysShort": {
+                "0": "M",
+                "1": "T",
+                "2": "W",
+                "3": "T",
+                "4": "F",
+                "5": "S",
+                "6": "S"
+            },
+            "weekdaysLong": {
+                "0": "Monday",
+                "1": "Tuesday",
+                "2": "Wednesday",
+                "3": "Thursday",
+                "4": "Friday",
+                "5": "Saturday",
+                "6": "Sunday"
+            },
+            "streak": {
+                "dayStreak": "day streak",
+                "perfectWeek": "Perfect week! 🎉",
+                "freezeSaved": "A freeze saved your streak on {day}. Keep checking in for a perfect week.",
+                "default": "Any habit, any day, keeps it going.",
+                "milestoneBody": "{count} days in a row. That's {weeks} weeks of showing up.",
+                "newPersonalBest": "New personal best.",
+                "weekAccessibility": "Your check-ins this week"
+            },
+            "placement": {
+                "first": "1st",
+                "second": "2nd",
+                "third": "3rd",
+                "place": "place",
+                "subtitle": "Week of {period} · {score} pts · {participants} friends",
+                "promoted": "Promoted to {league}!"
+            },
+            "actions": {
+                "continue": "Continue",
+                "seeLeaderboard": "See leaderboard",
+                "done": "Done"
             }
         }
     },

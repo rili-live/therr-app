@@ -1488,11 +1488,17 @@
                 "you": "Tú",
                 "xpPoints": "{points} XP",
                 "resetsIn": "Se reinicia en {days} día(s)",
-                "yourRank": "Tu puesto: #{rank}"
+                "yourRank": "Tu puesto: #{rank}",
+                "dailyStreakAccessibility": "Racha de {count} días"
             },
             "info": {
                 "noScores": "Aún no hay puntuaciones esta semana. ¡Usa la aplicación para ganar XP y reclamar tu lugar!",
                 "noFriendScores": "Ninguna de tus conexiones ha ganado XP todavía. ¡Invita a tus amigos a unirse a la competencia!"
+            },
+            "placementCard": {
+                "title": "Terminaste en el puesto {placement} de {participants} la semana pasada",
+                "subtitle": "Semana del {period} · {score} pts",
+                "dismiss": "Descartar"
             }
         },
         "manageNotifications": {
@@ -2541,6 +2547,48 @@
                     "title": "Todo listo",
                     "message": "Premium desbloqueado. Gracias por suscribirte."
                 }
+            }
+        },
+        "celebration": {
+            "weekdaysShort": {
+                "0": "L",
+                "1": "M",
+                "2": "X",
+                "3": "J",
+                "4": "V",
+                "5": "S",
+                "6": "D"
+            },
+            "weekdaysLong": {
+                "0": "lunes",
+                "1": "martes",
+                "2": "miércoles",
+                "3": "jueves",
+                "4": "viernes",
+                "5": "sábado",
+                "6": "domingo"
+            },
+            "streak": {
+                "dayStreak": "días seguidos",
+                "perfectWeek": "¡Semana perfecta! 🎉",
+                "freezeSaved": "Un congelamiento salvó tu racha el {day}. Sigue registrando para lograr una semana perfecta.",
+                "default": "Cualquier hábito, cualquier día, la mantiene viva.",
+                "milestoneBody": "{count} días seguidos. Son {weeks} semanas de constancia.",
+                "newPersonalBest": "Nuevo récord personal.",
+                "weekAccessibility": "Tus registros de esta semana"
+            },
+            "placement": {
+                "first": "1.º",
+                "second": "2.º",
+                "third": "3.º",
+                "place": "puesto",
+                "subtitle": "Semana del {period} · {score} pts · {participants} amigos",
+                "promoted": "¡Ascendiste a {league}!"
+            },
+            "actions": {
+                "continue": "Continuar",
+                "seeLeaderboard": "Ver clasificación",
+                "done": "Listo"
             }
         }
     },

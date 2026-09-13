@@ -1488,11 +1488,17 @@
                 "you": "Vous",
                 "xpPoints": "{points} XP",
                 "resetsIn": "Réinitialisation dans {days} jour(s)",
-                "yourRank": "Votre rang : #{rank}"
+                "yourRank": "Votre rang : #{rank}",
+                "dailyStreakAccessibility": "Série de {count} jours"
             },
             "info": {
                 "noScores": "Aucun score cette semaine. Utilisez l'application pour gagner des XP et réclamer votre place!",
                 "noFriendScores": "Aucune de vos connexions n'a encore gagné de XP. Invitez vos ami(e)s à se joindre à la compétition!"
+            },
+            "placementCard": {
+                "title": "Tu as terminé {placement}e sur {participants} la semaine dernière",
+                "subtitle": "Semaine du {period} · {score} pts",
+                "dismiss": "Ignorer"
             }
         },
         "manageNotifications": {
@@ -2541,6 +2547,48 @@
                     "title": "Tout est prêt",
                     "message": "Premium débloqué. Merci de t'être abonné."
                 }
+            }
+        },
+        "celebration": {
+            "weekdaysShort": {
+                "0": "L",
+                "1": "M",
+                "2": "M",
+                "3": "J",
+                "4": "V",
+                "5": "S",
+                "6": "D"
+            },
+            "weekdaysLong": {
+                "0": "lundi",
+                "1": "mardi",
+                "2": "mercredi",
+                "3": "jeudi",
+                "4": "vendredi",
+                "5": "samedi",
+                "6": "dimanche"
+            },
+            "streak": {
+                "dayStreak": "jours d'affilée",
+                "perfectWeek": "Semaine parfaite ! 🎉",
+                "freezeSaved": "Un gel a sauvé ta série le {day}. Continue à t'enregistrer pour une semaine parfaite.",
+                "default": "N'importe quelle habitude, n'importe quel jour, et ça continue.",
+                "milestoneBody": "{count} jours d'affilée. Ça fait {weeks} semaines de constance.",
+                "newPersonalBest": "Nouveau record personnel.",
+                "weekAccessibility": "Tes enregistrements cette semaine"
+            },
+            "placement": {
+                "first": "1re",
+                "second": "2e",
+                "third": "3e",
+                "place": "place",
+                "subtitle": "Semaine du {period} · {score} pts · {participants} amis",
+                "promoted": "Promu à {league} !"
+            },
+            "actions": {
+                "continue": "Continuer",
+                "seeLeaderboard": "Voir le classement",
+                "done": "Terminé"
             }
         }
     },

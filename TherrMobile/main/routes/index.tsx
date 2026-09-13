@@ -21,6 +21,7 @@ import Landing from './Landing';
 import Login from './Login';
 import Map from './Map';
 import Achievements from './Achievements';
+import Celebration from './Celebration';
 import HabitsFeed from './HabitsFeed';
 import ApiAccess from './ApiAccess';
 import AchievementClaim from './Achievements/AchievementClaim';
@@ -60,7 +61,7 @@ import MyHabits from './MyHabits';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
 // HABITS routes
-import { HabitsDashboard, HabitDetail, UpgradePaywall } from './Habits';
+import { HabitsDashboard, HabitDetail, CheckinDetail, UpgradePaywall } from './Habits';
 import Journal from './Journal';
 import { PactDetail, CreatePactInvite, HabitsPushOptIn, AddPactMembers } from './Pacts';
 import { AccessPresets } from './access';
@@ -177,6 +178,21 @@ const routes: RouteConfig<
         options: () => ({
             title: 'AchievementClaim',
             requiredFeatures: [FeatureFlags.ENABLE_ACHIEVEMENTS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        // Full-screen streak / milestone / placement celebration. Reached only through
+        // `utilities/celebrationQueue`, which is what keeps it from pre-empting the check-in
+        // toast and the note/photo screen. No header: the screen owns its own dismissal, and a
+        // back arrow would let the user leave without the server being told it was seen.
+        name: 'Celebration',
+        component: Celebration,
+        options: () => ({
+            title: 'Celebration',
+            headerShown: false,
+            presentation: 'fullScreenModal',
+            animation: 'fade',
             access: AccessPresets.EMAIL_VERIFIED,
         }),
     },
@@ -573,6 +589,18 @@ const routes: RouteConfig<
         component: HabitDetail,
         options: () => ({
             title: 'Habit Details',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        // Attach a note or photo to a check-in that has already been logged. Was a bottom sheet
+        // owned by Dashboard and HabitDetail; a screen now, so the note field gets the room it
+        // needs and back navigation behaves like everywhere else in the app.
+        name: 'CheckinDetail',
+        component: CheckinDetail,
+        options: () => ({
+            title: 'Add Detail',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),

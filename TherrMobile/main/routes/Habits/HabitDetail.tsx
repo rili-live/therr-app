@@ -3,8 +3,6 @@ import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import RNFB from 'react-native-blob-util';
-import { FeatureFlags, FilePaths } from 'therr-js-utilities/constants';
 import { HabitActions, MapActions } from 'therr-react/redux/actions';
 import {
     IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IHabitCheckinProof, IStreak,
@@ -20,7 +18,7 @@ import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import {
-    CheckinButton, CheckinDayDetailSheet, CheckinProofSheet, HabitCalendar, StreakWidget,
+    CheckinButton, CheckinDayDetailSheet, HabitCalendar, StreakWidget,
 } from '../../components/Habits';
 import { getProofMediaRequests, resolveProofUris } from './checkinDayDetail';
 import {
@@ -28,18 +26,15 @@ import {
     getStreakSavedByFreeze,
     streakFreezeRuleParams,
 } from '../../utilities/streakFreezes';
-import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
-import { signImageUrl } from '../../utilities/content';
+import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/celebrationQueue';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
 import { DURATION, showToast } from '../../utilities/toasts';
-import getConfig from '../../utilities/getConfig';
 
 interface IHabitDetailDispatchProps {
     getCheckinsByRange: Function;
     getStreakByHabit: Function;
     createCheckin: Function;
-    shareCheckin: Function;
     getCheckinProofs: Function;
     fetchMedia: Function;
 }
@@ -65,7 +60,6 @@ interface IHabitDetailState {
     calendarMonth: Date;
     checkins: IHabitCheckin[];
     streak: IStreak | null;
-    isProofSheetVisible: boolean;
     selectedDay: Date | null;
     selectedDayCheckin?: IHabitCheckin;
     dayProofs: IHabitCheckinProof[];
@@ -86,7 +80,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getCheckinsByRange: HabitActions.getCheckinsByRange,
     getStreakByHabit: HabitActions.getStreakByHabit,
     createCheckin: HabitActions.createCheckin,
-    shareCheckin: HabitActions.shareCheckin,
     getCheckinProofs: HabitActions.getCheckinProofs,
     fetchMedia: MapActions.fetchMedia,
 }, dispatch);
@@ -109,7 +102,6 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             calendarMonth: new Date(today.getFullYear(), today.getMonth(), 1),
             checkins: [],
             streak: null,
-            isProofSheetVisible: false,
             selectedDay: null,
             selectedDayCheckin: undefined,
             dayProofs: [],
@@ -184,122 +176,61 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
      * toast, rather than standing between the user and their streak.
      */
     handleCheckin = () => {
-        this.submitCheckin({});
-    };
-
-    handleAddCheckinDetail = () => {
-        Toast.hide();
-        this.setState({ isProofSheetVisible: true });
-    };
-
-    handleProofSheetCancel = () => {
-        this.setState({ isProofSheetVisible: false });
-    };
-
-    uploadProofImage = (habitGoalId: string, image: ISelectedProofImage): Promise<{ path: string; type: 'image'; fileSizeBytes?: number }> => {
-        const extSplit = image.path?.split('.');
-        const fileExtension = extSplit && extSplit.length > 1 ? extSplit[extSplit.length - 1] : 'jpeg';
-        const filename = `${FilePaths.CONTENT}/habits_proof_${habitGoalId}_${Date.now()}.${fileExtension}`;
-
-        return signImageUrl(false, { action: 'write', filename }).then((response: any) => {
-            const signedUrl = response?.data?.url && response?.data?.url[0];
-            const storedPath = response?.data?.path;
-            return RNFB.fetch(
-                'PUT',
-                signedUrl,
-                {
-                    'Content-Type': image.mime,
-                    'Content-Length': image.size.toString(),
-                    'Content-Disposition': 'inline',
-                },
-                RNFB.wrap(image.path),
-            ).then(() => ({
-                path: storedPath,
-                type: 'image' as const,
-                fileSizeBytes: image.size,
-            }));
-        });
-    };
-
-    isFeedEnabled = (): boolean => getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_FEED] === true;
-
-    handleProofSheetConfirm = (
-        { notes, image, sharePublicly }: { notes?: string; image?: ISelectedProofImage; sharePublicly?: boolean },
-    ) => {
-        this.submitCheckin({ notes, image, sharePublicly });
+        this.submitCheckin();
     };
 
     /**
-     * The single write path for both entry points. `scheduledDate` stays on the
-     * UTC calendar day: users-service defines a habit day in UTC
-     * (`getTodayDateString`), so the local-calendar `toLocalDateKey` used to
-     * render the month grid must not be used for the write.
+     * Opens the note/photo screen for the check-in that was just logged. This used to toggle a
+     * bottom sheet in this screen's state; it is a route now, so back navigation works like the
+     * rest of the app and the note field gets the whole screen. The screen owns the submit.
      */
-    submitCheckin = (
-        { notes, image, sharePublicly }: { notes?: string; image?: ISelectedProofImage; sharePublicly?: boolean },
-    ) => {
-        const { createCheckin, shareCheckin, route } = this.props;
+    handleAddCheckinDetail = () => {
+        Toast.hide();
+        this.props.navigation.navigate('CheckinDetail', {
+            habitGoalId: this.props.route.params.habitGoalId,
+            habitName: this.getHabitGoal()?.name || '',
+            source: 'habitDetail',
+        });
+    };
+
+    /**
+     * The one-tap check-in. Notes and photos go through the CheckinDetail screen, which does
+     * its own POST, so this is always the bare "I did it".
+     *
+     * `scheduledDate` stays on the UTC calendar day: users-service defines a habit day in UTC
+     * (`getTodayDateString`), so the local-calendar `toLocalDateKey` used to render the month
+     * grid must not be used for the write. `timeZone` is separate and is what the app-level
+     * daily streak keys its own day off.
+     */
+    submitCheckin = () => {
+        const { createCheckin, route } = this.props;
         const { habitGoalId } = route.params;
-        const isAddingDetail = !!notes || !!image;
 
         this.setState({ isCheckinLoading: true });
 
         const today = new Date().toISOString().split('T')[0];
 
-        const uploadPromise = image
-            ? this.uploadProofImage(habitGoalId, image).then((media) => [media])
-            : Promise.resolve(undefined);
-
-        uploadPromise
-            .then((proofMedias) => createCheckin({
-                habitGoalId,
-                scheduledDate: today,
-                status: 'completed',
-                notes,
-                proofMedias,
-            }))
+        createCheckin({
+            habitGoalId,
+            scheduledDate: today,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            status: 'completed',
+        })
             .then((checkin: any) => {
-                if (isAddingDetail) {
-                    const wantsShare = sharePublicly && !!image && !!checkin?.id;
-                    if (wantsShare) {
-                        // Fire-and-forget public share of the proof photo — see Dashboard.tsx.
-                        shareCheckin(checkin.id, notes)
-                            .then(() => {
-                                logAppEvent('habit_checkin_shared', {
-                                    userId: this.props.user?.details?.id,
-                                    source: 'habitDetail',
-                                });
-                                showToast.success({
-                                    text1: this.translate('pages.habits.checkinProof.sharedTitle'),
-                                });
-                            })
-                            .catch(() => {
-                                showToast.error({
-                                    text1: this.translate('pages.habits.checkinProof.shareFailed'),
-                                });
-                            });
-                        return;
-                    }
-
-                    showToast.success({
-                        text1: this.translate('pages.habits.checkinToast.detailSavedTitle'),
-                    });
-                    return;
-                }
-
-                // See the note on the same event in Habits/Dashboard.tsx: the
-                // isAddingDetail path above is a second call attaching proof to
-                // the check-in this one created, so only this branch counts.
                 logAppEvent('habit_checkin_complete', {
                     userId: this.props.user?.details?.id,
                     source: 'habitDetail',
                     hasProof: false,
                 });
 
-                // A freeze was spent covering a day this user missed. Say so
-                // here rather than leaving them to infer it from a streak
-                // number that did not drop — this is the moment the safety net
-                // either becomes a known rule or stays invisible.
+                // A freeze was spent covering a day this user missed. Say so here rather than
+                // leaving them to infer it from a streak number that did not drop — this is the
+                // moment the safety net either becomes a known rule or stays invisible.
+                //
+                // The toast holds the celebration queue for as long as it is up, so a streak
+                // celebration cannot pre-empt the offer to add a note. See
+                // utilities/celebrationQueue.
+                celebrationQueue.block();
                 const freezeConsumed = getFreezeConsumed(checkin);
                 showToast.success({
                     text1: freezeConsumed
@@ -314,7 +245,10 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                         : this.translate('pages.habits.checkinToast.addDetailAction'),
                     duration: DURATION.LONG,
                     onPress: this.handleAddCheckinDetail,
+                    onHide: () => celebrationQueue.unblock(),
                 });
+
+                enqueueStreakCelebration(checkin?.dailyStreak);
             })
             .catch((err) => {
                 showToast.error({
@@ -323,10 +257,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                 });
             })
             .finally(() => {
-                this.setState({
-                    isCheckinLoading: false,
-                    isProofSheetVisible: false,
-                });
+                this.setState({ isCheckinLoading: false });
                 this.handleRefresh();
             });
     };
@@ -456,7 +387,6 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             calendarMonth,
             checkins,
             streak,
-            isProofSheetVisible,
             selectedDay,
             selectedDayCheckin,
             dayProofs,
@@ -625,19 +555,6 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                     onViewSharedPost={selectedDayCheckin?.sharedThoughtId
                         ? this.handleViewSharedPost
                         : undefined}
-                    translate={this.translate}
-                    themeConfirmModal={this.themeConfirmModal}
-                    themeButtons={this.themeButtons}
-                />
-                <CheckinProofSheet
-                    isVisible={isProofSheetVisible}
-                    isSubmitting={isCheckinLoading}
-                    habitName={habitGoal.name}
-                    userId={user?.details?.id}
-                    canShare={this.isFeedEnabled()}
-                    defaultSharePublicly={this.isFeedEnabled() && !!user?.settings?.settingsIsProfilePublic}
-                    onCancel={this.handleProofSheetCancel}
-                    onConfirm={this.handleProofSheetConfirm}
                     translate={this.translate}
                     themeConfirmModal={this.themeConfirmModal}
                     themeButtons={this.themeButtons}

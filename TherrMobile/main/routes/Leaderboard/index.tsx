@@ -3,8 +3,10 @@ import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native
 import { RefreshControl } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import { UsersService } from 'therr-react/services';
-import { IUserState } from 'therr-react/types';
+import { HabitActions } from 'therr-react/redux/actions';
+import { IDailyStreakPendingPlacement, IUserState } from 'therr-react/types';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { Avatar } from '../../components/BaseAvatar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -15,6 +17,8 @@ import { getUserImageUri } from '../../utilities/content';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildLeaderboardStyles, MEDAL_COLORS } from '../../styles/leaderboard';
+import { buildStyles as buildCelebrationStyles } from '../../styles/celebrations';
+import { PODIUM_PLACEMENT_MAX } from '../../utilities/celebrationQueue';
 
 const PAGE_SIZE = 50;
 
@@ -30,16 +34,30 @@ interface ILeaderboardEntry {
     points: number;
     rank: number;
     isRequestingUser: boolean;
+    /** App-level daily streak, for the 🔥 chip. 0 means no chip. */
+    dailyStreak?: number;
 }
 
 interface ILeaderboardProps {
     navigation: any;
     user: IUserState;
+    /**
+     * Unacknowledged end-of-period placements, loaded by the daily-streak fetch on app
+     * foreground. Podium finishes get a full-screen celebration instead; anything below shows
+     * as the dismissible card at the top of this board.
+     */
+    pendingPlacements: IDailyStreakPendingPlacement[];
+    acknowledgePlacement: Function;
 }
 
 const mapStateToProps = (state: any) => ({
     user: state.user,
+    pendingPlacements: state.habits?.dailyStreak?.pendingPlacements || [],
 });
+
+const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    acknowledgePlacement: HabitActions.acknowledgePlacement,
+}, dispatch);
 
 const getDaysUntilReset = (periodEnd: string | null): number => {
     if (!periodEnd) {
@@ -49,7 +67,12 @@ const getDaysUntilReset = (periodEnd: string | null): number => {
     return Math.max(1, Math.ceil(msRemaining / (24 * 60 * 60 * 1000)));
 };
 
-export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
+export const Leaderboard = ({
+    navigation,
+    user,
+    pendingPlacements,
+    acknowledgePlacement,
+}: ILeaderboardProps) => {
     const [entries, setEntries] = useState<ILeaderboardEntry[]>([]);
     const [currentUser, setCurrentUser] = useState<{ userId: string; points: number; rank: number } | null>(null);
     const [periodEnd, setPeriodEnd] = useState<string | null>(null);
@@ -67,6 +90,10 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
     const themeMenu = useMemo(() => buildMenuStyles(user.settings?.mobileThemeName), [user.settings?.mobileThemeName]);
     const themeLeaderboard = useMemo(
         () => buildLeaderboardStyles(user.settings?.mobileThemeName),
+        [user.settings?.mobileThemeName],
+    );
+    const themeCelebration = useMemo(
+        () => buildCelebrationStyles(user.settings?.mobileThemeName),
         [user.settings?.mobileThemeName],
     );
     const translate = useCallback(
@@ -168,6 +195,17 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
             <Text style={themeLeaderboard.styles.userNameText} numberOfLines={1}>
                 {item.isRequestingUser ? translate('pages.leaderboard.labels.you') : item.userName}
             </Text>
+            {item.dailyStreak ? (
+                <View
+                    style={themeCelebration.styles.streakChip}
+                    accessibilityLabel={translate('pages.leaderboard.labels.dailyStreakAccessibility', {
+                        count: item.dailyStreak,
+                    })}
+                >
+                    <FontAwesome5Icon name="fire" size={12} color={themeCelebration.colors.brandingOrange} />
+                    <Text style={themeCelebration.styles.streakChipText}>{item.dailyStreak}</Text>
+                </View>
+            ) : null}
             <Text style={themeLeaderboard.styles.pointsText}>
                 {translate('pages.leaderboard.labels.xpPoints', { points: item.points })}
             </Text>
@@ -199,11 +237,53 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
 
     const isCurrentUserVisible = entries.some((entry) => entry.isRequestingUser);
 
+    // A podium finish gets the full-screen celebration (queued on app foreground), so only the
+    // rest land here. Newest first, and only the first one: a stack of cards above the board is
+    // the wall of modals this was meant to avoid, in a different shape.
+    const inlinePlacement = pendingPlacements
+        .filter((placement) => placement.placement > PODIUM_PLACEMENT_MAX)[0];
+
+    const renderInlinePlacement = () => {
+        if (!inlinePlacement) {
+            return null;
+        }
+
+        return (
+            <View style={themeCelebration.styles.placementCard}>
+                <FontAwesome5Icon name="medal" size={20} color={themeCelebration.colors.textWhite} />
+                <View style={themeCelebration.styles.placementCardTextContainer}>
+                    <Text style={themeCelebration.styles.placementCardTitle}>
+                        {translate('pages.leaderboard.placementCard.title', {
+                            placement: inlinePlacement.placement,
+                            participants: inlinePlacement.participants,
+                        })}
+                    </Text>
+                    <Text style={themeCelebration.styles.placementCardSubtitle}>
+                        {translate('pages.leaderboard.placementCard.subtitle', {
+                            period: inlinePlacement.periodStart,
+                            score: inlinePlacement.score,
+                        })}
+                    </Text>
+                </View>
+                <Pressable
+                    onPress={() => acknowledgePlacement(inlinePlacement.periodId)?.catch?.(() => {})}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel={translate('pages.leaderboard.placementCard.dismiss')}
+                    style={themeCelebration.styles.placementCardDismiss}
+                >
+                    <FontAwesome5Icon name="times" size={16} color={themeCelebration.colors.textWhite} />
+                </Pressable>
+            </View>
+        );
+    };
+
     return (
         <>
             <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
             <SafeAreaView edges={[]} style={[theme.styles.safeAreaView, { backgroundColor: theme.colors.backgroundGray }]}>
                 <View style={[theme.styles.body, { backgroundColor: theme.colors.backgroundGray }]}>
+                    {renderInlinePlacement()}
                     <View style={themeLeaderboard.styles.tabsContainer}>
                         {renderTab('pages.leaderboard.tabs.thisWeek', period === 'week', () => setPeriod('week'))}
                         {renderTab('pages.leaderboard.tabs.allTime', period === 'allTime', () => setPeriod('allTime'))}
@@ -266,4 +346,4 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
     );
 };
 
-export default connect(mapStateToProps)(Leaderboard);
+export default connect(mapStateToProps, mapDispatchToProps)(Leaderboard);
