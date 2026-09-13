@@ -24,6 +24,7 @@ const BRAND_SCOPED_TABLES = [
     'main.userAchievements',
     'main.userLeaderboardScores',
     'main.notificationQueue',
+    'main.leaderboardPeriodResults',
 ];
 
 module.exports = {

@@ -96,6 +96,29 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Daily streak & celebrations (added 2026-09-13)
+
+- [ ] **Point a scheduler at `POST /habits/pacts/../daily-streak/evaluate-all`, or leave it to
+  the digest.** The pass that finalizes each user's local yesterday (and closes the elapsed
+  leaderboard period) already runs inside the daily habits digest, so no new scheduler job is
+  strictly required. An hourly Cloud Scheduler firing at the internal
+  `POST /v1/habits/daily-streak/evaluate-all` would tighten it: users in zones far from the
+  digest's `America/Chicago` firing currently wait until the next digest for the *scheduled*
+  half. It is idempotent, so extra firings cost only queries. Decide, then check this off.
+- [ ] **Set `DAILY_STREAK_BONUS_XP` if 5 is wrong.** Per day the daily streak is upheld by a
+  real check-in (frozen days earn nothing). Server-side env var, default 5; `0` disables the
+  bonus without a deploy.
+- [ ] **Watch the first `localDate` backfill.** Migration
+  `20260913000002_habits.habit_checkins.localDate.backfill.js` rewrites every legacy check-in's
+  local day from `createdAt` + the user's timezone. It only touches NULL rows, so it is
+  re-runnable — but confirm the row count matches the table's size and that no cohort landed on
+  the `America/Chicago` fallback branch en masse (that branch is for check-ins whose user row is
+  gone).
+- [ ] **Confirm the first celebration reaches a real device.** The gate is server-side
+  (`lastCelebratedDate`), so a client that fails to POST `/daily-streak/me/celebrated` will
+  re-show the same day's screen on the next foreground. Verify one full loop on a device before
+  the release goes wide.
+
 ## Push notification UAT (added 2026-08-31)
 
 - [ ] **Configure the `post_deploy_uat` CircleCI job.** It ships disabled: with no

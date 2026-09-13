@@ -235,6 +235,26 @@ export default class StreaksStore {
         return this.db.write.query(queryString).then((response) => response.rows[0]);
     }
 
+    /**
+     * Give a freeze back. Used by the daily-streak rewind path when a backdated check-in
+     * fills a day that had been covered by a freeze borrowed from this habit. Never below 0:
+     * a refund for a freeze the row no longer shows as used (a per-habit reset zeroed
+     * `graceDaysUsed` in between) is a no-op rather than a negative count.
+     */
+    refundGraceDay(id: string) {
+        const queryString = knexBuilder
+            .into(STREAKS_TABLE_NAME)
+            .where({ id })
+            .update({
+                graceDaysUsed: knexBuilder.raw('GREATEST(0, COALESCE("graceDaysUsed", 0) - 1)'),
+                updatedAt: new Date(),
+            })
+            .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows[0]);
+    }
+
     deactivate(id: string) {
         return this.update(id, { isActive: false });
     }
