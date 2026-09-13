@@ -64,11 +64,15 @@ class DailyStreakService {
         });
     };
 
-    /** Gate the next celebration: one per local day. `date` is the day that was celebrated. */
-    markCelebrated = (date: string) => axios({
+    /**
+     * Gate the next celebration: one per local day. `date` is the day that was celebrated.
+     * `timeZone` is the device zone, the same fallback `getMine` sends: the server clamps `date`
+     * to the user's local today and needs the zone to know which day that is.
+     */
+    markCelebrated = (date: string, timeZone?: string) => axios({
         method: 'post',
         url: '/users-service/habits/daily-streak/me/celebrated',
-        data: { date },
+        data: timeZone ? { date, timeZone } : { date },
     });
 
     /** Dismiss an end-of-period leaderboard placement. `periodId` is the period's start date. */

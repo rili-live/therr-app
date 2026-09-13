@@ -4,7 +4,7 @@ import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
-import { isDateString } from '../utilities/dailyStreak';
+import { clampCelebratedDate, isDateString } from '../utilities/dailyStreak';
 import { evaluateAllDailyStreaks, getDailyStreakSummary } from './helpers/dailyStreak';
 import { closeElapsedLeaderboardPeriods } from './helpers/leaderboardPeriods';
 
@@ -41,20 +41,26 @@ const getMyDailyStreak: RequestHandler = async (req: any, res: any) => {
 };
 
 /**
- * POST /habits/daily-streak/me/celebrated { date }
+ * POST /habits/daily-streak/me/celebrated { date, timeZone? }
  *
  * The client showed today's celebration. Gates one celebration per local day: after this,
  * `pendingCelebration` is null for that day. `date` must be the local day the client was
  * celebrating (the `today` it was handed), so a dismissal cannot mark a different day.
+ *
+ * `date` is clamped to the user's local today (see `clampCelebratedDate`): a value in the
+ * future — a skewed device clock, or a hand-made request — would otherwise hold
+ * `pendingCelebration` null until that day arrives, silencing every celebration in between.
+ * A date in the past is left alone; the day can legitimately roll over between the fetch that
+ * offered the celebration and the dismissal that reports it.
  */
 const markDailyStreakCelebrated: RequestHandler = async (req: any, res: any) => {
     const { userId } = parseHeaders(req.headers);
-    const { date } = req.body || {};
+    const { date: requestedDate, timeZone: deviceTimezone } = req.body || {};
 
     if (!userId) {
         return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
     }
-    if (!isDateString(date)) {
+    if (!isDateString(requestedDate)) {
         return handleHttpError({
             res,
             message: 'date (YYYY-MM-DD) is required',
@@ -64,6 +70,11 @@ const markDailyStreakCelebrated: RequestHandler = async (req: any, res: any) => 
     }
 
     try {
+        const [user] = await Store.users.getUserById(userId, ['id', 'settingsTimezone']);
+        const date = clampCelebratedDate(requestedDate, {
+            settingsTimezone: user?.settingsTimezone,
+            deviceTimezone,
+        });
         await Store.userDailyStreaks.getOrCreate(userId);
         const updated = await Store.userDailyStreaks.update(userId, { lastCelebratedDate: date });
         return res.status(200).send({ lastCelebratedDate: updated?.lastCelebratedDate || date });

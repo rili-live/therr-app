@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import {
     addDays,
+    clampCelebratedDate,
     daysBetween,
     getDayOfWeekMondayFirst,
     getLocalDate,
@@ -115,6 +116,36 @@ describe('Daily streak — local day resolution', () => {
         expect(resolveCheckinTimeZone(null, 'America/Chicago')).to.equal('America/Chicago');
         expect(resolveCheckinTimeZone('not-a-zone', 'also-junk')).to.equal('America/Chicago');
         expect(resolveCheckinTimeZone('', undefined)).to.equal('America/Chicago');
+    });
+});
+
+describe('Daily streak — clampCelebratedDate', () => {
+    // 04:50Z on Sep 13: Sep 12 in Chicago, Sep 13 in Tokyo, and already Sep 13 in UTC+14.
+    const at = new Date('2026-09-13T04:50:00.000Z');
+
+    it('pulls a future date back to the user\'s own today, so it cannot silence later celebrations', () => {
+        expect(clampCelebratedDate('2026-12-25', { settingsTimezone: TZ_CHICAGO }, at)).to.equal('2026-09-12');
+        // A one-day clock skew is the realistic case, not only a hand-made request.
+        expect(clampCelebratedDate('2026-09-13', { settingsTimezone: TZ_CHICAGO }, at)).to.equal('2026-09-12');
+    });
+
+    it('leaves today and earlier alone — the day can roll over between the offer and the dismissal', () => {
+        expect(clampCelebratedDate('2026-09-12', { settingsTimezone: TZ_CHICAGO }, at)).to.equal('2026-09-12');
+        expect(clampCelebratedDate('2026-09-11', { settingsTimezone: TZ_CHICAGO }, at)).to.equal('2026-09-11');
+    });
+
+    it('uses the device zone when the account has none saved', () => {
+        expect(clampCelebratedDate('2026-09-13', { settingsTimezone: null, deviceTimezone: 'Asia/Tokyo' }, at))
+            .to.equal('2026-09-13');
+    });
+
+    it('bounds by the latest local day on Earth, not the fallback zone, when no zone resolves', () => {
+        // A Tokyo user with no saved zone and an old client that sends no device zone: their
+        // real today is Sep 13. Clamping to the America/Chicago fallback's Sep 12 would make
+        // the next summary read offer the same celebration again.
+        expect(clampCelebratedDate('2026-09-13', { settingsTimezone: null }, at)).to.equal('2026-09-13');
+        expect(clampCelebratedDate('2026-09-14', { settingsTimezone: 'junk', deviceTimezone: 'junk' }, at))
+            .to.equal('2026-09-13');
     });
 });
 
