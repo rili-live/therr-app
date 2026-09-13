@@ -20,6 +20,7 @@ const initialState: IHabitsState = {
     journalHasMore: false,
     lifetimeOffer: null,
     premiumOffer: null,
+    dailyStreak: null,
     isLoading: false,
 };
 
@@ -209,6 +210,31 @@ const habits = produce((draft: IHabitsState, action: any) => {
         }
 
         // Streaks
+        // Daily streak (app-level)
+        case HabitsActionTypes.GET_DAILY_STREAK:
+        case HabitsActionTypes.SET_DAILY_STREAK:
+            // The check-in response carries no `pendingPlacements` (that read belongs to the
+            // summary endpoint), so a SET must not wipe placements a GET already loaded.
+            draft.dailyStreak = {
+                ...(draft.dailyStreak || {}),
+                ...action.data,
+                pendingPlacements: action.data?.pendingPlacements
+                    || draft.dailyStreak?.pendingPlacements
+                    || [],
+            };
+            return draft;
+        case HabitsActionTypes.DAILY_STREAK_CELEBRATED:
+            if (draft.dailyStreak) {
+                draft.dailyStreak.pendingCelebration = null;
+            }
+            return draft;
+        case HabitsActionTypes.ACKNOWLEDGE_PLACEMENT:
+            if (draft.dailyStreak?.pendingPlacements) {
+                draft.dailyStreak.pendingPlacements = draft.dailyStreak.pendingPlacements
+                    .filter((placement) => placement.periodId !== action.data?.periodId);
+            }
+            return draft;
+
         case HabitsActionTypes.GET_USER_STREAKS:
             draft.streaks = action.data || [];
             break;

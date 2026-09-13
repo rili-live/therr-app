@@ -25,6 +25,13 @@ import HabitGoalsService, { ICreateHabitGoalBody, IUpdateHabitGoalBody } from '.
 import PactsService, { ICreatePactBody } from './PactsService';
 import HabitCheckinsService, { ICreateCheckinBody, IUpdateCheckinBody } from './HabitCheckinsService';
 import StreaksService from './StreaksService';
+import DailyStreakService, {
+    IDailyStreakSummary,
+    IDailyStreakWeekDay,
+    IDailyStreakPendingCelebration,
+    IDailyStreakPendingPlacement,
+    DailyStreakDayStatus,
+} from './DailyStreakService';
 import UserHabitsService, { ICreateUserHabitBody, ICreateUserHabitGoalBody } from './UserHabitsService';
 import JournalService, { ICreateJournalEntryBody, IUpdateJournalEntryBody } from './JournalService';
 import HabitsLifetimeService, { IVerifyLifetimePurchaseBody } from './HabitsLifetimeService';
@@ -60,6 +67,12 @@ export {
     ICreateCheckinBody,
     IUpdateCheckinBody,
     StreaksService,
+    DailyStreakService,
+    IDailyStreakSummary,
+    IDailyStreakWeekDay,
+    IDailyStreakPendingCelebration,
+    IDailyStreakPendingPlacement,
+    DailyStreakDayStatus,
     UserHabitsService,
     ICreateUserHabitBody,
     ICreateUserHabitGoalBody,

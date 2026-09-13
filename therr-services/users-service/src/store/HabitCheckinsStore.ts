@@ -9,6 +9,9 @@ export interface ICreateHabitCheckinParams {
     pactId?: string;
     habitGoalId: string;
     scheduledDate: string; // YYYY-MM-DD format
+    // The user's own calendar day (their timezone) at write time — what the app-level daily
+    // streak reads. `scheduledDate` stays the UTC habit day. See utilities/dailyStreak.ts.
+    localDate?: string;
     status?: string;
     completedAt?: Date;
     notes?: string;
@@ -349,6 +352,52 @@ export default class HabitCheckinsStore {
             .then((response) => parseInt(response.rows[0]?.count ?? '0', 10));
     }
 
+    /**
+     * Distinct local days in [startDate, endDate] on which the user has at least one completed
+     * check-in on any habit — the daily streak's "was day D upheld" input, in one query.
+     * Returned as a Set of YYYY-MM-DD strings.
+     */
+    getCompletedLocalDates(userId: string, startDate: string, endDate: string): Promise<Set<string>> {
+        const queryString = knexBuilder.raw(
+            `SELECT DISTINCT "localDate"::text AS "localDate"
+            FROM ${HABIT_CHECKINS_TABLE_NAME}
+            WHERE "userId" = ?::uuid
+                AND "status" = 'completed'
+                AND "localDate" >= ?::date
+                AND "localDate" <= ?::date`,
+            [userId, startDate, endDate],
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => new Set<string>(
+            response.rows.map((row: any) => String(row.localDate).slice(0, 10)),
+        ));
+    }
+
+    /** Earliest completed local day for a user, or undefined if they have never completed one. */
+    getEarliestCompletedLocalDate(userId: string): Promise<string | undefined> {
+        const queryString = knexBuilder.raw(
+            `SELECT MIN("localDate")::text AS "localDate"
+            FROM ${HABIT_CHECKINS_TABLE_NAME}
+            WHERE "userId" = ?::uuid AND "status" = 'completed' AND "localDate" IS NOT NULL`,
+            [userId],
+        ).toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => (response.rows[0]?.localDate ? String(response.rows[0].localDate).slice(0, 10) : undefined));
+    }
+
+    /** How many completed check-ins (any habit) the user has on one local day. */
+    countCompletedOnLocalDate(userId: string, localDate: string): Promise<number> {
+        const queryString = knexBuilder
+            .from(HABIT_CHECKINS_TABLE_NAME)
+            .count('* as count')
+            .where({ userId, localDate, status: 'completed' })
+            .toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => parseInt(response.rows[0]?.count ?? '0', 10));
+    }
+
     create(params: ICreateHabitCheckinParams) {
         const queryString = knexBuilder
             .insert({
@@ -379,6 +428,9 @@ export default class HabitCheckinsStore {
                 // pact from the habit goal. Knex drops undefined keys from the
                 // merge, so a genuinely pact-less check-in stays pact-less.
                 pactId: params.pactId,
+                // The first write's local day stands: a re-submission the next local day
+                // (adding a note after midnight) must not move the check-in onto that day.
+                localDate: knexBuilder.raw('COALESCE("habit_checkins"."localDate", excluded."localDate")'),
                 completedAt: params.completedAt,
                 notes: params.notes,
                 selfRating: params.selfRating,
