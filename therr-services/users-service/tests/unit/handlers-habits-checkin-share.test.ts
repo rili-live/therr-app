@@ -110,6 +110,19 @@ describe('HABITS check-in public share', () => {
         expect(updateCheckinStub.firstCall.args[1]).to.deep.equal({ sharedThoughtId: 'thought-1' });
     });
 
+    // A shared check-in must be distinguishable from a composed goal update at read time so
+    // the Therr feed can suppress the "Goals update:" cross-brand label on it. The marker is
+    // the thought's category; the reader (crossBrandPostLabel) keys off HABIT_CHECKIN_THOUGHT_CATEGORY.
+    it('stamps the post with the check-in category so the feed omits the goals-update label', async () => {
+        createThoughtStub.resolves([{ id: 'thought-1', isPublic: true }]);
+
+        const res = makeRes();
+        await shareCheckin(makeReq() as any, res, (() => {}) as any);
+
+        expect(createThoughtStub.calledOnce).to.equal(true);
+        expect(createThoughtStub.firstCall.args[1]).to.include({ category: 'habit-checkin' });
+    });
+
     // The feed renders only thoughts the viewer has activated, and activation is otherwise
     // the distributor's job — gated, ranked, and never guaranteed. An author who cannot see
     // their own share reads it as a failed share.

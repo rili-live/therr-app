@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import {
-    ErrorCodes, HabitGoalType, MetricNames, PushNotifications,
+    ErrorCodes, HabitGoalType, HABIT_CHECKIN_THOUGHT_CATEGORY, MetricNames, PushNotifications,
 } from 'therr-js-utilities/constants';
 import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
@@ -682,6 +682,11 @@ const shareCheckin: RequestHandler = async (req: any, res: any) => {
             locale,
             isPublic: true,
             message: leadIn,
+            // Marks this post as a shared check-in rather than a composed goal update.
+            // The Therr feed reads it to decide whether to prefix the "Goals update:"
+            // cross-brand label (composed goals get it; check-in posts do not — they
+            // are a bare photo post). See HABIT_CHECKIN_THOUGHT_CATEGORY.
+            category: HABIT_CHECKIN_THOUGHT_CATEGORY,
             medias: [{ path: publicMedia.path, type: publicMedia.type, altText }],
         });
     } catch (err: any) {

@@ -1,4 +1,4 @@
-import { BrandVariations } from 'therr-js-utilities/constants';
+import { BrandVariations, HABIT_CHECKIN_THOUGHT_CATEGORY } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 
 /**
@@ -10,6 +10,12 @@ import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
  * This prefixes such a post with a short label naming what it is ("Goals update: ..."),
  * and only when the reader's app is NOT the app it was written in: inside Friends
  * with Habits every post is a goal, so labelling them all there is pure noise.
+ *
+ * ONE HABITS post type is deliberately NOT labelled: a shared check-in. It is a bare
+ * photo post ("I did the thing"), not a goal, so the "Goals update:" pre-text misreads
+ * it. Only composed goal updates carry the label. A check-in share is stamped
+ * `category === HABIT_CHECKIN_THOUGHT_CATEGORY` by the server (see users-service
+ * habitCheckins shareCheckin), which is the one signal that separates the two here.
  *
  * The label is resolved through the READER's dictionary, not the author's, so a
  * French reader sees French copy on an English author's goal. That is also why the
@@ -35,6 +41,11 @@ interface IFormatCrossBrandMessageArgs {
     brandVariation?: string | null;
     /** Replies inherit their parent's context, so only top-level posts are labelled. */
     parentId?: string | null;
+    /**
+     * The post's `main.thoughts.category`. A shared check-in carries
+     * `HABIT_CHECKIN_THOUGHT_CATEGORY` and is never labelled — see the file header.
+     */
+    category?: string | null;
     translate: (key: string, params?: any) => string;
     currentBrand?: string;
 }
@@ -43,12 +54,19 @@ export const formatCrossBrandMessage = ({
     message,
     brandVariation,
     parentId,
+    category,
     translate,
     currentBrand = CURRENT_BRAND_VARIATION,
 }: IFormatCrossBrandMessageArgs): string => {
     const text = message || '';
 
     if (parentId) {
+        return text;
+    }
+
+    // A shared check-in is a photo post, not a goal, so it gets no "Goals update:"
+    // pre-text even when read cross-brand.
+    if (category === HABIT_CHECKIN_THOUGHT_CATEGORY) {
         return text;
     }
 

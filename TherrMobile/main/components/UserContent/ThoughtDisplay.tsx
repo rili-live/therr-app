@@ -487,6 +487,7 @@ const ThoughtContent = ({
         message: thought.message,
         brandVariation: thought.brandVariation,
         parentId: thought.parentId,
+        category: thought.category,
         translate,
     });
     /**
