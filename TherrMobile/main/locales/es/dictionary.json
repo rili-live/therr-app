@@ -1498,7 +1498,13 @@
             "placementCard": {
                 "title": "Terminaste en el puesto {placement} de {participants} la semana pasada",
                 "subtitle": "Semana del {period} · {score} pts",
-                "dismiss": "Descartar"
+                "dismiss": "Descartar",
+                "ordinal": {
+                    "one": "{n}.º",
+                    "two": "{n}.º",
+                    "few": "{n}.º",
+                    "other": "{n}.º"
+                }
             }
         },
         "manageNotifications": {

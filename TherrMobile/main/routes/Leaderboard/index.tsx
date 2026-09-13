@@ -19,6 +19,7 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import { buildStyles as buildLeaderboardStyles, MEDAL_COLORS } from '../../styles/leaderboard';
 import { buildStyles as buildCelebrationStyles } from '../../styles/celebrations';
 import { PODIUM_PLACEMENT_MAX } from '../../utilities/celebrationQueue';
+import formatOrdinal from '../../utilities/formatOrdinal';
 
 const PAGE_SIZE = 50;
 
@@ -254,7 +255,13 @@ export const Leaderboard = ({
                 <View style={themeCelebration.styles.placementCardTextContainer}>
                     <Text style={themeCelebration.styles.placementCardTitle}>
                         {translate('pages.leaderboard.placementCard.title', {
-                            placement: inlinePlacement.placement,
+                            // "21st", not "21th": the suffix is a per-locale plural rule, so
+                            // it comes from the dictionary rather than a rule in code.
+                            placement: formatOrdinal(
+                                user.settings?.locale || 'en-us',
+                                inlinePlacement.placement,
+                                'pages.leaderboard.placementCard.ordinal',
+                            ),
                             participants: inlinePlacement.participants,
                         })}
                     </Text>

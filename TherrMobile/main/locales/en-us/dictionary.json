@@ -1496,9 +1496,15 @@
                 "noFriendScores": "None of your connections have earned XP yet. Invite friends to join the competition!"
             },
             "placementCard": {
-                "title": "You finished {placement}th of {participants} last week",
+                "title": "You finished {placement} of {participants} last week",
                 "subtitle": "Week of {period} · {score} pts",
-                "dismiss": "Dismiss"
+                "dismiss": "Dismiss",
+                "ordinal": {
+                    "one": "{n}st",
+                    "two": "{n}nd",
+                    "few": "{n}rd",
+                    "other": "{n}th"
+                }
             }
         },
         "manageNotifications": {

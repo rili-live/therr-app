@@ -163,7 +163,13 @@ export const Celebration = ({
         hasDismissedRef.current = true;
 
         if (celebration.type === 'streak') {
-            markDailyStreakCelebrated(celebration.date)?.catch?.(() => {});
+            // The device zone rides along, as it does on the fetch: the server clamps `date` to
+            // the user's local today and needs the zone to know which day that is when the
+            // account has none saved.
+            markDailyStreakCelebrated(
+                celebration.date,
+                Intl.DateTimeFormat().resolvedOptions().timeZone,
+            )?.catch?.(() => {});
         } else {
             acknowledgePlacement(celebration.periodId)?.catch?.(() => {});
         }

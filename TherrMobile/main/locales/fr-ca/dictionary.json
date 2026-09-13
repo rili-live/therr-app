@@ -1496,9 +1496,15 @@
                 "noFriendScores": "Aucune de vos connexions n'a encore gagné de XP. Invitez vos ami(e)s à se joindre à la compétition!"
             },
             "placementCard": {
-                "title": "Tu as terminé {placement}e sur {participants} la semaine dernière",
+                "title": "Tu as terminé {placement} sur {participants} la semaine dernière",
                 "subtitle": "Semaine du {period} · {score} pts",
-                "dismiss": "Ignorer"
+                "dismiss": "Ignorer",
+                "ordinal": {
+                    "one": "{n}er",
+                    "two": "{n}e",
+                    "few": "{n}e",
+                    "other": "{n}e"
+                }
             }
         },
         "manageNotifications": {
