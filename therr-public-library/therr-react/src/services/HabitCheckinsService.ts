@@ -13,6 +13,17 @@ export interface ICreateCheckinBody {
     pactId?: string;
     habitGoalId: string;
     scheduledDate?: string;
+    /**
+     * The device's IANA timezone. The server stamps the check-in's `localDate` from the
+     * account's saved zone first and falls back to this, which is what makes the app-level
+     * daily streak count the user's own midnight rather than UTC's.
+     */
+    timeZone?: string;
+    /**
+     * The user's calendar day this check-in is for (YYYY-MM-DD). Honoured for today and
+     * yesterday only; anything older still counts for the habit but not the daily streak.
+     */
+    localDate?: string;
     status?: 'pending' | 'completed' | 'partial' | 'skipped' | 'missed';
     notes?: string;
     selfRating?: number;

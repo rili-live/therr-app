@@ -5,6 +5,7 @@ import {
 import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
+import UserDailyStreaksStore from '../store/UserDailyStreaksStore';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
@@ -38,6 +39,13 @@ import {
 } from './helpers/awardHabitAchievements';
 import { awardLeaderboardPoints } from './helpers/leaderboards';
 import { LeaderboardXpValues } from '../utilities/leaderboardHelpers';
+import { getLocalDate, resolveCheckinLocalDate, resolveCheckinTimeZone } from '../utilities/dailyStreak';
+import {
+    getDailyStreakView,
+    onCheckinCompleted,
+    onCheckinDeleted,
+    IDailyStreakView,
+} from './helpers/dailyStreak';
 
 // CREATE
 const createCheckin: RequestHandler = async (req: any, res: any) => {
@@ -59,6 +67,10 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
         selfRating,
         difficultyRating,
         proofMedias,
+        // The device's IANA zone and, optionally, the calendar day the client believes it is
+        // checking in for. Both only ever refine `localDate` — see resolveCheckinLocalDate.
+        timeZone: deviceTimezone,
+        localDate: requestedLocalDate,
     } = req.body;
 
     const hasProof = Array.isArray(proofMedias) && proofMedias.length > 0;
@@ -137,12 +149,25 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
     // resurrect a row the user archived.
     await Store.userHabits.getOrCreate(userId, habitGoalId);
 
+    // The user's own calendar day for this check-in. `scheduledDate` stays the UTC habit day
+    // the per-habit streak counts in; `localDate` is what the app-level daily streak reads, so
+    // "check in before midnight" means the user's midnight. See utilities/dailyStreak.ts.
+    const [checkinUser] = await Store.users.getUserById(userId, ['id', 'settingsTimezone']).catch(() => [] as any[]);
+    const timeZone = resolveCheckinTimeZone(checkinUser?.settingsTimezone, deviceTimezone);
+    const todayLocal = getLocalDate(timeZone);
+    const localDate = resolveCheckinLocalDate({
+        scheduledDate: checkinDate,
+        requestedLocalDate,
+        timeZone,
+    });
+
     // Create or update the checkin
     return Store.habitCheckins.createOrUpdate({
         userId,
         pactId: attributedPactId,
         habitGoalId,
         scheduledDate: checkinDate,
+        localDate,
         status: status || 'completed',
         completedAt: status === 'completed' ? new Date() : undefined,
         notes,
@@ -189,6 +214,10 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
             // infer from an unchanged streak number that something caught them.
             let graceDaysConsumed = 0;
             let streakSavedByFreeze = 0;
+            // The app-level daily streak as of this check-in, so the client can run its
+            // celebration without a second round trip. Null when nothing about the daily
+            // streak could have moved (a pending/skipped check-in).
+            let dailyStreak: IDailyStreakView | null = null;
 
             // If completed, update streak
             if (checkin.status === 'completed') {
@@ -203,7 +232,11 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                 // history/achievements/partner pushes already fired. Proofs
                 // and notes were still updated above.
                 if (lastCompletedStr === checkinDate) {
-                    return res.status(201).send(checkin);
+                    // The daily streak was credited by the check-in this one updated, so it is
+                    // read rather than re-driven — but it is still returned, since this is the
+                    // response the "add a note or photo" save renders from.
+                    const existingView = await getDailyStreakView(userId, todayLocal).catch(() => null);
+                    return res.status(201).send({ ...checkin, dailyStreak: existingView });
                 }
 
                 // First completion for this habit+date: the upsert only returns
@@ -551,12 +584,38 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
                 // Mark checkin as contributing to streak
                 await Store.habitCheckins.update(checkin.id, { contributedToStreak: true });
+
+                // App-level daily streak. Distinct from the per-habit streak above: it counts
+                // days on which the user checked in on *anything*, in their own timezone. Only
+                // today and yesterday move it (a deeper backdate still counts for the habit).
+                //
+                // Awaited rather than fired and forgotten: the response carries the streak the
+                // celebration screen renders, and the client must not have to guess it.
+                // A failure here is logged and swallowed — the check-in itself has committed
+                // and the next read re-derives the same state.
+                dailyStreak = await onCheckinCompleted({
+                    userId,
+                    localDate,
+                    today: todayLocal,
+                    headers: req.headers,
+                })
+                    .then((state) => (state ? getDailyStreakView(userId, todayLocal, state) : null))
+                    .catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['Failed to update the daily streak after a check-in'],
+                            traceArgs: { 'error.message': err?.message, 'user.id': userId, 'checkin.id': checkin.id },
+                        });
+                        return null;
+                    });
             }
 
             return res.status(201).send({
                 ...checkin,
                 graceDaysConsumed,
                 streakSavedByFreeze,
+                dailyStreak,
             });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' }));
@@ -1034,7 +1093,7 @@ const deleteCheckin: RequestHandler = async (req: any, res: any) => {
     const { id } = req.params;
 
     return Store.habitCheckins.delete(id, userId)
-        .then((deleted) => {
+        .then(async (deleted) => {
             if (!deleted) {
                 return handleHttpError({
                     res,
@@ -1043,6 +1102,27 @@ const deleteCheckin: RequestHandler = async (req: any, res: any) => {
                     errorCode: ErrorCodes.NOT_FOUND,
                 });
             }
+
+            // Deleting the only check-in for a day re-opens that day for the app-level daily
+            // streak — the rule is symmetric with crediting it, or a deleted check-in would
+            // leave a day upheld by nothing. Only today and yesterday are re-opened; older
+            // days are already finalized history.
+            if (deleted.localDate) {
+                const [deletingUser] = await Store.users.getUserById(userId, ['id', 'settingsTimezone']).catch(() => [] as any[]);
+                const timeZone = resolveCheckinTimeZone(deletingUser?.settingsTimezone);
+                await onCheckinDeleted({
+                    userId,
+                    localDate: UserDailyStreaksStore.dateToString(deleted.localDate),
+                    today: getLocalDate(timeZone),
+                    headers: req.headers,
+                }).catch((err) => logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Failed to re-open the daily streak after a check-in delete'],
+                    traceArgs: { 'error.message': err?.message, 'user.id': userId, 'checkin.id': id },
+                }));
+            }
+
             return res.status(200).send({ deleted: true });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' }));
