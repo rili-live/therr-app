@@ -77,6 +77,7 @@ import {
 import { openStoreReviewPage } from '../utilities/appStoreReviewLink';
 import { openSupportEmail } from '../utilities/supportContact';
 import { navigationRef, RootNavigation } from './RootNavigation';
+import { enqueueCelebrationsFromSummary } from '../utilities/celebrationQueue';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
 import SplashLogoSpinner from './SplashLogoSpinner';
@@ -117,6 +118,7 @@ interface ILayoutDispatchProps {
     acceptPact: Function;
     renewPact: Function;
     createCheckin: Function;
+    getDailyStreak: Function;
     getMyAchievements: Function;
     getUserGroups: Function;
     logout: Function;
@@ -195,6 +197,7 @@ const mapDispatchToProps = (dispatch: any) =>
             acceptPact: HabitActions.acceptPact,
             renewPact: HabitActions.renewPact,
             createCheckin: HabitActions.createCheckin,
+            getDailyStreak: HabitActions.getDailyStreak,
             getMyAchievements: UsersActions.getMyAchievements,
             getUserGroups: UsersActions.getUserGroups,
             logout: UsersActions.logout,
@@ -551,6 +554,29 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
+    /**
+     * Fetch the app-level daily streak and queue whatever it says is owed — a placement from a
+     * period that closed overnight, then today's streak celebration if it has not been shown.
+     *
+     * Both halves are decided server-side; this only asks. Silent on failure: a celebration
+     * that does not appear is a missed moment, an error toast about one is a bug report the
+     * user did not ask for. The device timezone rides along so a user who has never registered
+     * for push (which is what normally saves `settingsTimezone`) still gets their own day.
+     */
+    fetchAndQueueCelebrations = () => {
+        if (!this.isUserAuthenticated() || CURRENT_BRAND_VARIATION !== BrandVariations.HABITS) {
+            return;
+        }
+
+        this.props.getDailyStreak(Intl.DateTimeFormat().resolvedOptions().timeZone)
+            .then((summary: any) => {
+                if (summary) {
+                    enqueueCelebrationsFromSummary(summary);
+                }
+            })
+            .catch(() => {});
+    };
+
     handleAppStateChange = (nextAppState: AppStateStatus) => {
         if (nextAppState !== 'active') {
             // Keep the *first* transition away: iOS reports 'inactive' before 'background',
@@ -571,6 +597,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (backgroundedAt !== null && Date.now() - backgroundedAt >= APP_REVIEW_PROMPT_MIN_AWAY_MS) {
             this.scheduleAppReviewPromptCheck(APP_REVIEW_PROMPT_FOREGROUND_DELAY_MS);
         }
+
+        // Every deliberate return, not only long absences: the day can roll over while the app
+        // sits backgrounded for five minutes, and a period closes overnight. The queue drops a
+        // celebration it is already showing or holding, so re-asking is cheap.
+        this.fetchAndQueueCelebrations();
     };
 
     /**

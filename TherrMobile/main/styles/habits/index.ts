@@ -1297,6 +1297,35 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: fontWeights.semibold,
             color: therrTheme.colors.brand,
         },
+
+        // Check-in detail screen (the note/photo form that replaced the bottom sheet).
+        formHabitName: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.textWhite,
+            paddingHorizontal: 10,
+        },
+        formPrompt: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.textWhite,
+            opacity: 0.8,
+            paddingHorizontal: 10,
+            paddingTop: 4,
+            paddingBottom: 12,
+        },
+        formBodyText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.textWhite,
+        },
+        formBodyTextBold: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.textWhite,
+        },
     });
 
     return ({

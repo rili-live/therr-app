@@ -50,38 +50,41 @@ jest.mock('../../main/utilities/requestOSPermissions', () => ({
     requestOSCameraPermissions: jest.fn(() => Promise.resolve({ camera: 'granted' })),
 }));
 
-import CheckinProofSheet from '../../main/components/Habits/CheckinProofSheet';
-import ModalButton from '../../main/components/Modals/ModalButton';
-import { buildStyles as buildConfirmModalStyles } from '../../main/styles/modal/confirmModal';
-import { buildStyles as buildButtonStyles } from '../../main/styles/buttons';
+import CheckinDetailForm from '../../main/components/Habits/CheckinDetailForm';
+import { buildStyles as buildHabitStyles } from '../../main/styles/habits';
+import { getTheme } from '../../main/styles/themes';
 
 const translate = (key: string) => key;
 
 const mounted: renderer.ReactTestRenderer[] = [];
 
-const renderSheet = async (props: any = {}) => {
-    const onConfirm = jest.fn();
+/**
+ * The form lifts its draft on every change rather than exposing a confirm button — the screen
+ * that hosts it (routes/Habits/CheckinDetail) owns the footer and the submit. So the assertions
+ * below read the last lifted draft where they used to read an `onConfirm` payload.
+ */
+const renderForm = async (props: any = {}) => {
+    const onChange = jest.fn();
     let component: renderer.ReactTestRenderer;
     await act(async () => {
         component = renderer.create(
             <PaperProvider>
-                <CheckinProofSheet
-                    isVisible
+                <CheckinDetailForm
                     habitName="Run daily"
                     userId="me"
                     canShare
-                    onCancel={jest.fn()}
-                    onConfirm={onConfirm}
+                    onChange={onChange}
                     translate={translate}
-                    themeConfirmModal={buildConfirmModalStyles('light')}
-                    themeButtons={buildButtonStyles('light')}
+                    colors={getTheme('light').colors}
+                    styles={buildHabitStyles('light').styles}
                     {...props}
                 />
             </PaperProvider>,
         );
     });
     mounted.push(component!);
-    return { component: component!, onConfirm };
+    const lastDraft = () => onChange.mock.calls[onChange.mock.calls.length - 1][0];
+    return { component: component!, onChange, lastDraft };
 };
 
 const hasText = (component: renderer.ReactTestRenderer, text: string) => component.root
@@ -104,15 +107,6 @@ const pressText = async (component: renderer.ReactTestRenderer, text: string) =>
     });
 };
 
-const pressSave = async (component: renderer.ReactTestRenderer) => {
-    const button = component.root
-        .findAllByType(ModalButton)
-        .find((b) => b.props.title === 'pages.habits.checkinProof.save');
-    await act(async () => {
-        button!.props.onPress();
-    });
-};
-
 const getShareSwitch = (component: renderer.ReactTestRenderer) => component.root.findByType(Switch);
 
 const attachPhoto = async (component: renderer.ReactTestRenderer) => {
@@ -129,7 +123,7 @@ const attachPhoto = async (component: renderer.ReactTestRenderer) => {
     expect(hasText(component, 'pages.habits.checkinProof.photoAttached')).toBe(true);
 };
 
-describe('CheckinProofSheet — share control', () => {
+describe('CheckinDetailForm — share control', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -139,7 +133,7 @@ describe('CheckinProofSheet — share control', () => {
     });
 
     it('shows the share row before any photo is attached, disabled, and says why', async () => {
-        const { component } = await renderSheet();
+        const { component } = await renderForm();
 
         expect(hasText(component, 'pages.habits.checkinProof.sharePubliclyLabel')).toBe(true);
         expect(hasText(component, 'pages.habits.checkinProof.sharePubliclyNeedsPhoto')).toBe(true);
@@ -147,41 +141,34 @@ describe('CheckinProofSheet — share control', () => {
     });
 
     it('does not show the share row at all when sharing is unavailable', async () => {
-        const { component } = await renderSheet({ canShare: false });
+        const { component } = await renderForm({ canShare: false });
 
         expect(hasText(component, 'pages.habits.checkinProof.sharePubliclyLabel')).toBe(false);
         expect(component.root.findAllByType(Switch)).toHaveLength(0);
     });
 
-    it('defaults the switch on for a public profile once a photo is attached, and confirms with sharePublicly', async () => {
-        const { component, onConfirm } = await renderSheet({ defaultSharePublicly: true });
+    it('defaults the switch on for a public profile once a photo is attached, and reports sharePublicly', async () => {
+        const { component, lastDraft } = await renderForm({ defaultSharePublicly: true });
         await attachPhoto(component);
 
         expect(hasText(component, 'pages.habits.checkinProof.sharePubliclyHint')).toBe(true);
         expect(getShareSwitch(component).props.disabled).toBe(false);
         expect(getShareSwitch(component).props.value).toBe(true);
 
-        await pressSave(component);
-
-        expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({ sharePublicly: true }));
+        expect(lastDraft()).toEqual(expect.objectContaining({ sharePublicly: true }));
     });
 
     it('defaults the switch off for a private profile', async () => {
-        const { component, onConfirm } = await renderSheet({ defaultSharePublicly: false });
+        const { component, lastDraft } = await renderForm({ defaultSharePublicly: false });
         await attachPhoto(component);
 
         expect(getShareSwitch(component).props.value).toBe(false);
-
-        await pressSave(component);
-
-        expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({ sharePublicly: false }));
+        expect(lastDraft()).toEqual(expect.objectContaining({ sharePublicly: false }));
     });
 
-    it('never confirms a share without a photo, even when the default is on', async () => {
-        const { component, onConfirm } = await renderSheet({ defaultSharePublicly: true });
+    it('never reports a share without a photo, even when the default is on', async () => {
+        const { lastDraft } = await renderForm({ defaultSharePublicly: true });
 
-        await pressSave(component);
-
-        expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({ sharePublicly: false, image: undefined }));
+        expect(lastDraft()).toEqual(expect.objectContaining({ sharePublicly: false, image: null }));
     });
 });

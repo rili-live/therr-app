@@ -3,8 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import RNFB from 'react-native-blob-util';
-import { FeatureFlags, FilePaths } from 'therr-js-utilities/constants';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
 import {
     IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak, IPact, IPactNudgeResult, IUserHabit,
@@ -23,12 +22,11 @@ import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import {
-    HabitCard, CheckinProofSheet, NewPactButton, PactCard, SentInviteCard,
+    HabitCard, NewPactButton, PactCard, SentInviteCard,
 } from '../../components/Habits';
-import { ISelectedProofImage } from '../../components/Habits/CheckinProofSheet';
 import { getFreezeConsumed, getStreakSavedByFreeze } from '../../utilities/streakFreezes';
+import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/celebrationQueue';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
-import { signImageUrl } from '../../utilities/content';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { DURATION, showToast } from '../../utilities/toasts';
 import { IHabitWithPactState, isPactSuperseded, splitHabitsByPactState } from './pactState';
@@ -104,7 +102,6 @@ interface IHabitsDashboardDispatchProps {
     getUserHabitEligibility: Function;
     getUserHabits: Function;
     createCheckin: Function;
-    shareCheckin: Function;
     acceptPact: Function;
     declinePact: Function;
     nudgePact: Function;
@@ -127,8 +124,6 @@ interface IHabitsDashboardState {
     isRefreshing: boolean;
     activeTab: HabitsTab;
     checkinLoadingIds: Set<string>;
-    proofSheetHabit: IHabitGoal | null;
-    isSubmittingCheckin: boolean;
     respondingPactId: string | null;
     renewingPactId: string | null;
     nudgingPactId: string | null;
@@ -157,7 +152,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getUserHabitEligibility: HabitActions.getUserHabitEligibility,
     getUserHabits: HabitActions.getUserHabits,
     createCheckin: HabitActions.createCheckin,
-    shareCheckin: HabitActions.shareCheckin,
     acceptPact: HabitActions.acceptPact,
     declinePact: HabitActions.declinePact,
     nudgePact: HabitActions.nudgePact,
@@ -208,8 +202,6 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             isRefreshing: false,
             activeTab: normalizeInitialTab(props.route?.params?.initialTab),
             checkinLoadingIds: new Set(),
-            proofSheetHabit: null,
-            isSubmittingCheckin: false,
             respondingPactId: null,
             renewingPactId: null,
             nudgingPactId: null,
@@ -324,137 +316,59 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
      * on the success toast, not something you pass through.
      */
     handleCheckin = (habitGoal: IHabitGoal) => {
-        this.submitCheckin(habitGoal, {});
+        this.submitCheckin(habitGoal);
     };
 
     /**
-     * Re-opens the sheet against a check-in that already exists, to attach a
-     * note or photo to it. Safe to confirm: the users-service upsert merges
-     * onto the same (habitGoalId, date) row and its same-day branch returns
-     * before crediting the streak again, awarding XP again or re-notifying
-     * partners.
+     * Opens the note/photo screen against a check-in that already exists. Safe to save: the
+     * users-service upsert merges onto the same (habitGoalId, date) row and its same-day branch
+     * returns before crediting the streak again, awarding XP again or re-notifying partners.
+     *
+     * This used to open a bottom sheet from this screen's own state. It is a route now, so back
+     * navigation works like the rest of the app and the note field gets the whole screen. The
+     * screen owns the submit; nothing comes back here except the user.
      */
     handleAddCheckinDetail = (habitGoal: IHabitGoal) => {
         Toast.hide();
-        this.setState({ proofSheetHabit: habitGoal });
-    };
-
-    handleProofSheetCancel = () => {
-        this.setState({ proofSheetHabit: null });
-    };
-
-    uploadProofImage = (habitGoalId: string, image: ISelectedProofImage): Promise<{ path: string; type: 'image'; fileSizeBytes?: number }> => {
-        const extSplit = image.path?.split('.');
-        const fileExtension = extSplit && extSplit.length > 1 ? extSplit[extSplit.length - 1] : 'jpeg';
-        const filename = `${FilePaths.CONTENT}/habits_proof_${habitGoalId}_${Date.now()}.${fileExtension}`;
-
-        return signImageUrl(false, { action: 'write', filename }).then((response: any) => {
-            const signedUrl = response?.data?.url && response?.data?.url[0];
-            const storedPath = response?.data?.path;
-            return RNFB.fetch(
-                'PUT',
-                signedUrl,
-                {
-                    'Content-Type': image.mime,
-                    'Content-Length': image.size.toString(),
-                    'Content-Disposition': 'inline',
-                },
-                RNFB.wrap(image.path),
-            ).then(() => ({
-                path: storedPath,
-                type: 'image' as const,
-                fileSizeBytes: image.size,
-            }));
+        this.props.navigation.navigate('CheckinDetail', {
+            habitGoalId: habitGoal.id,
+            habitName: habitGoal.name,
+            source: 'dashboard',
         });
     };
 
-    isFeedEnabled = (): boolean => getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_FEED] === true;
-
-    handleProofSheetConfirm = (
-        { notes, image, sharePublicly }: { notes?: string; image?: ISelectedProofImage; sharePublicly?: boolean },
-    ) => {
-        const { proofSheetHabit } = this.state;
-
-        if (!proofSheetHabit) {
-            return;
-        }
-
-        this.submitCheckin(proofSheetHabit, { notes, image, sharePublicly });
-    };
-
     /**
-     * The single write path for both entry points — the one-tap button and the
-     * proof sheet. `scheduledDate` stays on the UTC calendar day deliberately:
-     * users-service defines a habit day in UTC (`getTodayDateString` in
-     * `utilities/streakHelpers.ts`), so the local-calendar `toLocalDateKey`
-     * used for rendering the month grid would key the write to a different day.
+     * The one-tap check-in. Notes and photos are no longer submitted from here — the
+     * CheckinDetail screen owns that path and does its own POST — so this call is always the
+     * bare "I did it" and the analytics event below can be unconditional.
+     *
+     * `scheduledDate` stays on the UTC calendar day deliberately: users-service defines a habit
+     * day in UTC (`getTodayDateString` in `utilities/streakHelpers.ts`). `timeZone` is a
+     * separate thing and is what the *app-level daily streak* keys its own day off, so a late
+     * evening check-in counts for the day the user is actually living in.
      */
-    submitCheckin = (
-        habitGoal: IHabitGoal,
-        { notes, image, sharePublicly }: { notes?: string; image?: ISelectedProofImage; sharePublicly?: boolean },
-    ) => {
-        const { createCheckin, shareCheckin, getActiveStreaks } = this.props;
+    submitCheckin = (habitGoal: IHabitGoal) => {
+        const { createCheckin, getActiveStreaks } = this.props;
         const { checkinLoadingIds } = this.state;
 
         const habitGoalId = habitGoal.id;
-        const isAddingDetail = !!notes || !!image;
         const newLoadingIds = new Set(checkinLoadingIds);
         newLoadingIds.add(habitGoalId);
         this.setState({
             checkinLoadingIds: newLoadingIds,
-            isSubmittingCheckin: true,
         });
 
         const today = new Date().toISOString().split('T')[0];
 
-        const uploadPromise = image
-            ? this.uploadProofImage(habitGoalId, image).then((media) => [media])
-            : Promise.resolve(undefined);
-
-        uploadPromise
-            .then((proofMedias) => createCheckin({
-                habitGoalId,
-                scheduledDate: today,
-                status: 'completed',
-                notes,
-                proofMedias,
-            }))
+        createCheckin({
+            habitGoalId,
+            scheduledDate: today,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            status: 'completed',
+        })
             .then((checkin: any) => {
-                if (isAddingDetail) {
-                    // Opt-in public share: only with a photo (the backend copies that proof into
-                    // the public bucket, moderates it, and mints a public post). Fire-and-forget
-                    // — a failed share must not fail the check-in, which already committed.
-                    const wantsShare = sharePublicly && !!image && !!checkin?.id;
-                    if (wantsShare) {
-                        shareCheckin(checkin.id, notes)
-                            .then(() => {
-                                logAppEvent('habit_checkin_shared', {
-                                    userId: this.props.user?.details?.id,
-                                    source: 'dashboard',
-                                });
-                                showToast.success({
-                                    text1: this.translate('pages.habits.checkinProof.sharedTitle'),
-                                });
-                            })
-                            .catch(() => {
-                                showToast.error({
-                                    text1: this.translate('pages.habits.checkinProof.shareFailed'),
-                                });
-                            });
-                        return;
-                    }
-
-                    showToast.success({
-                        text1: this.translate('pages.habits.checkinToast.detailSavedTitle'),
-                    });
-                    return;
-                }
-
-                // Retention, and the only in-app signal that a bought install
-                // turned into a habit rather than a signup. Fired only on this
-                // branch: the isAddingDetail path above is a second call
-                // attaching a photo or note to the check-in this one already
-                // created, and counting it would double every proofed check-in.
+                // Retention, and the only in-app signal that a bought install turned into a
+                // habit rather than a signup.
                 logAppEvent('habit_checkin_complete', {
                     userId: this.props.user?.details?.id,
                     source: 'dashboard',
@@ -467,14 +381,19 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 // otherwise only refetched on a pull-to-refresh or re-focus.
                 getActiveStreaks().catch(() => {});
 
-                // The toast is the confirmation that replaced the modal, and
-                // it is also the only route to the proof sheet now — so it has
-                // to say it is tappable (nothing about the styling signals it).
+                // The toast is the confirmation that replaced the modal, and it is also the
+                // only route to the note/photo screen — so it has to say it is tappable
+                // (nothing about the styling signals it).
                 //
-                // When a freeze covered a missed day it takes over the copy:
-                // the streak surviving is the more surprising fact, and it is
-                // the only place the user learns the net exists at the moment
-                // it caught them.
+                // When a freeze covered a missed day it takes over the copy: the streak
+                // surviving is the more surprising fact, and it is the only place the user
+                // learns the net exists at the moment it caught them.
+                //
+                // The toast also HOLDS the celebration queue. A streak celebration that
+                // appeared now would tear away the offer to add a note before the user could
+                // read it, so the queue is released when the toast goes — and, if the user
+                // taps through, when the screen it opened closes.
+                celebrationQueue.block();
                 const freezeConsumed = getFreezeConsumed(checkin);
                 showToast.success({
                     text1: freezeConsumed
@@ -487,7 +406,12 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                         : this.translate('pages.habits.checkinToast.addDetailAction'),
                     duration: DURATION.LONG,
                     onPress: () => this.handleAddCheckinDetail(habitGoal),
+                    onHide: () => celebrationQueue.unblock(),
                 });
+
+                // Queue whatever this check-in earned. It shows once the toast (and any screen
+                // it opened) is gone — see utilities/celebrationQueue.
+                enqueueStreakCelebration(checkin?.dailyStreak);
             })
             .catch((err) => {
                 showToast.error({
@@ -500,8 +424,6 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 updatedLoadingIds.delete(habitGoalId);
                 this.setState({
                     checkinLoadingIds: updatedLoadingIds,
-                    isSubmittingCheckin: false,
-                    proofSheetHabit: null,
                 });
             });
     };
@@ -1291,7 +1213,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     render() {
         const { navigation, user } = this.props;
         const {
-            isRefreshing, proofSheetHabit, isSubmittingCheckin, pactIdPendingDecline,
+            isRefreshing, pactIdPendingDecline,
             checkinLoadingIds, respondingPactId, renewingPactId, nudgingPactId,
             awaitingActionGoalId, habitPendingArchive,
         } = this.state;
@@ -1367,19 +1289,6 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                     translate={this.translate}
                     user={user}
                     themeMenu={this.themeMenu}
-                />
-                <CheckinProofSheet
-                    isVisible={!!proofSheetHabit}
-                    isSubmitting={isSubmittingCheckin}
-                    habitName={proofSheetHabit?.name}
-                    userId={user?.details?.id}
-                    canShare={this.isFeedEnabled()}
-                    defaultSharePublicly={this.isFeedEnabled() && !!user?.settings?.settingsIsProfilePublic}
-                    onCancel={this.handleProofSheetCancel}
-                    onConfirm={this.handleProofSheetConfirm}
-                    translate={this.translate}
-                    themeConfirmModal={this.themeConfirmModal}
-                    themeButtons={this.themeButtons}
                 />
                 <ConfirmModal
                     isVisible={!!pactIdPendingDecline}

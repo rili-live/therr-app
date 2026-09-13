@@ -6,17 +6,15 @@ import Toast from 'react-native-toast-message';
 /**
  * One-tap check-in regression tests.
  *
- * The check-in button used to open `CheckinProofSheet` and wait for a second
- * confirm tap before anything was written. Nothing in that sheet was ever
- * required — `onConfirm` accepts an empty note and no photo — so it was pure
- * friction on the single action the product depends on, and Duolingo's
- * published result for removing exactly this kind of barrier was +3.3% D14
- * retention and +10.5% daily learners holding a streak.
+ * The check-in button used to open a proof sheet and wait for a second confirm tap before
+ * anything was written. Nothing in that sheet was ever required, so it was pure friction on the
+ * single action the product depends on, and Duolingo's published result for removing exactly
+ * this kind of barrier was +3.3% D14 retention and +10.5% daily learners holding a streak.
  *
- * The button now commits on the first tap and the sheet is offered afterwards
- * from the success toast. These tests lock in both halves: that the first tap
- * writes, and that the follow-up "add a note or photo" path does not re-offer
- * itself in a loop.
+ * The button commits on the first tap and the note/photo path is offered afterwards from the
+ * success toast — as a full screen now, not a sheet. These tests lock in that the first tap
+ * writes, that the toast routes to that screen, and that the check-in carries the timezone the
+ * app-level daily streak needs to count the user's own day.
  */
 
 jest.mock('react-native-toast-message', () => ({
@@ -66,6 +64,7 @@ jest.mock('react-native-permissions', () => ({
 // Imported after the mocks above deliberately — the screen pulls in a chain of
 // native modules at import time.
 import { HabitsDashboard } from '../../main/routes/Habits/Dashboard';
+import celebrationQueue from '../../main/utilities/celebrationQueue';
 
 // The toast types registered in App.tsx's `toastConfig`. A `Toast.show` with a
 // type outside this set renders nothing at all.
@@ -110,17 +109,18 @@ const buildInstance = ({ shouldReject = false } = {}) => {
     instance.setState = setState;
     instance.handleRefresh = jest.fn() as any;
 
-    return { instance, createCheckin, getActiveStreaks, setState };
+    return { instance, createCheckin, getActiveStreaks };
 };
 
 describe('habits dashboard one-tap check-in', () => {
     beforeEach(() => {
         (Toast.show as any).mockClear();
         (Toast.hide as any).mockClear();
+        celebrationQueue.reset();
     });
 
     it('writes the check-in on the first tap instead of opening the proof sheet', async () => {
-        const { instance, createCheckin, setState } = buildInstance();
+        const { instance, createCheckin } = buildInstance();
 
         instance.handleCheckin(HABIT);
         await flushPromises();
@@ -133,10 +133,20 @@ describe('habits dashboard one-tap check-in', () => {
         expect(body.notes).toBeUndefined();
         expect(body.proofMedias).toBeUndefined();
 
-        // The sheet must not have been opened as a prerequisite.
-        const openedSheetBeforeWriting = setState.mock.calls
-            .some(([partial]: any) => partial && partial.proofSheetHabit === HABIT);
-        expect(openedSheetBeforeWriting).toBe(false);
+        // Nothing may have navigated away before the write.
+        expect(instance.props.navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('sends the device timezone so the daily streak counts the user\'s own day', async () => {
+        const { instance, createCheckin } = buildInstance();
+
+        instance.handleCheckin(HABIT);
+        await flushPromises();
+
+        const body: any = createCheckin.mock.calls[0][0];
+        // `scheduledDate` stays UTC (the habit day); `timeZone` is what the app-level daily
+        // streak resolves its local day from, and the two are deliberately different things.
+        expect(body.timeZone).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
     });
 
     it('keys the write to the UTC calendar day the users-service counts habits in', async () => {
@@ -149,8 +159,8 @@ describe('habits dashboard one-tap check-in', () => {
         expect(body.scheduledDate).toBe(new Date().toISOString().split('T')[0]);
     });
 
-    it('confirms with an actionable toast that opens the proof sheet', async () => {
-        const { instance, setState } = buildInstance();
+    it('confirms with an actionable toast that opens the check-in detail screen', async () => {
+        const { instance } = buildInstance();
 
         instance.handleCheckin(HABIT);
         await flushPromises();
@@ -158,16 +168,34 @@ describe('habits dashboard one-tap check-in', () => {
         const call: any = (Toast.show as any).mock.calls[0][0];
         expect(REGISTERED_TOAST_TYPES).toContain(call.type);
         expect(call.text1).toContain('Morning run');
-        // Nothing about the toast styling signals it is tappable, so the copy
-        // has to say so — it is the only route to the proof sheet now.
+        // Nothing about the toast styling signals it is tappable, so the copy has to say so —
+        // it is the only route to the note/photo screen.
         expect(call.text2).toMatch(/tap/i);
         expect(typeof call.onPress).toBe('function');
 
-        setState.mockClear();
         call.onPress();
 
         expect(Toast.hide).toHaveBeenCalled();
-        expect(setState).toHaveBeenCalledWith({ proofSheetHabit: HABIT });
+        expect(instance.props.navigation.navigate).toHaveBeenCalledWith('CheckinDetail', {
+            habitGoalId: 'goal-1',
+            habitName: 'Morning run',
+            source: 'dashboard',
+        });
+    });
+
+    it('holds the celebration queue while the toast is up and releases it when the toast goes', async () => {
+        const { instance } = buildInstance();
+
+        instance.handleCheckin(HABIT);
+        await flushPromises();
+
+        // The celebration must not pre-empt the offer to add a note.
+        expect(celebrationQueue.isBlocked).toBe(true);
+
+        const call: any = (Toast.show as any).mock.calls[0][0];
+        call.onHide();
+
+        expect(celebrationQueue.isBlocked).toBe(false);
     });
 
     it('refreshes streaks so the tap visibly moves the number it was made for', async () => {
@@ -177,21 +205,6 @@ describe('habits dashboard one-tap check-in', () => {
         await flushPromises();
 
         expect(getActiveStreaks).toHaveBeenCalled();
-    });
-
-    it('does not re-offer the proof sheet after a note or photo was added', async () => {
-        const { instance, createCheckin } = buildInstance();
-        instance.state = { ...instance.state, proofSheetHabit: HABIT };
-
-        instance.handleProofSheetConfirm({ notes: 'felt good' });
-        await flushPromises();
-
-        expect(createCheckin).toHaveBeenCalledTimes(1);
-        expect(createCheckin.mock.calls[0][0].notes).toBe('felt good');
-
-        const call: any = (Toast.show as any).mock.calls[0][0];
-        expect(REGISTERED_TOAST_TYPES).toContain(call.type);
-        expect(call.onPress).toBeUndefined();
     });
 
     it('surfaces an error and offers nothing when the write fails', async () => {
