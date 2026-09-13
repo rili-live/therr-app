@@ -132,6 +132,12 @@ usersServiceRouter.get('/users/leaderboards', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
+// Dismissing an end-of-period placement (the celebration screen or the inline card).
+// `periodStart` (YYYY-MM-DD, the Monday of the week) is the period id.
+usersServiceRouter.post('/users/leaderboards/periods/:periodStart/acknowledge', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
 
 // Auth
 // Optional auth when already logged in and using oauth2 providers
@@ -805,6 +811,18 @@ usersServiceRouter.put('/habits/checkins/:id', handleServiceRequest({
 usersServiceRouter.delete('/habits/checkins/:id', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'delete',
+}));
+
+// HABITS — Daily streak (app-level, across all habits; distinct from the per-habit streaks
+// below). `/evaluate-all` is deliberately NOT registered here: it is the internal scheduled
+// pass and must stay unreachable from the public internet.
+usersServiceRouter.get('/habits/daily-streak/me', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/daily-streak/me/celebrated', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
 }));
 
 // HABITS — Streaks

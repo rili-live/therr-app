@@ -40,6 +40,9 @@ import UserHabitsStore from './UserHabitsStore';
 import LifetimePurchasesStore from './LifetimePurchasesStore';
 import SubscriptionPurchasesStore from './SubscriptionPurchasesStore';
 import JournalEntriesStore from './JournalEntriesStore';
+import UserDailyStreaksStore from './UserDailyStreaksStore';
+import DailyStreakDaysStore from './DailyStreakDaysStore';
+import LeaderboardPeriodResultsStore from './LeaderboardPeriodResultsStore';
 
 class Store {
     db: IConnection;
@@ -125,6 +128,12 @@ class Store {
 
     journalEntries: JournalEntriesStore;
 
+    userDailyStreaks: UserDailyStreaksStore;
+
+    dailyStreakDays: DailyStreakDaysStore;
+
+    leaderboardPeriodResults: LeaderboardPeriodResultsStore;
+
     constructor(dbConnection) {
         this.db = dbConnection;
 
@@ -173,6 +182,9 @@ class Store {
         this.lifetimePurchases = new LifetimePurchasesStore(this.db);
         this.subscriptionPurchases = new SubscriptionPurchasesStore(this.db);
         this.journalEntries = new JournalEntriesStore(this.db);
+        this.userDailyStreaks = new UserDailyStreaksStore(this.db);
+        this.dailyStreakDays = new DailyStreakDaysStore(this.db);
+        this.leaderboardPeriodResults = new LeaderboardPeriodResultsStore(this.db);
     }
 }
 
