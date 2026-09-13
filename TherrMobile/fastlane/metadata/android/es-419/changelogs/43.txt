@@ -1,0 +1,7 @@
+Novedades:
+• Al abrir una publicación, sus respuestas aparecen de inmediato, incluso si la conexión falla un momento
+• Las fotos de las publicaciones quedan centradas dentro de la tarjeta en lugar de tocar el borde
+• Los ojos del camaleón ya no se recortan en el indicador de carga ni en las tarjetas de logros
+• Correcciones y mejoras de estabilidad
+
+¡Gracias por construir hábitos con nosotros!

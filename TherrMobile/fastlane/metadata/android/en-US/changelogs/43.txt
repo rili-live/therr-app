@@ -1,0 +1,7 @@
+What's new:
+• Opening a post now shows its replies right away, even if the connection hiccups
+• Photos on posts sit evenly inside the card instead of touching the edge
+• The chameleon's eyes are no longer clipped in the loader and achievement cards
+• Fixes and stability improvements
+
+Thanks for building habits with us!

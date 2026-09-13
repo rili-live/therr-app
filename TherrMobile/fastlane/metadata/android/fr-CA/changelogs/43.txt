@@ -1,0 +1,7 @@
+Nouveautés :
+• En ouvrant une publication, ses réponses s'affichent tout de suite, même si la connexion a un raté
+• Les photos des publications sont bien centrées dans la carte au lieu de toucher le bord
+• Les yeux du caméléon ne sont plus coupés dans l'indicateur de chargement et les cartes de réussites
+• Corrections et améliorations de la stabilité
+
+Merci de bâtir vos habitudes avec nous!
