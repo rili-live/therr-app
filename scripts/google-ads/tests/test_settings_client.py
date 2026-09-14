@@ -79,3 +79,48 @@ class EnvCredentialSetTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Ga4CredentialsFileTest(unittest.TestCase):
+    """`ga4.credentials_file` must reach the Data API client as a service-account
+    file, with `~` expanded, and its absence must fall back to ADC — the two
+    routes fail in different consoles, so a silent mix-up costs an afternoon."""
+
+    def _fake_module(self):
+        import sys
+        import types
+        from unittest import mock
+
+        client_cls = mock.Mock()
+        client_cls.from_service_account_file = mock.Mock(return_value="from-file")
+        client_cls.return_value = "adc"
+        module = types.ModuleType("google.analytics.data_v1beta")
+        module.BetaAnalyticsDataClient = client_cls
+        return mock.patch.dict(sys.modules, {"google.analytics.data_v1beta": module}), client_cls
+
+    def test_file_is_expanded_and_used(self):
+        from pathlib import Path
+
+        from therr_ads import ga4
+
+        patcher, client_cls = self._fake_module()
+        with patcher:
+            self.assertEqual(ga4.data_client("~/keys/ga.json"), "from-file")
+        client_cls.from_service_account_file.assert_called_once_with(str(Path("~/keys/ga.json").expanduser()))
+
+    def test_empty_falls_back_to_default_credentials(self):
+        from therr_ads import ga4
+
+        patcher, client_cls = self._fake_module()
+        with patcher:
+            self.assertEqual(ga4.data_client(""), "adc")
+        client_cls.from_service_account_file.assert_not_called()
+
+    def test_settings_loader_reads_the_key(self):
+        import tempfile
+
+        from therr_ads.settings import load_settings
+
+        with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False) as handle:
+            handle.write('customer_id: "1"\nga4:\n  credentials_file: "~/x.json"\n')
+        self.assertEqual(load_settings(handle.name).ga4.credentials_file, "~/x.json")

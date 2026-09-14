@@ -58,14 +58,15 @@ indistinguishable from the client side.
 has Play Console access. Two steps, both required:
 
 ```bash
-# analytics.readonly is for scripts/google-ads (`therrads report ga4`), which
-# shares this ADC token; a re-login without it breaks that tool's GA4 half.
 gcloud auth application-default login \
   --scopes=https://www.googleapis.com/auth/cloud-platform,\
 https://www.googleapis.com/auth/playdeveloperreporting,\
-https://www.googleapis.com/auth/androidpublisher,\
-https://www.googleapis.com/auth/analytics.readonly
+https://www.googleapis.com/auth/androidpublisher
 ```
+
+(Do not add `analytics.readonly` here for `scripts/google-ads` — Google blocks
+gcloud's OAuth client from that scope with "This app is blocked". That tool
+reads GA4 through `settings.yaml` → `ga4.credentials_file` instead.)
 
 ```bash
 gcloud services enable playdeveloperreporting.googleapis.com \

@@ -158,31 +158,29 @@ Add `--json` to any of them for machine-readable output.
 ### GA4 authentication
 
 `report ga4` (and the GA4 half of `funnel` / `analyze`) does not use
-`config.yaml`. The GA4 Data API client picks up **Application Default
-Credentials**, so it needs either
+`config.yaml`. Point `settings.yaml` → `ga4.credentials_file` at a
+service-account JSON with Viewer on both GA4 properties — the key the GA4 MCP
+already uses works:
 
-```bash
-# One token serves this tool AND scripts/google-play; a re-login for either
-# replaces it, so always list every scope both need.
-gcloud auth application-default login \
-  --scopes=https://www.googleapis.com/auth/cloud-platform,\
-https://www.googleapis.com/auth/playdeveloperreporting,\
-https://www.googleapis.com/auth/androidpublisher,\
-https://www.googleapis.com/auth/analytics.readonly
+```yaml
+ga4:
+    credentials_file: "~/.therr/ga-mcp-sa.json"
 ```
 
-or a service account with viewer access on both GA4 properties:
+Leave it empty and the client falls back to Application Default Credentials,
+which is a trap: Google **blocks gcloud's own OAuth client from requesting
+`analytics.readonly`** — `gcloud auth application-default login --scopes=…`
+with that scope ends at a "This app is blocked" page, regardless of the
+project's Ads API access level. The only ADC route is
+`gcloud auth application-default login --client-id-file=<your desktop OAuth
+client>.json --scopes=…`, which needs the Analytics Data API enabled and the
+scope on the consent screen of that client's project. The service account
+skips all of that and is not disturbed by re-logins for other tools
+(`scripts/google-play` needs `playdeveloperreporting` + `androidpublisher`,
+which do work through gcloud's client).
 
-```bash
-GOOGLE_APPLICATION_CREDENTIALS=~/.therr/ga-mcp-sa.json ./therrads report ga4
-```
-
-The failure mode is `403 ACCESS_TOKEN_SCOPE_INSUFFICIENT` on
-`analyticsdata.googleapis.com` — usually because a later
-`gcloud auth application-default login --scopes=...` for another tool (the
-Play tooling needs `playdeveloperreporting` + `androidpublisher`) replaced the
-ADC token without `analytics.readonly`. Re-login listing **all** the scopes you
-need, or use the service-account route, which does not share that token.
+The failure mode when neither is set up is
+`403 ACCESS_TOKEN_SCOPE_INSUFFICIENT` on `analyticsdata.googleapis.com`.
 
 `analyze` is the one to run. It judges the data against `settings.yaml` →
 `targets` and produces three verdicts — **CHANNEL** (can we buy users at a price

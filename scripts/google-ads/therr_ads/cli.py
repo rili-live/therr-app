@@ -611,11 +611,13 @@ def _cmd_report_ga4(args) -> int:
         crawler_guard=settings.ga4.crawler_guard,
         include_surface=settings.ga4.surface_dimension_registered,
         host_name=settings.ga4.web_hostname,
+        credentials_file=settings.ga4.credentials_file,
     )
     app = ga4.fetch_app_funnel(
         settings.ga4.app_property_id,
         days=args.days,
         stream_name=settings.ga4.app_stream_name,
+        credentials_file=settings.ga4.credentials_file,
     )
     payload = {**report.to_dict(), "app_funnel": app.to_dict()}
     _emit(args, payload, _format_ga4(report) + _format_app_funnel(app))
@@ -699,9 +701,13 @@ def _cmd_report_funnel(args) -> int:
         crawler_guard=settings.ga4.crawler_guard,
         include_surface=settings.ga4.surface_dimension_registered,
         host_name=settings.ga4.web_hostname,
+        credentials_file=settings.ga4.credentials_file,
     )
     app_funnel = ga4.fetch_app_funnel(
-        settings.ga4.app_property_id, days=args.days, stream_name=settings.ga4.app_stream_name
+        settings.ga4.app_property_id,
+        days=args.days,
+        stream_name=settings.ga4.app_stream_name,
+        credentials_file=settings.ga4.credentials_file,
     )
     product_report = product.fetch(settings.product_db, days=args.days)
 
@@ -736,9 +742,13 @@ def _cmd_analyze(args) -> int:
         crawler_guard=settings.ga4.crawler_guard,
         include_surface=settings.ga4.surface_dimension_registered,
         host_name=settings.ga4.web_hostname,
+        credentials_file=settings.ga4.credentials_file,
     )
     app_funnel = ga4.fetch_app_funnel(
-        settings.ga4.app_property_id, days=args.days, stream_name=settings.ga4.app_stream_name
+        settings.ga4.app_property_id,
+        days=args.days,
+        stream_name=settings.ga4.app_stream_name,
+        credentials_file=settings.ga4.credentials_file,
     )
     product_report = product.fetch(settings.product_db, days=args.days)
 
