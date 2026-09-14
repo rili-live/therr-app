@@ -147,6 +147,11 @@
 - **Child safety page** — CSAE prevention policy and reporting information
 - **Delete account page** — self-service account and data deletion
 - **Invite landing pages** — referral URLs with bonus coin redemption
+- **iOS waitlist** — neither app has a published iOS build, so the App Store CTA on the
+  therr.com home page and the habits.therr.com landing page opens a dialog explaining that
+  rather than linking a listing. Fires `ios_interest_click` (the demand metric) and, for the
+  optional email field, `ios_waitlist_submit`; addresses land in
+  `main."emailMarketingSubscribers"` flagged `isSubscribedToIosWaitlist`
 - **Explore hub** — central discovery page with moments, spaces, thoughts, and people tabs
 - **Space management** — list and manage all user-created spaces
 - **Discovered feed** — recently shared community content
