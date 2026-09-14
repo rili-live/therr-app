@@ -953,12 +953,21 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   Both silent halves are now closed — the push service blocks it (`notification-type-not-routed-for-brand`) and users-service warns on the empty-brand fallback — but **the producer is still unidentified, and until it is fixed the affected users get no streak notification at all rather than one in the wrong app.** It is not the habits digest: `habitsDigest` pins `BrandVariations.HABITS` and `notificationQueueWorker` forwards `row.brandVariation`, both covered by tests. Prime suspect is the sibling `therr-messaging-automator`, which pushes directly and walks users per brand (`docs/CROSS_REPO_INTEGRATION.md`). Search production logs for `Push send with no brandVariation` and `HABITS-only notification arrived under a non-HABITS brand` — both carry the user id, and the second carries the `x-brand-variation` the caller actually sent.
 - [ ] (2026-07-18, leaderboards) After one release cycle with clean shadow logs, flip `UserLeaderboardScoresStore` from `'shadow'` to `'enforce'` mode (users-service `src/store/UserLeaderboardScoresStore.ts`).
 - [ ] (2026-07-18, leaderboards) Product/QA note: the HABITS achievement allow-list is re-enabled (habit ladder + socialite + weeklyChampion — reverses the interim a55bce90d policy). Verify in the Friends with Habits build that check-ins surface streak/consistency achievements and that Therr-shaped classes (explorer, influencer…) still do not appear.
-- [ ] (2026-07-13, manual) Set the `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` CircleCI
-  project env var (full Play service-account key JSON with the "Release manager"
-  permission) so the `eas_build_therr_android` job can auto-populate Google Play
-  release notes. Until it is set, the release-notes step logs a skip and the
-  pipeline still succeeds — notes just won't update. See
-  `docs/SECRETS_AND_LOCAL_BOOTSTRAP.md`.
+- [x] (2026-07-13, manual) ~~Set the `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` CircleCI
+  project env var so the `eas_build_therr_android` job can auto-populate Google
+  Play release notes.~~ **Dropped 2026-09-14** — no longer needed. Auto-population
+  raced EAS Submit's asynchronous upload and usually lost, so the notes were
+  silently never written. CI now *prints* them
+  (`TherrMobile/_scripts/print-play-release-notes.mjs`, no credentials, before
+  the build) and a human pastes them into the Play Console. Superseded by the
+  standing follow-up below.
+- [ ] (2026-09-14, manual, every Android release) Paste the Google Play release
+  notes into the Play Console after promoting a build: **Release → Releases
+  overview → the release → Edit → "What's new in this release"**, once per
+  language. The text to paste is in the `eas_build_therr_android` job log, under
+  the `Print Google Play release notes (copy/paste)` step (or run
+  `npm --prefix TherrMobile run play:release-notes` locally). Skipping it means
+  users see the *previous* release's notes — Play does not clear them.
 - [ ] (2026-07-03, deferred-phone-verification) Frontend follow-up: add a contextual re-prompt when a phone-unverified user hits a `MOBILE_VERIFIED`-gated action (currently only bulk `multi-invite` returns 403). **Resolved 2026-08-12** for the reachable-entry-point half — four routes into verification now exist: the `PhoneContacts` 403 toast is tappable and resumes `CreateProfile` at its `phone` stage; the profile checklist treats an *unverified* number as an unfinished step (`isPhoneVerified` in `TherrMobile/main/utilities/profileCompletion.ts`) so it permanently surfaces the same entry point; `therr.com/verify-phone` is handled in `Layout.handleAppUniversalLinkURL` and deep-links to that stage; and `/verify-phone` on therr-client-web is the standalone web equivalent for users without the app. **Still open:** audit any other action that assumes phone presence — `multi-invite` is the only one that 403s today, so any *new* `MOBILE_VERIFIED` gate needs the same treatment. Note this still hits the *already-deployed* app, which cannot be force-updated, so the web route is the only path that reaches existing installs.
 - [ ] (2026-07-22, retention work) Schedule the HABITS daily partner-activity
   digest: an internal cron (k8s CronJob or equivalent) must POST once daily —
