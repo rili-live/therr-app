@@ -250,36 +250,28 @@ only needs `eas-cli` installed — no local Android SDK required.
 
 ---
 
-### CircleCI env var: `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`
+### CircleCI env var: `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` — no longer used
 
-**What it is:** The full JSON key for a Google Play service account, used by
-`TherrMobile/_scripts/populate-play-release-notes.mjs` (run in the
-`eas_build_therr_android` CircleCI job) to push the user-facing "What's new"
-release notes to the Play internal track after `eas build --auto-submit`.
-EAS Submit uploads the AAB but does not manage release notes, so this closes
-that gap.
+**Nothing in CI reads this any more. Do not add it to CircleCI.**
 
-**Required scope:** The service account must have the **Release manager**
-permission on the Therr Play listing (Play Console → Users & permissions).
-This is the *same* service account already configured on EAS for
-`--auto-submit`; you are reusing its key JSON, just also storing it in
-CircleCI.
+It existed for one job: `eas_build_therr_android` used it to push the
+user-facing "What's new" release notes to the Play internal track over the Play
+Developer API, after `eas build --auto-submit`. That approach had to wait for
+EAS Submit's asynchronous upload to appear on the track, and it lost that race
+often enough that the notes were usually never written — with the only symptom
+being a failed step at the end of a successful build.
 
-**Why gitignored / secret:** The key can publish releases and edit the store
-listing. Treat as high-sensitivity. It is stored as a CircleCI project-level
-environment variable (paste the entire JSON as the value), **not** committed.
+Release notes are now **printed** by
+`TherrMobile/_scripts/print-play-release-notes.mjs` (no credentials, no
+network) *before* the build step, and a human pastes them into the Play
+Console when promoting the release. See
+`TherrMobile/fastlane/metadata/android/README.md`.
 
-**Setup:**
-1. CircleCI → Project Settings → Environment Variables → Add Variable.
-2. Name: `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`; Value: the full service-account
-   JSON (single line is fine).
-3. If unset, the CI step logs a skip and the pipeline still succeeds — release
-   notes simply won't be updated until the var is added.
-
-**Regenerate from upstream if lost:**
-Google Cloud Console → project `therr-app` → IAM & Admin → Service Accounts →
-the Play publisher account → Keys → Add key → JSON. Then re-grant it access in
-Play Console if needed.
+> **Not to be confused with the users-service secret of the same name.** The
+> backend reads `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` from a Kubernetes secret to
+> verify Play in-app purchases (`therr-services/users-service/src/api/googlePlay.ts`,
+> `k8s/prod/users-service-deployment.yaml`). That one is still required. This
+> section is only about the CircleCI project-level variable.
 
 ---
 

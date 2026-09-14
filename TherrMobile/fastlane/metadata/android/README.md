@@ -1,11 +1,33 @@
 # Google Play release notes ("What's new")
 
 These files hold the user-facing **release notes** shown on the Google Play
-listing for each Android release. EAS Submit uploads the AAB but does **not**
-manage release notes, so they are pushed to Play by
-`TherrMobile/_scripts/populate-play-release-notes.mjs`, which runs after the
-`eas build --auto-submit` step in the `eas_build_therr_android` CircleCI job
-(see `.circleci/config.yml`).
+listing for each Android release.
+
+## Setting them is a manual paste
+
+EAS Submit uploads the AAB but does **not** manage release notes, and nothing
+sets them automatically. `TherrMobile/_scripts/print-play-release-notes.mjs`
+resolves the text for the versionCode being built and prints it as a
+copy/paste block; it runs **before** the `eas build --auto-submit` step in the
+`eas_build_therr_android` CircleCI job (see `.circleci/config.yml`), so the
+notes are in the job log even if the build step later times out.
+
+Paste them in at:
+**Play Console → Release → Releases overview → the release → Edit → "What's new
+in this release"**, for each language.
+
+> This used to push the notes to Play over the Developer API, polling the track
+> until EAS Submit's upload appeared. EAS Submit is asynchronous and the upload
+> routinely landed after the poll window closed, so the notes were silently
+> never written and the only symptom was a failed step at the end of an
+> otherwise-successful build. The timing dependency was removed rather than
+> tuned.
+
+Run it locally against the current `versionCode` with:
+
+```bash
+npm --prefix TherrMobile run play:release-notes
+```
 
 ## Layout (Fastlane `supply` convention)
 
