@@ -2125,13 +2125,15 @@
                 "nextMilestone": "Prochain jalon : {days} jours",
                 "graceDaysRemaining": "Il te reste {count} gel(s) de série — si tu manques une journée, un gel te couvre automatiquement.",
                 "nextMilestoneCompact": "proch. {days} j",
-                "graceDaysCompact": "{count} gel",
                 "freezeRule": "Si tu manques une journée, un gel de série la couvre — tu commences avec {starting} et tu en gagnes un autre tous les {interval} jours, jusqu'à {max}.",
-                "graceDaysExhausted": "Plus de gels de série — la prochaine journée manquée réinitialise la série. Tu en regagnes un à ton prochain jalon de 7 jours."
+                "graceDaysExhausted": "Plus de gels de série — la prochaine journée manquée réinitialise la série. Tu en regagnes un à ton prochain jalon de 7 jours.",
+                "freezesLabel": "Gels de série {remaining}/{total}",
+                "freezePipsAccessibility": "Il reste {remaining} gels de série sur {total}"
             },
             "tabs": {
                 "habits": "Habitudes"
-            }
+            },
+            "loadingList": "Chargement de tes habitudes…"
         },
         "pacts": {
             "headerTitle": "Mes pactes",
@@ -2503,7 +2505,8 @@
             "errors": {
                 "loadFailed": "Nous n'avons pas pu charger ton journal.",
                 "saveFailed": "Nous n'avons pas pu enregistrer cette entrée."
-            }
+            },
+            "loadingList": "Chargement de ton journal…"
         },
         "upgrade": {
             "title": "Gratuit à vie",
