@@ -2132,7 +2132,8 @@
             },
             "tabs": {
                 "habits": "Habits"
-            }
+            },
+            "loadingList": "Loading your habits…"
         },
         "pacts": {
             "headerTitle": "My Pacts",
@@ -2504,7 +2505,8 @@
             "errors": {
                 "loadFailed": "We could not load your journal.",
                 "saveFailed": "We could not save that entry."
-            }
+            },
+            "loadingList": "Loading your journal…"
         },
         "upgrade": {
             "title": "Free for life",

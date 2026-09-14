@@ -3,6 +3,7 @@ import CheckinDayDetailSheet from './CheckinDayDetailSheet';
 import CheckinDetailForm from './CheckinDetailForm';
 import HabitCalendar from './HabitCalendar';
 import HabitCard from './HabitCard';
+import HabitsListLoader from './HabitsListLoader';
 import NewPactButton from './NewPactButton';
 import PactCard from './PactCard';
 import PactMemberRow from './PactMemberRow';
@@ -17,6 +18,7 @@ export {
     CheckinDetailForm,
     HabitCalendar,
     HabitCard,
+    HabitsListLoader,
     NewPactButton,
     PactCard,
     PactMemberRow,

@@ -2132,7 +2132,8 @@
             },
             "tabs": {
                 "habits": "Habitudes"
-            }
+            },
+            "loadingList": "Chargement de tes habitudes…"
         },
         "pacts": {
             "headerTitle": "Mes pactes",
@@ -2504,7 +2505,8 @@
             "errors": {
                 "loadFailed": "Nous n'avons pas pu charger ton journal.",
                 "saveFailed": "Nous n'avons pas pu enregistrer cette entrée."
-            }
+            },
+            "loadingList": "Chargement de ton journal…"
         },
         "upgrade": {
             "title": "Gratuit à vie",

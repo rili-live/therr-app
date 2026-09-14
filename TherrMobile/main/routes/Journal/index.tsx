@@ -15,6 +15,7 @@ import { HabitActions } from 'therr-react/redux/actions';
 import { IHabitsState, IJournalFeedItem, IUserHabit, IUserState } from 'therr-react/types';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import { HabitsListLoader } from '../../components/Habits';
 import translator from '../../utilities/translator';
 import { showToast } from '../../utilities/toasts';
 import { buildStyles } from '../../styles';
@@ -328,6 +329,39 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
         );
     };
 
+    /**
+     * A loader rather than the empty state — or than nothing — while the feed loads.
+     *
+     * `ListEmptyComponent` fires the moment `data` is empty, which until the first fetch settles
+     * is indistinguishable from having no entries. This screen rendered `null` in that window,
+     * which is a blank page that reads as a failure just as easily as a wait; the other habits
+     * lists rendered their onboarding empty state outright, telling a returning user they have
+     * nothing in the moment before showing them everything.
+     */
+    renderEmptyStateOrLoader = () => {
+        const { habits } = this.props;
+
+        if (habits.isLoading) {
+            return (
+                <HabitsListLoader
+                    label={this.translate('pages.journal.loadingList')}
+                    theme={this.themeJournal}
+                />
+            );
+        }
+
+        return (
+            <View style={this.themeJournal.styles.emptyContainer}>
+                <Text style={this.themeJournal.styles.emptyTitle}>
+                    {this.translate('pages.journal.empty.title')}
+                </Text>
+                <Text style={this.themeJournal.styles.emptySubtitle}>
+                    {this.translate('pages.journal.empty.subtitle')}
+                </Text>
+            </View>
+        );
+    };
+
     render() {
         const { habits, navigation, user } = this.props;
         const {
@@ -445,16 +479,7 @@ export class Journal extends React.Component<IJournalProps, IJournalState> {
                                     <ActivityIndicator size="small" color={this.themeJournal.colors.brand} />
                                 </View>
                             ) : null}
-                            ListEmptyComponent={habits.isLoading ? null : (
-                                <View style={this.themeJournal.styles.emptyContainer}>
-                                    <Text style={this.themeJournal.styles.emptyTitle}>
-                                        {this.translate('pages.journal.empty.title')}
-                                    </Text>
-                                    <Text style={this.themeJournal.styles.emptySubtitle}>
-                                        {this.translate('pages.journal.empty.subtitle')}
-                                    </Text>
-                                </View>
-                            )}
+                            ListEmptyComponent={this.renderEmptyStateOrLoader()}
                         />
                     </View>
                 </SafeAreaView>

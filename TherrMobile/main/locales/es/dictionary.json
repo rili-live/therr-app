@@ -2132,7 +2132,8 @@
             },
             "tabs": {
                 "habits": "Hábitos"
-            }
+            },
+            "loadingList": "Cargando tus hábitos…"
         },
         "pacts": {
             "headerTitle": "Mis pactos",
@@ -2504,7 +2505,8 @@
             "errors": {
                 "loadFailed": "No pudimos cargar tu diario.",
                 "saveFailed": "No pudimos guardar esa entrada."
-            }
+            },
+            "loadingList": "Cargando tu diario…"
         },
         "upgrade": {
             "title": "Gratis de por vida",
