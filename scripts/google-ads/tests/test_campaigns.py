@@ -238,3 +238,96 @@ class ResumeChecksTheAccountCeilingTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ValidateOnlyTest(unittest.TestCase):
+    """`campaign apply --validate-only` is a rehearsal, not a mutation.
+
+    It has to run the same blockers as a real apply (otherwise it rehearses a
+    request apply would refuse), send with validate_only=True, and never need
+    --confirm — the API commits nothing, so there is nothing to confirm.
+    """
+
+    def _run(self, other_micros, validate_only=True):
+        from types import SimpleNamespace
+        from unittest import mock
+
+        from therr_ads import cli
+
+        apply_plan = mock.Mock(return_value={"campaign_resource_name": "", "created": []})
+        args = SimpleNamespace(
+            spec=str(APP_SPEC), settings=None, config=None, confirm=False, validate_only=validate_only
+        )
+        with mock.patch.object(cli, "_client", return_value=object()), \
+             mock.patch.object(cli, "_sum_other_budgets", return_value=other_micros), \
+             mock.patch.object(cli.campaigns, "apply_plan", apply_plan), \
+             mock.patch.object(cli, "_settings", return_value=settings_with()):
+            code = cli._cmd_campaign_apply(args)
+        return apply_plan, code
+
+    def test_validate_only_sends_with_the_flag_and_without_confirm(self):
+        apply_plan, code = self._run(0)
+        self.assertEqual(code, 0)
+        apply_plan.assert_called_once()
+        self.assertTrue(apply_plan.call_args.kwargs.get("validate_only"))
+
+    def test_validate_only_still_respects_the_account_ceiling(self):
+        apply_plan, code = self._run(99_000_000)
+        self.assertEqual(code, 2)
+        apply_plan.assert_not_called()
+
+    def test_without_the_flag_nothing_is_sent_unless_confirmed(self):
+        apply_plan, code = self._run(0, validate_only=False)
+        self.assertEqual(code, 0)
+        apply_plan.assert_not_called()
+
+
+class V23FieldShapeTest(unittest.TestCase):
+    """Shapes the live API v23 rejected on the first real request.
+
+    Pure tests with fake clients: no google-ads import. Each one pins a
+    failure that only surfaced once the developer access was granted and the
+    apply path ran for the first time.
+    """
+
+    def test_days_since_accepts_the_v23_start_date_time_form(self):
+        from datetime import date, timedelta
+
+        from therr_ads.campaigns import days_since
+
+        three_days_ago = (date.today() - timedelta(days=3)).isoformat()
+        self.assertEqual(days_since(f"{three_days_ago} 00:00:00"), 3)
+        self.assertEqual(days_since(three_days_ago), 3)
+        self.assertEqual(days_since(three_days_ago.replace("-", "")), 3)
+        self.assertIsNone(days_since(""))
+        self.assertIsNone(days_since("not a date"))
+
+    def test_temp_ids_only_touch_the_path_helper_the_service_actually_has(self):
+        """CampaignBudgetService has no campaign_path; an eager dict of bound
+        methods raised AttributeError before the first operation was built."""
+        from therr_ads.campaigns import _TempIds
+
+        class BudgetService:
+            def campaign_budget_path(self, customer_id, entity_id):
+                return f"customers/{customer_id}/campaignBudgets/{entity_id}"
+
+        class CampaignService:
+            def campaign_path(self, customer_id, entity_id):
+                return f"customers/{customer_id}/campaigns/{entity_id}"
+
+        class AdGroupService:
+            def ad_group_path(self, customer_id, entity_id):
+                return f"customers/{customer_id}/adGroups/{entity_id}"
+
+        class FakeClient:
+            def get_service(self, name):
+                return {
+                    "CampaignBudgetService": BudgetService(),
+                    "CampaignService": CampaignService(),
+                    "AdGroupService": AdGroupService(),
+                }[name]
+
+        ids = _TempIds(FakeClient(), "123")
+        self.assertEqual(ids.next("campaignBudget"), "customers/123/campaignBudgets/-1")
+        self.assertEqual(ids.next("campaign"), "customers/123/campaigns/-2")
+        self.assertEqual(ids.next("adGroup"), "customers/123/adGroups/-3")

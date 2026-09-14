@@ -24,7 +24,7 @@ and each one is documented inline in the file:
 
 | Value | Where it comes from |
 |---|---|
-| `developer_token` | Google Ads UI → Tools & Settings → Setup → **API Center**, on your *manager* account |
+| `developer_token` | Google Ads UI → Tools & Settings → Setup → **API Center**, on your *manager* account. Google no longer requires it for API calls — access is now managed in the Cloud Console (below) — but the `google-ads` library still refuses to load a `config.yaml` without the key, so keep it |
 | `client_id` / `client_secret` | Google Cloud Console → Credentials → OAuth client ID → **Desktop app** |
 | `login_customer_id` | Your manager account id, digits only |
 | `refresh_token` | Minted by the next command |
@@ -39,9 +39,14 @@ Put the account you want to advertise from into `settings.yaml` → `customer_id
 <details>
 <summary><strong>The four things that actually go wrong</strong></summary>
 
-- **`DEVELOPER_TOKEN_NOT_APPROVED`** — a new developer token is issued at "Test
-  Account" access and cannot touch a real account. Apply for Basic access in the
-  API Center; approval takes 1–3 business days.
+- **`DEVELOPER_TOKEN_NOT_APPROVED`** — API access level is no longer a property
+  of the developer token. Since September 2026 it is managed in **Google Cloud
+  Console → APIs & Services → Google Ads API** on the project that owns the
+  OAuth client; the API Center page in the Ads UI still shows a level but says
+  itself it "may no longer be accurate". Apply for access there (the form asks
+  for the project id and a use-case description — `docs/api-access-application.html`
+  is what was submitted). A brand-new project is at test-account level and
+  cannot touch a real account until approved.
 - **"It worked last week"** — while the Cloud project's OAuth consent screen is
   in *Testing* status, Google expires refresh tokens after **7 days**. Set it to
   *In production*. (Publishing status is separate from verification; an internal
@@ -90,8 +95,17 @@ would do and exits having done nothing.
 ```bash
 ./therrads campaign validate campaigns/habits-app-install.yaml   # offline, no credentials
 ./therrads campaign plan     campaigns/habits-app-install.yaml   # the exact operations
+./therrads campaign apply    campaigns/habits-app-install.yaml --validate-only   # server-side rehearsal
 ./therrads campaign apply    campaigns/habits-app-install.yaml --confirm
 ```
+
+`--validate-only` sends the real request with the API's `validate_only` flag:
+Google runs every check it would run on a true apply — field names, policy,
+account permissions, access level — and commits nothing. It is the cheapest
+proof that "create" works, and it is how the first live run found three field
+shapes the API had changed since the tool was written (see `git log` on
+`campaigns.py`). It runs after the same budget blockers as a real apply, so a
+plan that would be refused is refused here too.
 
 Campaigns are created **PAUSED**. Review what was built in the Ads UI, then:
 
@@ -132,12 +146,43 @@ possible, it is just never accidental.
 ```bash
 ./therrads report ads     --days 14    # impressions, clicks, CPI, ad groups, search terms
 ./therrads report ga4     --days 14    # web sessions by campaign + the in-app funnel
+                                       # (GA4 uses Application Default Credentials, NOT config.yaml;
+                                       #  see "GA4 authentication" below)
 ./therrads report product --days 14    # signups → pacts → invites → check-ins → payers
 ./therrads report funnel  --days 14    # all three
 ./therrads analyze        --days 14    # signals, verdicts, and what to do next
 ```
 
 Add `--json` to any of them for machine-readable output.
+
+### GA4 authentication
+
+`report ga4` (and the GA4 half of `funnel` / `analyze`) does not use
+`config.yaml`. The GA4 Data API client picks up **Application Default
+Credentials**, so it needs either
+
+```bash
+# One token serves this tool AND scripts/google-play; a re-login for either
+# replaces it, so always list every scope both need.
+gcloud auth application-default login \
+  --scopes=https://www.googleapis.com/auth/cloud-platform,\
+https://www.googleapis.com/auth/playdeveloperreporting,\
+https://www.googleapis.com/auth/androidpublisher,\
+https://www.googleapis.com/auth/analytics.readonly
+```
+
+or a service account with viewer access on both GA4 properties:
+
+```bash
+GOOGLE_APPLICATION_CREDENTIALS=~/.therr/ga-mcp-sa.json ./therrads report ga4
+```
+
+The failure mode is `403 ACCESS_TOKEN_SCOPE_INSUFFICIENT` on
+`analyticsdata.googleapis.com` — usually because a later
+`gcloud auth application-default login --scopes=...` for another tool (the
+Play tooling needs `playdeveloperreporting` + `androidpublisher`) replaced the
+ADC token without `analytics.readonly`. Re-login listing **all** the scopes you
+need, or use the service-account route, which does not share that token.
 
 `analyze` is the one to run. It judges the data against `settings.yaml` →
 `targets` and produces three verdicts — **CHANNEL** (can we buy users at a price

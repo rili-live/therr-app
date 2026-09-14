@@ -9,6 +9,7 @@ COMMAND MAP (also in README.md, kept in sync deliberately):
 
   campaign validate <spec>           parse and validate a spec. No network.
   campaign plan <spec>               render the exact operations. No network.
+  campaign apply <spec> --validate-only   send them with validate_only: nothing created
   campaign apply <spec> --confirm    send them
   campaign list                      what exists in the account now
   campaign budget <name> --daily N   change spend (guarded)
@@ -116,6 +117,11 @@ def _build_parser() -> argparse.ArgumentParser:
     apply_cmd = campaign_sub.add_parser("apply", help="create the campaign")
     apply_cmd.add_argument("spec", type=Path)
     apply_cmd.add_argument("--confirm", action="store_true", help="required to actually send")
+    apply_cmd.add_argument(
+        "--validate-only",
+        action="store_true",
+        help="send the request with validate_only: full server-side validation, nothing created",
+    )
     apply_cmd.set_defaults(handler=_cmd_campaign_apply)
 
     listing = campaign_sub.add_parser("list", help="campaigns currently in the account")
@@ -372,6 +378,15 @@ def _cmd_campaign_apply(args) -> int:
     if not plan.can_apply:
         print("Refusing to apply — resolve the blockers above.\n", file=sys.stderr)
         return 2
+
+    # validate_only is a rehearsal of the exact request apply would send, so it
+    # runs after the same blockers and needs no --confirm: the API commits
+    # nothing and returns nothing, only the errors it would have raised.
+    if getattr(args, "validate_only", False):
+        _call(campaigns.apply_plan, client, customer_id, spec, validate_only=True)
+        print("\nVALIDATE ONLY — the API accepted the request and created nothing.")
+        print("Re-run with --confirm to create these entities.\n")
+        return 0
     if not _guard(args.confirm, "Re-run with --confirm to create these entities."):
         return 0
 
@@ -397,7 +412,7 @@ def _cmd_campaign_list(args) -> int:
     request = client.get_type("SearchGoogleAdsRequest")
     request.customer_id = customer_id
     request.query = """
-        SELECT campaign.id, campaign.name, campaign.status, campaign.start_date,
+        SELECT campaign.id, campaign.name, campaign.status, campaign.start_date_time,
                campaign.advertising_channel_sub_type, campaign_budget.amount_micros
         FROM campaign
         WHERE campaign.status != 'REMOVED'
@@ -406,7 +421,7 @@ def _cmd_campaign_list(args) -> int:
     rows = []
     print()
     for row in _call(service.search, request=request):
-        age = campaigns.days_since(row.campaign.start_date)
+        age = campaigns.days_since(row.campaign.start_date_time)
         rows.append(
             {
                 "id": row.campaign.id,
