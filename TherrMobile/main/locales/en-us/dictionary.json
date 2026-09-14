@@ -2125,9 +2125,10 @@
                 "nextMilestone": "Next milestone: {days} days",
                 "graceDaysRemaining": "{count} streak freeze(s) left — miss a day and one covers you automatically.",
                 "nextMilestoneCompact": "next {days}d",
-                "graceDaysCompact": "{count} freeze",
                 "freezeRule": "Miss a day and a streak freeze covers it — you start with {starting} and earn another every {interval} days, up to {max}.",
-                "graceDaysExhausted": "No streak freezes left — the next missed day resets the streak. You earn one back at your next 7-day milestone."
+                "graceDaysExhausted": "No streak freezes left — the next missed day resets the streak. You earn one back at your next 7-day milestone.",
+                "freezesLabel": "Streak freezes {remaining}/{total}",
+                "freezePipsAccessibility": "{remaining} of {total} streak freezes remaining"
             },
             "tabs": {
                 "habits": "Habits"

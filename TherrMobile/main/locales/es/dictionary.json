@@ -2125,9 +2125,10 @@
                 "nextMilestone": "Próximo hito: {days} días",
                 "graceDaysRemaining": "Te queda(n) {count} congelamiento(s) de racha — si fallas un día, uno te cubre automáticamente.",
                 "nextMilestoneCompact": "próx. {days} d",
-                "graceDaysCompact": "{count} congelamiento",
                 "freezeRule": "Si fallas un día, un congelamiento de racha lo cubre — empiezas con {starting} y ganas otro cada {interval} días, hasta {max}.",
-                "graceDaysExhausted": "No te quedan congelamientos de racha — el próximo día que falles reinicia la racha. Ganarás uno en tu próximo hito de 7 días."
+                "graceDaysExhausted": "No te quedan congelamientos de racha — el próximo día que falles reinicia la racha. Ganarás uno en tu próximo hito de 7 días.",
+                "freezesLabel": "Congelamientos de racha {remaining}/{total}",
+                "freezePipsAccessibility": "Quedan {remaining} de {total} congelamientos de racha"
             },
             "tabs": {
                 "habits": "Hábitos"

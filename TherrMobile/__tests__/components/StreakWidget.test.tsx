@@ -77,6 +77,35 @@ const getTextLines = (component: renderer.ReactTestRenderer): string[] => {
     return lines;
 };
 
+/**
+ * Freeze pips carry no text beyond the snowflake, so they are counted by that glyph — the same
+ * way the row's accessibility label counts them for a screen reader.
+ */
+const FREEZE_GLYPH = '❄️';
+
+const countFreezePips = (component: renderer.ReactTestRenderer): number => {
+    let count = 0;
+
+    const walk = (node: any) => {
+        if (!node || typeof node === 'string') {
+            return;
+        }
+        if (Array.isArray(node)) {
+            node.forEach(walk);
+            return;
+        }
+        const children = node.children || [];
+        if (node.type === 'Text' && children.join('') === FREEZE_GLYPH) {
+            count += 1;
+        }
+        children.forEach(walk);
+    };
+
+    walk(component.toJSON());
+
+    return count;
+};
+
 describe('StreakWidget', () => {
     it('renders milestone and grace days on their own rows by default', () => {
         const component = renderWidget({});
@@ -87,13 +116,11 @@ describe('StreakWidget', () => {
         expect(lines).toContain('1/3');
     });
 
-    it('collapses milestone, progress and grace days onto a single line when compact', () => {
+    it('collapses milestone and progress onto a single line when compact', () => {
         const component = renderWidget({ compact: true });
         const lines = getTextLines(component);
 
-        expect(lines).toContain(
-            '1/3 · pages.habits.streak.nextMilestoneCompact(3) · pages.habits.streak.graceDaysCompact(1)',
-        );
+        expect(lines).toContain('1/3 · pages.habits.streak.nextMilestoneCompact(3)');
         expect(lines).not.toContain('pages.habits.streak.nextMilestone(3)');
         expect(lines).not.toContain('pages.habits.streak.graceDaysRemaining(1)');
     });
@@ -103,13 +130,30 @@ describe('StreakWidget', () => {
             .toBeLessThan(getTextLines(renderWidget({})).length);
     });
 
-    it('omits the grace days summary when none remain', () => {
+    // The whole allotment is drawn, spent slots included — that is what says two of three are
+    // gone rather than only that one is left.
+    it('renders one freeze pip per allotted freeze, in both layouts', () => {
+        const streak = buildStreak({ gracePeriodDays: 3, graceDaysUsed: 2 });
+
+        expect(countFreezePips(renderWidget({ streak }))).toBe(3);
+        expect(countFreezePips(renderWidget({ compact: true, streak }))).toBe(3);
+    });
+
+    it('still renders the pips, and warns, once no freezes remain', () => {
         const component = renderWidget({
-            compact: true,
-            streak: buildStreak({ gracePeriodDays: 1, graceDaysUsed: 1 }),
+            streak: buildStreak({ gracePeriodDays: 2, graceDaysUsed: 2 }),
         });
 
-        expect(getTextLines(component)).toContain('1/3 · pages.habits.streak.nextMilestoneCompact(3)');
+        expect(countFreezePips(component)).toBe(2);
+        expect(getTextLines(component)).toContain('pages.habits.streak.graceDaysExhausted');
+    });
+
+    it('renders nothing about freezes for a habit with no freeze allowance', () => {
+        const streak = buildStreak({ gracePeriodDays: 0, graceDaysUsed: 0 });
+
+        expect(countFreezePips(renderWidget({ streak }))).toBe(0);
+        expect(getTextLines(renderWidget({ streak })))
+            .not.toContain('pages.habits.streak.graceDaysExhausted');
     });
 
     it('still renders the title and streak badge when compact', () => {
