@@ -444,14 +444,13 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 > is therefore already substantially answered, and the instrumentation and
 > onboarding items below are what a campaign is waiting on — not the credentials.
 
-- [ ] **Obtain a Google Ads developer token at Basic access.** Google Ads UI ->
-  Tools & Settings -> Setup -> API Center, on the manager account. A newly issued
-  token is Test Account level and rejects every call against a real account with
-  `DEVELOPER_TOKEN_NOT_APPROVED`; approval takes 1-3 business days. Everything
-  else in the tooling is blocked on this.
-- [ ] **Create a Desktop-app OAuth client and run `./therrads auth login`.**
-  Google Cloud Console -> APIs & Services -> Credentials. A *Web application*
-  client fails the installed-app flow with `redirect_uri_mismatch`.
+- [x] **Obtain Google Ads API access at Basic level.** Done 2026-09-14 — but
+  not where this item said: Google moved access levels out of the Ads UI API
+  Center into Cloud Console -> APIs & Services -> Google Ads API, on the project
+  owning the OAuth client. Verified live: reads and `campaign apply
+  --validate-only` succeed against `7604290203`.
+- [x] **Create a Desktop-app OAuth client and run `./therrads auth login`.**
+  Done; `./therrads auth check` reaches 4 accounts.
 - [ ] **Set the Cloud project's OAuth consent screen to "In production".** While
   it is in *Testing*, Google expires the refresh token after 7 days with no
   warning and no distinguishing error — this is the cause of "it worked last
@@ -465,17 +464,24 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   Google Ads links) so installs are reported as conversions. Without the link,
   the App campaign optimises against nothing and `report ads` shows zero installs
   regardless of what actually happened.
-- [ ] **Import the GA4 key events from property `267810693` into Ads as conversion
-  actions.** The link already exists (created 2022 to customer `7604290203`), and
-  `first_open` / `profile_create_start` / `phone_verify_success` /
-  `connection_invites_sent` are already marked as key events — this is Ads UI ->
-  Goals -> Conversions -> New -> Import -> Google Analytics 4, not a build. Use
-  `first_open` for run 1; add the activation events once they carry volume.
-- [ ] **Set `settings.yaml` -> `customer_id: "7604290203"` and `config.yaml` ->
-  `login_customer_id: "3076709152"`.** The operating account is the one already
-  linked to the GA4 app property; the manager is what you authenticate *through*,
-  not what campaigns are created in. `./therrads auth check` lists what the token
-  can actually reach — confirm both before the first `campaign apply`.
+- [ ] **Enable the imported `com.therr.habits` conversion actions in Ads.** A
+  GAQL read on 2026-09-14 shows the GA4 import already happened — 22
+  `com.therr.habits (Android)` conversion actions exist (ids `7586156155`
+  First open, `7586157256` phone_verify_success, `7586157262`
+  connection_invites_sent, `7586157277` profile_create_start, ...) — but **every
+  one is `status: HIDDEN`**, so the App campaign would still optimise against
+  nothing. Ads UI -> Goals -> Conversions -> Settings: un-hide `First open` as
+  the primary goal for run 1, and `phone_verify_success` as secondary. Leave the
+  `app.therrmobile` ones alone; those are the flagship's.
+- [ ] **Import the six habit events as conversion actions once they are key
+  events.** None of `habit_pact_create` / `habit_checkin_complete` /
+  `habits_founder_unlock_purchase` appear in the account's conversion actions,
+  so they are either not yet key events in GA4 or not yet imported. They are
+  flowing (GA4 shows pact and check-in users in the last 14 days on the
+  production build, versionCode 44), so the "not marked" step below is the
+  blocker, not the app.
+- [x] **Set `settings.yaml` -> `customer_id: "7604290203"` and `config.yaml` ->
+  `login_customer_id: "3076709152"`.** Done; both confirmed reachable.
 - [ ] **Mark the six new habits events as key events** in GA4 admin on property
   `267810693`, stream "Friends with Habits": `habit_pact_create`,
   `habit_invite_sent`, `habit_solo_start`, `habit_checkin_complete`,
@@ -485,8 +491,9 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   and this is the whole point of shipping them.
 - [ ] **Create a Google Ads link on GA4 property `549794383`.** The app property
   (`267810693`) has had one since 2022; the consolidated web property has
-  **none**, so the web arm has no path to import a conversion even after
-  `sign_up` is marked. GA4 Admin -> Product links -> Google Ads links.
+  **none** (re-confirmed via the Admin API 2026-09-14), so the web arm has no
+  path to import a conversion even after `sign_up` is marked. GA4 Admin ->
+  Product links -> Google Ads links.
 - [ ] **Mark `sign_up` as a key event** on property `549794383` and import it as
   the web arm's conversion action. `habits.therr.com/register` fires it on a
   successful registration, and the landing page fires `store_click` /
