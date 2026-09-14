@@ -96,6 +96,39 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## iOS demand tracking (added 2026-09-14)
+
+- [ ] **Mark `ios_interest_click` and `ios_waitlist_submit` as key events in GA4.** Both
+  landing pages now fire them (therr.com via `IosWaitlistModal.tsx`, habits.therr.com inline
+  in `views/habits/landing.hbs`), with `app` and `location` parameters. Until they are marked
+  in Admin → Events → Mark as key event they are collected but not reportable, and they cannot
+  be imported into Google Ads as a conversion action. Also register `app` and `location` as
+  event-scoped custom dimensions, or the per-app and per-placement breakdown — the whole point
+  of the two parameters — shows as `(not set)`.
+- [ ] **Read the waitlist before committing to an iOS build.** The addresses are in
+  `main."emailMarketingSubscribers"` with `"isSubscribedToIosWaitlist" = true`;
+  `"brandVariation"` says which landing page the person came from.
+
+  ```sql
+  SELECT "brandVariation", count(*), min("createdAt"), max("createdAt")
+    FROM main."emailMarketingSubscribers"
+   WHERE "isSubscribedToIosWaitlist" = true
+   GROUP BY 1 ORDER BY 2 DESC;
+  ```
+
+  Note the click count in GA4 is the larger and more honest number — the email is optional in
+  both dialogs on purpose, so signups are a subset of demand, not a measure of it.
+- [ ] **Decide what to do about the App Store badges on the other ~12 web pages.** Only the
+  two landing pages were changed. `Login`, `ViewSpace`, `ViewEvent`, `ListSpaces`, `Forum`,
+  `ViewGroup`, `CityPulse`, `InviteLanding`, `InviteLinkLanding`, `UnderConstruction` and
+  `Register`'s redirect still link `apps.apple.com/us/app/therr/id1569988763`, as does
+  `getAppStoreUrl()` in `therr-js-utilities/constants/brandAppStores.ts` and the
+  `apple-itunes-app` meta tag in `views/index.hbs`. If that listing is genuinely gone, the fix
+  is to drop the `appStoreId` from `THERR_APP_STORE` and let the existing
+  `appStoreUrl === undefined` branches hide the badge — the shared constant already models
+  "this brand has no iOS build". Left alone here because it is a larger change than the two
+  landing pages that were asked for.
+
 ## Daily streak & celebrations (added 2026-09-13)
 
 - [ ] **Point a scheduler at `POST /habits/daily-streak/evaluate-all`, or leave it to
