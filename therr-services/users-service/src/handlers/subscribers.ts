@@ -1,8 +1,9 @@
 import { RequestHandler } from 'express';
-import { ErrorCodes } from 'therr-js-utilities/constants';
+import { BrandVariations, ErrorCodes } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
+import { getHostContext } from '../constants/hostContext';
 import Store from '../store';
 import sendUserFeedbackEmail from '../api/email/admin/sendUserFeedbackEmail';
 import sendSubscriberVerificationEmail from '../api/email/sendSubscriberVerificationEmail';
@@ -107,9 +108,34 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
         });
     }
 
-    return Store.subscribers.findSubscriber(req.body)
+    const { email } = req.body;
+    // Coerced rather than trusted: the gateway forwards the body verbatim and the signup
+    // route runs its validation chain without `validate`, so anything could arrive here.
+    const isSubscribedToIosWaitlist = req.body.isSubscribedToIosWaitlist === true
+        || req.body.isSubscribedToIosWaitlist === 'true';
+    const resolvedBrand = brandVariation || BrandVariations.THERR;
+    const contextConfig = getHostContext(whiteLabelOrigin, resolvedBrand);
+
+    return Store.subscribers.findSubscriber({ email })
         .then((findResults) => {
             if (findResults.length) {
+                // An address already on the general list that now asks for the iOS
+                // announcement is an upgrade, not a duplicate. Rejecting it (which is still
+                // what a plain re-subscribe gets, so the therr-landing signup form's
+                // behaviour is unchanged) would throw away the only demand signal the
+                // waitlist exists to collect.
+                if (isSubscribedToIosWaitlist && !findResults[0].isSubscribedToIosWaitlist) {
+                    return Store.subscribers.updateSubscriber({
+                        isSubscribedToIosWaitlist: true,
+                    }, { email }).then(([updatedSubscriber]) => res.status(200).send(updatedSubscriber));
+                }
+
+                if (isSubscribedToIosWaitlist) {
+                    // Already on the waitlist. Idempotent success so a double submit reads as
+                    // "you're on the list" rather than an error.
+                    return res.status(200).send(findResults[0]);
+                }
+
                 return handleHttpError({
                     res,
                     message: 'A subscription with this e-mail already exists',
@@ -118,20 +144,24 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
                 });
             }
 
-            return Store.subscribers.createSubscriber(req.body).then((subscribers) => {
+            return Store.subscribers.createSubscriber({
+                email,
+                brandVariation: resolvedBrand,
+                isSubscribedToIosWaitlist,
+            }).then((subscribers) => {
                 sendSubscriberVerificationEmail({
-                    subject: '[Therr] Subscribed to General Updates',
+                    subject: `[${contextConfig.brandName}] Subscribed to General Updates`,
                     locale,
-                    toAddresses: [req.body.email],
+                    toAddresses: [email],
                     agencyDomainName: whiteLabelOrigin,
                     brandVariation,
                 }, {}).catch((error) => {
                     logSpan({
                         level: 'error',
                         messageOrigin: 'API_SERVER',
-                        messages: [`New subscriber email notification failed for ${req.body.email}`, error?.message],
+                        messages: [`New subscriber email notification failed for ${email}`, error?.message],
                         traceArgs: {
-                            'user.email': req.body.email,
+                            'user.email': email,
                         },
                     });
                 });

@@ -592,7 +592,12 @@ usersServiceRouter.post('/subscribers/send-feedback', authenticateOptional, feed
     method: 'post',
 }));
 
-usersServiceRouter.post('/subscribers/signup', subscribeAttemptLimiter, subscribersSignupValidation, handleServiceRequest({
+// `validate` was missing here, which made subscribersSignupValidation decorative: the chain
+// ran its normalizeEmail sanitizer but nothing ever read the result, so a malformed address
+// was proxied through and inserted. The iOS waitlist dialogs on the two landing pages are a
+// second writer to this endpoint and the table is the demand record, so the declared
+// validation is now actually enforced.
+usersServiceRouter.post('/subscribers/signup', subscribeAttemptLimiter, subscribersSignupValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
