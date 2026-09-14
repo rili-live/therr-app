@@ -62,19 +62,16 @@ function parseArgs(argv) {
 }
 
 function log(msg) {
-    // eslint-disable-next-line no-console
     console.log(`[play-release-notes] ${msg}`);
 }
 
 function warn(msg) {
-    // eslint-disable-next-line no-console
     console.warn(`[play-release-notes] WARNING: ${msg}`);
 }
 
 // The copy/paste block itself is printed unprefixed: whatever the person selects out of the
 // CircleCI log is exactly what belongs in the Play Console field, with no log noise to strip.
 function out(msg = '') {
-    // eslint-disable-next-line no-console
     console.log(msg);
 }
 
@@ -204,7 +201,6 @@ function main() {
 try {
     process.exitCode = main();
 } catch (err) {
-    // eslint-disable-next-line no-console
     console.error(`[play-release-notes] ERROR: ${err.message}`);
     process.exitCode = 1;
 }
