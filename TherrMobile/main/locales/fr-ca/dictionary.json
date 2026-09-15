@@ -2461,7 +2461,8 @@
             "pageHeader": "Mes Habitudes",
             "buttons": {
                 "viewPactStatus": "Voir le statut du pacte →",
-                "createHabit": "Créer une habitude"
+                "createHabit": "Créer une habitude",
+                "viewWeeklyRecap": "Voir le bilan de la semaine dernière"
             },
             "labels": {
                 "invitedTimeAgo": "Invité il y a {timeAgo}",
@@ -2470,6 +2471,44 @@
             },
             "messages": {
                 "noHabits": "Aucune habitude active pour l'instant. Commencez par créer une habitude pour développer votre série !"
+            }
+        },
+        "weeklyRecap": {
+            "loading": "On rassemble ta semaine",
+            "dayInitials": "L,M,M,J,V,S,D",
+            "headlines": {
+                "perfectWeek": "Une semaine parfaite.",
+                "firstWeek": "Ta première semaine est inscrite.",
+                "improved": "Une semaine plus forte que la précédente.",
+                "steady": "Semaine régulière.",
+                "declined": "Une semaine plus tranquille."
+            },
+            "sections": {
+                "days": "Jour par jour",
+                "totals": "Les chiffres",
+                "habits": "Par habitude"
+            },
+            "stats": {
+                "checkins": "Suivis",
+                "daysUpheld": "Jours tenus",
+                "streak": "Série"
+            },
+            "dayStatus": {
+                "upheld": "{date} : tenu avec {checkinCount} suivis",
+                "frozen": "{date} : couvert par un gel de série",
+                "missed": "{date} : manqué"
+            },
+            "deltaUp": "+{count} par rapport à la semaine dernière",
+            "deltaDown": "-{count} par rapport à la semaine dernière",
+            "messages": {
+                "noCheckins": "Aucun suivi cette semaine.",
+                "noRecap": "Il n'y a encore rien à résumer pour cette semaine.",
+                "loadFailed": "Impossible de charger ton bilan. Tire vers le bas pour réessayer.",
+                "deletedHabit": "Habitude supprimée"
+            },
+            "buttons": {
+                "previousWeek": "Semaine précédente",
+                "nextWeek": "Semaine suivante"
             }
         },
         "journal": {
