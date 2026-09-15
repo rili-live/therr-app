@@ -287,6 +287,20 @@ class UsersService {
     });
 
     // Subscribers
+    /**
+     * Adds an address to main."emailMarketingSubscribers". `isSubscribedToIosWaitlist` marks
+     * the address as waiting on an iOS build — the service upgrades an existing subscriber in
+     * that case rather than answering 400, so callers can treat any 2xx as success.
+     */
+    subscribeToEmailList = (params: {
+        email: string;
+        isSubscribedToIosWaitlist?: boolean;
+    }) => axios({
+        method: 'post',
+        url: '/users-service/subscribers/signup',
+        data: params,
+    });
+
     getSubscriptionPreferences = (emailToken: string) => axios({
         method: 'get',
         url: '/users-service/subscribers/preferences',

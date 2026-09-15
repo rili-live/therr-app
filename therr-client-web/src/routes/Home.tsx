@@ -3,8 +3,10 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Link, NavigateFunction } from 'react-router-dom';
+import ReactGA from 'react-ga4';
 import { IUserState } from 'therr-react/types';
 import { Categories, Cities } from 'therr-js-utilities/constants';
+import IosWaitlistModal from '../components/IosWaitlistModal';
 import LoginForm from '../components/forms/LoginForm';
 import { shouldRenderLoginForm, ILoginProps, getRouteAfterLogin } from './Login';
 import UsersActions from '../redux/actions/UsersActions';
@@ -47,6 +49,7 @@ interface IHomeProps extends IHomeRouterProps, IStoreProps {
 
 interface IHomeState {
     inputs: any;
+    isIosWaitlistModalOpen: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -75,6 +78,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
         this.state = {
             inputs: {},
+            isIosWaitlistModalOpen: false,
         };
     }
 
@@ -86,8 +90,26 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     loginSSO = (ssoData: any) => this.props.login(ssoData, { google: ssoData.idToken });
 
+    /**
+     * There is no published Therr iOS build (docs/niche-sub-apps/PROJECT_BRIEF.md), so this
+     * badge used to send visitors to a dead App Store listing and the size of the iOS
+     * audience was unknowable. The click is now the demand metric and the modal explains why
+     * nothing downloaded. Mark `ios_interest_click` as a key event in GA4 admin so it is
+     * reportable, and keep the event name identical to the habits landing page's.
+     */
+    onIosClick = () => {
+        ReactGA.event('ios_interest_click', {
+            app: 'therr',
+            location: 'home_hero',
+        });
+        this.setState({ isIosWaitlistModalOpen: true });
+    };
+
+    onIosWaitlistClose = () => this.setState({ isIosWaitlistModalOpen: false });
+
     public render(): JSX.Element | null {
         const { locale, translate } = this.props;
+        const { isIosWaitlistModalOpen } = this.state;
         const localePrefixMap: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
         const localePath = localePrefixMap[locale] || '';
 
@@ -113,9 +135,17 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                             <p className="info-text fill margin-top-lg margin-bot-lg">{translate('pages.home.info2')}</p>
                             <p className="info-text fill margin-top-lg margin-bot-lg">{translate('pages.home.info3')}</p>
                             <div className="store-image-links margin-top-lg">
-                                <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
-                                    <img aria-label="apple store link" className="max-100" src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" width="150" height="50" loading="lazy" />
-                                </a>
+                                <button
+                                    type="button"
+                                    className="button-plain-image"
+                                    onClick={this.onIosClick}
+                                    aria-haspopup="dialog"
+                                    aria-label={translate('components.iosWaitlistModal.buttonLabel')}
+                                >
+                                    {/* alt="" because the button's aria-label is already the accessible name; a
+                                        duplicate would be announced twice. */}
+                                    <img className="max-100" src="/assets/images/apple-store-download-button.svg" alt="" width="150" height="50" loading="lazy" />
+                                </button>
                                 <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
                                     <img aria-label="play store link" className="max-100" src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" width="150" height="50" loading="lazy" />
                                 </a>
@@ -168,6 +198,11 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                         <p className="info-text">{translate('pages.home.seo.forBusinessesBody')}</p>
                     </div>
                 </section>
+                <IosWaitlistModal
+                    opened={isIosWaitlistModalOpen}
+                    onClose={this.onIosWaitlistClose}
+                    location="home_hero"
+                />
             </div>
         );
     }

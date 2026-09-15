@@ -57,6 +57,12 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         habitCount,
         habitNames,
         daysRemaining,
+        // The length of the cycle a `pactEnded` notification is about. Absent
+        // here until now, although users-service has always sent it: the copy
+        // interpolates `{durationDays}` and `createMessage` coerces a missing
+        // value to 0, so every pact-ended push read "0 days in" and the renew
+        // action carried no cycle length.
+        durationDays,
         freezesRemaining,
         freezeDaysUsed,
         // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md)
@@ -65,6 +71,12 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         bestStreakCount,
         // Leaderboards
         rank,
+        // HABITS weekly recap. `weekStartDate` is the only one the client acts
+        // on; the rest are the copy's snapshot of the week.
+        weekStartDate,
+        recapHeadline,
+        checkinCount,
+        perfectDays,
     } = req.body;
 
     return predictAndSendNotification(
@@ -103,12 +115,17 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             habitCount,
             habitNames,
             daysRemaining,
+            durationDays,
             freezesRemaining,
             freezeDaysUsed,
             dayCount,
             consistencyPercent,
             bestStreakCount,
             rank,
+            weekStartDate,
+            recapHeadline,
+            checkinCount,
+            perfectDays,
         },
         undefined,
         brandVariation,
@@ -178,6 +195,12 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         habitCount,
         habitNames,
         daysRemaining,
+        // The length of the cycle a `pactEnded` notification is about. Absent
+        // here until now, although users-service has always sent it: the copy
+        // interpolates `{durationDays}` and `createMessage` coerces a missing
+        // value to 0, so every pact-ended push read "0 days in" and the renew
+        // action carried no cycle length.
+        durationDays,
         freezesRemaining,
         freezeDaysUsed,
         // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md)
@@ -186,6 +209,12 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         bestStreakCount,
         // Leaderboards
         rank,
+        // HABITS weekly recap. `weekStartDate` is the only one the client acts
+        // on; the rest are the copy's snapshot of the week.
+        weekStartDate,
+        recapHeadline,
+        checkinCount,
+        perfectDays,
     } = req.body;
 
     const recipients: any[] = (users || []).filter((user: any) => !user.shouldMuteNotifs);
@@ -228,12 +257,17 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             habitCount,
             habitNames,
             daysRemaining,
+            durationDays,
             freezesRemaining,
             freezeDaysUsed,
             dayCount,
             consistencyPercent,
             bestStreakCount,
             rank,
+            weekStartDate,
+            recapHeadline,
+            checkinCount,
+            perfectDays,
         },
         undefined,
         brandVariation,

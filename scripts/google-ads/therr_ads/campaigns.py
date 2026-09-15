@@ -192,11 +192,16 @@ def build_plan(
 # ---------------------------------------------------------------------------
 
 
-def apply_plan(client, customer_id: str, spec: CampaignSpec) -> dict:
+def apply_plan(client, customer_id: str, spec: CampaignSpec, validate_only: bool = False) -> dict:
     """Send the spec as one atomic mutate. Returns created resource names.
 
     Atomic on purpose: a partial apply leaves a campaign with a budget and no
     ads, which serves nothing but is easy to mistake for a working campaign.
+
+    With ``validate_only`` the API runs the full server-side validation —
+    field names, policy, permissions, developer access level — and commits
+    nothing. It is the only way to prove "we can create campaigns" without
+    creating one; ``created`` comes back empty because nothing was.
     """
     service = client.get_service("GoogleAdsService")
     operations = []
@@ -225,7 +230,11 @@ def apply_plan(client, customer_id: str, spec: CampaignSpec) -> dict:
             operations.append(_rsa_operation(client, customer_id, spec, group, ad_group_resource))
             operations.extend(_keyword_operations(client, customer_id, group, ad_group_resource))
 
-    response = service.mutate(customer_id=customer_id, mutate_operations=operations)
+    request = client.get_type("MutateGoogleAdsRequest")
+    request.customer_id = customer_id
+    request.mutate_operations = operations
+    request.validate_only = validate_only
+    response = service.mutate(request=request)
     created = [
         getattr(result, result._pb.WhichOneof("response"), None)
         for result in response.mutate_operation_responses
@@ -244,18 +253,18 @@ class _TempIds:
         self._customer_id = customer_id
         self._next = -1
 
+    # Resolved lazily per entity: a dict literal of bound methods would touch
+    # all three attributes on whichever service was fetched, and
+    # CampaignBudgetService has no campaign_path.
+    _PATH_FN = {
+        "campaignBudget": ("CampaignBudgetService", "campaign_budget_path"),
+        "campaign": ("CampaignService", "campaign_path"),
+        "adGroup": ("AdGroupService", "ad_group_path"),
+    }
+
     def next(self, entity: str) -> str:
-        service_name = {
-            "campaignBudget": "CampaignBudgetService",
-            "campaign": "CampaignService",
-            "adGroup": "AdGroupService",
-        }[entity]
-        service = self._client.get_service(service_name)
-        path_fn = {
-            "campaignBudget": service.campaign_budget_path,
-            "campaign": service.campaign_path,
-            "adGroup": service.ad_group_path,
-        }[entity]
+        service_name, method = self._PATH_FN[entity]
+        path_fn = getattr(self._client.get_service(service_name), method)
         resource = path_fn(self._customer_id, self._next)
         self._next -= 1
         return resource
@@ -282,11 +291,21 @@ def _campaign_operation(client, customer_id: str, spec: CampaignSpec, budget_res
     campaign.name = spec.name
     campaign.status = client.enums.CampaignStatusEnum[spec.status]
     campaign.campaign_budget = budget_resource
+    # Required on create since the EU political-ads regulation (TTPA) landed in
+    # the API: without a self-declaration the mutate is rejected outright, even
+    # for a US-only campaign. These specs sell a habit-tracking app.
+    campaign.contains_eu_political_advertising = (
+        client.enums.EuPoliticalAdvertisingStatusEnum.DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING
+    )
 
+    # API v23 replaced campaign.start_date / end_date (YYYYMMDD) with
+    # start_date_time / end_date_time ("yyyy-MM-dd HH:mm:ss" in the customer's
+    # time zone). Time-of-day granularity is not supported for these campaign
+    # types, so the times are the whole-day boundaries the docs prescribe.
     if spec.start_date:
-        campaign.start_date = spec.start_date.replace("-", "")
+        campaign.start_date_time = f"{spec.start_date} 00:00:00"
     if spec.end_date:
-        campaign.end_date = spec.end_date.replace("-", "")
+        campaign.end_date_time = f"{spec.end_date} 23:59:59"
 
     if spec.is_app:
         # An App campaign is MULTI_CHANNEL with the APP_CAMPAIGN sub type. It is
@@ -312,10 +331,15 @@ def _campaign_operation(client, customer_id: str, spec: CampaignSpec, budget_res
         campaign.network_settings.target_google_search = True
         campaign.network_settings.target_search_network = False
         campaign.network_settings.target_content_network = False
+        # Standalone Target CPA is retired for Search: the API rejects a new
+        # campaign carrying `campaign.target_cpa` with
+        # OPERATION_NOT_PERMITTED_FOR_CONTEXT. The equivalent is Maximize
+        # Conversions with an optional CPA target inside it. (App campaigns
+        # above still take `target_cpa` — different bidding surface.)
+        # (proto-plus messages have no CopyFrom; assignment marks the oneof.)
+        campaign.maximize_conversions = client.get_type("MaximizeConversions")
         if spec.bidding.target_cpa is not None:
-            campaign.target_cpa.target_cpa_micros = to_micros(spec.bidding.target_cpa)
-        else:
-            campaign.maximize_conversions.CopyFrom(client.get_type("MaximizeConversions"))
+            campaign.maximize_conversions.target_cpa_micros = to_micros(spec.bidding.target_cpa)
         # The UTM suffix. Set at campaign level so every ad group inherits it and
         # no ad group can be created without attribution.
         campaign.final_url_suffix = spec.tracking.final_url_suffix()
@@ -428,7 +452,7 @@ def find_campaign(client, customer_id: str, name: str) -> dict | None:
     """Look up one campaign by exact name, with its budget and age."""
     service = client.get_service("GoogleAdsService")
     query = """
-        SELECT campaign.id, campaign.name, campaign.status, campaign.start_date,
+        SELECT campaign.id, campaign.name, campaign.status, campaign.start_date_time,
                campaign.campaign_budget, campaign_budget.amount_micros,
                campaign_budget.id, campaign.advertising_channel_sub_type
         FROM campaign
@@ -443,7 +467,7 @@ def find_campaign(client, customer_id: str, name: str) -> dict | None:
             "id": row.campaign.id,
             "name": row.campaign.name,
             "status": row.campaign.status.name,
-            "start_date": row.campaign.start_date,
+            "start_date": row.campaign.start_date_time,
             "budget_resource": row.campaign.campaign_budget,
             "budget_micros": row.campaign_budget.amount_micros,
             "sub_type": row.campaign.advertising_channel_sub_type.name,
@@ -484,12 +508,16 @@ def set_status(client, customer_id: str, campaign_id: int, status: str) -> str:
 
 
 def days_since(start_date: str) -> int | None:
-    """Campaign age in days from a YYYY-MM-DD or YYYYMMDD start date."""
+    """Campaign age in days from a start date.
+
+    Accepts YYYY-MM-DD, YYYYMMDD, or the v23 ``start_date_time`` form
+    "YYYY-MM-DD HH:mm:ss" — only the date part is used.
+    """
     from datetime import date, datetime
 
     if not start_date:
         return None
-    cleaned = start_date.replace("-", "")
+    cleaned = start_date.strip().split(" ")[0].replace("-", "")
     try:
         started = datetime.strptime(cleaned, "%Y%m%d").date()
     except ValueError:

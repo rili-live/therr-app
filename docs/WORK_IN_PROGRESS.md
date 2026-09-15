@@ -96,6 +96,39 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## iOS demand tracking (added 2026-09-14)
+
+- [ ] **Mark `ios_interest_click` and `ios_waitlist_submit` as key events in GA4.** Both
+  landing pages now fire them (therr.com via `IosWaitlistModal.tsx`, habits.therr.com inline
+  in `views/habits/landing.hbs`), with `app` and `location` parameters. Until they are marked
+  in Admin → Events → Mark as key event they are collected but not reportable, and they cannot
+  be imported into Google Ads as a conversion action. Also register `app` and `location` as
+  event-scoped custom dimensions, or the per-app and per-placement breakdown — the whole point
+  of the two parameters — shows as `(not set)`.
+- [ ] **Read the waitlist before committing to an iOS build.** The addresses are in
+  `main."emailMarketingSubscribers"` with `"isSubscribedToIosWaitlist" = true`;
+  `"brandVariation"` says which landing page the person came from.
+
+  ```sql
+  SELECT "brandVariation", count(*), min("createdAt"), max("createdAt")
+    FROM main."emailMarketingSubscribers"
+   WHERE "isSubscribedToIosWaitlist" = true
+   GROUP BY 1 ORDER BY 2 DESC;
+  ```
+
+  Note the click count in GA4 is the larger and more honest number — the email is optional in
+  both dialogs on purpose, so signups are a subset of demand, not a measure of it.
+- [ ] **Decide what to do about the App Store badges on the other ~12 web pages.** Only the
+  two landing pages were changed. `Login`, `ViewSpace`, `ViewEvent`, `ListSpaces`, `Forum`,
+  `ViewGroup`, `CityPulse`, `InviteLanding`, `InviteLinkLanding`, `UnderConstruction` and
+  `Register`'s redirect still link `apps.apple.com/us/app/therr/id1569988763`, as does
+  `getAppStoreUrl()` in `therr-js-utilities/constants/brandAppStores.ts` and the
+  `apple-itunes-app` meta tag in `views/index.hbs`. If that listing is genuinely gone, the fix
+  is to drop the `appStoreId` from `THERR_APP_STORE` and let the existing
+  `appStoreUrl === undefined` branches hide the badge — the shared constant already models
+  "this brand has no iOS build". Left alone here because it is a larger change than the two
+  landing pages that were asked for.
+
 ## Daily streak & celebrations (added 2026-09-13)
 
 - [ ] **Point a scheduler at `POST /habits/daily-streak/evaluate-all`, or leave it to
@@ -953,12 +986,21 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   Both silent halves are now closed — the push service blocks it (`notification-type-not-routed-for-brand`) and users-service warns on the empty-brand fallback — but **the producer is still unidentified, and until it is fixed the affected users get no streak notification at all rather than one in the wrong app.** It is not the habits digest: `habitsDigest` pins `BrandVariations.HABITS` and `notificationQueueWorker` forwards `row.brandVariation`, both covered by tests. Prime suspect is the sibling `therr-messaging-automator`, which pushes directly and walks users per brand (`docs/CROSS_REPO_INTEGRATION.md`). Search production logs for `Push send with no brandVariation` and `HABITS-only notification arrived under a non-HABITS brand` — both carry the user id, and the second carries the `x-brand-variation` the caller actually sent.
 - [ ] (2026-07-18, leaderboards) After one release cycle with clean shadow logs, flip `UserLeaderboardScoresStore` from `'shadow'` to `'enforce'` mode (users-service `src/store/UserLeaderboardScoresStore.ts`).
 - [ ] (2026-07-18, leaderboards) Product/QA note: the HABITS achievement allow-list is re-enabled (habit ladder + socialite + weeklyChampion — reverses the interim a55bce90d policy). Verify in the Friends with Habits build that check-ins surface streak/consistency achievements and that Therr-shaped classes (explorer, influencer…) still do not appear.
-- [ ] (2026-07-13, manual) Set the `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` CircleCI
-  project env var (full Play service-account key JSON with the "Release manager"
-  permission) so the `eas_build_therr_android` job can auto-populate Google Play
-  release notes. Until it is set, the release-notes step logs a skip and the
-  pipeline still succeeds — notes just won't update. See
-  `docs/SECRETS_AND_LOCAL_BOOTSTRAP.md`.
+- [x] (2026-07-13, manual) ~~Set the `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` CircleCI
+  project env var so the `eas_build_therr_android` job can auto-populate Google
+  Play release notes.~~ **Dropped 2026-09-14** — no longer needed. Auto-population
+  raced EAS Submit's asynchronous upload and usually lost, so the notes were
+  silently never written. CI now *prints* them
+  (`TherrMobile/_scripts/print-play-release-notes.mjs`, no credentials, before
+  the build) and a human pastes them into the Play Console. Superseded by the
+  standing follow-up below.
+- [ ] (2026-09-14, manual, every Android release) Paste the Google Play release
+  notes into the Play Console after promoting a build: **Release → Releases
+  overview → the release → Edit → "What's new in this release"**, once per
+  language. The text to paste is in the `eas_build_therr_android` job log, under
+  the `Print Google Play release notes (copy/paste)` step (or run
+  `npm --prefix TherrMobile run play:release-notes` locally). Skipping it means
+  users see the *previous* release's notes — Play does not clear them.
 - [ ] (2026-07-03, deferred-phone-verification) Frontend follow-up: add a contextual re-prompt when a phone-unverified user hits a `MOBILE_VERIFIED`-gated action (currently only bulk `multi-invite` returns 403). **Resolved 2026-08-12** for the reachable-entry-point half — four routes into verification now exist: the `PhoneContacts` 403 toast is tappable and resumes `CreateProfile` at its `phone` stage; the profile checklist treats an *unverified* number as an unfinished step (`isPhoneVerified` in `TherrMobile/main/utilities/profileCompletion.ts`) so it permanently surfaces the same entry point; `therr.com/verify-phone` is handled in `Layout.handleAppUniversalLinkURL` and deep-links to that stage; and `/verify-phone` on therr-client-web is the standalone web equivalent for users without the app. **Still open:** audit any other action that assumes phone presence — `multi-invite` is the only one that 403s today, so any *new* `MOBILE_VERIFIED` gate needs the same treatment. Note this still hits the *already-deployed* app, which cannot be force-updated, so the web route is the only path that reaches existing installs.
 - [ ] (2026-07-22, retention work) Schedule the HABITS daily partner-activity
   digest: an internal cron (k8s CronJob or equivalent) must POST once daily —
@@ -1614,6 +1656,9 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   but means reminders were not sent that morning. Introduced by d687f97b0.
 - [ ] (2026-09-13, /quality-peer-review-niche) **Ship the daily-streak backend before the Habits 1.7.3 (44) Play build.** `d687f97b0` + `2b106dec4` are on `general` but not `stage`/`main`. The mobile build degrades silently without them (every celebration fetch 404s and is swallowed; `timeZone` on check-in is ignored), so shipping first means the release's headline feature is inert until the backend lands. Order: `general → stage → main`, confirm the 5 `20260913*` users-service migrations ran, then `niche/HABITS-general → niche/HABITS-main`.
 - [ ] (2026-09-13, /quality-peer-review-niche) **After both halves are live, cold-start Habits ≥ 1.7.3 on a Monday** and confirm a podium placement from the closed week shows on launch (not only after a background/foreground) — the cold-start path was added by 7f91d1239 and has no rendered test.
+- [ ] (2026-09-15, weekly recap) **Ship the mobile half before the backend half reaches `main`.** `WEEKLY_RECAP` has no `<intent-filter>` in an installed Habits build, and `Layout.tsx` in an installed build has no route for the `weekly-recap` type — so a recap that arrives before Habits ships the screen renders in the tray and opens nothing when tapped. Order: `niche/HABITS-general → niche/HABITS-main` (Play build), then `general → stage → main`. Nothing is lost if it slips — the first recap simply has a dead tap — but it is invisible, so it has to be checked deliberately.
+- [ ] (2026-09-15, weekly recap) **On the first Monday after both halves are live, confirm delivery on a handset with Friends with Habits installed** — the recap must render on the "Rewards & Updates" channel (not "General"), and tapping it must open the WeeklyRecap screen on *last* week, not the week in progress. Link 5 has no server-side signal; only a handset can confirm this.
+- [ ] (2026-09-15, weekly recap) **Watch `weeklyRecap` in the first digest run's counters.** `recapUsersOnRecapDay` should be roughly a seventh of `recapUsersEvaluated`, and `recapsQueued + recapsSkippedEmptyWeek` should account for nearly all of it. `recapUsersOnRecapDay` at zero across several consecutive daily runs means the local-Monday test is wrong, not that nobody qualified.
 <!-- skill-followups:end -->
 
 ---

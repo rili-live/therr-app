@@ -298,6 +298,22 @@ jobs:
               fi
             fi
       - run:
+          name: Print Google Play release notes (copy/paste)
+          # Deliberately BEFORE the build. EAS Submit does not set the user-facing
+          # "What's new" text, and the previous approach — polling the Play track
+          # after `--auto-submit` and writing the notes over the Play Developer API
+          # — kept losing that race: the upload landed on the track after the poll
+          # window (and often after the build step's own timeout) closed, so the
+          # notes were silently never written. Printing them up front means they
+          # are in the job log regardless of what the build does afterwards, and
+          # someone pastes them into the Play Console when they promote the build.
+          #
+          # No credentials and no network: the script only reads
+          # TherrMobile/fastlane/metadata/android/<locale>/changelogs/. It exits
+          # non-zero only when a locale is over Play's 500-char limit, which is
+          # cheap to catch here and would block the paste later.
+          command: node TherrMobile/_scripts/print-play-release-notes.mjs
+      - run:
           name: Install EAS CLI
           # See eas_build_habits_android below for why this installs as root.
           command: sudo npm install -g eas-cli@18.11.0
@@ -372,13 +388,7 @@ jobs:
           # non-trivial queue wait even though the build itself succeeds. 40m
           # covers a long queue plus the ~15-20m Android build. Note the
           # submission is registered with EAS server-side at build-creation
-          # time, so a killed CLI does not cancel the Play upload — but it does
-          # abort the job before the release-notes step below can run, which is
-          # why raising this matters rather than just letting it fail.
-          #
-          # Deliberately NOT using --no-wait: the release-notes step needs the
-          # build to have landed on the track before it polls, and would burn
-          # its 15m poll window against an empty track if this returned early.
+          # time, so a killed CLI does not cancel the Play upload.
           no_output_timeout: 40m
           command: |
             cd TherrMobile
@@ -387,25 +397,6 @@ jobs:
               --profile habits-internal \
               --non-interactive \
               --auto-submit
-      - run:
-          name: Populate Google Play release notes
-          # EAS Submit uploads the AAB but does NOT set the user-facing "What's
-          # new" release notes. This step pushes them to the same internal-track
-          # release via the Google Play Developer API, reading the text from
-          # TherrMobile/fastlane/metadata/android/<locale>/changelogs/. The
-          # script is zero-dependency (Node built-ins only), polls until the
-          # EAS submission lands the versionCode on the track, and exits 0
-          # (skips) if GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is not configured.
-          #
-          # GOOGLE_PLAY_SERVICE_ACCOUNT_JSON must be set as a CircleCI
-          # project-level env var: the full Play service-account key JSON with
-          # the "Release manager" permission (see docs/SECRETS_AND_LOCAL_BOOTSTRAP.md).
-          command: |
-            if [ -z "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" ]; then
-              echo "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON not set — skipping release-notes population."
-            else
-              node TherrMobile/_scripts/populate-play-release-notes.mjs
-            fi
 
   deploy:
     docker:

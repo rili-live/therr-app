@@ -404,16 +404,22 @@ const ThreadPreview = ({
 const RepostEmbed = ({
     goToViewUser,
     inspectThought,
+    isExpanded,
     theme,
     themeViewContent,
     repostOf,
     translate,
 }) => {
     const onMentionPress = (username: string) => handleMentionPress(username, goToViewUser);
+    // Same reason as the message and the attached image: the embed's own right margin only
+    // balances against the avatar column, which the expanded layout does not have.
+    const containerStyle = isExpanded
+        ? themeViewContent.styles.repostEmbedContainerExpanded
+        : themeViewContent.styles.repostEmbedContainer;
 
     if (!repostOf) {
         return (
-            <View style={themeViewContent.styles.repostEmbedContainer}>
+            <View style={containerStyle}>
                 <Text style={themeViewContent.styles.repostEmbedUnavailableText}>
                     {translate('components.thoughtDisplay.repostUnavailable')}
                 </Text>
@@ -426,7 +432,7 @@ const RepostEmbed = ({
 
     return (
         <Pressable
-            style={themeViewContent.styles.repostEmbedContainer}
+            style={containerStyle}
             onPress={() => inspectThought(repostOf)}
         >
             <View style={themeViewContent.styles.repostEmbedHeader}>
@@ -521,10 +527,17 @@ const ThoughtContent = ({
     const shouldShowThreadActions = !hasRepliableActions && !thought.isDraft && showThreadActions;
 
     return (
-        <Pressable style={themeViewContent.styles.thoughtContentContainer} onPress={() => inspectThought(thought)}>
+        <Pressable
+            style={isExpanded
+                ? themeViewContent.styles.thoughtContentContainerExpanded
+                : themeViewContent.styles.thoughtContentContainer}
+            onPress={() => inspectThought(thought)}
+        >
             <View style={spacingStyles.flexOne}>
                 <RichText
-                    style={themeViewContent.styles.thoughtMessage}
+                    style={isExpanded
+                        ? themeViewContent.styles.thoughtMessageExpanded
+                        : themeViewContent.styles.thoughtMessage}
                     text={message}
                     linkStyle={theme.styles.link}
                     onMentionPress={onMentionPress}
@@ -534,7 +547,9 @@ const ThoughtContent = ({
                     !!thoughtMediaUri &&
                         <Image
                             source={{ uri: thoughtMediaUri }}
-                            style={themeViewContent.styles.thoughtMediaImage}
+                            style={isExpanded
+                                ? themeViewContent.styles.thoughtMediaImageExpanded
+                                : themeViewContent.styles.thoughtMediaImage}
                             resizeMode="cover"
                         />
                 }
@@ -543,6 +558,7 @@ const ThoughtContent = ({
                         <RepostEmbed
                             goToViewUser={goToViewUser}
                             inspectThought={inspectThought}
+                            isExpanded={isExpanded}
                             theme={theme}
                             themeViewContent={themeViewContent}
                             repostOf={thought.repostOf}

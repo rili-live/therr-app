@@ -74,6 +74,14 @@ ga4:
     # report — GA4 returns a 400 for an unregistered custom dimension.
     surface_dimension_registered: true
 
+    # Service-account JSON for the GA4 Data API (needs Viewer on BOTH properties
+    # above). Leave empty to fall back to Application Default Credentials —
+    # but note Google blocks gcloud's own OAuth client from requesting
+    # analytics.readonly ("This app is blocked"), so the ADC route only works
+    # via `--client-id-file` with your own OAuth client. The service account
+    # is the route that keeps working. The GA4 MCP's key works here.
+    credentials_file: "~/.therr/ga-mcp-sa.json"
+
 # Read-only Postgres connection for the product-side funnel (`report product`).
 # Reuses the users-service READ replica env vars already in your .env, so there
 # is nothing new to configure if you can already run the repo's TS scripts.
