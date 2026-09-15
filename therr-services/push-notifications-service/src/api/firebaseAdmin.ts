@@ -11,6 +11,7 @@ import {
     selectCheckinNudgeBodyKey,
     shouldOfferOnePressCheckin,
 } from './checkinNudgeCopy';
+import { selectWeeklyRecapBodyKey, selectWeeklyRecapTitleKey } from './weeklyRecapCopy';
 
 // FCM error codes for tokens that should be removed from the database.
 // See https://firebase.google.com/docs/cloud-messaging/send-message#admin
@@ -195,6 +196,15 @@ interface ICreateMessageConfig {
     bestStreakCount?: number;
     // Leaderboards: new weekly rank for rank-milestone copy
     rank?: number;
+    // HABITS weekly recap. `weekStartDate` is promoted into the FCM data map
+    // (see routingIds) because the client acts on it: the recap screen opens
+    // that week, not the current one. The rest are copy only.
+    weekStartDate?: string;
+    // The story the recap tells, chosen in users-service so this service and
+    // the mobile screen cannot pick different framings from the same numbers.
+    recapHeadline?: string;
+    checkinCount?: number;
+    perfectDays?: number;
 }
 
 interface INotificationMetrics {
@@ -472,6 +482,7 @@ const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.habitAutomaticity,
     PushNotifications.Types.habitMaintenanceCheckIn,
     PushNotifications.Types.habitComeback,
+    PushNotifications.Types.weeklyRecap,
 ]);
 
 export const isHabitsOnlyType = (type: PushNotifications.Types): boolean => HABITS_ONLY_TYPES.has(type);
@@ -775,6 +786,10 @@ const createMessage = (
         // server re-reads the real value from the pact when renewing, so this
         // is display-only and a stale one cannot create a wrong cycle.
         durationDays: config.durationDays,
+        // The week a recap is about. Same reason as the ids above: without it
+        // the tap can only open "the latest week", which is the wrong week for
+        // anyone who opens the notification a day or more after it arrived.
+        weekStartDate: config.weekStartDate,
     };
     Object.keys(routingIds).forEach((key) => {
         const value = routingIds[key];
@@ -1624,6 +1639,47 @@ const createMessage = (
             }, getAppBrandingClickAction(brandVariation, 'EVENING_CHECK_IN'), brandVariation);
             return baseMessage;
         }
+        case PushNotifications.Types.weeklyRecap:
+            // The one retrospective push in the set: it is about a week that has
+            // already closed, so nothing about it can go stale between queueing
+            // and sending, and it needs no freshness gate.
+            //
+            // Data-only, for the destination rather than for action buttons.
+            // Notifee is what carries `weekStartDate` through to the tap, and
+            // the tap has to name a week — "open the recap" without one opens
+            // whatever week it is when the user gets round to it, which for a
+            // Monday-morning notification opened on Wednesday is the wrong one.
+            // There is deliberately no action button: every useful thing a recap
+            // offers is a screen, not a one-press mutation.
+            //
+            // DEPLOY ORDER: `WEEKLY_RECAP` must be declared in the Habits
+            // AndroidManifest and handled in Layout.tsx — both on
+            // niche/HABITS-general — before this reaches an installed build.
+            // Until then the notification renders (Notifee does not need the
+            // manifest) and the tap resolves nothing. Ship the mobile half
+            // first; see docs/FEATURES.md → Weekly recap.
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, selectWeeklyRecapTitleKey(config.recapHeadline)),
+                    // The body key is chosen by users-service, not here — see
+                    // weeklyRecapCopy.ts for why re-deriving it from these same
+                    // numbers is the wrong shape.
+                    notificationBody: translate(
+                        config.userLocale,
+                        selectWeeklyRecapBodyKey(config.recapHeadline),
+                        {
+                            checkinCount: Number(config.checkinCount || 0),
+                            perfectDays: Number(config.perfectDays || 0),
+                            streakCount: Number(config.streakCount || 0),
+                            habitName: String(config.habitName || ''),
+                        },
+                    ),
+                    notificationPressActionId: PushNotifications.PressActionIds.weeklyRecapView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'WEEKLY_RECAP'), brandVariation);
+            return baseMessage;
 
         default:
             return false;
@@ -1691,6 +1747,7 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.streakMilestone,
     PushNotifications.Types.unclaimedAchievementsReminder,
     PushNotifications.Types.unreadNotificationsReminder,
+    PushNotifications.Types.weeklyRecap,
 ]);
 
 // Keeps the two log call sites below from drifting apart, and keeps the four

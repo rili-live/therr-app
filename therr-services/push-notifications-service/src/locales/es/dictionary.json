@@ -190,6 +190,17 @@
       "bodyWithFreeze": "Tu racha de {streakCount} días en {habitName} termina a medianoche. Un congelamiento de racha te cubrirá (te quedan {freezesRemaining}) — pero si registras ahora, lo guardas para después.",
       "bodyMultiple": "Última llamada para {habitCount} rachas — {habitNames}. Registra antes de medianoche para mantenerlas."
     },
+    "weeklyRecap": {
+      "title": "Tu semana en resumen",
+      "titlePerfect": "Una semana perfecta",
+      "body": {
+        "perfectWeek": "Los siete días cumplidos y {checkinCount} registros. Toca para ver la semana que acabas de tener.",
+        "firstWeek": "{checkinCount} registros en {perfectDays} días — tu primera semana ya cuenta. Toca para verla.",
+        "improved": "{checkinCount} registros la semana pasada, más que la anterior. Toca para ver el detalle.",
+        "steady": "{checkinCount} registros la semana pasada, igual que la anterior. La constancia es lo que fija los hábitos — toca para verlo.",
+        "declined": "{checkinCount} registros la semana pasada. Toca para ver dónde se fue la semana y empezar esta de nuevo."
+      }
+    },
     "habitEstablished": {
       "title": "{habitName} se está afianzando",
       "body": "{consistencyPercent}% de constancia en {dayCount} días. Bajaremos el ritmo de los recordatorios diarios — este ya lo dominas."
