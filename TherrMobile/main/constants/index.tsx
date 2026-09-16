@@ -138,6 +138,12 @@ const REMINDER_ACTION_KEYS = new Set<string>([
 
 const REWARD_ACTION_KEYS = new Set<string>([
     'NUDGE_SPACE_ENGAGEMENT',
+    // The weekly recap is a summary of something already achieved, not a
+    // reminder to act — "Reminders" is the wrong drawer for it and the wrong
+    // switch for a user who wants recaps but not nudges. Without an entry here
+    // it would fall through to "General" at DEFAULT importance, which is the
+    // silent-failure this bucketing exists to prevent.
+    'WEEKLY_RECAP',
 ]);
 
 const getIntentActionKey = (clickActionId: string): string => {

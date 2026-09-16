@@ -30,6 +30,7 @@ import habitsLifetimeRouter from './habitsLifetimeRouter';
 import habitsPremiumRouter from './habitsPremiumRouter';
 import journalRouter from './journalRouter';
 import dailyStreakRouter from './dailyStreakRouter';
+import weeklyRecapRouter from './weeklyRecapRouter';
 
 const router = express.Router();
 
@@ -65,5 +66,6 @@ router.use('/habits/lifetime', habitsLifetimeRouter);
 router.use('/habits/premium', habitsPremiumRouter);
 router.use('/habits/journal', journalRouter);
 router.use('/habits/daily-streak', dailyStreakRouter);
+router.use('/habits/weekly-recap', weeklyRecapRouter);
 
 export default router;
