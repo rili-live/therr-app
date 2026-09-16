@@ -1462,6 +1462,197 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: fontWeights.semibold,
             color: therrTheme.colors.textWhite,
         },
+
+        // ------------------------------------------------------------------
+        // Weekly recap (routes/WeeklyRecap)
+        //
+        // Every colour here resolves through the theme. The day strip is the
+        // one place that needs a fixed relationship between two of them: a
+        // "frozen" day has to read as *different from* an upheld day and *not
+        // worse than* a missed one, since the streak survived it. Upheld is the
+        // brand fill, frozen is a brand-tinted outline, missed is a bare
+        // divider-coloured outline — three states distinguishable by shape as
+        // well as by colour, so the strip still parses without colour vision.
+        // ------------------------------------------------------------------
+        weeklyRecapContainer: {
+            backgroundColor: therrTheme.colors.backgroundNeutral,
+            flex: 1,
+        },
+        weeklyRecapHeader: {
+            paddingHorizontal: space.lg,
+            paddingTop: space.lg,
+            paddingBottom: space.md,
+        },
+        weeklyRecapHeadline: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xl,
+            fontWeight: fontWeights.bold,
+            lineHeight: fontSizes.xl * lineHeights.tight,
+            color: therrTheme.colors.onSurface,
+        },
+        weeklyRecapDateRange: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.textGray,
+            marginTop: space.xs,
+        },
+        weeklyRecapCard: {
+            borderRadius: radius.xl,
+            backgroundColor: therrTheme.colors.surface,
+            padding: space.lg,
+            marginHorizontal: space.lg,
+            marginBottom: space.md,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
+            ...shadowSm,
+        },
+        weeklyRecapCardTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            letterSpacing: 0.6,
+            textTransform: 'uppercase',
+            color: therrTheme.colors.textGray,
+            marginBottom: space.md,
+        },
+        weeklyRecapStrip: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+        },
+        weeklyRecapDay: {
+            alignItems: 'center',
+            flex: 1,
+            gap: space.xs,
+        },
+        weeklyRecapDayLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.textGray,
+        },
+        weeklyRecapDayDot: {
+            width: 32,
+            height: 32,
+            borderRadius: radius.pill,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 2,
+            borderColor: therrTheme.colors.accentDivider,
+            backgroundColor: 'transparent',
+        },
+        weeklyRecapDayDotUpheld: {
+            backgroundColor: therrTheme.colors.brand,
+            borderColor: therrTheme.colors.brand,
+        },
+        weeklyRecapDayDotFrozen: {
+            backgroundColor: tint(therrTheme.colors.brand, 0.16),
+            borderColor: therrTheme.colors.brand,
+        },
+        // On a brand-filled dot, so `onBrand` rather than any of the surface
+        // text colours — `textWhite` is #363636 on the light theme and would
+        // render dark-on-dark here.
+        weeklyRecapDayCount: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onBrand,
+        },
+        weeklyRecapDayCountMuted: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        weeklyRecapStatRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            gap: space.md,
+        },
+        weeklyRecapStat: {
+            flex: 1,
+            alignItems: 'center',
+        },
+        weeklyRecapStatValue: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xl,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.onSurface,
+        },
+        weeklyRecapStatLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.textGray,
+            textAlign: 'center',
+            marginTop: space.xs,
+        },
+        weeklyRecapDelta: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            marginTop: space.xs,
+        },
+        weeklyRecapDeltaUp: {
+            color: therrTheme.colors.alertSuccess,
+        },
+        weeklyRecapDeltaDown: {
+            color: therrTheme.colors.alertWarning,
+        },
+        weeklyRecapHabitRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.sm,
+            paddingVertical: space.sm,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: therrTheme.colors.accentDivider,
+        },
+        weeklyRecapHabitRowFirst: {
+            borderTopWidth: 0,
+        },
+        weeklyRecapHabitEmoji: {
+            fontSize: fontSizes.lg,
+        },
+        weeklyRecapHabitName: {
+            flex: 1,
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurface,
+        },
+        weeklyRecapHabitCount: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        weeklyRecapEmptyText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.textGray,
+            textAlign: 'center',
+        },
+        weeklyRecapNavRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingHorizontal: space.lg,
+            paddingBottom: space.md,
+            gap: space.md,
+        },
+        weeklyRecapNavButton: {
+            paddingVertical: space.sm,
+            paddingHorizontal: space.md,
+            borderRadius: radius.pill,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
+            backgroundColor: therrTheme.colors.surface,
+        },
+        weeklyRecapNavButtonDisabled: {
+            opacity: 0.4,
+        },
+        weeklyRecapNavButtonText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.brand,
+        },
     });
 
     return ({

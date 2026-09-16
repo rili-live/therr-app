@@ -190,6 +190,17 @@
       "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} se termine à minuit. Un gel de série te couvrira ({freezesRemaining} restant(s)) — mais t'enregistrer maintenant te le garde en réserve.",
       "bodyMultiple": "Dernier appel pour {habitCount} séries — {habitNames}. Enregistre-toi avant minuit pour les garder."
     },
+    "weeklyRecap": {
+      "title": "Ta semaine en revue",
+      "titlePerfect": "Une semaine parfaite",
+      "body": {
+        "perfectWeek": "Les sept jours tenus et {checkinCount} suivis. Touche pour revoir la semaine que tu viens de faire.",
+        "firstWeek": "{checkinCount} suivis sur {perfectDays} jours — ta première semaine est inscrite. Touche pour la voir.",
+        "improved": "{checkinCount} suivis la semaine dernière, plus que la précédente. Touche pour le portrait complet.",
+        "steady": "{checkinCount} suivis la semaine dernière, comme la précédente. La régularité, c'est ce qui ancre les habitudes — touche pour voir.",
+        "declined": "{checkinCount} suivis la semaine dernière. Touche pour voir où la semaine est passée, puis repars à neuf."
+      }
+    },
     "habitEstablished": {
       "title": "{habitName} commence à tenir",
       "body": "{consistencyPercent}% de régularité sur {dayCount} jours. On espace les rappels quotidiens — celle-là, tu la maîtrises."

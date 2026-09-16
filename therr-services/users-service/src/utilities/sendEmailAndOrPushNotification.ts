@@ -176,6 +176,17 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     bestStreakCount?: number;
     // Leaderboards: the user's new weekly rank, for rank-milestone copy
     rank?: number;
+    // HABITS weekly recap. `weekStartDate` is the Monday of the week being
+    // recapped and is the only one of these the client acts on — the screen
+    // opens that exact week rather than whatever week it is when the user taps.
+    // The rest are a snapshot for the copy; the screen re-reads everything.
+    weekStartDate?: string;
+    // Which story the recap tells, decided once in
+    // users-service/utilities/weeklyRecap.ts so the push body and the screen's
+    // header cannot disagree. Selects the body key; see selectWeeklyRecapBodyKey.
+    recapHeadline?: string;
+    checkinCount?: number;
+    perfectDays?: number;
 }
 
 interface ISendPushNotificationAndOrEmailConfig {
@@ -238,6 +249,10 @@ export default (
         consistencyPercent,
         bestStreakCount,
         rank,
+        weekStartDate,
+        recapHeadline,
+        checkinCount,
+        perfectDays,
     }: ISendPushNotification,
     config: ISendPushNotificationAndOrEmailConfig = {
         shouldSendPushNotification: true,
@@ -374,6 +389,10 @@ export default (
                     consistencyPercent,
                     bestStreakCount,
                     rank,
+                    weekStartDate,
+                    recapHeadline,
+                    checkinCount,
+                    perfectDays,
                     // achievementsCount,
                     // likeCount,
                     // notificationsCount,

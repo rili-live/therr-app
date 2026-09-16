@@ -63,6 +63,7 @@ import ViewUser from './ViewUser';
 // HABITS routes
 import { HabitsDashboard, HabitDetail, CheckinDetail, UpgradePaywall } from './Habits';
 import Journal from './Journal';
+import WeeklyRecap from './WeeklyRecap';
 import { PactDetail, CreatePactInvite, HabitsPushOptIn, AddPactMembers } from './Pacts';
 import { AccessPresets } from './access';
 import { editStackOptions, momentStackOptions, viewStackOptions } from './stackOptions';
@@ -611,6 +612,19 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Journal',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS_JOURNAL],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        // Destination of the `weeklyRecap` push. Gated on ENABLE_HABITS alone: the recap reads
+        // the daily-streak ledger, which every habits user has, and none of the pact or journal
+        // surfaces. A notification whose destination is behind a flag the recipient does not
+        // have is a tap that opens nothing.
+        name: 'WeeklyRecap',
+        component: WeeklyRecap,
+        options: () => ({
+            title: 'Weekly Recap',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),
     },

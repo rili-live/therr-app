@@ -190,6 +190,17 @@
       "bodyWithFreeze": "Your {streakCount}-day {habitName} streak ends at midnight. A streak freeze will cover you ({freezesRemaining} left) — but checking in now keeps it in your pocket.",
       "bodyMultiple": "Last call on {habitCount} streaks — {habitNames}. Check in before midnight to keep them alive."
     },
+    "weeklyRecap": {
+      "title": "Last Week In Review",
+      "titlePerfect": "A Perfect Week",
+      "body": {
+        "perfectWeek": "All seven days upheld and {checkinCount} check-ins. Tap to see the week you just had.",
+        "firstWeek": "{checkinCount} check-ins across {perfectDays} days — your first week is on the board. Tap to see it.",
+        "improved": "{checkinCount} check-ins last week, up on the week before. Tap for the full picture.",
+        "steady": "{checkinCount} check-ins last week, same as the week before. Steady is how habits stick — tap to see it.",
+        "declined": "{checkinCount} check-ins last week. Tap to see where the week went, then start this one fresh."
+      }
+    },
     "habitEstablished": {
       "title": "{habitName} Is Sticking",
       "body": "{consistencyPercent}% consistent over {dayCount} days. We'll ease off the daily reminders — you've got this one."

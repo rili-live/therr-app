@@ -7,6 +7,10 @@ const thoughtUserAvatarImgPadding = 4;
 const thoughtUserAvatarImgWidth = 52 - (2 * thoughtUserAvatarImgPadding);
 const thoughtUserAvatarImgRadius = thoughtUserAvatarImgWidth / 2;
 const contentTitleContainerHeight = 40;
+// Horizontal breathing room around the post body in the expanded (details) layout, where there
+// is no author avatar column to inset it. Matches the right gutter the collapsed feed card
+// already carries, so a post does not visibly change width when it is opened.
+const thoughtContentGutter = 14;
 
 const buttonContainerStyles: any = {
     display: 'flex',
@@ -78,6 +82,25 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             // gives the image (and the wrapped message) symmetric breathing room on the right.
             paddingRight: 12,
         },
+        /**
+         * Expanded (thought details) variant of the container above.
+         *
+         * In the collapsed feed card the body renders *inside* `thoughtRightContainer`, beside
+         * the author avatar — the avatar column is what insets the body on the left, so only the
+         * right gutter is declared. The expanded card renders the body as a sibling of that row
+         * instead, full width with nothing beside it, and the same one-sided gutter then stacks
+         * with `thoughtMessage.paddingRight` / `thoughtMediaImage.marginRight` to put ~26 on the
+         * right against 4 on the left. That is the lopsided attached image on the details route.
+         *
+         * Here the container owns the whole gutter on both sides, and the expanded message and
+         * image variants below drop their own right insets so nothing stacks on top of it.
+         */
+        thoughtContentContainerExpanded: {
+            display: 'flex',
+            flexDirection: 'row',
+            paddingLeft: thoughtContentGutter,
+            paddingRight: thoughtContentGutter,
+        },
         thoughtAuthorContainer: {
             display: 'flex',
             flex: 1,
@@ -148,6 +171,15 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             marginTop: 6,
             marginBottom: 2,
             marginRight: 12,
+            padding: 10,
+            borderWidth: 1,
+            borderRadius: 10,
+            borderColor: isDarkMode ? therrTheme.colors.accentDivider : therrTheme.colorVariations.backgroundNeutral,
+        },
+        // Expanded variant: the gutter comes from `thoughtContentContainerExpanded`.
+        repostEmbedContainerExpanded: {
+            marginTop: 6,
+            marginBottom: 2,
             padding: 10,
             borderWidth: 1,
             borderRadius: 10,
@@ -256,6 +288,15 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             paddingRight: 14,
             paddingBottom: 4,
         },
+        // Expanded variant: the gutter comes from `thoughtContentContainerExpanded` instead, so
+        // the right inset here would double it.
+        thoughtMessageExpanded: {
+            fontSize: 16,
+            color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
+            overflow: 'scroll',
+            width: '100%',
+            paddingBottom: 4,
+        },
         // Attached image on a thought. `aspectRatio` rather than a fixed height so a
         // portrait photo is not letterboxed; `resizeMode="cover"` at the call site keeps
         // it filling the frame either way.
@@ -268,6 +309,16 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             borderRadius: 8,
             marginTop: 4,
             marginRight: 14,
+            marginBottom: 8,
+            backgroundColor: isDarkMode ? therrTheme.colors.accent1 : therrTheme.colorVariations.backgroundNeutral,
+        },
+        // Expanded variant: same frame, but the gutter comes from
+        // `thoughtContentContainerExpanded` on both sides rather than from a right margin here.
+        thoughtMediaImageExpanded: {
+            alignSelf: 'stretch',
+            aspectRatio: 4 / 3,
+            borderRadius: 8,
+            marginTop: 4,
             marginBottom: 8,
             backgroundColor: isDarkMode ? therrTheme.colors.accent1 : therrTheme.colorVariations.backgroundNeutral,
         },

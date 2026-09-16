@@ -2461,7 +2461,8 @@
             "pageHeader": "Mis Hábitos",
             "buttons": {
                 "viewPactStatus": "Ver estado del pacto →",
-                "createHabit": "Crear un hábito"
+                "createHabit": "Crear un hábito",
+                "viewWeeklyRecap": "Ver el resumen de la semana pasada"
             },
             "labels": {
                 "invitedTimeAgo": "Invitado hace {timeAgo}",
@@ -2470,6 +2471,44 @@
             },
             "messages": {
                 "noHabits": "Aún no hay hábitos activos. ¡Empieza creando un hábito para construir tu racha!"
+            }
+        },
+        "weeklyRecap": {
+            "loading": "Reuniendo tu semana",
+            "dayInitials": "L,M,X,J,V,S,D",
+            "headlines": {
+                "perfectWeek": "Una semana perfecta.",
+                "firstWeek": "Tu primera semana ya cuenta.",
+                "improved": "Una semana más fuerte que la anterior.",
+                "steady": "Semana constante.",
+                "declined": "Una semana más tranquila."
+            },
+            "sections": {
+                "days": "Día a día",
+                "totals": "Los números",
+                "habits": "Por hábito"
+            },
+            "stats": {
+                "checkins": "Registros",
+                "daysUpheld": "Días cumplidos",
+                "streak": "Racha"
+            },
+            "dayStatus": {
+                "upheld": "{date}: cumplido con {checkinCount} registros",
+                "frozen": "{date}: cubierto por un congelamiento de racha",
+                "missed": "{date}: sin cumplir"
+            },
+            "deltaUp": "+{count} frente a la semana pasada",
+            "deltaDown": "-{count} frente a la semana pasada",
+            "messages": {
+                "noCheckins": "Ningún registro esta semana.",
+                "noRecap": "Todavía no hay nada que resumir de esta semana.",
+                "loadFailed": "No pudimos cargar tu resumen. Desliza hacia abajo para reintentar.",
+                "deletedHabit": "Hábito eliminado"
+            },
+            "buttons": {
+                "previousWeek": "Semana anterior",
+                "nextWeek": "Semana siguiente"
             }
         },
         "journal": {

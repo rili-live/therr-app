@@ -232,6 +232,26 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
                         </Text>
 
                         {/*
+                          * The recap's in-app entry point. Without one the screen is reachable
+                          * only by tapping the Monday notification, so a user who swipes that
+                          * away — or who has push turned off entirely — can never see their
+                          * week at all.
+                          */}
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={this.translate('pages.myHabits.buttons.viewWeeklyRecap')}
+                            style={({ pressed }) => [
+                                this.themeHabits.styles.myHabitsPactsLink,
+                                pressed && this.themeHabits.styles.pressedOpacity,
+                            ]}
+                            onPress={() => this.props.navigation.navigate('WeeklyRecap')}
+                        >
+                            <Text style={this.themeHabits.styles.myHabitsTextActionLabel}>
+                                {this.translate('pages.myHabits.buttons.viewWeeklyRecap')}
+                            </Text>
+                        </Pressable>
+
+                        {/*
                           * Three states, not two. Before, an empty list on a cold open rendered
                           * nothing at all until the fetch settled — a blank page under the
                           * heading with no sign anything was happening — and the goals list on

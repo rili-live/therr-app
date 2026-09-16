@@ -2461,7 +2461,8 @@
             "pageHeader": "My Habits",
             "buttons": {
                 "viewPactStatus": "View Pact Status →",
-                "createHabit": "Create a Habit"
+                "createHabit": "Create a Habit",
+                "viewWeeklyRecap": "See last week’s recap"
             },
             "labels": {
                 "invitedTimeAgo": "Invited {timeAgo}",
@@ -2470,6 +2471,44 @@
             },
             "messages": {
                 "noHabits": "No active habits yet. Start by creating a habit to build your streak!"
+            }
+        },
+        "weeklyRecap": {
+            "loading": "Pulling your week together",
+            "dayInitials": "M,T,W,T,F,S,S",
+            "headlines": {
+                "perfectWeek": "A perfect week.",
+                "firstWeek": "Your first week is on the board.",
+                "improved": "A stronger week than the last one.",
+                "steady": "Steady week.",
+                "declined": "A quieter week."
+            },
+            "sections": {
+                "days": "Day by day",
+                "totals": "The numbers",
+                "habits": "By habit"
+            },
+            "stats": {
+                "checkins": "Check-ins",
+                "daysUpheld": "Days upheld",
+                "streak": "Streak"
+            },
+            "dayStatus": {
+                "upheld": "{date}: upheld with {checkinCount} check-ins",
+                "frozen": "{date}: covered by a streak freeze",
+                "missed": "{date}: missed"
+            },
+            "deltaUp": "+{count} vs last week",
+            "deltaDown": "-{count} vs last week",
+            "messages": {
+                "noCheckins": "No check-ins this week.",
+                "noRecap": "There's nothing to recap for this week yet.",
+                "loadFailed": "We couldn't load your recap. Pull down to try again.",
+                "deletedHabit": "Deleted habit"
+            },
+            "buttons": {
+                "previousWeek": "Earlier week",
+                "nextWeek": "Later week"
             }
         },
         "journal": {

@@ -80,16 +80,18 @@ For **iOS**, `Info.plist` uses `$(MARKETING_VERSION)` / `$(CURRENT_PROJECT_VERSI
 
 ### P5 — Play release notes exist for this versionCode (WARN)
 
-Release notes live in the Fastlane `supply` layout and are pushed by `_scripts/populate-play-release-notes.mjs` after EAS submit:
+Release notes live in the Fastlane `supply` layout and are resolved by `_scripts/print-play-release-notes.mjs`:
 
 ```bash
 ls TherrMobile/fastlane/metadata/android/*/changelogs/ 2>&1
-npm --prefix TherrMobile run play:release-notes:dry 2>&1 | tail -20
+npm --prefix TherrMobile run play:release-notes 2>&1 | tail -40
 ```
 
 A per-versionCode file (`<versionCode>.txt`) is preferred; `default.txt` is the fallback and shipping it means users see generic notes. Locales present are `en-US`, `es-419`, `fr-CA` — notes missing for a locale that has app translations is a **WARN**, not a blocker.
 
-The dry run exits 0 without credentials by design, so treat a "no credentials" message as informational rather than a failure.
+The script only reads files — no credentials, no network. It exits non-zero only when a locale exceeds Play's 500-character limit, which **is** a blocker: the text cannot be pasted as-is.
+
+**Nothing sets these notes automatically** — CI prints them, a human pastes them into the Play Console. So whenever this step produces output, add it to the post-release follow-ups (P11): *paste the printed release notes into Play Console → Release → Releases overview → the release → Edit → "What's new in this release", for each language.*
 
 ---
 
