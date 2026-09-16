@@ -88,6 +88,13 @@ const DATA_ONLY_TYPES = [
     PushNotifications.Types.habitEstablished,
     PushNotifications.Types.habitAutomaticity,
     PushNotifications.Types.habitMaintenanceCheckIn,
+    // The weekly recap. Data-only for the destination rather than for buttons:
+    // Notifee is what carries `weekStartDate` through to the tap, and a recap
+    // that cannot name its week opens the wrong one for anyone who taps it a day
+    // late. Same DEPLOY ORDER caveat as the rest — WEEKLY_RECAP has to be in the
+    // Habits manifest on niche/HABITS-general before an installed build can
+    // resolve the action.
+    PushNotifications.Types.weeklyRecap,
 ];
 
 // Every type that createMessage renders through createNotificationMessage (display).

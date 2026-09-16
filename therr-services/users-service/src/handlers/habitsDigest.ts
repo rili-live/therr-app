@@ -24,6 +24,11 @@ import { createNameResolvers } from '../utilities/notificationNames';
 import { IUserHabitReminderRow } from '../store/UserHabitsStore';
 import { evaluateAllDailyStreaks } from './helpers/dailyStreak';
 import { closeElapsedLeaderboardPeriods } from './helpers/leaderboardPeriods';
+import {
+    EMPTY_WEEKLY_RECAP_COUNTERS,
+    IWeeklyRecapCounters,
+    runWeeklyRecapPass,
+} from './helpers/weeklyRecapDigest';
 
 // Upper bound per run so a runaway pact count can't turn the digest into a
 // multi-minute request. Raise (or page the query) when active pacts approach
@@ -183,6 +188,14 @@ interface IDigestCounters {
     dailyStreakErrors: number;
 }
 
+// Weekly recap counters, kept as their own shape rather than flattened in
+// alongside the rest: therr-messaging-automator logs the fields above by name
+// (its IHabitsDigestCounters), and a nested object is additive there in a way a
+// dozen new sibling keys are not.
+interface IDigestCountersWithRecap extends IDigestCounters {
+    weeklyRecap: IWeeklyRecapCounters;
+}
+
 /**
  * Daily partner-activity digest — the scheduled half of the HABITS
  * accountability loop. Event-driven pushes (partnerCheckedIn, pactAccepted)
@@ -200,6 +213,10 @@ interface IDigestCounters {
  *  - pactEnded     → to all active members the run their pact is swept into
  *                    `expired`, carrying the renew action. Once per pact ever,
  *                    not once per day.
+ *  - weeklyRecap   → to every user whose *local* day is a Monday and who
+ *                    logged at least one check-in in the week that just
+ *                    closed. Once per user per week ever, not once per day —
+ *                    see helpers/weeklyRecapDigest.ts.
  *
  * It also sweeps pacts whose window has passed into `expired` before reading
  * the active set — see the sweep below.
@@ -275,7 +292,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    const counters: IDigestCounters = {
+    const counters: IDigestCountersWithRecap = {
+        weeklyRecap: { ...EMPTY_WEEKLY_RECAP_COUNTERS },
         pactsEvaluated: 0,
         pactsExpired: 0,
         streakAtRiskSent: 0,
@@ -306,6 +324,18 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         dailyStreakErrors: 0,
     };
 
+    // The run's own day, in UTC, used for dedupe keys and for the batch reads below that ask
+    // one date of every user at once.
+    //
+    // A habit day is now the user's own calendar day (`resolveCheckinHabitDate`), so this only
+    // lines up for users whose local date matches UTC's at the moment the digest fires —
+    // 09:00 America/Chicago, i.e. 14:00–15:00 UTC, which covers everyone except UTC+11 and
+    // east. For those zones the digest reasons about their yesterday. That predates this
+    // module and is not made worse by the local habit day: what the local day *fixes* here is
+    // the opposite error, where a check-in logged at 20:00 in Chicago was stamped with
+    // tomorrow's UTC date and made the next morning's reminder think the user had already
+    // shown up. Per-user local dates for these reads need `getActiveForReminders` to take a
+    // date per user — tracked separately.
     const today = getTodayDateString();
     const yesterday = normalizeDateString(new Date(Date.now() - MS_PER_DAY));
 
@@ -1124,6 +1154,28 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             }
         }
 
+        // ------------------------------------------------------------------
+        // Weekly recap.
+        //
+        // Last, and over its own user sweep rather than the pact/habit sets
+        // above: the recap is about the whole of a user's week across every
+        // habit, so its population is "everyone with a habit streak", which is
+        // the population `evaluateAllDailyStreaks` walks — not the subset that
+        // happens to have something due today.
+        //
+        // Best-effort, like the daily-streak finalization: a failure here is
+        // logged and the digest still answers with its counters. The recap is
+        // the one notification in this handler nobody is waiting on.
+        counters.weeklyRecap = await runWeeklyRecapPass(queuePushOutcome, new Date())
+            .catch((err: any) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: the weekly recap pass failed'],
+                });
+                return { ...EMPTY_WEEKLY_RECAP_COUNTERS, recapErrors: 1 };
+            });
+
         logSpan({
             level: 'info',
             messageOrigin: 'API_SERVER',
@@ -1131,7 +1183,16 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             // The brand is worth logging now that it decides which partition of
             // the queue these rows land in — and therefore whether the worker
             // ever picks them up.
-            traceArgs: { ...counters, 'pushNotification.brandVariation': String(brand) },
+            //
+            // The recap counters are serialized rather than spread: traceArgs is
+            // a flat string/number map, and an object value there renders as
+            // '[object Object]' in the span — which is how a pass that queued
+            // nothing would look identical to one that queued a thousand.
+            traceArgs: {
+                ...counters,
+                weeklyRecap: JSON.stringify(counters.weeklyRecap),
+                'pushNotification.brandVariation': String(brand),
+            },
         });
 
         return res.status(200).send(counters);
