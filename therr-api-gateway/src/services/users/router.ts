@@ -830,6 +830,13 @@ usersServiceRouter.post('/habits/daily-streak/me/celebrated', handleServiceReque
     method: 'post',
 }));
 
+// HABITS — Weekly recap. Read-only view over the daily-streak ledger for one
+// Monday–Sunday week; `weekStart` and `timeZone` ride along as query params.
+usersServiceRouter.get('/habits/weekly-recap/me', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
 // HABITS — Streaks
 usersServiceRouter.get('/habits/streaks/active', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,

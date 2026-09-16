@@ -32,6 +32,14 @@ import DailyStreakService, {
     IDailyStreakPendingPlacement,
     DailyStreakDayStatus,
 } from './DailyStreakService';
+import WeeklyRecapService, {
+    IWeeklyRecap,
+    IWeeklyRecapDay,
+    IWeeklyRecapHabit,
+    IWeeklyRecapTotals,
+    WeeklyRecapDayStatus,
+    WeeklyRecapHeadline,
+} from './WeeklyRecapService';
 import UserHabitsService, { ICreateUserHabitBody, ICreateUserHabitGoalBody } from './UserHabitsService';
 import JournalService, { ICreateJournalEntryBody, IUpdateJournalEntryBody } from './JournalService';
 import HabitsLifetimeService, { IVerifyLifetimePurchaseBody } from './HabitsLifetimeService';
@@ -73,6 +81,13 @@ export {
     IDailyStreakPendingCelebration,
     IDailyStreakPendingPlacement,
     DailyStreakDayStatus,
+    WeeklyRecapService,
+    IWeeklyRecap,
+    IWeeklyRecapDay,
+    IWeeklyRecapHabit,
+    IWeeklyRecapTotals,
+    WeeklyRecapDayStatus,
+    WeeklyRecapHeadline,
     UserHabitsService,
     ICreateUserHabitBody,
     ICreateUserHabitGoalBody,
