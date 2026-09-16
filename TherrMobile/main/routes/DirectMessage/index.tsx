@@ -1,6 +1,6 @@
 import React from 'react';
 import { FlatList, View } from 'react-native';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import { useKeyboardState } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/BaseButton';
 import 'react-native-gesture-handler';
@@ -20,8 +20,38 @@ import LoadingPlaceholder from './LoadingPlaceholder';
 import spacingStyles from '../../styles/layouts/spacing';
 import ListEmpty from '../../components/ListEmpty';
 import permissions from '../../utilities/permissionsOrchestrator';
+import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
 
 const ITEMS_PER_PAGE = 50;
+
+/**
+ * Shrinks the thread column by the keyboard's height so the composer lands on top of the
+ * keyboard instead of behind it, and the newest messages stay visible above it.
+ *
+ * Deliberately not `KeyboardAvoidingView`. That component derives its inset by comparing the
+ * view's absolute position in the window (`frame.y + frame.height`) against the keyboard's top
+ * edge, and it only learns that position from a native `viewPositionInWindow` call which falls
+ * back to parent-relative coordinates. This screen renders beneath the app's custom header, so
+ * on that fallback path the inset comes out short by exactly the header's height — enough to
+ * leave the whole composer under the keyboard, which is what it did. The keyboard height on its
+ * own is unambiguous, and it is the same measurement `KeyboardStickyView` drives the thought
+ * details composer with, which does work.
+ *
+ * The inset is reduced by `bottomSafeAreaInset` because `sendInputsContainer` reserves that much
+ * bottom padding for the Android gesture handle. The handle is behind the keyboard while it is
+ * open, so letting that padding — and only that padding — sit behind the keyboard keeps the
+ * input itself a constant 12dp above the keys rather than floating a safe-area band above them.
+ */
+const KeyboardInsetView = ({ children, style }: { children: React.ReactNode; style?: any }) => {
+    const keyboardHeight = useKeyboardState((state) => state.height);
+    const paddingBottom = Math.max(keyboardHeight - bottomSafeAreaInset, 0);
+
+    return (
+        <View style={[style, { paddingBottom }]}>
+            {children}
+        </View>
+    );
+};
 
 interface IDirectMessageDispatchProps {
     searchDms: Function;
@@ -229,19 +259,7 @@ class DirectMessage extends React.Component<
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView]}>
-                    {/*
-                      * `behavior` has to be set on Android too. Without it the component is a
-                      * documented no-op, and under edge-to-edge (API 36) the window no longer
-                      * resizes for the keyboard either — so the composer stayed put and the
-                      * keyboard covered it. `automaticOffset` measures this view's true position
-                      * on screen, which is what the hand-tuned iOS `keyboardVerticalOffset={90}`
-                      * used to approximate.
-                      */}
-                    <KeyboardAvoidingView
-                        behavior="padding"
-                        automaticOffset
-                        style={this.themeMessage.styles.container}
-                    >
+                    <KeyboardInsetView style={this.themeMessage.styles.container}>
                         {
                             isLoading ?
                                 <View style={spacingStyles.flexOne}>
@@ -329,7 +347,7 @@ class DirectMessage extends React.Component<
                                 disabled={isSending || !msgInputVal}
                             />
                         </View>
-                    </KeyboardAvoidingView>
+                    </KeyboardInsetView>
                 </SafeAreaView>
             </>
         );

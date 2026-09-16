@@ -250,28 +250,23 @@ export const getStreakRiskLevel = (
 };
 
 /**
- * Get today's date in YYYY-MM-DD format
+ * Today in UTC, YYYY-MM-DD.
+ *
+ * **Not a habit day.** A habit day is the user's own calendar day — see
+ * `resolveCheckinHabitDate` in `utilities/dailyStreak.ts`, which is what the check-in write
+ * path stamps on `scheduledDate` and what every per-user read of "today" has to match. This
+ * used to be that definition, and the gap is exactly why a 19:00 check-in in Chicago landed on
+ * tomorrow.
+ *
+ * Only use it where there is genuinely no user to resolve a zone for: a service-wide job
+ * boundary, or a log line. For anything a user will see, resolve their zone
+ * (`resolveCheckinTimeZone`) and call `getLocalDate`.
+ *
+ * `getYesterdayDateString`, `isToday` and `isYesterday` used to sit alongside this and were
+ * deleted rather than fixed: nothing called them, and an unqualified `isToday(date)` is the
+ * shape of this bug waiting to be reintroduced.
  */
 export const getTodayDateString = (): string => new Date().toISOString().split('T')[0];
-
-/**
- * Get yesterday's date in YYYY-MM-DD format
- */
-export const getYesterdayDateString = (): string => {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    return yesterday.toISOString().split('T')[0];
-};
-
-/**
- * Check if a date string is today
- */
-export const isToday = (dateString: string): boolean => dateString === getTodayDateString();
-
-/**
- * Check if a date string is yesterday
- */
-export const isYesterday = (dateString: string): boolean => dateString === getYesterdayDateString();
 
 /**
  * Whether a streak update represents a "comeback" — i.e. the user just restarted a streak

@@ -25,7 +25,7 @@ const setPreLoginLocale = (locale: string) => async (dispatch: any, getState: an
             locale,
             settingsLocale: locale,
         }));
-    } catch (err) {
+    } catch {
         // Non-fatal: still update Redux so the UI reflects the selection for this session
     }
 

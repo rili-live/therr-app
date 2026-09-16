@@ -43,6 +43,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import Decimal
+from pathlib import Path
 
 from therr_ads.reporting import date_range
 
@@ -298,9 +299,27 @@ def build_app_funnel(counts: dict, property_id: str = "", stream_name: str = "",
     )
 
 
+def data_client(credentials_file: str = ""):
+    """The GA4 Data API client, from a service-account file or ADC.
+
+    Kept separate so the credential choice is one line: an explicit file wins,
+    otherwise the library's default chain (GOOGLE_APPLICATION_CREDENTIALS, then
+    gcloud ADC). ADC needs analytics.readonly, and Google blocks gcloud's own
+    OAuth client from requesting it, so the file is the route that survives.
+    """
+    from google.analytics.data_v1beta import BetaAnalyticsDataClient
+
+    if credentials_file:
+        return BetaAnalyticsDataClient.from_service_account_file(
+            str(Path(credentials_file).expanduser())
+        )
+    return BetaAnalyticsDataClient()
+
+
 def fetch_app_funnel(app_property_id: str, days: int = 14,
                      stream_name: str = "Friends with Habits",
-                     exclude_synthetic_devices: bool = True) -> AppFunnelReport:
+                     exclude_synthetic_devices: bool = True,
+                     credentials_file: str = "") -> AppFunnelReport:
     """Pull the in-app funnel for one data stream.
 
     Both Therr Android apps report into this property, so the stream filter is
@@ -349,7 +368,7 @@ def fetch_app_funnel(app_property_id: str, days: int = 14,
         limit=250,
     )
     try:
-        response = BetaAnalyticsDataClient().run_report(request)
+        response = data_client(credentials_file).run_report(request)
     except Exception as exc:  # noqa: BLE001
         built = build_app_funnel({}, app_property_id, stream_name, start, end)
         built.notes.append(f"in-app funnel failed: {exc}")
@@ -415,7 +434,8 @@ def _app_funnel_filter(stream_name: str, exclude_synthetic: bool = True):
 
 
 def fetch(property_id: str, days: int = 14, crawler_guard: bool = True,
-          include_surface: bool = False, host_name: str = "") -> Ga4Report:
+          include_surface: bool = False, host_name: str = "",
+          credentials_file: str = "") -> Ga4Report:
     """Pull the campaign and landing-page breakdowns for the window.
 
     `host_name` restricts the report to one hostname. Pass the campaign's own
@@ -449,7 +469,7 @@ def fetch(property_id: str, days: int = 14, crawler_guard: bool = True,
         )
         return report
 
-    client = BetaAnalyticsDataClient()
+    client = data_client(credentials_file)
     metrics = [
         Metric(name="sessions"),
         Metric(name="engagedSessions"),

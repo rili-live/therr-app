@@ -6,6 +6,18 @@ $profileImgWidth: rem-calc(100px);
         flex-direction: row;
         justify-content: space-around;
         flex-wrap: wrap;
+
+        // The App Store badge is a <button> (it opens the iOS waitlist dialog rather than
+        // navigating), so the UA button chrome has to be stripped for it to sit level with
+        // the Google Play anchor beside it. Focus outline is deliberately left alone.
+        .button-plain-image {
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            line-height: 0;
+        }
     }
 
     .info-container {

@@ -12,11 +12,18 @@ export interface ICheckinProofMedia {
 export interface ICreateCheckinBody {
     pactId?: string;
     habitGoalId: string;
+    /**
+     * The habit day this check-in is for (YYYY-MM-DD), in the user's **local** calendar —
+     * `toLocalDateKey(new Date())`, not `toISOString()`. Omit it for "now" and the server
+     * resolves the user's today itself. A date ahead of the user's today (which is what a UTC
+     * stamp is, every evening west of UTC) is clamped down to it; earlier dates are honoured,
+     * so backdating a missed day still works.
+     */
     scheduledDate?: string;
     /**
-     * The device's IANA timezone. The server stamps the check-in's `localDate` from the
-     * account's saved zone first and falls back to this, which is what makes the app-level
-     * daily streak count the user's own midnight rather than UTC's.
+     * The device's IANA timezone. The server resolves the check-in's dates from the account's
+     * saved zone first and falls back to this, which is what makes both streaks count the
+     * user's own midnight rather than UTC's.
      */
     timeZone?: string;
     /**
@@ -64,9 +71,15 @@ class HabitCheckinsService {
         url: `/users-service/habits/checkins/${checkinId}/proofs`,
     });
 
-    getTodayCheckins = (habitGoalId?: string) => {
+    /**
+     * Today's check-ins, where "today" is the user's own calendar day — the same day the
+     * create path stamps on `scheduledDate`. Pass the device zone so a user whose account has
+     * no saved `settingsTimezone` still gets their day rather than the service fallback's.
+     */
+    getTodayCheckins = (habitGoalId?: string, timeZone?: string) => {
         const params = new URLSearchParams();
         if (habitGoalId) params.append('habitGoalId', habitGoalId);
+        if (timeZone) params.append('timeZone', timeZone);
         const queryString = params.toString() ? `?${params.toString()}` : '';
 
         return axios({

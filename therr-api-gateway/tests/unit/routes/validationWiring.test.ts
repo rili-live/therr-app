@@ -29,6 +29,13 @@
  * `param('id').isUUID(4)` behind `validate`, so every request to it 400'd. No
  * client can depend on behavior that never worked.
  *
+ * `POST /subscribers/signup` was closed on 2026-09-14, after the compatibility check the
+ * paragraph above asks for: no TherrMobile code path calls it (the shipped-app hazard does
+ * not apply), and its only callers are web forms — therr-landing's signup, and the iOS
+ * waitlist dialogs added on the two landing pages — each of which posts an address a person
+ * typed into an email field. The one new rejection is a malformed address, which previously
+ * became a junk row in the table the iOS demand numbers are read from.
+ *
  * The list is a ratchet: adding to it should be deliberate, and removing from it
  * (by wiring `validate`) is always safe to do here.
  */
@@ -59,7 +66,6 @@ const KNOWN_UNENFORCED: string[] = [
     'PUT /users/notifications/:notificationId',
     'POST /social-sync',
     'POST /subscribers/send-feedback',
-    'POST /subscribers/signup',
 ];
 
 /**

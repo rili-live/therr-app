@@ -592,7 +592,13 @@ usersServiceRouter.post('/subscribers/send-feedback', authenticateOptional, feed
     method: 'post',
 }));
 
-usersServiceRouter.post('/subscribers/signup', subscribeAttemptLimiter, subscribersSignupValidation, handleServiceRequest({
+// `validate` was missing here, which made the isEmail() check in subscribersSignupValidation
+// decorative: express-validator sanitizers mutate req.body in the chain itself, so the
+// normalizeEmail() half always applied, but nothing read validationResult() and a malformed
+// address was proxied through and inserted. The iOS waitlist dialogs on the two landing pages
+// are a second writer to this endpoint and the table is the demand record, so the declared
+// validation is now actually enforced.
+usersServiceRouter.post('/subscribers/signup', subscribeAttemptLimiter, subscribersSignupValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
@@ -823,6 +829,13 @@ usersServiceRouter.get('/habits/daily-streak/me', handleServiceRequest({
 usersServiceRouter.post('/habits/daily-streak/me/celebrated', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
+}));
+
+// HABITS — Weekly recap. Read-only view over the daily-streak ledger for one
+// Monday–Sunday week; `weekStart` and `timeZone` ride along as query params.
+usersServiceRouter.get('/habits/weekly-recap/me', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
 }));
 
 // HABITS — Streaks

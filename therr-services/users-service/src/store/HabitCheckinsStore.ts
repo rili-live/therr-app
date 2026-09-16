@@ -270,9 +270,13 @@ export default class HabitCheckinsStore {
      * completion from adding nothing but a second reader). A per-member query
      * would make the pacts list O(members) round trips on a hot read path.
      *
-     * `date` is a habit day as the service counts them (UTC, via
-     * `getTodayDateString`), matching what the check-in write path stores in
-     * `scheduledDate` — not the viewer's local calendar day.
+     * A habit day is the *checked-in user's own* calendar day — that is what the
+     * write path stores in `scheduledDate` (see `resolveCheckinHabitDate`). So
+     * `date` is a per-user question, not one date for the whole batch: a pact's
+     * members can be in different zones, and at 02:00 UTC two of them are on
+     * different calendar days. Each pair may therefore carry its own `date`;
+     * `defaultDate` covers the pairs that do not (a single user's own habits, or
+     * a caller that has already resolved one zone for everyone).
      *
      * Returns a Set of `${userId}:${habitGoalId}`. Absence means "no completed
      * check-in", which is the same thing the caller wants to render.
@@ -291,28 +295,28 @@ export default class HabitCheckinsStore {
      * an EXPLAIN driving from `*VALUES*` is the healthy shape.
      */
     getCompletedOnDateForPairs(
-        pairs: { userId: string; habitGoalId: string }[],
-        date: string,
+        pairs: { userId: string; habitGoalId: string; date?: string }[],
+        defaultDate: string,
     ): Promise<Set<string>> {
         if (!pairs.length) {
             return Promise.resolve(new Set<string>());
         }
 
-        const values = pairs.map(() => '(?::uuid, ?::uuid)').join(', ');
+        const values = pairs.map(() => '(?::uuid, ?::uuid, ?::date)').join(', ');
         const bindings = pairs.reduce(
-            (acc: string[], pair) => acc.concat([pair.userId, pair.habitGoalId]),
+            (acc: string[], pair) => acc.concat([pair.userId, pair.habitGoalId, pair.date || defaultDate]),
             [],
-        ).concat([date]);
+        );
 
         const queryString = knexBuilder.raw(
-            `WITH pairs("userId", "habitGoalId") AS (VALUES ${values})
+            `WITH pairs("userId", "habitGoalId", "onDate") AS (VALUES ${values})
             SELECT DISTINCT p."userId" AS "userId", p."habitGoalId" AS "habitGoalId"
             FROM pairs p
             JOIN ${HABIT_CHECKINS_TABLE_NAME} c
                 ON c."userId" = p."userId"
                 AND c."habitGoalId" = p."habitGoalId"
                 AND c.status = 'completed'
-                AND c."scheduledDate" = ?::date`,
+                AND c."scheduledDate" = p."onDate"`,
             bindings,
         ).toString();
 
@@ -371,6 +375,70 @@ export default class HabitCheckinsStore {
         return this.db.read.query(queryString).then((response) => new Set<string>(
             response.rows.map((row: any) => String(row.localDate).slice(0, 10)),
         ));
+    }
+
+    /**
+     * Completed check-ins per local day in [startDate, endDate] — the weekly recap's per-day
+     * bar, in one query.
+     *
+     * Distinct from `getCompletedLocalDates`, which answers the daily streak's yes/no question
+     * ("was any habit completed on day D"). The recap needs the count, because a user who moved
+     * from one habit a day to three had a better week and a boolean cannot say so.
+     */
+    getCompletedCountsByLocalDate(userId: string, startDate: string, endDate: string): Promise<Map<string, number>> {
+        const queryString = knexBuilder.raw(
+            `SELECT "localDate"::text AS "localDate", COUNT(*)::int AS "completedCount"
+            FROM ${HABIT_CHECKINS_TABLE_NAME}
+            WHERE "userId" = ?::uuid
+                AND "status" = 'completed'
+                AND "localDate" >= ?::date
+                AND "localDate" <= ?::date
+            GROUP BY "localDate"`,
+            [userId, startDate, endDate],
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => new Map<string, number>(
+            response.rows.map((row: any) => [
+                String(row.localDate).slice(0, 10),
+                Number(row.completedCount) || 0,
+            ]),
+        ));
+    }
+
+    /**
+     * Completed check-ins per habit in [startDate, endDate], newest habits included only if they
+     * were actually completed — the recap's "which habit carried the week" list.
+     *
+     * Joined to habit_goals for the name and emoji the copy uses. A check-in whose goal row was
+     * deleted keeps its count under a null name and is dropped by `rankRecapHabits` only if the
+     * count is zero, so the name is coalesced here rather than left for the caller.
+     */
+    getCompletedCountsByHabitForLocalRange(
+        userId: string,
+        startDate: string,
+        endDate: string,
+    ): Promise<{ habitGoalId: string; name: string; emoji: string | null; completedCount: number }[]> {
+        const queryString = knexBuilder.raw(
+            `SELECT c."habitGoalId" AS "habitGoalId",
+                COALESCE(g."name", '') AS "name",
+                g."emoji" AS "emoji",
+                COUNT(*)::int AS "completedCount"
+            FROM ${HABIT_CHECKINS_TABLE_NAME} c
+            LEFT JOIN ${HABIT_GOALS_TABLE_NAME} g ON g."id" = c."habitGoalId"
+            WHERE c."userId" = ?::uuid
+                AND c."status" = 'completed'
+                AND c."localDate" >= ?::date
+                AND c."localDate" <= ?::date
+            GROUP BY c."habitGoalId", g."name", g."emoji"`,
+            [userId, startDate, endDate],
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.map((row: any) => ({
+            habitGoalId: String(row.habitGoalId),
+            name: String(row.name || ''),
+            emoji: row.emoji || null,
+            completedCount: Number(row.completedCount) || 0,
+        })));
     }
 
     /** Earliest completed local day for a user, or undefined if they have never completed one. */

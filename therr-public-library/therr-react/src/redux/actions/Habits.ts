@@ -196,8 +196,8 @@ const Habits = {
     }),
 
     // Checkins
-    getTodayCheckins: (habitGoalId?: string) => (dispatch: any) => HabitCheckinsService
-        .getTodayCheckins(habitGoalId).then((response: any) => {
+    getTodayCheckins: (habitGoalId?: string, timeZone?: string) => (dispatch: any) => HabitCheckinsService
+        .getTodayCheckins(habitGoalId, timeZone).then((response: any) => {
             if (response?.isOfflineFallback) return undefined;
             dispatch({
                 type: HabitsActionTypes.GET_TODAY_CHECKINS,
