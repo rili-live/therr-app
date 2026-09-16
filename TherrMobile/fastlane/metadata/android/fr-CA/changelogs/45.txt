@@ -1,0 +1,7 @@
+Nouveautés :
+• Bilan hebdo : chaque lundi, un retour sur votre semaine — jours tenus, enregistrements, habitude vedette et comparaison avec la semaine d'avant. Toujours dans Mes habitudes
+• Les enregistrements tombent sur votre journée, pas sur l'heure UTC — un enregistrement en soirée reste sur aujourd'hui
+• Carte de série plus lisible, avec des pastilles de gel
+• Un chargement s'affiche plutôt que « aucune habitude »
+• Les dates suivent la langue de l'appli
+• Corrections et améliorations
