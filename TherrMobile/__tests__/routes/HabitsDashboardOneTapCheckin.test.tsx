@@ -151,6 +151,41 @@ describe('habits dashboard one-tap check-in', () => {
     });
 
     /**
+     * The read half of the same day. The write sends the device zone; the dashboard's "checked
+     * in today" read went without one, so for an account with no saved `settingsTimezone` the
+     * service answered in its fallback zone and the check-in just written could fall outside
+     * the day the list was asking about. Built without the harness's `handleRefresh` stub
+     * because the stub is the thing under test.
+     */
+    it('reads today\'s check-ins in the device zone, the same zone the write stamps', async () => {
+        const getTodayCheckins = jest.fn(() => Promise.resolve()) as any;
+        const props: any = {
+            user: { settings: {}, details: { id: 'me' } },
+            habits: {
+                habitGoals: [HABIT], todayCheckins: [], streaks: [], pacts: [], activePacts: [], pendingInvites: [],
+            },
+            navigation: { navigate: jest.fn(), addListener: jest.fn() },
+            route: { params: {} },
+            createCheckin: jest.fn(),
+            getActiveStreaks: jest.fn(() => Promise.resolve([])),
+            getUserGoals: jest.fn(() => Promise.resolve()),
+            getTodayCheckins,
+            getActivePacts: jest.fn(() => Promise.resolve()),
+            getUserPacts: jest.fn(() => Promise.resolve()),
+            getPendingInvites: jest.fn(() => Promise.resolve()),
+            getUserHabitEligibility: jest.fn(() => Promise.resolve()),
+            getUserHabits: jest.fn(() => Promise.resolve()),
+        };
+        const instance = new HabitsDashboard(props);
+        instance.setState = jest.fn() as any;
+
+        instance.handleRefresh();
+        await flushPromises();
+
+        expect(getTodayCheckins).toHaveBeenCalledWith(undefined, Intl.DateTimeFormat().resolvedOptions().timeZone);
+    });
+
+    /**
      * The reported bug, from the client side. The write used `toISOString()` — the UTC day,
      * which is already *tomorrow* for the whole evening west of UTC — while the calendar grid
      * keys its cells with `toLocalDateKey`. A 19:00 check-in in Chicago was therefore written

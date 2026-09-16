@@ -289,7 +289,12 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
 
         Promise.all([
             getUserGoals(),
-            getTodayCheckins(),
+            // The device zone rides along for the same reason it does on the write in
+            // handleCheckin: "today" is the user's own day, and the service only knows that
+            // day from the account's saved zone, which a user who declined push never has.
+            // Reading in the service fallback zone while writing in the device's put the
+            // check-in the user just made on a day this list was not asking about.
+            getTodayCheckins(undefined, Intl.DateTimeFormat().resolvedOptions().timeZone),
             getActiveStreaks(),
             getActivePacts(),
             // Needed to tell a habit whose pact is live apart from one whose
