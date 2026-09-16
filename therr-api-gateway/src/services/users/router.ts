@@ -592,10 +592,11 @@ usersServiceRouter.post('/subscribers/send-feedback', authenticateOptional, feed
     method: 'post',
 }));
 
-// `validate` was missing here, which made subscribersSignupValidation decorative: the chain
-// ran its normalizeEmail sanitizer but nothing ever read the result, so a malformed address
-// was proxied through and inserted. The iOS waitlist dialogs on the two landing pages are a
-// second writer to this endpoint and the table is the demand record, so the declared
+// `validate` was missing here, which made the isEmail() check in subscribersSignupValidation
+// decorative: express-validator sanitizers mutate req.body in the chain itself, so the
+// normalizeEmail() half always applied, but nothing read validationResult() and a malformed
+// address was proxied through and inserted. The iOS waitlist dialogs on the two landing pages
+// are a second writer to this endpoint and the table is the demand record, so the declared
 // validation is now actually enforced.
 usersServiceRouter.post('/subscribers/signup', subscribeAttemptLimiter, subscribersSignupValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,

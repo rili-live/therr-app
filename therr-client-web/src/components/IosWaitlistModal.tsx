@@ -71,13 +71,21 @@ const IosWaitlistModal: React.FC<IIosWaitlistModalProps> = ({ opened, onClose, l
             email: trimmedEmail,
             isSubscribedToIosWaitlist: true,
         }).then(() => {
+            setIsDone(true);
             // The conversion worth optimising toward. Mark it as a key event in GA4 admin,
             // alongside `ios_interest_click`, or it is collected but not reportable.
-            ReactGA.event('ios_waitlist_submit', {
-                app: 'therr',
-                location,
-            });
-            setIsDone(true);
+            //
+            // Guarded, like `track()` in landing.hbs: the address is already saved by the
+            // time this runs, and a blocker that stubs `window.gtag` with something that
+            // throws must not turn that success into the generic error below.
+            try {
+                ReactGA.event('ios_waitlist_submit', {
+                    app: 'therr',
+                    location,
+                });
+            } catch {
+                // no-op
+            }
         }).catch((err) => {
             setError(err?.response?.data?.message || translate('components.iosWaitlistModal.errorGeneric'));
         }).then(() => setIsSubmitting(false));
