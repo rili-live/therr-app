@@ -324,6 +324,18 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         dailyStreakErrors: 0,
     };
 
+    // The run's own day, in UTC, used for dedupe keys and for the batch reads below that ask
+    // one date of every user at once.
+    //
+    // A habit day is now the user's own calendar day (`resolveCheckinHabitDate`), so this only
+    // lines up for users whose local date matches UTC's at the moment the digest fires —
+    // 09:00 America/Chicago, i.e. 14:00–15:00 UTC, which covers everyone except UTC+11 and
+    // east. For those zones the digest reasons about their yesterday. That predates this
+    // module and is not made worse by the local habit day: what the local day *fixes* here is
+    // the opposite error, where a check-in logged at 20:00 in Chicago was stamped with
+    // tomorrow's UTC date and made the next morning's reminder think the user had already
+    // shown up. Per-user local dates for these reads need `getActiveForReminders` to take a
+    // date per user — tracked separately.
     const today = getTodayDateString();
     const yesterday = normalizeDateString(new Date(Date.now() - MS_PER_DAY));
 

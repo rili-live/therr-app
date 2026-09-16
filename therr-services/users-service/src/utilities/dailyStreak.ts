@@ -145,21 +145,56 @@ export const clampCelebratedDate = (
 export const MAX_BACKDATE_DAYS = 1;
 
 /**
- * The local day a check-in belongs to.
+ * The habit day a check-in is credited to — what lands in `habit_checkins.scheduledDate` and
+ * what the per-habit streak in `habits.streaks` counts.
  *
- * The client sends `scheduledDate`, the *UTC* habit day (see the note on submitCheckin in the
- * mobile Dashboard) — that column is unchanged and still keys the per-habit streak. The daily
- * streak needs the user's own day instead, so:
+ * **This is the user's local calendar day, not UTC.** It used to be UTC, and that is what made
+ * a 19:00 check-in on Sep 15 in Chicago show up on the 16th: the write stamped the UTC day
+ * while every calendar the app renders is built from local components. One clock, and it is
+ * the user's.
  *
- *   - a check-in for the current UTC day is stamped with the user's local day right now, which
- *     is what makes 23:50 on Sep 12 in America/Chicago a Sep 12 check-in even though the UTC
- *     day is already Sep 13;
- *   - a backdated check-in (scheduledDate behind the current UTC day) is shifted back by the
- *     same number of days, so "log yesterday" means the user's yesterday.
+ * `requestedDate` is whatever the client asked for (`scheduledDate` on the request). It is
+ * honoured for today and any earlier day — backdating a missed day is a real feature — but
+ * clamped down to the user's today when it is ahead of it. That clamp is the whole
+ * backwards-compatibility story: installed app versions still send the UTC day, which is
+ * *ahead* of the user's day for exactly the evening hours that produced the bug, so the fix
+ * reaches every existing install without waiting on a store release. A device with a skewed
+ * clock is pulled back by the same rule.
+ */
+export const resolveCheckinHabitDate = ({
+    requestedDate,
+    timeZone,
+    now = new Date(),
+}: {
+    requestedDate?: unknown;
+    timeZone: string;
+    now?: Date;
+}): string => {
+    const today = getLocalDate(timeZone, now);
+
+    if (isDateString(requestedDate) && requestedDate <= today) {
+        return requestedDate;
+    }
+
+    return today;
+};
+
+/**
+ * The local day a check-in belongs to — `habit_checkins.localDate`, what the *app-level* daily
+ * streak reads.
  *
- * An explicit `requestedLocalDate` from a client that knows its own calendar wins, but only
- * within [today - MAX_BACKDATE_DAYS, today]: beyond that the check-in still counts for the
- * habit, and the returned date simply falls outside the window the daily streak reacts to.
+ * Since `scheduledDate` became the user's local day too (see `resolveCheckinHabitDate`) the two
+ * agree for every ordinary check-in, and this exists for the cases where they can still differ:
+ *
+ *   - a legacy client sending the UTC day, which is clamped to the user's today here exactly as
+ *     it is for the habit day — that is what makes 23:50 on Sep 12 in America/Chicago a Sep 12
+ *     check-in even though the client stamped Sep 13;
+ *   - a backdated check-in, shifted back from the user's today by the number of days it is
+ *     behind, so "log yesterday" means the user's yesterday;
+ *   - an explicit `requestedLocalDate` from a client that knows its own calendar, which wins,
+ *     but only within [today - MAX_BACKDATE_DAYS, today]: beyond that the check-in still counts
+ *     for the habit, and the returned date simply falls outside the window the daily streak
+ *     reacts to.
  */
 export const resolveCheckinLocalDate = ({
     scheduledDate,
@@ -182,8 +217,14 @@ export const resolveCheckinLocalDate = ({
     }
 
     if (isDateString(scheduledDate)) {
-        const utcToday = fromUtcDate(now);
-        const backdatedBy = daysBetween(scheduledDate, utcToday);
+        // Measured against the user's own today, not UTC's. Measuring against the UTC day was
+        // correct only while `scheduledDate` was itself a UTC day; with a local `scheduledDate`
+        // it double-counts the offset and files an evening check-in in any zone west of UTC
+        // under *yesterday*.
+        const backdatedBy = daysBetween(
+            resolveCheckinHabitDate({ requestedDate: scheduledDate, timeZone, now }),
+            today,
+        );
         if (backdatedBy > 0) {
             return addDays(today, -backdatedBy);
         }

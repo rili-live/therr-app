@@ -12,7 +12,6 @@ import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotif
 import enqueueNotification from '../utilities/enqueueNotification';
 import { resolveUserDisplayName } from '../utilities/notificationNames';
 import {
-    getTodayDateString,
     checkMilestoneReached,
     countMissedDaysForStreak,
     isComebackStart,
@@ -39,7 +38,12 @@ import {
 } from './helpers/awardHabitAchievements';
 import { awardLeaderboardPoints } from './helpers/leaderboards';
 import { LeaderboardXpValues } from '../utilities/leaderboardHelpers';
-import { getLocalDate, resolveCheckinLocalDate, resolveCheckinTimeZone } from '../utilities/dailyStreak';
+import {
+    getLocalDate,
+    resolveCheckinHabitDate,
+    resolveCheckinLocalDate,
+    resolveCheckinTimeZone,
+} from '../utilities/dailyStreak';
 import {
     getDailyStreakView,
     onCheckinCompleted,
@@ -82,8 +86,6 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
             statusCode: 400,
         });
     }
-
-    const checkinDate = scheduledDate || getTodayDateString();
 
     // Verify habit goal exists
     const habitGoal = await Store.habitGoals.getById(habitGoalId);
@@ -149,12 +151,14 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
     // resurrect a row the user archived.
     await Store.userHabits.getOrCreate(userId, habitGoalId);
 
-    // The user's own calendar day for this check-in. `scheduledDate` stays the UTC habit day
-    // the per-habit streak counts in; `localDate` is what the app-level daily streak reads, so
-    // "check in before midnight" means the user's midnight. See utilities/dailyStreak.ts.
+    // The user's own calendar day for this check-in. Both dates are now resolved in the user's
+    // zone: `scheduledDate` is the habit day the per-habit streak counts, `localDate` is what
+    // the app-level daily streak reads. "Check in before midnight" means the user's midnight
+    // for both. See utilities/dailyStreak.ts.
     const [checkinUser] = await Store.users.getUserById(userId, ['id', 'settingsTimezone']).catch(() => [] as any[]);
     const timeZone = resolveCheckinTimeZone(checkinUser?.settingsTimezone, deviceTimezone);
     const todayLocal = getLocalDate(timeZone);
+    const checkinDate = resolveCheckinHabitDate({ requestedDate: scheduledDate, timeZone });
     const localDate = resolveCheckinLocalDate({
         scheduledDate: checkinDate,
         requestedLocalDate,
@@ -946,11 +950,21 @@ const getCheckinProofs: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' }));
 };
 
+/**
+ * GET /habits/checkins/today?habitGoalId=&timeZone=<IANA>
+ *
+ * "Today" is the user's own calendar day — the same day `createCheckin` stamps on
+ * `scheduledDate`. Reading it in UTC instead would make the dashboard drop the check-in the
+ * user just logged the moment their evening crossed UTC midnight, which is the read half of
+ * the bug the write path fixes. `timeZone` is the device zone and is only consulted when the
+ * account has no `settingsTimezone`.
+ */
 const getTodayCheckins: RequestHandler = async (req: any, res: any) => {
     const { userId } = parseHeaders(req.headers);
-    const { habitGoalId } = req.query;
+    const { habitGoalId, timeZone: deviceTimezone } = req.query;
 
-    const today = getTodayDateString();
+    const [viewer] = await Store.users.getUserById(userId, ['id', 'settingsTimezone']).catch(() => [] as any[]);
+    const today = getLocalDate(resolveCheckinTimeZone(viewer?.settingsTimezone, deviceTimezone));
 
     return Store.habitCheckins.getByUserAndDate(userId, today, habitGoalId)
         .then((checkins) => res.status(200).send(checkins))

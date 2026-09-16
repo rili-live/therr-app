@@ -5,12 +5,12 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import {
-    getTodayDateString,
     getStreakRiskLevel,
     getMilestoneProgress,
     formatStreakDisplay,
     getStreakEmoji,
 } from '../utilities/streakHelpers';
+import { getLocalDate, resolveCheckinTimeZone } from '../utilities/dailyStreak';
 
 // READ
 const getStreak: RequestHandler = async (req: any, res: any) => {
@@ -254,13 +254,19 @@ const useGraceDay: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    // The history row is dated in the user's own zone, matching the habit day the check-in
+    // path stamps — a freeze spent at 19:00 on the 15th has to file under the 15th, or it
+    // covers a day the streak logic never looks at.
+    const [graceUser] = await Store.users.getUserById(userId, ['id', 'settingsTimezone']).catch(() => [] as any[]);
+    const today = getLocalDate(resolveCheckinTimeZone(graceUser?.settingsTimezone, req.query?.timeZone));
+
     return Store.streaks.useGraceDay(id)
         .then(async (updatedStreak) => {
             // Record the grace day usage
             await Store.streaks.recordGraceUsed(
                 id,
                 userId,
-                getTodayDateString(),
+                today,
                 updatedStreak.currentStreak,
             );
 
