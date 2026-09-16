@@ -330,6 +330,38 @@ export default class UsersStore {
         ));
     }
 
+    /**
+     * `settingsTimezone` for a batch of users, keyed by user id, with users who
+     * have none saved simply absent.
+     *
+     * A habit day is the checking-in user's own calendar day, so anything
+     * rendering several users' "did they show up today?" at once — the pact
+     * cards — needs every member's zone, and needs them in one query rather
+     * than one per member on a hot read path. Narrower than
+     * `getHabitReminderPreferences` on purpose: that one carries the whole
+     * delivery-settings row, and this is read on every pacts list.
+     */
+    getTimeZonesByIds(userIds: string[]): Promise<Record<string, string>> {
+        if (!userIds.length) {
+            return Promise.resolve({});
+        }
+
+        const queryString = knexBuilder
+            .select(['id', 'settingsTimezone'])
+            .from(USERS_TABLE_NAME)
+            .whereIn('id', userIds)
+            .whereNotNull('settingsTimezone')
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.reduce(
+            (acc: Record<string, string>, row: { id: string; settingsTimezone: string }) => {
+                acc[row.id] = row.settingsTimezone;
+                return acc;
+            },
+            {},
+        ));
+    }
+
     findUsersWithInterests({
         ids,
     }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName', 'isSuperUser']) {
