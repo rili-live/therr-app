@@ -197,10 +197,11 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
      * The one-tap check-in. Notes and photos go through the CheckinDetail screen, which does
      * its own POST, so this is always the bare "I did it".
      *
-     * `scheduledDate` stays on the UTC calendar day: users-service defines a habit day in UTC
-     * (`getTodayDateString`), so the local-calendar `toLocalDateKey` used to render the month
-     * grid must not be used for the write. `timeZone` is separate and is what the app-level
-     * daily streak keys its own day off.
+     * `scheduledDate` uses the same `toLocalDateKey` the month grid is rendered from, and that
+     * agreement is the point. While the write went through `toISOString()` (the UTC day) and
+     * the grid through local components, an evening check-in was written under one date and
+     * drawn on the next day's cell. `timeZone` still travels so the service can resolve the
+     * day itself for a client that sends no date.
      */
     submitCheckin = () => {
         const { createCheckin, route } = this.props;
@@ -208,11 +209,12 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
 
         this.setState({ isCheckinLoading: true });
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = toLocalDateKey(new Date());
 
         createCheckin({
             habitGoalId,
             scheduledDate: today,
+            localDate: today,
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             status: 'completed',
         })

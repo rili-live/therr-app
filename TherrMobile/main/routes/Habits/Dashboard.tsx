@@ -28,6 +28,7 @@ import { getFreezeConsumed, getStreakSavedByFreeze } from '../../utilities/strea
 import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/celebrationQueue';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { logAppEvent } from '../../utilities/analyticsEvents';
+import { toLocalDateKey } from '../../utilities/localDateKey';
 import { DURATION, showToast } from '../../utilities/toasts';
 import { IHabitWithPactState, isPactSuperseded, splitHabitsByPactState } from './pactState';
 import { getNudgeErrorMessage, getNudgeOutcomeToast } from '../Pacts/nudgeOutcome';
@@ -349,10 +350,12 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
      * CheckinDetail screen owns that path and does its own POST — so this call is always the
      * bare "I did it" and the analytics event below can be unconditional.
      *
-     * `scheduledDate` stays on the UTC calendar day deliberately: users-service defines a habit
-     * day in UTC (`getTodayDateString` in `utilities/streakHelpers.ts`). `timeZone` is a
-     * separate thing and is what the *app-level daily streak* keys its own day off, so a late
-     * evening check-in counts for the day the user is actually living in.
+     * `scheduledDate` is the user's **local** calendar day, via `toLocalDateKey`. It used to be
+     * `toISOString()` — the UTC day — because the service defined a habit day that way, and
+     * that is what put a 19:00 check-in on tomorrow's cell: the calendar grid is built from
+     * local components, so the write and the render disagreed for the whole evening west of
+     * UTC. Both sides are now the user's own day. `timeZone` still travels so the service can
+     * resolve that day itself for a client that sends no date.
      */
     submitCheckin = (habitGoal: IHabitGoal) => {
         const { createCheckin, getActiveStreaks } = this.props;
@@ -365,11 +368,12 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             checkinLoadingIds: newLoadingIds,
         });
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = toLocalDateKey(new Date());
 
         createCheckin({
             habitGoalId,
             scheduledDate: today,
+            localDate: today,
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             status: 'completed',
         })
