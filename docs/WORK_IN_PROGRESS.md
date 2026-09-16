@@ -477,14 +477,13 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 > is therefore already substantially answered, and the instrumentation and
 > onboarding items below are what a campaign is waiting on — not the credentials.
 
-- [ ] **Obtain a Google Ads developer token at Basic access.** Google Ads UI ->
-  Tools & Settings -> Setup -> API Center, on the manager account. A newly issued
-  token is Test Account level and rejects every call against a real account with
-  `DEVELOPER_TOKEN_NOT_APPROVED`; approval takes 1-3 business days. Everything
-  else in the tooling is blocked on this.
-- [ ] **Create a Desktop-app OAuth client and run `./therrads auth login`.**
-  Google Cloud Console -> APIs & Services -> Credentials. A *Web application*
-  client fails the installed-app flow with `redirect_uri_mismatch`.
+- [x] **Obtain Google Ads API access at Basic level.** Done 2026-09-14 — but
+  not where this item said: Google moved access levels out of the Ads UI API
+  Center into Cloud Console -> APIs & Services -> Google Ads API, on the project
+  owning the OAuth client. Verified live: reads and `campaign apply
+  --validate-only` succeed against `7604290203`.
+- [x] **Create a Desktop-app OAuth client and run `./therrads auth login`.**
+  Done; `./therrads auth check` reaches 4 accounts.
 - [ ] **Set the Cloud project's OAuth consent screen to "In production".** While
   it is in *Testing*, Google expires the refresh token after 7 days with no
   warning and no distinguishing error — this is the cause of "it worked last
@@ -498,17 +497,24 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   Google Ads links) so installs are reported as conversions. Without the link,
   the App campaign optimises against nothing and `report ads` shows zero installs
   regardless of what actually happened.
-- [ ] **Import the GA4 key events from property `267810693` into Ads as conversion
-  actions.** The link already exists (created 2022 to customer `7604290203`), and
-  `first_open` / `profile_create_start` / `phone_verify_success` /
-  `connection_invites_sent` are already marked as key events — this is Ads UI ->
-  Goals -> Conversions -> New -> Import -> Google Analytics 4, not a build. Use
-  `first_open` for run 1; add the activation events once they carry volume.
-- [ ] **Set `settings.yaml` -> `customer_id: "7604290203"` and `config.yaml` ->
-  `login_customer_id: "3076709152"`.** The operating account is the one already
-  linked to the GA4 app property; the manager is what you authenticate *through*,
-  not what campaigns are created in. `./therrads auth check` lists what the token
-  can actually reach — confirm both before the first `campaign apply`.
+- [ ] **Enable the imported `com.therr.habits` conversion actions in Ads.** A
+  GAQL read on 2026-09-14 shows the GA4 import already happened — 22
+  `com.therr.habits (Android)` conversion actions exist (ids `7586156155`
+  First open, `7586157256` phone_verify_success, `7586157262`
+  connection_invites_sent, `7586157277` profile_create_start, ...) — but **every
+  one is `status: HIDDEN`**, so the App campaign would still optimise against
+  nothing. Ads UI -> Goals -> Conversions -> Settings: un-hide `First open` as
+  the primary goal for run 1, and `phone_verify_success` as secondary. Leave the
+  `app.therrmobile` ones alone; those are the flagship's.
+- [ ] **Import the six habit events as conversion actions once they are key
+  events.** None of `habit_pact_create` / `habit_checkin_complete` /
+  `habits_founder_unlock_purchase` appear in the account's conversion actions,
+  so they are either not yet key events in GA4 or not yet imported. They are
+  flowing (GA4 shows pact and check-in users in the last 14 days on the
+  production build, versionCode 44), so the "not marked" step below is the
+  blocker, not the app.
+- [x] **Set `settings.yaml` -> `customer_id: "7604290203"` and `config.yaml` ->
+  `login_customer_id: "3076709152"`.** Done; both confirmed reachable.
 - [ ] **Mark the six new habits events as key events** in GA4 admin on property
   `267810693`, stream "Friends with Habits": `habit_pact_create`,
   `habit_invite_sent`, `habit_solo_start`, `habit_checkin_complete`,
@@ -518,8 +524,9 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   and this is the whole point of shipping them.
 - [ ] **Create a Google Ads link on GA4 property `549794383`.** The app property
   (`267810693`) has had one since 2022; the consolidated web property has
-  **none**, so the web arm has no path to import a conversion even after
-  `sign_up` is marked. GA4 Admin -> Product links -> Google Ads links.
+  **none** (re-confirmed via the Admin API 2026-09-14), so the web arm has no
+  path to import a conversion even after `sign_up` is marked. GA4 Admin ->
+  Product links -> Google Ads links.
 - [ ] **Mark `sign_up` as a key event** on property `549794383` and import it as
   the web arm's conversion action. `habits.therr.com/register` fires it on a
   successful registration, and the landing page fires `store_click` /
@@ -1623,7 +1630,11 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 
 - [ ] (2026-09-02, /quality-peer-review) **Verify `GET /users-service/habits/checkins/:id/proofs` returns 200 through the deployed gateway, not just the service.** The route shipped unreachable: the users-service handler, its router entry, the `therr-react` service method and the redux action all existed, but the api-gateway names every route it proxies and has no wildcard, so the request 404'd at the edge. Nothing that ran could see the missing hop — there is still no consumer on `general`, so it would have surfaced later as an apparent client bug when the day-sheet UI was built on `niche/HABITS-general`. The gateway entry and a `routeOrdering` regression test asserting it are now in; confirm end-to-end against `stage` with a real check-in id that has `hasProof = true`, since the gateway is the only hop no unit test exercises.
 
-- [ ] (2026-09-02, /quality-peer-review) **The check-in freshness gate is date-basis-mismatched and silently inert for east-of-UTC users — decide whether to fix it at the writer.** `checkinNudgeFreshness` probes `habits.habit_checkins` using `schedule.morningLocalDate` / `lastChanceLocalDate`, which are the user's **local** calendar dates, but `habit_checkins."scheduledDate"` is written as a **UTC** date: `createCheckin` falls back to `getTodayDateString()` (`new Date().toISOString().split('T')[0]`) and no client has ever sent `scheduledDate` in the body. Wherever the UTC date at the delivery instant differs from the user's local date, the probe matches nothing and the gate fails open. The direction is safe — it can never wrongly silence anyone, because a matching row cannot exist yet at delivery time — but the size of the blind spot is the UTC offset: for `America/Chicago` (today's fallback for every user, since nothing writes `settingsTimezone` until the mobile release ships) it is only the ~30 min between 19:00 and the 19:30 last-chance slot, while for `Pacific/Auckland` the 08:00 morning slot lands at 20:00 UTC the previous day and the gate is inert for that slot entirely. So the protection that `checkinNudgeFreshness`'s own docstring calls "what makes deferring a nudge into the evening safe at all" weakens precisely as the timezone feature starts working. Do **not** patch this by probing both dates: a UTC day spans parts of two local days, so the extra probe would let a check-in from the *previous* local day suppress today's nudge, which is the wrong-suppression failure the module deliberately refuses. The real fix is to make `scheduledDate` the user's local date at the writer — which also touches streak computation, `isHabitDueToday` and `pactMemberStats`, all of which key off the same UTC basis — so it is a scoped piece of work, not a one-liner. Until then, read `lastChanceSent` knowing the gate is not doing as much as the design says.
+- [x] ~~(2026-09-02, /quality-peer-review) **The check-in freshness gate is date-basis-mismatched and silently inert for east-of-UTC users — decide whether to fix it at the writer.**~~ Done 2026-09-16, at the writer, as the item recommended: `habit_checkins."scheduledDate"` is now the user's own calendar day (`resolveCheckinHabitDate` in `utilities/dailyStreak.ts`), resolved from `settingsTimezone` → the request's device zone → the service fallback, with a client-sent date **ahead** of that day clamped down to it. The clamp is what carries the fix to installed app versions, which still stamp the UTC day. The user-visible symptom that prompted it was not the nudge gate at all: a 19:00 check-in in Chicago was written under tomorrow's date and drawn on tomorrow's cell in the calendar, which builds its grid from local components. Coupled readers moved with it — `getTodayCheckins`, the `useGraceDay` history date, the journal `entryDate` fallback, and `pactMemberStats`, which now asks "checked in today?" once per member in that member's own zone (`getCompletedOnDateForPairs` takes a date per pair). `isHabitDueToday` and the digest's other batch reads did **not** move; see the new item below. Original diagnosis, kept because it is the clearest statement of the failure: `checkinNudgeFreshness` probes
+
+- [ ] (2026-09-16) **Give the habits digest a per-user local day, not one UTC day for the whole run.** The writer fix above made a habit day the user's own calendar day, but `handlers/habitsDigest.ts` still derives one `today = getTodayDateString()` (UTC) and asks it of every user: `getActiveForReminders(today)` computes `completedToday` in SQL from it, the pact loop's `getByUserAndDate(member.userId, today, …)` reads it, and `isHabitDueToday(habit, today)` picks the weekday from it. The digest fires at 09:00 `America/Chicago` (14:00–15:00 UTC), where UTC's date and the user's agree for everyone west of about UTC+11 — so this is not a regression and the writer fix strictly improved it (an evening check-in stamped with tomorrow's UTC date used to make the next morning's reminder think the user had already shown up). For UTC+11 and east the digest reasons about the user's yesterday, which is the same blind spot the freshness gate had. The work is not a one-liner: `getActiveForReminders` needs to take a date per user (the same shape `getCompletedOnDateForPairs` now has), and `isHabitDueToday`'s `targetDaysOfWeek` branch has to read the weekday of the user's day. `getPactStatsWindow` is deliberately left on the service fallback zone rather than made per-user — a pact is a group and has no single member's zone. That group-vs-member split is worth a product decision too: a cross-zone pact's members can now credit adjacent days for the same real 24 hours, where the UTC basis forced them onto one day (wrongly, for the westerner).
+
+  Original diagnosis: `checkinNudgeFreshness` probes `habits.habit_checkins` using `schedule.morningLocalDate` / `lastChanceLocalDate`, which are the user's **local** calendar dates, but `habit_checkins."scheduledDate"` is written as a **UTC** date: `createCheckin` falls back to `getTodayDateString()` (`new Date().toISOString().split('T')[0]`) and no client has ever sent `scheduledDate` in the body. Wherever the UTC date at the delivery instant differs from the user's local date, the probe matches nothing and the gate fails open. The direction is safe — it can never wrongly silence anyone, because a matching row cannot exist yet at delivery time — but the size of the blind spot is the UTC offset: for `America/Chicago` (today's fallback for every user, since nothing writes `settingsTimezone` until the mobile release ships) it is only the ~30 min between 19:00 and the 19:30 last-chance slot, while for `Pacific/Auckland` the 08:00 morning slot lands at 20:00 UTC the previous day and the gate is inert for that slot entirely. So the protection that `checkinNudgeFreshness`'s own docstring calls "what makes deferring a nudge into the evening safe at all" weakens precisely as the timezone feature starts working. Do **not** patch this by probing both dates: a UTC day spans parts of two local days, so the extra probe would let a check-in from the *previous* local day suppress today's nudge, which is the wrong-suppression failure the module deliberately refuses. The real fix is to make `scheduledDate` the user's local date at the writer — which also touches streak computation, `isHabitDueToday` and `pactMemberStats`, all of which key off the same UTC basis — so it is a scoped piece of work, not a one-liner. Until then, read `lastChanceSent` knowing the gate is not doing as much as the design says.
 
 - [ ] (2026-09-06, /quality-peer-review) **`20260905000000_main.medias_gin_indexes` builds its three GIN indexes with a plain `CREATE INDEX`, which locks the tables it builds on.** Not `CONCURRENTLY`, so each statement takes an `ACCESS EXCLUSIVE` lock on `main."moments"` / `"spaces"` / `"events"` and blocks *reads as well as writes* on that table until the index finishes — the map and nearby feed stall for the duration, not just posting. This is correct-but-blocking rather than wrong: `IF NOT EXISTS` makes it re-runnable, and on today's row counts the build is likely seconds. Check `SELECT pg_size_pretty(pg_total_relation_size('main.moments'))` before the `main` deploy and, if it is large enough to matter, either run the three statements by hand in a low-traffic window ahead of the rollout (the migration then no-ops) or split them into a `CONCURRENTLY` migration — which needs `exports.config = { transaction: false }`, since knex wraps each migration in a transaction and `CREATE INDEX CONCURRENTLY` cannot run inside one. Do **not** skip the indexes: `createMediaUrls` now runs a `medias @> …` containment probe per unowned private path, and unindexed that is a sequential scan on every nearby-feed render carrying one.
 

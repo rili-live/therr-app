@@ -9,6 +9,7 @@ import {
     isDailyStreakMilestone,
     isWeekPerfectThrough,
     pickFreezeSource,
+    resolveCheckinHabitDate,
     resolveCheckinLocalDate,
     resolveCheckinTimeZone,
     walkDailyStreakDays,
@@ -74,10 +75,64 @@ describe('Daily streak — date helpers', () => {
     });
 });
 
+describe('Habit day resolution — resolveCheckinHabitDate', () => {
+    /**
+     * The reported bug, pinned. 19:00 on Sep 15 in Chicago is 00:00 on Sep 16 in UTC, and the
+     * habit day has to be the 15th: the user is looking at a calendar built from their own
+     * local components, and a check-in that lands on tomorrow's cell is the whole complaint.
+     */
+    it('credits an evening check-in to the user\'s day, not the UTC day', () => {
+        const at = new Date('2026-09-16T00:00:00.000Z'); // 19:00 on Sep 15 in Chicago (CDT, -5)
+        expect(resolveCheckinHabitDate({ timeZone: TZ_CHICAGO, now: at })).to.equal('2026-09-15');
+    });
+
+    /**
+     * The backwards-compatibility clamp. Installed app versions stamp `scheduledDate` with the
+     * UTC day, which is ahead of the user's day for exactly those evening hours — so the fix
+     * has to land server-side to reach them, not only in the next store release.
+     */
+    it('clamps a UTC-stamped scheduledDate from a legacy client down to the user\'s today', () => {
+        const at = new Date('2026-09-16T00:00:00.000Z');
+        expect(resolveCheckinHabitDate({
+            requestedDate: '2026-09-16', timeZone: TZ_CHICAGO, now: at,
+        })).to.equal('2026-09-15');
+    });
+
+    it('honours a backdated request — logging a missed day still works', () => {
+        const at = new Date('2026-09-16T00:00:00.000Z');
+        expect(resolveCheckinHabitDate({
+            requestedDate: '2026-09-10', timeZone: TZ_CHICAGO, now: at,
+        })).to.equal('2026-09-10');
+    });
+
+    it('pulls a skewed or hand-made future date back to today', () => {
+        const at = new Date('2026-09-16T00:00:00.000Z');
+        expect(resolveCheckinHabitDate({
+            requestedDate: '2027-01-01', timeZone: TZ_CHICAGO, now: at,
+        })).to.equal('2026-09-15');
+    });
+
+    it('ignores a malformed date rather than writing it', () => {
+        const at = new Date('2026-09-16T00:00:00.000Z');
+        expect(resolveCheckinHabitDate({
+            requestedDate: 'yesterday', timeZone: TZ_CHICAGO, now: at,
+        })).to.equal('2026-09-15');
+        expect(resolveCheckinHabitDate({
+            requestedDate: null, timeZone: TZ_CHICAGO, now: at,
+        })).to.equal('2026-09-15');
+    });
+
+    it('gives a user east of UTC their own day too', () => {
+        // 08:00 on Sep 16 in Tokyo, while UTC is still Sep 15.
+        const at = new Date('2026-09-15T23:00:00.000Z');
+        expect(resolveCheckinHabitDate({ timeZone: 'Asia/Tokyo', now: at })).to.equal('2026-09-16');
+    });
+});
+
 describe('Daily streak — local day resolution', () => {
     // Case 6 from the brief: a check-in at 23:50 local on Sep 12 in America/Chicago belongs to
-    // Sep 12, even though it is already Sep 13 in UTC — which is the day the client stamps on
-    // `scheduledDate`.
+    // Sep 12, even though it is already Sep 13 in UTC — which is the day a legacy client
+    // stamps on `scheduledDate`.
     it('keeps a late-evening check-in on the user\'s own day, not the UTC day', () => {
         const at = new Date('2026-09-13T04:50:00.000Z'); // 23:50 on Sep 12 in Chicago (CDT, -5)
         expect(getLocalDate(TZ_CHICAGO, at)).to.equal('2026-09-12');
@@ -95,6 +150,26 @@ describe('Daily streak — local day resolution', () => {
             timeZone: TZ_CHICAGO,
             now: at,
         })).to.equal('2026-09-12');
+    });
+
+    /**
+     * The regression the habit-day change could have introduced. With `scheduledDate` now
+     * resolved in the user's zone, measuring how far it is backdated against the *UTC* day
+     * counts the zone offset twice and files an evening check-in under yesterday.
+     */
+    it('measures backdating against the user\'s today, not UTC\'s', () => {
+        const at = new Date('2026-09-16T00:00:00.000Z'); // 19:00 on Sep 15 in Chicago
+        expect(resolveCheckinLocalDate({
+            scheduledDate: '2026-09-15',
+            timeZone: TZ_CHICAGO,
+            now: at,
+        })).to.equal('2026-09-15');
+        // And a genuinely backdated one still shifts.
+        expect(resolveCheckinLocalDate({
+            scheduledDate: '2026-09-14',
+            timeZone: TZ_CHICAGO,
+            now: at,
+        })).to.equal('2026-09-14');
     });
 
     it('honours an explicit localDate for today and yesterday only', () => {
