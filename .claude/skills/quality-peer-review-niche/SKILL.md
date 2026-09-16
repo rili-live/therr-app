@@ -736,7 +736,9 @@ Output a structured summary:
 
 ### Manual Steps Required After This Review
   - Merge to trigger the Android Play build (only after backend deps ship):
-      git checkout niche/<TAG>-main && git merge niche/<TAG>-general && git push origin niche/<TAG>-main
+      git checkout niche/<TAG>-main && git merge --no-ff niche/<TAG>-general && git push origin niche/<TAG>-main
+      (--no-ff is required: the EAS gate diffs HEAD^1..HEAD, and a fast-forward makes HEAD^1 the
+       niche-general line rather than the previous -main tip — see docs/SECRETS_AND_LOCAL_BOOTSTRAP.md § 7)
   - Push general (after reviewing cherry-picked commits):
       git checkout general && git push origin general
   - Commit any uncommitted backend changes left on general's working tree
