@@ -241,9 +241,19 @@ only needs `eas-cli` installed — no local Android SDK required.
    from `niche/HABITS-general`:
    ```bash
    git checkout niche/HABITS-main && git pull --ff-only
-   git merge niche/HABITS-general
+   git merge --no-ff niche/HABITS-general
    git push origin niche/HABITS-main   # this push triggers habits_mobile_release
    ```
+   `--no-ff` is load-bearing. The `eas_build_habits_android` gate diffs
+   `HEAD^1..HEAD` and assumes `HEAD^1` is the previous `-main` tip. A
+   fast-forward lands `-main` on whatever `niche/HABITS-general`'s tip commit
+   is — usually a `general → niche` merge whose first parent is the niche line
+   — so the gate sees only that last merge's delta (often a docs change) and
+   skips the build with "No TherrMobile/ or therr-public-library/ changes".
+   If that already happened, recover without a force-push: `git reset --hard
+   <old -main tip>`, `git merge --no-ff niche/HABITS-general`, push. The
+   pushed tip stays reachable as the second parent, so the push is still a
+   fast-forward for the remote.
    Do **not** push `niche/HABITS-main` until steps 1–6 are complete — the
    pushed build/submit will fail at auth without `EXPO_TOKEN` and the EAS
    secrets in place.
