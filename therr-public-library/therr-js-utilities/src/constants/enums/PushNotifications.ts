@@ -68,6 +68,20 @@ export enum Types {
     // mechanic must announce itself.
     streakFreezeUsed = 'streak-freeze-used',
 
+    // HABITS: Weekly recap
+    //
+    // The one retrospective notification in the set. Everything else here is
+    // about today — a nudge, a streak at risk, a milestone just crossed — and
+    // fires on the day it is about. This one fires on the user's local Monday
+    // and is about the week that just closed, which is why its dedupe key is
+    // stamped with the *week start*, not the send date.
+    //
+    // It is only sent to someone who actually did something in that week (see
+    // the digest's recap pass). A recap reading "0 check-ins" is a report card
+    // nobody asked for; the comeback path (`habitComeback`) already owns the
+    // lapsed user, and it says something more useful.
+    weeklyRecap = 'weekly-recap',
+
     // HABITS: Reminders
     dailyHabitReminder = 'daily-habit-reminder',
     morningMotivation = 'morning-motivation',
@@ -114,6 +128,12 @@ export enum PressActionIds {
     pactRenew = 'renew-pact',
     checkinView = 'view-checkin',
     streakView = 'view-streak',
+    // Opens the weekly recap for one specific week. Like `pactRenew` this names
+    // a destination that only makes sense with an argument: the payload that
+    // carries it must also carry `weekStartDate` (the Monday of the week being
+    // recapped), or the screen falls back to the most recently closed week —
+    // which is the wrong week for anyone who taps the notification late.
+    weeklyRecapView = 'view-weekly-recap',
     // Completes a check-in from the notification itself, without opening the
     // app. Unlike every other id here it names a *mutation*, so the payload
     // that carries it must also carry an unambiguous `habitGoalId` — a nudge
@@ -165,7 +185,8 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'NEW_PERSONAL_RECORD'
 | 'DAILY_HABIT_REMINDER'
 | 'MORNING_MOTIVATION'
-| 'EVENING_CHECK_IN';
+| 'EVENING_CHECK_IN'
+| 'WEEKLY_RECAP';
 
 enum TeemAndroidIntentActions {
     ACHIEVEMENT_COMPLETED = 'com.therr.mobile.ACHIEVEMENT_COMPLETED',
@@ -264,6 +285,13 @@ enum HabitsAndroidIntentActions {
     DAILY_HABIT_REMINDER = 'com.therr.mobile.habits.DAILY_HABIT_REMINDER',
     MORNING_MOTIVATION = 'com.therr.mobile.habits.MORNING_MOTIVATION',
     EVENING_CHECK_IN = 'com.therr.mobile.habits.EVENING_CHECK_IN',
+    // Declared in niche/HABITS-general's AndroidManifest.xml in the same change
+    // that adds the WeeklyRecap screen. Until that build reaches Play, an
+    // installed app receives the push (it is data-only, so Notifee renders it)
+    // but cannot resolve this action string — the tap falls through to the
+    // type-based route table in Layout.tsx, which also only exists in that
+    // build. Ship the mobile half first; see docs/FEATURES.md.
+    WEEKLY_RECAP = 'com.therr.mobile.habits.WEEKLY_RECAP',
 }
 
 export interface INotificationData {
