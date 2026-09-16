@@ -131,6 +131,7 @@
         "yearsSinceDate": "{count}a",
         "justNow": "Ahora",
         "minutesSinceDate": "{count} min",
+            "monthDayYear": "{day} de {month} de {year}",
         "months": {
             "january": "Enero",
             "february": "Febrero",
@@ -2110,6 +2111,7 @@
                 "monthly": "{count} veces al mes",
                 "perPeriod": "{count} veces por {period}"
             },
+            "calendarMonthYear": "{month} de {year}",
             "daysOfWeekShort": {
                 "sun": "Dom",
                 "mon": "Lun",
