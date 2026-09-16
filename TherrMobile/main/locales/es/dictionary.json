@@ -131,6 +131,7 @@
         "yearsSinceDate": "{count}a",
         "justNow": "Ahora",
         "minutesSinceDate": "{count} min",
+            "monthDayYear": "{day} de {month} de {year}",
         "months": {
             "january": "Enero",
             "february": "Febrero",
@@ -2110,6 +2111,7 @@
                 "monthly": "{count} veces al mes",
                 "perPeriod": "{count} veces por {period}"
             },
+            "calendarMonthYear": "{month} de {year}",
             "daysOfWeekShort": {
                 "sun": "Dom",
                 "mon": "Lun",
@@ -2125,13 +2127,15 @@
                 "nextMilestone": "Próximo hito: {days} días",
                 "graceDaysRemaining": "Te queda(n) {count} congelamiento(s) de racha — si fallas un día, uno te cubre automáticamente.",
                 "nextMilestoneCompact": "próx. {days} d",
-                "graceDaysCompact": "{count} congelamiento",
                 "freezeRule": "Si fallas un día, un congelamiento de racha lo cubre — empiezas con {starting} y ganas otro cada {interval} días, hasta {max}.",
-                "graceDaysExhausted": "No te quedan congelamientos de racha — el próximo día que falles reinicia la racha. Ganarás uno en tu próximo hito de 7 días."
+                "graceDaysExhausted": "No te quedan congelamientos de racha — el próximo día que falles reinicia la racha. Ganarás uno en tu próximo hito de 7 días.",
+                "freezesLabel": "Congelamientos de racha {remaining}/{total}",
+                "freezePipsAccessibility": "Quedan {remaining} de {total} congelamientos de racha"
             },
             "tabs": {
                 "habits": "Hábitos"
-            }
+            },
+            "loadingList": "Cargando tus hábitos…"
         },
         "pacts": {
             "headerTitle": "Mis pactos",
@@ -2459,7 +2463,8 @@
             "pageHeader": "Mis Hábitos",
             "buttons": {
                 "viewPactStatus": "Ver estado del pacto →",
-                "createHabit": "Crear un hábito"
+                "createHabit": "Crear un hábito",
+                "viewWeeklyRecap": "Ver el resumen de la semana pasada"
             },
             "labels": {
                 "invitedTimeAgo": "Invitado hace {timeAgo}",
@@ -2468,6 +2473,44 @@
             },
             "messages": {
                 "noHabits": "Aún no hay hábitos activos. ¡Empieza creando un hábito para construir tu racha!"
+            }
+        },
+        "weeklyRecap": {
+            "loading": "Reuniendo tu semana",
+            "dayInitials": "L,M,X,J,V,S,D",
+            "headlines": {
+                "perfectWeek": "Una semana perfecta.",
+                "firstWeek": "Tu primera semana ya cuenta.",
+                "improved": "Una semana más fuerte que la anterior.",
+                "steady": "Semana constante.",
+                "declined": "Una semana más tranquila."
+            },
+            "sections": {
+                "days": "Día a día",
+                "totals": "Los números",
+                "habits": "Por hábito"
+            },
+            "stats": {
+                "checkins": "Registros",
+                "daysUpheld": "Días cumplidos",
+                "streak": "Racha"
+            },
+            "dayStatus": {
+                "upheld": "{date}: cumplido con {checkinCount} registros",
+                "frozen": "{date}: cubierto por un congelamiento de racha",
+                "missed": "{date}: sin cumplir"
+            },
+            "deltaUp": "+{count} frente a la semana pasada",
+            "deltaDown": "-{count} frente a la semana pasada",
+            "messages": {
+                "noCheckins": "Ningún registro esta semana.",
+                "noRecap": "Todavía no hay nada que resumir de esta semana.",
+                "loadFailed": "No pudimos cargar tu resumen. Desliza hacia abajo para reintentar.",
+                "deletedHabit": "Hábito eliminado"
+            },
+            "buttons": {
+                "previousWeek": "Semana anterior",
+                "nextWeek": "Semana siguiente"
             }
         },
         "journal": {
@@ -2503,7 +2546,8 @@
             "errors": {
                 "loadFailed": "No pudimos cargar tu diario.",
                 "saveFailed": "No pudimos guardar esa entrada."
-            }
+            },
+            "loadingList": "Cargando tu diario…"
         },
         "upgrade": {
             "title": "Gratis de por vida",

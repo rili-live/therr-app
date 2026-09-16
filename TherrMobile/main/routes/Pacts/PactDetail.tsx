@@ -29,6 +29,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import { buildStyles as buildModalStyles } from '../../styles/modal/confirmModal';
+import { formatCalendarDate } from '../../utilities/formatCalendarDate';
 
 interface IPactDetailDispatchProps {
     getPactDetails: Function;
@@ -662,7 +663,14 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                     {this.translate('pages.pacts.timeline')}
                 </Text>
                 <Text style={this.themeHabits.styles.habitCardSubtitle}>
-                    {new Date(pact.startDate).toLocaleDateString()} - {new Date(pact.endDate).toLocaleDateString()}
+                    {/*
+                      * Was `toLocaleDateString()` with no locale, i.e. the *device's* locale
+                      * — so this one line ignored the app language every other string on the
+                      * screen honours. See utilities/formatCalendarDate.
+                      */}
+                    {formatCalendarDate(pact.startDate, this.translate)}
+                    {' - '}
+                    {formatCalendarDate(pact.endDate, this.translate)}
                 </Text>
                 {timeline && (
                     <>

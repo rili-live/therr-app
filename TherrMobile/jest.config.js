@@ -33,6 +33,12 @@ module.exports = {
         '^react-native-iap$': '<rootDir>/__mocks__/react-native-iap.ts',
         // The JSI peer behind react-native-iap; installs bindings at import time.
         '^react-native-nitro-modules$': '<rootDir>/__mocks__/react-native-nitro-modules.ts',
+        // Its worklets runtime installs JSI bindings at import time, so importing it at all
+        // throws under Jest — which now reaches any suite importing `components/Habits`, since
+        // the list loader renders the animated chameleon. Reanimated's own `mock` entry point
+        // is no help on v4: it re-exports from the package's `src/index` and so initialises the
+        // runtime it stands in for.
+        '^react-native-reanimated$': '<rootDir>/__mocks__/react-native-reanimated.tsx',
         '^pretty-format$': '<rootDir>/../node_modules/pretty-format',
     },
     moduleDirectories: ['<rootDir>/node_modules', '<rootDir>../node_modules'],

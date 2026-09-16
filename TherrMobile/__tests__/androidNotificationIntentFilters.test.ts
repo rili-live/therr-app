@@ -83,6 +83,7 @@ const HABITS_INTENT_ACTION_KEYS = [
     'DAILY_HABIT_REMINDER',
     'MORNING_MOTIVATION',
     'EVENING_CHECK_IN',
+    'WEEKLY_RECAP',
 ];
 
 const declaredActions = new Set(

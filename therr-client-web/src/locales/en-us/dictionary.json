@@ -48,6 +48,18 @@
     "daysAgo": "{count}d"
   },
   "components": {
+    "iosWaitlistModal": {
+      "buttonLabel": "Coming soon to iPhone — join the waitlist",
+      "title": "Therr for iPhone is on the way",
+      "body": "We haven't published an iPhone app yet. Therr is on Android today, and every click on this button tells us how many people are waiting on iOS — so thanks for the nudge.",
+      "prompt": "Want an email the day it lands on the App Store? (Optional)",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Notify me",
+      "success": "You're on the list. We'll email you when the iPhone app is live.",
+      "androidNote": "We'll only email you about the iPhone launch and occasional product news. Unsubscribe any time.",
+      "errorRequired": "Enter an email address, or just close this window.",
+      "errorGeneric": "We couldn't save that address. Please try again in a moment."
+    },
     "incompleteProfileBanner": {
       "title": "Complete your profile",
       "message": "Add your name so friends can recognize you",

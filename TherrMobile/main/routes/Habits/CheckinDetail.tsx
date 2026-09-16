@@ -15,6 +15,7 @@ import celebrationQueue from '../../utilities/celebrationQueue';
 import uploadCheckinProofImage, { ISelectedProofImage } from '../../utilities/checkinProofUpload';
 import getConfig from '../../utilities/getConfig';
 import { logAppEvent } from '../../utilities/analyticsEvents';
+import { toLocalDateKey } from '../../utilities/localDateKey';
 import { showToast } from '../../utilities/toasts';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
@@ -127,10 +128,12 @@ export const CheckinDetail = ({
 
         setIsSubmitting(true);
 
-        // `scheduledDate` stays on the UTC calendar day: users-service defines a habit day in
-        // UTC. `timeZone` is separate and is what the app-level daily streak keys its own day
-        // off — see resolveCheckinLocalDate in the service.
-        const scheduledDate = new Date().toISOString().split('T')[0];
+        // The user's own calendar day, via `toLocalDateKey` — a habit day is the user's day,
+        // not UTC's, and this screen has to stamp the same one the dashboard's one-tap
+        // check-in does or a note added minutes later lands on a different row. `timeZone`
+        // still travels so the service can resolve the day itself for a client that sends
+        // no date; see resolveCheckinHabitDate in the service.
+        const scheduledDate = toLocalDateKey(new Date());
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         const uploadPromise = image
@@ -141,6 +144,7 @@ export const CheckinDetail = ({
             .then((proofMedias) => createCheckin({
                 habitGoalId,
                 scheduledDate,
+                localDate: scheduledDate,
                 timeZone,
                 status: 'completed',
                 notes: trimmedNotes.length ? trimmedNotes : undefined,

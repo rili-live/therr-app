@@ -18,6 +18,7 @@ import spacingStyles from '../../styles/layouts/spacing';
 import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
+import { HabitsListLoader } from '../../components/Habits';
 import { RefreshControl } from 'react-native-gesture-handler';
 import { hoursDaysOrYearsSince } from '../../utilities/formatDate';
 
@@ -38,6 +39,12 @@ export interface IMyHabitsProps extends IStoreProps {
 
 interface IMyHabitsState {
     isLoading: boolean;
+    /**
+     * Whether the first fetch has settled. Distinct from `isLoading`, which is also true during
+     * a pull-to-refresh — where the empty state should stay put rather than flicker back to a
+     * loader under the user's finger.
+     */
+    hasFetched: boolean;
 }
 
 const mapStateToProps = (state) => ({
@@ -61,6 +68,7 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
 
         this.state = {
             isLoading: false,
+            hasFetched: false,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -81,7 +89,7 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
             getUserGoals(),
             getUserPacts(),
         ]).finally(() => {
-            this.setState({ isLoading: false });
+            this.setState({ isLoading: false, hasFetched: true });
         });
     };
 
@@ -203,7 +211,7 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
 
     render() {
         const { habits, navigation, user } = this.props;
-        const { isLoading } = this.state;
+        const { isLoading, hasFetched } = this.state;
 
         const habitGoals = habits.habitGoals || [];
 
@@ -223,9 +231,43 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
                             {this.translate('pages.myHabits.pageHeader')}
                         </Text>
 
-                        {habitGoals.length === 0 && !isLoading
-                            ? this.renderEmptyState()
-                            : habitGoals.map(this.renderHabitCard)
+                        {/*
+                          * The recap's in-app entry point. Without one the screen is reachable
+                          * only by tapping the Monday notification, so a user who swipes that
+                          * away — or who has push turned off entirely — can never see their
+                          * week at all.
+                          */}
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={this.translate('pages.myHabits.buttons.viewWeeklyRecap')}
+                            style={({ pressed }) => [
+                                this.themeHabits.styles.myHabitsPactsLink,
+                                pressed && this.themeHabits.styles.pressedOpacity,
+                            ]}
+                            onPress={() => this.props.navigation.navigate('WeeklyRecap')}
+                        >
+                            <Text style={this.themeHabits.styles.myHabitsTextActionLabel}>
+                                {this.translate('pages.myHabits.buttons.viewWeeklyRecap')}
+                            </Text>
+                        </Pressable>
+
+                        {/*
+                          * Three states, not two. Before, an empty list on a cold open rendered
+                          * nothing at all until the fetch settled — a blank page under the
+                          * heading with no sign anything was happening — and the goals list on
+                          * the dashboard went further and showed its "no habits yet" onboarding
+                          * card. A list that has not loaded is not an empty list.
+                          */}
+                        {!hasFetched
+                            ? (
+                                <HabitsListLoader
+                                    label={this.translate('pages.habits.loadingList')}
+                                    theme={this.themeHabits}
+                                />
+                            )
+                            : habitGoals.length === 0
+                                ? this.renderEmptyState()
+                                : habitGoals.map(this.renderHabitCard)
                         }
 
                         {/* Link to the Pacts screen's "Sent" tab */}

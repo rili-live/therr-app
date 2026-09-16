@@ -11,9 +11,15 @@ const pad = (value: number): string => String(value).padStart(2, '0');
  * user in Europe, Asia and Australia. Checkins rendered a day early and the
  * "today" highlight landed on the wrong cell.
  *
- * Use this whenever the Date was constructed from local fields. For "today as
- * the server counts it", keep using the UTC form — the users-service defines a
- * habit day in UTC (`getTodayDateString` in `utilities/streakHelpers.ts`).
+ * Use this for **every** habit date, read and write, including "today". There
+ * is no second, UTC-flavoured today to keep track of: a habit day is the user's
+ * own calendar day, resolved from their zone (`resolveCheckinHabitDate` in the
+ * users-service), and a client-sent date ahead of it is clamped back down.
+ *
+ * It was UTC once, and this comment used to carve out writes for that — which
+ * is exactly how a 19:00 check-in came to be written under tomorrow's date and
+ * drawn on tomorrow's cell, in the same file that explains why the grid cannot
+ * use UTC.
  */
 export const toLocalDateKey = (date: Date): string => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 

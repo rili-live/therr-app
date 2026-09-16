@@ -176,6 +176,12 @@ const REWARD_ACTION_KEYS = new Set<string>([
     'STREAK_MILESTONE',
     'NEW_PERSONAL_RECORD',
     'LEADERBOARD_RANK_MILESTONE',
+    // The weekly recap belongs with the milestones, not with the reminders: it
+    // is a summary of something already achieved, and "Reminders" is the wrong
+    // switch for a user who wants recaps but not nudges. Left unbucketed it
+    // falls through to "General" at DEFAULT importance, which is the silent
+    // failure this whole classification exists to prevent.
+    'WEEKLY_RECAP',
 ]);
 
 // HABITS — "Friend Activity" channel. Partner/pact state changes: worth

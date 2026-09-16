@@ -65,6 +65,7 @@ jest.mock('react-native-permissions', () => ({
 // native modules at import time.
 import { HabitsDashboard } from '../../main/routes/Habits/Dashboard';
 import celebrationQueue from '../../main/utilities/celebrationQueue';
+import { toLocalDateKey } from '../../main/utilities/localDateKey';
 
 // The toast types registered in App.tsx's `toastConfig`. A `Toast.show` with a
 // type outside this set renders nothing at all.
@@ -144,19 +145,65 @@ describe('habits dashboard one-tap check-in', () => {
         await flushPromises();
 
         const body: any = createCheckin.mock.calls[0][0];
-        // `scheduledDate` stays UTC (the habit day); `timeZone` is what the app-level daily
-        // streak resolves its local day from, and the two are deliberately different things.
+        // Still sent now that the client names the day itself: it is what the service resolves
+        // the day from when a client sends none, and what it clamps a stale client against.
         expect(body.timeZone).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
     });
 
-    it('keys the write to the UTC calendar day the users-service counts habits in', async () => {
+    /**
+     * The read half of the same day. The write sends the device zone; the dashboard's "checked
+     * in today" read went without one, so for an account with no saved `settingsTimezone` the
+     * service answered in its fallback zone and the check-in just written could fall outside
+     * the day the list was asking about. Built without the harness's `handleRefresh` stub
+     * because the stub is the thing under test.
+     */
+    it('reads today\'s check-ins in the device zone, the same zone the write stamps', async () => {
+        const getTodayCheckins = jest.fn(() => Promise.resolve()) as any;
+        const props: any = {
+            user: { settings: {}, details: { id: 'me' } },
+            habits: {
+                habitGoals: [HABIT], todayCheckins: [], streaks: [], pacts: [], activePacts: [], pendingInvites: [],
+            },
+            navigation: { navigate: jest.fn(), addListener: jest.fn() },
+            route: { params: {} },
+            createCheckin: jest.fn(),
+            getActiveStreaks: jest.fn(() => Promise.resolve([])),
+            getUserGoals: jest.fn(() => Promise.resolve()),
+            getTodayCheckins,
+            getActivePacts: jest.fn(() => Promise.resolve()),
+            getUserPacts: jest.fn(() => Promise.resolve()),
+            getPendingInvites: jest.fn(() => Promise.resolve()),
+            getUserHabitEligibility: jest.fn(() => Promise.resolve()),
+            getUserHabits: jest.fn(() => Promise.resolve()),
+        };
+        const instance = new HabitsDashboard(props);
+        instance.setState = jest.fn() as any;
+
+        instance.handleRefresh();
+        await flushPromises();
+
+        expect(getTodayCheckins).toHaveBeenCalledWith(undefined, Intl.DateTimeFormat().resolvedOptions().timeZone);
+    });
+
+    /**
+     * The reported bug, from the client side. The write used `toISOString()` — the UTC day,
+     * which is already *tomorrow* for the whole evening west of UTC — while the calendar grid
+     * keys its cells with `toLocalDateKey`. A 19:00 check-in in Chicago was therefore written
+     * under the 16th and drawn on the 16th's cell, with the user looking at the 15th.
+     *
+     * Asserting against `toLocalDateKey` rather than a literal is the point: it is the same
+     * function `HabitCalendar` renders from, so this fails the moment the two diverge again.
+     */
+    it('keys the write to the user\'s own calendar day, the one the grid renders', async () => {
         const { instance, createCheckin } = buildInstance();
 
         instance.handleCheckin(HABIT);
         await flushPromises();
 
         const body: any = createCheckin.mock.calls[0][0];
-        expect(body.scheduledDate).toBe(new Date().toISOString().split('T')[0]);
+        expect(body.scheduledDate).toBe(toLocalDateKey(new Date()));
+        // Both dates the service stores resolve to the same local day.
+        expect(body.localDate).toBe(body.scheduledDate);
     });
 
     it('confirms with an actionable toast that opens the check-in detail screen', async () => {

@@ -64,6 +64,10 @@ https://www.googleapis.com/auth/playdeveloperreporting,\
 https://www.googleapis.com/auth/androidpublisher
 ```
 
+(Do not add `analytics.readonly` here for `scripts/google-ads` — Google blocks
+gcloud's OAuth client from that scope with "This app is blocked". That tool
+reads GA4 through `settings.yaml` → `ga4.credentials_file` instead.)
+
 ```bash
 gcloud services enable playdeveloperreporting.googleapis.com \
   androidpublisher.googleapis.com --project therr-app

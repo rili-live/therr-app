@@ -131,6 +131,7 @@
         "yearsSinceDate": "{count}y",
         "justNow": "Now",
         "minutesSinceDate": "{count}m",
+            "monthDayYear": "{month} {day}, {year}",
         "months": {
             "january": "January",
             "february": "February",
@@ -2110,6 +2111,7 @@
                 "monthly": "{count}x per month",
                 "perPeriod": "{count}x per {period}"
             },
+            "calendarMonthYear": "{month} {year}",
             "daysOfWeekShort": {
                 "sun": "Sun",
                 "mon": "Mon",
@@ -2125,13 +2127,15 @@
                 "nextMilestone": "Next milestone: {days} days",
                 "graceDaysRemaining": "{count} streak freeze(s) left — miss a day and one covers you automatically.",
                 "nextMilestoneCompact": "next {days}d",
-                "graceDaysCompact": "{count} freeze",
                 "freezeRule": "Miss a day and a streak freeze covers it — you start with {starting} and earn another every {interval} days, up to {max}.",
-                "graceDaysExhausted": "No streak freezes left — the next missed day resets the streak. You earn one back at your next 7-day milestone."
+                "graceDaysExhausted": "No streak freezes left — the next missed day resets the streak. You earn one back at your next 7-day milestone.",
+                "freezesLabel": "Streak freezes {remaining}/{total}",
+                "freezePipsAccessibility": "{remaining} of {total} streak freezes remaining"
             },
             "tabs": {
                 "habits": "Habits"
-            }
+            },
+            "loadingList": "Loading your habits…"
         },
         "pacts": {
             "headerTitle": "My Pacts",
@@ -2459,7 +2463,8 @@
             "pageHeader": "My Habits",
             "buttons": {
                 "viewPactStatus": "View Pact Status →",
-                "createHabit": "Create a Habit"
+                "createHabit": "Create a Habit",
+                "viewWeeklyRecap": "See last week’s recap"
             },
             "labels": {
                 "invitedTimeAgo": "Invited {timeAgo}",
@@ -2468,6 +2473,44 @@
             },
             "messages": {
                 "noHabits": "No active habits yet. Start by creating a habit to build your streak!"
+            }
+        },
+        "weeklyRecap": {
+            "loading": "Pulling your week together",
+            "dayInitials": "M,T,W,T,F,S,S",
+            "headlines": {
+                "perfectWeek": "A perfect week.",
+                "firstWeek": "Your first week is on the board.",
+                "improved": "A stronger week than the last one.",
+                "steady": "Steady week.",
+                "declined": "A quieter week."
+            },
+            "sections": {
+                "days": "Day by day",
+                "totals": "The numbers",
+                "habits": "By habit"
+            },
+            "stats": {
+                "checkins": "Check-ins",
+                "daysUpheld": "Days upheld",
+                "streak": "Streak"
+            },
+            "dayStatus": {
+                "upheld": "{date}: upheld with {checkinCount} check-ins",
+                "frozen": "{date}: covered by a streak freeze",
+                "missed": "{date}: missed"
+            },
+            "deltaUp": "+{count} vs last week",
+            "deltaDown": "-{count} vs last week",
+            "messages": {
+                "noCheckins": "No check-ins this week.",
+                "noRecap": "There's nothing to recap for this week yet.",
+                "loadFailed": "We couldn't load your recap. Pull down to try again.",
+                "deletedHabit": "Deleted habit"
+            },
+            "buttons": {
+                "previousWeek": "Earlier week",
+                "nextWeek": "Later week"
             }
         },
         "journal": {
@@ -2503,7 +2546,8 @@
             "errors": {
                 "loadFailed": "We could not load your journal.",
                 "saveFailed": "We could not save that entry."
-            }
+            },
+            "loadingList": "Loading your journal…"
         },
         "upgrade": {
             "title": "Free for life",

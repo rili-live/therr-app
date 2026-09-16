@@ -7,9 +7,36 @@ import { space } from '../layouts/spacing';
 import { radius } from '../radii';
 import { shadowMd, shadowSm } from '../elevation';
 import { buttonMenuHeight } from '../navigation/buttonMenu';
-import { getTheme, ITherrTheme } from '../themes';
+import { getTheme, isDarkTheme, ITherrTheme } from '../themes';
 
 const tint = (color: string, alpha: number) => new Color(color).alpha(alpha).string();
+
+/**
+ * Colours for the streak progress bar, picked as a *pair* for contrast against each other
+ * rather than taken off the brand ramp in sequence.
+ *
+ * The bar used to be `primary3` on `primary4`. On Friends with Habits those are `#6E5C85` and
+ * `#5B4273` — two dark purples one step apart, measuring **1.4:1**. WCAG 1.4.11 asks for 3:1 on
+ * a non-text indicator like this, so the fill was effectively invisible and the bar read as a
+ * flat purple slab at every streak length.
+ *
+ * The track is a fixed veil of the on-surface colour, so it follows the theme automatically and
+ * stays subordinate to the card it sits on. The fill has to flip with the theme to clear 3:1
+ * against that track in both directions — a colour dark enough to contrast against a light track
+ * is by definition too light-starved to contrast against a dark one. Lightening the brand colour
+ * (rather than switching to the accent) keeps the bar the app's own hue either way.
+ *
+ * Measured against the composited track, brand x theme:
+ *   HABITS light 4.4:1 · HABITS dark 4.3:1 · THERR light 3.5:1 · THERR dark 4.7:1
+ * Re-measure if `brand`, `onSurface` or `surface` moves.
+ */
+const TRACK_VEIL_ALPHA = 0.16;
+const getStreakBarColors = (theme: ITherrTheme, themeName?: IMobileThemeName) => ({
+    track: tint(theme.colors.onSurface, TRACK_VEIL_ALPHA),
+    fill: isDarkTheme(themeName)
+        ? new Color(theme.colors.brand).lighten(0.6).hex()
+        : theme.colors.brand,
+});
 
 // Height of the floating "new pact" action, and the bottom padding a scrolling
 // surface needs so its last row clears both that action and the button menu.
@@ -36,6 +63,7 @@ const getStreakBadgeStyles = (_theme: ITherrTheme): any => ({
 
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
+    const streakBar = getStreakBarColors(therrTheme, themeName);
 
     const styles = StyleSheet.create({
         // Checkin Button
@@ -148,28 +176,98 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         streakProgressContainer: {
             marginTop: 8,
         },
+        // See `getStreakBarColors` — these two are a measured contrast pair, not brand-ramp
+        // neighbours. Changing either in isolation is what produced the invisible bar.
         streakProgressBar: {
-            height: 8,
-            borderRadius: 4,
-            backgroundColor: therrTheme.colors.primary4,
+            height: 10,
+            borderRadius: radius.pill,
+            backgroundColor: streakBar.track,
             overflow: 'hidden',
         },
         streakProgressFill: {
             height: '100%',
-            borderRadius: 4,
-            backgroundColor: therrTheme.colors.primary3,
+            borderRadius: radius.pill,
+            backgroundColor: streakBar.fill,
         },
         streakProgressText: {
             fontFamily: therrFontFamily,
             fontSize: 12,
-            color: therrTheme.colors.textGray,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
             marginTop: 4,
             textAlign: 'right',
         },
         streakMilestoneText: {
             fontFamily: therrFontFamily,
             fontSize: 12,
-            color: therrTheme.colors.textGray,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+
+        // Streak freezes
+        // A count in a sentence ("2 streak freezes left") makes the reader parse prose to learn
+        // how much cover they have. One pip per freeze the habit was allotted, spent ones struck
+        // through, answers it at a glance and — unlike the sentence — also shows how many there
+        // were to begin with.
+        streakFreezeSection: {
+            marginTop: space.md,
+        },
+        streakFreezeHeaderRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.sm,
+        },
+        streakFreezeLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: 12,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        streakFreezePipRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+            flexShrink: 1,
+            flexWrap: 'wrap',
+        },
+        streakFreezePip: {
+            width: 20,
+            height: 20,
+            borderRadius: radius.circle,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+        },
+        streakFreezePipAvailable: {
+            backgroundColor: tint(therrTheme.colors.brand, 0.16),
+            borderColor: therrTheme.colors.brand,
+        },
+        // Spent freezes keep their slot — that is the point of showing the full allotment — but
+        // drop to a bare outline so "used" and "left" are separable without reading the caption.
+        streakFreezePipSpent: {
+            backgroundColor: 'transparent',
+            borderColor: tint(therrTheme.colors.onSurface, 0.3),
+            opacity: 0.5,
+        },
+        streakFreezePipText: {
+            fontSize: 11,
+            lineHeight: 14,
+        },
+        streakFreezeOverflowText: {
+            fontFamily: therrFontFamily,
+            fontSize: 11,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        streakFreezeCaption: {
+            fontFamily: therrFontFamily,
+            fontSize: 12,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: space.xs,
+        },
+        // The caption turns into a warning once nothing is left to spend: the next missed day
+        // ends the streak, which is the one state the user has to act on.
+        streakFreezeCaptionExhausted: {
+            color: therrTheme.colors.accentRed,
         },
 
         // Streak Widget — compact variant
@@ -227,27 +325,65 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         streakMetaTextCompact: {
             fontFamily: therrFontFamily,
             fontSize: 11,
-            color: therrTheme.colors.textGray,
+            color: therrTheme.colors.onSurfaceMuted,
             flexShrink: 1,
         },
 
+        // Streak Widget — embedded variant
+        // Strips the widget's own card chrome for call sites that render it *inside* another
+        // card. `HabitCard` is the one that matters: the widget's surface colour, shadow,
+        // padding and 16dp side margins were being drawn on top of the card's own, so every
+        // habit row carried a card-within-a-card and paid for two sets of insets.
+        streakWidgetContainerEmbedded: {
+            alignSelf: 'stretch',
+            backgroundColor: 'transparent',
+            paddingHorizontal: 0,
+            paddingVertical: 0,
+            marginHorizontal: 0,
+            marginVertical: 0,
+            borderRadius: 0,
+            shadowOpacity: 0,
+            elevation: 0,
+            marginTop: space.sm,
+        },
+        // Compact freeze pips sit on the meta row beside the bar, so they lose the section's
+        // top margin and the caption entirely — the full widget on the habit detail screen is
+        // where the rule gets explained.
+        streakFreezeRowCompact: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 3,
+        },
+        streakFreezePipCompact: {
+            width: 14,
+            height: 14,
+            borderWidth: 1,
+        },
+        streakFreezePipTextCompact: {
+            fontSize: 8,
+            lineHeight: 10,
+        },
+
         // Habit Card
+        // Tuned for a list, not for a hero. Every value below used to be a step larger, which
+        // cost roughly a third of the row height and left two or three habits visible on a
+        // phone — on the one screen whose job is to let someone check in on all of them.
         habitCardContainer: {
             backgroundColor: therrTheme.colors.surface,
-            borderRadius: radius.xl,
-            padding: space.lg,
+            borderRadius: radius.lg,
+            padding: space.md,
             marginHorizontal: space.lg,
-            marginVertical: space.sm,
+            marginVertical: space.xs + 2,
             ...shadowSm,
         },
         habitCardHeader: {
             flexDirection: 'row',
             alignItems: 'center',
-            marginBottom: space.md,
+            marginBottom: space.sm,
         },
         habitCardEmoji: {
-            fontSize: 32,
-            marginRight: space.md,
+            fontSize: 28,
+            marginRight: space.sm,
         },
         // Opt-in contained variant: a tinted disc so habit glyphs sit on a
         // consistent baseline instead of each emoji's own optical box. Used by
@@ -281,32 +417,32 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginTop: 2,
         },
         habitCardBody: {
-            marginTop: 8,
+            marginTop: space.xs + 2,
         },
         habitCardFooter: {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginTop: 16,
-            paddingTop: 12,
-            borderTopWidth: 1,
-            borderTopColor: therrTheme.colors.primary4,
+            marginTop: space.md,
+            paddingTop: space.sm,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: tint(therrTheme.colors.onSurface, 0.16),
         },
         habitCardPartnerText: {
             fontFamily: therrFontFamily,
             fontSize: 13,
-            color: therrTheme.colors.textGray,
-            marginTop: 8,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: space.xs + 2,
         },
         habitCardAwaitingText: {
             fontFamily: therrFontFamily,
             fontSize: 13,
             fontStyle: 'italic',
-            color: therrTheme.colors.textGray,
-            marginTop: 16,
-            paddingTop: 12,
-            borderTopWidth: 1,
-            borderTopColor: therrTheme.colors.primary4,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: space.md,
+            paddingTop: space.sm,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: tint(therrTheme.colors.onSurface, 0.16),
         },
 
         // "Continue solo / archive?" prompt on an awaiting-partner card — the
@@ -1325,6 +1461,197 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: fontSizes.sm,
             fontWeight: fontWeights.semibold,
             color: therrTheme.colors.textWhite,
+        },
+
+        // ------------------------------------------------------------------
+        // Weekly recap (routes/WeeklyRecap)
+        //
+        // Every colour here resolves through the theme. The day strip is the
+        // one place that needs a fixed relationship between two of them: a
+        // "frozen" day has to read as *different from* an upheld day and *not
+        // worse than* a missed one, since the streak survived it. Upheld is the
+        // brand fill, frozen is a brand-tinted outline, missed is a bare
+        // divider-coloured outline — three states distinguishable by shape as
+        // well as by colour, so the strip still parses without colour vision.
+        // ------------------------------------------------------------------
+        weeklyRecapContainer: {
+            backgroundColor: therrTheme.colors.backgroundNeutral,
+            flex: 1,
+        },
+        weeklyRecapHeader: {
+            paddingHorizontal: space.lg,
+            paddingTop: space.lg,
+            paddingBottom: space.md,
+        },
+        weeklyRecapHeadline: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xl,
+            fontWeight: fontWeights.bold,
+            lineHeight: fontSizes.xl * lineHeights.tight,
+            color: therrTheme.colors.onSurface,
+        },
+        weeklyRecapDateRange: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.textGray,
+            marginTop: space.xs,
+        },
+        weeklyRecapCard: {
+            borderRadius: radius.xl,
+            backgroundColor: therrTheme.colors.surface,
+            padding: space.lg,
+            marginHorizontal: space.lg,
+            marginBottom: space.md,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
+            ...shadowSm,
+        },
+        weeklyRecapCardTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            letterSpacing: 0.6,
+            textTransform: 'uppercase',
+            color: therrTheme.colors.textGray,
+            marginBottom: space.md,
+        },
+        weeklyRecapStrip: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+        },
+        weeklyRecapDay: {
+            alignItems: 'center',
+            flex: 1,
+            gap: space.xs,
+        },
+        weeklyRecapDayLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.textGray,
+        },
+        weeklyRecapDayDot: {
+            width: 32,
+            height: 32,
+            borderRadius: radius.pill,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 2,
+            borderColor: therrTheme.colors.accentDivider,
+            backgroundColor: 'transparent',
+        },
+        weeklyRecapDayDotUpheld: {
+            backgroundColor: therrTheme.colors.brand,
+            borderColor: therrTheme.colors.brand,
+        },
+        weeklyRecapDayDotFrozen: {
+            backgroundColor: tint(therrTheme.colors.brand, 0.16),
+            borderColor: therrTheme.colors.brand,
+        },
+        // On a brand-filled dot, so `onBrand` rather than any of the surface
+        // text colours — `textWhite` is #363636 on the light theme and would
+        // render dark-on-dark here.
+        weeklyRecapDayCount: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onBrand,
+        },
+        weeklyRecapDayCountMuted: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        weeklyRecapStatRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            gap: space.md,
+        },
+        weeklyRecapStat: {
+            flex: 1,
+            alignItems: 'center',
+        },
+        weeklyRecapStatValue: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xl,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.onSurface,
+        },
+        weeklyRecapStatLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.textGray,
+            textAlign: 'center',
+            marginTop: space.xs,
+        },
+        weeklyRecapDelta: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            marginTop: space.xs,
+        },
+        weeklyRecapDeltaUp: {
+            color: therrTheme.colors.alertSuccess,
+        },
+        weeklyRecapDeltaDown: {
+            color: therrTheme.colors.alertWarning,
+        },
+        weeklyRecapHabitRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.sm,
+            paddingVertical: space.sm,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: therrTheme.colors.accentDivider,
+        },
+        weeklyRecapHabitRowFirst: {
+            borderTopWidth: 0,
+        },
+        weeklyRecapHabitEmoji: {
+            fontSize: fontSizes.lg,
+        },
+        weeklyRecapHabitName: {
+            flex: 1,
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurface,
+        },
+        weeklyRecapHabitCount: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        weeklyRecapEmptyText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.textGray,
+            textAlign: 'center',
+        },
+        weeklyRecapNavRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingHorizontal: space.lg,
+            paddingBottom: space.md,
+            gap: space.md,
+        },
+        weeklyRecapNavButton: {
+            paddingVertical: space.sm,
+            paddingHorizontal: space.md,
+            borderRadius: radius.pill,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
+            backgroundColor: therrTheme.colors.surface,
+        },
+        weeklyRecapNavButtonDisabled: {
+            opacity: 0.4,
+        },
+        weeklyRecapNavButtonText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.brand,
         },
     });
 

@@ -19,6 +19,11 @@ interface IHabitCalendarProps {
 
 const DAYS_OF_WEEK_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
+const MONTH_KEYS = [
+    'january', 'february', 'march', 'april', 'may', 'june',
+    'july', 'august', 'september', 'october', 'november', 'december',
+];
+
 const formatDateKey = toLocalDateKey;
 
 const HabitCalendar: React.FC<IHabitCalendarProps> = ({
@@ -43,7 +48,16 @@ const HabitCalendar: React.FC<IHabitCalendarProps> = ({
 
     const year = month.getFullYear();
     const monthIndex = month.getMonth();
-    const monthName = month.toLocaleString('default', { month: 'long', year: 'numeric' });
+    // Built from the locale dictionary, not `toLocaleString`. Two reasons, and the second is
+    // the one that bites: `'default'` is the *device's* locale, so a user running the app in
+    // Spanish on an English phone read an English month above Spanish weekday headers; and
+    // even with the right tag, Hermes on Android is not guaranteed to carry ICU data for every
+    // locale this app ships, so `Intl` can silently fall back to English. `formatDayTitle` in
+    // routes/Habits/checkinDayDetail.ts resolves month and weekday names the same way.
+    const monthName = translate('pages.habits.calendarMonthYear', {
+        month: translate(`dateTime.months.${MONTH_KEYS[monthIndex]}`),
+        year,
+    });
 
     const firstDayOfMonth = new Date(year, monthIndex, 1);
     const lastDayOfMonth = new Date(year, monthIndex + 1, 0);

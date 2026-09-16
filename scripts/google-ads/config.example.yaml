@@ -19,12 +19,13 @@
 
 # 1. DEVELOPER TOKEN — Google Ads UI, from your MANAGER (MCC) account:
 #      Tools & Settings -> Setup -> API Center
-#    This is NOT an OAuth credential and is NOT the refresh token. A brand-new
-#    token is issued at "Test Account" access level, which can ONLY call test
-#    accounts — against your real account every request fails with
-#    DEVELOPER_TOKEN_NOT_APPROVED. Apply for Basic access in the same screen;
-#    approval is usually 1-3 business days. Basic access is enough for
-#    everything this tool does.
+#    This is NOT an OAuth credential and is NOT the refresh token. Since
+#    September 2026 Google no longer requires it for API calls, and the access
+#    LEVEL is no longer tied to it: access is applied for and managed in Google
+#    Cloud Console -> APIs & Services -> Google Ads API, on the project that
+#    owns the OAuth client below. The API Center page still shows a level but
+#    says itself it may be inaccurate. The google-ads library still refuses to
+#    load this file without the key, so keep it filled in.
 developer_token: "INSERT_DEVELOPER_TOKEN"
 
 # 2 & 3. OAUTH CLIENT — Google Cloud Console (any project with the

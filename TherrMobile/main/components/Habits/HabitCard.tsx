@@ -137,8 +137,18 @@ const HabitCard: React.FC<IHabitCardProps> = ({
             )}
 
             {showStreak && !isAwaitingPartner && streak && streak.currentStreak > 0 && (
+                /*
+                 * Compact and embedded, always. This card is a list row: the full widget stacks
+                 * four rows and draws its own surface, shadow and 16dp side margins *inside* a
+                 * card that already has all three, so a habit list was a column of cards within
+                 * cards and only two or three rows ever fit on screen. The compact layout
+                 * carries the same numbers in two rows, and `embedded` strips the duplicate
+                 * chrome. The full widget stays where it has the room — the habit detail screen.
+                 */
                 <StreakWidget
                     streak={streak}
+                    compact
+                    embedded
                     themeHabits={themeHabits}
                     translate={translate}
                 />

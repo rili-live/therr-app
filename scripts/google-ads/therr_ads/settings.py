@@ -53,6 +53,11 @@ class Ga4Settings:
     web_hostname: str = ""
     crawler_guard: bool = True
     surface_dimension_registered: bool = True
+    # Service-account JSON for the GA4 Data API. Empty means Application
+    # Default Credentials, which is the trap: the gcloud ADC client is blocked
+    # by Google from requesting analytics.readonly ("This app is blocked"), so
+    # in practice the user token route only works until the next re-login.
+    credentials_file: str = ""
 
 
 @dataclass
@@ -188,6 +193,7 @@ def load_settings(path: Path | str | None = None) -> Settings:
             web_hostname=str(ga4_raw.get("web_hostname", "")),
             crawler_guard=bool(ga4_raw.get("crawler_guard", True)),
             surface_dimension_registered=bool(ga4_raw.get("surface_dimension_registered", True)),
+            credentials_file=str(ga4_raw.get("credentials_file", "") or ""),
         ),
         product_db=ProductDbSettings(
             enabled=bool(product_raw.get("enabled", False)),

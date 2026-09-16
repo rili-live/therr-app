@@ -22,12 +22,13 @@ import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import {
-    HabitCard, NewPactButton, PactCard, SentInviteCard,
+    HabitCard, HabitsListLoader, NewPactButton, PactCard, SentInviteCard,
 } from '../../components/Habits';
 import { getFreezeConsumed, getStreakSavedByFreeze } from '../../utilities/streakFreezes';
 import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/celebrationQueue';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { logAppEvent } from '../../utilities/analyticsEvents';
+import { toLocalDateKey } from '../../utilities/localDateKey';
 import { DURATION, showToast } from '../../utilities/toasts';
 import { IHabitWithPactState, isPactSuperseded, splitHabitsByPactState } from './pactState';
 import { getNudgeErrorMessage, getNudgeOutcomeToast } from '../Pacts/nudgeOutcome';
@@ -122,6 +123,12 @@ export interface IHabitsDashboardProps extends IStoreProps {
 
 interface IHabitsDashboardState {
     isRefreshing: boolean;
+    /**
+     * Whether the first fetch has settled. Distinct from `isRefreshing`, which is also true
+     * during a pull-to-refresh — where the empty state should stay put rather than flicker
+     * back to a loader under the user's finger.
+     */
+    hasFetched: boolean;
     activeTab: HabitsTab;
     checkinLoadingIds: Set<string>;
     respondingPactId: string | null;
@@ -200,6 +207,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
 
         this.state = {
             isRefreshing: false,
+            hasFetched: false,
             activeTab: normalizeInitialTab(props.route?.params?.initialTab),
             checkinLoadingIds: new Set(),
             respondingPactId: null,
@@ -281,7 +289,12 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
 
         Promise.all([
             getUserGoals(),
-            getTodayCheckins(),
+            // The device zone rides along for the same reason it does on the write in
+            // handleCheckin: "today" is the user's own day, and the service only knows that
+            // day from the account's saved zone, which a user who declined push never has.
+            // Reading in the service fallback zone while writing in the device's put the
+            // check-in the user just made on a day this list was not asking about.
+            getTodayCheckins(undefined, Intl.DateTimeFormat().resolvedOptions().timeZone),
             getActiveStreaks(),
             getActivePacts(),
             // Needed to tell a habit whose pact is live apart from one whose
@@ -299,7 +312,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             // progress line rather than blocking the whole refresh.
             getUserHabitEligibility().catch(() => {}),
         ]).finally(() => {
-            this.setState({ isRefreshing: false });
+            this.setState({ isRefreshing: false, hasFetched: true });
         });
     };
 
@@ -342,10 +355,12 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
      * CheckinDetail screen owns that path and does its own POST — so this call is always the
      * bare "I did it" and the analytics event below can be unconditional.
      *
-     * `scheduledDate` stays on the UTC calendar day deliberately: users-service defines a habit
-     * day in UTC (`getTodayDateString` in `utilities/streakHelpers.ts`). `timeZone` is a
-     * separate thing and is what the *app-level daily streak* keys its own day off, so a late
-     * evening check-in counts for the day the user is actually living in.
+     * `scheduledDate` is the user's **local** calendar day, via `toLocalDateKey`. It used to be
+     * `toISOString()` — the UTC day — because the service defined a habit day that way, and
+     * that is what put a 19:00 check-in on tomorrow's cell: the calendar grid is built from
+     * local components, so the write and the render disagreed for the whole evening west of
+     * UTC. Both sides are now the user's own day. `timeZone` still travels so the service can
+     * resolve that day itself for a client that sends no date.
      */
     submitCheckin = (habitGoal: IHabitGoal) => {
         const { createCheckin, getActiveStreaks } = this.props;
@@ -358,11 +373,12 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             checkinLoadingIds: newLoadingIds,
         });
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = toLocalDateKey(new Date());
 
         createCheckin({
             habitGoalId,
             scheduledDate: today,
+            localDate: today,
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             status: 'completed',
         })
@@ -1091,6 +1107,25 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         );
     };
 
+    /**
+     * `ListEmptyComponent` fires whenever `data` is empty, and until the first fetch settles
+     * that is indistinguishable from having nothing — so every cold open of this screen showed
+     * the "No habits yet" onboarding card (Create button and all) for the length of the request,
+     * then replaced it with the user's actual habits. Show the loader until there is an answer.
+     */
+    renderEmptyStateOrLoader = () => {
+        if (!this.state.hasFetched) {
+            return (
+                <HabitsListLoader
+                    label={this.translate('pages.habits.loadingList')}
+                    theme={this.themeHabits}
+                />
+            );
+        }
+
+        return this.renderEmptyState();
+    };
+
     renderEmptyState = () => {
         const activeTab = this.getEffectiveTab();
         const isHabits = activeTab === 'habits';
@@ -1213,7 +1248,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     render() {
         const { navigation, user } = this.props;
         const {
-            isRefreshing, pactIdPendingDecline,
+            isRefreshing, hasFetched, pactIdPendingDecline,
             checkinLoadingIds, respondingPactId, renewingPactId, nudgingPactId,
             awaitingActionGoalId, habitPendingArchive,
         } = this.state;
@@ -1231,6 +1266,11 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             // The ids themselves, not the count: one check-in finishing as another starts
             // leaves the size unchanged while the row that should be spinning has moved.
             [...checkinLoadingIds].sort().join(','),
+            // VirtualizedList is a PureComponent and `ListEmptyComponent` is a stable bound
+            // method here, so on an empty list nothing in its props moves when the first fetch
+            // settles — the loader would sit there forever instead of handing over to the empty
+            // state. This is the only thing that tells it to look again.
+            hasFetched,
         ].join('|');
 
         return (
@@ -1268,7 +1308,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                         // second tap on a request that is already running.
                         extraData={extraData}
                         ListHeaderComponent={isHabitsTab ? this.renderHabitsListHeader : undefined}
-                        ListEmptyComponent={this.renderEmptyState}
+                        ListEmptyComponent={this.renderEmptyStateOrLoader}
                         refreshControl={
                             <RefreshControl
                                 refreshing={isRefreshing}

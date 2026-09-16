@@ -17,7 +17,9 @@
  * over the pact's own date window. That reads correctly for pacts already in
  * flight without a backfill, and without a client release.
  */
-import { getDaysBetweenDates, getTodayDateString, normalizeDateString } from './streakHelpers';
+import { getDaysBetweenDates, normalizeDateString } from './streakHelpers';
+import { getLocalDate } from './dailyStreak';
+import { FALLBACK_TIME_ZONE } from './localReminderSchedule';
 
 export interface IPactStatsWindow {
     startDate: string; // YYYY-MM-DD
@@ -77,7 +79,12 @@ const parseDateOnly = (value: string): Date => {
  */
 export const getPactStatsWindow = (
     pact: { startDate?: string | Date | null; endDate?: string | Date | null } | null | undefined,
-    today: string = getTodayDateString(),
+    // A pact is a group, so its window cannot be resolved in one member's zone the way
+    // "did *you* check in today?" can. The service fallback zone is the closest available
+    // stand-in and the one every other unattributable habits decision already uses; UTC would
+    // extend the denominator into a day that has not started yet for the whole Americas, and
+    // dip everyone's completion rate every evening.
+    today: string = getLocalDate(FALLBACK_TIME_ZONE),
 ): IPactStatsWindow | null => {
     if (!pact?.startDate) {
         return null;

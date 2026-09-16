@@ -181,6 +181,7 @@ Record and report:
 | `LOCALES` | `**/locales/**` | `npm run locales:check` |
 | `LINT_RULES` | `eslint-config/**` | `npm run test:lint-rules` |
 | `MIRRORED` | any file listed in `scripts/mirrored-files/mirror-targets.json` | `npm run mirrors:check` |
+| `GOOGLE_ADS` | `scripts/google-ads/**` | `npm run test:google-ads` (needs PyYAML) |
 
 ---
 
@@ -358,6 +359,16 @@ If a bugfix genuinely cannot be covered without disproportionate effort or domai
 
 Run tests for every package in the Step 0f scope, not just backend ones. All wrappers run from the repo root (they exist to avoid subshell-with-cd patterns that trigger permission prompts).
 
+### Rebuild shared libraries first (only when `SHARED_LIB` is in scope)
+
+Dependent packages consume the **compiled `lib/`** output of `therr-react` and `therr-js-utilities`, not the TypeScript sources — and so do their *tests*: the service unit suites run under `ts-node`, which type-checks against `lib/` and aborts the whole run on a stale enum (`Property 'weeklyRecap' does not exist on type 'typeof Types'`), before a single test executes. Stale `lib/` also produces downstream `tsc` errors that look like real bugs (e.g. "Property X is missing on type Y" when the prop was just added). Rebuild before running anything that consumes the libraries, not after.
+
+```bash
+npm run pr:build:shared-libs 2>&1
+```
+
+That wrapper builds `therr-js-utilities` then `therr-react` in the correct order. If only one changed, `pr:build:js-utils` / `pr:build:therr-react` are available individually.
+
 ### Unit tests
 
 | Scope | Wrapper |
@@ -398,7 +409,10 @@ CI runs these regardless of package, and each one has caught a real class of def
 npm run locales:check     2>&1   # if LOCALES in scope (or any user-facing string was added)
 npm run mirrors:check     2>&1   # if MIRRORED in scope
 npm run test:lint-rules   2>&1   # if LINT_RULES in scope, or any file under **/migrations/** changed
+npm run test:google-ads   2>&1   # if GOOGLE_ADS in scope
 ```
+
+`test:google-ads` prints a sample dry-run plan on its way out, so its tail is not the verdict — check the exit code, or grep the output for the unittest `OK` / `FAILED` line.
 
 `test:lint-rules` also fails if `MIGRATION_IDEMPOTENCY_CUTOFF` was moved forward or a brand-scoped table entry lost its `*Store.ts` — treat either failure as a Category A finding, not a flaky test.
 
@@ -430,15 +444,9 @@ git diff --name-only origin/stage 2>&1
 
 Add files you modified in Step 4 that aren't already listed, and check `git status --short` for staged-but-uncommitted files.
 
-### Rebuild shared libraries first (only when `SHARED_LIB` is in scope)
+### Shared libraries
 
-Dependent packages consume the **compiled `lib/`** output of `therr-react` and `therr-js-utilities`, not the TypeScript sources. Stale `lib/` produces downstream `tsc` errors that look like real bugs (e.g. "Property X is missing on type Y" when the prop was just added).
-
-```bash
-npm run pr:build:shared-libs 2>&1
-```
-
-That wrapper builds `therr-js-utilities` then `therr-react` in the correct order. If only one changed, `pr:build:js-utils` / `pr:build:therr-react` are available individually.
+Already rebuilt at the top of Step 5. If Step 4 edited anything under `therr-public-library/**` since then, run `npm run pr:build:shared-libs` again before type-checking consumers.
 
 ### Lint
 

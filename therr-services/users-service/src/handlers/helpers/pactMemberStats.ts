@@ -6,7 +6,8 @@ import {
     IPactMemberStats,
     ZERO_PACT_MEMBER_STATS,
 } from '../../utilities/pactMemberStats';
-import { getTodayDateString } from '../../utilities/streakHelpers';
+import { getLocalDate, resolveCheckinTimeZone } from '../../utilities/dailyStreak';
+import { FALLBACK_TIME_ZONE } from '../../utilities/localReminderSchedule';
 import { canContinueSolo } from '../../utilities/pactStreak';
 
 interface IStatsTarget {
@@ -97,15 +98,29 @@ export const attachPactMemberStats = async (pacts: any[]): Promise<any[]> => {
         ));
     }
 
-    // The service's UTC habit day, matching what the check-in write path
-    // stores in `scheduledDate` — see getTodayDateString.
-    const today = getTodayDateString();
+    // "Checked in today" is asked once per member, in that member's own zone — a habit day is
+    // the checking-in user's calendar day (see resolveCheckinHabitDate), and a pact's members
+    // are not necessarily in the same one. Asking it in UTC would show a partner in Chicago as
+    // not-yet-checked-in for the five hours after their local evening crossed UTC midnight,
+    // which is the same off-by-one the write path used to have. One extra query for the whole
+    // page; members with no saved zone fall back exactly as everywhere else.
+    const memberTimeZones = await Store.users.getTimeZonesByIds(
+        [...new Set(pairs.map((pair) => pair.userId))],
+    ).catch(() => ({} as Record<string, string>));
+    const localDateByUserId: Record<string, string> = {};
+    const datedPairs = pairs.map((pair) => {
+        if (!localDateByUserId[pair.userId]) {
+            localDateByUserId[pair.userId] = getLocalDate(resolveCheckinTimeZone(memberTimeZones[pair.userId]));
+        }
+        return { ...pair, date: localDateByUserId[pair.userId] };
+    });
+    const fallbackToday = getLocalDate(FALLBACK_TIME_ZONE);
 
     const [goals, streaks, completedCounts, completedToday] = await Promise.all([
         Store.habitGoals.getByIds([...goalIds]),
         Store.streaks.getByUserHabitPairs(pairs),
         Store.habitCheckins.getCompletedCountsForWindows(targets),
-        Store.habitCheckins.getCompletedOnDateForPairs(pairs, today),
+        Store.habitCheckins.getCompletedOnDateForPairs(datedPairs, fallbackToday),
     ]);
 
     const goalsById: Record<string, any> = goals.reduce((acc: any, goal: any) => {

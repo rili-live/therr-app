@@ -4,6 +4,7 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { IJournalEntryRow, IJournalFeedCursor, IJournalFeedRow } from '../store/JournalEntriesStore';
+import { getLocalDate, resolveCheckinTimeZone } from '../utilities/dailyStreak';
 
 /**
  * The Journal: a day-grouped record of everything the user did, plus anything
@@ -319,11 +320,14 @@ const createJournalEntry: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    // The client sends its own local date because only it knows the user's
-    // timezone — `main.users.settingsTimezone` is optional and frequently
-    // unset. Falling back to the server's day is better than rejecting the
-    // write, but it is a fallback, not the intended path.
-    const resolvedEntryDate = entryDate || new Date().toISOString().split('T')[0];
+    // The client sends its own local date because it knows the device zone even when the
+    // account does not have one saved. When it does not send one, the fallback resolves the
+    // day the same way the check-in path does — saved zone, then the device zone on this
+    // request, then the service fallback — rather than dating the entry in UTC, which files
+    // an evening entry under tomorrow for every user west of UTC.
+    const [journalUser] = await Store.users.getUserById(userId, ['id', 'settingsTimezone']).catch(() => [] as any[]);
+    const resolvedEntryDate = entryDate
+        || getLocalDate(resolveCheckinTimeZone(journalUser?.settingsTimezone, req.body?.timeZone));
 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(resolvedEntryDate)) {
         return handleHttpError({
