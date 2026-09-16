@@ -48,6 +48,18 @@
     "daysAgo": "{count} j"
   },
   "components": {
+    "iosWaitlistModal": {
+      "buttonLabel": "Bientôt sur iPhone — inscrivez-vous à la liste d'attente",
+      "title": "Therr pour iPhone s'en vient",
+      "body": "Nous n'avons pas encore publié d'application pour iPhone. Therr est offert sur Android aujourd'hui, et chaque clic sur ce bouton nous indique combien de personnes attendent la version iOS. Merci de nous le faire savoir.",
+      "prompt": "Vous voulez un courriel le jour de son arrivée sur l'App Store ? (Facultatif)",
+      "emailPlaceholder": "vous@exemple.com",
+      "submit": "Avisez-moi",
+      "success": "Vous êtes sur la liste. Nous vous enverrons un courriel dès que l'application iPhone sera lancée.",
+      "androidNote": "Nous vous écrirons uniquement au sujet du lancement sur iPhone et de nouvelles occasionnelles sur le produit. Désabonnement possible en tout temps.",
+      "errorRequired": "Entrez une adresse courriel, ou fermez simplement cette fenêtre.",
+      "errorGeneric": "Nous n'avons pas pu enregistrer cette adresse. Veuillez réessayer dans un moment."
+    },
     "incompleteProfileBanner": {
       "title": "Complétez votre profil",
       "message": "Ajoutez votre nom pour que vos amis puissent vous reconnaître",

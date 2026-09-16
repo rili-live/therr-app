@@ -243,6 +243,118 @@
             margin-top: 1rem;
         }
         .cta-note strong { color: var(--fwh-gold); font-weight: 700; }
+        /* Tertiary CTA, for the iOS waitlist. Quieter than .cta--secondary on purpose: on a
+           page whose primary action is a Play Store install, an iPhone visitor needs to find
+           it and an Android visitor needs to not be distracted by it. Both placements sit on
+           the dark plum sections, so the palette matches .cta--secondary. */
+        .cta--ghost {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: none;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .cta--ghost:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.6);
+            color: #fff;
+            box-shadow: none;
+        }
+        /* A button that has to read as body-copy link — used inside the FAQ answer, which is
+           on the light section, so it takes the link colour rather than the CTA palette. */
+        .link-button {
+            background: none;
+            border: none;
+            padding: 0;
+            font: inherit;
+            color: var(--fwh-purple);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .link-button:hover { color: var(--fwh-plum); }
+
+        /* ---------- iOS waitlist dialog ---------- */
+        /* Inline rather than a shared stylesheet: these templates ship no CSS bundle at all
+           (see the note on this file's <style> block), and this is the only dialog on the
+           habits host. */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem;
+            background: rgba(29, 20, 43, 0.72);
+        }
+        .modal-backdrop[hidden] { display: none; }
+        .modal-card {
+            position: relative;
+            width: 100%;
+            max-width: 27rem;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.75rem;
+            border-radius: 1.25rem;
+            background: #fff;
+            color: var(--fwh-text);
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55);
+        }
+        .modal-card h2 {
+            margin: 0 0 0.75rem;
+            font-size: 1.375rem;
+            color: var(--fwh-plum);
+        }
+        .modal-card p { margin: 0 0 1rem; font-size: 0.9375rem; }
+        .modal-close {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            width: 2rem;
+            height: 2rem;
+            border: none;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.06);
+            color: var(--fwh-text);
+            font-size: 1.125rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .modal-close:hover { background: rgba(0, 0, 0, 0.12); }
+        .modal-form { display: flex; flex-direction: column; gap: 0.75rem; }
+        .modal-form label { font-size: 0.875rem; font-weight: 600; }
+        .modal-form input[type="email"] {
+            width: 100%;
+            padding: 0.75rem 0.875rem;
+            font: inherit;
+            border: 1px solid var(--fwh-border);
+            border-radius: 0.625rem;
+            background: #fff;
+            color: var(--fwh-text);
+        }
+        .modal-form input[type="email"]:focus { border-color: var(--fwh-purple); }
+        .modal-form .cta { width: 100%; }
+        /* Scoped through .modal-card so these out-specify the `.modal-card p` rule above,
+           which would otherwise keep its 1rem bottom margin on all three. */
+        .modal-card .modal-fineprint { font-size: 0.8125rem; color: var(--fwh-text-muted); margin: 0; }
+        .modal-card .modal-error {
+            margin: 0;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #b3261e;
+        }
+        .modal-card .modal-done { margin: 0; font-size: 0.9375rem; font-weight: 700; color: var(--fwh-plum); }
+        /* Honeypot: same trick the register page uses. Off-screen rather than display:none so
+           a bot that filters on visibility still fills it in. */
+        .hp-field {
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
 
         /* ---------- Hero ---------- */
         .hero {
@@ -1112,6 +1224,10 @@
             <symbol id="fwh-play" viewBox="0 0 24 24">
                 <path d="M4 3.5v17c0 .6.7 1 1.2.7l14.3-8.5c.5-.3.5-1 0-1.3L5.2 2.8C4.7 2.5 4 2.9 4 3.5z" fill="currentColor"/>
             </symbol>
+            <symbol id="fwh-apple" viewBox="0 0 24 24">
+                <path d="M16.4 12.7c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.15-2.8.85-3.5.85-.7 0-1.85-.83-3.05-.81-1.55.02-3 .91-3.8 2.3-1.63 2.83-.42 7 1.16 9.3.78 1.12 1.7 2.38 2.9 2.34 1.17-.05 1.61-.76 3.02-.76 1.4 0 1.8.76 3.03.73 1.25-.02 2.04-1.14 2.8-2.27.88-1.3 1.25-2.56 1.27-2.63-.03-.01-2.43-.93-2.43-3.75z" fill="currentColor"/>
+                <path d="M14.2 5.9c.63-.77 1.06-1.83.94-2.9-.91.04-2.01.61-2.67 1.37-.58.68-1.1 1.77-.96 2.81 1.02.08 2.06-.51 2.69-1.28z" fill="currentColor"/>
+            </symbol>
         </defs>
     </svg>
 
@@ -1157,13 +1273,26 @@
                             Get it on Google Play
                         </a>
                         <a class="cta cta--secondary" id="hero-register-cta" href="/register">Create your account</a>
+                        <!--
+                            No iOS build exists yet, so this deliberately does not link to the
+                            App Store. It is a <button> because it opens a dialog rather than
+                            navigating, and it is the only measurement of how large the iPhone
+                            audience is: see the ios_interest_click handler at the foot of the page.
+                        -->
+                        <button type="button" class="cta cta--ghost" id="hero-ios-cta" aria-haspopup="dialog">
+                            <svg aria-hidden="true"><use href="#fwh-apple"/></svg>
+                            iPhone? Join the waitlist
+                        </button>
                     </div>
                     <div class="cta-note">Free to install &mdash; now available to everyone on Google Play. iOS coming next.</div>
                     <div class="cta-note"><strong>Founding member offer:</strong> the first 5,000 accounts get every paid feature free for life for a one-time $20.</div>
                     <!-- role="list" so the aria-label is announced; a bare div's label is ignored. -->
                     <div class="chip-row" role="list" aria-label="Highlights">
                         <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> No subscription</span>
-                        <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> No waitlist</span>
+                        <!-- Was "No waitlist", which now contradicts the iPhone waitlist button above it.
+                             The claim it was making — you can install right now, nothing to wait for — is
+                             about Android, so it is said that way instead. -->
+                        <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> Install in seconds</span>
                         <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> Photo-proof check-ins</span>
                     </div>
                 </div>
@@ -1372,7 +1501,8 @@
                     </div>
                     <div class="faq-item">
                         <h3>Is Friends with Habits available on iPhone?</h3>
-                        <p>Not yet. Friends with Habits is on Android via Google Play today, and an iOS version is next on the roadmap. Your account works across every Therr app, so an account you create on Android will carry over.</p>
+                        <p>Not yet. Friends with Habits is on Android via Google Play today, and an iOS version is next on the roadmap. Your account works across every Therr app, so an account you create on Android will carry over.
+                            <button type="button" class="link-button" id="faq-ios-cta" aria-haspopup="dialog">Tell us you want it on iPhone</button>.</p>
                     </div>
                     <div class="faq-item">
                         <h3>Who makes Friends with Habits?</h3>
@@ -1394,6 +1524,10 @@
                             Get it on Google Play
                         </a>
                         <a class="cta cta--secondary" id="closer-register-cta" href="/register">Create your account</a>
+                        <button type="button" class="cta cta--ghost" id="closer-ios-cta" aria-haspopup="dialog">
+                            <svg aria-hidden="true"><use href="#fwh-apple"/></svg>
+                            iPhone? Join the waitlist
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1428,6 +1562,49 @@
     </main>
 
     {{> habitsFooter}}
+
+    <!--
+        iOS waitlist dialog. Opened by the three #*-ios-cta buttons; there is no App Store
+        listing to link to, so this is what the iPhone visitor gets instead. Two things come
+        out of it: the ios_interest_click event (how many people wanted iOS at all) and a row
+        in main."emailMarketingSubscribers" for the ones who left an address. The email is
+        optional — requiring it would cost the click count, which is the larger number.
+
+        Kept in the DOM rather than injected so it is inert-but-present for a visitor whose
+        JS never runs: hidden, and with no button able to reach it.
+    -->
+    <div class="modal-backdrop" id="ios-modal" role="dialog" aria-modal="true" aria-labelledby="ios-modal-title" hidden>
+        <div class="modal-card">
+            <button type="button" class="modal-close" id="ios-modal-close" aria-label="Close">&times;</button>
+            <h2 id="ios-modal-title">Friends with Habits for iPhone is on the way</h2>
+            <p>
+                There is no iPhone app yet &mdash; we are on Android via Google Play today. Every tap of
+                that button tells us how many people are waiting on iOS, so thanks for the nudge.
+            </p>
+            <form class="modal-form" id="ios-waitlist-form" novalidate>
+                <label for="ios-waitlist-email">Want an email the day it lands on the App Store? (Optional)</label>
+                <input id="ios-waitlist-email" type="email" autocomplete="email" placeholder="you@example.com">
+                {{!
+                    Honeypot. Checked in this page's script only — /subscribers/signup does not
+                    inspect it — so it filters naive bots and nothing more. Labelled and
+                    tab-indexed out so a screen reader never offers it to a real person.
+                }}
+                <div class="hp-field" aria-hidden="true">
+                    <label for="ios_sweety_pie">Leave this field empty</label>
+                    <input id="ios_sweety_pie" type="text" name="website" tabindex="-1" autocomplete="off">
+                </div>
+                <p class="modal-error" id="ios-waitlist-error" hidden></p>
+                <button class="cta" type="submit" id="ios-waitlist-submit">Notify me</button>
+                <p class="modal-fineprint">
+                    We will only email you about the iPhone launch and occasional product news.
+                    Unsubscribe any time.
+                </p>
+            </form>
+            <p class="modal-done" id="ios-waitlist-done" hidden>
+                You are on the list. We will email you when the iPhone app is live.
+            </p>
+        </div>
+    </div>
 
     <!--
         The climbing chameleon. Drawn facing the copy, gripping the vine on its
@@ -1548,6 +1725,146 @@
             bindStore('closer-store-cta', 'closer');
             bindRegister('hero-register-cta', 'hero');
             bindRegister('closer-register-cta', 'closer');
+        })();
+    </script>
+    {{!
+        iOS waitlist dialog.
+
+        The demand signal this page was missing. The App Store badge does not exist here and
+        the Play Store one is the only install path, so until now an iPhone visitor left
+        silently and looked identical to a bounce — there was no number to weigh an iOS build
+        against. `ios_interest_click` is that number; `ios_waitlist_submit` is the subset who
+        also want telling. Mark both as key events in GA4 admin (Admin -> Events -> Mark as key
+        event) or they are collected but not reportable, and keep the names identical to the
+        ones fired by IosWaitlistModal.tsx on therr.com so the two apps' demand is comparable
+        in one report.
+
+        The email goes to /subscribers/signup with isSubscribedToIosWaitlist, which is what
+        separates these rows from the general marketing list. An address already on that list
+        is upgraded rather than rejected, so any 2xx here is success.
+
+        Everything is guarded: neither analytics nor a failed subscribe may stop the dialog
+        explaining why nothing downloaded.
+    }}
+    <script>
+        (function () {
+            var API_BASE = {{#if apiBaseJson}}{{{apiBaseJson}}}{{else}}''{{/if}};
+            var modal = document.getElementById('ios-modal');
+            var closeBtn = document.getElementById('ios-modal-close');
+            var form = document.getElementById('ios-waitlist-form');
+            var emailInput = document.getElementById('ios-waitlist-email');
+            var honeypotInput = document.getElementById('ios_sweety_pie');
+            var submitBtn = document.getElementById('ios-waitlist-submit');
+            var errorBox = document.getElementById('ios-waitlist-error');
+            var doneBox = document.getElementById('ios-waitlist-done');
+            if (!modal || !form) { return; }
+
+            // Which CTA opened it, so the report can say whether the hero, the closing band or
+            // the FAQ answer is where iPhone visitors actually declare themselves.
+            var openedFrom = '';
+            var lastFocused = null;
+
+            function track(name, params) {
+                try {
+                    if (typeof window.gtag === 'function') { window.gtag('event', name, params || {}); }
+                } catch (e) { /* no-op */ }
+            }
+
+            function showError(msg) {
+                errorBox.textContent = msg;
+                errorBox.hidden = false;
+            }
+
+            function openModal(location) {
+                openedFrom = location;
+                lastFocused = document.activeElement;
+                errorBox.hidden = true;
+                doneBox.hidden = true;
+                form.hidden = false;
+                emailInput.value = '';
+                modal.hidden = false;
+                closeBtn.focus();
+                track('ios_interest_click', { app: 'habits', location: location });
+            }
+
+            function closeModal() {
+                modal.hidden = true;
+                if (lastFocused && typeof lastFocused.focus === 'function') { lastFocused.focus(); }
+            }
+
+            function bindOpen(id, location) {
+                var el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('click', function () { openModal(location); });
+                }
+            }
+
+            bindOpen('hero-ios-cta', 'hero');
+            bindOpen('closer-ios-cta', 'closer');
+            bindOpen('faq-ios-cta', 'faq');
+
+            closeBtn.addEventListener('click', closeModal);
+            // Backdrop only — a click inside the card must not dismiss it mid-typing.
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) { closeModal(); }
+            });
+            document.addEventListener('keydown', function (e) {
+                if (!modal.hidden && (e.key === 'Escape' || e.key === 'Esc')) { closeModal(); }
+            });
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                errorBox.hidden = true;
+
+                var email = emailInput.value.trim();
+                if (!email) {
+                    showError('Enter an email address, or just close this window.');
+                    return;
+                }
+                // The gateway rejects a malformed address with a generic validation message.
+                // Failing fast here says something useful instead; the server rule is still
+                // the one that counts.
+                if (!/^\S+@\S+\.\S+$/.test(email)) {
+                    showError('That does not look like an email address.');
+                    return;
+                }
+
+                // Honeypot filled: show the same success a person sees, send nothing, and do
+                // not count it — an inflated waitlist is worse than a missing one here.
+                if (honeypotInput && honeypotInput.value) {
+                    form.hidden = true;
+                    doneBox.hidden = false;
+                    return;
+                }
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Adding you…';
+
+                fetch(API_BASE + '/users-service/subscribers/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-brand-variation': 'habits' },
+                    body: JSON.stringify({
+                        email: email,
+                        isSubscribedToIosWaitlist: true,
+                    }),
+                }).then(function (res) {
+                    return res.json().then(function (body) { return { res: res, body: body }; })
+                        .catch(function () { return { res: res, body: {} }; });
+                }).then(function (out) {
+                    if (!out.res.ok) {
+                        showError((out.body && out.body.message) || 'We could not save that address. Try again.');
+                        return;
+                    }
+                    track('ios_waitlist_submit', { app: 'habits', location: openedFrom });
+                    form.hidden = true;
+                    doneBox.hidden = false;
+                }).catch(function () {
+                    showError('Network error. Try again in a moment.');
+                }).then(function () {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Notify me';
+                });
+            });
         })();
     </script>
     {{!

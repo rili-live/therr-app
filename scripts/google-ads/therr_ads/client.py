@@ -16,8 +16,9 @@ from therr_ads.settings import DEFAULT_CONFIG_PATH, SettingsError
 # the fix. Extend this map whenever a run costs you more than five minutes.
 ERROR_HINTS = {
     "DEVELOPER_TOKEN_NOT_APPROVED": (
-        "Your developer token is still at Test Account access level and cannot touch a real "
-        "account. Apply for Basic access: Google Ads UI -> Tools & Settings -> Setup -> API Center."
+        "API access for this Cloud project is still at test-account level and cannot touch a real "
+        "account. Access is managed in Google Cloud Console -> APIs & Services -> Google Ads API on "
+        "the project that owns config.yaml -> client_id (not in the Ads UI API Center any more)."
     ),
     "DEVELOPER_TOKEN_PROHIBITED": (
         "The developer token is not permitted for this API. Confirm it came from the API Center of "

@@ -288,6 +288,10 @@ const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
         title: 'Friends with Habits — Habit Tracker with an Accountability Partner',
         description: 'A free habit tracker built around accountability partners. Make a pact with a friend, '
             + 'check in daily with photo proof, and keep each other on streak.',
+        // The iOS waitlist dialog posts to /subscribers/signup. The value is build-time
+        // config, identical for every visitor, so it does not make this page unsafe to
+        // serve from the shared cache HABITS_DEFAULT_CACHE puts it in.
+        needsApiBase: true,
     },
     '/privacy-policy': {
         view: 'habits/privacy-policy',

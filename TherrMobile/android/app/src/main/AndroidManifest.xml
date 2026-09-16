@@ -285,6 +285,14 @@
         <action android:name="${notificationActionPrefix}.EVENING_CHECK_IN" />
         <category android:name="android.intent.category.DEFAULT" />
       </intent-filter>
+      <!-- Weekly recap. Android silently no-ops a tap whose action string the
+           manifest does not declare, so this entry is the other half of the
+           WEEKLY_RECAP key in HabitsAndroidIntentActions (therr-js-utilities),
+           which lives on `general` and can never ship from there. -->
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.WEEKLY_RECAP" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
 
       <!-- App shortcuts (long-press launcher icon). See res/xml/shortcuts.xml -->
       <intent-filter>

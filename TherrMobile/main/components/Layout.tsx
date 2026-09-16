@@ -1055,6 +1055,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             const intentHabitGoalId = typeof intentData.habitGoalId === 'string' && intentData.habitGoalId
                 ? intentData.habitGoalId
                 : undefined;
+            const intentWeekStartDate = typeof intentData.weekStartDate === 'string' && intentData.weekStartDate
+                ? intentData.weekStartDate
+                : undefined;
 
             if (data.action === brandIntents.ACHIEVEMENT_COMPLETED
                 || data.action === brandIntents.UNCLAIMED_ACHIEVEMENTS_REMINDER) {
@@ -1144,6 +1147,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 || data.action === brandIntent('NEW_PERSONAL_RECORD')) {
                 targetRouteView = intentHabitGoalId ? 'HabitDetail' : 'MyHabits';
                 targetRouteParams = intentHabitGoalId ? { habitGoalId: intentHabitGoalId } : {};
+            } else if (data.action === brandIntent('WEEKLY_RECAP')) {
+                // `weekStartDate` is what makes this notification openable late: without it the
+                // screen falls back to whatever week has most recently closed, which for a
+                // Monday push opened on Wednesday is still the right one — but for one opened
+                // the following Tuesday is not. The backend puts it in the FCM data map (see
+                // `routingIds` in push-notifications-service firebaseAdmin.ts), so it is present
+                // on every recap this build can receive.
+                targetRouteView = 'WeeklyRecap';
+                targetRouteParams = intentWeekStartDate ? { weekStartDate: intentWeekStartDate } : {};
             } else if (data.action?.endsWith(QUICK_ACTION_SUFFIXES.CREATE_MOMENT)) {
                 // App-shortcut: jump straight into moment creation. EditMoment
                 // destructures route.params (and calls nearbySpaces.find), so we
@@ -1234,6 +1246,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // roll-up covering three habits has no single habit to open.
         const habitGoalId = typeof data?.habitGoalId === 'string' && data.habitGoalId ? data.habitGoalId : undefined;
         const pactId = typeof data?.pactId === 'string' && data.pactId ? data.pactId : undefined;
+        // The Monday of the week a recap is about. Present on every `weeklyRecap` payload;
+        // without it the screen opens the most recently closed week, which is only the right
+        // one while the notification is fresh.
+        const weekStartDate = typeof data?.weekStartDate === 'string' && data.weekStartDate
+            ? data.weekStartDate
+            : undefined;
 
         // Falls back to the dashboard rather than to the in-app Notifications
         // list. That list has no habits rows at all — `Notifications.Types`
@@ -1408,6 +1426,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 return habitGoalId
                     ? { targetRouteView: 'HabitDetail', targetRouteParams: { habitGoalId } }
                     : { targetRouteView: 'MyHabits', targetRouteParams: {} };
+
+            // The weekly recap is about a week, not a habit — so it opens the recap screen even
+            // when the payload happens to name a top habit.
+            case PushNotifications.Types.weeklyRecap:
+                return {
+                    targetRouteView: 'WeeklyRecap',
+                    targetRouteParams: weekStartDate ? { weekStartDate } : {},
+                };
 
             default:
                 return null;
@@ -1899,7 +1925,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             if (notification?.id
                 && (pressAction?.id === PushNotifications.PressActionIds.pactView
                     || pressAction?.id === PushNotifications.PressActionIds.checkinView
-                    || pressAction?.id === PushNotifications.PressActionIds.streakView)) {
+                    || pressAction?.id === PushNotifications.PressActionIds.streakView
+                    // Navigation-only like the three above, and resolved through the same type
+                    // fallback so the `weekStartDate` precedence lives in exactly one place.
+                    || pressAction?.id === PushNotifications.PressActionIds.weeklyRecapView)) {
                 // Navigation only — the destination is exactly what the type
                 // fallback resolves, so reuse it rather than restating the
                 // habit/pact/dashboard precedence in a second place.
