@@ -240,33 +240,12 @@ describe('handleServiceRequest middleware', () => {
     });
 
     describe('Error Response Handling', () => {
-        it('should extract status code from error response', () => {
-            const error = {
-                response: {
-                    data: {
-                        statusCode: 400,
-                        message: 'Bad request',
-                    },
-                },
-            };
-
-            const statusCode = error?.response?.data?.statusCode || 500;
-            expect(statusCode).to.equal(400);
-        });
-
-        it('should default to 500 when no status in error response', () => {
-            const error: any = {
-                response: {
-                    data: {
-                        message: 'Error',
-                    },
-                },
-            };
-
-            const statusCode = error?.response?.data?.statusCode || 500;
-            expect(statusCode).to.equal(500);
-        });
-
+        // Status-code derivation is covered end-to-end in
+        // handleServiceRequestErrors.test.ts, which drives the real middleware.
+        // The inline-expression cases that used to live here encoded
+        // `data.statusCode || 500` as correct — the exact line that was
+        // collapsing every habits gate to a 500 — so they were removed rather
+        // than updated.
         it('should extract error message from error response', () => {
             const error = {
                 response: {
