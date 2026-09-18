@@ -93,12 +93,38 @@ const handleServiceRequest = ({
             // schema details — suppress them in production; log the raw error server-side above.
             const clientMessage = error?.response?.data?.message
                 || (process.env.NODE_ENV !== 'production' ? (error?.message || 'Unknown error') : 'An unexpected error occurred');
+
+            const upstreamBody = error?.response?.data;
+            // Only a plain object is safe to spread onto the response. An ingress or
+            // sidecar answering with an HTML error page hands us a string, and
+            // spreading that would emit one numeric key per character.
+            const isStructuredBody = !!upstreamBody
+                && typeof upstreamBody === 'object'
+                && !Array.isArray(upstreamBody);
+
+            // The upstream's real HTTP status wins, and is read *before* the body's
+            // `statusCode`. Most handlers answer through `handleHttpError`, which
+            // echoes the status into the body, so the two agree. But a handler that
+            // calls `res.status(x).send({ ... })` directly sends no `statusCode` key
+            // at all — and every Friends with Habits gate does exactly that: 402
+            // `habit-limit-reached`, 403 `solo-locked`, 409 on a purchase conflict.
+            // Reading the body first turned all of them into a 500.
+            const statusCode = error?.response?.status
+                || (isStructuredBody && upstreamBody.statusCode)
+                || 500;
+
             return handleHttpError({
                 err: error,
                 res,
                 message: clientMessage,
-                statusCode: error?.response?.data?.statusCode || 500,
-                errorCode: error?.response?.data?.errorCode || 500,
+                statusCode,
+                errorCode: (isStructuredBody && upstreamBody.errorCode) || 500,
+                // Forward the rest of the upstream payload rather than rebuilding a
+                // bare { statusCode, message, errorCode }. The status alone is not
+                // enough for a client to act on a gate: the mobile paywall reads
+                // `error` and `limit`, and the solo-unlock prompt reads
+                // `invitedCount` / `requiredCount`. Rebuilding dropped all of them.
+                resBody: isStructuredBody ? upstreamBody : undefined,
             });
         });
 };
