@@ -11,7 +11,8 @@ import { CommonActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import { INotificationsState } from 'therr-react/types';
+import { IHabitsLifetimeOffer, INotificationsState } from 'therr-react/types';
+import { HabitActions } from 'therr-react/redux/actions';
 import { BrandVariations, FeatureFlags } from 'therr-js-utilities/constants';
 import {
     AttachStep,
@@ -30,6 +31,8 @@ import InfoModal from './Modals/InfoModal';
 import TherrIcon from './TherrIcon';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import FeatureGate from './FeatureGate';
+import { shouldShowFounderCta } from './Habits/founderCtaState';
+import getConfig from '../utilities/getConfig';
 import { GROUPS_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS } from '../constants';
 import { Sheets } from 'react-native-actions-sheet';
 
@@ -185,9 +188,17 @@ export const DrawerOverlay: React.FC<IDrawerOverlayProps> = ({
 
 interface IHeaderMenuRightDispatchProps {
     updateTour: Function;
+    getLifetimeOffer: Function;
 }
 
 interface IStoreProps extends IHeaderMenuRightDispatchProps {
+    /**
+     * Mapped as the single slice rather than the whole `habits` branch on
+     * purpose: this component renders on every authenticated screen, and habits
+     * state churns on every check-in. A PureComponent shallow-compared against
+     * the whole branch would re-render the header for changes it does not draw.
+     */
+    lifetimeOffer?: IHabitsLifetimeOffer | null;
 }
 
 // Regular component props
@@ -231,12 +242,16 @@ interface IHeaderMenuRightState {
     isPointsInfoModalVisible: boolean;
 }
 
-const mapStateToProps = (state: any) => ({ user: state.user });
+const mapStateToProps = (state: any) => ({
+    user: state.user,
+    lifetimeOffer: state.habits?.lifetimeOffer,
+});
 
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             updateTour: UsersActions.updateTour,
+            getLifetimeOffer: HabitActions.getLifetimeOffer,
         },
         dispatch
     );
@@ -268,9 +283,41 @@ class HeaderMenuRight extends React.PureComponent<
         clearTimeout(this.timeoutId);
     };
 
+    /**
+     * Refresh the founder offer when the drawer opens.
+     *
+     * Deliberately not done on mount: this component is mounted on every
+     * authenticated screen, so a mount fetch would fire on nearly every
+     * navigation for a value the user only sees when they open the drawer.
+     *
+     * Re-fetched on each open rather than once, because the field that governs
+     * visibility is a seat count that other people consume. Serving a stale
+     * "available" is the failure that matters — it advertises a sold-out offer —
+     * and the render itself does not wait on this: it draws from whatever redux
+     * already holds and simply corrects itself when the response lands.
+     *
+     * Gated on the flag so a Therr or Teem build never calls a habits endpoint.
+     * Errors are swallowed: the CTA fails closed on its own when the offer is
+     * missing, and a drawer must never be blocked by a purchase-offer lookup.
+     */
+    refreshFounderOffer = () => {
+        const isOfferEnabled = getConfig()
+            .featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true;
+
+        if (!isOfferEnabled) {
+            return;
+        }
+
+        this.props.getLifetimeOffer().catch(() => {});
+    };
+
     toggleOverlay = (shouldClose?: boolean) => {
         const { isModalVisible } = this.state;
         const nextVisible = shouldClose ? false : !isModalVisible;
+
+        if (nextVisible && !isModalVisible) {
+            this.refreshFounderOffer();
+        }
 
         return new Promise<null>((resolve) => {
             if (nextVisible === isModalVisible) {
@@ -466,6 +513,7 @@ class HeaderMenuRight extends React.PureComponent<
             currentScreenParams,
             isVisible,
             isEmailVerifed,
+            lifetimeOffer,
             notifications,
             showActionSheet,
             // styleName,
@@ -694,6 +742,38 @@ class HeaderMenuRight extends React.PureComponent<
                             persistentScrollbar
                             style={themeMenu.styles.body}
                         >
+                            {/*
+                                Its own section, above everything else, because it is an
+                                offer rather than navigation — grouping it with Messages and
+                                Groups would read as just another destination. The whole
+                                section disappears with the CTA so a hidden offer leaves no
+                                empty divider behind.
+                            */}
+                            <FeatureGate feature={FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER}>
+                                {shouldShowFounderCta(lifetimeOffer) && (
+                                    <Drawer.Section>
+                                        <Drawer.Item
+                                            label={this.translate('components.headerMenuRight.menuItems.founderUnlock')}
+                                            icon={() => (
+                                                <TherrIcon
+                                                    style={
+                                                        currentScreen === 'UpgradePaywall'
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
+                                                    }
+                                                    name="star-filled"
+                                                    size={24}
+                                                />
+                                            )}
+                                            active={currentScreen === 'UpgradePaywall'}
+                                            // No `reason` param: the paywall leads with the limit
+                                            // copy only when it was reached from a 402. Arriving
+                                            // here by choice should lead with the offer.
+                                            onPress={() => this.navTo('UpgradePaywall')}
+                                        />
+                                    </Drawer.Section>
+                                )}
+                            </FeatureGate>
                             <Drawer.Section>
                                 <FeatureGate feature={FeatureFlags.ENABLE_NOTIFICATIONS}>
                                     <View style={themeMenu.styles.menuItemContainer}>
