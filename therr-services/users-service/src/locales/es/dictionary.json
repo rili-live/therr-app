@@ -243,6 +243,12 @@
             "body2": "¿Preguntas? Contáctanos en cualquier momento en info@therr.com.",
             "postBody1": "¡Gracias por ser parte de la comunidad de {brandName}. Negocios locales como el tuyo lo hacen todo posible!"
         },
+        "spaceRequestPublished": {
+            "header": "¡Tu espacio sugerido está activo!",
+            "body1": "Gracias por la sugerencia: '{spaceName}' fue revisado y ya aparece en el mapa para los usuarios cercanos en {brandName}.",
+            "body2": "¿Eres dueño o administras este negocio? Puedes reclamarlo en cualquier momento desde la página del espacio. ¿Preguntas? Escríbenos a info@therr.com.",
+            "postBody1": "Sugerencias como la tuya son la forma en que {brandName} crece. ¡Gracias por ayudar a poner a los negocios locales en el mapa!"
+        },
         "claimPendingReview": {
             "header": "Tu espacio comercial está en revisión",
             "body1": "Recibimos tu solicitud para '{spaceName}' y está siendo revisada. Deberías recibir respuesta en 24–72 horas.",
