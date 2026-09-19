@@ -572,7 +572,11 @@ const claimSpace: RequestHandler = async (req: any, res: any) => {
             });
         }
 
-        if (space.fromUserId === userId || space.requestedByUserId) {
+        // Only unclaimed inventory (rows owned by the super admin) can be claimed. Web and
+        // mobile already hide the button otherwise, but approval now moves `fromUserId` to
+        // the claimant (`SpacesStore.approveClaim`), so without this check a request on a
+        // space another business owns would let an admin hand it over from the queue.
+        if (space.fromUserId === userId || space.fromUserId !== SUPER_ADMIN_ID || space.requestedByUserId) {
             return handleHttpError({
                 res,
                 message: translate(locale, 'spaces.alreadyClaimed'),
@@ -596,7 +600,7 @@ const claimSpace: RequestHandler = async (req: any, res: any) => {
                 ...space,
             },
         })
-            .then(({ data }) => Store.spaces.updateSpace(space.id, {
+            .then(() => Store.spaces.updateSpace(space.id, {
                 // `updateSpace` scopes its WHERE to the owner, so the current owner has to be
                 // passed through. Omitting it made knex reject the undefined binding, the catch
                 // below swallowed that, and the claim was never recorded — the request email went
@@ -885,7 +889,7 @@ const approveSpaceRequest: RequestHandler = async (req: any, res: any) => {
                 ...space,
             },
         })
-            .then(({ data }) => Store.spaces.approveClaim(space.id)).then(([updatedSpace]) => {
+            .then(() => Store.spaces.approveClaim(space.id)).then(([updatedSpace]) => {
                 logSpan({
                     level: 'info',
                     messageOrigin: 'API_SERVER',

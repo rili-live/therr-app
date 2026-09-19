@@ -37,6 +37,7 @@ import * as readline from 'readline';
 import axios from 'axios';
 import { Pool } from 'pg';
 import { assertDbConnection, createDbPool } from './utils/db';
+import { IMPORT_USER_ID as SUPER_ADMIN_ID } from './config';
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -176,6 +177,12 @@ async function main() {
   }
   if (space.requestedByUserId && space.requestedByUserId !== args.userId) {
     throw new Error(`Space is already requested by a different user (${space.requestedByUserId}); refusing to overwrite`);
+  }
+  // Same rule as the claimSpace handler and repair-space-claims: only unclaimed inventory
+  // (owned by the super admin) can be claimed. Approving would otherwise take the space
+  // away from the business that owns it.
+  if (space.fromUserId !== SUPER_ADMIN_ID) {
+    throw new Error(`Space is owned by ${space.fromUserId}, not unclaimed inventory; refusing to reassign it`);
   }
 
   // ── Step 1: repair ───────────────────────────────────────────────────────
