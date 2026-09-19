@@ -11,6 +11,9 @@ Bulk-import business listings from OpenStreetMap into the Therr database, then e
 | Attach a photo | `source-images` |
 | Find a website / business email | `source-emails-websites` |
 | Fill menu, order, reservation, phone, hours, cuisine | `enrich-metadata` |
+| Debug a claim-request email that isn't in the dashboard | `debug-space-claim` |
+| Approve a claim and send the requester the approval email | `approve-space-claim` |
+| One-off prod repair for PR #2927 (ownership transfers, `geomCenter` backfill) | `repair-space-claims` |
 
 **Start with `stats`.** It separates *missing* from *actionable*: a space with no
 image and no website can't be helped by `source-images`, so counting it in that
@@ -31,6 +34,12 @@ DB_USER_MAIN_WRITE=<your-db-user>
 DB_PASSWORD_MAIN_WRITE=<your-db-password>
 DB_PORT_MAIN_WRITE=5432
 MAPS_SERVICE_DATABASE=<your-db-name>
+USERS_SERVICE_DATABASE=<users-db-name>   # debug-space-claim / approve-space-claim look up the requester here
+
+# Required for approve-space-claim (calls the production approval API as super admin)
+THERR_ADMIN_TOKEN=<super-admin-jwt>            # or:
+THERR_ADMIN_USERNAME=<super-admin-username>
+THERR_ADMIN_PASSWORD=<super-admin-password>
 
 # Required for source-images script (GCS upload)
 MAPS_SERVICE_GOOGLE_CREDENTIALS_BASE64=<base64-encoded-gcs-credentials>
@@ -441,3 +450,36 @@ Add a new entry to `CITIES` in `config.ts` with the city name, state, and boundi
 
 1. Add OSM tags to `OSM_CATEGORY_MAP` in `config.ts`
 2. Add the tag-to-Therr-category mapping in `OSM_TO_THERR_CATEGORY`
+
+### Space claim requests
+
+`debug-space-claim` answers "I got a *New Business Space Request* email but the
+space isn't in the dashboard's pending list": it finds the space by requester,
+title and coordinates, lists every `isClaimPending` row, and reproduces the
+dashboard's pending query to show whether the row would be returned.
+
+```bash
+npx ts-node scripts/import-spaces/debug-space-claim --user-id <uuid> --title "Pappadeaux" --lat 35.14 --lng -106.59
+```
+
+`approve-space-claim` records the claim (`requestedByUserId`) and then calls the
+real `request-approve` API as the super admin so the requester gets the
+"Approved: Business Space Request" email through the normal code path and
+ownership moves to them. Dry-run first.
+
+```bash
+npx ts-node scripts/import-spaces/approve-space-claim --space-id <uuid> --user-id <uuid> --dry-run
+npx ts-node scripts/import-spaces/approve-space-claim --space-id <uuid> --user-id <uuid>
+```
+
+`repair-space-claims` is the one-off data repair that accompanies PR #2927: it
+hands ownership of already-approved claims to the claimant (section 6 of
+`_bin/prod-debug/space-claims-audit.sql`), optionally records claims that were
+lost before the fix (`--claim <spaceId>:<userId>`, one per admin email), and
+backfills `geomCenter` for spaces `createSpace` never populated. Idempotent;
+all-or-nothing; dry-run first.
+
+```bash
+npx ts-node scripts/import-spaces/repair-space-claims --dry-run --claim <spaceId>:<userId>
+npx ts-node scripts/import-spaces/repair-space-claims --claim <spaceId>:<userId>
+```

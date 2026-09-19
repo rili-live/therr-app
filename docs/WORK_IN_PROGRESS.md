@@ -98,24 +98,33 @@ append new items here rather than only printing them once.
 
 ## Space claim queue repair (added 2026-09-19)
 
-- [ ] **Run `_bin/prod-debug/space-claims-audit.sql` against prod, and run its repair block
-  BEFORE the claim-queue fix deploys.** Section 6 lists spaces whose claim was approved but
-  whose ownership was never handed to the claimant — `approveSpaceRequest` only cleared the
-  pending flag, so `searchMySpaces` (which keys on `fromUserId`) still shows the business
-  nothing. Two reasons the order matters: those rows are only unambiguously identifiable until
-  the fix ships, and left unrepaired the corrected admin queue lists them as though they were
-  fresh claims awaiting review.
+- [ ] **Run `scripts/import-spaces/repair-space-claims` against prod BEFORE the claim-queue
+  fix (#2927) deploys.** One idempotent, all-or-nothing transaction that (a) hands ownership
+  of the 25 already-approved claims to their claimant — `approveSpaceRequest` only cleared the
+  pending flag, so `searchMySpaces` (which keys on `fromUserId`) still showed those businesses
+  nothing, and the corrected admin queue would list them as fresh claims; (b) records the one
+  claim that the lost `request-claim/:spaceId` path never wrote (Pappadeaux Seafood Kitchen,
+  from the 2026-09-19 admin email); and (c) backfills `geomCenter` for the 272 spaces
+  `createSpace` never populated, which made them invisible to every proximity search. The
+  migration `20260919000000_main.spaces.geomCenter_backfill.js` repeats (c) on deploy, so
+  only (a) and (b) genuinely depend on running this first. Preview with `--dry-run`; the
+  script aborts unless the row counts match the preview.
 
   ```bash
-  psql "$MAPS_DB_URL" -f _bin/prod-debug/space-claims-audit.sql
+  npx ts-node scripts/import-spaces/repair-space-claims \
+    --claim aa232e8f-5d8f-4f42-8daf-1a40e1b4a9aa:24cd464b-ac41-4452-9ad6-7d0a704d3382
   ```
 
-- [ ] **Reconcile the claim-request emails against section 7.** Claims on spaces that already
-  existed on the map (`POST /spaces/request-claim/:spaceId`, the mobile "claim this space"
-  button) wrote nothing at all before this fix — the update threw on an undefined binding, the
-  handler swallowed it and still returned 200. Those claims exist only as the admin
-  notification email. Any email with no matching row has to be re-claimed by the business or
-  assigned by hand; there is no backfill for them.
+  Then approve or reject Pappadeaux from `/dashboard-admin` once #2927 is live (or right away
+  with `scripts/import-spaces/approve-space-claim`, which also sends the approval email).
+  Read-only cross-check: `_bin/prod-debug/space-claims-audit.sql`.
+
+- [ ] **Reconcile any other claim-request emails against the queue.** Claims on spaces that
+  already existed on the map wrote nothing before #2927; each exists only as an admin email.
+  For every such email, `scripts/import-spaces/debug-space-claim --user-id <id> --title <name>`
+  finds the space, and `repair-space-claims --claim <spaceId>:<userId>` (or
+  `approve-space-claim`) records it. Section 7 of the audit SQL shows weekly volume to compare
+  against the inbox.
 
 ## iOS demand tracking (added 2026-09-14)
 
