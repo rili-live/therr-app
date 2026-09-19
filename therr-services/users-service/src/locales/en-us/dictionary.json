@@ -243,6 +243,12 @@
             "body2": "Questions? Reach out to us anytime at info@therr.com.",
             "postBody1": "Thank you for being part of the {brandName} community. Local businesses like yours make it all possible!"
         },
+        "spaceRequestPublished": {
+            "header": "Your Suggested Space Is Live!",
+            "body1": "Thanks for the suggestion — '{spaceName}' has been reviewed and is now on the map for nearby users on {brandName}.",
+            "body2": "Own or manage this business? You can claim it any time from the space page. Questions? Reach out to us at info@therr.com.",
+            "postBody1": "Suggestions like yours are how {brandName} grows. Thanks for helping put local businesses on the map!"
+        },
         "claimPendingReview": {
             "header": "Your Business Space Is Under Review",
             "body1": "We've received your request for '{spaceName}' and it's currently being reviewed. You should hear back within 24–72 hours.",
