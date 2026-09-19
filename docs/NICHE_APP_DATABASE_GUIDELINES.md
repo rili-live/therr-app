@@ -232,6 +232,36 @@ export const HABIT_CHECKINS_TABLE_NAME = 'habits.habit_checkins';
 export const STREAKS_TABLE_NAME = 'habits.streaks';
 ```
 
+### Identifier case in raw SQL (enforced by lint)
+
+Two naming styles coexist: `main.*` tables are camelCase (`main.userLocations`), `habits.*`
+tables are snake_case (`habits.habit_checkins`). Knex's query builder quotes identifiers, so
+both styles work there. **Raw SQL does not quote for you**, and Postgres folds every unquoted
+identifier to lowercase — so `INSERT INTO main.leaderboardPeriodResults` looks up
+`main.leaderboardperiodresults`, a relation that does not exist, and fails on every call. The
+snake_case tables only get away with it because folding is a no-op on them.
+
+This shipped on 2026-09-19: the store's builder methods worked, its one raw `INSERT … SELECT`
+never could, and the unit test stubbed it. `therr/no-unquoted-camelcase-table-in-raw-sql`
+now makes it a lint error. In table position (after `FROM` / `JOIN` / `INTO` / `UPDATE` /
+`TABLE`, or as a column qualifier `${T}."col"`) a name must be one of:
+
+```typescript
+import { quoteTableName } from 'therr-js-utilities/db';
+
+knex.raw(`SELECT 1 FROM habits.pacts p`);                                // lowercase: fine as is
+knex.raw(`SELECT 1 FROM main."userLocations" l`);                         // camelCase: quoted
+knex.raw(`SELECT 1 FROM ${PACTS_TABLE_NAME} p`);                          // resolves to lowercase
+knex.raw(`INSERT INTO ${quoteTableName(this.tableName)} ("userId") …`);  // anything else: wrap it
+```
+
+The rule resolves a `const` in the same file and an `import { X } from './relative'` one hop
+into that file. Anything it cannot prove lowercase — `this.tableName`, a function parameter,
+a bare-specifier import — is reported, and `quoteTableName()` is always the fix: it turns
+`schema.table` into `schema."table"` and leaves an already-quoted name alone. Keywords are
+matched in uppercase only, so prose like `` `… coins from ${provider}` `` is not SQL, and
+`EXTRACT(EPOCH FROM ${x})` / `IS DISTINCT FROM ${x}` are not table position.
+
 ### Migration File Naming
 
 Format: `YYYYMMDDHHMMSS_<schema>.<table>.js`

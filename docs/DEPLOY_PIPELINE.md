@@ -101,6 +101,24 @@ commit into main, re-deploy.
 After the rollout, every service the plan said to deploy is re-read from the
 cluster and confirmed to be on its desired tag. A service short of it fails the job.
 
+### How the tag reaches the cluster
+
+The manifests in `k8s/prod` pin `:latest`; the tag is never hand-edited there. Before a
+Deployment is applied, `deploy.sh` renders a copy of its manifest with the image it should
+run — the desired tag for a `deploy` verdict, the tag it is already running for anything
+else — and applies **that** (`_bin/lib/render-manifest.sh`). One apply therefore carries
+both the spec and the version: `configured` means a rollout started, `unchanged` means
+nothing moved, and the live tag is always a SHA.
+
+It used to apply the manifest as-is and `kubectl set image` the SHA afterwards, on the
+belief that apply would leave the live image alone because `:latest` matched the
+last-applied annotation. It does not: client-side apply resets every manifest field whose
+*live* value differs, so each apply flipped the image to `:latest` and only a following
+`set image` put the SHA back. Services with nothing queued — already up-to-date — were left
+on `:latest` until the next deploy noticed (`latest ≠ desired`) and "converged" them, and
+every deploy rolled every service at least once for nothing. The cluster's ReplicaSet
+history showed it as alternating `<sha>`, `:latest`, `<sha>` revisions (2026-09-19).
+
 ## Why it works this way
 
 The old pipeline was a delta: `git diff HEAD^1` on main picked which services roll,
