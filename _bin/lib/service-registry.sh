@@ -22,7 +22,8 @@
 #                 match ^[a-z0-9-]+$ (see versions-ledger.sh for the mapping).
 #   2 image       Docker Hub repo under therrapp/. Stage builds append "-stage".
 #   3 deployment  k8s/prod Deployment name (== manifest basename).
-#   4 container   container name within that Deployment, for `kubectl set image`.
+#   4 container   container name within that Deployment — which container's image
+#                 the deploy plan reads as the running tag (there is a sidecar).
 #   5 dockerfile  path to the Dockerfile.
 #   6 context     docker build context.
 #   7 sources     space-separated paths whose changes require a rebuild. This is
@@ -149,8 +150,9 @@ assert_service_registry()
     if [ ! -f "$K8S_DIR/$DEPLOYMENT.yaml" ]; then
       PROBLEMS+=("$KEY names a Deployment with no manifest: $K8S_DIR/$DEPLOYMENT.yaml")
     else
-      # The container name is what `kubectl set image` addresses. Getting it wrong
-      # makes `set image` a no-op-shaped error rather than a rollout.
+      # The container name is what the deploy plan reads the running tag through
+      # (a jsonpath filter on the Deployment). Getting it wrong reads an empty tag,
+      # which the plan treats as "cannot verify" rather than as the service's version.
       if ! grep -qE "^[[:space:]]+- name: $(service_container "$KEY")\$" "$K8S_DIR/$DEPLOYMENT.yaml"; then
         PROBLEMS+=("$KEY names container '$(service_container "$KEY")', which $DEPLOYMENT.yaml does not define")
       fi

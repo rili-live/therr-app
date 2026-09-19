@@ -136,9 +136,9 @@ const withMutatedManifests = (mutate) => {
 }
 
 {
-    // The container name is what `kubectl set image` addresses. A rename in the
-    // manifest with no matching registry update makes every image bump for that
-    // service a no-op — this is the drift most likely to go unnoticed.
+    // The container name is what the deploy plan reads the running tag through. A
+    // rename in the manifest with no matching registry update makes that read come
+    // back empty for the service — this is the drift most likely to go unnoticed.
     const result = withMutatedManifests((k8sDir) => {
         const file = path.join(k8sDir, 'users-service-deployment.yaml');
         fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace('- name: server-users', '- name: server-users-renamed'));

@@ -9,8 +9,8 @@
 # separate Job, sidecar-lifecycle juggling, or DB credentials in the CI runner
 # are required.
 #
-# Ordering: this runs AFTER `kubectl set image` in deploy.sh (i.e. the new
-# image is already rolling out). Migrations MUST therefore be additive /
+# Ordering: this runs AFTER deploy.sh has applied the rendered manifests (i.e.
+# the new image is already rolling out). Migrations MUST therefore be additive /
 # expand-contract — the long-standing convention in this repo — so the new
 # code tolerates the pre-migration schema during the brief rollout window, and
 # old code (if any lingers) tolerates the post-migration schema. This mirrors
