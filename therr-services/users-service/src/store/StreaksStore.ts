@@ -1,5 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
 import { IConnection } from './connection';
+import { DEFAULT_STARTING_GRACE_PERIOD_DAYS } from '../utilities/streakHelpers';
 import { STREAKS_TABLE_NAME, STREAK_HISTORY_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
@@ -133,10 +134,10 @@ export default class StreaksStore {
                 ...params,
                 currentStreak: 0,
                 longestStreak: 0,
-                // Every new streak starts with 1 streak freeze (grace day);
-                // more are earned at 7+ day milestones, capped at
-                // MAX_GRACE_PERIOD_DAYS (see streakHelpers).
-                gracePeriodDays: params.gracePeriodDays ?? 1,
+                // Every new streak starts with DEFAULT_STARTING_GRACE_PERIOD_DAYS
+                // streak freezes (grace days); more are earned at 7+ day
+                // milestones, capped at MAX_GRACE_PERIOD_DAYS (see streakHelpers).
+                gracePeriodDays: params.gracePeriodDays ?? DEFAULT_STARTING_GRACE_PERIOD_DAYS,
                 graceDaysUsed: 0,
                 isActive: true,
             })
