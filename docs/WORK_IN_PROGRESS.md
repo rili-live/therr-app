@@ -98,8 +98,9 @@ append new items here rather than only printing them once.
 
 ## Space claim queue repair (added 2026-09-19)
 
-- [ ] **Run `scripts/import-spaces/repair-space-claims` against prod BEFORE the claim-queue
-  fix (#2927) deploys.** One idempotent, all-or-nothing transaction that (a) releases the 25
+- [x] **Run `scripts/import-spaces/repair-space-claims` against prod BEFORE the claim-queue
+  fix (#2927) deploys.** _Done 2026-09-19 14:42 UTC: 25 released, Pappadeaux claim recorded,
+  272 `geomCenter` backfilled; verified read-only afterwards — no ownership moved._ One idempotent, all-or-nothing transaction that (a) releases the 25
   already-approved consumer "Request a Space" rows back to unclaimed inventory by clearing
   `requestedByUserId` — they are suggestions, not business claims, so ownership stays with the
   super admin; left as they are, the corrected admin queue would list every one as a fresh
