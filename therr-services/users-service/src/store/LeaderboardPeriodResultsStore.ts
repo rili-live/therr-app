@@ -10,6 +10,12 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 export const LEADERBOARD_PERIOD_RESULTS_TABLE_NAME = 'main.leaderboardPeriodResults';
 const USERS_TABLE_NAME = 'main.users';
 
+/** `schema.tableName` → `schema."tableName"`, so camelCase names survive raw SQL. */
+export const quoteTableName = (qualified: string): string => {
+    const [schema, table] = qualified.split('.');
+    return `${schema}."${table}"`;
+};
+
 export interface IDBLeaderboardPeriodResult {
     id: string;
     userId: string;
@@ -65,10 +71,14 @@ export default class LeaderboardPeriodResultsStore extends BrandScopedStore {
      */
     closePeriod(brand: BrandValue, periodStart: string): Promise<number> {
         this.assertBrand(brand);
-        const scoresTable = USER_LEADERBOARD_SCORES_TABLE_NAME;
+        // Both table names are camelCase. Interpolated bare into raw SQL, Postgres folds them
+        // to lowercase and reports `relation "main.leaderboardperiodresults" does not exist`
+        // (seen in prod 2026-09-19). The query builder quotes for us; raw SQL has to do it.
+        const resultsTable = quoteTableName(this.tableName);
+        const scoresTable = quoteTableName(USER_LEADERBOARD_SCORES_TABLE_NAME);
 
         const queryString = knexBuilder.raw(
-            `INSERT INTO ${this.tableName}
+            `INSERT INTO ${resultsTable}
                 ("userId", "brandVariation", "periodStart", "placement", "score", "participants")
             SELECT
                 ranked."userId",
