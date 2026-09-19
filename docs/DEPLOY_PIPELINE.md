@@ -295,8 +295,34 @@ opts out.
 | `DEPLOY_ALLOW_ROLLBACK` | unset | Allows a `behind` verdict to deploy |
 | `DEPLOY_ROLLOUT_TIMEOUT` | `360s` | Per-Deployment `rollout status` timeout |
 | `DEPLOY_DRAIN_TIMEOUT` | `0` | Seconds to wait for superseded pods between waves |
+| `DEPLOY_REGISTRY_SIDE_RETAG` | `true` | `false` promotes images by pull/tag/push instead of in the registry |
 | `RUN_MIGRATIONS_ON_DEPLOY` | unset | `false` skips automated migrations |
 | `GKE_CLUSTER` / `GKE_ZONE` / `GKE_PROJECT` | `therr-prod-1` / `us-central1-a` / `therr-app` | Cluster cutover without a code merge |
+
+## Where the deploy's wall clock goes
+
+The job prints a `[timing] <phase>: <n>s` line as each phase finishes and a
+summary table on the way out — including when it fails, so a deploy that died
+halfway still says how long it spent getting there. Read that before theorising
+about which part is slow.
+
+The phase that used to dominate was image promotion, not the rollout. `main`
+needs the un-suffixed tags to exist, and the script built them by pulling each
+`-stage` image into the CI container and pushing two tags back. On the
+2026-09-19 deploy that was seven services at ~620–730 MB each, ~31–34s apiece,
+**~4m20s** of a ten-minute job — all of it before the first Pod started rolling,
+with nothing else happening. `docker buildx imagetools create` performs the same
+retag inside Docker Hub, cross-repo-mounting the blobs, so no layer crosses the
+network.
+
+The wave plan is *not* where the time goes, and tightening it further buys
+little: there are three waves, they exist only to order version skew, and the
+inter-wave drain wait has defaulted to `0` since the cluster move. Each boundary
+costs one Pod's scheduling, image pull and startup probe, plus the 15s
+`minReadySeconds` that only wave 1's Deployments carry. `kubectl rollout status`
+returns once the old Pod has been *issued* a delete, not once it has finished
+terminating, so the 15s `preStop` sleep and the 30–45s termination grace period
+are not on this path.
 
 ## Local checks
 

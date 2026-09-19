@@ -358,14 +358,20 @@ jobs:
       - checkout
       - setup_remote_docker:
           # Pinned — see docker_build_base_image above.
+          #
+          # No docker_layer_caching here, deliberately. This job builds nothing:
+          # it probes the registry, retags published images, and talks to the
+          # cluster. DLC attaches a cache volume whose only effect on a job with
+          # no `docker build` is the time and the credits spent attaching it.
           version: default
-          docker_layer_caching: true
-      - attach_workspace:
-            at: ~/
+      # No attach_workspace either. `docker_build_base_image` — the only job that
+      # persists one — is filtered off main, so there has never been a workspace
+      # for this job to attach, and nothing it runs reads one: deploy.sh and
+      # run-migrations.sh work entirely from the checkout, VERSIONS.txt and k8s/prod.
       - run:
           name: Login to DockerHub
           command: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
-      - run: 
+      - run:
           name: Login to Google Cloud and connect to GKE Cluster
           command: |
             gke-gcloud-auth-plugin --version

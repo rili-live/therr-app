@@ -16,6 +16,55 @@ source ./_bin/lib/deploy-plan.sh
 assert_rollout_waves
 assert_service_registry
 
+# ---------------------------------------------------------------------------
+# Phase timing
+#
+# "The deploy took ten minutes" is not an actionable observation without knowing
+# which part of it did, and the log gave no way to tell: the wave plan, the image
+# promotion and the migrations all printed progress but never elapsed time. Every
+# phase below is timed and the totals are printed as a table at the end, so the
+# next slow deploy is diagnosed by reading the job log rather than by guessing at
+# the script.
+#
+# Reads the shell's own SECONDS counter, which is never reset here (wait_for_drain
+# computes a deadline from it).
+# ---------------------------------------------------------------------------
+PHASE_LABELS=()
+PHASE_SECONDS=()
+PHASE_STARTED_AT=$SECONDS
+
+phase_done()
+{
+  local ELAPSED=$((SECONDS - PHASE_STARTED_AT))
+  PHASE_LABELS+=("$1")
+  PHASE_SECONDS+=("$ELAPSED")
+  PHASE_STARTED_AT=$SECONDS
+  printMessageNeutral "[timing] $1: ${ELAPSED}s"
+}
+
+print_phase_timings()
+{
+  local TOTAL=${#PHASE_LABELS[@]}
+  [ "$TOTAL" -gt 0 ] || return 0
+
+  local INDEX=0
+  local SUM=0
+
+  printf '\n%-44s %s\n' "PHASE" "SECONDS"
+  printf -- '-----------------------------------------------------\n'
+  while [ "$INDEX" -lt "$TOTAL" ]; do
+    printf '%-44s %s\n' "${PHASE_LABELS[$INDEX]}" "${PHASE_SECONDS[$INDEX]}"
+    SUM=$((SUM + PHASE_SECONDS[INDEX]))
+    INDEX=$((INDEX + 1))
+  done
+  printf -- '-----------------------------------------------------\n'
+  printf '%-44s %s\n\n' "total (this script)" "$SUM"
+}
+
+# Printed on the way out however the script ends, so a deploy that fails midway
+# still says how long it spent getting there.
+trap print_phase_timings EXIT
+
 CURRENT_BRANCH=${CICD_BRANCH:-$CIRCLE_BRANCH}
 echo "Current branch is $CURRENT_BRANCH"
 
@@ -165,6 +214,67 @@ image_exists()
   fi
 }
 
+# Promoting a stage image to its production repository is a retag: the same bytes
+# under a different name. Doing it with `docker pull` + `docker tag` + `docker
+# push` moved every layer of every rolling service through this container twice —
+# down, then up — and all of it ran *before* the first Pod started rolling, so it
+# was dead time on the deploy's wall clock with nothing else happening.
+#
+# `docker buildx imagetools create` does the same retag inside the registry: it
+# copies the manifest and cross-repo-mounts the blobs, which Docker Hub supports
+# because `therrapp/<svc>-stage` and `therrapp/<svc>` share a namespace. No layer
+# crosses the network, and the multiple target tags are one call.
+#
+# Falls back to pull/tag/push when the buildx plugin is absent from the executor
+# image, or when the registry refuses the mount — a change of base image should
+# cost the old speed, not a failed deploy. `DEPLOY_REGISTRY_SIDE_RETAG=false`
+# forces the old path without a code change, the same way the other overrides in
+# this script work.
+#
+# One behavioural difference worth knowing: given a single-platform source,
+# imagetools writes the target as a manifest list wrapping it rather than as a
+# byte-identical copy, so the promoted tag's digest differs from the `-stage`
+# tag's. Nothing here compares those digests — the plan resolves by tag, and
+# containerd on GKE resolves a list to linux/amd64 like any multi-arch image —
+# but a future check that does compare them needs to know.
+DOCKER_IMAGETOOLS_SUPPORTED=false
+if [ "${DEPLOY_REGISTRY_SIDE_RETAG:-true}" != "true" ]; then
+  printMessageWarning "DEPLOY_REGISTRY_SIDE_RETAG is off — image promotion will pull and re-push layers."
+elif docker buildx imagetools create --help >/dev/null 2>&1; then
+  DOCKER_IMAGETOOLS_SUPPORTED=true
+else
+  printMessageWarning "docker buildx imagetools is unavailable — image promotion will pull and re-push layers."
+fi
+
+# promote_image <source> <target>...
+promote_image()
+{
+  local SOURCE=$1
+  shift
+
+  local TARGET
+
+  if [ "$DOCKER_IMAGETOOLS_SUPPORTED" = "true" ]; then
+    local TAG_ARGS
+    TAG_ARGS=()
+    for TARGET in "$@"; do
+      TAG_ARGS+=("--tag" "$TARGET")
+    done
+
+    if docker buildx imagetools create "${TAG_ARGS[@]}" "$SOURCE"; then
+      return 0
+    fi
+
+    printMessageWarning "Registry-side retag of $SOURCE failed — falling back to pull/tag/push."
+  fi
+
+  docker pull "$SOURCE"
+  for TARGET in "$@"; do
+    docker tag "$SOURCE" "$TARGET"
+    docker push "$TARGET"
+  done
+}
+
 PLAN_KEYS=()
 PLAN_DESIRED=()
 PLAN_RUNNING=()
@@ -287,6 +397,7 @@ print_plan()
 }
 
 print_plan
+phase_done "plan (cluster reads + registry probes)"
 
 # Written whether or not the deploy proceeds — a blocked run's plan is exactly what
 # someone needs to read.
@@ -448,6 +559,7 @@ deploy_waves()
 
     if [ ${#ROLLING[@]} -eq 0 ]; then
       echo "Skipping $WAVE_LABEL — nothing changed."
+      phase_done "$WAVE_LABEL — skipped"
       continue
     fi
 
@@ -471,6 +583,7 @@ deploy_waves()
     fi
 
     wait_for_drain "${ROLLING[@]}"
+    phase_done "$WAVE_LABEL"
   done
 
   return 0
@@ -496,6 +609,7 @@ for MANIFEST in "$K8S_PROD_DIR"/*.yaml; do
 done
 
 kubectl apply "${NON_DEPLOYMENT_MANIFESTS[@]}"
+phase_done "apply non-Deployment manifests"
 
 # Promote and queue every service whose running tag differs from its published tag.
 #
@@ -521,18 +635,21 @@ while [ "$INDEX" -lt "${#PLAN_KEYS[@]}" ]; do
 
   IMAGE="$(service_image "$KEY")"
 
-  docker pull "therrapp/$IMAGE-stage:$DESIRED"
+  # Only main needs the promotion: it rolls the un-suffixed repo, so those tags
+  # have to exist. On stage the cluster pulls `-stage:<sha>` directly, and the
+  # plan above has already proved that tag is in the registry — the `docker pull`
+  # that used to run here as well was downloading an image nothing then used.
   if [[ "$CURRENT_BRANCH" == "main" ]]; then
-    docker tag "therrapp/$IMAGE-stage:$DESIRED" "therrapp/$IMAGE:$DESIRED"
-    docker tag "therrapp/$IMAGE-stage:$DESIRED" "therrapp/$IMAGE:latest"
-    docker push "therrapp/$IMAGE:$DESIRED"
-    docker push "therrapp/$IMAGE:latest"
+    promote_image "therrapp/$IMAGE-stage:$DESIRED" \
+      "therrapp/$IMAGE:$DESIRED" \
+      "therrapp/$IMAGE:latest"
   fi
 
   queue_image "$(service_deployment "$KEY")" "$(service_container "$KEY")=therrapp/$IMAGE$SUFFIX:$DESIRED"
 done
 
 echo "Image bumps queued for all services behind their published version"
+phase_done "promote images to the production repository"
 
 # Roll the queued images out wave by wave, failing the deploy if any pod never
 # reached Ready. Runs before migrations so we never migrate the schema
@@ -544,6 +661,7 @@ deploy_waves
 # secrets). Additive/expand-contract migrations only. Set
 # RUN_MIGRATIONS_ON_DEPLOY=false to skip. See run-migrations.sh.
 DEPLOY_PLAN_FILE="$DEPLOY_PLAN_FILE" ./_bin/cicd/run-migrations.sh
+phase_done "database migrations"
 
 # Confirm the cluster ended up where the plan said it would. `rollout status`
 # already proved the pods came up; this proves they came up on the intended tag,
@@ -573,6 +691,8 @@ if [ ${#DRIFTED[@]} -gt 0 ]; then
   done
   exit 1
 fi
+
+phase_done "verify final tags"
 
 printMessageSuccess "All services are running their published version."
 
