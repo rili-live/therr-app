@@ -8,6 +8,7 @@ source ./_bin/lib/rollout-waves.sh
 source ./_bin/lib/service-registry.sh
 source ./_bin/lib/versions-ledger.sh
 source ./_bin/lib/deploy-plan.sh
+source ./_bin/lib/render-manifest.sh
 
 # Validate the wave plan and the service registry before anything touches the
 # cluster, so a service that was added to k8s/prod without being placed in a wave —
@@ -43,7 +44,7 @@ ledger_load VERSIONS.txt
 # assumes the previous deploy landed.
 DEPLOY_PLAN_FILE="${DEPLOY_PLAN_FILE:-.deploy-plan.tsv}"
 
-# `kubectl set image` returns as soon as the Deployment spec is patched, so a pod
+# `kubectl apply` returns as soon as the Deployment spec is patched, so a pod
 # that never passes its startup probe would otherwise leave this job green while
 # the rollout sat wedged. Every Deployment this run touches is verified with
 # `kubectl rollout status` before the deploy moves on.
@@ -74,38 +75,41 @@ ROLLOUT_TIMEOUT="${DEPLOY_ROLLOUT_TIMEOUT:-360s}"
 # after shrinking the cluster.
 DRAIN_TIMEOUT="${DEPLOY_DRAIN_TIMEOUT:-0}"
 
-# Image bumps are queued here instead of applied inline, so that the wave walker
-# below — not the order these service blocks happen to be written in — decides
-# when each Deployment actually starts rolling.
-QUEUED_DEPLOYMENTS=()
-QUEUED_IMAGES=()
+# Each Deployment's manifest is rendered with the image it should run before it is
+# applied — see _bin/lib/render-manifest.sh for why the tag goes into the manifest
+# rather than being `set image`d afterwards. Rendered files land here, keyed by
+# Deployment name, and the wave walker below — not the order the service blocks
+# happen to be written in — decides when each one is applied and starts rolling.
+#
+# Every registry service with a known tag is rendered, not only the ones behind: a
+# service already on its published tag is rendered with that same tag, so applying
+# its manifest reports `unchanged` instead of flipping it to `:latest`. A Deployment
+# with no rendered file (redis, or a service whose tag could not be read from the
+# cluster) is applied as written.
+#
+# Rendering happens at queue time, before any image is pushed and before any
+# Deployment is touched: a manifest the renderer refuses stops the run with the
+# cluster exactly as it was.
+RENDERED_MANIFEST_DIR="$(mktemp -d)"
 
 queue_image()
 {
-  QUEUED_DEPLOYMENTS+=("$1")
-  QUEUED_IMAGES+=("$2")
+  local DEPLOYMENT=$1
+  local IMAGE_NAME=$2
+  local IMAGE_REF=$3
+
+  render_deployment_manifest "$K8S_PROD_DIR/$DEPLOYMENT.yaml" "$IMAGE_NAME" "$IMAGE_REF" "$RENDERED_MANIFEST_DIR/$DEPLOYMENT.yaml"
+  echo "Rendered $DEPLOYMENT with $IMAGE_REF"
 }
 
-# Echoes the queued "<container>=<image>" for a Deployment; non-zero if none.
-#
-# Indexed by position rather than by iterating `${!QUEUED_DEPLOYMENTS[@]}`: the
-# guarded form of that expansion (needed for the empty-array case) silently
-# yields nothing even when the array is populated, which would skip every image
-# bump while still reporting a green deploy.
-queued_image_for()
+# The manifest to apply for a Deployment: the rendered copy when there is one.
+manifest_for()
 {
-  local TOTAL=${#QUEUED_DEPLOYMENTS[@]}
-  local INDEX=0
-
-  while [ "$INDEX" -lt "$TOTAL" ]; do
-    if [ "${QUEUED_DEPLOYMENTS[$INDEX]}" = "$1" ]; then
-      echo "${QUEUED_IMAGES[$INDEX]}"
-      return 0
-    fi
-    INDEX=$((INDEX + 1))
-  done
-
-  return 1
+  if [ -f "$RENDERED_MANIFEST_DIR/$1.yaml" ]; then
+    echo "$RENDERED_MANIFEST_DIR/$1.yaml"
+  else
+    echo "$K8S_PROD_DIR/$1.yaml"
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -120,9 +124,12 @@ queued_image_for()
 # The tag a Deployment is serving right now.
 #
 # Read before `kubectl apply` runs, not after. The manifests all pin `:latest`, and
-# apply's three-way merge leaves the live tag alone only because `:latest` is
-# unchanged between the manifest and its last-applied annotation. That is a thin
-# guarantee to read state through, so the plan snapshots the cluster first.
+# applying one unrendered resets the live image to exactly that — apply's three-way
+# merge sets every manifest field whose live value differs, whatever the
+# last-applied annotation says (this script used to assume otherwise, and left
+# services on `:latest` between deploys). deploy_waves renders the intended tag into
+# each manifest for that reason; the plan still snapshots the cluster first, so what
+# it compares against is what was running, not what this run has since applied.
 running_image_for()
 {
   local DEPLOYMENT=$1
@@ -168,6 +175,7 @@ image_exists()
 PLAN_KEYS=()
 PLAN_DESIRED=()
 PLAN_RUNNING=()
+PLAN_RUNNING_IMAGES=()
 PLAN_VERDICTS=()
 
 BLOCKED=()
@@ -226,6 +234,7 @@ for KEY in $(service_keys); do
   PLAN_KEYS+=("$KEY")
   PLAN_DESIRED+=("$DESIRED")
   PLAN_RUNNING+=("$RUNNING")
+  PLAN_RUNNING_IMAGES+=("$RUNNING_IMAGE")
   PLAN_VERDICTS+=("$VERDICT")
 
   if verdict_is_blocking "$VERDICT"; then
@@ -421,23 +430,22 @@ deploy_waves()
     for DEPLOYMENT in $WAVE; do
       local IS_ROLLING=false
 
+      # The manifest pins `:latest`; the copy applied here has the image the service
+      # should run rendered in (see queue_image), so one apply carries both the spec
+      # and the version.
+      #
       # `apply` prints "deployment.apps/<name> configured" only when it actually
-      # changed the spec, and "unchanged" otherwise — so this both reconciles the
-      # manifest and tells us whether doing so started a rollout.
+      # changed the spec — an image bump included — and "unchanged" otherwise, so
+      # this both reconciles the manifest and tells us whether doing so started a
+      # rollout.
       local APPLY_OUTPUT
-      APPLY_OUTPUT="$(kubectl apply -f "$K8S_PROD_DIR/$DEPLOYMENT.yaml")"
+      APPLY_OUTPUT="$(kubectl apply -f "$(manifest_for "$DEPLOYMENT")")"
       echo "$APPLY_OUTPUT"
       # Matched per line, not against the whole blob: kubectl writes deprecation and
       # field-validation notices to stdout in some versions, and a suffix match on the
       # combined output then reads a rolling Deployment as "unchanged" — which skips
       # its `rollout status` verification and lets a wedged rollout report green.
       if printf '%s\n' "$APPLY_OUTPUT" | grep -q ' configured$'; then
-        IS_ROLLING=true
-      fi
-
-      local IMAGE
-      if IMAGE="$(queued_image_for "$DEPLOYMENT")"; then
-        kubectl set image "deployments/$DEPLOYMENT" "$IMAGE"
         IS_ROLLING=true
       fi
 
@@ -512,14 +520,27 @@ while [ "$INDEX" -lt "${#PLAN_KEYS[@]}" ]; do
   KEY="${PLAN_KEYS[$INDEX]}"
   VERDICT="${PLAN_VERDICTS[$INDEX]}"
   DESIRED="${PLAN_DESIRED[$INDEX]}"
+  RUNNING="${PLAN_RUNNING[$INDEX]}"
+  RUNNING_IMAGE="${PLAN_RUNNING_IMAGES[$INDEX]}"
   INDEX=$((INDEX + 1))
+
+  IMAGE="$(service_image "$KEY")"
 
   if [ "$VERDICT" != "deploy" ]; then
     echo "Skipping $KEY deployment ($VERDICT)"
+    # Still rendered, with the image it is running, so that applying its manifest
+    # (for a probe or env change, say) keeps it on that image. A service whose
+    # Deployment could not be read, or that was found on `:latest`, has no known
+    # tag to hold it at and is applied as written.
+    if [ -n "$RUNNING" ] && [ "$RUNNING" != "latest" ]; then
+      queue_image "$(service_deployment "$KEY")" "$IMAGE" "$RUNNING_IMAGE"
+    fi
     continue
   fi
 
-  IMAGE="$(service_image "$KEY")"
+  # Rendered before the image is promoted, so a manifest that cannot take the tag
+  # stops the run before anything has been pushed.
+  queue_image "$(service_deployment "$KEY")" "$IMAGE" "therrapp/$IMAGE$SUFFIX:$DESIRED"
 
   docker pull "therrapp/$IMAGE-stage:$DESIRED"
   if [[ "$CURRENT_BRANCH" == "main" ]]; then
@@ -528,11 +549,9 @@ while [ "$INDEX" -lt "${#PLAN_KEYS[@]}" ]; do
     docker push "therrapp/$IMAGE:$DESIRED"
     docker push "therrapp/$IMAGE:latest"
   fi
-
-  queue_image "$(service_deployment "$KEY")" "$(service_container "$KEY")=therrapp/$IMAGE$SUFFIX:$DESIRED"
 done
 
-echo "Image bumps queued for all services behind their published version"
+echo "Manifests rendered for every service; image bumps queued for those behind their published version"
 
 # Roll the queued images out wave by wave, failing the deploy if any pod never
 # reached Ready. Runs before migrations so we never migrate the schema

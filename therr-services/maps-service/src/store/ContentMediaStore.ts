@@ -1,3 +1,4 @@
+import { quoteTableName } from 'therr-js-utilities/db';
 import { IConnection } from './connection';
 import { MOMENTS_TABLE_NAME } from './MomentsStore';
 import { SPACES_TABLE_NAME } from './SpacesStore';
@@ -88,7 +89,7 @@ export default class ContentMediaStore {
 
             return REFERENCING_TABLES.map((tableName) => this.db.read.query(
                 `SELECT DISTINCT elem->>'path' AS path
-                   FROM ${tableName} c, LATERAL jsonb_array_elements(c.medias) elem
+                   FROM ${quoteTableName(tableName)} c, LATERAL jsonb_array_elements(c.medias) elem
                   WHERE (${containment})
                     AND elem->>'path' IN (${extraction})`,
                 params,

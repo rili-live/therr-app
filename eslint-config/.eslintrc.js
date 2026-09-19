@@ -36,5 +36,16 @@ module.exports = {
                 'no-console': 'off',
             },
         },
+        {
+            // Fixtures are inputs the rules read off disk — a service's ES-module
+            // `tableNames.ts`, say — not code this package runs. Parse them as modules
+            // and leave their contents to the tests that consume them.
+            files: ['plugin/tests/fixtures/**'],
+            parser: '@typescript-eslint/parser',
+            parserOptions: { sourceType: 'module' },
+            rules: {
+                'import/prefer-default-export': 'off',
+            },
+        },
     ],
 };

@@ -358,6 +358,14 @@ const getSpaceDetails = (req, res) => {
                 ...space,
                 message: space.message?.replace(/"/g, '\\"'),
                 isUnclaimed: space.fromUserId === SUPER_ADMIN_ID && !space.requestedByUserId,
+                // Mirrors the admin queue predicate in SpacesStore.searchSpaces. A claim on a
+                // space that already existed is never flagged `isClaimPending` — it is pending
+                // for exactly as long as the claimant does not yet own the row — so
+                // `requestedByUserId` alone cannot stand in for "awaiting approval": it stays
+                // set after approval, and reading it that way pins a permanent "claim pending"
+                // banner to a space that was approved.
+                isClaimAwaitingApproval: !!space.isClaimPending
+                    || (!!space.requestedByUserId && space.fromUserId !== space.requestedByUserId),
             };
 
             const promises = [
@@ -425,12 +433,18 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
     const integerColumns = ['maxViews', 'longitude', 'latitude'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
 
+    // The claim queue is admin-only. This used to `return` a response-shaped object without
+    // ever touching `res`, which left the request hanging until the client timed out instead
+    // of answering with an empty list.
     if (searchArgs[0].filterBy === 'isClaimPending' && searchArgs[0].query === 'true' && !userAccessLevels.includes(AccessLevels.SUPER_ADMIN)) {
-        return {
-            data: {
-                results: [],
+        return res.status(200).send({
+            results: [],
+            pagination: {
+                totalItems: 0,
+                itemsPerPage: Number(itemsPerPage),
+                pageNumber: Number(pageNumber),
             },
-        };
+        });
     }
 
     let fromUserIds: any[] = [];
@@ -558,7 +572,11 @@ const claimSpace: RequestHandler = async (req: any, res: any) => {
             });
         }
 
-        if (space.fromUserId === userId || space.requestedByUserId) {
+        // Only unclaimed inventory (rows owned by the super admin) can be claimed. Web and
+        // mobile already hide the button otherwise, but approval now moves `fromUserId` to
+        // the claimant (`SpacesStore.approveClaim`), so without this check a request on a
+        // space another business owns would let an admin hand it over from the queue.
+        if (space.fromUserId === userId || space.fromUserId !== SUPER_ADMIN_ID || space.requestedByUserId) {
             return handleHttpError({
                 res,
                 message: translate(locale, 'spaces.alreadyClaimed'),
@@ -582,7 +600,12 @@ const claimSpace: RequestHandler = async (req: any, res: any) => {
                 ...space,
             },
         })
-            .then(({ data }) => Store.spaces.updateSpace(space.id, {
+            .then(() => Store.spaces.updateSpace(space.id, {
+                // `updateSpace` scopes its WHERE to the owner, so the current owner has to be
+                // passed through. Omitting it made knex reject the undefined binding, the catch
+                // below swallowed that, and the claim was never recorded — the request email went
+                // out and the space never reached the admin queue.
+                fromUserId: space.fromUserId,
                 requestedByUserId: userId,
             })).then(([updatedSpace]) => {
                 logSpan({
@@ -770,8 +793,11 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                 if (!isTextMature) {
                     checkIsMediaSafeForWork(media).then((isSafeForWork) => {
                         if (!isSafeForWork) {
+                            // Off the dashboard this space is created under SUPER_ADMIN_ID, not the
+                            // requester, so scoping the update to `userId` matched no row and left
+                            // unsafe media unflagged. Use the row's actual owner.
                             return Store.spaces.updateSpace(space.id, {
-                                fromUserId: userId,
+                                fromUserId: space.fromUserId,
                                 isMatureContent: !isSafeForWork,
                             }).catch((err) => {
                                 logSpan({
@@ -863,10 +889,7 @@ const approveSpaceRequest: RequestHandler = async (req: any, res: any) => {
                 ...space,
             },
         })
-            .then(({ data }) => Store.spaces.updateSpace(space.id, {
-                fromUserId: space.fromUserId,
-                isClaimPending: false,
-            })).then(([updatedSpace]) => {
+            .then(() => Store.spaces.approveClaim(space.id)).then(([updatedSpace]) => {
                 logSpan({
                     level: 'info',
                     messageOrigin: 'API_SERVER',

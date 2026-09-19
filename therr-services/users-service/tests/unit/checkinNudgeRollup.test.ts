@@ -143,6 +143,63 @@ describe('check-in nudge roll-up', () => {
         expect(acc.candidateCount()).to.equal(0);
     });
 
+    /**
+     * A habit whose per-habit `notifyStreakAlerts` is off still belongs in the
+     * roll-up — the user asked to keep the ordinary reminder — but it must not
+     * contribute a streak to it. Without that, the loss-aversion framing they
+     * declined arrives anyway, and `hasLiveStreak` earns them the evening "last
+     * chance" push on top of the morning one.
+     */
+    describe('a habit with streak alerts muted', () => {
+        it('does not turn the nudge into a streak warning on its own', () => {
+            const acc = createCheckinNudgeAccumulator();
+            acc.add(USER_A, {
+                habitGoalId: 'g1',
+                habitName: 'Gym',
+                streakCount: 12,
+                allowsStreakAlerts: false,
+            });
+
+            const [row] = acc.drain();
+
+            expect(row.type).to.equal(PushNotifications.Types.dailyHabitReminder);
+            expect(row.payload.streakCount).to.equal(0);
+            // No live streak the user is willing to hear about → no second push.
+            expect(row.hasLiveStreak).to.equal(false);
+        });
+
+        it('does not lead the copy over a habit that did keep its alerts', () => {
+            const acc = createCheckinNudgeAccumulator();
+            acc.add(USER_A, {
+                habitGoalId: 'g1', habitName: 'Gym', streakCount: 40, allowsStreakAlerts: false,
+            });
+            acc.add(USER_A, {
+                habitGoalId: 'g2', habitName: 'Reading', streakCount: 3, allowsStreakAlerts: true,
+            });
+
+            const [row] = acc.drain();
+
+            expect(row.type).to.equal(PushNotifications.Types.streakAtRisk);
+            expect(row.payload.habitName).to.equal('Reading');
+            expect(row.payload.streakCount).to.equal(3);
+            expect(row.hasLiveStreak).to.equal(true);
+            // Both habits are still covered; only the framing is the quiet one's.
+            expect(row.payload.habitCount).to.equal(2);
+            expect(row.payload.habitGoalIds).to.have.members(['g1', 'g2']);
+        });
+
+        it('treats an absent flag as opted in, for callers written before it existed', () => {
+            const acc = createCheckinNudgeAccumulator();
+            acc.add(USER_A, { habitGoalId: 'g1', habitName: 'Gym', streakCount: 9 });
+
+            const [row] = acc.drain();
+
+            expect(row.type).to.equal(PushNotifications.Types.streakAtRisk);
+            expect(row.payload.streakCount).to.equal(9);
+            expect(row.hasLiveStreak).to.equal(true);
+        });
+    });
+
     it('writes a key stamped with the day and nothing time-varying', () => {
         // A key holding a clock reading is unique on every run, which turns
         // dedup off without failing anything else.
