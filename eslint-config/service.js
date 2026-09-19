@@ -60,6 +60,12 @@ module.exports = function createServiceConfig(serviceDir, overrides = {}) {
             // the profile response, each time leaving a profile screen and the connections
             // list disagreeing about the same pair of users.
             'therr/no-partial-connection-status-check': 'error',
+            // Postgres folds unquoted identifiers to lowercase, so a camelCase table name
+            // interpolated bare into raw SQL names a relation that does not exist. The
+            // builder quotes for itself; raw SQL must either be provably lowercase or go
+            // through quoteTableName() (therr-js-utilities/db). Shipped once (2026-09-19):
+            // the store's builder methods worked, its one raw INSERT never could.
+            'therr/no-unquoted-camelcase-table-in-raw-sql': 'error',
             ...(overrides.rules || {}),
         },
         overrides: [

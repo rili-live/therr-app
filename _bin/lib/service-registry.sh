@@ -22,7 +22,8 @@
 #                 match ^[a-z0-9-]+$ (see versions-ledger.sh for the mapping).
 #   2 image       Docker Hub repo under therrapp/. Stage builds append "-stage".
 #   3 deployment  k8s/prod Deployment name (== manifest basename).
-#   4 container   container name within that Deployment, for `kubectl set image`.
+#   4 container   container name within that Deployment — which container's image
+#                 the deploy plan reads as the running tag (there is a sidecar).
 #   5 dockerfile  path to the Dockerfile.
 #   6 context     docker build context.
 #   7 sources     space-separated paths whose changes require a rebuild. This is
@@ -56,7 +57,16 @@ THERR_SERVICES=(
 
 # Services that own knex migrations, keyed as above. run-migrations.sh reads this
 # rather than repeating the service list a fourth time.
-THERR_MIGRATABLE_SERVICES="users-service maps-service messages-service reactions-service push-notifications-service"
+#
+# push-notifications-service is deliberately absent. It has no migrations of its
+# own (src/store/migrations holds only a .gitkeep) and its knexfile connects to
+# MAPS_SERVICE_DATABASE, so `migrate:latest` there reads maps-service's
+# knex_migrations rows against an empty directory and aborts with "The migration
+# directory is corrupt, the following files are missing: <every maps migration>"
+# (2026-09-19). It did nothing useful when it passed and fails the deploy when it
+# runs. Add it back only once it owns a database — or at least a distinct
+# migrations.tableName — of its own.
+THERR_MIGRATABLE_SERVICES="users-service maps-service messages-service reactions-service"
 
 service_keys()
 {
@@ -140,8 +150,9 @@ assert_service_registry()
     if [ ! -f "$K8S_DIR/$DEPLOYMENT.yaml" ]; then
       PROBLEMS+=("$KEY names a Deployment with no manifest: $K8S_DIR/$DEPLOYMENT.yaml")
     else
-      # The container name is what `kubectl set image` addresses. Getting it wrong
-      # makes `set image` a no-op-shaped error rather than a rollout.
+      # The container name is what the deploy plan reads the running tag through
+      # (a jsonpath filter on the Deployment). Getting it wrong reads an empty tag,
+      # which the plan treats as "cannot verify" rather than as the service's version.
       if ! grep -qE "^[[:space:]]+- name: $(service_container "$KEY")\$" "$K8S_DIR/$DEPLOYMENT.yaml"; then
         PROBLEMS+=("$KEY names container '$(service_container "$KEY")', which $DEPLOYMENT.yaml does not define")
       fi
