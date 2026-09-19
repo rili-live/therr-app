@@ -8,7 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import ReactGA from 'react-ga4';
 import { CampaignStatuses } from 'therr-js-utilities/constants';
-import { CampaignsService, MapsService } from 'therr-react/services';
+import { CampaignsService, MapsService, UsersService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import translator from '../../services/translator';
@@ -33,6 +33,7 @@ interface IAdminDashboardOverviewProps extends IStoreProps {
 interface IAdminDashboardOverviewState {
     campaignsPendingReview: any[];
     spacesPendingApproval: any[];
+    requestersById: { [userId: string]: any };
 }
 
 const mapStateToProps = (state: any) => ({
@@ -68,6 +69,7 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
         this.state = {
             campaignsPendingReview: [],
             spacesPendingApproval: [],
+            requestersById: {},
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -89,9 +91,11 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
         }, {
             distanceOverride: 20037943, // ~ 12451 miles (whole world)
         }).then((response) => {
+            const spacesPendingApproval = response?.data?.results || [];
             this.setState({
-                spacesPendingApproval: response?.data?.results || [],
+                spacesPendingApproval,
             });
+            this.loadRequesters(spacesPendingApproval);
         }).catch((err) => {
             console.log(err);
         });
@@ -120,6 +124,37 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
     handleInitMessaging = (e, connection) => {
         const { onInitMessaging } = this.props;
         return onInitMessaging && onInitMessaging(e, this.getConnectionDetails(connection), 'user-profile');
+    };
+
+    // Best effort: a requester id alone tells the admin nothing about who is asking. The
+    // search endpoint only returns public, verified profiles, so anything it can't resolve
+    // falls back to the raw id in the row.
+    loadRequesters = (spaces: any[]) => {
+        const ids = Array.from(new Set(spaces.map((space) => space.requestedByUserId).filter(Boolean)));
+        if (!ids.length) {
+            return;
+        }
+        UsersService.search({ ids, limit: ids.length })
+            .then((response) => {
+                const requestersById = (response?.data?.results || []).reduce((acc, user) => {
+                    acc[user.id] = user;
+                    return acc;
+                }, {});
+                this.setState({ requestersById });
+            })
+            .catch(() => undefined);
+    };
+
+    formatRequester = (userId?: string) => {
+        if (!userId) {
+            return this.translate('pages.adminDashboardOverview.spaceQueue.unknownUser');
+        }
+        const user = this.state.requestersById[userId];
+        if (!user) {
+            return userId;
+        }
+        const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
+        return `${user.userName ? `@${user.userName}` : userId}${fullName ? ` (${fullName})` : ''}`;
     };
 
     handleApproveClaim = (e, space) => {
@@ -172,26 +207,25 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
     // which is why the two are listed separately: a request is published, a claim on an
     // existing space changes hands.
     renderPendingSpaceRow = (space, approveLabel: string) => {
+        const t = (key: string, params?: any) => this.translate(`pages.adminDashboardOverview.spaceQueue.${key}`, params);
         const isRequest = !!space.isClaimPending;
         const isOwnRequest = isRequest && space.fromUserId && space.fromUserId === space.requestedByUserId;
-        let outcome = 'Ownership transfers to the requester';
+        let outcome = t('outcomeTransfer');
         if (isRequest) {
-            outcome = isOwnRequest
-                ? 'Published; the requesting business keeps ownership'
-                : 'Published as unclaimed inventory (consumer request)';
+            outcome = isOwnRequest ? t('outcomePublishOwn') : t('outcomePublishInventory');
         }
 
         return (
             <React.Fragment key={space.id}>
                 <Row>
                     <Col className="mb-2" md={12} lg={8} xl={9} xxl={10}>
-                        <div className="fw-bold">{space.notificationMsg || '(untitled space)'}</div>
-                        <div className="small text-gray-600">{space.addressReadable || 'No address on file'}</div>
+                        <div className="fw-bold">{space.notificationMsg || t('untitled')}</div>
+                        <div className="small text-gray-600">{space.addressReadable || t('noAddress')}</div>
                         <div className="small text-gray-600">
-                            Requested by {space.requestedByUserId || 'unknown user'}
-                            {space.createdAt ? ` on ${new Date(space.createdAt).toLocaleString()}` : ''}
+                            {t('requestedBy', { requester: this.formatRequester(space.requestedByUserId) })}
+                            {space.createdAt ? t('requestedOn', { date: new Date(space.createdAt).toLocaleString() }) : ''}
                         </div>
-                        <div className="small text-gray-600">On approval: {outcome}</div>
+                        <div className="small text-gray-600">{t('onApproval', { outcome })}</div>
                         <div className="small text-gray-500">{space.id}</div>
                     </Col>
                     <Col className="text-right" md={12} lg={4} xl={3} xxl={2}>
@@ -225,38 +259,40 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
                 <Card className="bg-white shadow-sm mb-3 mb-xl-4 mt-2">
                     <Card.Header className="d-flex flex-row align-items-center flex-0">
                         <h3 className="fw-bold text-center">
-                            <span className="fw-bolder">Space Requests (pending approval)</span>
+                            <span className="fw-bolder">{this.translate('pages.adminDashboardOverview.spaceQueue.requestsTitle')}</span>
                         </h3>
                     </Card.Header>
                     <Card.Body>
-                        <p className="small text-gray-600">
-                            New spaces submitted through &quot;Request a Space&quot; or the dashboard. Approving publishes the space.
-                            A request from a consumer account becomes unclaimed inventory a business can claim later;
-                            a request from the business itself stays theirs.
-                        </p>
+                        <p className="small text-gray-600">{this.translate('pages.adminDashboardOverview.spaceQueue.requestsHelp')}</p>
                         {
-                            !spaceRequests.length && <h5 className="text-center">No space requests pending approval.</h5>
+                            !spaceRequests.length
+                            && <h5 className="text-center">{this.translate('pages.adminDashboardOverview.spaceQueue.requestsEmpty')}</h5>
                         }
                         {
-                            spaceRequests.map((space) => this.renderPendingSpaceRow(space, 'Publish space'))
+                            spaceRequests.map((space) => this.renderPendingSpaceRow(
+                                space,
+                                this.translate('pages.adminDashboardOverview.spaceQueue.publishButton'),
+                            ))
                         }
                     </Card.Body>
                 </Card>
                 <Card className="bg-white shadow-sm mb-3 mb-xl-4 mt-2">
                     <Card.Header className="d-flex flex-row align-items-center flex-0">
                         <h3 className="fw-bold text-center">
-                            <span className="fw-bolder">Claims on Existing Spaces (pending approval)</span>
+                            <span className="fw-bolder">{this.translate('pages.adminDashboardOverview.spaceQueue.claimsTitle')}</span>
                         </h3>
                     </Card.Header>
                     <Card.Body>
-                        <p className="small text-gray-600">
-                            A business asking to own a space that is already on the map. Approving transfers ownership to the requester.
-                        </p>
+                        <p className="small text-gray-600">{this.translate('pages.adminDashboardOverview.spaceQueue.claimsHelp')}</p>
                         {
-                            !spaceClaims.length && <h5 className="text-center">No claims pending approval.</h5>
+                            !spaceClaims.length
+                            && <h5 className="text-center">{this.translate('pages.adminDashboardOverview.spaceQueue.claimsEmpty')}</h5>
                         }
                         {
-                            spaceClaims.map((space) => this.renderPendingSpaceRow(space, 'Approve claim'))
+                            spaceClaims.map((space) => this.renderPendingSpaceRow(
+                                space,
+                                this.translate('pages.adminDashboardOverview.spaceQueue.approveButton'),
+                            ))
                         }
                     </Card.Body>
                 </Card>
