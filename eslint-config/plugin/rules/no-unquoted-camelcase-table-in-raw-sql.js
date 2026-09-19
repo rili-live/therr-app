@@ -31,8 +31,12 @@ const path = require('path');
 
 const DEFAULT_QUOTE_HELPERS = ['quoteTableName'];
 
-// The static text immediately before an interpolation puts it in table position.
-const TABLE_POSITION_BEFORE = /\b(FROM|JOIN|INTO|UPDATE|TABLE)\s+$/;
+// The static text immediately before an interpolation puts it in table position. Two SQL
+// forms put a value, not a table, after FROM — `EXTRACT(EPOCH FROM …)` and
+// `IS DISTINCT FROM …` — and are excluded so a parameter there is not reported as an
+// unverifiable table name. A camelCase qualifier in either (`EPOCH FROM ${T}."createdAt"`)
+// is still caught by the qualifier check below.
+const TABLE_POSITION_BEFORE = /(?<!\b(?:EPOCH|DISTINCT)\s+)\b(FROM|JOIN|INTO|UPDATE|TABLE)\s+$/;
 // The static text immediately after an interpolation uses it as a column qualifier:
 // `${T}."createdAt"` or `${T}.id) AS …`. A sentence that ends on an interpolation
 // (`… for ${name}.`) does not match.
@@ -83,6 +87,8 @@ const quotedForm = (qualified) => {
 };
 
 const RESOLUTION_EXTENSIONS = ['.ts', '.js', '/index.ts', '/index.js'];
+// Keyed on path + mtime so an editor-hosted ESLint server, which outlives any one lint run,
+// re-reads a `tableNames.ts` after it is edited instead of serving the first text it saw.
 const importedConstantCache = new Map();
 
 // `export const NAME = '…'` from a relative module, read straight off disk. One hop only;
@@ -98,14 +104,21 @@ const readExportedConstant = (fromFile, source, name) => {
         return null;
     }
 
-    let text = importedConstantCache.get(target);
+    let cacheKey = target;
+    try {
+        cacheKey = `${target}:${fs.statSync(target).mtimeMs}`;
+    } catch (error) {
+        // Unreadable stat: fall through to the read, which records '' for the path.
+    }
+
+    let text = importedConstantCache.get(cacheKey);
     if (text === undefined) {
         try {
             text = fs.readFileSync(target, 'utf8');
         } catch (error) {
             text = '';
         }
-        importedConstantCache.set(target, text);
+        importedConstantCache.set(cacheKey, text);
     }
 
     const declaration = new RegExp(`export\\s+const\\s+${name}\\s*(?::\\s*[^=]+?)?=\\s*(['"\`])([^'"\`]+)\\1`);

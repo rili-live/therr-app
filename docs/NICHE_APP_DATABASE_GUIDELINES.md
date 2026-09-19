@@ -259,7 +259,8 @@ The rule resolves a `const` in the same file and an `import { X } from './relati
 into that file. Anything it cannot prove lowercase — `this.tableName`, a function parameter,
 a bare-specifier import — is reported, and `quoteTableName()` is always the fix: it turns
 `schema.table` into `schema."table"` and leaves an already-quoted name alone. Keywords are
-matched in uppercase only, so prose like `` `… coins from ${provider}` `` is not SQL.
+matched in uppercase only, so prose like `` `… coins from ${provider}` `` is not SQL, and
+`EXTRACT(EPOCH FROM ${x})` / `IS DISTINCT FROM ${x}` are not table position.
 
 ### Migration File Naming
 

@@ -60,6 +60,11 @@ ruleTester.run('no-unquoted-camelcase-table-in-raw-sql', rule, {
         // Non-SQL keyword-shaped text with no dotted name is ignored.
         { code: "const sql = 'SELECT NOW() FROM generate_series(1, 10)';" },
         { code: 'knex.raw(`SELECT EXTRACT(EPOCH FROM NOW())`);' },
+
+        // `EXTRACT(EPOCH FROM …)` and `IS DISTINCT FROM …` take a value, not a table: an
+        // interpolation there is not a table name to verify.
+        { code: 'knex.raw(`SELECT EXTRACT(EPOCH FROM ${column}) AS age FROM habits.pacts p`);' },
+        { code: 'query.whereRaw(`"brandVariation" IS DISTINCT FROM ${brand}`);' },
     ],
 
     invalid: [
@@ -117,6 +122,11 @@ ruleTester.run('no-unquoted-camelcase-table-in-raw-sql', rule, {
         {
             // Used as a column qualifier inside SQL.
             code: "const T = 'main.userLocations'; query.whereRaw(`${T}.\"createdAt\" <= NOW() AND ${T}.id IS NOT NULL`);",
+            errors: [{ messageId: 'bareCamelCase' }, { messageId: 'bareCamelCase' }],
+        },
+        {
+            // The EPOCH FROM exclusion does not hide a camelCase qualifier used there.
+            code: "const T = 'main.userLocations'; knex.raw(`SELECT EXTRACT(EPOCH FROM ${T}.\"createdAt\") FROM ${T} l`);",
             errors: [{ messageId: 'bareCamelCase' }, { messageId: 'bareCamelCase' }],
         },
         {
