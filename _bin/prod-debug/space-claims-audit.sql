@@ -1,8 +1,8 @@
 -- Space claim audit — read-only.
 --
 -- Run against the maps database (therr_prod_maps) to see what the admin claim queue
--- actually holds, what the dashboard was showing instead, and which approved claims
--- never had ownership handed over.
+-- actually holds, what the dashboard was showing instead, and which approved space
+-- requests still carry a requester and need releasing.
 --
 --   psql "$MAPS_DB_URL" -f _bin/prod-debug/space-claims-audit.sql
 --
@@ -128,24 +128,28 @@ WHERE s."isMatureContent" = false
 ORDER BY s."createdAt" DESC;
 
 \echo ''
-\echo '=== 6. Approved claims whose ownership was never transferred ==='
--- approveSpaceRequest cleared isClaimPending but left fromUserId pointing at the super
--- admin. searchMySpaces keys off fromUserId, so these businesses were told their claim was
--- approved and still cannot see the space under /spaces.
+\echo '=== 6. Approved space requests still carrying a requester ==='
+-- These are consumer "Request a Space" suggestions (POST /spaces/request-claim, created
+-- under the super admin) that an admin approved. Approval cleared isClaimPending but left
+-- requestedByUserId set. They are NOT business claims and ownership must NOT move — the
+-- requester was suggesting a public business, not claiming it. Left as they are, the
+-- corrected admin queue (section 1) lists every one of them as a fresh claim,
+-- isClaimAwaitingApproval pins a pending banner on them, and isUnclaimed stays false so
+-- no business can ever claim them. The repair releases them: requestedByUserId → NULL.
 --
 -- READ THIS BEFORE THE FIX SHIPS. On today's data these rows are unambiguous: the only
 -- writer that ever set requestedByUserId was the new-space request path, which always set
--- isClaimPending alongside it, so a row with a claimant and no pending flag is an approved
--- one. Once the fix is deployed, claims on existing spaces start setting requestedByUserId
--- WITHOUT the pending flag, and a still-pending claim of that shape becomes
--- indistinguishable here from an approved one — so cross-check against section 1 if you
--- run this later. Running the repair at the bottom before the deploy avoids the ambiguity
--- entirely, and also keeps these legacy rows from surfacing in the new admin queue.
+-- isClaimPending alongside it, so a row with a requester and no pending flag is an
+-- approved request. Once the fix is deployed, claims on existing spaces start setting
+-- requestedByUserId WITHOUT the pending flag, and a still-pending claim of that shape
+-- becomes indistinguishable here from an approved request — so cross-check against
+-- section 1 if you run this later. Running the repair at the bottom before the deploy
+-- avoids the ambiguity entirely.
 SELECT
     s.id,
     s."notificationMsg"  AS title,
     s."addressReadable"  AS address,
-    s."requestedByUserId" AS claimant_id,
+    s."requestedByUserId" AS requester_id,
     s."createdAt",
     s."updatedAt"
 FROM main.spaces s
@@ -190,20 +194,23 @@ ORDER BY 1 DESC;
 -- ---------------------------------------------------------------------------
 -- REPAIR (commented out — run only after reviewing section 6)
 --
--- Hands ownership of already-approved claims to the claimant, which is what
--- approveSpaceRequest now does at approval time. Check section 6 first; every row it
--- lists is a row this would change.
+-- Releases already-approved space requests back to unclaimed inventory, which is what
+-- SpacesStore.approveClaim now does for that shape at approval time. Check section 6
+-- first; every row it lists is a row this would change. Do NOT transfer ownership here —
+-- these rows are consumer suggestions, and handing them to the requester gives a
+-- consumer account a business page.
 --
 -- Best run BEFORE the fix is deployed, for the two reasons in section 6: the rows are
 -- unambiguous until then, and leaving them unrepaired means the corrected admin queue
--- picks them back up as though they were fresh claims awaiting review. (Approving one
--- from the dashboard afterwards is harmless — it performs the same transfer — but it is
--- noise an admin has to work through.)
+-- picks them back up as though they were fresh claims awaiting review.
+--
+-- `scripts/import-spaces/repair-space-claims` runs this same statement with a
+-- preview/row-count guard; prefer it.
 --
 -- BEGIN;
 -- UPDATE main.spaces
--- SET "fromUserId" = "requestedByUserId",
---     "updatedAt"  = now()
+-- SET "requestedByUserId" = NULL,
+--     "updatedAt"         = now()
 -- WHERE "isClaimPending" = false
 --   AND "requestedByUserId" IS NOT NULL
 --   AND "fromUserId" = '568bf5d2-8595-4fd6-95da-32cc318618d3';

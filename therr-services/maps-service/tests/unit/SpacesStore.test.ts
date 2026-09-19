@@ -293,15 +293,40 @@ describe('SpacesStore', () => {
     });
 
     describe('approveClaim', () => {
-        it('clears the pending flag and hands ownership to the claimant', () => {
+        it('clears the pending flag for the targeted row only', () => {
             const mockStore = createMockWritableStore();
             const store = new SpacesStore(mockStore, createMockMediaStore());
             store.approveClaim('space-1');
 
             const query = mockStore.write.query.args[0][0];
             expect(query).to.include('"isClaimPending" = false');
-            expect(query).to.include('"fromUserId" = COALESCE("requestedByUserId", "fromUserId")');
             expect(query).to.include('where "id" = \'space-1\'');
+        });
+
+        it('transfers ownership only for claims on existing spaces, not for space requests', () => {
+            const mockStore = createMockWritableStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            store.approveClaim('space-1');
+
+            const query = mockStore.write.query.args[0][0];
+            // A consumer's "Request a Space" row (isClaimPending = true) is created under the
+            // super admin; an unconditional COALESCE handed the business page to the consumer.
+            expect(query).to.include(
+                '"fromUserId" = CASE WHEN "isClaimPending" = false THEN COALESCE("requestedByUserId", "fromUserId") ELSE "fromUserId" END',
+            );
+        });
+
+        it('releases an approved space request back to unclaimed inventory', () => {
+            const mockStore = createMockWritableStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            store.approveClaim('space-1');
+
+            const query = mockStore.write.query.args[0][0];
+            // Leaving requestedByUserId set with owner <> requester kept the row in the admin
+            // queue forever and made isUnclaimed permanently false, so no business could claim it.
+            expect(query).to.include(
+                '"requestedByUserId" = CASE WHEN "isClaimPending" = true AND "requestedByUserId" IS DISTINCT FROM "fromUserId" THEN NULL ELSE "requestedByUserId" END',
+            );
         });
     });
 

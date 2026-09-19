@@ -818,18 +818,35 @@ export default class SpacesStore {
     }
 
     /**
-     * Approve a pending space claim.
+     * Approve a pending space request or claim. The two shapes (see the claim-queue
+     * predicate in `searchSpaces`) mean different things on approval, and every CASE
+     * below reads the row's values from *before* the update:
      *
-     * Ownership moves to the claimant here, and only here. `searchMySpaces` keys off
-     * `fromUserId`, so without the transfer an approved business still could not see or
-     * manage the space it had just been told it owned. This is kept out of `updateSpace`
-     * on purpose: that method scopes its WHERE to `fromUserId` as an ownership check, and
-     * letting it reassign the same column would let any caller hand a space to itself.
+     *   - A space request (`isClaimPending = true`) is published. When the requester
+     *     is not the owner it was a consumer's "Request a Space" suggestion, created
+     *     under the super admin: the space becomes unclaimed inventory a business can
+     *     later claim, so `requestedByUserId` is cleared — left set, the queue predicate
+     *     and `isClaimAwaitingApproval` would report it as pending forever and
+     *     `isUnclaimed` would never be true again. When the requester already owns the
+     *     row (created from the dashboard) nothing but the flag changes.
+     *   - A claim on an existing space (`isClaimPending = false`, `requestedByUserId`
+     *     set) transfers ownership to the claimant. `searchMySpaces` keys off
+     *     `fromUserId`, so without the transfer the approved business still could not
+     *     see or manage the space it had just been told it owned.
+     *
+     * Ownership moves here and only here. `updateSpace` scopes its WHERE to
+     * `fromUserId` as an ownership check, and letting it reassign the same column would
+     * let any caller hand a space to itself.
      */
     approveClaim(id: string) {
         const queryString = knexBuilder.update({
             isClaimPending: false,
-            fromUserId: knexBuilder.raw('COALESCE("requestedByUserId", "fromUserId")'),
+            fromUserId: knexBuilder.raw(
+                'CASE WHEN "isClaimPending" = false THEN COALESCE("requestedByUserId", "fromUserId") ELSE "fromUserId" END',
+            ),
+            requestedByUserId: knexBuilder.raw(
+                'CASE WHEN "isClaimPending" = true AND "requestedByUserId" IS DISTINCT FROM "fromUserId" THEN NULL ELSE "requestedByUserId" END',
+            ),
             updatedAt: new Date(),
         })
             .into(SPACES_TABLE_NAME)

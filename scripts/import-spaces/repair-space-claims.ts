@@ -4,10 +4,16 @@
  * `geomCenter` backfill. Idempotent: every statement is guarded so a second run
  * changes nothing.
  *
- *   1. Approved-but-untransferred claims — `approveSpaceRequest` used to clear
- *      `isClaimPending` without moving `fromUserId` to the claimant, so the
- *      business could never see its space under /spaces. Hand ownership over
- *      (the same transfer the fixed `SpacesStore.approveClaim` now performs).
+ *   1. Approved space requests still carrying a requester — before the fix, the only
+ *      writer of `requestedByUserId` was `POST /spaces/request-claim` (a consumer's
+ *      "Request a Space" suggestion, created under the super admin), and approval
+ *      cleared `isClaimPending` without clearing the requester. The corrected admin
+ *      queue predicate (`requestedByUserId` set and <> owner) would list every one of
+ *      them as a fresh claim, `isClaimAwaitingApproval` would pin a pending banner on
+ *      them, and `isUnclaimed` would stay false so no business could claim them.
+ *      Release them: clear `requestedByUserId` so they are plain unclaimed inventory —
+ *      exactly what `SpacesStore.approveClaim` now does for that shape at approval
+ *      time. Ownership is NOT transferred; these were suggestions, not claims.
  *      This is section 6 + the repair block of `_bin/prod-debug/space-claims-audit.sql`.
  *
  *   2. Record a lost claim on an existing space (optional, `--claim <spaceId>:<userId>`).
@@ -69,15 +75,15 @@ async function main() {
   await assertDbConnection(db);
 
   // ── Preview ──────────────────────────────────────────────────────────────
-  const { rows: untransferred } = await db.query(
-    `SELECT id, "notificationMsg" AS title, "requestedByUserId" AS claimant, "updatedAt"
+  const { rows: released } = await db.query(
+    `SELECT id, "notificationMsg" AS title, "requestedByUserId" AS requester, "updatedAt"
      FROM main.spaces
      WHERE "isClaimPending" = false AND "requestedByUserId" IS NOT NULL AND "fromUserId" = $1
      ORDER BY "updatedAt" DESC`,
     [SUPER_ADMIN_ID],
   );
-  console.log(`\n1. Approved claims still owned by the super admin: ${untransferred.length}`);
-  untransferred.forEach((r) => console.log(`   ${r.id}  ${r.title}  → ${r.claimant}`));
+  console.log(`\n1. Approved space requests to release back to unclaimed inventory (clear requestedByUserId): ${released.length}`);
+  released.forEach((r) => console.log(`   ${r.id}  ${r.title}  (requested by ${r.requester})`));
 
   for (const claim of args.claims) {
     const { rows: [space] } = await db.query(
@@ -113,12 +119,12 @@ async function main() {
     await client.query('BEGIN');
 
     const r1 = await client.query(
-      `UPDATE main.spaces SET "fromUserId" = "requestedByUserId", "updatedAt" = now()
+      `UPDATE main.spaces SET "requestedByUserId" = NULL, "updatedAt" = now()
        WHERE "isClaimPending" = false AND "requestedByUserId" IS NOT NULL AND "fromUserId" = $1`,
       [SUPER_ADMIN_ID],
     );
-    if (r1.rowCount !== untransferred.length) {
-      throw new Error(`ownership transfer touched ${r1.rowCount} rows, preview showed ${untransferred.length}`);
+    if (r1.rowCount !== released.length) {
+      throw new Error(`release touched ${r1.rowCount} rows, preview showed ${released.length}`);
     }
 
     for (const claim of args.claims) {
@@ -139,7 +145,7 @@ async function main() {
     }
 
     await client.query('COMMIT');
-    console.log(`\nApplied: ${r1.rowCount} ownership transfers, ${args.claims.length} claims recorded, ${r3.rowCount} geomCenter backfills.`);
+    console.log(`\nApplied: ${r1.rowCount} space requests released, ${args.claims.length} claims recorded, ${r3.rowCount} geomCenter backfills.`);
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;
@@ -151,7 +157,7 @@ async function main() {
   const { rows: [after] } = await db.query(
     `SELECT
        (SELECT count(*)::int FROM main.spaces
-        WHERE "isClaimPending" = false AND "requestedByUserId" IS NOT NULL AND "fromUserId" = $1) AS "untransferredLeft",
+        WHERE "isClaimPending" = false AND "requestedByUserId" IS NOT NULL AND "fromUserId" = $1) AS "unreleasedLeft",
        (SELECT count(*)::int FROM main.spaces
         WHERE "geomCenter" IS NULL AND longitude IS NOT NULL AND latitude IS NOT NULL) AS "nullCentersLeft",
        (SELECT count(*)::int FROM main.spaces

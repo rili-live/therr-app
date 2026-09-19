@@ -99,10 +99,11 @@ append new items here rather than only printing them once.
 ## Space claim queue repair (added 2026-09-19)
 
 - [ ] **Run `scripts/import-spaces/repair-space-claims` against prod BEFORE the claim-queue
-  fix (#2927) deploys.** One idempotent, all-or-nothing transaction that (a) hands ownership
-  of the 25 already-approved claims to their claimant — `approveSpaceRequest` only cleared the
-  pending flag, so `searchMySpaces` (which keys on `fromUserId`) still showed those businesses
-  nothing, and the corrected admin queue would list them as fresh claims; (b) records the one
+  fix (#2927) deploys.** One idempotent, all-or-nothing transaction that (a) releases the 25
+  already-approved consumer "Request a Space" rows back to unclaimed inventory by clearing
+  `requestedByUserId` — they are suggestions, not business claims, so ownership stays with the
+  super admin; left as they are, the corrected admin queue would list every one as a fresh
+  claim and `isUnclaimed` would stay false so no business could claim them; (b) records the one
   claim that the lost `request-claim/:spaceId` path never wrote (Pappadeaux Seafood Kitchen,
   from the 2026-09-19 admin email); and (c) backfills `geomCenter` for the 272 spaces
   `createSpace` never populated, which made them invisible to every proximity search. The

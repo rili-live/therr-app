@@ -168,11 +168,55 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
             });
     };
 
+    // The same approve endpoint does different things per shape (SpacesStore.approveClaim),
+    // which is why the two are listed separately: a request is published, a claim on an
+    // existing space changes hands.
+    renderPendingSpaceRow = (space, approveLabel: string) => {
+        const isRequest = !!space.isClaimPending;
+        const isOwnRequest = isRequest && space.fromUserId && space.fromUserId === space.requestedByUserId;
+        let outcome = 'Ownership transfers to the requester';
+        if (isRequest) {
+            outcome = isOwnRequest
+                ? 'Published; the requesting business keeps ownership'
+                : 'Published as unclaimed inventory (consumer request)';
+        }
+
+        return (
+            <React.Fragment key={space.id}>
+                <Row>
+                    <Col className="mb-2" md={12} lg={8} xl={9} xxl={10}>
+                        <div className="fw-bold">{space.notificationMsg || '(untitled space)'}</div>
+                        <div className="small text-gray-600">{space.addressReadable || 'No address on file'}</div>
+                        <div className="small text-gray-600">
+                            Requested by {space.requestedByUserId || 'unknown user'}
+                            {space.createdAt ? ` on ${new Date(space.createdAt).toLocaleString()}` : ''}
+                        </div>
+                        <div className="small text-gray-600">On approval: {outcome}</div>
+                        <div className="small text-gray-500">{space.id}</div>
+                    </Col>
+                    <Col className="text-right" md={12} lg={4} xl={3} xxl={2}>
+                        <Button
+                            onClick={(e) => this.handleApproveClaim(e, space)}
+                            variant="primary"
+                            className="text-white w-100"
+                        >
+                            <FontAwesomeIcon icon={faCheck} className="me-1" />
+                            {approveLabel}
+                        </Button>
+                    </Col>
+                </Row>
+                <hr />
+            </React.Fragment>
+        );
+    };
+
     public render(): JSX.Element | null {
         const {
             campaignsPendingReview,
             spacesPendingApproval,
         } = this.state;
+        const spaceRequests = spacesPendingApproval.filter((space) => space.isClaimPending);
+        const spaceClaims = spacesPendingApproval.filter((space) => !space.isClaimPending);
 
         return (
             <>
@@ -181,40 +225,38 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
                 <Card className="bg-white shadow-sm mb-3 mb-xl-4 mt-2">
                     <Card.Header className="d-flex flex-row align-items-center flex-0">
                         <h3 className="fw-bold text-center">
-                            <span className="fw-bolder">Claimed Spaces (pending approval)</span>
+                            <span className="fw-bolder">Space Requests (pending approval)</span>
                         </h3>
                     </Card.Header>
                     <Card.Body>
+                        <p className="small text-gray-600">
+                            New spaces submitted through &quot;Request a Space&quot; or the dashboard. Approving publishes the space.
+                            A request from a consumer account becomes unclaimed inventory a business can claim later;
+                            a request from the business itself stays theirs.
+                        </p>
                         {
-                            !spacesPendingApproval.length && <h5 className="text-center">No claimed spaces pending approval.</h5>
+                            !spaceRequests.length && <h5 className="text-center">No space requests pending approval.</h5>
                         }
                         {
-                            spacesPendingApproval.map((space) => (
-                                <React.Fragment key={space.id}>
-                                    <Row>
-                                        <Col className="mb-2" md={12} lg={8} xl={9} xxl={10}>
-                                            <div className="fw-bold">{space.notificationMsg || '(untitled space)'}</div>
-                                            <div className="small text-gray-600">{space.addressReadable || 'No address on file'}</div>
-                                            <div className="small text-gray-600">
-                                                Requested by {space.requestedByUserId || 'unknown user'}
-                                                {space.createdAt ? ` on ${new Date(space.createdAt).toLocaleString()}` : ''}
-                                            </div>
-                                            <div className="small text-gray-500">{space.id}</div>
-                                        </Col>
-                                        <Col className="text-right" md={12} lg={4} xl={3} xxl={2}>
-                                            <Button
-                                                onClick={(e) => this.handleApproveClaim(e, space)}
-                                                variant="primary"
-                                                className="text-white w-100"
-                                            >
-                                                <FontAwesomeIcon icon={faCheck} className="me-1" />
-                                                Approve?
-                                            </Button>
-                                        </Col>
-                                    </Row>
-                                    <hr />
-                                </React.Fragment>
-                            ))
+                            spaceRequests.map((space) => this.renderPendingSpaceRow(space, 'Publish space'))
+                        }
+                    </Card.Body>
+                </Card>
+                <Card className="bg-white shadow-sm mb-3 mb-xl-4 mt-2">
+                    <Card.Header className="d-flex flex-row align-items-center flex-0">
+                        <h3 className="fw-bold text-center">
+                            <span className="fw-bolder">Claims on Existing Spaces (pending approval)</span>
+                        </h3>
+                    </Card.Header>
+                    <Card.Body>
+                        <p className="small text-gray-600">
+                            A business asking to own a space that is already on the map. Approving transfers ownership to the requester.
+                        </p>
+                        {
+                            !spaceClaims.length && <h5 className="text-center">No claims pending approval.</h5>
+                        }
+                        {
+                            spaceClaims.map((space) => this.renderPendingSpaceRow(space, 'Approve claim'))
                         }
                     </Card.Body>
                 </Card>

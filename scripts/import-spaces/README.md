@@ -13,7 +13,7 @@ Bulk-import business listings from OpenStreetMap into the Therr database, then e
 | Fill menu, order, reservation, phone, hours, cuisine | `enrich-metadata` |
 | Debug a claim-request email that isn't in the dashboard | `debug-space-claim` |
 | Approve a claim and send the requester the approval email | `approve-space-claim` |
-| One-off prod repair for PR #2927 (ownership transfers, `geomCenter` backfill) | `repair-space-claims` |
+| One-off prod repair for PR #2927 (release approved space requests, `geomCenter` backfill) | `repair-space-claims` |
 
 **Start with `stats`.** It separates *missing* from *actionable*: a space with no
 image and no website can't be helped by `source-images`, so counting it in that
@@ -473,11 +473,19 @@ npx ts-node scripts/import-spaces/approve-space-claim --space-id <uuid> --user-i
 ```
 
 `repair-space-claims` is the one-off data repair that accompanies PR #2927: it
-hands ownership of already-approved claims to the claimant (section 6 of
-`_bin/prod-debug/space-claims-audit.sql`), optionally records claims that were
-lost before the fix (`--claim <spaceId>:<userId>`, one per admin email), and
-backfills `geomCenter` for spaces `createSpace` never populated. Idempotent;
-all-or-nothing; dry-run first.
+releases already-approved consumer space requests back to unclaimed inventory by
+clearing `requestedByUserId` (section 6 of `_bin/prod-debug/space-claims-audit.sql`
+— ownership is deliberately not transferred; those were suggestions, not claims),
+optionally records claims on existing spaces that were lost before the fix
+(`--claim <spaceId>:<userId>`, one per admin email), and backfills `geomCenter`
+for spaces `createSpace` never populated. Idempotent; all-or-nothing; dry-run first.
+
+Two different things reach the admin dashboard through one endpoint, and it lists
+them separately: a **space request** (`isClaimPending = true`, from mobile "Request
+a Space" or the dashboard) is *published* on approval — a consumer's request
+becomes unclaimed inventory, a business's own request stays theirs; a **claim on an
+existing space** (`isClaimPending = false`, `requestedByUserId` set) *transfers
+ownership* on approval. `SpacesStore.approveClaim` decides by shape.
 
 ```bash
 npx ts-node scripts/import-spaces/repair-space-claims --dry-run --claim <spaceId>:<userId>
