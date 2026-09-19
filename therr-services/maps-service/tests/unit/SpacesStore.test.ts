@@ -9,6 +9,15 @@ const createMockStore = () => ({
     },
 });
 
+const createMockWritableStore = () => ({
+    read: {
+        query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+    },
+    write: {
+        query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+    },
+});
+
 const createMockMediaStore = () => ({
     write: {
         query: sinon.stub().callsFake(() => Promise.resolve({})),
@@ -229,6 +238,82 @@ describe('SpacesStore', () => {
             // Should NOT have the default isClaimPending = false in the base where
             // (it will appear in the filter condition instead)
             expect(query).to.not.include('"isClaimPending" = false');
+        });
+
+        it('does not widen the claim queue with public spaces', () => {
+            const mockStore = createMockStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            store.searchSpaces({
+                ...baseConditions,
+                filterBy: 'isClaimPending',
+                filterOperator: '=',
+                query: 'true',
+            }, []);
+
+            const query = mockStore.read.query.args[0][0];
+            // `or "isPublic" = true` turned the admin moderation queue into "every public
+            // space on earth", which both misidentified the rows shown and pushed real
+            // pending claims past the page limit.
+            expect(query).to.not.include('"isPublic" = true');
+        });
+
+        it('returns claims on already-listed spaces that have not been approved yet', () => {
+            const mockStore = createMockStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            store.searchSpaces({
+                ...baseConditions,
+                filterBy: 'isClaimPending',
+                filterOperator: '=',
+                query: 'true',
+            }, []);
+
+            const query = mockStore.read.query.args[0][0];
+            expect(query).to.include('"isClaimPending" = true');
+            expect(query).to.include('"requestedByUserId" is not null');
+            expect(query).to.include('"fromUserId" <> "requestedByUserId"');
+        });
+
+        it('orders the claim queue newest first and ignores proximity', () => {
+            const mockStore = createMockStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            store.searchSpaces({
+                ...baseConditions,
+                filterBy: 'isClaimPending',
+                filterOperator: '=',
+                query: 'true',
+            }, []);
+
+            const query = mockStore.read.query.args[0][0];
+            // Distance-ordering a global review queue silently drops the newest claim
+            // whenever 50 nearer spaces exist.
+            expect(query).to.not.include('ST_Distance');
+            expect(query).to.not.include('ST_DWithin');
+            expect(query).to.include('"createdAt" desc');
+        });
+    });
+
+    describe('approveClaim', () => {
+        it('clears the pending flag and hands ownership to the claimant', () => {
+            const mockStore = createMockWritableStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            store.approveClaim('space-1');
+
+            const query = mockStore.write.query.args[0][0];
+            expect(query).to.include('"isClaimPending" = false');
+            expect(query).to.include('"fromUserId" = COALESCE("requestedByUserId", "fromUserId")');
+            expect(query).to.include('where "id" = \'space-1\'');
+        });
+    });
+
+    describe('updateSpace', () => {
+        it('rejects when no owner is supplied rather than compiling an undefined binding', async () => {
+            const mockStore = createMockStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            let caught: Error | undefined;
+            await store.updateSpace('space-1', { requestedByUserId: 'user-1' }).catch((err) => { caught = err; });
+
+            expect(caught).to.be.an('error');
+            expect(caught?.message).to.include('fromUserId');
         });
     });
 
