@@ -131,7 +131,7 @@
         "yearsSinceDate": "{count}a",
         "justNow": "Maintenant",
         "minutesSinceDate": "{count} min",
-            "monthDayYear": "{day} {month} {year}",
+        "monthDayYear": "{day} {month} {year}",
         "months": {
             "january": "Janvier",
             "february": "Février",
@@ -2047,11 +2047,14 @@
                 "errorMessage": "Impossible de rendre cette habitude solo. Veuillez réessayer."
             },
             "habitArchived": {
-                "confirm": "Archiver cette habitude? Les rappels s'arrêtent jusqu'à ce qu'un partenaire accepte votre invitation, puis elle revient automatiquement.",
+                "confirm": "Archiver cette habitude? Elle quitte votre liste active et les rappels s'arrêtent. Vos pointages et votre historique de séries sont conservés, et vous pouvez la récupérer à tout moment.",
                 "confirmButton": "Archiver",
                 "successTitle": "Habitude archivée",
-                "successMessage": "Nous arrêtons les rappels. Elle reviendra si un partenaire se joint.",
-                "errorMessage": "Impossible d'archiver cette habitude. Veuillez réessayer."
+                "successMessage": "Elle ne figure plus dans votre liste active. Votre historique est conservé, et tout revient si vous la restaurez.",
+                "errorMessage": "Impossible d'archiver cette habitude. Veuillez réessayer.",
+                "confirmAwaitingPartner": "Archiver cette habitude? Les rappels s'arrêtent jusqu'à ce qu'un partenaire accepte votre invitation, puis elle revient automatiquement.",
+                "successMessageAwaitingPartner": "Nous arrêtons les rappels. Elle reviendra si un partenaire se joint.",
+                "hint": "Conserve vos pointages et votre historique de séries. Libère une place d’habitude."
             },
             "habitNotFound": "Habitude introuvable",
             "checkinProof": {
@@ -2136,7 +2139,29 @@
             "tabs": {
                 "habits": "Habitudes"
             },
-            "loadingList": "Chargement de tes habitudes…"
+            "loadingList": "Chargement de tes habitudes…",
+            "notificationPrefs": {
+                "title": "Notifications",
+                "description": "Choisissez ce dont {habitName} peut vous aviser. Vos autres habitudes conservent leurs propres réglages.",
+                "accountWideNote": "Ceci ne fait que réduire ce que vous recevez déjà. Si les notifications d'habitudes sont désactivées pour votre compte ou dans les réglages de votre téléphone, rien ici ne les réactive.",
+                "saveFailed": "Impossible d'enregistrer ce réglage. Veuillez réessayer.",
+                "notifyReminders": {
+                    "label": "Rappels quotidiens",
+                    "hint": "Un rappel les jours où vous n'avez pas encore fait votre pointage."
+                },
+                "notifyStreakAlerts": {
+                    "label": "Alertes de série",
+                    "hint": "Les jalons, et un avertissement quand votre série est sur le point de se briser."
+                },
+                "notifyPartnerActivity": {
+                    "label": "Activité des partenaires",
+                    "hint": "Quand un partenaire fait son pointage, ou rate une journée et aurait besoin d'un coup de pouce."
+                },
+                "notifyPactUpdates": {
+                    "label": "Mises à jour du pacte",
+                    "hint": "Invitations, acceptations, et quand un pacte se termine."
+                }
+            }
         },
         "pacts": {
             "headerTitle": "Mes pactes",

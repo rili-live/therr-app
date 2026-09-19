@@ -3,6 +3,7 @@ import CheckinDayDetailSheet from './CheckinDayDetailSheet';
 import CheckinDetailForm from './CheckinDetailForm';
 import HabitCalendar from './HabitCalendar';
 import HabitCard from './HabitCard';
+import HabitNotificationSettings from './HabitNotificationSettings';
 import HabitsListLoader from './HabitsListLoader';
 import NewPactButton from './NewPactButton';
 import PactCard from './PactCard';
@@ -18,6 +19,7 @@ export {
     CheckinDetailForm,
     HabitCalendar,
     HabitCard,
+    HabitNotificationSettings,
     HabitsListLoader,
     NewPactButton,
     PactCard,

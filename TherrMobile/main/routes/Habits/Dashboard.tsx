@@ -750,7 +750,11 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             .then(() => {
                 showToast.success({
                     text1: this.translate('pages.habits.habitArchived.successTitle'),
-                    text2: this.translate('pages.habits.habitArchived.successMessage'),
+                    // The awaiting-partner wording: archiving from this card leaves
+                    // the invite open, so the habit comes back on its own if the
+                    // partner accepts. The habit detail screen archives a habit the
+                    // user is simply done with and says something different.
+                    text2: this.translate('pages.habits.habitArchived.successMessageAwaitingPartner'),
                     duration: DURATION.SHORT,
                 });
                 this.handleRefresh();
@@ -1344,7 +1348,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                     isVisible={!!habitPendingArchive}
                     onCancel={this.handleCancelArchive}
                     onConfirm={this.handleConfirmArchive}
-                    text={this.translate('pages.habits.habitArchived.confirm')}
+                    text={this.translate('pages.habits.habitArchived.confirmAwaitingPartner')}
                     textConfirm={this.translate('pages.habits.habitArchived.confirmButton')}
                     textCancel={this.translate('modals.confirmModal.cancel')}
                     translate={this.translate}
