@@ -1,4 +1,5 @@
 import KnexBuilder, { Knex } from 'knex';
+import { quoteTableName } from 'therr-js-utilities/db';
 import BrandScopedStore, { BrandValue } from './BrandScopedStore';
 import { IConnection } from './connection';
 import UserDailyStreaksStore from './UserDailyStreaksStore';
@@ -9,12 +10,6 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 // eslint-disable-next-line therr/no-direct-brand-scoped-table -- this is the sanctioned canonical reference
 export const LEADERBOARD_PERIOD_RESULTS_TABLE_NAME = 'main.leaderboardPeriodResults';
 const USERS_TABLE_NAME = 'main.users';
-
-/** `schema.tableName` → `schema."tableName"`, so camelCase names survive raw SQL. */
-export const quoteTableName = (qualified: string): string => {
-    const [schema, table] = qualified.split('.');
-    return `${schema}."${table}"`;
-};
 
 export interface IDBLeaderboardPeriodResult {
     id: string;
@@ -73,7 +68,8 @@ export default class LeaderboardPeriodResultsStore extends BrandScopedStore {
         this.assertBrand(brand);
         // Both table names are camelCase. Interpolated bare into raw SQL, Postgres folds them
         // to lowercase and reports `relation "main.leaderboardperiodresults" does not exist`
-        // (seen in prod 2026-09-19). The query builder quotes for us; raw SQL has to do it.
+        // (prod, 2026-09-19). The query builder quotes for us; raw SQL has to do it, and
+        // therr/no-unquoted-camelcase-table-in-raw-sql now insists on it.
         const resultsTable = quoteTableName(this.tableName);
         const scoresTable = quoteTableName(USER_LEADERBOARD_SCORES_TABLE_NAME);
 

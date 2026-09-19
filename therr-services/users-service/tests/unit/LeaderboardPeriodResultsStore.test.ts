@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { BrandVariations } from 'therr-js-utilities/constants';
-import LeaderboardPeriodResultsStore, { quoteTableName } from '../../src/store/LeaderboardPeriodResultsStore';
+import LeaderboardPeriodResultsStore from '../../src/store/LeaderboardPeriodResultsStore';
 
 const buildStore = () => {
     const mockConnection = {
@@ -17,12 +17,6 @@ const buildStore = () => {
 };
 
 describe('LeaderboardPeriodResultsStore', () => {
-    describe('quoteTableName', () => {
-        it('quotes only the table part of a schema-qualified name', () => {
-            expect(quoteTableName('main.someCamelCaseTable')).to.equal('main."someCamelCaseTable"');
-        });
-    });
-
     describe('closePeriod', () => {
         // Regression: the INSERT ... SELECT is raw SQL, and both table names are camelCase.
         // Interpolated bare, Postgres folded them to lowercase and every close failed in prod
