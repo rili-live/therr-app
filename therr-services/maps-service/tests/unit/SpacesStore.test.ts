@@ -305,6 +305,25 @@ describe('SpacesStore', () => {
         });
     });
 
+    describe('createSpace', () => {
+        it('writes geomCenter alongside geom so the row is reachable by proximity search', async () => {
+            const mockStore = createMockWritableStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            await store.createSpace({
+                fromUserId: 'user-1',
+                locale: 'en-us',
+                notificationMsg: 'Pappadeaux Seafood Kitchen',
+                longitude: -106.5981512,
+                latitude: 35.1412542,
+            } as any);
+
+            const query = mockStore.write.query.args[0][0];
+            expect(query).to.include('"geomCenter"');
+            expect(query).to.include('ST_SetSRID(ST_MakePoint(-106.5981512, 35.1412542), 4326)');
+            expect(query).to.include('ST_Buffer(ST_MakePoint(-106.5981512, 35.1412542)::geography');
+        });
+    });
+
     describe('updateSpace', () => {
         it('rejects when no owner is supplied rather than compiling an undefined binding', async () => {
             const mockStore = createMockStore();

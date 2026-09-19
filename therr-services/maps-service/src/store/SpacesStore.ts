@@ -682,6 +682,12 @@ export default class SpacesStore {
             postalCode: params.postalCode,
             priceRange: params.priceRange,
             geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${radius})::geometry, 4326)`),
+            // Every proximity search (ST_DWithin / ST_Distance in searchSpaces, countRecords,
+            // getSpacePairings, isWithinCheckinDistance) reads `geomCenter`, not `geom`. The
+            // 2024-05-23 migration that added the column backfilled it once; nothing wrote it
+            // for new rows afterwards, so every space created through the app since then had a
+            // NULL centre and was invisible to search. Keep it populated alongside `geom`.
+            geomCenter: knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
         };
 
         if (params.medias) {
