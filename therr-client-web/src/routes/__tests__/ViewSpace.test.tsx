@@ -599,9 +599,27 @@ describe('ViewSpace', () => {
             const result = instance.renderClaimCTA({
                 ...defaultSpace,
                 isClaimPending: true,
+                isClaimAwaitingApproval: true,
                 isUnclaimed: false,
             });
             expect(result).not.toBeNull();
+        });
+
+        it('returns null once an approved claim leaves requestedByUserId set', () => {
+            const instance = buildInstance();
+            (instance as any).state.claimMessageType = '';
+
+            // Approval transfers ownership but leaves requestedByUserId in place. Keying the
+            // banner off that column pinned "claim pending" to the space permanently.
+            const result = instance.renderClaimCTA({
+                ...defaultSpace,
+                isClaimPending: false,
+                isClaimAwaitingApproval: false,
+                isUnclaimed: false,
+                fromUserId: 'user-1',
+                requestedByUserId: 'user-1',
+            });
+            expect(result).toBeNull();
         });
 
         it('returns success alert when claim succeeded', () => {

@@ -192,7 +192,15 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
                             spacesPendingApproval.map((space) => (
                                 <React.Fragment key={space.id}>
                                     <Row>
-                                        <Col className="mb-2" md={12} lg={8} xl={9} xxl={10}>{space.id} - {space.notificationMsg}</Col>
+                                        <Col className="mb-2" md={12} lg={8} xl={9} xxl={10}>
+                                            <div className="fw-bold">{space.notificationMsg || '(untitled space)'}</div>
+                                            <div className="small text-gray-600">{space.addressReadable || 'No address on file'}</div>
+                                            <div className="small text-gray-600">
+                                                Requested by {space.requestedByUserId || 'unknown user'}
+                                                {space.createdAt ? ` on ${new Date(space.createdAt).toLocaleString()}` : ''}
+                                            </div>
+                                            <div className="small text-gray-500">{space.id}</div>
+                                        </Col>
                                         <Col className="text-right" md={12} lg={4} xl={3} xxl={2}>
                                             <Button
                                                 onClick={(e) => this.handleApproveClaim(e, space)}

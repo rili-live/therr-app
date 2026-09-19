@@ -96,6 +96,27 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Space claim queue repair (added 2026-09-19)
+
+- [ ] **Run `_bin/prod-debug/space-claims-audit.sql` against prod, and run its repair block
+  BEFORE the claim-queue fix deploys.** Section 6 lists spaces whose claim was approved but
+  whose ownership was never handed to the claimant — `approveSpaceRequest` only cleared the
+  pending flag, so `searchMySpaces` (which keys on `fromUserId`) still shows the business
+  nothing. Two reasons the order matters: those rows are only unambiguously identifiable until
+  the fix ships, and left unrepaired the corrected admin queue lists them as though they were
+  fresh claims awaiting review.
+
+  ```bash
+  psql "$MAPS_DB_URL" -f _bin/prod-debug/space-claims-audit.sql
+  ```
+
+- [ ] **Reconcile the claim-request emails against section 7.** Claims on spaces that already
+  existed on the map (`POST /spaces/request-claim/:spaceId`, the mobile "claim this space"
+  button) wrote nothing at all before this fix — the update threw on an undefined binding, the
+  handler swallowed it and still returned 200. Those claims exist only as the admin
+  notification email. Any email with no matching row has to be re-claimed by the business or
+  assigned by hand; there is no backfill for them.
+
 ## iOS demand tracking (added 2026-09-14)
 
 - [ ] **Mark `ios_interest_click` and `ios_waitlist_submit` as key events in GA4.** Both
