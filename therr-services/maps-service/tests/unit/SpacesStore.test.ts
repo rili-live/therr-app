@@ -9,6 +9,15 @@ const createMockStore = () => ({
     },
 });
 
+const createMockWritableStore = () => ({
+    read: {
+        query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+    },
+    write: {
+        query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+    },
+});
+
 const createMockMediaStore = () => ({
     write: {
         query: sinon.stub().callsFake(() => Promise.resolve({})),
@@ -229,6 +238,126 @@ describe('SpacesStore', () => {
             // Should NOT have the default isClaimPending = false in the base where
             // (it will appear in the filter condition instead)
             expect(query).to.not.include('"isClaimPending" = false');
+        });
+
+        it('does not widen the claim queue with public spaces', () => {
+            const mockStore = createMockStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            store.searchSpaces({
+                ...baseConditions,
+                filterBy: 'isClaimPending',
+                filterOperator: '=',
+                query: 'true',
+            }, []);
+
+            const query = mockStore.read.query.args[0][0];
+            // `or "isPublic" = true` turned the admin moderation queue into "every public
+            // space on earth", which both misidentified the rows shown and pushed real
+            // pending claims past the page limit.
+            expect(query).to.not.include('"isPublic" = true');
+        });
+
+        it('returns claims on already-listed spaces that have not been approved yet', () => {
+            const mockStore = createMockStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            store.searchSpaces({
+                ...baseConditions,
+                filterBy: 'isClaimPending',
+                filterOperator: '=',
+                query: 'true',
+            }, []);
+
+            const query = mockStore.read.query.args[0][0];
+            expect(query).to.include('"isClaimPending" = true');
+            expect(query).to.include('"requestedByUserId" is not null');
+            expect(query).to.include('"fromUserId" <> "requestedByUserId"');
+        });
+
+        it('orders the claim queue newest first and ignores proximity', () => {
+            const mockStore = createMockStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            store.searchSpaces({
+                ...baseConditions,
+                filterBy: 'isClaimPending',
+                filterOperator: '=',
+                query: 'true',
+            }, []);
+
+            const query = mockStore.read.query.args[0][0];
+            // Distance-ordering a global review queue silently drops the newest claim
+            // whenever 50 nearer spaces exist.
+            expect(query).to.not.include('ST_Distance');
+            expect(query).to.not.include('ST_DWithin');
+            expect(query).to.include('"createdAt" desc');
+        });
+    });
+
+    describe('approveClaim', () => {
+        it('clears the pending flag for the targeted row only', () => {
+            const mockStore = createMockWritableStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            store.approveClaim('space-1');
+
+            const query = mockStore.write.query.args[0][0];
+            expect(query).to.include('"isClaimPending" = false');
+            expect(query).to.include('where "id" = \'space-1\'');
+        });
+
+        it('transfers ownership only for claims on existing spaces, not for space requests', () => {
+            const mockStore = createMockWritableStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            store.approveClaim('space-1');
+
+            const query = mockStore.write.query.args[0][0];
+            // A consumer's "Request a Space" row (isClaimPending = true) is created under the
+            // super admin; an unconditional COALESCE handed the business page to the consumer.
+            expect(query).to.include(
+                '"fromUserId" = CASE WHEN "isClaimPending" = false THEN COALESCE("requestedByUserId", "fromUserId") ELSE "fromUserId" END',
+            );
+        });
+
+        it('releases an approved space request back to unclaimed inventory', () => {
+            const mockStore = createMockWritableStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            store.approveClaim('space-1');
+
+            const query = mockStore.write.query.args[0][0];
+            // Leaving requestedByUserId set with owner <> requester kept the row in the admin
+            // queue forever and made isUnclaimed permanently false, so no business could claim it.
+            expect(query).to.include(
+                '"requestedByUserId" = CASE WHEN "isClaimPending" = true AND "requestedByUserId" IS DISTINCT FROM "fromUserId" THEN NULL ELSE "requestedByUserId" END',
+            );
+        });
+    });
+
+    describe('createSpace', () => {
+        it('writes geomCenter alongside geom so the row is reachable by proximity search', async () => {
+            const mockStore = createMockWritableStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            await store.createSpace({
+                fromUserId: 'user-1',
+                locale: 'en-us',
+                notificationMsg: 'Pappadeaux Seafood Kitchen',
+                longitude: -106.5981512,
+                latitude: 35.1412542,
+            } as any);
+
+            const query = mockStore.write.query.args[0][0];
+            expect(query).to.include('"geomCenter"');
+            expect(query).to.include('ST_SetSRID(ST_MakePoint(-106.5981512, 35.1412542), 4326)');
+            expect(query).to.include('ST_Buffer(ST_MakePoint(-106.5981512, 35.1412542)::geography');
+        });
+    });
+
+    describe('updateSpace', () => {
+        it('rejects when no owner is supplied rather than compiling an undefined binding', async () => {
+            const mockStore = createMockStore();
+            const store = new SpacesStore(mockStore, createMockMediaStore());
+            let caught: Error | undefined;
+            await store.updateSpace('space-1', { requestedByUserId: 'user-1' }).catch((err) => { caught = err; });
+
+            expect(caught).to.be.an('error');
+            expect(caught?.message).to.include('fromUserId');
         });
     });
 

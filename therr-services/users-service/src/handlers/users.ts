@@ -1518,7 +1518,16 @@ const approveSpaceRequest: RequestHandler = (req: any, res: any) => {
         id: spaceId,
         fromUserId,
         requestedByUserId,
+        isClaimPending,
     } = req.body;
+
+    // maps-service sends the space row as it was BEFORE approval. A pending row whose
+    // requester is not its owner is a consumer's "Request a Space" suggestion (created
+    // under the super admin): on approval it is published as unclaimed inventory and the
+    // requester owns nothing, so the "your business space is live" wording is wrong for
+    // them. Everything else — a business's own dashboard request, or a claim on an
+    // existing space — is a claim.
+    const isConsumerRequest = !!isClaimPending && !!requestedByUserId && requestedByUserId !== fromUserId;
 
     return Store.users.getUserById(requestedByUserId || fromUserId)
         .then((users) => {
@@ -1533,7 +1542,7 @@ const approveSpaceRequest: RequestHandler = (req: any, res: any) => {
             redactUserCreds(users[0]);
 
             return sendClaimApprovedEmail({
-                subject: 'Approved: Business Space Request',
+                subject: isConsumerRequest ? 'Your suggested space is now live' : 'Approved: Business Space Request',
                 locale,
                 toAddresses: [users[0].email],
                 agencyDomainName: whiteLabelOrigin,
@@ -1545,6 +1554,7 @@ const approveSpaceRequest: RequestHandler = (req: any, res: any) => {
             }, {
                 spaceName: title || notificationMsg,
                 spaceId,
+                variant: isConsumerRequest ? 'request' : 'claim',
             }).then(() => users[0]);
         })
         .then((user) => res.status(200).send({

@@ -96,6 +96,38 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Space claim queue repair (added 2026-09-19)
+
+- [x] **Run `scripts/import-spaces/repair-space-claims` against prod BEFORE the claim-queue
+  fix (#2927) deploys.** _Done 2026-09-19 14:42 UTC: 25 released, Pappadeaux claim recorded,
+  272 `geomCenter` backfilled; verified read-only afterwards — no ownership moved._ One idempotent, all-or-nothing transaction that (a) releases the 25
+  already-approved consumer "Request a Space" rows back to unclaimed inventory by clearing
+  `requestedByUserId` — they are suggestions, not business claims, so ownership stays with the
+  super admin; left as they are, the corrected admin queue would list every one as a fresh
+  claim and `isUnclaimed` would stay false so no business could claim them; (b) records the one
+  claim that the lost `request-claim/:spaceId` path never wrote (Pappadeaux Seafood Kitchen,
+  from the 2026-09-19 admin email); and (c) backfills `geomCenter` for the 272 spaces
+  `createSpace` never populated, which made them invisible to every proximity search. The
+  migration `20260919000000_main.spaces.geomCenter_backfill.js` repeats (c) on deploy, so
+  only (a) and (b) genuinely depend on running this first. Preview with `--dry-run`; the
+  script aborts unless the row counts match the preview.
+
+  ```bash
+  npx ts-node scripts/import-spaces/repair-space-claims \
+    --claim aa232e8f-5d8f-4f42-8daf-1a40e1b4a9aa:24cd464b-ac41-4452-9ad6-7d0a704d3382
+  ```
+
+  Then approve or reject Pappadeaux from `/dashboard-admin` once #2927 is live (or right away
+  with `scripts/import-spaces/approve-space-claim`, which also sends the approval email).
+  Read-only cross-check: `_bin/prod-debug/space-claims-audit.sql`.
+
+- [ ] **Reconcile any other claim-request emails against the queue.** Claims on spaces that
+  already existed on the map wrote nothing before #2927; each exists only as an admin email.
+  For every such email, `scripts/import-spaces/debug-space-claim --user-id <id> --title <name>`
+  finds the space, and `repair-space-claims --claim <spaceId>:<userId>` (or
+  `approve-space-claim`) records it. Section 7 of the audit SQL shows weekly volume to compare
+  against the inbox.
+
 ## iOS demand tracking (added 2026-09-14)
 
 - [ ] **Mark `ios_interest_click` and `ios_waitlist_submit` as key events in GA4.** Both
