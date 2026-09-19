@@ -56,7 +56,16 @@ THERR_SERVICES=(
 
 # Services that own knex migrations, keyed as above. run-migrations.sh reads this
 # rather than repeating the service list a fourth time.
-THERR_MIGRATABLE_SERVICES="users-service maps-service messages-service reactions-service push-notifications-service"
+#
+# push-notifications-service is deliberately absent. It has no migrations of its
+# own (src/store/migrations holds only a .gitkeep) and its knexfile connects to
+# MAPS_SERVICE_DATABASE, so `migrate:latest` there reads maps-service's
+# knex_migrations rows against an empty directory and aborts with "The migration
+# directory is corrupt, the following files are missing: <every maps migration>"
+# (2026-09-19). It did nothing useful when it passed and fails the deploy when it
+# runs. Add it back only once it owns a database — or at least a distinct
+# migrations.tableName — of its own.
+THERR_MIGRATABLE_SERVICES="users-service maps-service messages-service reactions-service"
 
 service_keys()
 {
