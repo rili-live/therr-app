@@ -1,4 +1,10 @@
 import Store from '../store';
+import {
+    getCadence,
+    getCadenceEffectiveFrom,
+    Cadence,
+    ICadenceSource,
+} from './habitCadence';
 
 /**
  * The names habits notification copy interpolates.
@@ -55,6 +61,17 @@ export const resolveHabitDisplayName = async (habitGoalId: string): Promise<stri
 export const createNameResolvers = () => {
     const userNameCache = new Map<string, string>();
     const habitNameCache = new Map<string, string>();
+    const habitGoalCache = new Map<string, ICadenceSource | null>();
+
+    const getHabitGoal = async (habitGoalId: string): Promise<ICadenceSource | null> => {
+        if (!habitGoalCache.has(habitGoalId)) {
+            habitGoalCache.set(
+                habitGoalId,
+                habitGoalId ? await Store.habitGoals.getById(habitGoalId).catch(() => null) : null,
+            );
+        }
+        return habitGoalCache.get(habitGoalId) ?? null;
+    };
 
     return {
         getUserDisplayName: async (userId: string): Promise<string> => {
@@ -69,5 +86,19 @@ export const createNameResolvers = () => {
             }
             return habitNameCache.get(habitGoalId) as string;
         },
+        /**
+         * The habit's cadence, cached alongside its name and from the same row.
+         *
+         * The pact loop needs this to stop telling a partner someone "missed" a day the habit
+         * never asked for — a 4x/week pact fired `partnerMissedDay` on all three off days. A
+         * goal with no row falls back to daily, which is the pre-cadence behaviour and the
+         * conservative direction for a notification that accuses someone of slipping.
+         */
+        getHabitCadence: async (habitGoalId: string): Promise<Cadence> => getCadence(
+            await getHabitGoal(habitGoalId),
+        ),
+        getHabitCadenceEffectiveFrom: async (habitGoalId: string): Promise<string | null> => getCadenceEffectiveFrom(
+            await getHabitGoal(habitGoalId),
+        ),
     };
 };

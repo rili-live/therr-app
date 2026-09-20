@@ -70,20 +70,49 @@ export const getCheckinNudgeCopyNamespace = (
 ): string => CHECKIN_NUDGE_COPY_NAMESPACES[type] || 'notifications.dailyHabitReminder';
 
 /**
+ * Whether a nudge should render the weekly-progress body rather than the daily one.
+ *
+ * True only for a habit whose cadence asks for fewer than seven check-ins a week. "Log it today"
+ * is the right sentence for a daily habit; for "4x per week" the useful sentence is where the
+ * user stands in the week, because that is the thing they are actually being held to.
+ *
+ * A target of 7 (or absent, or junk) means daily, and daily copy is unchanged — which is what
+ * keeps this inert for nearly every notification the digest sends today.
+ */
+export const hasWeeklyTargetCopy = (weekTarget: unknown): boolean => {
+    const target = Number(weekTarget);
+    return Number.isInteger(target) && target > 0 && target < 7;
+};
+
+/**
  * Which body copy a check-in nudge renders.
  *
- * `streakAtRisk` and `eveningCheckIn` keep their freeze-aware variants (see
- * `streakCopy.ts`) in the singular case, so this only decides the plural swap.
+ * Precedence, and each step is there for a reason:
+ *
+ *   1. A roll-up covering several habits must use the plural copy — the singular body names one
+ *      habit and would misrepresent the rest.
+ *   2. A freeze-aware singular body wins over the weekly one. Both `streakAtRisk` and
+ *      `eveningCheckIn` pass a key already resolved by `streakCopy.ts`, and "a freeze will cover
+ *      tonight" is more urgent and more actionable than a progress count — telling someone their
+ *      streak is on the line while silently holding a net is the whole failure that copy exists
+ *      to prevent.
+ *   3. Otherwise a non-daily habit gets the weekly-progress body.
+ *   4. Otherwise the daily singular body, exactly as before.
  */
 export const selectCheckinNudgeBodyKey = (
     type: PushNotifications.Types,
     habitCount: unknown,
     singularKey: string,
+    weekTarget?: unknown,
 ): string => {
     const count = Number(habitCount || 0);
 
     if (count > 1) {
         return `${getCheckinNudgeCopyNamespace(type)}.bodyMultiple`;
+    }
+
+    if (!singularKey.endsWith('.bodyWithFreeze') && hasWeeklyTargetCopy(weekTarget)) {
+        return `${getCheckinNudgeCopyNamespace(type)}.bodyWeekly`;
     }
 
     return singularKey;

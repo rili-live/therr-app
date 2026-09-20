@@ -43,6 +43,26 @@ export interface ICheckinNudgeCandidate {
     streakCount?: number;
     /** Streak freezes left. Only meaningful for a single-habit nudge. */
     freezesRemaining?: number;
+    /**
+     * Whether today is a day this habit's cadence actually *requires* — i.e. whether skipping it
+     * would put the week's target out of reach.
+     *
+     * Only the evening "last chance" escalation reads it. The morning nudge deliberately does
+     * not: under a weekly quota a well-run week has no required days at all, so gating the
+     * ordinary reminder on this would silence it for exactly the user who is succeeding.
+     * "Check in before midnight or lose your streak", though, is a claim about tonight, and on
+     * an optional day it is simply false.
+     */
+    isRequiredToday?: boolean;
+    /**
+     * Where the user stands in this habit's week — completed so far, what a full week asks for,
+     * and how many days remain including today. Only meaningful for a single-habit nudge, for
+     * the same reason `freezesRemaining` is: these are per-habit numbers and naming one while
+     * the copy covers three would misdescribe the other two.
+     */
+    weekDone?: number;
+    weekTarget?: number;
+    daysLeft?: number;
 }
 
 export interface ICheckinNudgeRow {
@@ -54,6 +74,9 @@ export interface ICheckinNudgeRow {
         habitNames: string[];
         streakCount: number;
         freezesRemaining?: number;
+        weekDone?: number;
+        weekTarget?: number;
+        daysLeft?: number;
         habitGoalId?: string;
         pactId?: string;
         /**
@@ -85,6 +108,14 @@ export interface ICheckinNudgeRow {
      * gets one reminder, not two — see `runDailyHabitsDigest`.
      */
     hasLiveStreak: boolean;
+    /**
+     * True when at least one habit in this roll-up both has a live streak and is required today.
+     *
+     * The pairing is the point: the evening push says the streak ends at midnight, and that is
+     * only true of a habit whose streak is live *and* whose cadence leaves no later day this
+     * week to satisfy it.
+     */
+    hasStreakAtStakeToday: boolean;
 }
 
 /**
@@ -154,6 +185,12 @@ export const createCheckinNudgeAccumulator = () => {
             );
             const isAtRisk = candidates.some(hasLiveStreak);
             const isSingle = candidates.length === 1;
+            // Both conditions on the *same* habit. A user with a live streak on a 4x/week habit
+            // that is not due today and a zero streak on one that is has nothing at stake
+            // tonight, and testing the two separately would say otherwise.
+            const isAtStakeToday = candidates.some(
+                (candidate) => hasLiveStreak(candidate) && candidate.isRequiredToday === true,
+            );
 
             return {
                 userId,
@@ -174,6 +211,12 @@ export const createCheckinNudgeAccumulator = () => {
                     // covers three would promise a net over habits it does not
                     // cover, so the plural body drops the clause entirely.
                     freezesRemaining: isSingle ? primary.freezesRemaining : undefined,
+                    // Same single-habit rule as the freeze count above — and `weekTarget` is
+                    // what the push service keys the weekly body off, so withholding it here is
+                    // also what keeps a roll-up on the plural copy.
+                    weekDone: isSingle ? primary.weekDone : undefined,
+                    weekTarget: isSingle ? primary.weekTarget : undefined,
+                    daysLeft: isSingle ? primary.daysLeft : undefined,
                     // Only a single-habit nudge can carry a check-in target or a
                     // deep link. With several, "Check In" has nothing
                     // unambiguous to complete and the tap belongs on the list.
@@ -187,6 +230,7 @@ export const createCheckinNudgeAccumulator = () => {
                 },
                 candidateCount: candidates.length,
                 hasLiveStreak: isAtRisk,
+                hasStreakAtStakeToday: isAtStakeToday,
             };
         }),
     };

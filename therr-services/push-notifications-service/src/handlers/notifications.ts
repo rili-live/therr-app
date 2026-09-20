@@ -65,6 +65,11 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         durationDays,
         freezesRemaining,
         freezeDaysUsed,
+        // HABITS weekly cadence — where the user stands in their own week. `weekTarget` is what
+        // selects the weekly body copy; absent or 7 keeps the unchanged daily wording.
+        weekDone,
+        weekTarget,
+        daysLeft,
         // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md)
         dayCount,
         consistencyPercent,
@@ -118,6 +123,9 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             durationDays,
             freezesRemaining,
             freezeDaysUsed,
+            weekDone,
+            weekTarget,
+            daysLeft,
             dayCount,
             consistencyPercent,
             bestStreakCount,
@@ -203,6 +211,11 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         durationDays,
         freezesRemaining,
         freezeDaysUsed,
+        // HABITS weekly cadence — where the user stands in their own week. `weekTarget` is what
+        // selects the weekly body copy; absent or 7 keeps the unchanged daily wording.
+        weekDone,
+        weekTarget,
+        daysLeft,
         // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md)
         dayCount,
         consistencyPercent,
@@ -260,6 +273,9 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             durationDays,
             freezesRemaining,
             freezeDaysUsed,
+            weekDone,
+            weekTarget,
+            daysLeft,
             dayCount,
             consistencyPercent,
             bestStreakCount,

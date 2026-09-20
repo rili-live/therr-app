@@ -4,7 +4,7 @@ import {
     countScheduledCheckins,
     getPactStatsWindow,
 } from '../../src/utilities/pactMemberStats';
-import { isHabitDueToday } from '../../src/utilities/streakHelpers';
+import { shouldNudgeToday } from '../../src/utilities/streakHelpers';
 
 /**
  * Pact progress statistics — regression tests.
@@ -125,17 +125,19 @@ describe('pactMemberStats', () => {
             })).to.equal(6);
         });
 
-        it('agrees with isHabitDueToday on which days a fixed-schedule habit is scored', () => {
+        it('agrees with shouldNudgeToday on which days a fixed-schedule habit is scored', () => {
             // The two must not drift: this is the denominator of the completion
-            // rate, isHabitDueToday decides whether the habit is nudged, and a
+            // rate, shouldNudgeToday decides whether the habit is nudged, and a
             // habit reminded on a cadence it is not scored against reads to the
-            // user as the app moving the goalposts.
+            // user as the app moving the goalposts. Both now resolve cadence through
+            // utilities/habitCadence.ts, which is what makes the agreement structural
+            // rather than a coincidence this test has to keep catching.
             const goal = { frequencyType: 'custom', targetDaysOfWeek: [1, 3, 5] };
             // 2026-08-03 (Mon) .. 2026-08-09 (Sun), counted independently.
             const dueDays = [
                 '2026-08-03', '2026-08-04', '2026-08-05', '2026-08-06',
                 '2026-08-07', '2026-08-08', '2026-08-09',
-            ].filter((day) => isHabitDueToday(goal, day)).length;
+            ].filter((day) => shouldNudgeToday(goal, day)).length;
 
             expect(countScheduledCheckins('2026-08-03', '2026-08-09', goal)).to.equal(dueDays);
         });
