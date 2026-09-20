@@ -8,9 +8,27 @@ export interface IHabitGoal {
     category?: string;
     emoji?: string;
     goalType: HabitGoalType;
+    /**
+     * Cadence. `daily` asks for a check-in every day; `weekly` / `custom` with a
+     * `frequencyCount` asks for that many check-ins a week on any days; a populated
+     * `targetDaysOfWeek` (Sunday-first, 0-6) fixes the days outright and wins over
+     * `frequencyType` in both directions.
+     *
+     * This is what streaks, streak freezes, reminders, achievements and the leaderboard are all
+     * measured against — see users-service `utilities/habitCadence.ts`, which is the single
+     * definition. A day the cadence does not ask for costs the user nothing.
+     */
     frequencyType: string;
     frequencyCount: number;
     targetDaysOfWeek?: number[];
+    /**
+     * The date this cadence became authoritative, YYYY-MM-DD, or absent when it always was.
+     *
+     * Changing a habit's cadence applies forward only: the running streak survives and days
+     * already lived under the previous cadence are never re-judged. Server-owned — a client
+     * never sends it.
+     */
+    cadenceEffectiveFrom?: string | null;
     createdByUserId: string;
     isTemplate: boolean;
     isPublic: boolean;
@@ -238,9 +256,11 @@ export interface IUserHabit {
     goalEmoji?: string | null;
     goalCategory?: string | null;
     goalType: HabitGoalType;
+    /** Cadence — see `IHabitGoal`. What this habit is actually held to. */
     frequencyType: string;
     frequencyCount?: number | null;
     targetDaysOfWeek?: number[] | null;
+    cadenceEffectiveFrom?: string | null;
     isSolo: boolean;
     activePactCount: number;
     currentStreak: number;
