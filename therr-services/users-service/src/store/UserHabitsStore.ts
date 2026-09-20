@@ -22,7 +22,45 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
  */
 export type UserHabitStatus = 'active' | 'archived';
 
-export interface IUserHabitRow {
+/**
+ * The per-habit notification switches — see
+ * `20260919000001_habits.user_habits.notificationPrefs.js` for why they live on
+ * the tracking row and why the set is this coarse.
+ *
+ * All four default to `true` in the schema and are NOT NULL, so unlike the
+ * account-wide `settingsPush*` columns there is no "absent means opted in" rule
+ * to get wrong. They only ever *narrow*: an account-level mute still wins.
+ */
+export interface IUserHabitNotificationPreferences {
+    notifyReminders: boolean;
+    notifyStreakAlerts: boolean;
+    notifyPartnerActivity: boolean;
+    notifyPactUpdates: boolean;
+}
+
+export const USER_HABIT_NOTIFICATION_PREFERENCE_KEYS: (keyof IUserHabitNotificationPreferences)[] = [
+    'notifyReminders',
+    'notifyStreakAlerts',
+    'notifyPartnerActivity',
+    'notifyPactUpdates',
+];
+
+/**
+ * What a caller that could not read the row should assume.
+ *
+ * Every gate in the digest and the check-in handler falls back to this on a
+ * failed lookup. Defaulting to "on" means a database hiccup degrades to today's
+ * behaviour (the notification is sent) rather than to silence, which is the
+ * failure users cannot see and would not report.
+ */
+export const DEFAULT_USER_HABIT_NOTIFICATION_PREFERENCES: IUserHabitNotificationPreferences = {
+    notifyReminders: true,
+    notifyStreakAlerts: true,
+    notifyPartnerActivity: true,
+    notifyPactUpdates: true,
+};
+
+export interface IUserHabitRow extends IUserHabitNotificationPreferences {
     id: string;
     userId: string;
     habitGoalId: string;
@@ -88,7 +126,7 @@ export interface IUserHabitDetail extends IUserHabitRow {
  * dashboard's shape, it wants the cadence, the streak and whether today is
  * already done, for every active habit in the system at once.
  */
-export interface IUserHabitReminderRow {
+export interface IUserHabitReminderRow extends IUserHabitNotificationPreferences {
     userId: string;
     habitGoalId: string;
     goalName: string;
@@ -250,6 +288,10 @@ export default class UserHabitsStore {
             `SELECT
                 uh."userId",
                 uh."habitGoalId",
+                uh."notifyReminders",
+                uh."notifyStreakAlerts",
+                uh."notifyPartnerActivity",
+                uh."notifyPactUpdates",
                 g."name" AS "goalName",
                 g."goalType" AS "goalType",
                 g."frequencyType" AS "frequencyType",
@@ -382,6 +424,97 @@ export default class UserHabitsStore {
 
         return this.db.write.query(queryString)
             .then((response) => response.rows[0] as IUserHabitRow | undefined);
+    }
+
+    /**
+     * Write a partial set of per-habit notification switches.
+     *
+     * Partial on purpose: the settings screen sends only the toggle the user
+     * flipped, so a client on an older build cannot silently reset a category it
+     * does not know about yet. An empty `prefs` is a caller bug rather than a
+     * no-op UPDATE, so it is rejected here — `undefined` columns in a knex
+     * `update` would otherwise produce `SET "updatedAt" = now()` and report
+     * success for a write that changed nothing the caller asked for.
+     */
+    updateNotificationPreferences(
+        id: string,
+        userId: string,
+        prefs: Partial<IUserHabitNotificationPreferences>,
+    ): Promise<IUserHabitRow | undefined> {
+        const updates = USER_HABIT_NOTIFICATION_PREFERENCE_KEYS.reduce((acc, key) => {
+            if (typeof prefs[key] === 'boolean') {
+                acc[key] = prefs[key];
+            }
+            return acc;
+        }, {} as Record<string, boolean>);
+
+        if (!Object.keys(updates).length) {
+            return Promise.resolve(undefined);
+        }
+
+        const queryString = knexBuilder
+            .from(USER_HABITS_TABLE_NAME)
+            .where({ id, userId })
+            .update({ ...updates, updatedAt: new Date() })
+            .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString)
+            .then((response) => response.rows[0] as IUserHabitRow | undefined);
+    }
+
+    /**
+     * Preferences for a set of (userId, habitGoalId) pairs, in one read.
+     *
+     * The digest's pact loop needs the *recipient's* preference for the habit a
+     * pact is about, and a pact member is not necessarily in the reminder pass's
+     * result set (their habit may be archived, or beyond `DIGEST_MAX_HABITS`).
+     * One round trip per member would turn a background job into thousands, so
+     * the caller collects its pairs and asks once — the same shape as
+     * `getHabitReminderPreferences` next door in UsersStore.
+     *
+     * Keyed `${userId}:${habitGoalId}` in the returned map. A pair with no
+     * tracking row is simply absent; callers fall back to
+     * `DEFAULT_USER_HABIT_NOTIFICATION_PREFERENCES`, which is today's behaviour.
+     */
+    getNotificationPreferencesForPairs(
+        pairs: { userId: string; habitGoalId: string }[],
+    ): Promise<Record<string, IUserHabitNotificationPreferences>> {
+        // De-duplicated so a habit held through two pacts is asked for once.
+        const unique = new Map<string, { userId: string; habitGoalId: string }>();
+        pairs.forEach((pair) => {
+            if (pair?.userId && pair?.habitGoalId) {
+                unique.set(`${pair.userId}:${pair.habitGoalId}`, pair);
+            }
+        });
+
+        if (!unique.size) {
+            return Promise.resolve({});
+        }
+
+        const tuples = Array.from(unique.values());
+        const queryString = knexBuilder
+            .from(USER_HABITS_TABLE_NAME)
+            .select(
+                'userId',
+                'habitGoalId',
+                ...USER_HABIT_NOTIFICATION_PREFERENCE_KEYS,
+            )
+            .whereIn(
+                ['userId', 'habitGoalId'],
+                tuples.map((pair) => [pair.userId, pair.habitGoalId]),
+            )
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.reduce((acc, row) => {
+            acc[`${row.userId}:${row.habitGoalId}`] = {
+                notifyReminders: row.notifyReminders !== false,
+                notifyStreakAlerts: row.notifyStreakAlerts !== false,
+                notifyPartnerActivity: row.notifyPartnerActivity !== false,
+                notifyPactUpdates: row.notifyPactUpdates !== false,
+            };
+            return acc;
+        }, {} as Record<string, IUserHabitNotificationPreferences>));
     }
 
     delete(id: string, userId: string) {

@@ -360,7 +360,56 @@ export interface IUserHabit {
      * a misleading zero.
      */
     totalSaved?: number;
+    /**
+     * Per-habit notification switches.
+     *
+     * All four default to `true` server-side and are NOT NULL, so a client can
+     * treat `undefined` as `true` — which is exactly what it means on a response
+     * from a users-service predating them. Render an absent value as On: showing
+     * Off would tell the user their reminders are disabled while they keep
+     * arriving, and submitting the form would then write the `false` the screen
+     * invented and make the lie true (the same trap `getHabitsPushPreferences`
+     * documents for the account-wide columns).
+     *
+     * They only ever narrow. The account-wide `settingsPushHabitReminders` /
+     * `settingsPushStreakAlerts` still win, so turning one of these on cannot
+     * re-enable something the account-level switch turned off.
+     */
+    notifyReminders?: boolean;
+    notifyStreakAlerts?: boolean;
+    /** "Your partner checked in" and "your partner missed a day — send a nudge?" */
+    notifyPartnerActivity?: boolean;
+    /** Pact invited / accepted / declined / expiring / ended, for this habit. */
+    notifyPactUpdates?: boolean;
 }
+
+/**
+ * The four categories as a set, for a settings screen that wants to iterate
+ * rather than hardcode. Ordered the way they should be listed: the one the user
+ * is most likely to want on first, the one they are most likely to want off
+ * third.
+ */
+export const USER_HABIT_NOTIFICATION_CATEGORIES = [
+    'notifyReminders',
+    'notifyStreakAlerts',
+    'notifyPartnerActivity',
+    'notifyPactUpdates',
+] as const;
+
+export type UserHabitNotificationCategory = typeof USER_HABIT_NOTIFICATION_CATEGORIES[number];
+
+/**
+ * Resolve a habit's switches to plain booleans, applying the "absent means on"
+ * rule in one place so no screen has to remember it.
+ */
+export const getUserHabitNotificationPreferences = (
+    habit?: Partial<IUserHabit> | null,
+): Record<UserHabitNotificationCategory, boolean> => ({
+    notifyReminders: habit?.notifyReminders !== false,
+    notifyStreakAlerts: habit?.notifyStreakAlerts !== false,
+    notifyPartnerActivity: habit?.notifyPartnerActivity !== false,
+    notifyPactUpdates: habit?.notifyPactUpdates !== false,
+});
 
 /**
  * Whether the user has unlocked habits tracked on their own, how close they are
@@ -610,6 +659,7 @@ export enum HabitsActionTypes {
     ARCHIVE_USER_HABIT = 'ARCHIVE_USER_HABIT',
     RESTORE_USER_HABIT = 'RESTORE_USER_HABIT',
     CONTINUE_SOLO_USER_HABIT = 'CONTINUE_SOLO_USER_HABIT',
+    UPDATE_USER_HABIT_NOTIFICATION_PREFERENCES = 'UPDATE_USER_HABIT_NOTIFICATION_PREFERENCES',
 
     // Journal
     GET_JOURNAL_FEED = 'GET_JOURNAL_FEED',

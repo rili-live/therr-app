@@ -76,6 +76,12 @@ interface IScenario {
     pacts?: { id: string; habitGoalId: string; memberUserId: string }[];
     /** Streak the pact loop's per-member lookup returns. */
     pactStreak?: Record<string, any> | null;
+    /**
+     * Per-habit notification switches for pairs the reminder pass does not
+     * cover, keyed `${userId}:${habitGoalId}`. Absent pairs resolve to
+     * everything-on, which is what the resolver does in production too.
+     */
+    habitPrefs?: Record<string, Record<string, boolean>>;
 }
 
 const phaseWrites: { id: string; update: Record<string, any> }[] = [];
@@ -93,11 +99,19 @@ const stubDigest = (scenario: IScenario = {}) => {
     // suite's own setup depending on file order.
     process.env.HABIT_LAST_CHANCE_REMINDERS_ENABLED = 'false';
 
-    const { habits = [soloHabit()], pacts = [], pactStreak = null } = scenario;
+    const {
+        habits = [soloHabit()], pacts = [], pactStreak = null, habitPrefs = {},
+    } = scenario;
 
     sinon.stub(Store.pacts, 'getExpiredPacts').resolves([] as any);
     sinon.stub(Store.pacts, 'expire').resolves({} as any);
-    sinon.stub(Store.pacts, 'get').resolves(pacts.map((p) => ({
+    // De-duplicated by id: the scenario shape is one entry per (pact, member),
+    // so a two-member pact is written as two entries sharing an id and must
+    // still be walked once. Walking it twice would double every per-pact
+    // notification and make a suppression test read as a pass at the wrong
+    // count.
+    const uniquePacts = Array.from(new Map(pacts.map((p) => [p.id, p])).values());
+    sinon.stub(Store.pacts, 'get').resolves(uniquePacts.map((p) => ({
         id: p.id, habitGoalId: p.habitGoalId, status: 'active', endDate: null,
     })) as any);
     sinon.stub(Store.pactMembers, 'getByPactId').callsFake((pactId: any) => Promise.resolve(
@@ -120,6 +134,22 @@ const stubDigest = (scenario: IScenario = {}) => {
     sinon.stub(Store.streaks, 'getByUserAndHabit').resolves(pactStreak as any);
 
     sinon.stub(Store.userHabits, 'getActiveForReminders').resolves(habits as any);
+    // Only consulted for pairs the reminder rows above did not already carry —
+    // pact members whose habit is archived or fell outside DIGEST_MAX_HABITS.
+    sinon.stub(Store.userHabits, 'getNotificationPreferencesForPairs')
+        .callsFake((pairs: any) => Promise.resolve(pairs.reduce((acc: any, pair: any) => {
+            const key = `${pair.userId}:${pair.habitGoalId}`;
+            if (habitPrefs[key]) {
+                acc[key] = {
+                    notifyReminders: true,
+                    notifyStreakAlerts: true,
+                    notifyPartnerActivity: true,
+                    notifyPactUpdates: true,
+                    ...habitPrefs[key],
+                };
+            }
+            return acc;
+        }, {})));
 
     // Lifecycle reads. Inert unless HABIT_PHASE_ENGINE_ENABLED is set, but the
     // handler calls them either way once the flag is on, so they are stubbed
@@ -337,6 +367,104 @@ describe('Habits digest — daily reminder pass', () => {
 
         expect(counters.habitsCapped).to.equal(false);
         expect(counters.pactsCapped).to.equal(false);
+    });
+
+    /**
+     * Per-habit notification switches.
+     *
+     * The point of the feature is that it is *not* a kill switch: someone who
+     * wants their morning reminder but not prompts to chase a friend had, until
+     * now, exactly one available answer — mute the app. So each of these pins
+     * that muting one category leaves the others arriving.
+     */
+    describe('per-habit notification switches', () => {
+        it('skips the reminder for a habit whose reminders are off', async () => {
+            stubDigest({ habits: [soloHabit({ notifyReminders: false })] });
+
+            const counters = await runDigest();
+
+            expect(queue.calls).to.have.length(0);
+            expect(counters.remindersMutedByHabit).to.equal(1);
+            // Counted separately from the account-wide switch: that one says how
+            // many people turned habits pushes off, this says how many kept them
+            // on and tuned them.
+            expect(counters.remindersMutedByPreference).to.equal(0);
+        });
+
+        it('still reminds about the habits that kept their reminders on', async () => {
+            stubDigest({
+                habits: [
+                    soloHabit({ habitGoalId: 'goal-muted', goalName: 'Gym', notifyReminders: false }),
+                    soloHabit({ habitGoalId: 'goal-kept', goalName: 'Reading', notifyReminders: true }),
+                ],
+            });
+
+            const counters = await runDigest();
+
+            const reminders = queue.ofType('daily-habit-reminder');
+            expect(reminders).to.have.length(1);
+            expect(reminders[0].payload.habitCount).to.equal(1);
+            expect(reminders[0].payload.habitName).to.equal('Reading');
+            expect(counters.remindersMutedByHabit).to.equal(1);
+        });
+
+        it('keeps the reminder but drops the streak framing when only streak alerts are off', async () => {
+            // The distinction this feature exists for: the user asked for the
+            // nudge, not for the loss-aversion escalation that rides on it.
+            stubDigest({
+                habits: [soloHabit({
+                    currentStreak: 12,
+                    streakIsActive: true,
+                    notifyReminders: true,
+                    notifyStreakAlerts: false,
+                })],
+            });
+
+            await runDigest();
+
+            expect(queue.ofType('streak-at-risk')).to.have.length(0);
+            const reminders = queue.ofType('daily-habit-reminder');
+            expect(reminders).to.have.length(1);
+            expect(reminders[0].payload.streakCount).to.equal(0);
+        });
+
+        it('treats a row without the columns as opted in', async () => {
+            // `soloHabit()` carries no notify* keys, exactly like a row from a
+            // query written before the columns existed. Absent must read as on;
+            // reading it as off would silence the whole pass on deploy.
+            stubDigest({ habits: [soloHabit()] });
+
+            const counters = await runDigest();
+
+            expect(queue.ofType('daily-habit-reminder')).to.have.length(1);
+            expect(counters.remindersMutedByHabit).to.equal(0);
+        });
+
+        it('drops the "your partner missed a day" prompt for the member who muted it', async () => {
+            // Gated on the recipient's switch, not the slipping member's — it is
+            // the recipient who said they did not want to be told to chase
+            // someone. Two members so there is a recipient distinct from the
+            // member who missed.
+            stubDigest({
+                pacts: [
+                    { id: PACT_ID, habitGoalId: PACT_GOAL, memberUserId: PACT_USER },
+                    { id: PACT_ID, habitGoalId: PACT_GOAL, memberUserId: SOLO_USER },
+                ],
+                habits: [],
+                habitPrefs: {
+                    [`${SOLO_USER}:${PACT_GOAL}`]: { notifyPartnerActivity: false },
+                },
+            });
+
+            const counters = await runDigest();
+
+            // PACT_USER never muted anything, so they still hear that SOLO_USER
+            // slipped. SOLO_USER hears nothing about PACT_USER.
+            const missed = queue.ofType('partner-missed-day');
+            expect(missed).to.have.length(1);
+            expect(missed[0].userId).to.equal(PACT_USER);
+            expect(counters.partnerActivityMutedByHabit).to.equal(1);
+        });
     });
 
     it('flags the run when the habit read comes back at the limit', async () => {

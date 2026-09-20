@@ -21,6 +21,7 @@ import {
 } from '../utilities/checkinNudgeRollup';
 import { resolveReminderSchedule } from '../utilities/localReminderSchedule';
 import { createNameResolvers } from '../utilities/notificationNames';
+import { createHabitNotificationPreferenceResolver } from '../utilities/habitNotificationPreferences';
 import { IUserHabitReminderRow } from '../store/UserHabitsStore';
 import { evaluateAllDailyStreaks } from './helpers/dailyStreak';
 import { closeElapsedLeaderboardPeriods } from './helpers/leaderboardPeriods';
@@ -175,6 +176,16 @@ interface IDigestCounters {
     // starts writing them.
     remindersMutedByPreference: number;
     lastChanceMutedByPreference: number;
+    // Suppressed by a *per-habit* switch rather than the account-wide one — see
+    // `20260919000001_habits.user_habits.notificationPrefs.js`. Counted
+    // separately from the two above because they answer different questions: the
+    // account-wide counters say how many people turned habits pushes off, these
+    // say how many kept them on and tuned them, which is the behaviour the
+    // per-habit controls exist to produce. Each counts candidates dropped, not
+    // users.
+    remindersMutedByHabit: number;
+    partnerActivityMutedByHabit: number;
+    pactUpdatesMutedByHabit: number;
     // Users whose `settingsTimezone` was unset or unusable, who therefore fell
     // back to the digest's own zone and kept exactly the delivery time they had
     // before this feature. Starts at ~100% of recipients and should fall as
@@ -319,6 +330,9 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         lastChanceSkippedNoStreak: 0,
         remindersMutedByPreference: 0,
         lastChanceMutedByPreference: 0,
+        remindersMutedByHabit: 0,
+        partnerActivityMutedByHabit: 0,
+        pactUpdatesMutedByHabit: 0,
         usersWithoutTimezone: 0,
         dailyStreaksEvaluated: 0,
         dailyStreakErrors: 0,
@@ -425,6 +439,22 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         // copy names the habit.
         const { getHabitName, getUserDisplayName } = createNameResolvers();
 
+        /**
+         * The per-habit notification switches, for every gate in this run.
+         *
+         * Created here rather than next to the accumulator below because the
+         * expired-pact sweep is the first thing that notifies, and it runs before
+         * the reminder query exists. It is seeded from `remindableHabits` as soon
+         * as that read lands — those rows already carry the four columns, so the
+         * whole reminder pass then costs no extra reads, and the pact loop only
+         * pays for members whose habit is archived or fell outside
+         * `DIGEST_MAX_HABITS`.
+         *
+         * Every lookup fails open (everything on); see the resolver for why
+         * silence is the wrong way to fail.
+         */
+        const habitNotificationPrefs = createHabitNotificationPreferenceResolver();
+
         // Close out pacts whose window has passed, before anything reads the
         // active set.
         //
@@ -499,17 +529,35 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     .filter((m: any) => m.status === 'active');
                 // eslint-disable-next-line no-await-in-loop
                 const endedHabitName = await getHabitName(expiring.habitGoalId);
+                // One read for this pact's membership. The sweep runs before the
+                // reminder query has seeded the resolver, so unlike the pact loop
+                // below these are genuine lookups — bounded by the number of
+                // pacts that expired today, which is small.
                 // eslint-disable-next-line no-await-in-loop
-                const endedQueued = await Promise.all(endedMembers.map((member: any) => queuePush(
-                    member.userId,
-                    PushNotifications.Types.pactEnded,
-                    `pact-ended:${expiring.id}`,
-                    {
-                        pactId: expiring.id,
-                        habitName: endedHabitName,
-                        durationDays: Number(expiring.durationDays || 0),
-                    },
-                )));
+                await habitNotificationPrefs.prime(
+                    endedMembers.map((member: any) => ({
+                        userId: member.userId,
+                        habitGoalId: expiring.habitGoalId,
+                    })),
+                );
+                // eslint-disable-next-line no-await-in-loop
+                const endedQueued = await Promise.all(endedMembers.map(async (member: any) => {
+                    const prefs = await habitNotificationPrefs.get(member.userId, expiring.habitGoalId);
+                    if (!prefs.notifyPactUpdates) {
+                        counters.pactUpdatesMutedByHabit += 1;
+                        return false;
+                    }
+                    return queuePush(
+                        member.userId,
+                        PushNotifications.Types.pactEnded,
+                        `pact-ended:${expiring.id}`,
+                        {
+                            pactId: expiring.id,
+                            habitName: endedHabitName,
+                            durationDays: Number(expiring.durationDays || 0),
+                        },
+                    );
+                }));
                 counters.pactEndedSent += endedQueued.filter(Boolean).length;
             } catch (err: any) {
                 // The pact is expired either way — this only costs the
@@ -590,6 +638,9 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 return [] as IUserHabitReminderRow[];
             })
             : [];
+        // Free: these rows already carry the four notification columns, so every
+        // gate below that asks about a habit in this set answers from memory.
+        habitNotificationPrefs.seed(remindableHabits);
         counters.habitsEvaluated = remindableHabits.length;
         counters.habitsCapped = remindableHabits.length >= DIGEST_MAX_HABITS;
         if (counters.habitsCapped) {
@@ -775,6 +826,16 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 // eslint-disable-next-line no-await-in-loop
                 const habitName = await getHabitName(pact.habitGoalId);
 
+                // One read for this pact's whole membership, before anything
+                // below asks about a single member. Most of these are already
+                // cached from the reminder pass's seed; this covers the rest
+                // (archived habits, habits past DIGEST_MAX_HABITS) without a
+                // round trip per member per notification.
+                // eslint-disable-next-line no-await-in-loop
+                await habitNotificationPrefs.prime(
+                    members.map((member: any) => ({ userId: member.userId, habitGoalId: pact.habitGoalId })),
+                );
+
                 // Pact expiring soon → warn every active member (once per run)
                 if (pact.endDate) {
                     const daysRemaining = Math.ceil((new Date(pact.endDate).getTime() - Date.now()) / MS_PER_DAY);
@@ -785,16 +846,23 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                         // different daysRemaining for the same calendar day and
                         // queue a second warning.
                         // eslint-disable-next-line no-await-in-loop
-                        const queued = await Promise.all(members.map((member: any) => queuePush(
-                            member.userId,
-                            PushNotifications.Types.pactExpiring,
-                            `pact-expiring:${pact.id}:${today}`,
-                            {
-                                pactId: pact.id,
-                                habitName,
-                                daysRemaining,
-                            },
-                        )));
+                        const queued = await Promise.all(members.map(async (member: any) => {
+                            const prefs = await habitNotificationPrefs.get(member.userId, pact.habitGoalId);
+                            if (!prefs.notifyPactUpdates) {
+                                counters.pactUpdatesMutedByHabit += 1;
+                                return false;
+                            }
+                            return queuePush(
+                                member.userId,
+                                PushNotifications.Types.pactExpiring,
+                                `pact-expiring:${pact.id}:${today}`,
+                                {
+                                    pactId: pact.id,
+                                    habitName,
+                                    daysRemaining,
+                                },
+                            );
+                        }));
                         counters.pactExpiringSent += queued.filter(Boolean).length;
                     }
                 }
@@ -813,6 +881,9 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     // the taper check and `nudgedPairs` need them.
                     const key = pairKey(member.userId, pact.habitGoalId);
                     const decision = lifecycle.decisions[key];
+                    // Cached by the prime above, so this await never hits the DB.
+                    // eslint-disable-next-line no-await-in-loop
+                    const memberPrefs = await habitNotificationPrefs.get(member.userId, pact.habitGoalId);
 
                     // Lifecycle: milestones, maintenance check-ins and comeback
                     // offers. Runs once per (user, habit) per digest, before the
@@ -832,12 +903,15 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                         // eslint-disable-next-line no-await-in-loop
                         const streak = await Store.streaks.getByUserAndHabit(member.userId, pact.habitGoalId);
                         if (streak && streak.isActive && streak.currentStreak > 0) {
-                            // Claimed either way — queued, tapered or failed. The
-                            // reminder pass below covers every tracked habit,
-                            // including this one, and must not follow a streak
-                            // warning with a generic "get your streak going".
+                            // Claimed either way — queued, tapered, muted or
+                            // failed. The reminder pass below covers every tracked
+                            // habit, including this one, and must not follow a
+                            // streak warning with a generic "get your streak
+                            // going" — nor re-add a habit this member has muted.
                             nudgedPairs.add(key);
-                            if (decision && !decision.allowsDailyNudge) {
+                            if (!memberPrefs.notifyReminders) {
+                                counters.remindersMutedByHabit += 1;
+                            } else if (decision && !decision.allowsDailyNudge) {
                                 counters.nudgesTapered += 1;
                             } else {
                                 // Recorded, not queued. Every check-in nudge this
@@ -862,6 +936,10 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                                         0,
                                         (streak.gracePeriodDays || 0) - (streak.graceDaysUsed || 0),
                                     ),
+                                    // Muting streak alerts must not be reachable
+                                    // through the reminder the user kept: see
+                                    // `effectiveStreak` in checkinNudgeRollup.
+                                    allowsStreakAlerts: memberPrefs.notifyStreakAlerts,
                                 });
                             }
                         }
@@ -882,17 +960,29 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                         // and without the slipping member in the key a pact where
                         // two partners both missed yesterday would queue only the
                         // first notification.
+                        // Gated on the *recipient's* switch for this habit, not
+                        // the slipping member's. "Dana missed a day — send a
+                        // nudge?" is the notification someone means when they say
+                        // they want their own reminders but not prompts to chase
+                        // a friend, and it is the recipient who asked.
                         // eslint-disable-next-line no-await-in-loop
-                        const queued = await Promise.all(otherMembers.map((other: any) => queuePush(
-                            other.userId,
-                            PushNotifications.Types.partnerMissedDay,
-                            `partner-missed-day:${pact.id}:${member.userId}:${yesterday}`,
-                            {
-                                pactId: pact.id,
-                                habitName,
-                                partnerName,
-                            },
-                        )));
+                        const queued = await Promise.all(otherMembers.map(async (other: any) => {
+                            const otherPrefs = await habitNotificationPrefs.get(other.userId, pact.habitGoalId);
+                            if (!otherPrefs.notifyPartnerActivity) {
+                                counters.partnerActivityMutedByHabit += 1;
+                                return false;
+                            }
+                            return queuePush(
+                                other.userId,
+                                PushNotifications.Types.partnerMissedDay,
+                                `partner-missed-day:${pact.id}:${member.userId}:${yesterday}`,
+                                {
+                                    pactId: pact.id,
+                                    habitName,
+                                    partnerName,
+                                },
+                            );
+                        }));
                         counters.partnerMissedSent += queued.filter(Boolean).length;
                     }
                 }
@@ -954,6 +1044,25 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     continue;
                 }
 
+                // The per-habit switch, which is where "remind me about this one
+                // but not that one" is decided. Checked after the lifecycle call
+                // above and before every other gate: the lifecycle notifications
+                // are celebrations and phase transitions rather than reminders,
+                // and `habits.habit_phases` must keep advancing for a habit whose
+                // reminders are off or the taper stalls at whatever stage it was
+                // in when the user muted it.
+                //
+                // `habit.notifyReminders` comes straight off the reminder query —
+                // no lookup, no await. Tested for an explicit `false` rather than
+                // falsiness: the column is NOT NULL DEFAULT true, so an absent
+                // value means the row came from somewhere that does not select it
+                // yet, and everywhere else in this feature absent means on.
+                if (habit.notifyReminders === false) {
+                    counters.remindersMutedByHabit += 1;
+                    // eslint-disable-next-line no-continue
+                    continue;
+                }
+
                 if (!isHabitDueToday(habit, today)) {
                     counters.remindersNotDue += 1;
                     // eslint-disable-next-line no-continue
@@ -988,6 +1097,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                         0,
                         Number(habit.gracePeriodDays || 0) - Number(habit.graceDaysUsed || 0),
                     ),
+                    allowsStreakAlerts: habit.notifyStreakAlerts,
                 });
             } catch (err: any) {
                 counters.errors += 1;
