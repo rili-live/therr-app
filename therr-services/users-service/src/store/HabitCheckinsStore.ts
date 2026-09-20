@@ -574,17 +574,19 @@ export default class HabitCheckinsStore {
             return Promise.resolve({});
         }
 
-        const queryString = knexBuilder.raw(
-            `SELECT "habitGoalId",
-                SUM("savedAmount")::text AS "totalSaved",
-                COUNT(*)::int AS "contributionCount"
-            FROM ${HABIT_CHECKINS_TABLE_NAME}
-            WHERE "userId" = ?::uuid
-                AND "savedAmount" IS NOT NULL
-                AND "habitGoalId" = ANY(?::uuid[])
-            GROUP BY "habitGoalId"`,
-            [userId, `{${habitGoalIds.join(',')}}`],
-        ).toString();
+        // Built with the query builder rather than a raw `= ANY(?::uuid[])` so that
+        // every id is escaped on its own. A hand-assembled `{a,b,c}` array literal
+        // leaves a `,` or `}` inside one value free to split or terminate the list.
+        const queryString = knexBuilder
+            .from(HABIT_CHECKINS_TABLE_NAME)
+            .select('habitGoalId')
+            .select(knexBuilder.raw('SUM("savedAmount")::text AS "totalSaved"'))
+            .select(knexBuilder.raw('COUNT(*)::int AS "contributionCount"'))
+            .where({ userId })
+            .whereNotNull('savedAmount')
+            .whereIn('habitGoalId', habitGoalIds)
+            .groupBy('habitGoalId')
+            .toString();
 
         return this.db.read.query(queryString).then((response) => response.rows.reduce(
             (acc: Record<string, { totalSaved: number; contributionCount: number }>, row: any) => {

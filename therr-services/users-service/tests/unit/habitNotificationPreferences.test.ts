@@ -111,6 +111,30 @@ describe('per-habit notification preferences', () => {
             expect((await resolver.get(USER, GOAL)).notifyPartnerActivity).to.equal(false);
         });
 
+        it('peeks the cache synchronously after a prime, and fails open on a pair never primed', async () => {
+            const fetchStub = sinon.stub(Store.userHabits, 'getNotificationPreferencesForPairs')
+                .resolves({
+                    [preferenceCacheKey(USER, GOAL)]: {
+                        notifyReminders: true,
+                        notifyStreakAlerts: true,
+                        notifyPartnerActivity: false,
+                        notifyPactUpdates: true,
+                    },
+                });
+            const resolver = createHabitNotificationPreferenceResolver();
+
+            // Nothing cached yet: defaults, and no read is spent finding that out.
+            expect(resolver.peek(USER, GOAL).notifyPartnerActivity).to.equal(true);
+            expect(fetchStub.callCount).to.equal(0);
+
+            await resolver.prime([{ userId: USER, habitGoalId: GOAL }, { userId: 'user-2', habitGoalId: GOAL }]);
+
+            expect(resolver.peek(USER, GOAL).notifyPartnerActivity).to.equal(false);
+            // Primed but with no row — cached as the defaults, same as `get`.
+            expect(resolver.peek('user-2', GOAL).notifyPartnerActivity).to.equal(true);
+            expect(fetchStub.callCount).to.equal(1);
+        });
+
         it('fails open when the read throws', async () => {
             sinon.stub(Store.userHabits, 'getNotificationPreferencesForPairs').rejects(new Error('pool exhausted'));
             const resolver = createHabitNotificationPreferenceResolver();

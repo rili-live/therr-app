@@ -150,9 +150,21 @@ describe('HabitCheckinsStore — savings amounts', () => {
             await store.getSavingsTotalsByGoalForUser('u1', ['g1', 'g2']);
 
             const queryString = mockConnection.read.query.args[0][0];
-            expect(queryString).to.contain('GROUP BY "habitGoalId"');
+            expect(queryString).to.contain('group by "habitGoalId"');
             expect(queryString).to.not.contain('pactId');
             expect(queryString).to.not.contain('scheduledDate');
+        });
+
+        it('escapes each goal id individually rather than joining them into an array literal', async () => {
+            // `{a,b}` assembled by hand lets a `,` or `}` inside one id split or
+            // terminate the list; the builder quotes each value on its own.
+            const { store, mockConnection } = buildStore();
+
+            await store.getSavingsTotalsByGoalForUser('u1', ['g1', "g2'}, 'x"]);
+
+            const queryString = mockConnection.read.query.args[0][0];
+            expect(queryString).to.contain('"habitGoalId" in (\'g1\', \'g2\'\'}, \'\'x\')');
+            expect(queryString).to.not.contain('ANY(');
         });
 
         it('returns a map of goal id to total, omitting goals with nothing saved', async () => {
