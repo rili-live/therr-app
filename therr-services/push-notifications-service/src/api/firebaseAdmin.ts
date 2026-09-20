@@ -171,6 +171,16 @@ interface ICreateMessageConfig {
     // /habits/checkins, so it is only ever set when the notification names
     // exactly one habit.
     habitGoalId?: string;
+    // True when that one habit is a `savings_goal`. Turns the check-in action into one
+    // that asks how much was put away, so the amount can be recorded without opening
+    // the app — which is the point, since a user who checks in from the tray is exactly
+    // the user who will not come back later to add the detail.
+    //
+    // Only ever set alongside `habitGoalId` and a `habitCount` of one: an amount has to
+    // be recorded against a specific habit.
+    isSavingsGoal?: boolean;
+    // The goal's ISO 4217 code, for the input's prefix. Display only.
+    currencyCode?: string;
     // Set by the digest's per-user roll-up. `habitCount > 1` means the nudge
     // covers several habits, which selects the plural copy AND suppresses the
     // check-in action — there is no single goal to complete.
@@ -257,10 +267,19 @@ const buildCheckinPressActions = (
     const actions: { id: string; title: string; }[] = [];
 
     if (shouldOfferOnePressCheckin(config.habitGoalId, config.habitCount)) {
-        actions.push({
-            id: PushNotifications.PressActionIds.habitCheckin,
-            title: translate(userLocale, 'notifications.shared.pressActionCheckIn'),
-        });
+        // A savings habit gets the input variant instead of the plain button — never
+        // both. Two check-in buttons side by side would be a choice between recording
+        // an amount and not recording one, and the notification's whole job here is to
+        // capture the amount at the moment the user is already acting.
+        actions.push(config.isSavingsGoal
+            ? {
+                id: PushNotifications.PressActionIds.habitCheckinSavings,
+                title: translate(userLocale, 'notifications.shared.pressActionLogAmount'),
+            }
+            : {
+                id: PushNotifications.PressActionIds.habitCheckin,
+                title: translate(userLocale, 'notifications.shared.pressActionCheckIn'),
+            });
     }
 
     actions.push({
@@ -779,6 +798,12 @@ const createMessage = (
         habitGoalId: config.habitGoalId,
         pactId: config.pactId,
         habitCount: config.habitCount,
+        // Both reach the device so the background handler can build the amount input
+        // and label it with the right currency. `isSavingsGoal` is coerced to the
+        // string "true" by the loop below and is only ever set when true — an absent
+        // key is the false case, because the string "false" is truthy on the client.
+        isSavingsGoal: config.isSavingsGoal ? true : undefined,
+        currencyCode: config.currencyCode,
         // Not an identifier, but the renewal flow needs it for the same reason
         // the ids are here: the confirmation names the cycle it is about to
         // start ("another 30 days"), and a plan that states its own when is

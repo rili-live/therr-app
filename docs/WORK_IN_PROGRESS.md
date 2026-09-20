@@ -128,6 +128,47 @@ append new items here rather than only printing them once.
   `approve-space-claim`) records it. Section 7 of the audit SQL shows weekly volume to compare
   against the inbox.
 
+## Savings goal amounts — mobile half (added 2026-09-20)
+
+The backend and shared-library half landed on `general` (migrations for
+`habits.habit_goals.targetAmount` / `currencyCode` / `savingsTargetScope` and
+`habits.habit_checkins.savedAmount`, `savingsProgress` on the pact detail, `totalSaved` on
+the habit list, `parseSavingsAmount` in `therr-js-utilities`, and the `isSavingsGoal` /
+`currencyCode` fields on the check-in nudge payload). None of it is reachable by a user until
+the UI ships, and **every item below must land on `niche/HABITS-general`** — the Habits screens
+do not exist on `general`.
+
+- [ ] **Clone `goalType` when a template is copied into a habit goal.** `createHabitGoal` in
+  `TherrMobile/main/routes/Pacts/CreatePactInvite.tsx` copies name, description, category,
+  emoji, frequency and target days off the chosen template but **not** `goalType`, so the
+  seeded savings template (migration `20260510000001`, the group-trip one) clones to
+  `build_good` and no amount tracking ever activates. This is a pre-existing bug and it is the
+  single blocker for the whole feature: without it a user cannot create a savings habit from
+  the UI at all. The backend `POST /habits/goals` has always accepted `goalType`.
+- [ ] **Amount field on the check-in form.** `components/Habits/CheckinDetailForm.tsx` — a
+  numeric input shown only for `goalType === 'savings_goal'`, sent as `savedAmount` on
+  `POST /habits/checkins`. Validate with `parseSavingsAmount` so the client rejects exactly
+  what the server would. Sending the key absent leaves an existing amount alone; sending it
+  empty clears it.
+- [ ] **Totals in the pact and habit detail views.** `routes/Pacts/PactDetail.tsx` renders
+  `pact.savingsProgress`: the group total, the per-member breakdown (members who have saved
+  nothing come back as explicit zero rows and should be shown), progress against
+  `targetAmount`, and a reached state. `routes/Habits/HabitDetail.tsx` and `HabitCard` render
+  the solo `totalSaved`. Both are absent on responses from an older users-service — treat
+  absent as unknown, not zero.
+- [ ] **Target fields in the create-habit wizard.** Amount, currency and the per-member /
+  group choice, on the savings branch only. The scope choice is the one that decides when the
+  pact completes, so it needs real copy, not a toggle labelled "group".
+- [ ] **Handle the `habit-checkin-savings` press action.** `TherrMobile/index.js` background
+  handler — Android `RemoteInput` on the notification action, POST the typed text as
+  `savedAmount` (server re-parses it). Needs the intent action declared in
+  `AndroidManifest.xml` the same way `DAILY_HABIT_REMINDER` is. Until this ships the action id
+  arrives on the payload and the tap does nothing, so it should ship in the same build as the
+  amount field, not before it.
+- [ ] **Locale strings for all three dictionaries** (`en-us`, `es`, `fr-ca`) for every string
+  above. The users-service `errorMessages.savings.*` keys and the push-service
+  `notifications.shared.pressActionLogAmount` key already exist in all three.
+
 ## iOS demand tracking (added 2026-09-14)
 
 - [ ] **Mark `ios_interest_click` and `ios_waitlist_submit` as key events in GA4.** Both
@@ -1703,6 +1744,7 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 - [ ] (2026-09-15, weekly recap) **On the first Monday after both halves are live, confirm delivery on a handset with Friends with Habits installed** — the recap must render on the "Rewards & Updates" channel (not "General"), and tapping it must open the WeeklyRecap screen on *last* week, not the week in progress. Link 5 has no server-side signal; only a handset can confirm this.
 - [ ] (2026-09-15, weekly recap) **Watch `weeklyRecap` in the first digest run's counters.** `recapUsersOnRecapDay` should be roughly a seventh of `recapUsersEvaluated`, and `recapsQueued + recapsSkippedEmptyWeek` should account for nearly all of it. `recapUsersOnRecapDay` at zero across several consecutive daily runs means the local-Monday test is wrong, not that nobody qualified.
 - [ ] (2026-09-16, /quality-peer-review-niche) **Deploy `general → stage → main` before promoting Habits 1.8.0 (versionCode 45) from the Play internal track to production.** The 1.8.0 build stamps check-ins with the user's *local* day (`toLocalDateKey`), but the users-service on `main` still answers `GET /habits/checkins/today` for the *UTC* day — the local-day fix (`5b0afb093`, `resolveCheckinHabitDate`) is on `general` only. Against the old backend a check-in made after ~19:00 CDT is written under today and read back under tomorrow, so the dashboard shows it un-checked for the rest of the evening. Submitting to the internal track first is still right (the weekly-recap push needs the manifest entry on a shipped build); the constraint is on the production promotion.
+- [ ] (2026-09-20, /quality-peer-review) **Confirm the three habits migrations ran at each of `stage` and `main`** — `20260919000001_habits.user_habits.notificationPrefs.js` (four `NOT NULL DEFAULT true` booleans), `20260920000001_habits.habit_goals.savingsTarget.js` and `20260920000002_habits.habit_checkins.savedAmount.js` (nullable `numeric(12,2)` columns + a partial index). All additive and idempotent, so a re-run is safe; but `getActiveForReminders` and `getDetailByUser` now SELECT the new columns unconditionally, so the digest and the habit list 500 until they exist. Introduced by 7c5440e19 and ac56442da.
 <!-- skill-followups:end -->
 
 ---

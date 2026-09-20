@@ -219,6 +219,7 @@
     },
     "shared": {
       "pressActionCheckIn": "Check In",
+      "pressActionLogAmount": "Log Amount",
       "pressActionRenew": "Start New Cycle",
       "pressActionView": "View"
     }

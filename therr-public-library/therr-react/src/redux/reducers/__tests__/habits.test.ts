@@ -449,6 +449,53 @@ describe('habits reducer', () => {
         expect(result.userHabitEligibility?.isAtHabitLimit).toBe(false);
     });
 
+    describe('UPDATE_USER_HABIT_NOTIFICATION_PREFERENCES', () => {
+        const trackedHabit = {
+            id: 'uh-1',
+            habitGoalId: 'g1',
+            goalName: 'Morning run',
+            currentStreak: 12,
+            notifyReminders: true,
+            notifyPartnerActivity: true,
+        };
+
+        it('merges the returned row rather than replacing it', () => {
+            // The endpoint returns the bare tracking row, not the joined detail
+            // shape the list renders from. Replacing would drop goalName and the
+            // streak, blanking the card the user just toggled a switch on.
+            const populated = reducer(initialState, {
+                type: HabitsActionTypes.GET_USER_HABITS,
+                data: { userHabits: [trackedHabit] },
+            });
+
+            const result = reducer(populated, {
+                type: HabitsActionTypes.UPDATE_USER_HABIT_NOTIFICATION_PREFERENCES,
+                data: { id: 'uh-1', notifyPartnerActivity: false },
+            });
+
+            expect(result.userHabits[0].notifyPartnerActivity).toBe(false);
+            expect(result.userHabits[0].goalName).toBe('Morning run');
+            expect(result.userHabits[0].currentStreak).toBe(12);
+            // Untouched categories survive a partial write.
+            expect(result.userHabits[0].notifyReminders).toBe(true);
+        });
+
+        it('ignores a row it is not tracking', () => {
+            const populated = reducer(initialState, {
+                type: HabitsActionTypes.GET_USER_HABITS,
+                data: { userHabits: [trackedHabit] },
+            });
+
+            const result = reducer(populated, {
+                type: HabitsActionTypes.UPDATE_USER_HABIT_NOTIFICATION_PREFERENCES,
+                data: { id: 'uh-unknown', notifyReminders: false },
+            });
+
+            expect(result.userHabits).toHaveLength(1);
+            expect(result.userHabits[0].notifyReminders).toBe(true);
+        });
+    });
+
     it('returns state unchanged for unknown action', () => {
         const result = reducer(initialState, { type: 'UNKNOWN_ACTION' });
         expect(result).toBe(initialState);

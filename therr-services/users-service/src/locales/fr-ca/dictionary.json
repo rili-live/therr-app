@@ -109,6 +109,14 @@
             "cannotModifyTemplate": "Cette habitude est l'un de nos modèles, elle ne peut donc pas être modifiée",
             "nameRequired": "Donne un nom à cette habitude",
             "notOwner": "Tu ne peux modifier qu'une habitude que tu as créée"
+        },
+        "savings": {
+            "amountNegative": "Saisis un montant de zéro ou plus",
+            "amountNotANumber": "Saisis le montant sous forme de nombre, par exemple 25 ou 25,50",
+            "amountTooLarge": "Ce montant est trop élevé pour être enregistré",
+            "amountTooPrecise": "Arrondis au cent près, par exemple 25,50",
+            "invalidCurrencyCode": "Utilise un code de devise à trois lettres, par exemple USD",
+            "invalidTargetScope": "Choisis si l'objectif est par personne ou pour le groupe"
         }
     },
     "metrics": {
