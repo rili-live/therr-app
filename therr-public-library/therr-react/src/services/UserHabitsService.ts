@@ -23,6 +23,21 @@ export interface ICreateUserHabitBody {
     goal?: ICreateUserHabitGoalBody;
 }
 
+/**
+ * The per-habit notification switches. Partial on purpose: send only what the
+ * user changed, so a client that predates a category cannot reset it.
+ *
+ * `notifyPartnerActivity` is the one people reach for first — it is what turns
+ * off "your partner missed a day, send them a nudge?" while leaving the user's
+ * own reminders alone.
+ */
+export interface IUserHabitNotificationPreferencesBody {
+    notifyReminders?: boolean;
+    notifyStreakAlerts?: boolean;
+    notifyPartnerActivity?: boolean;
+    notifyPactUpdates?: boolean;
+}
+
 class UserHabitsService {
     getUserHabits = (status?: 'active' | 'archived') => {
         const params = new URLSearchParams();
@@ -66,6 +81,12 @@ class UserHabitsService {
     continueSolo = (id: string) => axios({
         method: 'put',
         url: `/users-service/habits/user-habits/${id}/continue-solo`,
+    });
+
+    updateNotificationPreferences = (id: string, data: IUserHabitNotificationPreferencesBody) => axios({
+        method: 'put',
+        url: `/users-service/habits/user-habits/${id}/notification-preferences`,
+        data,
     });
 }
 
