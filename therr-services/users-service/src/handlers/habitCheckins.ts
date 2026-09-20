@@ -13,12 +13,16 @@ import enqueueNotification from '../utilities/enqueueNotification';
 import { resolveUserDisplayName } from '../utilities/notificationNames';
 import {
     checkMilestoneReached,
-    countMissedDaysForStreak,
     isComebackStart,
     isPhoenixMoment,
     normalizeDateString,
     MAX_GRACE_PERIOD_DAYS,
 } from '../utilities/streakHelpers';
+import {
+    getCadence,
+    getCadenceEffectiveFrom,
+    countMissedPeriods,
+} from '../utilities/habitCadence';
 import { isUserInPact } from '../utilities/pactHelpers';
 import { computeNextPactStreak, hasReachedMajority } from '../utilities/pactStreak';
 import { canReadProofs, serializeProofs } from '../utilities/checkinProofs';
@@ -40,6 +44,7 @@ import { awardLeaderboardPoints } from './helpers/leaderboards';
 import { LeaderboardXpValues } from '../utilities/leaderboardHelpers';
 import {
     getLocalDate,
+    getWeekStart,
     resolveCheckinHabitDate,
     resolveCheckinLocalDate,
     resolveCheckinTimeZone,
@@ -97,6 +102,13 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
             errorCode: ErrorCodes.NOT_FOUND,
         });
     }
+
+    // The habit's cadence, resolved once and used by every streak decision below — the personal
+    // streak's gap handling, the pact streak's, and the quota bonus. `cadenceEffectiveFrom` is
+    // what keeps a cadence change (or the one-time grandfathering of habits that were already
+    // non-daily) from retroactively re-judging days lived under the previous rules.
+    const cadence = getCadence(habitGoal);
+    const cadenceEffectiveFrom = getCadenceEffectiveFrom(habitGoal);
 
     // Resolve which pacts this check-in counts toward.
     //
@@ -255,32 +267,76 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     awardLeaderboardPoints(req.headers, LeaderboardXpValues.habitCheckin, 'habit-checkin');
                 }
 
-                // Gap handling — streak freezes. When required days were
+                // Gap handling — streak freezes. When required periods were
                 // missed since the last completion, consume available grace
                 // days ("streak freezes") to preserve the streak; otherwise
                 // record the miss and reset before crediting today.
+                //
+                // The unit is the habit's own cadence, not the calendar. For a
+                // daily habit a period is a day and this is unchanged; for
+                // "4x per week" it is a week, judged only once that week has
+                // closed — so an off day in the middle of a good week is not a
+                // miss and costs no freeze.
                 if (lastCompletedStr && streak.currentStreak > 0) {
-                    const missedDays = countMissedDaysForStreak(
-                        lastCompletedStr,
-                        checkinDate,
-                        habitGoal.frequencyType || 'daily',
-                        habitGoal.targetDaysOfWeek,
-                    );
+                    const pactIds = pacts.map((p: any) => p.id);
 
                     // Majority-day protection: a day the user's pact carried (a majority of its
                     // active members checked in) is not held against the user's personal streak.
                     // The group won that day; the rules should not reset a member for a day they
-                    // were covered on. Only days strictly inside the gap count — the endpoints are
-                    // the user's own last completion and today's check-in. Freezes are spent only
-                    // on days that remain missed after this forgiveness.
-                    const coveredDays = pacts.length
-                        ? await Store.pactStreakDays.countCoveredDatesForPacts(
-                            pacts.map((p: any) => p.id),
-                            lastCompletedStr,
-                            checkinDate,
-                        )
-                        : 0;
-                    const effectiveMissed = Math.max(0, missedDays - coveredDays);
+                    // were covered on. Freezes are spent only on what remains missed after this.
+                    //
+                    // How it is applied depends on the unit the cadence is missed in.
+                    let effectiveMissed: number;
+
+                    if (cadence.kind === 'weeklyQuota') {
+                        // A quota is missed in whole *weeks*, so a count of covered days cannot be
+                        // subtracted from it — "three covered days" says nothing about which week
+                        // they fell in, and subtracting them from a week count would forgive three
+                        // whole weeks for three days of cover. Instead a covered day is folded in
+                        // as if the user had checked in that day, which is what the protection
+                        // actually means, and the week is then judged on its own tally.
+                        const weekStart = getWeekStart(lastCompletedStr);
+                        const [gapRows, coveredDates] = await Promise.all([
+                            Store.habitCheckins.getByUserAndDateRange(
+                                userId,
+                                weekStart,
+                                checkinDate,
+                                habitGoalId,
+                            ).catch(() => [] as any[]),
+                            Store.pactStreakDays.getCreditedDatesForPacts(pactIds, weekStart, checkinDate)
+                                .catch(() => new Set<string>()),
+                        ]);
+
+                        const completedDatesInGap = new Set<string>(coveredDates);
+                        (gapRows || [])
+                            .filter((row: any) => row.status === 'completed')
+                            .forEach((row: any) => completedDatesInGap.add(normalizeDateString(row.scheduledDate)));
+
+                        effectiveMissed = countMissedPeriods(cadence, {
+                            lastCompletedDate: lastCompletedStr,
+                            throughDate: checkinDate,
+                            completedDates: completedDatesInGap,
+                            effectiveFrom: cadenceEffectiveFrom,
+                        });
+                    } else {
+                        // Day-unit cadences (daily, fixed weekdays) are decided from the gap's
+                        // endpoints alone, so the original subtraction still applies. Only days
+                        // strictly inside the gap count — the endpoints are the user's own last
+                        // completion and today's check-in.
+                        const missedDays = countMissedPeriods(cadence, {
+                            lastCompletedDate: lastCompletedStr,
+                            throughDate: checkinDate,
+                            effectiveFrom: cadenceEffectiveFrom,
+                        });
+                        const coveredDays = pactIds.length
+                            ? await Store.pactStreakDays.countCoveredDatesForPacts(
+                                pactIds,
+                                lastCompletedStr,
+                                checkinDate,
+                            )
+                            : 0;
+                        effectiveMissed = Math.max(0, missedDays - coveredDays);
+                    }
 
                     if (effectiveMissed > 0) {
                         const graceAvailable = (streak.gracePeriodDays || 0) - (streak.graceDaysUsed || 0);
@@ -484,6 +540,14 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     // crosses the threshold cannot be known in advance; the ledger's UNIQUE
                     // (pactId, streakDate) makes the credit idempotent, so only the first one
                     // through advances the streak and the rest no-op.
+                    //
+                    // Deliberately NOT gated on the day being required by the cadence. Under a
+                    // weekly quota a well-run week has no required days at all — the target is
+                    // met before skipping could endanger it — so gating the credit that way
+                    // would stop a 4x/week pact ever winning a day. A day the majority showed
+                    // up is a day the group earned, whatever the schedule said about it;
+                    // whether that adds up to an unbroken streak is `computeNextPactStreak`'s
+                    // question, and it asks it in weeks.
                     await Promise.all(pacts.map(async (p: any) => {
                         const [activeMemberCount, completedTodayCount] = await Promise.all([
                             Store.pactMembers.countActiveByPactId(p.id),
@@ -505,12 +569,25 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                             return;
                         }
 
+                        // A quota's verdict on a closed week needs that week's credited days, not
+                        // just the gap's endpoints. Fetched only for that cadence — daily and
+                        // fixed-weekday pacts decide from the endpoints and should not pay for a
+                        // query on every check-in that wins a day.
+                        const creditedDates = cadence.kind === 'weeklyQuota' && p.lastPactStreakDate
+                            ? await Store.pactStreakDays.getCreditedDatesForPacts(
+                                [p.id],
+                                getWeekStart(normalizeDateString(p.lastPactStreakDate)),
+                                checkinDate,
+                            ).catch(() => new Set<string>())
+                            : undefined;
+
                         const nextPactStreak = computeNextPactStreak({
                             lastPactStreakDate: p.lastPactStreakDate,
                             currentPactStreak: p.currentPactStreak || 0,
                             streakDate: checkinDate,
-                            frequencyType: habitGoal.frequencyType,
-                            targetDaysOfWeek: habitGoal.targetDaysOfWeek,
+                            cadence,
+                            creditedDates,
+                            cadenceEffectiveFrom,
                         });
                         await Store.pacts.updatePactStreak(p.id, {
                             currentPactStreak: nextPactStreak,

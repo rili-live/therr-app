@@ -68,63 +68,6 @@ const toLocalMidnight = (value: string | Date): Date => {
 };
 
 /**
- * Calculate if a day was missed based on last completed date
- * Takes into account that habits might not be daily (e.g., 3x per week)
- */
-export const wasDayMissed = (
-    lastCompletedDate: string | null,
-    frequencyType: string,
-    frequencyCount: number,
-    targetDaysOfWeek?: number[],
-): boolean => {
-    if (!lastCompletedDate) {
-        return false; // No history yet, can't have missed
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const lastCompleted = toLocalMidnight(lastCompletedDate);
-
-    const daysDiff = Math.floor((today.getTime() - lastCompleted.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (frequencyType === 'daily') {
-        // For daily habits, missing means more than 1 day gap
-        return daysDiff > 1;
-    }
-
-    if (frequencyType === 'weekly' && targetDaysOfWeek?.length) {
-        // For specific days of week, check if any target day was missed
-        // Build array of days between last completion and today
-        const daysBetween = Array.from({ length: daysDiff - 1 }, (_, i) => {
-            const checkDate = new Date(lastCompleted);
-            checkDate.setDate(checkDate.getDate() + i + 1);
-            return checkDate.getDay();
-        });
-
-        // Check if any of those days were target days
-        return daysBetween.some((dayOfWeek) => targetDaysOfWeek.includes(dayOfWeek));
-    }
-
-    if (frequencyType === 'weekly') {
-        // X times per week - allow full week flexibility
-        // Check if we're in a new week and previous week didn't hit target
-        const weeksDiff = Math.floor(daysDiff / 7);
-        return weeksDiff > 1;
-    }
-
-    // Default: daily logic
-    return daysDiff > 1;
-};
-
-/**
- * Check if grace period can be used for a missed day
- */
-export const canUseGracePeriod = (
-    gracePeriodDays: number,
-    graceDaysUsed: number,
-): boolean => gracePeriodDays > 0 && graceDaysUsed < gracePeriodDays;
-
-/**
  * Whole days between two dates (date-only comparison; positive when `later`
  * is after `earlier`). Accepts date strings or Date objects.
  */
@@ -146,46 +89,17 @@ export const normalizeDateString = (date: string | Date): string => {
 };
 
 /**
- * Count the required days that were missed between the last completed
- * check-in and the current check-in, respecting the habit's cadence.
- * 0 means the streak is intact (same-day or on-cadence completion).
+ * `countMissedDaysForStreak` lived here and has moved to `countMissedPeriods` in
+ * utilities/habitCadence.ts, along with `wasDayMissed` and `canUseGracePeriod` (both of which had
+ * no callers and each held a *different* copy of the cadence rules).
  *
- * The check-in flow uses this to decide whether to consume streak-freeze
- * (grace) days or reset the streak — see createCheckin in handlers/habitCheckins.ts.
+ * It was not a like-for-like move. The old function ignored `frequencyCount` entirely and honoured
+ * `targetDaysOfWeek` only when `frequencyType === 'weekly'`, so a `custom` goal with fixed days
+ * was nudged on those days and scored for streak-breaking against all seven; and its bare-weekly
+ * branch (`Math.floor(daysDiff / 7) > 1`) made an N-per-week streak effectively unbreakable. The
+ * replacement judges a quota by whole closed weeks, which needs the week's completed dates rather
+ * than just the gap endpoints — hence the wider argument shape at the call sites.
  */
-export const countMissedDaysForStreak = (
-    lastCompletedDate: string | Date,
-    checkinDate: string,
-    frequencyType: string,
-    targetDaysOfWeek?: number[],
-): number => {
-    const daysDiff = getDaysBetweenDates(lastCompletedDate, checkinDate);
-    if (daysDiff <= 1) {
-        return 0;
-    }
-
-    if (frequencyType === 'weekly' && targetDaysOfWeek?.length) {
-        // Count target days strictly between last completion and this check-in
-        let missed = 0;
-        for (let i = 1; i < daysDiff; i += 1) {
-            const d = toLocalMidnight(lastCompletedDate);
-            d.setDate(d.getDate() + i);
-            if (targetDaysOfWeek.includes(d.getDay())) {
-                missed += 1;
-            }
-        }
-        return missed;
-    }
-
-    if (frequencyType === 'weekly') {
-        // X-times-per-week habits get full-week flexibility; only a gap of
-        // more than one whole week counts as a single miss event.
-        return Math.floor(daysDiff / 7) > 1 ? 1 : 0;
-    }
-
-    // Daily cadence: every uncompleted day in the gap is a miss
-    return daysDiff - 1;
-};
 
 /**
  * Maximum earnable streak freezes (grace days). New streaks start with 1;

@@ -93,6 +93,19 @@ export interface IUserHabitReminderRow {
     activePactId: string | null;
 }
 
+/**
+ * One active habit's cadence, for deciding whether a given local day was required of the user.
+ * See `getActiveCadencesByUser`.
+ */
+export interface IUserHabitCadence {
+    habitGoalId: string;
+    startedAt: Date;
+    frequencyType: string;
+    frequencyCount: number | null;
+    targetDaysOfWeek: number[] | null;
+    cadenceEffectiveFrom: string | null;
+}
+
 export default class UserHabitsStore {
     db: IConnection;
 
@@ -138,6 +151,38 @@ export default class UserHabitsStore {
 
         return this.db.read.query(queryString)
             .then((response) => parseInt(response.rows[0]?.count ?? '0', 10));
+    }
+
+    /**
+     * Just enough of each active habit to decide, for any given local day, whether that day was
+     * *required* of the user — the input the app-level daily streak needs to tell a rest day
+     * from a missed one.
+     *
+     * Deliberately lean and deliberately keyed on `habits.user_habits` rather than on
+     * `habits.streaks`, which the freeze pool is read from. A streak row is only created on the
+     * first check-in, so a habit the user started but has not yet logged has no streak row — and
+     * that habit is exactly the one whose cadence can make today required. Reading the tracking
+     * registry instead is what keeps a brand-new habit from being invisible to the walk.
+     *
+     * `startedAt` comes back so the caller can leave days before the habit existed alone: a habit
+     * started on Thursday cannot have required Monday.
+     */
+    getActiveCadencesByUser(userId: string): Promise<IUserHabitCadence[]> {
+        const queryString = knexBuilder.raw(
+            `SELECT uh."habitGoalId" AS "habitGoalId",
+                uh."startedAt" AS "startedAt",
+                g."frequencyType" AS "frequencyType",
+                g."frequencyCount" AS "frequencyCount",
+                g."targetDaysOfWeek" AS "targetDaysOfWeek",
+                g."cadenceEffectiveFrom"::text AS "cadenceEffectiveFrom"
+            FROM ${USER_HABITS_TABLE_NAME} uh
+            INNER JOIN ${HABIT_GOALS_TABLE_NAME} g ON g."id" = uh."habitGoalId"
+            WHERE uh."userId" = ?::uuid
+                AND uh."status" = 'active'`,
+            [userId],
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows as IUserHabitCadence[]);
     }
 
     /**
