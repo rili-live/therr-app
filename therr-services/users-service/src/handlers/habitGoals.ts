@@ -1,8 +1,10 @@
 import { RequestHandler } from 'express';
+import { ErrorCodes } from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
+import { validateSavingsTargetInput } from '../utilities/savingsProgress';
 
 // CREATE
 const createHabitGoal: RequestHandler = async (req: any, res: any) => {
@@ -28,6 +30,18 @@ const createHabitGoal: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    // Validated, not silently dropped: a savings target the user typed and the server
+    // ignored is money they believe they are tracking and are not.
+    const savings = validateSavingsTargetInput(req.body);
+    if (savings.errorKey) {
+        return handleHttpError({
+            res,
+            message: translate(locale, savings.errorKey),
+            statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
+        });
+    }
+
     return Store.habitGoals.create({
         name,
         description,
@@ -40,6 +54,7 @@ const createHabitGoal: RequestHandler = async (req: any, res: any) => {
         createdByUserId: userId,
         isTemplate: false,
         isPublic: isPublic || false,
+        ...savings.params,
     })
         .then((habitGoal) => res.status(201).send(habitGoal))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:HABIT_GOALS_ROUTES:ERROR' }));
@@ -162,6 +177,16 @@ const updateHabitGoal: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    const savings = validateSavingsTargetInput(req.body);
+    if (savings.errorKey) {
+        return handleHttpError({
+            res,
+            message: translate(locale, savings.errorKey),
+            statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
+        });
+    }
+
     return Store.habitGoals.update(id, {
         name,
         description,
@@ -172,6 +197,7 @@ const updateHabitGoal: RequestHandler = async (req: any, res: any) => {
         frequencyCount,
         targetDaysOfWeek,
         isPublic,
+        ...savings.params,
     })
         .then((habitGoal) => res.status(200).send(habitGoal))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:HABIT_GOALS_ROUTES:ERROR' }));

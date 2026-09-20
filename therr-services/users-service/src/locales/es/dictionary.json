@@ -109,6 +109,14 @@
             "cannotModifyTemplate": "Este hábito es una de nuestras plantillas, así que no se puede editar",
             "nameRequired": "Ponle un nombre a este hábito",
             "notOwner": "Solo puedes editar un hábito que hayas creado"
+        },
+        "savings": {
+            "amountNegative": "Ingresa un monto de cero o más",
+            "amountNotANumber": "Ingresa el monto como número, por ejemplo 25 o 25,50",
+            "amountTooLarge": "Ese monto es demasiado grande para registrarlo",
+            "amountTooPrecise": "Redondea al centavo más cercano, por ejemplo 25,50",
+            "invalidCurrencyCode": "Usa un código de moneda de tres letras, por ejemplo USD",
+            "invalidTargetScope": "Elige si la meta es por persona o para el grupo"
         }
     },
     "metrics": {
