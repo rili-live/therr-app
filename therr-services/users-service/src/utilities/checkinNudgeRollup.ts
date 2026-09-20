@@ -43,6 +43,13 @@ export interface ICheckinNudgeCandidate {
     streakCount?: number;
     /** Streak freezes left. Only meaningful for a single-habit nudge. */
     freezesRemaining?: number;
+    /**
+     * True when this habit is a `savings_goal` — the signal that the notification can
+     * offer an amount field rather than a bare "Check In" button.
+     */
+    isSavingsGoal?: boolean;
+    /** The goal's currency, for the input's prefix. Absent falls back client-side. */
+    currencyCode?: string;
 }
 
 export interface ICheckinNudgeRow {
@@ -56,6 +63,21 @@ export interface ICheckinNudgeRow {
         freezesRemaining?: number;
         habitGoalId?: string;
         pactId?: string;
+        /**
+         * Set only on a single-habit nudge for a savings goal — the two conditions
+         * behind an amount field on the notification.
+         *
+         * The single-habit requirement is the same one `habitGoalId` carries and for
+         * the same reason: an amount typed into a nudge covering three habits has no
+         * unambiguous habit to be recorded against. A rolled-up nudge that happens to
+         * include a savings habit therefore offers the plain deep link, and the user
+         * records the amount in the app.
+         *
+         * Both fields reach the device — unlike `habitGoalIds` below, they are scalars
+         * and are added to the key set push-notifications-service destructures.
+         */
+        isSavingsGoal?: boolean;
+        currencyCode?: string;
         /**
          * Every habit goal this nudge covers — not only the one the copy names.
          *
@@ -179,6 +201,11 @@ export const createCheckinNudgeAccumulator = () => {
                     // unambiguous to complete and the tap belongs on the list.
                     habitGoalId: isSingle ? primary.habitGoalId : undefined,
                     pactId: isSingle ? primary.pactId : undefined,
+                    // Undefined rather than false when it does not apply, so the key is
+                    // dropped from the FCM data map entirely instead of shipping the
+                    // string "false" — which is truthy on the device.
+                    isSavingsGoal: isSingle && primary.isSavingsGoal ? true : undefined,
+                    currencyCode: isSingle && primary.isSavingsGoal ? primary.currencyCode : undefined,
                     // Every goal, including the ones the copy does not name.
                     // The freshness gate needs the full set: suppressing on the
                     // primary habit alone would silence a nudge that still has

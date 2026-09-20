@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { BrandVariations, PushNotifications } from 'therr-js-utilities/constants';
+import { BrandVariations, HabitGoalTypes, PushNotifications } from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
@@ -978,6 +978,11 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     habitGoalId: habit.habitGoalId,
                     pactId: habit.activePactId || undefined,
                     habitName: habit.goalName,
+                    // Lets the notification offer "how much did you put away?" inline.
+                    // The roll-up drops both again unless this ends up being the user's
+                    // only habit today — see the note on the payload fields.
+                    isSavingsGoal: habit.goalType === HabitGoalTypes.SAVINGS_GOAL,
+                    currencyCode: habit.currencyCode || undefined,
                     streakCount: habit.streakIsActive ? Number(habit.currentStreak) : 0,
                     freezesRemaining: Math.max(
                         0,

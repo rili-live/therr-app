@@ -5,6 +5,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { checkHabitCapacity } from './helpers/habitCapacity';
 import { getSoloInviteProgress } from './helpers/soloHabitAccess';
+import { attachSavingsTotals } from './helpers/savings';
 
 /**
  * Personal ("solo") habits — habits tracked without an accountability partner.
@@ -40,6 +41,7 @@ const getUserHabits: RequestHandler = async (req: any, res: any) => {
     }
 
     return Store.userHabits.getDetailByUser(userId, status)
+        .then(attachSavingsTotals)
         .then((userHabits) => res.status(200).send({ userHabits }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_HABITS_ROUTES:ERROR' }));
 };
