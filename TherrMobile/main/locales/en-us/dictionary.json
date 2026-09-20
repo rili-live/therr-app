@@ -131,7 +131,7 @@
         "yearsSinceDate": "{count}y",
         "justNow": "Now",
         "minutesSinceDate": "{count}m",
-            "monthDayYear": "{month} {day}, {year}",
+        "monthDayYear": "{month} {day}, {year}",
         "months": {
             "january": "January",
             "february": "February",
@@ -2047,11 +2047,14 @@
                 "errorMessage": "We couldn't switch this habit to solo. Please try again."
             },
             "habitArchived": {
-                "confirm": "Archive this habit? Reminders stop until a partner accepts your invite — then it comes back automatically.",
+                "confirm": "Archive this habit? It leaves your active list and the reminders stop. Your check-ins and streak history are kept, and you can bring it back any time.",
                 "confirmButton": "Archive",
                 "successTitle": "Habit archived",
-                "successMessage": "We'll stop the reminders. It'll return if a partner joins.",
-                "errorMessage": "We couldn't archive this habit. Please try again."
+                "successMessage": "It's out of your active list. Your history is safe, and restoring it brings everything back.",
+                "errorMessage": "We couldn't archive this habit. Please try again.",
+                "confirmAwaitingPartner": "Archive this habit? Reminders stop until a partner accepts your invite — then it comes back automatically.",
+                "successMessageAwaitingPartner": "We'll stop the reminders. It'll return if a partner joins.",
+                "hint": "Keeps your check-ins and streak history. Frees a habit slot."
             },
             "habitNotFound": "Habit not found",
             "checkinProof": {
@@ -2136,7 +2139,29 @@
             "tabs": {
                 "habits": "Habits"
             },
-            "loadingList": "Loading your habits…"
+            "loadingList": "Loading your habits…",
+            "notificationPrefs": {
+                "title": "Notifications",
+                "description": "Choose what {habitName} is allowed to notify you about. Your other habits keep their own settings.",
+                "accountWideNote": "These only narrow what you already get. If habits notifications are off for your account, or in your phone settings, nothing here turns them back on.",
+                "saveFailed": "We couldn't save that setting. Please try again.",
+                "notifyReminders": {
+                    "label": "Daily reminders",
+                    "hint": "A nudge on days you haven't checked in yet."
+                },
+                "notifyStreakAlerts": {
+                    "label": "Streak alerts",
+                    "hint": "Milestones, and a warning when your streak is about to break."
+                },
+                "notifyPartnerActivity": {
+                    "label": "Partner activity",
+                    "hint": "When a partner checks in, or misses a day and could use a nudge."
+                },
+                "notifyPactUpdates": {
+                    "label": "Pact updates",
+                    "hint": "Invites, acceptances, and when a pact is ending."
+                }
+            }
         },
         "pacts": {
             "headerTitle": "My Pacts",

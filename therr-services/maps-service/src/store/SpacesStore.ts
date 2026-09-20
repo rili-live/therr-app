@@ -399,7 +399,12 @@ export default class SpacesStore {
         const firstWhere: any = {
             isMatureContent: false, // content that has been blocked
         };
-        if (conditions.filterBy !== 'isClaimPending') {
+        // The `isClaimPending` filter is the admin moderation queue, not an ordinary search.
+        // It is a global, newest-first list of claims awaiting review, so it opts out of the
+        // proximity filter, the distance ordering and the "or isPublic" widening below — each
+        // of which silently turns the queue into "the nearest N public spaces" instead.
+        const isClaimQueue = conditions.filterBy === 'isClaimPending';
+        if (!isClaimQueue) {
             firstWhere.isClaimPending = false; // hide pending claim requests
         }
         const hasGeoCoordinates = conditions.longitude != null && conditions.latitude != null;
@@ -410,7 +415,7 @@ export default class SpacesStore {
             .from(SPACES_TABLE_NAME);
 
         // Skip geospatial filter when searching for a specific user's spaces (no coordinates needed)
-        if (hasGeoCoordinates && !isUserIdFilter) {
+        if (hasGeoCoordinates && !isUserIdFilter && !isClaimQueue) {
             // NOTE: Cast to a geography type to search distance within n meters
             // Use geomCenter (POINT) instead of geom (POLYGON) for faster proximity checks
             queryString = queryString.where(knexBuilder.raw('ST_DWithin("geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax])) // eslint-disable-line quotes, max-len
@@ -441,10 +446,28 @@ export default class SpacesStore {
                         builder.orWhere({ isPublic: true });
                     }
                 });
+            } else if (isClaimQueue && query === true) {
+                // A claim awaiting review takes one of two shapes, and the queue has to hold both:
+                //   1. A brand new space requested through `POST /spaces/request-claim`, which is
+                //      created with `isClaimPending` true and stays hidden until approved.
+                //   2. A claim on a space that already exists on the map, through
+                //      `POST /spaces/request-claim/:spaceId`. That one only stamps
+                //      `requestedByUserId` — deliberately, since flipping `isClaimPending` would
+                //      pull a live business off the map for the length of the review.
+                // Approval hands ownership to the claimant (see `approveClaim`), which is what
+                // drops shape 2 back out of this list.
+                queryString = queryString.andWhere((builder) => {
+                    builder.where('isClaimPending', true)
+                        .orWhere((unapprovedBuilder) => {
+                            unapprovedBuilder
+                                .whereNotNull('requestedByUserId')
+                                .andWhereRaw('"fromUserId" <> "requestedByUserId"');
+                        });
+                });
             } else {
                 queryString = queryString.andWhere((builder) => {
                     builder.where(conditions.filterBy, operator, query);
-                    if (includePublicResults) {
+                    if (includePublicResults && !isClaimQueue) {
                         builder.orWhere({ isPublic: true });
                     }
                 });
@@ -452,7 +475,7 @@ export default class SpacesStore {
         }
 
         // Sort by distance when geo coordinates are available, otherwise by creation date
-        if (hasGeoCoordinates) {
+        if (hasGeoCoordinates && !isClaimQueue) {
             queryString = queryString
                 .orderByRaw('ST_Distance("geomCenter"::geography, ST_MakePoint(?, ?)::geography) ASC', [conditions.longitude, conditions.latitude]);
         } else {
@@ -659,6 +682,12 @@ export default class SpacesStore {
             postalCode: params.postalCode,
             priceRange: params.priceRange,
             geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${radius})::geometry, 4326)`),
+            // Every proximity search (ST_DWithin / ST_Distance in searchSpaces, countRecords,
+            // getSpacePairings, isWithinCheckinDistance) reads `geomCenter`, not `geom`. The
+            // 2024-05-23 migration that added the column backfilled it once; nothing wrote it
+            // for new rows afterwards, so every space created through the app since then had a
+            // NULL centre and was invisible to search. Keep it populated alongside `geom`.
+            geomCenter: knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
         };
 
         if (params.medias) {
@@ -769,6 +798,15 @@ export default class SpacesStore {
 
             (sanitizedParams as any).updatedAt = new Date();
 
+            // The WHERE clause below is the ownership check, so a missing `fromUserId` is a
+            // caller bug, never "update any owner's row". Knex does reject the undefined
+            // binding on its own, but with a message that says nothing about ownership —
+            // and callers that swallow update errors then report success having written
+            // nothing. Fail loudly enough that the log names the cause.
+            if (!params.fromUserId) {
+                return Promise.reject(new Error('SpacesStore.updateSpace requires params.fromUserId (ownership check)'));
+            }
+
             const queryString = knexBuilder.update(sanitizedParams)
                 .into(SPACES_TABLE_NAME)
                 .where({ id, fromUserId: params.fromUserId }) // users can only update their own spaces
@@ -777,6 +815,46 @@ export default class SpacesStore {
 
             return this.db.write.query(queryString).then((response) => response.rows);
         });
+    }
+
+    /**
+     * Approve a pending space request or claim. The two shapes (see the claim-queue
+     * predicate in `searchSpaces`) mean different things on approval, and every CASE
+     * below reads the row's values from *before* the update:
+     *
+     *   - A space request (`isClaimPending = true`) is published. When the requester
+     *     is not the owner it was a consumer's "Request a Space" suggestion, created
+     *     under the super admin: the space becomes unclaimed inventory a business can
+     *     later claim, so `requestedByUserId` is cleared — left set, the queue predicate
+     *     and `isClaimAwaitingApproval` would report it as pending forever and
+     *     `isUnclaimed` would never be true again. When the requester already owns the
+     *     row (created from the dashboard) nothing but the flag changes.
+     *   - A claim on an existing space (`isClaimPending = false`, `requestedByUserId`
+     *     set) transfers ownership to the claimant. `searchMySpaces` keys off
+     *     `fromUserId`, so without the transfer the approved business still could not
+     *     see or manage the space it had just been told it owned.
+     *
+     * Ownership moves here and only here. `updateSpace` scopes its WHERE to
+     * `fromUserId` as an ownership check, and letting it reassign the same column would
+     * let any caller hand a space to itself.
+     */
+    approveClaim(id: string) {
+        const queryString = knexBuilder.update({
+            isClaimPending: false,
+            fromUserId: knexBuilder.raw(
+                'CASE WHEN "isClaimPending" = false THEN COALESCE("requestedByUserId", "fromUserId") ELSE "fromUserId" END',
+            ),
+            requestedByUserId: knexBuilder.raw(
+                'CASE WHEN "isClaimPending" = true AND "requestedByUserId" IS DISTINCT FROM "fromUserId" THEN NULL ELSE "requestedByUserId" END',
+            ),
+            updatedAt: new Date(),
+        })
+            .into(SPACES_TABLE_NAME)
+            .where({ id })
+            .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
     }
 
     reassign(fromUserId: string, toUserId: string) {

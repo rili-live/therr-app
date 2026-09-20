@@ -9,6 +9,7 @@ import {
     getMilestoneProgress,
     formatStreakDisplay,
     getStreakEmoji,
+    DEFAULT_STARTING_GRACE_PERIOD_DAYS,
 } from '../utilities/streakHelpers';
 import { getLocalDate, resolveCheckinTimeZone } from '../utilities/dailyStreak';
 
@@ -105,10 +106,29 @@ const getStreakByHabit: RequestHandler = async (req: any, res: any) => {
     return Store.streaks.getByUserAndHabit(userId, habitGoalId)
         .then((streak) => {
             if (!streak) {
-                // Return empty streak data if none exists
+                // No streak row yet — the ladder is created on the first check-in
+                // (or on pact acceptance), so every habit looks like this between
+                // being created and being done once.
+                //
+                // The placeholder has to carry the *same shape* a real row does,
+                // not just the fields this handler happens to compute. It used to
+                // omit the two grace columns, and the mobile habit detail screen
+                // renders `gracePeriodDays - graceDaysUsed` into its "Streak
+                // Freezes Left" tile — `undefined - undefined` is NaN, so a
+                // brand-new solo habit told the user "NaN" until they checked in.
+                //
+                // The values are the ones `StreaksStore.create` is about to write,
+                // which also makes them true rather than merely non-NaN: a habit
+                // with no check-ins does start with one freeze.
                 return res.status(200).send({
+                    userId,
+                    habitGoalId,
                     currentStreak: 0,
                     longestStreak: 0,
+                    gracePeriodDays: DEFAULT_STARTING_GRACE_PERIOD_DAYS,
+                    graceDaysUsed: 0,
+                    lastCompletedDate: null,
+                    isActive: false,
                     riskLevel: 'safe',
                     milestoneProgress: getMilestoneProgress(0),
                     displayText: formatStreakDisplay(0),

@@ -801,7 +801,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             );
         }
 
-        if (space.isClaimPending || space.requestedByUserId) {
+        if (space.isClaimAwaitingApproval) {
             return (
                 <Paper withBorder p="lg" radius="md" mt="md" id="claim-space-section" style={{ borderColor: 'var(--therr-cta-pending-border)', backgroundColor: 'var(--therr-cta-pending-bg)', color: 'var(--therr-cta-pending-text)' }}>
                     <Text fw={600} size="lg" c="inherit">{translate('pages.viewSpace.claimSpace.pendingTitle')}</Text>

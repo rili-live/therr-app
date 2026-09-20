@@ -227,6 +227,16 @@ migrations in the right service and schema.
 > query this database directly and are **not** covered by the lint rule. Check them
 > before renaming or dropping any column they read — see § Sibling Repos below.
 
+### Raw SQL and camelCase tables
+
+`main.*` tables are camelCase; `habits.*` tables are snake_case. The knex builder quotes
+either. Raw SQL does not, and Postgres folds unquoted identifiers to lowercase, so
+`INSERT INTO main.leaderboardPeriodResults` targets a relation that does not exist — which
+is exactly how it failed in production on 2026-09-19. `therr/no-unquoted-camelcase-table-in-raw-sql`
+enforces that a name in table position of raw SQL is provably lowercase, quoted, or wrapped in
+`quoteTableName()` from `therr-js-utilities/db`. When it reports, wrap — never disable. See
+`docs/NICHE_APP_DATABASE_GUIDELINES.md` → "Identifier case in raw SQL".
+
 ## Sibling Repos
 
 This monorepo is not the whole system. Four sibling repos in the `rili-live` org run in

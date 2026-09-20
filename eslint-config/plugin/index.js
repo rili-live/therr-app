@@ -14,5 +14,6 @@ module.exports = {
         'no-async-table-builder-callback': require('./rules/no-async-table-builder-callback'),
         'require-idempotent-migration': require('./rules/require-idempotent-migration'),
         'no-partial-connection-status-check': require('./rules/no-partial-connection-status-check'),
+        'no-unquoted-camelcase-table-in-raw-sql': require('./rules/no-unquoted-camelcase-table-in-raw-sql'),
     },
 };

@@ -131,7 +131,7 @@
         "yearsSinceDate": "{count}a",
         "justNow": "Ahora",
         "minutesSinceDate": "{count} min",
-            "monthDayYear": "{day} de {month} de {year}",
+        "monthDayYear": "{day} de {month} de {year}",
         "months": {
             "january": "Enero",
             "february": "Febrero",
@@ -2047,11 +2047,14 @@
                 "errorMessage": "No pudimos cambiar este hábito a solitario. Inténtalo de nuevo."
             },
             "habitArchived": {
-                "confirm": "¿Archivar este hábito? Los recordatorios se detienen hasta que un compañero acepte tu invitación; luego vuelve automáticamente.",
+                "confirm": "¿Archivar este hábito? Sale de tu lista activa y los recordatorios se detienen. Se conservan tus registros y tu historial de rachas, y puedes recuperarlo cuando quieras.",
                 "confirmButton": "Archivar",
                 "successTitle": "Hábito archivado",
-                "successMessage": "Detendremos los recordatorios. Volverá si un compañero se une.",
-                "errorMessage": "No pudimos archivar este hábito. Inténtalo de nuevo."
+                "successMessage": "Ya no está en tu lista activa. Tu historial está a salvo y, si lo restauras, vuelve todo.",
+                "errorMessage": "No pudimos archivar este hábito. Inténtalo de nuevo.",
+                "confirmAwaitingPartner": "¿Archivar este hábito? Los recordatorios se detienen hasta que un compañero acepte tu invitación; luego vuelve automáticamente.",
+                "successMessageAwaitingPartner": "Detendremos los recordatorios. Volverá si un compañero se une.",
+                "hint": "Conserva tus registros y tu historial de rachas. Libera un espacio de hábito."
             },
             "habitNotFound": "Hábito no encontrado",
             "checkinProof": {
@@ -2136,7 +2139,29 @@
             "tabs": {
                 "habits": "Hábitos"
             },
-            "loadingList": "Cargando tus hábitos…"
+            "loadingList": "Cargando tus hábitos…",
+            "notificationPrefs": {
+                "title": "Notificaciones",
+                "description": "Elige sobre qué puede avisarte {habitName}. Tus otros hábitos mantienen su propia configuración.",
+                "accountWideNote": "Esto solo reduce lo que ya recibes. Si las notificaciones de hábitos están desactivadas en tu cuenta o en los ajustes del teléfono, nada de aquí las vuelve a activar.",
+                "saveFailed": "No pudimos guardar ese ajuste. Inténtalo de nuevo.",
+                "notifyReminders": {
+                    "label": "Recordatorios diarios",
+                    "hint": "Un aviso los días en que aún no has registrado tu hábito."
+                },
+                "notifyStreakAlerts": {
+                    "label": "Alertas de racha",
+                    "hint": "Hitos y un aviso cuando tu racha está a punto de romperse."
+                },
+                "notifyPartnerActivity": {
+                    "label": "Actividad de compañeros",
+                    "hint": "Cuando un compañero registra su hábito o falla un día y le vendría bien un empujón."
+                },
+                "notifyPactUpdates": {
+                    "label": "Novedades del pacto",
+                    "hint": "Invitaciones, aceptaciones y cuándo termina un pacto."
+                }
+            }
         },
         "pacts": {
             "headerTitle": "Mis pactos",

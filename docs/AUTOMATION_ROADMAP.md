@@ -79,7 +79,7 @@ rolled-out pod for each of the five migration-owning services
 running pod because that pod already has the Cloud SQL Auth Proxy sidecar and
 DB secrets, so no separate Job or CI-side DB credentials are needed.
 
-- **Ordering:** runs after `kubectl set image`, so migrations must stay
+- **Ordering:** runs after the Deployments are applied (image included), so migrations must stay
   **additive / expand-contract** (already the repo convention).
 - **Opt-out:** `RUN_MIGRATIONS_ON_DEPLOY=false`.
 - **Idempotent:** `knex migrate:latest` is a no-op when nothing is pending.
