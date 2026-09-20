@@ -21,6 +21,7 @@ import {
 import {
     getCadence,
     getCadenceEffectiveFrom,
+    getWeeklyTarget,
     countMissedPeriods,
 } from '../utilities/habitCadence';
 import { isUserInPact } from '../utilities/pactHelpers';
@@ -41,7 +42,7 @@ import {
     headersForOtherUser,
 } from './helpers/awardHabitAchievements';
 import { awardLeaderboardPoints } from './helpers/leaderboards';
-import { LeaderboardXpValues } from '../utilities/leaderboardHelpers';
+import { LeaderboardXpValues, weeklyQuotaBonus } from '../utilities/leaderboardHelpers';
 import {
     getLocalDate,
     getWeekStart,
@@ -265,6 +266,39 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     // XP on top when they progress (bonus stacking is intentional, and their
                     // milestone-rung gating means they don't fire on every check-in).
                     awardLeaderboardPoints(req.headers, LeaderboardXpValues.habitCheckin, 'habit-checkin');
+
+                    // The check-in that discharges a week's quota earns the cadence bonus, which
+                    // exists so a fully-honoured 4x/week commitment can place against a daily
+                    // one. Awarded here rather than at week close because this moment is unique
+                    // per week — the tally crosses the target exactly once — and re-submissions
+                    // of the same day already returned above.
+                    //
+                    // Zero for a daily habit, so nothing about an existing user's XP changes.
+                    const quotaBonus = weeklyQuotaBonus(getWeeklyTarget(cadence));
+                    if (quotaBonus > 0) {
+                        const weekStart = getWeekStart(checkinDate);
+                        const weekRows = await Store.habitCheckins.getByUserAndDateRange(
+                            userId,
+                            weekStart,
+                            checkinDate,
+                            habitGoalId,
+                        ).catch(() => [] as any[]);
+                        const doneThisWeek = new Set(
+                            (weekRows || [])
+                                .filter((row: any) => row.status === 'completed')
+                                .map((row: any) => normalizeDateString(row.scheduledDate)),
+                        ).size;
+
+                        // Strictly equal, not >=: only the crossing check-in pays. A later
+                        // check-in in the same week would otherwise collect the bonus again.
+                        if (doneThisWeek === getWeeklyTarget(cadence)) {
+                            awardLeaderboardPoints(
+                                req.headers,
+                                quotaBonus,
+                                `habit-weekly-quota:${habitGoalId}:${weekStart}`,
+                            );
+                        }
+                    }
                 }
 
                 // Gap handling — streak freezes. When required periods were

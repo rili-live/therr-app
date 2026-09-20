@@ -18,6 +18,7 @@ import {
     getCrossedRankMilestones,
     getLeaderboardPeriodStart,
     getLeaderboardPeriodEnd,
+    weeklyQuotaBonus,
     withCompetitionRanks,
 } from '../../src/utilities/leaderboardHelpers';
 
@@ -407,5 +408,51 @@ describe('UserLeaderboardScoresStore.getRankForScore — excludeUserId', () => {
         await store.getRankForScore(BrandVariations.THERR, 100, { periodStart: '2026-07-13' });
 
         expect(query.firstCall.args[0]).to.not.contain('not "main"."userLeaderboardScores"."userId" =');
+    });
+});
+
+/**
+ * The cadence bonus.
+ *
+ * The board pays per check-in and per daily-streak day, so a daily habit earns ~105 XP a week
+ * and a fully-honoured 4x/week habit earns 60. Both users did exactly what they committed to.
+ * Once habits can declare a cadence, leaving that gap in place would make the leaderboard a
+ * reason not to — so the bonus pays for the days the cadence did not ask for, capped so that
+ * declaring a light cadence is never the better play.
+ */
+describe('weeklyQuotaBonus', () => {
+    it('pays nothing for a daily habit, so existing users are untouched', () => {
+        expect(weeklyQuotaBonus(7)).to.equal(0);
+    });
+
+    it('closes most of the gap for a mid-range cadence', () => {
+        // 4 x (10 + 5) = 60 earned, + 30 bonus = 90, against daily's 105.
+        expect(weeklyQuotaBonus(4)).to.equal(30);
+    });
+
+    it('is capped so a light cadence can never out-earn the work', () => {
+        // Uncapped this would be (7 - 1) * 10 = 60 XP for a single check-in — a far better rate
+        // than actually doing the habit, and the obvious way to game the board.
+        expect(weeklyQuotaBonus(1)).to.equal(15);
+        expect(weeklyQuotaBonus(2)).to.equal(30);
+    });
+
+    it('stays monotonic in total weekly earnings, with daily still ahead', () => {
+        const totalFor = (target: number) => (target * 15) + weeklyQuotaBonus(target);
+
+        const totals = [1, 2, 3, 4, 5, 6, 7].map(totalFor);
+        expect(totals).to.deep.equal([30, 60, 85, 90, 95, 100, 105]);
+        totals.forEach((total, i) => {
+            if (i > 0) {
+                expect(total, `target ${i + 1}`).to.be.at.least(totals[i - 1]);
+            }
+        });
+    });
+
+    it('ignores a nonsensical target rather than paying out on it', () => {
+        expect(weeklyQuotaBonus(0)).to.equal(0);
+        expect(weeklyQuotaBonus(-3)).to.equal(0);
+        expect(weeklyQuotaBonus(99)).to.equal(0);
+        expect(weeklyQuotaBonus(NaN)).to.equal(0);
     });
 });
