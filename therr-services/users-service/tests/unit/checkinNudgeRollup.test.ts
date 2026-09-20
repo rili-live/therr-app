@@ -134,6 +134,50 @@ describe('check-in nudge roll-up', () => {
         });
     });
 
+    describe('savings prompt', () => {
+        it('carries the savings flag and currency on a single-habit nudge', () => {
+            // This is what turns the notification's "Check In" button into one that
+            // asks how much was put away — the whole point being that a user who
+            // checks in from the tray is the user who will not open the app later to
+            // add the amount.
+            const acc = createCheckinNudgeAccumulator();
+            acc.add(USER_A, {
+                habitGoalId: 'g1', habitName: 'Trip fund', isSavingsGoal: true, currencyCode: 'USD',
+            });
+
+            const [row] = acc.drain();
+
+            expect(row.payload.isSavingsGoal).to.equal(true);
+            expect(row.payload.currencyCode).to.equal('USD');
+        });
+
+        it('drops the prompt once the nudge covers more than one habit', () => {
+            // An amount typed into a nudge spanning three habits has no unambiguous
+            // habit to be recorded against — the same rule `habitGoalId` follows.
+            const acc = createCheckinNudgeAccumulator();
+            acc.add(USER_A, {
+                habitGoalId: 'g1', habitName: 'Trip fund', isSavingsGoal: true, currencyCode: 'USD',
+            });
+            acc.add(USER_A, { habitGoalId: 'g2', habitName: 'Gym' });
+
+            const [row] = acc.drain();
+
+            expect(row.payload.isSavingsGoal).to.equal(undefined);
+            expect(row.payload.currencyCode).to.equal(undefined);
+        });
+
+        it('leaves the flag undefined rather than false on an ordinary habit', () => {
+            // FCM's data map is string->string, so a `false` here would ship as the
+            // string "false" — which is truthy on the device.
+            const acc = createCheckinNudgeAccumulator();
+            acc.add(USER_A, { habitGoalId: 'g1', habitName: 'Reading' });
+
+            const [row] = acc.drain();
+
+            expect(row.payload.isSavingsGoal).to.equal(undefined);
+        });
+    });
+
     it('ignores entries with nothing to address', () => {
         const acc = createCheckinNudgeAccumulator();
         acc.add('', { habitGoalId: 'g1', habitName: 'Reading' });

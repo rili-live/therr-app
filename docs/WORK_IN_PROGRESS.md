@@ -128,6 +128,47 @@ append new items here rather than only printing them once.
   `approve-space-claim`) records it. Section 7 of the audit SQL shows weekly volume to compare
   against the inbox.
 
+## Savings goal amounts — mobile half (added 2026-09-20)
+
+The backend and shared-library half landed on `general` (migrations for
+`habits.habit_goals.targetAmount` / `currencyCode` / `savingsTargetScope` and
+`habits.habit_checkins.savedAmount`, `savingsProgress` on the pact detail, `totalSaved` on
+the habit list, `parseSavingsAmount` in `therr-js-utilities`, and the `isSavingsGoal` /
+`currencyCode` fields on the check-in nudge payload). None of it is reachable by a user until
+the UI ships, and **every item below must land on `niche/HABITS-general`** — the Habits screens
+do not exist on `general`.
+
+- [ ] **Clone `goalType` when a template is copied into a habit goal.** `createHabitGoal` in
+  `TherrMobile/main/routes/Pacts/CreatePactInvite.tsx` copies name, description, category,
+  emoji, frequency and target days off the chosen template but **not** `goalType`, so the
+  seeded savings template (migration `20260510000001`, the group-trip one) clones to
+  `build_good` and no amount tracking ever activates. This is a pre-existing bug and it is the
+  single blocker for the whole feature: without it a user cannot create a savings habit from
+  the UI at all. The backend `POST /habits/goals` has always accepted `goalType`.
+- [ ] **Amount field on the check-in form.** `components/Habits/CheckinDetailForm.tsx` — a
+  numeric input shown only for `goalType === 'savings_goal'`, sent as `savedAmount` on
+  `POST /habits/checkins`. Validate with `parseSavingsAmount` so the client rejects exactly
+  what the server would. Sending the key absent leaves an existing amount alone; sending it
+  empty clears it.
+- [ ] **Totals in the pact and habit detail views.** `routes/Pacts/PactDetail.tsx` renders
+  `pact.savingsProgress`: the group total, the per-member breakdown (members who have saved
+  nothing come back as explicit zero rows and should be shown), progress against
+  `targetAmount`, and a reached state. `routes/Habits/HabitDetail.tsx` and `HabitCard` render
+  the solo `totalSaved`. Both are absent on responses from an older users-service — treat
+  absent as unknown, not zero.
+- [ ] **Target fields in the create-habit wizard.** Amount, currency and the per-member /
+  group choice, on the savings branch only. The scope choice is the one that decides when the
+  pact completes, so it needs real copy, not a toggle labelled "group".
+- [ ] **Handle the `habit-checkin-savings` press action.** `TherrMobile/index.js` background
+  handler — Android `RemoteInput` on the notification action, POST the typed text as
+  `savedAmount` (server re-parses it). Needs the intent action declared in
+  `AndroidManifest.xml` the same way `DAILY_HABIT_REMINDER` is. Until this ships the action id
+  arrives on the payload and the tap does nothing, so it should ship in the same build as the
+  amount field, not before it.
+- [ ] **Locale strings for all three dictionaries** (`en-us`, `es`, `fr-ca`) for every string
+  above. The users-service `errorMessages.savings.*` keys and the push-service
+  `notifications.shared.pressActionLogAmount` key already exist in all three.
+
 ## iOS demand tracking (added 2026-09-14)
 
 - [ ] **Mark `ios_interest_click` and `ios_waitlist_submit` as key events in GA4.** Both
