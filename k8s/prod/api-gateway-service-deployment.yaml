@@ -15,6 +15,10 @@ spec:
         tier: api-gateway
         layer: services-external
     spec:
+      # Authenticated Docker Hub pulls — anonymous ones are rate-limited per egress IP
+      # and wedged a deploy in ImagePullBackOff (2026-09-20). deploy.sh owns the Secret.
+      imagePullSecrets:
+        - name: dockerhub-pull-credentials
       serviceAccountName: therr-k8s-service-account
       affinity:
         nodeAffinity:
