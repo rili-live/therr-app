@@ -81,6 +81,33 @@ const normalizeCheckinRow = (row: any) => {
 
 const normalizeCheckinRows = (rows: any[]) => rows.map(normalizeCheckinRow);
 
+/**
+ * Drop the keys whose value is `undefined` before handing an object to `knex.insert()`.
+ *
+ * Knex does not omit an undefined value from an insert — it emits the column with
+ * `DEFAULT`. So `{ savedAmount: undefined }` still names `"savedAmount"` in the INSERT,
+ * which makes every *optional* column a hard schema dependency of the write path: a
+ * check-in carrying no amount at all fails with
+ * `column "savedAmount" of relation "habit_checkins" does not exist` until the migration
+ * that adds it has run. (`.merge()` drops undefined keys already, so only the insert half
+ * needs this.)
+ *
+ * That window is not hypothetical. `_bin/cicd/run-migrations.sh` deliberately runs after
+ * the new image is rolled out — "migrations MUST be additive / expand-contract … so the
+ * new code tolerates the pre-migration schema" — and on 2026-09-20 the deploy aborted in
+ * `deploy_waves` on an unrelated ImagePullBackOff before reaching the migration step, so
+ * users-service served the savings build against a schema without `savedAmount` and every
+ * check-in 500'd. Stripping undefined keys is what makes an additive column additive on
+ * the write path too: the request that does not use it does not mention it.
+ */
+const withDefinedColumns = <T extends object>(params: T): Partial<T> => Object.entries(params)
+    .reduce((acc: any, [column, value]) => {
+        if (value !== undefined) {
+            acc[column] = value;
+        }
+        return acc;
+    }, {});
+
 export default class HabitCheckinsStore {
     db: IConnection;
 
@@ -602,10 +629,10 @@ export default class HabitCheckinsStore {
 
     create(params: ICreateHabitCheckinParams) {
         const queryString = knexBuilder
-            .insert({
+            .insert(withDefinedColumns({
                 ...params,
                 status: params.status || 'pending',
-            })
+            }))
             .into(HABIT_CHECKINS_TABLE_NAME)
             .returning('*')
             .toString();
@@ -615,10 +642,10 @@ export default class HabitCheckinsStore {
 
     createOrUpdate(params: ICreateHabitCheckinParams) {
         // Upsert based on unique constraint (userId, habitGoalId, scheduledDate)
-        const insertParams = {
+        const insertParams = withDefinedColumns({
             ...params,
             status: params.status || 'pending',
-        };
+        });
 
         const queryString = knexBuilder
             .insert(insertParams)
