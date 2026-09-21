@@ -1,0 +1,6 @@
+Novedades:
+• Ajustes de notificaciones por hábito: conserva los recordatorios que quieras y silencia los que no, hábito por hábito — en el menú de cualquier hábito
+• Archiva un hábito que ya terminaste, desde su propia pantalla
+• Los hábitos nuevos ya no muestran "NaN" congelamientos antes del primer registro
+• Cuando algo falla, verás un mensaje entendible en vez de un código de error interno
+• Correcciones y mejoras

@@ -25,6 +25,7 @@ import {
     HabitCard, HabitsListLoader, NewPactButton, PactCard, SentInviteCard,
 } from '../../components/Habits';
 import { getFreezeConsumed, getStreakSavedByFreeze } from '../../utilities/streakFreezes';
+import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/celebrationQueue';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { logAppEvent } from '../../utilities/analyticsEvents';
@@ -430,9 +431,13 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 enqueueStreakCelebration(checkin?.dailyStreak);
             })
             .catch((err) => {
+                // Never the raw body: a 5xx carries an internal grep token
+                // (`SQL:HABIT_CHECKINS_ROUTES:ERROR`), not a sentence, and this toast put
+                // one in front of every user for a day on 2026-09-20. See
+                // utilities/apiErrorMessage.
                 showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
-                    text2: err?.message || this.translate('pages.habits.checkinProof.uploadFailed'),
+                    text2: getApiErrorMessage(err) || this.translate('pages.habits.checkinError'),
                 });
             })
             .finally(() => {
@@ -597,10 +602,9 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 // on the habit. Its body is localized and names the actual reason, and
                 // the axios interceptor rejects with that body verbatim (hence
                 // `error.message`, not `error.response.data`), so prefer it. A rejection
-                // carrying no `statusCode` never reached the API at all.
-                const apiMessage = error?.statusCode && typeof error?.message === 'string'
-                    ? error.message
-                    : '';
+                // carrying no `statusCode` never reached the API at all, and a 5xx body is
+                // an internal token rather than copy — both withheld by getApiErrorMessage.
+                const apiMessage = getApiErrorMessage(error);
 
                 showToast.error({
                     text1: this.translate('pages.pacts.errorTitle'),

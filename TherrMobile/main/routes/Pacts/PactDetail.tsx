@@ -6,6 +6,7 @@ import { bindActionCreators } from 'redux';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
+import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 import permissions from '../../utilities/permissionsOrchestrator';
 import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
 // Shared so the pending-pact wording can't drift between the card and this screen.
@@ -263,9 +264,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                     this.handleRefresh();
                 })
                 .catch((error: any) => {
-                    const apiMessage = error?.statusCode && typeof error?.message === 'string'
-                        ? error.message
-                        : '';
+                    const apiMessage = getApiErrorMessage(error);
                     Toast.show({
                         type: 'error',
                         text1: this.translate('pages.pacts.errorTitle'),
@@ -327,9 +326,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                 this.handleRefresh();
             })
             .catch((error: any) => {
-                const apiMessage = error?.statusCode && typeof error?.message === 'string'
-                    ? error.message
-                    : '';
+                const apiMessage = getApiErrorMessage(error);
                 Toast.show({
                     type: 'error',
                     text1: this.translate('pages.pacts.errorTitle'),
@@ -389,9 +386,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                 // habit. The axios interceptor rejects with the body verbatim, so the
                 // message is on `error.message`; no `statusCode` means it never
                 // reached the API.
-                const apiMessage = error?.statusCode && typeof error?.message === 'string'
-                    ? error.message
-                    : '';
+                const apiMessage = getApiErrorMessage(error);
 
                 Toast.show({
                     type: 'error',

@@ -30,6 +30,7 @@ import {
     getStreakSavedByFreeze,
     streakFreezeRuleParams,
 } from '../../utilities/streakFreezes';
+import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/celebrationQueue';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
@@ -383,7 +384,9 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             .catch((err) => {
                 showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
-                    text2: err?.message || this.translate('pages.habits.checkinProof.uploadFailed'),
+                    // A 5xx body is an internal grep token, not copy. See
+                    // utilities/apiErrorMessage.
+                    text2: getApiErrorMessage(err) || this.translate('pages.habits.checkinError'),
                 });
             })
             .finally(() => {

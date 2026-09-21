@@ -1,0 +1,6 @@
+What's new:
+• Notification settings per habit: keep the reminders you want and mute the ones you don't, habit by habit — under the menu on any habit
+• Archive a habit you're done with, straight from its detail screen
+• New habits no longer show "NaN" streak freezes before the first check-in
+• When something goes wrong, you get a message that reads like a sentence instead of an internal error code
+• Fixes and stability improvements
