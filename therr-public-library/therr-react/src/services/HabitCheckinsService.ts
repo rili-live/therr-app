@@ -36,6 +36,23 @@ export interface ICreateCheckinBody {
     selfRating?: number;
     difficultyRating?: number;
     proofMedias?: ICheckinProofMedia[];
+    /**
+     * Money this check-in put away, on a `savings_goal` habit. Major units.
+     *
+     * Three states, and they are not interchangeable — the server reads them as written:
+     *
+     *   - **absent** — leave any amount already recorded for this day alone. This is what
+     *     an "add a note or photo" save must send, or it would erase the money.
+     *   - **`null` or `''`** — clear a previously recorded amount.
+     *   - **a value** — set it. A repeat submission for the same day overwrites rather
+     *     than accumulating, so correcting a mistyped amount does the obvious thing.
+     *
+     * A string is accepted as well as a number: the server parses it with the shared
+     * `parseSavingsAmount`, which is what lets the notification quick-reply post whatever
+     * the user typed into a system text field. A client with a form in front of it should
+     * still validate with the same helper so it cannot accept what the server rejects.
+     */
+    savedAmount?: number | string | null;
 }
 
 export interface IUpdateCheckinBody {
@@ -43,6 +60,8 @@ export interface IUpdateCheckinBody {
     notes?: string;
     selfRating?: number;
     difficultyRating?: number;
+    /** See `ICreateCheckinBody.savedAmount` — same three states, same parsing. */
+    savedAmount?: number | string | null;
 }
 
 class HabitCheckinsService {
