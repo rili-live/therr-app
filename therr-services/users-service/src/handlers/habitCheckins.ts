@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import {
-    ErrorCodes, HabitGoalType, HABIT_CHECKIN_THOUGHT_CATEGORY, MetricNames, PushNotifications,
+    ErrorCodes, HabitGoalType, HABIT_CHECKIN_THOUGHT_CATEGORY, MetricNames, PushNotifications, parseSavingsAmount,
 } from 'therr-js-utilities/constants';
 import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
@@ -23,6 +23,8 @@ import {
 import { isUserInPact } from '../utilities/pactHelpers';
 import { computeNextPactStreak, hasReachedMajority } from '../utilities/pactStreak';
 import { canReadProofs, serializeProofs } from '../utilities/checkinProofs';
+import { SAVINGS_AMOUNT_ERROR_KEYS } from '../utilities/savingsProgress';
+import { evaluateSavingsAfterCheckin } from './helpers/savings';
 import moderateProofs from '../utilities/moderateProofs';
 import { copyProofToPublicBucket, deleteSharedCheckinPublicObject } from '../utilities/shareCheckinMedia';
 import { createReactions } from '../api/reactions';
@@ -79,6 +81,37 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
     } = req.body;
 
     const hasProof = Array.isArray(proofMedias) && proofMedias.length > 0;
+
+    // How much this check-in put away, on a savings habit.
+    //
+    // Parsed through the shared isomorphic parser rather than `Number()` because this
+    // endpoint has two callers with very different input hygiene: the check-in form,
+    // which sends a number, and the notification quick-reply, which sends whatever the
+    // user typed into a system text field ("$20", "20,00", " 20 "). See
+    // `parseSavingsAmount`.
+    //
+    // Three states, and they are not interchangeable:
+    //   - key absent          → undefined → the upsert leaves any existing amount alone,
+    //                           which is what an "add a note" edit must do.
+    //   - key present, empty  → null      → clear a previously recorded amount.
+    //   - key present, valued → the amount.
+    let savedAmount: number | null | undefined;
+    if ('savedAmount' in req.body) {
+        if (req.body.savedAmount === null || req.body.savedAmount === '') {
+            savedAmount = null;
+        } else {
+            const parsedAmount = parseSavingsAmount(req.body.savedAmount);
+            if (parsedAmount.error) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, SAVINGS_AMOUNT_ERROR_KEYS[parsedAmount.error]),
+                    statusCode: 400,
+                    errorCode: ErrorCodes.BAD_REQUEST,
+                });
+            }
+            savedAmount = parsedAmount.amount ?? null;
+        }
+    }
 
     if (!habitGoalId) {
         return handleHttpError({
@@ -179,6 +212,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
         selfRating,
         difficultyRating,
         hasProof,
+        savedAmount,
     })
         .then(async (checkin) => {
             // Persist any attached proofs
@@ -249,7 +283,34 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     // read rather than re-driven — but it is still returned, since this is the
                     // response the "add a note or photo" save renders from.
                     const existingView = await getDailyStreakView(userId, todayLocal).catch(() => null);
-                    return res.status(201).send({ ...checkin, dailyStreak: existingView });
+
+                    // Savings is re-evaluated on this path and not skipped with the rest.
+                    // This *is* the "add the details afterwards" path: someone who tapped
+                    // Check In this morning and comes back at night to record what they put
+                    // away lands here, with the amount already written by the upsert above.
+                    // Skipping it would leave the money recorded and the target unnoticed
+                    // until the next day's check-in — the goal silently reached late.
+                    //
+                    // Unlike the streak work this is safe to repeat: it derives totals from
+                    // the rows rather than incrementing anything, and completion is guarded
+                    // on the pact still being active.
+                    const resubmitSavings = await evaluateSavingsAfterCheckin({
+                        goal: habitGoal,
+                        pacts,
+                        userId,
+                        brandVariation,
+                        locale,
+                        whiteLabelOrigin,
+                    });
+
+                    return res.status(201).send({
+                        ...checkin,
+                        dailyStreak: existingView,
+                        ...(resubmitSavings ? {
+                            savingsProgress: resubmitSavings.progress,
+                            completedPactIds: resubmitSavings.completedPactIds,
+                        } : {}),
+                    });
                 }
 
                 // First completion for this habit+date: the upsert only returns
@@ -581,10 +642,9 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                             userId: partnerId,
                             habitGoalId,
                         })));
-                        const celebratingPartnerIds = (await Promise.all(partnerIds.map(async (partnerId) => {
-                            const partnerPrefs = await notificationPrefs.get(partnerId, habitGoalId);
-                            return partnerPrefs.notifyPartnerActivity ? partnerId : null;
-                        }))).filter((partnerId): partnerId is string => !!partnerId);
+                        const celebratingPartnerIds = partnerIds.filter((partnerId) => (
+                            notificationPrefs.peek(partnerId, habitGoalId).notifyPartnerActivity
+                        ));
                         await Promise.all(celebratingPartnerIds.map((partnerId) => enqueueNotification({
                             brandVariation,
                             toUserId: partnerId,
@@ -649,11 +709,34 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     });
             }
 
+            // Savings: recompute the goal's totals and complete any pact this check-in
+            // just carried over its target.
+            //
+            // Placed after the streak work and awaited, because the response is what
+            // the client celebrates from — a "you did it" screen that had to wait for a
+            // second request would either flash the wrong state or not fire at all. It
+            // returns null (rather than throwing) for every non-savings habit, which is
+            // the overwhelming majority of check-ins, and costs nothing for them.
+            const savings = await evaluateSavingsAfterCheckin({
+                goal: habitGoal,
+                pacts,
+                userId,
+                brandVariation,
+                locale,
+                whiteLabelOrigin,
+            });
+
             return res.status(201).send({
                 ...checkin,
                 graceDaysConsumed,
                 streakSavedByFreeze,
                 dailyStreak,
+                // Absent on a non-savings check-in. See ISavingsProgress — a savings
+                // habit with nothing saved yet returns zeroed totals, not absence.
+                ...(savings ? {
+                    savingsProgress: savings.progress,
+                    completedPactIds: savings.completedPactIds,
+                } : {}),
             });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' }));
@@ -1094,11 +1177,33 @@ const updateCheckin: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    // Same three-state handling as createCheckin: absent leaves the amount alone, an
+    // explicit empty clears it. This is the endpoint the "edit yesterday's check-in"
+    // flow uses, so correcting a mistyped amount has to land here too.
+    let savedAmount: number | null | undefined;
+    if ('savedAmount' in req.body) {
+        if (req.body.savedAmount === null || req.body.savedAmount === '') {
+            savedAmount = null;
+        } else {
+            const parsedAmount = parseSavingsAmount(req.body.savedAmount);
+            if (parsedAmount.error) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, SAVINGS_AMOUNT_ERROR_KEYS[parsedAmount.error]),
+                    statusCode: 400,
+                    errorCode: ErrorCodes.BAD_REQUEST,
+                });
+            }
+            savedAmount = parsedAmount.amount ?? null;
+        }
+    }
+
     return Store.habitCheckins.update(id, {
         status,
         notes,
         selfRating,
         difficultyRating,
+        savedAmount,
         completedAt: status === 'completed' && !existingCheckin.completedAt ? new Date() : undefined,
     })
         .then((checkin) => res.status(200).send(checkin))

@@ -2073,7 +2073,8 @@
                 "removePhoto": "Remove photo",
                 "sharedTitle": "Shared to the feed",
                 "shareFailed": "We couldn't share this check-in. Try again later.",
-                "save": "Save"
+                "save": "Save",
+                "addDetailPromptSavings": "Record what you saved, and add a note or photo if you like."
             },
             "feed": {
                 "emptyMessage": "No shared check-ins yet. Share one of yours to get the feed started."
@@ -2161,6 +2162,23 @@
                     "label": "Pact updates",
                     "hint": "Invites, acceptances, and when a pact is ending."
                 }
+            },
+            "savings": {
+                "cardTitle": "Saved so far",
+                "checkinAmountHint": "Leave blank to check in without recording an amount.",
+                "checkinAmountLabel": "How much did you put away?",
+                "errorNegative": "Enter an amount of zero or more",
+                "errorNotANumber": "Enter an amount as a number, like 25 or 25.50",
+                "errorTooLarge": "That amount is too large to record",
+                "errorTooPrecise": "Round to the nearest cent, like 25.50",
+                "goalReached": "🎉 Goal reached!",
+                "remainingGroup": "{amount} to go, between you",
+                "remainingYours": "{amount} to go",
+                "totalSavedGroupSubtitle": "together — {target} each",
+                "totalSavedNoTarget": "No target set — just keeping the running total.",
+                "totalSavedOfGroupTarget": "of the group’s {target} goal",
+                "totalSavedOfTarget": "of your {target} goal",
+                "unknownMember": "A partner"
             }
         },
         "pacts": {
@@ -2320,7 +2338,15 @@
                 "pickPartnerFirstLocked": "Choose a friend — or invite {remaining} more to unlock solo habits",
                 "soloLockedTitle": "Invite {remaining} more friend(s) to unlock solo habits",
                 "soloLockedProgress": "{invited} of {required} friends invited",
-                "freezeRule": "Miss a day and a streak freeze covers it — you start with {starting} and earn another every {interval} days, up to {max}. The first bad day happens inside the rules."
+                "freezeRule": "Miss a day and a streak freeze covers it — you start with {starting} and earn another every {interval} days, up to {max}. The first bad day happens inside the rules.",
+                "savingsToggleLabel": "This habit is about saving money",
+                "savingsSectionTitle": "Savings goal",
+                "savingsTargetLabel": "Target amount",
+                "savingsTargetHint": "Optional — leave blank to just track a running total.",
+                "savingsScopePerMemberLabel": "Each person saves this",
+                "savingsScopePerMemberHint": "Everyone works toward the amount on their own. Done when you have all reached it.",
+                "savingsScopeGroupLabel": "We save this together",
+                "savingsScopeGroupHint": "One shared pot. Done when your combined total reaches the amount."
             },
             "status": {
                 "pending": "Pending",

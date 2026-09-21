@@ -136,6 +136,22 @@ const withMutatedManifests = (mutate) => {
 }
 
 {
+    // A Deployment that drops imagePullSecrets goes back to anonymous Docker Hub pulls,
+    // which are rate-limited per egress IP — the ImagePullBackOff of 2026-09-20. Nothing
+    // else would notice: the manifest applies fine and the pull only fails under load.
+    // Checked for redis too, since it pulls from Docker Hub as well.
+    for (const manifest of ['users-service-deployment.yaml', 'redis-deployment.yaml']) {
+        const result = withMutatedManifests((k8sDir) => {
+            const file = path.join(k8sDir, manifest);
+            fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(/^\s+imagePullSecrets:\n\s+- name: dockerhub-pull-credentials\n/m, ''));
+        });
+
+        assert.notStrictEqual(result.status, 0, `${manifest} without imagePullSecrets must fail validation`);
+        assert.match(result.stderr, new RegExp(`${manifest.replace('.yaml', '')} does not pull through imagePullSecrets 'dockerhub-pull-credentials'`));
+    }
+}
+
+{
     // The container name is what the deploy plan reads the running tag through. A
     // rename in the manifest with no matching registry update makes that read come
     // back empty for the service — this is the drift most likely to go unnoticed.

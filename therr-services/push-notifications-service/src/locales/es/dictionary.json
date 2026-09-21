@@ -219,6 +219,7 @@
     },
     "shared": {
       "pressActionCheckIn": "Registrarse",
+      "pressActionLogAmount": "Registrar monto",
       "pressActionRenew": "Nuevo ciclo",
       "pressActionView": "Ver"
     }

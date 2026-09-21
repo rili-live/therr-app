@@ -140,6 +140,21 @@ export enum PressActionIds {
     // that rolls several habits together has nothing to check into and must
     // offer `checkinView` instead.
     habitCheckin = 'habit-checkin',
+    // Completes a check-in on a *savings* habit and records an amount with it, from a
+    // text field on the notification itself (Android RemoteInput / iOS
+    // UNTextInputNotificationAction).
+    //
+    // Separate from `habitCheckin` rather than a flag on it because the two need
+    // different notification actions built at render time — one is a button, the other
+    // is a button that opens an input — and the decision has to be made from the data
+    // map before the notification is displayed. Like `habitCheckin` it names a mutation,
+    // so the payload carrying it must also carry an unambiguous `habitGoalId`; a
+    // rolled-up nudge covering several habits has nothing to record an amount against.
+    //
+    // Whatever the user types arrives unsanitized — currency symbols, a comma decimal,
+    // stray spaces — and must go through `parseSavingsAmount` rather than `Number()`.
+    // The users-service check-in endpoint applies it server-side regardless.
+    habitCheckinSavings = 'habit-checkin-savings',
     // Leaderboards
     leaderboardView = 'view-leaderboard',
 }
