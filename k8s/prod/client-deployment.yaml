@@ -10,6 +10,14 @@ spec:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
+  # Matches the six internal services. Left unset it defaults to 600s, which is
+  # longer than deploy.sh's DEPLOY_ROLLOUT_TIMEOUT (360s) — so on a wedged
+  # rollout kubectl gave up first and printed a bare "timed out waiting for the
+  # condition". At 300s the Deployment controller loses that race on purpose and
+  # marks the rollout Failed with a ProgressDeadlineExceeded reason, which
+  # `rollout status` then prints instead. This Deployment is the last wave, so
+  # it was one of the two where a failure said least about itself.
+  progressDeadlineSeconds: 300
   selector:
     matchLabels:
       component: web

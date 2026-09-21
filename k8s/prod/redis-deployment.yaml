@@ -5,6 +5,11 @@ metadata:
   namespace: default
 spec:
   replicas: 1
+  # 300s across every Deployment deploy.sh waits on, so the Deployment controller
+  # always gives up before DEPLOY_ROLLOUT_TIMEOUT (360s) does and `rollout status`
+  # reports ProgressDeadlineExceeded rather than a bare timeout. See
+  # users-service-deployment.yaml for the full reasoning.
+  progressDeadlineSeconds: 300
   selector:
     matchLabels:
       component: redis

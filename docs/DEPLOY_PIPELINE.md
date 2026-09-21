@@ -293,7 +293,7 @@ opts out.
 | Variable | Default | Effect |
 |---|---|---|
 | `DEPLOY_ALLOW_ROLLBACK` | unset | Allows a `behind` verdict to deploy |
-| `DEPLOY_ROLLOUT_TIMEOUT` | `360s` | Per-Deployment `rollout status` timeout |
+| `DEPLOY_ROLLOUT_TIMEOUT` | `360s` | Per-Deployment `rollout status` timeout — keep it above the manifests' `progressDeadlineSeconds` (300s, on all ten) so a wedged rollout fails with `ProgressDeadlineExceeded` rather than a bare kubectl timeout |
 | `DEPLOY_DRAIN_TIMEOUT` | `0` | Seconds to wait for superseded pods between waves |
 | `DEPLOY_REGISTRY_SIDE_RETAG` | `true` | `false` promotes images by pull/tag/push instead of in the registry |
 | `RUN_MIGRATIONS_ON_DEPLOY` | unset | `false` skips automated migrations |
