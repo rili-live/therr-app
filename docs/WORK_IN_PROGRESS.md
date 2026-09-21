@@ -161,10 +161,12 @@ do not exist on `general`.
   pact completes, so it needs real copy, not a toggle labelled "group".
 - [ ] **Handle the `habit-checkin-savings` press action.** `TherrMobile/index.js` background
   handler — Android `RemoteInput` on the notification action, POST the typed text as
-  `savedAmount` (server re-parses it). Needs the intent action declared in
-  `AndroidManifest.xml` the same way `DAILY_HABIT_REMINDER` is. Until this ships the action id
-  arrives on the payload and the tap does nothing, so it should ship in the same build as the
-  amount field, not before it.
+  `savedAmount` (server re-parses it). Until this ships the action id arrives on the payload
+  and the tap does nothing, so it should ship in the same build as the amount field, not
+  before it. No `AndroidManifest.xml` change is needed, contrary to an earlier note here: the
+  manifest's intent filters are keyed on notification *types* (`DAILY_HABIT_REMINDER` and
+  friends), while press actions are dispatched entirely in JS by Notifee — and this reuses
+  the existing `streakAtRisk` / `dailyHabitReminder` types rather than adding one.
 - [ ] **Locale strings for all three dictionaries** (`en-us`, `es`, `fr-ca`) for every string
   above. The users-service `errorMessages.savings.*` keys and the push-service
   `notifications.shared.pressActionLogAmount` key already exist in all three.
