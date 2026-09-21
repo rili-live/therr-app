@@ -11,6 +11,7 @@ import { getImagePreviewPath } from '../../utilities/areaUtils';
 import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions';
 import { showToast } from '../../utilities/toasts';
 import { ISelectedProofImage } from '../../utilities/checkinProofUpload';
+import SavingsAmountInput from './SavingsAmountInput';
 
 export type { ISelectedProofImage };
 
@@ -38,10 +39,33 @@ interface ICheckinDetailFormProps {
     // someone with a public profile has already said they want an audience, so their check-ins
     // default to shared; a private profile defaults to off.
     defaultSharePublicly?: boolean;
-    onChange: (draft: { notes: string; image: ISelectedProofImage | null; sharePublicly: boolean }) => void;
+    /**
+     * True when this check-in is against a `savings_goal` habit, which is what puts the
+     * amount field on the form. Everything else about the form is unchanged.
+     */
+    isSavingsGoal?: boolean;
+    /** The goal's currency, for the amount field's prefix. Display only. */
+    currencyCode?: string | null;
+    onChange: (draft: ICheckinDetailDraft) => void;
     translate: (key: string, params?: any) => string;
     colors: ITherrThemeColors;
     styles: any;
+}
+
+export interface ICheckinDetailDraft {
+    notes: string;
+    image: ISelectedProofImage | null;
+    sharePublicly: boolean;
+    /**
+     * The parsed amount, `null` when the field was left empty, and **`undefined` when
+     * the habit is not a savings goal at all**.
+     *
+     * The three states are not cosmetic — they map onto what the caller sends, and the
+     * server reads them as written. `undefined` must leave the key off the request
+     * entirely (leave any recorded amount alone), `null` clears it. Collapsing the two
+     * would make an ordinary "add a photo" save erase money on a savings habit.
+     */
+    savedAmount?: number | null;
 }
 
 const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
@@ -50,6 +74,8 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
     userId,
     canShare = false,
     defaultSharePublicly = false,
+    isSavingsGoal = false,
+    currencyCode,
     onChange,
     translate,
     colors,
@@ -59,6 +85,10 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
     const [selectedImage, setSelectedImage] = useState<ISelectedProofImage | null>(null);
     const [imagePreviewPath, setImagePreviewPath] = useState<string>('');
     const [sharePublicly, setSharePublicly] = useState(defaultSharePublicly);
+    // Raw text and the parsed value are kept apart: the text is what the field shows
+    // (so "12." survives being typed) and the number is what the caller sends.
+    const [savedAmountText, setSavedAmountText] = useState('');
+    const [savedAmount, setSavedAmount] = useState<number | null>(null);
 
     // Lift the draft on every change so the screen's footer button can submit without a ref
     // into this component. Sharing requires a photo; never signal share without one even if the
@@ -68,8 +98,11 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
             notes,
             image: selectedImage,
             sharePublicly: canShare && !!selectedImage && sharePublicly,
+            // Undefined — not null — on a habit that does not track money, so the caller
+            // omits the key rather than clearing a column that was never theirs to clear.
+            savedAmount: isSavingsGoal ? savedAmount : undefined,
         });
-    }, [notes, selectedImage, sharePublicly, canShare, onChange]);
+    }, [notes, selectedImage, sharePublicly, canShare, isSavingsGoal, savedAmount, onChange]);
 
     const pickImage = async (source: 'camera' | 'library') => {
         const pickerOptions: any = {
@@ -124,8 +157,27 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
                 <Text style={themeStyles.formHabitName}>{habitName}</Text>
             ) : null}
             <Text style={themeStyles.formPrompt}>
-                {translate('pages.habits.checkinProof.addDetailPrompt')}
+                {translate(isSavingsGoal
+                    ? 'pages.habits.checkinProof.addDetailPromptSavings'
+                    : 'pages.habits.checkinProof.addDetailPrompt')}
             </Text>
+            {isSavingsGoal ? (
+                // First, above the photo and note controls. On a savings habit the amount
+                // is the point of opening this screen — burying it under two photo buttons
+                // is how it gets missed, which is the behaviour the notification
+                // quick-reply exists to work around.
+                <SavingsAmountInput
+                    value={savedAmountText}
+                    onChangeText={setSavedAmountText}
+                    onValueChange={setSavedAmount}
+                    currencyCode={currencyCode}
+                    label={translate('pages.habits.savings.checkinAmountLabel')}
+                    hint={translate('pages.habits.savings.checkinAmountHint')}
+                    editable={!isSubmitting}
+                    translate={translate}
+                    colors={colors}
+                />
+            ) : null}
             <View style={localStyles.photoSection}>
                 {imagePreviewPath ? (
                     // A compact strip rather than a full-width preview: the image is already

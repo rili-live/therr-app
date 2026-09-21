@@ -6,13 +6,13 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { FeatureFlags } from 'therr-js-utilities/constants';
+import { FeatureFlags, HabitGoalType, HabitGoalTypes } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
 import { IUserState } from 'therr-react/types';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import CheckinDetailForm from '../../components/Habits/CheckinDetailForm';
+import CheckinDetailForm, { ICheckinDetailDraft } from '../../components/Habits/CheckinDetailForm';
 import celebrationQueue from '../../utilities/celebrationQueue';
-import uploadCheckinProofImage, { ISelectedProofImage } from '../../utilities/checkinProofUpload';
+import uploadCheckinProofImage from '../../utilities/checkinProofUpload';
 import getConfig from '../../utilities/getConfig';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
@@ -26,6 +26,16 @@ interface ICheckinDetailParams {
     habitName?: string;
     /** Where the user came from, for the analytics event only. */
     source?: string;
+    /**
+     * The habit's goal type, passed by the caller rather than re-fetched: every screen
+     * that opens this one is already rendering the habit and has it to hand, and a
+     * fetch here would put a spinner in front of a form the user just asked for.
+     * Absent reads as "not a savings habit", which is the safe default — the amount
+     * field simply does not appear.
+     */
+    goalType?: HabitGoalType;
+    /** The goal's currency, for the amount field's prefix. Display only. */
+    currencyCode?: string | null;
 }
 
 interface ICheckinDetailProps {
@@ -73,9 +83,12 @@ export const CheckinDetail = ({
     shareCheckin,
     getActiveStreaks,
 }: ICheckinDetailProps) => {
-    const { habitGoalId, habitName, source } = route.params || ({} as ICheckinDetailParams);
+    const {
+        habitGoalId, habitName, source, goalType, currencyCode,
+    } = route.params || ({} as ICheckinDetailParams);
+    const isSavingsGoal = goalType === HabitGoalTypes.SAVINGS_GOAL;
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const draftRef = useRef<{ notes: string; image: ISelectedProofImage | null; sharePublicly: boolean }>({
+    const draftRef = useRef<ICheckinDetailDraft>({
         notes: '',
         image: null,
         sharePublicly: false,
@@ -105,9 +118,7 @@ export const CheckinDetail = ({
         });
     }, [navigation, translate]);
 
-    const handleDraftChange = useCallback((draft: {
-        notes: string; image: ISelectedProofImage | null; sharePublicly: boolean;
-    }) => {
+    const handleDraftChange = useCallback((draft: ICheckinDetailDraft) => {
         draftRef.current = draft;
     }, []);
 
@@ -116,12 +127,19 @@ export const CheckinDetail = ({
             return;
         }
 
-        const { notes, image, sharePublicly } = draftRef.current;
+        const {
+            notes, image, sharePublicly, savedAmount,
+        } = draftRef.current;
         const trimmedNotes = notes.trim();
+
+        // An amount counts as something to attach. Without this, a savings check-in whose
+        // only content is the number — which is the common case, and the whole point of
+        // the feature — would be treated as an empty save and silently discarded.
+        const hasSavedAmount = savedAmount !== undefined && savedAmount !== null;
 
         // Nothing to attach — treat Save as Done rather than re-POSTing the check-in for no
         // reason.
-        if (!trimmedNotes.length && !image) {
+        if (!trimmedNotes.length && !image && !hasSavedAmount) {
             navigation.goBack();
             return;
         }
@@ -149,6 +167,13 @@ export const CheckinDetail = ({
                 status: 'completed',
                 notes: trimmedNotes.length ? trimmedNotes : undefined,
                 proofMedias,
+                // Spread so the key is genuinely absent on a non-savings habit, and on a
+                // savings habit whose field was left untouched. `savedAmount: undefined`
+                // would serialize away over JSON anyway, but being explicit here keeps
+                // the three-state contract visible at the call site rather than relying
+                // on a serializer detail. An explicit null does reach the server, and
+                // clears the amount — which is what emptying the field should do.
+                ...(savedAmount === undefined ? {} : { savedAmount }),
             }))
             .then((checkin: any) => {
                 // Opt-in public share: only with a photo (the backend copies that proof into the
@@ -208,6 +233,8 @@ export const CheckinDetail = ({
                             userId={user?.details?.id}
                             canShare={isFeedEnabled}
                             defaultSharePublicly={isFeedEnabled && !!user?.settings?.settingsIsProfilePublic}
+                            isSavingsGoal={isSavingsGoal}
+                            currencyCode={currencyCode}
                             onChange={handleDraftChange}
                             translate={translate}
                             colors={theme.colors}

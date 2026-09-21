@@ -32,6 +32,17 @@ export interface IBackgroundCheckinArgs {
     habitGoalId: string;
     /** Optional: attributes the check-in to a pact when the notification named one. */
     pactId?: string;
+    /**
+     * Raw text from the notification's amount field, on a savings habit.
+     *
+     * Passed through **unparsed and untrimmed**. The server applies the shared
+     * `parseSavingsAmount`, which accepts "$20", "20,00" and " 20 " alike, and it is the
+     * only validator with the authority to reject one — so parsing here as well would
+     * add a second opinion that could disagree with it and drop a number the user typed.
+     * Omitted entirely when the user submitted an empty field, which records the
+     * check-in with no amount rather than clearing anything.
+     */
+    savedAmount?: string;
 }
 
 const REQUEST_TIMEOUT_MS = 10 * 1000;
@@ -81,6 +92,7 @@ export interface IBackgroundCheckinResult {
 const completeCheckinInBackground = async ({
     habitGoalId,
     pactId,
+    savedAmount,
 }: IBackgroundCheckinArgs): Promise<IBackgroundCheckinResult> => {
     const { id, idToken, locale } = await readSession();
 
@@ -118,6 +130,11 @@ const completeCheckinInBackground = async ({
                 // the active pacts backing the goal itself when none is given,
                 // which is the correct behaviour for a habit in several pacts.
                 ...(pactId ? { pactId } : {}),
+                // Same reasoning as `pactId`: omitted rather than sent empty. An
+                // explicit empty value would *clear* an amount already recorded for
+                // today, so a user who submitted the quick-reply without typing
+                // anything would erase what they logged in the app this morning.
+                ...(savedAmount && savedAmount.trim().length ? { savedAmount } : {}),
                 status: 'completed',
             }),
         });
