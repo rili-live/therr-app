@@ -541,8 +541,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     })),
                 );
                 // eslint-disable-next-line no-await-in-loop
-                const endedQueued = await Promise.all(endedMembers.map(async (member: any) => {
-                    const prefs = await habitNotificationPrefs.get(member.userId, expiring.habitGoalId);
+                const endedQueued = await Promise.all(endedMembers.map((member: any) => {
+                    const prefs = habitNotificationPrefs.peek(member.userId, expiring.habitGoalId);
                     if (!prefs.notifyPactUpdates) {
                         counters.pactUpdatesMutedByHabit += 1;
                         return false;
@@ -846,8 +846,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                         // different daysRemaining for the same calendar day and
                         // queue a second warning.
                         // eslint-disable-next-line no-await-in-loop
-                        const queued = await Promise.all(members.map(async (member: any) => {
-                            const prefs = await habitNotificationPrefs.get(member.userId, pact.habitGoalId);
+                        const queued = await Promise.all(members.map((member: any) => {
+                            const prefs = habitNotificationPrefs.peek(member.userId, pact.habitGoalId);
                             if (!prefs.notifyPactUpdates) {
                                 counters.pactUpdatesMutedByHabit += 1;
                                 return false;
@@ -881,9 +881,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     // the taper check and `nudgedPairs` need them.
                     const key = pairKey(member.userId, pact.habitGoalId);
                     const decision = lifecycle.decisions[key];
-                    // Cached by the prime above, so this await never hits the DB.
-                    // eslint-disable-next-line no-await-in-loop
-                    const memberPrefs = await habitNotificationPrefs.get(member.userId, pact.habitGoalId);
+                    // Cached by the prime above, so this is a map lookup, not a read.
+                    const memberPrefs = habitNotificationPrefs.peek(member.userId, pact.habitGoalId);
 
                     // Lifecycle: milestones, maintenance check-ins and comeback
                     // offers. Runs once per (user, habit) per digest, before the
@@ -966,8 +965,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                         // they want their own reminders but not prompts to chase
                         // a friend, and it is the recipient who asked.
                         // eslint-disable-next-line no-await-in-loop
-                        const queued = await Promise.all(otherMembers.map(async (other: any) => {
-                            const otherPrefs = await habitNotificationPrefs.get(other.userId, pact.habitGoalId);
+                        const queued = await Promise.all(otherMembers.map((other: any) => {
+                            const otherPrefs = habitNotificationPrefs.peek(other.userId, pact.habitGoalId);
                             if (!otherPrefs.notifyPartnerActivity) {
                                 counters.partnerActivityMutedByHabit += 1;
                                 return false;

@@ -96,6 +96,25 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Authenticated image pulls (added 2026-09-20)
+
+- [ ] **After the next `stage → main` deploy, confirm the three wedged services actually
+  moved.** The 2026-09-20 deploy left `messages-service`, `websocket-service` and
+  `maps-service` in `ImagePullBackOff` (Docker Hub anonymous pull rate limit — see
+  `docs/DEPLOY_PIPELINE.md` → "Image pulls are authenticated"); their Deployments hold the
+  new tag while the old Pod serves. The next deploy adds `imagePullSecrets` to every
+  manifest, so all ten Deployments roll. Check the plan table shows no `WEDGED` warning
+  afterwards and `kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.imagePullSecrets[*].name}{"\n"}{end}'`
+  lists `dockerhub-pull-credentials` on every service Pod. If a Pod is still
+  `ImagePullBackOff` *with* the secret, the account itself is capped — see the next item.
+- [ ] **Give the cluster a read-only Docker Hub token.** `deploy.sh` currently writes the
+  CI login (`DOCKERHUB_USER` / `DOCKERHUB_PASSWORD`, which can push) into the
+  `dockerhub-pull-credentials` Secret. Create a read-only personal access token on the
+  `therrapp` account, set it as the `DOCKERHUB_PULL_TOKEN` CircleCI project env var, and the
+  next deploy swaps the Secret over. Also worth checking the account's plan: a free
+  authenticated account is capped at 100 pulls/hour, which a full ten-Deployment roll plus
+  node replacements can approach.
+
 ## Space claim queue repair (added 2026-09-19)
 
 - [x] **Run `scripts/import-spaces/repair-space-claims` against prod BEFORE the claim-queue
@@ -1746,6 +1765,7 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 - [ ] (2026-09-15, weekly recap) **On the first Monday after both halves are live, confirm delivery on a handset with Friends with Habits installed** — the recap must render on the "Rewards & Updates" channel (not "General"), and tapping it must open the WeeklyRecap screen on *last* week, not the week in progress. Link 5 has no server-side signal; only a handset can confirm this.
 - [ ] (2026-09-15, weekly recap) **Watch `weeklyRecap` in the first digest run's counters.** `recapUsersOnRecapDay` should be roughly a seventh of `recapUsersEvaluated`, and `recapsQueued + recapsSkippedEmptyWeek` should account for nearly all of it. `recapUsersOnRecapDay` at zero across several consecutive daily runs means the local-Monday test is wrong, not that nobody qualified.
 - [ ] (2026-09-16, /quality-peer-review-niche) **Deploy `general → stage → main` before promoting Habits 1.8.0 (versionCode 45) from the Play internal track to production.** The 1.8.0 build stamps check-ins with the user's *local* day (`toLocalDateKey`), but the users-service on `main` still answers `GET /habits/checkins/today` for the *UTC* day — the local-day fix (`5b0afb093`, `resolveCheckinHabitDate`) is on `general` only. Against the old backend a check-in made after ~19:00 CDT is written under today and read back under tomorrow, so the dashboard shows it un-checked for the rest of the evening. Submitting to the internal track first is still right (the weekly-recap push needs the manifest entry on a shipped build); the constraint is on the production promotion.
+- [ ] (2026-09-20, /quality-peer-review) **Confirm the three habits migrations ran at each of `stage` and `main`** — `20260919000001_habits.user_habits.notificationPrefs.js` (four `NOT NULL DEFAULT true` booleans), `20260920000001_habits.habit_goals.savingsTarget.js` and `20260920000002_habits.habit_checkins.savedAmount.js` (nullable `numeric(12,2)` columns + a partial index). All additive and idempotent, so a re-run is safe; but `getActiveForReminders` and `getDetailByUser` now SELECT the new columns unconditionally, so the digest and the habit list 500 until they exist. Introduced by 7c5440e19 and ac56442da.
 <!-- skill-followups:end -->
 
 ---

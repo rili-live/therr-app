@@ -15,6 +15,8 @@ export interface IHabitGoal {
     isTemplate: boolean;
     isPublic: boolean;
     usageCount: number;
+    createdAt: string;
+    updatedAt: string;
     /**
      * How much this savings habit is aiming at, in major units. Only meaningful when
      * `goalType` is `savings_goal`.

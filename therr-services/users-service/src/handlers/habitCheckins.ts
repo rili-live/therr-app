@@ -642,10 +642,9 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                             userId: partnerId,
                             habitGoalId,
                         })));
-                        const celebratingPartnerIds = (await Promise.all(partnerIds.map(async (partnerId) => {
-                            const partnerPrefs = await notificationPrefs.get(partnerId, habitGoalId);
-                            return partnerPrefs.notifyPartnerActivity ? partnerId : null;
-                        }))).filter((partnerId): partnerId is string => !!partnerId);
+                        const celebratingPartnerIds = partnerIds.filter((partnerId) => (
+                            notificationPrefs.peek(partnerId, habitGoalId).notifyPartnerActivity
+                        ));
                         await Promise.all(celebratingPartnerIds.map((partnerId) => enqueueNotification({
                             brandVariation,
                             toUserId: partnerId,
