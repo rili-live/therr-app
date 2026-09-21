@@ -96,6 +96,25 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Authenticated image pulls (added 2026-09-20)
+
+- [ ] **After the next `stage → main` deploy, confirm the three wedged services actually
+  moved.** The 2026-09-20 deploy left `messages-service`, `websocket-service` and
+  `maps-service` in `ImagePullBackOff` (Docker Hub anonymous pull rate limit — see
+  `docs/DEPLOY_PIPELINE.md` → "Image pulls are authenticated"); their Deployments hold the
+  new tag while the old Pod serves. The next deploy adds `imagePullSecrets` to every
+  manifest, so all ten Deployments roll. Check the plan table shows no `WEDGED` warning
+  afterwards and `kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.imagePullSecrets[*].name}{"\n"}{end}'`
+  lists `dockerhub-pull-credentials` on every service Pod. If a Pod is still
+  `ImagePullBackOff` *with* the secret, the account itself is capped — see the next item.
+- [ ] **Give the cluster a read-only Docker Hub token.** `deploy.sh` currently writes the
+  CI login (`DOCKERHUB_USER` / `DOCKERHUB_PASSWORD`, which can push) into the
+  `dockerhub-pull-credentials` Secret. Create a read-only personal access token on the
+  `therrapp` account, set it as the `DOCKERHUB_PULL_TOKEN` CircleCI project env var, and the
+  next deploy swaps the Secret over. Also worth checking the account's plan: a free
+  authenticated account is capped at 100 pulls/hour, which a full ten-Deployment roll plus
+  node replacements can approach.
+
 ## Space claim queue repair (added 2026-09-19)
 
 - [x] **Run `scripts/import-spaces/repair-space-claims` against prod BEFORE the claim-queue

@@ -150,3 +150,39 @@ verdict_explanation()
     *)             echo "unknown verdict" ;;
   esac
 }
+
+# rollout_is_complete <generation> <observed_generation> <spec_replicas> <status_replicas> <updated_replicas> <available_replicas>
+#
+# Whether a Deployment's last rollout finished, from the same status fields
+# `kubectl rollout status` reads. Empty fields count as 0 — a fresh Deployment
+# reports none of them.
+#
+# WHY THE DEPLOY NEEDS THIS
+#
+# The plan reads a service's running tag from its Pod template, and `kubectl apply`
+# prints `unchanged` when the rendered manifest already matches it. Both are true of
+# a Deployment whose *previous* rollout never completed: the template holds the
+# desired tag, so the verdict is up-to-date and apply has nothing to do — while the
+# Pod actually serving is still the old ReplicaSet's. That is exactly what the
+# 2026-09-20 ImagePullBackOff left behind for three services, and without this
+# check the next deploy would have skipped them, green.
+rollout_is_complete()
+{
+  local GENERATION=${1:-0}
+  local OBSERVED=${2:-0}
+  local SPEC_REPLICAS=${3:-0}
+  local STATUS_REPLICAS=${4:-0}
+  local UPDATED=${5:-0}
+  local AVAILABLE=${6:-0}
+
+  # The controller has not yet seen the latest spec.
+  [ "$OBSERVED" -ge "$GENERATION" ] || return 1
+  # Not every replica is on the new template.
+  [ "$UPDATED" -eq "$SPEC_REPLICAS" ] || return 1
+  # Old replicas are still around (status.replicas counts every non-terminated Pod).
+  [ "$STATUS_REPLICAS" -eq "$UPDATED" ] || return 1
+  # New replicas exist but are not all Available.
+  [ "$AVAILABLE" -eq "$UPDATED" ] || return 1
+
+  return 0
+}
