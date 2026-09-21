@@ -37,6 +37,25 @@ export interface IHabitGoal {
     updatedAt: string;
 }
 
+/**
+ * A habit's standing in the current week, as the server computed it.
+ *
+ * `isRequiredToday` is deliberately narrow: under a weekly quota a day is required only once
+ * skipping it would put the target out of reach, so a well-run week has *no* required days.
+ * Use it to escalate ("you need every day that's left"), never to decide whether to show the
+ * habit at all.
+ */
+export interface IHabitWeekProgress {
+    /** Completed days so far this week, excluding today. */
+    done: number;
+    /** What a full week of this cadence asks for. 7 for a daily habit. */
+    target: number;
+    /** Days from today through Sunday, inclusive of today. */
+    daysLeft: number;
+    isRequiredToday: boolean;
+    isMet: boolean;
+}
+
 // Pact Types
 export interface IPact {
     id: string;
@@ -261,6 +280,19 @@ export interface IUserHabit {
     frequencyCount?: number | null;
     targetDaysOfWeek?: number[] | null;
     cadenceEffectiveFrom?: string | null;
+    /**
+     * Where the user stands in their own Monday-Sunday week for this habit.
+     *
+     * Derived server-side, because deciding what a cadence asks for on a given day is a rule
+     * the backend owns outright (`utilities/habitCadence.ts`) — a client that recomputed it
+     * would be the second implementation, which is the failure that module exists to prevent.
+     *
+     * **Absent means unknown, never zero.** It is omitted by a server that predates this
+     * field, and by one that could not resolve the user's timezone. Rendering "0 of 4" for
+     * someone who trained four times is worse than rendering nothing, so treat `undefined` as
+     * "hide the progress indicator".
+     */
+    weekProgress?: IHabitWeekProgress;
     isSolo: boolean;
     activePactCount: number;
     currentStreak: number;
