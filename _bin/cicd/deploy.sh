@@ -148,6 +148,29 @@ image_tag_of()
   esac
 }
 
+# Whether the Deployment's last rollout actually finished. The Pod template is what
+# the plan compares against, and it moves to the new tag the moment apply runs —
+# whether or not the Pod carrying that tag ever became Ready. rollout_is_complete
+# (deploy-plan.sh) says which; this just feeds it the status fields.
+#
+# A Deployment kubectl cannot read reports as complete: there is nothing to restart,
+# and the running-tag read for it has already come back empty and been handled.
+deployment_rollout_complete()
+{
+  local FIELDS
+  FIELDS="$(kubectl get "deployment/$1" \
+    -o jsonpath='{.metadata.generation}|{.status.observedGeneration}|{.spec.replicas}|{.status.replicas}|{.status.updatedReplicas}|{.status.availableReplicas}' \
+    2>/dev/null)" || return 0
+
+  # Split on an explicit separator: jsonpath prints nothing for a status field the
+  # controller has not set (availableReplicas at 0 is simply absent), and
+  # whitespace splitting would collapse that gap and shift every later field.
+  local GENERATION OBSERVED SPEC_REPLICAS STATUS_REPLICAS UPDATED AVAILABLE
+  IFS='|' read -r GENERATION OBSERVED SPEC_REPLICAS STATUS_REPLICAS UPDATED AVAILABLE <<< "$FIELDS"
+
+  rollout_is_complete "$GENERATION" "$OBSERVED" "$SPEC_REPLICAS" "$STATUS_REPLICAS" "$UPDATED" "$AVAILABLE"
+}
+
 running_tag_for()
 {
   image_tag_of "$(running_image_for "$1" "$2")"
@@ -179,6 +202,11 @@ PLAN_RUNNING_IMAGES=()
 PLAN_VERDICTS=()
 
 BLOCKED=()
+
+# Deployments whose template already holds the desired tag but whose last rollout
+# never completed — the old Pod is still the one serving. Reported in the plan and
+# restarted by deploy_waves, since apply will say `unchanged` for them.
+WEDGED=()
 
 # Services already on their desired tag, whose running image is no longer in the
 # registry. Nothing to do for them this run — but the Pod cannot be rescheduled onto
@@ -241,6 +269,10 @@ for KEY in $(service_keys); do
     BLOCKED+=("$KEY ($VERDICT): $(verdict_explanation "$VERDICT")")
   fi
 
+  if [ "$VERDICT" = "up-to-date" ] && ! deployment_rollout_complete "$DEPLOYMENT"; then
+    WEDGED+=("$DEPLOYMENT")
+  fi
+
   # Probed against the image the Deployment actually holds, not against the -stage
   # tag the deploy path would pull: on main the two differ (the running one is the
   # retagged, un-suffixed copy), so the -stage tag's absence says nothing about
@@ -289,6 +321,13 @@ print_plan()
     local STRANDED
     for STRANDED in "${UNPULLABLE[@]}"; do
       printMessageWarning "$STRANDED — it may not reschedule onto a node without the image cached"
+    done
+  fi
+
+  if [ ${#WEDGED[@]} -gt 0 ]; then
+    local STUCK
+    for STUCK in "${WEDGED[@]}"; do
+      printMessageWarning "$STUCK holds its published tag but the last rollout never completed — it will be restarted and verified"
     done
   fi
 
@@ -345,10 +384,14 @@ wait_for_rollouts()
       # Deployment-owned pods are always named "<deployment>-<rs>-<pod>", which is
       # a more dependable handle than reconstructing the label selector.
       kubectl get pods --no-headers | grep "^$DEPLOYMENT-" || true
-      # FailedScheduling is reported against the Pod, not the Deployment, so the
-      # describe above misses the "Insufficient memory" case entirely.
-      kubectl get events --field-selector reason=FailedScheduling \
-        --sort-by=.lastTimestamp --no-headers 2>/dev/null | tail -n 10 || true
+      # Pod-level events. Both failure modes seen so far are reported against the
+      # Pod, not the Deployment, so the describe above misses them: FailedScheduling
+      # ("Insufficient memory"), and Failed image pulls — whose message carries the
+      # registry's reason ("toomanyrequests" on 2026-09-20), which is the one line
+      # that tells the rate-limit case apart from a tag that does not exist.
+      kubectl get events --field-selector involvedObject.kind=Pod \
+        --sort-by=.lastTimestamp --no-headers 2>/dev/null \
+        | grep -E "pod/$DEPLOYMENT-" | grep -vE '[[:space:]]Normal[[:space:]]' | tail -n 10 || true
       echo "--- End events for $DEPLOYMENT ---"
     fi
   done
@@ -447,6 +490,16 @@ deploy_waves()
       # its `rollout status` verification and lets a wedged rollout report green.
       if printf '%s\n' "$APPLY_OUTPUT" | grep -q ' configured$'; then
         IS_ROLLING=true
+      elif ! deployment_rollout_complete "$DEPLOYMENT"; then
+        # apply had nothing to change, but the previous rollout of this same
+        # template is still stuck — its new Pod never became Ready, so the old one
+        # is what is serving. Left alone it stays that way and this deploy reports
+        # green over it. A restart gives the template a fresh ReplicaSet (and a
+        # fresh attempt at the image pull, which is what wedged it on 2026-09-20),
+        # and the rollout is then verified like any other.
+        printMessageWarning "$DEPLOYMENT: manifest unchanged but its last rollout never completed — restarting it"
+        kubectl rollout restart "deployment/$DEPLOYMENT"
+        IS_ROLLING=true
       fi
 
       if [ "$IS_ROLLING" = "true" ]; then
@@ -483,6 +536,33 @@ deploy_waves()
 
   return 0
 }
+
+# Docker Hub pull credentials, refreshed on every deploy.
+#
+# Every Deployment in k8s/prod pulls through this Secret (assert_service_registry
+# checks that). Without it the nodes pull anonymously, and Docker Hub caps anonymous
+# pulls per source IP — every node shares one Cloud NAT egress — so a deploy that
+# surges all six backend services at once can get some of them through and leave
+# the rest in ImagePullBackOff on tags that exist. That happened on 2026-09-20.
+#
+# Sourced from the same DOCKERHUB_USER / DOCKERHUB_PASSWORD this job already logs in
+# with. DOCKERHUB_PULL_TOKEN, when set, is used instead of the password so the
+# cluster can hold a read-only access token rather than CI's write credential.
+#
+# Written once the plan has been accepted, ahead of every manifest that references
+# it, so no Deployment is ever applied against a Secret that is not there yet.
+if [ -z "${DOCKERHUB_USER:-}" ] || [ -z "${DOCKERHUB_PULL_TOKEN:-${DOCKERHUB_PASSWORD:-}}" ]; then
+  printMessageError "DOCKERHUB_USER and DOCKERHUB_PASSWORD (or DOCKERHUB_PULL_TOKEN) must be set:"
+  printMessageError "  the Deployments pull through the '$DOCKERHUB_PULL_SECRET_NAME' Secret, and this job is what writes it."
+  exit 1
+fi
+
+kubectl create secret docker-registry "$DOCKERHUB_PULL_SECRET_NAME" \
+  --namespace default \
+  --docker-server=https://index.docker.io/v1/ \
+  --docker-username="$DOCKERHUB_USER" \
+  --docker-password="${DOCKERHUB_PULL_TOKEN:-$DOCKERHUB_PASSWORD}" \
+  --dry-run=client -o yaml | kubectl apply -f -
 
 # Kubectl Apply — everything except the Deployments.
 #

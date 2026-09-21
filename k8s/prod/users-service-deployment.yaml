@@ -26,6 +26,10 @@ spec:
         tier: microservices
         layer: services-internal
     spec:
+      # Authenticated Docker Hub pulls — anonymous ones are rate-limited per egress IP
+      # and wedged a deploy in ImagePullBackOff (2026-09-20). deploy.sh owns the Secret.
+      imagePullSecrets:
+        - name: dockerhub-pull-credentials
       serviceAccountName: therr-k8s-service-account
       # Must exceed the preStop sleep (15s) plus the in-flight request drain in
       # index.ts, otherwise SIGKILL lands mid-request during every deploy.
