@@ -1544,7 +1544,9 @@ backend change needed — it refuses to treat Play's own
   is detected and reported as `unsupported`, skipped, not failed. The one to look at is
   `Could not read pending migrations for <service>`: that means knex printed something
   the parse did not recognise, and the pass is deliberately failing closed rather than
-  reporting zero. If knex 3.x ever changes that line, this is where it surfaces — fix the
+  reporting zero. (The first instance of this was caught before it shipped: knex prints
+  `No Pending Migration files Found.` rather than `Found 0 ...` when a service is caught
+  up, which would have failed every deploy — the parse now reads both.) If knex 3.x ever changes that line, this is where it surfaces — fix the
   parse in `pending_migration_count`, do not widen it to treat unknown as zero, which is
   the false-green shape the pass exists to catch.
 - [ ] (2026-09-22, /work-plan) **Settle the habit-cap count question (#2923) — one query, and

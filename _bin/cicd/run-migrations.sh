@@ -228,8 +228,11 @@ run_service_migrations()
 # not applied. Echoes `unsupported` for a pod whose image predates the
 # `migrations:status` script, and nothing when the answer could not be determined.
 #
-# Parsed from `knex migrate:list`, which prints a "Found N Pending Migration
-# file/files." line. Deliberately fails closed: an unrecognised format echoes
+# Parsed from `knex migrate:list`, which prints "Found N Pending Migration
+# file/files." when work is outstanding and "No Pending Migration files Found." when
+# it is not — never "Found 0 ..." (knex 3.x bin/utils/migrationsLister.js). Missing
+# the second form would read every caught-up service as unknown and fail every
+# deploy. Deliberately fails closed: an unrecognised format echoes
 # nothing and the caller treats that as an assertion failure rather than as zero.
 # A silent "0 pending" from a parse that stopped matching would be the same shape of
 # false green this whole pass exists to catch.
@@ -253,7 +256,9 @@ pending_migration_count()
   fi
 
   printf '%s\n' "$OUTPUT" \
-    | sed -n 's/.*Found \([0-9][0-9]*\) Pending Migration.*/\1/p' \
+    | sed -n \
+      -e 's/.*Found \([0-9][0-9]*\) Pending Migration.*/\1/p' \
+      -e 's/.*No Pending Migration files Found.*/0/p' \
     | tail -n 1
 }
 
@@ -294,7 +299,7 @@ verify_no_pending_migrations()
     fi
 
     if [ -z "$COUNT" ]; then
-      printMessageError "Could not read pending migrations for $KEY (does knex still print 'Found N Pending Migration'?)."
+      printMessageError "Could not read pending migrations for $KEY (does knex still print 'Found N Pending Migration' / 'No Pending Migration files Found'?)."
       UNCHECKED=1
       continue
     fi

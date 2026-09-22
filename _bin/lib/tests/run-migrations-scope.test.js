@@ -142,13 +142,26 @@ const scope = (snippet, env) => run(
 }
 
 {
-    // A caught-up service.
+    // A caught-up service. knex never prints "Found 0 Pending" — with nothing pending it
+    // prints a different sentence entirely (bin/utils/migrationsLister.js), wrapped in
+    // colorette's red. Missed, every healthy service reads as unknown and every deploy
+    // fails once its images carry migrations:status.
     const output = withFakeKubectl(
-        { stdout: 'Found 9 Completed Migration file/files.\nFound 0 Pending Migration file/files.' },
+        { stdout: 'Found 9 Completed Migration file/files.\n\u001b[31mNo Pending Migration files Found.\u001b[39m' },
         'pending_migration_count pod-1 users-service',
     );
 
     assert.strictEqual(output, '0', `Zero pending must read as zero, not as unknown. Got:\n${output}`);
+}
+
+{
+    // A fresh database: neither completed nor pending. Still zero, not unknown.
+    const output = withFakeKubectl(
+        { stdout: 'No Completed Migration files Found.\nNo Pending Migration files Found.' },
+        'pending_migration_count pod-1 users-service',
+    );
+
+    assert.strictEqual(output, '0', `An empty ledger with nothing pending must read as zero. Got:\n${output}`);
 }
 
 {
@@ -224,7 +237,7 @@ const scope = (snippet, env) => run(
     // supported way to fix a cluster whose deploy died before its migration step, and it
     // must not silently no-op because the CI branch variable says something else.
     const output = withFakeKubectl(
-        { stdout: 'Found 0 Pending Migration file/files.' },
+        { stdout: 'No Pending Migration files Found.' },
         'main --verify-only',
         { CICD_BRANCH: 'general' },
     );
