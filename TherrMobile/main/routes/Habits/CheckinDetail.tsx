@@ -11,6 +11,7 @@ import { HabitActions } from 'therr-react/redux/actions';
 import { IUserState } from 'therr-react/types';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import CheckinDetailForm, { ICheckinDetailDraft } from '../../components/Habits/CheckinDetailForm';
+import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 import celebrationQueue from '../../utilities/celebrationQueue';
 import uploadCheckinProofImage from '../../utilities/checkinProofUpload';
 import getConfig from '../../utilities/getConfig';
@@ -210,7 +211,11 @@ export const CheckinDetail = ({
                 setIsSubmitting(false);
                 showToast.error({
                     text1: translate('alertTitles.backendErrorMessage'),
-                    text2: err?.message || translate('pages.habits.checkinProof.uploadFailed'),
+                    // `getApiErrorMessage` withholds a 5xx body, which is an internal token
+                    // rather than copy — see the note in utilities/apiErrorMessage.
+                    text2: getApiErrorMessage(err) || translate(image
+                        ? 'pages.habits.checkinProof.uploadFailed'
+                        : 'pages.habits.checkinError'),
                 });
             });
     };

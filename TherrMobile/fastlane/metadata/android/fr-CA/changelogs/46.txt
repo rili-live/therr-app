@@ -1,0 +1,6 @@
+Nouveautés :
+• Réglages de notifications par habitude : gardez les rappels que vous voulez et coupez les autres, habitude par habitude — dans le menu de n'importe quelle habitude
+• Archivez une habitude terminée, directement depuis sa fiche
+• Les nouvelles habitudes n'affichent plus « NaN » gel de série avant le premier enregistrement
+• En cas de problème, vous voyez un message lisible plutôt qu'un code d'erreur interne
+• Corrections et améliorations

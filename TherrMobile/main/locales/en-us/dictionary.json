@@ -2028,6 +2028,7 @@
             "graceDays": "Streak Freezes Left",
             "stats": "Statistics",
             "checkin": "Check In",
+            "checkinError": "We couldn't save your check-in. Try again in a moment.",
             "completed": "Completed!",
             "noHabitsTitle": "No habits yet",
             "noHabitsSubtitle": "Create a habit to start tracking your progress",
