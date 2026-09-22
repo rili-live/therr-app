@@ -1,4 +1,4 @@
-import { HabitGoalType } from 'therr-js-utilities/constants';
+import { HabitGoalType, SavingsTargetScope } from 'therr-js-utilities/constants';
 
 // Habit Goal Types
 export interface IHabitGoal {
@@ -17,6 +17,28 @@ export interface IHabitGoal {
     usageCount: number;
     createdAt: string;
     updatedAt: string;
+    /**
+     * How much this savings habit is aiming at, in major units. Only meaningful when
+     * `goalType` is `savings_goal`.
+     *
+     * Absent or null means an open-ended savings habit — one that records amounts and
+     * shows a running total but has no finish line. That is a supported state, not a
+     * missing value, so render the total without a progress bar rather than treating
+     * the target as zero.
+     *
+     * Serialized from a Postgres `numeric`, which `pg` returns as a string to avoid
+     * precision loss; users-service coerces it to a number before sending, so a client
+     * should never see a string here. Compare through `hasReachedSavingsTarget` rather
+     * than with `>=` — see the float trap documented there.
+     */
+    targetAmount?: number | null;
+    /** ISO 4217, display only. Nothing in the system converts between currencies. */
+    currencyCode?: string | null;
+    /**
+     * Whether `targetAmount` is each member's own goal or the group's combined one.
+     * Absent reads as `per_member` (`DEFAULT_SAVINGS_TARGET_SCOPE`).
+     */
+    savingsTargetScope?: SavingsTargetScope | null;
 }
 
 // Pact Types
@@ -80,6 +102,66 @@ export interface IPact {
     habitGoalEmoji?: string;
     habitGoalCategory?: string;
     members?: IPactMember[];
+    /**
+     * Money saved against this pact's goal, derived server-side. Present only on the
+     * pact *detail* response (`GET /habits/pacts/:id`) and only when the habit goal is a
+     * `savings_goal` — the list endpoints do not compute it, because doing so would add
+     * an aggregate per pact to a hot read path.
+     *
+     * Absent therefore means "not a savings pact, or not asked for", never "nothing
+     * saved". A savings pact with no contributions yet returns the object with zeroed
+     * totals.
+     */
+    savingsProgress?: ISavingsProgress;
+}
+
+/** One participant's contribution to a savings goal. */
+export interface ISavingsMemberProgress {
+    userId: string;
+    /** Sum of this member's `savedAmount` check-ins for the goal, in major units. */
+    totalSaved: number;
+    /** How many check-ins carried an amount. Zero is the normal starting state. */
+    contributionCount: number;
+    /**
+     * True when this member has met the target on their own. Always false under `group`
+     * scope, where the target belongs to the pact rather than to any one member.
+     */
+    hasReachedTarget: boolean;
+}
+
+/**
+ * A savings goal's progress, as the pact and habit detail views render it.
+ *
+ * Both totals are always present regardless of `scope`, because both are worth showing:
+ * a group pot wants the combined number *and* who put in what, and a per-member target
+ * still benefits from "between us, $4,300". What `scope` decides is which of them
+ * `isGoalReached` is about.
+ */
+export interface ISavingsProgress {
+    /** Null for an open-ended savings habit; see `IHabitGoal.targetAmount`. */
+    targetAmount: number | null;
+    currencyCode: string;
+    scope: SavingsTargetScope;
+    /** Combined across every participant. Equals the member total for a solo habit. */
+    totalSaved: number;
+    /** Per participant, ordered by amount saved, descending. */
+    members: ISavingsMemberProgress[];
+    /**
+     * Whether the target has been met — the group total under `group` scope, or *every*
+     * active member's own total under `per_member`. False whenever `targetAmount` is
+     * null, since an open-ended habit has no finish line.
+     */
+    isGoalReached: boolean;
+    /**
+     * The calling user's own total, repeated here so a client does not have to find
+     * itself in `members`. Zero for a viewer who has contributed nothing.
+     */
+    viewerTotalSaved: number;
+    /**
+     * What is left for the viewer (per-member scope) or for the group (group scope).
+     * Null when there is no target; never negative once the target is passed.
+     */
+    remainingAmount: number | null;
 }
 
 export interface IPactMember {
@@ -164,6 +246,16 @@ export interface IHabitCheckin {
     hasProof: boolean;
     proofVerified: boolean;
     contributedToStreak: boolean;
+    /**
+     * How much money this check-in put away, in major units of the goal's
+     * `currencyCode`. Only written on `savings_goal` habits.
+     *
+     * Null and 0 are different answers and both occur: null is "no amount recorded"
+     * (every non-savings check-in, and a savings check-in someone completed without
+     * filling the field in), 0 is an explicit "I saved nothing today", which a no-spend
+     * habit may legitimately want to log. Totals ignore null and include 0.
+     */
+    savedAmount?: number | null;
     // Set once the check-in has been shared publicly — the id of the main.thoughts post that
     // carries the public copy of the proof. Absent/undefined until shared. Lets the calendar
     // day show "shared" and deep-link to the post.
@@ -254,6 +346,22 @@ export interface IUserHabit {
      * that predates it; treat `undefined` like `null`.
      */
     pendingPactId?: string | null;
+    /**
+     * The habit's savings target, mirrored from its goal so the habit list can render a
+     * progress bar without fetching each goal. Null/absent on every habit that is not a
+     * `savings_goal`, and on an open-ended one.
+     */
+    targetAmount?: number | null;
+    currencyCode?: string | null;
+    savingsTargetScope?: SavingsTargetScope | null;
+    /**
+     * This user's own running total for the habit, across every check-in on it —
+     * including ones made under a pact that has since ended, since the money does not
+     * stop existing when a cycle does. Absent on responses from a users-service that
+     * predates the field; treat `undefined` as "unknown" and render nothing rather than
+     * a misleading zero.
+     */
+    totalSaved?: number;
     /**
      * Per-habit notification switches.
      *

@@ -2074,7 +2074,8 @@
                 "removePhoto": "Retirer la photo",
                 "sharedTitle": "Partagé au fil",
                 "shareFailed": "Impossible de partager ce suivi. Réessayez plus tard.",
-                "save": "Enregistrer"
+                "save": "Enregistrer",
+                "addDetailPromptSavings": "Inscris ce que tu as épargné, et ajoute une note ou une photo si tu veux."
             },
             "feed": {
                 "emptyMessage": "Aucun suivi partagé pour l'instant. Partagez l'un des vôtres pour lancer le fil."
@@ -2162,6 +2163,23 @@
                     "label": "Mises à jour du pacte",
                     "hint": "Invitations, acceptations, et quand un pacte se termine."
                 }
+            },
+            "savings": {
+                "cardTitle": "Épargné jusqu’ici",
+                "checkinAmountHint": "Laisse vide pour t’enregistrer sans inscrire de montant.",
+                "checkinAmountLabel": "Combien as-tu mis de côté?",
+                "errorNegative": "Saisis un montant de zéro ou plus",
+                "errorNotANumber": "Saisis le montant sous forme de nombre, par exemple 25 ou 25,50",
+                "errorTooLarge": "Ce montant est trop élevé pour être enregistré",
+                "errorTooPrecise": "Arrondis au cent près, par exemple 25,50",
+                "goalReached": "🎉 Objectif atteint!",
+                "remainingGroup": "Il reste {amount} à vous tous",
+                "remainingYours": "Il te reste {amount}",
+                "totalSavedGroupSubtitle": "au total — {target} chacun",
+                "totalSavedNoTarget": "Aucun objectif fixé — on suit simplement le total.",
+                "totalSavedOfGroupTarget": "de l’objectif du groupe de {target}",
+                "totalSavedOfTarget": "de ton objectif de {target}",
+                "unknownMember": "Un partenaire"
             }
         },
         "pacts": {
@@ -2321,7 +2339,15 @@
                 "pickPartnerFirstLocked": "Choisis un ami, ou invites-en {remaining} de plus pour débloquer les habitudes en solo",
                 "soloLockedTitle": "Invite {remaining} ami(s) de plus pour débloquer les habitudes en solo",
                 "soloLockedProgress": "{invited} amis invités sur {required}",
-                "freezeRule": "Si tu manques une journée, un gel de série la couvre — tu commences avec {starting} et tu en gagnes un autre tous les {interval} jours, jusqu'à {max}. La première mauvaise journée arrive à l'intérieur des règles."
+                "freezeRule": "Si tu manques une journée, un gel de série la couvre — tu commences avec {starting} et tu en gagnes un autre tous les {interval} jours, jusqu'à {max}. La première mauvaise journée arrive à l'intérieur des règles.",
+                "savingsToggleLabel": "Cette habitude vise à épargner de l’argent",
+                "savingsSectionTitle": "Objectif d’épargne",
+                "savingsTargetLabel": "Montant visé",
+                "savingsTargetHint": "Facultatif — laisse vide pour suivre seulement le total.",
+                "savingsScopePerMemberLabel": "Chaque personne épargne ce montant",
+                "savingsScopePerMemberHint": "Chacun progresse vers le montant de son côté. Terminé quand vous l’avez tous atteint.",
+                "savingsScopeGroupLabel": "On l’épargne ensemble",
+                "savingsScopeGroupHint": "Une cagnotte commune. Terminé quand votre total combiné atteint le montant."
             },
             "status": {
                 "pending": "En attente",

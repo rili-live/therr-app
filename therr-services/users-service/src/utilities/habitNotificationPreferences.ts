@@ -37,6 +37,17 @@ export type SeedRow = { userId: string; habitGoalId: string } & Partial<IUserHab
 export type HabitNotificationPreferenceResolver = {
     /** Preferences for one pair, from cache or a single read. */
     get: (userId: string, habitGoalId: string) => Promise<IUserHabitNotificationPreferences>;
+    /**
+     * Preferences for one pair from the cache alone — no read, no await.
+     *
+     * For the call sites that have just `prime`d the whole membership and then
+     * ask about each member in turn: `get` would answer from cache there too,
+     * but reads as a query in a loop and needs an `await` (and an
+     * `eslint-disable no-await-in-loop`) that is doing nothing. A pair that
+     * was never primed or seeded fails open to the defaults, exactly as `get`
+     * does when the read comes back empty.
+     */
+    peek: (userId: string, habitGoalId: string) => IUserHabitNotificationPreferences;
     /** Warm the cache for many pairs in one read. */
     prime: (pairs: { userId: string; habitGoalId: string }[]) => Promise<void>;
     /**
@@ -104,9 +115,18 @@ export const createHabitNotificationPreferenceResolver = (
         });
     };
 
+    const peek = (userId: string, habitGoalId: string): IUserHabitNotificationPreferences => {
+        if (!userId || !habitGoalId) {
+            return DEFAULT_USER_HABIT_NOTIFICATION_PREFERENCES;
+        }
+
+        return cache.get(preferenceCacheKey(userId, habitGoalId)) || DEFAULT_USER_HABIT_NOTIFICATION_PREFERENCES;
+    };
+
     return {
         prime,
         seed,
+        peek,
         get: async (userId: string, habitGoalId: string): Promise<IUserHabitNotificationPreferences> => {
             if (!userId || !habitGoalId) {
                 return DEFAULT_USER_HABIT_NOTIFICATION_PREFERENCES;
@@ -118,7 +138,7 @@ export const createHabitNotificationPreferenceResolver = (
                 await prime([{ userId, habitGoalId }]);
             }
 
-            return cache.get(key) || DEFAULT_USER_HABIT_NOTIFICATION_PREFERENCES;
+            return peek(userId, habitGoalId);
         },
     };
 };

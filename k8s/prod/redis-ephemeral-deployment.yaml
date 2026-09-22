@@ -14,6 +14,10 @@ spec:
         component: redis-ephemeral
         type: db
     spec:
+      # Authenticated Docker Hub pulls — anonymous ones are rate-limited per egress IP
+      # and wedged a deploy in ImagePullBackOff (2026-09-20). deploy.sh owns the Secret.
+      imagePullSecrets:
+        - name: dockerhub-pull-credentials
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:

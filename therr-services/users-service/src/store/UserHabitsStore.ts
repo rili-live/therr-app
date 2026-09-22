@@ -105,6 +105,17 @@ export interface IUserHabitDetail extends IUserHabitRow {
      * while the user waits on someone who may never accept.
      */
     pendingPactId: string | null;
+    /**
+     * The goal's savings target, as text straight from Postgres `numeric`. Null on
+     * every habit that is not a `savings_goal`, and on an open-ended one.
+     *
+     * Left as a string at this layer on purpose — see the cast in the query. The
+     * handler parses it alongside the totals so a client never sees the driver's
+     * representation.
+     */
+    targetAmount: string | null;
+    currencyCode: string | null;
+    savingsTargetScope: string | null;
 }
 
 /**
@@ -119,6 +130,10 @@ export interface IUserHabitReminderRow extends IUserHabitNotificationPreferences
     userId: string;
     habitGoalId: string;
     goalName: string;
+    /** `savings_goal` is what makes the reminder offer an amount field. */
+    goalType: string;
+    /** Null on every non-savings habit, and on a savings one with no currency set. */
+    currencyCode: string | null;
     frequencyType: string;
     frequencyCount: number | null;
     targetDaysOfWeek: number[] | null;
@@ -205,6 +220,14 @@ export default class UserHabitsStore {
                 g."frequencyType" AS "frequencyType",
                 g."frequencyCount" AS "frequencyCount",
                 g."targetDaysOfWeek" AS "targetDaysOfWeek",
+                -- Savings target, mirrored from the goal so the habit list can draw a
+                -- progress bar without a goal fetch per row. Cast to text because
+                -- node-postgres returns numeric as a string anyway; making that
+                -- explicit here keeps the parse in one place (the handler) instead of
+                -- leaving a value whose type depends on the driver.
+                g."targetAmount"::text AS "targetAmount",
+                g."currencyCode" AS "currencyCode",
+                g."savingsTargetScope" AS "savingsTargetScope",
                 COALESCE(s."currentStreak", 0) AS "currentStreak",
                 COALESCE(s."longestStreak", 0) AS "longestStreak",
                 COALESCE(pact_counts."activePactCount", 0) AS "activePactCount",
@@ -270,9 +293,17 @@ export default class UserHabitsStore {
                 uh."notifyPartnerActivity",
                 uh."notifyPactUpdates",
                 g."name" AS "goalName",
+                g."goalType" AS "goalType",
                 g."frequencyType" AS "frequencyType",
                 g."frequencyCount" AS "frequencyCount",
                 g."targetDaysOfWeek" AS "targetDaysOfWeek",
+                -- Carried so the reminder can offer an amount field on a savings habit.
+                -- Only the currency is needed, to label the input; the notification does
+                -- not render progress. Note the absence of any question mark in this
+                -- comment: knex treats that character as a binding placeholder
+                -- anywhere in a raw string, SQL comments included, and one here makes
+                -- the whole query fail with a binding-count mismatch at runtime.
+                g."currencyCode" AS "currencyCode",
                 COALESCE(s."currentStreak", 0) AS "currentStreak",
                 COALESCE(s."isActive", false) AS "streakIsActive",
                 COALESCE(s."gracePeriodDays", 0) AS "gracePeriodDays",

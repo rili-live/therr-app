@@ -2074,7 +2074,8 @@
                 "removePhoto": "Quitar foto",
                 "sharedTitle": "Compartido en el feed",
                 "shareFailed": "No pudimos compartir este registro. Inténtalo más tarde.",
-                "save": "Guardar"
+                "save": "Guardar",
+                "addDetailPromptSavings": "Anota lo que ahorraste y agrega una nota o foto si quieres."
             },
             "feed": {
                 "emptyMessage": "Aún no hay registros compartidos. Comparte uno de los tuyos para empezar el feed."
@@ -2162,6 +2163,23 @@
                     "label": "Novedades del pacto",
                     "hint": "Invitaciones, aceptaciones y cuándo termina un pacto."
                 }
+            },
+            "savings": {
+                "cardTitle": "Ahorrado hasta ahora",
+                "checkinAmountHint": "Déjalo en blanco para registrarte sin anotar un monto.",
+                "checkinAmountLabel": "¿Cuánto ahorraste?",
+                "errorNegative": "Ingresa un monto de cero o más",
+                "errorNotANumber": "Ingresa el monto como número, por ejemplo 25 o 25,50",
+                "errorTooLarge": "Ese monto es demasiado grande para registrarlo",
+                "errorTooPrecise": "Redondea al centavo más cercano, por ejemplo 25,50",
+                "goalReached": "🎉 ¡Meta alcanzada!",
+                "remainingGroup": "Faltan {amount} entre todos",
+                "remainingYours": "Te faltan {amount}",
+                "totalSavedGroupSubtitle": "en total: {target} cada uno",
+                "totalSavedNoTarget": "Sin meta definida: solo llevamos el total.",
+                "totalSavedOfGroupTarget": "de la meta del grupo de {target}",
+                "totalSavedOfTarget": "de tu meta de {target}",
+                "unknownMember": "Un compañero"
             }
         },
         "pacts": {
@@ -2321,7 +2339,15 @@
                 "pickPartnerFirstLocked": "Elige un amigo o invita a {remaining} más para desbloquear los hábitos en solitario",
                 "soloLockedTitle": "Invita a {remaining} amigo(s) más para desbloquear los hábitos en solitario",
                 "soloLockedProgress": "{invited} de {required} amigos invitados",
-                "freezeRule": "Si fallas un día, un congelamiento de racha lo cubre — empiezas con {starting} y ganas otro cada {interval} días, hasta {max}. El primer mal día ocurre dentro de las reglas."
+                "freezeRule": "Si fallas un día, un congelamiento de racha lo cubre — empiezas con {starting} y ganas otro cada {interval} días, hasta {max}. El primer mal día ocurre dentro de las reglas.",
+                "savingsToggleLabel": "Este hábito se trata de ahorrar dinero",
+                "savingsSectionTitle": "Meta de ahorro",
+                "savingsTargetLabel": "Monto objetivo",
+                "savingsTargetHint": "Opcional: déjalo en blanco para solo llevar el total.",
+                "savingsScopePerMemberLabel": "Cada persona ahorra esto",
+                "savingsScopePerMemberHint": "Cada quien avanza hacia el monto por su cuenta. Termina cuando todos lo alcancen.",
+                "savingsScopeGroupLabel": "Lo ahorramos juntos",
+                "savingsScopeGroupHint": "Un fondo compartido. Termina cuando el total combinado llegue al monto."
             },
             "status": {
                 "pending": "Pendiente",

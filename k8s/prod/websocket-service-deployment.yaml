@@ -28,6 +28,10 @@ spec:
         tier: microservices
         layer: services-external
     spec:
+      # Authenticated Docker Hub pulls — anonymous ones are rate-limited per egress IP
+      # and wedged a deploy in ImagePullBackOff (2026-09-20). deploy.sh owns the Secret.
+      imagePullSecrets:
+        - name: dockerhub-pull-credentials
       serviceAccountName: therr-k8s-service-account
       # src/index.ts has no SIGTERM handler, so the process exits as soon as the
       # signal lands. The preStop sleep holds the container open while kube-proxy

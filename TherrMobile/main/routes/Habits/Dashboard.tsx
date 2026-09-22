@@ -348,6 +348,10 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             habitGoalId: habitGoal.id,
             habitName: habitGoal.name,
             source: 'dashboard',
+            // Carried so the detail screen can offer the amount field without
+            // re-fetching the goal it is already rendering.
+            goalType: habitGoal.goalType,
+            currencyCode: habitGoal.currencyCode,
         });
     };
 

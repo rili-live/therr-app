@@ -21,6 +21,7 @@ import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { checkHabitCapacity } from './helpers/habitCapacity';
 import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
 import { attachMemberStatsToPact, attachPactMemberStats } from './helpers/pactMemberStats';
+import { withSavingsProgress } from './helpers/savings';
 import {
     validatePactParams,
     isUserInPact,
@@ -409,7 +410,13 @@ const getPact: RequestHandler = async (req: any, res: any) => {
                 });
             }
 
-            return res.status(200).send(await attachMemberStatsToPact({ ...pact, members }));
+            const withStats = await attachMemberStatsToPact({ ...pact, members });
+
+            // Savings totals ride the detail response rather than a second endpoint:
+            // the pact detail view renders them inline with the member list, and a
+            // separate fetch would make the money appear a beat after the people it
+            // belongs to. Only computed for savings pacts — see helpers/savings.
+            return res.status(200).send(await withSavingsProgress(withStats, members, userId));
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };

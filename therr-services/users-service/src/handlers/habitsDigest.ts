@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { BrandVariations, PushNotifications } from 'therr-js-utilities/constants';
+import { BrandVariations, HabitGoalTypes, PushNotifications } from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
@@ -541,8 +541,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     })),
                 );
                 // eslint-disable-next-line no-await-in-loop
-                const endedQueued = await Promise.all(endedMembers.map(async (member: any) => {
-                    const prefs = await habitNotificationPrefs.get(member.userId, expiring.habitGoalId);
+                const endedQueued = await Promise.all(endedMembers.map((member: any) => {
+                    const prefs = habitNotificationPrefs.peek(member.userId, expiring.habitGoalId);
                     if (!prefs.notifyPactUpdates) {
                         counters.pactUpdatesMutedByHabit += 1;
                         return false;
@@ -846,8 +846,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                         // different daysRemaining for the same calendar day and
                         // queue a second warning.
                         // eslint-disable-next-line no-await-in-loop
-                        const queued = await Promise.all(members.map(async (member: any) => {
-                            const prefs = await habitNotificationPrefs.get(member.userId, pact.habitGoalId);
+                        const queued = await Promise.all(members.map((member: any) => {
+                            const prefs = habitNotificationPrefs.peek(member.userId, pact.habitGoalId);
                             if (!prefs.notifyPactUpdates) {
                                 counters.pactUpdatesMutedByHabit += 1;
                                 return false;
@@ -881,9 +881,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     // the taper check and `nudgedPairs` need them.
                     const key = pairKey(member.userId, pact.habitGoalId);
                     const decision = lifecycle.decisions[key];
-                    // Cached by the prime above, so this await never hits the DB.
-                    // eslint-disable-next-line no-await-in-loop
-                    const memberPrefs = await habitNotificationPrefs.get(member.userId, pact.habitGoalId);
+                    // Cached by the prime above, so this is a map lookup, not a read.
+                    const memberPrefs = habitNotificationPrefs.peek(member.userId, pact.habitGoalId);
 
                     // Lifecycle: milestones, maintenance check-ins and comeback
                     // offers. Runs once per (user, habit) per digest, before the
@@ -966,8 +965,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                         // they want their own reminders but not prompts to chase
                         // a friend, and it is the recipient who asked.
                         // eslint-disable-next-line no-await-in-loop
-                        const queued = await Promise.all(otherMembers.map(async (other: any) => {
-                            const otherPrefs = await habitNotificationPrefs.get(other.userId, pact.habitGoalId);
+                        const queued = await Promise.all(otherMembers.map((other: any) => {
+                            const otherPrefs = habitNotificationPrefs.peek(other.userId, pact.habitGoalId);
                             if (!otherPrefs.notifyPartnerActivity) {
                                 counters.partnerActivityMutedByHabit += 1;
                                 return false;
@@ -1087,6 +1086,11 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     habitGoalId: habit.habitGoalId,
                     pactId: habit.activePactId || undefined,
                     habitName: habit.goalName,
+                    // Lets the notification offer "how much did you put away?" inline.
+                    // The roll-up drops both again unless this ends up being the user's
+                    // only habit today — see the note on the payload fields.
+                    isSavingsGoal: habit.goalType === HabitGoalTypes.SAVINGS_GOAL,
+                    currencyCode: habit.currencyCode || undefined,
                     streakCount: habit.streakIsActive ? Number(habit.currentStreak) : 0,
                     freezesRemaining: Math.max(
                         0,

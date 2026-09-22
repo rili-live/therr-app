@@ -1,11 +1,25 @@
 import KnexBuilder, { Knex } from 'knex';
-import { HabitGoalType } from 'therr-js-utilities/constants';
+import { HabitGoalType, SavingsTargetScope } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 import { HABIT_GOALS_TABLE_NAME, PACTS_TABLE_NAME, PACT_MEMBERS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
-export interface ICreateHabitGoalParams {
+/**
+ * The savings target columns, shared by create and update.
+ *
+ * `null` is meaningful on all three and distinct from `undefined`: clearing a target
+ * ("actually this is open-ended now") has to be expressible, and knex drops `undefined`
+ * keys from both an insert and an update, which is what makes the distinction work
+ * without a separate "fieldsToClear" argument.
+ */
+export interface ISavingsTargetParams {
+    targetAmount?: number | null;
+    currencyCode?: string | null;
+    savingsTargetScope?: SavingsTargetScope | null;
+}
+
+export interface ICreateHabitGoalParams extends ISavingsTargetParams {
     name: string;
     description?: string;
     category?: string;
@@ -19,7 +33,7 @@ export interface ICreateHabitGoalParams {
     isPublic?: boolean;
 }
 
-export interface IUpdateHabitGoalParams {
+export interface IUpdateHabitGoalParams extends ISavingsTargetParams {
     name?: string;
     description?: string;
     category?: string;
@@ -31,6 +45,28 @@ export interface IUpdateHabitGoalParams {
     isPublic?: boolean;
     usageCount?: number;
 }
+
+/**
+ * `targetAmount` is a Postgres `numeric`, and node-postgres returns every numeric as a
+ * *string* — it will not silently narrow a value that may not survive an IEEE double.
+ * That is the right default for the driver and the wrong shape for everyone above it:
+ * `"2000.00" >= 2000` is true by coercion but `"900.00" >= 1000` is false and
+ * `"900.00" > "1000.00"` is *true* (string compare), so a target read straight off the
+ * row makes goal-reached checks wrong in a way that looks like it works.
+ *
+ * Coercing here rather than at each caller means every read path — getById, the user's
+ * list, templates, search, and the rows returned by create/update — is covered by
+ * construction. 12,2 fits an IEEE double exactly to the cent, so nothing is lost.
+ */
+const normalizeGoalRow = (row: any) => {
+    if (!row || row.targetAmount === null || row.targetAmount === undefined) {
+        return row;
+    }
+
+    return { ...row, targetAmount: Number(row.targetAmount) };
+};
+
+const normalizeGoalRows = (rows: any[]) => rows.map(normalizeGoalRow);
 
 export default class HabitGoalsStore {
     db: IConnection;
@@ -57,7 +93,7 @@ export default class HabitGoalsStore {
         }
 
         return this.db.read.query(queryString.toString())
-            .then((response) => response.rows);
+            .then((response) => normalizeGoalRows(response.rows));
     }
 
     getById(id: string) {
@@ -109,7 +145,7 @@ export default class HabitGoalsStore {
         }
 
         return this.db.read.query(queryString.toString())
-            .then((response) => response.rows);
+            .then((response) => normalizeGoalRows(response.rows));
     }
 
     /**
@@ -127,7 +163,7 @@ export default class HabitGoalsStore {
             .whereIn('id', ids)
             .toString();
 
-        return this.db.read.query(queryString).then((response) => response.rows);
+        return this.db.read.query(queryString).then((response) => normalizeGoalRows(response.rows));
     }
 
     getTemplates(category?: string, limit?: number, offset?: number) {
@@ -157,7 +193,7 @@ export default class HabitGoalsStore {
             .limit(limit);
 
         return this.db.read.query(queryString.toString())
-            .then((response) => response.rows);
+            .then((response) => normalizeGoalRows(response.rows));
     }
 
     create(params: ICreateHabitGoalParams) {
@@ -172,7 +208,7 @@ export default class HabitGoalsStore {
             .returning('*')
             .toString();
 
-        return this.db.write.query(queryString).then((response) => response.rows[0]);
+        return this.db.write.query(queryString).then((response) => normalizeGoalRow(response.rows[0]));
     }
 
     update(id: string, params: IUpdateHabitGoalParams) {
@@ -186,7 +222,7 @@ export default class HabitGoalsStore {
             .returning('*')
             .toString();
 
-        return this.db.write.query(queryString).then((response) => response.rows[0]);
+        return this.db.write.query(queryString).then((response) => normalizeGoalRow(response.rows[0]));
     }
 
     incrementUsageCount(id: string, incrementBy = 1) {
@@ -198,7 +234,7 @@ export default class HabitGoalsStore {
             .returning('*')
             .toString();
 
-        return this.db.write.query(queryString).then((response) => response.rows[0]);
+        return this.db.write.query(queryString).then((response) => normalizeGoalRow(response.rows[0]));
     }
 
     delete(id: string, userId: string) {
@@ -210,6 +246,6 @@ export default class HabitGoalsStore {
             .returning('*')
             .toString();
 
-        return this.db.write.query(queryString).then((response) => response.rows[0]);
+        return this.db.write.query(queryString).then((response) => normalizeGoalRow(response.rows[0]));
     }
 }

@@ -12,6 +12,8 @@ import {
 } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
+import { HabitGoalTypes, hasReachedSavingsTarget } from 'therr-js-utilities/constants';
+import { formatSavingsAmount, getSavingsProgressFraction } from '../../utilities/savingsFormat';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles, buttonMenuHeight } from '../../styles/navigation/buttonMenu';
@@ -166,6 +168,79 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
      * notification deep link with nothing else fetched. Both features render only
      * once it resolves, rather than guessing an id.
      */
+    /**
+     * The running total for a savings habit, on the solo/habit view.
+     *
+     * Deliberately simpler than the pact card: there is one participant, so there is no
+     * breakdown to show and the per-member/group distinction collapses — both scopes
+     * compute the same number for one person.
+     *
+     * `totalSaved` is absent on a response from a users-service that predates the
+     * feature. That is "unknown", not zero, so the card is not rendered at all rather
+     * than claiming the user has saved nothing.
+     */
+    renderSavingsCard = (userHabit?: IUserHabit) => {
+        if (userHabit?.goalType !== HabitGoalTypes.SAVINGS_GOAL || userHabit.totalSaved === undefined) {
+            return null;
+        }
+
+        const { totalSaved, targetAmount, currencyCode } = userHabit;
+        const locale = this.props.user?.settings?.locale;
+        const fraction = getSavingsProgressFraction(totalSaved, targetAmount);
+        const hasReached = hasReachedSavingsTarget(totalSaved, targetAmount);
+
+        return (
+            <View style={this.themeHabits.styles.streakWidgetContainer}>
+                <Text style={this.themeHabits.styles.streakWidgetTitle}>
+                    {this.translate('pages.habits.savings.cardTitle')}
+                </Text>
+                <Text style={{ fontSize: 30, fontWeight: '700', paddingTop: 4 }}>
+                    {formatSavingsAmount(totalSaved, currencyCode, locale)}
+                </Text>
+                <Text style={this.themeHabits.styles.habitCardSubtitle}>
+                    {targetAmount
+                        ? this.translate('pages.habits.savings.totalSavedOfTarget', {
+                            target: formatSavingsAmount(targetAmount, currencyCode, locale),
+                        })
+                        : this.translate('pages.habits.savings.totalSavedNoTarget')}
+                </Text>
+                {fraction !== null && (
+                    <View
+                        accessibilityRole="progressbar"
+                        style={{
+                            height: 8,
+                            borderRadius: 4,
+                            backgroundColor: 'rgba(0,0,0,0.12)',
+                            marginTop: 12,
+                            overflow: 'hidden',
+                        }}
+                    >
+                        <View
+                            style={{
+                                height: 8,
+                                borderRadius: 4,
+                                width: `${Math.round(fraction * 100)}%`,
+                                backgroundColor: this.themeHabits.colors.primary3,
+                            }}
+                        />
+                    </View>
+                )}
+                {hasReached && (
+                    <Text
+                        style={{
+                            paddingTop: 8,
+                            fontSize: 14,
+                            fontWeight: '600',
+                            color: this.themeHabits.colors.alertSuccess,
+                        }}
+                    >
+                        {this.translate('pages.habits.savings.goalReached')}
+                    </Text>
+                )}
+            </View>
+        );
+    };
+
     getUserHabit = (): IUserHabit | undefined => {
         const { habits, route } = this.props;
         const { habitGoalId } = route.params;
@@ -315,10 +390,14 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
      */
     handleAddCheckinDetail = () => {
         Toast.hide();
+        const habitGoal = this.getHabitGoal();
+
         this.props.navigation.navigate('CheckinDetail', {
             habitGoalId: this.props.route.params.habitGoalId,
-            habitName: this.getHabitGoal()?.name || '',
+            habitName: habitGoal?.name || '',
             source: 'habitDetail',
+            goalType: habitGoal?.goalType,
+            currencyCode: habitGoal?.currencyCode,
         });
     };
 
@@ -608,6 +687,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                 themeHabits={this.themeHabits}
                             />
                         </View>
+
+                        {this.renderSavingsCard(userHabit)}
 
                         {streak && streak.currentStreak > 0 && (
                             <StreakWidget

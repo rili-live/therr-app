@@ -15,7 +15,13 @@ import { bindActionCreators } from 'redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { HabitActions } from 'therr-react/redux/actions';
-import { FeatureFlags } from 'therr-js-utilities/constants';
+import {
+    DEFAULT_SAVINGS_CURRENCY_CODE,
+    FeatureFlags,
+    HabitGoalTypes,
+    SavingsTargetScope,
+    SavingsTargetScopes,
+} from 'therr-js-utilities/constants';
 import getConfig from '../../utilities/getConfig';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { streakFreezeRuleParams } from '../../utilities/streakFreezes';
@@ -30,6 +36,7 @@ import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { Button } from '../../components/BaseButton';
 import { HABITS_PRESTAGED_TEMPLATE_ID } from '../../components/Habits/PactPreviewOverlay';
+import SavingsAmountInput from '../../components/Habits/SavingsAmountInput';
 import { buildInviteUrl } from '../../utilities/shareUrls';
 import {
     WizardStep as Step,
@@ -79,6 +86,16 @@ interface ICreatePactInviteState {
     step: Step;
     selectedTemplateId: string | null;
     customHabitName: string;
+    /**
+     * Marks a *custom* habit as a savings goal. A template carries its own `goalType`,
+     * so this is only consulted on the custom-name path — see `getIsSavingsSelection`.
+     */
+    isSavingsHabit: boolean;
+    /** Raw text, so a half-typed "12." survives a keystroke. See SavingsAmountInput. */
+    savingsTargetText: string;
+    /** The parsed target, or null for an open-ended savings habit. */
+    savingsTargetAmount: number | null;
+    savingsTargetScope: SavingsTargetScope;
     selectedPartnerIds: string[];
     selectedPartnerDetailsById: { [id: string]: IConnectionDetails };
     searchQuery: string;
@@ -187,6 +204,10 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             step: 1,
             selectedTemplateId: null,
             customHabitName: '',
+            isSavingsHabit: false,
+            savingsTargetText: '',
+            savingsTargetAmount: null,
+            savingsTargetScope: SavingsTargetScopes.PER_MEMBER,
             selectedPartnerIds: [],
             selectedPartnerDetailsById: {},
             searchQuery: '',
@@ -441,7 +462,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      */
     createHabitGoal = async (): Promise<string | null> => {
         const { habits, createGoal } = this.props;
-        const { selectedTemplateId, customHabitName } = this.state;
+        const { selectedTemplateId, customHabitName, isSavingsHabit } = this.state;
 
         if (selectedTemplateId) {
             const template = habits.templates?.find((t) => t.id === selectedTemplateId);
@@ -455,9 +476,18 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 description: template.description,
                 category: template.category,
                 emoji: template.emoji,
+                // `goalType` was missing from this clone until now, and it is the field
+                // that decides which achievement ladder the habit feeds and whether it
+                // tracks money at all. Every clone of the seeded savings template came
+                // out as `build_good` (the column default), so the group-trip template
+                // shipped as an ordinary habit and no amount could ever be recorded
+                // against it. Nothing failed — the goal was created, the pact worked,
+                // the savings half was simply absent.
+                goalType: template.goalType,
                 frequencyType: template.frequencyType,
                 frequencyCount: template.frequencyCount,
                 targetDaysOfWeek: template.targetDaysOfWeek,
+                ...this.getSavingsGoalFields(template.goalType),
             });
 
             return userGoal?.id || selectedTemplateId;
@@ -466,14 +496,78 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         if (customHabitName.trim()) {
             const newGoal = await createGoal({
                 name: customHabitName.trim(),
+                goalType: isSavingsHabit ? HabitGoalTypes.SAVINGS_GOAL : undefined,
                 frequencyType: 'daily',
                 frequencyCount: 1,
+                ...this.getSavingsGoalFields(isSavingsHabit ? HabitGoalTypes.SAVINGS_GOAL : undefined),
             });
 
             return newGoal?.id || null;
         }
 
         return null;
+    };
+
+    /**
+     * The savings target fields, or nothing at all for a habit that is not a savings
+     * goal.
+     *
+     * Returned as a spread rather than always-present keys so a non-savings habit sends
+     * no savings fields whatsoever — the server treats an absent key as "leave alone",
+     * and a `targetAmount: null` on an ordinary habit would be a meaningless write.
+     *
+     * An empty amount on a savings habit is deliberately still a savings habit: that is
+     * the open-ended case, which records a running total and never completes.
+     */
+    getSavingsGoalFields = (goalType?: string) => {
+        if (goalType !== HabitGoalTypes.SAVINGS_GOAL) {
+            return {};
+        }
+
+        const { savingsTargetAmount, savingsTargetScope } = this.state;
+
+        return {
+            targetAmount: savingsTargetAmount,
+            currencyCode: this.getSavingsCurrencyCode(),
+            savingsTargetScope,
+        };
+    };
+
+    /**
+     * The currency a savings target is recorded in.
+     *
+     * Taken from the device locale rather than asked for, because a picker would be a
+     * whole extra step for a field almost nobody changes, and it is display-only —
+     * nothing in the system converts between currencies. Falls back to USD when the
+     * locale does not imply one.
+     */
+    getSavingsCurrencyCode = (): string => {
+        try {
+            const resolved = new Intl.NumberFormat(
+                this.props.user?.settings?.locale || undefined,
+                { style: 'currency', currency: DEFAULT_SAVINGS_CURRENCY_CODE },
+            ).resolvedOptions();
+
+            return (resolved.currency || DEFAULT_SAVINGS_CURRENCY_CODE).toUpperCase();
+        } catch {
+            return DEFAULT_SAVINGS_CURRENCY_CODE;
+        }
+    };
+
+    /**
+     * Whether the habit being composed is a savings goal — from the chosen template's
+     * own type, or from the custom-habit toggle.
+     */
+    getIsSavingsSelection = (): boolean => {
+        const { habits } = this.props;
+        const { selectedTemplateId, isSavingsHabit } = this.state;
+
+        if (selectedTemplateId) {
+            const template = habits.templates?.find((t: IHabitGoal) => t.id === selectedTemplateId);
+            return template?.goalType === HabitGoalTypes.SAVINGS_GOAL;
+        }
+
+        return isSavingsHabit;
     };
 
     /**
@@ -656,9 +750,91 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         }
     };
 
+    /**
+     * The savings target block — amount, and who the target belongs to.
+     *
+     * Only rendered once the composed habit is actually a savings goal, so an ordinary
+     * habit's create flow is unchanged.
+     *
+     * The scope choice is the one control here that changes behaviour rather than
+     * display: it decides whether the pact finishes when *each* member reaches the
+     * number or when the group reaches it between them, and those complete on very
+     * different days. It is therefore two labelled options with explanatory copy rather
+     * than a bare switch — the wording is what makes the choice meaningful.
+     */
+    renderSavingsTarget = () => {
+        const { savingsTargetText, savingsTargetScope } = this.state;
+
+        if (!this.getIsSavingsSelection()) {
+            return null;
+        }
+
+        const scopeOptions: { value: SavingsTargetScope; labelKey: string; hintKey: string }[] = [
+            {
+                value: SavingsTargetScopes.PER_MEMBER,
+                labelKey: 'pages.pacts.wizard.savingsScopePerMemberLabel',
+                hintKey: 'pages.pacts.wizard.savingsScopePerMemberHint',
+            },
+            {
+                value: SavingsTargetScopes.GROUP,
+                labelKey: 'pages.pacts.wizard.savingsScopeGroupLabel',
+                hintKey: 'pages.pacts.wizard.savingsScopeGroupHint',
+            },
+        ];
+
+        return (
+            <View style={{ paddingHorizontal: 10, marginTop: 20 }}>
+                <Text style={[this.themeHabits.styles.habitCardSubtitle, { fontWeight: '600', paddingHorizontal: 10 }]}>
+                    {this.translate('pages.pacts.wizard.savingsSectionTitle')}
+                </Text>
+                <SavingsAmountInput
+                    value={savingsTargetText}
+                    onChangeText={(text) => this.setState({ savingsTargetText: text })}
+                    onValueChange={(amount) => this.setState({ savingsTargetAmount: amount })}
+                    currencyCode={this.getSavingsCurrencyCode()}
+                    label={this.translate('pages.pacts.wizard.savingsTargetLabel')}
+                    hint={this.translate('pages.pacts.wizard.savingsTargetHint')}
+                    translate={this.translate}
+                    colors={this.theme.colors}
+                />
+                {scopeOptions.map((option) => {
+                    const isSelected = savingsTargetScope === option.value;
+
+                    return (
+                        <Pressable
+                            key={option.value}
+                            onPress={() => this.setState({ savingsTargetScope: option.value })}
+                            accessibilityRole="radio"
+                            accessibilityState={{ selected: isSelected }}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'flex-start',
+                                gap: 10,
+                                paddingHorizontal: 10,
+                                paddingVertical: 8,
+                            }}
+                        >
+                            <Text style={{ fontSize: 18 }}>{isSelected ? '🔘' : '⚪'}</Text>
+                            <View style={{ flex: 1 }}>
+                                <Text style={[this.themeHabits.styles.habitCardTitle, { fontSize: 15 }]}>
+                                    {this.translate(option.labelKey)}
+                                </Text>
+                                <Text style={this.themeHabits.styles.habitCardSubtitle}>
+                                    {this.translate(option.hintKey)}
+                                </Text>
+                            </View>
+                        </Pressable>
+                    );
+                })}
+            </View>
+        );
+    };
+
     renderStep1 = () => {
         const { habits } = this.props;
-        const { selectedTemplateId, customHabitName, isLoadingTemplates } = this.state;
+        const {
+            selectedTemplateId, customHabitName, isLoadingTemplates, isSavingsHabit,
+        } = this.state;
         const templates = habits.templates || [];
 
         return (
@@ -724,7 +900,30 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                         }}
                         placeholderTextColor={this.theme.colors.textGray}
                     />
+                    {!selectedTemplateId && customHabitName.trim().length > 0 ? (
+                        // Offered only on the custom path. A template already declares its
+                        // own `goalType`, and letting the toggle override it would let a
+                        // user turn "Read 20 pages" into a savings habit by accident.
+                        <Pressable
+                            onPress={() => this.setState({ isSavingsHabit: !isSavingsHabit })}
+                            accessibilityRole="checkbox"
+                            accessibilityState={{ checked: isSavingsHabit }}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 10,
+                                marginTop: 14,
+                            }}
+                        >
+                            <Text style={{ fontSize: 18 }}>{isSavingsHabit ? '☑️' : '⬜'}</Text>
+                            <Text style={[this.themeHabits.styles.habitCardSubtitle, { flex: 1 }]}>
+                                {this.translate('pages.pacts.wizard.savingsToggleLabel')}
+                            </Text>
+                        </Pressable>
+                    ) : null}
                 </View>
+
+                {this.renderSavingsTarget()}
             </View>
         );
     };
