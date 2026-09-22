@@ -1526,6 +1526,47 @@ backend change needed — it refuses to treat Play's own
   kubectl exec "$POD" -c users-service -- npm run migrations:run
   ```
   Then deploy `general → stage → main` to pick up `f4ff81bc1` (Docker Hub auth + wedged-rollout convergence), so the next deploy reaches its migration step. Note the ordering hazard is now known and unguarded: **any** deploy that fails in `deploy_waves` leaves already-rolled services on code newer than the schema, with no alert.
+  > **The hazard is guarded as of 2026-09-22** (§ 3.5) — `deploy.sh` now migrates
+  > what rolled even when the deploy fails, and fails the job when any service is
+  > running ahead of its schema. That does **not** fix the cluster as it stands
+  > today: the guard has to reach `main` before it can do anything, and the three
+  > migrations above are still unrun until someone runs them. Once this change is
+  > deployed the recovery command becomes
+  > `./_bin/cicd/run-migrations.sh --service users-service`, and
+  > `--verify-only` answers "is anything running ahead of its schema right now"
+  > without changing anything.
+- [ ] (2026-09-22, /work-plan) **Watch the first `main` deploy after the migration-guard
+  change for a false failure from the new verify pass.** `verify_no_pending_migrations`
+  execs `npm run migrations:status` in every migratable service's pod and fails the job
+  when any reports unapplied migrations. Two states are expected and benign on that first
+  deploy only: a service the deploy did not move is still serving an image built before
+  the `migrations:status` script existed, which npm answers with `Missing script` — that
+  is detected and reported as `unsupported`, skipped, not failed. The one to look at is
+  `Could not read pending migrations for <service>`: that means knex printed something
+  the parse did not recognise, and the pass is deliberately failing closed rather than
+  reporting zero. If knex 3.x ever changes that line, this is where it surfaces — fix the
+  parse in `pending_migration_count`, do not widen it to treat unknown as zero, which is
+  the false-green shape the pass exists to catch.
+- [ ] (2026-09-22, /work-plan) **Settle the habit-cap count question (#2923) — one query, and
+  the code half is already done.** A user hit the free-tier gate on what they counted as their
+  8th habit, against `HABITS_FREE_HABIT_LIMIT = 5`. The fail-open path now reports itself
+  (`level: 'error'`, with `habitCapacity.failOpenCount` / `.failedStage` on the span), so a cap
+  that has silently stopped enforcing is visible going forward — but that says nothing about
+  what already happened. Two candidates remain and one query separates them:
+
+  ```sql
+  SELECT status, count(*) FROM habits.user_habits
+   WHERE "userId" = '<user-id>' GROUP BY status;
+  ```
+
+  If `active` is 5, there is no bug — `countActiveByUser` counts only `active`, so archived
+  rows are correctly excluded and the user's own sense of "how many habits I have" simply
+  differs from the cap's. Worth a UX note, nothing more. If `active` is **> 5**, check
+  Honeycomb for `Failed to evaluate habit capacity` spans on that user (a sustained fail-open
+  would have disabled the gate for them), and check the `20260815000001` backfill above — if
+  it under-produced, pre-migration habits were never counted and the ceiling sat above 5 by
+  however many were missed:
+  `SELECT count(*) FROM habits.user_habits;`
 <!-- skill-followups:end -->
 
 ---
@@ -2554,25 +2595,31 @@ backlog).
   "run unconsumed migrations" manual follow-up. Additive/expand-contract
   migrations only; opt out with `RUN_MIGRATIONS_ON_DEPLOY=false`.
 
-- [ ] **The `.husky/pre-push` gate cannot pass, whether or not Redis is running.**
-  Found 2026-09-01 (/work-plan) while pushing an unrelated habits change; neither
-  defect is in the pushed diff, and both are latent because the integration tests
-  self-skip on a machine with no Redis.
-  - **Redis down:** `push-notifications-service`'s integration `after all` hooks
-    call `closeTestRedisConnection`, which `quit()`s a connection that was never
-    opened — `Error: Connection is closed`, 2 failures. The test *bodies* skip
-    correctly; only the teardown does not. Guard the `quit()` on the same
-    `skipTests`/connected flag the bodies use
-    (`tests/integration/testRedisConnection.ts:56`).
-  - **Redis up:** `therr-api-gateway`'s two TTL-expiry tests (`should expire
-    session tokens after TTL`, `should reset rate limit after window expires`)
-    `setTimeout` for **2500ms** under mocha's default **2000ms** timeout, so they
-    can only pass while Redis is absent and they skip. `therr-api-gateway/.mocharc.js`
-    sets no `timeout`. Either set one there or pass `this.timeout(5000)` on those
-    two tests.
-  Both are ~1-line fixes, and until they land every push either fails the hook or
-  trains the next person to reach for `--no-verify` — which is what the hook's own
-  header warns against.
+- ✅ **A failed rollout no longer skips migrations for the services that did roll**
+  — **DONE** 2026-09-22 (/work-plan), closing the hazard the 2026-09-20 outage left
+  open. `deploy.sh` traps `deploy_waves` instead of letting `set -e` end the job,
+  migrates only the migratable services confirmed to be on their desired tag
+  (`MIGRATE_ONLY_SERVICES` — set-but-empty means *none*, which is why it is not
+  collapsed with `${VAR:-}`), and still exits non-zero. The wave ordering's intent is
+  unchanged: a service that never rolled is never migrated underneath.
+  `run-migrations.sh` gained three things alongside it — per-service failure
+  isolation (one slow `rollout status` used to take every service after it in the
+  loop), a `verify_no_pending_migrations` pass that asks each running pod directly
+  and so catches migrations left behind by *any* earlier deploy rather than only
+  this one, and a standalone mode (`--service <key>` / `--all` / `--verify-only`)
+  that is now the supported recovery path when a deploy dies before its migration
+  step. The verify parse fails closed: an unrecognised `migrate:list` format reports
+  "unknown" and fails the job rather than reporting zero pending. Decision logic is
+  covered by `_bin/lib/tests/run-migrations-scope.test.js`.
+
+- ✅ **The `.husky/pre-push` gate cannot pass, whether or not Redis is running** —
+  **DONE** 2026-09-22 (/work-plan). `closeTestRedisConnection` now guards `quit()`
+  on the client's own ioredis `status` rather than on its mere existence (a
+  `lazyConnect` client is constructed by every helper in that module, including the
+  `checkRedisConnection` the bodies call to decide whether to skip), and
+  `therr-api-gateway/.mocharc.js` sets `timeout: 10000` so the two deliberate
+  2500ms TTL waits outlast mocha's 2000ms default. Both defects were verified
+  against the source before the fix; neither was ever in a pushed diff.
 
 - [ ] **Post-deploy staging smoke tests + auto-rollback** (roadmap #3) —
   replace the stubbed `test-e2e-staging` job in `.circleci/config.yml`

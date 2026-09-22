@@ -2,7 +2,12 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import { AccessLevels, BrandVariations, HABITS_FREE_HABIT_LIMIT } from 'therr-js-utilities/constants';
 import Store from '../../src/store';
-import { checkHabitCapacity, isHabitCapExempt } from '../../src/handlers/helpers/habitCapacity';
+import {
+    checkHabitCapacity,
+    getHabitCapacityFailOpenCount,
+    isHabitCapExempt,
+    resetHabitCapacityFailOpenCount,
+} from '../../src/handlers/helpers/habitCapacity';
 
 /**
  * The Friends with Habits free-tier gate.
@@ -153,6 +158,75 @@ describe('Habit capacity (HABITS free-tier gate)', () => {
             });
 
             expect(denial?.message).to.be.a('string').and.not.empty;
+        });
+    });
+
+    /**
+     * Failing open is the right behaviour and is not what these guard. What they
+     * guard is that it is *visible*: a cap that has silently stopped enforcing
+     * looks exactly like a cap that is working, which is why #2923 — a user at 8
+     * active habits against a limit of 5 — could not be explained from the code.
+     * The tally is what separates one transient blip from a gate that has been
+     * off for days.
+     */
+    describe('fail-open reporting', () => {
+        beforeEach(() => {
+            resetHabitCapacityFailOpenCount();
+        });
+
+        afterEach(() => {
+            resetHabitCapacityFailOpenCount();
+        });
+
+        it('does not count a successful evaluation', async () => {
+            findUserStub.resolves([{ accessLevels: [AccessLevels.EMAIL_VERIFIED] }]);
+            countActiveStub.resolves(1);
+
+            await checkHabitCapacity({ userId: 'user-1', brandVariation: BrandVariations.HABITS });
+
+            expect(getHabitCapacityFailOpenCount()).to.equal(0);
+        });
+
+        it('does not count a denial', async () => {
+            findUserStub.resolves([{ accessLevels: [] }]);
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT);
+
+            const denial = await checkHabitCapacity({ userId: 'user-1', brandVariation: BrandVariations.HABITS });
+
+            expect(denial).to.not.equal(null);
+            expect(getHabitCapacityFailOpenCount()).to.equal(0);
+        });
+
+        it('accumulates across repeated failures, so a sustained fail-open is distinguishable from a blip', async () => {
+            findUserStub.resolves([{ accessLevels: [AccessLevels.EMAIL_VERIFIED] }]);
+            countActiveStub.rejects(new Error('connection terminated'));
+
+            await checkHabitCapacity({ userId: 'user-1', brandVariation: BrandVariations.HABITS });
+            expect(getHabitCapacityFailOpenCount()).to.equal(1);
+
+            await checkHabitCapacity({ userId: 'user-2', brandVariation: BrandVariations.HABITS });
+            await checkHabitCapacity({ userId: 'user-3', brandVariation: BrandVariations.HABITS });
+
+            expect(getHabitCapacityFailOpenCount()).to.equal(3);
+        });
+
+        it('counts a failing user lookup too', async () => {
+            // The more serious of the two: with findUser down, nobody can be
+            // recognised as entitled either, so paying customers are also going
+            // through unevaluated.
+            findUserStub.rejects(new Error('connection terminated'));
+
+            await checkHabitCapacity({ userId: 'user-1', brandVariation: BrandVariations.HABITS });
+
+            expect(getHabitCapacityFailOpenCount()).to.equal(1);
+        });
+
+        it('does not count a short-circuited non-HABITS request', async () => {
+            findUserStub.rejects(new Error('connection terminated'));
+
+            await checkHabitCapacity({ userId: 'user-1', brandVariation: BrandVariations.THERR });
+
+            expect(getHabitCapacityFailOpenCount()).to.equal(0);
         });
     });
 });
