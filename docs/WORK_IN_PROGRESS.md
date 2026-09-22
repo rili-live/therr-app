@@ -1,6 +1,7 @@
 # Work In Progress — TODO Backlog & Manual Steps
 
-**Last Updated:** September 2026
+**Last Updated:** 2026-09-22 (groomed: duplicates merged, completed items deleted,
+`general` ↔ `niche/HABITS-general` reconciled)
 **Audience:** Developers and coding agents
 **Status:** Living document — update when TODOs are resolved or added
 
@@ -48,9 +49,10 @@
 - **Developers:** Use this as the prioritized backlog when you have spare
   time. Tier 1 items are the only ones that should pre-empt active feature
   work on the current niche/general branch.
-- **Plausibility:** This audit removed dead-code, debug-print, and duplicate
-  TODOs. Everything below has been confirmed plausible against the current
-  codebase (April 2026 audit).
+- **Plausibility:** Dead-code, debug-print and duplicate TODOs have been removed.
+  Everything below was confirmed plausible against the current codebase in the
+  2026-09-22 grooming pass; entries older than that carry their own dates, and a
+  date is not a re-verification.
 
 ---
 
@@ -117,28 +119,9 @@ append new items here rather than only printing them once.
 
 ## Space claim queue repair (added 2026-09-19)
 
-- [x] **Run `scripts/import-spaces/repair-space-claims` against prod BEFORE the claim-queue
-  fix (#2927) deploys.** _Done 2026-09-19 14:42 UTC: 25 released, Pappadeaux claim recorded,
-  272 `geomCenter` backfilled; verified read-only afterwards — no ownership moved._ One idempotent, all-or-nothing transaction that (a) releases the 25
-  already-approved consumer "Request a Space" rows back to unclaimed inventory by clearing
-  `requestedByUserId` — they are suggestions, not business claims, so ownership stays with the
-  super admin; left as they are, the corrected admin queue would list every one as a fresh
-  claim and `isUnclaimed` would stay false so no business could claim them; (b) records the one
-  claim that the lost `request-claim/:spaceId` path never wrote (Pappadeaux Seafood Kitchen,
-  from the 2026-09-19 admin email); and (c) backfills `geomCenter` for the 272 spaces
-  `createSpace` never populated, which made them invisible to every proximity search. The
-  migration `20260919000000_main.spaces.geomCenter_backfill.js` repeats (c) on deploy, so
-  only (a) and (b) genuinely depend on running this first. Preview with `--dry-run`; the
-  script aborts unless the row counts match the preview.
-
-  ```bash
-  npx ts-node scripts/import-spaces/repair-space-claims \
-    --claim aa232e8f-5d8f-4f42-8daf-1a40e1b4a9aa:24cd464b-ac41-4452-9ad6-7d0a704d3382
-  ```
-
-  Then approve or reject Pappadeaux from `/dashboard-admin` once #2927 is live (or right away
-  with `scripts/import-spaces/approve-space-claim`, which also sends the approval email).
-  Read-only cross-check: `_bin/prod-debug/space-claims-audit.sql`.
+The prod repair itself ran 2026-09-19 14:42 UTC (`repair-space-claims`: 25 consumer
+"Request a Space" rows released back to unclaimed inventory, the Pappadeaux claim recorded,
+272 `geomCenter` values backfilled; no ownership moved). One follow-up survives it.
 
 - [ ] **Reconcile any other claim-request emails against the queue.** Claims on spaces that
   already existed on the map wrote nothing before #2927; each exists only as an admin email.
@@ -146,49 +129,6 @@ append new items here rather than only printing them once.
   finds the space, and `repair-space-claims --claim <spaceId>:<userId>` (or
   `approve-space-claim`) records it. Section 7 of the audit SQL shows weekly volume to compare
   against the inbox.
-
-## Savings goal amounts — mobile half (added 2026-09-20)
-
-The backend and shared-library half landed on `general` (migrations for
-`habits.habit_goals.targetAmount` / `currencyCode` / `savingsTargetScope` and
-`habits.habit_checkins.savedAmount`, `savingsProgress` on the pact detail, `totalSaved` on
-the habit list, `parseSavingsAmount` in `therr-js-utilities`, and the `isSavingsGoal` /
-`currencyCode` fields on the check-in nudge payload). None of it is reachable by a user until
-the UI ships, and **every item below must land on `niche/HABITS-general`** — the Habits screens
-do not exist on `general`.
-
-- [ ] **Clone `goalType` when a template is copied into a habit goal.** `createHabitGoal` in
-  `TherrMobile/main/routes/Pacts/CreatePactInvite.tsx` copies name, description, category,
-  emoji, frequency and target days off the chosen template but **not** `goalType`, so the
-  seeded savings template (migration `20260510000001`, the group-trip one) clones to
-  `build_good` and no amount tracking ever activates. This is a pre-existing bug and it is the
-  single blocker for the whole feature: without it a user cannot create a savings habit from
-  the UI at all. The backend `POST /habits/goals` has always accepted `goalType`.
-- [ ] **Amount field on the check-in form.** `components/Habits/CheckinDetailForm.tsx` — a
-  numeric input shown only for `goalType === 'savings_goal'`, sent as `savedAmount` on
-  `POST /habits/checkins`. Validate with `parseSavingsAmount` so the client rejects exactly
-  what the server would. Sending the key absent leaves an existing amount alone; sending it
-  empty clears it.
-- [ ] **Totals in the pact and habit detail views.** `routes/Pacts/PactDetail.tsx` renders
-  `pact.savingsProgress`: the group total, the per-member breakdown (members who have saved
-  nothing come back as explicit zero rows and should be shown), progress against
-  `targetAmount`, and a reached state. `routes/Habits/HabitDetail.tsx` and `HabitCard` render
-  the solo `totalSaved`. Both are absent on responses from an older users-service — treat
-  absent as unknown, not zero.
-- [ ] **Target fields in the create-habit wizard.** Amount, currency and the per-member /
-  group choice, on the savings branch only. The scope choice is the one that decides when the
-  pact completes, so it needs real copy, not a toggle labelled "group".
-- [ ] **Handle the `habit-checkin-savings` press action.** `TherrMobile/index.js` background
-  handler — Android `RemoteInput` on the notification action, POST the typed text as
-  `savedAmount` (server re-parses it). Until this ships the action id arrives on the payload
-  and the tap does nothing, so it should ship in the same build as the amount field, not
-  before it. No `AndroidManifest.xml` change is needed, contrary to an earlier note here: the
-  manifest's intent filters are keyed on notification *types* (`DAILY_HABIT_REMINDER` and
-  friends), while press actions are dispatched entirely in JS by Notifee — and this reuses
-  the existing `streakAtRisk` / `dailyHabitReminder` types rather than adding one.
-- [ ] **Locale strings for all three dictionaries** (`en-us`, `es`, `fr-ca`) for every string
-  above. The users-service `errorMessages.savings.*` keys and the push-service
-  `notifications.shared.pressActionLogAmount` key already exist in all three.
 
 ## iOS demand tracking (added 2026-09-14)
 
@@ -319,39 +259,31 @@ do not exist on `general`.
   > engagement — so paid-campaign reporting works around it via
   > `scripts/google-ads/settings.yaml` → `ga4.web_hostname`. That is a workaround for
   > one report, not a fix: the property's own totals stay inflated until this is blocked.
-- [x] **Re-register the `surface` custom dimension** now that habits.therr.com
-  reports as its own surface (`landing` / `web` / `habits` / `dashboard`). GA4 admin
-  -> Custom definitions, event-scoped, parameter `surface`. Without registration the
-  value is collected but not reportable, and habits web traffic stays indistinguishable
-  from therr.com.
-  > Done — verified 2026-09-03 against property `549794383`: `customEvent:surface`
-  > returns `web` 10,111 / `habits` 600 / `landing` 319 / `dashboard` 77 over the 30
-  > days to 2 Sep. `scripts/google-ads/settings.example.yaml` →
-  > `ga4.surface_dimension_registered` now defaults to `true`.
-- [x] **Exclude the synthetic device farm from the habits app funnel.** GA4 property
-  `267810693`, stream "Friends with Habits", reported 136 new users for 6 Aug – 8 Sep
-  2026. Google Play reported 20 device installs and 49 store-listing acquisitions over
-  the identical window. Breaking GA4 down by `deviceModel` puts 66 of the 136 (49%) on
-  four models: `OnePlus8Pro` (45 users, 45 sessions, country `(not set)`),
-  `sdk_gphone64_arm64` (9), `sdk_gphone_arm64` (6), `Android SDK built for arm64` (6).
-  The `OnePlus8Pro` rows are spread evenly across all twelve historical app versions —
-  roughly four users each on 0.4.10 through 1.5.2 — at one session per user. Nothing
-  human installs twelve versions of an app, and Play only ever serves the newest.
-  > **Not the `__DEV__` gate.** `TherrMobile/main/App.tsx` has called
-  > `setAnalyticsCollectionEnabled(getAnalytics(), !__DEV__)` since 2023 on every
-  > branch, so local debug builds have never reported. These are release builds being
-  > launched by something that is not a user.
-  > **Not fixable with a GA4 data filter** either — same limitation as the crawler
-  > above: only Developer and Internal traffic are filterable, and there is no
-  > `deviceModel` filter. Exclusion has to be query-time, which has the advantage of
-  > being retroactive.
-  Done: `SYNTHETIC_DEVICE_MODELS` in `scripts/google-ads/therr_ads/ga4.py` (applied to
-  `fetch_app_funnel` by default, recorded in every report's `notes`), and a **"Real
-  Users"** segment in GA4 Explore applied to the Funnel exploration. Sanity check when
-  reading either: `first_open` should read **70**, not 136, for 6 Aug – 8 Sep.
-- [ ] **Re-submit the habits sitemap to Search Console** — `habits.therr.com/sitemap.xml`
-  grew from 3 URLs to 3 + `/blog` + one per cross-post. This subdomain has almost no
-  inbound links, so the sitemap is most of how those pages get discovered at all.
+> **Standing correction, not a task: the habits app funnel excludes a synthetic device
+> farm.** GA4 property `267810693` ("Friends with Habits") reported 136 new users for
+> 6 Aug – 8 Sep 2026 against Play's 20 device installs; 66 of the 136 sit on four
+> models (`OnePlus8Pro` 45, `sdk_gphone64_arm64` 9, `sdk_gphone_arm64` 6,
+> `Android SDK built for arm64` 6), the `OnePlus8Pro` rows spread evenly across all
+> twelve historical app versions at one session each. Not the `__DEV__` gate
+> (`setAnalyticsCollectionEnabled(getAnalytics(), !__DEV__)` has been in `App.tsx`
+> since 2023), and not filterable in GA4 — only Developer and Internal traffic are.
+> Exclusion is therefore query-time, and retroactive: `SYNTHETIC_DEVICE_MODELS` in
+> `scripts/google-ads/therr_ads/ga4.py` (applied to `fetch_app_funnel` by default and
+> recorded in every report's `notes`), plus a **"Real Users"** segment on the GA4
+> Explore funnel. Sanity check when reading either: `first_open` is **70**, not 136,
+> for 6 Aug – 8 Sep. The `surface` custom dimension is registered and reporting
+> (`web` / `habits` / `landing` / `dashboard`), verified 2026-09-03.
+
+- [ ] **Re-submit the habits sitemap to Search Console.** `habits.therr.com/sitemap.xml`
+  grew from 3 URLs to 3 + `/blog` + one per cross-post, and later gained `/login`,
+  `/verify-account`, `/emails/unsubscribe` and `/claim-pact/:token` as SSR routes — all
+  four are `noindex` or transient, so the call is whether the generator should emit them
+  at all, not whether to index them. This subdomain has almost no inbound links, so the
+  sitemap is most of how those pages get discovered. While here, confirm
+  `https://habits.therr.com/.well-known/assetlinks.json` still returns the
+  `com.therr.habits` file and re-run the Play Console "App links" check — App Links
+  verification fails silently if that host ever serves the default `app.therrmobile` one.
+  (Supersedes three narrower 2026-05/08 entries for the same submission.)
 - [ ] **Verify `therr-for-business` (property `351769800`) is tagged.** It returned
   zero rows for every window checked on 2026-08-24 — either not deployed or not
   collecting. The B2B funnel is Priority 1 in `docs/GROWTH_STRATEGY.md`, and it is
@@ -401,15 +333,15 @@ here is what code cannot close.
   being fed. Watch `daily cap reached` fall at the same time, and watch for
   `spaced:` values in `notificationQueue."lastError"` — those are deferrals, not
   failures, and should clear within the hour.
-- [x] ~~**Move the habits digest off 14:00 UTC.**~~ Superseded rather than done, and
-  **the schedule must now stay where it is.** The digest no longer treats its own
-  firing time as the delivery time: it reads each user's `settingsTimezone` and
-  queues rows with an explicit `scheduledFor`, so the morning nudge lands in the
-  user's local morning and the new `eveningCheckIn` "last chance" nudge in their
-  local evening. Moving the Cloud Scheduler job would only change which users'
-  *decisions* get made late in their own day — and 14:00 UTC = 09:00 CDT is also
-  the fallback delivery time for a user whose timezone we do not know yet, so
-  changing it would silently move their reminders.
+> **Do not move the digest off 14:00 UTC.** Recorded here because it reads like an
+> obvious improvement and is not. The digest no longer treats its own firing time as
+> the delivery time — it reads each user's `settingsTimezone` and queues rows with an
+> explicit `scheduledFor`, so the morning nudge lands in the user's local morning and
+> the `eveningCheckIn` "last chance" nudge in their local evening. Moving the Cloud
+> Scheduler job would only change which users' *decisions* get made late in their own
+> day, and 14:00 UTC = 09:00 CDT is also the fallback delivery time for a user whose
+> timezone is still unknown, so changing it would silently move their reminders.
+
 - [ ] **Watch `usersWithoutTimezone` fall over the weeks after the mobile release.**
   It counts digest recipients with no usable `main.users.settingsTimezone`, who
   fall back to `America/Chicago` and therefore keep exactly the delivery time they
@@ -430,24 +362,6 @@ here is what code cannot close.
   the gate is not firing and users are being nagged after they have already done
   the thing. Kill switch is `HABIT_LAST_CHANCE_REMINDERS_ENABLED=false` on
   users-service — no deploy needed.
-- [x] **Build the push-preference UI, now that two columns are finally read.** The
-  digest honours `settingsPushHabitReminders` (both daily slots) and
-  `settingsPushStreakAlerts` (the evening escalation only) — the first server-side
-  reading of any push preference column. No client writes either, so
-  `remindersMutedByPreference` and `lastChanceMutedByPreference` will sit at 0
-  until `TherrMobile/main/routes/Settings/ManageNotifications.tsx` grows push
-  toggles alongside its email ones. Until then a user's only way to turn the
-  evening nudge off is the OS switch, which takes everything with it.
-  > Both halves are in as of 2026-09-05. The toggles shipped on
-  > `niche/HABITS-general` (`c45a0bc5`) **before** the server could accept them —
-  > `updateArgs` in `handlers/users.ts` and the param filter in
-  > `UsersStore.updateUser` are both explicit allow-lists and neither named these
-  > columns, so a save returned 202 with the values dropped and the screen showed a
-  > success toast. Both allow-lists now carry them, guarded on `!= null` rather than
-  > truthiness: the digest mutes on an explicit `false` and nothing else, so `false`
-  > is the only value that changes anything. **The write half is on `general` and the
-  > toggles are on the niche branch — the counters stay at 0 until both are out.**
-
 ## Standing items (always re-verify after a deploy that touches the area)
 
 - [ ] **Submit / re-submit sitemap to Google Search Console** after any change
@@ -512,12 +426,11 @@ here is what code cannot close.
 Phases 1–4 have shipped in code. These are the steps code cannot do — external
 console configuration, and one verification that gates a payments change.
 
-- [x] **Verify the plan → Stripe product mapping before enabling Checkout Sessions.**
-  Done 2026-08-12: the ids in
-  `therr-services/users-service/src/handlers/helpers/checkoutSessionPlans.ts` were confirmed
-  against the Stripe dashboard and `isStripeCheckoutSessionsEnabled` is now `true` in every
-  env block. Checkout Sessions therefore serve **production** buyers; the legacy Payment
-  Links remain only as the in-code fallback when session creation fails.
+The plan → Stripe product mapping was verified 2026-08-12 and
+`isStripeCheckoutSessionsEnabled` is `true` in every env block, so Checkout Sessions serve
+**production** buyers and the legacy Payment Links remain only as the in-code fallback when
+session creation fails. That is what arms the first item below.
+
 - [ ] **Run one live-mode purchase per plan now that the flag is on.** Confirm the amount,
   the 14-day trial, and that `/payment-complete/:sessionId` grants the right access level for
   basic, advanced and pro. The flag is armed in production, so a wrong price or a missed
@@ -532,11 +445,6 @@ console configuration, and one verification that gates a payments change.
   Configure tag settings → Configure your domains). The tag-side `linker` config is now
   deployed on all surfaces, but it only decorates outbound links — the receiving property
   honours `_gl` only when the admin list includes the domain.
-- [x] **Register `surface` as an event-scoped custom dimension** in GA4 admin. Every hit now
-  carries it (`landing` / `web` / `dashboard`); without registration it is collected but
-  not reportable, and the three surfaces cannot be separated after consolidation.
-  > Done — see the verification note under § Analytics & traffic above. This is the same
-  > item; the two entries were written independently.
 - [ ] **Mirror the consolidated GA4 measurement id into `therr-landing`.** The property exists
   and `global-config.js` → `googleAnalyticsKeyUnified` is set to `G-R7CY0Z1ZRM` in all three
   env blocks, so this repo's clients already dual-report. Still owed: the commented block in
@@ -571,13 +479,14 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 > is therefore already substantially answered, and the instrumentation and
 > onboarding items below are what a campaign is waiting on — not the credentials.
 
-- [x] **Obtain Google Ads API access at Basic level.** Done 2026-09-14 — but
-  not where this item said: Google moved access levels out of the Ads UI API
-  Center into Cloud Console -> APIs & Services -> Google Ads API, on the project
-  owning the OAuth client. Verified live: reads and `campaign apply
-  --validate-only` succeed against `7604290203`.
-- [x] **Create a Desktop-app OAuth client and run `./therrads auth login`.**
-  Done; `./therrads auth check` reaches 4 accounts.
+> **Credentials are done and are not the blocker.** Google Ads API access at Basic level
+> was granted 2026-09-14 (note for next time: access levels moved out of the Ads UI API
+> Center into Cloud Console → APIs & Services → Google Ads API, on the project owning the
+> OAuth client), the Desktop-app OAuth client is created and `./therrads auth check`
+> reaches 4 accounts, and `settings.yaml` → `customer_id: "7604290203"` /
+> `config.yaml` → `login_customer_id: "3076709152"` are both set and reachable. Reads and
+> `campaign apply --validate-only` succeed live.
+
 - [ ] **Set the Cloud project's OAuth consent screen to "In production".** While
   it is in *Testing*, Google expires the refresh token after 7 days with no
   warning and no distinguishing error — this is the cause of "it worked last
@@ -600,22 +509,16 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   nothing. Ads UI -> Goals -> Conversions -> Settings: un-hide `First open` as
   the primary goal for run 1, and `phone_verify_success` as secondary. Leave the
   `app.therrmobile` ones alone; those are the flagship's.
-- [ ] **Import the six habit events as conversion actions once they are key
-  events.** None of `habit_pact_create` / `habit_checkin_complete` /
-  `habits_founder_unlock_purchase` appear in the account's conversion actions,
-  so they are either not yet key events in GA4 or not yet imported. They are
-  flowing (GA4 shows pact and check-in users in the last 14 days on the
-  production build, versionCode 44), so the "not marked" step below is the
-  blocker, not the app.
-- [x] **Set `settings.yaml` -> `customer_id: "7604290203"` and `config.yaml` ->
-  `login_customer_id: "3076709152"`.** Done; both confirmed reachable.
-- [ ] **Mark the six new habits events as key events** in GA4 admin on property
-  `267810693`, stream "Friends with Habits": `habit_pact_create`,
-  `habit_invite_sent`, `habit_solo_start`, `habit_checkin_complete`,
-  `habits_paywall_view`, `habits_founder_unlock_purchase`. They start arriving
-  once versionCode 35 reaches the Play production track. An event that is
-  collected but not marked cannot be imported into Ads as a conversion action,
-  and this is the whole point of shipping them.
+- [ ] **Mark the six habits events as key events, then import them as conversion
+  actions — in that order.** GA4 admin on property `267810693`, stream "Friends with
+  Habits": `habit_pact_create`, `habit_invite_sent`, `habit_solo_start`,
+  `habit_checkin_complete`, `habits_paywall_view`, `habits_founder_unlock_purchase`.
+  An event that is collected but not marked cannot be imported into Ads as a
+  conversion action, which is why none of them appear in the account's conversion
+  actions today. **The app is not the blocker:** the events ship (versionCode 35 /
+  1.5.0, `niche/HABITS-general`, 2026-09-03) and GA4 shows pact and check-in users on
+  the production build. `ga4.APP_FUNNEL_STEPS` already declares all six, so the
+  reporting side needs no change once they are marked.
 - [ ] **Create a Google Ads link on GA4 property `549794383`.** The app property
   (`267810693`) has had one since 2022; the consolidated web property has
   **none** (re-confirmed via the Admin API 2026-09-14), so the web arm has no
@@ -632,45 +535,18 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 
 ### Code work this unblocks
 
-- [x] **Instrument the habits activation and purchase events in TherrMobile.**
-  `git grep logEvent` on `niche/HABITS-general` finds no `habit_pact_create`, no
-  check-in-complete and no Founder Unlock purchase event, so the in-app funnel
-  stops at phone verification: the MODEL question has no GA4 answer at all, and
-  PRODUCT is answerable only as far as "did they invite anyone". Add
-  `habit_pact_create` (`routes/Pacts/CreatePactInvite.tsx`),
-  `habit_checkin_complete` (`components/Habits/CheckinButton.tsx` /
-  `CheckinProofSheet.tsx`), `habits_founder_unlock_purchase`
-  (`utilities/habitsBilling.ts`, with `value: 20` and `currency: 'USD'` so it
-  imports as a value conversion) and `habits_paywall_view`
-  (`routes/Habits/UpgradePaywall.tsx`), matching the existing
-  `logEvent(getAnalytics(), ...)` style in `routes/CreateProfile/index.tsx:144`.
-  Then mark each as a key event in GA4 admin on property `267810693`.
-  `ga4.APP_FUNNEL_STEPS` already declares them with `shipped=False`, so the
-  reporting side needs no change once they start firing.
-  **Mobile-only — belongs on `niche/HABITS-general`, not `general`.**
-  > Shipped on `niche/HABITS-general` 2026-09-03, in versionCode 35 / 1.5.0.
-  > Six events, all on server-confirmed paths: `habit_pact_create`,
-  > `habit_invite_sent`, `habit_solo_start`, `habit_checkin_complete` (three
-  > call sites, including the push quick-action), `habits_paywall_view`, and
-  > `habits_founder_unlock_purchase` with `value`/`currency`. **Two manual steps
-  > remain — see § Paid acquisition below.**
-- [x] **Wire the Play Install Referrer API into TherrMobile** so paid installs
-  are attributable. Read the referrer string on first launch, parse the UTM
-  parameters, and include them in the registration payload's `userAcquisition`
-  object — `sanitizeUserAcquisition` and `main."userAcquisition"` already exist,
-  so no backend change is needed. Until this ships, every conclusion about the
-  app-install arm's users is inference rather than measurement, and paid installs
-  are indistinguishable from organic ones in the funnel.
-  **Mobile-only — belongs on `niche/HABITS-general`, not `general`.**
-  > Shipped on `niche/HABITS-general` 2026-09-03, in versionCode 35 / 1.5.0.
-  > First-party `InstallReferrerModule.kt` on the existing `InitialIntentModule`
-  > pattern, parsing in `main/utilities/installReferrer.ts`, attached in both
-  > mobile register paths. No backend change, as predicted. It refuses to treat
-  > Play's own `utm_source=google-play&utm_medium=organic` placeholder as a
-  > campaign. **Unverifiable until a real paid click lands** — the first thing
-  > to check after the campaign starts serving is whether a
-  > `main."userAcquisition"` row appears with
-  > `utmCampaign = 'fwh-app-us-installs-2026q3'`.
+Both mobile prerequisites shipped on `niche/HABITS-general` 2026-09-03 in versionCode
+35 / 1.5.0: the six GA4 activation/purchase events (all on server-confirmed paths,
+`habits_founder_unlock_purchase` carrying `value`/`currency` so it imports as a value
+conversion), and the Play Install Referrer wiring (first-party `InstallReferrerModule.kt`,
+parsed in `main/utilities/installReferrer.ts`, attached in both register paths, no
+backend change needed — it refuses to treat Play's own
+`utm_source=google-play&utm_medium=organic` placeholder as a campaign).
+
+- [ ] **Confirm the install-referrer attribution once a real paid click lands.** It is
+  unverifiable until then. The first thing to check after the campaign starts serving is
+  whether a `main."userAcquisition"` row appears with
+  `utmCampaign = 'fwh-app-us-installs-2026q3'`.
 - [ ] **Add accepted-invite counts to the acquisition funnel query** so the viral
   coefficient is measured rather than assumed. `product.py` currently counts
   invites *sent* (the 3-invite solo-tracking unlock); the loop only pays for
@@ -746,26 +622,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   installs that predate the `EditThought` change stop losing photos as soon as users-service
   rolls — no app release required. Historical posts stay imageless: their uploads are
   orphaned objects with no row pointing at them (see § 2.6.7 "Still open").
-- [x] ~~**Ship the `niche/HABITS-general` half of `pactEnded` before
-  this reaches production traffic.**~~ Two things are missing there and neither errors: the
-  `${notificationActionPrefix}.PACT_ENDED` `<intent-filter>` in
-  `TherrMobile/android/app/src/main/AndroidManifest.xml`, and a handler for the `renew-pact`
-  press action. Without the filter an installed app ignores the notification outright; with
-  the filter but no handler the button opens the app and renews nothing. `Layout.tsx` on
-  `general` already routes the type to the Notifications list so a tap is never a dead end,
-  but that is a floor, not the feature. Verify with
-  `node .claude/skills/push-notification-guard/scripts/check-push-wiring.js --brand-branch niche/HABITS-general`
-  — that run could not be completed in the session that wrote this (the branch would not
-  fetch), so the niche half is **unverified**, not known-good.
-  > **Verified 2026-09-05.** Both halves are on `niche/HABITS-general`: the intent filter
-  > (`7db85fb`) and the `renew-pact` branch in `Layout.tsx`, which reads `pactId` from the
-  > data payload, falls back to the dashboard's `all` tab when it is missing, and defers to
-  > `PactDetail` when the user is signed out. The wiring check now runs clean on that branch.
-  > What the check *did* surface, and this entry did not anticipate, is that `PACT_ENDED` was
-  > in no channel bucket, so the push carrying the primary re-commit CTA rendered at DEFAULT
-  > importance with no heads-up banner — fixed by adding it to `REMINDER_ACTION_KEYS`
-  > alongside `PACT_EXPIRING`, the same lifecycle one step earlier. Handset confirmation is
-  > still the next item below.
 - [ ] (2026-09-01, /work-plan) **Confirm on a handset that the ended-pact push renews.** This
   is link 5 and nothing server-side reports it. Let a HABITS pact pass its `endDate`, run the
   digest, then on a real device confirm: the notification arrives, shows **two** buttons
@@ -778,8 +634,9 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   members-per-pact. `pactsExpired > 0` with `pactEndedSent === 0` means the announcement is
   failing while the sweep succeeds; the two are caught separately for exactly that reason, and
   the failure logs `Habits digest: failed to announce ended pact`. Note the digest still fires
-  at 14:00 UTC (09:00 CDT), so this push currently lands in the morning — see the open item
-  above about moving that schedule.
+  at 14:00 UTC (09:00 CDT), so this push lands in the morning — and that is deliberate, not
+  a scheduling bug to fix; see the "do not move the digest off 14:00 UTC" note under
+  § Habits push pipeline.
 - [ ] (2026-08-15, habits-production-readiness) **Create the Google Play in-app product before
   the paywall can work.** Product id `habits_lifetime_founder` on `com.therr.habits`, one-time
   **non-consumable**, $20 USD, active. In-app products do not resolve until the app is published
@@ -799,7 +656,8 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   Until it is set, `GET /habits/lifetime` reports `isStoreConfigured: false` and the client hides
   the CTA, so the failure mode is a missing offer rather than a broken purchase.
 - [ ] (2026-08-15, habits-production-readiness) **Re-answer the Play Data Safety form for
-  `com.therr.habits`.** `docs/niche-sub-apps/HABITS_PLAY_LISTING.md` currently declares Financial
+  `com.therr.habits`.** `docs/niche-sub-apps/HABITS_PLAY_LISTING.md` (**on `niche/HABITS-general`
+  only** — that path does not resolve on `general`) currently declares Financial
   info "No" and Purchase history "No", justified by there being no payment path. Adding Play
   Billing changes that answer, and the listing doc's own note says to re-evaluate if a payment
   path is added. Update the doc and the console together.
@@ -816,10 +674,17 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   memberships — verify it produced rows before the mobile release ships, or every existing user
   sees an empty dashboard and can re-add habits past the cap:
   `SELECT count(*) FROM habits.user_habits;`
-- [ ] (2026-08-15, habits-production-readiness) **Play refunds are not yet handled.** A refunded
-  or charged-back buyer keeps `HABITS_LIFETIME` indefinitely — `habits.lifetime_purchases.status`
-  and `LifetimePurchasesStore.setStatus` exist for it, but nothing consumes Play's Real-Time
-  Developer Notifications. Until a Pub/Sub subscriber lands, revocations have to be done by hand.
+- [ ] (2026-08-15 / 2026-09-07, habits-production-readiness) **Nothing consumes Play's
+  Real-Time Developer Notifications, so no entitlement is ever revoked.** One gap, both
+  products, and **one Pub/Sub consumer serves both** — merged here from two entries that
+  described the same missing subscriber. A refunded or charged-back founder buyer keeps
+  `HABITS_LIFETIME` indefinitely; a subscriber whose renewal fails past the grace period, or
+  who cancels and lets the period end, keeps `HABITS_PREMIUM`. The storage for both already
+  exists (`habits.lifetime_purchases.status` / `LifetimePurchasesStore.setStatus`, and
+  `habits.subscription_purchases.status` / `.expiryTime` / `SubscriptionPurchasesStore.setStatus`);
+  the client verify path only ever writes an *entitling* state, so the downgrade has no
+  producer at all. Until the subscriber lands, revocations are manual: null out the access
+  level on the user and set the row's `status`.
 - [ ] (2026-09-07, premium-6-99-monthly) **Create the Google Play subscription product before the
   premium tier can sell.** Product id `habits_premium_monthly` on `com.therr.habits`, a
   **subscription** with a monthly base plan at $6.99 USD, active. Like the founder in-app product,
@@ -834,15 +699,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 - [ ] (2026-09-07, premium-6-99-monthly) **Run the new migration** on users-service
   (`20260907000001_habits.subscription_purchases`). Creates `habits.subscription_purchases`; it
   backfills nothing, so it is safe to run any time before the mobile release ships.
-- [ ] (2026-09-07, premium-6-99-monthly) **Subscription lapse/cancellation is not yet handled.** A
-  subscriber whose renewal fails past the grace period, or who cancels and lets the period end,
-  keeps `HABITS_PREMIUM` until acted on — `habits.subscription_purchases.status` /
-  `.expiryTime` and `SubscriptionPurchasesStore.setStatus` exist for it, but, exactly as with
-  lifetime refunds above, nothing consumes Play's Real-Time Developer Notifications yet. The client
-  verify path only ever writes an entitling state; the downgrade needs the RTDN subscriber (one
-  Pub/Sub consumer can serve both `habits.lifetime_purchases` and `habits.subscription_purchases`).
-  Until it lands, revocations are manual: null out `HABITS_PREMIUM` on the user and set the row's
-  `status`.
 - [ ] (2026-08-14, /work-plan) **Password change from web and dashboard starts working
   after this api-gateway deploy — it has been returning 400.** `PUT /users-service/users/change-password`
   was registered after `PUT /users/:id`, so express matched the param route and
@@ -996,18 +852,14 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   (it checks only `isUnclaimed`). `TherrMobile/main/routes/Settings/ManageNotifications.tsx`
   renders email toggles only. So a user's sole control over most push types is the OS
   switch, which is all-or-nothing.
-  **Partially closed for habits:** the digest now reads `settingsPushHabitReminders` and
-  `settingsPushStreakAlerts` and counts each suppression — the first server-side reading of
-  any push preference column, and the template for the rest. What is missing is the UI to
-  write them; see the Manual Operational Follow-ups entry.
-- [x] ~~(2026-08-08, notification-queue) **Add a user timezone column.**~~ The column
-  (`main.users.settingsTimezone`) had existed since the habits schema landed —
-  `20260126000010_main.users_habits.js` — and nothing ever *wrote* it, which is why this
-  read as missing. The mobile client now reports the device's IANA zone on every push
-  registration, `users.ts` validates it, and `utilities/localReminderSchedule.ts` turns it
-  into `scheduledFor` instants. Roadmap item #2 (send-time personalization) is live for the
-  habits reminders; every other producer still queues at "now".
-
+  **Closed for the two habits columns only, and that pair is the template for the rest:**
+  the digest reads `settingsPushHabitReminders` (both daily slots) and
+  `settingsPushStreakAlerts` (the evening escalation only) and counts each suppression — the
+  first server-side reading of any push preference column — and both halves of the write
+  path are now in (toggles on `niche/HABITS-general` `c45a0bc5`, and the two allow-lists in
+  `handlers/users.ts` / `UsersStore.updateUser` that had silently dropped them, guarded on
+  `!= null` rather than truthiness so an explicit `false` is the only value that mutes).
+  The six columns above still have no server-side reader at all.
 - [ ] (2026-08-26, habits-daily-notifications) **Watch the first week of daily-reminder
   volume, then decide on `morningMotivation` / `eveningCheckIn`.** `dailyHabitReminder`
   now has a producer: the digest's reminder pass walks `habits.user_habits` and queues one
@@ -1047,8 +899,11 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   set no apns block and were unaffected, as was all of Android. Now addressed to
   `com.therr.mobile.Therr`, which is what an iOS Habits build actually is.
   Confirm with `./_bin/push-debug.sh --user <id> --brand habits --device-token <t> --send`
-  and a `pact-invitation`. If Habits later ships its own iOS target, change
-  `iosApnsTopic` in the same commit — the pbxproj-reading test in
+  and a `pact-invitation` — run it against **production**, since APNS drops a wrong topic
+  silently and only a real device test closes this out. (Merged with the 2026-08-09 entry
+  that asked for the same `push-debug.sh` run once the push-diagnostics endpoints deployed;
+  those endpoints are live, so this is one verification, not two.) If Habits later ships its
+  own iOS target, change `iosApnsTopic` in the same commit — the pbxproj-reading test in
   `brandRouting.test.ts` will fail until you do.
 - [ ] (2026-08-03, /quality-peer-review) **Habits partner push volume will rise after this deploy — expected, watch it anyway.** `createCheckin` now resolves the active pacts backing a check-in's habit goal (`PactsStore.getActiveByUserAndHabitGoal`) instead of relying on a `pactId` no client has ever sent. Three code paths behind the old `if (pactId)` guard were dead and go live at once: the `partnerCheckedIn` push, mid-pact Wing Person achievement credit, and writes to `habit_checkins.pactId`. A per-pact mute already applies to the push (`shouldMuteNotifs` / `celebratePartnerCheckins`, honored via `selectPactPartnerIds({ onlyCelebrating: true })`) and recipients are deduplicated across pacts, so the ceiling is one push per check-in per active pact-mate — but nobody has ever received one, so treat the first days' volume as the real baseline rather than a regression. No migration, no env var.
 - [ ] (2026-08-03, /quality-peer-review) Optional one-off backfill of `habits.habit_checkins."pactId"`. Every check-in row written before the deploy above has a NULL `pactId`, so `GET /pacts/:pactId/checkins` stays empty for all historical activity even though new check-ins populate it. `HabitCheckinsStore.createOrUpdate` backfills the column on conflict, so a row self-heals only if that user re-submits the same (habitGoalId, scheduledDate). A backfill would set `pactId` from the earliest-started active pact on each row's `habitGoalId` for that user — the same attribution rule the handler uses. Purely cosmetic for pact history views; derived progress stats do not read this column (see `utilities/pactMemberStats`), so nothing is blocked on it.
@@ -1057,19 +912,33 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 - [ ] (2026-08-02, /quality-peer-review) Mobile follow-up (must land on `niche/HABITS-general` / `TherrMobile`, not `general`): the profile response now reports `isNotConnected: true` for PENDING/DENIED/BLOCKED rows, where it previously reported `false`. In the **already-deployed** app `UserDisplayHeader.getActionableOptions` sent that case to the "connected" branch and left `remove-connection-request` in the overflow menu, which was the only way to withdraw a pending request; it now falls to the pending branch, and `pending-connection-request` is commented out of `actionMenuOptions`, so the menu shows neither. Uncomment that option (or add a cancel action) and wire it to the withdraw path. The server change is correct and should not be reverted — but the deployed app cannot be force-updated, so the gap persists until a mobile release ships.
 - [ ] (2026-08-02, /quality-peer-review) Decide whether to bump `version` in `therr-public-library/therr-react/src/redux/persistConfig.ts` (currently `1`). `purgeOnLogoutMiddleware` now clears persisted state on logout in web as well as mobile, but only on a *future* logout — browsers and installs that already hold a previous account's `content` / `userConnections` / `notifications` keep them until that account signs out again. A version bump with no migrate function makes redux-persist discard the old payload for everyone on next load, which is the only way to clear the existing leak. Note this is shared config: bumping it purges mobile too, costing one cold feed/notification fetch per user.
 - [ ] (2026-08-01, /quality-peer-review) Niche follow-up on `niche/HABITS-general`: `GET /users-service/habits/goals/` (`getUserHabitGoals`) now returns goals the user **joined** via an accepted pact, not just ones they created. The Habits habit-list UI renders an edit/delete affordance per row, but `updateHabitGoal` and `deleteHabitGoal` both gate on `createdByUserId` and will 403 / no-op for a joined goal. Hide or disable those controls when `goal.createdByUserId !== me`. Backend behaviour is correct and this is UI-only, so it cannot be fixed on `general`.
-- [ ] (2026-08-01, /quality-peer-review) Bump and submit the iOS build for the 3.12.4 release. `TherrMobile/android/app/build.gradle` moved to `versionName 3.12.4` / `versionCode 443`, but `TherrMobile/ios/Therr.xcodeproj/project.pbxproj` is still `MARKETING_VERSION = 1.70.0` / `CURRENT_PROJECT_VERSION = 212`. iOS uses a separate version scheme, so this is a bump-and-submit step, not a value to copy across. (Supersedes the earlier 3.12.1 entry — Android has since moved three times with no matching iOS submission, so the two stores are now three releases apart.)
-- [ ] (2026-07-22, retention work) Schedule the HABITS daily partner-activity
-  digest via therr-messaging-automator — implementation plan in
-  `docs/niche-sub-apps/habits/AUTOMATOR_HABITS_PLAN.md` (Phase 1: task-dispatch
-  trigger in the Cloud Function + a new daily 23:00 UTC Cloud Scheduler job in
-  therr-infra-terraform with body `{"task":"habits-daily-digest"}`). The
-  users-service route (`/habits/pacts/digest/run-daily`) is deliberately not
-  exposed through the API gateway; more than one run per day duplicates
-  streakAtRisk/partnerMissedDay/pactExpiring pushes.
+- [ ] (2026-08-01, /quality-peer-review; re-measured 2026-09-22) **iOS has fallen many
+  releases behind Android — bump and submit.** `TherrMobile/android/app/build.gradle` is at
+  `versionName 3.17.6` / `versionCode 459`; `TherrMobile/ios/Therr.xcodeproj/project.pbxproj`
+  is at `MARKETING_VERSION = 1.71.0` / `CURRENT_PROJECT_VERSION = 213`, one submission since
+  the 3.9.0 cycle. iOS uses a **separate** version scheme, so this is a bump-and-submit step,
+  not a value to copy across. Supersedes the per-release iOS entries for 3.9.0 / 3.12.1 /
+  3.12.4, which were each the same instruction against a stale number. Also outstanding and
+  not fixed by a bump: `/mobile-release-preflight` and a signed iOS build are the gate on the
+  RN 0.86.3 upgrade (see the 2026-08-31 entry below), so run that before submitting.
+- [ ] (2026-07-22, retention work) Schedule the HABITS daily partner-activity digest via
+  `therr-messaging-automator` — implementation plan in
+  `docs/niche-sub-apps/habits/AUTOMATOR_HABITS_PLAN.md` (**on `niche/HABITS-general` only** —
+  that path does not resolve on `general`; Phase 1: task-dispatch trigger in
+  the Cloud Function + a new daily Cloud Scheduler job in `therr-infra-terraform` with body
+  `{"task":"habits-daily-digest"}`). The users-service route
+  (`users-service:7771/habits/pacts/digest/run-daily`, headers `x-brand-variation: habits`
+  and `x-localecode: en-us`) is deliberately **not** exposed through the API gateway. Two
+  earlier entries proposed this — one via the automator, one as a bare k8s CronJob — and are
+  merged here; the automator is the right home, since it already holds the SES templates and
+  the unsubscribe-token path. Note the "more than one run per day duplicates pushes" warning
+  both carried is **no longer true**: the digest dedups through
+  `main."notificationQueue"`'s UNIQUE (brandVariation, userId, dedupeKey) constraint, so a
+  retry or an extra firing is safe. The real constraint is the firing *time* — see the
+  "do not move the digest off 14:00 UTC" note under § Habits push pipeline.
 - [ ] (2026-07-28, dwelling-location-notifications) Run `20260728000001_main.userLocations.dwelling` on production users-service (`npm run migrations:run`). Adds `distinctDayCount` (NOT NULL, default 1) and `lastVisitedAt` (NOT NULL, default now()) to `main.userLocations`, plus a `(userId, distinctDayCount)` index, and backfills both from existing `createdAt`/`updatedAt`/`visitCount`. Additive and defaulted, so applying it ahead of the image is safe; if the image ships first, `GET /users-locations/:userId/dwellings` errors on the unknown columns and `POST /users-locations/:userId` fails on the new upsert clause — which would break background location processing. **Run this migration before or with the users-service deploy.**
 - [ ] (2026-07-21, bot-personas) Run the `005_bot_users.js` seed on production users-service (`npm run seeds:run` from `therr-services/users-service`) — creates 10 persona-matched bot accounts (isBot=true) for therr-ai-automator content generation. Idempotent (fixed UUIDs, ON CONFLICT DO NOTHING). Optionally set `BOT_SEED_PASSWORD` beforehand; bots never log in, so the default hash is only a placeholder.
 - [ ] (2026-07-30, /work-plan) After the reaction-metrics bounds deploy, watch api-gateway for a rise in 400s on `POST /v1/reactions-service/{moment,thought,space,event}-reactions/:id`. Every client today sends `userViewCount: 1` (`TherrMobile/main/routes/Map/TherrMapView.tsx`) and no client sends `userBookmarkPriority`, so legitimate traffic should never trip the new bounds (view count 0–100, bookmark priority 0–100, rating 1–5) — a sustained 400 rate means either a client path nobody mapped or a real abuse attempt, and the two are worth telling apart before widening the range. Note the already-deployed mobile app cannot be force-updated, so a bad assumption here reaches users who cannot upgrade away from it. No migration and no env var; bounds live in `therr-js-utilities/constants` → `Reactions`.
-- [ ] (2026-07-30, /work-plan) One-off data check before trusting space ratings: `rating` was previously unbounded, so any existing `main."spaceReactions"` / `main."eventReactions"` row outside 1–5 is still averaged into the rating shown on public space pages. Query `SELECT COUNT(*) FROM main."spaceReactions" WHERE rating IS NOT NULL AND (rating < 1 OR rating > 5);` (and the same for `eventReactions`) — if it returns non-zero, those rows need clearing or clamping, since the new validation only stops *new* bad writes.
 - [ ] (2026-07-28, dwelling-location-notifications) Post-deploy tuning check: watch for the `BackgroundGeolocation - Suppressing nearby push notifications at dwelling location` info span. If it fires for places users clearly do not live (a daily-commute office, a gym), raise `Location.DWELL_MIN_DISTINCT_DAYS` from 3; if users still report notification spam at home after ~a week of data, lower `Location.DWELL_LOCATION_RADIUS_METERS` scrutiny first (both live in `therr-public-library/therr-js-utilities/src/constants/Location.ts`).
 - [ ] (2026-07-29, /quality-peer-review) **Notification volume will drop after this deploy — expected, watch it anyway.** `UserLocationCache.setLastMomentNotificationDate`/`setLastSpaceNotificationDate` passed `this.keys.<x>KeyPrefix`, which was always `undefined` (`this.keys` holds hash *field* names, not key prefixes). ioredis coerces a nullish key to the empty string rather than throwing, so every write silently landed on the bare client keyPrefix while the getters read the real per-user hash — `hasSentNotificationRecently()` therefore always returned falsy and `MIN_TIME_BETWEEN_PUSH_NOTIFICATIONS_MS` (3 min) has never been enforced since the method was written in `165d2a30e`. Now fixed. Two effects: proximity-required area pushes are throttled to one per 3 min, and `activateAreasAndNotify` will skip the `NEW_AREAS_ACTIVATED` in-app notification *and* push for 3 min after any moment/space notification (it gates on both dates being stale — pre-existing logic that was simply never reachable). If engagement metrics dip after deploy, this is the cause and the lever is `MIN_TIME_BETWEEN_PUSH_NOTIFICATIONS_MS` in `therr-public-library/therr-js-utilities/src/constants/Location.ts`. Also worth a one-off cleanup: the stray `push-notifications-service:` hash (empty-suffix key, no TTL) that accumulated these writes in each environment can be deleted.
 - [ ] (2026-07-29, /quality-peer-review) Dwellings are now cached in redis for 6 hours (`DWELLING_CACHE_TTL_SEC`, key `push-notifications-service:user:<id>:dwelling-locations`). Two consequences for the tuning work above: (1) a change to `DWELL_MIN_DISTINCT_DAYS` or `DWELL_LOCATION_RADIUS_METERS` will not take full effect until cached entries expire — flush the `*:dwelling-locations` keys after deploying a constant change if you want an immediate read; (2) when judging whether suppression is working, remember a newly-qualifying dwelling can take up to 6 hours to start suppressing. The key is deliberately excluded from `clearCache()`/`invalidateCache()`, so travelling does not evict it.
@@ -1077,7 +946,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 - [ ] (2026-07-27, reward-claim-feedback) Rebuild the mobile native projects for the new `react-native-audio-api` dependency — `cd TherrMobile && npm install --legacy-peer-deps && npm run ios:pod:install`, then a clean Android build (`npm run android:clean` before `npm run android`). This is a JSI/native module: an over-the-air JS-only update cannot pick it up. Until the rebuild lands, `main/utilities/rewardFeedback.ts` catches the missing module and reward claims stay silent (haptics still fire), so nothing breaks — the sound just doesn't play. Verify on a physical device: haptics are simulator no-ops, and the iOS ringer-switch behavior (session is `ambient` + `mixWithOthers`) can only be checked on hardware.
 - [ ] (2026-07-25, /quality-peer-review) Before the passwordless phone auth release goes live, confirm the Twilio A2P 10DLC campaign and messaging throughput cover the two **new unauthenticated** SMS-dispatching routes (`POST /v1/phone/auth/start`, `POST /v1/phone/register/start`) — previously only the authenticated `/phone/verify` sent SMS. Set a Twilio spend alert at the same time. Sends are now capped per destination number (5/hour, `chargeSmsSendBudget` in `therr-api-gateway/src/services/phone/verificationCodes.ts`) on top of the per-IP limiter, so the exposure is bounded — but the bound is `5 × distinct numbers/hour`, which is still worth a billing alarm.
 - [ ] (2026-07-25, /quality-peer-review) Product decision to confirm on the passwordless sign-in flow: `POST /v1/phone/auth/start` no longer returns `INVALID_REGION`. It cannot — an SMS is only attempted for a number that *has* an account, so surfacing a region error would confirm the account exists, which is the one fact the uniform response withholds. Consequence: a user in a Twilio-unroutable region who has an account gets "code sent" and never receives one. Twilio failures are logged (`Failed to dispatch passwordless sign-in code`); watch that log after launch and consider a static country-code allow-list on the client if it shows real volume. Sign-*up* (`/register/start`) is unaffected and still reports the region error.
-- [ ] (2026-07-25, /quality-peer-review) Bump the iOS app version for the passwordless-phone-auth release. `TherrMobile/android/app/build.gradle` moved to `versionName 3.9.0` / `versionCode 436`, but `TherrMobile/ios/Therr.xcodeproj/project.pbxproj` is still at `MARKETING_VERSION = 1.70.0` (iOS uses a separate scheme, so this is a bump-and-submit step, not a value to copy).
 - [ ] (2026-07-25, /quality-peer-review) Post-deploy smoke test of passwordless phone sign-in against a **real production account whose phone was set via profile edit** (not via the `/phone/verify` flow). Those two paths store different dialects in `main.users.phoneNumber` — `createUser`/`updateUser` write `req.body.phoneNumber` verbatim (compact E.164, `+13175551234`) while `updatePhoneVerification` writes the gateway's normalized display format (`+1 317-555-1234`). `UsersStore.getByPhoneNumber` / `getAllByPhoneNumber` now match the full candidate set, so both resolve; before that fix the compact-E.164 rows resolved to zero accounts and, because `/phone/auth/start` is enumeration-safe, the user got a "code sent" response and no SMS. Verify by checking that the SMS actually arrives, not by the API response.
 - [ ] (2026-07-25, /quality-peer-review) (Optional, no longer required for correctness) One-off backfill to normalize legacy `main.users.phoneNumber` rows onto the canonical display dialect. `UsersStore` now normalizes on write, so *new* rows no longer diverge, and `getByPhoneNumber` / `getAllByPhoneNumber` / `findUser` match a candidate set covering both dialects — so the mixed column works as-is. This is cleanup: until it happens, every future phone lookup has to keep replicating the candidate set. Do **not** add a phone-format CHECK constraint to the column as part of this — Apple SSO signups deliberately write the non-phone sentinel `'apple-sso'` there (`createUserHelper`, `handlers/helpers/user.ts`).
 - [ ] (2026-07-19, /quality-peer-review) Post-deploy verification for the cross-app push fix: on a device with **both** Therr and Friends with Habits installed, confirm a Therr "New Spots Unlocked" push lands in Therr (not Habits), and a Habits streak reminder lands in Habits. **Requires the mobile release carrying the unconditional FCM re-registration** (see the correction below) — installs older than that may never have written a brand-scoped row at all.
@@ -1087,14 +955,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   Both silent halves are now closed — the push service blocks it (`notification-type-not-routed-for-brand`) and users-service warns on the empty-brand fallback — but **the producer is still unidentified, and until it is fixed the affected users get no streak notification at all rather than one in the wrong app.** It is not the habits digest: `habitsDigest` pins `BrandVariations.HABITS` and `notificationQueueWorker` forwards `row.brandVariation`, both covered by tests. Prime suspect is the sibling `therr-messaging-automator`, which pushes directly and walks users per brand (`docs/CROSS_REPO_INTEGRATION.md`). Search production logs for `Push send with no brandVariation` and `HABITS-only notification arrived under a non-HABITS brand` — both carry the user id, and the second carries the `x-brand-variation` the caller actually sent.
 - [ ] (2026-07-18, leaderboards) After one release cycle with clean shadow logs, flip `UserLeaderboardScoresStore` from `'shadow'` to `'enforce'` mode (users-service `src/store/UserLeaderboardScoresStore.ts`).
 - [ ] (2026-07-18, leaderboards) Product/QA note: the HABITS achievement allow-list is re-enabled (habit ladder + socialite + weeklyChampion — reverses the interim a55bce90d policy). Verify in the Friends with Habits build that check-ins surface streak/consistency achievements and that Therr-shaped classes (explorer, influencer…) still do not appear.
-- [x] (2026-07-13, manual) ~~Set the `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` CircleCI
-  project env var so the `eas_build_therr_android` job can auto-populate Google
-  Play release notes.~~ **Dropped 2026-09-14** — no longer needed. Auto-population
-  raced EAS Submit's asynchronous upload and usually lost, so the notes were
-  silently never written. CI now *prints* them
-  (`TherrMobile/_scripts/print-play-release-notes.mjs`, no credentials, before
-  the build) and a human pastes them into the Play Console. Superseded by the
-  standing follow-up below.
 - [ ] (2026-09-14, manual, every Android release) Paste the Google Play release
   notes into the Play Console after promoting a build: **Release → Releases
   overview → the release → Edit → "What's new in this release"**, once per
@@ -1103,13 +963,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   `npm --prefix TherrMobile run play:release-notes` locally). Skipping it means
   users see the *previous* release's notes — Play does not clear them.
 - [ ] (2026-07-03, deferred-phone-verification) Frontend follow-up: add a contextual re-prompt when a phone-unverified user hits a `MOBILE_VERIFIED`-gated action (currently only bulk `multi-invite` returns 403). **Resolved 2026-08-12** for the reachable-entry-point half — four routes into verification now exist: the `PhoneContacts` 403 toast is tappable and resumes `CreateProfile` at its `phone` stage; the profile checklist treats an *unverified* number as an unfinished step (`isPhoneVerified` in `TherrMobile/main/utilities/profileCompletion.ts`) so it permanently surfaces the same entry point; `therr.com/verify-phone` is handled in `Layout.handleAppUniversalLinkURL` and deep-links to that stage; and `/verify-phone` on therr-client-web is the standalone web equivalent for users without the app. **Still open:** audit any other action that assumes phone presence — `multi-invite` is the only one that 403s today, so any *new* `MOBILE_VERIFIED` gate needs the same treatment. Note this still hits the *already-deployed* app, which cannot be force-updated, so the web route is the only path that reaches existing installs.
-- [ ] (2026-07-22, retention work) Schedule the HABITS daily partner-activity
-  digest: an internal cron (k8s CronJob or equivalent) must POST once daily —
-  ideally early evening US time (~23:00 UTC) — to
-  `users-service:7771/habits/pacts/digest/run-daily` with headers
-  `x-brand-variation: habits` and `x-localecode: en-us`. The route is
-  deliberately not exposed through the API gateway. Running it more than once
-  a day duplicates streakAtRisk/partnerMissedDay/pactExpiring pushes.
 - [ ] (2026-06-11, /memory-management) Activate MemSearch recall — on your local machine, run `pip install 'memsearch[onnx]'` then `scripts/memsearch-index.sh`. First run downloads the bge-m3-onnx-int8 model (~558 MB, HuggingFace, cached permanently at `~/.cache/memsearch/`). No API key needed — fully local ONNX inference on CPU. Re-run after `git pull` to pick up new session logs and external docs. See `docs/MEMORY_SYSTEM_SETUP.md` for team-sharing and Notion/Confluence ingestion setup.
 - [ ] (2026-04-27, /quality-peer-review; corrected 2026-08-07) Per-brand Firebase
   service account env vars
@@ -1135,18 +988,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   (mobile clients have re-registered against `main.userDeviceTokens`), drop the
   legacy `users.deviceMobileFirebaseToken` column in a follow-up migration —
   documented in `20260425000003_main.userDeviceTokens` migration header.
-- [ ] (2026-05-07, /quality-peer-review) Add new SSR routes to
-  `habits.therr.com` sitemap if applicable (`/login`, `/verify-account`,
-  `/emails/unsubscribe` — these are `noindex` so likely skip, but the
-  sitemap-generator script may still emit them). Re-submit sitemap to Search
-  Console after deploy.
-- [ ] (2026-05-10, /quality-peer-review) Add `/claim-pact/:token` to
-  `habits.therr.com` sitemap if you want Search Console coverage (likely
-  skip — the page is a transient install bouncer, not indexable content),
-  and confirm Android App Links verification picks up the new
-  `assetlinks.habits.json` once habits.therr.com serves it (visit
-  `https://habits.therr.com/.well-known/assetlinks.json` and re-run the
-  Play Console "App links" check for `com.therr.habits`).
 - [ ] (2026-06-05, /quality-peer-review) After deploying the JWT claims-hardening
   change (general→stage→main), confirm `JWT_ISSUER` / `JWT_AUDIENCE` env vars are
   actually present on the running prod pods for users-service, api-gateway, and
@@ -1203,18 +1044,17 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   different curves), `INTEREST_IMPLICIT_DISCOUNT` (default 0.6; note `0` falls
   back to the default rather than disabling the discount), and
   `INTEREST_SHADOW_LOG_SAMPLE_RATE` (default 0.02; `0` does disable logging).
-- [ ] (2026-07-30, /quality-peer-review) After deploying the reaction-metric
-  bounds (0392f95ce + the follow-up fix), audit and clean the rows the bounds
-  now reject but that were written before them. The new validation only stops
-  new bad data; it does not repair history. Two queries against the reactions
-  DB: `SELECT count(*) FROM main."spaceReactions" WHERE rating IS NOT NULL AND
-  (rating < 1 OR rating > 5);` (same for `main."eventReactions"`) — any hit is
-  currently skewing the `avg(rating)` shown on public space pages, so decide
-  whether to clamp or NULL them; and `SELECT count(*) FROM
-  main."thoughtReactions" WHERE "userViewCount" > 100;` (same for
-  `momentReactions`, `spaceReactions`, `eventReactions`) — inflated totals from
-  the string-concatenation bug where `existing + '1'` wrote `'91'` instead of
-  10.
+- [ ] (2026-07-30, /quality-peer-review) After deploying the reaction-metric bounds
+  (0392f95ce + the follow-up fix), audit and clean the rows the bounds now reject but that
+  were written before them. The new validation only stops new bad data; it does not repair
+  history. Two queries against the reactions DB, and the first is the one that matters —
+  any hit is currently skewing the `avg(rating)` shown on **public space pages**, so decide
+  whether to clamp or NULL them:
+  `SELECT count(*) FROM main."spaceReactions" WHERE rating IS NOT NULL AND (rating < 1 OR rating > 5);`
+  (same for `main."eventReactions"`), and
+  `SELECT count(*) FROM main."thoughtReactions" WHERE "userViewCount" > 100;`
+  (same for `momentReactions`, `spaceReactions`, `eventReactions`) — inflated totals from
+  the string-concatenation bug where `existing + '1'` wrote `'91'` instead of 10.
 - [ ] (2026-08-01, /quality-peer-review) Merge `general` into
   `niche/HABITS-general` and confirm the `build.gradle` merge KEPT the
   `appLinkHostsByAppId` block from ad82b0ae1. `AndroidManifest.xml` now
@@ -1330,10 +1170,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   accumulating `attempts` (send failing). Then re-run the digest by hand and confirm the
   response reports `deduped` equal to the previous run's total with all `*Sent` at zero —
   that is the end-to-end proof, and it is now a safe thing to do.
-- [ ] (2026-08-09, /quality-peer-review) After the push-diagnostics endpoints deploy, re-run
-  `_bin/push-debug.sh` against production to confirm the iOS Habits fix (13e0e4058) actually
-  lands — the `apns-topic` for HABITS and TEEM now resolves to `com.therr.mobile.Therr`, and
-  APNS drops a wrong topic silently, so only a real device test closes this out.
 - [ ] (2026-08-12, /quality-peer-review) **Confirm the websocket leg of account deletion
   actually reaches the service in production.** `requestToDeleteUserData` gained a fourth
   target built from the new `baseWebsocketServiceRoute`
@@ -1351,11 +1187,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   remote "log any user out" button, but the internal caller reaches it over the cluster IP and
   never needs the public host. Blocking the path at the ingress would remove the public
   attack surface entirely. Lives in `therr-infra-terraform` / `k8s/prod/ingress-service.yaml`.
-- [ ] (2026-08-12, /quality-peer-review) **Android 3.14.0 (versionCode 447) needs Play
-  release notes before rollout.** The bump ships the phone-verification entry points
-  (deep link, profile checklist, tappable invite toast); the checklist step now keys on
-  MOBILE_VERIFIED rather than mere presence of a number, so users who changed their number
-  will see the phone step reopen — worth a line in the notes so it does not read as a bug.
 - [ ] (2026-08-12, /quality-peer-review) **Confirm a real checkout still upgrades on the
   redirect now that grants are gated on live subscription status.** Peer review found that
   `resolveCheckoutSessionGrant` accepted `payment_status === 'paid'` as an alternative to the
@@ -1450,18 +1281,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   `PUT /users/connections` are both on deployed mobile paths). Each needs its shipped-client
   payload checked against the chain before `validate` is added, then its line deleted from
   the list. No migration, no env var.
-- [ ] (2026-08-17, /quality-peer-review-niche) **Reconcile `docs/WORK_IN_PROGRESS.md` between
-  `general` and `niche/HABITS-general`.** Four unchecked blocks live only on the niche branch
-  and are therefore invisible to anyone working on `general`: the 2026-08-06 Play Console +
-  privacy-policy steps for the contacts rejection, the 2026-07-22 automator daily-digest
-  scheduling item, the two 2026-08-06 `/quality-peer-review` items (brand-identity merge-down,
-  mobile tsc baseline growth), and the HABITS-only `react-native-maps` removal. They were not
-  bulk-copied because at least one adjacent niche-side block — the 2026-07-28
-  `userLocations.dwelling` migration — was **deliberately deleted from `general`** as completed
-  (`55d2c0478`) and still survives on the niche branch, so copying the file diff wholesale
-  would resurrect finished operational work. Each block needs a done/not-done call before it
-  moves. The file is owned by `general`; the niche copy should end up a subset, never a
-  superset.
 - [ ] (2026-08-17, /quality-peer-review-niche) **Verify `com.android.vending.BILLING` survives
   into the built artifact**, not just the source manifest. `react-native-iap` ships an empty
   `AndroidManifest.xml`, so the permission arrives either from our explicit declaration or
@@ -1490,14 +1309,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   Send one invite to each channel from a Habits account and confirm the subject names Friends
   with Habits, the body reads "be the change" rather than "explore your local community", and
   the link lands on the invite page instead of bouncing to therr.com.
-- [ ] (2026-08-18, /quality-peer-review) **Android 3.15.1 (versionCode 449) needs Play release
-  notes before rollout.** The bump ships three user-visible fixes: bottom sheets no longer sit
-  for 300ms before animating, the Connect lists stop snapping back to the top mid-scroll, and
-  the sign-in field no longer swaps the keyboard out from under you partway through a phone
-  number (with a new toggle button beside the field for the cases the automatic pick gets
-  wrong). Note the keyboard toggle explicitly — it is a new control, not just a fix. If
-  versionCode 447 never rolled out, the 2026-08-12 item above folds into this one and the notes
-  must cover both bumps.
 - [ ] (2026-08-18, /quality-peer-review) **Smoke-test every bottom sheet on a real Android
   device before cutting 3.15.2.** `BaseActionSheet` now renders every sheet with
   `isModal={false}`, so sheets are in-tree absolutely-positioned views instead of native Dialog
@@ -1508,12 +1319,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   image-picker, visibility-picker and list-picker sheets; confirm each draws over the bottom tab
   bar, that the hardware back button dismisses it, that swipe-down dismisses (all but list-picker,
   which opts out), and that the list-picker's text input is not covered by the keyboard.
-- [ ] (2026-08-18, /quality-peer-review) **Android 3.15.2 (versionCode 450) release notes —
-  supersedes the versionCode 449 item above.** 449 was bumped to 450 in the same cycle, so write
-  one set of notes covering both. On top of the 449 fixes, 450 adds: blank gaps in the Discovered
-  feed and the Connect lists are gone (`removeClippedSubviews` off, wider render window, Connect
-  back on FlatList), and the post options sheet no longer pops back open a moment after you react
-  to a post.
 - [ ] (2026-08-19, /quality-peer-review) **The habits landing page now advertises the $20 founder
   unlock publicly — confirm the Play in-app product is live and the offer endpoint is configured
   before this web deploy goes out.** `therr-client-web/src/views/habits/landing.hbs` and
@@ -1546,16 +1351,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   repos when the automator lands.** Human posts render `"${name}, ${stateAbbr}"` from the `Cities`
   catalog; the automator must emit the same form ("Chicago, IL") or one place shows up under two
   spellings in the feed. No CI can see both sides.
-- [ ] (2026-08-23) **Promote the `global-config.js` touch through `general` → `stage` → `main` to
-  repopulate the ledger.** The fallback deadlock is fixed in code, so a promotion no longer blocks —
-  but seven services still have no `PUBLISHED_*` row and will report `unresolved` until one stage
-  publish rebuilds them all. `global-config.js` is in every service's source fan-out, so that single
-  commit publishes all eight and writes eight rows at one SHA. Watch the plan table on the
-  `stage` → `main` run and confirm eight `deploy` verdicts. If the stage publish job needs a retry,
-  re-run the whole *stage pipeline*, not the single job (see the non-fast-forward item below).
-- [ ] (2026-08-23) **After that deploy, confirm `VERSIONS.txt` on `stage` has a `PUBLISHED_*` row per
-  service, and that the cluster has moved off `eef996d`.** Eight rows is the signal the ledger
-  transition is finally complete; until then the cluster is still on the pre-rewrite image.
 - [ ] (2026-08-23, /quality-peer-review) **Make a CircleCI rerun of the stage publish job
   reconcile with `origin/stage` before committing `VERSIONS.txt`.** A rerun starts from a fresh
   checkout at `CIRCLE_SHA1`, so the working tree holds the pre-publish ledger while
@@ -1576,14 +1371,14 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   `repostOf`. If migrations were skipped (`RUN_MIGRATIONS_ON_DEPLOY=false`), run
   `npm run pr:migrate:users`.
 
-- [ ] (2026-08-25, /quality-peer-review) **Android 3.17.0 (versionCode 453) — build, upload and
-  write release notes.** The mobile half of this `general` diff reaches nobody through
-  `general → stage → main`; CI deploys services and client-web only, so the version bump does
-  nothing until `npm run build:release` produces an AAB and it is uploaded to a Play track. Notes
-  should cover: action sheets open roughly twice as fast on Android, re-pressing a button right
-  after dismissing a sheet now registers, the reply box on a thought centers its text and
-  placeholder, the map's featured check-in / add-moment button no longer sits offset while the
-  area preview strip is open, and the modal header spacing fix.
+> **Standing, not per-release: a `general` version bump ships nothing by itself.** CI deploys
+> services and client-web only, so the mobile half of any `general` diff reaches nobody until
+> `npm run build:release` produces an AAB and a human uploads it to a Play track and pastes the
+> notes. Four per-release entries (versionCodes 447, 449, 450 and 453) said this against
+> numbers that are now six-plus builds stale — `general` is on `versionCode 459 / 3.17.6` — and
+> are folded into this note plus the standing "every Android release" item above. Write notes
+> from the diff at build time, not from an entry written weeks earlier.
+
 - [ ] (2026-08-25, /quality-peer-review) **QA the `react-native-actions-sheet` patch on a physical
   Android device before cutting 3.17.0.** The patch now carries three changes on the open/close
   path of *every* sheet in the app, not just the profile menu, and the ~220ms → ~92ms figure in
@@ -1660,71 +1455,30 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   versionCode at upload rather than at build time. Check the Play Console release history first,
   and prefer `/mobile-release-preflight` over doing it by hand.
 
-- [x] (2026-08-29, resolved 2026-08-30) **CircleCI's write access to `rili-live/therr-app` was
-  revoked; replaced with a fresh deploy key.** The `docker_build_test_publish_images` job on `stage`
-  at `b1c338f` built, tested and `docker push`ed correctly, then died on `publish.sh:130` with
-  `git@github.com: Permission denied (publickey)` — so the `[skip ci] Publish
-  push-notifications-service at b1c338f` ledger commit was made in the container and never reached
-  `origin/stage`. `checkout` in that same job succeeded, so only the *write* key failed; and it had
-  worked on 2026-08-26 (`81feb6ddb`), which ruled out GitHub's delete-after-a-year-unused policy and
-  the 2022 RSA/SHA-1 removals. Resolved by generating an ed25519 pair, adding the public half as a
-  **repo deploy key with write access** (deploy keys do not expire, unlike a user key or a
-  fine-grained PAT), storing the private half under Project Settings → SSH Keys, and replacing the
-  old MD5 fingerprint at `.circleci/config.yml:219` and `:364` with
-  `SHA256:RQGJpv9BjVSmabmSV9DshSyQe7yrxI6meRAi7AkuAB8` — the SHA256 form, because the Project
-  Settings UI now displays SHA256 rather than MD5. Shipped in `d91c06bbe`, on `stage` via `#2826`.
-  The `:364` copy stays vestigial: `deploy.sh` never pushes.
-
-- [ ] (2026-08-29, updated 2026-08-30) **Force a full `stage` publish with a no-op touch to
-  `global-config.js` — three services are `stale-build` and will refuse the next `stage` → `main`
-  deploy.** This is now the single blocking item, and merging `#2826` to `main` does *not* clear it:
-  that merge carried only `.circleci/config.yml` and `docs/`, neither of which is in any service's
-  source fan-out, so its publish job builds nothing, writes no ledger row and never exercises the
-  new key. Three services come back blocking against the stage tip:
-
-  | Service | Ledger row | Why stale |
-  |---|---|---|
-  | `push-notifications-service` | `e01037368e` | image `b1c338f153` was published but the ledger commit never pushed |
-  | `client-web` | `cf4ce3ae9a` | `796958361` (habits-blog habit-audit cross-post) and `17a027a8e` reached `stage` in `e4790de82` without a publish |
-  | `api-gateway` | `cf4ce3ae9a` | `32b2748bd` reached `stage` in `e4790de82` without a publish |
-
-  `deploy.sh` is right to refuse: `sources_changed_between` spans `desired..promoted_tip`, not just
-  the last merge, so it sees images older than the code being promoted. A blocking verdict stops the
-  whole plan before the cluster is touched — which is why the 2026-08-29 `b2cb65122` run rolled
-  nothing at all, `users-service` included, and the cluster sat on `cf4ce3a` for all eight services.
-  `global-config.js` is in every service's fan-out, so one touched commit through
-  `general → stage` republishes all eight at one SHA, writes eight rows, and proves the new deploy
-  key on its way past `publish.sh:130`. Then merge `stage → main` and confirm the plan table shows
-  eight non-blocking verdicts. The habit-audit cross-post is a user-facing web change that is not in
-  production until this lands.
-
-- [ ] (2026-08-30) **Confirm the un-suffixed prod image tags exist after that deploy.** The
-  2026-08-29 manual rollout pointed `users-service-deployment` (`e01037368e`) and
-  `push-notifications-service-deployment` (`b1c338f153`) at `therrapp/<svc>-stage:<sha>`, because
-  retagging into the un-suffixed prod repo needs Docker Hub write credentials only CI holds:
-  `therrapp/push-notifications-service:b1c338f153` and `therrapp/users-service:e01037368e` are both
-  404 in the registry, and so is a matching `:latest`. Functionally fine — the images are identical
-  and take their environment from Kubernetes — but it means **a plain `kubectl apply` of the
-  Deployment manifests would roll production backwards**, since they pin `:latest` and prod
-  `:latest` is still `cf4ce3a`. Do not hand-apply those manifests until the deploy above has pushed
-  the real tags; then re-check `kubectl get deployments -o custom-columns=` and confirm no
-  Deployment is still on a `-stage` image.
+> **The 2026-08 ledger outage is closed — verified 2026-09-22.** Four entries here described
+> one incident and are deleted: CircleCI's write key being revoked (replaced with an ed25519
+> **repo deploy key**, fingerprint at `.circleci/config.yml:219` and the vestigial `:364`);
+> the three `stale-build` services that refused the next promotion; the forced `global-config.js`
+> publish that was meant to clear them; and the un-suffixed prod tags the manual rollout skipped.
+> `VERSIONS.txt` now carries a `PUBLISHED_*` row for **all eight** services at one SHA
+> (`58a22c50e`), and three further stage publishes have run since. Only the rerun-reconciliation
+> defect below is still real — it is a script bug, not an artifact of that incident.
 
 - [ ] (2026-08-30, /quality-peer-review) **Confirm the LaunchKiwi badge actually renders on
-  https://habits.therr.com once `client-web` next deploys.** Helmet's CSP is skipped entirely when
-  `NODE_ENV === 'development'`, so the new `https://launchkiwi.com` `img-src` entry at
+  https://habits.therr.com.** Helmet's CSP is skipped entirely when
+  `NODE_ENV === 'development'`, so the `https://launchkiwi.com` `img-src` entry at
   `therr-client-web/src/server-client.tsx:150` is never exercised locally — a wrong entry, or a
   redirect from `launchkiwi.com` to a different asset host (CSP re-checks the redirect target),
-  surfaces as a broken image in production and nowhere else. `client-web` is one of the three
-  `stale-build` services above, so this only ships after the forced `stage` publish lands. Check
-  the browser console for a CSP violation, not just the rendered page.
+  surfaces as a broken image in production and nowhere else. `client-web` has published since
+  this was written, so it is live; check the browser console for a CSP violation, not just the
+  rendered page.
 
 - [ ] (2026-08-31, /quality-peer-review) **Cut a real Android *and* iOS build of the RN 0.86.3 upgrade before promoting past `stage`.** No CI job compiles the mobile app, so the entire native half of this upgrade is unverified by the pipeline that will happily deploy it. Jest, tsc-baseline and lint are all green and prove nothing about it. `react-native-gesture-handler` (2.30 -> 2.32) and `react-native-keyboard-controller` (1.21 -> 1.22.4) were both bumped specifically because the older pins fail to compile against 0.86, and `react-native-worklets` is held at `~0.11.4` on purpose (0.12 drops `executeSync`, which `react-native-audio-api` still calls) - a careless `npm update` past that pin breaks audio at runtime, not at build. Run `/mobile-release-preflight`, then a signed release build on both platforms.
 - [ ] (2026-08-31, /quality-peer-review) **Treat the Play Console deprecated-API (Android 15) finding as OPEN, not fixed by `patches/react-native+0.86.3.patch`.** Verified 2026-08-31 against a signed 0.86.3 release APK: Gradle resolves `com.facebook.react:react-android` as a prebuilt Maven AAR (no `react.buildFromSource`, no `:ReactAndroid` task), so the patched `StatusBarModule.kt` is never compiled and the shipped APK still carries the `ValueAnimator` + `setStatusBarColor` bytecode the patch deletes. The APK also references the deprecated setters from `androidx.activity`, `com.google.android.material`, `com.swmansion.rnscreens.ScreenViewManager` and RN's own `views/view`, so no edit to that one file could clear the report. Keep the patch (harmless, documents intent) but re-check the finding against a real APK rather than assuming it is handled. Details in `TherrMobile/CLAUDE.md` -> Edge-to-Edge.
 
 - [ ] (2026-09-02, /quality-peer-review) **Verify `GET /users-service/habits/checkins/:id/proofs` returns 200 through the deployed gateway, not just the service.** The route shipped unreachable: the users-service handler, its router entry, the `therr-react` service method and the redux action all existed, but the api-gateway names every route it proxies and has no wildcard, so the request 404'd at the edge. Nothing that ran could see the missing hop — there is still no consumer on `general`, so it would have surfaced later as an apparent client bug when the day-sheet UI was built on `niche/HABITS-general`. The gateway entry and a `routeOrdering` regression test asserting it are now in; confirm end-to-end against `stage` with a real check-in id that has `hasProof = true`, since the gateway is the only hop no unit test exercises.
 
-- [x] ~~(2026-09-02, /quality-peer-review) **The check-in freshness gate is date-basis-mismatched and silently inert for east-of-UTC users — decide whether to fix it at the writer.**~~ Done 2026-09-16, at the writer, as the item recommended: `habit_checkins."scheduledDate"` is now the user's own calendar day (`resolveCheckinHabitDate` in `utilities/dailyStreak.ts`), resolved from `settingsTimezone` → the request's device zone → the service fallback, with a client-sent date **ahead** of that day clamped down to it. The clamp is what carries the fix to installed app versions, which still stamp the UTC day. The user-visible symptom that prompted it was not the nudge gate at all: a 19:00 check-in in Chicago was written under tomorrow's date and drawn on tomorrow's cell in the calendar, which builds its grid from local components. Coupled readers moved with it — `getTodayCheckins`, the `useGraceDay` history date, the journal `entryDate` fallback, and `pactMemberStats`, which now asks "checked in today?" once per member in that member's own zone (`getCompletedOnDateForPairs` takes a date per pair). `isHabitDueToday` and the digest's other batch reads did **not** move; see the new item below. Original diagnosis, kept because it is the clearest statement of the failure: `checkinNudgeFreshness` probes
+> **The writer-side fix landed 2026-09-16 and is what the item below builds on.** `habit_checkins."scheduledDate"` is now the user's own calendar day (`resolveCheckinHabitDate` in `utilities/dailyStreak.ts`), resolved from `settingsTimezone` → the request's device zone → the service fallback, with a client-sent date **ahead** of that day clamped down to it. The clamp is what carries the fix to installed app versions, which still stamp the UTC day. The symptom that prompted it was not the nudge gate at all: a 19:00 check-in in Chicago was written under tomorrow's date and drawn on tomorrow's cell in the calendar, which builds its grid from local components. Coupled readers moved with it — `getTodayCheckins`, the `useGraceDay` history date, the journal `entryDate` fallback, and `pactMemberStats`, which now asks "checked in today?" once per member in that member's own zone (`getCompletedOnDateForPairs` takes a date per pair). `isHabitDueToday` and the digest's other batch reads did **not** move — which is exactly the item below.
 
 - [ ] (2026-09-16) **Give the habits digest a per-user local day, not one UTC day for the whole run.** The writer fix above made a habit day the user's own calendar day, but `handlers/habitsDigest.ts` still derives one `today = getTodayDateString()` (UTC) and asks it of every user: `getActiveForReminders(today)` computes `completedToday` in SQL from it, the pact loop's `getByUserAndDate(member.userId, today, …)` reads it, and `isHabitDueToday(habit, today)` picks the weekday from it. The digest fires at 09:00 `America/Chicago` (14:00–15:00 UTC), where UTC's date and the user's agree for everyone west of about UTC+11 — so this is not a regression and the writer fix strictly improved it (an evening check-in stamped with tomorrow's UTC date used to make the next morning's reminder think the user had already shown up). For UTC+11 and east the digest reasons about the user's yesterday, which is the same blind spot the freshness gate had. The work is not a one-liner: `getActiveForReminders` needs to take a date per user (the same shape `getCompletedOnDateForPairs` now has), and `isHabitDueToday`'s `targetDaysOfWeek` branch has to read the weekday of the user's day. `getPactStatsWindow` is deliberately left on the service fallback zone rather than made per-user — a pact is a group and has no single member's zone. That group-vs-member split is worth a product decision too: a cross-zone pact's members can now credit adjacent days for the same real 24 hours, where the UTC basis forced them onto one day (wrongly, for the westerner).
 
@@ -1766,6 +1520,55 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 - [ ] (2026-09-15, weekly recap) **Watch `weeklyRecap` in the first digest run's counters.** `recapUsersOnRecapDay` should be roughly a seventh of `recapUsersEvaluated`, and `recapsQueued + recapsSkippedEmptyWeek` should account for nearly all of it. `recapUsersOnRecapDay` at zero across several consecutive daily runs means the local-Monday test is wrong, not that nobody qualified.
 - [ ] (2026-09-16, /quality-peer-review-niche) **Deploy `general → stage → main` before promoting Habits 1.8.0 (versionCode 45) from the Play internal track to production.** The 1.8.0 build stamps check-ins with the user's *local* day (`toLocalDateKey`), but the users-service on `main` still answers `GET /habits/checkins/today` for the *UTC* day — the local-day fix (`5b0afb093`, `resolveCheckinHabitDate`) is on `general` only. Against the old backend a check-in made after ~19:00 CDT is written under today and read back under tomorrow, so the dashboard shows it un-checked for the rest of the evening. Submitting to the internal track first is still right (the weekly-recap push needs the manifest entry on a shipped build); the constraint is on the production promotion.
 - [ ] (2026-09-20, /quality-peer-review) **Confirm the three habits migrations ran at each of `stage` and `main`** — `20260919000001_habits.user_habits.notificationPrefs.js` (four `NOT NULL DEFAULT true` booleans), `20260920000001_habits.habit_goals.savingsTarget.js` and `20260920000002_habits.habit_checkins.savedAmount.js` (nullable `numeric(12,2)` columns + a partial index). All additive and idempotent, so a re-run is safe; but `getActiveForReminders` and `getDetailByUser` now SELECT the new columns unconditionally, so the digest and the habit list 500 until they exist. Introduced by 7c5440e19 and ac56442da.
+- [ ] (2026-09-21, check-in outage) **RUN THOSE THREE MIGRATIONS ON `main` NOW — they did not run, and every Friends with Habits check-in has been failing since the 2026-09-20 deploy.** The follow-up above turned out to be the incident: `deploy.sh` calls `deploy_waves` *before* `run-migrations.sh` (deliberately — "so we never migrate the schema underneath a rollout that is already wedged"), and on 2026-09-20 `deploy_waves` failed on the messages/websocket/maps `ImagePullBackOff` that `f4ff81bc1` fixes. `set -e` ended the job there, so users-service rolled onto the savings build and its migrations never ran. Symptom: `POST /habits/checkins` 500s with `SQL:HABIT_CHECKINS_ROUTES:ERROR`, underlying `column "savedAmount" of relation "habit_checkins" does not exist`; the habit list and the daily digest are down for the same reason. Fastest fix without a full deploy:
+  ```bash
+  POD=$(kubectl get pods -l component=users-service --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+  kubectl exec "$POD" -c users-service -- npm run migrations:run
+  ```
+  Then deploy `general → stage → main` to pick up `f4ff81bc1` (Docker Hub auth + wedged-rollout convergence), so the next deploy reaches its migration step. Note the ordering hazard is now known and unguarded: **any** deploy that fails in `deploy_waves` leaves already-rolled services on code newer than the schema, with no alert.
+  > **The hazard is guarded as of 2026-09-22** (§ 3.5) — `deploy.sh` now migrates
+  > what rolled even when the deploy fails, and fails the job when any service is
+  > running ahead of its schema. That does **not** fix the cluster as it stands
+  > today: the guard has to reach `main` before it can do anything, and the three
+  > migrations above are still unrun until someone runs them. Once this change is
+  > deployed the recovery command becomes
+  > `./_bin/cicd/run-migrations.sh --service users-service`, and
+  > `--verify-only` answers "is anything running ahead of its schema right now"
+  > without changing anything.
+- [ ] (2026-09-22, /work-plan) **Watch the first `main` deploy after the migration-guard
+  change for a false failure from the new verify pass.** `verify_no_pending_migrations`
+  execs `npm run migrations:status` in every migratable service's pod and fails the job
+  when any reports unapplied migrations. Two states are expected and benign on that first
+  deploy only: a service the deploy did not move is still serving an image built before
+  the `migrations:status` script existed, which npm answers with `Missing script` — that
+  is detected and reported as `unsupported`, skipped, not failed. The one to look at is
+  `Could not read pending migrations for <service>`: that means knex printed something
+  the parse did not recognise, and the pass is deliberately failing closed rather than
+  reporting zero. (The first instance of this was caught before it shipped: knex prints
+  `No Pending Migration files Found.` rather than `Found 0 ...` when a service is caught
+  up, which would have failed every deploy — the parse now reads both.) If knex 3.x ever changes that line, this is where it surfaces — fix the
+  parse in `pending_migration_count`, do not widen it to treat unknown as zero, which is
+  the false-green shape the pass exists to catch.
+- [ ] (2026-09-22, /work-plan) **Settle the habit-cap count question (#2923) — one query, and
+  the code half is already done.** A user hit the free-tier gate on what they counted as their
+  8th habit, against `HABITS_FREE_HABIT_LIMIT = 5`. The fail-open path now reports itself
+  (`level: 'error'`, with `habitCapacity.failOpenCount` / `.failedStage` on the span), so a cap
+  that has silently stopped enforcing is visible going forward — but that says nothing about
+  what already happened. Two candidates remain and one query separates them:
+
+  ```sql
+  SELECT status, count(*) FROM habits.user_habits
+   WHERE "userId" = '<user-id>' GROUP BY status;
+  ```
+
+  If `active` is 5, there is no bug — `countActiveByUser` counts only `active`, so archived
+  rows are correctly excluded and the user's own sense of "how many habits I have" simply
+  differs from the cap's. Worth a UX note, nothing more. If `active` is **> 5**, check
+  Honeycomb for `Failed to evaluate habit capacity` spans on that user (a sustained fail-open
+  would have disabled the gate for them), and check the `20260815000001` backfill above — if
+  it under-produced, pre-migration habits were never counted and the ceiling sat above 5 by
+  however many were missed:
+  `SELECT count(*) FROM habits.user_habits;`
 <!-- skill-followups:end -->
 
 ---
@@ -2202,11 +2005,13 @@ the single enforcement point for the 5-habit cap (402 with paywall metadata).
 
 Still open:
 
-- Play Console setup — create the `habits_lifetime_founder` product, the
-  service account, and license testers (see Manual Operational Follow-ups).
-- Refund / revocation: `LifetimePurchasesStore.setStatus` exists but nothing
-  consumes Play's Real-Time Developer Notifications, so a refunded buyer keeps
-  the entitlement.
+- Play Console setup — create the `habits_lifetime_founder` product (and the
+  `habits_premium_monthly` subscription), the service account, and license testers. All are
+  in § Manual Operational Follow-ups; none can be done from this repo.
+- **Refund / revocation has no producer at all** — the single largest gap in this section,
+  and it now covers the premium subscription as well as the founder unlock. One Pub/Sub
+  consumer of Play's Real-Time Developer Notifications serves both; see the merged
+  2026-08-15 / 2026-09-07 entry in § Manual Operational Follow-ups.
 - iOS StoreKit verification — the `platform` column is ready, the code is not.
 
 ---
@@ -2232,12 +2037,23 @@ The article's six rules, audited against what is in the code today:
 | 5 | Keep the metric inseparable from the behaviour | ⚠️ HABITS XP also accrues from invites |
 | 6 | Renew on a fixed cycle | ⚠️ sweep, endpoint, card CTA and the `pactEnded` push with its renew action all ship on `general`; the mobile half is not built |
 
-The five items below are ordered by expected impact and are **independent**:
-each can ship on its own without waiting on the others. They are the highest-
-priority cluster in Tier 2 — ahead of §§ 2.1–2.5 — because they act on the
-retention loop every other Tier 2 item feeds. §§ 2.6.1, 2.6.2 and 2.6.4 are
-closed, and 2.6.3's `general` half closed 2026-09-01 leaving only its mobile
-counterpart; **2.6.5 is the only item still open on its own terms.**
+The subsections below are ordered by expected impact and are **independent**: each can
+ship on its own without waiting on the others. They are the highest-priority cluster in
+Tier 2 — ahead of §§ 2.1–2.5 — because they act on the retention loop every other Tier 2
+item feeds.
+
+Current state, so the closed ones can be skipped:
+
+| § | State |
+|---|---|
+| 2.6.1 one-tap check-in | closed 2026-08-26 |
+| 2.6.2 partner streaks | closed 2026-08-26 |
+| 2.6.3 pact renewal | closed both halves; only a handset confirmation is left |
+| 2.6.4 announce the streak freeze | closed 2026-08-26 |
+| **2.6.5 keep the score tied to the behaviour** | **open — and it is a product decision, not a patch** |
+| 2.6.6 proof media read path | shipped 2026-09-01 |
+| **2.6.7 thoughts drop images (#2840)** | **code half shipped; two follow-ons open** |
+| **2.6.8 share a check-in (#2841)** | **open, blocked on 2.6.7** |
 
 ---
 
@@ -2781,25 +2597,31 @@ backlog).
   "run unconsumed migrations" manual follow-up. Additive/expand-contract
   migrations only; opt out with `RUN_MIGRATIONS_ON_DEPLOY=false`.
 
-- [ ] **The `.husky/pre-push` gate cannot pass, whether or not Redis is running.**
-  Found 2026-09-01 (/work-plan) while pushing an unrelated habits change; neither
-  defect is in the pushed diff, and both are latent because the integration tests
-  self-skip on a machine with no Redis.
-  - **Redis down:** `push-notifications-service`'s integration `after all` hooks
-    call `closeTestRedisConnection`, which `quit()`s a connection that was never
-    opened — `Error: Connection is closed`, 2 failures. The test *bodies* skip
-    correctly; only the teardown does not. Guard the `quit()` on the same
-    `skipTests`/connected flag the bodies use
-    (`tests/integration/testRedisConnection.ts:56`).
-  - **Redis up:** `therr-api-gateway`'s two TTL-expiry tests (`should expire
-    session tokens after TTL`, `should reset rate limit after window expires`)
-    `setTimeout` for **2500ms** under mocha's default **2000ms** timeout, so they
-    can only pass while Redis is absent and they skip. `therr-api-gateway/.mocharc.js`
-    sets no `timeout`. Either set one there or pass `this.timeout(5000)` on those
-    two tests.
-  Both are ~1-line fixes, and until they land every push either fails the hook or
-  trains the next person to reach for `--no-verify` — which is what the hook's own
-  header warns against.
+- ✅ **A failed rollout no longer skips migrations for the services that did roll**
+  — **DONE** 2026-09-22 (/work-plan), closing the hazard the 2026-09-20 outage left
+  open. `deploy.sh` traps `deploy_waves` instead of letting `set -e` end the job,
+  migrates only the migratable services confirmed to be on their desired tag
+  (`MIGRATE_ONLY_SERVICES` — set-but-empty means *none*, which is why it is not
+  collapsed with `${VAR:-}`), and still exits non-zero. The wave ordering's intent is
+  unchanged: a service that never rolled is never migrated underneath.
+  `run-migrations.sh` gained three things alongside it — per-service failure
+  isolation (one slow `rollout status` used to take every service after it in the
+  loop), a `verify_no_pending_migrations` pass that asks each running pod directly
+  and so catches migrations left behind by *any* earlier deploy rather than only
+  this one, and a standalone mode (`--service <key>` / `--all` / `--verify-only`)
+  that is now the supported recovery path when a deploy dies before its migration
+  step. The verify parse fails closed: an unrecognised `migrate:list` format reports
+  "unknown" and fails the job rather than reporting zero pending. Decision logic is
+  covered by `_bin/lib/tests/run-migrations-scope.test.js`.
+
+- ✅ **The `.husky/pre-push` gate cannot pass, whether or not Redis is running** —
+  **DONE** 2026-09-22 (/work-plan). `closeTestRedisConnection` now guards `quit()`
+  on the client's own ioredis `status` rather than on its mere existence (a
+  `lazyConnect` client is constructed by every helper in that module, including the
+  `checkRedisConnection` the bodies call to decide whether to skip), and
+  `therr-api-gateway/.mocharc.js` sets `timeout: 10000` so the two deliberate
+  2500ms TTL waits outlast mocha's 2000ms default. Both defects were verified
+  against the source before the fix; neither was ever in a pushed diff.
 
 - [ ] **Post-deploy staging smoke tests + auto-rollback** (roadmap #3) —
   replace the stubbed `test-e2e-staging` job in `.circleci/config.yml`
@@ -3189,15 +3011,14 @@ information the issue does not carry.
 ## When adding a Manual Operational Follow-up
 
 Append to **§ Manual Operational Follow-ups** with a checkbox. If the item
-was generated by a skill run, place it under "Skill-generated items" between
-the `<!-- skill-followups:start -->` and `- [ ] (2026-09-13, /quality-peer-review) **Watch the first habits-digest run's duration after
-  the daily-streak deploy.** `runDailyHabitsDigest` now awaits `evaluateAllDailyStreaks()` inline
-  before the reminder pass, and the first run walks every user's full check-in history (later
-  runs finalize one day per user). The messaging-automator gives each attempt 300s
-  (`HABITS_DIGEST_TIMEOUT_MS`) with one retry; a timeout is safe (both halves are idempotent)
-  but means reminders were not sent that morning. Introduced by d687f97b0.
-<!-- skill-followups:end -->`
-markers, prefixed with the date and originating skill:
+was generated by a skill run, place it under "Skill-generated items" between the
+`skill-followups:start` and `skill-followups:end` HTML comment markers, prefixed
+with the date and originating skill:
+
+> The marker names are written here **without** their `<!-- -->` delimiters on purpose.
+> Spelling them in full would put a second literal copy of each marker in the file, and an
+> appender that greps for one would match this paragraph instead of the real block — which
+> is precisely how a follow-up ended up pasted into this section once already.
 
 ```
 - [ ] (2026-04-26, /quality-peer-review) Run main.userDeviceTokens migration on
@@ -3233,11 +3054,22 @@ followed by tier reassignment) is cheap and worth running:
 - Whenever the file grows past ~600 lines (signals stale entries
   accumulating)
 
-> **This file is currently ~3,000 lines, five times that trigger.** The growth is
-> mostly § Manual Operational Follow-ups and the skill-followups block, which are
-> append-only by design and have no delete step that anyone runs. Two things
-> reduce it, and neither is deleting content wholesale: work the ops checklist
-> down (a completed follow-up is **deleted**, not moved to a Done section), and
-> let new deferrals land in GitHub issues rather than here. Re-tiering the closed
-> § 2.6 subsections into a one-line "closed, see git history" is the other
-> obvious win when someone has an hour.
+> **This file is still several times that trigger**, even after the 2026-09-22 grooming
+> pass. The growth is mostly § Manual Operational Follow-ups and the skill-followups
+> block, which are append-only by design and have no delete step that anyone runs. Three
+> things reduce it, and none is deleting content wholesale:
+>
+> 1. **Work the ops checklist down.** A completed follow-up is **deleted**, not ticked and
+>    left in place. Roughly a third of what the 2026-09-22 pass removed was `[x]` entries
+>    that had been sitting done for weeks.
+> 2. **Let new deferrals land in GitHub issues** rather than here.
+> 3. **Merge before appending.** The same pass found ~10 pairs of entries describing one
+>    job under two dates — a digest scheduler written up twice, two halves of one Play RTDN
+>    consumer, four per-release Android note reminders. A skill appending a follow-up should
+>    grep for the file it names first.
+>
+> One mechanical hazard worth knowing: an appender that searches for the
+> `skill-followups:end` marker can match a copy quoted elsewhere in this file rather than
+> the real one, and silently write the entry into prose. That had happened and was repaired
+> on 2026-09-22 — see the note in § When adding a Manual Operational Follow-up for why the
+> marker names are spelled there without their comment delimiters.

@@ -86,6 +86,48 @@ describe('HabitCheckinsStore — savings amounts', () => {
 
             expect(mockConnection.write.query.args[0][0]).to.not.contain('savedAmount');
         });
+
+        it('omits the column when the handler passes the key with an undefined value', async () => {
+            // The case above only covers an object with no `savedAmount` key at all, which
+            // is not what `createCheckin` builds: it declares `let savedAmount` and always
+            // spreads the key in, so the value is `undefined` on every check-in that
+            // records no money — i.e. almost all of them.
+            //
+            // That distinction is the whole bug. Knex drops an undefined key from
+            // `.merge()` but emits `DEFAULT` for it in an INSERT, so the column was still
+            // named in the column list, and on 2026-09-20 — when a wedged rollout aborted
+            // the deploy before its migration ran — every check-in 500'd with
+            // `column "savedAmount" of relation "habit_checkins" does not exist`, including
+            // check-ins from an app build that has never heard of savings.
+            const { store, mockConnection } = buildStore([{ id: 'c1' }]);
+
+            await store.createOrUpdate({
+                userId: 'u1',
+                habitGoalId: 'g1',
+                scheduledDate: '2026-09-20',
+                notes: 'just a note',
+                savedAmount: undefined,
+            });
+
+            const queryString = mockConnection.write.query.args[0][0];
+            expect(queryString).to.not.contain('savedAmount');
+            expect(queryString).to.not.contain('DEFAULT');
+        });
+
+        it('still writes an explicit null, which is how an amount is cleared', async () => {
+            // `undefined` and `null` are different instructions to the upsert and only
+            // `undefined` may be dropped — see ICreateHabitCheckinParams.savedAmount.
+            const { store, mockConnection } = buildStore([{ id: 'c1' }]);
+
+            await store.createOrUpdate({
+                userId: 'u1',
+                habitGoalId: 'g1',
+                scheduledDate: '2026-09-20',
+                savedAmount: null,
+            });
+
+            expect(mockConnection.write.query.args[0][0]).to.contain('"savedAmount"');
+        });
     });
 
     describe('getSavingsTotalsByPactMember', () => {
