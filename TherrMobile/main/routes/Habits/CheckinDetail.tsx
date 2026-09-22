@@ -129,14 +129,20 @@ export const CheckinDetail = ({
         }
 
         const {
-            notes, image, sharePublicly, savedAmount,
+            notes, image, sharePublicly, savedAmount, hasInvalidSavedAmount,
         } = draftRef.current;
         const trimmedNotes = notes.trim();
+
+        // The amount field is already showing why the text does not parse. Submitting
+        // anyway would save the check-in without the number the user typed.
+        if (hasInvalidSavedAmount) {
+            return;
+        }
 
         // An amount counts as something to attach. Without this, a savings check-in whose
         // only content is the number — which is the common case, and the whole point of
         // the feature — would be treated as an empty save and silently discarded.
-        const hasSavedAmount = savedAmount !== undefined && savedAmount !== null;
+        const hasSavedAmount = savedAmount !== undefined;
 
         // Nothing to attach — treat Save as Done rather than re-POSTing the check-in for no
         // reason.
@@ -169,11 +175,9 @@ export const CheckinDetail = ({
                 notes: trimmedNotes.length ? trimmedNotes : undefined,
                 proofMedias,
                 // Spread so the key is genuinely absent on a non-savings habit, and on a
-                // savings habit whose field was left untouched. `savedAmount: undefined`
-                // would serialize away over JSON anyway, but being explicit here keeps
-                // the three-state contract visible at the call site rather than relying
-                // on a serializer detail. An explicit null does reach the server, and
-                // clears the amount — which is what emptying the field should do.
+                // savings habit whose field was left empty. The POST upserts today's row
+                // and an explicit null would clear an amount already logged today (say,
+                // from the notification quick-reply), so the draft never carries one.
                 ...(savedAmount === undefined ? {} : { savedAmount }),
             }))
             .then((checkin: any) => {

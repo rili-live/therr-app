@@ -2,7 +2,7 @@ import React from 'react';
 import {
     StyleSheet, Text, TextInput, View,
 } from 'react-native';
-import { parseSavingsAmount, SavingsAmountError } from 'therr-js-utilities/constants';
+import { DEFAULT_SAVINGS_CURRENCY_CODE, parseSavingsAmount, SavingsAmountError } from 'therr-js-utilities/constants';
 import { ITherrThemeColors } from '../../styles/themes';
 
 /**
@@ -21,7 +21,7 @@ import { ITherrThemeColors } from '../../styles/themes';
  * that did not.
  */
 
-const ERROR_KEY_BY_REASON: Record<SavingsAmountError, string> = {
+export const ERROR_KEY_BY_REASON: Record<SavingsAmountError, string> = {
     'not-a-number': 'pages.habits.savings.errorNotANumber',
     negative: 'pages.habits.savings.errorNegative',
     'too-large': 'pages.habits.savings.errorTooLarge',
@@ -80,7 +80,7 @@ const SavingsAmountInput: React.FC<ISavingsAmountInputProps> = ({
                 ]}
             >
                 <Text style={[localStyles.currency, { color: colors.textGray }]}>
-                    {(currencyCode || 'USD').toUpperCase()}
+                    {(currencyCode || DEFAULT_SAVINGS_CURRENCY_CODE).toUpperCase()}
                 </Text>
                 <TextInput
                     value={value}

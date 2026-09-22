@@ -66,7 +66,9 @@ const SavingsProgressCard: React.FC<ISavingsProgressCardProps> = ({
                 {formatSavingsAmount(totalSaved, currencyCode, locale)}
             </Text>
             <Text style={themeHabits.styles.habitCardSubtitle}>
-                {targetAmount === null
+                {/* `== null`, not `=== null`: an absent field from an older response is
+                    also "no target", and must not render as a target of $0. */}
+                {targetAmount == null
                     // An open-ended savings habit has no finish line. Saying "saved so
                     // far" rather than showing a 0% bar is the honest rendering.
                     ? translate('pages.habits.savings.totalSavedNoTarget')
@@ -96,7 +98,7 @@ const SavingsProgressCard: React.FC<ISavingsProgressCardProps> = ({
                     {translate('pages.habits.savings.goalReached')}
                 </Text>
             ) : null}
-            {!isGoalReached && remainingAmount !== null ? (
+            {!isGoalReached && remainingAmount != null ? (
                 <Text style={[localStyles.statusLine, themeHabits.styles.habitCardSubtitle]}>
                     {translate(isGroupScope
                         ? 'pages.habits.savings.remainingGroup'

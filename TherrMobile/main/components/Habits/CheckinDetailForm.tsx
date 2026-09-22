@@ -6,6 +6,7 @@ import { Switch } from 'react-native-paper';
 import ImageCropPicker, { Image as CroppedImage } from 'react-native-image-crop-picker';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
+import { parseSavingsAmount } from 'therr-js-utilities/constants';
 import { ITherrThemeColors } from '../../styles/themes';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
 import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions';
@@ -57,15 +58,22 @@ export interface ICheckinDetailDraft {
     image: ISelectedProofImage | null;
     sharePublicly: boolean;
     /**
-     * The parsed amount, `null` when the field was left empty, and **`undefined` when
-     * the habit is not a savings goal at all**.
+     * The parsed amount, or **`undefined` when there is nothing to send** — a habit that
+     * is not a savings goal, an empty field, or text that does not parse.
      *
-     * The three states are not cosmetic — they map onto what the caller sends, and the
-     * server reads them as written. `undefined` must leave the key off the request
-     * entirely (leave any recorded amount alone), `null` clears it. Collapsing the two
-     * would make an ordinary "add a photo" save erase money on a savings habit.
+     * Never `null`. The check-in POST is an upsert on today's row and the server reads an
+     * explicit null as "clear the recorded amount", while this field always starts empty
+     * (it is not prefilled with today's amount). A null here would therefore make an
+     * ordinary "add a note" save erase money already logged today — e.g. from the
+     * notification quick-reply. `undefined` leaves the key off the request entirely.
      */
-    savedAmount?: number | null;
+    savedAmount?: number;
+    /**
+     * True when the amount field holds text the shared parser rejects. The field already
+     * shows why inline; the caller must not submit, or the typed amount would be dropped
+     * while the check-in saves as if it had been recorded.
+     */
+    hasInvalidSavedAmount?: boolean;
 }
 
 const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
@@ -85,24 +93,28 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
     const [selectedImage, setSelectedImage] = useState<ISelectedProofImage | null>(null);
     const [imagePreviewPath, setImagePreviewPath] = useState<string>('');
     const [sharePublicly, setSharePublicly] = useState(defaultSharePublicly);
-    // Raw text and the parsed value are kept apart: the text is what the field shows
-    // (so "12." survives being typed) and the number is what the caller sends.
+    // Only the raw text is held (so "12." survives being typed); the number the caller
+    // sends is parsed from it below with the same parser the server applies.
     const [savedAmountText, setSavedAmountText] = useState('');
-    const [savedAmount, setSavedAmount] = useState<number | null>(null);
 
     // Lift the draft on every change so the screen's footer button can submit without a ref
     // into this component. Sharing requires a photo; never signal share without one even if the
     // toggle was left on before the image was removed.
     useEffect(() => {
+        const trimmedAmountText = isSavingsGoal ? savedAmountText.trim() : '';
+        const parsedAmount = trimmedAmountText.length ? parseSavingsAmount(trimmedAmountText) : null;
+        const hasInvalidSavedAmount = !!parsedAmount && (!!parsedAmount.error || parsedAmount.amount === undefined);
+
         onChange({
             notes,
             image: selectedImage,
             sharePublicly: canShare && !!selectedImage && sharePublicly,
-            // Undefined — not null — on a habit that does not track money, so the caller
-            // omits the key rather than clearing a column that was never theirs to clear.
-            savedAmount: isSavingsGoal ? savedAmount : undefined,
+            // Undefined — never null — whenever there is no valid amount, so the caller
+            // omits the key rather than clearing an amount recorded earlier today.
+            savedAmount: parsedAmount && !hasInvalidSavedAmount ? parsedAmount.amount : undefined,
+            hasInvalidSavedAmount,
         });
-    }, [notes, selectedImage, sharePublicly, canShare, isSavingsGoal, savedAmount, onChange]);
+    }, [notes, selectedImage, sharePublicly, canShare, isSavingsGoal, savedAmountText, onChange]);
 
     const pickImage = async (source: 'camera' | 'library') => {
         const pickerOptions: any = {
@@ -169,7 +181,6 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
                 <SavingsAmountInput
                     value={savedAmountText}
                     onChangeText={setSavedAmountText}
-                    onValueChange={setSavedAmount}
                     currencyCode={currencyCode}
                     label={translate('pages.habits.savings.checkinAmountLabel')}
                     hint={translate('pages.habits.savings.checkinAmountHint')}

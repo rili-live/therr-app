@@ -19,6 +19,7 @@ import {
     DEFAULT_SAVINGS_CURRENCY_CODE,
     FeatureFlags,
     HabitGoalTypes,
+    parseSavingsAmount,
     SavingsTargetScope,
     SavingsTargetScopes,
 } from 'therr-js-utilities/constants';
@@ -36,7 +37,7 @@ import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { Button } from '../../components/BaseButton';
 import { HABITS_PRESTAGED_TEMPLATE_ID } from '../../components/Habits/PactPreviewOverlay';
-import SavingsAmountInput from '../../components/Habits/SavingsAmountInput';
+import SavingsAmountInput, { ERROR_KEY_BY_REASON } from '../../components/Habits/SavingsAmountInput';
 import { buildInviteUrl } from '../../utilities/shareUrls';
 import {
     WizardStep as Step,
@@ -352,12 +353,32 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     };
 
     canAdvanceFromStep1 = (): boolean => Boolean(
-        this.state.selectedTemplateId || this.state.customHabitName.trim().length > 0,
+        (this.state.selectedTemplateId || this.state.customHabitName.trim().length > 0)
+        && !this.hasInvalidSavingsTarget(),
     );
+
+    /**
+     * A savings target that was typed but does not parse. `SavingsAmountInput` reports it
+     * as a null amount, which is indistinguishable from an empty field — so without this
+     * gate the pact would be created open-ended and the number the user typed dropped.
+     */
+    hasInvalidSavingsTarget = (): boolean => this.getIsSavingsSelection()
+        && this.state.savingsTargetText.trim().length > 0
+        && this.state.savingsTargetAmount === null;
 
     handleNext = () => {
         const { step } = this.state;
         if (step === 1) {
+            if (this.hasInvalidSavingsTarget()) {
+                // The field is already showing why inline; the toast only explains the
+                // button that did nothing.
+                const { error } = parseSavingsAmount(this.state.savingsTargetText);
+                Toast.show({
+                    type: 'info',
+                    text1: this.translate(ERROR_KEY_BY_REASON[error || 'not-a-number']),
+                });
+                return;
+            }
             if (!this.canAdvanceFromStep1()) {
                 Toast.show({ type: 'info', text1: this.translate('pages.pacts.wizard.pickTemplateFirst') });
                 return;
