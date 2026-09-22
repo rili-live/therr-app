@@ -1547,6 +1547,26 @@ backend change needed — it refuses to treat Play's own
   reporting zero. If knex 3.x ever changes that line, this is where it surfaces — fix the
   parse in `pending_migration_count`, do not widen it to treat unknown as zero, which is
   the false-green shape the pass exists to catch.
+- [ ] (2026-09-22, /work-plan) **Settle the habit-cap count question (#2923) — one query, and
+  the code half is already done.** A user hit the free-tier gate on what they counted as their
+  8th habit, against `HABITS_FREE_HABIT_LIMIT = 5`. The fail-open path now reports itself
+  (`level: 'error'`, with `habitCapacity.failOpenCount` / `.failedStage` on the span), so a cap
+  that has silently stopped enforcing is visible going forward — but that says nothing about
+  what already happened. Two candidates remain and one query separates them:
+
+  ```sql
+  SELECT status, count(*) FROM habits.user_habits
+   WHERE "userId" = '<user-id>' GROUP BY status;
+  ```
+
+  If `active` is 5, there is no bug — `countActiveByUser` counts only `active`, so archived
+  rows are correctly excluded and the user's own sense of "how many habits I have" simply
+  differs from the cap's. Worth a UX note, nothing more. If `active` is **> 5**, check
+  Honeycomb for `Failed to evaluate habit capacity` spans on that user (a sustained fail-open
+  would have disabled the gate for them), and check the `20260815000001` backfill above — if
+  it under-produced, pre-migration habits were never counted and the ceiling sat above 5 by
+  however many were missed:
+  `SELECT count(*) FROM habits.user_habits;`
 <!-- skill-followups:end -->
 
 ---
