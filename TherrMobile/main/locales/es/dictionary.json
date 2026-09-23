@@ -393,6 +393,7 @@
                 "home": "Inicio",
                 "feedback": "Compartir opinión",
                 "groups": "Grupos",
+                "leaderboard": "Tabla de clasificación",
                 "logout": "Cerrar sesión",
                 "map": "Mapa",
                 "moments": "Momentos",
@@ -2023,11 +2024,20 @@
             "yourHabits": "Tus hábitos",
             "todayProgress": "Hoy",
             "bestStreak": "Mejor racha",
+            "leaderboardRankTitle": "#{rank} esta semana",
+            "leaderboardRankSubtitle": "{points} XP · Ver la clasificación",
+            "leaderboardJoinTitle": "Clasificación de esta semana",
+            "leaderboardJoinSubtitle": "Registra tu progreso para ganar XP y conseguir tu lugar",
+            "rankUpToast": {
+                "title": "🏆 Subiste al #{rank} esta semana",
+                "body": "Toca para ver la tabla de clasificación"
+            },
             "currentStreak": "Racha actual",
             "longestStreak": "Racha más larga",
             "graceDays": "Congelamientos restantes",
             "stats": "Estadísticas",
             "checkin": "Registrar",
+            "checkinError": "No pudimos guardar tu registro. Inténtalo de nuevo en un momento.",
             "completed": "¡Completado!",
             "noHabitsTitle": "Aún no hay hábitos",
             "noHabitsSubtitle": "Crea un hábito para comenzar a seguir tu progreso",
@@ -2073,7 +2083,8 @@
                 "removePhoto": "Quitar foto",
                 "sharedTitle": "Compartido en el feed",
                 "shareFailed": "No pudimos compartir este registro. Inténtalo más tarde.",
-                "save": "Guardar"
+                "save": "Guardar",
+                "addDetailPromptSavings": "Anota lo que ahorraste y agrega una nota o foto si quieres."
             },
             "feed": {
                 "emptyMessage": "Aún no hay registros compartidos. Comparte uno de los tuyos para empezar el feed."
@@ -2180,6 +2191,33 @@
                 "editSaved": "Horario actualizado",
                 "editFailed": "No se pudo actualizar el horario. Inténtalo de nuevo.",
                 "streakUnitCheckins": "{count} registros seguidos"
+            },
+            "savings": {
+                "cardTitle": "Ahorrado hasta ahora",
+                "checkinAmountHint": "Déjalo en blanco para registrarte sin anotar un monto.",
+                "checkinAmountLabel": "¿Cuánto ahorraste?",
+                "errorNegative": "Ingresa un monto de cero o más",
+                "errorNotANumber": "Ingresa el monto como número, por ejemplo 25 o 25,50",
+                "errorTooLarge": "Ese monto es demasiado grande para registrarlo",
+                "errorTooPrecise": "Redondea al centavo más cercano, por ejemplo 25,50",
+                "goalReached": "🎉 ¡Meta alcanzada!",
+                "remainingGroup": "Faltan {amount} entre todos",
+                "remainingYours": "Te faltan {amount}",
+                "totalSavedGroupSubtitle": "en total: {target} cada uno",
+                "totalSavedNoTarget": "Sin meta definida: solo llevamos el total.",
+                "totalSavedOfGroupTarget": "de la meta del grupo de {target}",
+                "totalSavedOfTarget": "de tu meta de {target}",
+                "unknownMember": "Un compañero"
+            },
+            "widget": {
+                "friendsThisWeek": "Amigos esta semana",
+                "everyoneThisWeek": "Todos esta semana",
+                "amongFriends": "entre amigos",
+                "overall": "en general",
+                "habitsDone": "{done}/{total} hábitos",
+                "startHabit": "Empieza un hábito →",
+                "newWeek": "Empezó una nueva semana — toca para ver tu puesto",
+                "inviteFriends": "Invita a tus amigos a competir →"
             }
         },
         "pacts": {
@@ -2340,7 +2378,15 @@
                 "soloLockedTitle": "Invita a {remaining} amigo(s) más para desbloquear los hábitos en solitario",
                 "soloLockedProgress": "{invited} de {required} amigos invitados",
                 "freezeRule": "Si fallas un día que tu hábito pedía, un congelamiento de racha lo cubre: empiezas con {starting} y ganas otro cada {interval} registros, hasta {max}. Los días que tu frecuencia no pide no cuestan nada.",
-                "cadenceReview": "Frecuencia: {cadence}"
+                "cadenceReview": "Frecuencia: {cadence}",
+                "savingsToggleLabel": "Este hábito se trata de ahorrar dinero",
+                "savingsSectionTitle": "Meta de ahorro",
+                "savingsTargetLabel": "Monto objetivo",
+                "savingsTargetHint": "Opcional: déjalo en blanco para solo llevar el total.",
+                "savingsScopePerMemberLabel": "Cada persona ahorra esto",
+                "savingsScopePerMemberHint": "Cada quien avanza hacia el monto por su cuenta. Termina cuando todos lo alcancen.",
+                "savingsScopeGroupLabel": "Lo ahorramos juntos",
+                "savingsScopeGroupHint": "Un fondo compartido. Termina cuando el total combinado llegue al monto."
             },
             "status": {
                 "pending": "Pendiente",

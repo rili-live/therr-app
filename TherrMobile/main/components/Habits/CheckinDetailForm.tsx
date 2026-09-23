@@ -6,11 +6,13 @@ import { Switch } from 'react-native-paper';
 import ImageCropPicker, { Image as CroppedImage } from 'react-native-image-crop-picker';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
+import { parseSavingsAmount } from 'therr-js-utilities/constants';
 import { ITherrThemeColors } from '../../styles/themes';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
 import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions';
 import { showToast } from '../../utilities/toasts';
 import { ISelectedProofImage } from '../../utilities/checkinProofUpload';
+import SavingsAmountInput from './SavingsAmountInput';
 
 export type { ISelectedProofImage };
 
@@ -38,10 +40,40 @@ interface ICheckinDetailFormProps {
     // someone with a public profile has already said they want an audience, so their check-ins
     // default to shared; a private profile defaults to off.
     defaultSharePublicly?: boolean;
-    onChange: (draft: { notes: string; image: ISelectedProofImage | null; sharePublicly: boolean }) => void;
+    /**
+     * True when this check-in is against a `savings_goal` habit, which is what puts the
+     * amount field on the form. Everything else about the form is unchanged.
+     */
+    isSavingsGoal?: boolean;
+    /** The goal's currency, for the amount field's prefix. Display only. */
+    currencyCode?: string | null;
+    onChange: (draft: ICheckinDetailDraft) => void;
     translate: (key: string, params?: any) => string;
     colors: ITherrThemeColors;
     styles: any;
+}
+
+export interface ICheckinDetailDraft {
+    notes: string;
+    image: ISelectedProofImage | null;
+    sharePublicly: boolean;
+    /**
+     * The parsed amount, or **`undefined` when there is nothing to send** — a habit that
+     * is not a savings goal, an empty field, or text that does not parse.
+     *
+     * Never `null`. The check-in POST is an upsert on today's row and the server reads an
+     * explicit null as "clear the recorded amount", while this field always starts empty
+     * (it is not prefilled with today's amount). A null here would therefore make an
+     * ordinary "add a note" save erase money already logged today — e.g. from the
+     * notification quick-reply. `undefined` leaves the key off the request entirely.
+     */
+    savedAmount?: number;
+    /**
+     * True when the amount field holds text the shared parser rejects. The field already
+     * shows why inline; the caller must not submit, or the typed amount would be dropped
+     * while the check-in saves as if it had been recorded.
+     */
+    hasInvalidSavedAmount?: boolean;
 }
 
 const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
@@ -50,6 +82,8 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
     userId,
     canShare = false,
     defaultSharePublicly = false,
+    isSavingsGoal = false,
+    currencyCode,
     onChange,
     translate,
     colors,
@@ -59,17 +93,28 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
     const [selectedImage, setSelectedImage] = useState<ISelectedProofImage | null>(null);
     const [imagePreviewPath, setImagePreviewPath] = useState<string>('');
     const [sharePublicly, setSharePublicly] = useState(defaultSharePublicly);
+    // Only the raw text is held (so "12." survives being typed); the number the caller
+    // sends is parsed from it below with the same parser the server applies.
+    const [savedAmountText, setSavedAmountText] = useState('');
 
     // Lift the draft on every change so the screen's footer button can submit without a ref
     // into this component. Sharing requires a photo; never signal share without one even if the
     // toggle was left on before the image was removed.
     useEffect(() => {
+        const trimmedAmountText = isSavingsGoal ? savedAmountText.trim() : '';
+        const parsedAmount = trimmedAmountText.length ? parseSavingsAmount(trimmedAmountText) : null;
+        const hasInvalidSavedAmount = !!parsedAmount && (!!parsedAmount.error || parsedAmount.amount === undefined);
+
         onChange({
             notes,
             image: selectedImage,
             sharePublicly: canShare && !!selectedImage && sharePublicly,
+            // Undefined — never null — whenever there is no valid amount, so the caller
+            // omits the key rather than clearing an amount recorded earlier today.
+            savedAmount: parsedAmount && !hasInvalidSavedAmount ? parsedAmount.amount : undefined,
+            hasInvalidSavedAmount,
         });
-    }, [notes, selectedImage, sharePublicly, canShare, onChange]);
+    }, [notes, selectedImage, sharePublicly, canShare, isSavingsGoal, savedAmountText, onChange]);
 
     const pickImage = async (source: 'camera' | 'library') => {
         const pickerOptions: any = {
@@ -124,8 +169,26 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
                 <Text style={themeStyles.formHabitName}>{habitName}</Text>
             ) : null}
             <Text style={themeStyles.formPrompt}>
-                {translate('pages.habits.checkinProof.addDetailPrompt')}
+                {translate(isSavingsGoal
+                    ? 'pages.habits.checkinProof.addDetailPromptSavings'
+                    : 'pages.habits.checkinProof.addDetailPrompt')}
             </Text>
+            {isSavingsGoal ? (
+                // First, above the photo and note controls. On a savings habit the amount
+                // is the point of opening this screen — burying it under two photo buttons
+                // is how it gets missed, which is the behaviour the notification
+                // quick-reply exists to work around.
+                <SavingsAmountInput
+                    value={savedAmountText}
+                    onChangeText={setSavedAmountText}
+                    currencyCode={currencyCode}
+                    label={translate('pages.habits.savings.checkinAmountLabel')}
+                    hint={translate('pages.habits.savings.checkinAmountHint')}
+                    editable={!isSubmitting}
+                    translate={translate}
+                    colors={colors}
+                />
+            ) : null}
             <View style={localStyles.photoSection}>
                 {imagePreviewPath ? (
                     // A compact strip rather than a full-width preview: the image is already

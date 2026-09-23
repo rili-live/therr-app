@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  updatePeriodMillis only redraws from the stored snapshot (no network): it keeps the reset
+  countdown honest and swaps last week's rank for the "new week" prompt after a rollover.
+  Fresh data arrives when the app publishes a snapshot (main/utilities/habitsWidget.ts).
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/habits_widget_description"
+    android:initialLayout="@layout/widget_habits"
+    android:minWidth="250dp"
+    android:minHeight="110dp"
+    android:minResizeWidth="180dp"
+    android:minResizeHeight="110dp"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="10800000"
+    android:widgetCategory="home_screen" />

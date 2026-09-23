@@ -1137,6 +1137,45 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginTop: 4,
         },
 
+        // Dashboard — weekly leaderboard row, top of the progress card
+        leaderboardTeaserRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.md,
+        },
+        leaderboardTeaserRowPressed: {
+            opacity: 0.6,
+        },
+        leaderboardTeaserIconContainer: {
+            width: 36,
+            height: 36,
+            borderRadius: radius.pill,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: therrTheme.colors.backgroundGray,
+        },
+        leaderboardTeaserIcon: {
+            color: therrTheme.colors.primary3,
+        },
+        leaderboardTeaserTextContainer: {
+            flex: 1,
+        },
+        leaderboardTeaserTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.onSurface,
+        },
+        leaderboardTeaserSubtitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: 2,
+        },
+        leaderboardTeaserChevron: {
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+
         // Dashboard
         dashboardContainer: {
             flex: 1,

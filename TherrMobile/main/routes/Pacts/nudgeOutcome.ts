@@ -1,4 +1,5 @@
 import { IPactNudgeResult } from 'therr-react/types';
+import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 
 /**
  * The shared half of this work has landed, so `IPactNudgeResult.reason` already carries
@@ -81,14 +82,24 @@ export const getNudgeOutcomeToast = (
 /**
  * Picks the body copy for a nudge the server rejected.
  *
- * The API's error bodies are localized and specific ("Only the person who created this pact
+ * The API's 4xx bodies are localized and specific ("Only the person who created this pact
  * can send a nudge"), and the axios interceptor rejects with that body verbatim — so when one
- * is present it beats anything this screen could say. A rejection with no `statusCode` never
- * reached the API, so it is reported as a connection problem instead of a nudge problem.
+ * is present it beats anything this screen could say.
+ *
+ * The other two cases are not interchangeable and used to be conflated. A rejection with no
+ * `statusCode` never reached the API, which is a connection problem. A 5xx *did* reach it and
+ * carries an internal grep token rather than copy (`SQL:PACTS_ROUTES:ERROR`) — telling that
+ * user to check their connection is wrong, and showing them the token is worse. See
+ * utilities/apiErrorMessage.
  */
 export const getNudgeErrorMessage = (error: any): { key?: string; message?: string } => {
-    if (error?.statusCode && typeof error?.message === 'string' && error.message) {
-        return { message: error.message };
+    const apiMessage = getApiErrorMessage(error);
+    if (apiMessage) {
+        return { message: apiMessage };
+    }
+
+    if (Number(error?.statusCode)) {
+        return { key: 'pages.pacts.outgoing.nudgeError' };
     }
 
     return { key: 'pages.pacts.outgoing.nudgeErrorOffline' };

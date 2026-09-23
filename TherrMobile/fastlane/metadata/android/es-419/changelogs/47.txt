@@ -1,0 +1,4 @@
+Novedades:
+• Si llegas al límite de hábitos gratis, iniciar un hábito o unirte a un pacto ahora te lleva a las opciones de mejora en vez de mostrar un error
+• ¿Aún no puedes seguir en solitario? La app ahora te dice cuántos amigos más invitar, al crear un pacto y desde "Seguir en solitario"
+• Correcciones y mejoras

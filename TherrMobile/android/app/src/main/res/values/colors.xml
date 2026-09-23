@@ -2,4 +2,11 @@
 <resources>
     <color name="therr_blue">#3B2A4E</color>
     <color name="bootsplash_background">#FFFFFF</color>
+    <!-- Home-screen widget (layout/widget_habits.xml) -->
+    <color name="habits_widget_surface_start">#5B4273</color>
+    <color name="habits_widget_surface_end">#6E5C85</color>
+    <color name="habits_widget_text">#FCFEFF</color>
+    <color name="habits_widget_text_muted">#D9D2E3</color>
+    <color name="habits_widget_accent">#F2B233</color>
+    <color name="habits_widget_track">#33FCFEFF</color>
 </resources>

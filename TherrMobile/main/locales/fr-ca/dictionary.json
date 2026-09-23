@@ -393,6 +393,7 @@
                 "home": "Accueil",
                 "feedback": "Partager vos commentaires",
                 "groups": "Groupes",
+                "leaderboard": "Classement",
                 "logout": "Déconnexion",
                 "map": "Carte",
                 "moments": "Moments",
@@ -2023,11 +2024,20 @@
             "yourHabits": "Vos habitudes",
             "todayProgress": "Aujourd'hui",
             "bestStreak": "Meilleure série",
+            "leaderboardRankTitle": "#{rank} cette semaine",
+            "leaderboardRankSubtitle": "{points} XP · Voir le classement",
+            "leaderboardJoinTitle": "Classement de la semaine",
+            "leaderboardJoinSubtitle": "Enregistrez vos habitudes pour gagner des XP et prendre votre place",
+            "rankUpToast": {
+                "title": "🏆 Nouveau rang : #{rank} cette semaine",
+                "body": "Touchez pour voir le classement"
+            },
             "currentStreak": "Série actuelle",
             "longestStreak": "Plus longue série",
             "graceDays": "Gels de série restants",
             "stats": "Statistiques",
             "checkin": "Enregistrer",
+            "checkinError": "Nous n'avons pas pu enregistrer votre suivi. Réessayez dans un instant.",
             "completed": "Complété!",
             "noHabitsTitle": "Aucune habitude pour le moment",
             "noHabitsSubtitle": "Créez une habitude pour commencer à suivre vos progrès",
@@ -2073,7 +2083,8 @@
                 "removePhoto": "Retirer la photo",
                 "sharedTitle": "Partagé au fil",
                 "shareFailed": "Impossible de partager ce suivi. Réessayez plus tard.",
-                "save": "Enregistrer"
+                "save": "Enregistrer",
+                "addDetailPromptSavings": "Inscris ce que tu as épargné, et ajoute une note ou une photo si tu veux."
             },
             "feed": {
                 "emptyMessage": "Aucun suivi partagé pour l'instant. Partagez l'un des vôtres pour lancer le fil."
@@ -2180,6 +2191,33 @@
                 "editSaved": "Horaire mis à jour",
                 "editFailed": "Impossible de mettre à jour l'horaire. Réessaie.",
                 "streakUnitCheckins": "{count} suivis d'affilée"
+            },
+            "savings": {
+                "cardTitle": "Épargné jusqu’ici",
+                "checkinAmountHint": "Laisse vide pour t’enregistrer sans inscrire de montant.",
+                "checkinAmountLabel": "Combien as-tu mis de côté?",
+                "errorNegative": "Saisis un montant de zéro ou plus",
+                "errorNotANumber": "Saisis le montant sous forme de nombre, par exemple 25 ou 25,50",
+                "errorTooLarge": "Ce montant est trop élevé pour être enregistré",
+                "errorTooPrecise": "Arrondis au cent près, par exemple 25,50",
+                "goalReached": "🎉 Objectif atteint!",
+                "remainingGroup": "Il reste {amount} à vous tous",
+                "remainingYours": "Il te reste {amount}",
+                "totalSavedGroupSubtitle": "au total — {target} chacun",
+                "totalSavedNoTarget": "Aucun objectif fixé — on suit simplement le total.",
+                "totalSavedOfGroupTarget": "de l’objectif du groupe de {target}",
+                "totalSavedOfTarget": "de ton objectif de {target}",
+                "unknownMember": "Un partenaire"
+            },
+            "widget": {
+                "friendsThisWeek": "Ami(e)s cette semaine",
+                "everyoneThisWeek": "Tout le monde cette semaine",
+                "amongFriends": "parmi vos ami(e)s",
+                "overall": "au total",
+                "habitsDone": "{done}/{total} habitudes",
+                "startHabit": "Commencez une habitude →",
+                "newWeek": "Nouvelle semaine — touchez pour voir votre rang",
+                "inviteFriends": "Invitez vos ami(e)s à compétitionner →"
             }
         },
         "pacts": {
@@ -2340,7 +2378,15 @@
                 "soloLockedTitle": "Invite {remaining} ami(s) de plus pour débloquer les habitudes en solo",
                 "soloLockedProgress": "{invited} amis invités sur {required}",
                 "freezeRule": "Si tu manques une journée que ton habitude demandait, un gel de série la couvre : tu commences avec {starting} et tu en gagnes un autre tous les {interval} suivis, jusqu'à {max}. Les jours que ta fréquence ne demande pas ne coûtent rien.",
-                "cadenceReview": "Fréquence : {cadence}"
+                "cadenceReview": "Fréquence : {cadence}",
+                "savingsToggleLabel": "Cette habitude vise à épargner de l’argent",
+                "savingsSectionTitle": "Objectif d’épargne",
+                "savingsTargetLabel": "Montant visé",
+                "savingsTargetHint": "Facultatif — laisse vide pour suivre seulement le total.",
+                "savingsScopePerMemberLabel": "Chaque personne épargne ce montant",
+                "savingsScopePerMemberHint": "Chacun progresse vers le montant de son côté. Terminé quand vous l’avez tous atteint.",
+                "savingsScopeGroupLabel": "On l’épargne ensemble",
+                "savingsScopeGroupHint": "Une cagnotte commune. Terminé quand votre total combiné atteint le montant."
             },
             "status": {
                 "pending": "En attente",

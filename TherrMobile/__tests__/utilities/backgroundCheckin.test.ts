@@ -102,6 +102,37 @@ describe('backgroundCheckin', () => {
         expect(JSON.parse(init.body)).toEqual({ habitGoalId: 'goal-1', status: 'completed' });
     });
 
+    it('sends the raw typed amount, unparsed, from the notification quick-reply', async () => {
+        // Deliberately NOT parsed here. The server applies the shared
+        // `parseSavingsAmount`, which accepts "$20", "20,00" and " 20 " alike; a second
+        // opinion on the client could disagree with it and silently drop a number the
+        // user actually typed into the tray.
+        stubSession(SESSION);
+        mockFetch.mockResolvedValue({ ok: true } as never);
+
+        await loadModule().default({ habitGoalId: 'goal-1', savedAmount: ' $20,50 ' });
+
+        const [, init] = mockFetch.mock.calls[0] as any[];
+        expect(JSON.parse(init.body)).toEqual({
+            habitGoalId: 'goal-1',
+            savedAmount: ' $20,50 ',
+            status: 'completed',
+        });
+    });
+
+    it('omits an empty amount rather than sending it, which would clear the day', async () => {
+        // A quick-reply submitted with nothing typed must still check the user in — but
+        // an explicit empty value tells the server to CLEAR the amount, which would
+        // erase what they logged in the app earlier the same day.
+        stubSession(SESSION);
+        mockFetch.mockResolvedValue({ ok: true } as never);
+
+        await loadModule().default({ habitGoalId: 'goal-1', savedAmount: '   ' });
+
+        const [, init] = mockFetch.mock.calls[0] as any[];
+        expect(JSON.parse(init.body)).toEqual({ habitGoalId: 'goal-1', status: 'completed' });
+    });
+
     it('reports failure without calling the API when there is no session', async () => {
         stubSession(null);
 

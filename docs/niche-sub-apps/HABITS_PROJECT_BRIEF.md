@@ -263,6 +263,7 @@ future premium gate. See `habits/HABITS_PAYMENT_WORKFLOW.md`.
 - [ ] Referral invite system (cannot be skipped)
 - [ ] Shareable pact templates with unique links
 - [ ] Social proof elements (success stories, leaderboard)
+- [x] Android home-screen widget v1: weekly friends rank, XP, daily streak, today's check-ins, top 3 (read-only, app-pushed snapshot). Next: background refresh, iOS WidgetKit, one-tap check-in
 - [ ] "Challenge a Friend" with pre-filled invites
 - [ ] Weekly email summaries with share buttons
 - [ ] Friend activity notifications to create FOMO

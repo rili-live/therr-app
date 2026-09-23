@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp">
+
+    <TextView
+        android:id="@+id/widget_row_rank"
+        android:layout_width="22dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/habits_widget_text"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/widget_row_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/habits_widget_text"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/widget_row_points"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:textColor="@color/habits_widget_text_muted"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/widget_row_streak"
+        android:layout_width="44dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxLines="1"
+        android:textColor="@color/habits_widget_text_muted"
+        android:textSize="12sp" />
+</LinearLayout>
