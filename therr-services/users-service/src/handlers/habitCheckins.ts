@@ -46,7 +46,7 @@ import {
     headersForOtherUser,
 } from './helpers/awardHabitAchievements';
 import { awardLeaderboardPoints } from './helpers/leaderboards';
-import { LeaderboardXpValues, weeklyQuotaBonus } from '../utilities/leaderboardHelpers';
+import { checkinProofXp, LeaderboardXpValues, weeklyQuotaBonus } from '../utilities/leaderboardHelpers';
 import {
     getLocalDate,
     getWeekStart,
@@ -252,7 +252,12 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
         notes,
         selfRating,
         difficultyRating,
-        hasProof,
+        // Only ever raised here. A later save that carries no media (adding a note to a
+        // check-in that already has a photo) must not write false over the row: the proof
+        // rows are untouched on that path, and a false flag hides them from the day view
+        // and drops the photo from the check-in's proof XP. Knex leaves an undefined key
+        // out of the merge.
+        hasProof: hasProof || undefined,
         savedAmount,
     })
         .then(async (checkin) => {
@@ -287,6 +292,28 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                         'checkin.id': checkin.id,
                     },
                 }));
+            }
+
+            // Bonus XP for proof — a note, a photo, or both. Decided before the streak work and
+            // outside its first-completion gate, because proof usually arrives on a later save
+            // of the same row (the "add a note or photo" screen), which takes the same-day
+            // branch below. `claimProofXp` pays only what the row has not been paid yet, so
+            // re-saves and remove-then-re-add earn nothing. Reported back so the client's toast
+            // can say what the proof was worth.
+            const proofXpTotal = checkinProofXp(checkin);
+            const proofXpEarned = proofXpTotal <= 0 ? 0 : await Store.habitCheckins
+                .claimProofXp(checkin.id, proofXpTotal)
+                .catch((err) => {
+                    logSpan({
+                        level: 'warn',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Failed to claim check-in proof XP'],
+                        traceArgs: { 'error.message': err?.message, 'checkin.id': checkin.id },
+                    });
+                    return 0;
+                });
+            if (proofXpEarned > 0) {
+                awardLeaderboardPoints(req.headers, proofXpEarned, `habit-checkin-proof:${checkin.id}`);
             }
 
             // Freeze accounting for this request. Reported back on the 201 so
@@ -346,6 +373,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
                     return res.status(201).send({
                         ...checkin,
+                        proofXpEarned,
                         dailyStreak: existingView,
                         ...(resubmitSavings ? {
                             savingsProgress: resubmitSavings.progress,
@@ -867,6 +895,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
             return res.status(201).send({
                 ...checkin,
+                proofXpEarned,
                 graceDaysConsumed,
                 streakSavedByFreeze,
                 dailyStreak,
