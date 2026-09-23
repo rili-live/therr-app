@@ -1,8 +1,26 @@
 /* eslint-disable class-methods-use-this */
 import axios from 'axios';
-import { HabitGoalType } from 'therr-js-utilities/constants';
+import { HabitGoalType, SavingsTargetScope } from 'therr-js-utilities/constants';
 
-export interface ICreateHabitGoalBody {
+/**
+ * The savings target on a `savings_goal` habit. Ignored by the server for any other
+ * `goalType`.
+ *
+ * `null` and absent mean different things on every field, and the distinction travels
+ * all the way to the column: an absent key leaves the stored value alone, which is what
+ * makes a partial update (renaming a habit) safe, while an explicit `null` clears it.
+ * Never send `null` to mean "unchanged".
+ */
+export interface ISavingsTargetBody {
+    /** Major units. `null` is an open-ended savings habit — a total, with no finish line. */
+    targetAmount?: number | null;
+    /** ISO 4217, display only; nothing converts between currencies. */
+    currencyCode?: string | null;
+    /** Whether `targetAmount` is each member's own goal or the group's combined one. */
+    savingsTargetScope?: SavingsTargetScope | null;
+}
+
+export interface ICreateHabitGoalBody extends ISavingsTargetBody {
     name: string;
     description?: string;
     category?: string;
@@ -14,7 +32,7 @@ export interface ICreateHabitGoalBody {
     isPublic?: boolean;
 }
 
-export interface IUpdateHabitGoalBody {
+export interface IUpdateHabitGoalBody extends ISavingsTargetBody {
     name?: string;
     description?: string;
     category?: string;
