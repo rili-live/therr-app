@@ -137,13 +137,29 @@ export interface IUserHabitReminderRow extends IUserHabitNotificationPreferences
     frequencyType: string;
     frequencyCount: number | null;
     targetDaysOfWeek: number[] | null;
+    cadenceEffectiveFrom: string | null;
     currentStreak: number;
     streakIsActive: boolean;
     gracePeriodDays: number;
     graceDaysUsed: number;
     lastCompletedDate: string | null;
     completedToday: boolean;
+    /** Completed check-ins for this habit earlier in the current week, excluding today. */
+    completionsEarlierThisWeek: number;
     activePactId: string | null;
+}
+
+/**
+ * One active habit's cadence, for deciding whether a given local day was required of the user.
+ * See `getActiveCadencesByUser`.
+ */
+export interface IUserHabitCadence {
+    habitGoalId: string;
+    startedAt: Date;
+    frequencyType: string;
+    frequencyCount: number | null;
+    targetDaysOfWeek: number[] | null;
+    cadenceEffectiveFrom: string | null;
 }
 
 export default class UserHabitsStore {
@@ -191,6 +207,38 @@ export default class UserHabitsStore {
 
         return this.db.read.query(queryString)
             .then((response) => parseInt(response.rows[0]?.count ?? '0', 10));
+    }
+
+    /**
+     * Just enough of each active habit to decide, for any given local day, whether that day was
+     * *required* of the user — the input the app-level daily streak needs to tell a rest day
+     * from a missed one.
+     *
+     * Deliberately lean and deliberately keyed on `habits.user_habits` rather than on
+     * `habits.streaks`, which the freeze pool is read from. A streak row is only created on the
+     * first check-in, so a habit the user started but has not yet logged has no streak row — and
+     * that habit is exactly the one whose cadence can make today required. Reading the tracking
+     * registry instead is what keeps a brand-new habit from being invisible to the walk.
+     *
+     * `startedAt` comes back so the caller can leave days before the habit existed alone: a habit
+     * started on Thursday cannot have required Monday.
+     */
+    getActiveCadencesByUser(userId: string): Promise<IUserHabitCadence[]> {
+        const queryString = knexBuilder.raw(
+            `SELECT uh."habitGoalId" AS "habitGoalId",
+                uh."startedAt" AS "startedAt",
+                g."frequencyType" AS "frequencyType",
+                g."frequencyCount" AS "frequencyCount",
+                g."targetDaysOfWeek" AS "targetDaysOfWeek",
+                g."cadenceEffectiveFrom"::text AS "cadenceEffectiveFrom"
+            FROM ${USER_HABITS_TABLE_NAME} uh
+            INNER JOIN ${HABIT_GOALS_TABLE_NAME} g ON g."id" = uh."habitGoalId"
+            WHERE uh."userId" = ?::uuid
+                AND uh."status" = 'active'`,
+            [userId],
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows as IUserHabitCadence[]);
     }
 
     /**
@@ -283,7 +331,7 @@ export default class UserHabitsStore {
      * deep-link into a pact when one happens to back the habit, and is null for
      * a solo habit. Pact-scoped notifications still come from the pact loop.
      */
-    getActiveForReminders(today: string, limit: number): Promise<IUserHabitReminderRow[]> {
+    getActiveForReminders(today: string, weekStart: string, limit: number): Promise<IUserHabitReminderRow[]> {
         const queryString = knexBuilder.raw(
             `SELECT
                 uh."userId",
@@ -297,6 +345,7 @@ export default class UserHabitsStore {
                 g."frequencyType" AS "frequencyType",
                 g."frequencyCount" AS "frequencyCount",
                 g."targetDaysOfWeek" AS "targetDaysOfWeek",
+                g."cadenceEffectiveFrom"::text AS "cadenceEffectiveFrom",
                 -- Carried so the reminder can offer an amount field on a savings habit.
                 -- Only the currency is needed, to label the input; the notification does
                 -- not render progress. Note the absence of any question mark in this
@@ -318,6 +367,20 @@ export default class UserHabitsStore {
                         AND c."status" = 'completed'
                 ) AS "completedToday",
                 (
+                    -- How much of this week's quota is already discharged, counting days
+                    -- strictly BEFORE today so it lines up with what \`isRequiredOn\` and
+                    -- \`describeWeekProgress\` expect. Without it a weekly cadence has no way to
+                    -- know whether it still owes the user a nudge, and the old code fell back to
+                    -- a spacing heuristic that nudged a 4x/week habit all seven days.
+                    SELECT COUNT(DISTINCT c2."scheduledDate")::int
+                    FROM ${HABIT_CHECKINS_TABLE_NAME} c2
+                    WHERE c2."userId" = uh."userId"
+                        AND c2."habitGoalId" = uh."habitGoalId"
+                        AND c2."scheduledDate" >= ?::date
+                        AND c2."scheduledDate" < ?::date
+                        AND c2."status" = 'completed'
+                ) AS "completionsEarlierThisWeek",
+                (
                     SELECT p."id"
                     FROM ${PACT_MEMBERS_TABLE_NAME} pm
                     INNER JOIN ${PACTS_TABLE_NAME} p ON p."id" = pm."pactId"
@@ -335,7 +398,7 @@ export default class UserHabitsStore {
             WHERE uh."status" = 'active'
             ORDER BY uh."startedAt" ASC, uh."id" ASC
             LIMIT ?`,
-            [today, limit],
+            [today, weekStart, today, limit],
         ).toString();
 
         return this.db.read.query(queryString)

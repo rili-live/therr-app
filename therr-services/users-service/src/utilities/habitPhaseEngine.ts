@@ -120,6 +120,12 @@ export interface IPhaseEvaluationInput {
     completionsShortWindow: number;
     /** Completed check-ins within the trailing AUTOMATICITY window. */
     completionsLongWindow: number;
+    /**
+     * How many check-ins a full week of this habit's cadence asks for — 7 for a daily habit,
+     * 3 for "3x per week", the schedule length for fixed weekdays. Omitted means daily, which
+     * is what every caller meant before cadence existed.
+     */
+    weeklyTarget?: number;
     /** Today, as YYYY-MM-DD. Passed in so evaluation is deterministic in tests. */
     today: string;
 }
@@ -141,6 +147,8 @@ export interface IPhaseDecision {
 }
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+/** Local copy so this module stays free of imports and testable on its own. */
+const DAYS_PER_WEEK = 7;
 
 /**
  * Whole days between two YYYY-MM-DD dates. Both are parsed as UTC midnight, so
@@ -155,17 +163,40 @@ export const daysBetween = (fromDate: string, toDate: string): number => {
 };
 
 /**
- * Completion rate over a trailing window.
+ * Completion rate over a trailing window, measured against what the habit's cadence actually
+ * asked for.
  *
- * The denominator is capped at the habit's own age, so a habit that is 5 days
- * old is judged on 5 days rather than being scored 5/14 and looking like a
- * failure. It cannot exceed 1: a user may complete more than one check-in in a
- * day (two pacts on one goal), and an uncapped rate would let that buy its way
- * through a gate that is meant to measure *days covered*.
+ * The denominator is capped at the habit's own age, so a habit that is 5 days old is judged on 5
+ * days rather than being scored 5/14 and looking like a failure. It cannot exceed 1: a user may
+ * complete more than one check-in in a day (two pacts on one goal), and an uncapped rate would
+ * let that buy its way through a gate that is meant to measure *days covered*.
+ *
+ * `weeklyTarget` scales it by the cadence. Dividing by calendar days is only correct for a daily
+ * habit, and it was the default for every habit: a perfectly-kept 3x/week habit scored 0.43,
+ * which is below `LAPSE_MAX_CONSISTENCY` — so the moment this engine is switched on
+ * (HABIT_PHASE_ENGINE_ENABLED, off today) every non-daily habit would have been classified
+ * `lapsed` and sent comeback offers, while being impossible to ever establish. A target of 7,
+ * which is what a daily habit and every caller that omits it resolves to, leaves the arithmetic
+ * exactly as it was.
+ *
+ * Proportional rather than an exact count of scheduled days, because this function is pure and
+ * holds only window *lengths*, not dates. Over a 14- or 28-day window the two agree to within a
+ * day, and the gates are thresholds on a rate, not exact counts.
  */
-export const consistencyRate = (completions: number, windowDays: number, habitAgeDays: number): number => {
-    const denominator = Math.min(windowDays, Math.max(habitAgeDays, 0));
-    if (denominator <= 0) return 0;
+export const consistencyRate = (
+    completions: number,
+    windowDays: number,
+    habitAgeDays: number,
+    weeklyTarget = DAYS_PER_WEEK,
+): number => {
+    const elapsed = Math.min(windowDays, Math.max(habitAgeDays, 0));
+    if (elapsed <= 0) return 0;
+
+    const target = Math.max(1, Math.min(DAYS_PER_WEEK, Math.round(Number(weeklyTarget) || DAYS_PER_WEEK)));
+    // At least 1, so a short window on a light cadence cannot produce a zero denominator and
+    // score a user who did everything asked of them at 0%.
+    const denominator = Math.max(1, Math.round((elapsed * target) / DAYS_PER_WEEK));
+
     return Math.min(completions / denominator, 1);
 };
 
@@ -221,13 +252,14 @@ export const evaluateHabitPhase = (input: IPhaseEvaluationInput): IPhaseDecision
         habitAgeDays,
         completionsShortWindow,
         completionsLongWindow,
+        weeklyTarget,
         today,
     } = input;
 
     const phase: HabitPhase = NUDGE_CADENCE_DAYS[input.phase] === undefined ? 'forming' : input.phase;
 
-    const shortRate = consistencyRate(completionsShortWindow, ESTABLISH_WINDOW_DAYS, habitAgeDays);
-    const longRate = consistencyRate(completionsLongWindow, AUTOMATICITY_WINDOW_DAYS, habitAgeDays);
+    const shortRate = consistencyRate(completionsShortWindow, ESTABLISH_WINDOW_DAYS, habitAgeDays, weeklyTarget);
+    const longRate = consistencyRate(completionsLongWindow, AUTOMATICITY_WINDOW_DAYS, habitAgeDays, weeklyTarget);
     const consistencyPercent = Math.round(shortRate * 100);
 
     let nextPhase: HabitPhase = phase;

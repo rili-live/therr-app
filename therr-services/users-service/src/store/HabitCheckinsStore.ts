@@ -443,6 +443,35 @@ export default class HabitCheckinsStore {
     }
 
     /**
+     * Which habit was completed on which local day in [startDate, endDate].
+     *
+     * `getCompletedLocalDates` above answers the daily streak's "was *anything* done on day D";
+     * this answers "was *this habit* done on day D", which is what a cadence needs — a weekly
+     * quota is per habit, so a day that carried habit A says nothing about habit B's quota. Both
+     * exist because the boolean form is the hot path and stays one cheap DISTINCT.
+     */
+    getCompletedHabitLocalDates(
+        userId: string,
+        startDate: string,
+        endDate: string,
+    ): Promise<{ habitGoalId: string; localDate: string }[]> {
+        const queryString = knexBuilder.raw(
+            `SELECT DISTINCT "habitGoalId", "localDate"::text AS "localDate"
+            FROM ${HABIT_CHECKINS_TABLE_NAME}
+            WHERE "userId" = ?::uuid
+                AND "status" = 'completed'
+                AND "localDate" >= ?::date
+                AND "localDate" <= ?::date`,
+            [userId, startDate, endDate],
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.map((row: any) => ({
+            habitGoalId: String(row.habitGoalId),
+            localDate: String(row.localDate).slice(0, 10),
+        })));
+    }
+
+    /**
      * Completed check-ins per local day in [startDate, endDate] — the weekly recap's per-day
      * bar, in one query.
      *
