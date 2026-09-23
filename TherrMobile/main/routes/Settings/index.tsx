@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
 import { IContentAlgorithmName, IMobileThemeName, IUserState } from 'therr-react/types';
+import { getApiErrorDetail } from '../../utilities/apiErrorMessage';
 import { Content, FilePaths, PasswordRegex } from 'therr-js-utilities/constants';
 import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
@@ -369,25 +370,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             this.reloadTheme();
         })
         .catch((error: any) => {
-            if (
-                error.statusCode === 400 ||
-                error.statusCode === 401 ||
-                error.statusCode === 404
-            ) {
-                showToast.error({
-                    text1: this.translate('forms.settings.alertTitles.backendErrorMessage'),
-                    text2: `${error.message}${
-                        error.parameters
-                            ? '(' + error.parameters.toString() + ')'
-                            : ''
-                    }`,
-                });
-            } else if (error.statusCode >= 500) {
-                showToast.error({
-                    text1: this.translate('forms.settings.alertTitles.backendErrorMessage'),
-                    text2: this.translate('forms.settings.backendErrorMessage'),
-                });
-            }
+            // Unconditional. The old shape showed nothing at all for a 403, a 409, a 429,
+            // or a rejection that never reached the API — so a failed save of your own
+            // account settings was indistinguishable from a successful one. See
+            // getApiErrorDetail for which bodies are fit to show.
+            showToast.error({
+                text1: this.translate('forms.settings.alertTitles.backendErrorMessage'),
+                text2: getApiErrorDetail(error)
+                    || this.translate('forms.settings.backendErrorMessage'),
+            });
         })
         .finally(() => {
             this.scrollViewRef?.scrollTo({ x: 0, y: 0, animated: true });
