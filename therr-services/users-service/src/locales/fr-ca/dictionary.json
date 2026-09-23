@@ -109,6 +109,14 @@
             "cannotModifyTemplate": "Cette habitude est l'un de nos modèles, elle ne peut donc pas être modifiée",
             "nameRequired": "Donne un nom à cette habitude",
             "notOwner": "Tu ne peux modifier qu'une habitude que tu as créée"
+        },
+        "savings": {
+            "amountNegative": "Saisis un montant de zéro ou plus",
+            "amountNotANumber": "Saisis le montant sous forme de nombre, par exemple 25 ou 25,50",
+            "amountTooLarge": "Ce montant est trop élevé pour être enregistré",
+            "amountTooPrecise": "Arrondis au cent près, par exemple 25,50",
+            "invalidCurrencyCode": "Utilise un code de devise à trois lettres, par exemple USD",
+            "invalidTargetScope": "Choisis si l'objectif est par personne ou pour le groupe"
         }
     },
     "metrics": {
@@ -242,6 +250,12 @@
             "body1": "Bonne nouvelle — ton emplacement commercial (« {spaceName} ») a été approuvé et est maintenant visible pour les utilisateurs à proximité sur {brandName}.",
             "body2": "Des questions? Contacte-nous en tout temps à info@therr.com.",
             "postBody1": "Merci de faire partie de la communauté {brandName}. Des commerces locaux comme le tien rendent tout ça possible!"
+        },
+        "spaceRequestPublished": {
+            "header": "Ton espace suggéré est en ligne!",
+            "body1": "Merci pour la suggestion — « {spaceName} » a été examiné et figure maintenant sur la carte pour les utilisateurs à proximité sur {brandName}.",
+            "body2": "Tu es propriétaire ou gestionnaire de ce commerce? Tu peux le revendiquer en tout temps depuis la page de l'espace. Des questions? Écris-nous à info@therr.com.",
+            "postBody1": "Les suggestions comme la tienne font grandir {brandName}. Merci d'aider à mettre les commerces locaux sur la carte!"
         },
         "claimPendingReview": {
             "header": "Ton espace commercial est en cours de révision",

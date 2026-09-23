@@ -1,0 +1,7 @@
+What's new:
+• Weekly recap: every Monday, a look back at the week — days upheld, check-ins, your top habit, and how it compares to last week. Find it any time under My Habits
+• Check-ins now land on your own calendar day, not UTC — an evening check-in stays on today
+• Streak card is easier to read, with freeze pips so you can see cover at a glance
+• Lists show a loader instead of "no habits yet" while they load
+• Dates follow the app language
+• Fixes and stability improvements

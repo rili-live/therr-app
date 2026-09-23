@@ -203,6 +203,79 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.onSurfaceMuted,
         },
 
+        // Per-habit notification switches (components/Habits/HabitNotificationSettings)
+        habitNotificationPrefsCaption: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: space.xs,
+            marginBottom: space.sm,
+        },
+        habitNotificationPrefsRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingVertical: space.sm,
+        },
+        habitNotificationPrefsLabelContainer: {
+            // The switch is a fixed-width control, so the label column takes the
+            // rest. Without `flex: 1` a two-line hint pushes the switch off the
+            // right edge instead of wrapping.
+            flex: 1,
+            paddingRight: space.md,
+        },
+        habitNotificationPrefsLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        habitNotificationPrefsHint: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: 2,
+        },
+        habitNotificationPrefsSpinner: {
+            // Matches the Switch's laid-out width so a row does not jump sideways
+            // while its write is in flight.
+            width: 52,
+        },
+        habitNotificationPrefsFootnote: {
+            fontFamily: therrFontFamily,
+            fontSize: 12,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: space.sm,
+            fontStyle: 'italic',
+        },
+
+        // "Archive habit" on the habit detail screen. Destructive-adjacent but
+        // reversible, so it is a quiet text action rather than a filled button —
+        // it must be findable, not inviting.
+        habitDangerZone: {
+            marginHorizontal: space.lg,
+            marginTop: space.sm,
+            marginBottom: space.lg,
+            alignItems: 'center',
+        },
+        habitArchiveAction: {
+            paddingVertical: space.sm + 2,
+            paddingHorizontal: space.lg,
+        },
+        habitArchiveActionText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.textGray,
+        },
+        habitArchiveHint: {
+            fontFamily: therrFontFamily,
+            fontSize: 12,
+            color: therrTheme.colors.onSurfaceMuted,
+            textAlign: 'center',
+            marginTop: 2,
+        },
+
         // Streak freezes
         // A count in a sentence ("2 streak freezes left") makes the reader parse prose to learn
         // how much cover they have. One pip per freeze the habit was allotted, spent ones struck
@@ -926,6 +999,45 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 12,
             color: therrTheme.colors.textGray,
             marginTop: 4,
+        },
+
+        // Dashboard — weekly leaderboard row, top of the progress card
+        leaderboardTeaserRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.md,
+        },
+        leaderboardTeaserRowPressed: {
+            opacity: 0.6,
+        },
+        leaderboardTeaserIconContainer: {
+            width: 36,
+            height: 36,
+            borderRadius: radius.pill,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: therrTheme.colors.backgroundGray,
+        },
+        leaderboardTeaserIcon: {
+            color: therrTheme.colors.primary3,
+        },
+        leaderboardTeaserTextContainer: {
+            flex: 1,
+        },
+        leaderboardTeaserTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.onSurface,
+        },
+        leaderboardTeaserSubtitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: 2,
+        },
+        leaderboardTeaserChevron: {
+            color: therrTheme.colors.onSurfaceMuted,
         },
 
         // Dashboard

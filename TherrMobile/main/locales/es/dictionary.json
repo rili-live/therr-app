@@ -131,7 +131,7 @@
         "yearsSinceDate": "{count}a",
         "justNow": "Ahora",
         "minutesSinceDate": "{count} min",
-            "monthDayYear": "{day} de {month} de {year}",
+        "monthDayYear": "{day} de {month} de {year}",
         "months": {
             "january": "Enero",
             "february": "Febrero",
@@ -389,9 +389,11 @@
                 "bookmarks": "Marcadores/Listas",
                 "chat": "Mensajes",
                 "connections": "Ver conexiones",
+                "founderUnlock": "Hazte miembro fundador",
                 "home": "Inicio",
                 "feedback": "Compartir opinión",
                 "groups": "Grupos",
+                "leaderboard": "Tabla de clasificación",
                 "logout": "Cerrar sesión",
                 "map": "Mapa",
                 "moments": "Momentos",
@@ -2022,11 +2024,20 @@
             "yourHabits": "Tus hábitos",
             "todayProgress": "Hoy",
             "bestStreak": "Mejor racha",
+            "leaderboardRankTitle": "#{rank} esta semana",
+            "leaderboardRankSubtitle": "{points} XP · Ver la clasificación",
+            "leaderboardJoinTitle": "Clasificación de esta semana",
+            "leaderboardJoinSubtitle": "Registra tu progreso para ganar XP y conseguir tu lugar",
+            "rankUpToast": {
+                "title": "🏆 Subiste al #{rank} esta semana",
+                "body": "Toca para ver la tabla de clasificación"
+            },
             "currentStreak": "Racha actual",
             "longestStreak": "Racha más larga",
             "graceDays": "Congelamientos restantes",
             "stats": "Estadísticas",
             "checkin": "Registrar",
+            "checkinError": "No pudimos guardar tu registro. Inténtalo de nuevo en un momento.",
             "completed": "¡Completado!",
             "noHabitsTitle": "Aún no hay hábitos",
             "noHabitsSubtitle": "Crea un hábito para comenzar a seguir tu progreso",
@@ -2046,11 +2057,14 @@
                 "errorMessage": "No pudimos cambiar este hábito a solitario. Inténtalo de nuevo."
             },
             "habitArchived": {
-                "confirm": "¿Archivar este hábito? Los recordatorios se detienen hasta que un compañero acepte tu invitación; luego vuelve automáticamente.",
+                "confirm": "¿Archivar este hábito? Sale de tu lista activa y los recordatorios se detienen. Se conservan tus registros y tu historial de rachas, y puedes recuperarlo cuando quieras.",
                 "confirmButton": "Archivar",
                 "successTitle": "Hábito archivado",
-                "successMessage": "Detendremos los recordatorios. Volverá si un compañero se une.",
-                "errorMessage": "No pudimos archivar este hábito. Inténtalo de nuevo."
+                "successMessage": "Ya no está en tu lista activa. Tu historial está a salvo y, si lo restauras, vuelve todo.",
+                "errorMessage": "No pudimos archivar este hábito. Inténtalo de nuevo.",
+                "confirmAwaitingPartner": "¿Archivar este hábito? Los recordatorios se detienen hasta que un compañero acepte tu invitación; luego vuelve automáticamente.",
+                "successMessageAwaitingPartner": "Detendremos los recordatorios. Volverá si un compañero se une.",
+                "hint": "Conserva tus registros y tu historial de rachas. Libera un espacio de hábito."
             },
             "habitNotFound": "Hábito no encontrado",
             "checkinProof": {
@@ -2069,7 +2083,8 @@
                 "removePhoto": "Quitar foto",
                 "sharedTitle": "Compartido en el feed",
                 "shareFailed": "No pudimos compartir este registro. Inténtalo más tarde.",
-                "save": "Guardar"
+                "save": "Guardar",
+                "addDetailPromptSavings": "Anota lo que ahorraste y agrega una nota o foto si quieres."
             },
             "feed": {
                 "emptyMessage": "Aún no hay registros compartidos. Comparte uno de los tuyos para empezar el feed."
@@ -2135,7 +2150,46 @@
             "tabs": {
                 "habits": "Hábitos"
             },
-            "loadingList": "Cargando tus hábitos…"
+            "loadingList": "Cargando tus hábitos…",
+            "notificationPrefs": {
+                "title": "Notificaciones",
+                "description": "Elige sobre qué puede avisarte {habitName}. Tus otros hábitos mantienen su propia configuración.",
+                "accountWideNote": "Esto solo reduce lo que ya recibes. Si las notificaciones de hábitos están desactivadas en tu cuenta o en los ajustes del teléfono, nada de aquí las vuelve a activar.",
+                "saveFailed": "No pudimos guardar ese ajuste. Inténtalo de nuevo.",
+                "notifyReminders": {
+                    "label": "Recordatorios diarios",
+                    "hint": "Un aviso los días en que aún no has registrado tu hábito."
+                },
+                "notifyStreakAlerts": {
+                    "label": "Alertas de racha",
+                    "hint": "Hitos y un aviso cuando tu racha está a punto de romperse."
+                },
+                "notifyPartnerActivity": {
+                    "label": "Actividad de compañeros",
+                    "hint": "Cuando un compañero registra su hábito o falla un día y le vendría bien un empujón."
+                },
+                "notifyPactUpdates": {
+                    "label": "Novedades del pacto",
+                    "hint": "Invitaciones, aceptaciones y cuándo termina un pacto."
+                }
+            },
+            "savings": {
+                "cardTitle": "Ahorrado hasta ahora",
+                "checkinAmountHint": "Déjalo en blanco para registrarte sin anotar un monto.",
+                "checkinAmountLabel": "¿Cuánto ahorraste?",
+                "errorNegative": "Ingresa un monto de cero o más",
+                "errorNotANumber": "Ingresa el monto como número, por ejemplo 25 o 25,50",
+                "errorTooLarge": "Ese monto es demasiado grande para registrarlo",
+                "errorTooPrecise": "Redondea al centavo más cercano, por ejemplo 25,50",
+                "goalReached": "🎉 ¡Meta alcanzada!",
+                "remainingGroup": "Faltan {amount} entre todos",
+                "remainingYours": "Te faltan {amount}",
+                "totalSavedGroupSubtitle": "en total: {target} cada uno",
+                "totalSavedNoTarget": "Sin meta definida: solo llevamos el total.",
+                "totalSavedOfGroupTarget": "de la meta del grupo de {target}",
+                "totalSavedOfTarget": "de tu meta de {target}",
+                "unknownMember": "Un compañero"
+            }
         },
         "pacts": {
             "headerTitle": "Mis pactos",
@@ -2294,7 +2348,15 @@
                 "pickPartnerFirstLocked": "Elige un amigo o invita a {remaining} más para desbloquear los hábitos en solitario",
                 "soloLockedTitle": "Invita a {remaining} amigo(s) más para desbloquear los hábitos en solitario",
                 "soloLockedProgress": "{invited} de {required} amigos invitados",
-                "freezeRule": "Si fallas un día, un congelamiento de racha lo cubre — empiezas con {starting} y ganas otro cada {interval} días, hasta {max}. El primer mal día ocurre dentro de las reglas."
+                "freezeRule": "Si fallas un día, un congelamiento de racha lo cubre — empiezas con {starting} y ganas otro cada {interval} días, hasta {max}. El primer mal día ocurre dentro de las reglas.",
+                "savingsToggleLabel": "Este hábito se trata de ahorrar dinero",
+                "savingsSectionTitle": "Meta de ahorro",
+                "savingsTargetLabel": "Monto objetivo",
+                "savingsTargetHint": "Opcional: déjalo en blanco para solo llevar el total.",
+                "savingsScopePerMemberLabel": "Cada persona ahorra esto",
+                "savingsScopePerMemberHint": "Cada quien avanza hacia el monto por su cuenta. Termina cuando todos lo alcancen.",
+                "savingsScopeGroupLabel": "Lo ahorramos juntos",
+                "savingsScopeGroupHint": "Un fondo compartido. Termina cuando el total combinado llegue al monto."
             },
             "status": {
                 "pending": "Pendiente",

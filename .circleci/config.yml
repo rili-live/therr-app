@@ -365,6 +365,16 @@ jobs:
               circleci-agent step halt
             fi
       - run:
+          name: Print Google Play release notes (copy/paste)
+          # Same step as eas_build_therr_android, and for the same reason: EAS
+          # Submit does not set the "What's new" text, so it is printed here for
+          # a manual paste when the build is promoted. The script reads app.json
+          # and build.gradle, which carry the Habits package and versionCode on
+          # this branch, and TherrMobile/fastlane/metadata/android/<locale>/
+          # changelogs/ — the niche branch's own copy, with the Habits copy.
+          # Before the build, so the notes are in the log even if it times out.
+          command: node TherrMobile/_scripts/print-play-release-notes.mjs
+      - run:
           name: Install EAS CLI
           # cimg/node runs as the non-root `circleci` user, which cannot write to
           # the global npm prefix (/usr/local/lib/node_modules) -> EACCES. cimg

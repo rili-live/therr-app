@@ -109,6 +109,14 @@
             "cannotModifyTemplate": "This habit is one of our templates, so it can't be edited",
             "nameRequired": "Give this habit a name",
             "notOwner": "You can only edit a habit you created"
+        },
+        "savings": {
+            "amountNegative": "Enter an amount of zero or more",
+            "amountNotANumber": "Enter an amount as a number, like 25 or 25.50",
+            "amountTooLarge": "That amount is too large to record",
+            "amountTooPrecise": "Round to the nearest cent, like 25.50",
+            "invalidCurrencyCode": "Use a three-letter currency code, like USD",
+            "invalidTargetScope": "Choose whether the target is per person or for the group"
         }
     },
     "metrics": {
@@ -242,6 +250,12 @@
             "body1": "Great news — your business location ('{spaceName}') has been approved and is now visible to nearby users on {brandName}.",
             "body2": "Questions? Reach out to us anytime at info@therr.com.",
             "postBody1": "Thank you for being part of the {brandName} community. Local businesses like yours make it all possible!"
+        },
+        "spaceRequestPublished": {
+            "header": "Your Suggested Space Is Live!",
+            "body1": "Thanks for the suggestion — '{spaceName}' has been reviewed and is now on the map for nearby users on {brandName}.",
+            "body2": "Own or manage this business? You can claim it any time from the space page. Questions? Reach out to us at info@therr.com.",
+            "postBody1": "Suggestions like yours are how {brandName} grows. Thanks for helping put local businesses on the map!"
         },
         "claimPendingReview": {
             "header": "Your Business Space Is Under Review",

@@ -1,14 +1,19 @@
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import {
+    View, Text, ScrollView, Pressable,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { HabitActions, MapActions } from 'therr-react/redux/actions';
 import {
     IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IHabitCheckinProof, IStreak,
+    IUserHabit, UserHabitNotificationCategory,
 } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
+import { HabitGoalTypes, hasReachedSavingsTarget } from 'therr-js-utilities/constants';
+import { formatSavingsAmount, getSavingsProgressFraction } from '../../utilities/savingsFormat';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles, buttonMenuHeight } from '../../styles/navigation/buttonMenu';
@@ -17,8 +22,9 @@ import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confi
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
+import ConfirmModal from '../../components/Modals/ConfirmModal';
 import {
-    CheckinButton, CheckinDayDetailSheet, HabitCalendar, StreakWidget,
+    CheckinButton, CheckinDayDetailSheet, HabitCalendar, HabitNotificationSettings, StreakWidget,
 } from '../../components/Habits';
 import { getProofMediaRequests, resolveProofUris } from './checkinDayDetail';
 import {
@@ -26,6 +32,7 @@ import {
     getStreakSavedByFreeze,
     streakFreezeRuleParams,
 } from '../../utilities/streakFreezes';
+import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/celebrationQueue';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
@@ -37,6 +44,9 @@ interface IHabitDetailDispatchProps {
     createCheckin: Function;
     getCheckinProofs: Function;
     fetchMedia: Function;
+    getUserHabits: Function;
+    archiveUserHabit: Function;
+    updateHabitNotificationPreferences: Function;
 }
 
 interface IStoreProps extends IHabitDetailDispatchProps {
@@ -65,6 +75,9 @@ interface IHabitDetailState {
     dayProofs: IHabitCheckinProof[];
     isLoadingDayProofs: boolean;
     hasDayProofError: boolean;
+    /** True while the archive confirmation modal is up. */
+    isConfirmingArchive: boolean;
+    isArchiving: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -82,6 +95,9 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createCheckin: HabitActions.createCheckin,
     getCheckinProofs: HabitActions.getCheckinProofs,
     fetchMedia: MapActions.fetchMedia,
+    getUserHabits: HabitActions.getUserHabits,
+    archiveUserHabit: HabitActions.archiveUserHabit,
+    updateHabitNotificationPreferences: HabitActions.updateHabitNotificationPreferences,
 }, dispatch);
 
 export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetailState> {
@@ -91,6 +107,11 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
     private themeHabits = buildHabitStyles();
     private themeConfirmModal = buildConfirmModalStyles();
     private themeButtons = buildButtonsStyles();
+    /**
+     * Set on teardown so the archive write, which pops this screen on success,
+     * does not then set state on an unmounted component.
+     */
+    private isUnmounted = false;
 
     constructor(props: IHabitDetailProps) {
         super(props);
@@ -107,6 +128,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             dayProofs: [],
             isLoadingDayProofs: false,
             hasDayProofError: false,
+            isConfirmingArchive: false,
+            isArchiving: false,
         };
 
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
@@ -126,10 +149,102 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         this.handleRefresh();
     };
 
+    componentWillUnmount() {
+        this.isUnmounted = true;
+    }
+
     getHabitGoal = (): IHabitGoal | undefined => {
         const { habits, route } = this.props;
         const { habitGoalId } = route.params;
         return habits.habitGoals.find((g: IHabitGoal) => g.id === habitGoalId);
+    };
+
+    /**
+     * The tracking row for this habit — the thing archive and the notification
+     * switches actually address. Keyed on the goal, because that is all the route
+     * carries and it is what the user tapped.
+     *
+     * Not guaranteed to be loaded: this screen is reachable from a push
+     * notification deep link with nothing else fetched. Both features render only
+     * once it resolves, rather than guessing an id.
+     */
+    /**
+     * The running total for a savings habit, on the solo/habit view.
+     *
+     * Deliberately simpler than the pact card: there is one participant, so there is no
+     * breakdown to show and the per-member/group distinction collapses — both scopes
+     * compute the same number for one person.
+     *
+     * `totalSaved` is absent on a response from a users-service that predates the
+     * feature. That is "unknown", not zero, so the card is not rendered at all rather
+     * than claiming the user has saved nothing.
+     */
+    renderSavingsCard = (userHabit?: IUserHabit) => {
+        if (userHabit?.goalType !== HabitGoalTypes.SAVINGS_GOAL || userHabit.totalSaved === undefined) {
+            return null;
+        }
+
+        const { totalSaved, targetAmount, currencyCode } = userHabit;
+        const locale = this.props.user?.settings?.locale;
+        const fraction = getSavingsProgressFraction(totalSaved, targetAmount);
+        const hasReached = hasReachedSavingsTarget(totalSaved, targetAmount);
+
+        return (
+            <View style={this.themeHabits.styles.streakWidgetContainer}>
+                <Text style={this.themeHabits.styles.streakWidgetTitle}>
+                    {this.translate('pages.habits.savings.cardTitle')}
+                </Text>
+                <Text style={{ fontSize: 30, fontWeight: '700', paddingTop: 4 }}>
+                    {formatSavingsAmount(totalSaved, currencyCode, locale)}
+                </Text>
+                <Text style={this.themeHabits.styles.habitCardSubtitle}>
+                    {targetAmount
+                        ? this.translate('pages.habits.savings.totalSavedOfTarget', {
+                            target: formatSavingsAmount(targetAmount, currencyCode, locale),
+                        })
+                        : this.translate('pages.habits.savings.totalSavedNoTarget')}
+                </Text>
+                {fraction !== null && (
+                    <View
+                        accessibilityRole="progressbar"
+                        style={{
+                            height: 8,
+                            borderRadius: 4,
+                            backgroundColor: 'rgba(0,0,0,0.12)',
+                            marginTop: 12,
+                            overflow: 'hidden',
+                        }}
+                    >
+                        <View
+                            style={{
+                                height: 8,
+                                borderRadius: 4,
+                                width: `${Math.round(fraction * 100)}%`,
+                                backgroundColor: this.themeHabits.colors.primary3,
+                            }}
+                        />
+                    </View>
+                )}
+                {hasReached && (
+                    <Text
+                        style={{
+                            paddingTop: 8,
+                            fontSize: 14,
+                            fontWeight: '600',
+                            color: this.themeHabits.colors.alertSuccess,
+                        }}
+                    >
+                        {this.translate('pages.habits.savings.goalReached')}
+                    </Text>
+                )}
+            </View>
+        );
+    };
+
+    getUserHabit = (): IUserHabit | undefined => {
+        const { habits, route } = this.props;
+        const { habitGoalId } = route.params;
+        return (habits.userHabits || []).find((h: IUserHabit) => h.habitGoalId === habitGoalId);
     };
 
     getDateRange = (month: Date): { startDate: string; endDate: string } => {
@@ -143,7 +258,9 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
     };
 
     handleRefresh = () => {
-        const { getCheckinsByRange, getStreakByHabit, route } = this.props;
+        const {
+            getCheckinsByRange, getStreakByHabit, getUserHabits, route,
+        } = this.props;
         const { calendarMonth } = this.state;
         const { habitGoalId } = route.params;
 
@@ -154,6 +271,12 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         Promise.all([
             getCheckinsByRange(startDate, endDate, habitGoalId),
             getStreakByHabit(habitGoalId),
+            // The tracking rows, for archive and the notification switches. Fetched
+            // here rather than only on the dashboard because this screen is a push
+            // deep-link target: arriving from a notification, nothing else has run.
+            // A failure only costs those two controls, so it must not take the
+            // calendar down with it.
+            getUserHabits().catch(() => undefined),
         ]).then(([checkinsData, streakData]) => {
             this.setState({
                 checkins: checkinsData || [],
@@ -162,6 +285,87 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         }).finally(() => {
             this.setState({ isRefreshing: false });
         });
+    };
+
+    handleArchivePress = () => {
+        this.setState({ isConfirmingArchive: true });
+    };
+
+    handleCancelArchive = () => {
+        this.setState({ isConfirmingArchive: false });
+    };
+
+    /**
+     * Archive, not delete. The row stays and every check-in, streak and journal
+     * entry attached to the habit goal survives — so this is reversible from the
+     * archived list, and it frees a slot against the free-tier habit cap.
+     *
+     * Navigates back on success: the screen the user is standing on is about a
+     * habit that is no longer in their active list, and leaving them there with a
+     * stale calendar invites them to check into something they just archived.
+     */
+    handleConfirmArchive = () => {
+        const { archiveUserHabit, navigation } = this.props;
+        const userHabit = this.getUserHabit();
+
+        if (!userHabit) {
+            this.setState({ isConfirmingArchive: false });
+            return;
+        }
+
+        this.setState({ isConfirmingArchive: false, isArchiving: true });
+
+        archiveUserHabit(userHabit.id)
+            .then(() => {
+                showToast.success({
+                    text1: this.translate('pages.habits.habitArchived.successTitle'),
+                    text2: this.translate('pages.habits.habitArchived.successMessage'),
+                });
+                navigation.goBack();
+            })
+            .catch(() => {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    text2: this.translate('pages.habits.habitArchived.errorMessage'),
+                });
+            })
+            .finally(() => {
+                // Guarded because the success path above pops this screen — a bare
+                // setState here would write into a torn-down tree on every
+                // successful archive, which is the common case rather than the edge.
+                if (!this.isUnmounted) {
+                    this.setState({ isArchiving: false });
+                }
+            });
+    };
+
+    /**
+     * One category at a time, and only that category in the body — the endpoint
+     * writes a partial, so sending the whole set would let this screen reset a
+     * category a newer build knows about and this one does not.
+     *
+     * Rethrows so `HabitNotificationSettings` can revert its optimistic flip; a
+     * swallowed rejection leaves the switch showing a value the server never took.
+     */
+    handleNotificationPreferenceChange = (
+        category: UserHabitNotificationCategory,
+        nextValue: boolean,
+    ): Promise<any> => {
+        const { updateHabitNotificationPreferences } = this.props;
+        const userHabit = this.getUserHabit();
+
+        if (!userHabit) {
+            return Promise.reject(new Error('No tracking row for this habit'));
+        }
+
+        return updateHabitNotificationPreferences(userHabit.id, { [category]: nextValue })
+            .catch((err: any) => {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    text2: this.translate('pages.habits.notificationPrefs.saveFailed'),
+                });
+                throw err;
+            });
     };
 
     handleMonthChange = (month: Date) => {
@@ -186,10 +390,14 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
      */
     handleAddCheckinDetail = () => {
         Toast.hide();
+        const habitGoal = this.getHabitGoal();
+
         this.props.navigation.navigate('CheckinDetail', {
             habitGoalId: this.props.route.params.habitGoalId,
-            habitName: this.getHabitGoal()?.name || '',
+            habitName: habitGoal?.name || '',
             source: 'habitDetail',
+            goalType: habitGoal?.goalType,
+            currencyCode: habitGoal?.currencyCode,
         });
     };
 
@@ -255,7 +463,9 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             .catch((err) => {
                 showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
-                    text2: err?.message || this.translate('pages.habits.checkinProof.uploadFailed'),
+                    // A 5xx body is an internal grep token, not copy. See
+                    // utilities/apiErrorMessage.
+                    text2: getApiErrorMessage(err) || this.translate('pages.habits.checkinError'),
                 });
             })
             .finally(() => {
@@ -394,11 +604,14 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             dayProofs,
             isLoadingDayProofs,
             hasDayProofError,
+            isConfirmingArchive,
+            isArchiving,
         } = this.state;
 
         const resolvedDayProofs = resolveProofUris(dayProofs, content?.media || {});
 
         const habitGoal = this.getHabitGoal();
+        const userHabit = this.getUserHabit();
         const todayCheckin = this.getTodayCheckin();
         const isCompletedToday = todayCheckin?.status === 'completed';
 
@@ -475,6 +688,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                             />
                         </View>
 
+                        {this.renderSavingsCard(userHabit)}
+
                         {streak && streak.currentStreak > 0 && (
                             <StreakWidget
                                 streak={streak}
@@ -508,8 +723,25 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                         </Text>
                                     </View>
                                     <View style={this.themeHabits.styles.pactComparisonItem}>
+                                        {/*
+                                          * Coerced and clamped, not subtracted raw. A habit with
+                                          * no streak row yet — every habit, between being created
+                                          * and being checked into once — used to make this tile
+                                          * read "NaN", because the endpoint's placeholder carried
+                                          * no grace fields and `undefined - undefined` is NaN.
+                                          *
+                                          * The server-side fix (getStreakByHabit now returns the
+                                          * allowance a new streak starts with) is the real one;
+                                          * this stays because the screen cannot control which
+                                          * build of the API it is talking to, and a stat tile is
+                                          * the wrong place to find out.
+                                          */}
                                         <Text style={this.themeHabits.styles.pactComparisonValue}>
-                                            {streak.gracePeriodDays - streak.graceDaysUsed}
+                                            {Math.max(
+                                                0,
+                                                (Number(streak.gracePeriodDays) || 0)
+                                                    - (Number(streak.graceDaysUsed) || 0),
+                                            )}
                                         </Text>
                                         <Text style={this.themeHabits.styles.pactComparisonLabel}>
                                             {this.translate('pages.habits.graceDays')}
@@ -527,6 +759,49 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                     { marginTop: 8 },
                                 ]}>
                                     {this.translate('pages.habits.streak.freezeRule', streakFreezeRuleParams)}
+                                </Text>
+                            </View>
+                        )}
+
+                        {/*
+                          * Both of these address the tracking row rather than the goal, so
+                          * they wait for it. `userHabit` is undefined for the first render
+                          * of a deep link, and briefly on a cold open.
+                          */}
+                        <HabitNotificationSettings
+                            userHabit={userHabit}
+                            onChange={this.handleNotificationPreferenceChange}
+                            themeHabits={this.themeHabits}
+                            translate={this.translate}
+                        />
+
+                        {/*
+                          * Archiving was reachable from exactly one place — the
+                          * "continue solo or archive?" prompt on a habit whose invite
+                          * nobody had answered — so a habit the user simply stopped
+                          * doing could not be put away at all. The detail screen is
+                          * where someone goes when they are done with a habit, so the
+                          * action lives here, under everything else, with the hint that
+                          * it keeps the history.
+                          */}
+                        {!!userHabit && userHabit.status === 'active' && (
+                            <View style={this.themeHabits.styles.habitDangerZone}>
+                                <Pressable
+                                    accessibilityRole="button"
+                                    accessibilityLabel={this.translate('pages.habits.archiveHabit')}
+                                    disabled={isArchiving}
+                                    style={({ pressed }) => [
+                                        this.themeHabits.styles.habitArchiveAction,
+                                        (pressed || isArchiving) && this.themeHabits.styles.pressedOpacity,
+                                    ]}
+                                    onPress={this.handleArchivePress}
+                                >
+                                    <Text style={this.themeHabits.styles.habitArchiveActionText}>
+                                        {this.translate('pages.habits.archiveHabit')}
+                                    </Text>
+                                </Pressable>
+                                <Text style={this.themeHabits.styles.habitArchiveHint}>
+                                    {this.translate('pages.habits.habitArchived.hint')}
                                 </Text>
                             </View>
                         )}
@@ -559,6 +834,16 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                         : undefined}
                     translate={this.translate}
                     themeConfirmModal={this.themeConfirmModal}
+                    themeButtons={this.themeButtons}
+                />
+                <ConfirmModal
+                    isVisible={isConfirmingArchive}
+                    onCancel={this.handleCancelArchive}
+                    onConfirm={this.handleConfirmArchive}
+                    text={this.translate('pages.habits.habitArchived.confirm')}
+                    textConfirm={this.translate('pages.habits.habitArchived.confirmButton')}
+                    textCancel={this.translate('modals.confirmModal.cancel')}
+                    translate={this.translate}
                     themeButtons={this.themeButtons}
                 />
             </>

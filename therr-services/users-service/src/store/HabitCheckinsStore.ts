@@ -18,6 +18,18 @@ export interface ICreateHabitCheckinParams {
     selfRating?: number;
     difficultyRating?: number;
     hasProof?: boolean;
+    /**
+     * Money put away by this check-in, in major units of the goal's currency. Only
+     * written on `savings_goal` habits — see migration
+     * 20260920000002_habits.habit_checkins.savedAmount.js.
+     *
+     * `undefined` and `null` are different instructions to the upsert: knex drops an
+     * undefined key from the merge, so an edit that only adds a note leaves an existing
+     * amount alone, while an explicit `null` clears it. The handler is what turns "the
+     * client sent no field" into undefined and "the client sent an empty field" into
+     * null.
+     */
+    savedAmount?: number | null;
 }
 
 export interface ICheckinCountTarget {
@@ -41,7 +53,60 @@ export interface IUpdateHabitCheckinParams {
     // carries the public copy of the proof. Nullable/absent otherwise. See migration
     // 20260906000001_habits.habit_checkins.sharedThoughtId.js.
     sharedThoughtId?: string;
+    /** See `ICreateHabitCheckinParams.savedAmount`. Pass null to clear a recorded amount. */
+    savedAmount?: number | null;
 }
+
+/** The per-member savings rollup behind a savings goal's progress. */
+export interface ISavingsTotalByUser {
+    userId: string;
+    totalSaved: number;
+    contributionCount: number;
+}
+
+/**
+ * node-postgres hands back every `numeric` as a string rather than narrowing it to a
+ * double on your behalf. `savedAmount` is one, so without this a check-in's amount
+ * arrives at the client as `"12.50"` and any arithmetic on it in between is string
+ * concatenation — `total + row.savedAmount` becomes `"012.50"`. Coerced at the store so
+ * no read path can miss it. See the longer note in HabitGoalsStore.
+ */
+const normalizeCheckinRow = (row: any) => {
+    if (!row || row.savedAmount === null || row.savedAmount === undefined) {
+        return row;
+    }
+
+    return { ...row, savedAmount: Number(row.savedAmount) };
+};
+
+const normalizeCheckinRows = (rows: any[]) => rows.map(normalizeCheckinRow);
+
+/**
+ * Drop the keys whose value is `undefined` before handing an object to `knex.insert()`.
+ *
+ * Knex does not omit an undefined value from an insert — it emits the column with
+ * `DEFAULT`. So `{ savedAmount: undefined }` still names `"savedAmount"` in the INSERT,
+ * which makes every *optional* column a hard schema dependency of the write path: a
+ * check-in carrying no amount at all fails with
+ * `column "savedAmount" of relation "habit_checkins" does not exist` until the migration
+ * that adds it has run. (`.merge()` drops undefined keys already, so only the insert half
+ * needs this.)
+ *
+ * That window is not hypothetical. `_bin/cicd/run-migrations.sh` deliberately runs after
+ * the new image is rolled out — "migrations MUST be additive / expand-contract … so the
+ * new code tolerates the pre-migration schema" — and on 2026-09-20 the deploy aborted in
+ * `deploy_waves` on an unrelated ImagePullBackOff before reaching the migration step, so
+ * users-service served the savings build against a schema without `savedAmount` and every
+ * check-in 500'd. Stripping undefined keys is what makes an additive column additive on
+ * the write path too: the request that does not use it does not mention it.
+ */
+const withDefinedColumns = <T extends object>(params: T): Partial<T> => Object.entries(params)
+    .reduce((acc: any, [column, value]) => {
+        if (value !== undefined) {
+            acc[column] = value;
+        }
+        return acc;
+    }, {});
 
 export default class HabitCheckinsStore {
     db: IConnection;
@@ -68,7 +133,7 @@ export default class HabitCheckinsStore {
         }
 
         return this.db.read.query(queryString.toString())
-            .then((response) => response.rows);
+            .then((response) => normalizeCheckinRows(response.rows));
     }
 
     getById(id: string) {
@@ -102,7 +167,7 @@ export default class HabitCheckinsStore {
         }
 
         return this.db.read.query(queryString.toString())
-            .then((response) => response.rows);
+            .then((response) => normalizeCheckinRows(response.rows));
     }
 
     getByPactId(pactId: string, limit?: number, offset?: number) {
@@ -126,7 +191,7 @@ export default class HabitCheckinsStore {
         }
 
         return this.db.read.query(queryString.toString())
-            .then((response) => response.rows);
+            .then((response) => normalizeCheckinRows(response.rows));
     }
 
     getByHabitGoalId(habitGoalId: string, userId: string, limit?: number) {
@@ -140,7 +205,7 @@ export default class HabitCheckinsStore {
         }
 
         return this.db.read.query(queryString.toString())
-            .then((response) => response.rows);
+            .then((response) => normalizeCheckinRows(response.rows));
     }
 
     getTodayCheckin(userId: string, habitGoalId: string) {
@@ -466,25 +531,121 @@ export default class HabitCheckinsStore {
             .then((response) => parseInt(response.rows[0]?.count ?? '0', 10));
     }
 
+    /**
+     * How much each of a pact's members has saved toward its habit goal, in one query.
+     *
+     * Driven from `pact_members` rather than from check-ins, and LEFT JOINed, so a
+     * member who has contributed nothing still comes back with a zero row. That is the
+     * point: a savings pact's detail view has to be able to say "Sam: $0" — omitting
+     * them would read as "Sam has no data" and is the difference between an
+     * accountability feature and a leaderboard with survivorship bias.
+     *
+     * Every status is included, not just `active`. Someone who left a trip fund after
+     * putting in $300 still put in $300, and dropping them would make the group total
+     * disagree with the money. Callers that only want current participants filter on
+     * the membership list they already hold.
+     *
+     * Matched on (userId, habitGoalId) rather than on `habit_checkins.pactId` for the
+     * same reason `countCompletedActiveMembersForPact` is: a check-in stamps a single
+     * pactId even when its goal backs several pacts, so the column undercounts a member
+     * who holds the habit through more than one. The goal is the thing money is saved
+     * toward.
+     *
+     * `status` is not filtered either. An amount is recorded by the act of entering it,
+     * and a `partial` or `skipped` check-in that still moved money is still money — the
+     * NULL/NOT NULL distinction on `savedAmount` already separates "no amount" from
+     * "zero", which is the only distinction that matters here.
+     */
+    getSavingsTotalsByPactMember(pactId: string, habitGoalId: string): Promise<ISavingsTotalByUser[]> {
+        const queryString = knexBuilder.raw(
+            `SELECT pm."userId" AS "userId",
+                COALESCE(SUM(c."savedAmount"), 0)::text AS "totalSaved",
+                COUNT(c."savedAmount")::int AS "contributionCount"
+            FROM ${PACT_MEMBERS_TABLE_NAME} pm
+            LEFT JOIN ${HABIT_CHECKINS_TABLE_NAME} c
+                ON c."userId" = pm."userId"
+                AND c."habitGoalId" = ?::uuid
+                AND c."savedAmount" IS NOT NULL
+            WHERE pm."pactId" = ?::uuid
+            GROUP BY pm."userId"`,
+            [habitGoalId, pactId],
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.map((row: any) => ({
+            userId: String(row.userId),
+            // SUM(numeric) is numeric, cast to text above and parsed here so the value
+            // crosses the driver boundary exactly once and in one place.
+            totalSaved: Number(row.totalSaved) || 0,
+            contributionCount: Number(row.contributionCount) || 0,
+        })));
+    }
+
+    /**
+     * One user's savings total per habit goal, across every check-in they have made on
+     * it — in one query for a whole list of goals.
+     *
+     * Intentionally not scoped to a pact or a date window. Money saved toward "trip
+     * fund" does not stop existing when the pact cycle it was saved under ends, and a
+     * renewal is a *new* pact row on the same goal (see `renewedFromPactId`), so
+     * scoping to the current cycle would reset a saver's total to zero every time the
+     * group re-committed — which is the one number they most expect to be cumulative.
+     *
+     * Goals with no recorded amounts are absent from the map rather than zero-valued;
+     * callers reading a habit list should treat a miss as "nothing saved yet".
+     */
+    getSavingsTotalsByGoalForUser(
+        userId: string,
+        habitGoalIds: string[],
+    ): Promise<Record<string, { totalSaved: number; contributionCount: number }>> {
+        if (!habitGoalIds.length) {
+            return Promise.resolve({});
+        }
+
+        // Built with the query builder rather than a raw `= ANY(?::uuid[])` so that
+        // every id is escaped on its own. A hand-assembled `{a,b,c}` array literal
+        // leaves a `,` or `}` inside one value free to split or terminate the list.
+        const queryString = knexBuilder
+            .from(HABIT_CHECKINS_TABLE_NAME)
+            .select('habitGoalId')
+            .select(knexBuilder.raw('SUM("savedAmount")::text AS "totalSaved"'))
+            .select(knexBuilder.raw('COUNT(*)::int AS "contributionCount"'))
+            .where({ userId })
+            .whereNotNull('savedAmount')
+            .whereIn('habitGoalId', habitGoalIds)
+            .groupBy('habitGoalId')
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.reduce(
+            (acc: Record<string, { totalSaved: number; contributionCount: number }>, row: any) => {
+                acc[String(row.habitGoalId)] = {
+                    totalSaved: Number(row.totalSaved) || 0,
+                    contributionCount: Number(row.contributionCount) || 0,
+                };
+                return acc;
+            },
+            {},
+        ));
+    }
+
     create(params: ICreateHabitCheckinParams) {
         const queryString = knexBuilder
-            .insert({
+            .insert(withDefinedColumns({
                 ...params,
                 status: params.status || 'pending',
-            })
+            }))
             .into(HABIT_CHECKINS_TABLE_NAME)
             .returning('*')
             .toString();
 
-        return this.db.write.query(queryString).then((response) => response.rows[0]);
+        return this.db.write.query(queryString).then((response) => normalizeCheckinRow(response.rows[0]));
     }
 
     createOrUpdate(params: ICreateHabitCheckinParams) {
         // Upsert based on unique constraint (userId, habitGoalId, scheduledDate)
-        const insertParams = {
+        const insertParams = withDefinedColumns({
             ...params,
             status: params.status || 'pending',
-        };
+        });
 
         const queryString = knexBuilder
             .insert(insertParams)
@@ -504,12 +665,18 @@ export default class HabitCheckinsStore {
                 selfRating: params.selfRating,
                 difficultyRating: params.difficultyRating,
                 hasProof: params.hasProof,
+                // Last write wins, deliberately — unlike `localDate` above, which keeps
+                // the first. A user correcting "I saved 20" to "I saved 30" for the same
+                // day means the second number, and the alternative (summing repeat
+                // submissions) would double-count every edit of a note or photo on a
+                // check-in that already carried an amount.
+                savedAmount: params.savedAmount,
                 updatedAt: new Date(),
             })
             .returning('*')
             .toString();
 
-        return this.db.write.query(queryString).then((response) => response.rows[0]);
+        return this.db.write.query(queryString).then((response) => normalizeCheckinRow(response.rows[0]));
     }
 
     update(id: string, params: IUpdateHabitCheckinParams) {
@@ -523,7 +690,7 @@ export default class HabitCheckinsStore {
             .returning('*')
             .toString();
 
-        return this.db.write.query(queryString).then((response) => response.rows[0]);
+        return this.db.write.query(queryString).then((response) => normalizeCheckinRow(response.rows[0]));
     }
 
     complete(id: string, notes?: string, selfRating?: number, difficultyRating?: number) {
@@ -560,6 +727,6 @@ export default class HabitCheckinsStore {
             .returning('*')
             .toString();
 
-        return this.db.write.query(queryString).then((response) => response.rows[0]);
+        return this.db.write.query(queryString).then((response) => normalizeCheckinRow(response.rows[0]));
     }
 }

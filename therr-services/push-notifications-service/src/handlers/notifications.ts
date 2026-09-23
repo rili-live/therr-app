@@ -54,6 +54,11 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         // nudge covers several habits, which selects the plural copy and
         // suppresses the check-in action (there is no single goal to complete).
         habitGoalId,
+        // Whether that one habit is a savings goal, and in what currency. Together
+        // they turn the notification's check-in button into one that asks how much was
+        // put away — see buildCheckinPressActions.
+        isSavingsGoal,
+        currencyCode,
         habitCount,
         habitNames,
         daysRemaining,
@@ -112,6 +117,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             habitId,
             habitName,
             habitGoalId,
+            isSavingsGoal,
+            currencyCode,
             habitCount,
             habitNames,
             daysRemaining,
@@ -192,6 +199,11 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         habitId,
         habitName,
         habitGoalId,
+        // Whether that one habit is a savings goal, and in what currency. Together
+        // they turn the notification's check-in button into one that asks how much was
+        // put away — see buildCheckinPressActions.
+        isSavingsGoal,
+        currencyCode,
         habitCount,
         habitNames,
         daysRemaining,
@@ -254,6 +266,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             habitId,
             habitName,
             habitGoalId,
+            isSavingsGoal,
+            currencyCode,
             habitCount,
             habitNames,
             daysRemaining,

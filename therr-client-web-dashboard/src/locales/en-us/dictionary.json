@@ -360,7 +360,26 @@
       "passwordRequirements4": "At least 8 characters"
     },
     "adminDashboardOverview": {
-      "pageTitle": "Admin Dashboard"
+      "pageTitle": "Admin Dashboard",
+      "spaceQueue": {
+        "requestsTitle": "Space Requests (pending approval)",
+        "requestsHelp": "New spaces submitted through \"Request a Space\" or the dashboard. Approving publishes the space. A request from a consumer account becomes unclaimed inventory a business can claim later; a request from the business itself stays theirs.",
+        "requestsEmpty": "No space requests pending approval.",
+        "publishButton": "Publish space",
+        "claimsTitle": "Claims on Existing Spaces (pending approval)",
+        "claimsHelp": "A business asking to own a space that is already on the map. Approving transfers ownership to the requester.",
+        "claimsEmpty": "No claims pending approval.",
+        "approveButton": "Approve claim",
+        "untitled": "(untitled space)",
+        "noAddress": "No address on file",
+        "unknownUser": "unknown user",
+        "requestedBy": "Requested by {requester}",
+        "requestedOn": " on {date}",
+        "onApproval": "On approval: {outcome}",
+        "outcomeTransfer": "Ownership transfers to the requester",
+        "outcomePublishOwn": "Published; the requesting business keeps ownership",
+        "outcomePublishInventory": "Published as unclaimed inventory (consumer request)"
+      }
     },
     "dashboardOverview": {
       "pageTitle": "Dashboard"

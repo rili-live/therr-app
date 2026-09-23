@@ -47,6 +47,28 @@ Three main content types with similar patterns:
 - `spaces` - persistent business/location pages
 - `events` - time-bound happenings
 
+### Spaces: ownership and claims (gotchas that have shipped as bugs)
+- Every proximity query reads `spaces."geomCenter"` (POINT), not `geom` (POLYGON). Any code
+  path that inserts a space must write both — a row with a NULL `geomCenter` is invisible to
+  search with no error anywhere.
+- `SpacesStore.updateSpace` scopes its WHERE to `{ id, fromUserId }` as the ownership check
+  and rejects when `params.fromUserId` is missing. Pass the row's *current* owner (which is
+  `SUPER_ADMIN_ID` for unclaimed inventory), not the requesting user.
+- The admin queue holds two different things, and approval means something different for
+  each. A **space request** (`POST /spaces/request-claim`, `isClaimPending = true`) is a
+  consumer's "Request a Space" suggestion (owner = `SUPER_ADMIN_ID`) or a business creating
+  its own space from the dashboard (owner = requester); approval *publishes* it — a
+  consumer's request is released to unclaimed inventory (`requestedByUserId` cleared), a
+  business keeps its own. A **claim on an existing space** (`POST /spaces/request-claim/
+  :spaceId`, only `requestedByUserId` set so the listing stays on the map) *transfers
+  ownership* on approval. `SpacesStore.approveClaim` decides by shape; the dashboard lists
+  them separately. This feature has broken repeatedly by conflating the two.
+- "Awaiting approval" is `isClaimPending OR (requestedByUserId IS NOT NULL AND fromUserId <>
+  requestedByUserId)` — `requestedByUserId` alone is not enough.
+- Ownership moves only in `SpacesStore.approveClaim`, never through `updateSpace`. Only spaces
+  owned by `SUPER_ADMIN_ID` may be claimed (`claimSpace` enforces this), because approval of
+  a claim reassigns `fromUserId`.
+
 ### Media Handling
 - `createMediaUrls.ts` - generates signed URLs for media uploads
 - Uses AWS S3/Google Cloud Storage via `src/api/aws.ts`

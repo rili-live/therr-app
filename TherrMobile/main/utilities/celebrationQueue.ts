@@ -119,6 +119,14 @@ class CelebrationQueue {
         return this.blockers > 0;
     }
 
+    /**
+     * Nothing on screen, nothing waiting and nothing holding the queue. Lighter feedback (a
+     * toast) checks this so it never lands on top of a celebration or the note/photo screen.
+     */
+    get isIdle() {
+        return this.blockers === 0 && !this.isPresenting && this.queue.length === 0;
+    }
+
     private static priority(celebration: ICelebration): number {
         return celebration.type === 'placement' ? 0 : 1;
     }

@@ -5,7 +5,10 @@ import PactsService, { ICreatePactBody, IBulkInvitePactBody } from '../../servic
 import HabitCheckinsService, { ICreateCheckinBody, IUpdateCheckinBody } from '../../services/HabitCheckinsService';
 import StreaksService from '../../services/StreaksService';
 import DailyStreakService from '../../services/DailyStreakService';
-import UserHabitsService, { ICreateUserHabitBody } from '../../services/UserHabitsService';
+import UserHabitsService, {
+    ICreateUserHabitBody,
+    IUserHabitNotificationPreferencesBody,
+} from '../../services/UserHabitsService';
 import JournalService, { ICreateJournalEntryBody, IUpdateJournalEntryBody } from '../../services/JournalService';
 import HabitsLifetimeService, { IVerifyLifetimePurchaseBody } from '../../services/HabitsLifetimeService';
 import HabitsPremiumService, { IVerifyPremiumPurchaseBody } from '../../services/HabitsPremiumService';
@@ -428,6 +431,26 @@ const Habits = {
         .then((response: any) => {
             dispatch({
                 type: HabitsActionTypes.CONTINUE_SOLO_USER_HABIT,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
+    /**
+     * Flip one or more of a habit's notification categories.
+     *
+     * Send only what changed. The endpoint writes a partial, so a screen that
+     * knows about three categories cannot reset a fourth it has never heard of —
+     * which is what keeps an older install from undoing a preference set on a
+     * newer one. The reducer merges the returned row the same way archive does.
+     */
+    updateHabitNotificationPreferences: (
+        id: string,
+        data: IUserHabitNotificationPreferencesBody,
+    ) => (dispatch: any) => UserHabitsService.updateNotificationPreferences(id, data)
+        .then((response: any) => {
+            dispatch({
+                type: HabitsActionTypes.UPDATE_USER_HABIT_NOTIFICATION_PREFERENCES,
                 data: response.data,
             });
             return response.data;

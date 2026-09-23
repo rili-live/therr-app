@@ -59,10 +59,30 @@ setBackgroundMessageHandler(getMessaging(), async remoteMessage => {
             const actions = JSON.parse(remoteMessage?.data?.notificationLinkPressActions);
             notification.android.actions = [];
             actions.forEach((action) => {
-                notification.android.actions.push({
+                const androidAction = {
                     pressAction: { id: action.id, launchActivity: 'default' },
                     title: action.title,
-                });
+                };
+
+                // The savings check-in is the one action that collects a value rather
+                // than just firing. `input: true` turns the button into an Android
+                // RemoteInput field, and whatever is typed arrives as `detail.input` on
+                // the background event below.
+                //
+                // `launchActivity: 'default'` above is deliberately kept: if the OS or
+                // the launcher cannot render an inline input (Android Auto, some
+                // launchers, Wear), the button falls back to opening the app rather
+                // than silently doing nothing.
+                if (action.id === PushNotifications.PressActionIds.habitCheckinSavings) {
+                    androidAction.input = {
+                        allowFreeFormInput: true,
+                        placeholder: remoteMessage?.data?.currencyCode
+                            ? String(remoteMessage.data.currencyCode)
+                            : undefined,
+                    };
+                }
+
+                notification.android.actions.push(androidAction);
             });
         }
 
@@ -86,22 +106,32 @@ setBackgroundMessageHandler(getMessaging(), async remoteMessage => {
  * later by getInitialNotification; an action press is not — the app opens on
  * whatever screen it left, and the check-in never happens).
  *
- * Only `habitCheckin` is handled here. Every other press action navigates, and
- * navigation needs the React tree — those stay in Layout.tsx, which the app
- * launch that follows the press will run.
+ * Only the two check-in actions are handled here — `habitCheckin` (a plain
+ * button) and `habitCheckinSavings` (the same thing carrying a typed amount).
+ * Every other press action navigates, and navigation needs the React tree —
+ * those stay in Layout.tsx, which the app launch that follows the press will run.
  */
-notifee.onBackgroundEvent(async ({ type, detail }) => {
-    const { notification, pressAction } = detail || {};
+const BACKGROUND_CHECKIN_ACTION_IDS = [
+    PushNotifications.PressActionIds.habitCheckin,
+    PushNotifications.PressActionIds.habitCheckinSavings,
+];
 
-    if (type !== EventType.ACTION_PRESS || pressAction?.id !== PushNotifications.PressActionIds.habitCheckin) {
+notifee.onBackgroundEvent(async ({ type, detail }) => {
+    const { notification, pressAction, input } = detail || {};
+
+    if (type !== EventType.ACTION_PRESS || !BACKGROUND_CHECKIN_ACTION_IDS.includes(pressAction?.id)) {
         return;
     }
 
     const habitGoalId = notification?.data?.habitGoalId;
     const pactId = notification?.data?.pactId;
+    // `detail.input` is only populated for an action declared with `input`, so it is
+    // undefined for the plain check-in — which is exactly the "no amount recorded"
+    // case the service already handles.
     const { didCheckIn, locale } = await completeCheckinInBackground({
         habitGoalId: habitGoalId ? String(habitGoalId) : '',
         pactId: pactId ? String(pactId) : undefined,
+        savedAmount: typeof input === 'string' ? input : undefined,
     });
 
     if (notification?.id) {

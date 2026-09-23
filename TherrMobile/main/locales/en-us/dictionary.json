@@ -131,7 +131,7 @@
         "yearsSinceDate": "{count}y",
         "justNow": "Now",
         "minutesSinceDate": "{count}m",
-            "monthDayYear": "{month} {day}, {year}",
+        "monthDayYear": "{month} {day}, {year}",
         "months": {
             "january": "January",
             "february": "February",
@@ -389,9 +389,11 @@
                 "bookmarks": "Bookmarks/Lists",
                 "chat": "Messages",
                 "connections": "View Connections",
+                "founderUnlock": "Become a Founding Member",
                 "home": "Home",
                 "feedback": "Share Feedback",
                 "groups": "Groups",
+                "leaderboard": "Leaderboard",
                 "logout": "Log Out",
                 "map": "Map",
                 "moments": "Moments",
@@ -2022,11 +2024,20 @@
             "yourHabits": "Your Habits",
             "todayProgress": "Today",
             "bestStreak": "Best Streak",
+            "leaderboardRankTitle": "#{rank} this week",
+            "leaderboardRankSubtitle": "{points} XP · See the leaderboard",
+            "leaderboardJoinTitle": "This week's leaderboard",
+            "leaderboardJoinSubtitle": "Check in to earn XP and claim your spot",
+            "rankUpToast": {
+                "title": "🏆 You climbed to #{rank} this week",
+                "body": "Tap to see the leaderboard"
+            },
             "currentStreak": "Current Streak",
             "longestStreak": "Longest Streak",
             "graceDays": "Streak Freezes Left",
             "stats": "Statistics",
             "checkin": "Check In",
+            "checkinError": "We couldn't save your check-in. Try again in a moment.",
             "completed": "Completed!",
             "noHabitsTitle": "No habits yet",
             "noHabitsSubtitle": "Create a habit to start tracking your progress",
@@ -2046,11 +2057,14 @@
                 "errorMessage": "We couldn't switch this habit to solo. Please try again."
             },
             "habitArchived": {
-                "confirm": "Archive this habit? Reminders stop until a partner accepts your invite — then it comes back automatically.",
+                "confirm": "Archive this habit? It leaves your active list and the reminders stop. Your check-ins and streak history are kept, and you can bring it back any time.",
                 "confirmButton": "Archive",
                 "successTitle": "Habit archived",
-                "successMessage": "We'll stop the reminders. It'll return if a partner joins.",
-                "errorMessage": "We couldn't archive this habit. Please try again."
+                "successMessage": "It's out of your active list. Your history is safe, and restoring it brings everything back.",
+                "errorMessage": "We couldn't archive this habit. Please try again.",
+                "confirmAwaitingPartner": "Archive this habit? Reminders stop until a partner accepts your invite — then it comes back automatically.",
+                "successMessageAwaitingPartner": "We'll stop the reminders. It'll return if a partner joins.",
+                "hint": "Keeps your check-ins and streak history. Frees a habit slot."
             },
             "habitNotFound": "Habit not found",
             "checkinProof": {
@@ -2069,7 +2083,8 @@
                 "removePhoto": "Remove photo",
                 "sharedTitle": "Shared to the feed",
                 "shareFailed": "We couldn't share this check-in. Try again later.",
-                "save": "Save"
+                "save": "Save",
+                "addDetailPromptSavings": "Record what you saved, and add a note or photo if you like."
             },
             "feed": {
                 "emptyMessage": "No shared check-ins yet. Share one of yours to get the feed started."
@@ -2135,7 +2150,46 @@
             "tabs": {
                 "habits": "Habits"
             },
-            "loadingList": "Loading your habits…"
+            "loadingList": "Loading your habits…",
+            "notificationPrefs": {
+                "title": "Notifications",
+                "description": "Choose what {habitName} is allowed to notify you about. Your other habits keep their own settings.",
+                "accountWideNote": "These only narrow what you already get. If habits notifications are off for your account, or in your phone settings, nothing here turns them back on.",
+                "saveFailed": "We couldn't save that setting. Please try again.",
+                "notifyReminders": {
+                    "label": "Daily reminders",
+                    "hint": "A nudge on days you haven't checked in yet."
+                },
+                "notifyStreakAlerts": {
+                    "label": "Streak alerts",
+                    "hint": "Milestones, and a warning when your streak is about to break."
+                },
+                "notifyPartnerActivity": {
+                    "label": "Partner activity",
+                    "hint": "When a partner checks in, or misses a day and could use a nudge."
+                },
+                "notifyPactUpdates": {
+                    "label": "Pact updates",
+                    "hint": "Invites, acceptances, and when a pact is ending."
+                }
+            },
+            "savings": {
+                "cardTitle": "Saved so far",
+                "checkinAmountHint": "Leave blank to check in without recording an amount.",
+                "checkinAmountLabel": "How much did you put away?",
+                "errorNegative": "Enter an amount of zero or more",
+                "errorNotANumber": "Enter an amount as a number, like 25 or 25.50",
+                "errorTooLarge": "That amount is too large to record",
+                "errorTooPrecise": "Round to the nearest cent, like 25.50",
+                "goalReached": "🎉 Goal reached!",
+                "remainingGroup": "{amount} to go, between you",
+                "remainingYours": "{amount} to go",
+                "totalSavedGroupSubtitle": "together — {target} each",
+                "totalSavedNoTarget": "No target set — just keeping the running total.",
+                "totalSavedOfGroupTarget": "of the group’s {target} goal",
+                "totalSavedOfTarget": "of your {target} goal",
+                "unknownMember": "A partner"
+            }
         },
         "pacts": {
             "headerTitle": "My Pacts",
@@ -2294,7 +2348,15 @@
                 "pickPartnerFirstLocked": "Choose a friend — or invite {remaining} more to unlock solo habits",
                 "soloLockedTitle": "Invite {remaining} more friend(s) to unlock solo habits",
                 "soloLockedProgress": "{invited} of {required} friends invited",
-                "freezeRule": "Miss a day and a streak freeze covers it — you start with {starting} and earn another every {interval} days, up to {max}. The first bad day happens inside the rules."
+                "freezeRule": "Miss a day and a streak freeze covers it — you start with {starting} and earn another every {interval} days, up to {max}. The first bad day happens inside the rules.",
+                "savingsToggleLabel": "This habit is about saving money",
+                "savingsSectionTitle": "Savings goal",
+                "savingsTargetLabel": "Target amount",
+                "savingsTargetHint": "Optional — leave blank to just track a running total.",
+                "savingsScopePerMemberLabel": "Each person saves this",
+                "savingsScopePerMemberHint": "Everyone works toward the amount on their own. Done when you have all reached it.",
+                "savingsScopeGroupLabel": "We save this together",
+                "savingsScopeGroupHint": "One shared pot. Done when your combined total reaches the amount."
             },
             "status": {
                 "pending": "Pending",

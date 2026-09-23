@@ -101,6 +101,55 @@ commit into main, re-deploy.
 After the rollout, every service the plan said to deploy is re-read from the
 cluster and confirmed to be on its desired tag. A service short of it fails the job.
 
+### How the tag reaches the cluster
+
+The manifests in `k8s/prod` pin `:latest`; the tag is never hand-edited there. Before a
+Deployment is applied, `deploy.sh` renders a copy of its manifest with the image it should
+run — the desired tag for a `deploy` verdict, the tag it is already running for anything
+else — and applies **that** (`_bin/lib/render-manifest.sh`). One apply therefore carries
+both the spec and the version: `configured` means a rollout started, `unchanged` means
+nothing moved, and the live tag is always a SHA.
+
+It used to apply the manifest as-is and `kubectl set image` the SHA afterwards, on the
+belief that apply would leave the live image alone because `:latest` matched the
+last-applied annotation. It does not: client-side apply resets every manifest field whose
+*live* value differs, so each apply flipped the image to `:latest` and only a following
+`set image` put the SHA back. Services with nothing queued — already up-to-date — were left
+on `:latest` until the next deploy noticed (`latest ≠ desired`) and "converged" them, and
+every deploy rolled every service at least once for nothing. The cluster's ReplicaSet
+history showed it as alternating `<sha>`, `:latest`, `<sha>` revisions (2026-09-19).
+
+### Image pulls are authenticated
+
+Every Deployment in `k8s/prod` names `imagePullSecrets: dockerhub-pull-credentials`, and
+`deploy.sh` creates or refreshes that Secret from the job's `DOCKERHUB_USER` /
+`DOCKERHUB_PASSWORD` (or `DOCKERHUB_PULL_TOKEN`, a read-only access token, when set) as the
+first thing it does to the cluster. `assert_service_registry` fails the deploy if any
+`*-deployment.yaml` — redis included — omits the secret.
+
+Without it the nodes pull anonymously, and Docker Hub caps anonymous pulls per source IP
+(10 per hour since April 2025). Every node egresses through one Cloud NAT address, so a
+deploy that surges all six backend services at once is a burst against a single counter:
+on 2026-09-20 three of the six got through and `messages`, `websocket` and `maps` sat in
+`ImagePullBackOff` until the rollout deadline, on tags that had been in the registry the
+whole time. The deploy log had nothing to distinguish that from a missing tag, because the
+pull error is a Pod event and only the Deployment was described — `wait_for_rollouts` now
+prints the Pod's `Warning` events too, and `toomanyrequests` in one of them is the tell.
+
+### A rollout that never finished
+
+The running tag is read from the Pod template, and `kubectl apply` moves the template the
+moment it runs — whether or not the Pod carrying the new tag ever becomes Ready. A rollout
+that wedges (the case above, or a startup probe that never passes) therefore leaves the
+template on the desired tag while the old Pod keeps serving. To the next deploy that looks
+like `up-to-date`, and apply says `unchanged`, so it would be skipped — green.
+
+`deploy.sh` checks each `up-to-date` service's rollout status against the same fields
+`kubectl rollout status` reads (`rollout_is_complete` in `deploy-plan.sh`), reports any
+that never completed in the plan, and in `deploy_waves` restarts them — a fresh ReplicaSet
+for the same template, and a fresh image pull — and verifies the restart like any other
+rollout. A wedge is therefore something the next deploy fixes, not something it inherits.
+
 ## Why it works this way
 
 The old pipeline was a delta: `git diff HEAD^1` on main picked which services roll,
@@ -295,6 +344,7 @@ opts out.
 | `DEPLOY_ALLOW_ROLLBACK` | unset | Allows a `behind` verdict to deploy |
 | `DEPLOY_ROLLOUT_TIMEOUT` | `360s` | Per-Deployment `rollout status` timeout |
 | `DEPLOY_DRAIN_TIMEOUT` | `0` | Seconds to wait for superseded pods between waves |
+| `DOCKERHUB_PULL_TOKEN` | unset | Read-only Docker Hub token to write into the pull Secret instead of `DOCKERHUB_PASSWORD` |
 | `RUN_MIGRATIONS_ON_DEPLOY` | unset | `false` skips automated migrations |
 | `GKE_CLUSTER` / `GKE_ZONE` / `GKE_PROJECT` | `therr-prod-1` / `us-central1-a` / `therr-app` | Cluster cutover without a code merge |
 

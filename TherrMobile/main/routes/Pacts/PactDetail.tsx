@@ -6,6 +6,7 @@ import { bindActionCreators } from 'redux';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
+import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 import permissions from '../../utilities/permissionsOrchestrator';
 import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
 // Shared so the pending-pact wording can't drift between the card and this screen.
@@ -20,7 +21,7 @@ import { RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import translator from '../../utilities/translator';
 import { Button } from '../../components/BaseButton';
-import { PactMemberRow } from '../../components/Habits';
+import { PactMemberRow, SavingsProgressCard } from '../../components/Habits';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
@@ -263,9 +264,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                     this.handleRefresh();
                 })
                 .catch((error: any) => {
-                    const apiMessage = error?.statusCode && typeof error?.message === 'string'
-                        ? error.message
-                        : '';
+                    const apiMessage = getApiErrorMessage(error);
                     Toast.show({
                         type: 'error',
                         text1: this.translate('pages.pacts.errorTitle'),
@@ -327,9 +326,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                 this.handleRefresh();
             })
             .catch((error: any) => {
-                const apiMessage = error?.statusCode && typeof error?.message === 'string'
-                    ? error.message
-                    : '';
+                const apiMessage = getApiErrorMessage(error);
                 Toast.show({
                     type: 'error',
                     text1: this.translate('pages.pacts.errorTitle'),
@@ -389,9 +386,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                 // habit. The axios interceptor rejects with the body verbatim, so the
                 // message is on `error.message`; no `statusCode` means it never
                 // reached the API.
-                const apiMessage = error?.statusCode && typeof error?.message === 'string'
-                    ? error.message
-                    : '';
+                const apiMessage = getApiErrorMessage(error);
 
                 Toast.show({
                     type: 'error',
@@ -817,6 +812,22 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                                 'pages.pacts.renew.extendedFrom',
                             )}
                         </View>
+
+                        {/* Above the members card: on a savings pact the money is what the
+                            group opened this screen to see, and the per-member breakdown
+                            inside it already names everyone. Absent on a non-savings pact
+                            and on a response from a users-service that predates it, which
+                            is why this is a presence check and not a goalType check. */}
+                        {pact.savingsProgress ? (
+                            <SavingsProgressCard
+                                progress={pact.savingsProgress}
+                                members={pact.members}
+                                currentUserId={currentUserId}
+                                translate={this.translate}
+                                themeHabits={this.themeHabits}
+                                locale={this.props.user?.settings?.locale}
+                            />
+                        ) : null}
 
                         {this.renderMembersCard(pact, currentUserId)}
 

@@ -9,6 +9,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Toast from 'react-native-toast-message';
 import { HabitActions } from 'therr-react/redux/actions';
 import { IUserState } from 'therr-react/types';
+import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 import translator from '../../utilities/translator';
 import { Button } from '../../components/BaseButton';
 import { Avatar } from '../../components/BaseAvatar';
@@ -166,9 +167,7 @@ export class AddPactMembers extends React.Component<IAddPactMembersProps, IAddPa
                 navigation.goBack();
             })
             .catch((error: any) => {
-                const apiMessage = error?.statusCode && typeof error?.message === 'string'
-                    ? error.message
-                    : '';
+                const apiMessage = getApiErrorMessage(error);
                 Toast.show({
                     type: 'error',
                     text1: this.translate('pages.pacts.errorTitle'),

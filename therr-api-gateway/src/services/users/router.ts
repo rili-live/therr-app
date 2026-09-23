@@ -903,6 +903,10 @@ usersServiceRouter.put('/habits/user-habits/:id/continue-solo', handleServiceReq
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
+usersServiceRouter.put('/habits/user-habits/:id/notification-preferences', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
 
 // HABITS — Lifetime founder purchase (Google Play Billing)
 usersServiceRouter.get('/habits/lifetime', handleServiceRequest({

@@ -5,12 +5,14 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
+import { UsersService } from 'therr-react/services';
 import {
     IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak, IPact, IPactNudgeResult, IUserHabit,
 } from 'therr-react/types';
 import { FlatList, RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
+import TherrIcon from '../../components/TherrIcon';
 import translator from '../../utilities/translator';
 import permissions from '../../utilities/permissionsOrchestrator';
 import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
@@ -25,6 +27,7 @@ import {
     HabitCard, HabitsListLoader, NewPactButton, PactCard, SentInviteCard,
 } from '../../components/Habits';
 import { getFreezeConsumed, getStreakSavedByFreeze } from '../../utilities/streakFreezes';
+import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/celebrationQueue';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { logAppEvent } from '../../utilities/analyticsEvents';
@@ -142,6 +145,11 @@ interface IHabitsDashboardState {
     // The tracking row queued for archive confirmation, or null when the modal is
     // closed.
     habitPendingArchive: IUserHabit | null;
+    /**
+     * The user's standing on this week's global board, for the leaderboard row on the
+     * progress card. Null until it loads, and kept at its last value when a refresh fails.
+     */
+    weeklyRank: { rank: number; points: number } | null;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -178,6 +186,15 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     private themeConfirmModal = buildConfirmModalStyles();
     private themeButtons = buildButtonsStyles();
     private unsubscribeNavigationListener: any;
+    private isUnmounted = false;
+    /**
+     * Check-in toasts shown and not yet hidden; the rank-up toast waits behind them. Counted
+     * for the same reason the celebration queue counts its blockers: two quick check-ins
+     * overlap, and a boolean would let the first hide release the second.
+     */
+    private checkinToastsShowing = 0;
+    /** A rank the user just climbed to, waiting for the screen to be free to announce it. */
+    private pendingRankUp: number | null = null;
 
     /**
      * Memo for the habits segment, keyed on the identity of the four Redux inputs it
@@ -216,6 +233,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             pactIdPendingDecline: null,
             awaitingActionGoalId: null,
             habitPendingArchive: null,
+            weeklyRank: null,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -248,10 +266,79 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     }
 
     componentWillUnmount() {
+        this.isUnmounted = true;
         if (this.unsubscribeNavigationListener) {
             this.unsubscribeNavigationListener();
         }
     }
+
+    isLeaderboardEnabled = (): boolean => getConfig().featureFlags?.[FeatureFlags.ENABLE_ACHIEVEMENTS] === true;
+
+    /**
+     * Loads the user's rank for the leaderboard row. `limit: 1` because only `currentUser`
+     * is read — the service always returns the requester's rank, even off the page.
+     *
+     * Kept out of `handleRefresh`'s Promise.all on purpose: the row is an invitation, not
+     * part of the dashboard, so it must never hold the pull-to-refresh spinner or fail the
+     * refresh. The offline fallback resolves with an empty body; the last rank is kept.
+     *
+     * After a check-in (`announceRankUp`), a better rank than the one already on the card is
+     * announced — see `showPendingRankUp`. There is nothing to compare against before the
+     * first load, so the first rank ever seen is never announced.
+     */
+    fetchWeeklyRank = ({ announceRankUp = false }: { announceRankUp?: boolean } = {}) => {
+        if (!this.isLeaderboardEnabled()) {
+            return;
+        }
+
+        UsersService.getLeaderboard({ period: 'week', scope: 'global', limit: 1 })
+            .then((response: any) => {
+                const currentUser = response?.data?.currentUser;
+                if (this.isUnmounted || response?.isOfflineFallback || typeof currentUser?.rank !== 'number') {
+                    return;
+                }
+                const previous = this.state.weeklyRank;
+                const points = Number(currentUser.points) || 0;
+                if (announceRankUp && previous && points > 0 && currentUser.rank < previous.rank) {
+                    this.pendingRankUp = currentUser.rank;
+                }
+                this.setState({
+                    weeklyRank: { rank: currentUser.rank, points },
+                });
+                this.showPendingRankUp();
+            })
+            .catch(() => {});
+    };
+
+    /**
+     * The "you climbed to #9" toast. It must not cost the check-in toast its screen time —
+     * that toast is the only route to the note/photo screen — so it waits for it to hide.
+     * After that it shows only if the screen is otherwise free: a streak celebration or the
+     * note screen taking over means the moment has passed, and the message is dropped rather
+     * than shown late. Nothing is lost; the new rank is already on the progress card.
+     */
+    showPendingRankUp = () => {
+        const rank = this.pendingRankUp;
+        if (rank === null || this.isUnmounted || this.checkinToastsShowing > 0) {
+            return;
+        }
+        this.pendingRankUp = null;
+        if (!celebrationQueue.isIdle) {
+            return;
+        }
+        showToast.success({
+            text1: this.translate('pages.habits.rankUpToast.title', { rank }),
+            text2: this.translate('pages.habits.rankUpToast.body'),
+            onPress: () => {
+                Toast.hide();
+                this.goToLeaderboard();
+            },
+        });
+    };
+
+    goToLeaderboard = () => {
+        this.props.navigation.navigate('Leaderboard');
+    };
 
     /**
      * Pacts get their own segments only where the flag is on. With it off this
@@ -286,6 +373,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         } = this.props;
 
         this.setState({ isRefreshing: true });
+
+        this.fetchWeeklyRank();
 
         Promise.all([
             getUserGoals(),
@@ -347,6 +436,10 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             habitGoalId: habitGoal.id,
             habitName: habitGoal.name,
             source: 'dashboard',
+            // Carried so the detail screen can offer the amount field without
+            // re-fetching the goal it is already rendering.
+            goalType: habitGoal.goalType,
+            currencyCode: habitGoal.currencyCode,
         });
     };
 
@@ -397,6 +490,11 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 // otherwise only refetched on a pull-to-refresh or re-focus.
                 getActiveStreaks().catch(() => {});
 
+                // A check-in awards XP, so the rank on the progress card may have moved —
+                // and when it moved up, that is worth saying.
+                this.pendingRankUp = null;
+                this.fetchWeeklyRank({ announceRankUp: true });
+
                 // The toast is the confirmation that replaced the modal, and it is also the
                 // only route to the note/photo screen — so it has to say it is tappable
                 // (nothing about the styling signals it).
@@ -410,6 +508,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 // read it, so the queue is released when the toast goes — and, if the user
                 // taps through, when the screen it opened closes.
                 celebrationQueue.block();
+                this.checkinToastsShowing += 1;
                 const freezeConsumed = getFreezeConsumed(checkin);
                 showToast.success({
                     text1: freezeConsumed
@@ -422,7 +521,13 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                         : this.translate('pages.habits.checkinToast.addDetailAction'),
                     duration: DURATION.LONG,
                     onPress: () => this.handleAddCheckinDetail(habitGoal),
-                    onHide: () => celebrationQueue.unblock(),
+                    onHide: () => {
+                        this.checkinToastsShowing = Math.max(0, this.checkinToastsShowing - 1);
+                        // Unblock first: a celebration it releases takes the screen, and the
+                        // rank-up toast then sees a busy queue and stands down.
+                        celebrationQueue.unblock();
+                        this.showPendingRankUp();
+                    },
                 });
 
                 // Queue whatever this check-in earned. It shows once the toast (and any screen
@@ -430,9 +535,13 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 enqueueStreakCelebration(checkin?.dailyStreak);
             })
             .catch((err) => {
+                // Never the raw body: a 5xx carries an internal grep token
+                // (`SQL:HABIT_CHECKINS_ROUTES:ERROR`), not a sentence, and this toast put
+                // one in front of every user for a day on 2026-09-20. See
+                // utilities/apiErrorMessage.
                 showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
-                    text2: err?.message || this.translate('pages.habits.checkinProof.uploadFailed'),
+                    text2: getApiErrorMessage(err) || this.translate('pages.habits.checkinError'),
                 });
             })
             .finally(() => {
@@ -597,10 +706,9 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 // on the habit. Its body is localized and names the actual reason, and
                 // the axios interceptor rejects with that body verbatim (hence
                 // `error.message`, not `error.response.data`), so prefer it. A rejection
-                // carrying no `statusCode` never reached the API at all.
-                const apiMessage = error?.statusCode && typeof error?.message === 'string'
-                    ? error.message
-                    : '';
+                // carrying no `statusCode` never reached the API at all, and a 5xx body is
+                // an internal token rather than copy — both withheld by getApiErrorMessage.
+                const apiMessage = getApiErrorMessage(error);
 
                 showToast.error({
                     text1: this.translate('pages.pacts.errorTitle'),
@@ -750,7 +858,11 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             .then(() => {
                 showToast.success({
                     text1: this.translate('pages.habits.habitArchived.successTitle'),
-                    text2: this.translate('pages.habits.habitArchived.successMessage'),
+                    // The awaiting-partner wording: archiving from this card leaves
+                    // the invite open, so the habit comes back on its own if the
+                    // partner accepts. The habit detail screen archives a habit the
+                    // user is simply done with and says something different.
+                    text2: this.translate('pages.habits.habitArchived.successMessageAwaitingPartner'),
                     duration: DURATION.SHORT,
                 });
                 this.handleRefresh();
@@ -959,6 +1071,62 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         );
     };
 
+    /**
+     * The leaderboard's entry point on the screen users open every day. It sits above the
+     * progress card's divider, in the band that used to be empty, so it reads as part of
+     * "how am I doing" rather than as another destination competing with the habit list.
+     *
+     * With no XP yet this week (or before the rank has loaded) it invites rather than
+     * reporting a rank — "#48 this week" at 0 XP is a last place nobody has earned.
+     */
+    renderLeaderboardRow = () => {
+        if (!this.isLeaderboardEnabled()) {
+            return null;
+        }
+
+        const { weeklyRank } = this.state;
+        const rankToShow = weeklyRank && weeklyRank.points > 0 ? weeklyRank : null;
+        const title = rankToShow
+            ? this.translate('pages.habits.leaderboardRankTitle', { rank: rankToShow.rank })
+            : this.translate('pages.habits.leaderboardJoinTitle');
+        const subtitle = rankToShow
+            ? this.translate('pages.habits.leaderboardRankSubtitle', { points: rankToShow.points })
+            : this.translate('pages.habits.leaderboardJoinSubtitle');
+
+        return (
+            <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${title}. ${subtitle}`}
+                onPress={this.goToLeaderboard}
+                style={({ pressed }) => [
+                    this.themeHabits.styles.leaderboardTeaserRow,
+                    pressed && this.themeHabits.styles.leaderboardTeaserRowPressed,
+                ]}
+            >
+                <View style={this.themeHabits.styles.leaderboardTeaserIconContainer}>
+                    <TherrIcon
+                        name="trophy"
+                        size={20}
+                        style={this.themeHabits.styles.leaderboardTeaserIcon}
+                    />
+                </View>
+                <View style={this.themeHabits.styles.leaderboardTeaserTextContainer}>
+                    <Text style={this.themeHabits.styles.leaderboardTeaserTitle} numberOfLines={1}>
+                        {title}
+                    </Text>
+                    <Text style={this.themeHabits.styles.leaderboardTeaserSubtitle} numberOfLines={1}>
+                        {subtitle}
+                    </Text>
+                </View>
+                <TherrIcon
+                    name="chevron-right"
+                    size={16}
+                    style={this.themeHabits.styles.leaderboardTeaserChevron}
+                />
+            </Pressable>
+        );
+    };
+
     renderOverallProgress = (liveHabits: IHabitWithPactState[]) => {
         const { habits } = this.props;
         const { activeStreaks, todayCheckins } = habits;
@@ -981,6 +1149,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
 
         return (
             <View style={this.themeHabits.styles.streakWidgetContainer}>
+                {this.renderLeaderboardRow()}
                 <View style={this.themeHabits.styles.pactComparisonContainer}>
                     <View style={this.themeHabits.styles.pactComparisonItem}>
                         <Text style={this.themeHabits.styles.pactComparisonValue}>
@@ -1344,7 +1513,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                     isVisible={!!habitPendingArchive}
                     onCancel={this.handleCancelArchive}
                     onConfirm={this.handleConfirmArchive}
-                    text={this.translate('pages.habits.habitArchived.confirm')}
+                    text={this.translate('pages.habits.habitArchived.confirmAwaitingPartner')}
                     textConfirm={this.translate('pages.habits.habitArchived.confirmButton')}
                     textCancel={this.translate('modals.confirmModal.cancel')}
                     translate={this.translate}

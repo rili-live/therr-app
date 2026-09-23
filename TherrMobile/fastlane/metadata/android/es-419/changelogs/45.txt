@@ -1,0 +1,7 @@
+Novedades:
+• Resumen semanal: cada lunes, un repaso de tu semana — días cumplidos, registros, tu hábito estrella y cómo va frente a la anterior. Míralo cuando quieras en Mis hábitos
+• Los registros ahora caen en tu propio día, no en UTC — uno de noche se queda en hoy
+• Tarjeta de racha más legible, con indicadores de congelamientos
+• Las listas muestran una carga en vez de "sin hábitos" mientras cargan
+• Las fechas siguen el idioma de la app
+• Correcciones y mejoras
