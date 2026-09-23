@@ -50,6 +50,23 @@ import {
 } from './wizardSteps';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 
+/**
+ * The status and body of a failed API call, whichever shape it arrived in.
+ *
+ * The response interceptor (`main/interceptors.ts`) rejects with the response
+ * *body*, not the axios error, so `err.response` is undefined here and the
+ * status survives only as the body's `statusCode` (the gateway echoes it). Both
+ * refusal handlers below read `err.response.status`, so neither ever fired: a
+ * 402 at the free-tier cap and a 403 solo lock both fell through to "We could
+ * not start that habit", and the paywall was unreachable from this wizard.
+ * The axios shape is still accepted so a request made outside the interceptor
+ * resolves the same way.
+ */
+const readApiError = (err: any): { status?: number; body: any } => ({
+    status: Number(err?.response?.status ?? err?.statusCode) || undefined,
+    body: err?.response?.data ?? err,
+});
+
 const MAX_PARTNERS = 5;
 const DEFAULT_PACT_DURATION_DAYS = 30;
 // Used to keep a focused input clear of the footer until the footer reports its
@@ -605,17 +622,17 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      * would then swallow the toast too, and the button would look inert.
      */
     handlePossiblePaywall = (err: any): boolean => {
-        const response = err?.response;
+        const { status, body } = readApiError(err);
         const isPaywallRouteAvailable = getConfig()
             .featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true;
 
-        if (response?.status !== 402 || !isPaywallRouteAvailable) {
+        if (status !== 402 || !isPaywallRouteAvailable) {
             return false;
         }
 
         this.props.navigation.navigate('UpgradePaywall', {
-            reason: response.data?.error || 'habit-limit-reached',
-            limit: response.data?.limit,
+            reason: body?.error || 'habit-limit-reached',
+            limit: body?.limit,
         });
 
         return true;
@@ -631,16 +648,16 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      * Returns true when it handled the error.
      */
     handlePossibleSoloLock = (err: any): boolean => {
-        const response = err?.response;
+        const { status, body } = readApiError(err);
 
-        if (response?.status !== 403 || response?.data?.error !== 'solo-locked') {
+        if (status !== 403 || body?.error !== 'solo-locked') {
             return false;
         }
 
         this.props.getUserHabitEligibility().catch(() => {});
 
-        const required = response.data?.requiredCount;
-        const invited = response.data?.invitedCount;
+        const required = body?.requiredCount;
+        const invited = body?.invitedCount;
         const remaining = typeof required === 'number' && typeof invited === 'number'
             ? Math.max(required - invited, 0)
             : null;
