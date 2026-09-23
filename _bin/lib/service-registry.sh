@@ -85,6 +85,21 @@ service_keys()
   done
 }
 
+# Whether <key> owns knex migrations, i.e. is listed in THERR_MIGRATABLE_SERVICES.
+# Matched whole-word against the list rather than by substring, so a future key that
+# contains another as a prefix cannot be mistaken for it.
+is_migratable_service()
+{
+  local KEY=$1
+  local MIGRATABLE
+
+  for MIGRATABLE in $THERR_MIGRATABLE_SERVICES; do
+    [ "$MIGRATABLE" = "$KEY" ] && return 0
+  done
+
+  return 1
+}
+
 # Echoes field <index> (1-based) of the registry row for <key>; non-zero if the
 # key is unknown, so a typo in a caller surfaces as a failure rather than as an
 # empty string that quietly disables a step.

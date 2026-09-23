@@ -634,15 +634,74 @@ done
 echo "Manifests rendered for every service; image bumps queued for those behind their published version"
 
 # Roll the queued images out wave by wave, failing the deploy if any pod never
-# reached Ready. Runs before migrations so we never migrate the schema
-# underneath a rollout that is already wedged.
-deploy_waves
+# reached Ready. Runs before migrations so we never migrate the schema underneath a
+# rollout that is already wedged.
+#
+# The failure is trapped rather than left to `set -e`, because ending the job here
+# is what caused the 2026-09-20 outage. deploy_waves failed on an unrelated
+# ImagePullBackOff in the messages/websocket/maps wave; `set -e` ended the job on
+# the spot; and users-service — which had already rolled onto the savings build in
+# an earlier wave — was left serving new code against a pre-savings schema. Every
+# Friends with Habits check-in 500'd on `column "savedAmount" of relation
+# "habit_checkins" does not exist` until a human ran the migrations by hand, two
+# days later.
+#
+# So the ordering intent is kept exactly — a service that did not reach its desired
+# tag is not migrated underneath, and MIGRATE_ONLY_SERVICES below is what enforces
+# that — while the services that *did* roll still get the schema their code expects.
+# The deploy still fails; it just no longer leaves production inconsistent on its
+# way out.
+WAVES_OK=true
+if ! deploy_waves; then
+  WAVES_OK=false
+fi
+
+# The migratable services that actually reached their desired tag. Checked against
+# the cluster rather than assumed from the wave that carried them: a service can be
+# in a wave that reported success and still be short of its tag, and that is exactly
+# the case where migrating underneath it would be wrong.
+MIGRATABLE_ROLLED=()
+INDEX=0
+while [ "$INDEX" -lt "${#PLAN_KEYS[@]}" ]; do
+  KEY="${PLAN_KEYS[$INDEX]}"
+  VERDICT="${PLAN_VERDICTS[$INDEX]}"
+  DESIRED="${PLAN_DESIRED[$INDEX]}"
+  INDEX=$((INDEX + 1))
+
+  [ "$VERDICT" = "deploy" ] || continue
+  is_migratable_service "$KEY" || continue
+
+  if [ "$(running_tag_for "$(service_deployment "$KEY")" "$(service_container "$KEY")")" = "$DESIRED" ]; then
+    MIGRATABLE_ROLLED+=("$KEY")
+  else
+    printMessageWarning "$KEY is not on its intended version — its migrations are deferred."
+  fi
+done
 
 # Run any pending database migrations for services this deploy actually moved.
 # Reuses the freshly rolled-out pods (which already have the Cloud SQL proxy + DB
 # secrets). Additive/expand-contract migrations only. Set
 # RUN_MIGRATIONS_ON_DEPLOY=false to skip. See run-migrations.sh.
-DEPLOY_PLAN_FILE="$DEPLOY_PLAN_FILE" ./_bin/cicd/run-migrations.sh
+#
+# This also verifies every migratable service's schema is caught up with the code it
+# is running, whichever deploy left the work behind — so it fails the job when a
+# service is ahead of its schema, rather than leaving that to be discovered by users.
+MIGRATIONS_OK=true
+if ! DEPLOY_PLAN_FILE="$DEPLOY_PLAN_FILE" MIGRATE_ONLY_SERVICES="${MIGRATABLE_ROLLED[*]}" \
+  ./_bin/cicd/run-migrations.sh; then
+  MIGRATIONS_OK=false
+fi
+
+if [ "$WAVES_OK" != "true" ]; then
+  printMessageError "Deploy failed during rollout. Services that did roll have been migrated;"
+  printMessageError "those that did not are still on their previous version and were left alone."
+  exit 1
+fi
+
+if [ "$MIGRATIONS_OK" != "true" ]; then
+  printMessageError "Rollout succeeded but migrations did not — see above."
+  exit 1
+fi
 
 # Confirm the cluster ended up where the plan said it would. `rollout status`
 # already proved the pods came up; this proves they came up on the intended tag,
