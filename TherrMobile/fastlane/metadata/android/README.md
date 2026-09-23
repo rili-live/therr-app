@@ -12,9 +12,12 @@ copy/paste block; it runs **before** the `eas build --auto-submit` step in the
 `eas_build_therr_android` CircleCI job (see `.circleci/config.yml`), so the
 notes are in the job log even if the build step later times out.
 
-Paste them in at:
+The block is printed in Play Console's multi-language format — one
+`<en-US>…</en-US>` element per locale — so it goes in with a single paste,
+exactly as printed, at:
 **Play Console → Release → Releases overview → the release → Edit → "What's new
-in this release"**, for each language.
+in this release"**. Per-locale character counts are in the log lines above the
+block, not inside it.
 
 > This used to push the notes to Play over the Developer API, polling the track
 > until EAS Submit's upload appeared. EAS Submit is asynchronous and the upload
