@@ -309,6 +309,21 @@
         android:resource="@xml/shortcuts" />
     </activity>
 
+    <!-- Home-screen widget (weekly rank, streak, today's check-ins). It only renders a
+         snapshot the app writes — see widget/HabitsWidgetProvider.kt. Its taps are explicit
+         intents to MainActivity, so they need no intent-filter above. -->
+    <receiver
+      android:name=".widget.HabitsWidgetProvider"
+      android:exported="false"
+      android:label="@string/habits_widget_label">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+      </intent-filter>
+      <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/habits_widget_info" />
+    </receiver>
+
     <meta-data
       android:name="com.google.android.geo.API_KEY"
       android:value="${GOOGLE_APIS_ANDROID_KEY}" />

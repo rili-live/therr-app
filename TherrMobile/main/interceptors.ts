@@ -9,6 +9,7 @@ import getConfig from './utilities/getConfig';
 import UsersActions from './redux/actions/UsersActions';
 import { socketIO } from './socket-io-middleware';
 import { isNonRefreshableAuthUrl } from './utilities/authRequestPaths';
+import { clearHabitsWidget } from './utilities/habitsWidget';
 
 const MAX_LOGOUT_ATTEMPTS = 3;
 const MAX_REFRESH_RETRIES = 2;
@@ -81,6 +82,7 @@ const handleLogout = (store) => {
             }, storedUser?.details?.id));
         }
         store.dispatch(UsersActions.logout());
+        clearHabitsWidget();
         logoutAttemptCount += 1;
     }
 };

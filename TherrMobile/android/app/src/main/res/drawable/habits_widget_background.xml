@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Brand surface (brandDark → brand, from styles/themes brandColorOverrides[HABITS]). A
+     brand-colored card reads the same on light and dark launchers, so there is no night variant. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="16dp" />
+    <gradient
+        android:angle="315"
+        android:endColor="@color/habits_widget_surface_end"
+        android:startColor="@color/habits_widget_surface_start" />
+</shape>
