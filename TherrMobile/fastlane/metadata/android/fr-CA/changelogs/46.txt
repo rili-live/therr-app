@@ -1,6 +1,7 @@
 Nouveautés :
-• Réglages de notifications par habitude : gardez les rappels que vous voulez et coupez les autres, habitude par habitude — dans le menu de n'importe quelle habitude
-• Archivez une habitude terminée, directement depuis sa fiche
-• Les nouvelles habitudes n'affichent plus « NaN » gel de série avant le premier enregistrement
-• En cas de problème, vous voyez un message lisible plutôt qu'un code d'erreur interne
+• Objectifs d'épargne : notez le montant mis de côté à chaque enregistrement et voyez le total grimper vers votre cible
+• Classement hebdo : maintenant dans le menu, avec votre rang au tableau de bord et une alerte quand vous montez
+• Notifications réglables par habitude, dans le menu de chaque habitude
+• Archivez une habitude depuis sa fiche
+• Messages d'erreur plus clairs, et fini les « NaN » sur les nouvelles habitudes
 • Corrections et améliorations
