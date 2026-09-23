@@ -2237,7 +2237,9 @@
                 "nearCapTitle": "{used} habitudes gratuites sur {limit} utilisées",
                 "nearCapBody": "Une place restante. Débloque des habitudes illimitées à vie.",
                 "atCapTitle": "Les {limit} habitudes gratuites sont utilisées",
-                "atCapBody": "Débloque des habitudes et des pactes illimités, en un seul paiement, à vie."
+                "atCapBody": "Débloque des habitudes et des pactes illimités, en un seul paiement, à vie.",
+                "startCapTitle": "{used} habitudes commencées ce mois-ci",
+                "startCapBody": "Les comptes gratuits en commencent {limit} tous les {days} jours. Débloque l'illimité, à vie."
             }
         },
         "pacts": {
@@ -2408,7 +2410,8 @@
                 "savingsScopeGroupLabel": "On l’épargne ensemble",
                 "savingsScopeGroupHint": "Une cagnotte commune. Terminé quand votre total combiné atteint le montant.",
                 "capacityNoticeTitle": "Tes {limit} places gratuites sont pleines",
-                "capacityNoticeBody": "Cette habitude a besoin d'une place. Débloque des habitudes illimitées ou archives-en une d'abord."
+                "capacityNoticeBody": "Cette habitude a besoin d'une place. Débloque des habitudes illimitées ou archives-en une d'abord.",
+                "capacityNoticeStartBody": "Les comptes gratuits commencent {limit} nouvelles habitudes tous les {days} jours, et celle-ci serait la prochaine. Débloque des habitudes illimitées."
             },
             "status": {
                 "pending": "En attente",
@@ -2673,6 +2676,8 @@
             "limitTitle": "Tu as atteint la limite gratuite",
             "limitSubtitle": "Les comptes gratuits suivent {limit} habitudes à la fois. Archives-en une ou débloque tout à vie.",
             "limitMeterLabel": "Les {limit} places gratuites sont utilisées",
+            "startLimitTitle": "Tu as commencé beaucoup d'habitudes dernièrement",
+            "startLimitSubtitle": "Les comptes gratuits commencent {limit} nouvelles habitudes tous les {days} jours. Débloque tout à vie pour en commencer autant que tu veux.",
             "eyebrow": "Offre fondateur",
             "oneTime": "Paiement unique",
             "priceCaption": "une fois, à toi pour toujours",

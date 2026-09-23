@@ -28,6 +28,30 @@ describe('getHabitCapPaywallParams', () => {
         expect(getHabitCapPaywallParams(CAP_REFUSAL)).toEqual({ reason: 'habit-limit-reached', limit: 5 });
     });
 
+    it('carries the start-window numbers through for a start-limit refusal', () => {
+        // The paywall's header needs both to say why: "5 every 30 days".
+        expect(getHabitCapPaywallParams({
+            statusCode: 402,
+            error: 'habit-start-limit-reached',
+            limit: 3,
+            startLimit: 5,
+            startWindowDays: 30,
+            recentStartCount: 5,
+            upgradeRequired: true,
+        }, 'create-pact')).toEqual({
+            reason: 'habit-start-limit-reached',
+            limit: 3,
+            startLimit: 5,
+            startWindowDays: 30,
+            source: 'create-pact',
+        });
+    });
+
+    it('omits the start-window fields when an older server did not send them', () => {
+        expect(getHabitCapPaywallParams(CAP_REFUSAL)).not.toHaveProperty('startLimit');
+        expect(getHabitCapPaywallParams(CAP_REFUSAL)).not.toHaveProperty('startWindowDays');
+    });
+
     it('defaults the reason when the body does not name one', () => {
         expect(getHabitCapPaywallParams({ statusCode: 402 })).toEqual({ reason: 'habit-limit-reached', limit: undefined });
     });

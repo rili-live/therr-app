@@ -2237,7 +2237,9 @@
                 "nearCapTitle": "{used} of {limit} free habits in use",
                 "nearCapBody": "One slot left. Unlock unlimited habits for life.",
                 "atCapTitle": "All {limit} free habits in use",
-                "atCapBody": "Unlock unlimited habits and pacts, once, for life."
+                "atCapBody": "Unlock unlimited habits and pacts, once, for life.",
+                "startCapTitle": "{used} habits started this month",
+                "startCapBody": "Free accounts start {limit} every {days} days. Unlock unlimited, for life."
             }
         },
         "pacts": {
@@ -2408,7 +2410,8 @@
                 "savingsScopeGroupLabel": "We save this together",
                 "savingsScopeGroupHint": "One shared pot. Done when your combined total reaches the amount.",
                 "capacityNoticeTitle": "Your {limit} free habit slots are full",
-                "capacityNoticeBody": "This one needs a slot. Unlock unlimited habits, or archive one first."
+                "capacityNoticeBody": "This one needs a slot. Unlock unlimited habits, or archive one first.",
+                "capacityNoticeStartBody": "Free accounts start {limit} new habits every {days} days, and this one would be next. Unlock unlimited habits."
             },
             "status": {
                 "pending": "Pending",
@@ -2673,6 +2676,8 @@
             "limitTitle": "You've reached the free limit",
             "limitSubtitle": "Free accounts track {limit} habits at a time. Archive one, or unlock everything for life.",
             "limitMeterLabel": "All {limit} free slots in use",
+            "startLimitTitle": "You've started a lot of habits lately",
+            "startLimitSubtitle": "Free accounts start {limit} new habits every {days} days. Unlock everything for life to start as many as you like.",
             "eyebrow": "Founder offer",
             "oneTime": "One-time payment",
             "priceCaption": "once, yours forever",

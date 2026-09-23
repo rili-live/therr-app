@@ -4,8 +4,13 @@ import { readApiError } from './apiErrorMessage';
 import { PaywallSource } from './upgradeNudge';
 
 export interface IHabitCapPaywallParams {
+    /** `habit-limit-reached` (active cap) or `habit-start-limit-reached` (starts per window). */
     reason: string;
+    /** The active-habit cap, on either reason. */
     limit?: number;
+    /** The starts-per-window cap and its window, sent with `habit-start-limit-reached`. */
+    startLimit?: number;
+    startWindowDays?: number;
     /** Which action was refused, for the paywall's `habits_paywall_view` event. */
     source?: PaywallSource;
 }
@@ -37,6 +42,8 @@ export const getHabitCapPaywallParams = (err: any, source?: PaywallSource): IHab
     return {
         reason: body?.error || 'habit-limit-reached',
         limit: body?.limit,
+        ...(typeof body?.startLimit === 'number' ? { startLimit: body.startLimit } : {}),
+        ...(typeof body?.startWindowDays === 'number' ? { startWindowDays: body.startWindowDays } : {}),
         ...(source ? { source } : {}),
     };
 };

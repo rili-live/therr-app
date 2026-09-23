@@ -2237,7 +2237,9 @@
                 "nearCapTitle": "{used} de {limit} hábitos gratuitos en uso",
                 "nearCapBody": "Queda un espacio. Desbloquea hábitos ilimitados de por vida.",
                 "atCapTitle": "Los {limit} hábitos gratuitos están en uso",
-                "atCapBody": "Desbloquea hábitos y pactos ilimitados, con un solo pago, de por vida."
+                "atCapBody": "Desbloquea hábitos y pactos ilimitados, con un solo pago, de por vida.",
+                "startCapTitle": "{used} hábitos empezados este mes",
+                "startCapBody": "Las cuentas gratuitas empiezan {limit} cada {days} días. Desbloquea ilimitados, de por vida."
             }
         },
         "pacts": {
@@ -2408,7 +2410,8 @@
                 "savingsScopeGroupLabel": "Lo ahorramos juntos",
                 "savingsScopeGroupHint": "Un fondo compartido. Termina cuando el total combinado llegue al monto.",
                 "capacityNoticeTitle": "Tus {limit} espacios gratuitos están llenos",
-                "capacityNoticeBody": "Este hábito necesita un espacio. Desbloquea hábitos ilimitados o archiva uno primero."
+                "capacityNoticeBody": "Este hábito necesita un espacio. Desbloquea hábitos ilimitados o archiva uno primero.",
+                "capacityNoticeStartBody": "Las cuentas gratuitas empiezan {limit} hábitos nuevos cada {days} días, y este sería el siguiente. Desbloquea hábitos ilimitados."
             },
             "status": {
                 "pending": "Pendiente",
@@ -2673,6 +2676,8 @@
             "limitTitle": "Alcanzaste el límite gratuito",
             "limitSubtitle": "Las cuentas gratuitas siguen {limit} hábitos a la vez. Archiva uno o desbloquea todo de por vida.",
             "limitMeterLabel": "Los {limit} espacios gratuitos están en uso",
+            "startLimitTitle": "Has empezado muchos hábitos últimamente",
+            "startLimitSubtitle": "Las cuentas gratuitas empiezan {limit} hábitos nuevos cada {days} días. Desbloquea todo de por vida para empezar tantos como quieras.",
             "eyebrow": "Oferta de fundador",
             "oneTime": "Pago único",
             "priceCaption": "una vez, tuyo para siempre",

@@ -76,7 +76,7 @@ How it works
 4. Watch the streak grow — and keep each other honest
 
 Free
-• Up to 5 active habits
+• Up to 3 active habits
 • Daily photo + note check-ins
 • Streak tracking and milestones
 • Partner activity feed

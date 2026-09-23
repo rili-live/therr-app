@@ -27,7 +27,7 @@ import {
 import getConfig from '../../utilities/getConfig';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { streakFreezeRuleParams } from '../../utilities/streakFreezes';
-import { countActiveHabits, getHabitCapacityNudge } from '../../utilities/upgradeNudge';
+import { getHabitCapacityNudge, readHabitCapacity } from '../../utilities/upgradeNudge';
 import CadencePicker from '../../components/Habits/CadencePicker';
 import UpgradeNudgeCard from '../../components/Habits/UpgradeNudgeCard';
 import {
@@ -933,11 +933,13 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     };
 
     /**
-     * Tells a user at the free-tier cap, on the first step, that the habit
-     * they are about to build will be refused on the last. The server still
-     * 402s the submit (and that path still routes to the paywall); this is
-     * so nobody assembles a three-step pact to find out. Only at the cap —
-     * one slot left is not a reason to interrupt someone who is using it.
+     * Tells a user at a free-tier cap, on the first step, that the habit they
+     * are about to build will be refused on the last. The server still 402s
+     * the submit (and that path still routes to the paywall); this is so
+     * nobody assembles a three-step pact to find out. Only at a cap — one
+     * slot left is not a reason to interrupt someone who is using it. The
+     * start window counts here as much as the active cap: both refuse the
+     * submit, and only the server can see the second.
      */
     renderCapacityNotice = () => {
         const { habits, navigation } = this.props;
@@ -945,23 +947,31 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             isOfferEnabled: getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true,
             lifetimeOffer: habits.lifetimeOffer,
             premiumOffer: habits.premiumOffer,
-            activeHabitCount: countActiveHabits(habits.userHabits),
-            limit: HABITS_FREE_HABIT_LIMIT,
+            ...readHabitCapacity(habits.userHabitEligibility, habits.userHabits, HABITS_FREE_HABIT_LIMIT),
         });
 
-        if (!nudge || nudge.variant !== 'atCap') {
+        if (!nudge || nudge.variant === 'nearCap') {
             return null;
         }
+
+        const isStartCap = nudge.variant === 'startCap';
 
         return (
             <UpgradeNudgeCard
                 source="create-pact-wizard"
-                title={this.translate('pages.pacts.wizard.capacityNoticeTitle', { limit: nudge.limit })}
-                body={this.translate('pages.pacts.wizard.capacityNoticeBody')}
+                title={this.translate(
+                    isStartCap ? 'pages.habits.upgradeNudge.startCapTitle' : 'pages.pacts.wizard.capacityNoticeTitle',
+                    { used: nudge.used, limit: nudge.limit, days: nudge.windowDays ?? '' },
+                )}
+                body={this.translate(
+                    isStartCap ? 'pages.pacts.wizard.capacityNoticeStartBody' : 'pages.pacts.wizard.capacityNoticeBody',
+                    { limit: nudge.limit, days: nudge.windowDays ?? '' },
+                )}
                 onPress={() => navigation.navigate('UpgradePaywall', {
                     source: 'create-pact-wizard',
-                    reason: 'habit-limit-reached',
-                    limit: nudge.limit,
+                    ...(isStartCap
+                        ? { reason: 'habit-start-limit-reached', startLimit: nudge.limit, startWindowDays: nudge.windowDays }
+                        : { reason: 'habit-limit-reached', limit: nudge.limit }),
                 })}
                 themeHabits={this.themeHabits}
             />
