@@ -1,10 +1,18 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { AccessLevels, BrandVariations, HABITS_FREE_HABIT_LIMIT } from 'therr-js-utilities/constants';
+import {
+    AccessLevels,
+    BrandVariations,
+    HABITS_FREE_HABIT_LIMIT,
+    HABITS_FREE_HABIT_STARTS_PER_WINDOW,
+    HABITS_FREE_HABIT_START_WINDOW_DAYS,
+} from 'therr-js-utilities/constants';
 import Store from '../../src/store';
 import {
     checkHabitCapacity,
     getHabitCapacityFailOpenCount,
+    getHabitCapacityStatus,
+    getStartWindowSince,
     isHabitCapExempt,
     resetHabitCapacityFailOpenCount,
 } from '../../src/handlers/helpers/habitCapacity';
@@ -21,10 +29,14 @@ import {
 describe('Habit capacity (HABITS free-tier gate)', () => {
     let findUserStub: sinon.SinonStub;
     let countActiveStub: sinon.SinonStub;
+    let countStartedStub: sinon.SinonStub;
 
     beforeEach(() => {
         findUserStub = sinon.stub(Store.users, 'findUser');
         countActiveStub = sinon.stub(Store.userHabits, 'countActiveByUser');
+        // Default: nothing started recently, so only the active cap is in play
+        // unless a case says otherwise.
+        countStartedStub = sinon.stub(Store.userHabits, 'countStartedSinceByUser').resolves(0);
     });
 
     afterEach(() => {
@@ -104,8 +116,86 @@ describe('Habit capacity (HABITS free-tier gate)', () => {
             });
 
             expect(denial).to.equal(null);
-            // Entitled accounts should not even pay for the count query.
+            // Entitled accounts should not even pay for the count queries.
             expect(countActiveStub.called).to.equal(false);
+            expect(countStartedStub.called).to.equal(false);
+        });
+
+        it('denies a free user who has started too many habits this window, even with slots free', async () => {
+            // The loop this closes: archive one, start another, forever. Active
+            // count stays under the cap the whole time.
+            findUserStub.resolves([{ accessLevels: [AccessLevels.EMAIL_VERIFIED] }]);
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT - 1);
+            countStartedStub.resolves(HABITS_FREE_HABIT_STARTS_PER_WINDOW);
+
+            const denial = await checkHabitCapacity({
+                userId: 'user-1',
+                brandVariation: BrandVariations.HABITS,
+                locale: 'en-us',
+            });
+
+            expect(denial?.error).to.equal('habit-start-limit-reached');
+            expect(denial?.startLimit).to.equal(HABITS_FREE_HABIT_STARTS_PER_WINDOW);
+            expect(denial?.startWindowDays).to.equal(HABITS_FREE_HABIT_START_WINDOW_DAYS);
+            expect(denial?.recentStartCount).to.equal(HABITS_FREE_HABIT_STARTS_PER_WINDOW);
+            // The active cap still rides along: the client renders it either way.
+            expect(denial?.limit).to.equal(HABITS_FREE_HABIT_LIMIT);
+            expect(denial?.upgradeRequired).to.equal(true);
+            expect(denial?.message).to.be.a('string').and.not.empty;
+        });
+
+        it('allows a start under both caps', async () => {
+            findUserStub.resolves([{ accessLevels: [AccessLevels.EMAIL_VERIFIED] }]);
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT - 1);
+            countStartedStub.resolves(HABITS_FREE_HABIT_STARTS_PER_WINDOW - 1);
+
+            expect(await checkHabitCapacity({
+                userId: 'user-1',
+                brandVariation: BrandVariations.HABITS,
+                locale: 'en-us',
+            })).to.equal(null);
+        });
+
+        it('reports the active cap first when both are hit', async () => {
+            // Archiving something is the remedy the user has in hand right now;
+            // the window is not.
+            findUserStub.resolves([{ accessLevels: [AccessLevels.EMAIL_VERIFIED] }]);
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT);
+            countStartedStub.resolves(HABITS_FREE_HABIT_STARTS_PER_WINDOW);
+
+            const denial = await checkHabitCapacity({
+                userId: 'user-1',
+                brandVariation: BrandVariations.HABITS,
+                locale: 'en-us',
+            });
+
+            expect(denial?.error).to.equal('habit-limit-reached');
+        });
+
+        it('counts starts from the beginning of the rolling window', async () => {
+            findUserStub.resolves([{ accessLevels: [AccessLevels.EMAIL_VERIFIED] }]);
+            countActiveStub.resolves(0);
+
+            const before = Date.now();
+            await checkHabitCapacity({ userId: 'user-1', brandVariation: BrandVariations.HABITS });
+
+            const since: Date = countStartedStub.firstCall.args[1];
+            const windowMs = HABITS_FREE_HABIT_START_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+            expect(countStartedStub.firstCall.args[0]).to.equal('user-1');
+            expect(since.getTime()).to.be.within(before - windowMs - 1000, Date.now() - windowMs + 1000);
+            expect(getStartWindowSince(windowMs).getTime()).to.equal(0);
+        });
+
+        it('fails OPEN when the start count throws', async () => {
+            findUserStub.resolves([{ accessLevels: [AccessLevels.EMAIL_VERIFIED] }]);
+            countActiveStub.resolves(0);
+            countStartedStub.rejects(new Error('connection terminated'));
+
+            expect(await checkHabitCapacity({
+                userId: 'user-1',
+                brandVariation: BrandVariations.HABITS,
+                locale: 'en-us',
+            })).to.equal(null);
         });
 
         it('short-circuits for non-HABITS brands without touching the database', async () => {
@@ -158,6 +248,89 @@ describe('Habit capacity (HABITS free-tier gate)', () => {
             });
 
             expect(denial?.message).to.be.a('string').and.not.empty;
+        });
+    });
+
+    /**
+     * The reporting path behind GET /habits/user-habits/eligibility. It is how
+     * the client learns the numbers, so what matters is that the limits are
+     * present whenever they apply and absent — not zero — when they do not.
+     */
+    describe('getHabitCapacityStatus', () => {
+        it('reports both caps and both counts for a free HABITS account under the limits', async () => {
+            findUserStub.resolves([{ accessLevels: [AccessLevels.EMAIL_VERIFIED] }]);
+            countActiveStub.resolves(2);
+            countStartedStub.resolves(3);
+
+            const status = await getHabitCapacityStatus({
+                userId: 'user-1',
+                brandVariation: BrandVariations.HABITS,
+                locale: 'en-us',
+            });
+
+            expect(status).to.deep.include({
+                isExempt: false,
+                limit: HABITS_FREE_HABIT_LIMIT,
+                startLimit: HABITS_FREE_HABIT_STARTS_PER_WINDOW,
+                startWindowDays: HABITS_FREE_HABIT_START_WINDOW_DAYS,
+                activeHabitCount: 2,
+                recentStartCount: 3,
+                denial: null,
+            });
+        });
+
+        it('carries the denial when a cap is hit', async () => {
+            findUserStub.resolves([{ accessLevels: [AccessLevels.EMAIL_VERIFIED] }]);
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT);
+
+            const status = await getHabitCapacityStatus({
+                userId: 'user-1',
+                brandVariation: BrandVariations.HABITS,
+            });
+
+            expect(status.denial?.error).to.equal('habit-limit-reached');
+        });
+
+        it('marks an entitled account exempt but still reports its counts', async () => {
+            // The dashboard reads activeHabitCount as "is anything tracked yet".
+            findUserStub.resolves([{ accessLevels: [AccessLevels.HABITS_LIFETIME] }]);
+            countActiveStub.resolves(9);
+
+            const status = await getHabitCapacityStatus({
+                userId: 'user-1',
+                brandVariation: BrandVariations.HABITS,
+            });
+
+            expect(status.isExempt).to.equal(true);
+            expect(status.denial).to.equal(null);
+            expect(status.activeHabitCount).to.equal(9);
+        });
+
+        it('marks another brand exempt without looking the user up', async () => {
+            countActiveStub.resolves(1);
+
+            const status = await getHabitCapacityStatus({
+                userId: 'user-1',
+                brandVariation: BrandVariations.THERR,
+            });
+
+            expect(status.isExempt).to.equal(true);
+            expect(findUserStub.called).to.equal(false);
+        });
+
+        it('throws rather than failing open, because it reports state', async () => {
+            resetHabitCapacityFailOpenCount();
+            findUserStub.resolves([{ accessLevels: [] }]);
+            countActiveStub.rejects(new Error('connection terminated'));
+
+            let thrown: any = null;
+            try {
+                await getHabitCapacityStatus({ userId: 'user-1', brandVariation: BrandVariations.HABITS });
+            } catch (err) {
+                thrown = err;
+            }
+            expect(thrown).to.not.equal(null);
+            expect(getHabitCapacityFailOpenCount()).to.equal(0);
         });
     });
 

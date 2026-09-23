@@ -8,7 +8,7 @@ import {
 } from '../store/UserHabitsStore';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
-import { checkHabitCapacity } from './helpers/habitCapacity';
+import { checkHabitCapacity, getHabitCapacityStatus } from './helpers/habitCapacity';
 import { getSoloInviteProgress } from './helpers/soloHabitAccess';
 import { describeWeekProgress, getCadence } from '../utilities/habitCadence';
 import { getLocalDate, getWeekStart, resolveCheckinTimeZone } from '../utilities/dailyStreak';
@@ -468,19 +468,29 @@ const getSoloEligibility: RequestHandler = async (req: any, res: any) => {
     const { locale, userId, brandVariation } = parseHeaders(req.headers);
 
     try {
-        const [soloProgress, activeHabitCount, denial] = await Promise.all([
+        const [soloProgress, capacity] = await Promise.all([
             getSoloInviteProgress(userId),
-            Store.userHabits.countActiveByUser(userId),
-            checkHabitCapacity({ userId, brandVariation, locale }),
+            getHabitCapacityStatus({ userId, brandVariation, locale }),
         ]);
+
+        // The limits are reported whenever they apply, not only once they have
+        // been hit: the client renders "2 of 3 free habits" from them, and a
+        // client that had to hardcode the numbers would drift from the server
+        // the first time an env override changed them. Null means no cap
+        // applies to this account (another brand, or an entitled one).
+        const isCapped = !capacity.isExempt;
 
         return res.status(200).send({
             canCreateSolo: soloProgress.canCreateSolo,
             invitedCount: soloProgress.invitedCount,
             soloUnlockInviteCount: soloProgress.requiredCount,
-            activeHabitCount,
-            isAtHabitLimit: !!denial,
-            habitLimit: denial?.limit ?? null,
+            activeHabitCount: capacity.activeHabitCount,
+            isAtHabitLimit: !!capacity.denial,
+            habitLimitReason: capacity.denial?.error ?? null,
+            habitLimit: isCapped ? capacity.limit : null,
+            habitStartLimit: isCapped ? capacity.startLimit : null,
+            habitStartWindowDays: isCapped ? capacity.startWindowDays : null,
+            recentHabitStartCount: capacity.recentStartCount,
         });
     } catch (err: any) {
         return handleHttpError({ err, res, message: 'SQL:USER_HABITS_ROUTES:ERROR' });
