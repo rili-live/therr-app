@@ -94,3 +94,62 @@ describe('UserHabitsStore', () => {
         });
     });
 });
+
+describe('UserHabitsStore.getDetailByUser — week progress', () => {
+    const lastSql = (mockConnection: any) => mockConnection.read.query.lastCall.args[0] as string;
+
+    it('tallies days strictly before today, within the user\'s own week', async () => {
+        const { store, mockConnection } = buildStore();
+
+        await store.getDetailByUser('user-1', 'active', { weekStart: '2026-09-14', today: '2026-09-17' });
+
+        const sql = lastSql(mockConnection);
+        // Strictly before today, matching what describeWeekProgress expects for
+        // `completionsEarlierThisWeek` — the same convention as getActiveForReminders.
+        expect(sql).to.match(/c\."scheduledDate" >= '2026-09-14'/);
+        expect(sql).to.match(/c\."scheduledDate" < '2026-09-17'/);
+        expect(sql).to.match(/COUNT\(DISTINCT c\."scheduledDate"\)/);
+        expect(sql).to.match(/AS "completionsEarlierThisWeek"/);
+    });
+
+    it('binds positionally in SQL order, not in argument order', async () => {
+        // The week tally lives in the SELECT list and so binds BEFORE the WHERE clause's
+        // userId and status. Pushing the bindings in argument order instead would silently
+        // filter the habits list by a date and scope the tally to a uuid.
+        const { store, mockConnection } = buildStore();
+
+        await store.getDetailByUser('user-1', 'archived', { weekStart: '2026-09-14', today: '2026-09-17' });
+
+        const sql = lastSql(mockConnection);
+        expect(sql.indexOf("'2026-09-14'")).to.be.lessThan(sql.indexOf("'user-1'"));
+        expect(sql.indexOf("'user-1'")).to.be.lessThan(sql.indexOf("'archived'"));
+        expect(sql).to.match(/uh\."userId" = 'user-1'/);
+        expect(sql).to.match(/uh\."status" = 'archived'/);
+    });
+
+    it('emits a NULL tally when no week bounds are supplied', async () => {
+        // NULL rather than 0 is the load-bearing part: the caller omits `weekProgress`
+        // entirely for a NULL, and a client must read its absence as "unknown". Reporting a
+        // confident 0 of 4 to someone who trained four times is worse than reporting nothing.
+        const { store, mockConnection } = buildStore();
+
+        await store.getDetailByUser('user-1', 'active');
+
+        const sql = lastSql(mockConnection);
+        expect(sql).to.match(/NULL::int AS "completionsEarlierThisWeek"/);
+        expect(sql).to.not.match(/COUNT\(DISTINCT c\."scheduledDate"\)/);
+        expect(sql).to.match(/uh\."userId" = 'user-1'/);
+    });
+
+    it('carries the cadence the caller needs to interpret the tally', async () => {
+        const { store, mockConnection } = buildStore();
+
+        await store.getDetailByUser('user-1', 'active', { weekStart: '2026-09-14', today: '2026-09-17' });
+
+        const sql = lastSql(mockConnection);
+        expect(sql).to.match(/g\."frequencyType"/);
+        expect(sql).to.match(/g\."frequencyCount"/);
+        expect(sql).to.match(/g\."targetDaysOfWeek"/);
+        expect(sql).to.match(/g\."cadenceEffectiveFrom"/);
+    });
+});

@@ -89,6 +89,12 @@ export interface IUserHabitDetail extends IUserHabitRow {
     frequencyType: string;
     frequencyCount: number | null;
     targetDaysOfWeek: number[] | null;
+    cadenceEffectiveFrom: string | null;
+    /**
+     * Completed days for this habit earlier in the user's current week, excluding today.
+     * NULL when the caller did not supply week bounds — see `getDetailByUser`.
+     */
+    completionsEarlierThisWeek: number | null;
     isSolo: boolean;
     activePactCount: number;
     currentStreak: number;
@@ -248,11 +254,44 @@ export default class UserHabitsStore {
      * legitimately be backed by more than one active pact — the same goal with
      * two different partners is a supported shape, and joining rows would
      * duplicate the habit once per pact.
+     *
+     * `weekBounds` is the user's own Monday and their own today. Supplying it adds this
+     * week's completed-day tally per habit, which is what the caller turns into
+     * `weekProgress` ("2 of 4 this week"). It is optional because the tally is only
+     * meaningful against a resolved timezone: without one the column comes back NULL and the
+     * caller omits `weekProgress` entirely rather than reporting a confident zero — a client
+     * that renders "0 of 4" for someone who trained four times is worse than one that renders
+     * nothing.
      */
-    getDetailByUser(userId: string, status?: UserHabitStatus): Promise<IUserHabitDetail[]> {
-        const bindings: any[] = [userId];
-        let statusPredicate = '';
+    getDetailByUser(
+        userId: string,
+        status?: UserHabitStatus,
+        weekBounds?: { weekStart: string; today: string },
+    ): Promise<IUserHabitDetail[]> {
+        // Bindings are positional, so they must be pushed in the order their `?` appears in
+        // the SQL below — the week tally sits in the SELECT list and therefore binds BEFORE
+        // the WHERE clause's userId and status.
+        const bindings: any[] = [];
 
+        // Days strictly BEFORE today, matching what `isRequiredOn` and `describeWeekProgress`
+        // expect for `completionsEarlierThisWeek` — the same convention as the identical
+        // subquery in `getActiveForReminders`.
+        let weekTallyColumn = 'NULL::int';
+        if (weekBounds) {
+            bindings.push(weekBounds.weekStart, weekBounds.today);
+            weekTallyColumn = `(
+                    SELECT COUNT(DISTINCT c."scheduledDate")::int
+                    FROM ${HABIT_CHECKINS_TABLE_NAME} c
+                    WHERE c."userId" = uh."userId"
+                        AND c."habitGoalId" = uh."habitGoalId"
+                        AND c."scheduledDate" >= ?::date
+                        AND c."scheduledDate" < ?::date
+                        AND c."status" = 'completed'
+                )`;
+        }
+
+        bindings.push(userId);
+        let statusPredicate = '';
         if (status) {
             bindings.push(status);
             statusPredicate = 'AND uh."status" = ?';
@@ -268,6 +307,10 @@ export default class UserHabitsStore {
                 g."frequencyType" AS "frequencyType",
                 g."frequencyCount" AS "frequencyCount",
                 g."targetDaysOfWeek" AS "targetDaysOfWeek",
+                g."cadenceEffectiveFrom"::text AS "cadenceEffectiveFrom",
+                -- Stays ahead of every other interpolated fragment: it is the only column
+                -- carrying bindings, and they are positional.
+                ${weekTallyColumn} AS "completionsEarlierThisWeek",
                 -- Savings target, mirrored from the goal so the habit list can draw a
                 -- progress bar without a goal fetch per row. Cast to text because
                 -- node-postgres returns numeric as a string anyway; making that
