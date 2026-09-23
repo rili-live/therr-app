@@ -2,6 +2,7 @@ package app.therrmobile
 
 import android.app.Application
 import app.therrmobile.modules.EdgeToEdgePackage
+import app.therrmobile.modules.HabitsWidgetPackage
 import app.therrmobile.modules.InitialIntentPackage
 import app.therrmobile.modules.InstallReferrerPackage
 import com.facebook.react.PackageList
@@ -18,7 +19,7 @@ class MainApplication : Application(), ReactApplication {
     get() = getDefaultReactHost(
         context = applicationContext,
         packageList = PackageList(this).packages
-            + listOf(EdgeToEdgePackage(), InitialIntentPackage(), InstallReferrerPackage()),
+            + listOf(EdgeToEdgePackage(), InitialIntentPackage(), InstallReferrerPackage(), HabitsWidgetPackage()),
         jsMainModulePath = "index",
         useDevSupport = BuildConfig.DEBUG,
     )

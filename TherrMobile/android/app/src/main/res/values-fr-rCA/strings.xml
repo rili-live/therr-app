@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="habits_widget_label">Classement des habitudes</string>
+    <string name="habits_widget_description">Votre rang de la semaine, votre série et vos suivis du jour</string>
+    <string name="habits_widget_empty">Ouvrez Friends with Habits pour voir votre progression</string>
+</resources>

@@ -2189,6 +2189,16 @@
                 "totalSavedOfGroupTarget": "of the group’s {target} goal",
                 "totalSavedOfTarget": "of your {target} goal",
                 "unknownMember": "A partner"
+            },
+            "widget": {
+                "friendsThisWeek": "Friends this week",
+                "everyoneThisWeek": "Everyone this week",
+                "amongFriends": "among friends",
+                "overall": "overall",
+                "habitsDone": "{done}/{total} habits",
+                "startHabit": "Start a habit →",
+                "newWeek": "New week started — tap to see your rank",
+                "inviteFriends": "Invite friends to compete →"
             }
         },
         "pacts": {

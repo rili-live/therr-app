@@ -95,6 +95,7 @@ import { getBrandInitialRouteName } from '../utilities/brandLandingRoute';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
 import getDeviceTimeZone from '../utilities/deviceTimeZone';
+import { clearHabitsWidget, getWidgetActionRoute } from '../utilities/habitsWidget';
 
 const preLoadImageList = [background1, background2, background3];
 
@@ -1171,6 +1172,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             } else if (data.action?.endsWith(QUICK_ACTION_SUFFIXES.CREATE_THOUGHT)) {
                 // App-shortcut: jump straight into thought creation (no location).
                 targetRouteView = 'EditThought';
+            } else if (getWidgetActionRoute(data.action)) {
+                // Home-screen widget tap (android/.../widget/HabitsWidgetProvider.kt).
+                const widgetRoute = getWidgetActionRoute(data.action)!;
+                targetRouteView = widgetRoute.view;
+                targetRouteParams = widgetRoute.params;
             }
         }
 
@@ -2455,6 +2461,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
         socketIO.disconnect();
+        // The widget must never keep showing this account's rank to whoever uses the device next.
+        clearHabitsWidget();
 
         this.setState({
             targetRouteView: '',
