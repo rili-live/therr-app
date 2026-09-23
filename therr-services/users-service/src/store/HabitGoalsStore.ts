@@ -146,7 +146,11 @@ export default class HabitGoalsStore {
             .select(`${PACTS_TABLE_NAME}.habitGoalId`)
             .from(PACTS_TABLE_NAME)
             .where(`${PACTS_TABLE_NAME}.creatorUserId`, userId)
-            .whereNotNull(`${PACTS_TABLE_NAME}.habitGoalId`);
+            .whereNotNull(`${PACTS_TABLE_NAME}.habitGoalId`)
+            // A declined invite and a walked-away pact both land on `abandoned`;
+            // neither started anything, so neither keeps the goal listed.
+            // `completed` and `expired` did run, and still count.
+            .whereNot(`${PACTS_TABLE_NAME}.status`, 'abandoned');
 
         let queryString = knexBuilder
             .from(HABIT_GOALS_TABLE_NAME)
