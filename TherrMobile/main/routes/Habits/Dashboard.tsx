@@ -5,12 +5,14 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
+import { UsersService } from 'therr-react/services';
 import {
     IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IStreak, IPact, IPactNudgeResult, IUserHabit,
 } from 'therr-react/types';
 import { FlatList, RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
+import TherrIcon from '../../components/TherrIcon';
 import translator from '../../utilities/translator';
 import permissions from '../../utilities/permissionsOrchestrator';
 import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
@@ -143,6 +145,11 @@ interface IHabitsDashboardState {
     // The tracking row queued for archive confirmation, or null when the modal is
     // closed.
     habitPendingArchive: IUserHabit | null;
+    /**
+     * The user's standing on this week's global board, for the leaderboard row on the
+     * progress card. Null until it loads, and kept at its last value when a refresh fails.
+     */
+    weeklyRank: { rank: number; points: number } | null;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -179,6 +186,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     private themeConfirmModal = buildConfirmModalStyles();
     private themeButtons = buildButtonsStyles();
     private unsubscribeNavigationListener: any;
+    private isUnmounted = false;
 
     /**
      * Memo for the habits segment, keyed on the identity of the four Redux inputs it
@@ -217,6 +225,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             pactIdPendingDecline: null,
             awaitingActionGoalId: null,
             habitPendingArchive: null,
+            weeklyRank: null,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -249,10 +258,43 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     }
 
     componentWillUnmount() {
+        this.isUnmounted = true;
         if (this.unsubscribeNavigationListener) {
             this.unsubscribeNavigationListener();
         }
     }
+
+    isLeaderboardEnabled = (): boolean => getConfig().featureFlags?.[FeatureFlags.ENABLE_ACHIEVEMENTS] === true;
+
+    /**
+     * Loads the user's rank for the leaderboard row. `limit: 1` because only `currentUser`
+     * is read — the service always returns the requester's rank, even off the page.
+     *
+     * Kept out of `handleRefresh`'s Promise.all on purpose: the row is an invitation, not
+     * part of the dashboard, so it must never hold the pull-to-refresh spinner or fail the
+     * refresh. The offline fallback resolves with an empty body; the last rank is kept.
+     */
+    fetchWeeklyRank = () => {
+        if (!this.isLeaderboardEnabled()) {
+            return;
+        }
+
+        UsersService.getLeaderboard({ period: 'week', scope: 'global', limit: 1 })
+            .then((response: any) => {
+                const currentUser = response?.data?.currentUser;
+                if (this.isUnmounted || response?.isOfflineFallback || typeof currentUser?.rank !== 'number') {
+                    return;
+                }
+                this.setState({
+                    weeklyRank: { rank: currentUser.rank, points: Number(currentUser.points) || 0 },
+                });
+            })
+            .catch(() => {});
+    };
+
+    goToLeaderboard = () => {
+        this.props.navigation.navigate('Leaderboard');
+    };
 
     /**
      * Pacts get their own segments only where the flag is on. With it off this
@@ -287,6 +329,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         } = this.props;
 
         this.setState({ isRefreshing: true });
+
+        this.fetchWeeklyRank();
 
         Promise.all([
             getUserGoals(),
@@ -401,6 +445,9 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 // card's streak count comes from `habits.streaks`, which is
                 // otherwise only refetched on a pull-to-refresh or re-focus.
                 getActiveStreaks().catch(() => {});
+
+                // A check-in awards XP, so the rank on the progress card may have moved.
+                this.fetchWeeklyRank();
 
                 // The toast is the confirmation that replaced the modal, and it is also the
                 // only route to the note/photo screen — so it has to say it is tappable
@@ -971,6 +1018,62 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         );
     };
 
+    /**
+     * The leaderboard's entry point on the screen users open every day. It sits above the
+     * progress card's divider, in the band that used to be empty, so it reads as part of
+     * "how am I doing" rather than as another destination competing with the habit list.
+     *
+     * With no XP yet this week (or before the rank has loaded) it invites rather than
+     * reporting a rank — "#48 this week" at 0 XP is a last place nobody has earned.
+     */
+    renderLeaderboardRow = () => {
+        if (!this.isLeaderboardEnabled()) {
+            return null;
+        }
+
+        const { weeklyRank } = this.state;
+        const rankToShow = weeklyRank && weeklyRank.points > 0 ? weeklyRank : null;
+        const title = rankToShow
+            ? this.translate('pages.habits.leaderboardRankTitle', { rank: rankToShow.rank })
+            : this.translate('pages.habits.leaderboardJoinTitle');
+        const subtitle = rankToShow
+            ? this.translate('pages.habits.leaderboardRankSubtitle', { points: rankToShow.points })
+            : this.translate('pages.habits.leaderboardJoinSubtitle');
+
+        return (
+            <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${title}. ${subtitle}`}
+                onPress={this.goToLeaderboard}
+                style={({ pressed }) => [
+                    this.themeHabits.styles.leaderboardTeaserRow,
+                    pressed && this.themeHabits.styles.leaderboardTeaserRowPressed,
+                ]}
+            >
+                <View style={this.themeHabits.styles.leaderboardTeaserIconContainer}>
+                    <TherrIcon
+                        name="trophy"
+                        size={20}
+                        style={this.themeHabits.styles.leaderboardTeaserIcon}
+                    />
+                </View>
+                <View style={this.themeHabits.styles.leaderboardTeaserTextContainer}>
+                    <Text style={this.themeHabits.styles.leaderboardTeaserTitle} numberOfLines={1}>
+                        {title}
+                    </Text>
+                    <Text style={this.themeHabits.styles.leaderboardTeaserSubtitle} numberOfLines={1}>
+                        {subtitle}
+                    </Text>
+                </View>
+                <TherrIcon
+                    name="chevron-right"
+                    size={16}
+                    style={this.themeHabits.styles.leaderboardTeaserChevron}
+                />
+            </Pressable>
+        );
+    };
+
     renderOverallProgress = (liveHabits: IHabitWithPactState[]) => {
         const { habits } = this.props;
         const { activeStreaks, todayCheckins } = habits;
@@ -993,6 +1096,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
 
         return (
             <View style={this.themeHabits.styles.streakWidgetContainer}>
+                {this.renderLeaderboardRow()}
                 <View style={this.themeHabits.styles.pactComparisonContainer}>
                     <View style={this.themeHabits.styles.pactComparisonItem}>
                         <Text style={this.themeHabits.styles.pactComparisonValue}>
