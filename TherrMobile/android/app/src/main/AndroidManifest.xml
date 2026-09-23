@@ -309,9 +309,12 @@
         android:resource="@xml/shortcuts" />
     </activity>
 
-    <!-- Home-screen widget (weekly rank, streak, today's check-ins). It only renders a
-         snapshot the app writes — see widget/HabitsWidgetProvider.kt. Its taps are explicit
-         intents to MainActivity, so they need no intent-filter above. -->
+    <!-- Home-screen widget (weekly rank, streak, today's check-ins). It renders a snapshot the
+         app writes — see widget/HabitsWidgetProvider.kt — and keeps it fresh through a
+         WorkManager job (widget/HabitsWidgetRefreshWorker.kt) that runs the JS refresh task
+         headlessly; WorkManager needs no service entry here. Its taps are explicit intents to
+         MainActivity (or a broadcast back to this receiver, for refresh), so they need no
+         intent-filter above. -->
     <receiver
       android:name=".widget.HabitsWidgetProvider"
       android:exported="false"

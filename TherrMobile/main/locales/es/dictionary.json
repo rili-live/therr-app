@@ -2219,7 +2219,13 @@
                 "habitsDone": "{done}/{total} hábitos",
                 "startHabit": "Empieza un hábito →",
                 "newWeek": "Empezó una nueva semana — toca para ver tu puesto",
-                "inviteFriends": "Invita a tus amigos a competir →"
+                "inviteFriends": "Invita a tus amigos a competir →",
+                "refreshing": "Actualizando…",
+                "justNow": "ahora mismo",
+                "minutesAgo": "hace {minutes} min",
+                "hoursAgo": "hace {hours} h",
+                "daysAgo": "hace {days} d",
+                "refreshHint": "Actualizado {ago}. Toca para actualizar"
             }
         },
         "pacts": {

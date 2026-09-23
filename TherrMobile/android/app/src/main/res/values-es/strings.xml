@@ -3,4 +3,7 @@
     <string name="habits_widget_label">Clasificación de hábitos</string>
     <string name="habits_widget_description">Tu puesto semanal, tu racha y los registros de hoy</string>
     <string name="habits_widget_empty">Abre Friends with Habits para ver tu progreso</string>
+    <string name="habits_widget_loading">Cargando tu progreso…</string>
+    <string name="habits_widget_refreshing">Actualizando…</string>
+    <string name="habits_widget_refresh_hint">Toca para actualizar</string>
 </resources>
