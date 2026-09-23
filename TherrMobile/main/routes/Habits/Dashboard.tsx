@@ -27,7 +27,8 @@ import {
     HabitCard, HabitsListLoader, NewPactButton, PactCard, SentInviteCard,
 } from '../../components/Habits';
 import { getFreezeConsumed, getStreakSavedByFreeze } from '../../utilities/streakFreezes';
-import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
+import { getApiErrorMessage, readApiError } from '../../utilities/apiErrorMessage';
+import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
 import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/celebrationQueue';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { logAppEvent } from '../../utilities/analyticsEvents';
@@ -535,6 +536,15 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 enqueueStreakCelebration(checkin?.dailyStreak);
             })
             .catch((err) => {
+                // Checking into a goal nothing tracks yet starts tracking it, which
+                // takes a habit slot — at the free-tier cap that is a 402, and the
+                // way forward is the offer, not an error.
+                const paywallParams = getHabitCapPaywallParams(err);
+                if (paywallParams) {
+                    this.props.navigation.navigate('UpgradePaywall', paywallParams);
+                    return;
+                }
+
                 // Never the raw body: a 5xx carries an internal grep token
                 // (`SQL:HABIT_CHECKINS_ROUTES:ERROR`), not a sentence, and this toast put
                 // one in front of every user for a day on 2026-09-20. See
@@ -794,7 +804,9 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 this.handleRefresh();
             })
             .catch((err: any) => {
-                const data = err?.response?.data;
+                // The interceptor rejects with the body itself; `err.response` is
+                // always undefined here. See utilities/apiErrorMessage.
+                const { body: data } = readApiError(err);
                 if (data?.error === 'solo-locked') {
                     const remaining = typeof data.requiredCount === 'number' && typeof data.invitedCount === 'number'
                         ? Math.max(data.requiredCount - data.invitedCount, 1)

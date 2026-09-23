@@ -33,6 +33,7 @@ import {
     streakFreezeRuleParams,
 } from '../../utilities/streakFreezes';
 import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
+import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
 import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/celebrationQueue';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
@@ -461,6 +462,14 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                 enqueueStreakCelebration(checkin?.dailyStreak);
             })
             .catch((err) => {
+                // A 402 is the free-tier cap refusing to start tracking this goal —
+                // route to the offer rather than reporting a failure.
+                const paywallParams = getHabitCapPaywallParams(err);
+                if (paywallParams) {
+                    this.props.navigation.navigate('UpgradePaywall', paywallParams);
+                    return;
+                }
+
                 showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
                     // A 5xx body is an internal grep token, not copy. See

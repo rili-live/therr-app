@@ -1,4 +1,4 @@
-import { getApiErrorMessage } from '../../main/utilities/apiErrorMessage';
+import { getApiErrorMessage, readApiError } from '../../main/utilities/apiErrorMessage';
 
 describe('getApiErrorMessage', () => {
     describe('messages worth showing', () => {
@@ -74,5 +74,26 @@ describe('getApiErrorMessage', () => {
             expect(getApiErrorMessage({ statusCode: 400, message: { nested: true } })).toBe('');
             expect(getApiErrorMessage({ statusCode: 400, message: '   ' })).toBe('');
         });
+    });
+});
+
+describe('readApiError', () => {
+    // The shape the response interceptor rejects with: the gateway's body, whose
+    // `statusCode` echoes the HTTP status. `err.response` does not exist on it.
+    it('reads the status from the rejected body', () => {
+        const err = { statusCode: 403, error: 'solo-locked', requiredCount: 3 };
+
+        expect(readApiError(err)).toEqual({ status: 403, body: err });
+    });
+
+    it('still accepts the raw axios error shape', () => {
+        const data = { error: 'habit-limit-reached', limit: 5 };
+
+        expect(readApiError({ response: { status: 402, data } })).toEqual({ status: 402, body: data });
+    });
+
+    it('reports no status for a request that never reached the API', () => {
+        expect(readApiError(new Error('Network Error')).status).toBeUndefined();
+        expect(readApiError(undefined).status).toBeUndefined();
     });
 });

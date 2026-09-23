@@ -57,6 +57,36 @@ describe('HabitGoalsStore', () => {
             expect(queryString).to.contain('"habits"."pacts"."status" = \'active\'');
         });
 
+        // Regression: the pact wizard creates the goal before the pact, so a pact
+        // refused at the free-tier cap left a goal nobody tracked. Listing it put
+        // it on the dashboard as a live habit, and a check-in on it became a
+        // habit the cap never counted.
+        it('lists a goal the user created only once it is tracked or backs a pact they created', async () => {
+            const { store, mockConnection } = buildStore();
+
+            await store.getByUserId('user-1');
+
+            const queryString = mockConnection.read.query.args[0][0];
+            expect(queryString).to.contain('"habits"."user_habits"."userId" = \'user-1\'');
+            expect(queryString).to.contain('"habits"."pacts"."creatorUserId" = \'user-1\'');
+            // Ownership alone must not be a sufficient condition.
+            expect(queryString).to.match(/"createdByUserId" = 'user-1' and \(/);
+        });
+
+        // A goal whose only pact was declined or abandoned never started, so the
+        // pact it once backed must not keep it on the dashboard.
+        it('does not list a created goal on the strength of an abandoned pact', async () => {
+            const { store, mockConnection } = buildStore();
+
+            await store.getByUserId('user-1');
+
+            const queryString = mockConnection.read.query.args[0][0];
+            expect(queryString).to.contain(
+                '"habits"."pacts"."creatorUserId" = \'user-1\' and "habits"."pacts"."habitGoalId" is not null'
+                + ' and not "habits"."pacts"."status" = \'abandoned\'',
+            );
+        });
+
         it('applies limit and offset to the outer goal query', async () => {
             const { store, mockConnection } = buildStore();
 

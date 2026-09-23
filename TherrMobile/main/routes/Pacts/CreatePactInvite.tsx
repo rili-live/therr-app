@@ -49,6 +49,8 @@ import {
     isSoloReview,
 } from './wizardSteps';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
+import { readApiError } from '../../utilities/apiErrorMessage';
+import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
 
 const MAX_PARTNERS = 5;
 const DEFAULT_PACT_DURATION_DAYS = 30;
@@ -596,27 +598,18 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      * generic error, so route to the offer instead of showing "something went
      * wrong" for something the user can actually act on.
      *
-     * Returns true when it handled the error.
-     *
-     * The flag check is not redundant with the 402: `UpgradePaywall` is
-     * registered conditionally on ENABLE_HABITS_LIFETIME_OFFER (see
-     * `routes/index.tsx`), so with the offer switched off `navigate` finds no
-     * matching screen and does nothing. Claiming to have handled the error
-     * would then swallow the toast too, and the button would look inert.
+     * Returns true when it handled the error — false with the offer switched
+     * off, when the paywall route is not registered (see
+     * utilities/habitCapPaywall), so the toast still shows.
      */
     handlePossiblePaywall = (err: any): boolean => {
-        const response = err?.response;
-        const isPaywallRouteAvailable = getConfig()
-            .featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true;
+        const paywallParams = getHabitCapPaywallParams(err);
 
-        if (response?.status !== 402 || !isPaywallRouteAvailable) {
+        if (!paywallParams) {
             return false;
         }
 
-        this.props.navigation.navigate('UpgradePaywall', {
-            reason: response.data?.error || 'habit-limit-reached',
-            limit: response.data?.limit,
-        });
+        this.props.navigation.navigate('UpgradePaywall', paywallParams);
 
         return true;
     };
@@ -631,16 +624,16 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      * Returns true when it handled the error.
      */
     handlePossibleSoloLock = (err: any): boolean => {
-        const response = err?.response;
+        const { status, body } = readApiError(err);
 
-        if (response?.status !== 403 || response?.data?.error !== 'solo-locked') {
+        if (status !== 403 || body?.error !== 'solo-locked') {
             return false;
         }
 
         this.props.getUserHabitEligibility().catch(() => {});
 
-        const required = response.data?.requiredCount;
-        const invited = response.data?.invitedCount;
+        const required = body?.requiredCount;
+        const invited = body?.invitedCount;
         const remaining = typeof required === 'number' && typeof invited === 'number'
             ? Math.max(required - invited, 0)
             : null;
