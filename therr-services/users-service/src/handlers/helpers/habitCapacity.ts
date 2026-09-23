@@ -42,6 +42,33 @@ export const isHabitCapExempt = (
 };
 
 /**
+ * How many times this process has failed open, and when it last did.
+ *
+ * A fail-open is indistinguishable from a working cap: the request succeeds, the
+ * user gets their habit, and nothing downstream is wrong. That is why a user
+ * reaching 8 active habits against a limit of 5 (#2923) could not be explained
+ * from the code — a *persistent* failure in `findUser` or `countActiveByUser`
+ * disables the gate silently and indefinitely, and a single warn-level span per
+ * occurrence does not distinguish one transient blip from a cap that stopped
+ * enforcing days ago.
+ *
+ * Kept in-process and reported on the span rather than pushed to a metrics
+ * backend: the count only has to make a *sustained* fail-open visible, and a
+ * rising counter on consecutive spans does that without new infrastructure. It
+ * resets on restart, which is acceptable — a cap broken badly enough to matter
+ * re-accumulates within minutes.
+ */
+let failOpenCount = 0;
+
+/** Total fail-opens since this process started. */
+export const getHabitCapacityFailOpenCount = (): number => failOpenCount;
+
+/** Test affordance: forget this process's fail-open tally. */
+export const resetHabitCapacityFailOpenCount = (): void => {
+    failOpenCount = 0;
+};
+
+/**
  * Returns a 402 payload when the caller is at their habit limit, or `null` when
  * they may proceed.
  *
@@ -56,6 +83,11 @@ export const isHabitCapExempt = (
  * limit with no data-integrity stake, so a transient database hiccup should
  * never be the reason a paying-or-not user cannot start a habit. The tradeoff
  * is deliberate: the worst case is a free user briefly getting a sixth habit.
+ *
+ * "Briefly" is the load-bearing word, and it is what the fail-open reporting
+ * below exists to keep honest — see `failOpenCount`. The span is `error` rather
+ * than `warn` because a gate that is not enforcing is not a warning about
+ * something that might matter later; it is the gate being off right now.
  *
  * Callers must check *before* creating the tracking row. `countActiveByUser`
  * counts only `active` rows, so the restore path is naturally safe — the row
@@ -75,6 +107,13 @@ export const checkHabitCapacity = async ({
         return null;
     }
 
+    // Which read was in flight when it threw. The two have different meanings: a
+    // failing `findUser` means nobody can be recognised as entitled (so paying
+    // customers are also being let through unevaluated), while a failing
+    // `countActiveByUser` means only the count is unavailable. Guessing between
+    // them from a stack trace after the fact is what made #2923 hard to answer.
+    let stage: 'findUser' | 'countActiveByUser' = 'findUser';
+
     try {
         const [requesterUser] = await Store.users.findUser({ id: userId }, ['accessLevels']);
         const accessLevels: string[] = (requesterUser?.accessLevels as string[]) || [];
@@ -83,6 +122,7 @@ export const checkHabitCapacity = async ({
             return null;
         }
 
+        stage = 'countActiveByUser';
         const activeHabitCount = await Store.userHabits.countActiveByUser(userId);
 
         if (activeHabitCount < HABITS_FREE_HABIT_LIMIT) {
@@ -99,13 +139,19 @@ export const checkHabitCapacity = async ({
             upgradeRequired: true,
         };
     } catch (err: any) {
+        failOpenCount += 1;
         logSpan({
-            level: 'warn',
+            level: 'error',
             messageOrigin: 'API_SERVER',
             messages: ['Failed to evaluate habit capacity; allowing the request'],
             traceArgs: {
                 'error.message': err?.message,
                 'user.id': userId,
+                // Alert on this, not on the message: a single fail-open is a blip,
+                // a climbing count is the cap being off.
+                'habitCapacity.failOpenCount': failOpenCount,
+                'habitCapacity.failedStage': stage,
+                'habitCapacity.brandVariation': String(brandVariation),
             },
         });
         return null;

@@ -77,6 +77,18 @@ import {
     HabitGoalTypes,
     HabitGoalType,
 } from './enums/HabitGoalTypes';
+import {
+    SavingsTargetScopes,
+    SavingsTargetScope,
+    DEFAULT_SAVINGS_TARGET_SCOPE,
+    DEFAULT_SAVINGS_CURRENCY_CODE,
+    MAX_SAVINGS_AMOUNT,
+    SavingsAmountError,
+    IParsedSavingsAmount,
+    parseSavingsAmount,
+    sumSavingsAmounts,
+    hasReachedSavingsTarget,
+} from './savingsGoals';
 import CampaignTypes from './enums/CampaignTypes';
 import CampaignAdGoals from './enums/CampaignAdGoals';
 import CampaignAssetTypes from './enums/CampaignAssetTypes';
@@ -135,6 +147,16 @@ export {
     hasHabitsPremiumEntitlement,
     HabitGoalTypes,
     HabitGoalType,
+    SavingsTargetScopes,
+    SavingsTargetScope,
+    DEFAULT_SAVINGS_TARGET_SCOPE,
+    DEFAULT_SAVINGS_CURRENCY_CODE,
+    MAX_SAVINGS_AMOUNT,
+    SavingsAmountError,
+    IParsedSavingsAmount,
+    parseSavingsAmount,
+    sumSavingsAmounts,
+    hasReachedSavingsTarget,
     CampaignTypes,
     CampaignAdGoals,
     CampaignAssetTypes,

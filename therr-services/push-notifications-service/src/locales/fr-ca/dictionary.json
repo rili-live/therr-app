@@ -222,6 +222,7 @@
     },
     "shared": {
       "pressActionCheckIn": "S'enregistrer",
+      "pressActionLogAmount": "Inscrire le montant",
       "pressActionRenew": "Nouveau cycle",
       "pressActionView": "Voir"
     }

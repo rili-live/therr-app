@@ -68,12 +68,36 @@ THERR_SERVICES=(
 # migrations.tableName — of its own.
 THERR_MIGRATABLE_SERVICES="users-service maps-service messages-service reactions-service"
 
+# The kubernetes.io/dockerconfigjson Secret every k8s/prod Deployment pulls through.
+# deploy.sh creates and refreshes it from CI's Docker Hub login before applying
+# anything; assert_service_registry checks every Deployment names it, because a
+# Deployment that omits it silently goes back to anonymous pulls — which Docker Hub
+# caps per source IP, and every node shares one Cloud NAT egress. That cap is what
+# left three of six surging Pods in ImagePullBackOff on 2026-09-20, on tags that
+# were in the registry the whole time.
+DOCKERHUB_PULL_SECRET_NAME="dockerhub-pull-credentials"
+
 service_keys()
 {
   local ENTRY
   for ENTRY in "${THERR_SERVICES[@]}"; do
     echo "${ENTRY%%|*}"
   done
+}
+
+# Whether <key> owns knex migrations, i.e. is listed in THERR_MIGRATABLE_SERVICES.
+# Matched whole-word against the list rather than by substring, so a future key that
+# contains another as a prefix cannot be mistaken for it.
+is_migratable_service()
+{
+  local KEY=$1
+  local MIGRATABLE
+
+  for MIGRATABLE in $THERR_MIGRATABLE_SERVICES; do
+    [ "$MIGRATABLE" = "$KEY" ] && return 0
+  done
+
+  return 1
 }
 
 # Echoes field <index> (1-based) of the registry row for <key>; non-zero if the
@@ -184,10 +208,18 @@ assert_service_registry()
   local MANIFEST
   for MANIFEST in "$K8S_DIR"/*-deployment.yaml; do
     [ -f "$MANIFEST" ] || continue
-    grep -qE '^[[:space:]]+image: therrapp/' "$MANIFEST" || continue
 
     local NAME
     NAME="$(basename "$MANIFEST" .yaml)"
+
+    # Every Deployment, therrapp/ or not (redis pulls from Docker Hub too): an
+    # anonymous pull is a pull that can be rate-limited into ImagePullBackOff.
+    if ! grep -qE "^[[:space:]]+-[[:space:]]+name:[[:space:]]+$DOCKERHUB_PULL_SECRET_NAME[[:space:]]*\$" "$MANIFEST" \
+      || ! grep -qE '^[[:space:]]+imagePullSecrets:' "$MANIFEST"; then
+      PROBLEMS+=("$NAME does not pull through imagePullSecrets '$DOCKERHUB_PULL_SECRET_NAME' — its pulls would be anonymous and rate-limited")
+    fi
+
+    grep -qE '^[[:space:]]+image: therrapp/' "$MANIFEST" || continue
 
     local MATCHED=false
     for KEY in $(service_keys); do

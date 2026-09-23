@@ -1,13 +1,18 @@
 import { RequestHandler } from 'express';
 import { parseHeaders } from 'therr-js-utilities/http';
 import Store from '../store';
+import {
+    IUserHabitDetail,
+    IUserHabitNotificationPreferences,
+    USER_HABIT_NOTIFICATION_PREFERENCE_KEYS,
+} from '../store/UserHabitsStore';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { checkHabitCapacity } from './helpers/habitCapacity';
 import { getSoloInviteProgress } from './helpers/soloHabitAccess';
 import { describeWeekProgress, getCadence } from '../utilities/habitCadence';
 import { getLocalDate, getWeekStart, resolveCheckinTimeZone } from '../utilities/dailyStreak';
-import { IUserHabitDetail } from '../store/UserHabitsStore';
+import { attachSavingsTotals } from './helpers/savings';
 
 /**
  * Personal ("solo") habits — habits tracked without an accountability partner.
@@ -96,6 +101,7 @@ const getUserHabits: RequestHandler = async (req: any, res: any) => {
     const weekBounds = await resolveWeekBounds(userId, timeZone);
 
     return Store.userHabits.getDetailByUser(userId, status, weekBounds)
+        .then(attachSavingsTotals)
         .then((userHabits) => res.status(200).send({
             userHabits: withWeekProgress(userHabits, weekBounds?.today),
         }))
@@ -395,6 +401,59 @@ const continueSoloHabit: RequestHandler = async (req: any, res: any) => {
 };
 
 /**
+ * Update the per-habit notification switches.
+ *
+ * Why per habit rather than one more account-wide toggle: the two columns on
+ * `main.users` are already all-or-nothing across every habit someone tracks, so
+ * "keep the morning reminder, stop telling me to nudge my partner" had no answer
+ * short of muting the app. See the migration header for the category list and
+ * for why `pactNudge` — a person deliberately poking you — is not one of them.
+ *
+ * The body is a partial: only the keys present are written, so an older client
+ * cannot reset a category it does not know about. A body with none of the four
+ * keys is a 400 rather than a silent no-op — it almost always means a client
+ * spelled a key wrong, and answering 200 would hide that until someone noticed
+ * their setting never stuck.
+ */
+const updateUserHabitNotificationPreferences: RequestHandler = async (req: any, res: any) => {
+    const { userId } = parseHeaders(req.headers);
+    const { id } = req.params;
+
+    const prefs = USER_HABIT_NOTIFICATION_PREFERENCE_KEYS.reduce((acc, key) => {
+        if (typeof req.body?.[key] === 'boolean') {
+            acc[key] = req.body[key];
+        }
+        return acc;
+    }, {} as Partial<IUserHabitNotificationPreferences>);
+
+    if (!Object.keys(prefs).length) {
+        return handleHttpError({
+            res,
+            message: `Request must include at least one boolean of: ${USER_HABIT_NOTIFICATION_PREFERENCE_KEYS.join(', ')}`,
+            statusCode: 400,
+        });
+    }
+
+    try {
+        const existing = await Store.userHabits.getById(id);
+
+        if (!existing || existing.userId !== userId) {
+            return handleHttpError({
+                res,
+                message: `Habit not found with id ${id}`,
+                statusCode: 404,
+            });
+        }
+
+        const updated = await Store.userHabits.updateNotificationPreferences(id, userId, prefs);
+
+        return res.status(200).send(updated || existing);
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:USER_HABITS_ROUTES:ERROR' });
+    }
+};
+
+/**
  * Whether the caller may start habits on their own yet, how close they are to
  * earning it, and where they stand against the free-tier cap.
  *
@@ -435,4 +494,5 @@ export {
     archiveUserHabit,
     restoreUserHabit,
     continueSoloHabit,
+    updateUserHabitNotificationPreferences,
 };

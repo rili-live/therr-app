@@ -148,6 +148,29 @@ image_tag_of()
   esac
 }
 
+# Whether the Deployment's last rollout actually finished. The Pod template is what
+# the plan compares against, and it moves to the new tag the moment apply runs —
+# whether or not the Pod carrying that tag ever became Ready. rollout_is_complete
+# (deploy-plan.sh) says which; this just feeds it the status fields.
+#
+# A Deployment kubectl cannot read reports as complete: there is nothing to restart,
+# and the running-tag read for it has already come back empty and been handled.
+deployment_rollout_complete()
+{
+  local FIELDS
+  FIELDS="$(kubectl get "deployment/$1" \
+    -o jsonpath='{.metadata.generation}|{.status.observedGeneration}|{.spec.replicas}|{.status.replicas}|{.status.updatedReplicas}|{.status.availableReplicas}' \
+    2>/dev/null)" || return 0
+
+  # Split on an explicit separator: jsonpath prints nothing for a status field the
+  # controller has not set (availableReplicas at 0 is simply absent), and
+  # whitespace splitting would collapse that gap and shift every later field.
+  local GENERATION OBSERVED SPEC_REPLICAS STATUS_REPLICAS UPDATED AVAILABLE
+  IFS='|' read -r GENERATION OBSERVED SPEC_REPLICAS STATUS_REPLICAS UPDATED AVAILABLE <<< "$FIELDS"
+
+  rollout_is_complete "$GENERATION" "$OBSERVED" "$SPEC_REPLICAS" "$STATUS_REPLICAS" "$UPDATED" "$AVAILABLE"
+}
+
 running_tag_for()
 {
   image_tag_of "$(running_image_for "$1" "$2")"
@@ -179,6 +202,11 @@ PLAN_RUNNING_IMAGES=()
 PLAN_VERDICTS=()
 
 BLOCKED=()
+
+# Deployments whose template already holds the desired tag but whose last rollout
+# never completed — the old Pod is still the one serving. Reported in the plan and
+# restarted by deploy_waves, since apply will say `unchanged` for them.
+WEDGED=()
 
 # Services already on their desired tag, whose running image is no longer in the
 # registry. Nothing to do for them this run — but the Pod cannot be rescheduled onto
@@ -241,6 +269,10 @@ for KEY in $(service_keys); do
     BLOCKED+=("$KEY ($VERDICT): $(verdict_explanation "$VERDICT")")
   fi
 
+  if [ "$VERDICT" = "up-to-date" ] && ! deployment_rollout_complete "$DEPLOYMENT"; then
+    WEDGED+=("$DEPLOYMENT")
+  fi
+
   # Probed against the image the Deployment actually holds, not against the -stage
   # tag the deploy path would pull: on main the two differ (the running one is the
   # retagged, un-suffixed copy), so the -stage tag's absence says nothing about
@@ -289,6 +321,13 @@ print_plan()
     local STRANDED
     for STRANDED in "${UNPULLABLE[@]}"; do
       printMessageWarning "$STRANDED — it may not reschedule onto a node without the image cached"
+    done
+  fi
+
+  if [ ${#WEDGED[@]} -gt 0 ]; then
+    local STUCK
+    for STUCK in "${WEDGED[@]}"; do
+      printMessageWarning "$STUCK holds its published tag but the last rollout never completed — it will be restarted and verified"
     done
   fi
 
@@ -345,10 +384,14 @@ wait_for_rollouts()
       # Deployment-owned pods are always named "<deployment>-<rs>-<pod>", which is
       # a more dependable handle than reconstructing the label selector.
       kubectl get pods --no-headers | grep "^$DEPLOYMENT-" || true
-      # FailedScheduling is reported against the Pod, not the Deployment, so the
-      # describe above misses the "Insufficient memory" case entirely.
-      kubectl get events --field-selector reason=FailedScheduling \
-        --sort-by=.lastTimestamp --no-headers 2>/dev/null | tail -n 10 || true
+      # Pod-level events. Both failure modes seen so far are reported against the
+      # Pod, not the Deployment, so the describe above misses them: FailedScheduling
+      # ("Insufficient memory"), and Failed image pulls — whose message carries the
+      # registry's reason ("toomanyrequests" on 2026-09-20), which is the one line
+      # that tells the rate-limit case apart from a tag that does not exist.
+      kubectl get events --field-selector involvedObject.kind=Pod \
+        --sort-by=.lastTimestamp --no-headers 2>/dev/null \
+        | grep -E "pod/$DEPLOYMENT-" | grep -vE '[[:space:]]Normal[[:space:]]' | tail -n 10 || true
       echo "--- End events for $DEPLOYMENT ---"
     fi
   done
@@ -447,6 +490,16 @@ deploy_waves()
       # its `rollout status` verification and lets a wedged rollout report green.
       if printf '%s\n' "$APPLY_OUTPUT" | grep -q ' configured$'; then
         IS_ROLLING=true
+      elif ! deployment_rollout_complete "$DEPLOYMENT"; then
+        # apply had nothing to change, but the previous rollout of this same
+        # template is still stuck — its new Pod never became Ready, so the old one
+        # is what is serving. Left alone it stays that way and this deploy reports
+        # green over it. A restart gives the template a fresh ReplicaSet (and a
+        # fresh attempt at the image pull, which is what wedged it on 2026-09-20),
+        # and the rollout is then verified like any other.
+        printMessageWarning "$DEPLOYMENT: manifest unchanged but its last rollout never completed — restarting it"
+        kubectl rollout restart "deployment/$DEPLOYMENT"
+        IS_ROLLING=true
       fi
 
       if [ "$IS_ROLLING" = "true" ]; then
@@ -483,6 +536,33 @@ deploy_waves()
 
   return 0
 }
+
+# Docker Hub pull credentials, refreshed on every deploy.
+#
+# Every Deployment in k8s/prod pulls through this Secret (assert_service_registry
+# checks that). Without it the nodes pull anonymously, and Docker Hub caps anonymous
+# pulls per source IP — every node shares one Cloud NAT egress — so a deploy that
+# surges all six backend services at once can get some of them through and leave
+# the rest in ImagePullBackOff on tags that exist. That happened on 2026-09-20.
+#
+# Sourced from the same DOCKERHUB_USER / DOCKERHUB_PASSWORD this job already logs in
+# with. DOCKERHUB_PULL_TOKEN, when set, is used instead of the password so the
+# cluster can hold a read-only access token rather than CI's write credential.
+#
+# Written once the plan has been accepted, ahead of every manifest that references
+# it, so no Deployment is ever applied against a Secret that is not there yet.
+if [ -z "${DOCKERHUB_USER:-}" ] || [ -z "${DOCKERHUB_PULL_TOKEN:-${DOCKERHUB_PASSWORD:-}}" ]; then
+  printMessageError "DOCKERHUB_USER and DOCKERHUB_PASSWORD (or DOCKERHUB_PULL_TOKEN) must be set:"
+  printMessageError "  the Deployments pull through the '$DOCKERHUB_PULL_SECRET_NAME' Secret, and this job is what writes it."
+  exit 1
+fi
+
+kubectl create secret docker-registry "$DOCKERHUB_PULL_SECRET_NAME" \
+  --namespace default \
+  --docker-server=https://index.docker.io/v1/ \
+  --docker-username="$DOCKERHUB_USER" \
+  --docker-password="${DOCKERHUB_PULL_TOKEN:-$DOCKERHUB_PASSWORD}" \
+  --dry-run=client -o yaml | kubectl apply -f -
 
 # Kubectl Apply — everything except the Deployments.
 #
@@ -554,15 +634,74 @@ done
 echo "Manifests rendered for every service; image bumps queued for those behind their published version"
 
 # Roll the queued images out wave by wave, failing the deploy if any pod never
-# reached Ready. Runs before migrations so we never migrate the schema
-# underneath a rollout that is already wedged.
-deploy_waves
+# reached Ready. Runs before migrations so we never migrate the schema underneath a
+# rollout that is already wedged.
+#
+# The failure is trapped rather than left to `set -e`, because ending the job here
+# is what caused the 2026-09-20 outage. deploy_waves failed on an unrelated
+# ImagePullBackOff in the messages/websocket/maps wave; `set -e` ended the job on
+# the spot; and users-service — which had already rolled onto the savings build in
+# an earlier wave — was left serving new code against a pre-savings schema. Every
+# Friends with Habits check-in 500'd on `column "savedAmount" of relation
+# "habit_checkins" does not exist` until a human ran the migrations by hand, two
+# days later.
+#
+# So the ordering intent is kept exactly — a service that did not reach its desired
+# tag is not migrated underneath, and MIGRATE_ONLY_SERVICES below is what enforces
+# that — while the services that *did* roll still get the schema their code expects.
+# The deploy still fails; it just no longer leaves production inconsistent on its
+# way out.
+WAVES_OK=true
+if ! deploy_waves; then
+  WAVES_OK=false
+fi
+
+# The migratable services that actually reached their desired tag. Checked against
+# the cluster rather than assumed from the wave that carried them: a service can be
+# in a wave that reported success and still be short of its tag, and that is exactly
+# the case where migrating underneath it would be wrong.
+MIGRATABLE_ROLLED=()
+INDEX=0
+while [ "$INDEX" -lt "${#PLAN_KEYS[@]}" ]; do
+  KEY="${PLAN_KEYS[$INDEX]}"
+  VERDICT="${PLAN_VERDICTS[$INDEX]}"
+  DESIRED="${PLAN_DESIRED[$INDEX]}"
+  INDEX=$((INDEX + 1))
+
+  [ "$VERDICT" = "deploy" ] || continue
+  is_migratable_service "$KEY" || continue
+
+  if [ "$(running_tag_for "$(service_deployment "$KEY")" "$(service_container "$KEY")")" = "$DESIRED" ]; then
+    MIGRATABLE_ROLLED+=("$KEY")
+  else
+    printMessageWarning "$KEY is not on its intended version — its migrations are deferred."
+  fi
+done
 
 # Run any pending database migrations for services this deploy actually moved.
 # Reuses the freshly rolled-out pods (which already have the Cloud SQL proxy + DB
 # secrets). Additive/expand-contract migrations only. Set
 # RUN_MIGRATIONS_ON_DEPLOY=false to skip. See run-migrations.sh.
-DEPLOY_PLAN_FILE="$DEPLOY_PLAN_FILE" ./_bin/cicd/run-migrations.sh
+#
+# This also verifies every migratable service's schema is caught up with the code it
+# is running, whichever deploy left the work behind — so it fails the job when a
+# service is ahead of its schema, rather than leaving that to be discovered by users.
+MIGRATIONS_OK=true
+if ! DEPLOY_PLAN_FILE="$DEPLOY_PLAN_FILE" MIGRATE_ONLY_SERVICES="${MIGRATABLE_ROLLED[*]}" \
+  ./_bin/cicd/run-migrations.sh; then
+  MIGRATIONS_OK=false
+fi
+
+if [ "$WAVES_OK" != "true" ]; then
+  printMessageError "Deploy failed during rollout. Services that did roll have been migrated;"
+  printMessageError "those that did not are still on their previous version and were left alone."
+  exit 1
+fi
+
+if [ "$MIGRATIONS_OK" != "true" ]; then
+  printMessageError "Rollout succeeded but migrations did not — see above."
+  exit 1
+fi
 
 # Confirm the cluster ended up where the plan said it would. `rollout status`
 # already proved the pods came up; this proves they came up on the intended tag,

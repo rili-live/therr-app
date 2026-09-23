@@ -63,6 +63,25 @@ export interface ICheckinNudgeCandidate {
     weekDone?: number;
     weekTarget?: number;
     daysLeft?: number;
+    /**
+     * True when this habit is a `savings_goal` — the signal that the notification can
+     * offer an amount field rather than a bare "Check In" button.
+     */
+    isSavingsGoal?: boolean;
+    /** The goal's currency, for the input's prefix. Absent falls back client-side. */
+    currencyCode?: string;
+    /**
+     * The habit's `notifyStreakAlerts` switch (see
+     * `20260919000001_habits.user_habits.notificationPrefs.js`). Absent means on,
+     * which is what every caller written before per-habit preferences existed means.
+     *
+     * A habit that opted out of streak alerts still belongs in the roll-up — the
+     * user asked for the ordinary reminder — but it must not *contribute a streak*
+     * to it. Otherwise the loss-aversion framing it declined comes back through the
+     * side door: the copy would read "your 12-day streak is at risk", and
+     * `hasLiveStreak` would earn the user the evening "last chance" push on top.
+     */
+    allowsStreakAlerts?: boolean;
 }
 
 export interface ICheckinNudgeRow {
@@ -79,6 +98,21 @@ export interface ICheckinNudgeRow {
         daysLeft?: number;
         habitGoalId?: string;
         pactId?: string;
+        /**
+         * Set only on a single-habit nudge for a savings goal — the two conditions
+         * behind an amount field on the notification.
+         *
+         * The single-habit requirement is the same one `habitGoalId` carries and for
+         * the same reason: an amount typed into a nudge covering three habits has no
+         * unambiguous habit to be recorded against. A rolled-up nudge that happens to
+         * include a savings habit therefore offers the plain deep link, and the user
+         * records the amount in the app.
+         *
+         * Both fields reach the device — unlike `habitGoalIds` below, they are scalars
+         * and are added to the key set push-notifications-service destructures.
+         */
+        isSavingsGoal?: boolean;
+        currencyCode?: string;
         /**
          * Every habit goal this nudge covers — not only the one the copy names.
          *
@@ -141,7 +175,18 @@ export const checkinNudgeDedupeKey = (today: string): string => `checkin-nudge:$
  */
 export const lastChanceNudgeDedupeKey = (today: string): string => `last-chance:${today}`;
 
-const hasLiveStreak = (candidate: ICheckinNudgeCandidate): boolean => Number(candidate.streakCount || 0) > 0;
+/**
+ * The streak this candidate is allowed to contribute to the roll-up.
+ *
+ * Zero for a habit whose streak alerts are muted, so that one call site — rather
+ * than each of framing, primary-habit selection, the payload's `streakCount` and
+ * the evening escalation — decides what "muted" means.
+ */
+const effectiveStreak = (candidate: ICheckinNudgeCandidate): number => (
+    candidate.allowsStreakAlerts === false ? 0 : Number(candidate.streakCount || 0)
+);
+
+const hasLiveStreak = (candidate: ICheckinNudgeCandidate): boolean => effectiveStreak(candidate) > 0;
 
 export const createCheckinNudgeAccumulator = () => {
     // Insertion-ordered, so the notification lists habits in the order the
@@ -180,7 +225,7 @@ export const createCheckinNudgeAccumulator = () => {
             // The habit with the longest live streak leads the copy. `reduce`
             // keeps the first on a tie, which preserves digest order.
             const primary = candidates.reduce(
-                (best, current) => (Number(current.streakCount || 0) > Number(best.streakCount || 0) ? current : best),
+                (best, current) => (effectiveStreak(current) > effectiveStreak(best) ? current : best),
                 candidates[0],
             );
             const isAtRisk = candidates.some(hasLiveStreak);
@@ -206,7 +251,7 @@ export const createCheckinNudgeAccumulator = () => {
                         primary.habitName,
                         ...candidates.filter((c) => c !== primary).map((c) => c.habitName),
                     ],
-                    streakCount: Number(primary.streakCount || 0),
+                    streakCount: effectiveStreak(primary),
                     // Freeze counts are per habit. Naming one while the copy
                     // covers three would promise a net over habits it does not
                     // cover, so the plural body drops the clause entirely.
@@ -222,6 +267,11 @@ export const createCheckinNudgeAccumulator = () => {
                     // unambiguous to complete and the tap belongs on the list.
                     habitGoalId: isSingle ? primary.habitGoalId : undefined,
                     pactId: isSingle ? primary.pactId : undefined,
+                    // Undefined rather than false when it does not apply, so the key is
+                    // dropped from the FCM data map entirely instead of shipping the
+                    // string "false" — which is truthy on the device.
+                    isSavingsGoal: isSingle && primary.isSavingsGoal ? true : undefined,
+                    currencyCode: isSingle && primary.isSavingsGoal ? primary.currencyCode : undefined,
                     // Every goal, including the ones the copy does not name.
                     // The freshness gate needs the full set: suppressing on the
                     // primary habit alone would silence a nudge that still has

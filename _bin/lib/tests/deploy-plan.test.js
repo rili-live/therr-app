@@ -337,4 +337,36 @@ const inRepo = (dir, snippet, env = {}) => bash(
     });
 }
 
+// --- A rollout that never finished must not read as up-to-date --------------------------------
+
+// rollout_is_complete <generation> <observed> <spec.replicas> <status.replicas> <updated> <available>
+const complete = (args) => bash(
+    `source "${PLAN_LIB}"; rollout_is_complete ${args.map((a) => `'${a}'`).join(' ')} && echo yes || echo no`,
+);
+
+{
+    // Steady state: one replica, on the new template, available, nothing old left.
+    assert.strictEqual(complete([3, 3, 1, 1, 1, 1]), 'yes');
+
+    // The 2026-09-20 shape: the new Pod exists (updated=1) but never became Available
+    // (ImagePullBackOff), so the old Pod is still around (status.replicas=2) and still
+    // serving. The template already holds the desired tag, so the verdict is
+    // up-to-date and apply says unchanged — this is the only thing that notices.
+    assert.strictEqual(complete([3, 3, 1, 2, 1, 0]), 'no');
+
+    // jsonpath prints nothing for availableReplicas at 0. Must read as 0, not as
+    // "field missing, assume fine".
+    assert.strictEqual(complete([3, 3, 1, 2, 1, '']), 'no');
+
+    // Old replica still terminating: the new one is Available but the rollout is not
+    // done until the old one is gone.
+    assert.strictEqual(complete([3, 3, 1, 2, 1, 1]), 'no');
+
+    // The controller has not observed the latest spec yet.
+    assert.strictEqual(complete([4, 3, 1, 1, 1, 1]), 'no');
+
+    // Scaled to zero is complete, not wedged.
+    assert.strictEqual(complete([2, 2, 0, 0, 0, 0]), 'yes');
+}
+
 console.log('deploy-plan: all assertions passed');
