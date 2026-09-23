@@ -2131,7 +2131,7 @@
                 "nextMilestone": "Next milestone: {days} days",
                 "graceDaysRemaining": "{count} streak freeze(s) left — miss a day and one covers you automatically.",
                 "nextMilestoneCompact": "next {days}d",
-                "freezeRule": "Miss a day and a streak freeze covers it — you start with {starting} and earn another every {interval} days, up to {max}.",
+                "freezeRule": "Miss a day your habit asked for and a streak freeze covers it — you start with {starting} and earn another every {interval} check-ins, up to {max}. Days your cadence does not ask for cost nothing.",
                 "graceDaysExhausted": "No streak freezes left — the next missed day resets the streak. You earn one back at your next 7-day milestone.",
                 "freezesLabel": "Streak freezes {remaining}/{total}",
                 "freezePipsAccessibility": "{remaining} of {total} streak freezes remaining"
@@ -2161,6 +2161,25 @@
                     "label": "Pact updates",
                     "hint": "Invites, acceptances, and when a pact is ending."
                 }
+            },
+            "cadence": {
+                "sectionLabel": "How often?",
+                "optionDaily": "Every day",
+                "optionWeeklyCount": "{count}× per week",
+                "optionWeekdays": "Specific days",
+                "increaseCount": "One more time per week",
+                "decreaseCount": "One less time per week",
+                "pickAtLeastOneDay": "Pick at least one day.",
+                "restDayHint": "On a day your habit does not ask for, nothing is lost — no broken streak, and no streak freeze spent.",
+                "weekProgress": "{done} of {target} this week",
+                "weekProgressMet": "Done for the week — {done} of {target}",
+                "editTitle": "Change how often",
+                "editForwardOnly": "Your streak carries over. The new schedule starts from today — days before it keep the old one.",
+                "editSave": "Save schedule",
+                "editCancel": "Cancel",
+                "editSaved": "Schedule updated",
+                "editFailed": "Could not update the schedule. Try again.",
+                "streakUnitCheckins": "{count} check-ins in a row"
             }
         },
         "pacts": {
@@ -2320,7 +2339,8 @@
                 "pickPartnerFirstLocked": "Choose a friend — or invite {remaining} more to unlock solo habits",
                 "soloLockedTitle": "Invite {remaining} more friend(s) to unlock solo habits",
                 "soloLockedProgress": "{invited} of {required} friends invited",
-                "freezeRule": "Miss a day and a streak freeze covers it — you start with {starting} and earn another every {interval} days, up to {max}. The first bad day happens inside the rules."
+                "freezeRule": "Miss a day your habit asked for and a streak freeze covers it — you start with {starting} and earn another every {interval} check-ins, up to {max}. Days your cadence does not ask for cost nothing.",
+                "cadenceReview": "How often: {cadence}"
             },
             "status": {
                 "pending": "Pending",

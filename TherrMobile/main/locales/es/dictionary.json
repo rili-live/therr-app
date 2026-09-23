@@ -2131,7 +2131,7 @@
                 "nextMilestone": "Próximo hito: {days} días",
                 "graceDaysRemaining": "Te queda(n) {count} congelamiento(s) de racha — si fallas un día, uno te cubre automáticamente.",
                 "nextMilestoneCompact": "próx. {days} d",
-                "freezeRule": "Si fallas un día, un congelamiento de racha lo cubre — empiezas con {starting} y ganas otro cada {interval} días, hasta {max}.",
+                "freezeRule": "Si fallas un día que tu hábito pedía, un congelamiento de racha lo cubre: empiezas con {starting} y ganas otro cada {interval} registros, hasta {max}. Los días que tu frecuencia no pide no cuestan nada.",
                 "graceDaysExhausted": "No te quedan congelamientos de racha — el próximo día que falles reinicia la racha. Ganarás uno en tu próximo hito de 7 días.",
                 "freezesLabel": "Congelamientos de racha {remaining}/{total}",
                 "freezePipsAccessibility": "Quedan {remaining} de {total} congelamientos de racha"
@@ -2161,6 +2161,25 @@
                     "label": "Novedades del pacto",
                     "hint": "Invitaciones, aceptaciones y cuándo termina un pacto."
                 }
+            },
+            "cadence": {
+                "sectionLabel": "¿Con qué frecuencia?",
+                "optionDaily": "Cada día",
+                "optionWeeklyCount": "{count} veces por semana",
+                "optionWeekdays": "Días específicos",
+                "increaseCount": "Una vez más por semana",
+                "decreaseCount": "Una vez menos por semana",
+                "pickAtLeastOneDay": "Elige al menos un día.",
+                "restDayHint": "En un día que tu hábito no pide, no pierdes nada: ni la racha ni un congelamiento.",
+                "weekProgress": "{done} de {target} esta semana",
+                "weekProgressMet": "Semana completa: {done} de {target}",
+                "editTitle": "Cambiar la frecuencia",
+                "editForwardOnly": "Tu racha se mantiene. El nuevo horario empieza hoy; los días anteriores conservan el anterior.",
+                "editSave": "Guardar horario",
+                "editCancel": "Cancelar",
+                "editSaved": "Horario actualizado",
+                "editFailed": "No se pudo actualizar el horario. Inténtalo de nuevo.",
+                "streakUnitCheckins": "{count} registros seguidos"
             }
         },
         "pacts": {
@@ -2320,7 +2339,8 @@
                 "pickPartnerFirstLocked": "Elige un amigo o invita a {remaining} más para desbloquear los hábitos en solitario",
                 "soloLockedTitle": "Invita a {remaining} amigo(s) más para desbloquear los hábitos en solitario",
                 "soloLockedProgress": "{invited} de {required} amigos invitados",
-                "freezeRule": "Si fallas un día, un congelamiento de racha lo cubre — empiezas con {starting} y ganas otro cada {interval} días, hasta {max}. El primer mal día ocurre dentro de las reglas."
+                "freezeRule": "Si fallas un día que tu hábito pedía, un congelamiento de racha lo cubre: empiezas con {starting} y ganas otro cada {interval} registros, hasta {max}. Los días que tu frecuencia no pide no cuestan nada.",
+                "cadenceReview": "Frecuencia: {cadence}"
             },
             "status": {
                 "pending": "Pendiente",

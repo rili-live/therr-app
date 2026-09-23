@@ -492,6 +492,142 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         habitCardBody: {
             marginTop: space.xs + 2,
         },
+
+        /**
+         * "2 of 4 this week" on a habit card.
+         *
+         * Only rendered for a habit whose cadence asks for fewer than seven check-ins — a daily
+         * habit's progress is already the streak. Tinted rather than filled so it reads as a
+         * status, not an action, beside the check-in button it sits near.
+         */
+        habitCardProgressChip: {
+            alignSelf: 'flex-start',
+            marginTop: space.xs,
+            paddingHorizontal: space.sm,
+            paddingVertical: 2,
+            borderRadius: radius.sm,
+            backgroundColor: tint(therrTheme.colors.brand, 0.14),
+        },
+        habitCardProgressChipMet: {
+            backgroundColor: tint(therrTheme.colors.brand, 0.28),
+        },
+        habitCardProgressChipText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+
+        // ── Cadence picker (components/Habits/CadencePicker) ─────────────────────────────
+        cadenceSection: {
+            paddingHorizontal: space.lg,
+            marginTop: space.md,
+        },
+        cadenceSectionLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+            marginBottom: space.xs,
+        },
+        // Deliberately the same selectable-row shape the wizard's template list already uses,
+        // so the cadence choice reads as part of the same step rather than a new control.
+        cadenceOption: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: therrTheme.colors.surface,
+            borderRadius: radius.md,
+            borderWidth: 1,
+            borderColor: tint(therrTheme.colors.onSurface, 0.16),
+            paddingHorizontal: space.md,
+            paddingVertical: space.sm,
+            marginBottom: space.xs,
+        },
+        cadenceOptionSelected: {
+            borderWidth: 2,
+            borderColor: therrTheme.colors.brand,
+        },
+        cadenceOptionText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            color: therrTheme.colors.onSurface,
+        },
+        cadenceOptionTextSelected: {
+            fontWeight: fontWeights.semibold,
+        },
+        cadenceStepperRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        cadenceStepperButton: {
+            width: 32,
+            height: 32,
+            borderRadius: radius.sm,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: tint(therrTheme.colors.onSurface, 0.1),
+        },
+        cadenceStepperButtonDisabled: {
+            opacity: 0.4,
+        },
+        cadenceStepperButtonText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.lg,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        cadenceStepperValue: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+            minWidth: 28,
+            textAlign: 'center',
+        },
+        cadenceWeekdayRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginTop: space.xs,
+            marginBottom: space.xs,
+        },
+        cadenceWeekdayChip: {
+            // 44pt is the platform minimum touch target; seven of them have to fit a phone
+            // width, so this is the floor rather than a design preference.
+            minWidth: 40,
+            height: 40,
+            borderRadius: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+            borderColor: tint(therrTheme.colors.onSurface, 0.16),
+        },
+        cadenceWeekdayChipSelected: {
+            backgroundColor: therrTheme.colors.brand,
+            borderColor: therrTheme.colors.brand,
+        },
+        cadenceWeekdayChipText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.onSurface,
+        },
+        cadenceWeekdayChipTextSelected: {
+            color: therrTheme.colors.onBrand,
+            fontWeight: fontWeights.semibold,
+        },
+        cadenceHint: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: space.xs,
+        },
+        cadenceHintWarning: {
+            // `accent` is the palette's non-brand emphasis colour and exists on every theme;
+            // there is no semantic error colour, and the brand colour would read as a
+            // selectable option rather than as "this needs your attention".
+            color: therrTheme.colors.accent,
+        },
+
         habitCardFooter: {
             flexDirection: 'row',
             alignItems: 'center',
