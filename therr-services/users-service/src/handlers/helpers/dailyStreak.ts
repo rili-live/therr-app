@@ -140,10 +140,13 @@ const loadFreezeSources = async (userId: string): Promise<IFreezeSource[]> => {
  */
 const loadRequiredDates = async (userId: string, fromDate: string, upTo: string): Promise<Set<string>> => {
     const weekStart = getWeekStart(fromDate);
-    const [habits, completions] = await Promise.all([
-        Store.userHabits.getActiveCadencesByUser(userId).catch(() => [] as IUserHabitCadence[]),
-        Store.habitCheckins.getCompletedHabitLocalDates(userId, weekStart, upTo)
-            .catch(() => [] as { habitGoalId: string; localDate: string }[]),
+    // Deliberately not caught. An empty cadence list reads as "nothing was required", which
+    // writes every unfilled day to the append-only ledger as 'rest' — a transient read failure
+    // would permanently excuse real misses. Failing the evaluation instead leaves the days
+    // unevaluated for the next pass, the same as a failure of `getCompletedLocalDates`.
+    const [habits, completions]: [IUserHabitCadence[], { habitGoalId: string; localDate: string }[]] = await Promise.all([
+        Store.userHabits.getActiveCadencesByUser(userId),
+        Store.habitCheckins.getCompletedHabitLocalDates(userId, weekStart, upTo),
     ]);
 
     return computeRequiredDates({

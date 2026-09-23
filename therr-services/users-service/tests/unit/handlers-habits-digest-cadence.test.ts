@@ -182,4 +182,20 @@ describe('Habits digest — cadence gates on the pact loop', () => {
         expect(counters.streakAtRiskSent).to.equal(0);
         expect(counters.partnerMissedSent).to.equal(2);
     });
+
+    it('does not carry last week\'s met quota into a Monday', async () => {
+        // On a Monday "yesterday" is last Sunday, so the week tally fetched for it is last week's.
+        // Mon–Thu met last week's target of 4; carrying that into today read this week as
+        // already discharged and silenced the Monday streak warning for the users who had just
+        // done best.
+        clock.setSystemTime(new Date('2026-09-21T14:00:00.000Z'));
+        stubDigestReads(
+            { frequencyType: 'weekly', frequencyCount: 4 },
+            [MONDAY, TUESDAY, WEDNESDAY, THURSDAY],
+        );
+
+        const counters = await runDigest();
+
+        expect(counters.streakAtRiskSent).to.equal(2);
+    });
 });

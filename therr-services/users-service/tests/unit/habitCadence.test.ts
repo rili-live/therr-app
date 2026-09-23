@@ -11,6 +11,7 @@ import {
     countScheduledForRange,
     computeRequiredDates,
     describeWeekProgress,
+    hasCadenceChanged,
 } from '../../src/utilities/habitCadence';
 import { addDays as addDaysLocal } from '../../src/utilities/dailyStreak';
 
@@ -259,6 +260,26 @@ describe('habitCadence', () => {
             })).to.equal(0);
         });
 
+        it('does not judge the week cadenceEffectiveFrom lands in partway', () => {
+            const cadence = { kind: 'weeklyQuota' as const, count: 4 };
+            // The cadence took effect on Thursday (a mid-week deploy, or a user's edit). Mon–Wed
+            // were never under it, so that week cannot be held to 4. The first judged week is the
+            // next full one, starting NEXT_MON, which has not closed yet on NEXT_MON itself.
+            expect(countMissedPeriods(cadence, {
+                lastCompletedDate: '2026-09-07',
+                throughDate: NEXT_MON,
+                completedDates: ['2026-09-07'],
+                effectiveFrom: THU,
+            })).to.equal(0);
+            // A week later the first full week has closed unmet, and that one does count.
+            expect(countMissedPeriods(cadence, {
+                lastCompletedDate: '2026-09-07',
+                throughDate: '2026-09-28',
+                completedDates: ['2026-09-07'],
+                effectiveFrom: THU,
+            })).to.equal(1);
+        });
+
         it('is inert on unparseable input rather than inventing a miss', () => {
             expect(countMissedPeriods({ kind: 'daily' }, {
                 lastCompletedDate: 'nope',
@@ -441,5 +462,30 @@ describe('habitCadence', () => {
                 isMet: true,
             });
         });
+    });
+});
+
+describe('hasCadenceChanged', () => {
+    const existing = { frequencyType: 'weekly', frequencyCount: 4, targetDaysOfWeek: null };
+
+    it('is false for an edit that leaves the cadence alone', () => {
+        // Renaming must not stamp cadenceEffectiveFrom — that would put the whole gap beyond
+        // evaluation and forgive every day missed in it.
+        expect(hasCadenceChanged(existing, {})).to.equal(false);
+        expect(hasCadenceChanged(existing, { frequencyType: 'weekly', frequencyCount: 4 })).to.equal(false);
+    });
+
+    it('is true when the meaning changes', () => {
+        expect(hasCadenceChanged(existing, { frequencyCount: 3 })).to.equal(true);
+        expect(hasCadenceChanged(existing, { frequencyType: 'daily' })).to.equal(true);
+        expect(hasCadenceChanged(existing, { targetDaysOfWeek: [1, 3, 5] })).to.equal(true);
+    });
+
+    it('compares meaning, not spelling', () => {
+        // Both resolve to the same Mon/Wed/Fri schedule — targetDaysOfWeek wins over frequencyType.
+        expect(hasCadenceChanged(
+            { frequencyType: 'weekly', targetDaysOfWeek: [5, 1, 3] },
+            { frequencyType: 'custom', targetDaysOfWeek: [1, 3, 5] },
+        )).to.equal(false);
     });
 });

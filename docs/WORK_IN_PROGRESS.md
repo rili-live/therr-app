@@ -1569,6 +1569,7 @@ backend change needed — it refuses to treat Play's own
   it under-produced, pre-migration habits were never counted and the ceiling sat above 5 by
   however many were missed:
   `SELECT count(*) FROM habits.user_habits;`
+- [ ] (2026-09-23, /quality-peer-review) **Confirm the two cadence migrations ran at each of `stage` and `main`** — `20260920000001_habits.daily_streak_days.restStatus.js` (widens the status CHECK to allow `rest`) and `20260920000002_habits.habit_goals.cadenceEffectiveFrom.js` (new `date` column, backfilled to the deploy date on every non-daily goal). Both idempotent. `getActiveForReminders`, `getDetailByUser` and `getActiveCadencesByUser` SELECT `cadenceEffectiveFrom` unconditionally, so the digest, the habit list and daily-streak evaluation fail until it exists; and until the CHECK is widened every `rest` day write is rejected. They share timestamp prefixes with the savings migrations but sort before them alphabetically, so check `knex_migrations` by name rather than by "latest". Sanity check the grandfathering backfill: `SELECT count(*) FROM habits.habit_goals WHERE "cadenceEffectiveFrom" IS NOT NULL;` should equal the count of non-daily/weekday-scheduled goals. Introduced by 08108c6c4.
 <!-- skill-followups:end -->
 
 ---
