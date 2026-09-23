@@ -694,6 +694,73 @@ const AchievementCelebration = ({ achievement, onDismiss }) => (
 
 ---
 
+## Cadence (September 2026) — what a streak is measured against
+
+Everything above assumes a habit is daily. It is not, and the gap was not cosmetic: a user
+doing four workouts a week was *penalised* for keeping their commitment. The app-level daily
+streak required a check-in on every calendar day, so their three off days each scored `missed`
+and each borrowed a streak freeze from a habit's pool. The pool starts at 1 and caps at 3, so by
+the second week it was empty and the streak reset.
+
+### The one definition
+
+`users-service/src/utilities/habitCadence.ts`. Cadence columns had existed on
+`habits.habit_goals` since January (`frequencyType`, `frequencyCount`, `targetDaysOfWeek`);
+what did not exist was agreement on what they meant. Four implementations disagreed:
+`isHabitDueToday` used a `floor(7 / N)` spacing heuristic (so 4x-7x/week all meant daily),
+`countScheduledCheckins` implemented a real quota, `countMissedDaysForStreak` ignored
+`frequencyCount` entirely, and `wasDayMissed` held a fourth copy with no callers.
+
+Three shapes, resolved in this order:
+
+| Shape | Columns | Meaning |
+|---|---|---|
+| Fixed weekdays | `targetDaysOfWeek` (Sunday-first, 0-6) | Those days exactly. Wins over `frequencyType` in both directions. |
+| Weekly quota | `frequencyType: weekly\|custom` + `frequencyCount` | N check-ins a Monday-Sunday week, on any days. |
+| Daily | `frequencyType: 'daily'` | Every day. The default, and what every pre-cadence habit resolves to. |
+
+### The rule that matters
+
+For a weekly quota a day is **required** only once skipping it would put the target out of
+reach — `daysRemainingInWeek <= quotaRemaining`. Everything earlier is optional: free to skip,
+no broken streak, no spent freeze.
+
+A consequence worth stating, because two designs were written against its opposite: a well-run
+quota week has **zero** required days. Someone doing 4x/week on Mon-Thu meets the target before
+skipping could ever endanger it. So anything gated on "is today required" fires for the failing
+user and never for the succeeding one. That is correct for streaks and freezes and wrong for
+three other things, which are gated differently:
+
+- **Reminders** key off `isQuotaUnmet` — keep asking until the four are done, then go quiet.
+- **Perfect weeks** are defined on day statuses (every day upheld or rest, at least one upheld,
+  no freezes), not on required days.
+- **Pact day crediting** is ungated: a day the majority showed up is a day the group earned.
+
+`isRequiredOn` still governs the streak, the freeze spend, the evening "last chance" push (whose
+copy claims the streak ends at midnight, true only on a required day), and `partnerMissedDay`.
+
+### What each system now measures
+
+| System | Unit | Note |
+|---|---|---|
+| Per-habit streak (`habits.streaks`) | consecutive honoured check-ins | Still +1 per on-cadence check-in; resets when a week's quota is missed. Milestone ladders keep their meaning. |
+| Daily streak (`habits.daily_streak_days`) | local days, with a fourth `rest` status | Rest = nothing required. No break, no freeze. |
+| Freezes | unchanged: 1 at creation, +1 per 7+ milestone, cap 3 | Spent only on missed required days. |
+| Phase engine consistency | scheduled days, not calendar days | A 3x/week habit scored 0.43 before — below `LAPSE_MAX_CONSISTENCY`, so it would have been declared lapsed and could never establish. |
+| `consistency_1_2` (multi-habit) | each habit's own quota for the window | Required 7-in-7 before, which nothing below daily can reach. |
+| Leaderboard | per check-in, plus a weekly quota bonus | `min((7 - target) * 10, target * 15)`. Capped so a light cadence never out-earns the work. |
+
+### Backwards compatibility
+
+For `frequencyType = 'daily'`, which is nearly every row, all of this is a strict no-op — there
+are regression tests asserting it. The exception is the seeded "Save for a group trip" template
+(`weekly`/1): under the old rules its streak was effectively unbreakable, and the new rule is
+stricter. `habits.habit_goals.cadenceEffectiveFrom` is backfilled to the deploy date for every
+non-daily goal so no pre-deploy week is re-judged. The same column makes a user's own cadence
+edit forward-only, with no cadence-history table to maintain.
+
+---
+
 ## Follow-up TODOs (achievements system, post-implementation)
 
 The HABITS achievements system shipped on `claude/build-achievements-system-RhI3G` covers the journey end-to-end (streak tiers per goal type, pact creation, accountability, social-energizer, resilience), but a few items were intentionally deferred. Pick them up in roughly this priority order.

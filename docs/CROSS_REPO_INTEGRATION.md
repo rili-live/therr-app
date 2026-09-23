@@ -267,6 +267,8 @@ stages the emails mail on. Enable the chained path *or* a dedicated job, never b
 | Changing the shape or auth of `/v1/habits/pacts/digest/run-daily` | Update `therr-messaging-automator/src/api/habitsDigest.ts` |
 | Renaming/dropping any `habits.habit_phases` column | Grep `therr-messaging-automator/src/store/HabitPhasesStore.ts`; it reads the row and **writes** `maintenanceEmailedStage` / `lastComebackEmailedAt` |
 | Changing how `lastConsistencyPercent` is computed | It is read, not recomputed, by the automator's maintenance email — the number users see in both channels comes from this repo alone |
+>
+> **Changed 2026-09 (cadence).** The denominator is now the habit's *scheduled* days, not calendar days, so the same habit can report a higher number than it did before — a perfectly-kept 3x/week habit went from 43% to 100%. Nothing in the automator needs changing, but the number in its maintenance email moved, and it moved for the right reason.
 | Changing `k8s/prod` users-service ports, selector, or NetworkPolicy | Re-check the internal LB path in §3 |
 | Needing a new scheduled backend job | Multiplex onto an existing Cloud Function (§4), or budget for a paid job |
 | Adding a public API route the marketing site consumes | Coordinate with `therr-landing`; it pins absolute `api.therr.com/v1/...` URLs |

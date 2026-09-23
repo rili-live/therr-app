@@ -22,6 +22,12 @@ import {
     IDailyStreakWalkState,
     IFreezeSource,
 } from '../../utilities/dailyStreak';
+import {
+    computeRequiredDates,
+    getCadence,
+    getCadenceEffectiveFrom,
+} from '../../utilities/habitCadence';
+import { IUserHabitCadence } from '../../store/UserHabitsStore';
 import { createOrUpdateAchievement } from './achievements';
 import { awardLeaderboardPoints } from './leaderboards';
 import { getPendingPlacementsForUser, IPendingPlacement } from './leaderboardPeriods';
@@ -118,6 +124,44 @@ const loadFreezeSources = async (userId: string): Promise<IFreezeSource[]> => {
         }));
 };
 
+/**
+ * Which local days in [fromDate, upTo] any of the user's active habits required — what separates
+ * a rest day from a missed one in the walk.
+ *
+ * Two reads, both indexed and both scoped to this user. They are a real addition to a per-user
+ * path that the scheduled pass runs for every user with a habit streak, and the cheaper option
+ * was considered and rejected: the freeze pool is read from `habits.streaks`, which only has a
+ * row once a habit has been checked in at least once, so joining cadence onto it would make a
+ * habit the user started but never logged invisible — and a brand-new habit is exactly the one
+ * whose cadence can make today required.
+ *
+ * Completions reach back to the Monday of `fromDate`'s week because a weekly quota's verdict on
+ * a day depends on what was already done earlier that week, including before the walk begins.
+ */
+const loadRequiredDates = async (userId: string, fromDate: string, upTo: string): Promise<Set<string>> => {
+    const weekStart = getWeekStart(fromDate);
+    // Deliberately not caught. An empty cadence list reads as "nothing was required", which
+    // writes every unfilled day to the append-only ledger as 'rest' — a transient read failure
+    // would permanently excuse real misses. Failing the evaluation instead leaves the days
+    // unevaluated for the next pass, the same as a failure of `getCompletedLocalDates`.
+    const [habits, completions]: [IUserHabitCadence[], { habitGoalId: string; localDate: string }[]] = await Promise.all([
+        Store.userHabits.getActiveCadencesByUser(userId),
+        Store.habitCheckins.getCompletedHabitLocalDates(userId, weekStart, upTo),
+    ]);
+
+    return computeRequiredDates({
+        fromDate,
+        upTo,
+        completions,
+        habits: habits.map((habit) => ({
+            habitGoalId: habit.habitGoalId,
+            cadence: getCadence(habit),
+            startedOn: habit.startedAt ? new Date(habit.startedAt).toISOString().slice(0, 10) : null,
+            effectiveFrom: getCadenceEffectiveFrom(habit),
+        })),
+    });
+};
+
 const loadPriorWeekStatuses = async (userId: string, fromDate: string): Promise<Map<string, DailyStreakDayStatus>> => {
     const weekStart = getWeekStart(fromDate);
     const statuses = new Map<string, DailyStreakDayStatus>();
@@ -190,11 +234,12 @@ export const evaluateDailyStreak = async (
         return { state, events: null, daysEvaluated: 0 };
     }
 
-    const [upheldDates, freezeSources, priorWeekStatuses, startStreak] = await Promise.all([
+    const [upheldDates, freezeSources, priorWeekStatuses, startStreak, requiredDates] = await Promise.all([
         Store.habitCheckins.getCompletedLocalDates(userId, fromDate, upTo),
         isBackfill ? Promise.resolve([] as IFreezeSource[]) : loadFreezeSources(userId),
         loadPriorWeekStatuses(userId, fromDate),
         streakAsOf(userId, state.lastEvaluatedDate),
+        loadRequiredDates(userId, fromDate, upTo),
     ]);
 
     const walkState: IDailyStreakWalkState = {
@@ -209,6 +254,7 @@ export const evaluateDailyStreak = async (
         fromDate,
         upTo,
         upheldDates,
+        requiredDates,
         freezeSources,
         priorWeekStatuses,
         allowFreezes: !isBackfill,

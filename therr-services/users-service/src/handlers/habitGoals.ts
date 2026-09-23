@@ -5,6 +5,7 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { validateSavingsTargetInput } from '../utilities/savingsProgress';
+import { hasCadenceChanged } from '../utilities/habitCadence';
 
 // CREATE
 const createHabitGoal: RequestHandler = async (req: any, res: any) => {
@@ -187,6 +188,13 @@ const updateHabitGoal: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    // A cadence change governs from today forward and never re-judges days lived under the old
+    // one — see migration 20260920000002 and `countMissedPeriods`. Only a change in meaning
+    // stamps it; an edit that merely resends the same cadence leaves history evaluable.
+    const cadenceEffectiveFrom = hasCadenceChanged(existingGoal, { frequencyType, frequencyCount, targetDaysOfWeek })
+        ? new Date().toISOString().slice(0, 10)
+        : undefined;
+
     return Store.habitGoals.update(id, {
         name,
         description,
@@ -197,6 +205,7 @@ const updateHabitGoal: RequestHandler = async (req: any, res: any) => {
         frequencyCount,
         targetDaysOfWeek,
         isPublic,
+        cadenceEffectiveFrom,
         ...savings.params,
     })
         .then((habitGoal) => res.status(200).send(habitGoal))

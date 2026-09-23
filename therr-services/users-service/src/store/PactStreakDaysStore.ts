@@ -73,4 +73,33 @@ export default class PactStreakDaysStore {
 
         return this.db.read.query(queryString).then((response) => parseInt(response.rows[0]?.count ?? '0', 10));
     }
+
+    /**
+     * The distinct days these pacts have won, **inclusive** of both endpoints — what a
+     * weekly-quota cadence needs to decide whether a closed week met its target.
+     *
+     * Distinct from `countCoveredDatesForPacts` in two ways, both of which matter. It is
+     * inclusive rather than strictly between, because a week's tally needs every day in the
+     * week and the gap's endpoints are ordinary days of it. And it returns the dates rather
+     * than a count: a count can be subtracted from a number of missed *days*, but a quota is
+     * missed in whole *weeks*, and "three covered days" says nothing about which week they
+     * fell in. The caller folds these into the week's completions instead of subtracting.
+     */
+    getCreditedDatesForPacts(pactIds: string[], startDate: string, endDate: string): Promise<Set<string>> {
+        if (!pactIds.length) {
+            return Promise.resolve(new Set<string>());
+        }
+
+        const queryString = knexBuilder
+            .distinct(knexBuilder.raw('"streakDate"::text AS "streakDate"'))
+            .from(PACT_STREAK_DAYS_TABLE_NAME)
+            .whereIn('pactId', pactIds)
+            .andWhere('streakDate', '>=', startDate)
+            .andWhere('streakDate', '<=', endDate)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => new Set<string>(
+            response.rows.map((row: any) => String(row.streakDate).slice(0, 10)),
+        ));
+    }
 }

@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 import { parseHeaders } from 'therr-js-utilities/http';
 import Store from '../store';
 import {
+    IUserHabitDetail,
     IUserHabitNotificationPreferences,
     USER_HABIT_NOTIFICATION_PREFERENCE_KEYS,
 } from '../store/UserHabitsStore';
@@ -9,6 +10,8 @@ import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { checkHabitCapacity } from './helpers/habitCapacity';
 import { getSoloInviteProgress } from './helpers/soloHabitAccess';
+import { describeWeekProgress, getCadence } from '../utilities/habitCadence';
+import { getLocalDate, getWeekStart, resolveCheckinTimeZone } from '../utilities/dailyStreak';
 import { attachSavingsTotals } from './helpers/savings';
 
 /**
@@ -31,10 +34,61 @@ import { attachSavingsTotals } from './helpers/savings';
  * See `getSoloInviteProgress` for what counts and why it fails closed.
  */
 
+/**
+ * The user's own Monday and their own today, resolved the same way every other habits read
+ * resolves a day: saved `settingsTimezone` first, then the zone the client reported on this
+ * request, then the service fallback (`resolveCheckinTimeZone`).
+ *
+ * A week is a *local* week. Using the server's would put the Monday boundary in the wrong
+ * place for most of the world, and a weekly quota that resets on the wrong day is worse than
+ * one that is not reported at all.
+ *
+ * Fails soft: a failed user read returns `undefined`, the tally column comes back NULL, and
+ * the response simply carries no `weekProgress` — the habits list itself still renders.
+ */
+const resolveWeekBounds = async (
+    userId: string,
+    deviceTimezone?: unknown,
+): Promise<{ weekStart: string; today: string } | undefined> => {
+    const [user] = await Store.users
+        .getUserById(userId, ['id', 'settingsTimezone'])
+        .catch(() => [] as any[]);
+
+    const timeZone = resolveCheckinTimeZone(user?.settingsTimezone, deviceTimezone);
+    const today = getLocalDate(timeZone);
+
+    return { weekStart: getWeekStart(today), today };
+};
+
+/**
+ * Attach "where you stand in your week" to each habit.
+ *
+ * Derived server-side rather than by the client, because deciding what a cadence asks for is
+ * exactly the rule `utilities/habitCadence.ts` exists to own — a second implementation on the
+ * client is the failure that module was created to delete. The client renders what it is told.
+ *
+ * Omitted entirely when the tally is NULL (no resolvable week). A client must read its absence
+ * as "unknown", never as zero.
+ */
+const withWeekProgress = (userHabits: IUserHabitDetail[], today?: string) => userHabits.map((habit) => {
+    if (!today || habit.completionsEarlierThisWeek === null || habit.completionsEarlierThisWeek === undefined) {
+        return habit;
+    }
+
+    return {
+        ...habit,
+        weekProgress: describeWeekProgress(
+            getCadence(habit),
+            today,
+            Number(habit.completionsEarlierThisWeek) || 0,
+        ),
+    };
+});
+
 // READ
 const getUserHabits: RequestHandler = async (req: any, res: any) => {
     const { userId } = parseHeaders(req.headers);
-    const { status } = req.query;
+    const { status, timeZone } = req.query;
 
     if (status && status !== 'active' && status !== 'archived') {
         return handleHttpError({
@@ -44,9 +98,13 @@ const getUserHabits: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    return Store.userHabits.getDetailByUser(userId, status)
+    const weekBounds = await resolveWeekBounds(userId, timeZone);
+
+    return Store.userHabits.getDetailByUser(userId, status, weekBounds)
         .then(attachSavingsTotals)
-        .then((userHabits) => res.status(200).send({ userHabits }))
+        .then((userHabits) => res.status(200).send({
+            userHabits: withWeekProgress(userHabits, weekBounds?.today),
+        }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_HABITS_ROUTES:ERROR' }));
 };
 
@@ -162,8 +220,12 @@ const createUserHabit: RequestHandler = async (req: any, res: any) => {
         // render before the first check-in, matching what pact acceptance does.
         await Store.streaks.getOrCreate(userId, resolvedGoalId);
 
-        const [detail] = await Store.userHabits.getDetailByUser(userId, 'active')
-            .then((rows) => rows.filter((row) => row.habitGoalId === resolvedGoalId));
+        const weekBounds = await resolveWeekBounds(userId, req.body?.timeZone);
+        const [detail] = await Store.userHabits.getDetailByUser(userId, 'active', weekBounds)
+            .then((rows) => withWeekProgress(
+                rows.filter((row) => row.habitGoalId === resolvedGoalId),
+                weekBounds?.today,
+            ));
 
         return res.status(201).send(detail || userHabit);
     } catch (err: any) {
@@ -325,8 +387,12 @@ const continueSoloHabit: RequestHandler = async (req: any, res: any) => {
         });
         await Promise.all(pendingPacts.map((pact: any) => Store.pacts.abandon(pact.id, userId, true)));
 
-        const [detail] = await Store.userHabits.getDetailByUser(userId, 'active')
-            .then((rows) => rows.filter((row) => row.habitGoalId === existing.habitGoalId));
+        const weekBounds = await resolveWeekBounds(userId, req.body?.timeZone);
+        const [detail] = await Store.userHabits.getDetailByUser(userId, 'active', weekBounds)
+            .then((rows) => withWeekProgress(
+                rows.filter((row) => row.habitGoalId === existing.habitGoalId),
+                weekBounds?.today,
+            ));
 
         return res.status(200).send(detail || { ...existing, status: 'active' });
     } catch (err: any) {
