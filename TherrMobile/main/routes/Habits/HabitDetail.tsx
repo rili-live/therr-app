@@ -23,9 +23,22 @@ import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
+import BaseModal from '../../components/Modals/BaseModal';
+import ModalButton from '../../components/Modals/ModalButton';
 import {
     CheckinButton, CheckinDayDetailSheet, HabitCalendar, HabitNotificationSettings, StreakWidget,
 } from '../../components/Habits';
+import CadencePicker from '../../components/Habits/CadencePicker';
+import {
+    fromGoal as cadenceFromGoal,
+    isComplete as isCadenceComplete,
+    isSameCadence,
+    toGoalFields as cadenceToGoalFields,
+    CadenceChoice,
+} from '../Pacts/cadenceOptions';
+
+/** Sunday-first, matching `targetDaysOfWeek` and the `daysOfWeekShort` dictionary. */
+const CADENCE_DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 import { getProofMediaRequests, resolveProofUris } from './checkinDayDetail';
 import {
     getFreezeConsumed,
@@ -48,6 +61,7 @@ interface IHabitDetailDispatchProps {
     getUserHabits: Function;
     archiveUserHabit: Function;
     updateHabitNotificationPreferences: Function;
+    updateGoal: Function;
 }
 
 interface IStoreProps extends IHabitDetailDispatchProps {
@@ -79,6 +93,13 @@ interface IHabitDetailState {
     /** True while the archive confirmation modal is up. */
     isConfirmingArchive: boolean;
     isArchiving: boolean;
+    /**
+     * The cadence editor. `draftCadence` is null while the sheet is closed — it is seeded from
+     * the goal on open rather than kept in sync, so a refresh landing mid-edit cannot overwrite
+     * what the user is in the middle of choosing.
+     */
+    draftCadence: CadenceChoice | null;
+    isSavingCadence: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -99,6 +120,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getUserHabits: HabitActions.getUserHabits,
     archiveUserHabit: HabitActions.archiveUserHabit,
     updateHabitNotificationPreferences: HabitActions.updateHabitNotificationPreferences,
+    updateGoal: HabitActions.updateGoal,
 }, dispatch);
 
 export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetailState> {
@@ -131,6 +153,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             hasDayProofError: false,
             isConfirmingArchive: false,
             isArchiving: false,
+            draftCadence: null,
+            isSavingCadence: false,
         };
 
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
@@ -286,6 +310,93 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         }).finally(() => {
             this.setState({ isRefreshing: false });
         });
+    };
+
+    /**
+     * The cadence in words, for the stats row. Reads through `cadenceFromGoal` so the label and
+     * the schedule the server actually keeps cannot drift — see `routes/Pacts/cadenceOptions`.
+     */
+    describeCadence = (habitGoal: IHabitGoal): string => {
+        const cadence = cadenceFromGoal(habitGoal);
+
+        if (cadence.kind === 'weekdays') {
+            return cadence.days
+                .map((d) => this.translate(`pages.habits.daysOfWeekShort.${CADENCE_DAY_KEYS[d]}`))
+                .join(', ');
+        }
+        if (cadence.kind === 'weeklyCount') {
+            return this.translate('pages.habits.frequency.weekly', { count: cadence.count });
+        }
+        return this.translate('pages.habits.frequency.daily');
+    };
+
+    handleEditCadencePress = () => {
+        const habitGoal = this.getHabitGoal();
+        if (!habitGoal) {
+            return;
+        }
+        this.setState({ draftCadence: cadenceFromGoal(habitGoal) });
+    };
+
+    handleCancelCadence = () => {
+        this.setState({ draftCadence: null });
+    };
+
+    handleDraftCadenceChange = (draftCadence: CadenceChoice) => {
+        this.setState({ draftCadence });
+    };
+
+    /**
+     * Save the new cadence.
+     *
+     * Forward-only, which the confirm copy states before the user commits: the server stamps
+     * `cadenceEffectiveFrom` and never re-judges a day lived under the old schedule, so the
+     * running streak survives. Dialling a habit back after an injury should not cost the streak
+     * that motivated it.
+     *
+     * An unchanged cadence short-circuits rather than sending a no-op PUT — the request would
+     * still stamp a new effective-from date, which quietly moves the boundary the server
+     * refuses to evaluate before.
+     */
+    handleSaveCadence = () => {
+        const { updateGoal, getUserHabits } = this.props;
+        const habitGoal = this.getHabitGoal();
+        const { draftCadence } = this.state;
+
+        if (!habitGoal || !draftCadence || !isCadenceComplete(draftCadence)) {
+            return;
+        }
+
+        if (isSameCadence(draftCadence, cadenceFromGoal(habitGoal))) {
+            this.setState({ draftCadence: null });
+            return;
+        }
+
+        this.setState({ isSavingCadence: true });
+
+        updateGoal(habitGoal.id, cadenceToGoalFields(draftCadence))
+            .then(() => {
+                showToast.success({
+                    text1: this.translate('pages.habits.cadence.editSaved'),
+                });
+                // `updateGoal` replaces the row in `habits.habitGoals`, which is what this
+                // screen reads — so the label here is already right. The dashboard's cards
+                // read `habits.userHabits`, where the same three cadence columns arrive
+                // *joined onto* the tracking row, and nothing in that action touches them.
+                // Without this the user would go back and see the schedule they just changed.
+                return getUserHabits().catch(() => undefined);
+            })
+            .catch(() => {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    text2: this.translate('pages.habits.cadence.editFailed'),
+                });
+            })
+            .finally(() => {
+                if (!this.isUnmounted) {
+                    this.setState({ isSavingCadence: false, draftCadence: null });
+                }
+            });
     };
 
     handleArchivePress = () => {
@@ -615,6 +726,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             hasDayProofError,
             isConfirmingArchive,
             isArchiving,
+            draftCadence,
+            isSavingCadence,
         } = this.state;
 
         const resolvedDayProofs = resolveProofUris(dayProofs, content?.media || {});
@@ -703,6 +816,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                             <StreakWidget
                                 streak={streak}
                                 title={this.translate('pages.habits.currentStreak')}
+                                cadenceKind={cadenceFromGoal(habitGoal).kind}
                                 themeHabits={this.themeHabits}
                                 translate={this.translate}
                             />
@@ -757,6 +871,34 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                         </Text>
                                     </View>
                                 </View>
+                                {/*
+                                  * The cadence sits in the stats block rather than the header
+                                  * because it is now the thing the freeze rule below is stated
+                                  * against: "days your cadence does not ask for cost nothing"
+                                  * means nothing without saying what it asks for.
+                                  */}
+                                <View style={this.themeHabits.styles.cadenceRow}>
+                                    <Text style={this.themeHabits.styles.cadenceRowLabel}>
+                                        {this.translate('pages.habits.cadence.sectionLabel')}
+                                    </Text>
+                                    <Text style={this.themeHabits.styles.cadenceRowValue}>
+                                        {this.describeCadence(habitGoal)}
+                                    </Text>
+                                    <Pressable
+                                        accessibilityRole="button"
+                                        accessibilityLabel={this.translate('pages.habits.cadence.editTitle')}
+                                        onPress={this.handleEditCadencePress}
+                                        style={({ pressed }) => [
+                                            this.themeHabits.styles.cadenceRowEditButton,
+                                            pressed && this.themeHabits.styles.pressedOpacity,
+                                        ]}
+                                    >
+                                        <Text style={this.themeHabits.styles.cadenceRowEditText}>
+                                            {this.translate('pages.habits.cadence.editTitle')}
+                                        </Text>
+                                    </Pressable>
+                                </View>
+
                                 {/*
                                   * The number on its own reads as a score. It is
                                   * a rule, and it only changes behaviour if the
@@ -845,6 +987,53 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                     themeConfirmModal={this.themeConfirmModal}
                     themeButtons={this.themeButtons}
                 />
+                {/*
+                  * Forward-only, and the copy says so before the user commits rather than after.
+                  * Someone dialling a habit back mid-injury is exactly the person who would
+                  * otherwise not touch this at all, for fear of what it does to their streak.
+                  */}
+                <BaseModal
+                    isVisible={!!draftCadence}
+                    onDismiss={this.handleCancelCadence}
+                    headerText={this.translate('pages.habits.cadence.editTitle')}
+                    actions={(
+                        <>
+                            <ModalButton
+                                title={this.translate('pages.habits.cadence.editCancel')}
+                                iconName="close"
+                                iconRight={false}
+                                onPress={this.handleCancelCadence}
+                                themeButtons={this.themeButtons}
+                                disabled={isSavingCadence}
+                            />
+                            <ModalButton
+                                title={this.translate('pages.habits.cadence.editSave')}
+                                iconName="check"
+                                iconRight={false}
+                                onPress={this.handleSaveCadence}
+                                themeButtons={this.themeButtons}
+                                loading={isSavingCadence}
+                                disabled={isSavingCadence || !draftCadence || !isCadenceComplete(draftCadence)}
+                            />
+                        </>
+                    )}
+                >
+                    {draftCadence && (
+                        <>
+                            <CadencePicker
+                                value={draftCadence}
+                                onChange={this.handleDraftCadenceChange}
+                                hideLabel
+                                themeHabits={this.themeHabits}
+                                translate={this.translate}
+                            />
+                            <Text style={this.themeHabits.styles.cadenceHint}>
+                                {this.translate('pages.habits.cadence.editForwardOnly')}
+                            </Text>
+                        </>
+                    )}
+                </BaseModal>
+
                 <ConfirmModal
                     isVisible={isConfirmingArchive}
                     onCancel={this.handleCancelArchive}

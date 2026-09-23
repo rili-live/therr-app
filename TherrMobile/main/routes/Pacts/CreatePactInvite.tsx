@@ -26,6 +26,18 @@ import {
 import getConfig from '../../utilities/getConfig';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { streakFreezeRuleParams } from '../../utilities/streakFreezes';
+import CadencePicker from '../../components/Habits/CadencePicker';
+import {
+    cacheKey as cadenceCacheKey,
+    fromGoal as cadenceFromGoal,
+    isComplete as isCadenceComplete,
+    toGoalFields as cadenceToGoalFields,
+    CadenceChoice,
+    DAILY_CADENCE,
+} from './cadenceOptions';
+
+/** Sunday-first, matching `targetDaysOfWeek` and the `daysOfWeekShort` dictionary. */
+const CADENCE_DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 import permissions from '../../utilities/permissionsOrchestrator';
 import UsersActions from '../../redux/actions/UsersActions';
 import { IUserState, IHabitsState, IHabitGoal } from 'therr-react/types';
@@ -89,6 +101,11 @@ interface ICreatePactInviteState {
     step: Step;
     selectedTemplateId: string | null;
     customHabitName: string;
+    /**
+     * How often the habit asks for a check-in. Defaults to daily, which is what every habit
+     * created before this picker existed resolves to.
+     */
+    cadence: CadenceChoice;
     /**
      * Marks a *custom* habit as a savings goal. A template carries its own `goalType`,
      * so this is only consulted on the custom-name path — see `getIsSavingsSelection`.
@@ -206,6 +223,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         this.state = {
             step: 1,
             selectedTemplateId: null,
+            cadence: DAILY_CADENCE,
             customHabitName: '',
             isSavingsHabit: false,
             savingsTargetText: '',
@@ -299,7 +317,40 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     };
 
     selectTemplate = (templateId: string) => {
-        this.setState({ selectedTemplateId: templateId, customHabitName: '' });
+        const template = this.props.habits.templates?.find((t) => t.id === templateId);
+
+        this.setState({
+            selectedTemplateId: templateId,
+            customHabitName: '',
+            // A template proposes a cadence; the user can still change it before the goal is
+            // cloned. `cadenceFromGoal` is the one place the server's precedence is mirrored,
+            // so a template carrying fixed weekdays opens on the weekday control rather than
+            // on whatever `frequencyType` happens to say.
+            cadence: template ? cadenceFromGoal(template) : DAILY_CADENCE,
+        });
+    };
+
+    setCadence = (cadence: CadenceChoice) => {
+        this.setState({ cadence });
+    };
+
+    /**
+     * The cadence in words, for the review step.
+     *
+     * Reuses `pages.habits.frequency.*` and `daysOfWeekShort.*` — the keys the habit card has
+     * always rendered — so the sentence the user agrees to here is the same one they will see
+     * on the card afterwards.
+     */
+    describeCadence = (cadence: CadenceChoice): string => {
+        if (cadence.kind === 'weekdays') {
+            return cadence.days
+                .map((day) => this.translate(`pages.habits.daysOfWeekShort.${CADENCE_DAY_KEYS[day]}`))
+                .join(', ');
+        }
+        if (cadence.kind === 'weeklyCount') {
+            return this.translate('pages.habits.frequency.weekly', { count: cadence.count });
+        }
+        return this.translate('pages.habits.frequency.daily');
     };
 
     setCustomName = (text: string) => {
@@ -356,6 +407,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
 
     canAdvanceFromStep1 = (): boolean => Boolean(
         (this.state.selectedTemplateId || this.state.customHabitName.trim().length > 0)
+        && isCadenceComplete(this.state.cadence)
         && !this.hasInvalidSavingsTarget(),
     );
 
@@ -382,7 +434,13 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 return;
             }
             if (!this.canAdvanceFromStep1()) {
-                Toast.show({ type: 'info', text1: this.translate('pages.pacts.wizard.pickTemplateFirst') });
+                // Two ways to be incomplete here, and they need different sentences: no habit
+                // chosen, or "specific days" chosen with no days ticked. The second would
+                // otherwise be told to pick a habit they have already picked.
+                const message = isCadenceComplete(this.state.cadence)
+                    ? this.translate('pages.pacts.wizard.pickTemplateFirst')
+                    : this.translate('pages.habits.cadence.pickAtLeastOneDay');
+                Toast.show({ type: 'info', text1: message });
                 return;
             }
             if (this.state.selectedTemplateId) {
@@ -462,9 +520,16 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      * changing the habit still creates a new goal.
      */
     resolveHabitGoalId = async (): Promise<string | null> => {
-        const { selectedTemplateId, customHabitName } = this.state;
+        const { selectedTemplateId, customHabitName, cadence } = this.state;
 
-        const selectionKey = `${selectedTemplateId || ''}|${customHabitName.trim()}`;
+        // The cadence belongs in this key. Without it, changing the cadence after a failed
+        // invite and tapping again would hit the cache and silently reuse the goal created with
+        // the OLD cadence — a habit on the wrong schedule, with nothing to indicate it.
+        const selectionKey = [
+            selectedTemplateId || '',
+            customHabitName.trim(),
+            cadenceCacheKey(cadence),
+        ].join('|');
 
         if (this.resolvedGoal && this.resolvedGoal.selectionKey === selectionKey) {
             return this.resolvedGoal.habitGoalId;
@@ -485,7 +550,14 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      */
     createHabitGoal = async (): Promise<string | null> => {
         const { habits, createGoal } = this.props;
-        const { selectedTemplateId, customHabitName, isSavingsHabit } = this.state;
+        const {
+            selectedTemplateId, customHabitName, cadence, isSavingsHabit,
+        } = this.state;
+
+        // The user's choice wins over the template's, on both paths. A template is a starting
+        // point — `selectTemplate` prefills the picker from it — not a schedule the user is
+        // stuck with. The custom path used to hardcode daily outright.
+        const cadenceFields = cadenceToGoalFields(cadence);
 
         if (selectedTemplateId) {
             const template = habits.templates?.find((t) => t.id === selectedTemplateId);
@@ -507,9 +579,10 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 // against it. Nothing failed — the goal was created, the pact worked,
                 // the savings half was simply absent.
                 goalType: template.goalType,
-                frequencyType: template.frequencyType,
-                frequencyCount: template.frequencyCount,
-                targetDaysOfWeek: template.targetDaysOfWeek,
+                // Replaces the template's own three cadence columns. `selectTemplate` seeds
+                // the picker from the template, so an untouched selection sends exactly what
+                // the template carried; a touched one sends what the user asked for.
+                ...cadenceFields,
                 ...this.getSavingsGoalFields(template.goalType),
             });
 
@@ -520,8 +593,9 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             const newGoal = await createGoal({
                 name: customHabitName.trim(),
                 goalType: isSavingsHabit ? HabitGoalTypes.SAVINGS_GOAL : undefined,
-                frequencyType: 'daily',
-                frequencyCount: 1,
+                // Was hardcoded `daily`/1, which is why no custom habit could ever be
+                // anything but daily however the user actually intended to keep it.
+                ...cadenceFields,
                 ...this.getSavingsGoalFields(isSavingsHabit ? HabitGoalTypes.SAVINGS_GOAL : undefined),
             });
 
@@ -847,7 +921,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     renderStep1 = () => {
         const { habits } = this.props;
         const {
-            selectedTemplateId, customHabitName, isLoadingTemplates, isSavingsHabit,
+            selectedTemplateId, customHabitName, isLoadingTemplates, cadence, isSavingsHabit,
         } = this.state;
         const templates = habits.templates || [];
 
@@ -936,6 +1010,13 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                         </Pressable>
                     ) : null}
                 </View>
+
+                <CadencePicker
+                    value={cadence}
+                    onChange={this.setCadence}
+                    themeHabits={this.themeHabits}
+                    translate={this.translate}
+                />
 
                 {this.renderSavingsTarget()}
             </View>
@@ -1147,7 +1228,9 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
 
     renderStep3 = () => {
         const { habits } = this.props;
-        const { selectedTemplateId, customHabitName, selectedPartnerIds } = this.state;
+        const {
+            selectedTemplateId, customHabitName, selectedPartnerIds, cadence,
+        } = this.state;
         const template = selectedTemplateId
             ? habits.templates?.find((t) => t.id === selectedTemplateId)
             : undefined;
@@ -1176,6 +1259,17 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                         </View>
                     </View>
                 </View>
+                {/*
+                  * The cadence, restated on the last screen before the habit exists. It is the
+                  * other half of the agreement the freeze rule below describes — a rule about
+                  * "a day your habit asked for" only means something once the user can see
+                  * which days those are.
+                  */}
+                <Text style={[this.themeHabits.styles.streakMilestoneText, { paddingHorizontal: 20, marginTop: 12 }]}>
+                    {this.translate('pages.pacts.wizard.cadenceReview', {
+                        cadence: this.describeCadence(cadence),
+                    })}
+                </Text>
                 {isSolo && (
                     <Text style={[this.themeHabits.styles.streakMilestoneText, { paddingHorizontal: 20, marginTop: 12 }]}>
                         {this.translate('pages.pacts.wizard.soloAddPartnersLater')}
