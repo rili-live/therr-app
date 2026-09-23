@@ -248,6 +248,7 @@ export const Leaderboard = ({
     );
 
     const isCurrentUserVisible = entries.some((entry) => entry.isRequestingUser);
+    const isRankBarVisible = !isCurrentUserVisible && !!currentUser;
 
     // A podium finish gets the full-screen celebration (queued on app foreground), so only the
     // rest land here. Newest first, and only the first one: a stack of cards above the board is
@@ -320,6 +321,7 @@ export const Leaderboard = ({
                         data={entries}
                         keyExtractor={(item) => item.userId}
                         renderItem={renderItem}
+                        contentContainerStyle={isRankBarVisible ? undefined : themeLeaderboard.styles.listContentContainer}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshing}
                             onRefresh={() => fetchLeaderboard(period, scope)}
@@ -339,7 +341,7 @@ export const Leaderboard = ({
                         }
                     />
                     {
-                        !isCurrentUserVisible && !!currentUser
+                        isRankBarVisible
                         && <View style={themeLeaderboard.styles.currentUserBar}>
                             <Text style={themeLeaderboard.styles.currentUserBarText}>
                                 {translate('pages.leaderboard.labels.yourRank', {
