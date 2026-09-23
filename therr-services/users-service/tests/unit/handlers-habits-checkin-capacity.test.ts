@@ -61,6 +61,7 @@ describe('createCheckin — free-tier habit cap', () => {
         getByUserAndHabitStub = sinon.stub(Store.userHabits, 'getByUserAndHabit').resolves(undefined);
         sinon.stub(Store.users, 'findUser').resolves([{ accessLevels: [] }] as any);
         countActiveStub = sinon.stub(Store.userHabits, 'countActiveByUser').resolves(HABITS_FREE_HABIT_LIMIT);
+        sinon.stub(Store.userHabits, 'countStartedSinceByUser').resolves(0);
         getOrCreateStub = sinon.stub(Store.userHabits, 'getOrCreate').rejects(PASSED_GATE);
     });
 

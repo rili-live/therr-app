@@ -18,8 +18,9 @@ no configuration of the app in which nobody notices that you stopped.
 - Check-ins carry proof. Each daily check-in attaches a photo or a short note.
 - The streak is shared. A missed day resets the streak for both partners.
 - Free to install. No waitlist, no invite code, no payment card.
-- No subscription. Free accounts track 5 active habits; the first 5,000 accounts
-  can lift that cap permanently with a one-time $20 "free for life" unlock.
+- No subscription. Free accounts track 3 active habits (and can start up to 5 new
+  ones a month); the first 5,000 accounts can lift that cap permanently with a
+  one-time $20 "free for life" unlock.
 
 ## Key facts
 
