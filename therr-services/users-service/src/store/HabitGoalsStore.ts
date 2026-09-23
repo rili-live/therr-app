@@ -1,7 +1,9 @@
 import KnexBuilder, { Knex } from 'knex';
 import { HabitGoalType, SavingsTargetScope } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
-import { HABIT_GOALS_TABLE_NAME, PACTS_TABLE_NAME, PACT_MEMBERS_TABLE_NAME } from './tableNames';
+import {
+    HABIT_GOALS_TABLE_NAME, PACTS_TABLE_NAME, PACT_MEMBERS_TABLE_NAME, USER_HABITS_TABLE_NAME,
+} from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -108,6 +110,13 @@ export default class HabitGoalsStore {
      *
      * Membership is the source of truth, with a fallback to the legacy
      * `pacts.partnerUserId` column for 1:1 pacts that pre-date pact_members.
+     *
+     * A goal the user created counts only once something was started on it: a
+     * tracking row (any status — the client hides archived ones itself) or a
+     * pact they created. The pact wizard writes the goal before the pact, so a
+     * pact refused at the free-tier cap leaves a goal nobody is tracking. Listed,
+     * the dashboard rendered it as a live habit, and a check-in on it became a
+     * habit the cap never saw.
      */
     getByUserId(userId: string, limit?: number, offset?: number) {
         const joinedGoalIds = knexBuilder
@@ -128,10 +137,27 @@ export default class HabitGoalsStore {
                 });
             });
 
+        const trackedGoalIds = knexBuilder
+            .select(`${USER_HABITS_TABLE_NAME}.habitGoalId`)
+            .from(USER_HABITS_TABLE_NAME)
+            .where(`${USER_HABITS_TABLE_NAME}.userId`, userId);
+
+        const createdPactGoalIds = knexBuilder
+            .select(`${PACTS_TABLE_NAME}.habitGoalId`)
+            .from(PACTS_TABLE_NAME)
+            .where(`${PACTS_TABLE_NAME}.creatorUserId`, userId)
+            .whereNotNull(`${PACTS_TABLE_NAME}.habitGoalId`);
+
         let queryString = knexBuilder
             .from(HABIT_GOALS_TABLE_NAME)
             .where((builder) => {
-                builder.where(`${HABIT_GOALS_TABLE_NAME}.createdByUserId`, userId)
+                builder.where((own) => {
+                    own.where(`${HABIT_GOALS_TABLE_NAME}.createdByUserId`, userId)
+                        .andWhere((started) => {
+                            started.whereIn(`${HABIT_GOALS_TABLE_NAME}.id`, trackedGoalIds)
+                                .orWhereIn(`${HABIT_GOALS_TABLE_NAME}.id`, createdPactGoalIds);
+                        });
+                })
                     .orWhereIn(`${HABIT_GOALS_TABLE_NAME}.id`, joinedGoalIds);
             })
             .orderBy('createdAt', 'desc');
