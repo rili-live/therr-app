@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { IStreak } from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
+import { CadenceKind } from '../../routes/Pacts/cadenceOptions';
 
 interface IStreakWidgetProps {
     streak: IStreak;
@@ -18,6 +19,20 @@ interface IStreakWidgetProps {
      * habit row in a list draws a card within a card and pays for two sets of insets.
      */
     embedded?: boolean;
+    /**
+     * The habit's cadence, which decides what the number beside the badge is counting.
+     *
+     * `currentStreak` has always incremented by one per honoured check-in, never per calendar
+     * day — the two were the same number only because every habit was daily. For a habit that
+     * asks for four check-ins a week, "12 days" is wrong by a factor of about two, and wrong in
+     * the direction that makes the user distrust it: they can see they have not done this
+     * twelve days running.
+     *
+     * Omitted means daily, which is what every call site written before cadence existed means,
+     * and what the app-level daily streak on the profile genuinely is — that one really does
+     * count calendar days.
+     */
+    cadenceKind?: CadenceKind;
     themeHabits: {
         colors: ITherrThemeColors;
         styles: any;
@@ -112,11 +127,26 @@ const FreezePips = ({
     );
 };
 
+/**
+ * "day" / "days" for a daily habit, "check-in" / "check-ins" for anything else.
+ *
+ * Keeping the daily wording untouched matters as much as changing the other: it is what every
+ * existing user sees, and it is still literally true for them.
+ */
+const getStreakUnitKey = (currentStreak: number, cadenceKind?: CadenceKind): string => {
+    const isDaily = !cadenceKind || cadenceKind === 'daily';
+    if (isDaily) {
+        return currentStreak === 1 ? 'pages.habits.streak.day' : 'pages.habits.streak.days';
+    }
+    return currentStreak === 1 ? 'pages.habits.streak.checkin' : 'pages.habits.streak.checkins';
+};
+
 const StreakWidget: React.FC<IStreakWidgetProps> = ({
     streak,
     title,
     compact = false,
     embedded = false,
+    cadenceKind,
     themeHabits,
     translate,
 }) => {
@@ -161,11 +191,7 @@ const StreakWidget: React.FC<IStreakWidgetProps> = ({
                 compact && themeHabits.styles.streakBadgeTextCompact,
             ]}>
                 {streak.currentStreak}{' '}
-                {translate(
-                    streak.currentStreak === 1
-                        ? 'pages.habits.streak.day'
-                        : 'pages.habits.streak.days',
-                )}
+                {translate(getStreakUnitKey(streak.currentStreak, cadenceKind))}
             </Text>
         </View>
     );

@@ -2139,10 +2139,12 @@
             "streak": {
                 "day": "jour",
                 "days": "jours",
+                "checkin": "enregistrement",
+                "checkins": "enregistrements",
                 "nextMilestone": "Prochain jalon : {days} jours",
                 "graceDaysRemaining": "Il te reste {count} gel(s) de série — si tu manques une journée, un gel te couvre automatiquement.",
                 "nextMilestoneCompact": "proch. {days} j",
-                "freezeRule": "Si tu manques une journée, un gel de série la couvre — tu commences avec {starting} et tu en gagnes un autre tous les {interval} jours, jusqu'à {max}.",
+                "freezeRule": "Si tu manques une journée que ton habitude demandait, un gel de série la couvre : tu commences avec {starting} et tu en gagnes un autre tous les {interval} suivis, jusqu'à {max}. Les jours que ta fréquence ne demande pas ne coûtent rien.",
                 "graceDaysExhausted": "Plus de gels de série — la prochaine journée manquée réinitialise la série. Tu en regagnes un à ton prochain jalon de 7 jours.",
                 "freezesLabel": "Gels de série {remaining}/{total}",
                 "freezePipsAccessibility": "Il reste {remaining} gels de série sur {total}"
@@ -2172,6 +2174,25 @@
                     "label": "Mises à jour du pacte",
                     "hint": "Invitations, acceptations, et quand un pacte se termine."
                 }
+            },
+            "cadence": {
+                "sectionLabel": "À quelle fréquence?",
+                "optionDaily": "Chaque jour",
+                "optionWeeklyCount": "{count}× par semaine",
+                "optionWeekdays": "Jours précis",
+                "increaseCount": "Une fois de plus par semaine",
+                "decreaseCount": "Une fois de moins par semaine",
+                "pickAtLeastOneDay": "Choisis au moins une journée.",
+                "restDayHint": "Une journée que ton habitude ne demande pas ne coûte rien : ni la série, ni un gel de série.",
+                "weekProgress": "{done} sur {target} cette semaine",
+                "weekProgressMet": "Semaine terminée : {done} sur {target}",
+                "editTitle": "Changer la fréquence",
+                "editForwardOnly": "Ta série est conservée. Le nouvel horaire commence aujourd'hui; les jours précédents gardent l'ancien.",
+                "editSave": "Enregistrer l'horaire",
+                "editCancel": "Annuler",
+                "editSaved": "Horaire mis à jour",
+                "editFailed": "Impossible de mettre à jour l'horaire. Réessaie.",
+                "streakUnitCheckins": "{count} suivis d'affilée"
             },
             "savings": {
                 "cardTitle": "Épargné jusqu’ici",
@@ -2358,7 +2379,8 @@
                 "pickPartnerFirstLocked": "Choisis un ami, ou invites-en {remaining} de plus pour débloquer les habitudes en solo",
                 "soloLockedTitle": "Invite {remaining} ami(s) de plus pour débloquer les habitudes en solo",
                 "soloLockedProgress": "{invited} amis invités sur {required}",
-                "freezeRule": "Si tu manques une journée, un gel de série la couvre — tu commences avec {starting} et tu en gagnes un autre tous les {interval} jours, jusqu'à {max}. La première mauvaise journée arrive à l'intérieur des règles.",
+                "freezeRule": "Si tu manques une journée que ton habitude demandait, un gel de série la couvre : tu commences avec {starting} et tu en gagnes un autre tous les {interval} suivis, jusqu'à {max}. Les jours que ta fréquence ne demande pas ne coûtent rien.",
+                "cadenceReview": "Fréquence : {cadence}",
                 "savingsToggleLabel": "Cette habitude vise à épargner de l’argent",
                 "savingsSectionTitle": "Objectif d’épargne",
                 "savingsTargetLabel": "Montant visé",
