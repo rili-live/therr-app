@@ -953,8 +953,12 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     // satisfied — which is false, and teaches people to ignore the warning that
                     // matters. `completionsBeforeYesterday` is the wrong tally for today, so
                     // the today-relative count is derived from it plus yesterday.
-                    const completionsBeforeToday = pactCadence.kind === 'weeklyQuota'
-                        ? completionsBeforeYesterday + (completedYesterday && yesterday >= getWeekStart(today) ? 1 : 0)
+                    // On a Monday yesterday belongs to the previous week, so none of that tally
+                    // carries over — carrying it would read last week's met quota as this week's
+                    // and silence the Monday nudge.
+                    const yesterdayIsThisWeek = yesterday >= getWeekStart(today);
+                    const completionsBeforeToday = pactCadence.kind === 'weeklyQuota' && yesterdayIsThisWeek
+                        ? completionsBeforeYesterday + (completedYesterday ? 1 : 0)
                         : 0;
                     const pactWantsMoreThisWeek = isQuotaUnmet(pactCadence, today, completionsBeforeToday);
                     if (!completedToday && pactWantsMoreThisWeek) {

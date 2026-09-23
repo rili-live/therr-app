@@ -106,6 +106,25 @@ export const getCadence = (goal?: ICadenceSource | null): Cadence => {
     return { kind: 'weeklyQuota', count };
 };
 
+/**
+ * Whether an edit to a goal changes what its cadence *means*, as opposed to how its columns are
+ * spelled. `patch` holds only the fields the edit supplies; an absent field keeps its old value.
+ *
+ * This is what decides whether an edit stamps `cadenceEffectiveFrom`. Stamping on every edit
+ * would be wrong in the lenient direction: renaming a daily habit would put its whole gap beyond
+ * evaluation and quietly forgive every day missed in it.
+ */
+export const hasCadenceChanged = (existing: ICadenceSource | null | undefined, patch: ICadenceSource): boolean => {
+    const pick = <K extends keyof ICadenceSource>(key: K) => (patch[key] !== undefined ? patch[key] : existing?.[key]);
+    const before = getCadence(existing);
+    const after = getCadence({
+        frequencyType: pick('frequencyType') as string | null | undefined,
+        frequencyCount: pick('frequencyCount') as number | null | undefined,
+        targetDaysOfWeek: pick('targetDaysOfWeek') as number[] | null | undefined,
+    });
+    return JSON.stringify(before) !== JSON.stringify(after);
+};
+
 /** How many check-ins a full Monday–Sunday week of this cadence calls for. */
 export const getWeeklyTarget = (cadence: Cadence): number => {
     if (cadence.kind === 'daily') {
@@ -259,6 +278,16 @@ export const countMissedPeriods = (cadence: Cadence, args: ICountMissedArgs): nu
         let missed = 0;
         const currentWeekStart = getWeekStart(throughDate);
         let weekStart = getWeekStart(from);
+        // A week the cadence only governed part of is not this cadence's to judge. When the
+        // effective date lands mid-week — the deploy that backfilled it, or a user's own edit —
+        // the first week held to the quota is the next full one, matching `computeRequiredDates`,
+        // which treats every day before `effectiveFrom` as not required.
+        if (effectiveFrom && isDateString(effectiveFrom) && effectiveFrom > getWeekStart(lastCompletedDate)) {
+            const effectiveWeekStart = getWeekStart(effectiveFrom);
+            weekStart = effectiveWeekStart === effectiveFrom
+                ? effectiveFrom
+                : addDays(effectiveWeekStart, DAYS_PER_WEEK);
+        }
 
         // The week of the last completion is only judged if it closed before `throughDate`.
         while (weekStart < currentWeekStart) {
