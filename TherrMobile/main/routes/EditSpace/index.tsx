@@ -14,6 +14,7 @@ import { IUserState, IMapState, IContentState } from 'therr-react/types';
 import { ILocationState } from '../../types/redux/location';
 import { MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
+import { getApiErrorDetail } from '../../utilities/apiErrorMessage';
 import { Categories, Content, FilePaths, IncentiveRewardKeys, IncentiveRequirementKeys } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
@@ -515,24 +516,18 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                     })
                     .catch((error: any) => {
                         // TODO: Delete uploaded file on failure to create
-                        let errorMsg: string;
-                        if (
-                            error.statusCode === 400 ||
-                            error.statusCode === 401 ||
-                            error.statusCode === 404
-                        ) {
-                            errorMsg = `${error.message}${
-                                error.parameters
-                                    ? '(' + error.parameters.toString() + ')'
-                                    : ''
-                            }`;
-                        } else {
-                            // Covers 5xx and errors with no statusCode (network
-                            // failure / timeout). Without an explicit reset here the
-                            // submit button spinner stayed active indefinitely on any
-                            // non-4xx failure, which presented as the form "hanging".
-                            errorMsg = this.translate('forms.editSpace.backendErrorMessage');
-                        }
+                        //
+                        // Covers 5xx and errors with no statusCode (network failure /
+                        // timeout). Without an explicit reset here the submit button
+                        // spinner stayed active indefinitely on any non-4xx failure,
+                        // which presented as the form "hanging".
+                        //
+                        // Unlike its four siblings this screen already handled every
+                        // branch; what it still did was render the API's body verbatim
+                        // on a 4xx, which getApiErrorDetail now withholds when the body
+                        // is an internal token rather than a sentence.
+                        const errorMsg = getApiErrorDetail(error)
+                            || this.translate('forms.editSpace.backendErrorMessage');
                         this.setState({
                             isSubmitting: false,
                             errorMsg,
