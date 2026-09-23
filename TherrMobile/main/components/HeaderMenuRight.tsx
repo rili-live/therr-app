@@ -802,6 +802,29 @@ class HeaderMenuRight extends React.PureComponent<
                                         }
                                     </View>
                                 </FeatureGate>
+                                {/*
+                                    Gated on achievements because the board ranks achievement XP —
+                                    a build without achievements has nothing to rank. Listed above
+                                    Achievements: it is the one users come back to week over week.
+                                */}
+                                <FeatureGate feature={FeatureFlags.ENABLE_ACHIEVEMENTS}>
+                                    <Drawer.Item
+                                        label={this.translate('components.headerMenuRight.menuItems.leaderboard')}
+                                        icon={() => (
+                                            <TherrIcon
+                                                style={
+                                                    currentScreen === 'Leaderboard'
+                                                        ? themeMenu.styles.iconStyleActive
+                                                        : themeMenu.styles.iconStyle
+                                                }
+                                                name="trophy"
+                                                size={24}
+                                            />
+                                        )}
+                                        active={currentScreen === 'Leaderboard'}
+                                        onPress={() => this.navTo('Leaderboard')}
+                                    />
+                                </FeatureGate>
                                 <FeatureGate feature={FeatureFlags.ENABLE_ACHIEVEMENTS}>
                                     <View style={themeMenu.styles.menuItemContainer}>
                                         <Drawer.Item

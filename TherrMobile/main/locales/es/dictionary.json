@@ -393,6 +393,7 @@
                 "home": "Inicio",
                 "feedback": "Compartir opinión",
                 "groups": "Grupos",
+                "leaderboard": "Tabla de clasificación",
                 "logout": "Cerrar sesión",
                 "map": "Mapa",
                 "moments": "Momentos",
@@ -2023,6 +2024,14 @@
             "yourHabits": "Tus hábitos",
             "todayProgress": "Hoy",
             "bestStreak": "Mejor racha",
+            "leaderboardRankTitle": "#{rank} esta semana",
+            "leaderboardRankSubtitle": "{points} XP · Ver la clasificación",
+            "leaderboardJoinTitle": "Clasificación de esta semana",
+            "leaderboardJoinSubtitle": "Registra tu progreso para ganar XP y conseguir tu lugar",
+            "rankUpToast": {
+                "title": "🏆 Subiste al #{rank} esta semana",
+                "body": "Toca para ver la tabla de clasificación"
+            },
             "currentStreak": "Racha actual",
             "longestStreak": "Racha más larga",
             "graceDays": "Congelamientos restantes",

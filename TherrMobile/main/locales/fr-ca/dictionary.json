@@ -393,6 +393,7 @@
                 "home": "Accueil",
                 "feedback": "Partager vos commentaires",
                 "groups": "Groupes",
+                "leaderboard": "Classement",
                 "logout": "Déconnexion",
                 "map": "Carte",
                 "moments": "Moments",
@@ -2023,6 +2024,14 @@
             "yourHabits": "Vos habitudes",
             "todayProgress": "Aujourd'hui",
             "bestStreak": "Meilleure série",
+            "leaderboardRankTitle": "#{rank} cette semaine",
+            "leaderboardRankSubtitle": "{points} XP · Voir le classement",
+            "leaderboardJoinTitle": "Classement de la semaine",
+            "leaderboardJoinSubtitle": "Enregistrez vos habitudes pour gagner des XP et prendre votre place",
+            "rankUpToast": {
+                "title": "🏆 Nouveau rang : #{rank} cette semaine",
+                "body": "Touchez pour voir le classement"
+            },
             "currentStreak": "Série actuelle",
             "longestStreak": "Plus longue série",
             "graceDays": "Gels de série restants",
