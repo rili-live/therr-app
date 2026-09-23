@@ -26,6 +26,22 @@
  *     undefined in every locale until 7070c93d9 defined them
  */
 
+/**
+ * The status and body of a failed API call, whichever shape it arrived in.
+ *
+ * The response interceptor (`main/interceptors.ts`) rejects with the response
+ * *body*, not the axios error, so `err.response` is undefined in every screen and
+ * the status survives only as the body's `statusCode` (the gateway echoes it). A
+ * handler reading `err.response.status` or `err.response.data` never matches: the
+ * pact wizard's paywall and solo-lock prompts, and the dashboard's "continue solo"
+ * lock message, all fell through to a generic error that way. The axios shape is
+ * still accepted so a request made outside the interceptor resolves the same way.
+ */
+export const readApiError = (err: any): { status?: number; body: any } => ({
+    status: Number(err?.response?.status ?? err?.statusCode) || undefined,
+    body: err?.response?.data ?? err,
+});
+
 /** `SQL:HABIT_CHECKINS_ROUTES:ERROR` and anything else SHOUTING_IN:COLONS. */
 const INTERNAL_TOKEN = /^[A-Z][A-Z0-9_]*(:[A-Z0-9_]+)+$/;
 

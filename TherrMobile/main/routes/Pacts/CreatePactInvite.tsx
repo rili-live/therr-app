@@ -49,23 +49,8 @@ import {
     isSoloReview,
 } from './wizardSteps';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
-
-/**
- * The status and body of a failed API call, whichever shape it arrived in.
- *
- * The response interceptor (`main/interceptors.ts`) rejects with the response
- * *body*, not the axios error, so `err.response` is undefined here and the
- * status survives only as the body's `statusCode` (the gateway echoes it). Both
- * refusal handlers below read `err.response.status`, so neither ever fired: a
- * 402 at the free-tier cap and a 403 solo lock both fell through to "We could
- * not start that habit", and the paywall was unreachable from this wizard.
- * The axios shape is still accepted so a request made outside the interceptor
- * resolves the same way.
- */
-const readApiError = (err: any): { status?: number; body: any } => ({
-    status: Number(err?.response?.status ?? err?.statusCode) || undefined,
-    body: err?.response?.data ?? err,
-});
+import { readApiError } from '../../utilities/apiErrorMessage';
+import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
 
 const MAX_PARTNERS = 5;
 const DEFAULT_PACT_DURATION_DAYS = 30;
@@ -613,27 +598,18 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      * generic error, so route to the offer instead of showing "something went
      * wrong" for something the user can actually act on.
      *
-     * Returns true when it handled the error.
-     *
-     * The flag check is not redundant with the 402: `UpgradePaywall` is
-     * registered conditionally on ENABLE_HABITS_LIFETIME_OFFER (see
-     * `routes/index.tsx`), so with the offer switched off `navigate` finds no
-     * matching screen and does nothing. Claiming to have handled the error
-     * would then swallow the toast too, and the button would look inert.
+     * Returns true when it handled the error — false with the offer switched
+     * off, when the paywall route is not registered (see
+     * utilities/habitCapPaywall), so the toast still shows.
      */
     handlePossiblePaywall = (err: any): boolean => {
-        const { status, body } = readApiError(err);
-        const isPaywallRouteAvailable = getConfig()
-            .featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true;
+        const paywallParams = getHabitCapPaywallParams(err);
 
-        if (status !== 402 || !isPaywallRouteAvailable) {
+        if (!paywallParams) {
             return false;
         }
 
-        this.props.navigation.navigate('UpgradePaywall', {
-            reason: body?.error || 'habit-limit-reached',
-            limit: body?.limit,
-        });
+        this.props.navigation.navigate('UpgradePaywall', paywallParams);
 
         return true;
     };
