@@ -2189,6 +2189,16 @@
                 "totalSavedOfGroupTarget": "de la meta del grupo de {target}",
                 "totalSavedOfTarget": "de tu meta de {target}",
                 "unknownMember": "Un compañero"
+            },
+            "widget": {
+                "friendsThisWeek": "Amigos esta semana",
+                "everyoneThisWeek": "Todos esta semana",
+                "amongFriends": "entre amigos",
+                "overall": "en general",
+                "habitsDone": "{done}/{total} hábitos",
+                "startHabit": "Empieza un hábito →",
+                "newWeek": "Empezó una nueva semana — toca para ver tu puesto",
+                "inviteFriends": "Invita a tus amigos a competir →"
             }
         },
         "pacts": {
