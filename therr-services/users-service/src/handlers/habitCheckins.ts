@@ -31,6 +31,7 @@ import { createReactions } from '../api/reactions';
 import { checkIsMediaSafeForWork } from './helpers';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { resolvePactPartnerIds } from './helpers/pactPartners';
+import { checkHabitCapacity } from './helpers/habitCapacity';
 import {
     awardStreakAchievement,
     awardConsistencyAchievement,
@@ -183,6 +184,33 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
     // checked into while missing from `user_habits` would be invisible on the
     // dashboard and uncounted by the free-tier cap. getOrCreate will not
     // resurrect a row the user archived.
+    //
+    // Creating that row takes a habit slot, so it is gated like every other
+    // entry point. "In practice the row exists" did not hold: the pact wizard
+    // creates the goal before the pact, so a pact refused at the cap left a
+    // goal with no tracking row, the dashboard listed it anyway, and checking
+    // into it here quietly started a sixth habit. A goal backing an active
+    // pact is exempt — that slot was paid for when the pact was created or
+    // accepted, and refusing a partner's check-in would break the pact.
+    //
+    // Judged per pact rather than on `pacts.length`: an explicit `pactId` is
+    // only checked for participation above, so any pact the user was ever in —
+    // ended, or for a different goal — would otherwise switch the gate off for
+    // every untracked goal.
+    const backsActivePact = pacts.some((p) => p.status === 'active' && p.habitGoalId === habitGoalId);
+
+    if (!backsActivePact) {
+        const existingTracking = await Store.userHabits.getByUserAndHabit(userId, habitGoalId);
+
+        if (!existingTracking) {
+            const denial = await checkHabitCapacity({ userId, brandVariation, locale });
+
+            if (denial) {
+                return res.status(402).send(denial);
+            }
+        }
+    }
+
     await Store.userHabits.getOrCreate(userId, habitGoalId);
 
     // The user's own calendar day for this check-in. Both dates are now resolved in the user's
