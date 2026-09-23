@@ -2084,7 +2084,8 @@
                 "sharedTitle": "Compartido en el feed",
                 "shareFailed": "No pudimos compartir este registro. Inténtalo más tarde.",
                 "save": "Guardar",
-                "addDetailPromptSavings": "Anota lo que ahorraste y agrega una nota o foto si quieres."
+                "addDetailPromptSavings": "Anota lo que ahorraste y agrega una nota o foto si quieres.",
+                "xpHint": "XP extra: +{notePoints} por una nota, +{photoPoints} por una foto. Haz ambas para +{bothPoints}."
             },
             "feed": {
                 "emptyMessage": "Aún no hay registros compartidos. Comparte uno de los tuyos para empezar el feed."
@@ -2115,10 +2116,13 @@
             },
             "checkinToast": {
                 "title": "Registrado: {habitName}",
-                "addDetailAction": "Toca para añadir una nota o foto",
+                "addDetailAction": "Toca para añadir una nota o foto y ganar XP extra",
                 "detailSavedTitle": "Guardado en el registro de hoy",
                 "freezeUsedTitle": "Tu racha de {count} días sobrevivió",
-                "freezeUsedBody": "Un congelamiento de racha cubrió el día que fallaste. Toca para añadir una nota o foto."
+                "freezeUsedBody": "Un congelamiento de racha cubrió el día que fallaste. Toca para añadir una nota o foto y ganar XP extra.",
+                "proofXpTitle": "+{points} XP extra por tu prueba",
+                "proofXpBodyPhoto": "Las fotos dan más XP. ¡Sigue así!",
+                "proofXpBodyNote": "¡Buena nota! Añade una foto la próxima vez para ganar +{photoPoints} XP más."
             },
             "frequency": {
                 "daily": "Cada día",
