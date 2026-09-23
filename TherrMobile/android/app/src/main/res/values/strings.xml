@@ -15,4 +15,7 @@
     <string name="habits_widget_label">Habits leaderboard</string>
     <string name="habits_widget_description">Your weekly rank, streak and today\'s check-ins</string>
     <string name="habits_widget_empty">Open Friends with Habits to see your progress</string>
+    <string name="habits_widget_loading">Loading your progress…</string>
+    <string name="habits_widget_refreshing">Refreshing…</string>
+    <string name="habits_widget_refresh_hint">Tap to refresh</string>
 </resources>

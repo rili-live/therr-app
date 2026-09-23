@@ -2219,7 +2219,13 @@
                 "habitsDone": "{done}/{total} habits",
                 "startHabit": "Start a habit →",
                 "newWeek": "New week started — tap to see your rank",
-                "inviteFriends": "Invite friends to compete →"
+                "inviteFriends": "Invite friends to compete →",
+                "refreshing": "Refreshing…",
+                "justNow": "just now",
+                "minutesAgo": "{minutes}m ago",
+                "hoursAgo": "{hours}h ago",
+                "daysAgo": "{days}d ago",
+                "refreshHint": "Updated {ago}. Tap to refresh"
             }
         },
         "pacts": {

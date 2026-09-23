@@ -34,7 +34,9 @@ import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
 import { DURATION, showToast } from '../../utilities/toasts';
-import { IHabitWithPactState, isPactSuperseded, splitHabitsByPactState } from './pactState';
+import {
+    countTodayProgress, IHabitWithPactState, isPactSuperseded, splitHabitsByPactState,
+} from './pactState';
 import { getNudgeErrorMessage, getNudgeOutcomeToast } from '../Pacts/nudgeOutcome';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 import getConfig from '../../utilities/getConfig';
@@ -380,18 +382,10 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         ));
     };
 
-    /**
-     * Today's completed check-ins over habits that can be checked in. Only habits with a live
-     * pact are checkin-able, so counting the pending ones in the denominator would make
-     * "today" unreachable. Shared by the progress card and the home-screen widget.
-     */
-    getTodayProgress = (liveHabits: IHabitWithPactState[]): { done: number; total: number } => {
-        const liveGoalIds = liveHabits.map(({ goal }) => goal.id);
-        const done = (this.props.habits?.todayCheckins || []).filter(
-            (c: IHabitCheckin) => c.status === 'completed' && liveGoalIds.includes(c.habitGoalId),
-        ).length;
-        return { done, total: liveHabits.length };
-    };
+    /** Today's completed check-ins over checkin-able habits; see `countTodayProgress`. */
+    getTodayProgress = (liveHabits: IHabitWithPactState[]): { done: number; total: number } => (
+        countTodayProgress(liveHabits, this.props.habits?.todayCheckins)
+    );
 
     /**
      * The "you climbed to #9" toast. It must not cost the check-in toast its screen time —

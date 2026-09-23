@@ -55,6 +55,21 @@
                 android:maxLines="1"
                 android:textColor="@color/habits_widget_text_muted"
                 android:textSize="11sp" />
+
+            <!-- Freshness: "↻ 5m ago", or "Refreshing…" while a background refresh runs.
+                 Tapping it asks for a refresh. Padded rather than margined so the tap target
+                 is wider than the text. -->
+            <TextView
+                android:id="@+id/widget_updated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:paddingStart="8dp"
+                android:paddingEnd="2dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:textColor="@color/habits_widget_text_muted"
+                android:textSize="11sp" />
         </LinearLayout>
 
         <!-- Your standing: rank, XP, daily streak -->
