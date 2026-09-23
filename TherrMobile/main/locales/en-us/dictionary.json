@@ -1900,6 +1900,7 @@
         },
         "settings": {
             "headerTitle": "Settings",
+            "pageHeaderMembership": "Membership",
             "pageHeaderDisplaySettings": "Display",
             "pageHeaderRewardsSettings": "Therr Rewards",
             "pageHeaderPrivacySettings": "Privacy Settings",
@@ -1930,6 +1931,17 @@
             },
             "alertMessages": {
                 "accountUpdated": "Successfully updated."
+            },
+            "membership": {
+                "founder": "Founding member",
+                "founderWithNumber": "Founder #{number}",
+                "premium": "Premium",
+                "premiumBody": "Billed monthly. Every feature unlocked.",
+                "entitledBody": "Every feature unlocked, for life.",
+                "founderOfferTitle": "Unlock everything for life",
+                "founderOfferBody": "One payment, no subscription. {remaining} founder spots left.",
+                "premiumOfferTitle": "Go premium",
+                "premiumOfferBody": "Unlimited habits and pacts, billed monthly. Cancel anytime."
             }
         },
         "socialSync": {
@@ -2220,6 +2232,12 @@
                 "startHabit": "Start a habit →",
                 "newWeek": "New week started — tap to see your rank",
                 "inviteFriends": "Invite friends to compete →"
+            },
+            "upgradeNudge": {
+                "nearCapTitle": "{used} of {limit} free habits in use",
+                "nearCapBody": "One slot left. Unlock unlimited habits for life.",
+                "atCapTitle": "All {limit} free habits in use",
+                "atCapBody": "Unlock unlimited habits and pacts, once, for life."
             }
         },
         "pacts": {
@@ -2388,7 +2406,9 @@
                 "savingsScopePerMemberLabel": "Each person saves this",
                 "savingsScopePerMemberHint": "Everyone works toward the amount on their own. Done when you have all reached it.",
                 "savingsScopeGroupLabel": "We save this together",
-                "savingsScopeGroupHint": "One shared pot. Done when your combined total reaches the amount."
+                "savingsScopeGroupHint": "One shared pot. Done when your combined total reaches the amount.",
+                "capacityNoticeTitle": "Your {limit} free habit slots are full",
+                "capacityNoticeBody": "This one needs a slot. Unlock unlimited habits, or archive one first."
             },
             "status": {
                 "pending": "Pending",
@@ -2605,6 +2625,10 @@
             "buttons": {
                 "previousWeek": "Earlier week",
                 "nextWeek": "Later week"
+            },
+            "founderCard": {
+                "title": "Keep every feature, for life",
+                "body": "One payment, no subscription. {remaining} founder spots left."
             }
         },
         "journal": {
@@ -2746,7 +2770,8 @@
             "actions": {
                 "continue": "Continue",
                 "seeLeaderboard": "See leaderboard",
-                "done": "Done"
+                "done": "Done",
+                "lockInForLife": "Lock in every feature for life"
             }
         }
     },

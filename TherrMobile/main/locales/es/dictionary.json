@@ -1900,6 +1900,7 @@
         },
         "settings": {
             "headerTitle": "Configuración",
+            "pageHeaderMembership": "Membresía",
             "pageHeaderDisplaySettings": "Pantalla",
             "pageHeaderRewardsSettings": "Therr Rewards",
             "pageHeaderPrivacySettings": "Configuración de privacidad",
@@ -1930,6 +1931,17 @@
             },
             "alertMessages": {
                 "accountUpdated": "Actualizado exitosamente."
+            },
+            "membership": {
+                "founder": "Miembro fundador",
+                "founderWithNumber": "Fundador n.º {number}",
+                "premium": "Premium",
+                "premiumBody": "Facturación mensual. Todas las funciones desbloqueadas.",
+                "entitledBody": "Todas las funciones desbloqueadas, de por vida.",
+                "founderOfferTitle": "Desbloquea todo de por vida",
+                "founderOfferBody": "Un solo pago, sin suscripción. Quedan {remaining} lugares de fundador.",
+                "premiumOfferTitle": "Hazte premium",
+                "premiumOfferBody": "Hábitos y pactos ilimitados, con facturación mensual. Cancela cuando quieras."
             }
         },
         "socialSync": {
@@ -2220,6 +2232,12 @@
                 "startHabit": "Empieza un hábito →",
                 "newWeek": "Empezó una nueva semana — toca para ver tu puesto",
                 "inviteFriends": "Invita a tus amigos a competir →"
+            },
+            "upgradeNudge": {
+                "nearCapTitle": "{used} de {limit} hábitos gratuitos en uso",
+                "nearCapBody": "Queda un espacio. Desbloquea hábitos ilimitados de por vida.",
+                "atCapTitle": "Los {limit} hábitos gratuitos están en uso",
+                "atCapBody": "Desbloquea hábitos y pactos ilimitados, con un solo pago, de por vida."
             }
         },
         "pacts": {
@@ -2388,7 +2406,9 @@
                 "savingsScopePerMemberLabel": "Cada persona ahorra esto",
                 "savingsScopePerMemberHint": "Cada quien avanza hacia el monto por su cuenta. Termina cuando todos lo alcancen.",
                 "savingsScopeGroupLabel": "Lo ahorramos juntos",
-                "savingsScopeGroupHint": "Un fondo compartido. Termina cuando el total combinado llegue al monto."
+                "savingsScopeGroupHint": "Un fondo compartido. Termina cuando el total combinado llegue al monto.",
+                "capacityNoticeTitle": "Tus {limit} espacios gratuitos están llenos",
+                "capacityNoticeBody": "Este hábito necesita un espacio. Desbloquea hábitos ilimitados o archiva uno primero."
             },
             "status": {
                 "pending": "Pendiente",
@@ -2605,6 +2625,10 @@
             "buttons": {
                 "previousWeek": "Semana anterior",
                 "nextWeek": "Semana siguiente"
+            },
+            "founderCard": {
+                "title": "Conserva todas las funciones, de por vida",
+                "body": "Un solo pago, sin suscripción. Quedan {remaining} lugares de fundador."
             }
         },
         "journal": {
@@ -2746,7 +2770,8 @@
             "actions": {
                 "continue": "Continuar",
                 "seeLeaderboard": "Ver clasificación",
-                "done": "Listo"
+                "done": "Listo",
+                "lockInForLife": "Asegura todas las funciones de por vida"
             }
         }
     },

@@ -2287,6 +2287,66 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingVertical: space.xxxl,
             alignItems: 'center',
         },
+
+        // Upgrade nudge — the one row every path to the paywall renders (see
+        // components/Habits/UpgradeNudgeCard). A brand-tinted band with a gold
+        // star, so it reads as the founder offer's colour wherever it appears
+        // and never as an error or a system notice.
+        upgradeNudge: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.md,
+            marginHorizontal: space.lg,
+            marginTop: space.md,
+            paddingVertical: space.md,
+            paddingHorizontal: space.lg,
+            borderRadius: radius.lg,
+            backgroundColor: tint(therrTheme.colors.brand, 0.10),
+            borderWidth: 1,
+            borderColor: tint(therrTheme.colors.brand, 0.25),
+        },
+        upgradeNudgeCard: {
+            marginTop: space.lg,
+            backgroundColor: therrTheme.colors.surface,
+            paddingVertical: space.lg,
+            ...shadowSm,
+        },
+        upgradeNudgeIconCircle: {
+            width: 36,
+            height: 36,
+            borderRadius: radius.circle,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: therrTheme.colors.brand,
+        },
+        upgradeNudgeIconCircleStatus: {
+            backgroundColor: tint(therrTheme.colors.brand, 0.14),
+        },
+        upgradeNudgeIcon: {
+            color: therrTheme.colors.accent,
+        },
+        upgradeNudgeIconStatus: {
+            color: therrTheme.colors.brand,
+        },
+        upgradeNudgeTextContainer: {
+            flex: 1,
+        },
+        upgradeNudgeTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.onSurface,
+        },
+        upgradeNudgeBody: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            lineHeight: fontSizes.xs * lineHeights.normal,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: 2,
+        },
+        upgradeNudgeChevron: {
+            color: therrTheme.colors.onSurfaceMuted,
+        },
     });
 
     return ({

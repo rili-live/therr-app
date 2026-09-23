@@ -13,9 +13,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import LottieView from 'lottie-react-native';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
-import { IUserState } from 'therr-react/types';
+import { IHabitsLifetimeOffer, IUserState } from 'therr-react/types';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import { shouldShowFounderCta } from '../../components/Habits/founderCtaState';
+import getConfig from '../../utilities/getConfig';
+import { logAppEvent } from '../../utilities/analyticsEvents';
 import WeekStrip from '../../components/Celebrations/WeekStrip';
 import { PlacementHero, StreakHero } from '../../components/Celebrations/CelebrationHero';
 import celebrationQueue, { ICelebration } from '../../utilities/celebrationQueue';
@@ -40,13 +44,19 @@ interface ICelebrationProps {
     // through one typed local below instead.
     route: any;
     user: IUserState;
+    /** Read, never fetched here: the dashboard that queued this screen loads it. */
+    lifetimeOffer?: IHabitsLifetimeOffer | null;
     markDailyStreakCelebrated: Function;
     acknowledgePlacement: Function;
 }
 
 const mapStateToProps = (state: any) => ({
     user: state.user,
+    lifetimeOffer: state.habits?.lifetimeOffer,
 });
+
+/** Where the screen goes after recording the dismissal, if anywhere. */
+type ICelebrationExit = 'leaderboard' | 'paywall';
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     markDailyStreakCelebrated: HabitActions.markDailyStreakCelebrated,
@@ -66,6 +76,7 @@ export const Celebration = ({
     navigation,
     route,
     user,
+    lifetimeOffer,
     markDailyStreakCelebrated,
     acknowledgePlacement,
 }: ICelebrationProps) => {
@@ -88,6 +99,26 @@ export const Celebration = ({
     );
 
     const isMilestone = celebration.type === 'streak' && celebration.milestone;
+
+    /**
+     * A milestone (7, 30, 100 days…) is the high point of the whole loop, and the
+     * one moment the founder offer reads as "lock in what you have built" rather
+     * than as a wall. Streak-day and placement screens never carry it — daily is
+     * too often to be asked. Fails closed on the same gate as every other door
+     * (`shouldShowFounderCta`): no offer loaded, entitled, sold out, or store
+     * unconfigured means no button.
+     */
+    const showFounderOffer = isMilestone
+        && getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true
+        && shouldShowFounderCta(lifetimeOffer);
+
+    useEffect(() => {
+        if (showFounderOffer) {
+            logAppEvent('habits_upgrade_nudge_view', { source: 'celebration-milestone' });
+        }
+        // Once per mount: the impression is the screen, not a re-render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         let isMounted = true;
@@ -156,7 +187,7 @@ export const Celebration = ({
      * is released in the unmount effect below rather than here, so the next celebration cannot
      * mount before this one is actually gone.
      */
-    const dismiss = useCallback((goToLeaderboard = false) => {
+    const dismiss = useCallback((exit?: ICelebrationExit) => {
         if (hasDismissedRef.current) {
             return;
         }
@@ -175,8 +206,10 @@ export const Celebration = ({
         }
 
         navigation.goBack();
-        if (goToLeaderboard) {
+        if (exit === 'leaderboard') {
             navigation.navigate('Leaderboard');
+        } else if (exit === 'paywall') {
+            navigation.navigate('UpgradePaywall', { source: 'celebration-milestone' });
         }
     }, [celebration, markDailyStreakCelebrated, acknowledgePlacement, navigation]);
 
@@ -322,7 +355,7 @@ export const Celebration = ({
                     <View style={themeCelebration.styles.actions}>
                         {isPlacement ? (
                             <Pressable
-                                onPress={() => dismiss(true)}
+                                onPress={() => dismiss('leaderboard')}
                                 accessibilityRole="button"
                                 style={[themeCelebration.styles.button, themeCelebration.styles.buttonPrimary]}
                             >
@@ -331,17 +364,28 @@ export const Celebration = ({
                                 </Text>
                             </Pressable>
                         ) : null}
+                        {showFounderOffer ? (
+                            <Pressable
+                                onPress={() => dismiss('paywall')}
+                                accessibilityRole="button"
+                                style={[themeCelebration.styles.button, themeCelebration.styles.buttonPrimary]}
+                            >
+                                <Text style={themeCelebration.styles.buttonPrimaryText}>
+                                    {translate('pages.celebration.actions.lockInForLife')}
+                                </Text>
+                            </Pressable>
+                        ) : null}
                         <Pressable
                             onPress={() => dismiss()}
                             accessibilityRole="button"
                             style={[
                                 themeCelebration.styles.button,
-                                isPlacement
+                                isPlacement || showFounderOffer
                                     ? themeCelebration.styles.buttonSecondary
                                     : themeCelebration.styles.buttonPrimary,
                             ]}
                         >
-                            <Text style={isPlacement
+                            <Text style={isPlacement || showFounderOffer
                                 ? themeCelebration.styles.buttonSecondaryText
                                 : themeCelebration.styles.buttonPrimaryText}
                             >

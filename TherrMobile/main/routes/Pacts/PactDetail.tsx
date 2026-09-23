@@ -7,6 +7,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
 import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
+import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
 import permissions from '../../utilities/permissionsOrchestrator';
 import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
 // Shared so the pending-pact wording can't drift between the card and this screen.
@@ -217,7 +218,16 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                 permissions.requestIfAppropriate('notifications', { trigger: 'pactAccept' });
                 this.handleRefresh();
             })
-            .catch(() => {
+            .catch((err) => {
+                // Accepting takes a habit slot, so at the free-tier cap the server
+                // answers 402 with paywall metadata. Route to the offer rather than
+                // telling someone their friend's invite is broken.
+                const paywallParams = getHabitCapPaywallParams(err, 'pact-accept');
+                if (paywallParams) {
+                    this.props.navigation.navigate('UpgradePaywall', paywallParams);
+                    return;
+                }
+
                 Toast.show({
                     type: 'error',
                     text1: this.translate('pages.pacts.errorTitle'),

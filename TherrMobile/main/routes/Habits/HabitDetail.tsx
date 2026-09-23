@@ -576,7 +576,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             .catch((err) => {
                 // A 402 is the free-tier cap refusing to start tracking this goal —
                 // route to the offer rather than reporting a failure.
-                const paywallParams = getHabitCapPaywallParams(err);
+                const paywallParams = getHabitCapPaywallParams(err, 'habit-detail');
                 if (paywallParams) {
                     this.props.navigation.navigate('UpgradePaywall', paywallParams);
                     return;

@@ -18,6 +18,7 @@ import { HabitActions } from 'therr-react/redux/actions';
 import {
     DEFAULT_SAVINGS_CURRENCY_CODE,
     FeatureFlags,
+    HABITS_FREE_HABIT_LIMIT,
     HabitGoalTypes,
     parseSavingsAmount,
     SavingsTargetScope,
@@ -26,7 +27,9 @@ import {
 import getConfig from '../../utilities/getConfig';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { streakFreezeRuleParams } from '../../utilities/streakFreezes';
+import { countActiveHabits, getHabitCapacityNudge } from '../../utilities/upgradeNudge';
 import CadencePicker from '../../components/Habits/CadencePicker';
+import UpgradeNudgeCard from '../../components/Habits/UpgradeNudgeCard';
 import {
     cacheKey as cadenceCacheKey,
     fromGoal as cadenceFromGoal,
@@ -83,6 +86,8 @@ interface IDispatchProps {
     bulkInvitePact: Function;
     startUserHabit: Function;
     getUserHabitEligibility: Function;
+    getLifetimeOffer?: Function;
+    getPremiumOffer?: Function;
     searchUsers: Function;
 }
 
@@ -138,6 +143,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     bulkInvitePact: HabitActions.bulkInvitePact,
     startUserHabit: HabitActions.startUserHabit,
     getUserHabitEligibility: HabitActions.getUserHabitEligibility,
+    getLifetimeOffer: HabitActions.getLifetimeOffer,
+    getPremiumOffer: HabitActions.getPremiumOffer,
     searchUsers: UsersActions.search,
 }, dispatch);
 
@@ -262,6 +269,13 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         // server would refuse the solo call anyway, and the user can still
         // finish the flow the normal way by choosing a partner.
         this.props.getUserHabitEligibility().catch(() => {});
+
+        // For the at-cap notice on step 1. Fire-and-forget: the notice fails
+        // closed without an offer, and a wizard must never wait on one.
+        if (getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true) {
+            this.props.getLifetimeOffer?.()?.catch?.(() => {});
+            this.props.getPremiumOffer?.()?.catch?.(() => {});
+        }
     }
 
     componentWillUnmount() {
@@ -677,7 +691,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      * utilities/habitCapPaywall), so the toast still shows.
      */
     handlePossiblePaywall = (err: any): boolean => {
-        const paywallParams = getHabitCapPaywallParams(err);
+        const paywallParams = getHabitCapPaywallParams(err, 'create-pact');
 
         if (!paywallParams) {
             return false;
@@ -918,6 +932,42 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         );
     };
 
+    /**
+     * Tells a user at the free-tier cap, on the first step, that the habit
+     * they are about to build will be refused on the last. The server still
+     * 402s the submit (and that path still routes to the paywall); this is
+     * so nobody assembles a three-step pact to find out. Only at the cap —
+     * one slot left is not a reason to interrupt someone who is using it.
+     */
+    renderCapacityNotice = () => {
+        const { habits, navigation } = this.props;
+        const nudge = getHabitCapacityNudge({
+            isOfferEnabled: getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true,
+            lifetimeOffer: habits.lifetimeOffer,
+            premiumOffer: habits.premiumOffer,
+            activeHabitCount: countActiveHabits(habits.userHabits),
+            limit: HABITS_FREE_HABIT_LIMIT,
+        });
+
+        if (!nudge || nudge.variant !== 'atCap') {
+            return null;
+        }
+
+        return (
+            <UpgradeNudgeCard
+                source="create-pact-wizard"
+                title={this.translate('pages.pacts.wizard.capacityNoticeTitle', { limit: nudge.limit })}
+                body={this.translate('pages.pacts.wizard.capacityNoticeBody')}
+                onPress={() => navigation.navigate('UpgradePaywall', {
+                    source: 'create-pact-wizard',
+                    reason: 'habit-limit-reached',
+                    limit: nudge.limit,
+                })}
+                themeHabits={this.themeHabits}
+            />
+        );
+    };
+
     renderStep1 = () => {
         const { habits } = this.props;
         const {
@@ -927,6 +977,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
 
         return (
             <View>
+                {this.renderCapacityNotice()}
                 <Text style={[this.themeHabits.styles.dashboardSubtitle, { paddingHorizontal: 20 }]}>
                     {this.translate('pages.pacts.wizard.step1Subtitle')}
                 </Text>

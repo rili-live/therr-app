@@ -7,8 +7,19 @@ import { Button } from '../../components/BaseButton';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
-import { IContentAlgorithmName, IMobileThemeName, IUserState } from 'therr-react/types';
-import { BrandVariations, Content, FilePaths, PasswordRegex } from 'therr-js-utilities/constants';
+import {
+    IContentAlgorithmName, IHabitsLifetimeOffer, IHabitsPremiumOffer, IMobileThemeName, IUserState,
+} from 'therr-react/types';
+import { HabitActions } from 'therr-react/redux/actions';
+import {
+    BrandVariations, Content, FeatureFlags, FilePaths, PasswordRegex,
+} from 'therr-js-utilities/constants';
+import getConfig from '../../utilities/getConfig';
+import { getMembershipStatus, isUpgradePurchasable } from '../../utilities/upgradeNudge';
+import { shouldShowFounderCta } from '../../components/Habits/founderCtaState';
+import UpgradeNudgeCard from '../../components/Habits/UpgradeNudgeCard';
+import { buildStyles as buildHabitStyles } from '../../styles/habits';
+import { formatSeatCount } from '../Habits/paywallPresentation';
 import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import { resolveMobileThemeName } from '../../styles/themes';
 import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
@@ -36,10 +47,14 @@ import spacingStyles from '../../styles/layouts/spacing';
 
 interface ISettingsDispatchProps {
     updateUser: Function;
+    getLifetimeOffer?: Function;
+    getPremiumOffer?: Function;
 }
 
 interface IStoreProps extends ISettingsDispatchProps {
     user: IUserState;
+    lifetimeOffer?: IHabitsLifetimeOffer | null;
+    premiumOffer?: IHabitsPremiumOffer | null;
 }
 
 // Regular component props
@@ -73,10 +88,14 @@ const PASSWORD_FIELDS = ['oldPassword', 'password', 'repeatPassword'];
 
 const mapStateToProps = (state) => ({
     user: state.user,
+    lifetimeOffer: state.habits?.lifetimeOffer,
+    premiumOffer: state.habits?.premiumOffer,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     updateUser: UsersActions.update,
+    getLifetimeOffer: HabitActions.getLifetimeOffer,
+    getPremiumOffer: HabitActions.getPremiumOffer,
 }, dispatch);
 
 export class Settings extends React.Component<ISettingsProps, ISettingsState> {
@@ -92,6 +111,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
     private themeMenu = buildMenuStyles();
     private themeForms = buildFormStyles();
     private themeSettingsForm = buildSettingsFormStyles();
+    private themeHabits = buildHabitStyles();
 
     constructor(props) {
         super(props);
@@ -131,6 +151,14 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             this.isUserSectionScrollPending = true;
             this.scrollToUserSection();
         }
+
+        // For the membership row. Fire-and-forget and flag-gated, as everywhere
+        // else: the row fails closed without an offer, and Settings must never
+        // wait on a purchase-offer lookup.
+        if (this.isUpgradeOfferEnabled()) {
+            this.props.getLifetimeOffer?.()?.catch?.(() => {});
+            this.props.getPremiumOffer?.()?.catch?.(() => {});
+        }
     };
 
     componentDidUpdate = (prevProps: ISettingsProps) => {
@@ -142,6 +170,88 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             this.isUserSectionScrollPending = true;
             this.scrollToUserSection();
         }
+    };
+
+    isUpgradeOfferEnabled = (): boolean => getConfig()
+        .featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true;
+
+    /**
+     * The membership section: what the account has, or the way to get it.
+     *
+     * Settings is where a user goes to find out what they are paying for, and
+     * where an app-store reviewer looks for the subscription. An entitled
+     * account gets a status row (founder number, monthly plan) that opens the
+     * paywall's "you're all set" state; a free account gets the offer. With no
+     * offer loaded, or nothing purchasable, the whole section is absent rather
+     * than a row that opens a screen with nothing on it.
+     */
+    renderMembershipSection = () => {
+        const { lifetimeOffer, premiumOffer, navigation, user } = this.props;
+
+        if (!this.isUpgradeOfferEnabled()) {
+            return null;
+        }
+
+        const status = getMembershipStatus(lifetimeOffer, premiumOffer);
+        let row: { title: string; body: string; isStatus: boolean } | null = null;
+
+        if (status?.kind === 'founder') {
+            row = {
+                title: status.founderNumber
+                    ? this.translate('pages.settings.membership.founderWithNumber', { number: status.founderNumber })
+                    : this.translate('pages.settings.membership.founder'),
+                body: this.translate('pages.settings.membership.entitledBody'),
+                isStatus: true,
+            };
+        } else if (status?.kind === 'premium') {
+            row = {
+                title: this.translate('pages.settings.membership.premium'),
+                body: this.translate('pages.settings.membership.premiumBody'),
+                isStatus: true,
+            };
+        } else if (status?.kind === 'entitled') {
+            row = {
+                title: this.translate('pages.settings.membership.premium'),
+                body: this.translate('pages.settings.membership.entitledBody'),
+                isStatus: true,
+            };
+        } else if (isUpgradePurchasable(lifetimeOffer, premiumOffer)) {
+            row = shouldShowFounderCta(lifetimeOffer)
+                ? {
+                    title: this.translate('pages.settings.membership.founderOfferTitle'),
+                    body: this.translate('pages.settings.membership.founderOfferBody', {
+                        remaining: formatSeatCount(lifetimeOffer?.remaining, user.settings?.locale || 'en-us'),
+                    }),
+                    isStatus: false,
+                }
+                : {
+                    title: this.translate('pages.settings.membership.premiumOfferTitle'),
+                    body: this.translate('pages.settings.membership.premiumOfferBody'),
+                    isStatus: false,
+                };
+        }
+
+        if (!row) {
+            return null;
+        }
+
+        return (
+            <>
+                <View style={this.theme.styles.sectionContainer}>
+                    <Text style={this.theme.styles.sectionTitle}>
+                        {this.translate('pages.settings.pageHeaderMembership')}
+                    </Text>
+                </View>
+                <UpgradeNudgeCard
+                    source="settings"
+                    title={row.title}
+                    body={row.body}
+                    isStatus={row.isStatus}
+                    onPress={() => navigation.navigate('UpgradePaywall', { source: 'settings' })}
+                    themeHabits={this.themeHabits}
+                />
+            </>
+        );
     };
 
     onUserSectionLayout = (event) => {
@@ -277,6 +387,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         this.themeMenu = buildMenuStyles(themeName);
         this.themeForms = buildFormStyles(themeName);
         this.themeSettingsForm = buildSettingsFormStyles(themeName);
+        this.themeHabits = buildHabitStyles(themeName);
     };
 
     onSubmit = () => {
@@ -549,6 +660,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                         style={this.theme.styles.scrollView}
                     >
                         <View style={this.theme.styles.body}>
+                            {this.renderMembershipSection()}
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>
                                     {pageHeaderPrivacySettings}

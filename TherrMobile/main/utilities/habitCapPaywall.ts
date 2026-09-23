@@ -1,10 +1,13 @@
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import getConfig from './getConfig';
 import { readApiError } from './apiErrorMessage';
+import { PaywallSource } from './upgradeNudge';
 
 export interface IHabitCapPaywallParams {
     reason: string;
     limit?: number;
+    /** Which action was refused, for the paywall's `habits_paywall_view` event. */
+    source?: PaywallSource;
 }
 
 /**
@@ -22,7 +25,7 @@ export interface IHabitCapPaywallParams {
  * navigating to an unregistered route is a silent no-op that would swallow the
  * error toast along with it.
  */
-export const getHabitCapPaywallParams = (err: any): IHabitCapPaywallParams | null => {
+export const getHabitCapPaywallParams = (err: any, source?: PaywallSource): IHabitCapPaywallParams | null => {
     const { status, body } = readApiError(err);
     const isPaywallRouteAvailable = getConfig()
         .featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true;
@@ -34,6 +37,7 @@ export const getHabitCapPaywallParams = (err: any): IHabitCapPaywallParams | nul
     return {
         reason: body?.error || 'habit-limit-reached',
         limit: body?.limit,
+        ...(source ? { source } : {}),
     };
 };
 

@@ -14,8 +14,10 @@ import SavingsAmountInput from './SavingsAmountInput';
 import SavingsProgressCard from './SavingsProgressCard';
 import SentInviteCard from './SentInviteCard';
 import StreakWidget from './StreakWidget';
+import UpgradeNudgeCard from './UpgradeNudgeCard';
 
 export {
+    UpgradeNudgeCard,
     CheckinButton,
     CheckinDayDetailSheet,
     CheckinDetailForm,
