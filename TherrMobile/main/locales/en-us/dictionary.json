@@ -2084,7 +2084,8 @@
                 "sharedTitle": "Shared to the feed",
                 "shareFailed": "We couldn't share this check-in. Try again later.",
                 "save": "Save",
-                "addDetailPromptSavings": "Record what you saved, and add a note or photo if you like."
+                "addDetailPromptSavings": "Record what you saved, and add a note or photo if you like.",
+                "xpHint": "Bonus XP: +{notePoints} for a note, +{photoPoints} for a photo. Do both for +{bothPoints}."
             },
             "feed": {
                 "emptyMessage": "No shared check-ins yet. Share one of yours to get the feed started."
@@ -2115,10 +2116,13 @@
             },
             "checkinToast": {
                 "title": "Checked in: {habitName}",
-                "addDetailAction": "Tap to add a note or photo",
+                "addDetailAction": "Tap to add a note or photo for bonus XP",
                 "detailSavedTitle": "Saved to today's check-in",
                 "freezeUsedTitle": "Your {count}-day streak survived",
-                "freezeUsedBody": "A streak freeze covered the day you missed. Tap to add a note or photo."
+                "freezeUsedBody": "A streak freeze covered the day you missed. Tap to add a note or photo for bonus XP.",
+                "proofXpTitle": "+{points} bonus XP for your proof",
+                "proofXpBodyPhoto": "Photo proof earns the most XP. Keep it up!",
+                "proofXpBodyNote": "Nice note! Add a photo next time for +{photoPoints} more XP."
             },
             "frequency": {
                 "daily": "Every day",

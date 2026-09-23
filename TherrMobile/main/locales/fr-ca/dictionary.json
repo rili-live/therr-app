@@ -2084,7 +2084,8 @@
                 "sharedTitle": "Partagé au fil",
                 "shareFailed": "Impossible de partager ce suivi. Réessayez plus tard.",
                 "save": "Enregistrer",
-                "addDetailPromptSavings": "Inscris ce que tu as épargné, et ajoute une note ou une photo si tu veux."
+                "addDetailPromptSavings": "Inscris ce que tu as épargné, et ajoute une note ou une photo si tu veux.",
+                "xpHint": "XP bonus : +{notePoints} pour une note, +{photoPoints} pour une photo. Les deux pour +{bothPoints}."
             },
             "feed": {
                 "emptyMessage": "Aucun suivi partagé pour l'instant. Partagez l'un des vôtres pour lancer le fil."
@@ -2115,10 +2116,13 @@
             },
             "checkinToast": {
                 "title": "Enregistré : {habitName}",
-                "addDetailAction": "Touchez pour ajouter une note ou une photo",
+                "addDetailAction": "Touchez pour ajouter une note ou une photo et gagner des XP bonus",
                 "detailSavedTitle": "Ajouté à l'enregistrement du jour",
                 "freezeUsedTitle": "Ta série de {count} jours a tenu",
-                "freezeUsedBody": "Un gel de série a couvert la journée manquée. Touche pour ajouter une note ou une photo."
+                "freezeUsedBody": "Un gel de série a couvert la journée manquée. Touche pour ajouter une note ou une photo et gagner des XP bonus.",
+                "proofXpTitle": "+{points} XP bonus pour ta preuve",
+                "proofXpBodyPhoto": "Les photos rapportent le plus de XP. Continue comme ça!",
+                "proofXpBodyNote": "Belle note! Ajoute une photo la prochaine fois pour +{photoPoints} XP de plus."
             },
             "frequency": {
                 "daily": "Chaque jour",
