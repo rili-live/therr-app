@@ -192,7 +192,14 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
     // into it here quietly started a sixth habit. A goal backing an active
     // pact is exempt — that slot was paid for when the pact was created or
     // accepted, and refusing a partner's check-in would break the pact.
-    if (!pacts.length) {
+    //
+    // Judged per pact rather than on `pacts.length`: an explicit `pactId` is
+    // only checked for participation above, so any pact the user was ever in —
+    // ended, or for a different goal — would otherwise switch the gate off for
+    // every untracked goal.
+    const backsActivePact = pacts.some((p) => p.status === 'active' && p.habitGoalId === habitGoalId);
+
+    if (!backsActivePact) {
         const existingTracking = await Store.userHabits.getByUserAndHabit(userId, habitGoalId);
 
         if (!existingTracking) {

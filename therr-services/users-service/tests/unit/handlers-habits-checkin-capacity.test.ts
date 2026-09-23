@@ -35,13 +35,13 @@ const buildRes = () => {
     };
 };
 
-const callHandler = async () => {
+const callHandler = async (bodyOverrides: Record<string, any> = {}) => {
     const { captured, res } = buildRes();
     let error: any;
     try {
         await createCheckin({
             headers: { 'x-userid': USER_ID, 'x-localecode': 'en-us', 'x-brand-variation': BrandVariations.HABITS },
-            body: { habitGoalId: GOAL_ID, status: 'completed' },
+            body: { habitGoalId: GOAL_ID, status: 'completed', ...bodyOverrides },
         } as any, res, (() => undefined) as any);
     } catch (err) {
         error = err;
@@ -96,12 +96,49 @@ describe('createCheckin — free-tier habit cap', () => {
     });
 
     it('does not gate a check-in on a goal backing an active pact', async () => {
-        getActivePactsStub.resolves([{ id: 'pact-1', habitGoalId: GOAL_ID }] as any);
+        getActivePactsStub.resolves([{ id: 'pact-1', habitGoalId: GOAL_ID, status: 'active' }] as any);
 
         const { captured, error } = await callHandler();
 
         expect(captured.statusCode).to.not.equal(402);
         expect(error).to.equal(PASSED_GATE);
         expect(getByUserAndHabitStub.called).to.equal(false);
+    });
+
+    // Regression: an explicit `pactId` is only checked for participation, so
+    // exempting on "any pact resolved" let a pact the user was ever in switch
+    // the cap off for every untracked goal.
+    describe('with an explicit pactId', () => {
+        const stubRequestedPact = (pact: Record<string, any>) => {
+            sinon.stub(Store.pacts, 'getById').resolves({ id: 'pact-1', creatorUserId: USER_ID, ...pact } as any);
+            sinon.stub(Store.pactMembers, 'getByPactAndUser').resolves(undefined);
+        };
+
+        it('still gates when the pact has ended', async () => {
+            stubRequestedPact({ habitGoalId: GOAL_ID, status: 'expired' });
+
+            const { captured } = await callHandler({ pactId: 'pact-1' });
+
+            expect(captured.statusCode).to.equal(402);
+            expect(getOrCreateStub.called, 'created a tracking row past the cap').to.equal(false);
+        });
+
+        it('still gates when the pact backs a different goal', async () => {
+            stubRequestedPact({ habitGoalId: 'cccccccc-0000-4000-8000-00000000000c', status: 'active' });
+
+            const { captured } = await callHandler({ pactId: 'pact-1' });
+
+            expect(captured.statusCode).to.equal(402);
+            expect(getOrCreateStub.called, 'created a tracking row past the cap').to.equal(false);
+        });
+
+        it('does not gate when the pact is active and backs this goal', async () => {
+            stubRequestedPact({ habitGoalId: GOAL_ID, status: 'active' });
+
+            const { captured, error } = await callHandler({ pactId: 'pact-1' });
+
+            expect(captured.statusCode).to.not.equal(402);
+            expect(error).to.equal(PASSED_GATE);
+        });
     });
 });
