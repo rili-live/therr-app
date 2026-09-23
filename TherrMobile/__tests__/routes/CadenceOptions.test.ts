@@ -1,5 +1,6 @@
 import {
     cacheKey,
+    canEditCadence,
     clampWeeklyCount,
     fromGoal,
     isComplete,
@@ -170,5 +171,25 @@ describe('cadenceOptions', () => {
                 .toEqual(true);
             expect(isSameCadence({ kind: 'daily' }, { kind: 'weeklyCount', count: 7 })).toEqual(false);
         });
+    });
+});
+
+describe('canEditCadence', () => {
+    it('hides the edit from a pact partner tracking a goal someone else created', () => {
+        // The server 403s this edit; showing the control only produced a generic error toast.
+        expect(canEditCadence({ createdByUserId: 'inviter', isTemplate: false }, 'partner')).toEqual(false);
+    });
+
+    it('hides the edit on a template', () => {
+        expect(canEditCadence({ createdByUserId: 'me', isTemplate: true }, 'me')).toEqual(false);
+    });
+
+    it('offers the edit to the goal\'s creator', () => {
+        expect(canEditCadence({ createdByUserId: 'me', isTemplate: false }, 'me')).toEqual(true);
+    });
+
+    it('offers nothing before the user or goal has loaded', () => {
+        expect(canEditCadence(undefined, 'me')).toEqual(false);
+        expect(canEditCadence({ createdByUserId: 'me', isTemplate: false }, undefined)).toEqual(false);
     });
 });

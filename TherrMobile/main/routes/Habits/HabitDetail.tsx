@@ -30,6 +30,7 @@ import {
 } from '../../components/Habits';
 import CadencePicker from '../../components/Habits/CadencePicker';
 import {
+    canEditCadence,
     fromGoal as cadenceFromGoal,
     isComplete as isCadenceComplete,
     isSameCadence,
@@ -332,7 +333,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
 
     handleEditCadencePress = () => {
         const habitGoal = this.getHabitGoal();
-        if (!habitGoal) {
+        if (!canEditCadence(habitGoal, this.props.user?.details?.id)) {
             return;
         }
         this.setState({ draftCadence: cadenceFromGoal(habitGoal) });
@@ -884,19 +885,21 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                     <Text style={this.themeHabits.styles.cadenceRowValue}>
                                         {this.describeCadence(habitGoal)}
                                     </Text>
-                                    <Pressable
-                                        accessibilityRole="button"
-                                        accessibilityLabel={this.translate('pages.habits.cadence.editTitle')}
-                                        onPress={this.handleEditCadencePress}
-                                        style={({ pressed }) => [
-                                            this.themeHabits.styles.cadenceRowEditButton,
-                                            pressed && this.themeHabits.styles.pressedOpacity,
-                                        ]}
-                                    >
-                                        <Text style={this.themeHabits.styles.cadenceRowEditText}>
-                                            {this.translate('pages.habits.cadence.editTitle')}
-                                        </Text>
-                                    </Pressable>
+                                    {canEditCadence(habitGoal, this.props.user?.details?.id) && (
+                                        <Pressable
+                                            accessibilityRole="button"
+                                            accessibilityLabel={this.translate('pages.habits.cadence.editTitle')}
+                                            onPress={this.handleEditCadencePress}
+                                            style={({ pressed }) => [
+                                                this.themeHabits.styles.cadenceRowEditButton,
+                                                pressed && this.themeHabits.styles.pressedOpacity,
+                                            ]}
+                                        >
+                                            <Text style={this.themeHabits.styles.cadenceRowEditText}>
+                                                {this.translate('pages.habits.cadence.editTitle')}
+                                            </Text>
+                                        </Pressable>
+                                    )}
                                 </View>
 
                                 {/*

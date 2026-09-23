@@ -192,3 +192,14 @@ export const cacheKey = (choice: CadenceChoice): string => {
 
 /** Whether two choices describe the same cadence — used to skip a no-op update request. */
 export const isSameCadence = (a: CadenceChoice, b: CadenceChoice): boolean => cacheKey(a) === cacheKey(b);
+
+/**
+ * Whether this user may change the goal's cadence. The server refuses an edit (403) from anyone
+ * but the goal's creator, and on a template outright — and a pact partner tracks the goal the
+ * inviter created, so offering them the control only leads to a generic failure toast. Hide it
+ * instead of letting it fail.
+ */
+export const canEditCadence = (
+    goal?: { createdByUserId?: string | null; isTemplate?: boolean | null } | null,
+    userId?: string | null,
+): boolean => !!goal && !!userId && !goal.isTemplate && goal.createdByUserId === userId;
