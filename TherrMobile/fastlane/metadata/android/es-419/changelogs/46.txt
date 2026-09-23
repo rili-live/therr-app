@@ -1,6 +1,7 @@
 Novedades:
-• Ajustes de notificaciones por hábito: conserva los recordatorios que quieras y silencia los que no, hábito por hábito — en el menú de cualquier hábito
-• Archiva un hábito que ya terminaste, desde su propia pantalla
-• Los hábitos nuevos ya no muestran "NaN" congelamientos antes del primer registro
-• Cuando algo falla, verás un mensaje entendible en vez de un código de error interno
+• Metas de ahorro: registra cuánto apartas en cada registro y mira cómo crece el total hacia tu meta
+• Clasificación semanal: ahora en el menú, con tu puesto en el panel y un aviso cuando un registro te hace subir
+• Ajustes de notificaciones por hábito, en el menú de cada hábito
+• Archiva un hábito desde su pantalla
+• Mensajes de error más claros y sin "NaN" en hábitos nuevos
 • Correcciones y mejoras

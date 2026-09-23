@@ -1,6 +1,7 @@
 What's new:
-• Notification settings per habit: keep the reminders you want and mute the ones you don't, habit by habit — under the menu on any habit
-• Archive a habit you're done with, straight from its detail screen
-• New habits no longer show "NaN" streak freezes before the first check-in
-• When something goes wrong, you get a message that reads like a sentence instead of an internal error code
+• Savings goals: log how much you set aside with each check-in and watch the total grow toward your target
+• Weekly leaderboard: now in the menu, with your rank on the dashboard and a heads-up when a check-in moves you up
+• Notification settings per habit, under the menu on any habit
+• Archive a habit from its detail screen
+• Clearer error messages, and no more "NaN" streak freezes on new habits
 • Fixes and stability improvements
