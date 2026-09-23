@@ -2651,9 +2651,13 @@
         },
         "upgrade": {
             "title": "Free for life",
-            "subtitle": "One payment. Every feature, forever. No subscription.",
-            "limitTitle": "You have reached your habit limit",
+            "subtitle": "Pay once, keep every feature forever. No subscription.",
+            "limitTitle": "You've reached the free limit",
             "limitSubtitle": "Free accounts track {limit} habits at a time. Archive one, or unlock everything for life.",
+            "limitMeterLabel": "All {limit} free slots in use",
+            "eyebrow": "Founder offer",
+            "oneTime": "One-time payment",
+            "priceCaption": "once, yours forever",
             "benefitsTitle": "What you get",
             "benefits": {
                 "unlimitedHabits": "Track as many habits as you want",
@@ -2663,12 +2667,19 @@
                 "noSubscription": "No subscription, ever"
             },
             "seatsRemaining": "{remaining} of {total} founder spots left",
-            "buyCta": "Unlock for life {price}",
+            "buyCta": "Unlock for life · {price}",
+            "buyCtaNoPrice": "Unlock for life",
+            "billingFootnote": "Billed once through Google Play. No subscription, ever.",
             "purchasing": "Completing purchase…",
+            "orDivider": "or",
+            "valueAnchor": "Founder access costs less than {months} months of the monthly plan.",
             "notNow": "Not now",
+            "done": "Done",
             "owned": "You already have lifetime access.",
             "ownedWithNumber": "You are founder #{number}.",
+            "entitledTitle": "You're all set",
             "soldOut": "All founder spots have been claimed.",
+            "unavailableTitle": "Nothing to buy here yet",
             "unavailable": "This offer is not available on your device right now.",
             "success": {
                 "title": "You are all set",
@@ -2682,6 +2693,8 @@
             },
             "premium": {
                 "sectionTitle": "Or subscribe monthly",
+                "planName": "Monthly",
+                "priceSuffix": "/ month",
                 "subtitle": "All premium features, billed monthly. Cancel anytime.",
                 "benefits": {
                     "unlimitedHabits": "Track as many habits as you want",
@@ -2689,9 +2702,10 @@
                     "allFeatures": "Every premium feature",
                     "cancelAnytime": "Cancel anytime"
                 },
-                "buyCta": "Subscribe for {price}",
+                "buyCta": "Subscribe · {price}",
                 "buyCtaNoPrice": "Subscribe monthly",
                 "subscribing": "Starting subscription…",
+                "unavailable": "The monthly plan is not available on this device right now.",
                 "owned": "You have an active premium subscription.",
                 "success": {
                     "title": "You are all set",

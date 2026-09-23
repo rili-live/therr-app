@@ -7,6 +7,8 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { HabitActions } from 'therr-react/redux/actions';
@@ -18,6 +20,11 @@ import { showToast } from '../../utilities/toasts';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
+import {
+    formatSeatCount,
+    getFounderValueAnchorMonths,
+    getSeatFillRatio,
+} from './paywallPresentation';
 import {
     endBilling,
     finishPurchase,
@@ -495,14 +502,321 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
         }
     };
 
+    getLocale = (): string => this.props.user.settings?.locale || 'en-us';
+
+    handleNotNow = () => {
+        this.props.navigation.goBack();
+    };
+
+    renderBenefit = (label: string, iconStyle: any, textStyle: any) => (
+        <View key={label} style={this.themeHabits.styles.paywallBenefitRow}>
+            <FontAwesome5Icon name="check-circle" solid size={16} style={iconStyle} />
+            <Text style={textStyle}>{label}</Text>
+        </View>
+    );
+
+    /**
+     * The header: what the user is being told and why they are here. From a 402
+     * it leads with the limit — and shows it, as a full row of pips — so the
+     * offer below reads as the way past something concrete rather than as an
+     * ad. Arriving by choice, it leads with the offer.
+     */
+    renderHeader = () => {
+        const { route } = this.props;
+        const reason = route?.params?.reason;
+        const isLimit = reason === 'habit-limit-reached';
+        const limit = Number(route?.params?.limit);
+        const hasLimit = Number.isFinite(limit) && limit > 0 && limit <= 12;
+
+        return (
+            <View style={this.themeHabits.styles.paywallHeader}>
+                {isLimit && hasLimit && (
+                    <View
+                        style={this.themeHabits.styles.paywallLimitMeter}
+                        accessibilityRole="text"
+                        accessibilityLabel={this.translate('pages.upgrade.limitMeterLabel', { limit })}
+                    >
+                        {Array.from({ length: limit }, (_, index) => (
+                            <View key={index} style={this.themeHabits.styles.paywallLimitPip} />
+                        ))}
+                        <Text style={this.themeHabits.styles.paywallLimitMeterLabel}>
+                            {this.translate('pages.upgrade.limitMeterLabel', { limit })}
+                        </Text>
+                    </View>
+                )}
+                <Text style={this.themeHabits.styles.dashboardGreeting}>
+                    {isLimit
+                        ? this.translate('pages.upgrade.limitTitle')
+                        : this.translate('pages.upgrade.title')}
+                </Text>
+                <Text style={this.themeHabits.styles.dashboardSubtitle}>
+                    {isLimit
+                        ? this.translate('pages.upgrade.limitSubtitle', {
+                            limit: route?.params?.limit ?? '',
+                        })
+                        : this.translate('pages.upgrade.subtitle')}
+                </Text>
+            </View>
+        );
+    };
+
+    /**
+     * The founder offer, as the one thing on the screen that looks like a
+     * product. Rendered whenever the offer exists — sold out included, since a
+     * user who has seen the offer advertised deserves to be told it is gone
+     * rather than to find it silently missing.
+     */
+    renderFounderCard = (canPurchase: boolean) => {
+        const { habits } = this.props;
+        const { isPurchasing, localizedPrice } = this.state;
+        const lifetimeOffer = habits.lifetimeOffer;
+        const { styles } = this.themeHabits;
+
+        if (!lifetimeOffer) {
+            return null;
+        }
+
+        const locale = this.getLocale();
+        const seatFill = getSeatFillRatio(lifetimeOffer);
+
+        return (
+            <LinearGradient
+                colors={this.themeHabits.paywallHeroGradientColors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.paywallHeroCard}
+            >
+                <View style={styles.paywallEyebrowRow}>
+                    <View style={styles.paywallEyebrowChip}>
+                        <FontAwesome5Icon name="star" solid size={11} style={styles.paywallEyebrowIcon} />
+                        <Text style={styles.paywallEyebrowText}>
+                            {this.translate('pages.upgrade.eyebrow')}
+                        </Text>
+                    </View>
+                    <Text style={styles.paywallEyebrowAside}>
+                        {this.translate('pages.upgrade.oneTime')}
+                    </Text>
+                </View>
+
+                <View style={styles.paywallPriceRow}>
+                    {!!localizedPrice && (
+                        <Text style={styles.paywallPrice}>{localizedPrice}</Text>
+                    )}
+                    <Text style={styles.paywallPriceCaption}>
+                        {this.translate('pages.upgrade.priceCaption')}
+                    </Text>
+                </View>
+
+                <Text style={styles.paywallHeroSubtitle}>
+                    {this.translate('pages.upgrade.benefitsTitle')}
+                </Text>
+                <View style={styles.paywallBenefitList}>
+                    {FOUNDER_BENEFIT_KEYS.map((key) => this.renderBenefit(
+                        this.translate(`pages.upgrade.benefits.${key}`),
+                        styles.paywallBenefitIcon,
+                        styles.paywallBenefitText,
+                    ))}
+                </View>
+
+                {/* Scarcity is only credible if it is real, so the remaining
+                    count comes from the server rather than from a hardcoded
+                    number — and the bar is drawn from the same figures. */}
+                <View
+                    style={styles.paywallSeatTrack}
+                    accessibilityRole="progressbar"
+                    accessibilityValue={{ min: 0, max: 100, now: Math.round(seatFill * 100) }}
+                >
+                    <View style={[styles.paywallSeatFill, { width: `${Math.round(seatFill * 100)}%` }]} />
+                </View>
+                <Text style={styles.paywallSeatCaption}>
+                    {lifetimeOffer.isSoldOut
+                        ? this.translate('pages.upgrade.soldOut')
+                        : this.translate('pages.upgrade.seatsRemaining', {
+                            remaining: formatSeatCount(lifetimeOffer.remaining, locale),
+                            total: formatSeatCount(lifetimeOffer.total, locale),
+                        })}
+                </Text>
+
+                {canPurchase && (
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityState={{ disabled: isPurchasing, busy: isPurchasing }}
+                        disabled={isPurchasing}
+                        style={({ pressed }) => [
+                            styles.paywallHeroCta,
+                            (pressed || isPurchasing) && styles.pressedOpacity,
+                        ]}
+                        onPress={this.handlePurchase}
+                    >
+                        {isPurchasing && (
+                            <ActivityIndicator
+                                size="small"
+                                color={this.themeHabits.colors.brandDark}
+                                style={styles.paywallCtaSpinner}
+                            />
+                        )}
+                        <Text style={styles.paywallHeroCtaText}>
+                            {isPurchasing
+                                ? this.translate('pages.upgrade.purchasing')
+                                : (localizedPrice
+                                    ? this.translate('pages.upgrade.buyCta', { price: localizedPrice })
+                                    : this.translate('pages.upgrade.buyCtaNoPrice'))}
+                        </Text>
+                    </Pressable>
+                )}
+
+                {/* Under a button: how it is billed. With no button (store not
+                    configured, or a platform without receipt verification):
+                    why there is none, in place of a promise about billing. */}
+                <Text style={styles.paywallHeroFootnote}>
+                    {canPurchase || lifetimeOffer.isSoldOut
+                        ? this.translate('pages.upgrade.billingFootnote')
+                        : this.translate('pages.upgrade.unavailable')}
+                </Text>
+            </LinearGradient>
+        );
+    };
+
+    /**
+     * The monthly plan. Deliberately the quieter of the two: its job is as much
+     * to make "once" look good as to sell itself. When the founder offer is
+     * gone it is the only thing for sale and takes the primary fill.
+     */
+    renderMonthlyCard = (canSubscribe: boolean, isFounderAvailable: boolean) => {
+        const { habits } = this.props;
+        const { isSubscribing, premiumPrice } = this.state;
+        const premiumOffer = habits.premiumOffer;
+        const { styles } = this.themeHabits;
+
+        if (!premiumOffer) {
+            return null;
+        }
+
+        const isStoreReachable = premiumOffer.isStoreConfigured && isBillingSupported();
+        const anchorMonths = isFounderAvailable
+            ? getFounderValueAnchorMonths(this.founderProduct, this.premiumProduct)
+            : null;
+
+        return (
+            <>
+                {isFounderAvailable && (
+                    <View style={styles.paywallDividerRow}>
+                        <View style={styles.paywallDividerLine} />
+                        <Text style={styles.paywallDividerText}>
+                            {this.translate('pages.upgrade.orDivider')}
+                        </Text>
+                        <View style={styles.paywallDividerLine} />
+                    </View>
+                )}
+                <View style={[styles.paywallPlanCard, !isFounderAvailable && styles.paywallPlanCardStandalone]}>
+                    <View style={styles.paywallPlanHeader}>
+                        <Text style={styles.paywallPlanName}>
+                            {this.translate('pages.upgrade.premium.planName')}
+                        </Text>
+                        {!!premiumPrice && (
+                            <View style={styles.paywallPlanPriceRow}>
+                                <Text style={styles.paywallPlanPrice}>{premiumPrice}</Text>
+                                <Text style={styles.paywallPlanPriceSuffix}>
+                                    {this.translate('pages.upgrade.premium.priceSuffix')}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+                    <Text style={styles.paywallPlanSubtitle}>
+                        {this.translate('pages.upgrade.premium.subtitle')}
+                    </Text>
+                    <View style={styles.paywallBenefitList}>
+                        {PREMIUM_BENEFIT_KEYS.map((key) => this.renderBenefit(
+                            this.translate(`pages.upgrade.premium.benefits.${key}`),
+                            styles.paywallPlanBenefitIcon,
+                            styles.paywallPlanBenefitText,
+                        ))}
+                    </View>
+
+                    {canSubscribe && (
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityState={{ disabled: isSubscribing, busy: isSubscribing }}
+                            disabled={isSubscribing}
+                            style={({ pressed }) => [
+                                styles.paywallSecondaryCta,
+                                !isFounderAvailable && styles.paywallSecondaryCtaFilled,
+                                (pressed || isSubscribing) && styles.pressedOpacity,
+                            ]}
+                            onPress={this.handleSubscribe}
+                        >
+                            {isSubscribing && (
+                                <ActivityIndicator
+                                    size="small"
+                                    color={isFounderAvailable
+                                        ? this.themeHabits.colors.brand
+                                        : this.themeHabits.colors.onBrand}
+                                    style={styles.paywallCtaSpinner}
+                                />
+                            )}
+                            <Text style={[
+                                styles.paywallSecondaryCtaText,
+                                !isFounderAvailable && styles.paywallSecondaryCtaTextFilled,
+                            ]}>
+                                {isSubscribing
+                                    ? this.translate('pages.upgrade.premium.subscribing')
+                                    : (premiumPrice
+                                        ? this.translate('pages.upgrade.premium.buyCta', { price: premiumPrice })
+                                        : this.translate('pages.upgrade.premium.buyCtaNoPrice'))}
+                            </Text>
+                        </Pressable>
+                    )}
+
+                    {/* The store is configured but the product (or its offer
+                        token) did not come back — the button would dead-end,
+                        so say so, in the card's own voice rather than the
+                        screen-wide "offer unavailable" line. */}
+                    {!canSubscribe && isStoreReachable && (
+                        <Text style={styles.paywallPlanFootnote}>
+                            {this.translate('pages.upgrade.premium.unavailable')}
+                        </Text>
+                    )}
+
+                    {canSubscribe && !!anchorMonths && (
+                        <Text style={styles.paywallPlanFootnote}>
+                            {this.translate('pages.upgrade.valueAnchor', { months: anchorMonths })}
+                        </Text>
+                    )}
+                </View>
+            </>
+        );
+    };
+
+    renderStatusCard = (title: string, body: string, buttonLabel: string) => {
+        const { styles } = this.themeHabits;
+
+        return (
+            <View style={styles.paywallStatusCard}>
+                <View style={styles.paywallStatusIconCircle}>
+                    <FontAwesome5Icon name="check" size={26} style={styles.paywallStatusIcon} />
+                </View>
+                <Text style={styles.paywallStatusTitle}>{title}</Text>
+                <Text style={styles.paywallStatusBody}>{body}</Text>
+                <Pressable
+                    accessibilityRole="button"
+                    style={({ pressed }) => [
+                        styles.emptyStateActionButton,
+                        pressed && styles.pressedOpacity,
+                    ]}
+                    onPress={this.handleNotNow}
+                >
+                    <Text style={styles.emptyStateActionLabel}>{buttonLabel}</Text>
+                </Pressable>
+            </View>
+        );
+    };
+
     render() {
-        const { habits, navigation, route } = this.props;
-        const {
-            isLoading, isPurchasing, isSubscribing, localizedPrice, premiumPrice, isPremiumReady,
-        } = this.state;
+        const { habits } = this.props;
+        const { isLoading, isPremiumReady } = this.state;
         const lifetimeOffer = habits.lifetimeOffer;
         const premiumOffer = habits.premiumOffer;
-        const reason = route?.params?.reason;
+        const { styles } = this.themeHabits;
 
         const isEntitled = !!lifetimeOffer?.isEntitled || !!premiumOffer?.isEntitled;
         const hasAnyOffer = !!lifetimeOffer || !!premiumOffer;
@@ -523,24 +837,11 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
                 <SafeAreaView edges={[]} style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colors.backgroundGray }]}>
-                    <ScrollView contentContainerStyle={this.themeHabits.styles.dashboardScrollContent}>
-                        <View style={this.themeHabits.styles.dashboardHeader}>
-                            <Text style={this.themeHabits.styles.dashboardGreeting}>
-                                {reason === 'habit-limit-reached'
-                                    ? this.translate('pages.upgrade.limitTitle')
-                                    : this.translate('pages.upgrade.title')}
-                            </Text>
-                            <Text style={this.themeHabits.styles.dashboardSubtitle}>
-                                {reason === 'habit-limit-reached'
-                                    ? this.translate('pages.upgrade.limitSubtitle', {
-                                        limit: route?.params?.limit ?? '',
-                                    })
-                                    : this.translate('pages.upgrade.subtitle')}
-                            </Text>
-                        </View>
+                    <ScrollView contentContainerStyle={styles.paywallScrollContent}>
+                        {this.renderHeader()}
 
                         {isLoading && (
-                            <View style={this.themeHabits.styles.emptyStateContainer}>
+                            <View style={styles.paywallLoading}>
                                 <ActivityIndicator size="large" color={this.themeHabits.colors.primary} />
                             </View>
                         )}
@@ -550,149 +851,35 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
                             branch the screen renders a title and nothing else,
                             including no way back, which strands anyone the 402
                             sent here. */}
-                        {!isLoading && !hasAnyOffer && (
-                            <View style={this.themeHabits.styles.dashboardSection}>
-                                <Text style={this.themeHabits.styles.dashboardSubtitle}>
-                                    {this.translate('pages.upgrade.unavailable')}
-                                </Text>
-                                <Pressable
-                                    accessibilityRole="button"
-                                    style={this.themeHabits.styles.emptyStateActionButton}
-                                    onPress={() => navigation.goBack()}
-                                >
-                                    <Text style={this.themeHabits.styles.emptyStateActionLabel}>
-                                        {this.translate('pages.upgrade.notNow')}
-                                    </Text>
-                                </Pressable>
-                            </View>
+                        {!isLoading && !hasAnyOffer && this.renderStatusCard(
+                            this.translate('pages.upgrade.unavailableTitle'),
+                            this.translate('pages.upgrade.unavailable'),
+                            this.translate('pages.upgrade.notNow'),
                         )}
 
-                        {!isLoading && isEntitled && (
-                            <View style={this.themeHabits.styles.dashboardSection}>
-                                <Text style={this.themeHabits.styles.dashboardSubtitle}>
-                                    {(() => {
-                                        const owned = getOwnedCopy(lifetimeOffer, premiumOffer);
-                                        return this.translate(owned.key, owned.params);
-                                    })()}
-                                </Text>
-                                <Pressable
-                                    accessibilityRole="button"
-                                    style={this.themeHabits.styles.emptyStateActionButton}
-                                    onPress={() => navigation.goBack()}
-                                >
-                                    <Text style={this.themeHabits.styles.emptyStateActionLabel}>
-                                        {this.translate('pages.upgrade.notNow')}
-                                    </Text>
-                                </Pressable>
-                            </View>
+                        {!isLoading && isEntitled && this.renderStatusCard(
+                            this.translate('pages.upgrade.entitledTitle'),
+                            (() => {
+                                const owned = getOwnedCopy(lifetimeOffer, premiumOffer);
+                                return this.translate(owned.key, owned.params);
+                            })(),
+                            this.translate('pages.upgrade.done'),
                         )}
 
-                        {/* Founder offer */}
-                        {!isLoading && !isEntitled && !!lifetimeOffer && (
-                            <View style={this.themeHabits.styles.dashboardSection}>
-                                <Text style={this.themeHabits.styles.dashboardSectionTitle}>
-                                    {this.translate('pages.upgrade.benefitsTitle')}
-                                </Text>
-                                {FOUNDER_BENEFIT_KEYS.map((key) => (
-                                    <Text key={key} style={this.themeHabits.styles.dashboardSubtitle}>
-                                        {`•  ${this.translate(`pages.upgrade.benefits.${key}`)}`}
-                                    </Text>
-                                ))}
+                        {!isLoading && !isEntitled && this.renderFounderCard(canPurchase)}
 
-                                {/* Scarcity is only credible if it is real, so the
-                                    remaining count comes from the server rather
-                                    than from a hardcoded number. */}
-                                {!lifetimeOffer.isSoldOut && (
-                                    <Text style={this.themeHabits.styles.dashboardSubtitle}>
-                                        {this.translate('pages.upgrade.seatsRemaining', {
-                                            remaining: lifetimeOffer.remaining,
-                                            total: lifetimeOffer.total,
-                                        })}
-                                    </Text>
-                                )}
-
-                                {lifetimeOffer.isSoldOut && (
-                                    <Text style={this.themeHabits.styles.dashboardSubtitle}>
-                                        {this.translate('pages.upgrade.soldOut')}
-                                    </Text>
-                                )}
-
-                                {canPurchase && (
-                                    <Pressable
-                                        accessibilityRole="button"
-                                        accessibilityState={{ disabled: isPurchasing }}
-                                        disabled={isPurchasing}
-                                        style={[
-                                            this.themeHabits.styles.emptyStateActionButton,
-                                            isPurchasing && { opacity: 0.6 },
-                                        ]}
-                                        onPress={this.handlePurchase}
-                                    >
-                                        <Text style={this.themeHabits.styles.emptyStateActionLabel}>
-                                            {isPurchasing
-                                                ? this.translate('pages.upgrade.purchasing')
-                                                : this.translate('pages.upgrade.buyCta', {
-                                                    price: localizedPrice || '',
-                                                })}
-                                        </Text>
-                                    </Pressable>
-                                )}
-                            </View>
-                        )}
-
-                        {/* Premium subscription */}
-                        {!isLoading && !isEntitled && !!premiumOffer && (
-                            <View style={this.themeHabits.styles.dashboardSection}>
-                                <Text style={this.themeHabits.styles.dashboardSectionTitle}>
-                                    {this.translate('pages.upgrade.premium.sectionTitle')}
-                                </Text>
-                                <Text style={this.themeHabits.styles.dashboardSubtitle}>
-                                    {this.translate('pages.upgrade.premium.subtitle')}
-                                </Text>
-                                {PREMIUM_BENEFIT_KEYS.map((key) => (
-                                    <Text key={key} style={this.themeHabits.styles.dashboardSubtitle}>
-                                        {`•  ${this.translate(`pages.upgrade.premium.benefits.${key}`)}`}
-                                    </Text>
-                                ))}
-
-                                {canSubscribe && (
-                                    <Pressable
-                                        accessibilityRole="button"
-                                        accessibilityState={{ disabled: isSubscribing }}
-                                        disabled={isSubscribing}
-                                        style={[
-                                            this.themeHabits.styles.emptyStateActionButton,
-                                            isSubscribing && { opacity: 0.6 },
-                                        ]}
-                                        onPress={this.handleSubscribe}
-                                    >
-                                        <Text style={this.themeHabits.styles.emptyStateActionLabel}>
-                                            {isSubscribing
-                                                ? this.translate('pages.upgrade.premium.subscribing')
-                                                : (premiumPrice
-                                                    ? this.translate('pages.upgrade.premium.buyCta', {
-                                                        price: premiumPrice,
-                                                    })
-                                                    : this.translate('pages.upgrade.premium.buyCtaNoPrice'))}
-                                        </Text>
-                                    </Pressable>
-                                )}
-
-                                {!canSubscribe && premiumOffer.isStoreConfigured && isBillingSupported() && (
-                                    <Text style={this.themeHabits.styles.dashboardSubtitle}>
-                                        {this.translate('pages.upgrade.unavailable')}
-                                    </Text>
-                                )}
-                            </View>
-                        )}
+                        {!isLoading && !isEntitled && this.renderMonthlyCard(canSubscribe, canPurchase)}
 
                         {!isLoading && hasAnyOffer && !isEntitled && (
                             <Pressable
                                 accessibilityRole="button"
-                                style={this.themeHabits.styles.emptyStateActionButton}
-                                onPress={() => navigation.goBack()}
+                                style={({ pressed }) => [
+                                    styles.paywallTextLink,
+                                    pressed && styles.pressedOpacity,
+                                ]}
+                                onPress={this.handleNotNow}
                             >
-                                <Text style={this.themeHabits.styles.emptyStateActionLabel}>
+                                <Text style={styles.paywallTextLinkLabel}>
                                     {this.translate('pages.upgrade.notNow')}
                                 </Text>
                             </Pressable>
@@ -705,3 +892,4 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(UpgradePaywall);
+
