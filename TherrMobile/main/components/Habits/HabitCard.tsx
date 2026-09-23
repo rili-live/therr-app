@@ -209,6 +209,7 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                     streak={streak}
                     compact
                     embedded
+                    cadenceKind={fromGoal(habitGoal).kind}
                     themeHabits={themeHabits}
                     translate={translate}
                 />

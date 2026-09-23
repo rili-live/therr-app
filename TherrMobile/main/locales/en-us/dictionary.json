@@ -2139,6 +2139,8 @@
             "streak": {
                 "day": "day",
                 "days": "days",
+                "checkin": "check-in",
+                "checkins": "check-ins",
                 "nextMilestone": "Next milestone: {days} days",
                 "graceDaysRemaining": "{count} streak freeze(s) left — miss a day and one covers you automatically.",
                 "nextMilestoneCompact": "next {days}d",

@@ -628,6 +628,40 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.accent,
         },
 
+        // The habit detail screen's cadence line. Sits inside the stats card, so it carries no
+        // surface of its own — only a rule above it separating it from the two stat tiles.
+        cadenceRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: space.sm,
+            paddingTop: space.sm,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: tint(therrTheme.colors.onSurface, 0.16),
+        },
+        cadenceRowLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        cadenceRowValue: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+            flex: 1,
+            marginLeft: space.xs,
+        },
+        cadenceRowEditButton: {
+            paddingVertical: space.xs,
+            paddingHorizontal: space.sm,
+        },
+        cadenceRowEditText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.brand,
+        },
+
         habitCardFooter: {
             flexDirection: 'row',
             alignItems: 'center',

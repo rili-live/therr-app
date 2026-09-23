@@ -2139,6 +2139,8 @@
             "streak": {
                 "day": "jour",
                 "days": "jours",
+                "checkin": "enregistrement",
+                "checkins": "enregistrements",
                 "nextMilestone": "Prochain jalon : {days} jours",
                 "graceDaysRemaining": "Il te reste {count} gel(s) de série — si tu manques une journée, un gel te couvre automatiquement.",
                 "nextMilestoneCompact": "proch. {days} j",

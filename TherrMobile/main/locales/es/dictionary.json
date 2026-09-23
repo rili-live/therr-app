@@ -2139,6 +2139,8 @@
             "streak": {
                 "day": "día",
                 "days": "días",
+                "checkin": "registro",
+                "checkins": "registros",
                 "nextMilestone": "Próximo hito: {days} días",
                 "graceDaysRemaining": "Te queda(n) {count} congelamiento(s) de racha — si fallas un día, uno te cubre automáticamente.",
                 "nextMilestoneCompact": "próx. {days} d",
