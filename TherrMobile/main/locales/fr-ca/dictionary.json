@@ -2645,9 +2645,13 @@
         },
         "upgrade": {
             "title": "Gratuit à vie",
-            "subtitle": "Un seul paiement. Toutes les fonctionnalités, pour toujours. Sans abonnement.",
-            "limitTitle": "Tu as atteint ta limite d'habitudes",
+            "subtitle": "Paie une seule fois et garde toutes les fonctionnalités pour toujours. Sans abonnement.",
+            "limitTitle": "Tu as atteint la limite gratuite",
             "limitSubtitle": "Les comptes gratuits suivent {limit} habitudes à la fois. Archives-en une ou débloque tout à vie.",
+            "limitMeterLabel": "Les {limit} places gratuites sont utilisées",
+            "eyebrow": "Offre fondateur",
+            "oneTime": "Paiement unique",
+            "priceCaption": "une fois, à toi pour toujours",
             "benefitsTitle": "Ce que tu obtiens",
             "benefits": {
                 "unlimitedHabits": "Suis autant d'habitudes que tu veux",
@@ -2657,12 +2661,19 @@
                 "noSubscription": "Jamais d'abonnement"
             },
             "seatsRemaining": "Il reste {remaining} places de fondateur sur {total}",
-            "buyCta": "Débloquer à vie {price}",
+            "buyCta": "Débloquer à vie · {price}",
+            "buyCtaNoPrice": "Débloquer à vie",
+            "billingFootnote": "Facturé une seule fois via Google Play. Jamais d'abonnement.",
             "purchasing": "Achat en cours…",
+            "orDivider": "ou",
+            "valueAnchor": "L'accès fondateur coûte moins que {months} mois du forfait mensuel.",
             "notNow": "Pas maintenant",
+            "done": "Terminé",
             "owned": "Tu as déjà l'accès à vie.",
             "ownedWithNumber": "Tu es le fondateur nº {number}.",
+            "entitledTitle": "Tout est prêt",
             "soldOut": "Toutes les places de fondateur ont été réclamées.",
+            "unavailableTitle": "Rien à acheter ici pour le moment",
             "unavailable": "Cette offre n'est pas disponible sur ton appareil pour le moment.",
             "success": {
                 "title": "Tout est prêt",
@@ -2676,6 +2687,8 @@
             },
             "premium": {
                 "sectionTitle": "Ou abonne-toi chaque mois",
+                "planName": "Mensuel",
+                "priceSuffix": "/ mois",
                 "subtitle": "Toutes les fonctionnalités premium, facturées mensuellement. Annule à tout moment.",
                 "benefits": {
                     "unlimitedHabits": "Suis autant d'habitudes que tu veux",
@@ -2683,9 +2696,10 @@
                     "allFeatures": "Toutes les fonctionnalités premium",
                     "cancelAnytime": "Annule à tout moment"
                 },
-                "buyCta": "S'abonner pour {price}",
+                "buyCta": "S'abonner · {price}",
                 "buyCtaNoPrice": "S'abonner chaque mois",
                 "subscribing": "Démarrage de l'abonnement…",
+                "unavailable": "Le forfait mensuel n'est pas disponible sur ton appareil pour le moment.",
                 "owned": "Tu as un abonnement premium actif.",
                 "success": {
                     "title": "Tout est prêt",
