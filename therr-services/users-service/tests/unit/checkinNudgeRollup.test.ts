@@ -134,6 +134,50 @@ describe('check-in nudge roll-up', () => {
         });
     });
 
+    describe('savings prompt', () => {
+        it('carries the savings flag and currency on a single-habit nudge', () => {
+            // This is what turns the notification's "Check In" button into one that
+            // asks how much was put away — the whole point being that a user who
+            // checks in from the tray is the user who will not open the app later to
+            // add the amount.
+            const acc = createCheckinNudgeAccumulator();
+            acc.add(USER_A, {
+                habitGoalId: 'g1', habitName: 'Trip fund', isSavingsGoal: true, currencyCode: 'USD',
+            });
+
+            const [row] = acc.drain();
+
+            expect(row.payload.isSavingsGoal).to.equal(true);
+            expect(row.payload.currencyCode).to.equal('USD');
+        });
+
+        it('drops the prompt once the nudge covers more than one habit', () => {
+            // An amount typed into a nudge spanning three habits has no unambiguous
+            // habit to be recorded against — the same rule `habitGoalId` follows.
+            const acc = createCheckinNudgeAccumulator();
+            acc.add(USER_A, {
+                habitGoalId: 'g1', habitName: 'Trip fund', isSavingsGoal: true, currencyCode: 'USD',
+            });
+            acc.add(USER_A, { habitGoalId: 'g2', habitName: 'Gym' });
+
+            const [row] = acc.drain();
+
+            expect(row.payload.isSavingsGoal).to.equal(undefined);
+            expect(row.payload.currencyCode).to.equal(undefined);
+        });
+
+        it('leaves the flag undefined rather than false on an ordinary habit', () => {
+            // FCM's data map is string->string, so a `false` here would ship as the
+            // string "false" — which is truthy on the device.
+            const acc = createCheckinNudgeAccumulator();
+            acc.add(USER_A, { habitGoalId: 'g1', habitName: 'Reading' });
+
+            const [row] = acc.drain();
+
+            expect(row.payload.isSavingsGoal).to.equal(undefined);
+        });
+    });
+
     it('ignores entries with nothing to address', () => {
         const acc = createCheckinNudgeAccumulator();
         acc.add('', { habitGoalId: 'g1', habitName: 'Reading' });
@@ -141,6 +185,63 @@ describe('check-in nudge roll-up', () => {
 
         expect(acc.drain()).to.have.length(0);
         expect(acc.candidateCount()).to.equal(0);
+    });
+
+    /**
+     * A habit whose per-habit `notifyStreakAlerts` is off still belongs in the
+     * roll-up — the user asked to keep the ordinary reminder — but it must not
+     * contribute a streak to it. Without that, the loss-aversion framing they
+     * declined arrives anyway, and `hasLiveStreak` earns them the evening "last
+     * chance" push on top of the morning one.
+     */
+    describe('a habit with streak alerts muted', () => {
+        it('does not turn the nudge into a streak warning on its own', () => {
+            const acc = createCheckinNudgeAccumulator();
+            acc.add(USER_A, {
+                habitGoalId: 'g1',
+                habitName: 'Gym',
+                streakCount: 12,
+                allowsStreakAlerts: false,
+            });
+
+            const [row] = acc.drain();
+
+            expect(row.type).to.equal(PushNotifications.Types.dailyHabitReminder);
+            expect(row.payload.streakCount).to.equal(0);
+            // No live streak the user is willing to hear about → no second push.
+            expect(row.hasLiveStreak).to.equal(false);
+        });
+
+        it('does not lead the copy over a habit that did keep its alerts', () => {
+            const acc = createCheckinNudgeAccumulator();
+            acc.add(USER_A, {
+                habitGoalId: 'g1', habitName: 'Gym', streakCount: 40, allowsStreakAlerts: false,
+            });
+            acc.add(USER_A, {
+                habitGoalId: 'g2', habitName: 'Reading', streakCount: 3, allowsStreakAlerts: true,
+            });
+
+            const [row] = acc.drain();
+
+            expect(row.type).to.equal(PushNotifications.Types.streakAtRisk);
+            expect(row.payload.habitName).to.equal('Reading');
+            expect(row.payload.streakCount).to.equal(3);
+            expect(row.hasLiveStreak).to.equal(true);
+            // Both habits are still covered; only the framing is the quiet one's.
+            expect(row.payload.habitCount).to.equal(2);
+            expect(row.payload.habitGoalIds).to.have.members(['g1', 'g2']);
+        });
+
+        it('treats an absent flag as opted in, for callers written before it existed', () => {
+            const acc = createCheckinNudgeAccumulator();
+            acc.add(USER_A, { habitGoalId: 'g1', habitName: 'Gym', streakCount: 9 });
+
+            const [row] = acc.drain();
+
+            expect(row.type).to.equal(PushNotifications.Types.streakAtRisk);
+            expect(row.payload.streakCount).to.equal(9);
+            expect(row.hasLiveStreak).to.equal(true);
+        });
     });
 
     it('writes a key stamped with the day and nothing time-varying', () => {

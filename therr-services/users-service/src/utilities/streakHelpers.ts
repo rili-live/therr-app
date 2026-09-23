@@ -108,10 +108,23 @@ export const normalizeDateString = (date: string | Date): string => {
  */
 
 /**
- * Maximum earnable streak freezes (grace days). New streaks start with 1;
- * each 7+ day milestone earns one more, capped here.
+ * Maximum earnable streak freezes (grace days). New streaks start with
+ * DEFAULT_STARTING_GRACE_PERIOD_DAYS; each 7+ day milestone earns one more,
+ * capped here.
  */
 export const MAX_GRACE_PERIOD_DAYS = 3;
+
+/**
+ * Streak freezes a habit starts with, before any milestone has been crossed.
+ *
+ * Exported so that the two places that have to agree actually do: `StreaksStore.create`,
+ * which writes it on the first check-in, and `getStreakByHabit`, which has to describe a
+ * habit that has no streak row yet. They disagreed silently before — the placeholder the
+ * endpoint returned for a brand-new habit carried no grace fields at all, so the mobile
+ * stat tile rendered `undefined - undefined` and showed the user "NaN streak freezes left"
+ * from the moment they created a habit until their first check-in.
+ */
+export const DEFAULT_STARTING_GRACE_PERIOD_DAYS = 1;
 
 /**
  * Format streak for display

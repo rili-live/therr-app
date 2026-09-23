@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import {
-    ErrorCodes, HabitGoalType, HABIT_CHECKIN_THOUGHT_CATEGORY, MetricNames, PushNotifications,
+    ErrorCodes, HabitGoalType, HABIT_CHECKIN_THOUGHT_CATEGORY, MetricNames, PushNotifications, parseSavingsAmount,
 } from 'therr-js-utilities/constants';
 import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
@@ -11,6 +11,7 @@ import translate from '../utilities/translator';
 import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
 import enqueueNotification from '../utilities/enqueueNotification';
 import { resolveUserDisplayName } from '../utilities/notificationNames';
+import { createHabitNotificationPreferenceResolver } from '../utilities/habitNotificationPreferences';
 import {
     checkMilestoneReached,
     isComebackStart,
@@ -27,12 +28,15 @@ import {
 import { isUserInPact } from '../utilities/pactHelpers';
 import { computeNextPactStreak, hasReachedMajority } from '../utilities/pactStreak';
 import { canReadProofs, serializeProofs } from '../utilities/checkinProofs';
+import { SAVINGS_AMOUNT_ERROR_KEYS } from '../utilities/savingsProgress';
+import { evaluateSavingsAfterCheckin } from './helpers/savings';
 import moderateProofs from '../utilities/moderateProofs';
 import { copyProofToPublicBucket, deleteSharedCheckinPublicObject } from '../utilities/shareCheckinMedia';
 import { createReactions } from '../api/reactions';
 import { checkIsMediaSafeForWork } from './helpers';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { resolvePactPartnerIds } from './helpers/pactPartners';
+import { checkHabitCapacity } from './helpers/habitCapacity';
 import {
     awardStreakAchievement,
     awardConsistencyAchievement,
@@ -84,6 +88,37 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
     } = req.body;
 
     const hasProof = Array.isArray(proofMedias) && proofMedias.length > 0;
+
+    // How much this check-in put away, on a savings habit.
+    //
+    // Parsed through the shared isomorphic parser rather than `Number()` because this
+    // endpoint has two callers with very different input hygiene: the check-in form,
+    // which sends a number, and the notification quick-reply, which sends whatever the
+    // user typed into a system text field ("$20", "20,00", " 20 "). See
+    // `parseSavingsAmount`.
+    //
+    // Three states, and they are not interchangeable:
+    //   - key absent          → undefined → the upsert leaves any existing amount alone,
+    //                           which is what an "add a note" edit must do.
+    //   - key present, empty  → null      → clear a previously recorded amount.
+    //   - key present, valued → the amount.
+    let savedAmount: number | null | undefined;
+    if ('savedAmount' in req.body) {
+        if (req.body.savedAmount === null || req.body.savedAmount === '') {
+            savedAmount = null;
+        } else {
+            const parsedAmount = parseSavingsAmount(req.body.savedAmount);
+            if (parsedAmount.error) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, SAVINGS_AMOUNT_ERROR_KEYS[parsedAmount.error]),
+                    statusCode: 400,
+                    errorCode: ErrorCodes.BAD_REQUEST,
+                });
+            }
+            savedAmount = parsedAmount.amount ?? null;
+        }
+    }
 
     if (!habitGoalId) {
         return handleHttpError({
@@ -162,6 +197,33 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
     // checked into while missing from `user_habits` would be invisible on the
     // dashboard and uncounted by the free-tier cap. getOrCreate will not
     // resurrect a row the user archived.
+    //
+    // Creating that row takes a habit slot, so it is gated like every other
+    // entry point. "In practice the row exists" did not hold: the pact wizard
+    // creates the goal before the pact, so a pact refused at the cap left a
+    // goal with no tracking row, the dashboard listed it anyway, and checking
+    // into it here quietly started a sixth habit. A goal backing an active
+    // pact is exempt — that slot was paid for when the pact was created or
+    // accepted, and refusing a partner's check-in would break the pact.
+    //
+    // Judged per pact rather than on `pacts.length`: an explicit `pactId` is
+    // only checked for participation above, so any pact the user was ever in —
+    // ended, or for a different goal — would otherwise switch the gate off for
+    // every untracked goal.
+    const backsActivePact = pacts.some((p) => p.status === 'active' && p.habitGoalId === habitGoalId);
+
+    if (!backsActivePact) {
+        const existingTracking = await Store.userHabits.getByUserAndHabit(userId, habitGoalId);
+
+        if (!existingTracking) {
+            const denial = await checkHabitCapacity({ userId, brandVariation, locale });
+
+            if (denial) {
+                return res.status(402).send(denial);
+            }
+        }
+    }
+
     await Store.userHabits.getOrCreate(userId, habitGoalId);
 
     // The user's own calendar day for this check-in. Both dates are now resolved in the user's
@@ -191,6 +253,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
         selfRating,
         difficultyRating,
         hasProof,
+        savedAmount,
     })
         .then(async (checkin) => {
             // Persist any attached proofs
@@ -238,6 +301,14 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
             // If completed, update streak
             if (checkin.status === 'completed') {
+                // This habit's notification switches, for the sends below. One
+                // resolver for the request, so the streak notifications and the
+                // partner fan-out share a single read per (user, habit) pair.
+                // Fails open — everything on — if the row cannot be read; see
+                // `utilities/habitNotificationPreferences`.
+                const notificationPrefs = createHabitNotificationPreferenceResolver();
+                const ownPrefs = await notificationPrefs.get(userId, habitGoalId);
+
                 let streak = await Store.streaks.getOrCreate(userId, habitGoalId, attributedPactId);
                 const lastCompletedStr = streak.lastCompletedDate
                     ? normalizeDateString(streak.lastCompletedDate)
@@ -253,7 +324,34 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     // read rather than re-driven — but it is still returned, since this is the
                     // response the "add a note or photo" save renders from.
                     const existingView = await getDailyStreakView(userId, todayLocal).catch(() => null);
-                    return res.status(201).send({ ...checkin, dailyStreak: existingView });
+
+                    // Savings is re-evaluated on this path and not skipped with the rest.
+                    // This *is* the "add the details afterwards" path: someone who tapped
+                    // Check In this morning and comes back at night to record what they put
+                    // away lands here, with the amount already written by the upsert above.
+                    // Skipping it would leave the money recorded and the target unnoticed
+                    // until the next day's check-in — the goal silently reached late.
+                    //
+                    // Unlike the streak work this is safe to repeat: it derives totals from
+                    // the rows rather than incrementing anything, and completion is guarded
+                    // on the pact still being active.
+                    const resubmitSavings = await evaluateSavingsAfterCheckin({
+                        goal: habitGoal,
+                        pacts,
+                        userId,
+                        brandVariation,
+                        locale,
+                        whiteLabelOrigin,
+                    });
+
+                    return res.status(201).send({
+                        ...checkin,
+                        dailyStreak: existingView,
+                        ...(resubmitSavings ? {
+                            savingsProgress: resubmitSavings.progress,
+                            completedPactIds: resubmitSavings.completedPactIds,
+                        } : {}),
+                    });
                 }
 
                 // First completion for this habit+date: the upsert only returns
@@ -400,7 +498,12 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                 // deliberate — the toast reaches the user who is holding the
                 // phone right now (they just tapped check in), the push reaches
                 // the same user later on a device that was backgrounded.
-                if (graceDaysConsumed > 0) {
+                //
+                // Muting this habit's streak alerts suppresses the push but not
+                // the toast: `graceDaysConsumed` still rides back on the 201, and
+                // the user who just tapped check-in is looking at the screen. The
+                // preference is about what interrupts them later.
+                if (graceDaysConsumed > 0 && ownPrefs.notifyStreakAlerts) {
                     sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                         authorization,
                         fromUser: { id: userId, userName },
@@ -506,25 +609,32 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     // this call used to pass neither, so it rendered as
                     // " days strong on " — `translate` only substitutes the
                     // params it is handed.
-                    sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
-                        authorization,
-                        fromUser: { id: userId, userName },
-                        locale,
-                        toUserId: userId,
-                        type: PushNotifications.Types.streakMilestone,
-                        whiteLabelOrigin,
-                        brandVariation,
-                        habitName: habitGoal.name,
-                        habitGoalId,
-                        streakCount: updatedStreak.currentStreak,
-                    }).catch((err) => {
-                        logSpan({
-                            level: 'error',
-                            messageOrigin: 'API_SERVER',
-                            messages: ['Error sending streak milestone notification'],
-                            traceArgs: { 'error.message': err?.message },
+                    //
+                    // The milestone is still *recorded* above when this habit's
+                    // streak alerts are muted — only the push is withheld. The
+                    // history row is what the weekly recap, the achievement
+                    // ladder and the freeze allowance below all read.
+                    if (ownPrefs.notifyStreakAlerts) {
+                        sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
+                            authorization,
+                            fromUser: { id: userId, userName },
+                            locale,
+                            toUserId: userId,
+                            type: PushNotifications.Types.streakMilestone,
+                            whiteLabelOrigin,
+                            brandVariation,
+                            habitName: habitGoal.name,
+                            habitGoalId,
+                            streakCount: updatedStreak.currentStreak,
+                        }).catch((err) => {
+                            logSpan({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['Error sending streak milestone notification'],
+                                traceArgs: { 'error.message': err?.message },
+                            });
                         });
-                    });
+                    }
 
                     // Partner credit (Wing Person ladder) when the milestone is
                     // also a new longest streak. The completePact handler awards
@@ -662,7 +772,19 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     });
                     if (partnerIds.length) {
                         const checkerDisplayName = await resolveUserDisplayName(userId);
-                        await Promise.all(partnerIds.map((partnerId) => enqueueNotification({
+                        // Each partner's own switch for this habit, in one read.
+                        // Gated on the recipient rather than the checker: it is
+                        // the recipient who said they did not want partner
+                        // activity, and the checker has no say over someone
+                        // else's tray.
+                        await notificationPrefs.prime(partnerIds.map((partnerId) => ({
+                            userId: partnerId,
+                            habitGoalId,
+                        })));
+                        const celebratingPartnerIds = partnerIds.filter((partnerId) => (
+                            notificationPrefs.peek(partnerId, habitGoalId).notifyPartnerActivity
+                        ));
+                        await Promise.all(celebratingPartnerIds.map((partnerId) => enqueueNotification({
                             brandVariation,
                             toUserId: partnerId,
                             type: PushNotifications.Types.partnerCheckedIn,
@@ -726,11 +848,34 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     });
             }
 
+            // Savings: recompute the goal's totals and complete any pact this check-in
+            // just carried over its target.
+            //
+            // Placed after the streak work and awaited, because the response is what
+            // the client celebrates from — a "you did it" screen that had to wait for a
+            // second request would either flash the wrong state or not fire at all. It
+            // returns null (rather than throwing) for every non-savings habit, which is
+            // the overwhelming majority of check-ins, and costs nothing for them.
+            const savings = await evaluateSavingsAfterCheckin({
+                goal: habitGoal,
+                pacts,
+                userId,
+                brandVariation,
+                locale,
+                whiteLabelOrigin,
+            });
+
             return res.status(201).send({
                 ...checkin,
                 graceDaysConsumed,
                 streakSavedByFreeze,
                 dailyStreak,
+                // Absent on a non-savings check-in. See ISavingsProgress — a savings
+                // habit with nothing saved yet returns zeroed totals, not absence.
+                ...(savings ? {
+                    savingsProgress: savings.progress,
+                    completedPactIds: savings.completedPactIds,
+                } : {}),
             });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' }));
@@ -1171,11 +1316,33 @@ const updateCheckin: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    // Same three-state handling as createCheckin: absent leaves the amount alone, an
+    // explicit empty clears it. This is the endpoint the "edit yesterday's check-in"
+    // flow uses, so correcting a mistyped amount has to land here too.
+    let savedAmount: number | null | undefined;
+    if ('savedAmount' in req.body) {
+        if (req.body.savedAmount === null || req.body.savedAmount === '') {
+            savedAmount = null;
+        } else {
+            const parsedAmount = parseSavingsAmount(req.body.savedAmount);
+            if (parsedAmount.error) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, SAVINGS_AMOUNT_ERROR_KEYS[parsedAmount.error]),
+                    statusCode: 400,
+                    errorCode: ErrorCodes.BAD_REQUEST,
+                });
+            }
+            savedAmount = parsedAmount.amount ?? null;
+        }
+    }
+
     return Store.habitCheckins.update(id, {
         status,
         notes,
         selfRating,
         difficultyRating,
+        savedAmount,
         completedAt: status === 'completed' && !existingCheckin.completedAt ? new Date() : undefined,
     })
         .then((checkin) => res.status(200).send(checkin))
