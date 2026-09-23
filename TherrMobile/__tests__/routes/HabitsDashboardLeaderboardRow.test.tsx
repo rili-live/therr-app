@@ -69,7 +69,9 @@ jest.mock('react-native-permissions', () => ({
 
 // Imported after the mocks above deliberately — the screen pulls in a chain of
 // native modules at import time.
+import Toast from 'react-native-toast-message';
 import { HabitsDashboard } from '../../main/routes/Habits/Dashboard';
+import celebrationQueue from '../../main/utilities/celebrationQueue';
 
 const flushPromises = () => new Promise<void>((resolve) => { setImmediate(resolve); });
 
@@ -81,6 +83,8 @@ const buildInstance = () => {
         },
         navigation: { navigate: jest.fn(), addListener: jest.fn(), setOptions: jest.fn() },
         route: { params: {} },
+        createCheckin: jest.fn(() => Promise.resolve({ id: 'checkin-1' })),
+        getActiveStreaks: jest.fn(() => Promise.resolve([])),
     };
 
     const instance = new HabitsDashboard(props);
@@ -109,6 +113,8 @@ const renderRow = (instance: HabitsDashboard) => {
 describe('habits dashboard leaderboard row', () => {
     beforeEach(() => {
         mockGetLeaderboard.mockReset();
+        (Toast.show as any).mockClear();
+        celebrationQueue.reset();
     });
 
     it('loads only the requester\'s weekly rank', async () => {
@@ -170,5 +176,97 @@ describe('habits dashboard leaderboard row', () => {
         button.props.onPress();
 
         expect(instance.props.navigation.navigate).toHaveBeenCalledWith('Leaderboard');
+    });
+});
+
+/**
+ * The "you climbed to #N" toast after a check-in. The check-in toast is the only route to the
+ * note/photo screen, so the rank-up must wait for it, and must stand down entirely when a streak
+ * celebration or the note screen has the user's attention — the new rank is on the card anyway.
+ */
+describe('habits dashboard rank-up toast', () => {
+    const shownTitles = () => (Toast.show as any).mock.calls.map((call: any[]) => call[0].text1);
+    const RANK_UP = '🏆 You climbed to #9 this week';
+
+    beforeEach(() => {
+        mockGetLeaderboard.mockReset();
+        (Toast.show as any).mockClear();
+        celebrationQueue.reset();
+    });
+
+    const withRank = (rank: number, points: number) => {
+        mockGetLeaderboard.mockResolvedValue({
+            data: { entries: [], currentUser: { userId: 'me', rank, points } },
+        });
+    };
+
+    it('announces the new rank once the check-in toast has gone', async () => {
+        withRank(9, 150);
+        const instance = buildInstance();
+        instance.state = { ...instance.state, weeklyRank: { rank: 14, points: 100 } };
+
+        instance.submitCheckin({ id: 'goal-1', name: 'Read' } as any);
+        await flushPromises();
+
+        // Only the check-in toast so far; the rank-up is waiting behind it.
+        expect(shownTitles()).not.toContain(RANK_UP);
+        expect(instance.state.weeklyRank).toEqual({ rank: 9, points: 150 });
+
+        const checkinToast = (Toast.show as any).mock.calls[0][0];
+        checkinToast.onHide();
+
+        expect(shownTitles()).toContain(RANK_UP);
+        const rankUpToast = (Toast.show as any).mock.calls.find((call: any[]) => call[0].text1 === RANK_UP)[0];
+        rankUpToast.onPress();
+        expect(instance.props.navigation.navigate).toHaveBeenCalledWith('Leaderboard');
+    });
+
+    it('stands down when the note screen or a celebration holds the queue', async () => {
+        withRank(9, 150);
+        const instance = buildInstance();
+        instance.state = { ...instance.state, weeklyRank: { rank: 14, points: 100 } };
+
+        instance.submitCheckin({ id: 'goal-1', name: 'Read' } as any);
+        await flushPromises();
+
+        // The user tapped through to the note screen, which holds the queue until it closes.
+        celebrationQueue.block();
+        (Toast.show as any).mock.calls[0][0].onHide();
+
+        expect(shownTitles()).not.toContain(RANK_UP);
+    });
+
+    it('stays quiet when the rank did not improve', async () => {
+        withRank(14, 150);
+        const instance = buildInstance();
+        instance.state = { ...instance.state, weeklyRank: { rank: 14, points: 100 } };
+
+        instance.submitCheckin({ id: 'goal-1', name: 'Read' } as any);
+        await flushPromises();
+        (Toast.show as any).mock.calls[0][0].onHide();
+
+        expect(shownTitles()).not.toContain(RANK_UP);
+    });
+
+    it('never announces the first rank it sees, with nothing to compare against', async () => {
+        withRank(9, 150);
+        const instance = buildInstance();
+
+        instance.submitCheckin({ id: 'goal-1', name: 'Read' } as any);
+        await flushPromises();
+        (Toast.show as any).mock.calls[0][0].onHide();
+
+        expect(shownTitles()).not.toContain(RANK_UP);
+    });
+
+    it('does not announce on an ordinary refresh', async () => {
+        withRank(9, 150);
+        const instance = buildInstance();
+        instance.state = { ...instance.state, weeklyRank: { rank: 14, points: 100 } };
+
+        instance.fetchWeeklyRank();
+        await flushPromises();
+
+        expect(Toast.show).not.toHaveBeenCalled();
     });
 });

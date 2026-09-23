@@ -187,6 +187,14 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     private themeButtons = buildButtonsStyles();
     private unsubscribeNavigationListener: any;
     private isUnmounted = false;
+    /**
+     * Check-in toasts shown and not yet hidden; the rank-up toast waits behind them. Counted
+     * for the same reason the celebration queue counts its blockers: two quick check-ins
+     * overlap, and a boolean would let the first hide release the second.
+     */
+    private checkinToastsShowing = 0;
+    /** A rank the user just climbed to, waiting for the screen to be free to announce it. */
+    private pendingRankUp: number | null = null;
 
     /**
      * Memo for the habits segment, keyed on the identity of the four Redux inputs it
@@ -273,8 +281,12 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
      * Kept out of `handleRefresh`'s Promise.all on purpose: the row is an invitation, not
      * part of the dashboard, so it must never hold the pull-to-refresh spinner or fail the
      * refresh. The offline fallback resolves with an empty body; the last rank is kept.
+     *
+     * After a check-in (`announceRankUp`), a better rank than the one already on the card is
+     * announced — see `showPendingRankUp`. There is nothing to compare against before the
+     * first load, so the first rank ever seen is never announced.
      */
-    fetchWeeklyRank = () => {
+    fetchWeeklyRank = ({ announceRankUp = false }: { announceRankUp?: boolean } = {}) => {
         if (!this.isLeaderboardEnabled()) {
             return;
         }
@@ -285,11 +297,43 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 if (this.isUnmounted || response?.isOfflineFallback || typeof currentUser?.rank !== 'number') {
                     return;
                 }
+                const previous = this.state.weeklyRank;
+                const points = Number(currentUser.points) || 0;
+                if (announceRankUp && previous && points > 0 && currentUser.rank < previous.rank) {
+                    this.pendingRankUp = currentUser.rank;
+                }
                 this.setState({
-                    weeklyRank: { rank: currentUser.rank, points: Number(currentUser.points) || 0 },
+                    weeklyRank: { rank: currentUser.rank, points },
                 });
+                this.showPendingRankUp();
             })
             .catch(() => {});
+    };
+
+    /**
+     * The "you climbed to #9" toast. It must not cost the check-in toast its screen time —
+     * that toast is the only route to the note/photo screen — so it waits for it to hide.
+     * After that it shows only if the screen is otherwise free: a streak celebration or the
+     * note screen taking over means the moment has passed, and the message is dropped rather
+     * than shown late. Nothing is lost; the new rank is already on the progress card.
+     */
+    showPendingRankUp = () => {
+        const rank = this.pendingRankUp;
+        if (rank === null || this.isUnmounted || this.checkinToastsShowing > 0) {
+            return;
+        }
+        this.pendingRankUp = null;
+        if (!celebrationQueue.isIdle) {
+            return;
+        }
+        showToast.success({
+            text1: this.translate('pages.habits.rankUpToast.title', { rank }),
+            text2: this.translate('pages.habits.rankUpToast.body'),
+            onPress: () => {
+                Toast.hide();
+                this.goToLeaderboard();
+            },
+        });
     };
 
     goToLeaderboard = () => {
@@ -446,8 +490,10 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 // otherwise only refetched on a pull-to-refresh or re-focus.
                 getActiveStreaks().catch(() => {});
 
-                // A check-in awards XP, so the rank on the progress card may have moved.
-                this.fetchWeeklyRank();
+                // A check-in awards XP, so the rank on the progress card may have moved —
+                // and when it moved up, that is worth saying.
+                this.pendingRankUp = null;
+                this.fetchWeeklyRank({ announceRankUp: true });
 
                 // The toast is the confirmation that replaced the modal, and it is also the
                 // only route to the note/photo screen — so it has to say it is tappable
@@ -462,6 +508,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 // read it, so the queue is released when the toast goes — and, if the user
                 // taps through, when the screen it opened closes.
                 celebrationQueue.block();
+                this.checkinToastsShowing += 1;
                 const freezeConsumed = getFreezeConsumed(checkin);
                 showToast.success({
                     text1: freezeConsumed
@@ -474,7 +521,13 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                         : this.translate('pages.habits.checkinToast.addDetailAction'),
                     duration: DURATION.LONG,
                     onPress: () => this.handleAddCheckinDetail(habitGoal),
-                    onHide: () => celebrationQueue.unblock(),
+                    onHide: () => {
+                        this.checkinToastsShowing = Math.max(0, this.checkinToastsShowing - 1);
+                        // Unblock first: a celebration it releases takes the screen, and the
+                        // rank-up toast then sees a busy queue and stands down.
+                        celebrationQueue.unblock();
+                        this.showPendingRankUp();
+                    },
                 });
 
                 // Queue whatever this check-in earned. It shows once the toast (and any screen

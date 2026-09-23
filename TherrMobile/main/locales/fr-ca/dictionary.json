@@ -2028,6 +2028,10 @@
             "leaderboardRankSubtitle": "{points} XP · Voir le classement",
             "leaderboardJoinTitle": "Classement de la semaine",
             "leaderboardJoinSubtitle": "Enregistrez vos habitudes pour gagner des XP et prendre votre place",
+            "rankUpToast": {
+                "title": "🏆 Nouveau rang : #{rank} cette semaine",
+                "body": "Touchez pour voir le classement"
+            },
             "currentStreak": "Série actuelle",
             "longestStreak": "Plus longue série",
             "graceDays": "Gels de série restants",

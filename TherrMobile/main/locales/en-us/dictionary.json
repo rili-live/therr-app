@@ -2028,6 +2028,10 @@
             "leaderboardRankSubtitle": "{points} XP · See the leaderboard",
             "leaderboardJoinTitle": "This week's leaderboard",
             "leaderboardJoinSubtitle": "Check in to earn XP and claim your spot",
+            "rankUpToast": {
+                "title": "🏆 You climbed to #{rank} this week",
+                "body": "Tap to see the leaderboard"
+            },
             "currentStreak": "Current Streak",
             "longestStreak": "Longest Streak",
             "graceDays": "Streak Freezes Left",
