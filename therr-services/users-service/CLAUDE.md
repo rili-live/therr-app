@@ -20,7 +20,10 @@
 - **Payments**: Stripe integration, subscriptions
 - **Campaigns**: Marketing campaign management
 - **Social Sync**: Social media integrations
-- **Habits** (HABITS app): Habit goals, pacts, check-ins, streaks
+- **Habits** (HABITS app): Habit goals, pacts, check-ins, streaks. A habit's **cadence** (daily, N per week,
+  or fixed weekdays) is defined in exactly one place — `utilities/habitCadence.ts`. Anything deciding whether
+  a day counts against a user must go through it rather than reading `frequencyType` directly; four separate
+  implementations disagreed before it existed
 
 ## Directory Structure
 
@@ -70,7 +73,9 @@ Key tables: `users`, `userConnections`, `userGroups`, `notifications`, `userAchi
 - `streaks` - Streak state per user/habit (also the freeze pool the daily streak borrows from)
 - `streak_history` - Event log for analytics
 - `user_daily_streaks` - App-level daily streak, one row per user across all habits
-- `daily_streak_days` - Per-(user, local day) ledger behind it; see `utilities/dailyStreak.ts` for the rules
+- `daily_streak_days` - Per-(user, local day) ledger behind it; see `utilities/dailyStreak.ts` for the rules.
+  Four statuses: `upheld`, `frozen`, `missed`, and `rest` — a day no tracked habit *required*, which neither
+  breaks the streak nor spends a freeze. Which days those are comes from `utilities/habitCadence.ts`
 
 ## Related Services
 

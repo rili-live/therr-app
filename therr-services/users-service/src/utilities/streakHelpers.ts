@@ -1,6 +1,12 @@
 /**
- * Streak calculation and milestone utilities for the HABITS app
+ * Streak calculation and milestone utilities for the HABITS app.
+ *
+ * Cadence itself lives in utilities/habitCadence.ts — that module is the single definition of
+ * what a habit's `frequencyType` / `frequencyCount` / `targetDaysOfWeek` mean. What remains here
+ * is milestones, date formatting, and the reminder gate that reads cadence.
  */
+import { getCadence, isQuotaUnmet } from './habitCadence';
+import { isDateString } from './dailyStreak';
 
 // Standard milestone thresholds
 export const STREAK_MILESTONES = [3, 7, 14, 30, 60, 90, 180, 365];
@@ -68,63 +74,6 @@ const toLocalMidnight = (value: string | Date): Date => {
 };
 
 /**
- * Calculate if a day was missed based on last completed date
- * Takes into account that habits might not be daily (e.g., 3x per week)
- */
-export const wasDayMissed = (
-    lastCompletedDate: string | null,
-    frequencyType: string,
-    frequencyCount: number,
-    targetDaysOfWeek?: number[],
-): boolean => {
-    if (!lastCompletedDate) {
-        return false; // No history yet, can't have missed
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const lastCompleted = toLocalMidnight(lastCompletedDate);
-
-    const daysDiff = Math.floor((today.getTime() - lastCompleted.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (frequencyType === 'daily') {
-        // For daily habits, missing means more than 1 day gap
-        return daysDiff > 1;
-    }
-
-    if (frequencyType === 'weekly' && targetDaysOfWeek?.length) {
-        // For specific days of week, check if any target day was missed
-        // Build array of days between last completion and today
-        const daysBetween = Array.from({ length: daysDiff - 1 }, (_, i) => {
-            const checkDate = new Date(lastCompleted);
-            checkDate.setDate(checkDate.getDate() + i + 1);
-            return checkDate.getDay();
-        });
-
-        // Check if any of those days were target days
-        return daysBetween.some((dayOfWeek) => targetDaysOfWeek.includes(dayOfWeek));
-    }
-
-    if (frequencyType === 'weekly') {
-        // X times per week - allow full week flexibility
-        // Check if we're in a new week and previous week didn't hit target
-        const weeksDiff = Math.floor(daysDiff / 7);
-        return weeksDiff > 1;
-    }
-
-    // Default: daily logic
-    return daysDiff > 1;
-};
-
-/**
- * Check if grace period can be used for a missed day
- */
-export const canUseGracePeriod = (
-    gracePeriodDays: number,
-    graceDaysUsed: number,
-): boolean => gracePeriodDays > 0 && graceDaysUsed < gracePeriodDays;
-
-/**
  * Whole days between two dates (date-only comparison; positive when `later`
  * is after `earlier`). Accepts date strings or Date objects.
  */
@@ -146,46 +95,17 @@ export const normalizeDateString = (date: string | Date): string => {
 };
 
 /**
- * Count the required days that were missed between the last completed
- * check-in and the current check-in, respecting the habit's cadence.
- * 0 means the streak is intact (same-day or on-cadence completion).
+ * `countMissedDaysForStreak` lived here and has moved to `countMissedPeriods` in
+ * utilities/habitCadence.ts, along with `wasDayMissed` and `canUseGracePeriod` (both of which had
+ * no callers and each held a *different* copy of the cadence rules).
  *
- * The check-in flow uses this to decide whether to consume streak-freeze
- * (grace) days or reset the streak — see createCheckin in handlers/habitCheckins.ts.
+ * It was not a like-for-like move. The old function ignored `frequencyCount` entirely and honoured
+ * `targetDaysOfWeek` only when `frequencyType === 'weekly'`, so a `custom` goal with fixed days
+ * was nudged on those days and scored for streak-breaking against all seven; and its bare-weekly
+ * branch (`Math.floor(daysDiff / 7) > 1`) made an N-per-week streak effectively unbreakable. The
+ * replacement judges a quota by whole closed weeks, which needs the week's completed dates rather
+ * than just the gap endpoints — hence the wider argument shape at the call sites.
  */
-export const countMissedDaysForStreak = (
-    lastCompletedDate: string | Date,
-    checkinDate: string,
-    frequencyType: string,
-    targetDaysOfWeek?: number[],
-): number => {
-    const daysDiff = getDaysBetweenDates(lastCompletedDate, checkinDate);
-    if (daysDiff <= 1) {
-        return 0;
-    }
-
-    if (frequencyType === 'weekly' && targetDaysOfWeek?.length) {
-        // Count target days strictly between last completion and this check-in
-        let missed = 0;
-        for (let i = 1; i < daysDiff; i += 1) {
-            const d = toLocalMidnight(lastCompletedDate);
-            d.setDate(d.getDate() + i);
-            if (targetDaysOfWeek.includes(d.getDay())) {
-                missed += 1;
-            }
-        }
-        return missed;
-    }
-
-    if (frequencyType === 'weekly') {
-        // X-times-per-week habits get full-week flexibility; only a gap of
-        // more than one whole week counts as a single miss event.
-        return Math.floor(daysDiff / 7) > 1 ? 1 : 0;
-    }
-
-    // Daily cadence: every uncompleted day in the gap is a miss
-    return daysDiff - 1;
-};
 
 /**
  * Maximum earnable streak freezes (grace days). New streaks start with
@@ -302,7 +222,7 @@ export const isPhoenixMoment = (
 ): boolean => streakAfter > previousLongestStreak && previousLongestStreak >= 7;
 
 /**
- * Is this habit due today?
+ * Should this habit be nudged today?
  *
  * The gate on the daily reminder. Without it a "3x per week" habit gets nudged
  * seven days a week, which is the single fastest way to teach a user that the
@@ -310,71 +230,46 @@ export const isPhoenixMoment = (
  * docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md warns costs DAU rather than
  * lifting it.
  *
- * Three cadence shapes, in priority order:
+ * The rule is simply **the week's quota is not yet discharged**: keep asking
+ * until they have done their four, then stay silent for the rest of the week.
+ * A fixed weekday schedule has no quota to run down, so there it means "today
+ * is one of your days".
  *
- *   1. `targetDaysOfWeek` set → due only on those weekdays, whatever
- *      `frequencyType` says. An explicit schedule is the strongest signal the
- *      user has given us and always wins.
- *   2. `daily` → due every day.
- *   3. Everything else (a `weekly`/`custom` count with no fixed days) → there
- *      is no day to anchor on, so "due" is derived from the gap since the last
- *      completion: a 3x/week habit is due once roughly every other day. This
- *      reads `lastCompletedDate` off the streak row the caller already has
- *      rather than counting check-ins, so it costs no extra query.
+ * Deliberately NOT gated on `isRequiredOn`. Under a weekly quota a well-run
+ * week has *zero* required days — someone doing 4x/week on Mon–Thu meets the
+ * target before skipping could ever endanger it — so a required-days-only
+ * reminder would nudge exactly the user who is succeeding, never. `isRequiredOn`
+ * is for the streak, and for escalating copy; this is for the reminder.
  *
- * `today` is a YYYY-MM-DD string and is parsed as UTC, matching
- * `getTodayDateString()` and the UTC convention in habitLifecycleContext. Using
- * local parsing here would put the weekday one day off for every host west of
- * UTC — see the note on `toLocalMidnight` above for the same hazard.
+ * This replaces the old spacing heuristic, `floor(7 / N)` days since the last
+ * completion, which had two failures. It collapsed 4x, 5x, 6x and 7x per week
+ * to interval 1 — i.e. daily — and it kept nudging after the quota was met,
+ * because a gap since the last completion says nothing about whether the week
+ * is done.
+ *
+ * `today` is a YYYY-MM-DD string parsed as UTC, matching `getTodayDateString()`
+ * and the UTC convention in habitLifecycleContext. Using local parsing here
+ * would put the weekday one day off for every host west of UTC — see the note
+ * on `toLocalMidnight` above for the same hazard.
  */
-export const isHabitDueToday = (
+export const shouldNudgeToday = (
     habit: {
         frequencyType?: string | null;
         frequencyCount?: number | null;
         targetDaysOfWeek?: number[] | null;
-        lastCompletedDate?: string | Date | null;
+        completionsEarlierThisWeek?: number | null;
     },
     today: string,
 ): boolean => {
-    const todayUtc = new Date(`${String(today).slice(0, 10)}T00:00:00.000Z`);
-    if (Number.isNaN(todayUtc.getTime())) {
+    if (!isDateString(String(today).slice(0, 10))) {
         // An unparseable date is a bug in the caller, not a reason to spam. Stay
         // silent rather than reminding on a day we cannot identify.
         return false;
     }
 
-    if (habit.targetDaysOfWeek?.length) {
-        return habit.targetDaysOfWeek.includes(todayUtc.getUTCDay());
-    }
-
-    const frequencyType = habit.frequencyType || 'daily';
-    if (frequencyType === 'daily') {
-        return true;
-    }
-
-    // Never completed → due now. This is deliberately the permissive branch: a
-    // habit someone set up and never started is exactly who a reminder is for.
-    if (!habit.lastCompletedDate) {
-        return true;
-    }
-
-    // Clamped into 1..7. A malformed frequencyCount (0, null, negative, NaN)
-    // therefore degrades to once a week — the quiet direction. Leaving it
-    // unclamped would either divide by zero or produce an interval so large the
-    // habit is never reminded again, and both are silent failures; over-
-    // reminding on bad data would at least be visible, but it is visible to the
-    // user, as spam.
-    const perWeek = Math.max(1, Math.min(7, Number(habit.frequencyCount) || 1));
-    const intervalDays = Math.max(1, Math.floor(7 / perWeek));
-    const lastCompletedUtc = new Date(
-        `${normalizeDateString(habit.lastCompletedDate).slice(0, 10)}T00:00:00.000Z`,
+    return isQuotaUnmet(
+        getCadence(habit),
+        String(today).slice(0, 10),
+        Number(habit.completionsEarlierThisWeek) || 0,
     );
-    if (Number.isNaN(lastCompletedUtc.getTime())) {
-        return true;
-    }
-
-    const daysSince = Math.floor(
-        (todayUtc.getTime() - lastCompletedUtc.getTime()) / (1000 * 60 * 60 * 24),
-    );
-    return daysSince >= intervalDays;
 };

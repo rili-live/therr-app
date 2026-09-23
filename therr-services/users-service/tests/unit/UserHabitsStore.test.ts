@@ -18,7 +18,7 @@ describe('UserHabitsStore', () => {
         it('reads the habit registry, not pacts — the whole point of the daily reminder pass', async () => {
             const { store, mockConnection } = buildStore();
 
-            await store.getActiveForReminders('2026-08-26', 2000);
+            await store.getActiveForReminders('2026-08-26', '2026-08-24', 2000);
 
             const sql = lastSql(mockConnection);
             // A solo habit exists only in habits.user_habits. Driving this off
@@ -31,7 +31,7 @@ describe('UserHabitsStore', () => {
         it('excludes archived habits', async () => {
             const { store, mockConnection } = buildStore();
 
-            await store.getActiveForReminders('2026-08-26', 2000);
+            await store.getActiveForReminders('2026-08-26', '2026-08-24', 2000);
 
             // Archiving is the user's way of saying "I stopped doing this". A
             // reminder for an archived habit is the fastest way to teach someone
@@ -42,7 +42,7 @@ describe('UserHabitsStore', () => {
         it("resolves today's completion in the same query rather than per habit", async () => {
             const { store, mockConnection } = buildStore();
 
-            await store.getActiveForReminders('2026-08-26', 2000);
+            await store.getActiveForReminders('2026-08-26', '2026-08-24', 2000);
 
             const sql = lastSql(mockConnection);
             expect(sql).to.match(/EXISTS \(/);
@@ -55,10 +55,28 @@ describe('UserHabitsStore', () => {
             expect(mockConnection.read.query.callCount).to.equal(1);
         });
 
+        it("resolves this week's progress in the same query, so cadence needs no extra round trip", async () => {
+            const { store, mockConnection } = buildStore();
+
+            await store.getActiveForReminders('2026-08-26', '2026-08-24', 2000);
+
+            const sql = lastSql(mockConnection);
+            // Without the week's tally a weekly cadence has no way to know whether it still
+            // owes the user a nudge, which is what forced the old spacing heuristic that
+            // reminded a 4x/week habit seven days a week.
+            expect(sql).to.match(/completionsEarlierThisWeek/);
+            // Strictly before today, matching what isRequiredOn and describeWeekProgress expect.
+            expect(sql).to.match(/c2\."scheduledDate" >= '2026-08-24'/);
+            expect(sql).to.match(/c2\."scheduledDate" < '2026-08-26'/);
+            expect(sql).to.match(/g\."cadenceEffectiveFrom"/);
+            // Still one query for the whole run.
+            expect(mockConnection.read.query.callCount).to.equal(1);
+        });
+
         it('bounds the run so a growing habit count cannot turn the digest into a long request', async () => {
             const { store, mockConnection } = buildStore();
 
-            await store.getActiveForReminders('2026-08-26', 1500);
+            await store.getActiveForReminders('2026-08-26', '2026-08-24', 1500);
 
             const sql = lastSql(mockConnection);
             expect(sql).to.match(/LIMIT 1500/);
@@ -70,7 +88,7 @@ describe('UserHabitsStore', () => {
         it('reads through the read pool, never the write pool', async () => {
             const { store, mockConnection } = buildStore();
 
-            await store.getActiveForReminders('2026-08-26', 2000);
+            await store.getActiveForReminders('2026-08-26', '2026-08-24', 2000);
 
             expect(mockConnection.write.query.callCount).to.equal(0);
         });

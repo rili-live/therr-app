@@ -113,7 +113,8 @@
       "title": "Don't Break Your Streak",
       "body": "Your {streakCount}-day {habitName} streak is on the line — check in before midnight to keep it alive.",
       "bodyWithFreeze": "Your {streakCount}-day {habitName} streak is on the line. A streak freeze will cover tonight if you miss ({freezesRemaining} left) — but checking in keeps it in your pocket.",
-      "bodyMultiple": "{habitCount} streaks are on the line — {habitNames}. Check in before midnight to keep them alive."
+      "bodyMultiple": "{habitCount} streaks are on the line — {habitNames}. Check in before midnight to keep them alive.",
+      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName} this week, and {daysLeft} day(s) left. Keep your {streakCount} in a row going."
     },
     "streakFreezeUsed": {
       "title": "Your Streak Survived",
@@ -178,7 +179,8 @@
     "dailyHabitReminder": {
       "title": "Time to Check In",
       "body": "Log {habitName} today — one check-in gets your streak going.",
-      "bodyMultiple": "{habitCount} habits are waiting today — {habitNames}. One check-in gets you started."
+      "bodyMultiple": "{habitCount} habits are waiting today — {habitNames}. One check-in gets you started.",
+      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName} this week — {daysLeft} day(s) left to finish it."
     },
     "morningMotivation": {
       "title": "Good Morning",
@@ -188,7 +190,8 @@
       "title": "Last Chance Tonight",
       "body": "Your {streakCount}-day {habitName} streak ends at midnight. One check-in keeps it alive.",
       "bodyWithFreeze": "Your {streakCount}-day {habitName} streak ends at midnight. A streak freeze will cover you ({freezesRemaining} left) — but checking in now keeps it in your pocket.",
-      "bodyMultiple": "Last call on {habitCount} streaks — {habitNames}. Check in before midnight to keep them alive."
+      "bodyMultiple": "Last call on {habitCount} streaks — {habitNames}. Check in before midnight to keep them alive.",
+      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName}, with {daysLeft} day(s) left — you need every one of them. Check in tonight."
     },
     "weeklyRecap": {
       "title": "Last Week In Review",

@@ -7,6 +7,7 @@ import {
     canContinueSolo,
     canRemoveMember,
 } from '../../src/utilities/pactStreak';
+import { getCadence } from '../../src/utilities/habitCadence';
 
 /**
  * Shared ("pact") streak logic — unit tests.
@@ -50,11 +51,14 @@ describe('pactStreak', () => {
     });
 
     describe('computeNextPactStreak', () => {
+        const DAILY = getCadence({ frequencyType: 'daily' });
+
         it('starts at 1 when there is no prior credited day', () => {
             expect(computeNextPactStreak({
                 lastPactStreakDate: null,
                 currentPactStreak: 0,
                 streakDate: '2026-09-11',
+                cadence: DAILY,
             })).to.equal(1);
         });
 
@@ -63,6 +67,7 @@ describe('pactStreak', () => {
                 lastPactStreakDate: '2026-09-10',
                 currentPactStreak: 4,
                 streakDate: '2026-09-11',
+                cadence: DAILY,
             })).to.equal(5);
         });
 
@@ -71,6 +76,7 @@ describe('pactStreak', () => {
                 lastPactStreakDate: '2026-09-11',
                 currentPactStreak: 7,
                 streakDate: '2026-09-11',
+                cadence: DAILY,
             })).to.equal(7);
         });
 
@@ -79,16 +85,40 @@ describe('pactStreak', () => {
                 lastPactStreakDate: '2026-09-08',
                 currentPactStreak: 9,
                 streakDate: '2026-09-11',
+                cadence: DAILY,
             })).to.equal(1);
         });
 
-        it('does not reset a weekly-cadence pact for a normal off day', () => {
-            // 3x/week: a two-day gap is on-cadence, not a miss.
+        it('does not reset a weekly-quota pact for a normal off day inside one week', () => {
+            // 2026-09-07 is a Monday, so 09-09 and 09-11 are the same Monday–Sunday week. A
+            // quota is only judged once the week closes, so a mid-week gap cannot break it.
             expect(computeNextPactStreak({
                 lastPactStreakDate: '2026-09-09',
                 currentPactStreak: 3,
                 streakDate: '2026-09-11',
-                frequencyType: 'weekly',
+                cadence: getCadence({ frequencyType: 'weekly', frequencyCount: 3 }),
+                creditedDates: ['2026-09-09', '2026-09-11'],
+            })).to.equal(4);
+        });
+
+        it('resets a weekly-quota pact when a closed week fell short', () => {
+            // The week of 09-07 closed with 1 credited day against a target of 3.
+            expect(computeNextPactStreak({
+                lastPactStreakDate: '2026-09-09',
+                currentPactStreak: 3,
+                streakDate: '2026-09-14',
+                cadence: getCadence({ frequencyType: 'weekly', frequencyCount: 3 }),
+                creditedDates: ['2026-09-09'],
+            })).to.equal(1);
+        });
+
+        it('carries a weekly-quota pact across a week that met its target', () => {
+            expect(computeNextPactStreak({
+                lastPactStreakDate: '2026-09-11',
+                currentPactStreak: 3,
+                streakDate: '2026-09-14',
+                cadence: getCadence({ frequencyType: 'weekly', frequencyCount: 3 }),
+                creditedDates: ['2026-09-08', '2026-09-09', '2026-09-11'],
             })).to.equal(4);
         });
     });

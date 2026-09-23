@@ -10,7 +10,8 @@
  * Kept free of any DB or request dependency so the threshold and continuity rules
  * can be unit-tested directly — the handler wires them to the stores.
  */
-import { countMissedDaysForStreak, normalizeDateString } from './streakHelpers';
+import { normalizeDateString } from './streakHelpers';
+import { Cadence, countMissedPeriods } from './habitCadence';
 
 /**
  * A pact must keep at least this many members to remain a pact. Below it the
@@ -53,21 +54,30 @@ export const hasReachedMajority = (
  *   - No gap for the cadence (consecutive daily, or on-schedule weekly) → +1.
  *   - A gap → the run is broken, so `streakDate` starts a fresh streak at 1.
  *
- * Cadence handling is delegated to `countMissedDaysForStreak`, the same helper the
- * personal streak uses, so a "3x per week" pact isn't reset for a normal off day.
+ * Cadence handling is delegated to `countMissedPeriods`, the same helper the personal
+ * streak uses, so a "3x per week" pact isn't reset for a normal off day. A pact's
+ * cadence is its goal's, which every member shares — that is the right semantic for an
+ * agreement, and it is why one cadence governs the whole group's streak.
+ *
+ * `creditedDates` are the days this pact has already won (`habits.pact_streak_days`)
+ * inside the gap. They are only consulted for a weekly quota, where a week's verdict
+ * needs the whole week's tally rather than just the gap endpoints; daily and fixed-
+ * weekday pacts ignore them entirely and the caller may omit them.
  */
 export const computeNextPactStreak = ({
     lastPactStreakDate,
     currentPactStreak,
     streakDate,
-    frequencyType = 'daily',
-    targetDaysOfWeek,
+    cadence,
+    creditedDates,
+    cadenceEffectiveFrom,
 }: {
     lastPactStreakDate: string | Date | null | undefined;
     currentPactStreak: number;
     streakDate: string;
-    frequencyType?: string | null;
-    targetDaysOfWeek?: number[] | null;
+    cadence: Cadence;
+    creditedDates?: Set<string> | string[];
+    cadenceEffectiveFrom?: string | null;
 }): number => {
     const current = Math.max(0, Math.floor(Number(currentPactStreak) || 0));
 
@@ -80,12 +90,12 @@ export const computeNextPactStreak = ({
         return current;
     }
 
-    const missed = countMissedDaysForStreak(
-        lastStr,
-        streakDate,
-        frequencyType || 'daily',
-        targetDaysOfWeek || undefined,
-    );
+    const missed = countMissedPeriods(cadence, {
+        lastCompletedDate: lastStr,
+        throughDate: streakDate,
+        completedDates: creditedDates,
+        effectiveFrom: cadenceEffectiveFrom,
+    });
 
     return missed > 0 ? 1 : current + 1;
 };

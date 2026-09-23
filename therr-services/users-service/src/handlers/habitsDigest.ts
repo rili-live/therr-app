@@ -13,7 +13,15 @@ import {
     EMPTY_LIFECYCLE_CONTEXT,
     IHabitPair,
 } from '../utilities/habitLifecycleContext';
-import { getTodayDateString, isHabitDueToday, normalizeDateString } from '../utilities/streakHelpers';
+import { getTodayDateString, shouldNudgeToday, normalizeDateString } from '../utilities/streakHelpers';
+import { getWeekStart } from '../utilities/dailyStreak';
+import {
+    describeWeekProgress,
+    getCadence,
+    isQuotaUnmet,
+    isRequiredOn,
+    IWeekProgress,
+} from '../utilities/habitCadence';
 import {
     checkinNudgeDedupeKey,
     createCheckinNudgeAccumulator,
@@ -61,6 +69,21 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
  * true.
  */
 const areDailyRemindersEnabled = (): boolean => process.env.HABIT_DAILY_REMINDERS_ENABLED !== 'false';
+
+/**
+ * Map a cadence week-progress reading onto the fields a nudge candidate carries.
+ *
+ * Explicit rather than a spread: `describeWeekProgress` names its fields `done` and `target`,
+ * the notification payload names them `weekDone` and `weekTarget`, and a spread would silently
+ * put `done`/`target` on the candidate — which TypeScript permits (excess properties are not
+ * checked through a spread) and which would have shipped a push body reading "0 of 0 this week".
+ */
+const toNudgeWeekProgress = (progress: IWeekProgress) => ({
+    weekDone: progress.done,
+    weekTarget: progress.target,
+    daysLeft: progress.daysLeft,
+    isRequiredToday: progress.isRequiredToday,
+});
 
 /**
  * Kill switch for the evening "last chance" reminder.
@@ -437,7 +460,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         //
         // Built before the expiry sweep because the sweep now notifies, and its
         // copy names the habit.
-        const { getHabitName, getUserDisplayName } = createNameResolvers();
+        const { getHabitName, getHabitCadence, getUserDisplayName } = createNameResolvers();
 
         /**
          * The per-habit notification switches, for every gate in this run.
@@ -628,7 +651,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         // partner-accountability notifications are the older, load-bearing half
         // of this job and must not be taken down by the newer one.
         const remindableHabits = areDailyRemindersEnabled()
-            ? await Store.userHabits.getActiveForReminders(today, DIGEST_MAX_HABITS).catch((err: any) => {
+            ? await Store.userHabits.getActiveForReminders(today, getWeekStart(today), DIGEST_MAX_HABITS).catch((err: any) => {
                 counters.errors += 1;
                 logSpan({
                     level: 'error',
@@ -825,6 +848,10 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             try {
                 // eslint-disable-next-line no-await-in-loop
                 const habitName = await getHabitName(pact.habitGoalId);
+                // A pact's cadence is its goal's, shared by every member — that is the right
+                // semantic for an agreement, and it is why one lookup covers the whole loop.
+                // eslint-disable-next-line no-await-in-loop
+                const pactCadence = await getHabitCadence(pact.habitGoalId);
 
                 // One read for this pact's whole membership, before anything
                 // below asks about a single member. Most of these are already
@@ -877,6 +904,27 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     const completedToday = (todayCheckins || []).some((c: any) => c.status === 'completed');
                     const completedYesterday = (yesterdayCheckins || []).some((c: any) => c.status === 'completed');
 
+                    // Only a weekly quota needs the week's running tally to know whether a day
+                    // was required; daily and fixed-weekday cadences answer from the date alone.
+                    // Fetched per member and only for that cadence, so the common pact pays for
+                    // nothing — this loop already runs once per member of up to 500 pacts.
+                    let completionsBeforeYesterday = 0;
+                    if (pactCadence.kind === 'weeklyQuota') {
+                        // eslint-disable-next-line no-await-in-loop
+                        const weekRows = await Store.habitCheckins.getByUserAndDateRange(
+                            member.userId,
+                            getWeekStart(yesterday),
+                            yesterday,
+                            pact.habitGoalId,
+                        ).catch(() => [] as any[]);
+                        completionsBeforeYesterday = new Set(
+                            (weekRows || [])
+                                .filter((c: any) => c.status === 'completed')
+                                .map((c: any) => normalizeDateString(c.scheduledDate))
+                                .filter((date: string) => date < yesterday),
+                        ).size;
+                    }
+
                     // Read here rather than inside the nudge below because both
                     // the taper check and `nudgedPairs` need them.
                     const key = pairKey(member.userId, pact.habitGoalId);
@@ -898,7 +946,18 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     // for anyone with a live streak. With it on, someone who has
                     // demonstrably built the habit gets this every third day, and
                     // someone past the automaticity gate stops getting it.
-                    if (!completedToday) {
+                    //
+                    // Now also gated on the pact's cadence still wanting something this week.
+                    // This branch had no cadence gate either, so a 4x/week pact warned its
+                    // members their streak was "on the line" on days the habit had already been
+                    // satisfied — which is false, and teaches people to ignore the warning that
+                    // matters. `completionsBeforeYesterday` is the wrong tally for today, so
+                    // the today-relative count is derived from it plus yesterday.
+                    const completionsBeforeToday = pactCadence.kind === 'weeklyQuota'
+                        ? completionsBeforeYesterday + (completedYesterday && yesterday >= getWeekStart(today) ? 1 : 0)
+                        : 0;
+                    const pactWantsMoreThisWeek = isQuotaUnmet(pactCadence, today, completionsBeforeToday);
+                    if (!completedToday && pactWantsMoreThisWeek) {
                         // eslint-disable-next-line no-await-in-loop
                         const streak = await Store.streaks.getByUserAndHabit(member.userId, pact.habitGoalId);
                         if (streak && streak.isActive && streak.currentStreak > 0) {
@@ -926,6 +985,9 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                                     pactId: pact.id,
                                     habitName,
                                     streakCount: streak.currentStreak,
+                                    ...toNudgeWeekProgress(
+                                        describeWeekProgress(pactCadence, today, completionsBeforeToday),
+                                    ),
                                     // Selects the body that names the safety
                                     // net. Telling someone their streak is on
                                     // the line while silently holding a freeze
@@ -947,10 +1009,20 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     // Accountability: tell the other members their partner
                     // slipped yesterday. Skip brand-new members whose pact
                     // started today/yesterday (joinedAt after yesterday).
+                    //
+                    // Also skip a day the habit never asked for. This branch had no cadence
+                    // gate at all, so a 4x/week pact accused its members of missing a day on
+                    // each of their three off days — the most corrosive possible notification,
+                    // because it is both wrong and sent to somebody else.
                     const memberJoinedAt = member.joinedAt || member.createdAt;
                     const joinedBeforeYesterday = !memberJoinedAt
                         || normalizeDateString(memberJoinedAt) < yesterday;
-                    if (!completedYesterday && joinedBeforeYesterday) {
+                    const yesterdayWasRequired = isRequiredOn(
+                        pactCadence,
+                        yesterday,
+                        completionsBeforeYesterday,
+                    );
+                    if (!completedYesterday && joinedBeforeYesterday && yesterdayWasRequired) {
                         // eslint-disable-next-line no-await-in-loop
                         const partnerName = await getUserDisplayName(member.userId);
                         const otherMembers = members.filter((m: any) => m.userId !== member.userId);
@@ -1062,7 +1134,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     continue;
                 }
 
-                if (!isHabitDueToday(habit, today)) {
+                if (!shouldNudgeToday(habit, today)) {
                     counters.remindersNotDue += 1;
                     // eslint-disable-next-line no-continue
                     continue;
@@ -1097,6 +1169,14 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                         Number(habit.gracePeriodDays || 0) - Number(habit.graceDaysUsed || 0),
                     ),
                     allowsStreakAlerts: habit.notifyStreakAlerts,
+                    // Where they stand in the week, for both the evening escalation's gate and
+                    // the copy. `completionsEarlierThisWeek` comes back on the same reminder
+                    // query, so this costs nothing extra.
+                    ...toNudgeWeekProgress(describeWeekProgress(
+                        getCadence(habit),
+                        today,
+                        Number(habit.completionsEarlierThisWeek) || 0,
+                    )),
                 });
             } catch (err: any) {
                 counters.errors += 1;
@@ -1208,12 +1288,18 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 continue;
             }
 
-            // 1. Something to lose. A "last chance" for a user whose streak is
+            // 1. Something to lose *tonight*. A "last chance" for a user whose streak is
             //    at zero is just a second generic reminder, and generic
             //    reminders are what the frequency research says cost DAU. Loss
             //    aversion is the entire justification for the extra push, so no
             //    live streak means no second push.
-            if (!row.hasLiveStreak) {
+            //
+            //    And under a weekly cadence a live streak is not enough: this copy says the
+            //    streak ends at midnight, which is only true if the habit's cadence leaves no
+            //    later day this week to satisfy it. Someone 2 of 4 into their week on a
+            //    Wednesday loses nothing tonight, and telling them otherwise is how a warning
+            //    stops being believed. `hasStreakAtStakeToday` requires both on one habit.
+            if (!row.hasStreakAtStakeToday) {
                 counters.lastChanceSkippedNoStreak += 1;
                 // eslint-disable-next-line no-continue
                 continue;

@@ -2,10 +2,17 @@ import KnexBuilder, { Knex } from 'knex';
 import { IConnection } from './connection';
 import { DAILY_STREAK_DAYS_TABLE_NAME } from './tableNames';
 import UserDailyStreaksStore from './UserDailyStreaksStore';
+import { DailyStreakDayStatus } from '../utilities/dailyStreak';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
-export type DailyStreakDayStatus = 'upheld' | 'frozen' | 'missed';
+/**
+ * Re-exported rather than redeclared. This type had a second, independent definition here, and
+ * adding 'rest' to the rules module left the two disagreeing — the column's CHECK constraint
+ * accepted a value the store's type said could not exist. One definition, in the module that
+ * owns the rules.
+ */
+export type { DailyStreakDayStatus };
 
 export interface IDailyStreakDay {
     userId: string;

@@ -31,6 +31,41 @@ export const LeaderboardXpValues = {
     habitCheckin: 10,
     // Multiplied by the streak-day milestone reached (7-day milestone → 35 XP bonus)
     streakMilestoneMultiplier: 5,
+    // Per unscheduled day, when a habit's weekly quota is met. See `weeklyQuotaBonus`.
+    quotaBonusPerUnscheduledDay: 10,
+};
+
+/**
+ * XP for discharging a habit's weekly quota, awarded once by the check-in that completes it.
+ *
+ * The board pays per check-in (10) plus per daily-streak day (5), so a daily habit earns ~105 a
+ * week and a fully-honoured 4x/week habit earns 60. That gap is structural, not a measure of
+ * effort: both users did exactly what they committed to, and only one of them can place. Once
+ * habits can declare a cadence, leaving it alone would make the leaderboard a reason not to.
+ *
+ *     bonus = min((7 - target) * 10, target * 15)
+ *
+ * The first term pays for the days the cadence did not ask for; the second is what makes it
+ * ungameable. Without the cap, declaring a 1x/week habit would pay 60 XP for a single check-in —
+ * a far better rate than doing the work. With it:
+ *
+ *     1x/week →  15 + 15 =  30      4x/week →  60 + 30 =  90
+ *     2x/week →  30 + 30 =  60      5x/week →  75 + 20 =  95
+ *     3x/week →  45 + 40 =  85      6x/week →  90 + 10 = 100
+ *                                   daily   → 105 +  0 = 105
+ *
+ * Monotonic in effort, no cliff, and daily still leads. A daily habit scores `(7 - 7) * 10 = 0`,
+ * so every existing user's XP is untouched.
+ */
+export const weeklyQuotaBonus = (weeklyTarget: number): number => {
+    const target = Math.round(Number(weeklyTarget) || 0);
+    if (!Number.isFinite(target) || target < 1 || target >= 7) {
+        return 0;
+    }
+    return Math.min(
+        (7 - target) * LeaderboardXpValues.quotaBonusPerUnscheduledDay,
+        target * (LeaderboardXpValues.habitCheckin + 5),
+    );
 };
 
 /**

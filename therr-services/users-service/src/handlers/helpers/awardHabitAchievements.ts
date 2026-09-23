@@ -2,6 +2,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { HabitGoalType } from 'therr-js-utilities/constants';
 import Store from '../../store';
+import { getCadence, countScheduledForRange } from '../../utilities/habitCadence';
 import { createOrUpdateAchievement } from './achievements';
 
 // Goal-type → achievement-class routing for streak-based awards.
@@ -141,7 +142,6 @@ export const awardSocialiteInviteAchievement = (
 ) => award(headers, 'socialite', '1_1', progressCount, 'socialite:1_1');
 
 const MULTI_HABIT_WINDOW_DAYS = 7;
-const MULTI_HABIT_REQUIRED_COMPLETIONS = 7;
 const MULTI_HABIT_LADDER = [2, 3, 5];
 
 const subtractDays = (isoDate: string, days: number): string => {
@@ -155,6 +155,11 @@ const subtractDays = (isoDate: string, days: number): string => {
  * on `asOfDate`, and awards `consistency_1_2` (Two At Once / Triple Threat /
  * All Things at Once) when that count crosses a ladder rung the user has not
  * yet been credited for.
+ *
+ * "Perfect" is measured against each habit's own cadence, not against seven days. The rung used
+ * to require 7 completions in the 7-day window, which a 4x/week habit can never reach — so a
+ * user tracking three habits on a weekly cadence, keeping every one of them, was permanently
+ * ineligible for an achievement about keeping several habits at once.
  *
  * Called inline from createCheckin after a successful completion. At current
  * scale (≤ a few thousand HABITS users with 1-3 active habits each) the
@@ -183,9 +188,12 @@ export const scanMultiHabitConsistency = async (
             .getCompletedCountForPeriod(userId, g.id, startDate, asOfDate)
             .catch(() => 0)));
 
-        const simultaneousPerfectCount = counts.filter(
-            (count: number) => count >= MULTI_HABIT_REQUIRED_COMPLETIONS,
-        ).length;
+        const simultaneousPerfectCount = counts.filter((count: number, index: number) => {
+            // What this habit owed over the window. For a daily habit that is 7 and the rung is
+            // unchanged; for "4x per week" it is 4, which is the whole point.
+            const required = countScheduledForRange(getCadence(goals[index]), startDate, asOfDate);
+            return required > 0 && count >= required;
+        }).length;
 
         if (simultaneousPerfectCount < MULTI_HABIT_LADDER[0]) {
             return Promise.resolve(null);
