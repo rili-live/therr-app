@@ -1,0 +1,4 @@
+Nouveautés :
+• À la limite d'habitudes gratuites, lancer une habitude ou rejoindre un pacte vous mène maintenant aux options de mise à niveau plutôt qu'à une erreur
+• Pas encore prêt à continuer en solo? L'app vous dit maintenant combien d'amis inviter, à la création d'un pacte et depuis « Continuer en solo »
+• Corrections et améliorations

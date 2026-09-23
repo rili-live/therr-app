@@ -1,0 +1,4 @@
+What's new:
+• At the free habit limit, starting a habit or joining a pact now takes you to the upgrade options instead of an error
+• Not ready to go solo yet? The app now tells you how many more friends to invite, from pact setup and from "Continue solo"
+• Fixes and stability improvements
