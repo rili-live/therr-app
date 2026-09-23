@@ -1,0 +1,6 @@
+What's new:
+• Choose how often each habit asks for a check-in: every day, a number of times a week, or specific days
+• Days your habit doesn't ask for no longer cost a streak freeze
+• Change a habit's schedule anytime from its detail screen, and keep your streak
+• New Android home-screen widget with your weekly rank and today's progress
+• Fixes and stability improvements

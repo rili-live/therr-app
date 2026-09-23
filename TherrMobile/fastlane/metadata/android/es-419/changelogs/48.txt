@@ -1,0 +1,6 @@
+Novedades:
+• Elige con qué frecuencia te pide registro cada hábito: todos los días, varias veces por semana o días específicos
+• Los días que tu hábito no pide ya no gastan una protección de racha
+• Cambia el horario de un hábito cuando quieras desde su detalle, sin perder tu racha
+• Nuevo widget para la pantalla de inicio de Android con tu posición semanal y el progreso de hoy
+• Correcciones y mejoras
