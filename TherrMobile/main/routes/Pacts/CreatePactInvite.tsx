@@ -34,9 +34,6 @@ import {
     CadenceChoice,
     DAILY_CADENCE,
 } from './cadenceOptions';
-
-/** Sunday-first, matching `targetDaysOfWeek` and the `daysOfWeekShort` dictionary. */
-const CADENCE_DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 import permissions from '../../utilities/permissionsOrchestrator';
 import UsersActions from '../../redux/actions/UsersActions';
 import { IUserState, IHabitsState, IHabitGoal } from 'therr-react/types';
@@ -64,6 +61,8 @@ import { readApiError } from '../../utilities/apiErrorMessage';
 import { getHabitCapPaywallParams, isHabitCapPaywallAvailable } from '../../utilities/habitCapPaywall';
 import getDeviceSavingsCurrencyCode from '../../utilities/savingsCurrency';
 
+/** Sunday-first, matching `targetDaysOfWeek` and the `daysOfWeekShort` dictionary. */
+const CADENCE_DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const MAX_PARTNERS = 5;
 const DEFAULT_PACT_DURATION_DAYS = 30;
 // Used to keep a focused input clear of the footer until the footer reports its

@@ -8,6 +8,13 @@ export interface IHabitCapPaywallParams {
 }
 
 /**
+ * Whether `UpgradePaywall` is registered, and so whether navigating to it does anything.
+ * See the note on `getHabitCapPaywallParams`.
+ */
+export const isHabitCapPaywallAvailable = (): boolean => getConfig()
+    .featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true;
+
+/**
  * `UpgradePaywall` route params for a refusal at the free-tier habit cap, or null
  * when the error is anything else.
  *
@@ -22,13 +29,6 @@ export interface IHabitCapPaywallParams {
  * navigating to an unregistered route is a silent no-op that would swallow the
  * error toast along with it.
  */
-/**
- * Whether `UpgradePaywall` is registered, and so whether navigating to it does anything.
- * See the note on `getHabitCapPaywallParams`.
- */
-export const isHabitCapPaywallAvailable = (): boolean => getConfig()
-    .featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true;
-
 export const getHabitCapPaywallParams = (err: any): IHabitCapPaywallParams | null => {
     const { status, body } = readApiError(err);
 

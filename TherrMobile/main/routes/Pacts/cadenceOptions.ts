@@ -26,7 +26,6 @@
  * one place that decision is made.
  */
 
-/** Sunday-first, matching JS `getDay()` and the `targetDaysOfWeek` column. */
 export const MIN_WEEKLY_COUNT = 1;
 export const MAX_WEEKLY_COUNT = 7;
 export const DEFAULT_WEEKLY_COUNT = 3;
