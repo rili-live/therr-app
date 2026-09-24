@@ -108,36 +108,42 @@ Keyword use is deliberately light, to stay clear of Play's keyword-stuffing poli
 
 ## Screenshots
 
-Replace all 7 current screenshots with these 5, in this order. They are ready to upload from
-`~/Downloads/fwh-play-listing/`:
+Replace all 7 current screenshots with these 7, in this order. They are the portrait frames in
+`scripts/google-ads/assets/habits/` (`portrait-1200x1500-<concept>.png`), and a numbered copy
+ready to upload is in `~/Downloads/fwh-play-listing/`:
 
-| # | File | Line | Screen |
+| # | Concept | Line | Screen |
 |---|---|---|---|
-| 1 | `1-partner.png` | "Someone else is counting on you." | Start your first pact (pick a goal, invite a friend, lock in) |
-| 2 | `2-pact.png` | "Every habit is a pact." | Dashboard with active habits |
-| 3 | `3-streak.png` | "Don't break the streak." | 13-day shared streak and next milestone |
-| 4 | `4-schedule.png` | "Any habit. Any schedule." | Dashboard with a weekly savings pact, the XP leaderboard and New Pact |
-| 5 | `5-founder.png` | "Pay once. Keep it for life." | Founder paywall at $19.99 |
+| 1 | `partner` | "Someone else is counting on you." | Start your first pact: pick a goal, invite a friend, lock in |
+| 2 | `partners` | "See who showed up." | Pact Details: your partner, your check-ins next to theirs, the timeline |
+| 3 | `streak` | "Don't break the streak." | 13-day streak and the next milestone |
+| 4 | `feed` | "Proof, not promises." | Feed of photo check-ins |
+| 5 | `journal` | "Every check-in, on the record." | Journal timeline of completed check-ins |
+| 6 | `schedule` | "Any habit. Any schedule." | Dashboard with a weekly savings pact and the XP leaderboard |
+| 7 | `founder` | "Pay once. Keep it for life." | Founder paywall at $19.99 |
 
-All five are 1200×1500 PNGs with no alpha channel, within Play's rules (each side 320–3840 px,
-long side at most 2× the short side). The first three are the ad frames from
-`scripts/google-ads/assets/habits/`, so a paid visitor sees the same message on the listing as in the ad.
+All 7 are 1200×1500 PNGs with no alpha channel, within Play's rules (each side 320–3840 px, long
+side at most 2× the short side). The first three appear in search results. Together they make the
+argument without the description: a pact needs a partner, you can see whether they showed up, and
+the streak is shared. The old `pact` frame (the emulator dashboard) is dropped because `schedule`
+shows the same screen with current UI.
 
-#4 and #5 were rendered from your device screenshots of 2026-09-24 with the same template
-(`build_frames.build_html`). The edits made to the sources:
-- **#4:** the profile photo in the tab bar is replaced with the app's placeholder avatar. The tab
-  bar also falls below the frame's crop, so it wouldn't show either way.
-- **Both:** the notification icons (Slack, Gmail, voicemail) are removed from the status bar.
-- **#5:** the seat meter ("5,000 of 5,000 founder spots left") is cut. It goes stale with the
-  first sale, and right now it says nobody has bought.
-- **#5:** the Monthly card is cut, because the production paywall says the monthly plan is not
-  available on this device.
+All 7 come from `build_frames.py`, so the listing and the ads use the same art, and a UI change
+means recapturing and re-running one command. Sources 07–11 are device captures from 2026-09-24,
+edited before committing to remove personal identity:
+- **All five:** status-bar notification icons removed, and the owner's profile photo replaced with the app's placeholder.
+- **Names:** real usernames and names replaced with demo names (feed: `jordan.moves`, `theo.daily`;
+  partner: Maya Chen).
+- **Paywall:** the seat meter ("5,000 of 5,000 founder spots left") is cut, and so is the Monthly
+  card, which the production paywall says is not available.
+- **Pact detail:** the "Abandon Pact" button is removed.
 
-The cleaned sources are in `~/Downloads/fwh-play-listing/sources/`.
+HABITS_PLAY_LISTING.md on `niche/HABITS-general` records the same edits.
 
-Still missing, and worth adding as #6–7 when there's real data to show: **a check-in with a
-photo attached** and **a pact detail screen showing the partner's check-in**. None of the 5 shows
-two people's activity side by side, and that's the whole position.
+**Before uploading #4:** the two photos in the feed are real check-ins. Only the names were
+changed; the photos themselves are original. The watch photo was posted by a different account
+from the owner's. If that account isn't yours, get its owner's OK before the photo goes on a
+public store page, or recapture the feed from a demo account.
 
 ---
 
@@ -198,11 +204,7 @@ Update it in the same sitting, because a mismatch between the two is itself a po
 - [ ] Localize with `/aso-listing localize habits`. The listing is en-US only for now, and
   that's knowingly left that way: both campaigns target English only. es-419 and fr-CA need
   a translation pass before the campaigns go beyond English.
-- [ ] Make screenshots #4–5 regenerable. Commit the two cleaned sources to
-  `docs/niche-sub-apps/habits/play-listing-screenshots/` on `niche/HABITS-general` as
-  `07-dashboard-weekly-cadence.png` and `08-founder-paywall.png`. Then add `schedule` and `founder`
-  entries to `CONCEPTS` in `build_frames.py` on `general`, so the next UI change is one command
-  rather than a hand edit. The founder frame needs a wider phone (780px, not 560px), because the paywall
-  source is cropped.
+- [ ] Still worth capturing: the check-in modal while a photo is being attached. #4 shows the
+  result, but no screenshot shows the moment of proof from the check-in side.
 - [ ] Optional: add a 1024×500 format to `build_frames.py`, so the feature graphic uses the
   same art as the ads and screenshots.
