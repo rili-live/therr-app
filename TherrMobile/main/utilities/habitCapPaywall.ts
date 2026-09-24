@@ -22,12 +22,17 @@ export interface IHabitCapPaywallParams {
  * navigating to an unregistered route is a silent no-op that would swallow the
  * error toast along with it.
  */
+/**
+ * Whether `UpgradePaywall` is registered, and so whether navigating to it does anything.
+ * See the note on `getHabitCapPaywallParams`.
+ */
+export const isHabitCapPaywallAvailable = (): boolean => getConfig()
+    .featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true;
+
 export const getHabitCapPaywallParams = (err: any): IHabitCapPaywallParams | null => {
     const { status, body } = readApiError(err);
-    const isPaywallRouteAvailable = getConfig()
-        .featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true;
 
-    if (status !== 402 || !isPaywallRouteAvailable) {
+    if (status !== 402 || !isHabitCapPaywallAvailable()) {
         return null;
     }
 
