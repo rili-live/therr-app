@@ -76,8 +76,9 @@ H=$(sips -g pixelHeight "$OUT/full-412.png" | awk '/pixelHeight/{print $2}')
 i=0; y=0
 while [ "$y" -lt "$H" ]; do
     # sips silently returns the whole image when a crop touches the bottom edge,
-    # so the last fold overlaps the previous one and stops a pixel short.
-    o=$(( y + 915 >= H ? H - 916 : y )); [ "$o" -lt 0 ] && o=0
+    # so the last fold overlaps the previous one and stops a pixel short. It also
+    # ignores an offset of 0 and centre-crops instead, so fold 0 starts at row 1.
+    o=$(( y + 915 >= H ? H - 916 : y )); [ "$o" -lt 1 ] && o=1
     sips -c 915 412 --cropOffset "$o" 0 "$OUT/full-412.png" --out "$OUT/fold-$i.png" >/dev/null
     i=$((i + 1)); y=$((y + 915))
 done
