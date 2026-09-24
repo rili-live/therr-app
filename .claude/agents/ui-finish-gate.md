@@ -32,8 +32,7 @@ If it exists, review against it. If not, derive a draft from:
 - the brief: `docs/niche-sub-apps/PROJECT_BRIEF.md` or `<TAG>_PROJECT_BRIEF.md`
 - tokens: `TherrMobile/main/styles/themes/` (`brandConstants.ts`; per-brand overrides live
   in `index.ts` / `paper.ts` on the niche branch — on `general` those entries are empty
-  and every brand inherits the Therr palette), `therr-public-library/therr-styles/`
-  (`_variables.scss`), and the inline styles of `therr-client-web/src/views/habits/*.hbs`
+  and every brand inherits the Therr palette), `therr-public-library/therr-styles/lib/_variables.scss`, and the inline styles of `therr-client-web/src/views/habits/*.hbs`
 - two or three screens the brand already ships that the team considers right
 
 and include it at the top of your report, marked **DRAFT — save to
