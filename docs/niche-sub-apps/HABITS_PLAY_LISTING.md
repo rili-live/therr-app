@@ -416,6 +416,17 @@ adb -s emulator-5554 exec-out screencap -p \
 | 4 | `04-pact-onboarding-empty-state.png` | PactOnboardingGuard — "Start your first pact", 3-step guide, Invite a friend CTA | First product UI — explains the pact flow before showing data |
 | 5 | `05-dashboard-multi-habit.png` | HabitsDashboard top — "Good evening!" greeting, 1/7 Today + 13 Best Streak overall progress, Pull-ups + Read 15 minutes habit cards with Check In CTAs | Shows the lived dashboard with active habits and quick-action check-ins |
 | 6 | `06-active-streak-widget.png` | HabitsDashboard scrolled — "Morning workout" with 13-day current streak ribbon, "Next milestone: 14 days" progress bar, Completed! state, plus Meditation & Daily journal cards | Visualises the streak widget and pact-linked habit completion — the core "it's working" moment |
+| 7 | `07-dashboard-weekly-cadence.png` | Device capture 2026-09-24 — dashboard with a 1x-per-week savings pact, weekly XP leaderboard rank, New Pact | Shows cadences beyond daily and the leaderboard |
+| 8 | `08-founder-paywall.png` | Device capture 2026-09-24 — Founder paywall at $19.99. Seat meter and the (unavailable) Monthly card cut out | The one-time offer, stated at the price Play charges |
+| 9 | `09-pact-detail-partner-progress.png` | Device capture 2026-09-24 — Pact Details: accountability partner, You vs partner progress comparison, timeline. "Abandon Pact" removed | The accountability mechanic with two people's numbers side by side |
+| 10 | `10-feed-photo-checkins.png` | Device capture 2026-09-24 — Feed with two photo check-ins | Proof photos, as other people see them |
+| 11 | `11-journal-timeline.png` | Device capture 2026-09-24 — Journal timeline of completed check-ins | The automatic record of every check-in |
+
+**07–11 are edited device captures, not raw ones.** Personal identity was removed before
+committing: the notification icons in the status bar, the owner's profile photo (replaced with
+`TherrMobile/main/assets/profile-placeholder.png`), and real usernames and names, replaced
+with demo names (feed: `jordan.moves`, `theo.daily`; partner: Maya Chen). The post photos in 10
+are real check-ins. Recapture from a demo account rather than editing again if the UI changes.
 
 `_holdback-boot-splash.png` is the boot splash; held back from the listing
 (Play discourages splash-only screenshots, and it doesn't communicate
@@ -425,8 +436,7 @@ product value).
 
 | # | Screen | Why |
 |---|---|---|
-| 7 | PactDetail showing partner activity feed | Social accountability mechanic in visual form |
-| 8 | Check-in modal with photo + note (Phase 4b feature) | Freshest visual; demonstrates daily proof |
+| — | Check-in modal with photo + note being attached | The moment of proof, from the check-in side (10 shows the result) |
 
 **Feature graphic** (1024×500, required before listing publishes):
 - Defer until brand assets are finalized.
