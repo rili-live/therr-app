@@ -13,8 +13,11 @@ import Store from '../../src/store';
 import { createOrUpdateAchievement } from '../../src/handlers/helpers/achievements';
 import { awardLeaderboardPoints } from '../../src/handlers/helpers/leaderboards';
 import { detectAndCelebrateRankMilestones } from '../../src/handlers/helpers/leaderboardRankMilestones';
+import HabitCheckinsStore from '../../src/store/HabitCheckinsStore';
 import {
     LeaderboardXpValues,
+    PROOF_NOTE_MIN_LENGTH,
+    checkinProofXp,
     getCrossedRankMilestones,
     getLeaderboardPeriodStart,
     getLeaderboardPeriodEnd,
@@ -454,5 +457,66 @@ describe('weeklyQuotaBonus', () => {
         expect(weeklyQuotaBonus(-3)).to.equal(0);
         expect(weeklyQuotaBonus(99)).to.equal(0);
         expect(weeklyQuotaBonus(NaN)).to.equal(0);
+    });
+});
+
+describe('checkinProofXp', () => {
+    const note = 'Ran 5k around the lake before work';
+
+    it('pays nothing for a bare check-in', () => {
+        expect(checkinProofXp({ status: 'completed', notes: null, hasProof: false })).to.equal(0);
+    });
+
+    it('pays more for a photo than for a note, and stacks the two', () => {
+        const noteOnly = checkinProofXp({ status: 'completed', notes: note, hasProof: false });
+        const photoOnly = checkinProofXp({ status: 'completed', notes: null, hasProof: true });
+        const both = checkinProofXp({ status: 'completed', notes: note, hasProof: true });
+
+        expect(noteOnly).to.equal(LeaderboardXpValues.proofNote);
+        expect(photoOnly).to.equal(LeaderboardXpValues.proofPhoto);
+        expect(photoOnly).to.be.greaterThan(noteOnly);
+        expect(both).to.equal(noteOnly + photoOnly);
+    });
+
+    it('does not count a throwaway note as proof', () => {
+        expect(checkinProofXp({ status: 'completed', notes: 'done', hasProof: false })).to.equal(0);
+        // Padding with whitespace does not get it over the line.
+        expect(checkinProofXp({
+            status: 'completed',
+            notes: `  ok${' '.repeat(PROOF_NOTE_MIN_LENGTH)}  `,
+            hasProof: false,
+        })).to.equal(0);
+    });
+
+    it('pays nothing on a check-in that is not completed', () => {
+        expect(checkinProofXp({ status: 'skipped', notes: note, hasProof: true })).to.equal(0);
+        expect(checkinProofXp({ status: 'pending', notes: note, hasProof: true })).to.equal(0);
+    });
+});
+
+describe('HabitCheckinsStore.claimProofXp', () => {
+    const buildStore = (rows: any[]) => {
+        const write = sinon.stub().resolves({ rows });
+        const store = new HabitCheckinsStore({ read: { query: sinon.stub() }, write: { query: write } } as any);
+        return { store, write };
+    };
+
+    it('returns the difference over what the row was already paid', async () => {
+        const { store, write } = buildStore([{ earnedXp: 10 }]);
+
+        expect(await store.claimProofXp('c1', 15)).to.equal(10);
+
+        const sql = write.firstCall.args[0];
+        expect(sql).to.contain('"proofXpAwarded" = 15');
+        // The high-water guard: never lowers the mark, never pays twice.
+        expect(sql).to.contain('"proofXpAwarded" < 15');
+        expect(sql).to.contain('FOR UPDATE');
+    });
+
+    it('returns 0 when the row has already been paid as much or more', async () => {
+        // The guarded UPDATE matches no row, so nothing is returned.
+        const { store } = buildStore([]);
+
+        expect(await store.claimProofXp('c1', 5)).to.equal(0);
     });
 });

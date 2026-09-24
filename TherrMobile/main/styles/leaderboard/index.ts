@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { getTheme } from '../themes';
+import { buttonMenuHeight } from '../navigation/buttonMenu';
 
 // Medal accents are branding-stable (same in every theme) like colors.branding*
 const MEDAL_COLORS = ['#D6AF36', '#A7A7AD', '#A77044'];
@@ -75,7 +76,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '700',
             color: therrTheme.colors.primary3,
         },
+        // The floating bottom nav overlaps the bottom of the screen; whichever of the list or
+        // the rank bar sits lowest has to clear it, or the last row is cut off.
+        listContentContainer: {
+            paddingBottom: buttonMenuHeight + 12,
+        },
         currentUserBar: {
+            marginBottom: buttonMenuHeight,
             flexDirection: 'row',
             alignItems: 'center',
             paddingVertical: 12,

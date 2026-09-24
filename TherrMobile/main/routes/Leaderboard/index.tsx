@@ -198,6 +198,7 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
     );
 
     const isCurrentUserVisible = entries.some((entry) => entry.isRequestingUser);
+    const isRankBarVisible = !isCurrentUserVisible && !!currentUser;
 
     return (
         <>
@@ -222,6 +223,7 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
                         data={entries}
                         keyExtractor={(item) => item.userId}
                         renderItem={renderItem}
+                        contentContainerStyle={isRankBarVisible ? undefined : themeLeaderboard.styles.listContentContainer}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshing}
                             onRefresh={() => fetchLeaderboard(period, scope)}
@@ -241,7 +243,7 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
                         }
                     />
                     {
-                        !isCurrentUserVisible && !!currentUser
+                        isRankBarVisible
                         && <View style={themeLeaderboard.styles.currentUserBar}>
                             <Text style={themeLeaderboard.styles.currentUserBarText}>
                                 {translate('pages.leaderboard.labels.yourRank', {

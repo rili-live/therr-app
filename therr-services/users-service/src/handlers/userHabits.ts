@@ -8,7 +8,7 @@ import {
 } from '../store/UserHabitsStore';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
-import { checkHabitCapacity } from './helpers/habitCapacity';
+import { checkHabitCapacity, getHabitCapacityStatus } from './helpers/habitCapacity';
 import { getSoloInviteProgress } from './helpers/soloHabitAccess';
 import { describeWeekProgress, getCadence } from '../utilities/habitCadence';
 import { getLocalDate, getWeekStart, resolveCheckinTimeZone } from '../utilities/dailyStreak';
@@ -169,8 +169,15 @@ const createUserHabit: RequestHandler = async (req: any, res: any) => {
 
         // Checked before anything is written — see the note on `checkHabitCapacity`
         // about why the tracking row must not exist yet when the count is taken.
+        // Re-starting an archived habit revives its row without re-stamping
+        // `startedAt`, so it is a restore as far as the start window goes.
         if (!isAlreadyTrackingActively) {
-            const denial = await checkHabitCapacity({ userId, brandVariation, locale });
+            const denial = await checkHabitCapacity({
+                userId,
+                brandVariation,
+                locale,
+                countsAsStart: existingTracking?.status !== 'archived',
+            });
 
             if (denial) {
                 return res.status(402).send(denial);
@@ -285,8 +292,13 @@ const restoreUserHabit: RequestHandler = async (req: any, res: any) => {
         return res.status(200).send(existing);
     }
 
-    // Restoring occupies a slot, so it is gated exactly like starting one.
-    const denial = await checkHabitCapacity({ userId, brandVariation, locale });
+    // Restoring occupies a slot, so it is gated on the active cap like starting
+    // one. It is not a start — `startedAt` is left alone — so the start window
+    // does not apply: a user who has used their starts can still bring an
+    // archived habit back into a free slot.
+    const denial = await checkHabitCapacity({
+        userId, brandVariation, locale, countsAsStart: false,
+    });
 
     if (denial) {
         return res.status(402).send(denial);
@@ -365,9 +377,12 @@ const continueSoloHabit: RequestHandler = async (req: any, res: any) => {
 
         // Reviving an archived habit into solo takes a slot; an already-active one
         // occupies its slot already. `countActiveByUser` counts only active rows,
-        // so checking before the flip is naturally safe.
+        // so checking before the flip is naturally safe. Like restore, it is not a
+        // start, so the start window does not apply.
         if (existing.status === 'archived') {
-            const denial = await checkHabitCapacity({ userId, brandVariation, locale });
+            const denial = await checkHabitCapacity({
+                userId, brandVariation, locale, countsAsStart: false,
+            });
 
             if (denial) {
                 return res.status(402).send(denial);
@@ -468,19 +483,29 @@ const getSoloEligibility: RequestHandler = async (req: any, res: any) => {
     const { locale, userId, brandVariation } = parseHeaders(req.headers);
 
     try {
-        const [soloProgress, activeHabitCount, denial] = await Promise.all([
+        const [soloProgress, capacity] = await Promise.all([
             getSoloInviteProgress(userId),
-            Store.userHabits.countActiveByUser(userId),
-            checkHabitCapacity({ userId, brandVariation, locale }),
+            getHabitCapacityStatus({ userId, brandVariation, locale }),
         ]);
+
+        // The limits are reported whenever they apply, not only once they have
+        // been hit: the client renders "2 of 3 free habits" from them, and a
+        // client that had to hardcode the numbers would drift from the server
+        // the first time an env override changed them. Null means no cap
+        // applies to this account (another brand, or an entitled one).
+        const isCapped = !capacity.isExempt;
 
         return res.status(200).send({
             canCreateSolo: soloProgress.canCreateSolo,
             invitedCount: soloProgress.invitedCount,
             soloUnlockInviteCount: soloProgress.requiredCount,
-            activeHabitCount,
-            isAtHabitLimit: !!denial,
-            habitLimit: denial?.limit ?? null,
+            activeHabitCount: capacity.activeHabitCount,
+            isAtHabitLimit: !!capacity.denial,
+            habitLimitReason: capacity.denial?.error ?? null,
+            habitLimit: isCapped ? capacity.limit : null,
+            habitStartLimit: isCapped ? capacity.startLimit : null,
+            habitStartWindowDays: isCapped ? capacity.startWindowDays : null,
+            recentHabitStartCount: capacity.recentStartCount,
         });
     } catch (err: any) {
         return handleHttpError({ err, res, message: 'SQL:USER_HABITS_ROUTES:ERROR' });
