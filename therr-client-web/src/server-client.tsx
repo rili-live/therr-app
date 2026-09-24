@@ -318,7 +318,7 @@ const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
     '/register': {
         view: 'habits/register',
         title: 'Create your account — Friends with Habits',
-        description: 'Create a free Friends with Habits account. Five habits free, '
+        description: 'Create a Friends with Habits account. Free to start, '
             + 'then pact up with a friend and keep each other on streak.',
         cacheControl: HABITS_NO_STORE,
         needsApiBase: true,
