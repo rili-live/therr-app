@@ -14,6 +14,7 @@ import CheckinDetailForm, { ICheckinDetailDraft } from '../../components/Habits/
 import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 import celebrationQueue from '../../utilities/celebrationQueue';
 import uploadCheckinProofImage from '../../utilities/checkinProofUpload';
+import { CHECKIN_PROOF_XP } from '../../constants/checkinProofXp';
 import getConfig from '../../utilities/getConfig';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
@@ -181,6 +182,20 @@ export const CheckinDetail = ({
                 ...(savedAmount === undefined ? {} : { savedAmount }),
             }))
             .then((checkin: any) => {
+                // What the note/photo earned on the leaderboard, as the service decided it.
+                // Zero when this save added nothing new (a re-save, a note too short to count,
+                // or proof that was already paid for) — the plain "saved" copy covers that.
+                const proofXpEarned = Number(checkin?.proofXpEarned) || 0;
+                const proofXpTitle = proofXpEarned > 0
+                    ? translate('pages.habits.checkinToast.proofXpTitle', { points: proofXpEarned })
+                    : undefined;
+                // A photo is worth the most, so a note-only save is nudged toward one next time.
+                const proofXpBody = proofXpEarned > 0
+                    ? translate(image
+                        ? 'pages.habits.checkinToast.proofXpBodyPhoto'
+                        : 'pages.habits.checkinToast.proofXpBodyNote', { photoPoints: CHECKIN_PROOF_XP.photo })
+                    : undefined;
+
                 // Opt-in public share: only with a photo (the backend copies that proof into the
                 // public bucket, moderates it, and mints a public post). Fire-and-forget — a
                 // failed share must not fail the check-in, which already committed.
@@ -193,6 +208,7 @@ export const CheckinDetail = ({
                             });
                             showToast.success({
                                 text1: translate('pages.habits.checkinProof.sharedTitle'),
+                                text2: proofXpTitle,
                             });
                         })
                         .catch(() => {
@@ -202,7 +218,8 @@ export const CheckinDetail = ({
                         });
                 } else {
                     showToast.success({
-                        text1: translate('pages.habits.checkinToast.detailSavedTitle'),
+                        text1: proofXpTitle || translate('pages.habits.checkinToast.detailSavedTitle'),
+                        text2: proofXpBody,
                     });
                 }
 

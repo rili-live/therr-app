@@ -2084,7 +2084,8 @@
                 "sharedTitle": "Shared to the feed",
                 "shareFailed": "We couldn't share this check-in. Try again later.",
                 "save": "Save",
-                "addDetailPromptSavings": "Record what you saved, and add a note or photo if you like."
+                "addDetailPromptSavings": "Record what you saved, and add a note or photo if you like.",
+                "xpHint": "Bonus XP: +{notePoints} for a note, +{photoPoints} for a photo. Do both for +{bothPoints}."
             },
             "feed": {
                 "emptyMessage": "No shared check-ins yet. Share one of yours to get the feed started."
@@ -2115,10 +2116,13 @@
             },
             "checkinToast": {
                 "title": "Checked in: {habitName}",
-                "addDetailAction": "Tap to add a note or photo",
+                "addDetailAction": "Tap to add a note or photo for bonus XP",
                 "detailSavedTitle": "Saved to today's check-in",
                 "freezeUsedTitle": "Your {count}-day streak survived",
-                "freezeUsedBody": "A streak freeze covered the day you missed. Tap to add a note or photo."
+                "freezeUsedBody": "A streak freeze covered the day you missed. Tap to add a note or photo for bonus XP.",
+                "proofXpTitle": "+{points} bonus XP for your proof",
+                "proofXpBodyPhoto": "Photo proof earns the most XP. Keep it up!",
+                "proofXpBodyNote": "Nice note! Add a photo next time for +{photoPoints} more XP."
             },
             "frequency": {
                 "daily": "Every day",
@@ -2219,7 +2223,13 @@
                 "habitsDone": "{done}/{total} habits",
                 "startHabit": "Start a habit →",
                 "newWeek": "New week started — tap to see your rank",
-                "inviteFriends": "Invite friends to compete →"
+                "inviteFriends": "Invite friends to compete →",
+                "refreshing": "Refreshing…",
+                "justNow": "just now",
+                "minutesAgo": "{minutes}m ago",
+                "hoursAgo": "{hours}h ago",
+                "daysAgo": "{days}d ago",
+                "refreshHint": "Updated {ago}. Tap to refresh"
             }
         },
         "pacts": {
@@ -2649,9 +2659,13 @@
         },
         "upgrade": {
             "title": "Free for life",
-            "subtitle": "One payment. Every feature, forever. No subscription.",
-            "limitTitle": "You have reached your habit limit",
+            "subtitle": "Pay once, keep every feature forever. No subscription.",
+            "limitTitle": "You've reached the free limit",
             "limitSubtitle": "Free accounts track {limit} habits at a time. Archive one, or unlock everything for life.",
+            "limitMeterLabel": "All {limit} free slots in use",
+            "eyebrow": "Founder offer",
+            "oneTime": "One-time payment",
+            "priceCaption": "once, yours forever",
             "benefitsTitle": "What you get",
             "benefits": {
                 "unlimitedHabits": "Track as many habits as you want",
@@ -2661,12 +2675,19 @@
                 "noSubscription": "No subscription, ever"
             },
             "seatsRemaining": "{remaining} of {total} founder spots left",
-            "buyCta": "Unlock for life {price}",
+            "buyCta": "Unlock for life · {price}",
+            "buyCtaNoPrice": "Unlock for life",
+            "billingFootnote": "Billed once through Google Play. No subscription, ever.",
             "purchasing": "Completing purchase…",
+            "orDivider": "or",
+            "valueAnchor": "Founder access costs less than {months} months of the monthly plan.",
             "notNow": "Not now",
+            "done": "Done",
             "owned": "You already have lifetime access.",
             "ownedWithNumber": "You are founder #{number}.",
+            "entitledTitle": "You're all set",
             "soldOut": "All founder spots have been claimed.",
+            "unavailableTitle": "Nothing to buy here yet",
             "unavailable": "This offer is not available on your device right now.",
             "success": {
                 "title": "You are all set",
@@ -2680,6 +2701,8 @@
             },
             "premium": {
                 "sectionTitle": "Or subscribe monthly",
+                "planName": "Monthly",
+                "priceSuffix": "/ month",
                 "subtitle": "All premium features, billed monthly. Cancel anytime.",
                 "benefits": {
                     "unlimitedHabits": "Track as many habits as you want",
@@ -2687,9 +2710,10 @@
                     "allFeatures": "Every premium feature",
                     "cancelAnytime": "Cancel anytime"
                 },
-                "buyCta": "Subscribe for {price}",
+                "buyCta": "Subscribe · {price}",
                 "buyCtaNoPrice": "Subscribe monthly",
                 "subscribing": "Starting subscription…",
+                "unavailable": "The monthly plan is not available on this device right now.",
                 "owned": "You have an active premium subscription.",
                 "success": {
                     "title": "You are all set",

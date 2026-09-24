@@ -8,6 +8,7 @@ import { radius } from '../radii';
 import { shadowMd, shadowSm } from '../elevation';
 import { buttonMenuHeight } from '../navigation/buttonMenu';
 import { getTheme, isDarkTheme, ITherrTheme } from '../themes';
+import { BRAND_WHITE } from '../themes/brandConstants';
 
 const tint = (color: string, alpha: number) => new Color(color).alpha(alpha).string();
 
@@ -1935,11 +1936,369 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: fontWeights.semibold,
             color: therrTheme.colors.brand,
         },
+
+        // Upgrade paywall
+        //
+        // The screen used to be a stack of body-copy lines and two identical
+        // brand-coloured buttons — "Unlock for life" and "Not now" carried the
+        // same weight, so the exit competed with the purchase. The founder offer
+        // is now one hero card on a brand gradient (white ink, gold accents, a
+        // white CTA that is the brightest thing on screen); the monthly plan is
+        // a quieter outlined card that exists mostly to anchor the price; and
+        // "Not now" is a text link. Every colour still comes from the theme so
+        // the Therr and Habits palettes both render correctly.
+        paywallScrollContent: {
+            paddingBottom: space.xxxl,
+        },
+        paywallHeader: {
+            paddingHorizontal: space.lg,
+            paddingTop: space.lg,
+            paddingBottom: space.lg,
+            backgroundColor: therrTheme.colors.surface,
+        },
+        // A row of filled pips, one per free slot, so "you have reached your
+        // limit" is something the user can see rather than only read.
+        paywallLimitMeter: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.xs,
+            marginBottom: space.sm,
+        },
+        paywallLimitPip: {
+            width: 28,
+            height: 8,
+            borderRadius: radius.pill,
+            backgroundColor: therrTheme.colors.brand,
+        },
+        paywallLimitMeterLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            letterSpacing: 0.6,
+            textTransform: 'uppercase',
+            color: therrTheme.colors.onSurfaceMuted,
+            marginLeft: space.xs,
+        },
+        paywallHeroCard: {
+            marginHorizontal: space.lg,
+            marginTop: space.lg,
+            borderRadius: radius.xl,
+            padding: space.xl,
+            overflow: 'hidden',
+            ...shadowMd,
+        },
+        paywallEyebrowRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
+        paywallEyebrowChip: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.xs,
+            paddingVertical: space.xs,
+            paddingHorizontal: space.sm + 2,
+            borderRadius: radius.pill,
+            backgroundColor: tint(BRAND_WHITE, 0.18),
+        },
+        paywallEyebrowText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.bold,
+            letterSpacing: 1,
+            textTransform: 'uppercase',
+            color: BRAND_WHITE,
+        },
+        paywallEyebrowIcon: {
+            color: therrTheme.colors.accent,
+        },
+        paywallEyebrowAside: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            color: tint(BRAND_WHITE, 0.85),
+        },
+        paywallPriceRow: {
+            flexDirection: 'row',
+            alignItems: 'flex-end',
+            flexWrap: 'wrap',
+            gap: space.sm,
+            marginTop: space.lg,
+        },
+        paywallPrice: {
+            fontFamily: therrFontFamily,
+            fontSize: 40,
+            lineHeight: 44,
+            fontWeight: '800',
+            letterSpacing: -0.5,
+            color: BRAND_WHITE,
+        },
+        paywallPriceCaption: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            lineHeight: fontSizes.sm * lineHeights.normal,
+            color: tint(BRAND_WHITE, 0.85),
+            paddingBottom: 6,
+        },
+        paywallHeroSubtitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            lineHeight: fontSizes.md * lineHeights.normal,
+            fontWeight: fontWeights.semibold,
+            color: BRAND_WHITE,
+            marginTop: space.md,
+        },
+        paywallBenefitList: {
+            marginTop: space.md,
+            gap: space.sm,
+        },
+        paywallBenefitRow: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: space.sm + 2,
+        },
+        paywallBenefitIcon: {
+            color: therrTheme.colors.accent,
+            marginTop: 2,
+        },
+        paywallBenefitText: {
+            flex: 1,
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            lineHeight: fontSizes.md * lineHeights.normal,
+            color: BRAND_WHITE,
+        },
+        // Seat meter. The fill is the claimed share, so an offer nobody has
+        // bought yet reads as an empty bar — which is honest, and the same
+        // reason the numbers come from the server.
+        paywallSeatTrack: {
+            height: 6,
+            borderRadius: radius.pill,
+            backgroundColor: tint(BRAND_WHITE, 0.25),
+            marginTop: space.xl,
+            overflow: 'hidden',
+        },
+        paywallSeatFill: {
+            height: 6,
+            borderRadius: radius.pill,
+            backgroundColor: therrTheme.colors.accent,
+        },
+        paywallSeatCaption: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            color: tint(BRAND_WHITE, 0.9),
+            marginTop: space.sm,
+        },
+        paywallHeroCta: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 52,
+            marginTop: space.lg,
+            paddingHorizontal: space.xl,
+            borderRadius: radius.lg,
+            backgroundColor: BRAND_WHITE,
+            ...shadowSm,
+        },
+        paywallCtaSpinner: {
+            marginRight: space.sm,
+        },
+        paywallHeroCtaText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.brandDark,
+        },
+        paywallHeroFootnote: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            lineHeight: fontSizes.xs * lineHeights.normal,
+            color: tint(BRAND_WHITE, 0.75),
+            textAlign: 'center',
+            marginTop: space.md,
+        },
+        paywallDividerRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.md,
+            marginHorizontal: space.lg,
+            marginTop: space.xl,
+            marginBottom: space.md,
+        },
+        paywallDividerLine: {
+            flex: 1,
+            height: StyleSheet.hairlineWidth,
+            backgroundColor: therrTheme.colors.accentDivider,
+        },
+        paywallDividerText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            letterSpacing: 0.8,
+            textTransform: 'uppercase',
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        paywallPlanCard: {
+            marginHorizontal: space.lg,
+            padding: space.lg,
+            borderRadius: radius.lg,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
+            backgroundColor: therrTheme.colors.surface,
+        },
+        // With no founder card above it there is no divider either, so the
+        // plan card supplies its own top margin.
+        paywallPlanCardStandalone: {
+            marginTop: space.lg,
+        },
+        paywallPlanHeader: {
+            flexDirection: 'row',
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+            gap: space.md,
+        },
+        paywallPlanName: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.lg,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.onSurface,
+        },
+        paywallPlanPriceRow: {
+            flexDirection: 'row',
+            alignItems: 'baseline',
+            gap: space.xs,
+        },
+        paywallPlanPrice: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xl,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.onSurface,
+        },
+        paywallPlanPriceSuffix: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        paywallPlanSubtitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            lineHeight: fontSizes.sm * lineHeights.normal,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: space.xs,
+        },
+        paywallPlanBenefitIcon: {
+            color: therrTheme.colors.brand,
+            marginTop: 2,
+        },
+        paywallPlanBenefitText: {
+            flex: 1,
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            lineHeight: fontSizes.sm * lineHeights.normal,
+            color: therrTheme.colors.onSurface,
+        },
+        paywallSecondaryCta: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 48,
+            marginTop: space.lg,
+            paddingHorizontal: space.xl,
+            borderRadius: radius.lg,
+            borderWidth: 1.5,
+            borderColor: therrTheme.colors.brand,
+        },
+        paywallSecondaryCtaText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.brand,
+        },
+        // When the founder offer is sold out the monthly plan is the only thing
+        // for sale, so its button takes the primary fill.
+        paywallSecondaryCtaFilled: {
+            backgroundColor: therrTheme.colors.brand,
+            borderColor: therrTheme.colors.brand,
+            ...shadowSm,
+        },
+        paywallSecondaryCtaTextFilled: {
+            color: therrTheme.colors.onBrand,
+        },
+        paywallPlanFootnote: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            lineHeight: fontSizes.xs * lineHeights.normal,
+            color: therrTheme.colors.onSurfaceMuted,
+            textAlign: 'center',
+            marginTop: space.md,
+        },
+        paywallTextLink: {
+            alignSelf: 'center',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 44,
+            paddingHorizontal: space.lg,
+            marginTop: space.lg,
+        },
+        paywallTextLinkLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        // The "already yours" and "nothing to buy here" states share one
+        // centred card.
+        paywallStatusCard: {
+            marginHorizontal: space.lg,
+            marginTop: space.lg,
+            padding: space.xl,
+            borderRadius: radius.lg,
+            backgroundColor: therrTheme.colors.surface,
+            alignItems: 'center',
+            gap: space.md,
+        },
+        paywallStatusIconCircle: {
+            width: 64,
+            height: 64,
+            borderRadius: radius.circle,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: tint(therrTheme.colors.brand, 0.12),
+        },
+        paywallStatusIcon: {
+            color: therrTheme.colors.brand,
+        },
+        paywallStatusTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xl,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.onSurface,
+            textAlign: 'center',
+        },
+        paywallStatusBody: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            lineHeight: fontSizes.sm * lineHeights.normal,
+            color: therrTheme.colors.onSurfaceMuted,
+            textAlign: 'center',
+        },
+        paywallLoading: {
+            paddingVertical: space.xxxl,
+            alignItems: 'center',
+        },
     });
 
     return ({
         ...therrTheme,
         styles,
+        // Diagonal brand wash behind the founder card. Ends on a lighter tint so
+        // the card has depth without a second colour that would fight the gold.
+        paywallHeroGradientColors: [
+            therrTheme.colors.brandDark,
+            therrTheme.colors.brand,
+            new Color(therrTheme.colors.brand).lighten(0.12).hex(),
+        ],
     });
 };
 

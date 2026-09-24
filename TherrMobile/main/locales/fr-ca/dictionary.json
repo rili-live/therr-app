@@ -2084,7 +2084,8 @@
                 "sharedTitle": "Partagé au fil",
                 "shareFailed": "Impossible de partager ce suivi. Réessayez plus tard.",
                 "save": "Enregistrer",
-                "addDetailPromptSavings": "Inscris ce que tu as épargné, et ajoute une note ou une photo si tu veux."
+                "addDetailPromptSavings": "Inscris ce que tu as épargné, et ajoute une note ou une photo si tu veux.",
+                "xpHint": "XP bonus : +{notePoints} pour une note, +{photoPoints} pour une photo. Les deux pour +{bothPoints}."
             },
             "feed": {
                 "emptyMessage": "Aucun suivi partagé pour l'instant. Partagez l'un des vôtres pour lancer le fil."
@@ -2115,10 +2116,13 @@
             },
             "checkinToast": {
                 "title": "Enregistré : {habitName}",
-                "addDetailAction": "Touchez pour ajouter une note ou une photo",
+                "addDetailAction": "Touchez pour ajouter une note ou une photo et gagner des XP bonus",
                 "detailSavedTitle": "Ajouté à l'enregistrement du jour",
                 "freezeUsedTitle": "Ta série de {count} jours a tenu",
-                "freezeUsedBody": "Un gel de série a couvert la journée manquée. Touche pour ajouter une note ou une photo."
+                "freezeUsedBody": "Un gel de série a couvert la journée manquée. Touche pour ajouter une note ou une photo et gagner des XP bonus.",
+                "proofXpTitle": "+{points} XP bonus pour ta preuve",
+                "proofXpBodyPhoto": "Les photos rapportent le plus de XP. Continue comme ça!",
+                "proofXpBodyNote": "Belle note! Ajoute une photo la prochaine fois pour +{photoPoints} XP de plus."
             },
             "frequency": {
                 "daily": "Chaque jour",
@@ -2219,7 +2223,13 @@
                 "habitsDone": "{done}/{total} habitudes",
                 "startHabit": "Commencez une habitude →",
                 "newWeek": "Nouvelle semaine — touchez pour voir votre rang",
-                "inviteFriends": "Invitez vos ami(e)s à compétitionner →"
+                "inviteFriends": "Invitez vos ami(e)s à compétitionner →",
+                "refreshing": "Actualisation…",
+                "justNow": "à l’instant",
+                "minutesAgo": "il y a {minutes} min",
+                "hoursAgo": "il y a {hours} h",
+                "daysAgo": "il y a {days} j",
+                "refreshHint": "Mis à jour {ago}. Touchez pour actualiser"
             }
         },
         "pacts": {
@@ -2649,9 +2659,13 @@
         },
         "upgrade": {
             "title": "Gratuit à vie",
-            "subtitle": "Un seul paiement. Toutes les fonctionnalités, pour toujours. Sans abonnement.",
-            "limitTitle": "Tu as atteint ta limite d'habitudes",
+            "subtitle": "Paie une seule fois et garde toutes les fonctionnalités pour toujours. Sans abonnement.",
+            "limitTitle": "Tu as atteint la limite gratuite",
             "limitSubtitle": "Les comptes gratuits suivent {limit} habitudes à la fois. Archives-en une ou débloque tout à vie.",
+            "limitMeterLabel": "Les {limit} places gratuites sont utilisées",
+            "eyebrow": "Offre fondateur",
+            "oneTime": "Paiement unique",
+            "priceCaption": "une fois, à toi pour toujours",
             "benefitsTitle": "Ce que tu obtiens",
             "benefits": {
                 "unlimitedHabits": "Suis autant d'habitudes que tu veux",
@@ -2661,12 +2675,19 @@
                 "noSubscription": "Jamais d'abonnement"
             },
             "seatsRemaining": "Il reste {remaining} places de fondateur sur {total}",
-            "buyCta": "Débloquer à vie {price}",
+            "buyCta": "Débloquer à vie · {price}",
+            "buyCtaNoPrice": "Débloquer à vie",
+            "billingFootnote": "Facturé une seule fois via Google Play. Jamais d'abonnement.",
             "purchasing": "Achat en cours…",
+            "orDivider": "ou",
+            "valueAnchor": "L'accès fondateur coûte moins que {months} mois du forfait mensuel.",
             "notNow": "Pas maintenant",
+            "done": "Terminé",
             "owned": "Tu as déjà l'accès à vie.",
             "ownedWithNumber": "Tu es le fondateur nº {number}.",
+            "entitledTitle": "Tout est prêt",
             "soldOut": "Toutes les places de fondateur ont été réclamées.",
+            "unavailableTitle": "Rien à acheter ici pour le moment",
             "unavailable": "Cette offre n'est pas disponible sur ton appareil pour le moment.",
             "success": {
                 "title": "Tout est prêt",
@@ -2680,6 +2701,8 @@
             },
             "premium": {
                 "sectionTitle": "Ou abonne-toi chaque mois",
+                "planName": "Mensuel",
+                "priceSuffix": "/ mois",
                 "subtitle": "Toutes les fonctionnalités premium, facturées mensuellement. Annule à tout moment.",
                 "benefits": {
                     "unlimitedHabits": "Suis autant d'habitudes que tu veux",
@@ -2687,9 +2710,10 @@
                     "allFeatures": "Toutes les fonctionnalités premium",
                     "cancelAnytime": "Annule à tout moment"
                 },
-                "buyCta": "S'abonner pour {price}",
+                "buyCta": "S'abonner · {price}",
                 "buyCtaNoPrice": "S'abonner chaque mois",
                 "subscribing": "Démarrage de l'abonnement…",
+                "unavailable": "Le forfait mensuel n'est pas disponible sur ton appareil pour le moment.",
                 "owned": "Tu as un abonnement premium actif.",
                 "success": {
                     "title": "Tout est prêt",
