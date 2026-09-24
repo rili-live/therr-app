@@ -236,6 +236,22 @@ describe('Solo habits', () => {
             expect(setStatusStub.called).to.equal(false);
         });
 
+        it('lets a restore into a free slot through when the start window is spent', async () => {
+            // A restore is not a start, so the window must not turn archiving
+            // into a trap: slots free, starts used up, the habit still comes back.
+            sinon.stub(Store.userHabits, 'getById').resolves({
+                id: 'uh-1', userId: 'user-1', status: 'archived',
+            } as any);
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT - 1);
+            countStartedStub.resolves(HABITS_FREE_HABIT_STARTS_PER_WINDOW);
+
+            const res = makeRes();
+            await restoreUserHabit(makeReq({ params: { id: 'uh-1' } }) as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(200);
+            expect(setStatusStub.firstCall.args[2]).to.equal('active');
+        });
+
         it('lets an entitled user past the limit', async () => {
             findUserStub.resolves([{ accessLevels: ['user.habits.lifetime'] }]);
             countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT + 5);
@@ -274,6 +290,36 @@ describe('Solo habits', () => {
 
             expect(res.statusCode).to.equal(402);
             expect(res.body.error).to.equal('habit-limit-reached');
+        });
+
+        it('does not charge the start window for re-starting an archived habit', async () => {
+            // Same row, same `startedAt`: from the window's point of view this is
+            // a restore, so a spent window must not block it.
+            getByUserAndHabitStub.resolves({
+                id: 'uh-1', userId: 'user-1', habitGoalId: 'goal-1', status: 'archived',
+            } as any);
+            getOrCreateStub.resolves({
+                id: 'uh-1', userId: 'user-1', habitGoalId: 'goal-1', status: 'archived',
+            } as any);
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT - 1);
+            countStartedStub.resolves(HABITS_FREE_HABIT_STARTS_PER_WINDOW);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(201);
+            expect(setStatusStub.firstCall.args[2]).to.equal('active');
+        });
+
+        it('still charges the start window for a habit never tracked before', async () => {
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT - 1);
+            countStartedStub.resolves(HABITS_FREE_HABIT_STARTS_PER_WINDOW);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(402);
+            expect(res.body.error).to.equal('habit-start-limit-reached');
         });
 
         it('applies the cap to an inline goal, which cannot already be tracked', async () => {
@@ -483,6 +529,20 @@ describe('Solo habits', () => {
             expect(res.statusCode).to.equal(200);
             expect(setStatusStub.firstCall.args[2]).to.equal('active');
             expect(abandonStub.calledOnce).to.equal(true);
+        });
+
+        it('un-archives into solo when the start window is spent, since it is not a start', async () => {
+            getByIdStub.resolves({
+                id: 'uh-1', userId: 'user-1', habitGoalId: 'goal-1', status: 'archived',
+            } as any);
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT - 1);
+            countStartedStub.resolves(HABITS_FREE_HABIT_STARTS_PER_WINDOW);
+
+            const res = makeRes();
+            await continueSoloHabit(makeReq({ params: { id: 'uh-1' } }) as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(200);
+            expect(setStatusStub.firstCall.args[2]).to.equal('active');
         });
 
         it('404s on a habit belonging to someone else', async () => {

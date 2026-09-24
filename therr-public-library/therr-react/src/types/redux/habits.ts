@@ -485,7 +485,11 @@ export interface IUserHabitEligibility {
     activeHabitCount: number;
     /** True when either free-tier cap would refuse a new habit right now. */
     isAtHabitLimit: boolean;
-    /** Which cap `isAtHabitLimit` refers to. Absent from servers predating the start window. */
+    /**
+     * Which cap `isAtHabitLimit` refers to. Absent from servers predating the start window.
+     * Restoring an archived habit is gated on the active cap alone, so it is still allowed
+     * when this is `'habit-start-limit-reached'` — only `'habit-limit-reached'` blocks it.
+     */
     habitLimitReason?: 'habit-limit-reached' | 'habit-start-limit-reached' | null;
     /**
      * The free-tier active-habit cap that applies to this account, or null when

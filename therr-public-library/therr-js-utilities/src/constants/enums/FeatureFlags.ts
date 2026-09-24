@@ -76,16 +76,18 @@ const DEFAULT_HABITS_FREE_HABIT_LIMIT = 3;
 
 /**
  * The companion cap that stops the active limit being cycled through: how many
- * habits an unentitled account may *start* (create, accept, or restore) inside
- * any rolling window, and how long that window is.
+ * habits an unentitled account may *start* (create or accept) inside any
+ * rolling window, and how long that window is.
  *
  * Counting only active habits makes archiving a real escape hatch, which is
  * deliberate — but it also means a user can archive one habit and start
  * another indefinitely and never meet the cap. The window closes that loop
  * without turning archiving into a trap: a user who tried three habits and
  * shelved them can still start more next month, and an archived habit can
- * always be restored into a free slot as long as the window allows. Counted on
- * `habits.user_habits.startedAt`, which every start path stamps.
+ * always be restored into a free slot whatever the window says — a restore is
+ * not a start and spends nothing from it. Counted on
+ * `habits.user_habits.startedAt`, which every start path stamps and no restore
+ * path re-stamps.
  *
  * Both configurable without a deploy — HABITS_FREE_HABIT_STARTS_PER_WINDOW and
  * HABITS_FREE_HABIT_START_WINDOW_DAYS — because the right values are an

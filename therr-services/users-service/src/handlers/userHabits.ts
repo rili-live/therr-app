@@ -169,8 +169,15 @@ const createUserHabit: RequestHandler = async (req: any, res: any) => {
 
         // Checked before anything is written — see the note on `checkHabitCapacity`
         // about why the tracking row must not exist yet when the count is taken.
+        // Re-starting an archived habit revives its row without re-stamping
+        // `startedAt`, so it is a restore as far as the start window goes.
         if (!isAlreadyTrackingActively) {
-            const denial = await checkHabitCapacity({ userId, brandVariation, locale });
+            const denial = await checkHabitCapacity({
+                userId,
+                brandVariation,
+                locale,
+                countsAsStart: existingTracking?.status !== 'archived',
+            });
 
             if (denial) {
                 return res.status(402).send(denial);
@@ -285,8 +292,13 @@ const restoreUserHabit: RequestHandler = async (req: any, res: any) => {
         return res.status(200).send(existing);
     }
 
-    // Restoring occupies a slot, so it is gated exactly like starting one.
-    const denial = await checkHabitCapacity({ userId, brandVariation, locale });
+    // Restoring occupies a slot, so it is gated on the active cap like starting
+    // one. It is not a start — `startedAt` is left alone — so the start window
+    // does not apply: a user who has used their starts can still bring an
+    // archived habit back into a free slot.
+    const denial = await checkHabitCapacity({
+        userId, brandVariation, locale, countsAsStart: false,
+    });
 
     if (denial) {
         return res.status(402).send(denial);
@@ -365,9 +377,12 @@ const continueSoloHabit: RequestHandler = async (req: any, res: any) => {
 
         // Reviving an archived habit into solo takes a slot; an already-active one
         // occupies its slot already. `countActiveByUser` counts only active rows,
-        // so checking before the flip is naturally safe.
+        // so checking before the flip is naturally safe. Like restore, it is not a
+        // start, so the start window does not apply.
         if (existing.status === 'archived') {
-            const denial = await checkHabitCapacity({ userId, brandVariation, locale });
+            const denial = await checkHabitCapacity({
+                userId, brandVariation, locale, countsAsStart: false,
+            });
 
             if (denial) {
                 return res.status(402).send(denial);

@@ -26,6 +26,13 @@ import translate from '../../utilities/translator';
  *      `HABITS_FREE_HABIT_START_WINDOW_DAYS`). Counts every habit started in
  *      the window whatever its status now, which is what stops the first cap
  *      being cycled through by archiving and re-creating.
+ *
+ * Bringing an archived habit back (restore, re-starting it, continuing it solo)
+ * is not a start — it does not re-stamp `startedAt`, so it spends nothing from
+ * the window — and is gated on the active cap alone (`countsAsStart: false`).
+ * Gating it on the window too would make archiving a trap: a user who had used
+ * their starts and archived a habit could not bring any habit back, even into
+ * a free slot, until the window rolled over.
  */
 export type IHabitCapacityDenialReason = 'habit-limit-reached' | 'habit-start-limit-reached';
 
@@ -97,11 +104,13 @@ const readCapacityCounts = async (userId: string): Promise<ICapacityCounts> => {
  * The decision itself, separated from the reads so both the enforcing path and
  * the reporting path apply exactly one rule. The active cap is checked first:
  * it is the one the user can see on their dashboard, and the one whose remedy
- * (archive something) is in their hands right now.
+ * (archive something) is in their hands right now. The start window is skipped
+ * when the action brings back an archived habit rather than starting one.
  */
 export const evaluateHabitCapacity = (
     counts: ICapacityCounts,
     locale?: string,
+    { countsAsStart = true }: { countsAsStart?: boolean } = {},
 ): IHabitCapacityDenial | null => {
     const shared = {
         limit: HABITS_FREE_HABIT_LIMIT,
@@ -122,7 +131,7 @@ export const evaluateHabitCapacity = (
         };
     }
 
-    if (counts.recentStartCount >= HABITS_FREE_HABIT_STARTS_PER_WINDOW) {
+    if (countsAsStart && counts.recentStartCount >= HABITS_FREE_HABIT_STARTS_PER_WINDOW) {
         return {
             error: 'habit-start-limit-reached',
             message: translate(locale || 'en-us', 'errorMessages.habits.freeTierHabitStartLimitReached', {
@@ -232,15 +241,22 @@ export const resetHabitCapacityFailOpenCount = (): void => {
  * being restored is still `archived` when the check runs — but a caller that
  * inserted first would count the new habit against its own limit. The same
  * holds for the start window: the new row's `startedAt` must not exist yet.
+ *
+ * `countsAsStart` is false for a caller that flips an existing archived row
+ * back to active — see the note atop this file. Such a caller is still denied
+ * at the active cap, so the 402 it can return is only ever
+ * `habit-limit-reached`.
  */
 export const checkHabitCapacity = async ({
     userId,
     brandVariation,
     locale,
+    countsAsStart = true,
 }: {
     userId: string;
     brandVariation?: string;
     locale?: string;
+    countsAsStart?: boolean;
 }): Promise<IHabitCapacityDenial | null> => {
     if (brandVariation !== BrandVariations.HABITS) {
         return null;
@@ -265,7 +281,7 @@ export const checkHabitCapacity = async ({
         stage = 'readCapacityCounts';
         const counts = await readCapacityCounts(userId);
 
-        return evaluateHabitCapacity(counts, locale);
+        return evaluateHabitCapacity(counts, locale, { countsAsStart });
     } catch (err: any) {
         failOpenCount += 1;
         logSpan({

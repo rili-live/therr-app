@@ -186,6 +186,34 @@ describe('Habit capacity (HABITS free-tier gate)', () => {
             expect(getStartWindowSince(windowMs).getTime()).to.equal(0);
         });
 
+        it('ignores the start window for an action that is not a start (restoring an archived habit)', async () => {
+            findUserStub.resolves([{ accessLevels: [AccessLevels.EMAIL_VERIFIED] }]);
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT - 1);
+            countStartedStub.resolves(HABITS_FREE_HABIT_STARTS_PER_WINDOW);
+
+            expect(await checkHabitCapacity({
+                userId: 'user-1',
+                brandVariation: BrandVariations.HABITS,
+                locale: 'en-us',
+                countsAsStart: false,
+            })).to.equal(null);
+        });
+
+        it('still holds a restore to the active cap', async () => {
+            findUserStub.resolves([{ accessLevels: [AccessLevels.EMAIL_VERIFIED] }]);
+            countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT);
+            countStartedStub.resolves(HABITS_FREE_HABIT_STARTS_PER_WINDOW);
+
+            const denial = await checkHabitCapacity({
+                userId: 'user-1',
+                brandVariation: BrandVariations.HABITS,
+                locale: 'en-us',
+                countsAsStart: false,
+            });
+
+            expect(denial?.error).to.equal('habit-limit-reached');
+        });
+
         it('fails OPEN when the start count throws', async () => {
             findUserStub.resolves([{ accessLevels: [AccessLevels.EMAIL_VERIFIED] }]);
             countActiveStub.resolves(0);
