@@ -35,7 +35,9 @@ import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
 import { DURATION, showToast } from '../../utilities/toasts';
-import { IHabitWithPactState, isPactSuperseded, splitHabitsByPactState } from './pactState';
+import {
+    countTodayProgress, IHabitWithPactState, isPactSuperseded, splitHabitsByPactState,
+} from './pactState';
 import { getNudgeErrorMessage, getNudgeOutcomeToast } from '../Pacts/nudgeOutcome';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 import getConfig from '../../utilities/getConfig';
@@ -102,6 +104,16 @@ export const normalizeInitialTab = (initialTab?: string): HabitsTab => {
 
     return TABS.includes(initialTab as HabitsTab) ? (initialTab as HabitsTab) : 'habits';
 };
+
+/**
+ * Whether anything `countTodayProgress` reads has changed: today's check-ins (the "2") and the
+ * four lists `splitHabitsByPactState` derives the checkin-able habits from (the "3"). Reference
+ * comparisons, like the habits memo — every reducer case that changes one replaces it.
+ */
+const TODAY_PROGRESS_INPUTS = ['todayCheckins', 'habitGoals', 'activePacts', 'pacts', 'userHabits'] as const;
+
+export const didTodayProgressInputsChange = (prevHabits: any, nextHabits: any): boolean => TODAY_PROGRESS_INPUTS
+    .some((key) => prevHabits?.[key] !== nextHabits?.[key]);
 
 type IHabitsRow =
     | { key: string; kind: 'sectionTitle'; title: string }
@@ -276,8 +288,9 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     };
 
     componentDidUpdate(prevProps: IHabitsDashboardProps) {
-        // A check-in or a refresh moved today's count — keep the widget's "2/3" in step.
-        if (this.widgetBoard && prevProps.habits?.todayCheckins !== this.props.habits?.todayCheckins) {
+        // A check-in moved the numerator, or a habit started, archived or lost its pact moved
+        // the denominator — keep the widget's "2/3" in step with the progress card either way.
+        if (this.widgetBoard && didTodayProgressInputsChange(prevProps.habits, this.props.habits)) {
             this.publishWidgetSnapshot();
         }
 
@@ -410,18 +423,10 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         ));
     };
 
-    /**
-     * Today's completed check-ins over habits that can be checked in. Only habits with a live
-     * pact are checkin-able, so counting the pending ones in the denominator would make
-     * "today" unreachable. Shared by the progress card and the home-screen widget.
-     */
-    getTodayProgress = (liveHabits: IHabitWithPactState[]): { done: number; total: number } => {
-        const liveGoalIds = liveHabits.map(({ goal }) => goal.id);
-        const done = (this.props.habits?.todayCheckins || []).filter(
-            (c: IHabitCheckin) => c.status === 'completed' && liveGoalIds.includes(c.habitGoalId),
-        ).length;
-        return { done, total: liveHabits.length };
-    };
+    /** Today's completed check-ins over checkin-able habits; see `countTodayProgress`. */
+    getTodayProgress = (liveHabits: IHabitWithPactState[]): { done: number; total: number } => (
+        countTodayProgress(liveHabits, this.props.habits?.todayCheckins)
+    );
 
     /**
      * The "you climbed to #9" toast. It must not cost the check-in toast its screen time —

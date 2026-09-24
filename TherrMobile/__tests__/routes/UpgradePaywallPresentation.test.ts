@@ -27,8 +27,11 @@ describe('getFounderValueAnchorMonths', () => {
         expect(getFounderValueAnchorMonths(oneTime('19990000'), monthly('6990000'))).toBe(3);
     });
 
-    it('states an exact multiple as itself', () => {
-        expect(getFounderValueAnchorMonths(oneTime('20000000'), monthly('5000000'))).toBe(4);
+    it('never claims "less than N" when the founder unlock costs exactly N months', () => {
+        // 20 / 5 = 4 months exactly — "less than 4 months" would be false on the paywall.
+        expect(getFounderValueAnchorMonths(oneTime('20000000'), monthly('5000000'))).toBe(5);
+        // 20.97 / 6.99 is exactly 3 but divides to a hair under it in floating point.
+        expect(getFounderValueAnchorMonths(oneTime('20970000'), monthly('6990000'))).toBe(4);
     });
 
     it('stays silent when the two prices are in different currencies', () => {

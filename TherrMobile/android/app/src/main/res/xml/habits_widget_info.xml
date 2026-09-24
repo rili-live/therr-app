@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  updatePeriodMillis only redraws from the stored snapshot (no network): it keeps the reset
-  countdown honest and swaps last week's rank for the "new week" prompt after a rollover.
-  Fresh data arrives when the app publishes a snapshot (main/utilities/habitsWidget.ts).
+  Each updatePeriodMillis tick redraws from the stored snapshot (keeping the reset countdown and
+  the "updated N ago" label honest, and swapping last week's rank for the "new week" prompt after
+  a rollover) and then queues a background refresh (widget/HabitsWidgetRefreshWorker.kt), which
+  fetches a fresh snapshot with the stored session. 30 minutes is the platform minimum; the
+  provider skips the fetch when the app published within the last few minutes. Fresh data also
+  arrives when the app publishes, when a habits push lands, and when the label is tapped.
 -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:description="@string/habits_widget_description"
@@ -14,5 +17,5 @@
     android:resizeMode="horizontal|vertical"
     android:targetCellWidth="4"
     android:targetCellHeight="2"
-    android:updatePeriodMillis="10800000"
+    android:updatePeriodMillis="1800000"
     android:widgetCategory="home_screen" />

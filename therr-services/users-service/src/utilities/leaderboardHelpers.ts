@@ -33,6 +33,40 @@ export const LeaderboardXpValues = {
     streakMilestoneMultiplier: 5,
     // Per unscheduled day, when a habit's weekly quota is met. See `weeklyQuotaBonus`.
     quotaBonusPerUnscheduledDay: 10,
+    // On top of `habitCheckin`, for a completed check-in that carries proof. See `checkinProofXp`.
+    proofNote: 5,
+    proofPhoto: 10,
+};
+
+// A note shorter than this ("done", "✅") is a tap with extra steps, not a record of the day.
+export const PROOF_NOTE_MIN_LENGTH = 10;
+
+/**
+ * Bonus XP a completed check-in has earned for its proof: a written note, a photo (or video),
+ * or both. The two stack, and a photo pays more than a note because it is the harder thing to
+ * fake and the more valuable thing for a partner to see.
+ *
+ *     note only  →  5      photo only →  10      photo + note →  15
+ *
+ * This is the check-in's *total* proof value, not what to award now: proof is usually added
+ * after the one-tap check-in, over one or more edits, so the caller pays only the difference
+ * over what the row has already been paid (`habit_checkins.proofXpAwarded`). That makes
+ * removing and re-adding a note or photo worth nothing.
+ */
+export const checkinProofXp = ({
+    status,
+    notes,
+    hasProof,
+}: {
+    status?: string | null;
+    notes?: string | null;
+    hasProof?: boolean | null;
+}): number => {
+    if (status !== 'completed') {
+        return 0;
+    }
+    const hasNote = typeof notes === 'string' && notes.trim().length >= PROOF_NOTE_MIN_LENGTH;
+    return (hasNote ? LeaderboardXpValues.proofNote : 0) + (hasProof ? LeaderboardXpValues.proofPhoto : 0);
 };
 
 /**

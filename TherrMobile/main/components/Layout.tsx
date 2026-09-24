@@ -96,6 +96,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
 import getDeviceTimeZone from '../utilities/deviceTimeZone';
 import { clearHabitsWidget, getWidgetActionRoute } from '../utilities/habitsWidget';
+import refreshHabitsWidgetInBackground, { shouldRefreshWidgetForPush } from '../utilities/habitsWidgetRefresh';
 
 const preLoadImageList = [background1, background2, background3];
 
@@ -2373,6 +2374,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 });
                 this.unsubscribePushNotifications = onMessage(getMessaging(), async (remoteMessage) => {
                     await wrapOnMessageReceived(true, remoteMessage);
+
+                    // Same as the background handler in index.js: a habits push is the moment the
+                    // home-screen widget's board moved. Fire-and-forget — the dashboard's own
+                    // refresh on focus is not this, and nothing here waits on the widget.
+                    if (shouldRefreshWidgetForPush(remoteMessage?.data?.type)) {
+                        refreshHabitsWidgetInBackground({ reason: 'foreground-push' }).catch(() => undefined);
+                    }
 
                     if (remoteMessage?.data?.areasActivated) {
                         const parsedAreasData = typeof (remoteMessage?.data?.areasActivated) === 'string'

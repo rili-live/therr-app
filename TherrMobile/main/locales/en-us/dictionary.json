@@ -2096,7 +2096,8 @@
                 "sharedTitle": "Shared to the feed",
                 "shareFailed": "We couldn't share this check-in. Try again later.",
                 "save": "Save",
-                "addDetailPromptSavings": "Record what you saved, and add a note or photo if you like."
+                "addDetailPromptSavings": "Record what you saved, and add a note or photo if you like.",
+                "xpHint": "Bonus XP: +{notePoints} for a note, +{photoPoints} for a photo. Do both for +{bothPoints}."
             },
             "feed": {
                 "emptyMessage": "No shared check-ins yet. Share one of yours to get the feed started."
@@ -2127,10 +2128,13 @@
             },
             "checkinToast": {
                 "title": "Checked in: {habitName}",
-                "addDetailAction": "Tap to add a note or photo",
+                "addDetailAction": "Tap to add a note or photo for bonus XP",
                 "detailSavedTitle": "Saved to today's check-in",
                 "freezeUsedTitle": "Your {count}-day streak survived",
-                "freezeUsedBody": "A streak freeze covered the day you missed. Tap to add a note or photo."
+                "freezeUsedBody": "A streak freeze covered the day you missed. Tap to add a note or photo for bonus XP.",
+                "proofXpTitle": "+{points} bonus XP for your proof",
+                "proofXpBodyPhoto": "Photo proof earns the most XP. Keep it up!",
+                "proofXpBodyNote": "Nice note! Add a photo next time for +{photoPoints} more XP."
             },
             "frequency": {
                 "daily": "Every day",
@@ -2231,7 +2235,13 @@
                 "habitsDone": "{done}/{total} habits",
                 "startHabit": "Start a habit →",
                 "newWeek": "New week started — tap to see your rank",
-                "inviteFriends": "Invite friends to compete →"
+                "inviteFriends": "Invite friends to compete →",
+                "refreshing": "Refreshing…",
+                "justNow": "just now",
+                "minutesAgo": "{minutes}m ago",
+                "hoursAgo": "{hours}h ago",
+                "daysAgo": "{days}d ago",
+                "refreshHint": "Updated {ago}. Tap to refresh"
             },
             "upgradeNudge": {
                 "nearCapTitle": "{used} of {limit} free habits in use",
@@ -2394,6 +2404,10 @@
                 "soloReviewSubtitle": "You are starting this one on your own.",
                 "soloJustYou": "Just you",
                 "soloAddPartnersLater": "You can invite a friend to this habit any time.",
+                "habitLimitBody": "Free accounts track {limit} habits at a time. Archive one to make room: its check-ins, streak and journal entries are all kept.",
+                "habitLimitBodyGeneric": "Archive a habit to make room for this one: its check-ins, streak and journal entries are all kept.",
+                "habitLimitArchive": "Archive a habit",
+                "habitLimitUpgrade": "See upgrade options",
                 "pickPartnerFirstLocked": "Choose a friend — or invite {remaining} more to unlock solo habits",
                 "soloLockedTitle": "Invite {remaining} more friend(s) to unlock solo habits",
                 "soloLockedProgress": "{invited} of {required} friends invited",
@@ -2406,9 +2420,7 @@
                 "savingsScopePerMemberLabel": "Each person saves this",
                 "savingsScopePerMemberHint": "Everyone works toward the amount on their own. Done when you have all reached it.",
                 "savingsScopeGroupLabel": "We save this together",
-                "savingsScopeGroupHint": "One shared pot. Done when your combined total reaches the amount.",
-                "capacityNoticeTitle": "Your {limit} free habit slots are full",
-                "capacityNoticeBody": "This one needs a slot. Unlock unlimited habits, or archive one first."
+                "savingsScopeGroupHint": "One shared pot. Done when your combined total reaches the amount."
             },
             "status": {
                 "pending": "Pending",

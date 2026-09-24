@@ -1,6 +1,6 @@
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import getConfig from './getConfig';
-import SecureStorage from './SecureStorage';
+import readStoredSession from './storedSession';
 
 /**
  * Completes a habit check-in straight from a notification action, without
@@ -18,8 +18,8 @@ import SecureStorage from './SecureStorage';
  * of what a tray action is for.
  *
  * So this reads the session from the same place `getStore` reads it at cold
- * start (SecureStorage → Keychain, `AFTER_FIRST_UNLOCK`, so it is readable
- * from a push wake) and issues one plain `fetch`.
+ * start (`readStoredSession`: SecureStorage → Keychain, `AFTER_FIRST_UNLOCK`,
+ * so it is readable from a push wake) and issues one plain `fetch`.
  *
  * ## Failure is not silent
  *
@@ -49,28 +49,6 @@ const REQUEST_TIMEOUT_MS = 10 * 1000;
 
 export const buildCheckinUrl = (baseApiGatewayRoute: string): string => `${baseApiGatewayRoute}/users-service/habits/checkins`;
 
-const readSession = async (): Promise<{ id?: string; idToken?: string; locale: string }> => {
-    const [userJson, settingsJson] = await Promise.all([
-        SecureStorage.getItem('therrUser').catch(() => null),
-        SecureStorage.getItem('therrUserSettings').catch(() => null),
-    ]);
-
-    let user: any = {};
-    let settings: any = {};
-    try {
-        user = JSON.parse(userJson || '{}');
-    } catch {
-        user = {};
-    }
-    try {
-        settings = JSON.parse(settingsJson || '{}');
-    } catch {
-        settings = {};
-    }
-
-    return { id: user?.id, idToken: user?.idToken, locale: settings?.locale || 'en-us' };
-};
-
 export interface IBackgroundCheckinResult {
     didCheckIn: boolean;
     /**
@@ -94,7 +72,7 @@ const completeCheckinInBackground = async ({
     pactId,
     savedAmount,
 }: IBackgroundCheckinArgs): Promise<IBackgroundCheckinResult> => {
-    const { id, idToken, locale } = await readSession();
+    const { id, idToken, locale } = await readStoredSession();
 
     if (!habitGoalId || !id || !idToken) {
         return { didCheckIn: false, locale };

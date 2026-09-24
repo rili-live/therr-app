@@ -69,7 +69,12 @@ jest.mock('../../main/utilities/getConfig', () => {
     };
 });
 
+import { HABITS_FREE_HABIT_LIMIT } from 'therr-js-utilities/constants';
 import { HabitsDashboard } from '../../main/routes/Habits/Dashboard';
+
+// The strip reads the build-time constant on this branch, so the cases below
+// are written against it rather than a literal that moves when it does.
+const LIMIT = HABITS_FREE_HABIT_LIMIT;
 
 const LIFETIME_OFFER: any = {
     productId: 'habits_founder_unlock',
@@ -89,7 +94,7 @@ const buildInstance = (habitsOverrides: any = {}) => {
         user: { settings: {}, details: { id: 'me' } },
         habits: {
             habitGoals: [], todayCheckins: [], streaks: [], pacts: [], activePacts: [], pendingInvites: [],
-            userHabits: activeHabits(5),
+            userHabits: activeHabits(LIMIT),
             lifetimeOffer: LIFETIME_OFFER,
             premiumOffer: null,
             ...habitsOverrides,
@@ -134,22 +139,22 @@ describe('habits dashboard — capacity nudge', () => {
 
         expect(nudge).not.toBeNull();
         expect(nudge.props.source).toBe('dashboard-capacity');
-        expect(nudge.props.title).toBe('All 5 free habits in use');
+        expect(nudge.props.title).toBe(`All ${LIMIT} free habits in use`);
 
         nudge.props.onPress();
         expect(props.navigation.navigate).toHaveBeenCalledWith('UpgradePaywall', {
             source: 'dashboard-capacity',
             reason: 'habit-limit-reached',
-            limit: 5,
+            limit: LIMIT,
         });
     });
 
     it('renders the last-slot strip as an offer, not a limit', () => {
-        const { instance, props } = buildInstance({ userHabits: activeHabits(4) });
+        const { instance, props } = buildInstance({ userHabits: activeHabits(LIMIT - 1) });
 
         const nudge: any = instance.renderUpgradeNudge();
 
-        expect(nudge.props.title).toBe('4 of 5 free habits in use');
+        expect(nudge.props.title).toBe(`${LIMIT - 1} of ${LIMIT} free habits in use`);
 
         nudge.props.onPress();
         expect(props.navigation.navigate).toHaveBeenCalledWith('UpgradePaywall', {
@@ -158,7 +163,7 @@ describe('habits dashboard — capacity nudge', () => {
     });
 
     it('renders nothing with room to spare, before the registry loads, or with the flag off', () => {
-        expect(buildInstance({ userHabits: activeHabits(2) }).instance.renderUpgradeNudge()).toBeNull();
+        expect(buildInstance({ userHabits: activeHabits(LIMIT - 2) }).instance.renderUpgradeNudge()).toBeNull();
         expect(buildInstance({ userHabits: undefined }).instance.renderUpgradeNudge()).toBeNull();
 
         mockIsOfferEnabled = false;

@@ -2096,7 +2096,8 @@
                 "sharedTitle": "Compartido en el feed",
                 "shareFailed": "No pudimos compartir este registro. Inténtalo más tarde.",
                 "save": "Guardar",
-                "addDetailPromptSavings": "Anota lo que ahorraste y agrega una nota o foto si quieres."
+                "addDetailPromptSavings": "Anota lo que ahorraste y agrega una nota o foto si quieres.",
+                "xpHint": "XP extra: +{notePoints} por una nota, +{photoPoints} por una foto. Haz ambas para +{bothPoints}."
             },
             "feed": {
                 "emptyMessage": "Aún no hay registros compartidos. Comparte uno de los tuyos para empezar el feed."
@@ -2127,10 +2128,13 @@
             },
             "checkinToast": {
                 "title": "Registrado: {habitName}",
-                "addDetailAction": "Toca para añadir una nota o foto",
+                "addDetailAction": "Toca para añadir una nota o foto y ganar XP extra",
                 "detailSavedTitle": "Guardado en el registro de hoy",
                 "freezeUsedTitle": "Tu racha de {count} días sobrevivió",
-                "freezeUsedBody": "Un congelamiento de racha cubrió el día que fallaste. Toca para añadir una nota o foto."
+                "freezeUsedBody": "Un congelamiento de racha cubrió el día que fallaste. Toca para añadir una nota o foto y ganar XP extra.",
+                "proofXpTitle": "+{points} XP extra por tu prueba",
+                "proofXpBodyPhoto": "Las fotos dan más XP. ¡Sigue así!",
+                "proofXpBodyNote": "¡Buena nota! Añade una foto la próxima vez para ganar +{photoPoints} XP más."
             },
             "frequency": {
                 "daily": "Cada día",
@@ -2231,7 +2235,13 @@
                 "habitsDone": "{done}/{total} hábitos",
                 "startHabit": "Empieza un hábito →",
                 "newWeek": "Empezó una nueva semana — toca para ver tu puesto",
-                "inviteFriends": "Invita a tus amigos a competir →"
+                "inviteFriends": "Invita a tus amigos a competir →",
+                "refreshing": "Actualizando…",
+                "justNow": "ahora mismo",
+                "minutesAgo": "hace {minutes} min",
+                "hoursAgo": "hace {hours} h",
+                "daysAgo": "hace {days} d",
+                "refreshHint": "Actualizado {ago}. Toca para actualizar"
             },
             "upgradeNudge": {
                 "nearCapTitle": "{used} de {limit} hábitos gratuitos en uso",
@@ -2394,6 +2404,10 @@
                 "soloReviewSubtitle": "Vas a empezar este por tu cuenta.",
                 "soloJustYou": "Solo tú",
                 "soloAddPartnersLater": "Puedes invitar a un amigo a este hábito cuando quieras.",
+                "habitLimitBody": "Las cuentas gratuitas siguen {limit} hábitos a la vez. Archiva uno para hacer espacio: se conservan todos sus registros, su racha y sus entradas del diario.",
+                "habitLimitBodyGeneric": "Archiva un hábito para hacer espacio para este: se conservan todos sus registros, su racha y sus entradas del diario.",
+                "habitLimitArchive": "Archivar un hábito",
+                "habitLimitUpgrade": "Ver opciones de mejora",
                 "pickPartnerFirstLocked": "Elige un amigo o invita a {remaining} más para desbloquear los hábitos en solitario",
                 "soloLockedTitle": "Invita a {remaining} amigo(s) más para desbloquear los hábitos en solitario",
                 "soloLockedProgress": "{invited} de {required} amigos invitados",
@@ -2406,9 +2420,7 @@
                 "savingsScopePerMemberLabel": "Cada persona ahorra esto",
                 "savingsScopePerMemberHint": "Cada quien avanza hacia el monto por su cuenta. Termina cuando todos lo alcancen.",
                 "savingsScopeGroupLabel": "Lo ahorramos juntos",
-                "savingsScopeGroupHint": "Un fondo compartido. Termina cuando el total combinado llegue al monto.",
-                "capacityNoticeTitle": "Tus {limit} espacios gratuitos están llenos",
-                "capacityNoticeBody": "Este hábito necesita un espacio. Desbloquea hábitos ilimitados o archiva uno primero."
+                "savingsScopeGroupHint": "Un fondo compartido. Termina cuando el total combinado llegue al monto."
             },
             "status": {
                 "pending": "Pendiente",

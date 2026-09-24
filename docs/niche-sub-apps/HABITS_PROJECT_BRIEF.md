@@ -113,7 +113,7 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 ## PRODUCT FEATURES
 
 ### MVP (Weeks 3-6) - FREE TIER
-- ✅ Track **5 active habits** at a time (revised 2026-08 — see the note below)
+- ✅ Track **3 active habits** at a time, and start up to 5 new ones per rolling 30 days (revised 2026-09 — see the notes below)
 - ✅ Invite friends to be accountability partners (REQUIRED to get started)
 - ✅ Track habits on your own — unlocked by inviting 3 friends, shown as progress
 - ✅ Daily check-in system with photo/note proof
@@ -129,6 +129,17 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 > limit, while a user with five solo habits and no friends did not. The limit
 > now counts habits tracked, which is also the number a user can see on their
 > own dashboard. Archiving a habit frees a slot and loses nothing.
+>
+> **Lowered to 3 active habits, plus a start window, in September 2026.** Five
+> was more than most people ever tracked at once, so almost nobody met the cap
+> and almost nobody saw the offer. And because only *active* habits counted, a
+> user could archive one and start another indefinitely. The cap is now 3
+> active habits **and** at most 5 habits *started* in any rolling 30 days
+> (env-tunable: `HABITS_FREE_HABIT_LIMIT`, `HABITS_FREE_HABIT_STARTS_PER_WINDOW`,
+> `HABITS_FREE_HABIT_START_WINDOW_DAYS`). Archiving still frees a slot and is
+> never a trap — restoring an old habit is not a new start — but the slot
+> cannot be cycled through. Existing free users over 3 keep what they have and
+> simply cannot add until they archive down.
 
 ### FOUNDER UNLOCK ($20 once, first 5,000 accounts)
 One payment, premium forever. Sold through Google Play Billing and granted as
@@ -263,7 +274,8 @@ future premium gate. See `habits/HABITS_PAYMENT_WORKFLOW.md`.
 - [ ] Referral invite system (cannot be skipped)
 - [ ] Shareable pact templates with unique links
 - [ ] Social proof elements (success stories, leaderboard)
-- [x] Android home-screen widget v1: weekly friends rank, XP, daily streak, today's check-ins, top 3 (read-only, app-pushed snapshot). Next: background refresh, iOS WidgetKit, one-tap check-in
+- [x] Android home-screen widget v1: weekly friends rank, XP, daily streak, today's check-ins, top 3 (read-only, app-pushed snapshot)
+- [x] Android home-screen widget v2: live reload — background refresh every 30 min via WorkManager + headless JS, refresh on habits pushes, tap-to-refresh with an "updated N ago" label. Next: iOS WidgetKit, one-tap check-in
 - [ ] "Challenge a Friend" with pre-filled invites
 - [ ] Weekly email summaries with share buttons
 - [ ] Friend activity notifications to create FOMO
