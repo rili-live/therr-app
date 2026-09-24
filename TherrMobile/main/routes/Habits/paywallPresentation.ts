@@ -12,7 +12,11 @@ import { resolvePurchaseValue } from '../../utilities/habitsBilling';
  * or a ratio under one month, where "pays for itself in 0 months" reads as a
  * mistake rather than a deal.
  *
- * Rounded up: "less than 3 months" is true of a 2.86 ratio; "2 months" is not.
+ * The smallest whole N for which "less than N months" is true: 3 for a 2.86
+ * ratio ("2 months" would be an overstatement), and 5 — not 4 — for an exact
+ * 4.0, which costs four months, not less. The epsilon keeps a ratio that is
+ * exact in micros but lands a hair under the integer in floating point (20.97
+ * / 6.99) from rounding down into a false claim.
  */
 export const getFounderValueAnchorMonths = (
     founderProduct: any,
@@ -29,7 +33,7 @@ export const getFounderValueAnchorMonths = (
         return null;
     }
 
-    const months = Math.ceil(founder.value / monthly.value);
+    const months = Math.floor((founder.value / monthly.value) + 1e-9) + 1;
 
     return months >= 1 ? months : null;
 };

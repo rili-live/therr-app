@@ -77,6 +77,13 @@ describe('buildHabitsWidgetSnapshot', () => {
         expect(snapshot.labels.resetsIn).toContain('{days}');
         expect(snapshot.labels.points).toBe('420 XP');
         expect(snapshot.labels.todayProgress).toBe('1/2 habits');
+        // The freshness label is the same deal: the widget fills it on every redraw.
+        expect(snapshot.labels.minutesAgo).toContain('{minutes}');
+        expect(snapshot.labels.hoursAgo).toContain('{hours}');
+        expect(snapshot.labels.daysAgo).toContain('{days}');
+        expect(snapshot.labels.refreshHint).toContain('{ago}');
+        expect(snapshot.labels.justNow).toBe('just now');
+        expect(snapshot.labels.refreshing).toBe('Refreshing…');
     });
 
     it('invites a habit instead of showing 0/0, and clamps today to the total', () => {
@@ -103,6 +110,8 @@ describe('hasFriendsOnBoard', () => {
 describe('publishHabitsWidget / clearHabitsWidget', () => {
     let setSnapshot: jest.Mock<any>;
     let clear: jest.Mock<any>;
+    let finishRefresh: jest.Mock<any>;
+    let hasWidgets: jest.Mock<any>;
 
     beforeEach(() => {
         jest.resetModules();
@@ -110,7 +119,11 @@ describe('publishHabitsWidget / clearHabitsWidget', () => {
         Platform.OS = 'android';
         setSnapshot = jest.fn<any>().mockResolvedValue(true);
         clear = jest.fn<any>().mockResolvedValue(true);
-        (NativeModules as any).HabitsWidget = { setSnapshot, clear };
+        finishRefresh = jest.fn<any>().mockResolvedValue(true);
+        hasWidgets = jest.fn<any>().mockResolvedValue(true);
+        (NativeModules as any).HabitsWidget = {
+            setSnapshot, clear, finishRefresh, hasWidgets,
+        };
     });
 
     const snapshot = () => loadModule()
@@ -133,6 +146,20 @@ describe('publishHabitsWidget / clearHabitsWidget', () => {
         expect(setSnapshot).toHaveBeenCalledTimes(2);
     });
 
+    it('writes an unchanged snapshot when forced, and reports whether it wrote', () => {
+        const { publishHabitsWidget, buildHabitsWidgetSnapshot } = loadModule();
+        const first = publishHabitsWidget(buildHabitsWidgetSnapshot(friendsBoard, 'connections', { done: 1, total: 2 }, translate, 1));
+        const skipped = publishHabitsWidget(buildHabitsWidgetSnapshot(friendsBoard, 'connections', { done: 1, total: 2 }, translate, 2));
+        const forced = publishHabitsWidget(
+            buildHabitsWidgetSnapshot(friendsBoard, 'connections', { done: 1, total: 2 }, translate, 3),
+            { force: true },
+        );
+
+        expect([first, skipped, forced]).toEqual([true, false, true]);
+        expect(setSnapshot).toHaveBeenCalledTimes(2);
+        expect(JSON.parse(setSnapshot.mock.calls[1][0] as string).updatedAt).toBe(3);
+    });
+
     it('writes again after a logout clears the widget', () => {
         const { publishHabitsWidget, clearHabitsWidget } = loadModule();
         const same = snapshot();
@@ -144,15 +171,29 @@ describe('publishHabitsWidget / clearHabitsWidget', () => {
         expect(setSnapshot).toHaveBeenCalledTimes(2);
     });
 
-    it('does nothing on iOS', () => {
+    it('does nothing on iOS', async () => {
         Platform.OS = 'ios';
-        const { publishHabitsWidget, clearHabitsWidget, isHabitsWidgetSupported } = loadModule();
+        const {
+            publishHabitsWidget, clearHabitsWidget, finishHabitsWidgetRefresh, hasHabitsWidgets, isHabitsWidgetSupported,
+        } = loadModule();
         publishHabitsWidget(snapshot());
         clearHabitsWidget();
+        finishHabitsWidgetRefresh();
 
         expect(isHabitsWidgetSupported()).toBe(false);
+        expect(await hasHabitsWidgets()).toBe(false);
         expect(setSnapshot).not.toHaveBeenCalled();
         expect(clear).not.toHaveBeenCalled();
+        expect(finishRefresh).not.toHaveBeenCalled();
+        expect(hasWidgets).not.toHaveBeenCalled();
+    });
+
+    it('asks the native side whether a widget is placed, and answers no when it cannot', async () => {
+        const { hasHabitsWidgets } = loadModule();
+
+        expect(await hasHabitsWidgets()).toBe(true);
+        hasWidgets.mockRejectedValue(new Error('boom'));
+        expect(await hasHabitsWidgets()).toBe(false);
     });
 
     it('does nothing on another brand', () => {
@@ -166,11 +207,12 @@ describe('publishHabitsWidget / clearHabitsWidget', () => {
 
     it('does nothing, and does not throw, without the native module', () => {
         delete (NativeModules as any).HabitsWidget;
-        const { publishHabitsWidget, clearHabitsWidget } = loadModule();
+        const { publishHabitsWidget, clearHabitsWidget, finishHabitsWidgetRefresh } = loadModule();
 
         expect(() => {
             publishHabitsWidget(snapshot());
             clearHabitsWidget();
+            finishHabitsWidgetRefresh();
         }).not.toThrow();
     });
 });

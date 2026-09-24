@@ -16,9 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { HabitActions } from 'therr-react/redux/actions';
 import {
-    DEFAULT_SAVINGS_CURRENCY_CODE,
     FeatureFlags,
-    HABITS_FREE_HABIT_LIMIT,
     HabitGoalTypes,
     parseSavingsAmount,
     SavingsTargetScope,
@@ -27,9 +25,7 @@ import {
 import getConfig from '../../utilities/getConfig';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { streakFreezeRuleParams } from '../../utilities/streakFreezes';
-import { getHabitCapacityNudge, readHabitCapacity } from '../../utilities/upgradeNudge';
 import CadencePicker from '../../components/Habits/CadencePicker';
-import UpgradeNudgeCard from '../../components/Habits/UpgradeNudgeCard';
 import {
     cacheKey as cadenceCacheKey,
     fromGoal as cadenceFromGoal,
@@ -38,9 +34,6 @@ import {
     CadenceChoice,
     DAILY_CADENCE,
 } from './cadenceOptions';
-
-/** Sunday-first, matching `targetDaysOfWeek` and the `daysOfWeekShort` dictionary. */
-const CADENCE_DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 import permissions from '../../utilities/permissionsOrchestrator';
 import UsersActions from '../../redux/actions/UsersActions';
 import { IUserState, IHabitsState, IHabitGoal } from 'therr-react/types';
@@ -65,8 +58,11 @@ import {
 } from './wizardSteps';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 import { readApiError } from '../../utilities/apiErrorMessage';
-import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
+import { getHabitCapPaywallParams, isHabitCapPaywallAvailable } from '../../utilities/habitCapPaywall';
+import getDeviceSavingsCurrencyCode from '../../utilities/savingsCurrency';
 
+/** Sunday-first, matching `targetDaysOfWeek` and the `daysOfWeekShort` dictionary. */
+const CADENCE_DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const MAX_PARTNERS = 5;
 const DEFAULT_PACT_DURATION_DAYS = 30;
 // Used to keep a focused input clear of the footer until the footer reports its
@@ -86,8 +82,6 @@ interface IDispatchProps {
     bulkInvitePact: Function;
     startUserHabit: Function;
     getUserHabitEligibility: Function;
-    getLifetimeOffer?: Function;
-    getPremiumOffer?: Function;
     searchUsers: Function;
 }
 
@@ -143,8 +137,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     bulkInvitePact: HabitActions.bulkInvitePact,
     startUserHabit: HabitActions.startUserHabit,
     getUserHabitEligibility: HabitActions.getUserHabitEligibility,
-    getLifetimeOffer: HabitActions.getLifetimeOffer,
-    getPremiumOffer: HabitActions.getPremiumOffer,
     searchUsers: UsersActions.search,
 }, dispatch);
 
@@ -269,13 +261,6 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         // server would refuse the solo call anyway, and the user can still
         // finish the flow the normal way by choosing a partner.
         this.props.getUserHabitEligibility().catch(() => {});
-
-        // For the at-cap notice on step 1. Fire-and-forget: the notice fails
-        // closed without an offer, and a wizard must never wait on one.
-        if (getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true) {
-            this.props.getLifetimeOffer?.()?.catch?.(() => {});
-            this.props.getPremiumOffer?.()?.catch?.(() => {});
-        }
     }
 
     componentWillUnmount() {
@@ -647,23 +632,14 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     /**
      * The currency a savings target is recorded in.
      *
-     * Taken from the device locale rather than asked for, because a picker would be a
-     * whole extra step for a field almost nobody changes, and it is display-only —
-     * nothing in the system converts between currencies. Falls back to USD when the
-     * locale does not imply one.
+     * Taken from the device region rather than asked for. A picker would add a whole
+     * step for a field almost nobody changes, and the value is display only: nothing in
+     * the system converts between currencies. The source is the device region, not the
+     * app locale, because the app locale is a language (`es` names no country). Falls
+     * back to `DEFAULT_SAVINGS_CURRENCY_CODE` for a region the table does not know. See
+     * `utilities/savingsCurrency.ts`.
      */
-    getSavingsCurrencyCode = (): string => {
-        try {
-            const resolved = new Intl.NumberFormat(
-                this.props.user?.settings?.locale || undefined,
-                { style: 'currency', currency: DEFAULT_SAVINGS_CURRENCY_CODE },
-            ).resolvedOptions();
-
-            return (resolved.currency || DEFAULT_SAVINGS_CURRENCY_CODE).toUpperCase();
-        } catch {
-            return DEFAULT_SAVINGS_CURRENCY_CODE;
-        }
-    };
+    getSavingsCurrencyCode = (): string => getDeviceSavingsCurrencyCode();
 
     /**
      * Whether the habit being composed is a savings goal — from the chosen template's
@@ -737,6 +713,111 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     };
 
     /**
+     * Whether the cached eligibility says the user is at the free-tier habit cap.
+     * `isAtHabitLimit` already accounts for the founder unlock and premium, so an
+     * entitled user never reads as capped here.
+     */
+    isAtHabitCap = (): boolean => this.props.habits.userHabitEligibility?.isAtHabitLimit === true;
+
+    /**
+     * Which free-tier cap the eligibility says was hit. The start window
+     * (`habit-start-limit-reached`) is the server's alone to see — slots are
+     * free, but the next start would still be refused — so the notice, the
+     * paywall params and the way out all follow this rather than the count.
+     */
+    isAtStartWindowCap = (eligibility: any = this.props.habits.userHabitEligibility): boolean => (
+        eligibility?.habitLimitReason === 'habit-start-limit-reached'
+    );
+
+    openHabitCapOffer = (eligibility: any = this.props.habits.userHabitEligibility) => {
+        this.props.navigation.navigate('UpgradePaywall', this.isAtStartWindowCap(eligibility)
+            ? {
+                reason: 'habit-start-limit-reached',
+                startLimit: eligibility?.habitStartLimit ?? undefined,
+                startWindowDays: eligibility?.habitStartWindowDays ?? undefined,
+                source: 'create-pact-wizard',
+            }
+            : {
+                reason: 'habit-limit-reached',
+                limit: eligibility?.habitLimit ?? undefined,
+                source: 'create-pact-wizard',
+            });
+    };
+
+    /** Archiving lives on the dashboard's habit list. It is free and loses nothing. */
+    openArchiveHabits = () => {
+        this.props.navigation.navigate('HabitsDashboard', { initialTab: 'habits' });
+    };
+
+    /**
+     * Checks the cap once more before the final action, and stops there if the user
+     * is at it.
+     *
+     * Both final actions create a `habits.habit_goals` row (`resolveHabitGoalId`)
+     * *before* the server gets the chance to refuse the tracking row with a 402.
+     * Without this check, a capped user who taps create leaves an orphaned goal
+     * behind every time (#2922). The fetch is fresh, not cached, because the user
+     * may have archived a habit or bought the unlock since this screen mounted.
+     *
+     * Fails open. If the fetch fails or comes back empty, the request goes ahead
+     * and the server, which is still the authority, answers with the 402 that
+     * `handlePossiblePaywall` handles. A client check that could block someone the
+     * server would allow is worse than an orphaned goal.
+     *
+     * Returns true when the caller may proceed.
+     */
+    confirmHabitCapacity = async (): Promise<boolean> => {
+        let eligibility: any;
+        try {
+            eligibility = await this.props.getUserHabitEligibility();
+        } catch {
+            return true;
+        }
+
+        if (eligibility?.isAtHabitLimit !== true) {
+            return true;
+        }
+
+        if (isHabitCapPaywallAvailable()) {
+            this.openHabitCapOffer(eligibility);
+        } else {
+            Toast.show({
+                type: 'info',
+                text1: this.getHabitLimitTitle(eligibility),
+                text2: this.getHabitLimitBody(eligibility),
+            });
+        }
+
+        return false;
+    };
+
+    getHabitLimitTitle = (eligibility: any = this.props.habits.userHabitEligibility): string => this.translate(
+        this.isAtStartWindowCap(eligibility) ? 'pages.upgrade.startLimitTitle' : 'pages.upgrade.limitTitle',
+    );
+
+    /**
+     * The notice body. Accepts the eligibility payload, or a bare limit for the
+     * callers that predate the start window.
+     */
+    getHabitLimitBody = (eligibility?: any): string => {
+        if (this.isAtStartWindowCap(eligibility)) {
+            const { habitStartLimit, habitStartWindowDays } = eligibility;
+
+            return typeof habitStartLimit === 'number' && typeof habitStartWindowDays === 'number'
+                ? this.translate('pages.pacts.wizard.habitStartLimitBody', {
+                    limit: habitStartLimit, days: habitStartWindowDays,
+                })
+                : this.translate('pages.pacts.wizard.habitStartLimitBodyGeneric');
+        }
+
+        const limit = typeof eligibility === 'number' ? eligibility : eligibility?.habitLimit;
+
+        return typeof limit === 'number'
+            ? this.translate('pages.pacts.wizard.habitLimitBody', { limit })
+            : this.translate('pages.pacts.wizard.habitLimitBodyGeneric');
+    };
+
+    /**
      * "Track this on my own" — creates the habit goal and starts tracking it
      * with no pact attached. The server can refuse it two ways: 403 while the
      * user is short of the invite threshold, and 402 at the free-tier habit
@@ -748,6 +829,10 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         this.setState({ isStartingSolo: true });
 
         try {
+            if (!(await this.confirmHabitCapacity())) {
+                return;
+            }
+
             const habitGoalId = await this.resolveHabitGoalId();
 
             if (!habitGoalId) {
@@ -790,6 +875,10 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         this.setState({ isSending: true });
 
         try {
+            if (!(await this.confirmHabitCapacity())) {
+                return;
+            }
+
             const habitGoalId = await this.resolveHabitGoalId();
 
             if (!habitGoalId) throw new Error('missing habitGoalId');
@@ -933,48 +1022,65 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     };
 
     /**
-     * Tells a user at a free-tier cap, on the first step, that the habit they
-     * are about to build will be refused on the last. The server still 402s
-     * the submit (and that path still routes to the paywall); this is so
-     * nobody assembles a three-step pact to find out. Only at a cap — one
-     * slot left is not a reason to interrupt someone who is using it. The
-     * start window counts here as much as the active cap: both refuse the
-     * submit, and only the server can see the second.
+     * The free-tier cap, stated before the user builds a habit they cannot start
+     * (#2922). Shown on step 1, before any work is put in, and again on step 3,
+     * right above the create button. It offers two ways out side by side.
+     * Archiving comes first because it is free and loses nothing: check-ins,
+     * streaks and journal entries all stay. The upgrade button only shows when
+     * the paywall route is registered.
+     *
+     * This notice does not block anything. The create button still works, and
+     * `confirmHabitCapacity` re-checks with a fresh fetch at that point, so a
+     * stale cache (say, a habit archived since mount) cannot lock the user out.
      */
-    renderCapacityNotice = () => {
-        const { habits, navigation } = this.props;
-        const nudge = getHabitCapacityNudge({
-            isOfferEnabled: getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true,
-            lifetimeOffer: habits.lifetimeOffer,
-            premiumOffer: habits.premiumOffer,
-            ...readHabitCapacity(habits.userHabitEligibility, habits.userHabits, HABITS_FREE_HABIT_LIMIT),
-        });
-
-        if (!nudge || nudge.variant === 'nearCap') {
+    renderHabitLimitNotice = () => {
+        if (!this.isAtHabitCap()) {
             return null;
         }
 
-        const isStartCap = nudge.variant === 'startCap';
+        const eligibility = this.props.habits.userHabitEligibility;
+        // Archiving frees a slot; it does nothing for a spent start window.
+        const canArchiveToMakeRoom = !this.isAtStartWindowCap(eligibility);
 
         return (
-            <UpgradeNudgeCard
-                source="create-pact-wizard"
-                title={this.translate(
-                    isStartCap ? 'pages.habits.upgradeNudge.startCapTitle' : 'pages.pacts.wizard.capacityNoticeTitle',
-                    { used: nudge.used, limit: nudge.limit, days: nudge.windowDays ?? '' },
-                )}
-                body={this.translate(
-                    isStartCap ? 'pages.pacts.wizard.capacityNoticeStartBody' : 'pages.pacts.wizard.capacityNoticeBody',
-                    { limit: nudge.limit, days: nudge.windowDays ?? '' },
-                )}
-                onPress={() => navigation.navigate('UpgradePaywall', {
-                    source: 'create-pact-wizard',
-                    ...(isStartCap
-                        ? { reason: 'habit-start-limit-reached', startLimit: nudge.limit, startWindowDays: nudge.windowDays }
-                        : { reason: 'habit-limit-reached', limit: nudge.limit }),
-                })}
-                themeHabits={this.themeHabits}
-            />
+            <View
+                style={[
+                    this.themeHabits.styles.habitCardContainer,
+                    { borderWidth: 1, borderColor: this.theme.colors.primary3 },
+                ]}
+                accessibilityRole="alert"
+            >
+                <Text style={this.themeHabits.styles.habitCardTitle}>
+                    {this.getHabitLimitTitle(eligibility)}
+                </Text>
+                <Text style={[this.themeHabits.styles.habitCardSubtitle, { marginTop: 4 }]}>
+                    {this.getHabitLimitBody(eligibility)}
+                </Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
+                    {canArchiveToMakeRoom && (
+                        <Pressable
+                            onPress={this.openArchiveHabits}
+                            accessibilityRole="button"
+                            style={{ paddingVertical: 8, paddingRight: 16 }}
+                        >
+                            <Text style={this.themeButtons.styles.btnTitleBlack}>
+                                {this.translate('pages.pacts.wizard.habitLimitArchive')}
+                            </Text>
+                        </Pressable>
+                    )}
+                    {isHabitCapPaywallAvailable() && (
+                        <Pressable
+                            onPress={() => this.openHabitCapOffer()}
+                            accessibilityRole="button"
+                            style={{ paddingVertical: 8 }}
+                        >
+                            <Text style={this.themeButtons.styles.btnTitleBlack}>
+                                {this.translate('pages.pacts.wizard.habitLimitUpgrade')}
+                            </Text>
+                        </Pressable>
+                    )}
+                </View>
+            </View>
         );
     };
 
@@ -987,10 +1093,11 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
 
         return (
             <View>
-                {this.renderCapacityNotice()}
                 <Text style={[this.themeHabits.styles.dashboardSubtitle, { paddingHorizontal: 20 }]}>
                     {this.translate('pages.pacts.wizard.step1Subtitle')}
                 </Text>
+
+                {this.renderHabitLimitNotice()}
 
                 {isLoadingTemplates && (
                     <View style={{ padding: 20, alignItems: 'center' }}>
@@ -1307,6 +1414,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                         ? this.translate('pages.pacts.wizard.soloReviewSubtitle')
                         : this.translate('pages.pacts.wizard.step3Subtitle')}
                 </Text>
+                {this.renderHabitLimitNotice()}
                 <View style={this.themeHabits.styles.habitCardContainer}>
                     <View style={this.themeHabits.styles.habitCardHeader}>
                         <Text style={this.themeHabits.styles.habitCardEmoji}>{habitEmoji}</Text>

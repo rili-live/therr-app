@@ -37,9 +37,6 @@ import {
     toGoalFields as cadenceToGoalFields,
     CadenceChoice,
 } from '../Pacts/cadenceOptions';
-
-/** Sunday-first, matching `targetDaysOfWeek` and the `daysOfWeekShort` dictionary. */
-const CADENCE_DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 import { getProofMediaRequests, resolveProofUris } from './checkinDayDetail';
 import {
     getFreezeConsumed,
@@ -52,6 +49,9 @@ import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/cele
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
 import { DURATION, showToast } from '../../utilities/toasts';
+
+/** Sunday-first, matching `targetDaysOfWeek` and the `daysOfWeekShort` dictionary. */
+const CADENCE_DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
 interface IHabitDetailDispatchProps {
     getCheckinsByRange: Function;
@@ -377,6 +377,11 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
 
         updateGoal(habitGoal.id, cadenceToGoalFields(draftCadence))
             .then(() => {
+                // Closed only on success. A failed save leaves the editor open on the user's
+                // draft, so they can retry instead of rebuilding the schedule from scratch.
+                if (!this.isUnmounted) {
+                    this.setState({ draftCadence: null });
+                }
                 showToast.success({
                     text1: this.translate('pages.habits.cadence.editSaved'),
                 });
@@ -395,7 +400,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             })
             .finally(() => {
                 if (!this.isUnmounted) {
-                    this.setState({ isSavingCadence: false, draftCadence: null });
+                    this.setState({ isSavingCadence: false });
                 }
             });
     };

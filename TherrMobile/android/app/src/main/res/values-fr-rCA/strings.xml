@@ -3,4 +3,7 @@
     <string name="habits_widget_label">Classement des habitudes</string>
     <string name="habits_widget_description">Votre rang de la semaine, votre série et vos suivis du jour</string>
     <string name="habits_widget_empty">Ouvrez Friends with Habits pour voir votre progression</string>
+    <string name="habits_widget_loading">Chargement de votre progression…</string>
+    <string name="habits_widget_refreshing">Actualisation…</string>
+    <string name="habits_widget_refresh_hint">Touchez pour actualiser</string>
 </resources>

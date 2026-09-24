@@ -8,6 +8,7 @@ import EditFormFooter from '../../components/EditFormFooter';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import RNFB from 'react-native-blob-util';
 import { IUserState } from 'therr-react/types';
+import { getApiErrorDetail } from '../../utilities/apiErrorMessage';
 import { BrandVariations, Categories, Content, FeatureFlags, FilePaths } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import ImageCropPicker from 'react-native-image-crop-picker';
@@ -281,23 +282,13 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                     }, 500);
                 })
                 .catch((error: any) => {
-                    if (
-                        error.statusCode === 400 ||
-                        error.statusCode === 401 ||
-                        error.statusCode === 404
-                    ) {
-                        this.setState({
-                            errorMsg: `${error.message}${
-                                error.parameters
-                                    ? '(' + error.parameters.toString() + ')'
-                                    : ''
-                            }`,
-                        });
-                    } else if (error.statusCode >= 500) {
-                        this.setState({
-                            errorMsg: this.translate('forms.editThought.backendErrorMessage'),
-                        });
-                    }
+                    // Unconditional: the old shape left `errorMsg` untouched for a 403, a
+                    // 409, a 429, or any rejection that never reached the API, so the form
+                    // sat there with no explanation. See getApiErrorDetail.
+                    this.setState({
+                        errorMsg: getApiErrorDetail(error)
+                            || this.translate('forms.editThought.backendErrorMessage'),
+                    });
                 })
                 .finally(() => {
                     Keyboard.dismiss();

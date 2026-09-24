@@ -77,7 +77,7 @@ CONCEPTS = {
     "pact": {
         "shot": "05-dashboard-multi-habit.png",
         "line": "Every habit is<br>a pact.",
-        "kicker": "Free for five habits",
+        "kicker": "Free to start",
     },
     "partner": {
         "shot": "04-pact-onboarding-empty-state.png",

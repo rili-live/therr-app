@@ -11,6 +11,8 @@ import { PushNotifications } from 'therr-js-utilities/constants';
 import { createAndroidNotificationChannels, sendBackgroundNotification, wrapOnMessageReceived } from './main/utilities/pushNotifications';
 import { getAndroidChannelFromClickActionId } from './main/constants';
 import completeCheckinInBackground from './main/utilities/backgroundCheckin';
+import refreshHabitsWidgetInBackground, { shouldRefreshWidgetForPush } from './main/utilities/habitsWidgetRefresh';
+import { WIDGET_REFRESH_TASK_KEY } from './main/utilities/habitsWidget';
 import translate from './main/utilities/translator';
 
 configurePromiseRejections();
@@ -29,6 +31,14 @@ createAndroidNotificationChannels();
 /** Register background push notification handler */
 setBackgroundMessageHandler(getMessaging(), async remoteMessage => {
     await wrapOnMessageReceived(false, remoteMessage);
+
+    // A habits push means the board or today's count has plausibly moved, and this handler is
+    // already a headless task with the process awake — so the home-screen widget refreshes
+    // now rather than on its next tick. No-ops without a placed widget, and never fails the
+    // notification below: the widget is decoration, the notification is the point.
+    if (shouldRefreshWidgetForPush(remoteMessage?.data?.type)) {
+        await refreshHabitsWidgetInBackground({ reason: 'push' }).catch(() => undefined);
+    }
 
     // Data-only FCM messages sent via push-notifications-service
     // createDataOnlyMessage() always include `clickActionId`,
@@ -156,5 +166,18 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
         getAndroidChannelFromClickActionId(notification?.data?.clickActionId),
     ).catch((err) => console.log(err));
 });
+
+/**
+ * Home-screen widget background refresh.
+ *
+ * Started by android/.../widget/HabitsWidgetRefreshWorker.kt when the widget asks for fresh
+ * data (its periodic tick, first placement, a tap on its "updated N ago" label). Like the
+ * Notifee handler above it runs without the React tree, so it reads the stored session itself.
+ * Must be registered at module top level — a task started against a cold process reaches
+ * nothing registered later.
+ */
+AppRegistry.registerHeadlessTask(WIDGET_REFRESH_TASK_KEY, () => (data) => (
+    refreshHabitsWidgetInBackground({ reason: data?.reason }).then(() => undefined)
+));
 
 AppRegistry.registerComponent(appName, () => App);

@@ -2096,7 +2096,8 @@
                 "sharedTitle": "Partagé au fil",
                 "shareFailed": "Impossible de partager ce suivi. Réessayez plus tard.",
                 "save": "Enregistrer",
-                "addDetailPromptSavings": "Inscris ce que tu as épargné, et ajoute une note ou une photo si tu veux."
+                "addDetailPromptSavings": "Inscris ce que tu as épargné, et ajoute une note ou une photo si tu veux.",
+                "xpHint": "XP bonus : +{notePoints} pour une note, +{photoPoints} pour une photo. Les deux pour +{bothPoints}."
             },
             "feed": {
                 "emptyMessage": "Aucun suivi partagé pour l'instant. Partagez l'un des vôtres pour lancer le fil."
@@ -2127,10 +2128,13 @@
             },
             "checkinToast": {
                 "title": "Enregistré : {habitName}",
-                "addDetailAction": "Touchez pour ajouter une note ou une photo",
+                "addDetailAction": "Touchez pour ajouter une note ou une photo et gagner des XP bonus",
                 "detailSavedTitle": "Ajouté à l'enregistrement du jour",
                 "freezeUsedTitle": "Ta série de {count} jours a tenu",
-                "freezeUsedBody": "Un gel de série a couvert la journée manquée. Touche pour ajouter une note ou une photo."
+                "freezeUsedBody": "Un gel de série a couvert la journée manquée. Touche pour ajouter une note ou une photo et gagner des XP bonus.",
+                "proofXpTitle": "+{points} XP bonus pour ta preuve",
+                "proofXpBodyPhoto": "Les photos rapportent le plus de XP. Continue comme ça!",
+                "proofXpBodyNote": "Belle note! Ajoute une photo la prochaine fois pour +{photoPoints} XP de plus."
             },
             "frequency": {
                 "daily": "Chaque jour",
@@ -2231,7 +2235,13 @@
                 "habitsDone": "{done}/{total} habitudes",
                 "startHabit": "Commencez une habitude →",
                 "newWeek": "Nouvelle semaine — touchez pour voir votre rang",
-                "inviteFriends": "Invitez vos ami(e)s à compétitionner →"
+                "inviteFriends": "Invitez vos ami(e)s à compétitionner →",
+                "refreshing": "Actualisation…",
+                "justNow": "à l’instant",
+                "minutesAgo": "il y a {minutes} min",
+                "hoursAgo": "il y a {hours} h",
+                "daysAgo": "il y a {days} j",
+                "refreshHint": "Mis à jour {ago}. Touchez pour actualiser"
             },
             "upgradeNudge": {
                 "nearCapTitle": "{used} habitudes gratuites sur {limit} utilisées",
@@ -2396,6 +2406,12 @@
                 "soloReviewSubtitle": "Tu commences celle-ci de ton côté.",
                 "soloJustYou": "Seulement toi",
                 "soloAddPartnersLater": "Tu peux inviter un ami à cette habitude quand tu veux.",
+                "habitLimitBody": "Les comptes gratuits suivent {limit} habitudes à la fois. Archive-en une pour faire de la place : ses suivis, sa série et ses entrées de journal sont tous conservés.",
+                "habitLimitBodyGeneric": "Archive une habitude pour faire de la place à celle-ci : ses suivis, sa série et ses entrées de journal sont tous conservés.",
+                "habitStartLimitBody": "Les comptes gratuits commencent {limit} nouvelles habitudes tous les {days} jours, et celle-ci serait la prochaine. Débloque des habitudes illimitées pour la commencer maintenant.",
+                "habitStartLimitBodyGeneric": "Tu as commencé beaucoup d'habitudes dernièrement. Débloque des habitudes illimitées pour commencer celle-ci maintenant.",
+                "habitLimitArchive": "Archiver une habitude",
+                "habitLimitUpgrade": "Voir les options de mise à niveau",
                 "pickPartnerFirstLocked": "Choisis un ami, ou invites-en {remaining} de plus pour débloquer les habitudes en solo",
                 "soloLockedTitle": "Invite {remaining} ami(s) de plus pour débloquer les habitudes en solo",
                 "soloLockedProgress": "{invited} amis invités sur {required}",
@@ -2408,10 +2424,7 @@
                 "savingsScopePerMemberLabel": "Chaque personne épargne ce montant",
                 "savingsScopePerMemberHint": "Chacun progresse vers le montant de son côté. Terminé quand vous l’avez tous atteint.",
                 "savingsScopeGroupLabel": "On l’épargne ensemble",
-                "savingsScopeGroupHint": "Une cagnotte commune. Terminé quand votre total combiné atteint le montant.",
-                "capacityNoticeTitle": "Tes {limit} places gratuites sont pleines",
-                "capacityNoticeBody": "Cette habitude a besoin d'une place. Débloque des habitudes illimitées ou archives-en une d'abord.",
-                "capacityNoticeStartBody": "Les comptes gratuits commencent {limit} nouvelles habitudes tous les {days} jours, et celle-ci serait la prochaine. Débloque des habitudes illimitées."
+                "savingsScopeGroupHint": "Une cagnotte commune. Terminé quand votre total combiné atteint le montant."
             },
             "status": {
                 "pending": "En attente",
