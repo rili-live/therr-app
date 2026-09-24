@@ -352,4 +352,35 @@ describe('habits dashboard home-screen widget feed', () => {
 
         expect(publish).toHaveBeenCalledTimes(1);
     });
+
+    it.each(['habitGoals', 'activePacts', 'pacts', 'userHabits'])(
+        'republishes when %s changes, since it moves the habit count the widget divides by',
+        async (key) => {
+            mockGetLeaderboard.mockResolvedValue(board([friend, me]));
+            const instance = buildInstance();
+            instance.refreshHabitsWidget();
+            await flushPromises();
+            publish.mockClear();
+
+            const prevProps = instance.props;
+            (instance as any).props = { ...prevProps, habits: { ...prevProps.habits, [key]: [] } };
+            instance.componentDidUpdate(prevProps);
+
+            expect(publish).toHaveBeenCalledTimes(1);
+        },
+    );
+
+    it('does not republish when nothing today\'s count reads has changed', async () => {
+        mockGetLeaderboard.mockResolvedValue(board([friend, me]));
+        const instance = buildInstance();
+        instance.refreshHabitsWidget();
+        await flushPromises();
+        publish.mockClear();
+
+        const prevProps = instance.props;
+        (instance as any).props = { ...prevProps, habits: { ...prevProps.habits, pendingInvites: [] } };
+        instance.componentDidUpdate(prevProps);
+
+        expect(publish).not.toHaveBeenCalled();
+    });
 });

@@ -104,6 +104,16 @@ export const normalizeInitialTab = (initialTab?: string): HabitsTab => {
     return TABS.includes(initialTab as HabitsTab) ? (initialTab as HabitsTab) : 'habits';
 };
 
+/**
+ * Whether anything `countTodayProgress` reads has changed: today's check-ins (the "2") and the
+ * four lists `splitHabitsByPactState` derives the checkin-able habits from (the "3"). Reference
+ * comparisons, like the habits memo — every reducer case that changes one replaces it.
+ */
+const TODAY_PROGRESS_INPUTS = ['todayCheckins', 'habitGoals', 'activePacts', 'pacts', 'userHabits'] as const;
+
+export const didTodayProgressInputsChange = (prevHabits: any, nextHabits: any): boolean => TODAY_PROGRESS_INPUTS
+    .some((key) => prevHabits?.[key] !== nextHabits?.[key]);
+
 type IHabitsRow =
     | { key: string; kind: 'sectionTitle'; title: string }
     | { key: string; kind: 'habit'; entry: IHabitWithPactState; isAwaitingPartner: boolean };
@@ -273,8 +283,9 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     };
 
     componentDidUpdate(prevProps: IHabitsDashboardProps) {
-        // A check-in or a refresh moved today's count — keep the widget's "2/3" in step.
-        if (this.widgetBoard && prevProps.habits?.todayCheckins !== this.props.habits?.todayCheckins) {
+        // A check-in moved the numerator, or a habit started, archived or lost its pact moved
+        // the denominator — keep the widget's "2/3" in step with the progress card either way.
+        if (this.widgetBoard && didTodayProgressInputsChange(prevProps.habits, this.props.habits)) {
             this.publishWidgetSnapshot();
         }
 
