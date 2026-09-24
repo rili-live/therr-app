@@ -26,7 +26,7 @@ import ConfirmModal from '../../components/Modals/ConfirmModal';
 import {
     HabitCard, HabitsListLoader, NewPactButton, PactCard, SentInviteCard, UpgradeNudgeCard,
 } from '../../components/Habits';
-import { countActiveHabits, getHabitCapacityNudge } from '../../utilities/upgradeNudge';
+import { getHabitCapacityNudge, readHabitCapacity } from '../../utilities/upgradeNudge';
 import { getFreezeConsumed, getStreakSavedByFreeze } from '../../utilities/streakFreezes';
 import { getApiErrorMessage, readApiError } from '../../utilities/apiErrorMessage';
 import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
@@ -1307,12 +1307,15 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     };
 
     /**
-     * The capacity strip: "4 of 5 free habits in use" in the last slot, and
-     * "all 5 in use" at the cap. Sits above the solo banner so the wall the
-     * user is about to hit comes before the ask to invite more friends. Every
-     * gate lives in `getHabitCapacityNudge` — flag, entitlement, a purchasable
+     * The capacity strip: "2 of 3 free habits in use" in the last slot, "all 3
+     * in use" at the cap, and "5 habits started this month" when the start
+     * window is spent. Sits above the solo banner so the wall the user is
+     * about to hit comes before the ask to invite more friends. Every gate
+     * lives in `getHabitCapacityNudge` — flag, entitlement, a purchasable
      * offer, a loaded tracking registry — so this renders nothing rather than
-     * an ad the paywall cannot honour.
+     * an ad the paywall cannot honour. The numbers come from the server's
+     * eligibility payload (`readHabitCapacity`); the constant is only the
+     * fallback for a server that predates them.
      */
     renderUpgradeNudge = () => {
         const { habits, navigation } = this.props;
@@ -1320,29 +1323,36 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             isOfferEnabled: this.isUpgradeOfferEnabled(),
             lifetimeOffer: habits.lifetimeOffer,
             premiumOffer: habits.premiumOffer,
-            activeHabitCount: countActiveHabits(habits.userHabits),
-            limit: HABITS_FREE_HABIT_LIMIT,
+            ...readHabitCapacity(habits.userHabitEligibility, habits.userHabits, HABITS_FREE_HABIT_LIMIT),
         });
 
         if (!nudge) {
             return null;
         }
 
-        const isAtCap = nudge.variant === 'atCap';
+        const copyKey = {
+            atCap: 'atCap',
+            nearCap: 'nearCap',
+            startCap: 'startCap',
+        }[nudge.variant];
+        const paywallReason = {
+            atCap: { reason: 'habit-limit-reached', limit: nudge.limit },
+            startCap: { reason: 'habit-start-limit-reached', startLimit: nudge.limit, startWindowDays: nudge.windowDays },
+            nearCap: {},
+        }[nudge.variant];
 
         return (
             <UpgradeNudgeCard
                 source="dashboard-capacity"
-                title={this.translate(
-                    isAtCap ? 'pages.habits.upgradeNudge.atCapTitle' : 'pages.habits.upgradeNudge.nearCapTitle',
-                    { used: nudge.used, limit: nudge.limit },
-                )}
-                body={this.translate(
-                    isAtCap ? 'pages.habits.upgradeNudge.atCapBody' : 'pages.habits.upgradeNudge.nearCapBody',
-                )}
+                title={this.translate(`pages.habits.upgradeNudge.${copyKey}Title`, {
+                    used: nudge.used, limit: nudge.limit, days: nudge.windowDays ?? '',
+                })}
+                body={this.translate(`pages.habits.upgradeNudge.${copyKey}Body`, {
+                    limit: nudge.limit, days: nudge.windowDays ?? '',
+                })}
                 onPress={() => navigation.navigate('UpgradePaywall', {
                     source: 'dashboard-capacity',
-                    ...(isAtCap ? { reason: 'habit-limit-reached', limit: nudge.limit } : {}),
+                    ...paywallReason,
                 })}
                 themeHabits={this.themeHabits}
             />

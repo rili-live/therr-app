@@ -719,12 +719,29 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      */
     isAtHabitCap = (): boolean => this.props.habits.userHabitEligibility?.isAtHabitLimit === true;
 
-    openHabitCapOffer = (limit: number | null | undefined = this.props.habits.userHabitEligibility?.habitLimit) => {
-        this.props.navigation.navigate('UpgradePaywall', {
-            reason: 'habit-limit-reached',
-            limit: limit ?? undefined,
-            source: 'create-pact-wizard',
-        });
+    /**
+     * Which free-tier cap the eligibility says was hit. The start window
+     * (`habit-start-limit-reached`) is the server's alone to see — slots are
+     * free, but the next start would still be refused — so the notice, the
+     * paywall params and the way out all follow this rather than the count.
+     */
+    isAtStartWindowCap = (eligibility: any = this.props.habits.userHabitEligibility): boolean => (
+        eligibility?.habitLimitReason === 'habit-start-limit-reached'
+    );
+
+    openHabitCapOffer = (eligibility: any = this.props.habits.userHabitEligibility) => {
+        this.props.navigation.navigate('UpgradePaywall', this.isAtStartWindowCap(eligibility)
+            ? {
+                reason: 'habit-start-limit-reached',
+                startLimit: eligibility?.habitStartLimit ?? undefined,
+                startWindowDays: eligibility?.habitStartWindowDays ?? undefined,
+                source: 'create-pact-wizard',
+            }
+            : {
+                reason: 'habit-limit-reached',
+                limit: eligibility?.habitLimit ?? undefined,
+                source: 'create-pact-wizard',
+            });
     };
 
     /** Archiving lives on the dashboard's habit list. It is free and loses nothing. */
@@ -762,21 +779,43 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         }
 
         if (isHabitCapPaywallAvailable()) {
-            this.openHabitCapOffer(eligibility.habitLimit);
+            this.openHabitCapOffer(eligibility);
         } else {
             Toast.show({
                 type: 'info',
-                text1: this.translate('pages.upgrade.limitTitle'),
-                text2: this.getHabitLimitBody(eligibility?.habitLimit),
+                text1: this.getHabitLimitTitle(eligibility),
+                text2: this.getHabitLimitBody(eligibility),
             });
         }
 
         return false;
     };
 
-    getHabitLimitBody = (limit?: number | null): string => (typeof limit === 'number'
-        ? this.translate('pages.pacts.wizard.habitLimitBody', { limit })
-        : this.translate('pages.pacts.wizard.habitLimitBodyGeneric'));
+    getHabitLimitTitle = (eligibility: any = this.props.habits.userHabitEligibility): string => this.translate(
+        this.isAtStartWindowCap(eligibility) ? 'pages.upgrade.startLimitTitle' : 'pages.upgrade.limitTitle',
+    );
+
+    /**
+     * The notice body. Accepts the eligibility payload, or a bare limit for the
+     * callers that predate the start window.
+     */
+    getHabitLimitBody = (eligibility?: any): string => {
+        if (this.isAtStartWindowCap(eligibility)) {
+            const { habitStartLimit, habitStartWindowDays } = eligibility;
+
+            return typeof habitStartLimit === 'number' && typeof habitStartWindowDays === 'number'
+                ? this.translate('pages.pacts.wizard.habitStartLimitBody', {
+                    limit: habitStartLimit, days: habitStartWindowDays,
+                })
+                : this.translate('pages.pacts.wizard.habitStartLimitBodyGeneric');
+        }
+
+        const limit = typeof eligibility === 'number' ? eligibility : eligibility?.habitLimit;
+
+        return typeof limit === 'number'
+            ? this.translate('pages.pacts.wizard.habitLimitBody', { limit })
+            : this.translate('pages.pacts.wizard.habitLimitBodyGeneric');
+    };
 
     /**
      * "Track this on my own" — creates the habit goal and starts tracking it
@@ -999,7 +1038,9 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             return null;
         }
 
-        const limit = this.props.habits.userHabitEligibility?.habitLimit;
+        const eligibility = this.props.habits.userHabitEligibility;
+        // Archiving frees a slot; it does nothing for a spent start window.
+        const canArchiveToMakeRoom = !this.isAtStartWindowCap(eligibility);
 
         return (
             <View
@@ -1010,21 +1051,23 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 accessibilityRole="alert"
             >
                 <Text style={this.themeHabits.styles.habitCardTitle}>
-                    {this.translate('pages.upgrade.limitTitle')}
+                    {this.getHabitLimitTitle(eligibility)}
                 </Text>
                 <Text style={[this.themeHabits.styles.habitCardSubtitle, { marginTop: 4 }]}>
-                    {this.getHabitLimitBody(limit)}
+                    {this.getHabitLimitBody(eligibility)}
                 </Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
-                    <Pressable
-                        onPress={this.openArchiveHabits}
-                        accessibilityRole="button"
-                        style={{ paddingVertical: 8, paddingRight: 16 }}
-                    >
-                        <Text style={this.themeButtons.styles.btnTitleBlack}>
-                            {this.translate('pages.pacts.wizard.habitLimitArchive')}
-                        </Text>
-                    </Pressable>
+                    {canArchiveToMakeRoom && (
+                        <Pressable
+                            onPress={this.openArchiveHabits}
+                            accessibilityRole="button"
+                            style={{ paddingVertical: 8, paddingRight: 16 }}
+                        >
+                            <Text style={this.themeButtons.styles.btnTitleBlack}>
+                                {this.translate('pages.pacts.wizard.habitLimitArchive')}
+                            </Text>
+                        </Pressable>
+                    )}
                     {isHabitCapPaywallAvailable() && (
                         <Pressable
                             onPress={() => this.openHabitCapOffer()}

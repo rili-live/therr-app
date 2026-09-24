@@ -69,12 +69,7 @@ jest.mock('../../main/utilities/getConfig', () => {
     };
 });
 
-import { HABITS_FREE_HABIT_LIMIT } from 'therr-js-utilities/constants';
 import { HabitsDashboard } from '../../main/routes/Habits/Dashboard';
-
-// The strip reads the build-time constant on this branch, so the cases below
-// are written against it rather than a literal that moves when it does.
-const LIMIT = HABITS_FREE_HABIT_LIMIT;
 
 const LIFETIME_OFFER: any = {
     productId: 'habits_founder_unlock',
@@ -89,12 +84,18 @@ const LIFETIME_OFFER: any = {
 
 const activeHabits = (count: number) => Array.from({ length: count }, (_, i) => ({ id: `uh-${i}`, status: 'active' }));
 
+// The server's word on the free limit. The strip reads it from here rather
+// than from the build-time constant, so these cases pin a limit of their own
+// and never move when the constant does.
+const ELIGIBILITY: any = { activeHabitCount: 5, isAtHabitLimit: true, habitLimit: 5, habitLimitReason: 'habit-limit-reached' };
+
 const buildInstance = (habitsOverrides: any = {}) => {
     const props: any = {
         user: { settings: {}, details: { id: 'me' } },
         habits: {
             habitGoals: [], todayCheckins: [], streaks: [], pacts: [], activePacts: [], pendingInvites: [],
-            userHabits: activeHabits(LIMIT),
+            userHabits: activeHabits(5),
+            userHabitEligibility: ELIGIBILITY,
             lifetimeOffer: LIFETIME_OFFER,
             premiumOffer: null,
             ...habitsOverrides,
@@ -139,22 +140,22 @@ describe('habits dashboard — capacity nudge', () => {
 
         expect(nudge).not.toBeNull();
         expect(nudge.props.source).toBe('dashboard-capacity');
-        expect(nudge.props.title).toBe(`All ${LIMIT} free habits in use`);
+        expect(nudge.props.title).toBe('All 5 free habits in use');
 
         nudge.props.onPress();
         expect(props.navigation.navigate).toHaveBeenCalledWith('UpgradePaywall', {
             source: 'dashboard-capacity',
             reason: 'habit-limit-reached',
-            limit: LIMIT,
+            limit: 5,
         });
     });
 
     it('renders the last-slot strip as an offer, not a limit', () => {
-        const { instance, props } = buildInstance({ userHabits: activeHabits(LIMIT - 1) });
+        const { instance, props } = buildInstance({ userHabits: activeHabits(4) });
 
         const nudge: any = instance.renderUpgradeNudge();
 
-        expect(nudge.props.title).toBe(`${LIMIT - 1} of ${LIMIT} free habits in use`);
+        expect(nudge.props.title).toBe('4 of 5 free habits in use');
 
         nudge.props.onPress();
         expect(props.navigation.navigate).toHaveBeenCalledWith('UpgradePaywall', {
@@ -162,9 +163,51 @@ describe('habits dashboard — capacity nudge', () => {
         });
     });
 
-    it('renders nothing with room to spare, before the registry loads, or with the flag off', () => {
-        expect(buildInstance({ userHabits: activeHabits(LIMIT - 2) }).instance.renderUpgradeNudge()).toBeNull();
-        expect(buildInstance({ userHabits: undefined }).instance.renderUpgradeNudge()).toBeNull();
+    it('takes the free limit from the server rather than the build-time constant', () => {
+        // Two active against a server-reported limit of 3 is the last slot,
+        // whatever the constant says.
+        const { instance } = buildInstance({
+            userHabits: activeHabits(2),
+            userHabitEligibility: { activeHabitCount: 2, isAtHabitLimit: false, habitLimit: 3 },
+        });
+
+        const nudge: any = instance.renderUpgradeNudge();
+
+        expect(nudge.props.title).toBe('2 of 3 free habits in use');
+    });
+
+    it('renders the start-window strip and sends the tap to the paywall with that reason', () => {
+        const { instance, props } = buildInstance({
+            userHabits: activeHabits(1),
+            userHabitEligibility: {
+                activeHabitCount: 1,
+                isAtHabitLimit: true,
+                habitLimitReason: 'habit-start-limit-reached',
+                habitLimit: 3,
+                habitStartLimit: 5,
+                habitStartWindowDays: 30,
+                recentHabitStartCount: 5,
+            },
+        });
+
+        const nudge: any = instance.renderUpgradeNudge();
+
+        expect(nudge.props.title).toBe('5 habits started this month');
+        expect(nudge.props.body).toBe('Free accounts start 5 every 30 days. Unlock unlimited, for life.');
+
+        nudge.props.onPress();
+        expect(props.navigation.navigate).toHaveBeenCalledWith('UpgradePaywall', {
+            source: 'dashboard-capacity',
+            reason: 'habit-start-limit-reached',
+            startLimit: 5,
+            startWindowDays: 30,
+        });
+    });
+
+    it('renders nothing with room to spare, before anything has loaded, or with the flag off', () => {
+        expect(buildInstance({ userHabits: activeHabits(2) }).instance.renderUpgradeNudge()).toBeNull();
+        expect(buildInstance({ userHabits: undefined, userHabitEligibility: undefined }).instance.renderUpgradeNudge())
+            .toBeNull();
 
         mockIsOfferEnabled = false;
         expect(buildInstance().instance.renderUpgradeNudge()).toBeNull();

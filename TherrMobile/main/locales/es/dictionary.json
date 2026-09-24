@@ -2247,7 +2247,9 @@
                 "nearCapTitle": "{used} de {limit} hábitos gratuitos en uso",
                 "nearCapBody": "Queda un espacio. Desbloquea hábitos ilimitados de por vida.",
                 "atCapTitle": "Los {limit} hábitos gratuitos están en uso",
-                "atCapBody": "Desbloquea hábitos y pactos ilimitados, con un solo pago, de por vida."
+                "atCapBody": "Desbloquea hábitos y pactos ilimitados, con un solo pago, de por vida.",
+                "startCapTitle": "{used} hábitos empezados este mes",
+                "startCapBody": "Las cuentas gratuitas empiezan {limit} cada {days} días. Desbloquea ilimitados, de por vida."
             }
         },
         "pacts": {
@@ -2406,6 +2408,8 @@
                 "soloAddPartnersLater": "Puedes invitar a un amigo a este hábito cuando quieras.",
                 "habitLimitBody": "Las cuentas gratuitas siguen {limit} hábitos a la vez. Archiva uno para hacer espacio: se conservan todos sus registros, su racha y sus entradas del diario.",
                 "habitLimitBodyGeneric": "Archiva un hábito para hacer espacio para este: se conservan todos sus registros, su racha y sus entradas del diario.",
+                "habitStartLimitBody": "Las cuentas gratuitas empiezan {limit} hábitos nuevos cada {days} días, y este sería el siguiente. Desbloquea hábitos ilimitados para empezarlo ahora.",
+                "habitStartLimitBodyGeneric": "Has empezado muchos hábitos últimamente. Desbloquea hábitos ilimitados para empezar este ahora.",
                 "habitLimitArchive": "Archivar un hábito",
                 "habitLimitUpgrade": "Ver opciones de mejora",
                 "pickPartnerFirstLocked": "Elige un amigo o invita a {remaining} más para desbloquear los hábitos en solitario",
@@ -2685,6 +2689,8 @@
             "limitTitle": "Alcanzaste el límite gratuito",
             "limitSubtitle": "Las cuentas gratuitas siguen {limit} hábitos a la vez. Archiva uno o desbloquea todo de por vida.",
             "limitMeterLabel": "Los {limit} espacios gratuitos están en uso",
+            "startLimitTitle": "Has empezado muchos hábitos últimamente",
+            "startLimitSubtitle": "Las cuentas gratuitas empiezan {limit} hábitos nuevos cada {days} días. Desbloquea todo de por vida para empezar tantos como quieras.",
             "eyebrow": "Oferta de fundador",
             "oneTime": "Pago único",
             "priceCaption": "una vez, tuyo para siempre",

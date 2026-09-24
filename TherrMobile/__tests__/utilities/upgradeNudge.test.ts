@@ -5,6 +5,7 @@ import {
     getHabitCapacityNudge,
     getMembershipStatus,
     isUpgradePurchasable,
+    readHabitCapacity,
 } from '../../main/utilities/upgradeNudge';
 
 /**
@@ -143,6 +144,94 @@ describe('getHabitCapacityNudge', () => {
     it('is silent for a nonsensical limit', () => {
         expect(getHabitCapacityNudge({ ...baseArgs(), limit: 0 })).toBeNull();
         expect(getHabitCapacityNudge({ ...baseArgs(), limit: NaN })).toBeNull();
+    });
+});
+
+describe('getHabitCapacityNudge — the start window', () => {
+    const startArgs = () => ({
+        ...baseArgs(),
+        activeHabitCount: 1,
+        isAtStartLimit: true,
+        recentStartCount: 5,
+        startLimit: 5,
+        startWindowDays: 30,
+    });
+
+    it('reports the start cap when the server says the window is spent, with slots free', () => {
+        expect(getHabitCapacityNudge(startArgs())).toEqual({
+            variant: 'startCap', used: 5, limit: 5, remaining: 0, windowDays: 30,
+        });
+    });
+
+    it('lets the active cap win when both are hit', () => {
+        // Archiving is the remedy in the user's hands; the window is not.
+        expect(getHabitCapacityNudge({ ...startArgs(), activeHabitCount: 5 })).toMatchObject({ variant: 'atCap' });
+    });
+
+    it('outranks the last-slot warning', () => {
+        expect(getHabitCapacityNudge({ ...startArgs(), activeHabitCount: 2 })).toMatchObject({ variant: 'startCap' });
+    });
+
+    it('says nothing about the window unless the server named its limit', () => {
+        // There is nothing to count client-side, so a bare flag is not enough.
+        expect(getHabitCapacityNudge({ ...startArgs(), startLimit: null })).toBeNull();
+        expect(getHabitCapacityNudge({ ...startArgs(), isAtStartLimit: false })).toBeNull();
+    });
+
+    it('falls back to the limit as the count when the server omitted it', () => {
+        expect(getHabitCapacityNudge({ ...startArgs(), recentStartCount: null })).toMatchObject({ used: 5 });
+    });
+});
+
+describe('readHabitCapacity', () => {
+    const eligibility: any = {
+        canCreateSolo: true,
+        activeHabitCount: 2,
+        isAtHabitLimit: false,
+        habitLimit: 3,
+        habitLimitReason: null,
+        habitStartLimit: 5,
+        habitStartWindowDays: 30,
+        recentHabitStartCount: 4,
+    };
+
+    it('takes every limit from the server when it reports them', () => {
+        expect(readHabitCapacity(eligibility, [{ status: 'active' }] as any, 99)).toEqual({
+            activeHabitCount: 1,
+            limit: 3,
+            isAtStartLimit: false,
+            recentStartCount: 4,
+            startLimit: 5,
+            startWindowDays: 30,
+        });
+    });
+
+    it('prefers the live registry for the active count, and the payload before it loads', () => {
+        // Archiving updates the registry at once; eligibility only on refresh.
+        expect(readHabitCapacity(eligibility, [] as any, 99).activeHabitCount).toBe(0);
+        expect(readHabitCapacity(eligibility, undefined, 99).activeHabitCount).toBe(2);
+    });
+
+    it('falls back to the build-time constant against a server that predates the field', () => {
+        // Older servers sent habitLimit only once the cap was hit.
+        expect(readHabitCapacity({ ...eligibility, habitLimit: null }, [], 5).limit).toBe(5);
+        expect(readHabitCapacity(null, [], 5).limit).toBe(5);
+        expect(readHabitCapacity({ ...eligibility, habitLimit: 0 }, [], 5).limit).toBe(5);
+    });
+
+    it('reads the start window as spent only from the server\'s own reason', () => {
+        expect(readHabitCapacity({ ...eligibility, habitLimitReason: 'habit-start-limit-reached' }, [], 5)
+            .isAtStartLimit).toBe(true);
+        expect(readHabitCapacity({ ...eligibility, habitLimitReason: 'habit-limit-reached' }, [], 5)
+            .isAtStartLimit).toBe(false);
+        expect(readHabitCapacity(eligibility, [], 5).isAtStartLimit).toBe(false);
+    });
+
+    it('leaves absent window fields null rather than zero', () => {
+        const legacy: any = { canCreateSolo: true, activeHabitCount: 1, isAtHabitLimit: false, habitLimit: null };
+        expect(readHabitCapacity(legacy, undefined, 5)).toMatchObject({
+            recentStartCount: null, startLimit: null, startWindowDays: null,
+        });
     });
 });
 

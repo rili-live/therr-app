@@ -547,8 +547,13 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
         const { route } = this.props;
         const reason = route?.params?.reason;
         const isLimit = reason === 'habit-limit-reached';
+        // The start window: slots are free but the next start was refused.
+        // No pips — there is no row of slots to show full — just the reason.
+        const isStartLimit = reason === 'habit-start-limit-reached';
         const limit = Number(route?.params?.limit);
         const hasLimit = Number.isFinite(limit) && limit > 0 && limit <= 12;
+        const startLimit = route?.params?.startLimit;
+        const startWindowDays = route?.params?.startWindowDays;
 
         return (
             <View style={this.themeHabits.styles.paywallHeader}>
@@ -567,16 +572,19 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
                     </View>
                 )}
                 <Text style={this.themeHabits.styles.dashboardGreeting}>
-                    {isLimit
-                        ? this.translate('pages.upgrade.limitTitle')
-                        : this.translate('pages.upgrade.title')}
+                    {isLimit && this.translate('pages.upgrade.limitTitle')}
+                    {isStartLimit && this.translate('pages.upgrade.startLimitTitle')}
+                    {!isLimit && !isStartLimit && this.translate('pages.upgrade.title')}
                 </Text>
                 <Text style={this.themeHabits.styles.dashboardSubtitle}>
-                    {isLimit
-                        ? this.translate('pages.upgrade.limitSubtitle', {
-                            limit: route?.params?.limit ?? '',
-                        })
-                        : this.translate('pages.upgrade.subtitle')}
+                    {isLimit && this.translate('pages.upgrade.limitSubtitle', {
+                        limit: route?.params?.limit ?? '',
+                    })}
+                    {isStartLimit && this.translate('pages.upgrade.startLimitSubtitle', {
+                        limit: startLimit ?? '',
+                        days: startWindowDays ?? '',
+                    })}
+                    {!isLimit && !isStartLimit && this.translate('pages.upgrade.subtitle')}
                 </Text>
             </View>
         );

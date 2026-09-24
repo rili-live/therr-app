@@ -1,5 +1,21 @@
-import { IHabitsLifetimeOffer, IHabitsPremiumOffer, IUserHabit } from 'therr-react/types';
+import {
+    IHabitsLifetimeOffer, IHabitsPremiumOffer, IUserHabit, IUserHabitEligibility,
+} from 'therr-react/types';
 import { shouldShowFounderCta } from '../components/Habits/founderCtaState';
+
+/**
+ * The eligibility payload as servers from 2026-09 onward send it: both free-tier
+ * caps and both counts, whenever they apply. Declared here rather than read
+ * off `IUserHabitEligibility` so this branch compiles against a shared library
+ * that predates the fields — every one is optional, and every reader below
+ * treats "absent" as "unknown", never as zero.
+ */
+export interface IHabitCapacityEligibility extends IUserHabitEligibility {
+    habitLimitReason?: 'habit-limit-reached' | 'habit-start-limit-reached' | null;
+    habitStartLimit?: number | null;
+    habitStartWindowDays?: number | null;
+    recentHabitStartCount?: number;
+}
 
 /**
  * Where a user came from when they reached the paywall. Carried on the
@@ -20,13 +36,17 @@ export type PaywallSource =
     | 'weekly-recap'
     | 'celebration-milestone';
 
-export type UpgradeNudgeVariant = 'atCap' | 'nearCap';
+export type UpgradeNudgeVariant = 'atCap' | 'nearCap' | 'startCap';
 
 export interface IUpgradeNudge {
     variant: UpgradeNudgeVariant;
+    /** Active habits for `atCap`/`nearCap`; habits started this window for `startCap`. */
     used: number;
+    /** The active cap for `atCap`/`nearCap`; the starts-per-window cap for `startCap`. */
     limit: number;
     remaining: number;
+    /** Only on `startCap`: the rolling window the start cap is measured over. */
+    windowDays?: number;
 }
 
 /**
@@ -68,7 +88,51 @@ export const countActiveHabits = (userHabits: IUserHabit[] | null | undefined): 
     return userHabits.filter((habit) => habit?.status === 'active').length;
 };
 
-interface IGetCapacityNudgeArgs {
+const toPositiveInt = (value: unknown): number | null => (
+    typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.floor(value) : null
+);
+
+const toCount = (value: unknown): number | null => (
+    typeof value === 'number' && Number.isFinite(value) && value >= 0 ? Math.floor(value) : null
+);
+
+export interface IHabitCapacityInputs {
+    activeHabitCount: number | null;
+    limit: number;
+    isAtStartLimit: boolean;
+    recentStartCount: number | null;
+    startLimit: number | null;
+    startWindowDays: number | null;
+}
+
+/**
+ * Everything `getHabitCapacityNudge` needs, read off the server's eligibility
+ * payload with the tracking registry as the live source for the active count.
+ *
+ * The limit comes from the server whenever it says one: it is env-tunable
+ * there, and a client constant is only ever right until the day it is changed.
+ * `fallbackLimit` (the build-time constant) covers a server that predates the
+ * field, which reports `habitLimit` only once the cap is hit.
+ *
+ * The active count prefers the registry over the payload because archiving
+ * updates the registry at once, while eligibility is refetched only on
+ * refresh — a strip that keeps saying "3 of 3" after the user just archived one
+ * to make room is the strip they stop believing.
+ */
+export const readHabitCapacity = (
+    eligibility: IHabitCapacityEligibility | null | undefined,
+    userHabits: IUserHabit[] | null | undefined,
+    fallbackLimit: number,
+): IHabitCapacityInputs => ({
+    activeHabitCount: countActiveHabits(userHabits) ?? toCount(eligibility?.activeHabitCount),
+    limit: toPositiveInt(eligibility?.habitLimit) ?? fallbackLimit,
+    isAtStartLimit: eligibility?.habitLimitReason === 'habit-start-limit-reached',
+    recentStartCount: toCount(eligibility?.recentHabitStartCount),
+    startLimit: toPositiveInt(eligibility?.habitStartLimit),
+    startWindowDays: toPositiveInt(eligibility?.habitStartWindowDays),
+});
+
+interface IGetCapacityNudgeArgs extends Partial<IHabitCapacityInputs> {
     isOfferEnabled: boolean;
     lifetimeOffer: IHabitsLifetimeOffer | null | undefined;
     premiumOffer: IHabitsPremiumOffer | null | undefined;
@@ -98,6 +162,10 @@ export const getHabitCapacityNudge = ({
     premiumOffer,
     activeHabitCount,
     limit,
+    isAtStartLimit = false,
+    recentStartCount = null,
+    startLimit = null,
+    startWindowDays = null,
 }: IGetCapacityNudgeArgs): IUpgradeNudge | null => {
     if (!isOfferEnabled) {
         return null;
@@ -121,6 +189,19 @@ export const getHabitCapacityNudge = ({
     if (used >= limit) {
         return {
             variant: 'atCap', used, limit, remaining: 0,
+        };
+    }
+
+    // The start window, which only the server can see: slots are free but the
+    // next start would still be refused. Said only when the server said it,
+    // and only with its own numbers — there is nothing to count client-side.
+    if (isAtStartLimit && startLimit) {
+        return {
+            variant: 'startCap',
+            used: recentStartCount ?? startLimit,
+            limit: startLimit,
+            remaining: 0,
+            windowDays: startWindowDays ?? undefined,
         };
     }
 

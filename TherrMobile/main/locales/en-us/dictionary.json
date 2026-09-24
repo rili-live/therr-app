@@ -2247,7 +2247,9 @@
                 "nearCapTitle": "{used} of {limit} free habits in use",
                 "nearCapBody": "One slot left. Unlock unlimited habits for life.",
                 "atCapTitle": "All {limit} free habits in use",
-                "atCapBody": "Unlock unlimited habits and pacts, once, for life."
+                "atCapBody": "Unlock unlimited habits and pacts, once, for life.",
+                "startCapTitle": "{used} habits started this month",
+                "startCapBody": "Free accounts start {limit} every {days} days. Unlock unlimited, for life."
             }
         },
         "pacts": {
@@ -2406,6 +2408,8 @@
                 "soloAddPartnersLater": "You can invite a friend to this habit any time.",
                 "habitLimitBody": "Free accounts track {limit} habits at a time. Archive one to make room: its check-ins, streak and journal entries are all kept.",
                 "habitLimitBodyGeneric": "Archive a habit to make room for this one: its check-ins, streak and journal entries are all kept.",
+                "habitStartLimitBody": "Free accounts start {limit} new habits every {days} days, and this one would be next. Unlock unlimited habits to start it now.",
+                "habitStartLimitBodyGeneric": "You've started a lot of habits recently. Unlock unlimited habits to start this one now.",
                 "habitLimitArchive": "Archive a habit",
                 "habitLimitUpgrade": "See upgrade options",
                 "pickPartnerFirstLocked": "Choose a friend — or invite {remaining} more to unlock solo habits",
@@ -2685,6 +2689,8 @@
             "limitTitle": "You've reached the free limit",
             "limitSubtitle": "Free accounts track {limit} habits at a time. Archive one, or unlock everything for life.",
             "limitMeterLabel": "All {limit} free slots in use",
+            "startLimitTitle": "You've started a lot of habits lately",
+            "startLimitSubtitle": "Free accounts start {limit} new habits every {days} days. Unlock everything for life to start as many as you like.",
             "eyebrow": "Founder offer",
             "oneTime": "One-time payment",
             "priceCaption": "once, yours forever",

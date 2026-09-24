@@ -2247,7 +2247,9 @@
                 "nearCapTitle": "{used} habitudes gratuites sur {limit} utilisées",
                 "nearCapBody": "Une place restante. Débloque des habitudes illimitées à vie.",
                 "atCapTitle": "Les {limit} habitudes gratuites sont utilisées",
-                "atCapBody": "Débloque des habitudes et des pactes illimités, en un seul paiement, à vie."
+                "atCapBody": "Débloque des habitudes et des pactes illimités, en un seul paiement, à vie.",
+                "startCapTitle": "{used} habitudes commencées ce mois-ci",
+                "startCapBody": "Les comptes gratuits en commencent {limit} tous les {days} jours. Débloque l'illimité, à vie."
             }
         },
         "pacts": {
@@ -2406,6 +2408,8 @@
                 "soloAddPartnersLater": "Tu peux inviter un ami à cette habitude quand tu veux.",
                 "habitLimitBody": "Les comptes gratuits suivent {limit} habitudes à la fois. Archive-en une pour faire de la place : ses suivis, sa série et ses entrées de journal sont tous conservés.",
                 "habitLimitBodyGeneric": "Archive une habitude pour faire de la place à celle-ci : ses suivis, sa série et ses entrées de journal sont tous conservés.",
+                "habitStartLimitBody": "Les comptes gratuits commencent {limit} nouvelles habitudes tous les {days} jours, et celle-ci serait la prochaine. Débloque des habitudes illimitées pour la commencer maintenant.",
+                "habitStartLimitBodyGeneric": "Tu as commencé beaucoup d'habitudes dernièrement. Débloque des habitudes illimitées pour commencer celle-ci maintenant.",
                 "habitLimitArchive": "Archiver une habitude",
                 "habitLimitUpgrade": "Voir les options de mise à niveau",
                 "pickPartnerFirstLocked": "Choisis un ami, ou invites-en {remaining} de plus pour débloquer les habitudes en solo",
@@ -2685,6 +2689,8 @@
             "limitTitle": "Tu as atteint la limite gratuite",
             "limitSubtitle": "Les comptes gratuits suivent {limit} habitudes à la fois. Archives-en une ou débloque tout à vie.",
             "limitMeterLabel": "Les {limit} places gratuites sont utilisées",
+            "startLimitTitle": "Tu as commencé beaucoup d'habitudes dernièrement",
+            "startLimitSubtitle": "Les comptes gratuits commencent {limit} nouvelles habitudes tous les {days} jours. Débloque tout à vie pour en commencer autant que tu veux.",
             "eyebrow": "Offre fondateur",
             "oneTime": "Paiement unique",
             "priceCaption": "une fois, à toi pour toujours",
