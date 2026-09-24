@@ -216,6 +216,29 @@ export default class UserHabitsStore {
     }
 
     /**
+     * Habits the user started on or after `since`, in any status.
+     *
+     * The second number the free-tier cap reads. `countActiveByUser` alone lets
+     * a user archive one habit and start another forever; this bounds how many
+     * *new* habits a rolling window allows. Archived rows count on purpose — a
+     * habit started and shelved this month was still a start. A restore does
+     * not re-stamp `startedAt` (see `setStatus`), so archiving and restoring the
+     * same habit is charged nothing here: it gains the user nothing either, and
+     * the active cap already bounds it.
+     */
+    countStartedSinceByUser(userId: string, since: Date): Promise<number> {
+        const queryString = knexBuilder
+            .from(USER_HABITS_TABLE_NAME)
+            .where({ userId })
+            .andWhere('startedAt', '>=', since.toISOString())
+            .count('id as count')
+            .toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => parseInt(response.rows[0]?.count ?? '0', 10));
+    }
+
+    /**
      * Just enough of each active habit to decide, for any given local day, whether that day was
      * *required* of the user — the input the app-level daily streak needs to tell a rest day
      * from a missed one.

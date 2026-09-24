@@ -708,6 +708,37 @@ export default class HabitCheckinsStore {
         return this.db.write.query(queryString).then((response) => normalizeCheckinRow(response.rows[0]));
     }
 
+    /**
+     * Records that a check-in's proof is now worth `totalXp`, and returns how much of that has
+     * not been paid before — the XP the caller should award now. Zero when the row was already
+     * paid as much or more.
+     *
+     * One statement so it is safe under concurrent saves of the same check-in: the row lock
+     * taken by `FOR UPDATE` makes the second writer re-read the first one's value, so the two
+     * cannot both pay the same difference. `proofXpAwarded` only ever rises, which is what
+     * makes deleting a photo and attaching it again pay nothing. See migration
+     * 20260923000001_habits.habit_checkins.proofXpAwarded.js.
+     */
+    claimProofXp(id: string, totalXp: number): Promise<number> {
+        const queryString = knexBuilder.raw(
+            `UPDATE ${HABIT_CHECKINS_TABLE_NAME} AS c
+            SET "proofXpAwarded" = ?
+            FROM (
+                SELECT id, "proofXpAwarded" AS "previousXp"
+                FROM ${HABIT_CHECKINS_TABLE_NAME}
+                WHERE id = ?
+                FOR UPDATE
+            ) AS prev
+            WHERE c.id = prev.id
+                AND c."proofXpAwarded" < ?
+            RETURNING (? - prev."previousXp")::int AS "earnedXp"`,
+            [totalXp, id, totalXp, totalXp],
+        ).toString();
+
+        return this.db.write.query(queryString)
+            .then((response) => Math.max(0, Number(response.rows[0]?.earnedXp) || 0));
+    }
+
     update(id: string, params: IUpdateHabitCheckinParams) {
         const queryString = knexBuilder
             .where({ id })

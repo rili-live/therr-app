@@ -51,6 +51,7 @@
         },
         "habits": {
             "freeTierHabitLimitReached": "Free accounts can track {limit} habits at a time. Archive one, or unlock everything for life.",
+            "freeTierHabitStartLimitReached": "Free accounts can start {limit} new habits every {days} days. Unlock everything for life to start as many as you like.",
             "habitGoalNotFound": "We couldn't find that habit",
             "habitGoalRequired": "A habit goal is required",
             "journalBodyRequired": "Write something before saving this entry",

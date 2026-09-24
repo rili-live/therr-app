@@ -72,4 +72,29 @@ export const getApiErrorMessage = (error: any): string => {
     return message;
 };
 
+/**
+ * The same message, with the offending field names appended when the API named them.
+ *
+ * `parameters` is real and worth keeping: the gateway's express-validator middleware
+ * (`therr-api-gateway/src/validation/index.ts`) puts the invalid field names on the 400
+ * body, so "Invalid input (email, userName)" tells the user which box to go fix. It is only
+ * ever set alongside a 400, so it rides on the same decision as the message — when the body
+ * is withheld, the parameters go with it rather than appearing under generic fallback copy
+ * that they no longer relate to.
+ *
+ * Kept separate from `getApiErrorMessage` so the "is this safe to show?" decision stays one
+ * function with one answer; screens that render into a toast subtitle rather than a form
+ * field generally want this one.
+ */
+export const getApiErrorDetail = (error: any): string => {
+    const message = getApiErrorMessage(error);
+    if (!message) {
+        return '';
+    }
+
+    const parameters = Array.isArray(error?.parameters) ? error.parameters.filter(Boolean) : [];
+
+    return parameters.length ? `${message} (${parameters.join(', ')})` : message;
+};
+
 export default getApiErrorMessage;
