@@ -83,7 +83,9 @@ const HABIT: any = { id: 'goal-1', name: 'Morning run' };
 
 const flushPromises = () => new Promise<void>((resolve) => { setImmediate(resolve); });
 
-const buildInstance = ({ checkinError, continueSoloError }: { checkinError?: any; continueSoloError?: any }) => {
+const buildInstance = ({ checkinError, continueSoloError, acceptError }: {
+    checkinError?: any; continueSoloError?: any; acceptError?: any;
+}) => {
     const props: any = {
         user: { settings: {}, details: { id: 'me' } },
         habits: {
@@ -100,7 +102,7 @@ const buildInstance = ({ checkinError, continueSoloError }: { checkinError?: any
         getUserPacts: jest.fn(),
         getPendingInvites: jest.fn(),
         getUserHabitEligibility: jest.fn(),
-        acceptPact: jest.fn(),
+        acceptPact: jest.fn(() => (acceptError ? Promise.reject(acceptError) : Promise.resolve({}))),
         declinePact: jest.fn(),
         nudgePact: jest.fn(),
     };
@@ -137,8 +139,47 @@ describe('habits dashboard — server refusals', () => {
         expect(props.navigation.navigate).toHaveBeenCalledWith('UpgradePaywall', {
             reason: 'habit-limit-reached',
             limit: 5,
+            source: 'dashboard-checkin',
         });
         expect(Toast.show).not.toHaveBeenCalled();
+    });
+
+    it('routes a pact accept refused at the habit cap to the paywall', async () => {
+        // Accepting takes a slot, so the cap refuses it with the same 402 a
+        // check-in gets. It used to surface as "could not accept", which told a
+        // user their friend's invite was broken.
+        const { instance, props } = buildInstance({
+            acceptError: {
+                statusCode: 402,
+                message: 'Free accounts can track 5 habits at a time.',
+                error: 'habit-limit-reached',
+                limit: 5,
+                upgradeRequired: true,
+            },
+        });
+
+        instance.handleAcceptInvite({ id: 'pact-1' } as any);
+        await flushPromises();
+
+        expect(props.navigation.navigate).toHaveBeenCalledWith('UpgradePaywall', {
+            reason: 'habit-limit-reached',
+            limit: 5,
+            source: 'pact-accept',
+        });
+        expect(Toast.show).not.toHaveBeenCalled();
+    });
+
+    it('still reports any other accept failure as an error', async () => {
+        const { instance, props } = buildInstance({
+            acceptError: { statusCode: 500, message: 'SQL:PACTS_ROUTES:ERROR' },
+        });
+
+        instance.handleAcceptInvite({ id: 'pact-1' } as any);
+        await flushPromises();
+
+        expect(props.navigation.navigate).not.toHaveBeenCalledWith('UpgradePaywall', expect.anything());
+        expect((Toast.show as any).mock.calls).toHaveLength(1);
+        expect(((Toast.show as any).mock.calls[0][0] as any).type).toMatch(/^error/);
     });
 
     it('still reports any other check-in failure as an error', async () => {

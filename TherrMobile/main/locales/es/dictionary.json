@@ -1900,6 +1900,7 @@
         },
         "settings": {
             "headerTitle": "Configuración",
+            "pageHeaderMembership": "Membresía",
             "pageHeaderDisplaySettings": "Pantalla",
             "pageHeaderRewardsSettings": "Therr Rewards",
             "pageHeaderPrivacySettings": "Configuración de privacidad",
@@ -1930,6 +1931,17 @@
             },
             "alertMessages": {
                 "accountUpdated": "Actualizado exitosamente."
+            },
+            "membership": {
+                "founder": "Miembro fundador",
+                "founderWithNumber": "Fundador n.º {number}",
+                "premium": "Premium",
+                "premiumBody": "Facturación mensual. Todas las funciones desbloqueadas.",
+                "entitledBody": "Todas las funciones desbloqueadas, de por vida.",
+                "founderOfferTitle": "Desbloquea todo de por vida",
+                "founderOfferBody": "Un solo pago, sin suscripción. Quedan {remaining} lugares de fundador.",
+                "premiumOfferTitle": "Hazte premium",
+                "premiumOfferBody": "Hábitos y pactos ilimitados, con facturación mensual. Cancela cuando quieras."
             }
         },
         "socialSync": {
@@ -2230,6 +2242,12 @@
                 "hoursAgo": "hace {hours} h",
                 "daysAgo": "hace {days} d",
                 "refreshHint": "Actualizado {ago}. Toca para actualizar"
+            },
+            "upgradeNudge": {
+                "nearCapTitle": "{used} de {limit} hábitos gratuitos en uso",
+                "nearCapBody": "Queda un espacio. Desbloquea hábitos ilimitados de por vida.",
+                "atCapTitle": "Los {limit} hábitos gratuitos están en uso",
+                "atCapBody": "Desbloquea hábitos y pactos ilimitados, con un solo pago, de por vida."
             }
         },
         "pacts": {
@@ -2619,6 +2637,10 @@
             "buttons": {
                 "previousWeek": "Semana anterior",
                 "nextWeek": "Semana siguiente"
+            },
+            "founderCard": {
+                "title": "Conserva todas las funciones, de por vida",
+                "body": "Un solo pago, sin suscripción. Quedan {remaining} lugares de fundador."
             }
         },
         "journal": {
@@ -2760,7 +2782,8 @@
             "actions": {
                 "continue": "Continuar",
                 "seeLeaderboard": "Ver clasificación",
-                "done": "Listo"
+                "done": "Listo",
+                "lockInForLife": "Asegura todas las funciones de por vida"
             }
         }
     },

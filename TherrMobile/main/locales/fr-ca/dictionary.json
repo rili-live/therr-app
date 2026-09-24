@@ -1900,6 +1900,7 @@
         },
         "settings": {
             "headerTitle": "Paramètres",
+            "pageHeaderMembership": "Adhésion",
             "pageHeaderDisplaySettings": "Affichage",
             "pageHeaderRewardsSettings": "Récompenses Therr",
             "pageHeaderPrivacySettings": "Paramètres de confidentialité",
@@ -1930,6 +1931,17 @@
             },
             "alertMessages": {
                 "accountUpdated": "Mis à jour avec succès."
+            },
+            "membership": {
+                "founder": "Membre fondateur",
+                "founderWithNumber": "Fondateur nº {number}",
+                "premium": "Premium",
+                "premiumBody": "Facturé mensuellement. Toutes les fonctionnalités débloquées.",
+                "entitledBody": "Toutes les fonctionnalités débloquées, à vie.",
+                "founderOfferTitle": "Débloque tout à vie",
+                "founderOfferBody": "Un seul paiement, sans abonnement. Il reste {remaining} places de fondateur.",
+                "premiumOfferTitle": "Passe à premium",
+                "premiumOfferBody": "Habitudes et pactes illimités, facturés mensuellement. Annule à tout moment."
             }
         },
         "socialSync": {
@@ -2230,6 +2242,12 @@
                 "hoursAgo": "il y a {hours} h",
                 "daysAgo": "il y a {days} j",
                 "refreshHint": "Mis à jour {ago}. Touchez pour actualiser"
+            },
+            "upgradeNudge": {
+                "nearCapTitle": "{used} habitudes gratuites sur {limit} utilisées",
+                "nearCapBody": "Une place restante. Débloque des habitudes illimitées à vie.",
+                "atCapTitle": "Les {limit} habitudes gratuites sont utilisées",
+                "atCapBody": "Débloque des habitudes et des pactes illimités, en un seul paiement, à vie."
             }
         },
         "pacts": {
@@ -2619,6 +2637,10 @@
             "buttons": {
                 "previousWeek": "Semaine précédente",
                 "nextWeek": "Semaine suivante"
+            },
+            "founderCard": {
+                "title": "Garde toutes les fonctionnalités, à vie",
+                "body": "Un seul paiement, sans abonnement. Il reste {remaining} places de fondateur."
             }
         },
         "journal": {
@@ -2760,7 +2782,8 @@
             "actions": {
                 "continue": "Continuer",
                 "seeLeaderboard": "Voir le classement",
-                "done": "Terminé"
+                "done": "Terminé",
+                "lockInForLife": "Verrouille toutes les fonctionnalités à vie"
             }
         }
     },

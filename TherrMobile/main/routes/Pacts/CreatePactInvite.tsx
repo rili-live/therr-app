@@ -667,7 +667,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      * utilities/habitCapPaywall), so the toast still shows.
      */
     handlePossiblePaywall = (err: any): boolean => {
-        const paywallParams = getHabitCapPaywallParams(err);
+        const paywallParams = getHabitCapPaywallParams(err, 'create-pact');
 
         if (!paywallParams) {
             return false;
@@ -723,6 +723,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         this.props.navigation.navigate('UpgradePaywall', {
             reason: 'habit-limit-reached',
             limit: limit ?? undefined,
+            source: 'create-pact-wizard',
         });
     };
 

@@ -769,7 +769,7 @@ class HeaderMenuRight extends React.PureComponent<
                                             // No `reason` param: the paywall leads with the limit
                                             // copy only when it was reached from a 402. Arriving
                                             // here by choice should lead with the offer.
-                                            onPress={() => this.navTo('UpgradePaywall')}
+                                            onPress={() => this.navTo('UpgradePaywall', { source: 'drawer' })}
                                         />
                                     </Drawer.Section>
                                 )}

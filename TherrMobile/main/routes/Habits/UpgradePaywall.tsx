@@ -194,8 +194,14 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
         // purchase count is unreadable: it cannot distinguish "nobody is
         // reaching the paywall" from "everybody reaches it and nobody buys",
         // which are opposite problems with opposite fixes.
+        //
+        // `source` is which door they came through (see `PaywallSource`) and
+        // `reason` whether a wall sent them. Together they turn one view count
+        // into a per-surface funnel: nudge impression → this → purchase.
         logAppEvent('habits_paywall_view', {
             userId: this.props.user?.details?.id,
+            source: this.getSource(),
+            reason: this.props.route?.params?.reason,
         });
 
         Promise.all([
@@ -214,6 +220,20 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
         // service binding for the rest of the app session.
         endBilling();
     }
+
+    /**
+     * The entry point, for analytics. A 402 that arrived without a named source
+     * (an older call site) is still distinguishable from a deliberate visit.
+     */
+    getSource = (): string => {
+        const { route } = this.props;
+
+        if (route?.params?.source) {
+            return route.params.source;
+        }
+
+        return route?.params?.reason ? 'habit-limit' : 'direct';
+    };
 
     /**
      * Open the store connection and read the real localized prices.
@@ -331,6 +351,7 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
                 value: purchaseValue?.value,
                 currency: purchaseValue?.currency,
                 isRecovery: !!options.isSilent,
+                source: this.getSource(),
             });
 
             // The entitlement lives on the user record, not in habits state, so
@@ -381,6 +402,7 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
                 value: purchaseValue?.value,
                 currency: purchaseValue?.currency,
                 isRecovery: !!options.isSilent,
+                source: this.getSource(),
             });
 
             await this.props.getMe().catch(() => null);

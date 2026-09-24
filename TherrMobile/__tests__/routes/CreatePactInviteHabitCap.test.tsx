@@ -103,6 +103,7 @@ describe('create-pact wizard — habit cap', () => {
         expect(props.navigation.navigate).toHaveBeenCalledWith('UpgradePaywall', {
             reason: 'habit-limit-reached',
             limit: 5,
+            source: 'create-pact-wizard',
         });
     });
 
