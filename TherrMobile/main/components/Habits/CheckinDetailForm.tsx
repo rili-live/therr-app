@@ -7,6 +7,7 @@ import ImageCropPicker, { Image as CroppedImage } from 'react-native-image-crop-
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { parseSavingsAmount } from 'therr-js-utilities/constants';
+import { CHECKIN_PROOF_XP } from '../../constants/checkinProofXp';
 import { ITherrThemeColors } from '../../styles/themes';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
 import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions';
@@ -168,10 +169,19 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
             {habitName ? (
                 <Text style={themeStyles.formHabitName}>{habitName}</Text>
             ) : null}
-            <Text style={themeStyles.formPrompt}>
+            <Text style={[themeStyles.formPrompt, localStyles.promptAboveXpHint]}>
                 {translate(isSavingsGoal
                     ? 'pages.habits.checkinProof.addDetailPromptSavings'
                     : 'pages.habits.checkinProof.addDetailPrompt')}
+            </Text>
+            {/* Small and quiet on purpose: an incentive, not an instruction. The amounts are
+                what the service awards for a note and a photo (see constants/checkinProofXp). */}
+            <Text style={[localStyles.xpHint, { color: colors.brand }]}>
+                {translate('pages.habits.checkinProof.xpHint', {
+                    notePoints: CHECKIN_PROOF_XP.note,
+                    photoPoints: CHECKIN_PROOF_XP.photo,
+                    bothPoints: CHECKIN_PROOF_XP.note + CHECKIN_PROOF_XP.photo,
+                })}
             </Text>
             {isSavingsGoal ? (
                 // First, above the photo and note controls. On a savings habit the amount
@@ -310,6 +320,15 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
 };
 
 const localStyles = StyleSheet.create({
+    promptAboveXpHint: {
+        paddingBottom: 4,
+    },
+    xpHint: {
+        fontSize: 12,
+        fontWeight: '600',
+        paddingHorizontal: 10,
+        paddingBottom: 12,
+    },
     inputContainer: {
         paddingHorizontal: 10,
         paddingBottom: 10,

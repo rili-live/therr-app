@@ -1,4 +1,4 @@
-import { getApiErrorMessage, readApiError } from '../../main/utilities/apiErrorMessage';
+import { getApiErrorDetail, getApiErrorMessage, readApiError } from '../../main/utilities/apiErrorMessage';
 
 describe('getApiErrorMessage', () => {
     describe('messages worth showing', () => {
@@ -95,5 +95,48 @@ describe('readApiError', () => {
     it('reports no status for a request that never reached the API', () => {
         expect(readApiError(new Error('Network Error')).status).toBeUndefined();
         expect(readApiError(undefined).status).toBeUndefined();
+    });
+});
+
+describe('getApiErrorDetail', () => {
+    // `parameters` is set by the gateway's express-validator middleware alongside a 400
+    // (therr-api-gateway/src/validation/index.ts) and names the fields that failed
+    // validation, which is the difference between "Invalid input" and knowing which box
+    // to go fix.
+    it('appends the field names the API named', () => {
+        expect(getApiErrorDetail({
+            statusCode: 400,
+            message: 'Invalid input',
+            parameters: ['email', 'userName'],
+        })).toBe('Invalid input (email, userName)');
+    });
+
+    it('returns the bare message when no parameters were sent', () => {
+        expect(getApiErrorDetail({ statusCode: 400, message: 'Invalid input' }))
+            .toBe('Invalid input');
+    });
+
+    it('withholds the parameters along with a message it would not show', () => {
+        // Parameters under generic fallback copy would name fields the sentence above
+        // them no longer refers to.
+        expect(getApiErrorDetail({
+            statusCode: 500,
+            message: 'SQL:USER_ROUTES:ERROR',
+            parameters: ['email'],
+        })).toBe('');
+    });
+
+    it('ignores a parameters value that is not a populated array', () => {
+        expect(getApiErrorDetail({ statusCode: 400, message: 'Invalid input', parameters: [] }))
+            .toBe('Invalid input');
+        expect(getApiErrorDetail({ statusCode: 400, message: 'Invalid input', parameters: 'email' }))
+            .toBe('Invalid input');
+        expect(getApiErrorDetail({ statusCode: 400, message: 'Invalid input', parameters: [null, 'email'] }))
+            .toBe('Invalid input (email)');
+    });
+
+    it('is empty for a rejection that never reached the API', () => {
+        expect(getApiErrorDetail(new Error('Network Error'))).toBe('');
+        expect(getApiErrorDetail(null)).toBe('');
     });
 });

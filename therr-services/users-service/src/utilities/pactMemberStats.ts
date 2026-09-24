@@ -17,7 +17,8 @@
  * over the pact's own date window. That reads correctly for pacts already in
  * flight without a backfill, and without a client release.
  */
-import { getDaysBetweenDates, normalizeDateString } from './streakHelpers';
+import { normalizeDateString } from './streakHelpers';
+import { getCadence, countScheduledForRange } from './habitCadence';
 import { getLocalDate } from './dailyStreak';
 import { FALLBACK_TIME_ZONE } from './localReminderSchedule';
 
@@ -58,16 +59,6 @@ export const ZERO_PACT_MEMBER_STATS: IPactMemberStats = {
     longestStreak: 0,
     completionRate: 0,
     checkedInToday: false,
-};
-
-/**
- * Parse a YYYY-MM-DD string as that calendar date in local time. `new Date()`
- * on a date-only string parses as UTC midnight, which lands on the previous
- * day west of UTC — the same trap `toLocalMidnight` avoids in streakHelpers.
- */
-const parseDateOnly = (value: string): Date => {
-    const [year, month, day] = value.split('-').map(Number);
-    return new Date(year, month - 1, day);
 };
 
 /**
@@ -112,52 +103,7 @@ export const countScheduledCheckins = (
     startDate: string,
     endDate: string,
     goal?: IPactStatsGoal | null,
-): number => {
-    const totalDays = getDaysBetweenDates(startDate, endDate) + 1;
-    if (totalDays <= 0) {
-        return 0;
-    }
-
-    const frequencyType = goal?.frequencyType || 'daily';
-    const targetDaysOfWeek = goal?.targetDaysOfWeek;
-
-    // Cadence precedence is deliberately identical to `isHabitDueToday` in
-    // streakHelpers.ts: an explicit weekday schedule wins over `frequencyType`,
-    // then `daily`, then a per-week count. The two must agree — this function is
-    // the denominator of the completion rate and that one decides whether the
-    // habit is nudged, so a habit reminded on a cadence it is not scored against
-    // reads to the user as the app moving the goalposts.
-    //
-    // Keying the weekday branch on `frequencyType === 'weekly'` (what this did
-    // before) missed the case the column was actually added for: the migration
-    // documents `targetDaysOfWeek` as "[0,1,2,3,4,5,6] for custom schedules", and
-    // nothing server-side constrains the pair, so a `custom` goal with fixed days
-    // fell through to `return totalDays` and was scored against all seven — a
-    // 3x/week habit done perfectly capped out at a 43% completion rate.
-    if (targetDaysOfWeek?.length) {
-        // Fixed weekdays: walk the range by day-of-week offset rather than by
-        // Date arithmetic so a DST boundary inside the window can't drop a day.
-        const startDayOfWeek = parseDateOnly(startDate).getDay();
-        let scheduled = 0;
-        for (let i = 0; i < totalDays; i += 1) {
-            if (targetDaysOfWeek.includes((startDayOfWeek + i) % 7)) {
-                scheduled += 1;
-            }
-        }
-        return scheduled;
-    }
-
-    if (frequencyType === 'daily') {
-        return totalDays;
-    }
-
-    // "X times per week" with no fixed days — `weekly` and `custom` alike, since
-    // neither anchors on a weekday and both carry the count in the same column. A
-    // partial week still owes its full target — that's the cadence the user signed
-    // up for — but the target can never exceed the days actually available.
-    const perWeek = Math.max(1, Math.min(7, Number(goal?.frequencyCount) || 1));
-    return Math.min(totalDays, Math.ceil(totalDays / 7) * perWeek);
-};
+): number => countScheduledForRange(getCadence(goal), startDate, endDate);
 
 /**
  * Assemble one member's stats. `completedCheckins` is a count of completed

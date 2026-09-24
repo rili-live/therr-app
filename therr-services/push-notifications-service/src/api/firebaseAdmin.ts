@@ -195,6 +195,12 @@ interface ICreateMessageConfig {
     // the net instead of only naming the threat.
     freezesRemaining?: number;
     freezeDaysUsed?: number;
+    // HABITS weekly cadence. Where the user stands in their own Monday-Sunday week, for a habit
+    // that asks for fewer than seven check-ins. `weekTarget` is what selects the weekly body at
+    // all: absent or 7 means daily, and daily copy is unchanged.
+    weekDone?: number;
+    weekTarget?: number;
+    daysLeft?: number;
     // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md). Mirrors the
     // fields users-service puts on the queue row in
     // `sendEmailAndOrPushNotification.ts` — age of the habit in days,
@@ -1210,6 +1216,7 @@ const createMessage = (
                             type,
                             config.habitCount,
                             selectStreakAtRiskBodyKey(atRiskFreezesRemaining),
+                            config.weekTarget,
                         ),
                         {
                             streakCount: Number(config.streakCount || 0),
@@ -1217,6 +1224,9 @@ const createMessage = (
                             habitCount: Number(config.habitCount || 1),
                             habitNames: formatHabitNames(config.habitNames),
                             freezesRemaining: atRiskFreezesRemaining,
+                            weekDone: Number(config.weekDone || 0),
+                            weekTarget: Number(config.weekTarget || 0),
+                            daysLeft: Number(config.daysLeft || 0),
                         },
                     ),
                     notificationPressActionId: PushNotifications.PressActionIds.checkinView,
@@ -1591,11 +1601,19 @@ const createMessage = (
                     notificationTitle: translate(config.userLocale, 'notifications.dailyHabitReminder.title'),
                     notificationBody: translate(
                         config.userLocale,
-                        selectCheckinNudgeBodyKey(type, config.habitCount, 'notifications.dailyHabitReminder.body'),
+                        selectCheckinNudgeBodyKey(
+                            type,
+                            config.habitCount,
+                            'notifications.dailyHabitReminder.body',
+                            config.weekTarget,
+                        ),
                         {
                             habitName: String(config.habitName || ''),
                             habitCount: Number(config.habitCount || 1),
                             habitNames: formatHabitNames(config.habitNames),
+                            weekDone: Number(config.weekDone || 0),
+                            weekTarget: Number(config.weekTarget || 0),
+                            daysLeft: Number(config.daysLeft || 0),
                         },
                     ),
                     notificationPressActionId: PushNotifications.PressActionIds.checkinView,
@@ -1648,6 +1666,7 @@ const createMessage = (
                             type,
                             config.habitCount,
                             selectFreezeAwareBodyKey('notifications.eveningCheckIn', eveningFreezesRemaining),
+                            config.weekTarget,
                         ),
                         {
                             streakCount: Number(config.streakCount || 0),
@@ -1655,6 +1674,9 @@ const createMessage = (
                             habitCount: Number(config.habitCount || 1),
                             habitNames: formatHabitNames(config.habitNames),
                             freezesRemaining: eveningFreezesRemaining,
+                            weekDone: Number(config.weekDone || 0),
+                            weekTarget: Number(config.weekTarget || 0),
+                            daysLeft: Number(config.daysLeft || 0),
                         },
                     ),
                     notificationPressActionId: PushNotifications.PressActionIds.checkinView,

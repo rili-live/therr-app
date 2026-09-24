@@ -119,8 +119,8 @@ android {
         // listing under a separate applicationId. Taking general's numbers here (459 /
         // 3.17.6) would jump this app by 415 codes in one merge and strand every future
         // Habits release below it. Always resolve this conflict toward the niche side.
-        versionCode 47
-        versionName "1.9.1"
+        versionCode 48
+        versionName "1.10.0"
         // App Links hosts for the autoVerify intent-filter in AndroidManifest.xml.
         // Keyed off applicationId (same pattern as the release signingConfig below) so a
         // niche variant only has to change applicationId and the hosts follow.
@@ -228,6 +228,11 @@ dependencies {
     // campaign across the Play Store hop into a paid install. Read once on
     // first launch by InstallReferrerModule; see main/utilities/installReferrer.ts.
     implementation 'com.android.installreferrer:installreferrer:2.2'
+
+    // Home-screen widget background refresh (widget/HabitsWidgetRefreshWorker.kt). Already in
+    // the graph through notifee and react-native-maps; declared so the worker does not depend
+    // on either of them keeping it there.
+    implementation 'androidx.work:work-runtime-ktx:2.9.1'
 
     implementation platform('com.google.firebase:firebase-bom:33.7.0')
     implementation 'com.google.firebase:firebase-analytics'

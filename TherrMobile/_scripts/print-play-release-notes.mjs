@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Print the Google Play "What's new" (release notes) for the Android build being cut, as a
- * block a human can copy straight into the Play Console.
+ * block a human can copy straight into the Play Console — in Play's `<en-US>…</en-US>`
+ * multi-language format, so every locale goes in with one paste.
  *
  * ## Why this does not write to Play itself
  *
@@ -155,21 +156,21 @@ function main() {
     const overLimit = notes.filter((note) => note.text.length > PLAY_NOTES_MAX);
 
     log(`${packageName} — versionCode ${versionCode}${gradle.versionName ? ` (v${gradle.versionName})` : ''}.`);
-    log(`Release notes resolved for: ${notes.map((n) => n.language).join(', ')}.`);
-    log('These are NOT set on the release automatically. Paste them into the Play Console:');
+    for (const note of notes) {
+        log(`  ${note.language}: ${note.text.length}/${PLAY_NOTES_MAX} chars, from ${note.source}${
+            note.isVersioned ? '' : ' (shared default)'
+        }`);
+    }
+    log('These are NOT set on the release automatically. Paste the whole block below, as-is, into:');
     log('  Play Console > Release > Releases overview > the release > Edit > "What\'s new in this release"');
 
+    // Play Console's own multi-language format: one `<locale>…</locale>` element per language,
+    // all pasted into the single "What's new" field. Anything else between the rules — a header,
+    // a char count — would have to be deleted by hand before Play accepts it.
     out();
     out(RULE);
-    out(`COPY/PASTE — Google Play release notes for versionCode ${versionCode}`);
-    out(RULE);
-    for (const note of notes) {
-        out();
-        out(`--- ${note.language} (${note.text.length}/${PLAY_NOTES_MAX} chars, from ${note.source}${
-            note.isVersioned ? '' : ' — shared default'
-        }) ---`);
-        out(note.text);
-    }
+    out();
+    out(notes.map((note) => `<${note.language}>\n${note.text}\n</${note.language}>`).join('\n\n'));
     out();
     out(RULE);
     out();

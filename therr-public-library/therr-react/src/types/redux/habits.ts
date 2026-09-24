@@ -8,9 +8,27 @@ export interface IHabitGoal {
     category?: string;
     emoji?: string;
     goalType: HabitGoalType;
+    /**
+     * Cadence. `daily` asks for a check-in every day; `weekly` / `custom` with a
+     * `frequencyCount` asks for that many check-ins a week on any days; a populated
+     * `targetDaysOfWeek` (Sunday-first, 0-6) fixes the days outright and wins over
+     * `frequencyType` in both directions.
+     *
+     * This is what streaks, streak freezes, reminders, achievements and the leaderboard are all
+     * measured against — see users-service `utilities/habitCadence.ts`, which is the single
+     * definition. A day the cadence does not ask for costs the user nothing.
+     */
     frequencyType: string;
     frequencyCount: number;
     targetDaysOfWeek?: number[];
+    /**
+     * The date this cadence became authoritative, YYYY-MM-DD, or absent when it always was.
+     *
+     * Changing a habit's cadence applies forward only: the running streak survives and days
+     * already lived under the previous cadence are never re-judged. Server-owned — a client
+     * never sends it.
+     */
+    cadenceEffectiveFrom?: string | null;
     createdByUserId: string;
     isTemplate: boolean;
     isPublic: boolean;
@@ -39,6 +57,25 @@ export interface IHabitGoal {
      * Absent reads as `per_member` (`DEFAULT_SAVINGS_TARGET_SCOPE`).
      */
     savingsTargetScope?: SavingsTargetScope | null;
+}
+
+/**
+ * A habit's standing in the current week, as the server computed it.
+ *
+ * `isRequiredToday` is deliberately narrow: under a weekly quota a day is required only once
+ * skipping it would put the target out of reach, so a well-run week has *no* required days.
+ * Use it to escalate ("you need every day that's left"), never to decide whether to show the
+ * habit at all.
+ */
+export interface IHabitWeekProgress {
+    /** Completed days so far this week, excluding today. */
+    done: number;
+    /** What a full week of this cadence asks for. 7 for a daily habit. */
+    target: number;
+    /** Days from today through Sunday, inclusive of today. */
+    daysLeft: number;
+    isRequiredToday: boolean;
+    isMet: boolean;
 }
 
 // Pact Types
@@ -330,9 +367,24 @@ export interface IUserHabit {
     goalEmoji?: string | null;
     goalCategory?: string | null;
     goalType: HabitGoalType;
+    /** Cadence — see `IHabitGoal`. What this habit is actually held to. */
     frequencyType: string;
     frequencyCount?: number | null;
     targetDaysOfWeek?: number[] | null;
+    cadenceEffectiveFrom?: string | null;
+    /**
+     * Where the user stands in their own Monday-Sunday week for this habit.
+     *
+     * Derived server-side, because deciding what a cadence asks for on a given day is a rule
+     * the backend owns outright (`utilities/habitCadence.ts`) — a client that recomputed it
+     * would be the second implementation, which is the failure that module exists to prevent.
+     *
+     * **Absent means unknown, never zero.** It is omitted by a server that predates this
+     * field, and by one that could not resolve the user's timezone. Rendering "0 of 4" for
+     * someone who trained four times is worse than rendering nothing, so treat `undefined` as
+     * "hide the progress indicator".
+     */
+    weekProgress?: IHabitWeekProgress;
     isSolo: boolean;
     activePactCount: number;
     currentStreak: number;
@@ -431,8 +483,26 @@ export interface IUserHabitEligibility {
     /** Invites needed to unlock solo habits. Server-configurable, so never hardcode it. */
     soloUnlockInviteCount?: number;
     activeHabitCount: number;
+    /** True when either free-tier cap would refuse a new habit right now. */
     isAtHabitLimit: boolean;
+    /**
+     * Which cap `isAtHabitLimit` refers to. Absent from servers predating the start window.
+     * Restoring an archived habit is gated on the active cap alone, so it is still allowed
+     * when this is `'habit-start-limit-reached'` — only `'habit-limit-reached'` blocks it.
+     */
+    habitLimitReason?: 'habit-limit-reached' | 'habit-start-limit-reached' | null;
+    /**
+     * The free-tier active-habit cap that applies to this account, or null when
+     * none does (another brand, or an entitled account). Server-configurable,
+     * so never hardcode it. Servers predating 2026-09 sent it only once the cap
+     * was hit; treat null as "unknown" on those.
+     */
     habitLimit: number | null;
+    /** Free-tier cap on habits *started* per `habitStartWindowDays`; null when no cap applies. */
+    habitStartLimit?: number | null;
+    habitStartWindowDays?: number | null;
+    /** Habits started inside the current window, in any status. */
+    recentHabitStartCount?: number;
 }
 
 // Journal Types

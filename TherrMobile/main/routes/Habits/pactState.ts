@@ -1,5 +1,5 @@
 import {
-    IHabitGoal, IPact, IPactMember, IUserHabit,
+    IHabitCheckin, IHabitGoal, IPact, IPactMember, IUserHabit,
 } from 'therr-react/types';
 
 /**
@@ -251,6 +251,23 @@ export const splitHabitsByPactState = (
         },
         { live: [], pending: [] },
     );
+};
+
+/**
+ * Today's completed check-ins over habits that can be checked in. Only habits with a live
+ * pact are checkin-able, so counting the pending ones in the denominator would make "today"
+ * unreachable. Shared by the dashboard's progress card and the home-screen widget — including
+ * the widget's background refresh, which has no dashboard to ask.
+ */
+export const countTodayProgress = (
+    liveHabits: IHabitWithPactState[],
+    todayCheckins: IHabitCheckin[] | null | undefined,
+): { done: number; total: number } => {
+    const liveGoalIds = liveHabits.map(({ goal }) => goal.id);
+    const done = (todayCheckins || []).filter(
+        (checkin) => checkin.status === 'completed' && liveGoalIds.includes(checkin.habitGoalId),
+    ).length;
+    return { done, total: liveHabits.length };
 };
 
 /**

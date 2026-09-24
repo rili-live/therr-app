@@ -1,4 +1,6 @@
-<resources>
+<!-- values-es / values-fr-rCA carry only the home-screen widget strings; everything else
+     deliberately falls back to these. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="app_name">Friends with Habits</string>
     <string name="filter_view_https_therr">Friends with Habits App Link</string>
     <string name="appCenterCrashes_whenToSendCrashes" moduleConfig="true" translatable="false">DO_NOT_ASK_JAVASCRIPT</string>
@@ -8,4 +10,12 @@
     <string name="shortcut_create_moment_long">Create a Moment</string>
     <string name="shortcut_create_thought_short">Thought</string>
     <string name="shortcut_create_thought_long">Create a Thought</string>
+    <!-- Home-screen widget. The widget's live labels come from the JS dictionaries (they
+         follow the in-app locale); these are the ones shown before the app has written one. -->
+    <string name="habits_widget_label">Habits leaderboard</string>
+    <string name="habits_widget_description">Your weekly rank, streak and today\'s check-ins</string>
+    <string name="habits_widget_empty">Open Friends with Habits to see your progress</string>
+    <string name="habits_widget_loading">Loading your progress…</string>
+    <string name="habits_widget_refreshing">Refreshing…</string>
+    <string name="habits_widget_refresh_hint">Tap to refresh</string>
 </resources>

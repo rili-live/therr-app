@@ -7,6 +7,7 @@ import {
     formatHabitNames,
     getCheckinNudgeCopyNamespace,
     selectCheckinNudgeBodyKey,
+    hasWeeklyTargetCopy,
     shouldOfferOnePressCheckin,
     MAX_LISTED_HABIT_NAMES,
 } from '../../../src/api/checkinNudgeCopy';
@@ -53,6 +54,73 @@ describe('check-in nudge copy', () => {
             expect(shouldOfferOnePressCheckin(undefined, 1)).to.equal(false);
             expect(shouldOfferOnePressCheckin('', 1)).to.equal(false);
             expect(shouldOfferOnePressCheckin(42, 1)).to.equal(false);
+        });
+    });
+
+    describe('weekly-progress copy', () => {
+        it('is reserved for a cadence that asks for fewer than seven check-ins a week', () => {
+            expect(hasWeeklyTargetCopy(4)).to.equal(true);
+            expect(hasWeeklyTargetCopy(1)).to.equal(true);
+            // Seven a week IS daily, and daily copy is unchanged.
+            expect(hasWeeklyTargetCopy(7)).to.equal(false);
+            expect(hasWeeklyTargetCopy(undefined)).to.equal(false);
+            expect(hasWeeklyTargetCopy(0)).to.equal(false);
+            expect(hasWeeklyTargetCopy('four')).to.equal(false);
+        });
+
+        it('renders the week for a non-daily habit instead of "log it today"', () => {
+            expect(selectCheckinNudgeBodyKey(
+                PushNotifications.Types.dailyHabitReminder,
+                1,
+                'notifications.dailyHabitReminder.body',
+                4,
+            )).to.equal('notifications.dailyHabitReminder.bodyWeekly');
+        });
+
+        it('leaves a daily habit on the daily body', () => {
+            // The regression that matters: nearly every habit in production is daily, and none
+            // of them should change wording.
+            expect(selectCheckinNudgeBodyKey(
+                PushNotifications.Types.dailyHabitReminder,
+                1,
+                'notifications.dailyHabitReminder.body',
+                7,
+            )).to.equal('notifications.dailyHabitReminder.body');
+            expect(selectCheckinNudgeBodyKey(
+                PushNotifications.Types.dailyHabitReminder,
+                1,
+                'notifications.dailyHabitReminder.body',
+            )).to.equal('notifications.dailyHabitReminder.body');
+        });
+
+        it('yields to the freeze-aware body, which is the more urgent thing to say', () => {
+            // A progress count is information; "a freeze will cover tonight" is the rule the
+            // user is being held to. Telling someone their streak is on the line while silently
+            // holding a net is the exact failure the freeze copy exists to prevent.
+            expect(selectCheckinNudgeBodyKey(
+                PushNotifications.Types.streakAtRisk,
+                1,
+                'notifications.streakAtRisk.bodyWithFreeze',
+                4,
+            )).to.equal('notifications.streakAtRisk.bodyWithFreeze');
+        });
+
+        it('yields to the plural body, which outranks everything', () => {
+            expect(selectCheckinNudgeBodyKey(
+                PushNotifications.Types.streakAtRisk,
+                3,
+                'notifications.streakAtRisk.body',
+                4,
+            )).to.equal('notifications.streakAtRisk.bodyMultiple');
+        });
+
+        it('uses the weekly body for a non-daily habit with no freeze left', () => {
+            expect(selectCheckinNudgeBodyKey(
+                PushNotifications.Types.eveningCheckIn,
+                1,
+                'notifications.eveningCheckIn.body',
+                3,
+            )).to.equal('notifications.eveningCheckIn.bodyWeekly');
         });
     });
 

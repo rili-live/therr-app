@@ -34,10 +34,21 @@ import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
 import { DURATION, showToast } from '../../utilities/toasts';
-import { IHabitWithPactState, isPactSuperseded, splitHabitsByPactState } from './pactState';
+import {
+    countTodayProgress, IHabitWithPactState, isPactSuperseded, splitHabitsByPactState,
+} from './pactState';
 import { getNudgeErrorMessage, getNudgeOutcomeToast } from '../Pacts/nudgeOutcome';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 import getConfig from '../../utilities/getConfig';
+import {
+    buildHabitsWidgetSnapshot,
+    hasFriendsOnBoard,
+    HabitsWidgetScope,
+    IHabitsWidgetLeaderboardResponse,
+    isHabitsWidgetSupported,
+    publishHabitsWidget,
+    WIDGET_TOP_ROWS,
+} from '../../utilities/habitsWidget';
 
 /**
  * The habits dashboard and the pacts list used to be two screens showing two
@@ -92,6 +103,16 @@ export const normalizeInitialTab = (initialTab?: string): HabitsTab => {
 
     return TABS.includes(initialTab as HabitsTab) ? (initialTab as HabitsTab) : 'habits';
 };
+
+/**
+ * Whether anything `countTodayProgress` reads has changed: today's check-ins (the "2") and the
+ * four lists `splitHabitsByPactState` derives the checkin-able habits from (the "3"). Reference
+ * comparisons, like the habits memo — every reducer case that changes one replaces it.
+ */
+const TODAY_PROGRESS_INPUTS = ['todayCheckins', 'habitGoals', 'activePacts', 'pacts', 'userHabits'] as const;
+
+export const didTodayProgressInputsChange = (prevHabits: any, nextHabits: any): boolean => TODAY_PROGRESS_INPUTS
+    .some((key) => prevHabits?.[key] !== nextHabits?.[key]);
 
 type IHabitsRow =
     | { key: string; kind: 'sectionTitle'; title: string }
@@ -197,6 +218,9 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     /** A rank the user just climbed to, waiting for the screen to be free to announce it. */
     private pendingRankUp: number | null = null;
 
+    /** The board last fetched for the home-screen widget; see `refreshHabitsWidget`. */
+    private widgetBoard: { board: IHabitsWidgetLeaderboardResponse; scope: HabitsWidgetScope } | null = null;
+
     /**
      * Memo for the habits segment, keyed on the identity of the four Redux inputs it
      * derives from.
@@ -259,6 +283,12 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     };
 
     componentDidUpdate(prevProps: IHabitsDashboardProps) {
+        // A check-in moved the numerator, or a habit started, archived or lost its pact moved
+        // the denominator — keep the widget's "2/3" in step with the progress card either way.
+        if (this.widgetBoard && didTodayProgressInputsChange(prevProps.habits, this.props.habits)) {
+            this.publishWidgetSnapshot();
+        }
+
         const nextInitialTab = this.props.route?.params?.initialTab;
         const prevInitialTab = prevProps.route?.params?.initialTab;
         if (nextInitialTab && nextInitialTab !== prevInitialTab) {
@@ -292,6 +322,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             return;
         }
 
+        this.refreshHabitsWidget();
+
         UsersService.getLeaderboard({ period: 'week', scope: 'global', limit: 1 })
             .then((response: any) => {
                 const currentUser = response?.data?.currentUser;
@@ -310,6 +342,61 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             })
             .catch(() => {});
     };
+
+    /**
+     * Feeds the Android home-screen widget. It shows the friends board — the app is Friends
+     * with Habits — falling back to the global board for a user with no connections yet (the
+     * widget then offers an invite). Separate from `fetchWeeklyRank`'s own request so the
+     * in-app card keeps its global rank; skipped entirely where there is no widget to feed,
+     * so iOS and other brands make no extra request.
+     *
+     * An offline fallback keeps the last snapshot rather than blanking the widget.
+     */
+    refreshHabitsWidget = () => {
+        if (!isHabitsWidgetSupported()) {
+            return;
+        }
+        const isUsable = (response: any) => !response?.isOfflineFallback && typeof response?.data?.currentUser?.rank === 'number';
+
+        UsersService.getLeaderboard({ period: 'week', scope: 'connections', limit: WIDGET_TOP_ROWS })
+            .then((response: any) => {
+                if (!isUsable(response)) {
+                    return null;
+                }
+                if (hasFriendsOnBoard(response.data)) {
+                    return { board: response.data, scope: 'connections' as HabitsWidgetScope };
+                }
+                return UsersService.getLeaderboard({ period: 'week', scope: 'global', limit: WIDGET_TOP_ROWS })
+                    .then((globalResponse: any) => (isUsable(globalResponse)
+                        ? { board: globalResponse.data, scope: 'global' as HabitsWidgetScope }
+                        : null));
+            })
+            .then((widgetBoard) => {
+                if (!widgetBoard || this.isUnmounted) {
+                    return;
+                }
+                this.widgetBoard = widgetBoard;
+                this.publishWidgetSnapshot();
+            })
+            .catch(() => {});
+    };
+
+    publishWidgetSnapshot = () => {
+        if (!this.widgetBoard) {
+            return;
+        }
+        publishHabitsWidget(buildHabitsWidgetSnapshot(
+            this.widgetBoard.board,
+            this.widgetBoard.scope,
+            this.getTodayProgress(this.getHabitsByPactState().live),
+            this.translate,
+        ));
+    };
+
+    /** Today's completed check-ins over checkin-able habits; see `countTodayProgress`. */
+    getTodayProgress = (liveHabits: IHabitWithPactState[]): { done: number; total: number } => (
+        countTodayProgress(liveHabits, this.props.habits?.todayCheckins)
+    );
 
     /**
      * The "you climbed to #9" toast. It must not cost the check-in toast its screen time —
@@ -1141,19 +1228,13 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
 
     renderOverallProgress = (liveHabits: IHabitWithPactState[]) => {
         const { habits } = this.props;
-        const { activeStreaks, todayCheckins } = habits;
+        const { activeStreaks } = habits;
 
         if (liveHabits.length === 0) {
             return null;
         }
 
-        // Only habits with a live pact are checkin-able, so counting the
-        // pending ones in the denominator would make "today" unreachable.
-        const liveGoalIds = liveHabits.map(({ goal }) => goal.id);
-        const completedToday = todayCheckins.filter(
-            (c: IHabitCheckin) => c.status === 'completed' && liveGoalIds.includes(c.habitGoalId),
-        ).length;
-        const totalHabits = liveHabits.length;
+        const { done: completedToday, total: totalHabits } = this.getTodayProgress(liveHabits);
         const longestStreak = activeStreaks.reduce(
             (max: number, s: IStreak) => Math.max(max, s.currentStreak),
             0,

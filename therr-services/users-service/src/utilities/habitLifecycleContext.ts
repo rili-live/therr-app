@@ -10,6 +10,7 @@ import {
     IPhaseDecision,
 } from './habitPhaseEngine';
 import { normalizeDateString } from './streakHelpers';
+import { getCadence, getWeeklyTarget } from './habitCadence';
 
 /**
  * Batch loader that turns the digest's list of (user, habit) pairs into one
@@ -114,12 +115,24 @@ export const buildHabitLifecycleContext = async (
             endDate: today,
         }));
 
-        const [rows, firstDates, windowCounts, streaks] = await Promise.all([
+        // Cadence, so a habit's consistency is measured against what it actually asked for.
+        // Without it `consistencyRate` divides by calendar days and a perfectly-kept 3x/week
+        // habit scores 43% — below LAPSE_MAX_CONSISTENCY, so it would be declared lapsed and
+        // could never be established. One batched read for the whole run, keyed on the distinct
+        // goals across every pair rather than per pair, since several users share a pact's goal.
+        const goalIds = Array.from(new Set(pairs.map((p) => p.habitGoalId)));
+        const [rows, firstDates, windowCounts, streaks, goals] = await Promise.all([
             Store.habitPhases.getByUserHabitPairs(pairs),
             Store.habitCheckins.getFirstCompletedDates(pairs),
             Store.habitCheckins.getCompletedCountsForWindows([...shortTargets, ...longTargets]),
             Store.streaks.getByUserHabitPairs(pairs),
+            Store.habitGoals.getByIds(goalIds).catch(() => [] as any[]),
         ]);
+
+        const weeklyTargetByGoal: Record<string, number> = {};
+        (goals || []).forEach((goal: any) => {
+            weeklyTargetByGoal[goal.id] = getWeeklyTarget(getCadence(goal));
+        });
 
         const bestStreaks: Record<string, number> = {};
         (streaks || []).forEach((streak: any) => {
@@ -149,6 +162,7 @@ export const buildHabitLifecycleContext = async (
                 habitAgeDays,
                 completionsShortWindow: Number(windowCounts[`s:${key}`] || 0),
                 completionsLongWindow: Number(windowCounts[`l:${key}`] || 0),
+                weeklyTarget: weeklyTargetByGoal[pair.habitGoalId],
                 today,
             });
         });

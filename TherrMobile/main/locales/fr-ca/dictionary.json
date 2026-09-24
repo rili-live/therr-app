@@ -2084,7 +2084,8 @@
                 "sharedTitle": "Partagé au fil",
                 "shareFailed": "Impossible de partager ce suivi. Réessayez plus tard.",
                 "save": "Enregistrer",
-                "addDetailPromptSavings": "Inscris ce que tu as épargné, et ajoute une note ou une photo si tu veux."
+                "addDetailPromptSavings": "Inscris ce que tu as épargné, et ajoute une note ou une photo si tu veux.",
+                "xpHint": "XP bonus : +{notePoints} pour une note, +{photoPoints} pour une photo. Les deux pour +{bothPoints}."
             },
             "feed": {
                 "emptyMessage": "Aucun suivi partagé pour l'instant. Partagez l'un des vôtres pour lancer le fil."
@@ -2115,10 +2116,13 @@
             },
             "checkinToast": {
                 "title": "Enregistré : {habitName}",
-                "addDetailAction": "Touchez pour ajouter une note ou une photo",
+                "addDetailAction": "Touchez pour ajouter une note ou une photo et gagner des XP bonus",
                 "detailSavedTitle": "Ajouté à l'enregistrement du jour",
                 "freezeUsedTitle": "Ta série de {count} jours a tenu",
-                "freezeUsedBody": "Un gel de série a couvert la journée manquée. Touche pour ajouter une note ou une photo."
+                "freezeUsedBody": "Un gel de série a couvert la journée manquée. Touche pour ajouter une note ou une photo et gagner des XP bonus.",
+                "proofXpTitle": "+{points} XP bonus pour ta preuve",
+                "proofXpBodyPhoto": "Les photos rapportent le plus de XP. Continue comme ça!",
+                "proofXpBodyNote": "Belle note! Ajoute une photo la prochaine fois pour +{photoPoints} XP de plus."
             },
             "frequency": {
                 "daily": "Chaque jour",
@@ -2139,10 +2143,12 @@
             "streak": {
                 "day": "jour",
                 "days": "jours",
+                "checkin": "enregistrement",
+                "checkins": "enregistrements",
                 "nextMilestone": "Prochain jalon : {days} jours",
                 "graceDaysRemaining": "Il te reste {count} gel(s) de série — si tu manques une journée, un gel te couvre automatiquement.",
                 "nextMilestoneCompact": "proch. {days} j",
-                "freezeRule": "Si tu manques une journée, un gel de série la couvre — tu commences avec {starting} et tu en gagnes un autre tous les {interval} jours, jusqu'à {max}.",
+                "freezeRule": "Si tu manques une journée que ton habitude demandait, un gel de série la couvre : tu commences avec {starting} et tu en gagnes un autre tous les {interval} suivis, jusqu'à {max}. Les jours que ta fréquence ne demande pas ne coûtent rien.",
                 "graceDaysExhausted": "Plus de gels de série — la prochaine journée manquée réinitialise la série. Tu en regagnes un à ton prochain jalon de 7 jours.",
                 "freezesLabel": "Gels de série {remaining}/{total}",
                 "freezePipsAccessibility": "Il reste {remaining} gels de série sur {total}"
@@ -2173,6 +2179,25 @@
                     "hint": "Invitations, acceptations, et quand un pacte se termine."
                 }
             },
+            "cadence": {
+                "sectionLabel": "À quelle fréquence?",
+                "optionDaily": "Chaque jour",
+                "optionWeeklyCount": "{count}× par semaine",
+                "optionWeekdays": "Jours précis",
+                "increaseCount": "Une fois de plus par semaine",
+                "decreaseCount": "Une fois de moins par semaine",
+                "pickAtLeastOneDay": "Choisis au moins une journée.",
+                "restDayHint": "Une journée que ton habitude ne demande pas ne coûte rien : ni la série, ni un gel de série.",
+                "weekProgress": "{done} sur {target} cette semaine",
+                "weekProgressMet": "Semaine terminée : {done} sur {target}",
+                "editTitle": "Changer la fréquence",
+                "editForwardOnly": "Ta série est conservée. Le nouvel horaire commence aujourd'hui; les jours précédents gardent l'ancien.",
+                "editSave": "Enregistrer l'horaire",
+                "editCancel": "Annuler",
+                "editSaved": "Horaire mis à jour",
+                "editFailed": "Impossible de mettre à jour l'horaire. Réessaie.",
+                "streakUnitCheckins": "{count} suivis d'affilée"
+            },
             "savings": {
                 "cardTitle": "Épargné jusqu’ici",
                 "checkinAmountHint": "Laisse vide pour t’enregistrer sans inscrire de montant.",
@@ -2189,6 +2214,22 @@
                 "totalSavedOfGroupTarget": "de l’objectif du groupe de {target}",
                 "totalSavedOfTarget": "de ton objectif de {target}",
                 "unknownMember": "Un partenaire"
+            },
+            "widget": {
+                "friendsThisWeek": "Ami(e)s cette semaine",
+                "everyoneThisWeek": "Tout le monde cette semaine",
+                "amongFriends": "parmi vos ami(e)s",
+                "overall": "au total",
+                "habitsDone": "{done}/{total} habitudes",
+                "startHabit": "Commencez une habitude →",
+                "newWeek": "Nouvelle semaine — touchez pour voir votre rang",
+                "inviteFriends": "Invitez vos ami(e)s à compétitionner →",
+                "refreshing": "Actualisation…",
+                "justNow": "à l’instant",
+                "minutesAgo": "il y a {minutes} min",
+                "hoursAgo": "il y a {hours} h",
+                "daysAgo": "il y a {days} j",
+                "refreshHint": "Mis à jour {ago}. Touchez pour actualiser"
             }
         },
         "pacts": {
@@ -2345,10 +2386,15 @@
                 "soloReviewSubtitle": "Tu commences celle-ci de ton côté.",
                 "soloJustYou": "Seulement toi",
                 "soloAddPartnersLater": "Tu peux inviter un ami à cette habitude quand tu veux.",
+                "habitLimitBody": "Les comptes gratuits suivent {limit} habitudes à la fois. Archive-en une pour faire de la place : ses suivis, sa série et ses entrées de journal sont tous conservés.",
+                "habitLimitBodyGeneric": "Archive une habitude pour faire de la place à celle-ci : ses suivis, sa série et ses entrées de journal sont tous conservés.",
+                "habitLimitArchive": "Archiver une habitude",
+                "habitLimitUpgrade": "Voir les options de mise à niveau",
                 "pickPartnerFirstLocked": "Choisis un ami, ou invites-en {remaining} de plus pour débloquer les habitudes en solo",
                 "soloLockedTitle": "Invite {remaining} ami(s) de plus pour débloquer les habitudes en solo",
                 "soloLockedProgress": "{invited} amis invités sur {required}",
-                "freezeRule": "Si tu manques une journée, un gel de série la couvre — tu commences avec {starting} et tu en gagnes un autre tous les {interval} jours, jusqu'à {max}. La première mauvaise journée arrive à l'intérieur des règles.",
+                "freezeRule": "Si tu manques une journée que ton habitude demandait, un gel de série la couvre : tu commences avec {starting} et tu en gagnes un autre tous les {interval} suivis, jusqu'à {max}. Les jours que ta fréquence ne demande pas ne coûtent rien.",
+                "cadenceReview": "Fréquence : {cadence}",
                 "savingsToggleLabel": "Cette habitude vise à épargner de l’argent",
                 "savingsSectionTitle": "Objectif d’épargne",
                 "savingsTargetLabel": "Montant visé",
@@ -2613,9 +2659,13 @@
         },
         "upgrade": {
             "title": "Gratuit à vie",
-            "subtitle": "Un seul paiement. Toutes les fonctionnalités, pour toujours. Sans abonnement.",
-            "limitTitle": "Tu as atteint ta limite d'habitudes",
+            "subtitle": "Paie une seule fois et garde toutes les fonctionnalités pour toujours. Sans abonnement.",
+            "limitTitle": "Tu as atteint la limite gratuite",
             "limitSubtitle": "Les comptes gratuits suivent {limit} habitudes à la fois. Archives-en une ou débloque tout à vie.",
+            "limitMeterLabel": "Les {limit} places gratuites sont utilisées",
+            "eyebrow": "Offre fondateur",
+            "oneTime": "Paiement unique",
+            "priceCaption": "une fois, à toi pour toujours",
             "benefitsTitle": "Ce que tu obtiens",
             "benefits": {
                 "unlimitedHabits": "Suis autant d'habitudes que tu veux",
@@ -2625,12 +2675,19 @@
                 "noSubscription": "Jamais d'abonnement"
             },
             "seatsRemaining": "Il reste {remaining} places de fondateur sur {total}",
-            "buyCta": "Débloquer à vie {price}",
+            "buyCta": "Débloquer à vie · {price}",
+            "buyCtaNoPrice": "Débloquer à vie",
+            "billingFootnote": "Facturé une seule fois via Google Play. Jamais d'abonnement.",
             "purchasing": "Achat en cours…",
+            "orDivider": "ou",
+            "valueAnchor": "L'accès fondateur coûte moins que {months} mois du forfait mensuel.",
             "notNow": "Pas maintenant",
+            "done": "Terminé",
             "owned": "Tu as déjà l'accès à vie.",
             "ownedWithNumber": "Tu es le fondateur nº {number}.",
+            "entitledTitle": "Tout est prêt",
             "soldOut": "Toutes les places de fondateur ont été réclamées.",
+            "unavailableTitle": "Rien à acheter ici pour le moment",
             "unavailable": "Cette offre n'est pas disponible sur ton appareil pour le moment.",
             "success": {
                 "title": "Tout est prêt",
@@ -2644,6 +2701,8 @@
             },
             "premium": {
                 "sectionTitle": "Ou abonne-toi chaque mois",
+                "planName": "Mensuel",
+                "priceSuffix": "/ mois",
                 "subtitle": "Toutes les fonctionnalités premium, facturées mensuellement. Annule à tout moment.",
                 "benefits": {
                     "unlimitedHabits": "Suis autant d'habitudes que tu veux",
@@ -2651,9 +2710,10 @@
                     "allFeatures": "Toutes les fonctionnalités premium",
                     "cancelAnytime": "Annule à tout moment"
                 },
-                "buyCta": "S'abonner pour {price}",
+                "buyCta": "S'abonner · {price}",
                 "buyCtaNoPrice": "S'abonner chaque mois",
                 "subscribing": "Démarrage de l'abonnement…",
+                "unavailable": "Le forfait mensuel n'est pas disponible sur ton appareil pour le moment.",
                 "owned": "Tu as un abonnement premium actif.",
                 "success": {
                     "title": "Tout est prêt",

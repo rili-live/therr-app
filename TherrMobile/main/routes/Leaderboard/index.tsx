@@ -41,6 +41,8 @@ interface ILeaderboardEntry {
 
 interface ILeaderboardProps {
     navigation: any;
+    /** `initialScope` opens a specific board — the home-screen widget links to the one it shows. */
+    route?: { params?: { initialScope?: ILeaderboardScope } };
     user: IUserState;
     /**
      * Unacknowledged end-of-period placements, loaded by the daily-streak fetch on app
@@ -70,6 +72,7 @@ const getDaysUntilReset = (periodEnd: string | null): number => {
 
 export const Leaderboard = ({
     navigation,
+    route,
     user,
     pendingPlacements,
     acknowledgePlacement,
@@ -78,7 +81,8 @@ export const Leaderboard = ({
     const [currentUser, setCurrentUser] = useState<{ userId: string; points: number; rank: number } | null>(null);
     const [periodEnd, setPeriodEnd] = useState<string | null>(null);
     const [period, setPeriod] = useState<ILeaderboardPeriod>('week');
-    const [scope, setScope] = useState<ILeaderboardScope>('global');
+    const initialScope = route?.params?.initialScope === 'connections' ? 'connections' : 'global';
+    const [scope, setScope] = useState<ILeaderboardScope>(initialScope);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
     const isMountedRef = useRef(true);
@@ -143,6 +147,13 @@ export const Leaderboard = ({
             title: translate('pages.leaderboard.headerTitle'),
         });
     }, [navigation, translate]);
+
+    // A second widget tap while the board is already open arrives as new params, not a remount.
+    useEffect(() => {
+        if (route?.params?.initialScope) {
+            setScope(initialScope);
+        }
+    }, [route?.params?.initialScope, initialScope]);
 
     useEffect(() => {
         fetchLeaderboard(period, scope);
@@ -237,6 +248,7 @@ export const Leaderboard = ({
     );
 
     const isCurrentUserVisible = entries.some((entry) => entry.isRequestingUser);
+    const isRankBarVisible = !isCurrentUserVisible && !!currentUser;
 
     // A podium finish gets the full-screen celebration (queued on app foreground), so only the
     // rest land here. Newest first, and only the first one: a stack of cards above the board is
@@ -309,6 +321,7 @@ export const Leaderboard = ({
                         data={entries}
                         keyExtractor={(item) => item.userId}
                         renderItem={renderItem}
+                        contentContainerStyle={isRankBarVisible ? undefined : themeLeaderboard.styles.listContentContainer}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshing}
                             onRefresh={() => fetchLeaderboard(period, scope)}
@@ -328,7 +341,7 @@ export const Leaderboard = ({
                         }
                     />
                     {
-                        !isCurrentUserVisible && !!currentUser
+                        isRankBarVisible
                         && <View style={themeLeaderboard.styles.currentUserBar}>
                             <Text style={themeLeaderboard.styles.currentUserBarText}>
                                 {translate('pages.leaderboard.labels.yourRank', {

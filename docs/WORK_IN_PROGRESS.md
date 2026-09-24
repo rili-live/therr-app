@@ -911,7 +911,6 @@ backend change needed — it refuses to treat Play's own
 - [ ] (2026-08-02, /quality-peer-review) Confirm the Friends with Habits Play listing (`com.therr.habits`) resolves for a signed-out, non-tester browser before this web deploy goes public. The habits landing page CTA changed from a disabled "Coming soon" placeholder to a live link at `play.google.com/store/apps/details?id=com.therr.habits`, and an *open* testing track only serves that URL to accounts that joined via the opt-in link — a closed track returns "item not found". If the track is still closed, the landing page's only CTA dead-ends. Same URL is now used by `landing.hbs`, `verify-account.hbs`, `invite.hbs` and `ClaimPactLanding.tsx`, so one check covers all four. Purge any CDN/edge cache for `/habits` after deploying, since the previous HTML said "Internal testing in progress".
 - [ ] (2026-08-02, /quality-peer-review) Mobile follow-up (must land on `niche/HABITS-general` / `TherrMobile`, not `general`): the profile response now reports `isNotConnected: true` for PENDING/DENIED/BLOCKED rows, where it previously reported `false`. In the **already-deployed** app `UserDisplayHeader.getActionableOptions` sent that case to the "connected" branch and left `remove-connection-request` in the overflow menu, which was the only way to withdraw a pending request; it now falls to the pending branch, and `pending-connection-request` is commented out of `actionMenuOptions`, so the menu shows neither. Uncomment that option (or add a cancel action) and wire it to the withdraw path. The server change is correct and should not be reverted — but the deployed app cannot be force-updated, so the gap persists until a mobile release ships.
 - [ ] (2026-08-02, /quality-peer-review) Decide whether to bump `version` in `therr-public-library/therr-react/src/redux/persistConfig.ts` (currently `1`). `purgeOnLogoutMiddleware` now clears persisted state on logout in web as well as mobile, but only on a *future* logout — browsers and installs that already hold a previous account's `content` / `userConnections` / `notifications` keep them until that account signs out again. A version bump with no migrate function makes redux-persist discard the old payload for everyone on next load, which is the only way to clear the existing leak. Note this is shared config: bumping it purges mobile too, costing one cold feed/notification fetch per user.
-- [ ] (2026-08-01, /quality-peer-review) Niche follow-up on `niche/HABITS-general`: `GET /users-service/habits/goals/` (`getUserHabitGoals`) now returns goals the user **joined** via an accepted pact, not just ones they created. The Habits habit-list UI renders an edit/delete affordance per row, but `updateHabitGoal` and `deleteHabitGoal` both gate on `createdByUserId` and will 403 / no-op for a joined goal. Hide or disable those controls when `goal.createdByUserId !== me`. Backend behaviour is correct and this is UI-only, so it cannot be fixed on `general`.
 - [ ] (2026-08-01, /quality-peer-review; re-measured 2026-09-22) **iOS has fallen many
   releases behind Android — bump and submit.** `TherrMobile/android/app/build.gradle` is at
   `versionName 3.17.6` / `versionCode 459`; `TherrMobile/ios/Therr.xcodeproj/project.pbxproj`
@@ -1569,6 +1568,10 @@ backend change needed — it refuses to treat Play's own
   it under-produced, pre-migration habits were never counted and the ceiling sat above 5 by
   however many were missed:
   `SELECT count(*) FROM habits.user_habits;`
+- [ ] (2026-09-23, /quality-peer-review) **Confirm the two cadence migrations ran at each of `stage` and `main`** — `20260920000001_habits.daily_streak_days.restStatus.js` (widens the status CHECK to allow `rest`) and `20260920000002_habits.habit_goals.cadenceEffectiveFrom.js` (new `date` column, backfilled to the deploy date on every non-daily goal). Both idempotent. `getActiveForReminders`, `getDetailByUser` and `getActiveCadencesByUser` SELECT `cadenceEffectiveFrom` unconditionally, so the digest, the habit list and daily-streak evaluation fail until it exists; and until the CHECK is widened every `rest` day write is rejected. They share timestamp prefixes with the savings migrations but sort before them alphabetically, so check `knex_migrations` by name rather than by "latest". Sanity check the grandfathering backfill: `SELECT count(*) FROM habits.habit_goals WHERE "cadenceEffectiveFrom" IS NOT NULL;` should equal the count of non-daily/weekday-scheduled goals. Introduced by 08108c6c4.
+- [ ] (2026-09-24, /quality-peer-review) **Confirm `20260923000001_habits.habit_checkins.proofXpAwarded.js` ran at each of `stage` and `main`.** If the column is missing, `claimProofXp` throws and `createCheckin` catches it, logs a warning (`Failed to claim check-in proof XP`) and pays nothing — the check-in succeeds, so the only visible symptom is that proof XP never appears. Sanity check after deploy: `SELECT count(*) FROM habits.habit_checkins WHERE "proofXpAwarded" > 0;` should be non-zero (the backfill raises every completed check-in that already had proof). Introduced by a0265514b.
+- [ ] (2026-09-24, /quality-peer-review) **Push the number-free Google Ads copy to the live account.** The specs no longer name a habit count ("Free for Five Habits" → "Start Free, No Card Needed" / "Free to start"), so the free tier can change without the ads going stale. The live ads still say "five" until this is applied, and after 3c7996216 reaches `main` that claim is false. Text: `therrads campaign apply` for `habits-web-landing.yaml` and `habits-app-install.yaml`. Images: the three regenerated `scripts/google-ads/assets/habits/*-pact.png` frames are attached by hand in the Ads UI (the tool uploads text only), and they replace the old "Free for five habits" frames.
+- [ ] (2026-09-24, /quality-peer-review) Mobile follow-up (must land on `niche/HABITS-general` / `TherrMobile`, not `general`): handle the new free-tier refusal `habit-start-limit-reached` (402 `error`, and `habitLimitReason` on `GET /habits/user-habits/eligibility`). `isAtHabitLimit` is now true when *either* cap is hit, so the **already-deployed** `CreatePactInvite` tells a user who has used all 5 starts in the window, but has free slots, "you can track 3 habits at a time — archive one", which won't help. `UpgradePaywall` only renders the limit header for `reason === 'habit-limit-reached'`, so a start-limit 402 falls back to the generic offer. Branch on `habitLimitReason`, and render the window from `habitStartLimit` / `habitStartWindowDays` / `recentHabitStartCount`. Restoring, re-starting or continuing-solo an **archived** habit is gated on the active cap only, so any client-side pre-check on those actions must block only on `'habit-limit-reached'`, never on `'habit-start-limit-reached'`. Offer "restore an archived habit" as the free way past a start-limit refusal. The server side is correct. Introduced by 3c7996216.
 <!-- skill-followups:end -->
 
 ---
@@ -2053,7 +2056,7 @@ Current state, so the closed ones can be skipped:
 | **2.6.5 keep the score tied to the behaviour** | **open — and it is a product decision, not a patch** |
 | 2.6.6 proof media read path | shipped 2026-09-01 |
 | **2.6.7 thoughts drop images (#2840)** | **code half shipped; two follow-ons open** |
-| **2.6.8 share a check-in (#2841)** | **open, blocked on 2.6.7** |
+| 2.6.8 share a check-in (#2841) | closed 2026-09-23 — shipped on `general` |
 
 ---
 
@@ -2393,40 +2396,24 @@ Still open:
 
 Scope: `general` throughout (migration, store, shared components). No niche half.
 
-#### 2.6.8 Share a check-in publicly as a thought (#2841)
+#### 2.6.8 Share a check-in publicly as a thought (#2841) — closed 2026-09-23
 
-**Rule 4, widened deliberately.** 2.6.2 made a check-in visible to 2–5 pact
-members, which is where the Friend Streak evidence sits. This is the opt-in
-step past it: a "share today's check-in" action that mints a `main.thoughts` row
-carrying the proof image and a short lead-in, so a user who wants an audience
-has one without the habit loop depending on it.
+**Rule 4, widened deliberately.** An opt-in "share today's check-in" action that mints a
+`main.thoughts` row carrying the proof image, so a user who wants an audience beyond their
+pact has one without the habit loop depending on it.
 
-Blocked on 2.6.7 — there is no working media path on thoughts to attach to.
+Shipped on `general` (and on `main`), verified against the code 2026-09-23 (/work-plan):
+`POST /habits/checkins/:id/share` (`habitCheckinsRouter.ts`), with the proof **copied**
+into the public bucket rather than referenced (`utilities/shareCheckinMedia.ts`). The public
+copy is then moderated at share time, and this fails closed: if the check is unsafe or throws,
+the share is refused (`handlers/habitCheckins.ts`, `checkIsMediaSafeForWork`). The link is the
+nullable `habits.habit_checkins."sharedThoughtId"`
+(`20260906000001_habits.habit_checkins.sharedThoughtId.js`). The mobile CTA lives in
+`CheckinDetail` on `niche/HABITS-general`, and `sharePublicly` defaults to `false`, so
+nothing is published as a side effect of checking in.
 
-Two things already work in this feature's favour and should not be re-litigated:
-
-- **Cross-brand visibility is already correct.** `BRAND_THOUGHTS_VISIBILITY` is
-  `THERR: 'all'`, `HABITS: [HABITS]`, so a thought written from Friends with
-  Habits already surfaces in the Therr feed while Therr posts stay out of the
-  habits feed. That is exactly the asymmetry this wants. No change needed.
-- **The hand-off pattern exists.** Journal's "Share a goal" navigates to the
-  shared `EditThought` screen with `returnToRoute`, rather than growing a second
-  composer. A share-check-in action should do the same, prefilled.
-
-The one design decision, and it is load-bearing:
-
-- [ ] **Copy the media, do not reference it.** Three independent reasons: proofs
-      live in the private bucket and a public thought needs a public-bucket
-      object; nothing has moderated a proof image (2.6.6), and the copy is the
-      natural place to run the check moments already run; and the lifecycles
-      differ — deleting a check-in must not retract a post that has replies, and
-      deleting the post must not destroy the user's own record.
-- [ ] Store the link as a nullable `sharedThoughtId` on `habits.habit_checkins`
-      so the calendar day can show "shared" and deep-link to `ViewThought`, the
-      way the journal already opens goals.
-
-Scope: `general` (media copy + moderation, `sharedThoughtId` migration, share
-endpoint) + `niche/HABITS-general` (the share CTA on the day sheet, locales).
+What is left is a post-deploy verification, not code: see the 2026-09-11 "Verify check-in
+sharing and proof moderation" item in § Manual Operational Follow-ups.
 
 ---
 

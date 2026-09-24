@@ -1,0 +1,6 @@
+Nouveautés :
+• Choisissez à quelle fréquence chaque habitude vous demande un suivi : tous les jours, quelques fois par semaine ou certains jours
+• Les jours que votre habitude ne demande pas ne coûtent plus de protection de série
+• Modifiez l'horaire d'une habitude en tout temps depuis son détail, sans perdre votre série
+• Nouveau widget d'écran d'accueil Android avec votre rang hebdomadaire et le progrès du jour
+• Corrections et améliorations

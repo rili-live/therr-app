@@ -8,6 +8,7 @@ import EditFormFooter from '../../components/EditFormFooter';
 import { Image } from '../../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import RNFB from 'react-native-blob-util';
+import { getApiErrorDetail } from '../../utilities/apiErrorMessage';
 import { showToast } from '../../utilities/toasts';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import { IUserState, IMapState, IContentState } from 'therr-react/types';
@@ -584,28 +585,21 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                     })
                     .catch((error: any) => {
                         // TODO: Delete uploaded file on failure to create
-                        if (
-                            error.statusCode === 400 ||
-                            error.statusCode === 401 ||
-                            error.statusCode === 404
-                        ) {
-                            showToast.error({
-                                text1: this.translate('alertTitles.backendErrorMessage'),
-                                text2: `${error.message}${
-                                    error.parameters
-                                        ? '(' + error.parameters.toString() + ')'
-                                        : ''
-                                }`,
-                            });
+                        //
+                        // Unconditional, which it was not before: the old shape showed the
+                        // API's body on 400/401/404, generic copy on 5xx, and *nothing at
+                        // all* on anything else — a 403, a 409, a 429, or any rejection that
+                        // never reached the API (offline, DNS, timeout). Save then read as a
+                        // button that did nothing. See getApiErrorDetail for which bodies are
+                        // fit to show; a withheld one falls back to this form's own copy.
+                        showToast.error({
+                            text1: this.translate('alertTitles.backendErrorMessage'),
+                            text2: getApiErrorDetail(error)
+                                || this.translate('forms.editEvent.backendErrorMessage'),
+                        });
 
-                            if (error.errorCode === ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS) {
-                                this.toggleInfoModal();
-                            }
-                        } else if (error.statusCode >= 500) {
-                            showToast.error({
-                                text1: this.translate('alertTitles.backendErrorMessage'),
-                                text2: this.translate('forms.editEvent.backendErrorMessage'),
-                            });
+                        if (error.errorCode === ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS) {
+                            this.toggleInfoModal();
                         }
                     })
                     .finally(() => {

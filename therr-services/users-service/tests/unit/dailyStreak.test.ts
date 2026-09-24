@@ -522,4 +522,142 @@ describe('Daily streak — isWeekPerfectThrough', () => {
         expect(isWeekPerfectThrough('2026-09-09', statuses)).to.equal(false);
         expect(isWeekPerfectThrough('2026-09-10', statuses)).to.equal(false);
     });
+
+    it('steps over a rest day without breaking the run', () => {
+        const statuses = new Map<string, DailyStreakDayStatus | 'future' | 'pending'>([
+            ['2026-09-07', 'upheld'],
+            ['2026-09-08', 'rest'],
+            ['2026-09-09', 'upheld'],
+        ]);
+
+        expect(isWeekPerfectThrough('2026-09-09', statuses)).to.equal(true);
+    });
+
+    it('does not call a week of nothing-but-rest perfect', () => {
+        const statuses = new Map<string, DailyStreakDayStatus | 'future' | 'pending'>([
+            ['2026-09-07', 'rest'],
+            ['2026-09-08', 'rest'],
+        ]);
+
+        expect(isWeekPerfectThrough('2026-09-08', statuses)).to.equal(false);
+    });
+});
+
+/**
+ * Rest days — the reason this feature exists.
+ *
+ * 2026-09-07 is a Monday, so 09-07…09-13 is one Monday–Sunday week.
+ */
+describe('Daily streak — rest days', () => {
+    const MONDAY = '2026-09-07';
+    const SUNDAY = '2026-09-13';
+
+    const freezePool = (): IFreezeSource[] => [{
+        streakId: 'streak-1',
+        habitGoalId: 'goal-1',
+        freezesRemaining: 3,
+        currentStreak: 10,
+        createdAt: '2026-08-01T00:00:00.000Z',
+    }];
+
+    it('does not break the streak or spend a freeze on a day nothing was required', () => {
+        const sources = freezePool();
+        const result = walkDailyStreakDays({
+            state: state({ currentStreak: 4, longestStreak: 10 }),
+            fromDate: MONDAY,
+            upTo: '2026-09-09',
+            // Trained Monday; Tuesday and Wednesday were the user's own off days.
+            upheldDates: new Set([MONDAY]),
+            requiredDates: new Set([MONDAY]),
+            freezeSources: sources,
+        });
+
+        expect(result.days.map((d) => d.status)).to.deep.equal(['upheld', 'rest', 'rest']);
+        // The streak advanced once, for the day they actually showed up, and then held.
+        expect(result.days.map((d) => d.streakAfter)).to.deep.equal([5, 5, 5]);
+        expect(result.state.currentStreak).to.equal(5);
+        // The whole point: the pool is untouched.
+        expect(result.freezesBorrowed.size).to.equal(0);
+        expect(sources[0].freezesRemaining).to.equal(3);
+        expect(result.events.freezeSaved).to.equal(false);
+    });
+
+    it('still freezes and still breaks on a day that WAS required', () => {
+        const sources = freezePool();
+        const result = walkDailyStreakDays({
+            state: state({ currentStreak: 4, longestStreak: 10 }),
+            fromDate: MONDAY,
+            upTo: '2026-09-08',
+            upheldDates: new Set(),
+            requiredDates: new Set([MONDAY, '2026-09-08']),
+            freezeSources: sources,
+        });
+
+        expect(result.days.map((d) => d.status)).to.deep.equal(['frozen', 'frozen']);
+        expect(result.freezesBorrowed.get('streak-1')).to.equal(2);
+        expect(sources[0].freezesRemaining).to.equal(1);
+    });
+
+    it('counts a 4x/week week trained Mon–Thu as perfect', () => {
+        const result = walkDailyStreakDays({
+            state: state({ currentStreak: 0, longestStreak: 0 }),
+            fromDate: MONDAY,
+            upTo: SUNDAY,
+            upheldDates: new Set([MONDAY, '2026-09-08', '2026-09-09', '2026-09-10']),
+            // Quota met by Thursday, so no day of this week was ever required.
+            requiredDates: new Set(),
+            freezeSources: [],
+        });
+
+        expect(result.days.map((d) => d.status)).to.deep.equal([
+            'upheld', 'upheld', 'upheld', 'upheld', 'rest', 'rest', 'rest',
+        ]);
+        expect(result.events.perfectWeeksClosed).to.equal(1);
+        expect(result.state.consecutivePerfectWeeks).to.equal(1);
+        expect(result.state.currentStreak).to.equal(4);
+    });
+
+    it('does not call a week perfect when a required day was frozen', () => {
+        const result = walkDailyStreakDays({
+            state: state({ currentStreak: 1, longestStreak: 1 }),
+            fromDate: MONDAY,
+            upTo: SUNDAY,
+            upheldDates: new Set([MONDAY, '2026-09-08', '2026-09-09']),
+            // They stalled, so the weekend became required — and they missed Saturday.
+            requiredDates: new Set(['2026-09-12', SUNDAY]),
+            freezeSources: freezePool(),
+        });
+
+        expect(result.days[5].status).to.equal('frozen');
+        expect(result.events.perfectWeeksClosed).to.equal(0);
+    });
+
+    it('does not celebrate a week in which nothing was ever asked', () => {
+        const result = walkDailyStreakDays({
+            state: state({ currentStreak: 0, longestStreak: 0 }),
+            fromDate: MONDAY,
+            upTo: SUNDAY,
+            upheldDates: new Set(),
+            requiredDates: new Set(),
+            freezeSources: [],
+        });
+
+        expect(result.days.every((d) => d.status === 'rest')).to.equal(true);
+        expect(result.events.perfectWeeksClosed).to.equal(0);
+        expect(result.state.currentStreak).to.equal(0);
+    });
+
+    it('treats every day as required when requiredDates is omitted, as it did before cadence', () => {
+        const sources = freezePool();
+        const result = walkDailyStreakDays({
+            state: state({ currentStreak: 4, longestStreak: 10 }),
+            fromDate: MONDAY,
+            upTo: '2026-09-08',
+            upheldDates: new Set(),
+            freezeSources: sources,
+        });
+
+        expect(result.days.map((d) => d.status)).to.deep.equal(['frozen', 'frozen']);
+        expect(sources[0].freezesRemaining).to.equal(1);
+    });
 });

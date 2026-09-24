@@ -54,6 +54,7 @@ went unread.
 - [PEER_REVIEW_FOLLOWUP.md](./PEER_REVIEW_FOLLOWUP.md) — deferred items from peer reviews
 - [FEATURES.md](./FEATURES.md) — feature list for mobile and web (**update when adding/removing features**)
 - [MEMORY_SYSTEM_SETUP.md](./MEMORY_SYSTEM_SETUP.md) — the `context/` memory system
+- [CLAUDE_SUBAGENTS.md](./CLAUDE_SUBAGENTS.md) — the `.claude/agents/` subagents (persona walkthrough, drift audit, UI finish gate), when to use each, and their MIT provenance
 - [../scripts/github/README.md](../scripts/github/README.md) — the GitHub MCP server behind `/github-issues` and `/work-plan`: setup, why no token is stored, and the `gh` fallback
 
 ### Operations & debugging

@@ -172,3 +172,25 @@ describe('CheckinDetailForm — share control', () => {
         expect(lastDraft()).toEqual(expect.objectContaining({ sharePublicly: false, image: null }));
     });
 });
+
+describe('CheckinDetailForm — proof XP hint', () => {
+    afterEach(() => {
+        mounted.splice(0).forEach((c) => act(() => c.unmount()));
+    });
+
+    it('tells the user a note and a photo earn bonus XP, with a photo worth more', async () => {
+        const hintParams: any[] = [];
+        const translateWithParams = (key: string, params?: any) => {
+            if (key === 'pages.habits.checkinProof.xpHint') {
+                hintParams.push(params);
+            }
+            return key;
+        };
+        const { component } = await renderForm({ translate: translateWithParams });
+
+        expect(hasText(component, 'pages.habits.checkinProof.xpHint')).toBe(true);
+        const params = hintParams[hintParams.length - 1];
+        expect(params.photoPoints).toBeGreaterThan(params.notePoints);
+        expect(params.bothPoints).toBe(params.notePoints + params.photoPoints);
+    });
+});

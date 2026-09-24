@@ -72,6 +72,7 @@ jest.mock('react-native-permissions', () => ({
 import Toast from 'react-native-toast-message';
 import { HabitsDashboard } from '../../main/routes/Habits/Dashboard';
 import celebrationQueue from '../../main/utilities/celebrationQueue';
+import * as habitsWidget from '../../main/utilities/habitsWidget';
 
 const flushPromises = () => new Promise<void>((resolve) => { setImmediate(resolve); });
 
@@ -268,5 +269,118 @@ describe('habits dashboard rank-up toast', () => {
         await flushPromises();
 
         expect(Toast.show).not.toHaveBeenCalled();
+    });
+});
+
+/**
+ * The Android home-screen widget is fed from the same refresh. It shows the friends board —
+ * the app is Friends with Habits — and only falls back to the global board when the user has
+ * nobody on theirs, so the widget can offer an invite instead of a one-person ranking.
+ */
+describe('habits dashboard home-screen widget feed', () => {
+    let publish: jest.SpiedFunction<typeof habitsWidget.publishHabitsWidget>;
+
+    const board = (entries: any[], rank = 2) => ({
+        data: { entries, currentUser: { userId: 'me', rank, points: 300, dailyStreak: 5 }, periodEnd: '2026-09-28' },
+    });
+    const me = { rank: 2, userName: 'me', points: 300, isRequestingUser: true };
+    const friend = { rank: 1, userName: 'maya', points: 400, isRequestingUser: false };
+
+    beforeEach(() => {
+        mockGetLeaderboard.mockReset();
+        jest.spyOn(habitsWidget, 'isHabitsWidgetSupported').mockReturnValue(true);
+        publish = jest.spyOn(habitsWidget, 'publishHabitsWidget').mockImplementation(() => {});
+        // spyOn hands back the same spy on a second call, calls and all.
+        publish.mockClear();
+    });
+
+    it('publishes the friends board when the user has friends on it', async () => {
+        mockGetLeaderboard.mockResolvedValue(board([friend, me]));
+        const instance = buildInstance();
+
+        instance.refreshHabitsWidget();
+        await flushPromises();
+
+        expect(mockGetLeaderboard).toHaveBeenCalledWith({ period: 'week', scope: 'connections', limit: 3 });
+        expect(mockGetLeaderboard).not.toHaveBeenCalledWith({ period: 'week', scope: 'global', limit: 3 });
+        expect(publish).toHaveBeenCalledWith(expect.objectContaining({ scope: 'connections', you: { rank: 2, points: 300, dailyStreak: 5 } }));
+    });
+
+    it('falls back to the global board for a user with no friends on theirs', async () => {
+        mockGetLeaderboard.mockImplementation((args: any) => Promise.resolve(
+            args.scope === 'connections' ? board([me], 1) : board([friend, me], 2),
+        ));
+        const instance = buildInstance();
+
+        instance.refreshHabitsWidget();
+        await flushPromises();
+
+        expect(mockGetLeaderboard).toHaveBeenCalledWith({ period: 'week', scope: 'global', limit: 3 });
+        expect(publish).toHaveBeenCalledWith(expect.objectContaining({ scope: 'global' }));
+    });
+
+    it('keeps the last snapshot when offline', async () => {
+        mockGetLeaderboard.mockResolvedValue({ data: {}, isOfflineFallback: true });
+        const instance = buildInstance();
+
+        instance.refreshHabitsWidget();
+        await flushPromises();
+
+        expect(publish).not.toHaveBeenCalled();
+    });
+
+    it('makes no request where there is no widget to feed', async () => {
+        (habitsWidget.isHabitsWidgetSupported as jest.Mock).mockReturnValue(false);
+        const instance = buildInstance();
+
+        instance.refreshHabitsWidget();
+        await flushPromises();
+
+        expect(mockGetLeaderboard).not.toHaveBeenCalled();
+    });
+
+    it('republishes when today\'s check-ins change', async () => {
+        mockGetLeaderboard.mockResolvedValue(board([friend, me]));
+        const instance = buildInstance();
+        instance.refreshHabitsWidget();
+        await flushPromises();
+        publish.mockClear();
+
+        const prevProps = instance.props;
+        (instance as any).props = { ...prevProps, habits: { ...prevProps.habits, todayCheckins: [] } };
+        instance.componentDidUpdate(prevProps);
+
+        expect(publish).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(['habitGoals', 'activePacts', 'pacts', 'userHabits'])(
+        'republishes when %s changes, since it moves the habit count the widget divides by',
+        async (key) => {
+            mockGetLeaderboard.mockResolvedValue(board([friend, me]));
+            const instance = buildInstance();
+            instance.refreshHabitsWidget();
+            await flushPromises();
+            publish.mockClear();
+
+            const prevProps = instance.props;
+            (instance as any).props = { ...prevProps, habits: { ...prevProps.habits, [key]: [] } };
+            instance.componentDidUpdate(prevProps);
+
+            expect(publish).toHaveBeenCalledTimes(1);
+        },
+    );
+
+    it('does not republish when nothing today\'s count reads has changed', async () => {
+        mockGetLeaderboard.mockResolvedValue(board([friend, me]));
+        const instance = buildInstance();
+        instance.refreshHabitsWidget();
+        await flushPromises();
+        publish.mockClear();
+
+        const prevProps = instance.props;
+        (instance as any).props = { ...prevProps, habits: { ...prevProps.habits, pendingInvites: [] } };
+        instance.componentDidUpdate(prevProps);
+
+        expect(publish).not.toHaveBeenCalled();
     });
 });

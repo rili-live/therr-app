@@ -63,10 +63,39 @@ enum FeatureFlags {
  * tracked habits caps the value delivered rather than the invitations sent, and
  * it is the number a user can see and reason about on their own dashboard.
  *
- * Enforced by `assertHabitCapacity` in the users-service, which is the only
- * place that reads this.
+ * Lowered from 5 to 3 in September 2026. Five was more than most people ever
+ * tracked at once, so the cap was a limit almost nobody met and the paywall a
+ * screen almost nobody saw. Three is the number a committed user reaches in
+ * their first weeks, which is when the offer is worth showing.
+ *
+ * Enforced by `checkHabitCapacity` in the users-service, which is the only
+ * place that reads this; the client learns the value from
+ * `GET /habits/user-habits/eligibility` rather than from this constant.
  */
-const DEFAULT_HABITS_FREE_HABIT_LIMIT = 5;
+const DEFAULT_HABITS_FREE_HABIT_LIMIT = 3;
+
+/**
+ * The companion cap that stops the active limit being cycled through: how many
+ * habits an unentitled account may *start* (create or accept) inside any
+ * rolling window, and how long that window is.
+ *
+ * Counting only active habits makes archiving a real escape hatch, which is
+ * deliberate — but it also means a user can archive one habit and start
+ * another indefinitely and never meet the cap. The window closes that loop
+ * without turning archiving into a trap: a user who tried three habits and
+ * shelved them can still start more next month, and an archived habit can
+ * always be restored into a free slot whatever the window says — a restore is
+ * not a start and spends nothing from it. Counted on
+ * `habits.user_habits.startedAt`, which every start path stamps and no restore
+ * path re-stamps.
+ *
+ * Both configurable without a deploy — HABITS_FREE_HABIT_STARTS_PER_WINDOW and
+ * HABITS_FREE_HABIT_START_WINDOW_DAYS — because the right values are an
+ * empirical question. Five starts per thirty days is room to set up the full
+ * free tier and swap two of them, and nothing more.
+ */
+const DEFAULT_HABITS_FREE_HABIT_STARTS_PER_WINDOW = 5;
+const DEFAULT_HABITS_FREE_HABIT_START_WINDOW_DAYS = 30;
 
 /**
  * How many accounts may claim the one-time "free for life" founder purchase.
@@ -107,6 +136,16 @@ const HABITS_FREE_HABIT_LIMIT = parseLimit(
     DEFAULT_HABITS_FREE_HABIT_LIMIT,
 );
 
+const HABITS_FREE_HABIT_STARTS_PER_WINDOW = parseLimit(
+    typeof process !== 'undefined' ? process?.env?.HABITS_FREE_HABIT_STARTS_PER_WINDOW : undefined,
+    DEFAULT_HABITS_FREE_HABIT_STARTS_PER_WINDOW,
+);
+
+const HABITS_FREE_HABIT_START_WINDOW_DAYS = parseLimit(
+    typeof process !== 'undefined' ? process?.env?.HABITS_FREE_HABIT_START_WINDOW_DAYS : undefined,
+    DEFAULT_HABITS_FREE_HABIT_START_WINDOW_DAYS,
+);
+
 const HABITS_LIFETIME_FOUNDER_LIMIT = parseLimit(
     typeof process !== 'undefined' ? process?.env?.HABITS_LIFETIME_FOUNDER_LIMIT : undefined,
     DEFAULT_HABITS_LIFETIME_FOUNDER_LIMIT,
@@ -121,6 +160,10 @@ export {
     FeatureFlags,
     HABITS_FREE_HABIT_LIMIT,
     DEFAULT_HABITS_FREE_HABIT_LIMIT,
+    HABITS_FREE_HABIT_STARTS_PER_WINDOW,
+    DEFAULT_HABITS_FREE_HABIT_STARTS_PER_WINDOW,
+    HABITS_FREE_HABIT_START_WINDOW_DAYS,
+    DEFAULT_HABITS_FREE_HABIT_START_WINDOW_DAYS,
     HABITS_LIFETIME_FOUNDER_LIMIT,
     DEFAULT_HABITS_LIFETIME_FOUNDER_LIMIT,
     HABITS_SOLO_UNLOCK_INVITE_COUNT,

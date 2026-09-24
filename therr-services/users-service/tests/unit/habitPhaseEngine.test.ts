@@ -89,6 +89,31 @@ describe('habitPhaseEngine', () => {
         it('is 0 for a habit with no age', () => {
             expect(consistencyRate(3, ESTABLISH_WINDOW_DAYS, 0)).to.equal(0);
         });
+
+        it('scores a non-daily habit against what its cadence asked for', () => {
+            // 3x/week over a 14-day window is 6 check-ins, not 14. Divided by calendar days a
+            // perfectly-kept habit scored 6/14 = 0.43 — below LAPSE_MAX_CONSISTENCY (0.5), so
+            // the engine would have declared it lapsed and sent comeback offers to someone who
+            // had missed nothing, while making the establish gate (0.9) unreachable forever.
+            expect(consistencyRate(6, ESTABLISH_WINDOW_DAYS, 100, 3)).to.equal(1);
+            expect(consistencyRate(3, ESTABLISH_WINDOW_DAYS, 100, 3)).to.equal(0.5);
+        });
+
+        it('is unchanged for a daily habit, however the target is expressed', () => {
+            expect(consistencyRate(7, ESTABLISH_WINDOW_DAYS, 100, 7))
+                .to.equal(consistencyRate(7, ESTABLISH_WINDOW_DAYS, 100));
+        });
+
+        it('never divides by zero on a short window and a light cadence', () => {
+            // 1x/week over a 2-day-old habit rounds the denominator to 0 without the floor,
+            // which would score a user who did everything asked of them at 0% — or NaN.
+            expect(consistencyRate(1, ESTABLISH_WINDOW_DAYS, 2, 1)).to.equal(1);
+        });
+
+        it('treats a junk target as daily rather than inventing a gate', () => {
+            expect(consistencyRate(7, ESTABLISH_WINDOW_DAYS, 100, 0)).to.equal(0.5);
+            expect(consistencyRate(7, ESTABLISH_WINDOW_DAYS, 100, NaN)).to.equal(0.5);
+        });
     });
 
     describe('establish gate', () => {

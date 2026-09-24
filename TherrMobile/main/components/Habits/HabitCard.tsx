@@ -2,8 +2,11 @@ import React from 'react';
 import {
     View, Text, Pressable, ActivityIndicator,
 } from 'react-native';
-import { IHabitGoal, IHabitCheckin, IStreak } from 'therr-react/types';
+import {
+    IHabitGoal, IHabitCheckin, IStreak,
+} from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
+import { fromGoal, IWeekProgress } from '../../routes/Pacts/cadenceOptions';
 import CheckinButton from './CheckinButton';
 import StreakWidget from './StreakWidget';
 
@@ -11,6 +14,14 @@ interface IHabitCardProps {
     habitGoal: IHabitGoal;
     todayCheckin?: IHabitCheckin;
     streak?: IStreak;
+    /**
+     * Where the user stands in this habit's week, as the server computed it.
+     *
+     * A separate prop rather than a field on `habitGoal` because it is per-*user*, not per-goal
+     * — a template shared by two people has one cadence and two different weeks. Absent means
+     * unknown: the chip is hidden, never shown as zero.
+     */
+    weekProgress?: IWeekProgress;
     onPress?: () => void;
     onCheckin?: () => void;
     /**
@@ -50,40 +61,72 @@ interface IHabitCardProps {
 
 const DAY_SHORT_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
+/**
+ * The cadence in words.
+ *
+ * Precedence comes from `cadenceOptions.fromGoal`, which mirrors the server's `getCadence`.
+ * This used to decide it inline, and got it wrong in exactly the way the old backend did: it
+ * required `frequencyType === 'weekly'` before honouring a weekday schedule, so a `custom` goal
+ * with fixed days rendered "3x per custom" and a `daily` goal with fixed days rendered "Every
+ * day" — while the server scheduled, reminded and scored it on those weekdays. The label and
+ * the rules now agree by construction.
+ *
+ * `monthly` has no backend support (`getCadence` reads it as a weekly count), but the copy
+ * exists in all three locales and a goal could carry it, so it keeps its branch rather than
+ * silently rendering as weekly.
+ */
 const getFrequencyText = (
     habitGoal: IHabitGoal,
     translate: (key: string, params?: any) => string,
 ): string => {
-    const { frequencyType, frequencyCount, targetDaysOfWeek } = habitGoal;
+    const cadence = fromGoal(habitGoal);
 
-    if (frequencyType === 'daily') {
-        return translate('pages.habits.frequency.daily');
-    }
-
-    if (frequencyType === 'weekly' && targetDaysOfWeek && targetDaysOfWeek.length > 0) {
-        return targetDaysOfWeek
+    if (cadence.kind === 'weekdays') {
+        return cadence.days
             .map((d) => translate(`pages.habits.daysOfWeekShort.${DAY_SHORT_KEYS[d]}`))
             .join(', ');
     }
 
-    if (frequencyType === 'weekly') {
-        return translate('pages.habits.frequency.weekly', { count: frequencyCount });
+    if (cadence.kind === 'daily') {
+        return translate('pages.habits.frequency.daily');
     }
 
-    if (frequencyType === 'monthly') {
-        return translate('pages.habits.frequency.monthly', { count: frequencyCount });
+    if (habitGoal.frequencyType === 'monthly') {
+        return translate('pages.habits.frequency.monthly', { count: habitGoal.frequencyCount });
     }
 
-    return translate('pages.habits.frequency.perPeriod', {
-        count: frequencyCount,
-        period: frequencyType,
-    });
+    return translate('pages.habits.frequency.weekly', { count: cadence.count });
+};
+
+/**
+ * "2 of 4 this week", when there is a week to report on.
+ *
+ * Returns null for a daily habit — its progress is the streak, and a chip saying "3 of 7" beside
+ * a 3-day streak is noise — and for an absent `weekProgress`, which means *unknown* rather than
+ * zero. The server omits the field when it could not resolve the user's week, and a server that
+ * predates it omits it too; rendering "0 of 4" for someone who trained four times is worse than
+ * rendering nothing.
+ */
+const getWeekProgressText = (
+    weekProgress: IWeekProgress | undefined,
+    translate: (key: string, params?: any) => string,
+): string | null => {
+    if (!weekProgress || weekProgress.target >= 7 || weekProgress.target < 1) {
+        return null;
+    }
+
+    const key = weekProgress.isMet
+        ? 'pages.habits.cadence.weekProgressMet'
+        : 'pages.habits.cadence.weekProgress';
+
+    return translate(key, { done: weekProgress.done, target: weekProgress.target });
 };
 
 const HabitCard: React.FC<IHabitCardProps> = ({
     habitGoal,
     todayCheckin,
     streak,
+    weekProgress,
     onPress,
     onCheckin,
     onAddCheckinDetail,
@@ -100,6 +143,7 @@ const HabitCard: React.FC<IHabitCardProps> = ({
 }) => {
     const isCompleted = todayCheckin?.status === 'completed';
     const showSoloOrArchive = isAwaitingPartner && !!onContinueSolo && !!onArchive;
+    const weekProgressText = getWeekProgressText(weekProgress, translate);
 
     return (
         <Pressable
@@ -118,6 +162,22 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                         {getFrequencyText(habitGoal, translate)}
                     </Text>
                 </View>
+                {/*
+                  * Sits in the header rather than beside the streak, because it answers a
+                  * different question: the streak says how long you have kept the habit, this
+                  * says whether this week is still owed anything. Rendered only when there is
+                  * a week to report on — see `getWeekProgressText`.
+                  */}
+                {!!weekProgressText && (
+                    <View style={[
+                        themeHabits.styles.habitCardProgressChip,
+                        weekProgress?.isMet && themeHabits.styles.habitCardProgressChipMet,
+                    ]}>
+                        <Text style={themeHabits.styles.habitCardProgressChipText}>
+                            {weekProgressText}
+                        </Text>
+                    </View>
+                )}
             </View>
 
             {habitGoal.description && (
@@ -149,6 +209,7 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                     streak={streak}
                     compact
                     embedded
+                    cadenceKind={fromGoal(habitGoal).kind}
                     themeHabits={themeHabits}
                     translate={translate}
                 />

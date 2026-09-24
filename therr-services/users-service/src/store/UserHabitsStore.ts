@@ -89,6 +89,12 @@ export interface IUserHabitDetail extends IUserHabitRow {
     frequencyType: string;
     frequencyCount: number | null;
     targetDaysOfWeek: number[] | null;
+    cadenceEffectiveFrom: string | null;
+    /**
+     * Completed days for this habit earlier in the user's current week, excluding today.
+     * NULL when the caller did not supply week bounds — see `getDetailByUser`.
+     */
+    completionsEarlierThisWeek: number | null;
     isSolo: boolean;
     activePactCount: number;
     currentStreak: number;
@@ -137,13 +143,29 @@ export interface IUserHabitReminderRow extends IUserHabitNotificationPreferences
     frequencyType: string;
     frequencyCount: number | null;
     targetDaysOfWeek: number[] | null;
+    cadenceEffectiveFrom: string | null;
     currentStreak: number;
     streakIsActive: boolean;
     gracePeriodDays: number;
     graceDaysUsed: number;
     lastCompletedDate: string | null;
     completedToday: boolean;
+    /** Completed check-ins for this habit earlier in the current week, excluding today. */
+    completionsEarlierThisWeek: number;
     activePactId: string | null;
+}
+
+/**
+ * One active habit's cadence, for deciding whether a given local day was required of the user.
+ * See `getActiveCadencesByUser`.
+ */
+export interface IUserHabitCadence {
+    habitGoalId: string;
+    startedAt: Date;
+    frequencyType: string;
+    frequencyCount: number | null;
+    targetDaysOfWeek: number[] | null;
+    cadenceEffectiveFrom: string | null;
 }
 
 export default class UserHabitsStore {
@@ -194,17 +216,105 @@ export default class UserHabitsStore {
     }
 
     /**
+     * Habits the user started on or after `since`, in any status.
+     *
+     * The second number the free-tier cap reads. `countActiveByUser` alone lets
+     * a user archive one habit and start another forever; this bounds how many
+     * *new* habits a rolling window allows. Archived rows count on purpose — a
+     * habit started and shelved this month was still a start. A restore does
+     * not re-stamp `startedAt` (see `setStatus`), so archiving and restoring the
+     * same habit is charged nothing here: it gains the user nothing either, and
+     * the active cap already bounds it.
+     */
+    countStartedSinceByUser(userId: string, since: Date): Promise<number> {
+        const queryString = knexBuilder
+            .from(USER_HABITS_TABLE_NAME)
+            .where({ userId })
+            .andWhere('startedAt', '>=', since.toISOString())
+            .count('id as count')
+            .toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => parseInt(response.rows[0]?.count ?? '0', 10));
+    }
+
+    /**
+     * Just enough of each active habit to decide, for any given local day, whether that day was
+     * *required* of the user — the input the app-level daily streak needs to tell a rest day
+     * from a missed one.
+     *
+     * Deliberately lean and deliberately keyed on `habits.user_habits` rather than on
+     * `habits.streaks`, which the freeze pool is read from. A streak row is only created on the
+     * first check-in, so a habit the user started but has not yet logged has no streak row — and
+     * that habit is exactly the one whose cadence can make today required. Reading the tracking
+     * registry instead is what keeps a brand-new habit from being invisible to the walk.
+     *
+     * `startedAt` comes back so the caller can leave days before the habit existed alone: a habit
+     * started on Thursday cannot have required Monday.
+     */
+    getActiveCadencesByUser(userId: string): Promise<IUserHabitCadence[]> {
+        const queryString = knexBuilder.raw(
+            `SELECT uh."habitGoalId" AS "habitGoalId",
+                uh."startedAt" AS "startedAt",
+                g."frequencyType" AS "frequencyType",
+                g."frequencyCount" AS "frequencyCount",
+                g."targetDaysOfWeek" AS "targetDaysOfWeek",
+                g."cadenceEffectiveFrom"::text AS "cadenceEffectiveFrom"
+            FROM ${USER_HABITS_TABLE_NAME} uh
+            INNER JOIN ${HABIT_GOALS_TABLE_NAME} g ON g."id" = uh."habitGoalId"
+            WHERE uh."userId" = ?::uuid
+                AND uh."status" = 'active'`,
+            [userId],
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows as IUserHabitCadence[]);
+    }
+
+    /**
      * Full detail for the dashboard and the `user-habits` list endpoint.
      *
      * The pact join is an aggregate rather than a row join because a habit can
      * legitimately be backed by more than one active pact — the same goal with
      * two different partners is a supported shape, and joining rows would
      * duplicate the habit once per pact.
+     *
+     * `weekBounds` is the user's own Monday and their own today. Supplying it adds this
+     * week's completed-day tally per habit, which is what the caller turns into
+     * `weekProgress` ("2 of 4 this week"). It is optional because the tally is only
+     * meaningful against a resolved timezone: without one the column comes back NULL and the
+     * caller omits `weekProgress` entirely rather than reporting a confident zero — a client
+     * that renders "0 of 4" for someone who trained four times is worse than one that renders
+     * nothing.
      */
-    getDetailByUser(userId: string, status?: UserHabitStatus): Promise<IUserHabitDetail[]> {
-        const bindings: any[] = [userId];
-        let statusPredicate = '';
+    getDetailByUser(
+        userId: string,
+        status?: UserHabitStatus,
+        weekBounds?: { weekStart: string; today: string },
+    ): Promise<IUserHabitDetail[]> {
+        // Bindings are positional, so they must be pushed in the order their `?` appears in
+        // the SQL below — the week tally sits in the SELECT list and therefore binds BEFORE
+        // the WHERE clause's userId and status.
+        const bindings: any[] = [];
 
+        // Days strictly BEFORE today, matching what `isRequiredOn` and `describeWeekProgress`
+        // expect for `completionsEarlierThisWeek` — the same convention as the identical
+        // subquery in `getActiveForReminders`.
+        let weekTallyColumn = 'NULL::int';
+        if (weekBounds) {
+            bindings.push(weekBounds.weekStart, weekBounds.today);
+            weekTallyColumn = `(
+                    SELECT COUNT(DISTINCT c."scheduledDate")::int
+                    FROM ${HABIT_CHECKINS_TABLE_NAME} c
+                    WHERE c."userId" = uh."userId"
+                        AND c."habitGoalId" = uh."habitGoalId"
+                        AND c."scheduledDate" >= ?::date
+                        AND c."scheduledDate" < ?::date
+                        AND c."status" = 'completed'
+                )`;
+        }
+
+        bindings.push(userId);
+        let statusPredicate = '';
         if (status) {
             bindings.push(status);
             statusPredicate = 'AND uh."status" = ?';
@@ -220,6 +330,10 @@ export default class UserHabitsStore {
                 g."frequencyType" AS "frequencyType",
                 g."frequencyCount" AS "frequencyCount",
                 g."targetDaysOfWeek" AS "targetDaysOfWeek",
+                g."cadenceEffectiveFrom"::text AS "cadenceEffectiveFrom",
+                -- Stays ahead of every other interpolated fragment: it is the only column
+                -- carrying bindings, and they are positional.
+                ${weekTallyColumn} AS "completionsEarlierThisWeek",
                 -- Savings target, mirrored from the goal so the habit list can draw a
                 -- progress bar without a goal fetch per row. Cast to text because
                 -- node-postgres returns numeric as a string anyway; making that
@@ -283,7 +397,7 @@ export default class UserHabitsStore {
      * deep-link into a pact when one happens to back the habit, and is null for
      * a solo habit. Pact-scoped notifications still come from the pact loop.
      */
-    getActiveForReminders(today: string, limit: number): Promise<IUserHabitReminderRow[]> {
+    getActiveForReminders(today: string, weekStart: string, limit: number): Promise<IUserHabitReminderRow[]> {
         const queryString = knexBuilder.raw(
             `SELECT
                 uh."userId",
@@ -297,6 +411,7 @@ export default class UserHabitsStore {
                 g."frequencyType" AS "frequencyType",
                 g."frequencyCount" AS "frequencyCount",
                 g."targetDaysOfWeek" AS "targetDaysOfWeek",
+                g."cadenceEffectiveFrom"::text AS "cadenceEffectiveFrom",
                 -- Carried so the reminder can offer an amount field on a savings habit.
                 -- Only the currency is needed, to label the input; the notification does
                 -- not render progress. Note the absence of any question mark in this
@@ -318,6 +433,20 @@ export default class UserHabitsStore {
                         AND c."status" = 'completed'
                 ) AS "completedToday",
                 (
+                    -- How much of this week's quota is already discharged, counting days
+                    -- strictly BEFORE today so it lines up with what \`isRequiredOn\` and
+                    -- \`describeWeekProgress\` expect. Without it a weekly cadence has no way to
+                    -- know whether it still owes the user a nudge, and the old code fell back to
+                    -- a spacing heuristic that nudged a 4x/week habit all seven days.
+                    SELECT COUNT(DISTINCT c2."scheduledDate")::int
+                    FROM ${HABIT_CHECKINS_TABLE_NAME} c2
+                    WHERE c2."userId" = uh."userId"
+                        AND c2."habitGoalId" = uh."habitGoalId"
+                        AND c2."scheduledDate" >= ?::date
+                        AND c2."scheduledDate" < ?::date
+                        AND c2."status" = 'completed'
+                ) AS "completionsEarlierThisWeek",
+                (
                     SELECT p."id"
                     FROM ${PACT_MEMBERS_TABLE_NAME} pm
                     INNER JOIN ${PACTS_TABLE_NAME} p ON p."id" = pm."pactId"
@@ -335,7 +464,7 @@ export default class UserHabitsStore {
             WHERE uh."status" = 'active'
             ORDER BY uh."startedAt" ASC, uh."id" ASC
             LIMIT ?`,
-            [today, limit],
+            [today, weekStart, today, limit],
         ).toString();
 
         return this.db.read.query(queryString)

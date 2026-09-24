@@ -13,11 +13,15 @@ import Store from '../../src/store';
 import { createOrUpdateAchievement } from '../../src/handlers/helpers/achievements';
 import { awardLeaderboardPoints } from '../../src/handlers/helpers/leaderboards';
 import { detectAndCelebrateRankMilestones } from '../../src/handlers/helpers/leaderboardRankMilestones';
+import HabitCheckinsStore from '../../src/store/HabitCheckinsStore';
 import {
     LeaderboardXpValues,
+    PROOF_NOTE_MIN_LENGTH,
+    checkinProofXp,
     getCrossedRankMilestones,
     getLeaderboardPeriodStart,
     getLeaderboardPeriodEnd,
+    weeklyQuotaBonus,
     withCompetitionRanks,
 } from '../../src/utilities/leaderboardHelpers';
 
@@ -407,5 +411,112 @@ describe('UserLeaderboardScoresStore.getRankForScore — excludeUserId', () => {
         await store.getRankForScore(BrandVariations.THERR, 100, { periodStart: '2026-07-13' });
 
         expect(query.firstCall.args[0]).to.not.contain('not "main"."userLeaderboardScores"."userId" =');
+    });
+});
+
+/**
+ * The cadence bonus.
+ *
+ * The board pays per check-in and per daily-streak day, so a daily habit earns ~105 XP a week
+ * and a fully-honoured 4x/week habit earns 60. Both users did exactly what they committed to.
+ * Once habits can declare a cadence, leaving that gap in place would make the leaderboard a
+ * reason not to — so the bonus pays for the days the cadence did not ask for, capped so that
+ * declaring a light cadence is never the better play.
+ */
+describe('weeklyQuotaBonus', () => {
+    it('pays nothing for a daily habit, so existing users are untouched', () => {
+        expect(weeklyQuotaBonus(7)).to.equal(0);
+    });
+
+    it('closes most of the gap for a mid-range cadence', () => {
+        // 4 x (10 + 5) = 60 earned, + 30 bonus = 90, against daily's 105.
+        expect(weeklyQuotaBonus(4)).to.equal(30);
+    });
+
+    it('is capped so a light cadence can never out-earn the work', () => {
+        // Uncapped this would be (7 - 1) * 10 = 60 XP for a single check-in — a far better rate
+        // than actually doing the habit, and the obvious way to game the board.
+        expect(weeklyQuotaBonus(1)).to.equal(15);
+        expect(weeklyQuotaBonus(2)).to.equal(30);
+    });
+
+    it('stays monotonic in total weekly earnings, with daily still ahead', () => {
+        const totalFor = (target: number) => (target * 15) + weeklyQuotaBonus(target);
+
+        const totals = [1, 2, 3, 4, 5, 6, 7].map(totalFor);
+        expect(totals).to.deep.equal([30, 60, 85, 90, 95, 100, 105]);
+        totals.forEach((total, i) => {
+            if (i > 0) {
+                expect(total, `target ${i + 1}`).to.be.at.least(totals[i - 1]);
+            }
+        });
+    });
+
+    it('ignores a nonsensical target rather than paying out on it', () => {
+        expect(weeklyQuotaBonus(0)).to.equal(0);
+        expect(weeklyQuotaBonus(-3)).to.equal(0);
+        expect(weeklyQuotaBonus(99)).to.equal(0);
+        expect(weeklyQuotaBonus(NaN)).to.equal(0);
+    });
+});
+
+describe('checkinProofXp', () => {
+    const note = 'Ran 5k around the lake before work';
+
+    it('pays nothing for a bare check-in', () => {
+        expect(checkinProofXp({ status: 'completed', notes: null, hasProof: false })).to.equal(0);
+    });
+
+    it('pays more for a photo than for a note, and stacks the two', () => {
+        const noteOnly = checkinProofXp({ status: 'completed', notes: note, hasProof: false });
+        const photoOnly = checkinProofXp({ status: 'completed', notes: null, hasProof: true });
+        const both = checkinProofXp({ status: 'completed', notes: note, hasProof: true });
+
+        expect(noteOnly).to.equal(LeaderboardXpValues.proofNote);
+        expect(photoOnly).to.equal(LeaderboardXpValues.proofPhoto);
+        expect(photoOnly).to.be.greaterThan(noteOnly);
+        expect(both).to.equal(noteOnly + photoOnly);
+    });
+
+    it('does not count a throwaway note as proof', () => {
+        expect(checkinProofXp({ status: 'completed', notes: 'done', hasProof: false })).to.equal(0);
+        // Padding with whitespace does not get it over the line.
+        expect(checkinProofXp({
+            status: 'completed',
+            notes: `  ok${' '.repeat(PROOF_NOTE_MIN_LENGTH)}  `,
+            hasProof: false,
+        })).to.equal(0);
+    });
+
+    it('pays nothing on a check-in that is not completed', () => {
+        expect(checkinProofXp({ status: 'skipped', notes: note, hasProof: true })).to.equal(0);
+        expect(checkinProofXp({ status: 'pending', notes: note, hasProof: true })).to.equal(0);
+    });
+});
+
+describe('HabitCheckinsStore.claimProofXp', () => {
+    const buildStore = (rows: any[]) => {
+        const write = sinon.stub().resolves({ rows });
+        const store = new HabitCheckinsStore({ read: { query: sinon.stub() }, write: { query: write } } as any);
+        return { store, write };
+    };
+
+    it('returns the difference over what the row was already paid', async () => {
+        const { store, write } = buildStore([{ earnedXp: 10 }]);
+
+        expect(await store.claimProofXp('c1', 15)).to.equal(10);
+
+        const sql = write.firstCall.args[0];
+        expect(sql).to.contain('"proofXpAwarded" = 15');
+        // The high-water guard: never lowers the mark, never pays twice.
+        expect(sql).to.contain('"proofXpAwarded" < 15');
+        expect(sql).to.contain('FOR UPDATE');
+    });
+
+    it('returns 0 when the row has already been paid as much or more', async () => {
+        // The guarded UPDATE matches no row, so nothing is returned.
+        const { store } = buildStore([]);
+
+        expect(await store.claimProofXp('c1', 5)).to.equal(0);
     });
 });

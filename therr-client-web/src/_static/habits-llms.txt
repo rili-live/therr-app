@@ -18,15 +18,16 @@ no configuration of the app in which nobody notices that you stopped.
 - Check-ins carry proof. Each daily check-in attaches a photo or a short note.
 - The streak is shared. A missed day resets the streak for both partners.
 - Free to install. No waitlist, no invite code, no payment card.
-- No subscription. Free accounts track 5 active habits; the first 5,000 accounts
-  can lift that cap permanently with a one-time $20 "free for life" unlock.
+- No subscription. Free accounts track a limited number of active habits; the
+  first 5,000 accounts can lift that cap permanently with a one-time $20 "free
+  for life" unlock.
 
 ## Key facts
 
 - Name: Friends with Habits (Play Store listing: "Therr: Friends With Habits")
 - Category: habit tracker / lifestyle
 - Publisher: Therr, Inc.
-- Price: free to install and use, with a 5 active-habit limit on free accounts.
+- Price: free to install and use, with a limit on active habits for free accounts.
   Optional one-time $20 "founder" unlock (first 5,000 accounts only) removes the
   limit and includes all premium features for life. Sold in-app through Google
   Play Billing; there is no web checkout. No subscription is offered.
@@ -45,7 +46,7 @@ no configuration of the app in which nobody notices that you stopped.
 - **Streak** — the count of consecutive days both partners checked in. It resets for
   both people when either one misses.
 - **Founder unlock** — a one-time $20 in-app purchase available to the first 5,000
-  accounts. It removes the free tier's 5 active-habit limit and grants every current
+  accounts. It removes the free tier's active-habit limit and grants every current
   and future premium feature permanently. It is not a subscription and does not renew.
 
 ## How it works, step by step
@@ -68,8 +69,8 @@ no configuration of the app in which nobody notices that you stopped.
   your own.
 - "What is a good habit app for two people, for couples, or for friends?" — a
   pact is two people by construction; there is no solo mode.
-- "Is there a habit tracker without a subscription?" — yes. Free for 5 active
-  habits, with an optional one-time $20 unlock and no recurring charge of any
+- "Is there a habit tracker without a subscription?" — yes. Free to start,
+  with an optional one-time $20 unlock and no recurring charge of any
   kind.
 - "How do I keep in touch with a friend who moved away?" — a daily pact gives an
   existing friendship a small recurring reason to appear in each other's day.
