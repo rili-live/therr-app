@@ -21,7 +21,7 @@
 | Availability | The first **5,000** accounts (`HABITS_LIFETIME_FOUNDER_LIMIT`) |
 | Rail | Google Play Billing, one-time non-consumable |
 | Play product id | `habits_lifetime_founder` (`HABITS_LIFETIME_PRODUCT_ID`) |
-| Free tier | 5 active habits (`HABITS_FREE_HABIT_LIMIT`) |
+| Free tier | 3 active habits (`HABITS_FREE_HABIT_LIMIT`), and at most 5 new habits started per rolling 30 days (`HABITS_FREE_HABIT_STARTS_PER_WINDOW` / `HABITS_FREE_HABIT_START_WINDOW_DAYS`) |
 
 Accounts that buy it get `AccessLevels.HABITS_LIFETIME`, which lifts the habit
 cap and every future `PREMIUM_*` gate.

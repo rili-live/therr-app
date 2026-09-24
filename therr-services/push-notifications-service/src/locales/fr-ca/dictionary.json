@@ -113,7 +113,8 @@
       "title": "Ne brise pas ta série",
       "body": "Ta série de {streakCount} jours sur {habitName} est en jeu — enregistre-toi avant minuit pour la garder.",
       "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} est en jeu. Un gel de série couvrira ce soir si tu manques ({freezesRemaining} restant(s)) — mais t'enregistrer te le garde en réserve.",
-      "bodyMultiple": "{habitCount} séries sont en jeu — {habitNames}. Enregistre-toi avant minuit pour les garder."
+      "bodyMultiple": "{habitCount} séries sont en jeu — {habitNames}. Enregistre-toi avant minuit pour les garder.",
+      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName} cette semaine, et il reste {daysLeft} jour(s). Garde tes {streakCount} d'affilée."
     },
     "streakFreezeUsed": {
       "title": "Ta série a tenu",
@@ -178,7 +179,8 @@
     "dailyHabitReminder": {
       "title": "C'est l'heure de t'enregistrer",
       "body": "Enregistre {habitName} aujourd'hui — un seul enregistrement lance ta série.",
-      "bodyMultiple": "{habitCount} habitudes t'attendent aujourd'hui — {habitNames}. Un seul enregistrement te lance."
+      "bodyMultiple": "{habitCount} habitudes t'attendent aujourd'hui — {habitNames}. Un seul enregistrement te lance.",
+      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName} cette semaine — il reste {daysLeft} jour(s) pour la terminer."
     },
     "morningMotivation": {
       "title": "Bon matin",
@@ -188,7 +190,8 @@
       "title": "Dernière chance ce soir",
       "body": "Ta série de {streakCount} jours sur {habitName} se termine à minuit. Un seul suivi la garde en vie.",
       "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} se termine à minuit. Un gel de série te couvrira ({freezesRemaining} restant(s)) — mais t'enregistrer maintenant te le garde en réserve.",
-      "bodyMultiple": "Dernier appel pour {habitCount} séries — {habitNames}. Enregistre-toi avant minuit pour les garder."
+      "bodyMultiple": "Dernier appel pour {habitCount} séries — {habitNames}. Enregistre-toi avant minuit pour les garder.",
+      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName}, avec {daysLeft} jour(s) restants — il te les faut tous. Enregistre-toi ce soir."
     },
     "weeklyRecap": {
       "title": "Ta semaine en revue",

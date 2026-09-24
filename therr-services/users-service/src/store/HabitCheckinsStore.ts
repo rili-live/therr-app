@@ -443,6 +443,35 @@ export default class HabitCheckinsStore {
     }
 
     /**
+     * Which habit was completed on which local day in [startDate, endDate].
+     *
+     * `getCompletedLocalDates` above answers the daily streak's "was *anything* done on day D";
+     * this answers "was *this habit* done on day D", which is what a cadence needs — a weekly
+     * quota is per habit, so a day that carried habit A says nothing about habit B's quota. Both
+     * exist because the boolean form is the hot path and stays one cheap DISTINCT.
+     */
+    getCompletedHabitLocalDates(
+        userId: string,
+        startDate: string,
+        endDate: string,
+    ): Promise<{ habitGoalId: string; localDate: string }[]> {
+        const queryString = knexBuilder.raw(
+            `SELECT DISTINCT "habitGoalId", "localDate"::text AS "localDate"
+            FROM ${HABIT_CHECKINS_TABLE_NAME}
+            WHERE "userId" = ?::uuid
+                AND "status" = 'completed'
+                AND "localDate" >= ?::date
+                AND "localDate" <= ?::date`,
+            [userId, startDate, endDate],
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.map((row: any) => ({
+            habitGoalId: String(row.habitGoalId),
+            localDate: String(row.localDate).slice(0, 10),
+        })));
+    }
+
+    /**
      * Completed check-ins per local day in [startDate, endDate] — the weekly recap's per-day
      * bar, in one query.
      *
@@ -677,6 +706,37 @@ export default class HabitCheckinsStore {
             .toString();
 
         return this.db.write.query(queryString).then((response) => normalizeCheckinRow(response.rows[0]));
+    }
+
+    /**
+     * Records that a check-in's proof is now worth `totalXp`, and returns how much of that has
+     * not been paid before — the XP the caller should award now. Zero when the row was already
+     * paid as much or more.
+     *
+     * One statement so it is safe under concurrent saves of the same check-in: the row lock
+     * taken by `FOR UPDATE` makes the second writer re-read the first one's value, so the two
+     * cannot both pay the same difference. `proofXpAwarded` only ever rises, which is what
+     * makes deleting a photo and attaching it again pay nothing. See migration
+     * 20260923000001_habits.habit_checkins.proofXpAwarded.js.
+     */
+    claimProofXp(id: string, totalXp: number): Promise<number> {
+        const queryString = knexBuilder.raw(
+            `UPDATE ${HABIT_CHECKINS_TABLE_NAME} AS c
+            SET "proofXpAwarded" = ?
+            FROM (
+                SELECT id, "proofXpAwarded" AS "previousXp"
+                FROM ${HABIT_CHECKINS_TABLE_NAME}
+                WHERE id = ?
+                FOR UPDATE
+            ) AS prev
+            WHERE c.id = prev.id
+                AND c."proofXpAwarded" < ?
+            RETURNING (? - prev."previousXp")::int AS "earnedXp"`,
+            [totalXp, id, totalXp, totalXp],
+        ).toString();
+
+        return this.db.write.query(queryString)
+            .then((response) => Math.max(0, Number(response.rows[0]?.earnedXp) || 0));
     }
 
     update(id: string, params: IUpdateHabitCheckinParams) {

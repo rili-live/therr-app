@@ -162,12 +162,12 @@ assets:
         - "Habit Tracker for Friends"
         - "Quit in Private? Not Here."
         - "Track Habits Together"
-        - "Free for Five Habits"
+        - "Start Free, No Card Needed"
     descriptions:
         - "Every habit is a pact with a friend. You check in, they check in, the streak lives."
         - "Most habit apps let you quit in private. Friends with Habits doesn't. Start free."
         - "Photo check-ins, shared streaks, and a partner who notices when you skip a day."
-        - "Free for five habits. No card required. Bring one friend and start today."
+        - "Free to start. No card required. Bring one friend and build a streak today."
 
 tracking:
     # utm_campaign is the join key into main."userAcquisition".utmCampaign.

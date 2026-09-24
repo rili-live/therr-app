@@ -9,6 +9,7 @@ import LottieView from 'lottie-react-native';
 import { Image } from '../../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import RNFB from 'react-native-blob-util';
+import { getApiErrorDetail } from '../../utilities/apiErrorMessage';
 import { showToast } from '../../utilities/toasts';
 import { recordPositiveSignal } from '../../utilities/appReviewPrompt';
 import { IUserState, IContentState } from 'therr-react/types';
@@ -485,26 +486,17 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                     })
                     .catch((error: any) => {
                         // TODO: Delete uploaded file on failure to create
-                        if (
-                            error.statusCode === 400 ||
-                            error.statusCode === 401 ||
-                            error.statusCode === 404
-                        ) {
-                            this.setState({
-                                errorMsg: `${error.message}${
-                                    error.parameters
-                                        ? '(' + error.parameters.toString() + ')'
-                                        : ''
-                                }`,
-                            });
+                        //
+                        // Unconditional: the old shape left `errorMsg` untouched for a 403,
+                        // a 409, a 429, or any rejection that never reached the API, so the
+                        // form sat there with no explanation. See getApiErrorDetail.
+                        this.setState({
+                            errorMsg: getApiErrorDetail(error)
+                                || this.translate('forms.editMoment.backendErrorMessage'),
+                        });
 
-                            if (error.errorCode === ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS) {
-                                this.toggleInfoModal();
-                            }
-                        } else if (error.statusCode >= 500) {
-                            this.setState({
-                                errorMsg: this.translate('forms.editMoment.backendErrorMessage'),
-                            });
+                        if (error.errorCode === ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS) {
+                            this.toggleInfoModal();
                         }
                     })
                     .finally(() => {

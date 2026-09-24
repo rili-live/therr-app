@@ -51,6 +51,7 @@
         },
         "habits": {
             "freeTierHabitLimitReached": "Les comptes gratuits peuvent suivre {limit} habitudes à la fois. Archives-en une ou débloque tout à vie.",
+            "freeTierHabitStartLimitReached": "Les comptes gratuits peuvent commencer {limit} nouvelles habitudes tous les {days} jours. Débloque tout à vie pour en commencer autant que tu veux.",
             "habitGoalNotFound": "Nous n'avons pas trouvé cette habitude",
             "habitGoalRequired": "Un objectif d'habitude est requis",
             "journalBodyRequired": "Écris quelque chose avant d'enregistrer cette entrée",

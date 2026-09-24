@@ -3,6 +3,28 @@ import axios from 'axios';
 import { HabitGoalType, SavingsTargetScope } from 'therr-js-utilities/constants';
 
 /**
+ * Cadence fields, shared by create and update.
+ *
+ * Three shapes, and the server resolves them in this order (users-service
+ * `utilities/habitCadence.ts`):
+ *
+ *   - `targetDaysOfWeek` populated → those weekdays exactly, whatever `frequencyType` says.
+ *     Sunday-first, 0-6, matching JS `getDay()`.
+ *   - `frequencyType: 'daily'` → every day.
+ *   - `frequencyType: 'weekly' | 'custom'` + `frequencyCount` → that many check-ins a week, on
+ *     any days the user likes. A day is only *required* once skipping it would put the count
+ *     out of reach, so the other days cost nothing — no broken streak, no spent streak freeze.
+ *
+ * Omitting all three means daily, which is what every habit created before cadence was
+ * selectable resolves to.
+ */
+interface IHabitCadenceBody {
+    frequencyType?: string;
+    frequencyCount?: number;
+    targetDaysOfWeek?: number[];
+}
+
+/**
  * The savings target on a `savings_goal` habit. Ignored by the server for any other
  * `goalType`.
  *
@@ -20,27 +42,27 @@ export interface ISavingsTargetBody {
     savingsTargetScope?: SavingsTargetScope | null;
 }
 
-export interface ICreateHabitGoalBody extends ISavingsTargetBody {
+export interface ICreateHabitGoalBody extends IHabitCadenceBody, ISavingsTargetBody {
     name: string;
     description?: string;
     category?: string;
     emoji?: string;
     goalType?: HabitGoalType;
-    frequencyType?: string;
-    frequencyCount?: number;
-    targetDaysOfWeek?: number[];
     isPublic?: boolean;
 }
 
-export interface IUpdateHabitGoalBody extends ISavingsTargetBody {
+/**
+ * Changing a cadence here applies **forward only**. The running streak survives, and days
+ * already lived under the previous cadence are never re-judged — the server stamps
+ * `cadenceEffectiveFrom` and refuses to evaluate before it. Dialling a habit back after an
+ * injury should not cost the streak that motivated the habit in the first place.
+ */
+export interface IUpdateHabitGoalBody extends IHabitCadenceBody, ISavingsTargetBody {
     name?: string;
     description?: string;
     category?: string;
     emoji?: string;
     goalType?: HabitGoalType;
-    frequencyType?: string;
-    frequencyCount?: number;
-    targetDaysOfWeek?: number[];
     isPublic?: boolean;
 }
 

@@ -52,6 +52,10 @@ describe('Daily streak — onCheckinCompleted rewinds finalized days', () => {
         sinon.stub(Store.habitCheckins, 'countCompletedOnLocalDate').resolves(1);
         sinon.stub(Store.habitCheckins, 'getEarliestCompletedLocalDate').resolves(yesterday);
         sinon.stub(Store.habitCheckins, 'getCompletedLocalDates').resolves(new Set<string>());
+        // The cadence reads behind rest days. They are not caught in production (a failure must
+        // not excuse misses as rest), so an unstubbed one reaches the real database.
+        sinon.stub(Store.habitCheckins, 'getCompletedHabitLocalDates').resolves([]);
+        sinon.stub(Store.userHabits, 'getActiveCadencesByUser').resolves([]);
         sinon.stub(Store.streaks, 'getByUserId').resolves([]);
         sinon.stub(Store.streaks, 'getByUserAndHabit').resolves({ id: 'streak-1' });
         sinon.stub(Store.streaks, 'useGraceDay').resolves({});

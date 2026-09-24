@@ -12,17 +12,30 @@
  *     time from the user's IANA zone, so "23:50 on Sep 12 in Chicago" is Sep 12 here even
  *     though the service's UTC habit day (`scheduledDate`) is already Sep 13.
  *   - Upheld: >= 1 completed check-in on any habit with localDate = D.
+ *   - Rest: nothing completed on a day no tracked habit *required*. The streak is untouched and
+ *     no freeze is spent. Which days those are comes from the caller as `requiredDates`, decided
+ *     by utilities/habitCadence.ts; a daily habit requires every day, so for a user whose habits
+ *     are all daily no day is ever a rest day and none of this applies.
  *   - Missed, freeze available: borrow exactly one freeze from exactly one habit's streak row
  *     (highest freezes remaining → longest per-habit streak → oldest habit). The day is
  *     'frozen': the streak continues but the day is not "perfect".
  *   - Missed, no freezes: streak resets to 0; `longest` is retained.
  *   - Several missed days are evaluated one by one, one freeze per day, until freezes run out.
- *   - Perfect week: every day of a Monday–Sunday week upheld by a real check-in (no frozen days).
+ *   - Perfect week: every day of a Monday–Sunday week is upheld or rest, at least one is upheld,
+ *     and none was frozen. For an all-daily user that is exactly the old rule ("all seven upheld,
+ *     no freezes"), because they have no rest days.
+ *
+ * WHY 'rest' EXISTS
+ *
+ * Every day used to be required. A user whose habits are not daily — "4 workouts a week", on
+ * whichever four days suit them — had their three off days scored 'missed', and each one borrowed
+ * a freeze from a habit's pool. The pool starts at 1 and caps at 3, so by the second week it was
+ * empty and the streak reset, while the user had done exactly what they committed to.
  */
 
 import { getLocalParts, isValidTimeZone, FALLBACK_TIME_ZONE } from './localReminderSchedule';
 
-export type DailyStreakDayStatus = 'upheld' | 'frozen' | 'missed';
+export type DailyStreakDayStatus = 'upheld' | 'frozen' | 'missed' | 'rest';
 
 /** Milestones that get the big celebration, then every 500 days past 1000. */
 export const DAILY_STREAK_MILESTONES = [7, 30, 50, 100, 200, 365, 500, 730, 1000];
@@ -312,6 +325,15 @@ export interface IDailyStreakWalkArgs {
     upTo: string;
     /** Local days with >= 1 completed check-in. Only days in [fromDate, upTo] are consulted. */
     upheldDates: Set<string>;
+    /**
+     * Local days on which at least one tracked habit was *required* by its cadence. A day outside
+     * this set that was not upheld is a rest day: no break, no freeze.
+     *
+     * Omitting it means every day is required, which is the pre-cadence behaviour and what the
+     * backfill and the unit tests that predate cadence rely on. Passing an empty set is therefore
+     * meaningfully different from omitting it, and is correct for a user who tracks nothing.
+     */
+    requiredDates?: Set<string>;
     /** Freeze pool. Mutated: `freezesRemaining` is decremented as freezes are borrowed. */
     freezeSources: IFreezeSource[];
     /**
@@ -347,6 +369,7 @@ export const walkDailyStreakDays = ({
     fromDate,
     upTo,
     upheldDates,
+    requiredDates,
     freezeSources,
     priorWeekStatuses,
     allowFreezes = true,
@@ -405,6 +428,10 @@ export const walkDailyStreakDays = ({
                 events.comeback = true;
                 state.lastResetFromStreak = 0;
             }
+        } else if (requiredDates && !requiredDates.has(localDate)) {
+            // Nothing was asked of the user today. Not a win, not a loss, and — the point of the
+            // whole mechanism — not a reason to spend one of their at-most-three freezes.
+            status = 'rest';
         } else {
             const source = allowFreezes && state.currentStreak > 0 ? pickFreezeSource(freezeSources) : undefined;
             if (source) {
@@ -433,14 +460,24 @@ export const walkDailyStreakDays = ({
 
         if (isWeekEnd(localDate)) {
             const weekStart = getWeekStart(localDate);
+            // Perfect = nothing went wrong on a day something was asked, and something was asked.
+            // A rest day is neutral, so a 4x/week user who trained Mon–Thu has a perfect week;
+            // a frozen or missed day is not, and neither is a day with no ledger row at all
+            // (`undefined` falls into the else, which is the pre-cadence "absent counts as
+            // missed" rule). `upheldCount > 0` keeps a week in which nothing was ever required
+            // from being celebrated as perfect.
             let isPerfect = true;
+            let upheldCount = 0;
             for (let i = 0; i < 7; i += 1) {
-                if (weekStatuses.get(addDays(weekStart, i)) !== 'upheld') {
+                const dayStatus = weekStatuses.get(addDays(weekStart, i));
+                if (dayStatus === 'upheld') {
+                    upheldCount += 1;
+                } else if (dayStatus !== 'rest') {
                     isPerfect = false;
                     break;
                 }
             }
-            if (isPerfect) {
+            if (isPerfect && upheldCount > 0) {
                 events.perfectWeeksClosed += 1;
                 state.consecutivePerfectWeeks += 1;
                 if (state.consecutivePerfectWeeks === CONSECUTIVE_PERFECT_WEEKS_FOR_ACHIEVEMENT) {
@@ -458,9 +495,13 @@ export const walkDailyStreakDays = ({
 };
 
 /**
- * Whether the week containing `dateString` is perfect *so far through that day* — every day
- * from Monday up to and including it is upheld. On a Sunday this is the full perfect week;
- * earlier in the week it is "on track". The celebration copy uses the Sunday form.
+ * Whether the week containing `dateString` is perfect *so far through that day* — nothing has
+ * gone wrong on a day something was asked, and something has been asked at least once. On a
+ * Sunday this is the full perfect week; earlier in the week it is "on track". The celebration
+ * copy uses the Sunday form.
+ *
+ * Mirrors the week-end check inside `walkDailyStreakDays`: rest days are neutral, everything
+ * else that is not 'upheld' — including a day with no status at all — breaks it.
  */
 export const isWeekPerfectThrough = (
     dateString: string,
@@ -468,10 +509,14 @@ export const isWeekPerfectThrough = (
 ): boolean => {
     const weekStart = getWeekStart(dateString);
     const dayIndex = getDayOfWeekMondayFirst(dateString);
+    let upheldCount = 0;
     for (let i = 0; i <= dayIndex; i += 1) {
-        if (statuses.get(addDays(weekStart, i)) !== 'upheld') {
+        const dayStatus = statuses.get(addDays(weekStart, i));
+        if (dayStatus === 'upheld') {
+            upheldCount += 1;
+        } else if (dayStatus !== 'rest') {
             return false;
         }
     }
-    return true;
+    return upheldCount > 0;
 };

@@ -46,6 +46,8 @@ export interface IUpdateHabitGoalParams extends ISavingsTargetParams {
     targetDaysOfWeek?: number[];
     isPublic?: boolean;
     usageCount?: number;
+    /** YYYY-MM-DD. Stamped by the update handler when an edit changes the cadence. */
+    cadenceEffectiveFrom?: string;
 }
 
 /**
