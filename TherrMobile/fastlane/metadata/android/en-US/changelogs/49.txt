@@ -1,0 +1,7 @@
+What's new:
+• Browse habit ideas by category (fitness, money, mindfulness and more), now in your language
+• Accepting a friend's pact at the free limit now shows your upgrade options instead of an error
+• See your membership in Settings
+• The celebration screen can always be dismissed
+• The home-screen widget shows more of the leaderboard when it has room
+• Fixes and stability improvements

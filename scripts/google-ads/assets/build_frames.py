@@ -84,6 +84,38 @@ CONCEPTS = {
         "line": "Someone else is<br>counting on you.",
         "kicker": "Pacts need a partner",
     },
+    # 07-11 are device captures with personal identity edited out; see the
+    # screenshot table in HABITS_PLAY_LISTING.md on niche/HABITS-general. They
+    # were added for the Play listing (docs/niche-sub-apps/
+    # HABITS_PLAY_LISTING_UPDATE_2026-09-24.md), which uses the portrait frames.
+    "partners": {
+        "shot": "09-pact-detail-partner-progress.png",
+        "line": "See who<br>showed up.",
+        "kicker": "You and your partner, side by side",
+    },
+    "feed": {
+        "shot": "10-feed-photo-checkins.png",
+        "line": "Proof, not<br>promises.",
+        "kicker": "Share check-ins with photo proof",
+    },
+    "journal": {
+        "shot": "11-journal-timeline.png",
+        "line": "Every check-in,<br>on the record.",
+        "kicker": "A journal that fills itself in",
+    },
+    "schedule": {
+        "shot": "07-dashboard-weekly-cadence.png",
+        "line": "Any habit.<br>Any schedule.",
+        "kicker": "Every day, or once a week",
+    },
+    "founder": {
+        "shot": "08-founder-paywall.png",
+        "line": "Pay once.<br>Keep it for life.",
+        "kicker": "No subscription",
+        # The source is cropped below the founder card, so it is shorter than a
+        # full screen; a wider phone keeps it bleeding off the bottom edge.
+        "phone_scale": 1.4,
+    },
 }
 
 # NOT usable as ad creative, despite being the best-looking screenshots in the
@@ -138,6 +170,7 @@ def build_html(fmt: str, concept: str, shot_uri: str, logo_uri: str) -> str:
         "portrait": dict(cols="1fr", pad="76px", title="82px",
                          kicker="27px", logo="68px", phone_w="560px", phone_top="0px"),
     }[fmt]
+    phone_w = f"{round(int(layout['phone_w'].removesuffix('px')) * spec.get('phone_scale', 1))}px"
 
     stack = (
         f"grid-template-columns: {layout['cols']}; align-items: center;"
@@ -196,7 +229,7 @@ def build_html(fmt: str, concept: str, shot_uri: str, logo_uri: str) -> str:
   /* Device: a bezel drawn in CSS rather than a mockup image, so nothing here
      depends on an asset we do not own the licence to. */
   .phone {{
-    width: {layout['phone_w']}; margin-top: {layout['phone_top']};
+    width: {phone_w}; margin-top: {layout['phone_top']};
     border-radius: 44px; padding: 11px; background: #14101A;
     box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.09);
     transform: {'rotate(-3deg)' if is_wide else 'none'};
@@ -241,6 +274,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, default=OUT_DIR)
     parser.add_argument("--keep-html", action="store_true")
+    # Defaults to the local branch. Pass origin/niche/HABITS-general (after a
+    # fetch) when the local branch is behind or diverged.
+    parser.add_argument("--screenshot-ref", default=SCREENSHOT_BRANCH)
     args = parser.parse_args()
 
     if not Path(CHROME).exists():
@@ -255,7 +291,7 @@ def main() -> int:
     try:
         for concept, spec in CONCEPTS.items():
             shot_uri = data_uri(
-                git_bytes(SCREENSHOT_BRANCH, f"{SCREENSHOT_DIR}/{spec['shot']}"),
+                git_bytes(args.screenshot_ref, f"{SCREENSHOT_DIR}/{spec['shot']}"),
                 "image/png",
             )
             for fmt, (width, height) in FORMATS.items():

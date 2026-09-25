@@ -103,6 +103,7 @@ describe('create-pact wizard — habit cap', () => {
         expect(props.navigation.navigate).toHaveBeenCalledWith('UpgradePaywall', {
             reason: 'habit-limit-reached',
             limit: 5,
+            source: 'create-pact-wizard',
         });
     });
 
@@ -150,6 +151,59 @@ describe('create-pact wizard — habit cap', () => {
         await instance.handleStartSolo();
 
         expect(props.startUserHabit).toHaveBeenCalledWith({ habitGoalId: 'goal-1' });
+    });
+
+    it('routes a spent start window to the paywall with the window numbers, not the slot count', async () => {
+        // Slots free, window spent: the server says which cap it was, and the
+        // paywall header needs the window to explain it.
+        const { instance, props } = buildWizard({
+            eligibility: {
+                canCreateSolo: true,
+                activeHabitCount: 1,
+                isAtHabitLimit: true,
+                habitLimitReason: 'habit-start-limit-reached',
+                habitLimit: 3,
+                habitStartLimit: 5,
+                habitStartWindowDays: 30,
+                recentHabitStartCount: 5,
+            },
+        });
+
+        await instance.handleSend();
+
+        expect(props.navigation.navigate).toHaveBeenCalledWith('UpgradePaywall', {
+            reason: 'habit-start-limit-reached',
+            startLimit: 5,
+            startWindowDays: 30,
+            source: 'create-pact-wizard',
+        });
+        expect(instance.resolveHabitGoalId).not.toHaveBeenCalled();
+    });
+
+    it('drops the archive way out when the start window, not a slot, is the problem', () => {
+        const startCapped = {
+            canCreateSolo: true,
+            activeHabitCount: 1,
+            isAtHabitLimit: true,
+            habitLimitReason: 'habit-start-limit-reached',
+            habitLimit: 3,
+            habitStartLimit: 5,
+            habitStartWindowDays: 30,
+        };
+        const { instance } = buildWizard({ cachedEligibility: startCapped });
+
+        expect(instance.getHabitLimitTitle(startCapped)).toBe("You've started a lot of habits lately");
+        expect(instance.getHabitLimitBody(startCapped)).toBe(
+            'Free accounts start 5 new habits every 30 days, and this one would be next. Unlock unlimited habits to start it now.',
+        );
+        // The archive button is the first child of the actions row; at the start
+        // window it must not render, because archiving frees nothing here.
+        const notice: any = instance.renderHabitLimitNotice();
+        const actionsRow = notice.props.children[2];
+        expect(actionsRow.props.children[0]).toBeFalsy();
+        // The active cap still offers it, and still reads the slot count.
+        expect(instance.getHabitLimitBody(AT_CAP)).toContain('5 habits at a time');
+        expect(instance.getHabitLimitBody(5)).toContain('5 habits at a time');
     });
 
     it('only shows the notice when the cached eligibility says capped', () => {

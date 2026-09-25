@@ -12,6 +12,14 @@ import { it, describe, beforeEach, afterEach, expect } from '@jest/globals';
 
 // Mock dependencies
 
+// The membership row's nudge card logs its impression through firebase
+// analytics, which reaches for its native module at import time.
+jest.mock('@react-native-firebase/analytics', () => ({
+    __esModule: true,
+    getAnalytics: jest.fn(() => ({})),
+    logEvent: jest.fn(() => Promise.resolve()),
+}));
+
 // The shared Button reads the active theme via useSelector. These tests render
 // the unconnected screen with explicit props (no <Provider>), so stub useSelector
 // to resolve against a default state instead of requiring a store.

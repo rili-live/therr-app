@@ -57,11 +57,21 @@ class CelebrationQueue {
     /** True while a celebration screen is on screen, so the next one waits for its dismissal. */
     private isPresenting = false;
 
+    /**
+     * Everything presented this session, the one on screen included. The server only stops
+     * returning a celebration once the dismiss write lands, and that write is fire-and-forget —
+     * so a fetch in flight when the user taps Continue (a foreground, a second check-in, the
+     * cold-start fetch) still carries it. Without this the queue re-presented the screen the
+     * user had just dismissed, which reads as Continue doing nothing.
+     */
+    private presented: ICelebration[] = [];
+
     enqueue(celebration: ICelebration) {
         // A placement and a streak can arrive from the same fetch on every foreground. Dropping
         // a duplicate here keeps a re-fetch (a second foreground before the user dismisses)
-        // from stacking the same screen twice.
-        if (this.queue.some((queued) => CelebrationQueue.isSame(queued, celebration))) {
+        // from stacking the same screen twice, or bringing back one already shown.
+        const isDuplicate = (other: ICelebration) => CelebrationQueue.isSame(other, celebration);
+        if (this.queue.some(isDuplicate) || this.presented.some(isDuplicate)) {
             return;
         }
         this.queue.push(celebration);
@@ -101,6 +111,7 @@ class CelebrationQueue {
             return;
         }
         this.isPresenting = true;
+        this.presented.push(next);
         RootNavigation.navigate('Celebration', next);
     }
 
@@ -109,6 +120,7 @@ class CelebrationQueue {
         this.queue = [];
         this.blockers = 0;
         this.isPresenting = false;
+        this.presented = [];
     }
 
     get size() {

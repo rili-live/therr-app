@@ -1900,6 +1900,7 @@
         },
         "settings": {
             "headerTitle": "Configuración",
+            "pageHeaderMembership": "Membresía",
             "pageHeaderDisplaySettings": "Pantalla",
             "pageHeaderRewardsSettings": "Therr Rewards",
             "pageHeaderPrivacySettings": "Configuración de privacidad",
@@ -1930,6 +1931,17 @@
             },
             "alertMessages": {
                 "accountUpdated": "Actualizado exitosamente."
+            },
+            "membership": {
+                "founder": "Miembro fundador",
+                "founderWithNumber": "Fundador n.º {number}",
+                "premium": "Premium",
+                "premiumBody": "Facturación mensual. Todas las funciones desbloqueadas.",
+                "entitledBody": "Todas las funciones desbloqueadas, de por vida.",
+                "founderOfferTitle": "Desbloquea todo de por vida",
+                "founderOfferBody": "Un solo pago, sin suscripción. Quedan {remaining} lugares de fundador.",
+                "premiumOfferTitle": "Hazte premium",
+                "premiumOfferBody": "Hábitos y pactos ilimitados, con facturación mensual. Cancela cuando quieras."
             }
         },
         "socialSync": {
@@ -2230,6 +2242,14 @@
                 "hoursAgo": "hace {hours} h",
                 "daysAgo": "hace {days} d",
                 "refreshHint": "Actualizado {ago}. Toca para actualizar"
+            },
+            "upgradeNudge": {
+                "nearCapTitle": "{used} de {limit} hábitos gratuitos en uso",
+                "nearCapBody": "Queda un espacio. Desbloquea hábitos ilimitados de por vida.",
+                "atCapTitle": "Los {limit} hábitos gratuitos están en uso",
+                "atCapBody": "Desbloquea hábitos y pactos ilimitados, con un solo pago, de por vida.",
+                "startCapTitle": "{used} hábitos empezados en los últimos {days} días",
+                "startCapBody": "Las cuentas gratuitas empiezan {limit} cada {days} días. Desbloquea ilimitados, de por vida."
             }
         },
         "pacts": {
@@ -2388,6 +2408,8 @@
                 "soloAddPartnersLater": "Puedes invitar a un amigo a este hábito cuando quieras.",
                 "habitLimitBody": "Las cuentas gratuitas siguen {limit} hábitos a la vez. Archiva uno para hacer espacio: se conservan todos sus registros, su racha y sus entradas del diario.",
                 "habitLimitBodyGeneric": "Archiva un hábito para hacer espacio para este: se conservan todos sus registros, su racha y sus entradas del diario.",
+                "habitStartLimitBody": "Las cuentas gratuitas empiezan {limit} hábitos nuevos cada {days} días, y este sería el siguiente. Desbloquea hábitos ilimitados para empezarlo ahora.",
+                "habitStartLimitBodyGeneric": "Has empezado muchos hábitos últimamente. Desbloquea hábitos ilimitados para empezar este ahora.",
                 "habitLimitArchive": "Archivar un hábito",
                 "habitLimitUpgrade": "Ver opciones de mejora",
                 "pickPartnerFirstLocked": "Elige un amigo o invita a {remaining} más para desbloquear los hábitos en solitario",
@@ -2403,6 +2425,192 @@
                 "savingsScopePerMemberHint": "Cada quien avanza hacia el monto por su cuenta. Termina cuando todos lo alcancen.",
                 "savingsScopeGroupLabel": "Lo ahorramos juntos",
                 "savingsScopeGroupHint": "Un fondo compartido. Termina cuando el total combinado llegue al monto."
+            },
+            "templateCategories": {
+                "popular": "Populares",
+                "fitness": "Movimiento y ejercicio",
+                "money": "Dinero y ahorro",
+                "mindfulness": "Mente y salud mental",
+                "health": "Salud y cuerpo",
+                "productivity": "Enfoque y pantallas",
+                "learning": "Aprendizaje y creatividad",
+                "social": "Relaciones",
+                "home": "Hogar y rutina",
+                "other": "Otros"
+            },
+            "templates": {
+                "workOut": {
+                    "name": "Hacer ejercicio",
+                    "description": "20+ minutos de movimiento, cuando mejor te venga"
+                },
+                "read15": {
+                    "name": "Leer 15 minutos",
+                    "description": "Lee un libro (sin teléfono) 15 minutos al día"
+                },
+                "meditate": {
+                    "name": "Meditación",
+                    "description": "10 minutos de meditación guiada o en silencio"
+                },
+                "drinkWater": {
+                    "name": "Beber 2 litros de agua",
+                    "description": "Alcanza tu meta de hidratación antes de que acabe el día"
+                },
+                "dailyJournal": {
+                    "name": "Diario",
+                    "description": "3 frases: qué salió bien, qué no y qué sigue"
+                },
+                "phoneFreeFirstHour": {
+                    "name": "Sin teléfono la primera hora",
+                    "description": "Nada de teléfono durante la primera hora después de despertar"
+                },
+                "saveGroupTrip": {
+                    "name": "Ahorrar para un viaje en grupo",
+                    "description": "Aparta dinero cada semana para unas vacaciones con amigos o familia"
+                },
+                "goForWalk": {
+                    "name": "Salir a caminar",
+                    "description": "Al menos 20 minutos a pie"
+                },
+                "strengthTraining": {
+                    "name": "Entrenamiento de fuerza",
+                    "description": "Pesas, peso corporal o bandas: gana fuerza que dure"
+                },
+                "stretch": {
+                    "name": "Estirar 10 minutos",
+                    "description": "10 minutos de estiramientos o movilidad"
+                },
+                "run": {
+                    "name": "Salir a correr",
+                    "description": "Cualquier distancia, cualquier ritmo: solo sal a correr"
+                },
+                "yoga": {
+                    "name": "Yoga",
+                    "description": "Desde una secuencia rápida hasta una clase completa"
+                },
+                "emergencyFund": {
+                    "name": "Crear un fondo de emergencia",
+                    "description": "Aparta dinero cada semana hasta tener un colchón de seguridad"
+                },
+                "noSpendDay": {
+                    "name": "Día sin gastos",
+                    "description": "Hoy no compres nada más allá de lo esencial"
+                },
+                "trackSpending": {
+                    "name": "Registrar cada compra",
+                    "description": "Anota lo que gastaste hoy para que nada se te escape"
+                },
+                "packLunch": {
+                    "name": "Llevar tu almuerzo",
+                    "description": "Lleva el almuerzo de casa en lugar de comprarlo"
+                },
+                "pauseImpulseBuys": {
+                    "name": "Sin compras impulsivas",
+                    "description": "Espera 24 horas antes de cualquier compra no esencial"
+                },
+                "gratitude": {
+                    "name": "Tres cosas buenas",
+                    "description": "Escribe tres cosas por las que estás agradecido"
+                },
+                "getOutside": {
+                    "name": "Salir al aire libre",
+                    "description": "15 minutos afuera con luz de día"
+                },
+                "breathwork": {
+                    "name": "Respiración consciente",
+                    "description": "5 minutos de respiración lenta y consciente"
+                },
+                "moodCheckIn": {
+                    "name": "Conectar contigo",
+                    "description": "Tómate unos minutos para nombrar cómo te sientes de verdad"
+                },
+                "consistentBedtime": {
+                    "name": "Hora fija para dormir",
+                    "description": "En la cama a la misma hora cada noche"
+                },
+                "eatVegetables": {
+                    "name": "Comer verduras",
+                    "description": "Una verdura en cada comida"
+                },
+                "takeVitamins": {
+                    "name": "Tomar tus vitaminas",
+                    "description": "Tus vitaminas o medicamentos, todos los días"
+                },
+                "cutBackAlcohol": {
+                    "name": "Reducir el alcohol",
+                    "description": "Un día sin alcohol"
+                },
+                "quitNicotine": {
+                    "name": "Dejar de vapear o fumar",
+                    "description": "Mantente libre de nicotina hoy"
+                },
+                "noScrollingInBed": {
+                    "name": "Sin pantallas en la cama",
+                    "description": "Tu teléfono queda fuera de alcance una vez en la cama"
+                },
+                "deepWork": {
+                    "name": "Bloque de trabajo profundo",
+                    "description": "60 minutos de trabajo concentrado, sin notificaciones"
+                },
+                "planTomorrow": {
+                    "name": "Planear mañana esta noche",
+                    "description": "Antes de dormir, escribe tus tres prioridades para mañana"
+                },
+                "screenTimeLimit": {
+                    "name": "Respetar tu límite de pantalla",
+                    "description": "Mantén las redes sociales por debajo del límite diario que fijaste"
+                },
+                "practiceLanguage": {
+                    "name": "Practicar un idioma",
+                    "description": "10 minutos de vocabulario, escucha o conversación"
+                },
+                "practiceInstrument": {
+                    "name": "Practicar un instrumento",
+                    "description": "20 minutos de práctica concentrada"
+                },
+                "write300": {
+                    "name": "Escribir 300 palabras",
+                    "description": "Ficción, ensayos o notas: solo escribe"
+                },
+                "sketch": {
+                    "name": "Dibujar o bocetar",
+                    "description": "Llena una página, aunque sea a borrador"
+                },
+                "reachOutFriend": {
+                    "name": "Contactar a un amigo",
+                    "description": "Una llamada, un mensaje o un café con alguien con quien no hablas hace tiempo"
+                },
+                "callFamily": {
+                    "name": "Llamar a la familia",
+                    "description": "Ponte al día con tu familia por teléfono o videollamada"
+                },
+                "phoneFreeMeals": {
+                    "name": "Comidas sin teléfono",
+                    "description": "Teléfonos guardados mientras comes con otros"
+                },
+                "dateNight": {
+                    "name": "Noche en pareja",
+                    "description": "Tiempo dedicado a tu pareja"
+                },
+                "kindness": {
+                    "name": "Un acto de amabilidad",
+                    "description": "Haz algo amable por alguien hoy"
+                },
+                "tidy10": {
+                    "name": "Ordenar 10 minutos",
+                    "description": "Pon en orden un espacio de tu casa"
+                },
+                "makeBed": {
+                    "name": "Hacer la cama",
+                    "description": "Empieza el día con algo ya hecho"
+                },
+                "mealPrep": {
+                    "name": "Preparar comidas de la semana",
+                    "description": "Cocina por adelantado para la semana"
+                },
+                "laundry": {
+                    "name": "Día de lavandería",
+                    "description": "Lava, seca, dobla y guarda"
+                }
             },
             "status": {
                 "pending": "Pendiente",
@@ -2619,6 +2827,10 @@
             "buttons": {
                 "previousWeek": "Semana anterior",
                 "nextWeek": "Semana siguiente"
+            },
+            "founderCard": {
+                "title": "Conserva todas las funciones, de por vida",
+                "body": "Un solo pago, sin suscripción. Quedan {remaining} lugares de fundador."
             }
         },
         "journal": {
@@ -2663,6 +2875,8 @@
             "limitTitle": "Alcanzaste el límite gratuito",
             "limitSubtitle": "Las cuentas gratuitas siguen {limit} hábitos a la vez. Archiva uno o desbloquea todo de por vida.",
             "limitMeterLabel": "Los {limit} espacios gratuitos están en uso",
+            "startLimitTitle": "Has empezado muchos hábitos últimamente",
+            "startLimitSubtitle": "Las cuentas gratuitas empiezan {limit} hábitos nuevos cada {days} días. Desbloquea todo de por vida para empezar tantos como quieras.",
             "eyebrow": "Oferta de fundador",
             "oneTime": "Pago único",
             "priceCaption": "una vez, tuyo para siempre",
@@ -2760,7 +2974,8 @@
             "actions": {
                 "continue": "Continuar",
                 "seeLeaderboard": "Ver clasificación",
-                "done": "Listo"
+                "done": "Listo",
+                "lockInForLife": "Asegura todas las funciones de por vida"
             }
         }
     },

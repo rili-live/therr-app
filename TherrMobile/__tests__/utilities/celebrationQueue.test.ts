@@ -190,6 +190,47 @@ describe('celebrationQueue — ordering', () => {
     });
 });
 
+describe('celebrationQueue — never re-presents what was shown', () => {
+    beforeEach(() => {
+        navigate.mockClear();
+        celebrationQueue.reset();
+    });
+
+    it('drops a re-fetch of the celebration on screen, so Continue does not bring it straight back', () => {
+        // Regression: the dismiss write is fire-and-forget, so a fetch in flight when the user
+        // tapped Continue still carried the same pending celebration. The queue only de-duped
+        // against what was *waiting*, not what was showing, and re-presented the screen the
+        // user had just dismissed.
+        celebrationQueue.enqueue(streak({ date: '2026-09-25' }));
+        expect(navigate).toHaveBeenCalledTimes(1);
+
+        celebrationQueue.enqueue(streak({ date: '2026-09-25' }));
+        celebrationQueue.onDismissed();
+
+        expect(navigate).toHaveBeenCalledTimes(1);
+        expect(celebrationQueue.isIdle).toBe(true);
+    });
+
+    it('drops one that arrives after the dismissal too', () => {
+        celebrationQueue.enqueue(placement({ periodId: '2026-09-14' }));
+        celebrationQueue.onDismissed();
+        celebrationQueue.enqueue(placement({ periodId: '2026-09-14' }));
+
+        expect(navigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('still presents the next day, and forgets everything on reset (sign-out)', () => {
+        celebrationQueue.enqueue(streak({ date: '2026-09-25' }));
+        celebrationQueue.onDismissed();
+        celebrationQueue.enqueue(streak({ date: '2026-09-26' }));
+        expect(navigate).toHaveBeenCalledTimes(2);
+
+        celebrationQueue.reset();
+        celebrationQueue.enqueue(streak({ date: '2026-09-26' }));
+        expect(navigate).toHaveBeenCalledTimes(3);
+    });
+});
+
 describe('celebrationQueue — building from a daily-streak summary', () => {
     beforeEach(() => {
         navigate.mockClear();
