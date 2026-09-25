@@ -85,6 +85,7 @@ went unread.
 ### Mobile & migrations
 - [RN_NEW_ARCHITECTURE_MIGRATION.md](./RN_NEW_ARCHITECTURE_MIGRATION.md) — React Native new architecture
 - [PLAID_REWARDS_IMPLEMENTATION.md](./PLAID_REWARDS_IMPLEMENTATION.md) — Plaid rewards integration
+- [AR_NAVIGATION_PLAN.md](./AR_NAVIGATION_PLAN.md) — AR "View in AR" marker navigation on ARCore phones and Android XR, incl. Play Store enablement (deprioritized future project)
 
 ### Niche app design docs
 - [niche-sub-apps/habits/](./niche-sub-apps/habits/) — Friends With Habits design docs (9 documents)
