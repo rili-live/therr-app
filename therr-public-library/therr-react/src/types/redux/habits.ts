@@ -7,6 +7,12 @@ export interface IHabitGoal {
     description?: string;
     category?: string;
     emoji?: string;
+    /**
+     * Stable key for a system template, used by clients to translate `name` and
+     * `description`, which are stored in English. Null on everything that is not a template,
+     * including a user's copy of one.
+     */
+    templateKey?: string | null;
     goalType: HabitGoalType;
     /**
      * Cadence. `daily` asks for a check-in every day; `weekly` / `custom` with a

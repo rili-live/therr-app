@@ -54,6 +54,7 @@ went unread.
 - [PEER_REVIEW_FOLLOWUP.md](./PEER_REVIEW_FOLLOWUP.md) — deferred items from peer reviews
 - [FEATURES.md](./FEATURES.md) — feature list for mobile and web (**update when adding/removing features**)
 - [MEMORY_SYSTEM_SETUP.md](./MEMORY_SYSTEM_SETUP.md) — the `context/` memory system
+- [CLAUDE_SUBAGENTS.md](./CLAUDE_SUBAGENTS.md) — the `.claude/agents/` subagents (persona walkthrough, drift audit, UI finish gate), when to use each, and their MIT provenance
 - [../scripts/github/README.md](../scripts/github/README.md) — the GitHub MCP server behind `/github-issues` and `/work-plan`: setup, why no token is stored, and the `gh` fallback
 
 ### Operations & debugging
@@ -84,6 +85,7 @@ went unread.
 ### Mobile & migrations
 - [RN_NEW_ARCHITECTURE_MIGRATION.md](./RN_NEW_ARCHITECTURE_MIGRATION.md) — React Native new architecture
 - [PLAID_REWARDS_IMPLEMENTATION.md](./PLAID_REWARDS_IMPLEMENTATION.md) — Plaid rewards integration
+- [AR_NAVIGATION_PLAN.md](./AR_NAVIGATION_PLAN.md) — AR "View in AR" marker navigation on ARCore phones and Android XR, incl. Play Store enablement (deprioritized future project)
 
 ### Niche app design docs
 - [niche-sub-apps/habits/](./niche-sub-apps/habits/) — Friends With Habits design docs (9 documents)
