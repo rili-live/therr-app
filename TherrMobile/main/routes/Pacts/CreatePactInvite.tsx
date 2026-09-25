@@ -5,6 +5,7 @@ import {
     Pressable,
     TextInput,
     ActivityIndicator,
+    ScrollView,
     Share,
     LayoutChangeEvent,
 } from 'react-native';
@@ -34,6 +35,14 @@ import {
     CadenceChoice,
     DAILY_CADENCE,
 } from './cadenceOptions';
+import {
+    getTemplateCategories,
+    getTemplateCategoryLabel,
+    getTemplatesForCategory,
+    localizeTemplate,
+    MIN_TEMPLATES_FOR_CATEGORIES,
+    POPULAR_CATEGORY,
+} from './habitTemplates';
 import permissions from '../../utilities/permissionsOrchestrator';
 import UsersActions from '../../redux/actions/UsersActions';
 import { IUserState, IHabitsState, IHabitGoal } from 'therr-react/types';
@@ -99,6 +108,8 @@ interface ICreatePactInviteProps extends IStoreProps {
 interface ICreatePactInviteState {
     step: Step;
     selectedTemplateId: string | null;
+    /** The template tab being browsed — see `habitTemplates.ts`. Browsing never clears a selection. */
+    templateCategory: string;
     customHabitName: string;
     /**
      * How often the habit asks for a check-in. Defaults to daily, which is what every habit
@@ -222,6 +233,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         this.state = {
             step: 1,
             selectedTemplateId: null,
+            templateCategory: POPULAR_CATEGORY,
             cadence: DAILY_CADENCE,
             customHabitName: '',
             isSavingsHabit: false,
@@ -565,9 +577,13 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 return selectedTemplateId;
             }
 
+            // The copy carries the text the user actually saw. Templates are stored in
+            // English and translated on the device, and the copy is what every pact
+            // member and every later screen renders, so it must not revert to English.
+            const { name, description } = localizeTemplate(template, this.translate);
             const userGoal = await createGoal({
-                name: template.name,
-                description: template.description,
+                name,
+                description,
                 category: template.category,
                 emoji: template.emoji,
                 // `goalType` was missing from this clone until now, and it is the field
@@ -1087,9 +1103,15 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     renderStep1 = () => {
         const { habits } = this.props;
         const {
-            selectedTemplateId, customHabitName, isLoadingTemplates, cadence, isSavingsHabit,
+            selectedTemplateId, customHabitName, isLoadingTemplates, cadence, isSavingsHabit, templateCategory,
         } = this.state;
         const templates = habits.templates || [];
+        const showCategories = templates.length > MIN_TEMPLATES_FOR_CATEGORIES;
+        const categories = showCategories ? getTemplateCategories(templates) : [];
+        // A category can vanish between renders (templates refetched); fall back to Popular
+        // rather than an empty list.
+        const activeCategory = categories.includes(templateCategory) ? templateCategory : POPULAR_CATEGORY;
+        const visibleTemplates = showCategories ? getTemplatesForCategory(templates, activeCategory) : templates;
 
         return (
             <View>
@@ -1111,8 +1133,43 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                     </Text>
                 )}
 
-                {templates.map((t: IHabitGoal) => {
+                {showCategories && (
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={this.themeHabits.styles.templateCategoryRow}
+                        accessibilityRole="tablist"
+                    >
+                        {categories.map((category) => {
+                            const isActive = category === activeCategory;
+                            return (
+                                <Pressable
+                                    key={category}
+                                    accessibilityRole="tab"
+                                    accessibilityState={{ selected: isActive }}
+                                    onPress={() => this.setState({ templateCategory: category })}
+                                    style={[
+                                        this.themeHabits.styles.templateCategoryChip,
+                                        isActive && this.themeHabits.styles.templateCategoryChipSelected,
+                                    ]}
+                                >
+                                    <Text
+                                        style={[
+                                            this.themeHabits.styles.templateCategoryChipText,
+                                            isActive && this.themeHabits.styles.templateCategoryChipTextSelected,
+                                        ]}
+                                    >
+                                        {getTemplateCategoryLabel(category, this.translate)}
+                                    </Text>
+                                </Pressable>
+                            );
+                        })}
+                    </ScrollView>
+                )}
+
+                {visibleTemplates.map((t: IHabitGoal) => {
                     const isSelected = selectedTemplateId === t.id;
+                    const { name, description } = localizeTemplate(t, this.translate);
                     return (
                         <Pressable
                             key={t.id}
@@ -1127,9 +1184,9 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                                     {t.emoji || this.translate('pages.pacts.wizard.habitDefaultEmoji')}
                                 </Text>
                                 <View style={this.themeHabits.styles.habitCardTitleContainer}>
-                                    <Text style={this.themeHabits.styles.habitCardTitle}>{t.name}</Text>
-                                    {t.description && (
-                                        <Text style={this.themeHabits.styles.habitCardSubtitle}>{t.description}</Text>
+                                    <Text style={this.themeHabits.styles.habitCardTitle}>{name}</Text>
+                                    {!!description && (
+                                        <Text style={this.themeHabits.styles.habitCardSubtitle}>{description}</Text>
                                     )}
                                 </View>
                                 {isSelected && <Text style={{ fontSize: 20 }}>{'✅'}</Text>}
@@ -1402,7 +1459,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         const template = selectedTemplateId
             ? habits.templates?.find((t) => t.id === selectedTemplateId)
             : undefined;
-        const habitName = template?.name || customHabitName.trim();
+        const habitName = (template && localizeTemplate(template, this.translate).name) || customHabitName.trim();
         const habitEmoji = template?.emoji || this.translate('pages.pacts.wizard.habitDefaultEmoji');
         const partnerCount = selectedPartnerIds.length;
         const isSolo = this.isSoloReview();
