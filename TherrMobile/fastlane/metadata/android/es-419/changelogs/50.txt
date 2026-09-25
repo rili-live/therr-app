@@ -1,0 +1,6 @@
+Novedades:
+• Empezar un hábito ahora son dos pasos rápidos: elige un hábito y hazlo tuyo
+• La frecuencia y las opciones de tu hábito son lo primero que ves al elegirlo, ya con lo que funciona para la mayoría
+• Crear tu propio hábito es más fácil de encontrar
+• El botón Atrás de Android ahora vuelve a la lista de hábitos en lugar de salir de la configuración
+• Correcciones y mejoras

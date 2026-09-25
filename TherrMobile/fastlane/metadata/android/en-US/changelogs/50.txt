@@ -1,0 +1,6 @@
+What's new:
+• Starting a habit is now two quick steps: pick a habit, then make it yours
+• Your habit's schedule and options are the first thing you see after picking it, already filled in with what works for most people
+• Creating your own habit is easier to find
+• Android back now returns to the habit list instead of leaving the setup
+• Fixes and stability improvements

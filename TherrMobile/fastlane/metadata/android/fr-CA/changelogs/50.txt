@@ -1,0 +1,6 @@
+Nouveautés :
+• Commencer une habitude se fait maintenant en deux étapes : choisissez une habitude, puis adaptez-la à votre façon
+• La fréquence et les options s'affichent dès que vous choisissez votre habitude, déjà remplies avec ce qui convient à la plupart
+• Créer votre propre habitude est plus facile à trouver
+• Le bouton Retour d'Android ramène maintenant à la liste au lieu de quitter la configuration
+• Corrections et améliorations
