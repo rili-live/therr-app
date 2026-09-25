@@ -192,7 +192,7 @@ describe('habits dashboard — capacity nudge', () => {
 
         const nudge: any = instance.renderUpgradeNudge();
 
-        expect(nudge.props.title).toBe('5 habits started this month');
+        expect(nudge.props.title).toBe('5 habits started in the last 30 days');
         expect(nudge.props.body).toBe('Free accounts start 5 every 30 days. Unlock unlimited, for life.');
 
         nudge.props.onPress();

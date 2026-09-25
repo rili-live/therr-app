@@ -114,13 +114,17 @@ export const Celebration = ({
         && getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true
         && shouldShowFounderCta(lifetimeOffer);
 
+    // Once per mount: the impression is the screen, not a re-render. Keyed on the button
+    // appearing rather than on mount, because the offer is fetched by the dashboard in parallel
+    // with the celebration and can land after this screen is up — a button shown without its
+    // impression would make this surface look infinitely effective.
+    const hasLoggedFounderOfferRef = useRef(false);
     useEffect(() => {
-        if (showFounderOffer) {
+        if (showFounderOffer && !hasLoggedFounderOfferRef.current) {
+            hasLoggedFounderOfferRef.current = true;
             logAppEvent('habits_upgrade_nudge_view', { source: 'celebration-milestone' });
         }
-        // Once per mount: the impression is the screen, not a re-render.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [showFounderOffer]);
 
     useEffect(() => {
         let isMounted = true;

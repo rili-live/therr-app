@@ -194,14 +194,15 @@ export const getHabitCapacityNudge = ({
 
     // The start window, which only the server can see: slots are free but the
     // next start would still be refused. Said only when the server said it,
-    // and only with its own numbers — there is nothing to count client-side.
-    if (isAtStartLimit && startLimit) {
+    // and only with its own numbers — there is nothing to count client-side,
+    // and the copy names the window, so it needs its length too.
+    if (isAtStartLimit && startLimit && startWindowDays) {
         return {
             variant: 'startCap',
             used: recentStartCount ?? startLimit,
             limit: startLimit,
             remaining: 0,
-            windowDays: startWindowDays ?? undefined,
+            windowDays: startWindowDays,
         };
     }
 

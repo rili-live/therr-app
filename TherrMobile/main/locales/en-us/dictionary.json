@@ -2248,7 +2248,7 @@
                 "nearCapBody": "One slot left. Unlock unlimited habits for life.",
                 "atCapTitle": "All {limit} free habits in use",
                 "atCapBody": "Unlock unlimited habits and pacts, once, for life.",
-                "startCapTitle": "{used} habits started this month",
+                "startCapTitle": "{used} habits started in the last {days} days",
                 "startCapBody": "Free accounts start {limit} every {days} days. Unlock unlimited, for life."
             }
         },

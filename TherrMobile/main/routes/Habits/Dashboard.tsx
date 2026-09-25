@@ -1330,11 +1330,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             return null;
         }
 
-        const copyKey = {
-            atCap: 'atCap',
-            nearCap: 'nearCap',
-            startCap: 'startCap',
-        }[nudge.variant];
+        const copyKey = nudge.variant;
         const paywallReason = {
             atCap: { reason: 'habit-limit-reached', limit: nudge.limit },
             startCap: { reason: 'habit-start-limit-reached', startLimit: nudge.limit, startWindowDays: nudge.windowDays },

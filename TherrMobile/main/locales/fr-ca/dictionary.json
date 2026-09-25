@@ -2248,7 +2248,7 @@
                 "nearCapBody": "Une place restante. Débloque des habitudes illimitées à vie.",
                 "atCapTitle": "Les {limit} habitudes gratuites sont utilisées",
                 "atCapBody": "Débloque des habitudes et des pactes illimités, en un seul paiement, à vie.",
-                "startCapTitle": "{used} habitudes commencées ce mois-ci",
+                "startCapTitle": "{used} habitudes commencées au cours des {days} derniers jours",
                 "startCapBody": "Les comptes gratuits en commencent {limit} tous les {days} jours. Débloque l'illimité, à vie."
             }
         },

@@ -175,6 +175,8 @@ describe('getHabitCapacityNudge — the start window', () => {
     it('says nothing about the window unless the server named its limit', () => {
         // There is nothing to count client-side, so a bare flag is not enough.
         expect(getHabitCapacityNudge({ ...startArgs(), startLimit: null })).toBeNull();
+        // The strip names the window ("in the last 30 days"), so its length is required too.
+        expect(getHabitCapacityNudge({ ...startArgs(), startWindowDays: null })).toBeNull();
         expect(getHabitCapacityNudge({ ...startArgs(), isAtStartLimit: false })).toBeNull();
     });
 
