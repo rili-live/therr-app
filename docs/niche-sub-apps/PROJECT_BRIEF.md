@@ -117,3 +117,13 @@ Core Therr social layer grows passively via:
 See `docs/niche-sub-apps/HABITS_PROJECT_BRIEF.md` for the FwH development roadmap.
 
 ---
+
+## FUTURE / DEPRIORITIZED PROJECTS
+
+On the roadmap but not scheduled. Nothing here should pre-empt the B2B funnel or FwH work.
+
+| Project | Plan | Notes |
+|---------|------|-------|
+| AR marker navigation (phone AR + Android XR) | `docs/AR_NAVIGATION_PLAN.md` | "View in AR" from a map marker: a 3D arrow and distance toward the space. ViroReact on ARCore phones first, then a Jetpack XR spatial preview for headsets. Starts with a Phase 0 spike. |
+
+---
