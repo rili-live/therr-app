@@ -78,7 +78,10 @@ const compareVersionNames = (a, b) => {
 //
 // candidate:     { versionCode, versionName } from build.gradle at the general tip
 // mainTip:       { versionCode, versionName } from build.gradle at origin/niche/<TAG>-main
-// mainHistory:   versionCodes seen on main's first-parent history (every release merge)
+// mainHistory:   [{ versionCode, applicationId }] from build.gradle along main's first-parent
+//                history. Only entries with the candidate's applicationId count: the niche
+//                branch was forked from Therr's, so its older history carries Therr's
+//                versionCodes (445+), which are a different Play app's and say nothing here.
 // easBuilds:     [{ appBuildVersion, status }] for the app's EAS project
 // ledgerTags:    versionCodes with a pushed ledger tag (local uploads)
 // alreadyMerged: the general tip is already an ancestor of origin/niche/<TAG>-main
@@ -113,7 +116,10 @@ const assessVersion = ({
         return { status: 'MERGED_PENDING', blockers, warnings };
     }
 
-    const seen = [...mainHistory.map(Number), ...uploaded].filter(Number.isInteger);
+    const released = mainHistory
+        .filter((h) => !candidate.applicationId || h.applicationId === candidate.applicationId)
+        .map((h) => h.versionCode);
+    const seen = [...released, ...uploaded].filter(Number.isInteger);
     const highest = seen.length ? Math.max(...seen) : null;
     if (highest !== null && vc <= highest) {
         blockers.push(`versionCode ${vc} is not new — ${highest} has already been released or built. `

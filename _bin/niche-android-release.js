@@ -154,9 +154,9 @@ const findMergeCommit = (sha, mainRef) => {
     return out.split('\n')[0] || sha;
 };
 
-const mainHistoryVersionCodes = (mainRef) => {
+const mainHistoryVersions = (mainRef) => {
     const shas = git('rev-list', '--first-parent', '-n', '300', mainRef, '--', GRADLE_FILE).split('\n').filter(Boolean);
-    return shas.map((s) => versionAt(s).versionCode).filter(Number.isInteger);
+    return shas.map((s) => versionAt(s));
 };
 
 // ---------------------------------------------------------------------------- check
@@ -195,7 +195,7 @@ const runCheck = (app) => {
     const assessment = assessVersion({
         candidate,
         mainTip,
-        mainHistory: mainHistoryVersionCodes(app.originMain),
+        mainHistory: mainHistoryVersions(app.originMain),
         easBuilds: easBuilds(app),
         ledgerTags: ledgerTags(app),
         alreadyMerged,
