@@ -8,8 +8,9 @@
  * 2. Two of the original seven are corrected in place. "Morning workout — before 9am" baked
  *    a time of day into a habit whose cadence the user already chooses, so it becomes
  *    "Work out", three times a week, whenever fits. "Save for a group trip" moves from
- *    `social` to the new `money` category. Existing users' habits are unaffected: a pact
- *    clones its template at creation time, so the copies keep the text they were made with.
+ *    `social` to the new `money` category. A pact normally clones its template at creation
+ *    time, so those copies keep the text they were made with. A pact pointing at the template
+ *    row itself is possible, though, so the cadence change skips any template in use.
  * 3. Thirty-six new templates are inserted.
  *
  * Categories are the existing `category` column. The keys below are the complete set the
@@ -504,11 +505,24 @@ exports.up = async (knex) => {
     // match nothing where the originals were never seeded.
     await Promise.all(EXISTING_TEMPLATES.map((t) => knex.raw(`
         UPDATE habits.habit_goals SET
-            "templateKey" = ?, name = ?, description = ?, category = ?, emoji = ?,
-            "frequencyType" = ?, "frequencyCount" = ?, "targetDaysOfWeek" = ?::integer[], "goalType" = ?,
+            "templateKey" = ?, name = ?, description = ?, category = ?, emoji = ?, "goalType" = ?,
             "updatedAt" = now()
         WHERE id = ?::uuid AND "isTemplate" = true
-    `, [...templateColumnValues(t), t.id])));
+    `, [t.templateKey, t.name, t.description, t.category, t.emoji, t.goalType, t.id])));
+
+    // Cadence is corrected only on a template nothing is tracking. The server accepts a
+    // template's own id as a pact's `habitGoalId` (the dev seed does exactly that, and the
+    // mobile wizard falls back to it when its clone fails), and cadence is read off this row
+    // by streaks, freezes and reminders. Rewriting it here — with no `cadenceEffectiveFrom`
+    // stamp — would turn a live daily habit into 3x/week and re-judge its past days.
+    await Promise.all(EXISTING_TEMPLATES.map((t) => knex.raw(`
+        UPDATE habits.habit_goals g SET
+            "frequencyType" = ?, "frequencyCount" = ?, "targetDaysOfWeek" = ?::integer[]
+        WHERE g.id = ?::uuid AND g."isTemplate" = true
+            AND NOT EXISTS (SELECT 1 FROM habits.pacts p WHERE p."habitGoalId" = g.id)
+            AND NOT EXISTS (SELECT 1 FROM habits.user_habits u WHERE u."habitGoalId" = g.id)
+            AND NOT EXISTS (SELECT 1 FROM habits.habit_checkins c WHERE c."habitGoalId" = g.id)
+    `, [t.frequencyType, t.frequencyCount, toIntArrayLiteral(t.targetDaysOfWeek), t.id])));
 
     const env = process.env.NODE_ENV || 'development';
     const ownerId = SUPER_ADMIN_IDS[env];

@@ -24,7 +24,7 @@ no configuration of the app in which nobody notices that you stopped.
 
 ## Key facts
 
-- Name: Friends with Habits (Play Store listing: "Therr: Friends With Habits")
+- Name: Friends with Habits (Google Play package `com.therr.habits`)
 - Category: habit tracker / lifestyle
 - Publisher: Therr, Inc.
 - Price: free to install and use, with a limit on active habits for free accounts.
