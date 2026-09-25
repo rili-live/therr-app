@@ -616,6 +616,36 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.onBrand,
             fontWeight: fontWeights.semibold,
         },
+        // Template category tabs on the "Pick a habit" step. Same shape language as the
+        // weekday chips, sized for a word rather than a letter.
+        templateCategoryRow: {
+            paddingHorizontal: 20,
+            paddingTop: space.md,
+            paddingBottom: space.xs,
+            gap: space.sm,
+        },
+        templateCategoryChip: {
+            minHeight: 40,
+            paddingHorizontal: space.md,
+            borderRadius: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+            borderColor: tint(therrTheme.colors.onSurface, 0.16),
+        },
+        templateCategoryChipSelected: {
+            backgroundColor: therrTheme.colors.brand,
+            borderColor: therrTheme.colors.brand,
+        },
+        templateCategoryChipText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurface,
+        },
+        templateCategoryChipTextSelected: {
+            color: therrTheme.colors.onBrand,
+            fontWeight: fontWeights.semibold,
+        },
         cadenceHint: {
             fontFamily: therrFontFamily,
             fontSize: fontSizes.xs,
