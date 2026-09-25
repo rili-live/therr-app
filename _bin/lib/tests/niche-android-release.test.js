@@ -57,10 +57,12 @@ test('ledger tag names round-trip through the tag regex', () => {
 
 // ------------------------------------------------------------------ assessVersion
 
+const HABITS_ID = 'com.therr.habits';
+const history = (...codes) => codes.map((versionCode) => ({ versionCode, applicationId: HABITS_ID }));
 const base = {
-    candidate: { versionCode: 51, versionName: '1.13.0' },
+    candidate: { versionCode: 51, versionName: '1.13.0', applicationId: HABITS_ID },
     mainTip: { versionCode: 50, versionName: '1.12.0' },
-    mainHistory: [50, 49, 48],
+    mainHistory: history(50, 49, 48),
     easBuilds: [{ appBuildVersion: '45', status: 'FINISHED' }],
     ledgerTags: [],
     alreadyMerged: false,
@@ -73,9 +75,17 @@ test('a bumped, unmerged release is NEW', () => {
 });
 
 test('an unbumped versionCode is STALE', () => {
-    const r = assessVersion({ ...base, candidate: { versionCode: 50, versionName: '1.13.0' } });
+    const r = assessVersion({ ...base, candidate: { ...base.candidate, versionCode: 50 } });
     assert.strictEqual(r.status, 'STALE');
     assert.match(r.blockers[0], /versionCode 50 is not new/);
+});
+
+test("Therr's versionCodes from before the niche fork don't count against the niche app", () => {
+    // niche/HABITS-main's first-parent history reaches back past the fork from Therr, where
+    // build.gradle still said app.therrmobile / 445. Counting it demanded versionCode 446 for
+    // Friends with Habits, which sat at 50.
+    const r = assessVersion({ ...base, mainHistory: [...history(50, 49), { versionCode: 445, applicationId: 'app.therrmobile' }] });
+    assert.strictEqual(r.status, 'NEW');
 });
 
 test('a versionCode only EAS has seen still counts as released', () => {
@@ -97,7 +107,7 @@ test('a locally uploaded versionCode (ledger tag) counts as released', () => {
 });
 
 test('an unchanged versionName blocks unless explicitly allowed', () => {
-    const same = { ...base, candidate: { versionCode: 51, versionName: '1.12.0' } };
+    const same = { ...base, candidate: { ...base.candidate, versionName: '1.12.0' } };
     assert.strictEqual(assessVersion(same).status, 'STALE');
     const allowed = assessVersion({ ...same, allowSameVersionName: true });
     assert.strictEqual(allowed.status, 'NEW');
@@ -105,20 +115,20 @@ test('an unchanged versionName blocks unless explicitly allowed', () => {
 });
 
 test('a lower versionName always blocks', () => {
-    const r = assessVersion({ ...base, candidate: { versionCode: 51, versionName: '1.11.0' }, allowSameVersionName: true });
+    const r = assessVersion({ ...base, candidate: { ...base.candidate, versionName: '1.11.0' }, allowSameVersionName: true });
     assert.strictEqual(r.status, 'STALE');
 });
 
 test('already merged with no upload on record is MERGED_PENDING, not STALE', () => {
     // The 2026-09-25 state: 50 merged to main, CI failed, nothing uploaded yet. The
     // versionCode equals main's tip, which must not read as "not bumped".
-    const r = assessVersion({ ...base, candidate: { versionCode: 50, versionName: '1.12.0' }, alreadyMerged: true });
+    const r = assessVersion({ ...base, candidate: { ...base.candidate, versionCode: 50, versionName: '1.12.0' }, alreadyMerged: true });
     assert.strictEqual(r.status, 'MERGED_PENDING');
     assert.deepStrictEqual(r.blockers, []);
 });
 
 test('already merged and uploaded (EAS or ledger tag) is ALREADY_RELEASED', () => {
-    const merged = { ...base, candidate: { versionCode: 50, versionName: '1.12.0' }, alreadyMerged: true };
+    const merged = { ...base, candidate: { ...base.candidate, versionCode: 50, versionName: '1.12.0' }, alreadyMerged: true };
     assert.strictEqual(assessVersion({ ...merged, easBuilds: [{ appBuildVersion: '50', status: 'IN_QUEUE' }] }).status, 'ALREADY_RELEASED');
     assert.strictEqual(assessVersion({ ...merged, ledgerTags: [50] }).status, 'ALREADY_RELEASED');
 });
