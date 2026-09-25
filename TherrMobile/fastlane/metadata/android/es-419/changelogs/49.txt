@@ -1,0 +1,7 @@
+Novedades:
+• Explora ideas de hábitos por categoría (ejercicio, dinero, bienestar y más), ahora en tu idioma
+• Aceptar el pacto de un amigo en el límite gratuito ahora muestra tus opciones de mejora en lugar de un error
+• Consulta tu membresía en Ajustes
+• La pantalla de celebración siempre se puede cerrar
+• El widget de inicio muestra más de la clasificación cuando tiene espacio
+• Correcciones y mejoras

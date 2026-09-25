@@ -1,0 +1,7 @@
+Nouveautés :
+• Parcourez des idées d'habitudes par catégorie (forme physique, argent, pleine conscience et plus), maintenant dans votre langue
+• Accepter le pacte d'un ami à la limite gratuite affiche maintenant vos options de mise à niveau au lieu d'une erreur
+• Consultez votre abonnement dans les Paramètres
+• L'écran de célébration peut toujours être fermé
+• Le widget d'accueil affiche plus du classement quand il a de la place
+• Corrections et améliorations
