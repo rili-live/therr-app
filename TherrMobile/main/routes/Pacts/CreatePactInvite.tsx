@@ -5,6 +5,7 @@ import {
     Pressable,
     TextInput,
     ActivityIndicator,
+    ScrollView,
     Share,
     LayoutChangeEvent,
 } from 'react-native';
@@ -34,6 +35,14 @@ import {
     CadenceChoice,
     DAILY_CADENCE,
 } from './cadenceOptions';
+import {
+    getTemplateCategories,
+    getTemplateCategoryLabel,
+    getTemplatesForCategory,
+    localizeTemplate,
+    MIN_TEMPLATES_FOR_CATEGORIES,
+    POPULAR_CATEGORY,
+} from './habitTemplates';
 import permissions from '../../utilities/permissionsOrchestrator';
 import UsersActions from '../../redux/actions/UsersActions';
 import { IUserState, IHabitsState, IHabitGoal } from 'therr-react/types';
@@ -99,6 +108,8 @@ interface ICreatePactInviteProps extends IStoreProps {
 interface ICreatePactInviteState {
     step: Step;
     selectedTemplateId: string | null;
+    /** The template tab being browsed — see `habitTemplates.ts`. Browsing never clears a selection. */
+    templateCategory: string;
     customHabitName: string;
     /**
      * How often the habit asks for a check-in. Defaults to daily, which is what every habit
@@ -222,6 +233,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         this.state = {
             step: 1,
             selectedTemplateId: null,
+            templateCategory: POPULAR_CATEGORY,
             cadence: DAILY_CADENCE,
             customHabitName: '',
             isSavingsHabit: false,
@@ -565,9 +577,13 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 return selectedTemplateId;
             }
 
+            // The copy carries the text the user actually saw. Templates are stored in
+            // English and translated on the device, and the copy is what every pact
+            // member and every later screen renders, so it must not revert to English.
+            const { name, description } = localizeTemplate(template, this.translate);
             const userGoal = await createGoal({
-                name: template.name,
-                description: template.description,
+                name,
+                description,
                 category: template.category,
                 emoji: template.emoji,
                 // `goalType` was missing from this clone until now, and it is the field
@@ -667,7 +683,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      * utilities/habitCapPaywall), so the toast still shows.
      */
     handlePossiblePaywall = (err: any): boolean => {
-        const paywallParams = getHabitCapPaywallParams(err);
+        const paywallParams = getHabitCapPaywallParams(err, 'create-pact');
 
         if (!paywallParams) {
             return false;
@@ -719,11 +735,29 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      */
     isAtHabitCap = (): boolean => this.props.habits.userHabitEligibility?.isAtHabitLimit === true;
 
-    openHabitCapOffer = (limit: number | null | undefined = this.props.habits.userHabitEligibility?.habitLimit) => {
-        this.props.navigation.navigate('UpgradePaywall', {
-            reason: 'habit-limit-reached',
-            limit: limit ?? undefined,
-        });
+    /**
+     * Which free-tier cap the eligibility says was hit. The start window
+     * (`habit-start-limit-reached`) is the server's alone to see — slots are
+     * free, but the next start would still be refused — so the notice, the
+     * paywall params and the way out all follow this rather than the count.
+     */
+    isAtStartWindowCap = (eligibility: any = this.props.habits.userHabitEligibility): boolean => (
+        eligibility?.habitLimitReason === 'habit-start-limit-reached'
+    );
+
+    openHabitCapOffer = (eligibility: any = this.props.habits.userHabitEligibility) => {
+        this.props.navigation.navigate('UpgradePaywall', this.isAtStartWindowCap(eligibility)
+            ? {
+                reason: 'habit-start-limit-reached',
+                startLimit: eligibility?.habitStartLimit ?? undefined,
+                startWindowDays: eligibility?.habitStartWindowDays ?? undefined,
+                source: 'create-pact-wizard',
+            }
+            : {
+                reason: 'habit-limit-reached',
+                limit: eligibility?.habitLimit ?? undefined,
+                source: 'create-pact-wizard',
+            });
     };
 
     /** Archiving lives on the dashboard's habit list. It is free and loses nothing. */
@@ -761,21 +795,43 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         }
 
         if (isHabitCapPaywallAvailable()) {
-            this.openHabitCapOffer(eligibility.habitLimit);
+            this.openHabitCapOffer(eligibility);
         } else {
             Toast.show({
                 type: 'info',
-                text1: this.translate('pages.upgrade.limitTitle'),
-                text2: this.getHabitLimitBody(eligibility?.habitLimit),
+                text1: this.getHabitLimitTitle(eligibility),
+                text2: this.getHabitLimitBody(eligibility),
             });
         }
 
         return false;
     };
 
-    getHabitLimitBody = (limit?: number | null): string => (typeof limit === 'number'
-        ? this.translate('pages.pacts.wizard.habitLimitBody', { limit })
-        : this.translate('pages.pacts.wizard.habitLimitBodyGeneric'));
+    getHabitLimitTitle = (eligibility: any = this.props.habits.userHabitEligibility): string => this.translate(
+        this.isAtStartWindowCap(eligibility) ? 'pages.upgrade.startLimitTitle' : 'pages.upgrade.limitTitle',
+    );
+
+    /**
+     * The notice body. Accepts the eligibility payload, or a bare limit for the
+     * callers that predate the start window.
+     */
+    getHabitLimitBody = (eligibility?: any): string => {
+        if (this.isAtStartWindowCap(eligibility)) {
+            const { habitStartLimit, habitStartWindowDays } = eligibility;
+
+            return typeof habitStartLimit === 'number' && typeof habitStartWindowDays === 'number'
+                ? this.translate('pages.pacts.wizard.habitStartLimitBody', {
+                    limit: habitStartLimit, days: habitStartWindowDays,
+                })
+                : this.translate('pages.pacts.wizard.habitStartLimitBodyGeneric');
+        }
+
+        const limit = typeof eligibility === 'number' ? eligibility : eligibility?.habitLimit;
+
+        return typeof limit === 'number'
+            ? this.translate('pages.pacts.wizard.habitLimitBody', { limit })
+            : this.translate('pages.pacts.wizard.habitLimitBodyGeneric');
+    };
 
     /**
      * "Track this on my own" — creates the habit goal and starts tracking it
@@ -998,7 +1054,9 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             return null;
         }
 
-        const limit = this.props.habits.userHabitEligibility?.habitLimit;
+        const eligibility = this.props.habits.userHabitEligibility;
+        // Archiving frees a slot; it does nothing for a spent start window.
+        const canArchiveToMakeRoom = !this.isAtStartWindowCap(eligibility);
 
         return (
             <View
@@ -1009,21 +1067,23 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 accessibilityRole="alert"
             >
                 <Text style={this.themeHabits.styles.habitCardTitle}>
-                    {this.translate('pages.upgrade.limitTitle')}
+                    {this.getHabitLimitTitle(eligibility)}
                 </Text>
                 <Text style={[this.themeHabits.styles.habitCardSubtitle, { marginTop: 4 }]}>
-                    {this.getHabitLimitBody(limit)}
+                    {this.getHabitLimitBody(eligibility)}
                 </Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
-                    <Pressable
-                        onPress={this.openArchiveHabits}
-                        accessibilityRole="button"
-                        style={{ paddingVertical: 8, paddingRight: 16 }}
-                    >
-                        <Text style={this.themeButtons.styles.btnTitleBlack}>
-                            {this.translate('pages.pacts.wizard.habitLimitArchive')}
-                        </Text>
-                    </Pressable>
+                    {canArchiveToMakeRoom && (
+                        <Pressable
+                            onPress={this.openArchiveHabits}
+                            accessibilityRole="button"
+                            style={{ paddingVertical: 8, paddingRight: 16 }}
+                        >
+                            <Text style={this.themeButtons.styles.btnTitleBlack}>
+                                {this.translate('pages.pacts.wizard.habitLimitArchive')}
+                            </Text>
+                        </Pressable>
+                    )}
                     {isHabitCapPaywallAvailable() && (
                         <Pressable
                             onPress={() => this.openHabitCapOffer()}
@@ -1043,9 +1103,15 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     renderStep1 = () => {
         const { habits } = this.props;
         const {
-            selectedTemplateId, customHabitName, isLoadingTemplates, cadence, isSavingsHabit,
+            selectedTemplateId, customHabitName, isLoadingTemplates, cadence, isSavingsHabit, templateCategory,
         } = this.state;
         const templates = habits.templates || [];
+        const showCategories = templates.length > MIN_TEMPLATES_FOR_CATEGORIES;
+        const categories = showCategories ? getTemplateCategories(templates) : [];
+        // A category can vanish between renders (templates refetched); fall back to Popular
+        // rather than an empty list.
+        const activeCategory = categories.includes(templateCategory) ? templateCategory : POPULAR_CATEGORY;
+        const visibleTemplates = showCategories ? getTemplatesForCategory(templates, activeCategory) : templates;
 
         return (
             <View>
@@ -1067,8 +1133,43 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                     </Text>
                 )}
 
-                {templates.map((t: IHabitGoal) => {
+                {showCategories && (
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={this.themeHabits.styles.templateCategoryRow}
+                        accessibilityRole="tablist"
+                    >
+                        {categories.map((category) => {
+                            const isActive = category === activeCategory;
+                            return (
+                                <Pressable
+                                    key={category}
+                                    accessibilityRole="tab"
+                                    accessibilityState={{ selected: isActive }}
+                                    onPress={() => this.setState({ templateCategory: category })}
+                                    style={[
+                                        this.themeHabits.styles.templateCategoryChip,
+                                        isActive && this.themeHabits.styles.templateCategoryChipSelected,
+                                    ]}
+                                >
+                                    <Text
+                                        style={[
+                                            this.themeHabits.styles.templateCategoryChipText,
+                                            isActive && this.themeHabits.styles.templateCategoryChipTextSelected,
+                                        ]}
+                                    >
+                                        {getTemplateCategoryLabel(category, this.translate)}
+                                    </Text>
+                                </Pressable>
+                            );
+                        })}
+                    </ScrollView>
+                )}
+
+                {visibleTemplates.map((t: IHabitGoal) => {
                     const isSelected = selectedTemplateId === t.id;
+                    const { name, description } = localizeTemplate(t, this.translate);
                     return (
                         <Pressable
                             key={t.id}
@@ -1083,9 +1184,9 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                                     {t.emoji || this.translate('pages.pacts.wizard.habitDefaultEmoji')}
                                 </Text>
                                 <View style={this.themeHabits.styles.habitCardTitleContainer}>
-                                    <Text style={this.themeHabits.styles.habitCardTitle}>{t.name}</Text>
-                                    {t.description && (
-                                        <Text style={this.themeHabits.styles.habitCardSubtitle}>{t.description}</Text>
+                                    <Text style={this.themeHabits.styles.habitCardTitle}>{name}</Text>
+                                    {!!description && (
+                                        <Text style={this.themeHabits.styles.habitCardSubtitle}>{description}</Text>
                                     )}
                                 </View>
                                 {isSelected && <Text style={{ fontSize: 20 }}>{'✅'}</Text>}
@@ -1358,7 +1459,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         const template = selectedTemplateId
             ? habits.templates?.find((t) => t.id === selectedTemplateId)
             : undefined;
-        const habitName = template?.name || customHabitName.trim();
+        const habitName = (template && localizeTemplate(template, this.translate).name) || customHabitName.trim();
         const habitEmoji = template?.emoji || this.translate('pages.pacts.wizard.habitDefaultEmoji');
         const partnerCount = selectedPartnerIds.length;
         const isSolo = this.isSoloReview();

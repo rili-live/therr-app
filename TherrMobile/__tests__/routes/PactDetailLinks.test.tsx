@@ -60,6 +60,7 @@ jest.mock('react-native-permissions', () => ({
 
 // Imported after the mocks above deliberately — PactDetail pulls in a chain of
 // native modules at import time.
+import Toast from 'react-native-toast-message';
 import { PactDetail } from '../../main/routes/Pacts/PactDetail';
 
 const CURRENT_USER_ID = 'me';
@@ -123,7 +124,7 @@ const buildInstance = (habitsOverrides: any = {}) => {
         route: { params: { pactId: 'pact-1' } },
         getPactDetails: jest.fn(() => Promise.resolve(PACT)),
         getUserGoals: jest.fn(() => Promise.resolve([])),
-        acceptPact: jest.fn(),
+        acceptPact: jest.fn(() => Promise.resolve({})),
         declinePact: jest.fn(),
         abandonPact: jest.fn(),
     };
@@ -131,7 +132,7 @@ const buildInstance = (habitsOverrides: any = {}) => {
     const instance = new PactDetail(props);
     instance.setState = jest.fn();
 
-    return { instance, navigate, setParams };
+    return { instance, navigate, setParams, props };
 };
 
 /** Collects every element in a rendered React tree, depth-first. */
@@ -271,5 +272,51 @@ describe('PactDetail navigation links', () => {
 
             expect(instance.props.getPactDetails).toHaveBeenCalledWith('pact-1');
         });
+    });
+});
+
+/**
+ * Accepting a pact takes a habit slot, so at the free-tier cap the server
+ * answers 402 with paywall metadata — the same refusal every other entry
+ * point already routes to the offer. This screen used to swallow it as
+ * "could not accept".
+ */
+describe('PactDetail accept at the habit cap', () => {
+    const flushPromises = () => new Promise<void>((resolve) => { setImmediate(resolve); });
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('routes a 402 to the paywall with the accept named as the source', async () => {
+        const { instance, navigate, props } = buildInstance();
+        props.acceptPact.mockImplementation(() => Promise.reject({
+            statusCode: 402,
+            error: 'habit-limit-reached',
+            limit: 5,
+            upgradeRequired: true,
+        }));
+
+        instance.handleAccept();
+        await flushPromises();
+
+        expect(navigate).toHaveBeenCalledWith('UpgradePaywall', {
+            reason: 'habit-limit-reached',
+            limit: 5,
+            source: 'pact-accept',
+        });
+        expect(Toast.show).not.toHaveBeenCalled();
+    });
+
+    it('still reports any other failure as an error', async () => {
+        const { instance, navigate, props } = buildInstance();
+        props.acceptPact.mockImplementation(() => Promise.reject({ statusCode: 500, message: 'SQL:PACTS:ERROR' }));
+
+        instance.handleAccept();
+        await flushPromises();
+
+        expect(navigate).not.toHaveBeenCalledWith('UpgradePaywall', expect.anything());
+        expect((Toast.show as any).mock.calls).toHaveLength(1);
+        expect(((Toast.show as any).mock.calls[0][0] as any).type).toBe('error');
     });
 });

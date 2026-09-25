@@ -3,7 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { FeatureFlags } from 'therr-js-utilities/constants';
+import { FeatureFlags, HABITS_FREE_HABIT_LIMIT } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
 import { UsersService } from 'therr-react/services';
 import {
@@ -24,8 +24,9 @@ import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import {
-    HabitCard, HabitsListLoader, NewPactButton, PactCard, SentInviteCard,
+    HabitCard, HabitsListLoader, NewPactButton, PactCard, SentInviteCard, UpgradeNudgeCard,
 } from '../../components/Habits';
+import { getHabitCapacityNudge, readHabitCapacity } from '../../utilities/upgradeNudge';
 import { getFreezeConsumed, getStreakSavedByFreeze } from '../../utilities/streakFreezes';
 import { getApiErrorMessage, readApiError } from '../../utilities/apiErrorMessage';
 import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
@@ -127,6 +128,8 @@ interface IHabitsDashboardDispatchProps {
     getPendingInvites: Function;
     getUserHabitEligibility: Function;
     getUserHabits: Function;
+    getLifetimeOffer?: Function;
+    getPremiumOffer?: Function;
     createCheckin: Function;
     acceptPact: Function;
     declinePact: Function;
@@ -188,6 +191,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getPendingInvites: HabitActions.getPendingInvites,
     getUserHabitEligibility: HabitActions.getUserHabitEligibility,
     getUserHabits: HabitActions.getUserHabits,
+    getLifetimeOffer: HabitActions.getLifetimeOffer,
+    getPremiumOffer: HabitActions.getPremiumOffer,
     createCheckin: HabitActions.createCheckin,
     acceptPact: HabitActions.acceptPact,
     declinePact: HabitActions.declinePact,
@@ -304,6 +309,31 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     }
 
     isLeaderboardEnabled = (): boolean => getConfig().featureFlags?.[FeatureFlags.ENABLE_ACHIEVEMENTS] === true;
+
+    isUpgradeOfferEnabled = (): boolean => getConfig()
+        .featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true;
+
+    /**
+     * Loads both offers for the capacity nudge in the list header.
+     *
+     * Kept out of `handleRefresh`'s Promise.all for the same reason the rank is:
+     * the nudge is an offer, not the dashboard, and must never hold the spinner
+     * or fail the refresh. Re-fetched on each refresh rather than once because
+     * the founder seat count is consumed by other people, and the nudge fails
+     * closed on a stale or missing offer (see `getHabitCapacityNudge`).
+     *
+     * Gated on the flag so a Therr or Teem build never calls a habits endpoint.
+     */
+    fetchUpgradeOffers = () => {
+        const { getLifetimeOffer, getPremiumOffer } = this.props;
+
+        if (!this.isUpgradeOfferEnabled()) {
+            return;
+        }
+
+        getLifetimeOffer?.()?.catch?.(() => {});
+        getPremiumOffer?.()?.catch?.(() => {});
+    };
 
     /**
      * Loads the user's rank for the leaderboard row. `limit: 1` because only `currentUser`
@@ -463,6 +493,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         this.setState({ isRefreshing: true });
 
         this.fetchWeeklyRank();
+        this.fetchUpgradeOffers();
 
         Promise.all([
             getUserGoals(),
@@ -626,7 +657,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 // Checking into a goal nothing tracks yet starts tracking it, which
                 // takes a habit slot — at the free-tier cap that is a 402, and the
                 // way forward is the offer, not an error.
-                const paywallParams = getHabitCapPaywallParams(err);
+                const paywallParams = getHabitCapPaywallParams(err, 'dashboard-checkin');
                 if (paywallParams) {
                     this.props.navigation.navigate('UpgradePaywall', paywallParams);
                     return;
@@ -701,7 +732,17 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 this.setState({ activeTab: 'habits' });
                 this.handleRefresh();
             })
-            .catch(() => {
+            .catch((err) => {
+                // Accepting takes a habit slot, so at the free-tier cap the server
+                // answers 402 — the same refusal a check-in or a new pact gets. It
+                // used to land here as "could not accept", which told a user who
+                // had just been invited by a friend that something was broken.
+                const paywallParams = getHabitCapPaywallParams(err, 'pact-accept');
+                if (paywallParams) {
+                    this.props.navigation.navigate('UpgradePaywall', paywallParams);
+                    return;
+                }
+
                 showToast.error({
                     text1: this.translate('pages.pacts.errorTitle'),
                     text2: this.translate('pages.pacts.acceptError'),
@@ -1265,8 +1306,62 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         );
     };
 
+    /**
+     * The capacity strip: "2 of 3 free habits in use" in the last slot, "all 3
+     * in use" at the cap, and "5 habits started this month" when the start
+     * window is spent. Sits above the solo banner so the wall the user is
+     * about to hit comes before the ask to invite more friends. Every gate
+     * lives in `getHabitCapacityNudge` — flag, entitlement, a purchasable
+     * offer, a loaded tracking registry — so this renders nothing rather than
+     * an ad the paywall cannot honour. The numbers come from the server's
+     * eligibility payload (`readHabitCapacity`); the constant is only the
+     * fallback for a server that predates them.
+     */
+    renderUpgradeNudge = () => {
+        const { habits, navigation } = this.props;
+        const nudge = getHabitCapacityNudge({
+            isOfferEnabled: this.isUpgradeOfferEnabled(),
+            lifetimeOffer: habits.lifetimeOffer,
+            premiumOffer: habits.premiumOffer,
+            ...readHabitCapacity(habits.userHabitEligibility, habits.userHabits, HABITS_FREE_HABIT_LIMIT),
+        });
+
+        if (!nudge) {
+            return null;
+        }
+
+        const copyKey = {
+            atCap: 'atCap',
+            nearCap: 'nearCap',
+            startCap: 'startCap',
+        }[nudge.variant];
+        const paywallReason = {
+            atCap: { reason: 'habit-limit-reached', limit: nudge.limit },
+            startCap: { reason: 'habit-start-limit-reached', startLimit: nudge.limit, startWindowDays: nudge.windowDays },
+            nearCap: {},
+        }[nudge.variant];
+
+        return (
+            <UpgradeNudgeCard
+                source="dashboard-capacity"
+                title={this.translate(`pages.habits.upgradeNudge.${copyKey}Title`, {
+                    used: nudge.used, limit: nudge.limit, days: nudge.windowDays ?? '',
+                })}
+                body={this.translate(`pages.habits.upgradeNudge.${copyKey}Body`, {
+                    limit: nudge.limit, days: nudge.windowDays ?? '',
+                })}
+                onPress={() => navigation.navigate('UpgradePaywall', {
+                    source: 'dashboard-capacity',
+                    ...paywallReason,
+                })}
+                themeHabits={this.themeHabits}
+            />
+        );
+    };
+
     renderHabitsListHeader = () => (
         <>
+            {this.renderUpgradeNudge()}
             {this.renderSoloUnlockBanner()}
             {this.renderOverallProgress(this.getHabitsByPactState().live)}
         </>

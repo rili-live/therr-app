@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
@@ -158,11 +159,25 @@ class HabitsWidgetProvider : AppWidgetProvider() {
             return runCatching { JSONObject(raw) }.getOrNull()
         }
 
-        private fun rowsForHeight(minHeightDp: Int): Int = when {
-            minHeightDp <= 0 -> 1
-            minHeightDp < 150 -> 1
-            minHeightDp < 190 -> 2
+        private fun rowsForHeight(heightDp: Int): Int = when {
+            heightDp <= 0 -> 1
+            heightDp < 150 -> 1
+            heightDp < 190 -> 2
             else -> 3
+        }
+
+        /**
+         * The widget's height in dp in the current orientation. The launcher reports a range, and
+         * the two ends are not "small" and "large": OPTION_APPWIDGET_MAX_HEIGHT is the portrait
+         * height and OPTION_APPWIDGET_MIN_HEIGHT the (much shorter) landscape one. Reading MIN on
+         * a phone in portrait sized the board for landscape and drew one row into room for three.
+         */
+        private fun currentHeightDp(context: Context, manager: AppWidgetManager, appWidgetId: Int): Int {
+            val options = manager.getAppWidgetOptions(appWidgetId)
+            val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
+            val maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0)
+            val isLandscape = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+            return if (isLandscape || maxHeight <= 0) minHeight else maxHeight
         }
 
         /** Epoch millis of the period's reset instant (`periodEnd` is a UTC date), or null. */
@@ -290,9 +305,7 @@ class HabitsWidgetProvider : AppWidgetProvider() {
             // Top of the board.
             views.removeAllViews(R.id.widget_rows)
             if (!isStaleWeek) {
-                val maxRows = rowsForHeight(
-                    manager.getAppWidgetOptions(appWidgetId).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0),
-                )
+                val maxRows = rowsForHeight(currentHeightDp(context, manager, appWidgetId))
                 val top = snapshot.optJSONArray("top")
                 val entryCount = minOf(top?.length() ?: 0, maxRows)
                 for (i in 0 until entryCount) {

@@ -194,8 +194,14 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
         // purchase count is unreadable: it cannot distinguish "nobody is
         // reaching the paywall" from "everybody reaches it and nobody buys",
         // which are opposite problems with opposite fixes.
+        //
+        // `source` is which door they came through (see `PaywallSource`) and
+        // `reason` whether a wall sent them. Together they turn one view count
+        // into a per-surface funnel: nudge impression → this → purchase.
         logAppEvent('habits_paywall_view', {
             userId: this.props.user?.details?.id,
+            source: this.getSource(),
+            reason: this.props.route?.params?.reason,
         });
 
         Promise.all([
@@ -214,6 +220,20 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
         // service binding for the rest of the app session.
         endBilling();
     }
+
+    /**
+     * The entry point, for analytics. A 402 that arrived without a named source
+     * (an older call site) is still distinguishable from a deliberate visit.
+     */
+    getSource = (): string => {
+        const { route } = this.props;
+
+        if (route?.params?.source) {
+            return route.params.source;
+        }
+
+        return route?.params?.reason ? 'habit-limit' : 'direct';
+    };
 
     /**
      * Open the store connection and read the real localized prices.
@@ -331,6 +351,7 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
                 value: purchaseValue?.value,
                 currency: purchaseValue?.currency,
                 isRecovery: !!options.isSilent,
+                source: this.getSource(),
             });
 
             // The entitlement lives on the user record, not in habits state, so
@@ -381,6 +402,7 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
                 value: purchaseValue?.value,
                 currency: purchaseValue?.currency,
                 isRecovery: !!options.isSilent,
+                source: this.getSource(),
             });
 
             await this.props.getMe().catch(() => null);
@@ -525,8 +547,13 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
         const { route } = this.props;
         const reason = route?.params?.reason;
         const isLimit = reason === 'habit-limit-reached';
+        // The start window: slots are free but the next start was refused.
+        // No pips — there is no row of slots to show full — just the reason.
+        const isStartLimit = reason === 'habit-start-limit-reached';
         const limit = Number(route?.params?.limit);
         const hasLimit = Number.isFinite(limit) && limit > 0 && limit <= 12;
+        const startLimit = route?.params?.startLimit;
+        const startWindowDays = route?.params?.startWindowDays;
 
         return (
             <View style={this.themeHabits.styles.paywallHeader}>
@@ -545,16 +572,19 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
                     </View>
                 )}
                 <Text style={this.themeHabits.styles.dashboardGreeting}>
-                    {isLimit
-                        ? this.translate('pages.upgrade.limitTitle')
-                        : this.translate('pages.upgrade.title')}
+                    {isLimit && this.translate('pages.upgrade.limitTitle')}
+                    {isStartLimit && this.translate('pages.upgrade.startLimitTitle')}
+                    {!isLimit && !isStartLimit && this.translate('pages.upgrade.title')}
                 </Text>
                 <Text style={this.themeHabits.styles.dashboardSubtitle}>
-                    {isLimit
-                        ? this.translate('pages.upgrade.limitSubtitle', {
-                            limit: route?.params?.limit ?? '',
-                        })
-                        : this.translate('pages.upgrade.subtitle')}
+                    {isLimit && this.translate('pages.upgrade.limitSubtitle', {
+                        limit: route?.params?.limit ?? '',
+                    })}
+                    {isStartLimit && this.translate('pages.upgrade.startLimitSubtitle', {
+                        limit: startLimit ?? '',
+                        days: startWindowDays ?? '',
+                    })}
+                    {!isLimit && !isStartLimit && this.translate('pages.upgrade.subtitle')}
                 </Text>
             </View>
         );

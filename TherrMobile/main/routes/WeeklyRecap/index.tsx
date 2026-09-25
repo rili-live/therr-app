@@ -8,9 +8,16 @@ import {
 import { RefreshControl } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { FeatureFlags } from 'therr-js-utilities/constants';
+import { HabitActions } from 'therr-react/redux/actions';
 import { WeeklyRecapService } from 'therr-react/services';
 import type { IWeeklyRecap, IWeeklyRecapDay } from 'therr-react/services';
-import { IUserState } from 'therr-react/types';
+import { IHabitsLifetimeOffer, IUserState } from 'therr-react/types';
+import getConfig from '../../utilities/getConfig';
+import { shouldShowFounderCta } from '../../components/Habits/founderCtaState';
+import { UpgradeNudgeCard } from '../../components/Habits';
+import { formatSeatCount } from '../Habits/paywallPresentation';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles, buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
@@ -27,6 +34,8 @@ import {
 
 interface IStoreProps {
     user: IUserState;
+    lifetimeOffer?: IHabitsLifetimeOffer | null;
+    getLifetimeOffer?: Function;
 }
 
 export interface IWeeklyRecapProps extends IStoreProps {
@@ -55,7 +64,12 @@ interface IWeeklyRecapState {
 
 const mapStateToProps = (state: any) => ({
     user: state.user,
+    lifetimeOffer: state.habits?.lifetimeOffer,
 });
+
+const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    getLifetimeOffer: HabitActions.getLifetimeOffer,
+}, dispatch);
 
 /**
  * One Monday–Sunday week of habit activity, told back to the user.
@@ -108,6 +122,12 @@ class WeeklyRecap extends React.Component<IWeeklyRecapProps, IWeeklyRecapState> 
     componentDidMount() {
         this.isMounted_ = true;
         this.loadRecap(this.state.weekStartDate);
+
+        // For the founder card under the recap. Fire-and-forget and flag-gated,
+        // as everywhere else: the card fails closed without an offer.
+        if (getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true) {
+            this.props.getLifetimeOffer?.()?.catch?.(() => {});
+        }
 
         logAppEvent('weekly_recap_view', {
             userId: this.props.user?.details?.id,
@@ -319,6 +339,38 @@ class WeeklyRecap extends React.Component<IWeeklyRecapProps, IWeeklyRecapState> 
         );
     };
 
+    /**
+     * The founder offer, after the week's numbers. A recap is the one screen a
+     * user opens having just been told they showed up — the moment "keep every
+     * feature for life" is a reward rather than an interruption. Shown only
+     * while the offer is live and purchasable (`shouldShowFounderCta`), so it
+     * disappears for founders, subscribers and once the seats are gone.
+     */
+    renderFounderCard = () => {
+        const { lifetimeOffer, navigation, user } = this.props;
+
+        if (getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] !== true) {
+            return null;
+        }
+
+        if (!shouldShowFounderCta(lifetimeOffer)) {
+            return null;
+        }
+
+        return (
+            <UpgradeNudgeCard
+                variant="card"
+                source="weekly-recap"
+                title={this.translate('pages.weeklyRecap.founderCard.title')}
+                body={this.translate('pages.weeklyRecap.founderCard.body', {
+                    remaining: formatSeatCount(lifetimeOffer?.remaining, user.settings?.locale || 'en-us'),
+                })}
+                onPress={() => navigation.navigate('UpgradePaywall', { source: 'weekly-recap' })}
+                themeHabits={this.themeHabits}
+            />
+        );
+    };
+
     render() {
         const { navigation, user } = this.props;
         const { hasError, hasFetched, isLoading, recap } = this.state;
@@ -364,6 +416,8 @@ class WeeklyRecap extends React.Component<IWeeklyRecapProps, IWeeklyRecapState> 
                     )}
 
                     {!!recap && this.renderRecap(recap)}
+
+                    {!!recap && this.renderFounderCard()}
 
                     {!!recap && (
                         <View style={styles.weeklyRecapNavRow}>
@@ -411,4 +465,4 @@ class WeeklyRecap extends React.Component<IWeeklyRecapProps, IWeeklyRecapState> 
     }
 }
 
-export default connect(mapStateToProps, null)(WeeklyRecap);
+export default connect(mapStateToProps, mapDispatchToProps)(WeeklyRecap);

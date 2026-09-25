@@ -1900,6 +1900,7 @@
         },
         "settings": {
             "headerTitle": "Settings",
+            "pageHeaderMembership": "Membership",
             "pageHeaderDisplaySettings": "Display",
             "pageHeaderRewardsSettings": "Therr Rewards",
             "pageHeaderPrivacySettings": "Privacy Settings",
@@ -1930,6 +1931,17 @@
             },
             "alertMessages": {
                 "accountUpdated": "Successfully updated."
+            },
+            "membership": {
+                "founder": "Founding member",
+                "founderWithNumber": "Founder #{number}",
+                "premium": "Premium",
+                "premiumBody": "Billed monthly. Every feature unlocked.",
+                "entitledBody": "Every feature unlocked, for life.",
+                "founderOfferTitle": "Unlock everything for life",
+                "founderOfferBody": "One payment, no subscription. {remaining} founder spots left.",
+                "premiumOfferTitle": "Go premium",
+                "premiumOfferBody": "Unlimited habits and pacts, billed monthly. Cancel anytime."
             }
         },
         "socialSync": {
@@ -2230,6 +2242,14 @@
                 "hoursAgo": "{hours}h ago",
                 "daysAgo": "{days}d ago",
                 "refreshHint": "Updated {ago}. Tap to refresh"
+            },
+            "upgradeNudge": {
+                "nearCapTitle": "{used} of {limit} free habits in use",
+                "nearCapBody": "One slot left. Unlock unlimited habits for life.",
+                "atCapTitle": "All {limit} free habits in use",
+                "atCapBody": "Unlock unlimited habits and pacts, once, for life.",
+                "startCapTitle": "{used} habits started this month",
+                "startCapBody": "Free accounts start {limit} every {days} days. Unlock unlimited, for life."
             }
         },
         "pacts": {
@@ -2388,6 +2408,8 @@
                 "soloAddPartnersLater": "You can invite a friend to this habit any time.",
                 "habitLimitBody": "Free accounts track {limit} habits at a time. Archive one to make room: its check-ins, streak and journal entries are all kept.",
                 "habitLimitBodyGeneric": "Archive a habit to make room for this one: its check-ins, streak and journal entries are all kept.",
+                "habitStartLimitBody": "Free accounts start {limit} new habits every {days} days, and this one would be next. Unlock unlimited habits to start it now.",
+                "habitStartLimitBodyGeneric": "You've started a lot of habits recently. Unlock unlimited habits to start this one now.",
                 "habitLimitArchive": "Archive a habit",
                 "habitLimitUpgrade": "See upgrade options",
                 "pickPartnerFirstLocked": "Choose a friend — or invite {remaining} more to unlock solo habits",
@@ -2403,6 +2425,192 @@
                 "savingsScopePerMemberHint": "Everyone works toward the amount on their own. Done when you have all reached it.",
                 "savingsScopeGroupLabel": "We save this together",
                 "savingsScopeGroupHint": "One shared pot. Done when your combined total reaches the amount."
+            },
+            "templateCategories": {
+                "popular": "Popular",
+                "fitness": "Movement & Exercise",
+                "money": "Money & Savings",
+                "mindfulness": "Mind & Mental Health",
+                "health": "Health & Body",
+                "productivity": "Focus & Screen Time",
+                "learning": "Learning & Creativity",
+                "social": "Relationships",
+                "home": "Home & Routine",
+                "other": "Other"
+            },
+            "templates": {
+                "workOut": {
+                    "name": "Work out",
+                    "description": "20+ minutes of movement, whenever fits your day"
+                },
+                "read15": {
+                    "name": "Read 15 minutes",
+                    "description": "Read a book (no phone) for 15 minutes daily"
+                },
+                "meditate": {
+                    "name": "Meditation",
+                    "description": "10 minutes of guided or silent meditation"
+                },
+                "drinkWater": {
+                    "name": "Drink 64oz water",
+                    "description": "Hit your hydration target by end of day"
+                },
+                "dailyJournal": {
+                    "name": "Daily journal",
+                    "description": "3 sentences: what went well, what didn't, what's next"
+                },
+                "phoneFreeFirstHour": {
+                    "name": "No phone first hour",
+                    "description": "No phone for the first hour after waking"
+                },
+                "saveGroupTrip": {
+                    "name": "Save for a group trip",
+                    "description": "Set aside money each week toward a vacation with friends or family"
+                },
+                "goForWalk": {
+                    "name": "Go for a walk",
+                    "description": "At least 20 minutes on foot"
+                },
+                "strengthTraining": {
+                    "name": "Strength training",
+                    "description": "Weights, bodyweight or bands — build strength that lasts"
+                },
+                "stretch": {
+                    "name": "Stretch for 10 minutes",
+                    "description": "10 minutes of stretching or mobility work"
+                },
+                "run": {
+                    "name": "Go for a run",
+                    "description": "Any distance, any pace — just get out and run"
+                },
+                "yoga": {
+                    "name": "Yoga",
+                    "description": "From a quick flow to a full class"
+                },
+                "emergencyFund": {
+                    "name": "Build an emergency fund",
+                    "description": "Set money aside each week until you have a safety cushion"
+                },
+                "noSpendDay": {
+                    "name": "No-spend day",
+                    "description": "Buy nothing beyond the essentials today"
+                },
+                "trackSpending": {
+                    "name": "Track every purchase",
+                    "description": "Log what you spent today so nothing slips by"
+                },
+                "packLunch": {
+                    "name": "Pack your lunch",
+                    "description": "Bring lunch from home instead of buying it"
+                },
+                "pauseImpulseBuys": {
+                    "name": "No impulse buys",
+                    "description": "Wait 24 hours before any non-essential purchase"
+                },
+                "gratitude": {
+                    "name": "Three good things",
+                    "description": "Write down three things you're grateful for"
+                },
+                "getOutside": {
+                    "name": "Get outside",
+                    "description": "15 minutes outdoors in daylight"
+                },
+                "breathwork": {
+                    "name": "Breathwork",
+                    "description": "5 minutes of slow, deliberate breathing"
+                },
+                "moodCheckIn": {
+                    "name": "Check in with yourself",
+                    "description": "Take a few minutes to name how you're really feeling"
+                },
+                "consistentBedtime": {
+                    "name": "Consistent bedtime",
+                    "description": "In bed at the same time each night"
+                },
+                "eatVegetables": {
+                    "name": "Eat your veggies",
+                    "description": "A vegetable with every meal"
+                },
+                "takeVitamins": {
+                    "name": "Take your vitamins",
+                    "description": "Your daily vitamins or medication, every day"
+                },
+                "cutBackAlcohol": {
+                    "name": "Cut back on alcohol",
+                    "description": "An alcohol-free day"
+                },
+                "quitNicotine": {
+                    "name": "Quit vaping or smoking",
+                    "description": "Stay nicotine-free today"
+                },
+                "noScrollingInBed": {
+                    "name": "No scrolling in bed",
+                    "description": "Your phone stays out of reach once you're in bed"
+                },
+                "deepWork": {
+                    "name": "Deep work block",
+                    "description": "60 minutes of focused work, notifications off"
+                },
+                "planTomorrow": {
+                    "name": "Plan tomorrow tonight",
+                    "description": "Write down your top three for tomorrow before bed"
+                },
+                "screenTimeLimit": {
+                    "name": "Stay under your screen-time limit",
+                    "description": "Keep social media under the daily limit you set"
+                },
+                "practiceLanguage": {
+                    "name": "Practice a language",
+                    "description": "10 minutes of vocabulary, listening or conversation"
+                },
+                "practiceInstrument": {
+                    "name": "Practice an instrument",
+                    "description": "20 minutes of focused practice"
+                },
+                "write300": {
+                    "name": "Write 300 words",
+                    "description": "Fiction, essays or notes — just get words down"
+                },
+                "sketch": {
+                    "name": "Draw or sketch",
+                    "description": "Fill a page, however rough"
+                },
+                "reachOutFriend": {
+                    "name": "Reach out to a friend",
+                    "description": "A call, text or coffee with someone you haven't talked to lately"
+                },
+                "callFamily": {
+                    "name": "Call family",
+                    "description": "Catch up with family by phone or video"
+                },
+                "phoneFreeMeals": {
+                    "name": "Phone-free meals",
+                    "description": "Phones away while you eat with others"
+                },
+                "dateNight": {
+                    "name": "Date night",
+                    "description": "Dedicated time with your partner"
+                },
+                "kindness": {
+                    "name": "One act of kindness",
+                    "description": "Do one kind thing for someone today"
+                },
+                "tidy10": {
+                    "name": "10-minute tidy",
+                    "description": "Reset one space in your home"
+                },
+                "makeBed": {
+                    "name": "Make your bed",
+                    "description": "Start the day with one thing done"
+                },
+                "mealPrep": {
+                    "name": "Weekly meal prep",
+                    "description": "Cook ahead for the week"
+                },
+                "laundry": {
+                    "name": "Laundry day",
+                    "description": "Wash, dry, fold and put away"
+                }
             },
             "status": {
                 "pending": "Pending",
@@ -2619,6 +2827,10 @@
             "buttons": {
                 "previousWeek": "Earlier week",
                 "nextWeek": "Later week"
+            },
+            "founderCard": {
+                "title": "Keep every feature, for life",
+                "body": "One payment, no subscription. {remaining} founder spots left."
             }
         },
         "journal": {
@@ -2663,6 +2875,8 @@
             "limitTitle": "You've reached the free limit",
             "limitSubtitle": "Free accounts track {limit} habits at a time. Archive one, or unlock everything for life.",
             "limitMeterLabel": "All {limit} free slots in use",
+            "startLimitTitle": "You've started a lot of habits lately",
+            "startLimitSubtitle": "Free accounts start {limit} new habits every {days} days. Unlock everything for life to start as many as you like.",
             "eyebrow": "Founder offer",
             "oneTime": "One-time payment",
             "priceCaption": "once, yours forever",
@@ -2760,7 +2974,8 @@
             "actions": {
                 "continue": "Continue",
                 "seeLeaderboard": "See leaderboard",
-                "done": "Done"
+                "done": "Done",
+                "lockInForLife": "Lock in every feature for life"
             }
         }
     },

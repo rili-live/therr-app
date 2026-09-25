@@ -95,6 +95,7 @@ describe('create-pact wizard — server refusals', () => {
         expect(props.navigation.navigate).toHaveBeenCalledWith('UpgradePaywall', {
             reason: 'habit-limit-reached',
             limit: 5,
+            source: 'create-pact',
         });
         expect(mockToastShow).not.toHaveBeenCalled();
     });
@@ -125,6 +126,7 @@ describe('create-pact wizard — server refusals', () => {
         expect(props.navigation.navigate).toHaveBeenCalledWith('UpgradePaywall', {
             reason: 'habit-limit-reached',
             limit: 5,
+            source: 'create-pact',
         });
     });
 

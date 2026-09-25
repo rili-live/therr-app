@@ -15,6 +15,7 @@ import { space } from '../../styles/layouts/spacing';
 import translator from '../../utilities/translator';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 import getConfig from '../../utilities/getConfig';
+import { localizeTemplate } from '../../routes/Pacts/habitTemplates';
 import BaseStatusBar from '../BaseStatusBar';
 
 export const HABITS_PRESTAGED_TEMPLATE_ID = 'HABITS_PRESTAGED_TEMPLATE_ID';
@@ -199,7 +200,8 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
     const prestagedTemplate = prestagedId ? findTemplate(habits.templates, prestagedId) : undefined;
     const sampleEmoji = prestagedTemplate?.emoji || translate('pages.pacts.wizard.habitDefaultEmoji');
     const hasPrestagedHabit = !!prestagedTemplate;
-    const sampleHabitName = prestagedTemplate?.name || translate('pages.pacts.preview.sampleHabitTitle');
+    const sampleHabitName = (prestagedTemplate && localizeTemplate(prestagedTemplate, translate).name)
+        || translate('pages.pacts.preview.sampleHabitTitle');
     const sampleHabitSubtitle = prestagedTemplate
         ? translate('pages.pacts.preview.prestagedSuffix')
         : translate('pages.pacts.preview.sampleHabitSubtitle');

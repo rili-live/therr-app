@@ -184,6 +184,22 @@ describe('UpgradePaywall — redesigned layout', () => {
         expect(pips).toHaveLength(5);
     });
 
+    it('explains the start window, without a slot meter, when sent here by that refusal', async () => {
+        const component = await renderPaywall(buildProps({
+            route: { params: { reason: 'habit-start-limit-reached', limit: 3, startLimit: 5, startWindowDays: 30 } },
+        }));
+        const lines = getTextLines(component);
+
+        expect(lines).toContain("You've started a lot of habits lately");
+        expect(lines).toContain(
+            'Free accounts start 5 new habits every 30 days. Unlock everything for life to start as many as you like.',
+        );
+        // Slots are free, so a row of full pips would be a lie.
+        expect(lines.some((line) => line.endsWith('free slots in use'))).toBe(false);
+        // The offer itself is unchanged.
+        expect(lines).toContain('Unlock for life · $19.99');
+    });
+
     it('drops the founder CTA but keeps the card when the offer is sold out, and promotes monthly', async () => {
         const soldOut = {
             ...LIFETIME_OFFER, claimed: 5000, remaining: 0, isSoldOut: true,
