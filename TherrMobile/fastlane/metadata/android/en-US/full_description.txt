@@ -1,38 +1,37 @@
-Friends with Habits is the habit tracker that actually works — because your
-friend is in it with you.
+Friends with Habits is a habit tracker built around an accountability partner. Every habit is a pact with a friend: you both check in, and you both see it when someone misses.
 
-Most habit apps let you give up in private. Friends with Habits doesn't.
-Every habit you create is a "pact" with a partner. You check in. They check
-in. You both keep the streak alive — together.
+Most habit trackers are built for one person, which makes quitting quietly easy. Here, somebody notices.
 
-Why it works
-• 95% of people who track habits with a partner stick with them.
-• Without a partner, only 10% do.
-• Solo apps can't bridge that gap. We make accountability the default.
+HOW A PACT WORKS
+1. Pick a habit — a workout, reading, meditation, a language lesson — and how often: every day, a few times a week, or on set days.
+2. Invite a friend to be your habit buddy. If they don't have the app yet, your invite link walks them through it.
+3. Check in with a photo or a short note as proof. Your partner sees your check-in, and you see theirs.
+4. Keep the streak alive together. The streak is shared, so a missed day costs you both.
 
-How it works
-1. Create a pact — pick a habit (workout, reading, meditation, anything daily)
-2. Invite a friend — they join your pact and become your accountability partner
-3. Check in every day — add a photo or quick note as proof
-4. Watch the streak grow — and keep each other honest
+BEFORE YOU INSTALL
+• Friends with Habits is built for two. Your first habit starts with an invite, so have someone in mind — a friend, partner, sibling or coworker.
+• You'll verify your phone number when you sign up.
+• Invite three friends and you can also track habits on your own.
 
-Free tier
-• 1 active pact at a time
-• Daily photo + note check-ins
-• Streak tracking
-• Partner activity feed
-• Push reminders
+WHAT'S FREE
+Friends with Habits is free to download and free to use: no waitlist, no invite code, no card. A free account keeps a limited number of habits active at a time, and archiving a habit you're finished with frees up a slot.
 
-Premium ($6.99/month) — coming soon
-• Unlimited pacts
-• Video proof
-• Custom consequences
-• Health app integrations
-• Advanced insights
+FOUNDING MEMBER OFFER
+The first 5,000 accounts can pay $19.99 once to unlock unlimited habits and every premium feature we add later, for life. It's not a subscription and there's nothing to cancel. You buy it inside the app through Google Play.
 
-Built on the Therr platform. Your account works across the Therr family of
-apps. We don't need your location, your contacts, or your microphone — just
-you, your habit, and your friend.
+WHAT'S INSIDE
+• Pacts with your accountability partner, for daily or weekly habits
+• Photo and note check-ins as proof
+• Shared streaks with milestones to aim for
+• Daily habit reminders and evening streak reminders
+• Nudges: remind a partner who hasn't checked in yet
+• A journal alongside your habits
+• A feed of check-ins people choose to share
 
-Start a pact today. The first one is free, and the only thing you need is
-one friend who wants to change something too.
+YOUR PRIVACY
+• No location tracking and no microphone access.
+• Your phone number verifies your account and lets friends who already have your number find you.
+• Finding friends from your contacts is optional. If you allow it, their phone numbers and emails are checked against existing accounts to show you who's already here. We don't keep your address book, and we don't message anyone in it unless you choose to invite them.
+• You can delete your account at any time from Settings.
+
+Make your first pact tonight. All you need is one friend who wants to change something too.
