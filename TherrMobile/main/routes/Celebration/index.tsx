@@ -19,6 +19,7 @@ import { IHabitsLifetimeOffer, IUserState } from 'therr-react/types';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { shouldShowFounderCta } from '../../components/Habits/founderCtaState';
 import getConfig from '../../utilities/getConfig';
+import getBrandInitialRouteName from '../../utilities/brandLandingRoute';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import WeekStrip from '../../components/Celebrations/WeekStrip';
 import { PlacementHero, StreakHero } from '../../components/Celebrations/CelebrationHero';
@@ -83,8 +84,9 @@ export const Celebration = ({
     const celebration: ICelebration = route.params;
     const [isReduceMotionEnabled, setIsReduceMotionEnabled] = useState(false);
     // The dismiss path is reachable from two buttons and the hardware back button; a ref rather
-    // than state because the guard has to hold within a single tick, before a re-render.
-    const hasDismissedRef = useRef(false);
+    // than state because the guard has to hold within a single tick, before a re-render. It
+    // guards the server write only — never the exit itself (see `dismiss`).
+    const hasAcknowledgedRef = useRef(false);
     const scaleAnim = useRef(new Animated.Value(0.6)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -186,32 +188,56 @@ export const Celebration = ({
      * request must not leave the queue believing it is still owed and re-showing it. The queue
      * is released in the unmount effect below rather than here, so the next celebration cannot
      * mount before this one is actually gone.
+     *
+     * The exit is deliberately NOT behind a one-shot latch. It used to be: the first press set a
+     * flag and then called `goBack()`, and if that pop did not happen — `goBack` is a silent no-op
+     * when this screen is the root of the stack, and a throw from the write skipped it entirely —
+     * every later press of Continue *and* the hardware back returned early on the flag. The user
+     * was left on a screen with no working way out until they killed the app. Now a press is only
+     * ignored once the screen has actually lost focus (the pop landed and it is animating out, so
+     * a second tap must not pop the screen underneath too).
      */
     const dismiss = useCallback((exit?: ICelebrationExit) => {
-        if (hasDismissedRef.current) {
+        if (hasAcknowledgedRef.current && !navigation.isFocused()) {
             return;
         }
-        hasDismissedRef.current = true;
 
-        if (celebration.type === 'streak') {
-            // The device zone rides along, as it does on the fetch: the server clamps `date` to
-            // the user's local today and needs the zone to know which day that is when the
-            // account has none saved.
-            markDailyStreakCelebrated(
-                celebration.date,
-                Intl.DateTimeFormat().resolvedOptions().timeZone,
-            )?.catch?.(() => {});
-        } else {
-            acknowledgePlacement(celebration.periodId)?.catch?.(() => {});
+        if (!hasAcknowledgedRef.current) {
+            hasAcknowledgedRef.current = true;
+            try {
+                if (celebration.type === 'streak') {
+                    // The device zone rides along, as it does on the fetch: the server clamps
+                    // `date` to the user's local today and needs the zone to know which day that
+                    // is when the account has none saved.
+                    markDailyStreakCelebrated(
+                        celebration.date,
+                        Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    )?.catch?.(() => {});
+                } else {
+                    acknowledgePlacement(celebration.periodId)?.catch?.(() => {});
+                }
+            } catch {
+                // Best-effort, like the rejected-promise case above: nothing about recording the
+                // dismissal may keep the user on this screen.
+            }
         }
 
-        navigation.goBack();
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+        } else {
+            // Nothing beneath to return to (the stack was reset under the queue). Land on the
+            // brand's home rather than leaving the user here.
+            navigation.reset({
+                index: 0,
+                routes: [{ name: getBrandInitialRouteName(user) || 'HabitsDashboard' }],
+            });
+        }
         if (exit === 'leaderboard') {
             navigation.navigate('Leaderboard');
         } else if (exit === 'paywall') {
             navigation.navigate('UpgradePaywall', { source: 'celebration-milestone' });
         }
-    }, [celebration, markDailyStreakCelebrated, acknowledgePlacement, navigation]);
+    }, [celebration, markDailyStreakCelebrated, acknowledgePlacement, navigation, user]);
 
     // Hardware back must count as a dismissal, or the server is never told and the same screen
     // returns on the next foreground.
