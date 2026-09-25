@@ -44,13 +44,22 @@ describe('wizard step transitions', () => {
     const solo = { isSoloMode: true, canCreateSolo: true };
     const lockedSolo = { isSoloMode: true, canCreateSolo: false };
 
-    it('walks 1 → 2 → 3 in the normal pact flow', () => {
-        expect(getNextStep(1, pact)).toBe(2);
-        expect(getNextStep(2, pact)).toBe(3);
+    it('walks pick → configure → partners → review in the normal pact flow', () => {
+        expect(getNextStep('pick', pact)).toBe('configure');
+        expect(getNextStep('configure', pact)).toBe('partners');
+        expect(getNextStep('partners', pact)).toBe('review');
+    });
+
+    it('always passes through configure, even for a solo entry', () => {
+        // Configure is where the cadence and savings target are chosen. Skipping it would
+        // bring back the original problem — a habit created without the user ever seeing
+        // that its schedule could be changed.
+        expect(getNextStep('pick', solo)).toBe('configure');
+        expect(getNextStep('pick', lockedSolo)).toBe('configure');
     });
 
     it('skips the partner step for an unlocked solo entry', () => {
-        expect(getNextStep(1, solo)).toBe(3);
+        expect(getNextStep('configure', solo)).toBe('review');
     });
 
     it('ignores solo mode while still locked', () => {
@@ -58,30 +67,35 @@ describe('wizard step transitions', () => {
         // a way around the lock. A stale deep link or an affordance rendered
         // before eligibility loaded must fall back to the partner step rather
         // than delivering them to a review they cannot submit.
-        expect(getNextStep(1, lockedSolo)).toBe(2);
+        expect(getNextStep('configure', lockedSolo)).toBe('partners');
     });
 
     it('leaves the wizard when going back from the first step', () => {
-        expect(getBackTarget(1, pact)).toBe('exit');
-        expect(getBackTarget(1, solo)).toBe('exit');
+        expect(getBackTarget('pick', pact)).toBe('exit');
+        expect(getBackTarget('pick', solo)).toBe('exit');
+    });
+
+    it('returns from configure to the habit list', () => {
+        expect(getBackTarget('configure', pact)).toBe('pick');
+        expect(getBackTarget('configure', solo)).toBe('pick');
     });
 
     it('steps back through the partner step in the pact flow', () => {
-        expect(getBackTarget(3, pact)).toBe(2);
-        expect(getBackTarget(3, unlockedPact)).toBe(2);
-        expect(getBackTarget(2, pact)).toBe(1);
+        expect(getBackTarget('review', pact)).toBe('partners');
+        expect(getBackTarget('review', unlockedPact)).toBe('partners');
+        expect(getBackTarget('partners', pact)).toBe('configure');
     });
 
     it('skips back over the partner step for an unlocked solo entry', () => {
-        // Symmetry with the forward skip. Landing on step 2 going backwards
+        // Symmetry with the forward skip. Landing on the partner step going backwards
         // would strand the user on the picker they deliberately bypassed.
-        expect(getBackTarget(3, solo)).toBe(1);
+        expect(getBackTarget('review', solo)).toBe('configure');
     });
 
     it('steps back into the partner step when solo mode was ignored', () => {
         // It was rendered on the way forward, so it must be there on the way
         // back — otherwise back-then-next silently loops.
-        expect(getBackTarget(3, lockedSolo)).toBe(2);
+        expect(getBackTarget('review', lockedSolo)).toBe('partners');
     });
 });
 
