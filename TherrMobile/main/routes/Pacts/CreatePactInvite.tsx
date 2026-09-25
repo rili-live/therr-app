@@ -9,6 +9,7 @@ import {
     Share,
     LayoutChangeEvent,
 } from 'react-native';
+import { Switch } from 'react-native-paper';
 import { SafeAreaView, SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView, KeyboardStickyView, useKeyboardState } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
@@ -108,6 +109,12 @@ interface ICreatePactInviteProps extends IStoreProps {
 interface ICreatePactInviteState {
     step: Step;
     selectedTemplateId: string | null;
+    /**
+     * The user chose "Create your own" on the pick step. Tracked apart from
+     * `customHabitName` because the choice comes before the name: the configure
+     * view is where they type it.
+     */
+    isCustomHabit: boolean;
     /** The template tab being browsed — see `habitTemplates.ts`. Browsing never clears a selection. */
     templateCategory: string;
     customHabitName: string;
@@ -231,8 +238,9 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         super(props);
 
         this.state = {
-            step: 1,
+            step: 'pick',
             selectedTemplateId: null,
+            isCustomHabit: false,
             templateCategory: POPULAR_CATEGORY,
             cadence: DAILY_CADENCE,
             customHabitName: '',
@@ -258,7 +266,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
 
     componentDidMount() {
         this.props.navigation.setOptions({
-            title: this.getStepTitle(1),
+            title: this.getStepTitle('pick'),
         });
 
         if (!this.props.habits.templates?.length) {
@@ -308,11 +316,19 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     isSoloReview = (): boolean => isSoloReview(this.state.selectedPartnerIds.length);
 
     getStepTitle = (step: Step): string => {
-        if (step === 3 && this.isSoloReview()) {
-            return this.translate('pages.pacts.wizard.soloReviewTitle');
+        switch (step) {
+            case 'pick':
+                return this.translate('pages.pacts.wizard.step1Title');
+            case 'configure':
+                return this.translate('pages.pacts.wizard.configureTitle');
+            case 'partners':
+                return this.translate('pages.pacts.wizard.step2Title');
+            case 'review':
+            default:
+                return this.isSoloReview()
+                    ? this.translate('pages.pacts.wizard.soloReviewTitle')
+                    : this.translate('pages.pacts.wizard.step3Title');
         }
-
-        return this.translate(`pages.pacts.wizard.step${step}Title`);
     };
 
     setStep = (step: Step) => {
@@ -320,25 +336,55 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             title: this.getStepTitle(step),
         });
         this.setState({ step });
-        if (step === 2) {
+        if (step === 'partners') {
             // Fetch a default browse list (no query) so the user has people to
             // pick from immediately, including non-friends.
             this.runUserSearch('');
         }
     };
 
+    /**
+     * Choosing a template goes straight on to the configure view — the tap is the
+     * decision, so a separate Next would only be a second tap for the same thing.
+     *
+     * Re-choosing the template already selected (back, then the same card) keeps
+     * whatever the user changed on the configure view rather than resetting it to
+     * the template's defaults.
+     */
     selectTemplate = (templateId: string) => {
+        if (templateId === this.state.selectedTemplateId && !this.state.isCustomHabit) {
+            this.setStep('configure');
+            return;
+        }
+
         const template = this.props.habits.templates?.find((t) => t.id === templateId);
 
         this.setState({
             selectedTemplateId: templateId,
-            customHabitName: '',
+            isCustomHabit: false,
             // A template proposes a cadence; the user can still change it before the goal is
             // cloned. `cadenceFromGoal` is the one place the server's precedence is mirrored,
             // so a template carrying fixed weekdays opens on the weekday control rather than
             // on whatever `frequencyType` happens to say.
             cadence: template ? cadenceFromGoal(template) : DAILY_CADENCE,
         });
+        this.setStep('configure');
+    };
+
+    /**
+     * "Create your own" — the configure view, with a name field in place of the
+     * template card. A name already typed is kept, so going back to look at the
+     * templates and returning does not lose it.
+     */
+    startCustomHabit = () => {
+        this.setState((prev) => ({
+            selectedTemplateId: null,
+            isCustomHabit: true,
+            // A template's schedule is not the custom habit's. Only reset when switching
+            // over from a template, so a custom cadence survives a look at the list.
+            cadence: prev.isCustomHabit ? prev.cadence : DAILY_CADENCE,
+        }));
+        this.setStep('configure');
     };
 
     setCadence = (cadence: CadenceChoice) => {
@@ -365,7 +411,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     };
 
     setCustomName = (text: string) => {
-        this.setState({ customHabitName: text, selectedTemplateId: null });
+        this.setState({ customHabitName: text, selectedTemplateId: null, isCustomHabit: true });
     };
 
     runUserSearch = (query: string) => {
@@ -416,7 +462,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         });
     };
 
-    canAdvanceFromStep1 = (): boolean => Boolean(
+    canAdvanceFromConfigure = (): boolean => Boolean(
         (this.state.selectedTemplateId || this.state.customHabitName.trim().length > 0)
         && isCadenceComplete(this.state.cadence)
         && !this.hasInvalidSavingsTarget(),
@@ -433,7 +479,11 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
 
     handleNext = () => {
         const { step } = this.state;
-        if (step === 1) {
+        if (step === 'pick' && !this.state.selectedTemplateId && !this.state.isCustomHabit) {
+            Toast.show({ type: 'info', text1: this.translate('pages.pacts.wizard.pickTemplateFirst') });
+            return;
+        }
+        if (step === 'configure') {
             if (this.hasInvalidSavingsTarget()) {
                 // The field is already showing why inline; the toast only explains the
                 // button that did nothing.
@@ -444,12 +494,12 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 });
                 return;
             }
-            if (!this.canAdvanceFromStep1()) {
-                // Two ways to be incomplete here, and they need different sentences: no habit
-                // chosen, or "specific days" chosen with no days ticked. The second would
-                // otherwise be told to pick a habit they have already picked.
+            if (!this.canAdvanceFromConfigure()) {
+                // Two ways to be incomplete here, and they need different sentences: a custom
+                // habit with no name yet, or "specific days" chosen with no days ticked. The
+                // second would otherwise be told to name a habit they have already named.
                 const message = isCadenceComplete(this.state.cadence)
-                    ? this.translate('pages.pacts.wizard.pickTemplateFirst')
+                    ? this.translate('pages.pacts.wizard.customHabitNameRequired')
                     : this.translate('pages.habits.cadence.pickAtLeastOneDay');
                 Toast.show({ type: 'info', text1: message });
                 return;
@@ -459,7 +509,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             }
         }
 
-        if (step === 2 && !canAdvanceFromPartnerStep(
+        if (step === 'partners' && !canAdvanceFromPartnerStep(
             this.state.selectedPartnerIds.length,
             this.getSoloProgress().isUnlocked,
         )) {
@@ -514,7 +564,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     };
 
     /**
-     * Resolve the habit the user composed in step 1 into a real habit goal.
+     * Resolve the habit the user composed on the pick and configure views into a real habit goal.
      *
      * Shared by the pact path and the solo path so the two cannot drift on how
      * a template is cloned — cloning matters because per-user stats (streaks,
@@ -990,56 +1040,69 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         ];
 
         return (
-            <View style={{ paddingHorizontal: 10, marginTop: 20 }}>
-                <Text style={[this.themeHabits.styles.habitCardSubtitle, { fontWeight: '600', paddingHorizontal: 10 }]}>
+            <View style={this.themeHabits.styles.cadenceSection}>
+                <Text style={[this.themeHabits.styles.cadenceSectionLabel, { marginTop: 8 }]}>
                     {this.translate('pages.pacts.wizard.savingsSectionTitle')}
                 </Text>
-                <SavingsAmountInput
-                    value={savingsTargetText}
-                    onChangeText={(text) => this.setState({ savingsTargetText: text })}
-                    onValueChange={(amount) => this.setState({ savingsTargetAmount: amount })}
-                    currencyCode={this.getSavingsCurrencyCode()}
-                    label={this.translate('pages.pacts.wizard.savingsTargetLabel')}
-                    hint={this.translate('pages.pacts.wizard.savingsTargetHint')}
-                    translate={this.translate}
-                    colors={this.theme.colors}
-                />
-                {scopeOptions.map((option) => {
-                    const isSelected = savingsTargetScope === option.value;
+                <View style={{ marginHorizontal: -10 }}>
+                    <SavingsAmountInput
+                        value={savingsTargetText}
+                        onChangeText={(text) => this.setState({ savingsTargetText: text })}
+                        onValueChange={(amount) => this.setState({ savingsTargetAmount: amount })}
+                        currencyCode={this.getSavingsCurrencyCode()}
+                        label={this.translate('pages.pacts.wizard.savingsTargetLabel')}
+                        hint={this.translate('pages.pacts.wizard.savingsTargetHint')}
+                        translate={this.translate}
+                        colors={this.theme.colors}
+                    />
+                </View>
+                <View accessibilityRole="radiogroup">
+                    {scopeOptions.map((option) => {
+                        const isSelected = savingsTargetScope === option.value;
 
-                    return (
-                        <Pressable
-                            key={option.value}
-                            onPress={() => this.setState({ savingsTargetScope: option.value })}
-                            accessibilityRole="radio"
-                            accessibilityState={{ selected: isSelected }}
-                            style={{
-                                flexDirection: 'row',
-                                alignItems: 'flex-start',
-                                gap: 10,
-                                paddingHorizontal: 10,
-                                paddingVertical: 8,
-                            }}
-                        >
-                            <Text style={{ fontSize: 18 }}>{isSelected ? '🔘' : '⚪'}</Text>
-                            <View style={{ flex: 1 }}>
-                                <Text style={[this.themeHabits.styles.habitCardTitle, { fontSize: 15 }]}>
-                                    {this.translate(option.labelKey)}
-                                </Text>
-                                <Text style={this.themeHabits.styles.habitCardSubtitle}>
-                                    {this.translate(option.hintKey)}
-                                </Text>
-                            </View>
-                        </Pressable>
-                    );
-                })}
+                        return (
+                            <Pressable
+                                key={option.value}
+                                onPress={() => this.setState({ savingsTargetScope: option.value })}
+                                accessibilityRole="radio"
+                                accessibilityState={{ selected: isSelected }}
+                                style={[
+                                    this.themeHabits.styles.choiceCard,
+                                    isSelected && this.themeHabits.styles.choiceCardSelected,
+                                ]}
+                            >
+                                <View
+                                    style={[
+                                        this.themeHabits.styles.choiceRadio,
+                                        isSelected && this.themeHabits.styles.choiceRadioSelected,
+                                    ]}
+                                >
+                                    {isSelected && <View style={this.themeHabits.styles.choiceRadioDot} />}
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text
+                                        style={[
+                                            this.themeHabits.styles.choiceCardLabel,
+                                            isSelected && this.themeHabits.styles.cadenceOptionTextSelected,
+                                        ]}
+                                    >
+                                        {this.translate(option.labelKey)}
+                                    </Text>
+                                    <Text style={this.themeHabits.styles.habitCardSubtitle}>
+                                        {this.translate(option.hintKey)}
+                                    </Text>
+                                </View>
+                            </Pressable>
+                        );
+                    })}
+                </View>
             </View>
         );
     };
 
     /**
      * The free-tier cap, stated before the user builds a habit they cannot start
-     * (#2922). Shown on step 1, before any work is put in, and again on step 3,
+     * (#2922). Shown on the pick view, before any work is put in, and again on the review,
      * right above the create button. It offers two ways out side by side.
      * Archiving comes first because it is free and loses nothing: check-ins,
      * streaks and journal entries all stay. The upgrade button only shows when
@@ -1100,10 +1163,54 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         );
     };
 
-    renderStep1 = () => {
+    /** A template, or the "Create your own" entry, as a row on the pick view. */
+    renderPickRow = ({
+        key, emoji, title, subtitle, isSelected, onPress, accessibilityHint,
+    }: {
+        key: string;
+        emoji: string;
+        title: string;
+        subtitle?: string;
+        isSelected: boolean;
+        onPress: () => void;
+        accessibilityHint?: string;
+    }) => (
+        <Pressable
+            key={key}
+            onPress={onPress}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isSelected }}
+            accessibilityHint={accessibilityHint}
+            style={[
+                this.themeHabits.styles.habitCardContainer,
+                isSelected && this.themeHabits.styles.habitPickRowSelected,
+            ]}
+        >
+            <View style={[this.themeHabits.styles.habitCardHeader, { marginBottom: 0 }]}>
+                <View style={this.themeHabits.styles.habitCardEmojiContainer}>
+                    <Text style={this.themeHabits.styles.habitCardEmojiContained}>{emoji}</Text>
+                </View>
+                <View style={this.themeHabits.styles.habitCardTitleContainer}>
+                    <Text style={this.themeHabits.styles.habitCardTitle}>{title}</Text>
+                    {!!subtitle && (
+                        <Text style={this.themeHabits.styles.habitCardSubtitle}>{subtitle}</Text>
+                    )}
+                </View>
+                {/* A chevron rather than a checkmark: the row opens the next view, it does not toggle. */}
+                <Text style={this.themeHabits.styles.habitPickRowChevron}>{'›'}</Text>
+            </View>
+        </Pressable>
+    );
+
+    /**
+     * What the habit is — nothing else. Every setting lives on the configure view,
+     * which a tap on any row opens, so there is no longer a form below the fold for
+     * the user to scroll past without noticing.
+     */
+    renderPickStep = () => {
         const { habits } = this.props;
         const {
-            selectedTemplateId, customHabitName, isLoadingTemplates, cadence, isSavingsHabit, templateCategory,
+            selectedTemplateId, isCustomHabit, customHabitName, isLoadingTemplates, templateCategory,
         } = this.state;
         const templates = habits.templates || [];
         const showCategories = templates.length > MIN_TEMPLATES_FOR_CATEGORIES;
@@ -1112,6 +1219,8 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         // rather than an empty list.
         const activeCategory = categories.includes(templateCategory) ? templateCategory : POPULAR_CATEGORY;
         const visibleTemplates = showCategories ? getTemplatesForCategory(templates, activeCategory) : templates;
+        const customDraftName = customHabitName.trim();
+        const customizeHint = this.translate('pages.pacts.wizard.pickRowHint');
 
         return (
             <View>
@@ -1168,73 +1277,153 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 )}
 
                 {visibleTemplates.map((t: IHabitGoal) => {
-                    const isSelected = selectedTemplateId === t.id;
                     const { name, description } = localizeTemplate(t, this.translate);
-                    return (
-                        <Pressable
-                            key={t.id}
-                            onPress={() => this.selectTemplate(t.id)}
-                            style={[
-                                this.themeHabits.styles.habitCardContainer,
-                                isSelected && { borderWidth: 2, borderColor: this.theme.colors.primary3 },
-                            ]}
-                        >
-                            <View style={this.themeHabits.styles.habitCardHeader}>
-                                <Text style={this.themeHabits.styles.habitCardEmoji}>
-                                    {t.emoji || this.translate('pages.pacts.wizard.habitDefaultEmoji')}
-                                </Text>
-                                <View style={this.themeHabits.styles.habitCardTitleContainer}>
-                                    <Text style={this.themeHabits.styles.habitCardTitle}>{name}</Text>
-                                    {!!description && (
-                                        <Text style={this.themeHabits.styles.habitCardSubtitle}>{description}</Text>
-                                    )}
-                                </View>
-                                {isSelected && <Text style={{ fontSize: 20 }}>{'✅'}</Text>}
-                            </View>
-                        </Pressable>
-                    );
+                    return this.renderPickRow({
+                        key: t.id,
+                        emoji: t.emoji || this.translate('pages.pacts.wizard.habitDefaultEmoji'),
+                        title: name,
+                        subtitle: description,
+                        isSelected: !isCustomHabit && selectedTemplateId === t.id,
+                        onPress: () => this.selectTemplate(t.id),
+                        accessibilityHint: customizeHint,
+                    });
                 })}
 
-                <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
-                    <Text style={[this.themeHabits.styles.habitCardSubtitle, { fontWeight: '600' }]}>
-                        {this.translate('pages.pacts.wizard.customHabitLabel')}
-                    </Text>
-                    <TextInput
-                        value={customHabitName}
-                        onChangeText={this.setCustomName}
-                        placeholder={this.translate('pages.pacts.wizard.customHabitNamePlaceholder')}
-                        style={{
-                            borderWidth: 1,
-                            borderColor: this.theme.colorVariations.textGrayFade || '#ccc',
-                            borderRadius: 8,
-                            padding: 12,
-                            marginTop: 8,
-                            color: this.theme.colors.accentTextBlack,
-                        }}
-                        placeholderTextColor={this.theme.colors.textGray}
-                    />
-                    {!selectedTemplateId && customHabitName.trim().length > 0 ? (
-                        // Offered only on the custom path. A template already declares its
-                        // own `goalType`, and letting the toggle override it would let a
-                        // user turn "Read 20 pages" into a savings habit by accident.
+                {!isLoadingTemplates && (
+                    <>
+                        <Text style={[this.themeHabits.styles.cadenceSectionLabel, { paddingHorizontal: 20, marginTop: 16 }]}>
+                            {this.translate('pages.pacts.wizard.customHabitLabel')}
+                        </Text>
+                        {this.renderPickRow({
+                            key: 'custom',
+                            emoji: '✏️',
+                            // A name typed earlier is shown back, so the row reads as "your draft"
+                            // rather than as a fresh start that would discard it.
+                            title: isCustomHabit && customDraftName
+                                ? customDraftName
+                                : this.translate('pages.pacts.wizard.customHabitRowTitle'),
+                            subtitle: this.translate('pages.pacts.wizard.customHabitRowSubtitle'),
+                            isSelected: isCustomHabit,
+                            onPress: this.startCustomHabit,
+                            accessibilityHint: customizeHint,
+                        })}
+                    </>
+                )}
+            </View>
+        );
+    };
+
+    /**
+     * The habit chosen on the pick view, at the top of the configure view: the
+     * template's card with a way back to change it, or the name field for a custom
+     * habit.
+     */
+    renderConfigureHabitCard = () => {
+        const { habits } = this.props;
+        const { selectedTemplateId, customHabitName, isSavingsHabit } = this.state;
+        const template = selectedTemplateId
+            ? habits.templates?.find((t) => t.id === selectedTemplateId)
+            : undefined;
+
+        if (template) {
+            const { name, description } = localizeTemplate(template, this.translate);
+
+            return (
+                <View style={this.themeHabits.styles.habitCardContainer}>
+                    <View style={[this.themeHabits.styles.habitCardHeader, { marginBottom: 0 }]}>
+                        <View style={this.themeHabits.styles.habitCardEmojiContainer}>
+                            <Text style={this.themeHabits.styles.habitCardEmojiContained}>
+                                {template.emoji || this.translate('pages.pacts.wizard.habitDefaultEmoji')}
+                            </Text>
+                        </View>
+                        <View style={this.themeHabits.styles.habitCardTitleContainer}>
+                            <Text style={this.themeHabits.styles.habitCardTitle}>{name}</Text>
+                            {!!description && (
+                                <Text style={this.themeHabits.styles.habitCardSubtitle}>{description}</Text>
+                            )}
+                        </View>
                         <Pressable
-                            onPress={() => this.setState({ isSavingsHabit: !isSavingsHabit })}
-                            accessibilityRole="checkbox"
-                            accessibilityState={{ checked: isSavingsHabit }}
-                            style={{
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                gap: 10,
-                                marginTop: 14,
-                            }}
+                            onPress={this.handleBack}
+                            accessibilityRole="button"
+                            accessibilityLabel={this.translate('pages.pacts.wizard.changeHabitAccessibility')}
+                            style={this.themeHabits.styles.cadenceRowEditButton}
                         >
-                            <Text style={{ fontSize: 18 }}>{isSavingsHabit ? '☑️' : '⬜'}</Text>
-                            <Text style={[this.themeHabits.styles.habitCardSubtitle, { flex: 1 }]}>
-                                {this.translate('pages.pacts.wizard.savingsToggleLabel')}
+                            <Text style={this.themeHabits.styles.cadenceRowEditText}>
+                                {this.translate('pages.pacts.wizard.changeHabit')}
                             </Text>
                         </Pressable>
-                    ) : null}
+                    </View>
                 </View>
+            );
+        }
+
+        return (
+            <View style={this.themeHabits.styles.cadenceSection}>
+                <Text style={this.themeHabits.styles.cadenceSectionLabel}>
+                    {this.translate('pages.pacts.wizard.customHabitNameLabel')}
+                </Text>
+                <TextInput
+                    value={customHabitName}
+                    onChangeText={this.setCustomName}
+                    placeholder={this.translate('pages.pacts.wizard.customHabitNamePlaceholder')}
+                    // Opening "Create your own" is a request to type, so the keyboard comes
+                    // with it — but not when returning to a name already written.
+                    autoFocus={!customHabitName}
+                    returnKeyType="done"
+                    maxLength={100}
+                    accessibilityLabel={this.translate('pages.pacts.wizard.customHabitNameLabel')}
+                    style={this.themeHabits.styles.wizardTextInput}
+                    placeholderTextColor={this.theme.colors.textGray}
+                />
+                {/*
+                  * Offered only on the custom path. A template already declares its own
+                  * `goalType`, and letting the toggle override it would let a user turn
+                  * "Read 20 pages" into a savings habit by accident.
+                  */}
+                <Pressable
+                    onPress={() => this.setState({ isSavingsHabit: !isSavingsHabit })}
+                    accessibilityRole="switch"
+                    accessibilityState={{ checked: isSavingsHabit }}
+                    style={[
+                        this.themeHabits.styles.choiceCard,
+                        { alignItems: 'center', marginTop: 12 },
+                        isSavingsHabit && this.themeHabits.styles.choiceCardSelected,
+                    ]}
+                >
+                    <Text style={[this.themeHabits.styles.choiceCardLabel, { flex: 1 }]}>
+                        {this.translate('pages.pacts.wizard.savingsToggleLabel')}
+                    </Text>
+                    {/* The whole row is the control for screen readers; the switch is its visual. */}
+                    <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+                        <Switch
+                            value={isSavingsHabit}
+                            onValueChange={(value) => this.setState({ isSavingsHabit: value })}
+                            color={this.theme.colors.brand}
+                        />
+                    </View>
+                </Pressable>
+            </View>
+        );
+    };
+
+    /**
+     * Everything that makes the habit the user's own, on a view of its own. Opened
+     * with the template's defaults already filled in, so the common case is a glance
+     * and Next — but the choices are the first thing on the screen rather than
+     * something discovered by scrolling past the template list.
+     */
+    renderConfigureStep = () => {
+        const { cadence } = this.state;
+
+        return (
+            <View>
+                <Text style={[this.themeHabits.styles.dashboardSubtitle, { paddingHorizontal: 20 }]}>
+                    {this.translate(this.state.isCustomHabit
+                        ? 'pages.pacts.wizard.configureSubtitleCustom'
+                        : 'pages.pacts.wizard.configureSubtitle')}
+                </Text>
+
+                {this.renderConfigureHabitCard()}
 
                 <CadencePicker
                     value={cadence}
@@ -1517,16 +1706,17 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
 
     renderStepContent = () => {
         switch (this.state.step) {
-            case 1: return this.renderStep1();
-            case 2: return this.renderStep2();
-            case 3:
+            case 'pick': return this.renderPickStep();
+            case 'configure': return this.renderConfigureStep();
+            case 'partners': return this.renderStep2();
+            case 'review':
             default: return this.renderStep3();
         }
     };
 
     renderFooter = () => {
         const { step, isSending, isStartingSolo, selectedPartnerIds } = this.state;
-        const isFinalStep = step === 3;
+        const isFinalStep = step === 'review';
         // With nobody selected the final action starts a personal habit rather
         // than sending invites, so the label and the handler move together —
         // a "Send invite" button that sends none reads as a broken button.
@@ -1564,7 +1754,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                                 style={{ paddingVertical: 12, paddingHorizontal: 16 }}
                             >
                                 <Text style={this.themeButtons.styles.btnTitleBlack}>
-                                    {step === 1
+                                    {step === 'pick'
                                         ? this.translate('pages.pacts.wizard.cancel')
                                         : this.translate('pages.pacts.wizard.back')}
                                 </Text>
@@ -1609,7 +1799,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                             const bottomInset = insets?.bottom ?? bottomSafeAreaInset;
                             return (
                                 /* `bottomOffset` keeps the focused input (the custom-habit
-                                 * name on step 1, the people search on step 2) clear of the
+                                 * name on the configure view, the people search on the partner step) clear of the
                                  * action bar that sticks to the top of the keyboard. */
                                 <KeyboardAwareScrollView
                                     bottomOffset={footerHeight}

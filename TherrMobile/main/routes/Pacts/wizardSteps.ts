@@ -13,7 +13,14 @@
  * refusing to continue.
  */
 
-export type WizardStep = 1 | 2 | 3;
+/**
+ * `pick` chooses what the habit is; `configure` is where it is made the user's own (name,
+ * cadence, savings target). They used to be one screen, and everything after the template list
+ * sat below the fold — most people picked a habit and tapped Next without ever learning the
+ * schedule could be changed. Splitting them costs no taps: choosing a template advances on its
+ * own, so the configure view's Next replaces the pick view's.
+ */
+export type WizardStep = 'pick' | 'configure' | 'partners' | 'review';
 
 /** `exit` means leave the wizard entirely rather than move to another step. */
 export type WizardBackTarget = WizardStep | 'exit';
@@ -50,28 +57,34 @@ export const getNextStep = (
     step: WizardStep,
     context: IWizardContext,
 ): WizardStep => {
-    if (step === 1) {
-        return isSoloShortcut(context) ? 3 : 2;
+    if (step === 'pick') {
+        return 'configure';
     }
 
-    return 3;
+    if (step === 'configure') {
+        return isSoloShortcut(context) ? 'review' : 'partners';
+    }
+
+    return 'review';
 };
 
 export const getBackTarget = (
     step: WizardStep,
     context: IWizardContext,
 ): WizardBackTarget => {
-    if (step === 1) {
-        return 'exit';
+    switch (step) {
+        case 'pick':
+            return 'exit';
+        case 'configure':
+            return 'pick';
+        case 'partners':
+            return 'configure';
+        case 'review':
+        default:
+            // Solo mode never rendered the partner step, so walking back into it would
+            // strand the user on a picker they deliberately bypassed.
+            return isSoloShortcut(context) ? 'configure' : 'partners';
     }
-
-    // Solo mode never rendered step 2, so walking back into it would strand the
-    // user on a partner picker they deliberately bypassed.
-    if (step === 3 && isSoloShortcut(context)) {
-        return 1;
-    }
-
-    return (step - 1) as WizardStep;
 };
 
 /**

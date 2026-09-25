@@ -646,6 +646,79 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.onBrand,
             fontWeight: fontWeights.semibold,
         },
+        // ── Create-habit wizard: pick + configure views ──────────────────────────────────
+        // The template the user last chose, when they come back to the list. Same weight as a
+        // selected cadence option, so "this is the one you picked" reads the same everywhere.
+        habitPickRowSelected: {
+            borderWidth: 2,
+            borderColor: therrTheme.colors.brand,
+        },
+        habitPickRowChevron: {
+            fontFamily: therrFontFamily,
+            fontSize: 28,
+            lineHeight: 28,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginLeft: space.sm,
+        },
+        wizardTextInput: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            color: therrTheme.colors.onSurface,
+            backgroundColor: therrTheme.colors.surface,
+            borderRadius: radius.md,
+            borderWidth: 1,
+            borderColor: tint(therrTheme.colors.onSurface, 0.24),
+            paddingHorizontal: space.md,
+            paddingVertical: space.sm + 2,
+        },
+        // A labelled choice with a line of explanation under it — the savings scope, the
+        // savings toggle. The cadence option's card, grown to hold two lines of text, so the
+        // configure view's controls all share one shape.
+        choiceCard: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: space.md,
+            backgroundColor: therrTheme.colors.surface,
+            borderRadius: radius.md,
+            borderWidth: 1,
+            borderColor: tint(therrTheme.colors.onSurface, 0.16),
+            paddingHorizontal: space.md,
+            paddingVertical: space.sm + 2,
+            marginBottom: space.xs,
+        },
+        choiceCardSelected: {
+            borderWidth: 2,
+            borderColor: therrTheme.colors.brand,
+            // Offsets the thicker border so the text does not shift by a pixel on selection.
+            paddingHorizontal: space.md - 1,
+            paddingVertical: space.sm + 1,
+        },
+        choiceCardLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            color: therrTheme.colors.onSurface,
+        },
+        // Drawn rather than an emoji. The emoji radio (🔘 / ⚪) rendered in the platform's
+        // grey on every brand and could not follow the theme.
+        choiceRadio: {
+            width: 22,
+            height: 22,
+            borderRadius: 11,
+            borderWidth: 2,
+            borderColor: tint(therrTheme.colors.onSurface, 0.4),
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 1,
+        },
+        choiceRadioSelected: {
+            borderColor: therrTheme.colors.brand,
+        },
+        choiceRadioDot: {
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+            backgroundColor: therrTheme.colors.brand,
+        },
         cadenceHint: {
             fontFamily: therrFontFamily,
             fontSize: fontSizes.xs,
