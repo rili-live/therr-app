@@ -8,6 +8,8 @@ import {
     ScrollView,
     Share,
     LayoutChangeEvent,
+    BackHandler,
+    NativeEventSubscription,
 } from 'react-native';
 import { Switch } from 'react-native-paper';
 import { SafeAreaView, SafeAreaInsetsContext } from 'react-native-safe-area-context';
@@ -230,6 +232,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     private themeButtons = buildButtonStyles();
     private themeHabits = buildHabitStyles();
     private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+    private backHandlerSubscription: NativeEventSubscription | null = null;
     // The goal created for the current step-1 selection, so a retry after a
     // failed invite/start reuses it instead of creating a duplicate.
     private resolvedGoal: { selectionKey: string; habitGoalId: string } | null = null;
@@ -281,9 +284,13 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         // server would refuse the solo call anyway, and the user can still
         // finish the flow the normal way by choosing a partner.
         this.props.getUserHabitEligibility().catch(() => {});
+
+        this.backHandlerSubscription = BackHandler.addEventListener('hardwareBackPress', this.onHardwareBackPress);
     }
 
     componentWillUnmount() {
+        this.backHandlerSubscription?.remove();
+        this.backHandlerSubscription = null;
         if (this.searchDebounceTimer) {
             clearTimeout(this.searchDebounceTimer);
             this.searchDebounceTimer = null;
@@ -536,6 +543,30 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         }
 
         return this.translate('pages.pacts.wizard.pickPartnerFirstLocked', { remaining });
+    };
+
+    /**
+     * Android back walks the wizard back one view, the same as the footer's Back. Without it,
+     * back on the configure view left the whole wizard and lost the habit just chosen — the
+     * configure view reads as a drill-in from the list, so back is the natural way to return.
+     *
+     * Only while this screen is focused: the paywall is pushed on top of a still-mounted wizard,
+     * and its back press must stay its own.
+     */
+    onHardwareBackPress = (): boolean => {
+        const { step, isSending, isStartingSolo } = this.state;
+
+        if (step === 'pick' || !this.props.navigation.isFocused?.()) {
+            return false;
+        }
+
+        // The footer's Back is disabled while a request is in flight; back matches it rather
+        // than leaving the review mid-send.
+        if (!isSending && !isStartingSolo) {
+            this.handleBack();
+        }
+
+        return true;
     };
 
     handleBack = () => {

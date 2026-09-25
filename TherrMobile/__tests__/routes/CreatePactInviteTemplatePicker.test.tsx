@@ -236,4 +236,26 @@ describe('create-pact wizard — pick, then configure', () => {
         expect(instance.state.step).toBe('pick');
         expect(Toast.show).toHaveBeenLastCalledWith({ type: 'info', text1: 'Pick a habit to continue' });
     });
+
+    it('walks Android back from the configure view to the habit list, not out of the wizard', () => {
+        const { instance, props } = buildWizard();
+        props.navigation.isFocused = jest.fn(() => true);
+        instance.selectTemplate('id-workOut');
+
+        expect(instance.onHardwareBackPress()).toBe(true);
+        expect(instance.state.step).toBe('pick');
+        expect(props.navigation.goBack).not.toHaveBeenCalled();
+
+        // On the list, back is the system's again: it leaves the wizard.
+        expect(instance.onHardwareBackPress()).toBe(false);
+    });
+
+    it('leaves Android back alone while another screen sits on top of the wizard', () => {
+        const { instance, props } = buildWizard();
+        props.navigation.isFocused = jest.fn(() => false);
+        instance.selectTemplate('id-workOut');
+
+        expect(instance.onHardwareBackPress()).toBe(false);
+        expect(instance.state.step).toBe('configure');
+    });
 });
