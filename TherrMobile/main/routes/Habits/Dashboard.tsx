@@ -1206,7 +1206,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 style={this.themeHabits.styles.dashboardSection}
             >
                 <Text style={this.themeHabits.styles.dashboardSectionTitle}>{title}</Text>
-                <Text style={this.themeHabits.styles.dashboardSubtitle}>{body}</Text>
+                <Text style={this.themeHabits.styles.dashboardSectionBody}>{body}</Text>
             </Pressable>
         );
     };
