@@ -1342,6 +1342,16 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         dashboardSection: {
             marginTop: space.lg,
         },
+        // Body line under a dashboardSectionTitle. dashboardSubtitle has no
+        // horizontal inset (the greeting header pads it), so reusing it here
+        // ran the text flush against both screen edges.
+        dashboardSectionBody: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            lineHeight: fontSizes.sm * lineHeights.normal,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginHorizontal: space.lg,
+        },
         dashboardSectionTitle: {
             fontFamily: therrFontFamily,
             fontSize: fontSizes.sm,
