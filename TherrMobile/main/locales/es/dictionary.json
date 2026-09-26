@@ -2228,8 +2228,6 @@
                 "unknownMember": "Un compañero"
             },
             "widget": {
-                "friendsThisWeek": "Amigos esta semana",
-                "everyoneThisWeek": "Todos esta semana",
                 "amongFriends": "entre amigos",
                 "overall": "en general",
                 "habitsDone": "{done}/{total} hábitos",

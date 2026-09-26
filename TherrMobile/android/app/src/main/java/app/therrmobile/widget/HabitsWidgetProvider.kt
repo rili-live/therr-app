@@ -22,7 +22,7 @@ import kotlin.math.max
 
 /**
  * Friends with Habits home-screen widget: weekly rank, XP, daily streak, today's check-ins and
- * the top of the friends leaderboard.
+ * the top of the leaderboard — friends or everyone, picked on the widget's own toggle.
  *
  * It only renders. The app writes a JSON snapshot through HabitsWidgetModule (built by
  * main/utilities/habitsWidget.ts) and this provider draws it — no network, no auth token here.
@@ -39,6 +39,11 @@ import kotlin.math.max
  * existing shortcut plumbing delivers them to JS: onNewIntent emits "new-intent-action" on a
  * warm start, and InitialIntentModule hands the launch action to Layout on a cold start. The
  * refresh tap is the exception: a broadcast back to this receiver, so it needs no app launch.
+ *
+ * The Friends / Everyone toggle is the other exception. The snapshot carries both boards, so a
+ * tap only records the choice in prefs ([KEY_SCOPE]) and redraws — no launch, no fetch, works
+ * offline. The choice outlives refreshes and reboots; until one is made the widget shows the
+ * snapshot's own default `scope`.
  */
 class HabitsWidgetProvider : AppWidgetProvider() {
 
@@ -71,6 +76,14 @@ class HabitsWidgetProvider : AppWidgetProvider() {
             refreshAll(context)
             return
         }
+        if (intent.action == setScopeAction(context)) {
+            val scope = intent.getStringExtra(EXTRA_SCOPE)
+            if (scope == SCOPE_CONNECTIONS || scope == SCOPE_GLOBAL) {
+                prefs(context).edit().putString(KEY_SCOPE, scope).apply()
+                refreshAll(context)
+            }
+            return
+        }
         super.onReceive(context, intent)
     }
 
@@ -79,6 +92,8 @@ class HabitsWidgetProvider : AppWidgetProvider() {
         const val KEY_SNAPSHOT = "snapshot"
         /** Epoch millis of the last refresh request still believed to be running, or absent. */
         const val KEY_REFRESHING_SINCE = "refreshingSince"
+        /** The board last picked on the toggle, or absent for the snapshot's default. */
+        const val KEY_SCOPE = "scope"
 
         private const val ACTION_OPEN_APP = "WIDGET_OPEN_APP"
         private const val ACTION_OPEN_LEADERBOARD = "WIDGET_OPEN_LEADERBOARD"
@@ -86,6 +101,12 @@ class HabitsWidgetProvider : AppWidgetProvider() {
         private const val ACTION_OPEN_TODAY = "WIDGET_OPEN_TODAY"
         private const val ACTION_INVITE_FRIENDS = "WIDGET_INVITE_FRIENDS"
         private const val ACTION_REFRESH = "WIDGET_REFRESH"
+        private const val ACTION_SET_SCOPE = "WIDGET_SET_SCOPE"
+        private const val EXTRA_SCOPE = "scope"
+
+        /** Must match `HabitsWidgetScope` in main/utilities/habitsWidget.ts. */
+        private const val SCOPE_CONNECTIONS = "connections"
+        private const val SCOPE_GLOBAL = "global"
 
         private const val MINUTE_MS = 60L * 1000
         private const val HOUR_MS = 60 * MINUTE_MS
@@ -225,16 +246,43 @@ class HabitsWidgetProvider : AppWidgetProvider() {
             views.setViewVisibility(R.id.widget_content, View.VISIBLE)
 
             val labels = snapshot.optJSONObject("labels") ?: JSONObject()
-            val you = snapshot.optJSONObject("you") ?: JSONObject()
             val today = snapshot.optJSONObject("today") ?: JSONObject()
-            val isFriendsBoard = snapshot.optString("scope") == "connections"
+            val boards = snapshot.optJSONObject("boards")
+            val defaultScope = snapshot.optString("scope")
+            // A snapshot written before the toggle existed holds one board at the top level; it
+            // is drawn as-is, without the toggle, until the next publish replaces it.
+            val scope = if (boards == null) {
+                defaultScope
+            } else {
+                prefs(context).getString(KEY_SCOPE, null)?.takeIf { boards.has(it) } ?: defaultScope
+            }
+            val board = boards?.optJSONObject(scope) ?: snapshot
+            val boardLabels = board.optJSONObject("labels") ?: JSONObject()
+            val you = board.optJSONObject("you") ?: JSONObject()
+            val isFriendsBoard = scope == SCOPE_CONNECTIONS
+            val hasFriends = if (snapshot.has("hasFriends")) snapshot.optBoolean("hasFriends") else isFriendsBoard
             val leaderboardAction = if (isFriendsBoard) ACTION_OPEN_LEADERBOARD else ACTION_OPEN_LEADERBOARD_GLOBAL
 
             val resetAt = periodEndMillis(snapshot.optString("periodEnd", ""))
             val isStaleWeek = resetAt != null && now >= resetAt
 
-            // Header
-            views.setTextViewText(R.id.widget_title, labels.optString("title"))
+            // Header: the Friends / Everyone toggle, or the legacy snapshot's board title.
+            if (boards != null) {
+                views.setViewVisibility(R.id.widget_scope_toggle, View.VISIBLE)
+                views.setViewVisibility(R.id.widget_title, View.GONE)
+                drawScopeSegment(
+                    context, views, R.id.widget_scope_friends, labels.optString("scopeFriends"),
+                    isSelected = isFriendsBoard, scope = SCOPE_CONNECTIONS, requestCode = 5,
+                )
+                drawScopeSegment(
+                    context, views, R.id.widget_scope_global, labels.optString("scopeEveryone"),
+                    isSelected = !isFriendsBoard, scope = SCOPE_GLOBAL, requestCode = 6,
+                )
+            } else {
+                views.setViewVisibility(R.id.widget_scope_toggle, View.GONE)
+                views.setViewVisibility(R.id.widget_title, View.VISIBLE)
+                views.setTextViewText(R.id.widget_title, labels.optString("title"))
+            }
             if (resetAt != null && !isStaleWeek) {
                 val days = max(1, ceil((resetAt - now).toDouble() / DAY_MS).toInt())
                 views.setTextViewText(
@@ -243,7 +291,8 @@ class HabitsWidgetProvider : AppWidgetProvider() {
                 )
                 views.setViewVisibility(R.id.widget_reset, View.VISIBLE)
             } else {
-                views.setViewVisibility(R.id.widget_reset, View.GONE)
+                // Invisible, not gone: it holds the header's slack that right-aligns the refresh label.
+                views.setViewVisibility(R.id.widget_reset, View.INVISIBLE)
             }
 
             // Freshness. Its own tap target: a refresh, not a launch.
@@ -278,8 +327,8 @@ class HabitsWidgetProvider : AppWidgetProvider() {
                 views.setViewVisibility(R.id.widget_stats, View.VISIBLE)
                 val rank = you.optInt("rank", 0)
                 views.setTextViewText(R.id.widget_rank, if (rank > 0) "#$rank" else "–")
-                views.setTextViewText(R.id.widget_rank_context, labels.optString("rankContext"))
-                views.setTextViewText(R.id.widget_points, labels.optString("points"))
+                views.setTextViewText(R.id.widget_rank_context, boardLabels.optString("rankContext"))
+                views.setTextViewText(R.id.widget_points, boardLabels.optString("points"))
                 val streak = you.optInt("dailyStreak", 0)
                 if (streak > 0) {
                     views.setTextViewText(R.id.widget_streak, "🔥 $streak")
@@ -306,15 +355,14 @@ class HabitsWidgetProvider : AppWidgetProvider() {
             views.removeAllViews(R.id.widget_rows)
             if (!isStaleWeek) {
                 val maxRows = rowsForHeight(currentHeightDp(context, manager, appWidgetId))
-                val top = snapshot.optJSONArray("top")
+                val top = board.optJSONArray("top")
                 val entryCount = minOf(top?.length() ?: 0, maxRows)
                 for (i in 0 until entryCount) {
                     val entry = top!!.optJSONObject(i) ?: continue
                     views.addView(R.id.widget_rows, rowViews(context, entry))
                 }
-                // No friends yet: the global board is standing in, so ask for the thing the
-                // app is named after.
-                if (!isFriendsBoard && entryCount < maxRows) {
+                // No friends yet: ask for the thing the app is named after, on either board.
+                if (!hasFriends && entryCount < maxRows) {
                     val invite = RemoteViews(context.packageName, R.layout.widget_habits_invite)
                     invite.setTextViewText(R.id.widget_invite, labels.optString("invite"))
                     invite.setOnClickPendingIntent(R.id.widget_invite, tapIntent(context, ACTION_INVITE_FRIENDS, 3))
@@ -324,6 +372,28 @@ class HabitsWidgetProvider : AppWidgetProvider() {
             views.setOnClickPendingIntent(R.id.widget_rows, leaderboardTap)
 
             manager.updateAppWidget(appWidgetId, views)
+        }
+
+        /**
+         * One half of the toggle. The selected half is filled and bold; tapping it again is a
+         * no-op broadcast rather than a missing tap target, so the pill never reads as disabled.
+         */
+        private fun drawScopeSegment(
+            context: Context,
+            views: RemoteViews,
+            viewId: Int,
+            label: String,
+            isSelected: Boolean,
+            scope: String,
+            requestCode: Int,
+        ) {
+            views.setTextViewText(viewId, label)
+            views.setTextColor(
+                viewId,
+                context.getColor(if (isSelected) R.color.habits_widget_text else R.color.habits_widget_text_muted),
+            )
+            views.setInt(viewId, "setBackgroundResource", if (isSelected) R.drawable.habits_widget_chip_selected else 0)
+            views.setOnClickPendingIntent(viewId, setScopeIntent(context, scope, requestCode))
         }
 
         private fun rowViews(context: Context, entry: JSONObject): RemoteViews {
@@ -354,6 +424,26 @@ class HabitsWidgetProvider : AppWidgetProvider() {
         }
 
         private fun refreshAction(context: Context): String = "${context.packageName}.$ACTION_REFRESH"
+
+        private fun setScopeAction(context: Context): String = "${context.packageName}.$ACTION_SET_SCOPE"
+
+        /**
+         * A toggle tap: a broadcast to this receiver, handled in [onReceive]. Each scope needs
+         * its own request code — with a shared one, FLAG_UPDATE_CURRENT would rewrite the first
+         * intent's extra and both halves would pick the same board.
+         */
+        private fun setScopeIntent(context: Context, scope: String, requestCode: Int): PendingIntent {
+            val intent = Intent(context, HabitsWidgetProvider::class.java).apply {
+                action = setScopeAction(context)
+                putExtra(EXTRA_SCOPE, scope)
+            }
+            return PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+        }
 
         /** The freshness label's tap: a broadcast to this receiver, handled in [onReceive]. */
         private fun refreshIntent(context: Context): PendingIntent {

@@ -63,6 +63,40 @@ describe('Android habits widget wiring', () => {
     });
 });
 
+describe('Android habits widget board toggle', () => {
+    it('draws both halves of the toggle from the labels JS publishes, in every locale', () => {
+        const layout = fs.readFileSync(LAYOUT_PATH, 'utf8');
+        ['widget_scope_toggle', 'widget_scope_friends', 'widget_scope_global'].forEach((id) => {
+            expect(layout).toContain(`android:id="@+id/${id}"`);
+        });
+        expect(provider).toContain('labels.optString("scopeFriends")');
+        expect(provider).toContain('labels.optString("scopeEveryone")');
+
+        ['en-us', 'es', 'fr-ca'].forEach((locale) => {
+            const dictionary = JSON.parse(fs.readFileSync(path.join(MOBILE_DIR, 'main/locales', locale, 'dictionary.json'), 'utf8'));
+            expect(typeof dictionary.pages.leaderboard.tabs.friends).toBe('string');
+            expect(typeof dictionary.pages.leaderboard.tabs.everyone).toBe('string');
+        });
+    });
+
+    it('remembers the pick in prefs, and reads it back when drawing', () => {
+        // The pick must outlive every snapshot JS publishes, so it lives beside the snapshot,
+        // never inside it.
+        expect(provider).toMatch(/override fun onReceive[\s\S]*?putString\(KEY_SCOPE, scope\)/);
+        expect(provider).toContain('getString(KEY_SCOPE, null)');
+        expect(nativeModule).not.toContain('KEY_SCOPE');
+    });
+
+    it('gives each half its own pending intent, so the two taps pick different boards', () => {
+        const codes = [...provider.matchAll(/scope = SCOPE_\w+, requestCode = (\d+)/g)].map((match) => Number(match[1]));
+        const otherCodes = [...provider.matchAll(/tapIntent\(context, \w+, (\d+)\)/g)].map((match) => Number(match[1]));
+        const refreshCode = Number(provider.match(/PendingIntent\.getBroadcast\(\s*context,\s*(\d+),/)?.[1]);
+
+        expect(codes).toHaveLength(2);
+        expect(new Set([...codes, ...otherCodes, refreshCode]).size).toBe(codes.length + new Set(otherCodes).size + 1);
+    });
+});
+
 describe('Android habits widget background refresh', () => {
     it('starts the headless task index.js registers, by the same key', () => {
         expect(worker).toContain(`const val TASK_KEY = "${WIDGET_REFRESH_TASK_KEY}"`);

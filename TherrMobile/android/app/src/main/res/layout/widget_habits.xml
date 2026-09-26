@@ -29,7 +29,7 @@
         android:orientation="vertical"
         android:visibility="gone">
 
-        <!-- Header: board name + reset countdown -->
+        <!-- Header: Friends / Everyone toggle + reset countdown -->
         <LinearLayout
             android:id="@+id/widget_header"
             android:layout_width="match_parent"
@@ -37,21 +37,65 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <!-- Which board the rows and rank show. Each half is its own tap target; the
+                 provider fills the selected one. -->
+            <LinearLayout
+                android:id="@+id/widget_scope_toggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/habits_widget_chip_track"
+                android:orientation="horizontal"
+                android:padding="1dp">
+
+                <TextView
+                    android:id="@+id/widget_scope_friends"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    android:textColor="@color/habits_widget_text_muted"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_scope_global"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    android:textColor="@color/habits_widget_text_muted"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Board name, only for a snapshot written before the toggle existed. -->
             <TextView
                 android:id="@+id/widget_title"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="@color/habits_widget_text_muted"
                 android:textSize="12sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:visibility="gone" />
 
+            <!-- Takes the slack, so a narrow widget ellipsizes the countdown rather than
+                 clipping the toggle or the refresh label. -->
             <TextView
                 android:id="@+id/widget_reset"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="end"
                 android:maxLines="1"
                 android:textColor="@color/habits_widget_text_muted"
                 android:textSize="11sp" />
