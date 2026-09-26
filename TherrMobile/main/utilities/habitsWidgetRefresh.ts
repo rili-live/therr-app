@@ -8,10 +8,8 @@ import translator from './translator';
 import {
     buildHabitsWidgetSnapshot,
     finishHabitsWidgetRefresh,
-    hasFriendsOnBoard,
     hasHabitsWidgets,
     HabitsWidgetScope,
-    IHabitsWidgetLeaderboardResponse,
     isHabitsWidgetSupported,
     publishHabitsWidget,
     WIDGET_TOP_ROWS,
@@ -159,10 +157,11 @@ const refreshHabitsWidgetInBackground = async (
     }
     const session = { id, idToken, locale };
 
-    // The board the widget shows: friends, or the global board for a user with no one on
-    // theirs — the same choice the dashboard makes in `refreshHabitsWidget`.
-    const [friends, todayCheckins, goals, activePacts, pacts, userHabits] = await Promise.all([
+    // Both boards, so the widget's Friends / Everyone toggle has something to switch to — the
+    // same pair the dashboard fetches in `refreshHabitsWidget`.
+    const [friends, global, todayCheckins, goals, activePacts, pacts, userHabits] = await Promise.all([
         getJson(buildLeaderboardPath('connections'), session),
+        getJson(buildLeaderboardPath('global'), session),
         getJson(buildTodayCheckinsPath(), session),
         getJson('/users-service/habits/goals', session),
         getJson('/users-service/habits/pacts/active', session),
@@ -170,28 +169,16 @@ const refreshHabitsWidgetInBackground = async (
         getJson('/users-service/habits/user-habits', session),
     ]);
 
-    const results = [friends, todayCheckins, goals, activePacts, pacts];
+    const results = [friends, global, todayCheckins, goals, activePacts, pacts];
     if (results.some((result) => result.status === 401)) {
         finishHabitsWidgetRefresh();
         return { published: false, reason, skipped: 'unauthorized' };
     }
     // The tracking registry is the one input the dashboard tolerates losing (it drops the
     // archived filter rather than the refresh), so it is the one input tolerated here.
-    if (!isBoard(friends) || results.slice(1).some((result) => !result.ok)) {
+    if (!isBoard(friends) || !isBoard(global) || results.some((result) => !result.ok)) {
         finishHabitsWidgetRefresh();
         return { published: false, reason, skipped: 'request-failed' };
-    }
-
-    let board: IHabitsWidgetLeaderboardResponse = friends.data;
-    let scope: HabitsWidgetScope = 'connections';
-    if (!hasFriendsOnBoard(board)) {
-        const global = await getJson(buildLeaderboardPath('global'), session);
-        if (!isBoard(global)) {
-            finishHabitsWidgetRefresh();
-            return { published: false, reason, skipped: global.status === 401 ? 'unauthorized' : 'request-failed' };
-        }
-        board = global.data;
-        scope = 'global';
     }
 
     const { live } = splitHabitsByPactState(
@@ -204,8 +191,7 @@ const refreshHabitsWidgetInBackground = async (
 
     const published = publishHabitsWidget(
         buildHabitsWidgetSnapshot(
-            board,
-            scope,
+            { connections: friends.data, global: global.data },
             countTodayProgress(live, asList(todayCheckins.data)),
             (key: string, params?: any) => translator(locale, key, params),
         ),

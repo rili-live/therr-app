@@ -141,15 +141,16 @@ describe('refreshHabitsWidgetInBackground', () => {
 
     const published = () => JSON.parse(setSnapshot.mock.calls[0][0] as string);
 
-    it('publishes the friends board with today derived the way the dashboard derives it', async () => {
+    it('publishes both boards with today derived the way the dashboard derives it', async () => {
         const result = await loadModule().default({ reason: 'periodic' });
 
         expect(result).toEqual({ published: true, reason: 'periodic' });
         expect(setSnapshot).toHaveBeenCalledTimes(1);
         const snapshot = published();
         expect(snapshot.scope).toBe('connections');
-        expect(snapshot.you).toEqual({ rank: 2, points: 420, dailyStreak: 12 });
-        expect(snapshot.top.map((row: any) => row.userName)).toEqual(['maya', 'me']);
+        expect(snapshot.boards.connections.you).toEqual({ rank: 2, points: 420, dailyStreak: 12 });
+        expect(snapshot.boards.connections.top.map((row: any) => row.userName)).toEqual(['maya', 'me']);
+        expect(snapshot.boards.global.you.rank).toBe(48);
         // g-live done, g-solo not done, g-pending excluded from both sides.
         expect(snapshot.today).toEqual({ done: 1, total: 2 });
         expect(snapshot.labels.todayProgress).toBe('1/2 habits');
@@ -164,6 +165,7 @@ describe('refreshHabitsWidgetInBackground', () => {
         expect(urls.every((url) => url.startsWith('https://api.example.com/v1/users-service/'))).toBe(true);
         expect(urls.find((url) => url.includes('checkins/today'))).toContain('timeZone=America%2FChicago');
         expect(urls.find((url) => url.includes('scope=connections'))).toContain('limit=3');
+        expect(urls.find((url) => url.includes('scope=global'))).toContain('limit=3');
         mockFetch.mock.calls.forEach(([, init]: any) => {
             expect(init.headers.authorization).toBe('Bearer token-abc');
             expect(init.headers['x-userid']).toBe('me');
@@ -172,20 +174,24 @@ describe('refreshHabitsWidgetInBackground', () => {
         });
     });
 
-    it('falls back to the global board for a user with nobody on theirs', async () => {
+    it('defaults to the global board for a user with nobody on theirs', async () => {
         stubApi({ 'leaderboards?scope=connections': jsonResponse(lonelyBoard) });
 
         await loadModule().default();
 
-        expect(calledUrls().some((url) => url.includes('scope=global'))).toBe(true);
         expect(published().scope).toBe('global');
-        expect(published().you.rank).toBe(48);
+        expect(published().hasFriends).toBe(false);
+        expect(published().boards.global.you.rank).toBe(48);
     });
 
-    it('does not ask for the global board when the friends board has friends', async () => {
-        await loadModule().default();
+    it('publishes nothing when the global board fails, rather than a toggle with one side empty', async () => {
+        stubApi({ 'leaderboards?scope=global': jsonResponse({ message: 'nope' }, 500) });
 
-        expect(calledUrls().some((url) => url.includes('scope=global'))).toBe(false);
+        const result = await loadModule().default();
+
+        expect(result.skipped).toBe('request-failed');
+        expect(setSnapshot).not.toHaveBeenCalled();
+        expect(finishRefresh).toHaveBeenCalledTimes(1);
     });
 
     it('writes even when nothing but the timestamp changed, so "updated N ago" is true', async () => {

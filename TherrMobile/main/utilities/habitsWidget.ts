@@ -6,10 +6,15 @@ import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
  * The Friends with Habits Android home-screen widget.
  *
  * The widget never touches the network and never holds an auth token: the app builds a
- * small snapshot (rank, XP, daily streak, today's check-ins, top of the friends board) and
- * hands it to the native `HabitsWidget` module, which stores it in private SharedPreferences
+ * small snapshot (rank, XP, daily streak, today's check-ins, and the top of both the friends
+ * and the global board) and hands it to the native `HabitsWidget` module, which stores it in private SharedPreferences
  * and redraws every placed widget (android/.../widget/HabitsWidgetProvider.kt). `periodEnd`
  * lets the widget notice a week rollover on its own and stop showing last week's rank.
+ *
+ * Both boards ride in every snapshot so the widget's Friends / Everyone toggle switches
+ * instantly, offline included. The choice is stored natively and sticks across refreshes and
+ * reboots; until the user makes one, the widget shows `scope` (friends, or global for a user
+ * with no friends on the board yet).
  *
  * While the app is closed the snapshot is kept fresh by `habitsWidgetRefresh.ts`: the widget
  * asks for a refresh on its periodic tick, when it is first placed and when its "updated N ago"
@@ -44,18 +49,40 @@ export interface IHabitsWidgetLeaderboardResponse {
     periodEnd?: string | null;
 }
 
-export interface IHabitsWidgetSnapshot {
-    v: 1;
-    scope: HabitsWidgetScope;
-    periodEnd: string | null;
-    updatedAt: number;
+/** Both boards the widget can show; the toggle switches between them without a fetch. */
+export interface IHabitsWidgetBoards {
+    connections: IHabitsWidgetLeaderboardResponse;
+    global: IHabitsWidgetLeaderboardResponse;
+}
+
+/** One board as the widget draws it: your standing, the top rows and the labels that name it. */
+export interface IHabitsWidgetBoardView {
     you: { rank: number; points: number; dailyStreak: number };
-    today: { done: number; total: number };
     top: Array<{ rank: number; userName: string; points: number; dailyStreak: number; isYou: boolean }>;
     labels: {
-        title: string;
         rankContext: string;
         points: string;
+    };
+}
+
+export interface IHabitsWidgetSnapshot {
+    v: 2;
+    /**
+     * The board shown until the user picks one on the widget's toggle: friends, or the global
+     * board for a user with no one on theirs. Once picked, the widget remembers the choice
+     * natively and ignores this.
+     */
+    scope: HabitsWidgetScope;
+    /** Whether anyone but the user is on the friends board; the widget offers an invite when not. */
+    hasFriends: boolean;
+    periodEnd: string | null;
+    updatedAt: number;
+    today: { done: number; total: number };
+    boards: Record<HabitsWidgetScope, IHabitsWidgetBoardView>;
+    labels: {
+        /** The toggle's two segments. */
+        scopeFriends: string;
+        scopeEveryone: string;
         resetsIn: string;
         today: string;
         todayProgress: string;
@@ -85,36 +112,27 @@ export const WIDGET_TOP_ROWS = 3;
 export const WIDGET_REFRESH_TASK_KEY = 'HabitsWidgetRefresh';
 
 /**
- * A friends board is only worth showing when it has someone other than the requester on it;
- * otherwise the widget falls back to the global board and offers an invite instead.
+ * A friends board is only worth showing by default when it has someone other than the requester
+ * on it; otherwise the widget defaults to the global board and offers an invite instead.
  */
 export const hasFriendsOnBoard = (response?: IHabitsWidgetLeaderboardResponse | null): boolean => (
     (response?.entries || []).some((entry) => !entry.isRequestingUser)
 );
 
-export const buildHabitsWidgetSnapshot = (
+const buildBoardView = (
     board: IHabitsWidgetLeaderboardResponse,
     scope: HabitsWidgetScope,
-    today: { done: number; total: number },
     translate: Translate,
-    now: number = Date.now(),
-): IHabitsWidgetSnapshot => {
+): IHabitsWidgetBoardView => {
     const you = board.currentUser;
     const points = Number(you?.points) || 0;
-    const total = Math.max(0, today.total);
-    const done = Math.min(Math.max(0, today.done), total);
 
     return {
-        v: 1,
-        scope,
-        periodEnd: board.periodEnd || null,
-        updatedAt: now,
         you: {
             rank: Number(you?.rank) || 0,
             points,
             dailyStreak: Number(you?.dailyStreak) || 0,
         },
-        today: { done, total },
         top: (board.entries || []).slice(0, WIDGET_TOP_ROWS).map((entry) => ({
             rank: Number(entry.rank) || 0,
             userName: entry.userName || '',
@@ -123,13 +141,39 @@ export const buildHabitsWidgetSnapshot = (
             isYou: !!entry.isRequestingUser,
         })),
         labels: {
-            title: translate(scope === 'connections'
-                ? 'pages.habits.widget.friendsThisWeek'
-                : 'pages.habits.widget.everyoneThisWeek'),
             rankContext: translate(scope === 'connections'
                 ? 'pages.habits.widget.amongFriends'
                 : 'pages.habits.widget.overall'),
             points: translate('pages.leaderboard.labels.xpPoints', { points }),
+        },
+    };
+};
+
+export const buildHabitsWidgetSnapshot = (
+    boards: IHabitsWidgetBoards,
+    today: { done: number; total: number },
+    translate: Translate,
+    now: number = Date.now(),
+): IHabitsWidgetSnapshot => {
+    const total = Math.max(0, today.total);
+    const done = Math.min(Math.max(0, today.done), total);
+    const hasFriends = hasFriendsOnBoard(boards.connections);
+
+    return {
+        v: 2,
+        scope: hasFriends ? 'connections' : 'global',
+        hasFriends,
+        // Both are this week's boards; they share a reset.
+        periodEnd: boards.connections.periodEnd || boards.global.periodEnd || null,
+        updatedAt: now,
+        today: { done, total },
+        boards: {
+            connections: buildBoardView(boards.connections, 'connections', translate),
+            global: buildBoardView(boards.global, 'global', translate),
+        },
+        labels: {
+            scopeFriends: translate('pages.leaderboard.tabs.friends'),
+            scopeEveryone: translate('pages.leaderboard.tabs.everyone'),
             resetsIn: translate('pages.leaderboard.labels.resetsIn'),
             today: translate('pages.habits.todayProgress'),
             todayProgress: total > 0
@@ -222,7 +266,7 @@ export const hasHabitsWidgets = (): Promise<boolean> => {
 // Android launcher-widget tap actions. Matched by suffix, like the app shortcuts in Layout,
 // so the same JS handles every brand binary's package prefix.
 export const WIDGET_ACTION_SUFFIXES = {
-    // The board the widget is showing: friends, or the global fallback for a user with none.
+    // The board the widget is showing, as picked on its Friends / Everyone toggle.
     OPEN_LEADERBOARD: '.WIDGET_OPEN_LEADERBOARD',
     OPEN_LEADERBOARD_GLOBAL: '.WIDGET_OPEN_LEADERBOARD_GLOBAL',
     OPEN_TODAY: '.WIDGET_OPEN_TODAY',
