@@ -193,6 +193,44 @@ export const rankFeedPosts = (posts: IRankablePost[], contentAlgorithm?: string)
 };
 
 /**
+ * Holds a ranked feed's order still while the user scrolls it.
+ *
+ * `rankFeedPosts` is a pure function of the whole cached list, and the carousels call it on
+ * every render. That is what made the feed jump: each page `onEndReached` appends is ranked
+ * together with the posts already on screen, so a fresh, well-liked post from page 3 is
+ * hoisted above the viewport and everything below it shifts down. A like does the same — it
+ * raises that post's engagement and its category's affinity, reordering the list under the
+ * user's thumb — and so does the `Date.now()` the score decays against.
+ *
+ * Posts the user has already been shown (`previousIds`) keep their order; posts that no longer
+ * exist are dropped; posts not seen before follow, in the order `rankedPosts` gives them. The
+ * ranking still decides the order of each new page — it just can no longer reach back into
+ * the part of the list that has been rendered. Re-ranking the whole list is the caller's
+ * decision, made by passing no `previousIds` (a refresh).
+ */
+export const keepRenderedFeedOrder = <T extends { id?: any }>(rankedPosts: T[], previousIds?: string[]): T[] => {
+    if (!previousIds?.length || !rankedPosts?.length) {
+        return rankedPosts;
+    }
+
+    const postsById = new Map<string, T>();
+    rankedPosts.forEach((post) => postsById.set(String(post.id), post));
+
+    const previousIdSet = new Set(previousIds);
+    const kept: T[] = [];
+    previousIds.forEach((id) => {
+        const post = postsById.get(id);
+        if (post) {
+            kept.push(post);
+            // A duplicate id in previousIds must not render the same post twice.
+            postsById.delete(id);
+        }
+    });
+
+    return kept.concat(rankedPosts.filter((post) => !previousIdSet.has(String(post.id))));
+};
+
+/**
  * The reply surfaced in an auto-expanded thread preview: most liked, then most recent.
  */
 export const getTopReply = (thought: IRankablePost) => {
