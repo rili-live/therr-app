@@ -79,6 +79,13 @@ export class HabitsFeed extends React.Component<IHabitsFeedProps, IHabitsFeedSta
 
     private carouselRef;
 
+    /**
+     * Holds the feed's rendered order still between refreshes — see `getFeedOrderKey`.
+     */
+    private feedOrderKey = 0;
+
+    private lastSeenPagination: any;
+
     constructor(props: IHabitsFeedProps) {
         super(props);
 
@@ -94,13 +101,21 @@ export class HabitsFeed extends React.Component<IHabitsFeedProps, IHabitsFeedSta
     }
 
     componentDidMount() {
-        this.loadFeed();
+        this.loadFeed({ shouldShowLoader: true });
     }
 
-    loadFeed = () => {
+    /**
+     * Only the first load swaps the list for the full-screen loader. A refresh used to do it
+     * too, which unmounted the list mid-gesture — the user lost their scroll position, the
+     * feed flashed to the Lottie loader and back, and the pull-to-refresh spinner was left
+     * spinning on the remounted list. A refresh now keeps the list and its spinner in place.
+     */
+    loadFeed = ({ shouldShowLoader = false } = {}) => {
         const { updateActiveThoughtsStream, user } = this.props;
 
-        this.setState({ isLoading: true });
+        if (shouldShowLoader) {
+            this.setState({ isLoading: true });
+        }
 
         return updateActiveThoughtsStream({
             withUser: true,
@@ -115,8 +130,35 @@ export class HabitsFeed extends React.Component<IHabitsFeedProps, IHabitsFeedSta
             });
     };
 
-    handleRefresh = () => {
-        this.loadFeed();
+    // Returned so AreaCarousel can clear its pull-to-refresh spinner when the request settles.
+    handleRefresh = () => this.loadFeed();
+
+    // A refresh re-ranks the whole feed, so bring the user back to the top it starts from
+    // rather than reshuffling the posts they are partway through.
+    handleActionButtonPress = () => {
+        this.carouselRef?.scrollToOffset?.({ offset: 0, animated: true });
+        return this.loadFeed();
+    };
+
+    /**
+     * The `stableOrderKey` AreaCarousel keeps the rendered order under. It changes only when a
+     * first page lands (`UPDATE_ACTIVE_THOUGHTS` — mount, pull-to-refresh, the action button,
+     * or another screen resetting the shared thoughts stream), which is the one moment a fresh
+     * ranking is wanted. Paging in (`SEARCH_ACTIVE_THOUGHTS`, offset > 0) and reactions leave
+     * it alone, so they only ever add posts below the ones already rendered.
+     *
+     * Derived from the store rather than bumped in `loadFeed`'s callback so the new key
+     * arrives in the same render as the data it describes, not one render behind it.
+     */
+    getFeedOrderKey = () => {
+        const pagination = this.props.content.activeThoughtsPagination;
+        if (pagination !== this.lastSeenPagination) {
+            this.lastSeenPagination = pagination;
+            if (!pagination?.offset) {
+                this.feedOrderKey += 1;
+            }
+        }
+        return this.feedOrderKey;
     };
 
     // Mirrors the thoughts branch of postViewHelpers.loadMorePosts, inlined so this screen
@@ -179,6 +221,9 @@ export class HabitsFeed extends React.Component<IHabitsFeedProps, IHabitsFeedSta
         });
     };
 
+    // Stable so AreaCarousel's ref callback is not detached and re-attached every render.
+    setCarouselRef = (component) => { this.carouselRef = component; };
+
     // Reaction props AreaCarousel requires but that never fire for thought items.
     noop = () => {};
 
@@ -212,7 +257,7 @@ export class HabitsFeed extends React.Component<IHabitsFeedProps, IHabitsFeedSta
                         toggleAreaOptions={this.noop}
                         toggleThoughtOptions={this.toggleThoughtOptions}
                         translate={this.translate}
-                        containerRef={(component) => { this.carouselRef = component; }}
+                        containerRef={this.setCarouselRef}
                         handleRefresh={this.handleRefresh}
                         onEndReached={this.tryLoadMore}
                         updateEventReaction={this.noop}
@@ -225,11 +270,12 @@ export class HabitsFeed extends React.Component<IHabitsFeedProps, IHabitsFeedSta
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
                         user={user}
                         rootStyles={this.theme.styles}
+                        stableOrderKey={this.getFeedOrderKey()}
                     />
                 </SafeAreaView>
                 <MainButtonMenu
                     navigation={navigation}
-                    onActionButtonPress={this.handleRefresh}
+                    onActionButtonPress={this.handleActionButtonPress}
                     translate={this.translate}
                     user={user}
                     themeMenu={this.themeMenu}
