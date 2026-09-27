@@ -2217,7 +2217,7 @@
                 "errorNegative": "Saisis un montant de zéro ou plus",
                 "errorNotANumber": "Saisis le montant sous forme de nombre, par exemple 25 ou 25,50",
                 "errorTooLarge": "Ce montant est trop élevé pour être enregistré",
-                "errorTooPrecise": "Arrondis au cent près, par exemple 25,50",
+                "errorTooPrecise": "Utilise au plus deux décimales, par exemple 25,50",
                 "goalReached": "🎉 Objectif atteint!",
                 "remainingGroup": "Il reste {amount} à vous tous",
                 "remainingYours": "Il te reste {amount}",
@@ -2250,6 +2250,73 @@
                 "atCapBody": "Débloque des habitudes et des pactes illimités, en un seul paiement, à vie.",
                 "startCapTitle": "{used} habitudes commencées au cours des {days} derniers jours",
                 "startCapBody": "Les comptes gratuits en commencent {limit} tous les {days} jours. Débloque l'illimité, à vie."
+            },
+            "amounts": {
+                "toggleLabel": "Suivre une quantité",
+                "toggleHint": "Facultatif. Note combien à chaque fois, comme les pages lues ou les minutes de course. Tu peux toujours t’enregistrer sans nombre.",
+                "unitLabel": "Qu’est-ce que tu comptes?",
+                "chooseUnit": "Choisis ce que tu comptes, ou désactive le suivi de quantité",
+                "weeklyTargetLabel": "Objectif hebdomadaire (facultatif)",
+                "weeklyTargetHint": "Par personne. Remis à zéro chaque lundi.",
+                "checkinAmountLabel": "Combien? (facultatif)",
+                "checkinAmountHint": "Laisse vide pour t’enregistrer sans nombre.",
+                "cardTitle": "Cette semaine",
+                "weekOfTarget": "sur {target} cette semaine",
+                "weekNoTarget": "enregistré cette semaine",
+                "allTime": "{amount} au total",
+                "weeklyTargetReached": "🎉 Objectif hebdomadaire atteint!",
+                "remainingThisWeek": "Encore {amount} cette semaine",
+                "groupWeek": "{amount} à vous tous cette semaine",
+                "rowLabel": "Quantité",
+                "rowOff": "Non suivie",
+                "rowWithTarget": "{unit} · {target} par semaine",
+                "editTitle": "Suivi de quantité",
+                "editSave": "Enregistrer",
+                "editCancel": "Annuler",
+                "editSaved": "Suivi de quantité mis à jour",
+                "editFailed": "Impossible de mettre à jour le suivi de quantité. Réessaie.",
+                "units": {
+                    "minutes": {
+                        "label": "Minutes",
+                        "short": "min"
+                    },
+                    "hours": {
+                        "label": "Heures",
+                        "short": "h"
+                    },
+                    "pages": {
+                        "label": "Pages",
+                        "short": "pages"
+                    },
+                    "steps": {
+                        "label": "Pas",
+                        "short": "pas"
+                    },
+                    "reps": {
+                        "label": "Répétitions",
+                        "short": "rép."
+                    },
+                    "sets": {
+                        "label": "Séries",
+                        "short": "séries"
+                    },
+                    "km": {
+                        "label": "Kilomètres",
+                        "short": "km"
+                    },
+                    "miles": {
+                        "label": "Milles",
+                        "short": "mi"
+                    },
+                    "glasses": {
+                        "label": "Verres",
+                        "short": "verres"
+                    },
+                    "servings": {
+                        "label": "Portions",
+                        "short": "portions"
+                    }
+                }
             }
         },
         "pacts": {

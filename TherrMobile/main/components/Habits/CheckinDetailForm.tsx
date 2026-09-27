@@ -6,7 +6,7 @@ import { Switch } from 'react-native-paper';
 import ImageCropPicker, { Image as CroppedImage } from 'react-native-image-crop-picker';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
-import { parseSavingsAmount } from 'therr-js-utilities/constants';
+import { isHabitAmountUnit, parseSavingsAmount } from 'therr-js-utilities/constants';
 import { CHECKIN_PROOF_XP } from '../../constants/checkinProofXp';
 import { ITherrThemeColors } from '../../styles/themes';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
@@ -14,6 +14,7 @@ import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions
 import { showToast } from '../../utilities/toasts';
 import { ISelectedProofImage } from '../../utilities/checkinProofUpload';
 import SavingsAmountInput from './SavingsAmountInput';
+import { getHabitAmountUnitShort } from '../../utilities/habitAmountFormat';
 
 export type { ISelectedProofImage };
 
@@ -48,6 +49,12 @@ interface ICheckinDetailFormProps {
     isSavingsGoal?: boolean;
     /** The goal's currency, for the amount field's prefix. Display only. */
     currencyCode?: string | null;
+    /**
+     * The unit of a measured (non-savings) habit whose owner opted in to tracking an amount.
+     * Puts an optional amount field on the form, labelled in this unit. Ignored on a savings
+     * goal, which is counted in `currencyCode`.
+     */
+    amountUnit?: string | null;
     onChange: (draft: ICheckinDetailDraft) => void;
     translate: (key: string, params?: any) => string;
     colors: ITherrThemeColors;
@@ -60,7 +67,7 @@ export interface ICheckinDetailDraft {
     sharePublicly: boolean;
     /**
      * The parsed amount, or **`undefined` when there is nothing to send** — a habit that
-     * is not a savings goal, an empty field, or text that does not parse.
+     * tracks no amount, an empty field, or text that does not parse.
      *
      * Never `null`. The check-in POST is an upsert on today's row and the server reads an
      * explicit null as "clear the recorded amount", while this field always starts empty
@@ -85,6 +92,7 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
     defaultSharePublicly = false,
     isSavingsGoal = false,
     currencyCode,
+    amountUnit,
     onChange,
     translate,
     colors,
@@ -97,12 +105,15 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
     // Only the raw text is held (so "12." survives being typed); the number the caller
     // sends is parsed from it below with the same parser the server applies.
     const [savedAmountText, setSavedAmountText] = useState('');
+    // A measured habit gets the same optional field as a savings one, in its own unit.
+    const isMeasured = !isSavingsGoal && isHabitAmountUnit(amountUnit);
+    const tracksAmount = isSavingsGoal || isMeasured;
 
     // Lift the draft on every change so the screen's footer button can submit without a ref
     // into this component. Sharing requires a photo; never signal share without one even if the
     // toggle was left on before the image was removed.
     useEffect(() => {
-        const trimmedAmountText = isSavingsGoal ? savedAmountText.trim() : '';
+        const trimmedAmountText = tracksAmount ? savedAmountText.trim() : '';
         const parsedAmount = trimmedAmountText.length ? parseSavingsAmount(trimmedAmountText) : null;
         const hasInvalidSavedAmount = !!parsedAmount && (!!parsedAmount.error || parsedAmount.amount === undefined);
 
@@ -115,7 +126,7 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
             savedAmount: parsedAmount && !hasInvalidSavedAmount ? parsedAmount.amount : undefined,
             hasInvalidSavedAmount,
         });
-    }, [notes, selectedImage, sharePublicly, canShare, isSavingsGoal, savedAmountText, onChange]);
+    }, [notes, selectedImage, sharePublicly, canShare, tracksAmount, savedAmountText, onChange]);
 
     const pickImage = async (source: 'camera' | 'library') => {
         const pickerOptions: any = {
@@ -194,6 +205,21 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
                     currencyCode={currencyCode}
                     label={translate('pages.habits.savings.checkinAmountLabel')}
                     hint={translate('pages.habits.savings.checkinAmountHint')}
+                    editable={!isSubmitting}
+                    translate={translate}
+                    colors={colors}
+                />
+            ) : null}
+            {isMeasured ? (
+                // Same place as the savings field, but optional in spirit as well as in
+                // validation: the label says so, because a measured habit is still a habit
+                // and a check-in without a number is a complete one.
+                <SavingsAmountInput
+                    value={savedAmountText}
+                    onChangeText={setSavedAmountText}
+                    unitLabel={getHabitAmountUnitShort(amountUnit, translate)}
+                    label={translate('pages.habits.amounts.checkinAmountLabel')}
+                    hint={translate('pages.habits.amounts.checkinAmountHint')}
                     editable={!isSubmitting}
                     translate={translate}
                     colors={colors}

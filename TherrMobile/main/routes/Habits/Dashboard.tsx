@@ -559,6 +559,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             // re-fetching the goal it is already rendering.
             goalType: habitGoal.goalType,
             currencyCode: habitGoal.currencyCode,
+            amountUnit: habitGoal.amountUnit,
         });
     };
 

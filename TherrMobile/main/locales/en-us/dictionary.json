@@ -2217,7 +2217,7 @@
                 "errorNegative": "Enter an amount of zero or more",
                 "errorNotANumber": "Enter an amount as a number, like 25 or 25.50",
                 "errorTooLarge": "That amount is too large to record",
-                "errorTooPrecise": "Round to the nearest cent, like 25.50",
+                "errorTooPrecise": "Use at most two decimal places, like 25.50",
                 "goalReached": "🎉 Goal reached!",
                 "remainingGroup": "{amount} to go, between you",
                 "remainingYours": "{amount} to go",
@@ -2250,6 +2250,73 @@
                 "atCapBody": "Unlock unlimited habits and pacts, once, for life.",
                 "startCapTitle": "{used} habits started in the last {days} days",
                 "startCapBody": "Free accounts start {limit} every {days} days. Unlock unlimited, for life."
+            },
+            "amounts": {
+                "toggleLabel": "Track an amount",
+                "toggleHint": "Optional. Log how much each time, like pages read or minutes run. You can always check in without a number.",
+                "unitLabel": "What are you counting?",
+                "chooseUnit": "Choose what you’re counting, or turn amount tracking off",
+                "weeklyTargetLabel": "Weekly target (optional)",
+                "weeklyTargetHint": "Per person. Resets every Monday.",
+                "checkinAmountLabel": "How much? (optional)",
+                "checkinAmountHint": "Leave blank to check in without a number.",
+                "cardTitle": "This week",
+                "weekOfTarget": "of {target} this week",
+                "weekNoTarget": "logged this week",
+                "allTime": "{amount} all time",
+                "weeklyTargetReached": "🎉 Weekly target reached!",
+                "remainingThisWeek": "{amount} to go this week",
+                "groupWeek": "{amount} between you this week",
+                "rowLabel": "Amount",
+                "rowOff": "Not tracked",
+                "rowWithTarget": "{unit} · {target} a week",
+                "editTitle": "Amount tracking",
+                "editSave": "Save",
+                "editCancel": "Cancel",
+                "editSaved": "Amount tracking updated",
+                "editFailed": "Couldn’t update amount tracking. Try again.",
+                "units": {
+                    "minutes": {
+                        "label": "Minutes",
+                        "short": "min"
+                    },
+                    "hours": {
+                        "label": "Hours",
+                        "short": "hr"
+                    },
+                    "pages": {
+                        "label": "Pages",
+                        "short": "pages"
+                    },
+                    "steps": {
+                        "label": "Steps",
+                        "short": "steps"
+                    },
+                    "reps": {
+                        "label": "Reps",
+                        "short": "reps"
+                    },
+                    "sets": {
+                        "label": "Sets",
+                        "short": "sets"
+                    },
+                    "km": {
+                        "label": "Kilometers",
+                        "short": "km"
+                    },
+                    "miles": {
+                        "label": "Miles",
+                        "short": "mi"
+                    },
+                    "glasses": {
+                        "label": "Glasses",
+                        "short": "glasses"
+                    },
+                    "servings": {
+                        "label": "Servings",
+                        "short": "servings"
+                    }
+                }
             }
         },
         "pacts": {
