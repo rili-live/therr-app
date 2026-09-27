@@ -127,6 +127,22 @@ describe('UserHabitsStore.getDetailByUser — week progress', () => {
         expect(sql).to.match(/uh\."status" = 'archived'/);
     });
 
+    it('sums this week\'s recorded amount, today included, and binds it after the tally', async () => {
+        // A measured habit's weekly target counts today's minutes the moment they are
+        // logged, unlike the quota tally, which stops before today.
+        const { store, mockConnection } = buildStore();
+
+        await store.getDetailByUser('user-1', 'active', { weekStart: '2026-09-14', today: '2026-09-17' });
+
+        const sql = lastSql(mockConnection);
+        expect(sql).to.match(/SUM\(c\."savedAmount"\)/);
+        expect(sql).to.match(/c\."scheduledDate" <= '2026-09-17'/);
+        expect(sql).to.match(/AS "amountThisWeek"/);
+        expect(sql).to.match(/g\."amountUnit" AS "amountUnit"/);
+        expect(sql.indexOf('AS "completionsEarlierThisWeek"')).to.be.lessThan(sql.indexOf('AS "amountThisWeek"'));
+        expect(sql.indexOf('AS "amountThisWeek"')).to.be.lessThan(sql.indexOf("'user-1'"));
+    });
+
     it('emits a NULL tally when no week bounds are supplied', async () => {
         // NULL rather than 0 is the load-bearing part: the caller omits `weekProgress`
         // entirely for a NULL, and a client must read its absence as "unknown". Reporting a
@@ -137,6 +153,7 @@ describe('UserHabitsStore.getDetailByUser — week progress', () => {
 
         const sql = lastSql(mockConnection);
         expect(sql).to.match(/NULL::int AS "completionsEarlierThisWeek"/);
+        expect(sql).to.match(/NULL::text AS "amountThisWeek"/);
         expect(sql).to.not.match(/COUNT\(DISTINCT c\."scheduledDate"\)/);
         expect(sql).to.match(/uh\."userId" = 'user-1'/);
     });

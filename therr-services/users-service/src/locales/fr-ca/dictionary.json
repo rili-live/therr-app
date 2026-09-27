@@ -106,16 +106,19 @@
             "notFound": "Nous n'avons pas trouvé cette série"
         },
         "habitGoals": {
+            "amountUnitOnSavings": "Une habitude d'épargne se compte dans sa devise, elle ne peut donc pas avoir aussi une unité",
             "cannotDelete": "Tu ne peux supprimer qu'une habitude que tu as créée",
             "cannotModifyTemplate": "Cette habitude est l'un de nos modèles, elle ne peut donc pas être modifiée",
+            "invalidAmountUnit": "Choisis une unité dans la liste, comme minutes ou pages",
             "nameRequired": "Donne un nom à cette habitude",
-            "notOwner": "Tu ne peux modifier qu'une habitude que tu as créée"
+            "notOwner": "Tu ne peux modifier qu'une habitude que tu as créée",
+            "targetNeedsAmountUnit": "Choisis une unité avant de fixer un objectif hebdomadaire"
         },
         "savings": {
             "amountNegative": "Saisis un montant de zéro ou plus",
             "amountNotANumber": "Saisis le montant sous forme de nombre, par exemple 25 ou 25,50",
             "amountTooLarge": "Ce montant est trop élevé pour être enregistré",
-            "amountTooPrecise": "Arrondis au cent près, par exemple 25,50",
+            "amountTooPrecise": "Utilise au plus deux décimales, par exemple 25,50",
             "invalidCurrencyCode": "Utilise un code de devise à trois lettres, par exemple USD",
             "invalidTargetScope": "Choisis si l'objectif est par personne ou pour le groupe"
         }
