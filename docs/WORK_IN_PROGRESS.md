@@ -2422,7 +2422,7 @@ nothing is published as a side effect of checking in.
 What is left is a post-deploy verification, not code: see the 2026-09-11 "Verify check-in
 sharing and proof moderation" item in § Manual Operational Follow-ups.
 
-### 2.7 Join-by-link group challenges (Friends with Habits — added 2026-09-27)
+### 2.7 Join-by-link group challenges (Friends with Habits — added 2026-09-27) (#2988)
 
 Source: a competitive read of Goalify (`com.onebytezero.Goalify`, ~4.4★ on ~1.07K Play
 reviews). Its headline social feature is a **challenge**: one person creates it, shares a
@@ -2481,7 +2481,7 @@ them, and the sense that specific friends are watching would dilute. So:
 Split: backend, migration and `therr-react` on `general`. Challenge screens, the join deep
 link and share sheet copy on `niche/HABITS-general`.
 
-#### 2.7.1 Group thread for pacts and challenges — follow-up to § 2.7, lower priority
+#### 2.7.1 Group thread for pacts and challenges — follow-up to § 2.7, lower priority (#2989)
 
 Goalify has a chat inside each challenge. In Friends with Habits a pact's detail screen
 opens **one-to-one** DMs only (`goToDirectMessage` in
@@ -2521,7 +2521,7 @@ goal. Recorded here so it is not re-researched from scratch:
   show whether a consequence improves retention, before any payment work.
 - **Chosen direction: stakes go to charity.** Planned in § 2.8.
 
-### 2.8 Charity stakes — follow-up to measured habits (added 2026-09-27)
+### 2.8 Charity stakes — follow-up to measured habits (added 2026-09-27) (#2990)
 
 **What:** a user can back a habit with a pledge: *"if I miss my week, $5 goes to charity."*
 The money never goes to the app and never goes to a friend. It is a follow-up to measured
@@ -2582,7 +2582,7 @@ below.
 
   If pledged habits do not keep people longer, stop here.
 
-#### Phase B — charge on a missed week (real money)
+#### Phase B — charge on a missed week (real money) (#2991)
 
 Only if Phase A shows a lift.
 
