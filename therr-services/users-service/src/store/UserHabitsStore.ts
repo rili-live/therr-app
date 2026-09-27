@@ -122,6 +122,14 @@ export interface IUserHabitDetail extends IUserHabitRow {
     targetAmount: string | null;
     currencyCode: string | null;
     savingsTargetScope: string | null;
+    /** The unit of a measured (non-savings) habit, or null when it is not measured. */
+    amountUnit: string | null;
+    /**
+     * The amount recorded this week, today included, as `numeric` text. NULL when the
+     * caller did not supply week bounds; the handler turns it into `weekAmount` on
+     * measured habits only.
+     */
+    amountThisWeek: string | null;
 }
 
 /**
@@ -313,6 +321,24 @@ export default class UserHabitsStore {
                 )`;
         }
 
+        // The amount recorded this week, for a measured habit's weekly target. Unlike the
+        // tally above it includes today, since today's minutes count toward this week's
+        // target the moment they are logged. Its bindings follow the tally's, in SELECT
+        // order.
+        let weekAmountColumn = 'NULL::text';
+        if (weekBounds) {
+            bindings.push(weekBounds.weekStart, weekBounds.today);
+            weekAmountColumn = `(
+                    SELECT COALESCE(SUM(c."savedAmount"), 0)::text
+                    FROM ${HABIT_CHECKINS_TABLE_NAME} c
+                    WHERE c."userId" = uh."userId"
+                        AND c."habitGoalId" = uh."habitGoalId"
+                        AND c."scheduledDate" >= ?::date
+                        AND c."scheduledDate" <= ?::date
+                        AND c."savedAmount" IS NOT NULL
+                )`;
+        }
+
         bindings.push(userId);
         let statusPredicate = '';
         if (status) {
@@ -331,9 +357,10 @@ export default class UserHabitsStore {
                 g."frequencyCount" AS "frequencyCount",
                 g."targetDaysOfWeek" AS "targetDaysOfWeek",
                 g."cadenceEffectiveFrom"::text AS "cadenceEffectiveFrom",
-                -- Stays ahead of every other interpolated fragment: it is the only column
-                -- carrying bindings, and they are positional.
+                -- These two stay ahead of every other interpolated fragment: they are the
+                -- only columns carrying bindings, and bindings are positional.
                 ${weekTallyColumn} AS "completionsEarlierThisWeek",
+                ${weekAmountColumn} AS "amountThisWeek",
                 -- Savings target, mirrored from the goal so the habit list can draw a
                 -- progress bar without a goal fetch per row. Cast to text because
                 -- node-postgres returns numeric as a string anyway; making that
@@ -342,6 +369,7 @@ export default class UserHabitsStore {
                 g."targetAmount"::text AS "targetAmount",
                 g."currencyCode" AS "currencyCode",
                 g."savingsTargetScope" AS "savingsTargetScope",
+                g."amountUnit" AS "amountUnit",
                 COALESCE(s."currentStreak", 0) AS "currentStreak",
                 COALESCE(s."longestStreak", 0) AS "longestStreak",
                 COALESCE(pact_counts."activePactCount", 0) AS "activePactCount",
