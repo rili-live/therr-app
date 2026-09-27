@@ -1900,7 +1900,8 @@ depend on these working correctly.
 > independent changes that align the Friends with Habits loop with the
 > gamification evidence — and it acts on the retention loop that §§ 2.1–2.5
 > all feed into. **§ 2.7** (join-by-link challenges) is the next growth item after
-> it, gated on the conditions listed there.
+> it, gated on the conditions listed there. **§ 2.8 Phase A** (charity pledges, no money
+> moves) is a small retention follow-up to measured habits and may go ahead of § 2.7.
 
 ### 2.1 Push notification engagement
 
@@ -2518,6 +2519,99 @@ goal. Recorded here so it is not re-researched from scratch:
   `consequenceType` of donation, dare or custom is stored on `habits.pacts` and nothing
   acts on it. Honour-system confirmation by partners when a pact ends with a miss would
   show whether a consequence improves retention, before any payment work.
+- **Chosen direction: stakes go to charity.** Planned in § 2.8.
+
+### 2.8 Charity stakes — follow-up to measured habits (added 2026-09-27)
+
+**What:** a user can back a habit with a pledge: *"if I miss my week, $5 goes to charity."*
+The money never goes to the app and never goes to a friend. It is a follow-up to measured
+habits (optional amount tracking, `habits.habit_goals."amountUnit"`, shipped on the
+`claude/goalify-feature-research-c2ocvm` branches). That feature gives a pledge
+something objective to be judged against: *this week's amount reached the weekly target*,
+or, for a habit with no amount, *this week's cadence was met*.
+
+**Why it fits the brand.** Friends with Habits is about the people who watch you keep a
+habit, not about punishing you. A missed week that becomes a donation still does some good,
+so a stake can be firm without being cruel. That matches the self-compassion framing the
+comeback messaging already uses (`docs/HABIT_LIFECYCLE_MESSAGING.md`). It also avoids the
+two things that make money stakes risky (§ 2.7.2):
+
+- no pot that anyone wins, so it is not staking for a prize under Google Play's
+  Real-Money Gambling policy;
+- no money held by us between the pledge and the outcome.
+
+One honest caveat: the commitment-contract literature, and stickK's own "anti-charity"
+option, suggest money going to a cause the user *likes* is a weaker deterrent than money
+going somewhere they dislike. Anti-charities do not fit this brand, so accept the weaker
+lever and measure it (Phase A) rather than assume it works.
+
+**Priority.** Phase A is small, reuses columns that already exist, and acts on retention.
+It can start as soon as measured habits are on `main`, ahead of § 2.7. Phase B moves real
+money, so it waits for Phase A's numbers plus the legal and store-policy review listed
+below.
+
+#### Phase A — pledge on the honour system (no payments)
+
+- **Data:** reuse `habits.pacts."consequenceType" = 'donation'` and `consequenceDetails`
+  (`{ amount, recipient }`). `validatePactParams` in `utilities/pactHelpers.ts` already
+  validates the amount. Solo habits have no pact row, so they need a home. Either add
+  `habits.user_habits."pledge"` (jsonb, nullable), or choose pact-only for Phase A and say
+  so in the UI. No mobile code sets `consequenceType` today (checked on
+  `niche/HABITS-general`), so there is nothing to migrate.
+- **Recipients:** a short, curated list of 3–5 well-known charities, not free text. That
+  keeps the choice quick and avoids the app appearing to endorse arbitrary organisations.
+  Store a stable key, translated on the client like `templateKey`.
+- **The weekly verdict:** a missed week is judged when the week closes, per habit, in the
+  user's own zone:
+  - *measured habit with a weekly target:* `weekAmount < targetAmount`;
+  - *otherwise:* the cadence quota was not met, via `isPeriodSatisfied` in
+    `utilities/habitCadence.ts`, which is the one allowed definition.
+
+  A spent streak freeze or a rest week is **not** a miss. The pledge must never contradict
+  the streak rules the user has already been told.
+- **What happens on a miss:** one push and an in-app card: *"You missed your reading
+  target this week. Your pledge: $5 to <charity>."* with a link out to the charity's own
+  donation page and a "Done, I gave" button. Partners see *"Sam honoured their pledge"*
+  on the pact. Queue it through `enqueueNotification` with a period-stamped dedupe key
+  (`pledge-missed:<userHabitId>:<weekStart>`), never anything containing `Date.now()`
+  (CLAUDE.md, Sibling Repos rule 4).
+- **Measure:**
+  - pledge adoption among pacts;
+  - D30 retention and weekly-target hit rate, pledged vs unpledged;
+  - how often a miss ends in "Done, I gave".
+
+  If pledged habits do not keep people longer, stop here.
+
+#### Phase B — charge on a missed week (real money)
+
+Only if Phase A shows a lift.
+
+- **Never custody funds.** Save a card at pledge time (a Stripe SetupIntent;
+  `src/api/stripe.ts` exists) and charge **only** after a missed week. The strongly
+  preferred route is a donation platform that is itself the registered charity or
+  donor-advised fund (candidates to evaluate: Every.org, PayPal Giving Fund, Pledge). The
+  charge is then a donation straight to them, they issue the tax receipt, and no money
+  touches our balance.
+- **A grace window before charging:** 24–48h after the week closes, during which the user
+  can log a forgotten check-in (backdating already exists) or a partner can vouch for
+  them. Every charge must be something the user saw coming.
+- **Guardrails:**
+  - a per-week and per-month cap;
+  - a minimum pledge (stickK's is $5);
+  - adults only;
+  - an off switch that takes effect before the next week closes;
+  - a refund path for a verdict the user disputes.
+- **Store policy, to confirm before building, not after.** Apple's App Review Guideline
+  3.2.1(vi) restricts in-app charitable fundraising to approved nonprofits, otherwise
+  sending the user out to a browser. Google Play's Payments policy needs the same check.
+  Charging through a nonprofit partner's hosted flow may satisfy both, but that is the
+  question to put to legal, not an assumption.
+- **Monetisation.** We never keep forfeited money. It would reward us for users failing
+  and contradict the brand. If stakes need to earn anything, make charity stakes a premium
+  feature (§ 2.5), or offer the optional "add a tip" some donation platforms support.
+
+Split: pledge storage, the weekly verdict job and notifications on `general`. The pledge
+picker, miss card and partner view on `niche/HABITS-general`.
 
 ---
 
