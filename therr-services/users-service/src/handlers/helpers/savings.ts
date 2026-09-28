@@ -1,8 +1,11 @@
-import { HabitGoalTypes, PushNotifications } from 'therr-js-utilities/constants';
+import {
+    HabitGoalTypes, PushNotifications, isMeasuredHabitGoal, tracksHabitAmount,
+} from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../../store';
 import enqueueNotification from '../../utilities/enqueueNotification';
 import { ISavingsProgress, buildSavingsProgress, isSavingsGoal } from '../../utilities/savingsProgress';
+import { buildAmountProgress } from '../../utilities/habitAmounts';
 import { attachMemberStatsToPact } from './pactMemberStats';
 
 /**
@@ -249,55 +252,129 @@ export const evaluateSavingsAfterCheckin = async ({
 };
 
 /**
- * Adds `totalSaved` to each savings habit in a user's habit list, and turns the
- * `targetAmount` text the list query returns into a number.
+ * Adds the recorded-amount totals to each habit in a user's habit list, and turns the
+ * `targetAmount` and `amountThisWeek` text the list query returns into numbers.
+ *
+ *   - A savings habit gets `totalSaved`, cumulative across every cycle.
+ *   - A measured habit (non-savings, with an `amountUnit`) gets `totalAmount`, all-time,
+ *     and `weekAmount`, this week including today, which its weekly `targetAmount` is
+ *     measured against.
+ *   - Any other habit is returned with neither, and costs nothing.
  *
  * One aggregate for the whole list rather than one per habit: the dashboard renders
  * every habit a user tracks, and a per-row query would make the page cost scale with
- * how committed the user is. Habits that are not savings goals are skipped entirely, so
- * a user with none pays nothing.
+ * how committed the user is.
  *
  * Degrades rather than fails, for the same reason `getPactSavingsProgress` does — the
  * habit list's job is to list habits. On failure the target still comes back parsed and
- * `totalSaved` is simply absent, which the client is required to treat as "unknown"
+ * the totals are simply absent, which the client is required to treat as "unknown"
  * (see `IUserHabit.totalSaved`) rather than zero.
  */
-export const attachSavingsTotals = async (userHabits: any[]) => {
-    const parsed = userHabits.map((habit) => ({
-        ...habit,
-        targetAmount: habit.targetAmount === null || habit.targetAmount === undefined
-            ? null
-            : Number(habit.targetAmount),
-    }));
+export const attachAmountTotals = async (userHabits: any[]) => {
+    const parsed = userHabits.map(({ amountThisWeek, ...habit }) => {
+        const withTarget = {
+            ...habit,
+            targetAmount: habit.targetAmount === null || habit.targetAmount === undefined
+                ? null
+                : Number(habit.targetAmount),
+        };
+        // Only a measured habit reports a week amount. `amountThisWeek` is NULL when the
+        // week could not be resolved, and absence is how "unknown" is spelled.
+        if (isMeasuredHabitGoal(habit) && amountThisWeek !== null && amountThisWeek !== undefined) {
+            return { ...withTarget, weekAmount: Number(amountThisWeek) || 0 };
+        }
+        return withTarget;
+    });
 
-    const savingsHabits = parsed.filter((habit) => habit.goalType === HabitGoalTypes.SAVINGS_GOAL);
-    if (!savingsHabits.length) {
+    const amountHabits = parsed.filter((habit) => tracksHabitAmount(habit));
+    if (!amountHabits.length) {
         return parsed;
     }
 
-    // Every savings habit belongs to one user here — this is that user's own list — so
-    // a single (userId, goalIds) aggregate covers the page.
-    const userId = savingsHabits[0].userId;
+    // Every habit belongs to one user here — this is that user's own list — so a single
+    // (userId, goalIds) aggregate covers the page.
+    const userId = amountHabits[0].userId;
     let totalsByGoal: Record<string, { totalSaved: number; contributionCount: number }> = {};
 
     try {
         totalsByGoal = await Store.habitCheckins.getSavingsTotalsByGoalForUser(
             userId,
-            savingsHabits.map((habit) => habit.habitGoalId),
+            amountHabits.map((habit) => habit.habitGoalId),
         );
     } catch (err: any) {
         logSpan({
             level: 'error',
             messageOrigin: 'API_SERVER',
-            messages: [err?.message, 'Failed to read habit savings totals'],
+            messages: [err?.message, 'Failed to read habit amount totals'],
             traceArgs: { 'user.id': userId },
         });
         return parsed;
     }
 
-    return parsed.map((habit) => (habit.goalType === HabitGoalTypes.SAVINGS_GOAL
+    return parsed.map((habit) => {
         // A goal with no recorded amounts is absent from the map, not zero in it — the
-        // habit has genuinely saved nothing, which is 0 rather than unknown.
-        ? { ...habit, totalSaved: totalsByGoal[habit.habitGoalId]?.totalSaved || 0 }
-        : habit));
+        // habit has genuinely recorded nothing, which is 0 rather than unknown.
+        const total = totalsByGoal[habit.habitGoalId]?.totalSaved || 0;
+        if (habit.goalType === HabitGoalTypes.SAVINGS_GOAL) {
+            return { ...habit, totalSaved: total };
+        }
+        if (isMeasuredHabitGoal(habit)) {
+            return { ...habit, totalAmount: total };
+        }
+        return habit;
+    });
+};
+
+/**
+ * Attaches `amountProgress` to a measured pact (see `buildAmountProgress`), leaving any
+ * other pact untouched. The key is absent on a pact that is not measured.
+ *
+ * Only active members are ranked. Unlike money saved toward a shared pot, a weekly amount
+ * from someone who has left the pact is not part of anything the group is still doing.
+ *
+ * Never throws, for the same reason `getPactSavingsProgress` does.
+ */
+export const withAmountProgress = async (
+    pact: any,
+    members: any[],
+    viewerUserId: string,
+    weekBounds?: { weekStart: string; today: string },
+) => {
+    if (!pact?.habitGoalId || !weekBounds) {
+        return pact;
+    }
+
+    try {
+        const goal = await Store.habitGoals.getById(pact.habitGoalId);
+        if (!isMeasuredHabitGoal(goal)) {
+            return pact;
+        }
+
+        const activeUserIds = members
+            .filter((member: any) => member.status === 'active')
+            .map((member: any) => member.userId);
+        const memberTotals = (await Store.habitCheckins.getAmountTotalsByPactMember(
+            pact.id,
+            pact.habitGoalId,
+            weekBounds.weekStart,
+            weekBounds.today,
+        )).filter((member) => activeUserIds.includes(member.userId));
+
+        const amountProgress = buildAmountProgress({
+            goal,
+            memberTotals,
+            weekStart: weekBounds.weekStart,
+            viewerUserId,
+        });
+
+        return amountProgress ? { ...pact, amountProgress } : pact;
+    } catch (err: any) {
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: [err?.message, 'Failed to compute pact amount progress'],
+            traceArgs: { 'pact.id': pact?.id, 'habitGoal.id': pact?.habitGoalId },
+        });
+        return pact;
+    }
 };

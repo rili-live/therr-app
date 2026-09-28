@@ -91,6 +91,12 @@ const stubDigestReads = () => {
     // suite's own setup depending on file order.
     process.env.HABIT_LAST_CHANCE_REMINDERS_ENABLED = 'false';
 
+    // The weekly recap is off for the same reason. It goes out on the
+    // recipient's local Monday, so on a Monday every run here gains a
+    // `weekly-recap` row per user and the counts below are off by one. Its
+    // rules are covered, against pinned dates, in weeklyRecap.test.ts.
+    process.env.HABIT_WEEKLY_RECAPS_ENABLED = 'false';
+
     // The expiry sweep runs before the active-pact read. Nothing is past its
     // endDate in this fixture, so the sweep is a no-op here — it has its own
     // tests below.

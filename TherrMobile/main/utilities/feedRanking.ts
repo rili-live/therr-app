@@ -193,6 +193,83 @@ export const rankFeedPosts = (posts: IRankablePost[], contentAlgorithm?: string)
 };
 
 /**
+ * Holds a ranked feed's order still while the user scrolls it.
+ *
+ * `rankFeedPosts` is a pure function of the whole cached list, and the carousels call it on
+ * every render. That is what made the feed jump: each page `onEndReached` appends is ranked
+ * together with the posts already on screen, so a fresh, well-liked post from page 3 is
+ * hoisted above the viewport and everything below it shifts down. A like does the same — it
+ * raises that post's engagement and its category's affinity, reordering the list under the
+ * user's thumb — and so does the `Date.now()` the score decays against.
+ *
+ * Posts the user has already been shown (`previousIds`) keep their order; posts that no longer
+ * exist are dropped; posts not seen before follow, in the order `rankedPosts` gives them. The
+ * ranking still decides the order of each new page — it just can no longer reach back into
+ * the part of the list that has been rendered. Re-ranking the whole list is the caller's
+ * decision, made by passing no `previousIds` (a refresh).
+ */
+export const keepRenderedFeedOrder = <T extends { id?: any }>(rankedPosts: T[], previousIds?: string[]): T[] => {
+    if (!previousIds?.length || !rankedPosts?.length) {
+        return rankedPosts;
+    }
+
+    const postsById = new Map<string, T>();
+    rankedPosts.forEach((post) => postsById.set(String(post.id), post));
+
+    const previousIdSet = new Set(previousIds);
+    const kept: T[] = [];
+    previousIds.forEach((id) => {
+        const post = postsById.get(id);
+        if (post) {
+            kept.push(post);
+            // A duplicate id in previousIds must not render the same post twice.
+            postsById.delete(id);
+        }
+    });
+
+    return kept.concat(rankedPosts.filter((post) => !previousIdSet.has(String(post.id))));
+};
+
+interface IFeedOrderKeyInputs {
+    /**
+     * The store's pagination objects for each stream the feed merges. The reducer writes a new
+     * object on every page, so a new one with no offset means a first page landed (mount,
+     * pull-to-refresh, or another screen resetting the shared stream). Later pages are ignored.
+     */
+    paginations?: any[];
+    /**
+     * Anything else whose change should accept a fresh ranking — filters, the content
+     * algorithm, the user's newest post. Compared by identity, so pass primitives.
+     */
+    resetOn?: any[];
+}
+
+/**
+ * Returns a function that derives an AreaCarousel `stableOrderKey` from store state, for a
+ * screen that renders a ranked feed. The key changes only when a fresh ranking is wanted, so
+ * paging in and reacting to posts can never reshuffle the rendered list.
+ *
+ * Derived during render rather than bumped in a refresh callback so the new key arrives in
+ * the same render as the data it describes. Calling it twice with the same inputs returns the
+ * same key, so a repeated render cannot bump it. Use one per carousel: two carousels sharing
+ * one would reset each other.
+ */
+export const createFeedOrderKey = () => {
+    let key = 0;
+    let last: Required<IFeedOrderKeyInputs> | undefined;
+
+    return ({ paginations = [], resetOn = [] }: IFeedOrderKeyInputs): number => {
+        const hasNewFirstPage = paginations.some((p, i) => p !== last?.paginations[i] && !p?.offset);
+        const hasReset = !last || resetOn.some((value, i) => value !== last?.resetOn[i]);
+        if (hasNewFirstPage || hasReset) {
+            key += 1;
+        }
+        last = { paginations, resetOn };
+        return key;
+    };
+};
+
+/**
  * The reply surfaced in an auto-expanded thread preview: most liked, then most recent.
  */
 export const getTopReply = (thought: IRankablePost) => {

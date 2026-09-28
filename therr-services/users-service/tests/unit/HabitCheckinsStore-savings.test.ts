@@ -217,4 +217,23 @@ describe('HabitCheckinsStore — savings amounts', () => {
             expect(totals).to.deep.equal({ g1: { totalSaved: 75.25, contributionCount: 3 } });
         });
     });
+
+    describe('getAmountTotalsByPactMember', () => {
+        it('sums the week and all-time per member, keeping members who recorded nothing', async () => {
+            const { store, mockConnection } = buildStore([
+                { userId: 'u1', weekAmount: '95.50', totalAmount: '400.00' },
+                { userId: 'u2', weekAmount: '0', totalAmount: '0' },
+            ]);
+
+            const rows = await store.getAmountTotalsByPactMember('p1', 'g1', '2026-09-21', '2026-09-24');
+
+            const sql = mockConnection.read.query.lastCall.args[0] as string;
+            expect(sql).to.match(/LEFT JOIN/);
+            expect(sql).to.match(/"scheduledDate" >= '2026-09-21'::date AND c\."scheduledDate" <= '2026-09-24'::date/);
+            expect(rows).to.deep.equal([
+                { userId: 'u1', weekAmount: 95.5, totalAmount: 400 },
+                { userId: 'u2', weekAmount: 0, totalAmount: 0 },
+            ]);
+        });
+    });
 });

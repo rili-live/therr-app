@@ -11,6 +11,8 @@ import {
     getPostRankingScore,
     getReplyCount,
     getTopReply,
+    createFeedOrderKey,
+    keepRenderedFeedOrder,
     orderAreaPreviewStrip,
     rankAreaPreviews,
     rankFeedPosts,
@@ -371,6 +373,102 @@ describe('feedRanking', () => {
             expect(shouldAutoExpandThread({ id: 't', createdAt: hoursAgo(1), areaType: 'moments', replies: [reply()] } as any)).toBe(false);
             expect(shouldAutoExpandThread({ id: 't', createdAt: hoursAgo(1), isDraft: true, replies: [reply()] } as any)).toBe(false);
             expect(shouldAutoExpandThread({ id: 't', createdAt: hoursAgo(1) } as any)).toBe(false);
+        });
+    });
+
+    describe('keepRenderedFeedOrder', () => {
+        const post = (id: string, extra: any = {}) => ({ id, createdAt: hoursAgo(1), ...extra });
+
+        it('returns the ranking untouched when nothing has been rendered yet', () => {
+            const ranked = [post('a'), post('b')];
+            expect(keepRenderedFeedOrder(ranked)).toBe(ranked);
+            expect(keepRenderedFeedOrder(ranked, [])).toBe(ranked);
+        });
+
+        it('keeps rendered posts in place and appends a newly paged post below them, however it ranks', () => {
+            // 'd' arrived with the next page and outranks everything already on screen.
+            const ranked = [post('d'), post('a'), post('c'), post('b')];
+            expect(keepRenderedFeedOrder(ranked, ['a', 'b', 'c']).map((p) => p.id))
+                .toEqual(['a', 'b', 'c', 'd']);
+        });
+
+        it('orders several new posts among themselves by their rank', () => {
+            const ranked = [post('e'), post('a'), post('d')];
+            expect(keepRenderedFeedOrder(ranked, ['a']).map((p) => p.id)).toEqual(['a', 'e', 'd']);
+        });
+
+        it('does not move a post the user just liked, but renders its updated copy', () => {
+            const liked = post('b', { likeCount: 50 });
+            const ranked = [liked, post('a'), post('c')];
+            const result = keepRenderedFeedOrder(ranked, ['a', 'b', 'c']);
+            expect(result.map((p) => p.id)).toEqual(['a', 'b', 'c']);
+            expect(result[1]).toBe(liked);
+        });
+
+        it('drops rendered posts that are gone (deleted, blocked) without reordering the rest', () => {
+            const ranked = [post('c'), post('a')];
+            expect(keepRenderedFeedOrder(ranked, ['a', 'b', 'c']).map((p) => p.id)).toEqual(['a', 'c']);
+        });
+
+        it('never renders a post twice when the rendered ids carry a duplicate', () => {
+            const ranked = [post('a'), post('b')];
+            expect(keepRenderedFeedOrder(ranked, ['b', 'a', 'b']).map((p) => p.id)).toEqual(['b', 'a']);
+        });
+
+        it('matches numeric ids against the stringified ids a list renders', () => {
+            const ranked = [{ id: 2, createdAt: hoursAgo(1) }, { id: 1, createdAt: hoursAgo(1) }];
+            expect(keepRenderedFeedOrder(ranked, ['1', '2']).map((p) => p.id)).toEqual([1, 2]);
+        });
+    });
+
+    describe('createFeedOrderKey', () => {
+        const firstPage = () => ({ offset: 0, itemsPerPage: 20 });
+        const nextPage = () => ({ offset: 20, itemsPerPage: 20 });
+
+        it('holds the key while later pages arrive and the list re-renders', () => {
+            const orderKey = createFeedOrderKey();
+            const moments = firstPage();
+            const thoughts = firstPage();
+            const key = orderKey({ paginations: [moments, thoughts], resetOn: ['all'] });
+
+            expect(orderKey({ paginations: [moments, thoughts], resetOn: ['all'] })).toBe(key);
+            expect(orderKey({ paginations: [nextPage(), thoughts], resetOn: ['all'] })).toBe(key);
+            expect(orderKey({ paginations: [nextPage(), nextPage()], resetOn: ['all'] })).toBe(key);
+        });
+
+        it('changes when a first page of any merged stream lands (a refresh)', () => {
+            const orderKey = createFeedOrderKey();
+            const thoughts = firstPage();
+            const key = orderKey({ paginations: [firstPage(), thoughts] });
+
+            expect(orderKey({ paginations: [firstPage(), thoughts] })).not.toBe(key);
+        });
+
+        it('treats a pagination with no offset yet (the initial state) as a first page', () => {
+            const orderKey = createFeedOrderKey();
+            const key = orderKey({ paginations: [{}] });
+
+            expect(orderKey({ paginations: [{}] })).not.toBe(key);
+        });
+
+        it('changes when a reset input changes, e.g. the user posts or changes a filter', () => {
+            const orderKey = createFeedOrderKey();
+            const pagination = firstPage();
+            const key = orderKey({ paginations: [pagination], resetOn: ['old-post', 'all'] });
+
+            const afterPost = orderKey({ paginations: [pagination], resetOn: ['new-post', 'all'] });
+            expect(afterPost).not.toBe(key);
+            expect(orderKey({ paginations: [pagination], resetOn: ['new-post', 'moments'] })).not.toBe(afterPost);
+        });
+
+        it('keeps separate keys per carousel', () => {
+            const discoveries = createFeedOrderKey();
+            const thoughts = createFeedOrderKey();
+            const pagination = firstPage();
+            const key = discoveries({ paginations: [pagination], resetOn: ['all'] });
+
+            thoughts({ paginations: [pagination], resetOn: ['other-filter'] });
+            expect(discoveries({ paginations: [pagination], resetOn: ['all'] })).toBe(key);
         });
     });
 });
