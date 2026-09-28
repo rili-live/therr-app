@@ -10,8 +10,8 @@ import { getLocalDate, getWeekStart, resolveCheckinTimeZone } from '../../utilit
  * place for most of the world, and a weekly quota that resets on the wrong day is worse than
  * one that is not reported at all.
  *
- * Fails soft: a failed user read returns `undefined`, the tally column comes back NULL, and
- * the response simply carries no `weekProgress` — the habits list itself still renders.
+ * Fails soft: a failed user read is treated as "no saved zone", so the week falls back to the
+ * device zone and then the service default rather than failing the habits read.
  */
 const resolveWeekBounds = async (
     userId: string,
