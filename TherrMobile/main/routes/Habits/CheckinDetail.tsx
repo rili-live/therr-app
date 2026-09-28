@@ -8,7 +8,8 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { FeatureFlags, HabitGoalType, HabitGoalTypes } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
-import { IUserState } from 'therr-react/types';
+import { HabitCheckinsService } from 'therr-react/services';
+import { IHabitCheckin, IHabitsState, IUserState } from 'therr-react/types';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import CheckinDetailForm, { ICheckinDetailDraft } from '../../components/Habits/CheckinDetailForm';
 import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
@@ -49,6 +50,7 @@ interface ICheckinDetailProps {
     // are read through one typed destructure below instead.
     route: any;
     user: IUserState;
+    habits: IHabitsState;
     createCheckin: Function;
     shareCheckin: Function;
     getActiveStreaks: Function;
@@ -56,6 +58,7 @@ interface ICheckinDetailProps {
 
 const mapStateToProps = (state: any) => ({
     user: state.user,
+    habits: state.habits,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
@@ -83,6 +86,7 @@ export const CheckinDetail = ({
     navigation,
     route,
     user,
+    habits,
     createCheckin,
     shareCheckin,
     getActiveStreaks,
@@ -97,6 +101,16 @@ export const CheckinDetail = ({
         image: null,
         sharePublicly: false,
     });
+    // Today's check-in for this habit, if one exists, so the form opens showing what was
+    // already saved instead of an empty note and an amount of 0. Seeded from the store for
+    // an instant first paint, then refreshed from the server below — an amount may have
+    // been logged since the store loaded (the notification quick-reply writes one).
+    const [existingCheckin, setExistingCheckin] = useState<IHabitCheckin | undefined>(
+        // Matched on the day as well: the store's today list can be from before midnight,
+        // and prefilling yesterday's note would save it onto today's row.
+        () => habits?.todayCheckins?.find((c: IHabitCheckin) => c.habitGoalId === habitGoalId
+            && String(c.scheduledDate || '').slice(0, 10) === toLocalDateKey(new Date())),
+    );
 
     const theme = useMemo(() => buildStyles(user.settings?.mobileThemeName), [user.settings?.mobileThemeName]);
     const themeHabits = useMemo(() => buildHabitStyles(user.settings?.mobileThemeName), [user.settings?.mobileThemeName]);
@@ -122,6 +136,35 @@ export const CheckinDetail = ({
         });
     }, [navigation, translate]);
 
+    // Fetched through the service rather than `getTodayCheckins`, which would replace the
+    // store's whole today list with this one habit's row and blank every other card on the
+    // dashboard this screen returns to.
+    useEffect(() => {
+        if (!habitGoalId) {
+            return undefined;
+        }
+        let isCancelled = false;
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        HabitCheckinsService.getTodayCheckins(habitGoalId, timeZone)
+            .then((response: any) => {
+                if (isCancelled || response?.isOfflineFallback || !Array.isArray(response?.data)) {
+                    return;
+                }
+                const checkin = response.data.find((c: IHabitCheckin) => c.habitGoalId === habitGoalId);
+                if (checkin) {
+                    setExistingCheckin(checkin);
+                }
+            })
+            .catch(() => {
+                // The store's copy (or an empty form) stands; the save still works.
+            });
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [habitGoalId]);
+
     const handleDraftChange = useCallback((draft: ICheckinDetailDraft) => {
         draftRef.current = draft;
     }, []);
@@ -135,6 +178,13 @@ export const CheckinDetail = ({
             notes, image, sharePublicly, savedAmount, hasInvalidSavedAmount,
         } = draftRef.current;
         const trimmedNotes = notes.trim();
+        const existingNotes = (existingCheckin?.notes || '').trim();
+        const existingAmount = existingCheckin?.savedAmount ?? null;
+        // Only what the user changed travels. The form is prefilled with the saved row, so
+        // re-sending it unchanged would be a pointless re-POST; and an emptied note is sent
+        // as '' so clearing a prefilled note actually clears it.
+        const hasNotesChange = trimmedNotes !== existingNotes;
+        const hasAmountChange = savedAmount !== undefined && savedAmount !== existingAmount;
 
         // The amount field is already showing why the text does not parse. Submitting
         // anyway would save the check-in without the number the user typed.
@@ -145,11 +195,9 @@ export const CheckinDetail = ({
         // An amount counts as something to attach. Without this, a savings check-in whose
         // only content is the number — which is the common case, and the whole point of
         // the feature — would be treated as an empty save and silently discarded.
-        const hasSavedAmount = savedAmount !== undefined;
-
-        // Nothing to attach — treat Save as Done rather than re-POSTing the check-in for no
+        // Nothing changed — treat Save as Done rather than re-POSTing the check-in for no
         // reason.
-        if (!trimmedNotes.length && !image && !hasSavedAmount) {
+        if (!hasNotesChange && !image && !hasAmountChange) {
             navigation.goBack();
             return;
         }
@@ -175,13 +223,12 @@ export const CheckinDetail = ({
                 localDate: scheduledDate,
                 timeZone,
                 status: 'completed',
-                notes: trimmedNotes.length ? trimmedNotes : undefined,
+                ...(hasNotesChange ? { notes: trimmedNotes } : {}),
                 proofMedias,
-                // Spread so the key is genuinely absent on a non-savings habit, and on a
-                // savings habit whose field was left empty. The POST upserts today's row
-                // and an explicit null would clear an amount already logged today (say,
-                // from the notification quick-reply), so the draft never carries one.
-                ...(savedAmount === undefined ? {} : { savedAmount }),
+                // Spread so the key is genuinely absent unless the amount changed. The POST
+                // upserts today's row and an explicit null clears an amount already logged
+                // today, so null is only sent when the user emptied a prefilled amount.
+                ...(hasAmountChange ? { savedAmount } : {}),
             }))
             .then((checkin: any) => {
                 // What the note/photo earned on the leaderboard, as the service decided it.
@@ -264,6 +311,8 @@ export const CheckinDetail = ({
                             isSavingsGoal={isSavingsGoal}
                             currencyCode={currencyCode}
                             amountUnit={amountUnit}
+                            initialNotes={existingCheckin?.notes}
+                            initialSavedAmount={existingCheckin?.savedAmount}
                             onChange={handleDraftChange}
                             translate={translate}
                             colors={theme.colors}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Image, Platform, Pressable, StyleSheet, Text, TextInput, View,
 } from 'react-native';
@@ -55,6 +55,14 @@ interface ICheckinDetailFormProps {
      * goal, which is counted in `currencyCode`.
      */
     amountUnit?: string | null;
+    /**
+     * The note already saved on today's check-in, if any. Seeds the note field so editing a
+     * check-in shows what is there rather than a blank form. May arrive after mount (the
+     * screen fetches the row); it is applied only until the user has typed in the field.
+     */
+    initialNotes?: string | null;
+    /** The amount already saved on today's check-in, if any. Seeded like `initialNotes`. */
+    initialSavedAmount?: number | null;
     onChange: (draft: ICheckinDetailDraft) => void;
     translate: (key: string, params?: any) => string;
     colors: ITherrThemeColors;
@@ -66,16 +74,16 @@ export interface ICheckinDetailDraft {
     image: ISelectedProofImage | null;
     sharePublicly: boolean;
     /**
-     * The parsed amount, or **`undefined` when there is nothing to send** — a habit that
-     * tracks no amount, an empty field, or text that does not parse.
+     * The parsed amount, **`undefined` when there is nothing to send** — a habit that
+     * tracks no amount, an empty field, or text that does not parse — or `null` only when
+     * the field was seeded with a saved amount and the user emptied it.
      *
-     * Never `null`. The check-in POST is an upsert on today's row and the server reads an
-     * explicit null as "clear the recorded amount", while this field always starts empty
-     * (it is not prefilled with today's amount). A null here would therefore make an
-     * ordinary "add a note" save erase money already logged today — e.g. from the
-     * notification quick-reply. `undefined` leaves the key off the request entirely.
+     * The check-in POST is an upsert on today's row and the server reads an explicit null
+     * as "clear the recorded amount". So null is reserved for that deliberate clear: an
+     * empty field that never held a value must not erase money logged today by another
+     * path (e.g. the notification quick-reply) before the seed arrived.
      */
-    savedAmount?: number;
+    savedAmount?: number | null;
     /**
      * True when the amount field holds text the shared parser rejects. The field already
      * shows why inline; the caller must not submit, or the typed amount would be dropped
@@ -93,6 +101,8 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
     isSavingsGoal = false,
     currencyCode,
     amountUnit,
+    initialNotes,
+    initialSavedAmount,
     onChange,
     translate,
     colors,
@@ -108,6 +118,32 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
     // A measured habit gets the same optional field as a savings one, in its own unit.
     const isMeasured = !isSavingsGoal && isHabitAmountUnit(amountUnit);
     const tracksAmount = isSavingsGoal || isMeasured;
+    // Once the user has typed in a field, a late-arriving seed must not overwrite it.
+    const hasEditedNotesRef = useRef(false);
+    const hasEditedAmountRef = useRef(false);
+    const hasSeededAmount = tracksAmount && initialSavedAmount !== null && initialSavedAmount !== undefined;
+
+    useEffect(() => {
+        if (!hasEditedNotesRef.current && initialNotes) {
+            setNotes(initialNotes.slice(0, MAX_NOTE_LENGTH));
+        }
+    }, [initialNotes]);
+
+    useEffect(() => {
+        if (!hasEditedAmountRef.current && initialSavedAmount !== null && initialSavedAmount !== undefined) {
+            setSavedAmountText(String(initialSavedAmount));
+        }
+    }, [initialSavedAmount]);
+
+    const handleNotesChange = (text: string) => {
+        hasEditedNotesRef.current = true;
+        setNotes(text);
+    };
+
+    const handleSavedAmountTextChange = (text: string) => {
+        hasEditedAmountRef.current = true;
+        setSavedAmountText(text);
+    };
 
     // Lift the draft on every change so the screen's footer button can submit without a ref
     // into this component. Sharing requires a photo; never signal share without one even if the
@@ -117,16 +153,22 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
         const parsedAmount = trimmedAmountText.length ? parseSavingsAmount(trimmedAmountText) : null;
         const hasInvalidSavedAmount = !!parsedAmount && (!!parsedAmount.error || parsedAmount.amount === undefined);
 
+        let savedAmount: number | null | undefined;
+        if (parsedAmount && !hasInvalidSavedAmount) {
+            savedAmount = parsedAmount.amount;
+        } else if (!trimmedAmountText.length && hasSeededAmount) {
+            // The user emptied a field that showed today's saved amount: clear it.
+            savedAmount = null;
+        }
+
         onChange({
             notes,
             image: selectedImage,
             sharePublicly: canShare && !!selectedImage && sharePublicly,
-            // Undefined — never null — whenever there is no valid amount, so the caller
-            // omits the key rather than clearing an amount recorded earlier today.
-            savedAmount: parsedAmount && !hasInvalidSavedAmount ? parsedAmount.amount : undefined,
+            savedAmount,
             hasInvalidSavedAmount,
         });
-    }, [notes, selectedImage, sharePublicly, canShare, tracksAmount, savedAmountText, onChange]);
+    }, [notes, selectedImage, sharePublicly, canShare, tracksAmount, hasSeededAmount, savedAmountText, onChange]);
 
     const pickImage = async (source: 'camera' | 'library') => {
         const pickerOptions: any = {
@@ -201,7 +243,7 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
                 // quick-reply exists to work around.
                 <SavingsAmountInput
                     value={savedAmountText}
-                    onChangeText={setSavedAmountText}
+                    onChangeText={handleSavedAmountTextChange}
                     currencyCode={currencyCode}
                     label={translate('pages.habits.savings.checkinAmountLabel')}
                     hint={translate('pages.habits.savings.checkinAmountHint')}
@@ -216,7 +258,7 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
                 // and a check-in without a number is a complete one.
                 <SavingsAmountInput
                     value={savedAmountText}
-                    onChangeText={setSavedAmountText}
+                    onChangeText={handleSavedAmountTextChange}
                     unitLabel={getHabitAmountUnitShort(amountUnit, translate)}
                     label={translate('pages.habits.amounts.checkinAmountLabel')}
                     hint={translate('pages.habits.amounts.checkinAmountHint')}
@@ -323,7 +365,7 @@ const CheckinDetailForm: React.FC<ICheckinDetailFormProps> = ({
             <View style={localStyles.inputContainer}>
                 <TextInput
                     value={notes}
-                    onChangeText={setNotes}
+                    onChangeText={handleNotesChange}
                     placeholder={translate('pages.habits.checkinProof.notePlaceholder')}
                     placeholderTextColor={colors.textGray}
                     multiline
