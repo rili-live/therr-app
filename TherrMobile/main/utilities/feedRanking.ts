@@ -230,6 +230,45 @@ export const keepRenderedFeedOrder = <T extends { id?: any }>(rankedPosts: T[], 
     return kept.concat(rankedPosts.filter((post) => !previousIdSet.has(String(post.id))));
 };
 
+interface IFeedOrderKeyInputs {
+    /**
+     * The store's pagination objects for each stream the feed merges. The reducer writes a new
+     * object on every page, so a new one with no offset means a first page landed (mount,
+     * pull-to-refresh, or another screen resetting the shared stream). Later pages are ignored.
+     */
+    paginations?: any[];
+    /**
+     * Anything else whose change should accept a fresh ranking — filters, the content
+     * algorithm, the user's newest post. Compared by identity, so pass primitives.
+     */
+    resetOn?: any[];
+}
+
+/**
+ * Returns a function that derives an AreaCarousel `stableOrderKey` from store state, for a
+ * screen that renders a ranked feed. The key changes only when a fresh ranking is wanted, so
+ * paging in and reacting to posts can never reshuffle the rendered list.
+ *
+ * Derived during render rather than bumped in a refresh callback so the new key arrives in
+ * the same render as the data it describes. Calling it twice with the same inputs returns the
+ * same key, so a repeated render cannot bump it. Use one per carousel: two carousels sharing
+ * one would reset each other.
+ */
+export const createFeedOrderKey = () => {
+    let key = 0;
+    let last: Required<IFeedOrderKeyInputs> | undefined;
+
+    return ({ paginations = [], resetOn = [] }: IFeedOrderKeyInputs): number => {
+        const hasNewFirstPage = paginations.some((p, i) => p !== last?.paginations[i] && !p?.offset);
+        const hasReset = !last || resetOn.some((value, i) => value !== last?.resetOn[i]);
+        if (hasNewFirstPage || hasReset) {
+            key += 1;
+        }
+        last = { paginations, resetOn };
+        return key;
+    };
+};
+
 /**
  * The reply surfaced in an auto-expanded thread preview: most liked, then most recent.
  */
