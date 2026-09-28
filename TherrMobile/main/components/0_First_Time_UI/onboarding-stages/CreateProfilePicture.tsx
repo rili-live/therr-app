@@ -1,12 +1,10 @@
 import React from 'react';
 import { GestureResponderEvent, View } from 'react-native';
 import { Button } from '../../BaseButton';
-import RNFB from 'react-native-blob-util';
-import { FilePaths } from 'therr-js-utilities/constants';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../../styles/themes';
 import Alert from '../../Alert';
 import UserImage from '../../UserContent/UserImage';
-import { signImageUrl } from '../../../utilities/content';
+import { reportUserImageFailure, uploadProfilePicture } from '../../../utilities/userImage';
 
 interface ICreateProfilePictureProps {
     user: any;
@@ -47,44 +45,19 @@ class CreateProfilePicture extends React.Component<ICreateProfilePictureProps, I
     }
 
     onDoneCropping = (croppedImageDetails) => {
-        const { onCropComplete } = this.props;
+        const { onCropComplete, requestUserUpdate, translate, user } = this.props;
 
         if (!croppedImageDetails.didCancel && !croppedImageDetails.errorCode) {
-            const { requestUserUpdate } = this.props;
             onCropComplete(croppedImageDetails);
 
-            this.signAndUploadImage(croppedImageDetails).then((imageUploadResponse) => {
+            uploadProfilePicture(croppedImageDetails).then((imageUploadResponse) => {
                 requestUserUpdate(imageUploadResponse);
             }).catch((err) => {
-                console.log(err);
+                // Clear the preview so the screen does not show a photo that was never saved.
+                onCropComplete({});
+                reportUserImageFailure({ stage: 'upload', err, userId: user?.details?.id, translate });
             });
         }
-    };
-
-    signAndUploadImage = (croppedImageDetails) => {
-        const filePathSplit = croppedImageDetails?.path?.split('.');
-        const fileExtension = `${filePathSplit?.[filePathSplit.length - 1]}` || 'jpeg';
-        return signImageUrl(true, {
-            action: 'write',
-            filename: `${FilePaths.PROFILE_PICTURE}.${fileExtension}`,
-        }).then((response) => {
-            const signedUrl = response?.data?.url && response?.data?.url[0];
-
-            const localFileCroppedPath = `${croppedImageDetails?.path}`;
-
-            // Upload to Google Cloud
-            // TODO: Abstract and add nudity filter sightengine.com
-            return RNFB.fetch(
-                'PUT',
-                signedUrl,
-                {
-                    'Content-Type': croppedImageDetails.mime,
-                    'Content-Length': croppedImageDetails.size.toString(),
-                    'Content-Disposition': 'inline',
-                },
-                RNFB.wrap(localFileCroppedPath),
-            ).then(() => response?.data);
-        });
     };
 
     render() {
@@ -113,6 +86,7 @@ class CreateProfilePicture extends React.Component<ICreateProfilePictureProps, I
                 <UserImage
                     user={user}
                     onImageReady={this.onDoneCropping}
+                    translate={translate}
                     theme={theme}
                     themeForms={themeForms}
                     userImageUri={userImageUri}

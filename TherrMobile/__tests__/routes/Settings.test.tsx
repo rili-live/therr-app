@@ -67,6 +67,11 @@ jest.mock('../../main/utilities/content', () => ({
     signImageUrl: jest.fn().mockResolvedValue({ data: { url: ['https://signed-url.com'] } }),
 }));
 
+jest.mock('../../main/utilities/userImage', () => ({
+    uploadProfilePicture: jest.fn(),
+    reportUserImageFailure: jest.fn(),
+}));
+
 jest.mock('../../main/utilities/areaUtils', () => ({
     getImagePreviewPath: jest.fn(),
 }));
