@@ -35,47 +35,75 @@ const friendsBoard = {
     periodEnd: '2026-09-28',
 };
 
+const globalBoard = {
+    entries: [
+        { rank: 1, userName: 'alex', points: 990, dailyStreak: 50, isRequestingUser: false },
+        { rank: 2, userName: 'maya', points: 610, dailyStreak: 30, isRequestingUser: false },
+    ],
+    currentUser: { rank: 48, points: 420, dailyStreak: 12 },
+    periodEnd: '2026-09-28',
+};
+
+const lonelyBoard = {
+    entries: [{ rank: 1, userName: 'me', points: 420, dailyStreak: 12, isRequestingUser: true }],
+    currentUser: { rank: 1, points: 420, dailyStreak: 12 },
+    periodEnd: '2026-09-28',
+};
+
+const boards = { connections: friendsBoard, global: globalBoard };
+
 describe('buildHabitsWidgetSnapshot', () => {
-    it('carries your standing, today and the top three', () => {
+    it('carries your standing and the top three of both boards, and today', () => {
         const { buildHabitsWidgetSnapshot } = loadModule();
-        const snapshot = buildHabitsWidgetSnapshot(friendsBoard, 'connections', { done: 2, total: 3 }, translate, 1000);
+        const snapshot = buildHabitsWidgetSnapshot(boards, { done: 2, total: 3 }, translate, 1000);
 
         expect(snapshot).toMatchObject({
-            v: 1,
+            v: 2,
             scope: 'connections',
+            hasFriends: true,
             periodEnd: '2026-09-28',
             updatedAt: 1000,
-            you: { rank: 4, points: 420, dailyStreak: 12 },
             today: { done: 2, total: 3 },
         });
+        expect(snapshot.boards.connections.you).toEqual({ rank: 4, points: 420, dailyStreak: 12 });
+        expect(snapshot.boards.global.you).toEqual({ rank: 48, points: 420, dailyStreak: 12 });
         // A user outside the top three is still shown in the stats row, not the list.
-        expect(snapshot.top.map((row: any) => row.userName)).toEqual(['maya', 'jordan', 'sam']);
-        expect(snapshot.top[2].dailyStreak).toBe(0);
+        expect(snapshot.boards.connections.top.map((row: any) => row.userName)).toEqual(['maya', 'jordan', 'sam']);
+        expect(snapshot.boards.connections.top[2].dailyStreak).toBe(0);
+        expect(snapshot.boards.global.top.map((row: any) => row.userName)).toEqual(['alex', 'maya']);
     });
 
-    it('labels the board it is showing', () => {
+    it('labels each board and both halves of the toggle', () => {
         const { buildHabitsWidgetSnapshot } = loadModule();
-        const friends = buildHabitsWidgetSnapshot(friendsBoard, 'connections', { done: 0, total: 1 }, translate);
-        const global = buildHabitsWidgetSnapshot(friendsBoard, 'global', { done: 0, total: 1 }, translate);
+        const snapshot = buildHabitsWidgetSnapshot(boards, { done: 0, total: 1 }, translate);
 
-        expect(friends.labels.title).toBe('pages.habits.widget.friendsThisWeek');
-        expect(friends.labels.rankContext).toBe('pages.habits.widget.amongFriends');
-        expect(global.labels.title).toBe('pages.habits.widget.everyoneThisWeek');
-        expect(global.labels.rankContext).toBe('pages.habits.widget.overall');
+        expect(snapshot.boards.connections.labels.rankContext).toBe('pages.habits.widget.amongFriends');
+        expect(snapshot.boards.global.labels.rankContext).toBe('pages.habits.widget.overall');
+        expect(snapshot.labels.scopeFriends).toBe('pages.leaderboard.tabs.friends');
+        expect(snapshot.labels.scopeEveryone).toBe('pages.leaderboard.tabs.everyone');
+    });
+
+    it('defaults to the global board, and flags the missing friends, for a user with none', () => {
+        const { buildHabitsWidgetSnapshot } = loadModule();
+        const snapshot = buildHabitsWidgetSnapshot({ connections: lonelyBoard, global: globalBoard }, { done: 0, total: 1 }, translate);
+
+        expect(snapshot.scope).toBe('global');
+        expect(snapshot.hasFriends).toBe(false);
+        // The friends side still carries a board, so picking it on the toggle has something to show.
+        expect(snapshot.boards.connections.top.map((row: any) => row.userName)).toEqual(['me']);
     });
 
     it('leaves {days} for the widget to fill, so the countdown moves without the app', () => {
         const { buildHabitsWidgetSnapshot } = loadModule();
         const translator = require('../../main/utilities/translator').default;
         const snapshot = buildHabitsWidgetSnapshot(
-            friendsBoard,
-            'connections',
+            boards,
             { done: 1, total: 2 },
             (key: string, params?: any) => translator('en-us', key, params),
         );
 
         expect(snapshot.labels.resetsIn).toContain('{days}');
-        expect(snapshot.labels.points).toBe('420 XP');
+        expect(snapshot.boards.connections.labels.points).toBe('420 XP');
         expect(snapshot.labels.todayProgress).toBe('1/2 habits');
         // The freshness label is the same deal: the widget fills it on every redraw.
         expect(snapshot.labels.minutesAgo).toContain('{minutes}');
@@ -88,8 +116,8 @@ describe('buildHabitsWidgetSnapshot', () => {
 
     it('invites a habit instead of showing 0/0, and clamps today to the total', () => {
         const { buildHabitsWidgetSnapshot } = loadModule();
-        const none = buildHabitsWidgetSnapshot(friendsBoard, 'connections', { done: 0, total: 0 }, translate);
-        const over = buildHabitsWidgetSnapshot(friendsBoard, 'connections', { done: 5, total: 2 }, translate);
+        const none = buildHabitsWidgetSnapshot(boards, { done: 0, total: 0 }, translate);
+        const over = buildHabitsWidgetSnapshot(boards, { done: 5, total: 2 }, translate);
 
         expect(none.labels.todayProgress).toBe('pages.habits.widget.startHabit');
         expect(over.today).toEqual({ done: 2, total: 2 });
@@ -127,31 +155,31 @@ describe('publishHabitsWidget / clearHabitsWidget', () => {
     });
 
     const snapshot = () => loadModule()
-        .buildHabitsWidgetSnapshot(friendsBoard, 'connections', { done: 1, total: 2 }, translate, Date.now());
+        .buildHabitsWidgetSnapshot(boards, { done: 1, total: 2 }, translate, Date.now());
 
     it('writes the snapshot as JSON', () => {
         const { publishHabitsWidget } = loadModule();
         publishHabitsWidget(snapshot());
 
         expect(setSnapshot).toHaveBeenCalledTimes(1);
-        expect(JSON.parse(setSnapshot.mock.calls[0][0] as string).you.rank).toBe(4);
+        expect(JSON.parse(setSnapshot.mock.calls[0][0] as string).boards.connections.you.rank).toBe(4);
     });
 
     it('skips a write that would change nothing but the timestamp', () => {
         const { publishHabitsWidget, buildHabitsWidgetSnapshot } = loadModule();
-        publishHabitsWidget(buildHabitsWidgetSnapshot(friendsBoard, 'connections', { done: 1, total: 2 }, translate, 1));
-        publishHabitsWidget(buildHabitsWidgetSnapshot(friendsBoard, 'connections', { done: 1, total: 2 }, translate, 2));
-        publishHabitsWidget(buildHabitsWidgetSnapshot(friendsBoard, 'connections', { done: 2, total: 2 }, translate, 3));
+        publishHabitsWidget(buildHabitsWidgetSnapshot(boards, { done: 1, total: 2 }, translate, 1));
+        publishHabitsWidget(buildHabitsWidgetSnapshot(boards, { done: 1, total: 2 }, translate, 2));
+        publishHabitsWidget(buildHabitsWidgetSnapshot(boards, { done: 2, total: 2 }, translate, 3));
 
         expect(setSnapshot).toHaveBeenCalledTimes(2);
     });
 
     it('writes an unchanged snapshot when forced, and reports whether it wrote', () => {
         const { publishHabitsWidget, buildHabitsWidgetSnapshot } = loadModule();
-        const first = publishHabitsWidget(buildHabitsWidgetSnapshot(friendsBoard, 'connections', { done: 1, total: 2 }, translate, 1));
-        const skipped = publishHabitsWidget(buildHabitsWidgetSnapshot(friendsBoard, 'connections', { done: 1, total: 2 }, translate, 2));
+        const first = publishHabitsWidget(buildHabitsWidgetSnapshot(boards, { done: 1, total: 2 }, translate, 1));
+        const skipped = publishHabitsWidget(buildHabitsWidgetSnapshot(boards, { done: 1, total: 2 }, translate, 2));
         const forced = publishHabitsWidget(
-            buildHabitsWidgetSnapshot(friendsBoard, 'connections', { done: 1, total: 2 }, translate, 3),
+            buildHabitsWidgetSnapshot(boards, { done: 1, total: 2 }, translate, 3),
             { force: true },
         );
 

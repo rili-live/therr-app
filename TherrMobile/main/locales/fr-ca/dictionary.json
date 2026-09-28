@@ -2228,8 +2228,6 @@
                 "unknownMember": "Un partenaire"
             },
             "widget": {
-                "friendsThisWeek": "Ami(e)s cette semaine",
-                "everyoneThisWeek": "Tout le monde cette semaine",
                 "amongFriends": "parmi vos ami(e)s",
                 "overall": "au total",
                 "habitsDone": "{done}/{total} habitudes",

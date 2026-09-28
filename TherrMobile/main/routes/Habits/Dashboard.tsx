@@ -43,9 +43,7 @@ import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 import getConfig from '../../utilities/getConfig';
 import {
     buildHabitsWidgetSnapshot,
-    hasFriendsOnBoard,
-    HabitsWidgetScope,
-    IHabitsWidgetLeaderboardResponse,
+    IHabitsWidgetBoards,
     isHabitsWidgetSupported,
     publishHabitsWidget,
     WIDGET_TOP_ROWS,
@@ -223,8 +221,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     /** A rank the user just climbed to, waiting for the screen to be free to announce it. */
     private pendingRankUp: number | null = null;
 
-    /** The board last fetched for the home-screen widget; see `refreshHabitsWidget`. */
-    private widgetBoard: { board: IHabitsWidgetLeaderboardResponse; scope: HabitsWidgetScope } | null = null;
+    /** The boards last fetched for the home-screen widget; see `refreshHabitsWidget`. */
+    private widgetBoards: IHabitsWidgetBoards | null = null;
 
     /**
      * Memo for the habits segment, keyed on the identity of the four Redux inputs it
@@ -290,7 +288,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     componentDidUpdate(prevProps: IHabitsDashboardProps) {
         // A check-in moved the numerator, or a habit started, archived or lost its pact moved
         // the denominator — keep the widget's "2/3" in step with the progress card either way.
-        if (this.widgetBoard && didTodayProgressInputsChange(prevProps.habits, this.props.habits)) {
+        if (this.widgetBoards && didTodayProgressInputsChange(prevProps.habits, this.props.habits)) {
             this.publishWidgetSnapshot();
         }
 
@@ -374,13 +372,14 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     };
 
     /**
-     * Feeds the Android home-screen widget. It shows the friends board — the app is Friends
-     * with Habits — falling back to the global board for a user with no connections yet (the
-     * widget then offers an invite). Separate from `fetchWeeklyRank`'s own request so the
+     * Feeds the Android home-screen widget. It carries both the friends and the global board so
+     * the widget's Friends / Everyone toggle switches without a fetch; which one it shows is the
+     * widget's own remembered choice. Separate from `fetchWeeklyRank`'s own request so the
      * in-app card keeps its global rank; skipped entirely where there is no widget to feed,
      * so iOS and other brands make no extra request.
      *
-     * An offline fallback keeps the last snapshot rather than blanking the widget.
+     * An offline fallback or a failed read of either board keeps the last snapshot rather than
+     * blanking the widget or leaving one side of the toggle empty.
      */
     refreshHabitsWidget = () => {
         if (!isHabitsWidgetSupported()) {
@@ -388,36 +387,26 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         }
         const isUsable = (response: any) => !response?.isOfflineFallback && typeof response?.data?.currentUser?.rank === 'number';
 
-        UsersService.getLeaderboard({ period: 'week', scope: 'connections', limit: WIDGET_TOP_ROWS })
-            .then((response: any) => {
-                if (!isUsable(response)) {
-                    return null;
-                }
-                if (hasFriendsOnBoard(response.data)) {
-                    return { board: response.data, scope: 'connections' as HabitsWidgetScope };
-                }
-                return UsersService.getLeaderboard({ period: 'week', scope: 'global', limit: WIDGET_TOP_ROWS })
-                    .then((globalResponse: any) => (isUsable(globalResponse)
-                        ? { board: globalResponse.data, scope: 'global' as HabitsWidgetScope }
-                        : null));
-            })
-            .then((widgetBoard) => {
-                if (!widgetBoard || this.isUnmounted) {
+        Promise.all([
+            UsersService.getLeaderboard({ period: 'week', scope: 'connections', limit: WIDGET_TOP_ROWS }),
+            UsersService.getLeaderboard({ period: 'week', scope: 'global', limit: WIDGET_TOP_ROWS }),
+        ])
+            .then(([friendsResponse, globalResponse]: any[]) => {
+                if (this.isUnmounted || !isUsable(friendsResponse) || !isUsable(globalResponse)) {
                     return;
                 }
-                this.widgetBoard = widgetBoard;
+                this.widgetBoards = { connections: friendsResponse.data, global: globalResponse.data };
                 this.publishWidgetSnapshot();
             })
             .catch(() => {});
     };
 
     publishWidgetSnapshot = () => {
-        if (!this.widgetBoard) {
+        if (!this.widgetBoards) {
             return;
         }
         publishHabitsWidget(buildHabitsWidgetSnapshot(
-            this.widgetBoard.board,
-            this.widgetBoard.scope,
+            this.widgetBoards,
             this.getTodayProgress(this.getHabitsByPactState().live),
             this.translate,
         ));
