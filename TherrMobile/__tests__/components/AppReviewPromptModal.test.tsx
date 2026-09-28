@@ -5,7 +5,7 @@ import React from 'react';
 import renderer, { act } from 'react-test-renderer';
 
 // Note: import explicitly to use the types shipped with jest.
-import { it, describe, beforeEach, expect } from '@jest/globals';
+import { it, describe, beforeEach, afterEach, expect } from '@jest/globals';
 
 import { Provider as PaperProvider } from 'react-native-paper';
 import AppReviewPromptModal from '../../main/components/Modals/AppReviewPromptModal';
@@ -57,6 +57,12 @@ const collectText = (node: any, found: string[] = []): string[] => {
 
 const renderedText = (component: renderer.ReactTestRenderer) => collectText(component.toJSON());
 
+// Every renderer a test creates, so `afterEach` can unmount it. Paper's Modal starts an
+// Animated show animation on mount; left mounted, that animation finishes after Jest has torn
+// the environment down, and the late `import` it triggers fails the whole mobile run in CI
+// even though every test passed.
+let mounted: renderer.ReactTestRenderer[] = [];
+
 const renderModal = async (props: any = {}) => {
     let component: renderer.ReactTestRenderer;
     await act(async () => {
@@ -74,6 +80,7 @@ const renderModal = async (props: any = {}) => {
         );
     });
 
+    mounted.push(component!);
     return component!;
 };
 
@@ -92,6 +99,13 @@ describe('AppReviewPromptModal', () => {
 
     beforeEach(() => {
         onClose = jest.fn();
+    });
+
+    afterEach(async () => {
+        await act(async () => {
+            mounted.forEach((component) => component.unmount());
+        });
+        mounted = [];
     });
 
     it('asks about sentiment before it mentions a review', async () => {

@@ -98,6 +98,9 @@ const stubDigest = (scenario: IScenario = {}) => {
     // global across every file in the run, so one would fight the last-chance
     // suite's own setup depending on file order.
     process.env.HABIT_LAST_CHANCE_REMINDERS_ENABLED = 'false';
+    // Also off: the weekly recap goes out on the recipient's local Monday, so it
+    // would add a row to every run on a Monday. See handlers-habits-digest.test.ts.
+    process.env.HABIT_WEEKLY_RECAPS_ENABLED = 'false';
 
     const {
         habits = [soloHabit()], pacts = [], pactStreak = null, habitPrefs = {},
