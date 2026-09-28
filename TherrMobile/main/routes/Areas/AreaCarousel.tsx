@@ -15,7 +15,9 @@ import AreaDisplayMedium from '../../components/UserContent/AreaDisplayMedium';
 import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
 import ListEmpty from '../../components/ListEmpty';
 import { getUserContentUri } from '../../utilities/content';
-import { getReplyCount, getTopReply, shouldAutoExpandThread } from '../../utilities/feedRanking';
+import {
+    getReplyCount, getTopReply, keepRenderedFeedOrder, shouldAutoExpandThread,
+} from '../../utilities/feedRanking';
 import { ICollapsibleSceneProps } from '../../components/CollapsibleHeaderTabView';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -52,6 +54,14 @@ interface IAreaCarouselProps {
     renderFooter?: any;
     renderLoader: any;
     rootStyles: any;
+    /**
+     * Opt-in for ranked feeds. While this value is unchanged, posts already rendered keep
+     * their position and newly arrived posts are appended below them (see
+     * keepRenderedFeedOrder), so paging in or reacting to a post never reshuffles the list
+     * the user is scrolling. Change it to accept a fresh ranking, e.g. when a refresh lands.
+     * Omit it for lists whose order is an explicit sort the user chose (bookmarks, drafts).
+     */
+    stableOrderKey?: string | number;
     user: any;
 }
 
@@ -209,6 +219,7 @@ const AreaCarousel = ({
     renderFooter,
     renderLoader,
     rootStyles,
+    stableOrderKey,
     user,
     // viewportHeight,
     // viewportWidth,
@@ -238,6 +249,26 @@ const AreaCarousel = ({
     }, [handleRefresh]);
 
     const media = content?.media;
+
+    // Written during render on purpose: the order a render commits is the order the next
+    // render must preserve. Recomputing for the same inputs yields the same ids, so a
+    // discarded or repeated render cannot drift it.
+    const renderedOrderRef = React.useRef<{ key?: string | number; ids: string[] }>({ ids: [] });
+    const listData = React.useMemo(() => {
+        if (stableOrderKey === undefined || !Array.isArray(activeData)) {
+            return activeData;
+        }
+        const previous = renderedOrderRef.current;
+        const ordered = keepRenderedFeedOrder(
+            activeData,
+            previous.key === stableOrderKey ? previous.ids : undefined,
+        );
+        renderedOrderRef.current = {
+            key: stableOrderKey,
+            ids: ordered.map((post) => String(post.id)),
+        };
+        return ordered;
+    }, [activeData, stableOrderKey]);
 
     const flatRenderItem = React.useCallback((itemObj) => {
         let updateReaction = (!itemObj.item.areaType && !!updateThoughtReaction)
@@ -359,7 +390,7 @@ const AreaCarousel = ({
     return (
         <>
             <FlatListComponent
-                data={activeData}
+                data={listData}
                 keyExtractor={keyExtractor}
                 renderItem={flatRenderItem}
                 /*
