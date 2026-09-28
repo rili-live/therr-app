@@ -158,7 +158,7 @@ future premium gate. See `habits/HABITS_PAYMENT_WORKFLOW.md`.
 
 ### Phase 2 Features (Post-Launch)
 - 'Friends with Habits' tournaments and competitions
-- Cash stakes option (winners split pot)
+- Charity stakes: a missed week donates a pledged amount to charity. Not "winners split pot", which is real-money gambling under Play policy. See `docs/WORK_IN_PROGRESS.md` § 2.8
 - Corporate wellness programs ($99-199/month per company)
 - Habit coaches marketplace
 - Custom branded white-label versions
@@ -276,6 +276,7 @@ future premium gate. See `habits/HABITS_PAYMENT_WORKFLOW.md`.
 - [ ] Social proof elements (success stories, leaderboard)
 - [x] Android home-screen widget v1: weekly friends rank, XP, daily streak, today's check-ins, top 3 (read-only, app-pushed snapshot)
 - [x] Android home-screen widget v2: live reload — background refresh every 30 min via WorkManager + headless JS, refresh on habits pushes, tap-to-refresh with an "updated N ago" label. Next: iOS WidgetKit, one-tap check-in
+- [x] Android home-screen widget: Friends / Everyone board toggle, last pick remembered
 - [ ] "Challenge a Friend" with pre-filled invites
 - [ ] Weekly email summaries with share buttons
 - [ ] Friend activity notifications to create FOMO

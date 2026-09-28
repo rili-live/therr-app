@@ -1,4 +1,4 @@
-import { HabitGoalType, SavingsTargetScope } from 'therr-js-utilities/constants';
+import { HabitAmountUnit, HabitGoalType, SavingsTargetScope } from 'therr-js-utilities/constants';
 
 // Habit Goal Types
 export interface IHabitGoal {
@@ -63,6 +63,14 @@ export interface IHabitGoal {
      * Absent reads as `per_member` (`DEFAULT_SAVINGS_TARGET_SCOPE`).
      */
     savingsTargetScope?: SavingsTargetScope | null;
+    /**
+     * The unit a measured habit counts in ("Read — pages"), or null/absent when the habit is
+     * not measured. Amount tracking is opt-in for every goal type except `savings_goal`,
+     * which is counted in `currencyCode` and never carries a unit. On a measured goal,
+     * `targetAmount` is a **weekly** target per member rather than a cumulative one. See
+     * `isMeasuredHabitGoal` in therr-js-utilities.
+     */
+    amountUnit?: HabitAmountUnit | null;
 }
 
 /**
@@ -144,6 +152,8 @@ export interface IPact {
     habitGoalName?: string;
     habitGoalEmoji?: string;
     habitGoalCategory?: string;
+    /** The goal's amount unit, on the detail response only. See `IHabitGoal.amountUnit`. */
+    habitGoalAmountUnit?: HabitAmountUnit | null;
     members?: IPactMember[];
     /**
      * Money saved against this pact's goal, derived server-side. Present only on the
@@ -156,6 +166,36 @@ export interface IPact {
      * totals.
      */
     savingsProgress?: ISavingsProgress;
+    /**
+     * This week's amounts on a measured habit, derived server-side on the pact *detail*
+     * response only. Absent means "not a measured pact" (or a users-service that predates
+     * it), never "nothing recorded"; a measured pact with nothing logged returns zeroes.
+     */
+    amountProgress?: IAmountProgress;
+}
+
+/** One active member's amounts on a measured habit. */
+export interface IAmountMemberProgress {
+    userId: string;
+    /** Recorded in the viewer's current Monday–Sunday week, today included. */
+    weekAmount: number;
+    /** All-time, across every cycle of the habit. */
+    totalAmount: number;
+    hasReachedWeeklyTarget: boolean;
+}
+
+/** Progress on a measured habit's weekly target, across a pact's active members. */
+export interface IAmountProgress {
+    amountUnit: HabitAmountUnit;
+    /** Per member, per week. Null when the habit has a unit but no target. */
+    weeklyTargetAmount: number | null;
+    /** YYYY-MM-DD, the Monday the week amounts are counted from. */
+    weekStart: string;
+    /** Highest weekly amount first. */
+    members: IAmountMemberProgress[];
+    viewerWeekAmount: number;
+    viewerTotalAmount: number;
+    groupWeekAmount: number;
 }
 
 /** One participant's contribution to a savings goal. */
@@ -420,6 +460,15 @@ export interface IUserHabit {
      * a misleading zero.
      */
     totalSaved?: number;
+    /** See `IHabitGoal.amountUnit`. Null/absent when the habit is not measured. */
+    amountUnit?: HabitAmountUnit | null;
+    /**
+     * Measured habits only: the amount recorded this week (Monday to today, in the
+     * user's zone), which `targetAmount` is a weekly target for. Absent when unknown.
+     */
+    weekAmount?: number;
+    /** Measured habits only: all-time amount recorded. Absent when unknown. */
+    totalAmount?: number;
     /**
      * Per-habit notification switches.
      *

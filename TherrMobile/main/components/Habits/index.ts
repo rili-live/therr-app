@@ -1,3 +1,5 @@
+import AmountProgressCard from './AmountProgressCard';
+import AmountTrackingPicker from './AmountTrackingPicker';
 import CheckinButton from './CheckinButton';
 import CheckinDayDetailSheet from './CheckinDayDetailSheet';
 import CheckinDetailForm from './CheckinDetailForm';
@@ -17,6 +19,8 @@ import StreakWidget from './StreakWidget';
 import UpgradeNudgeCard from './UpgradeNudgeCard';
 
 export {
+    AmountProgressCard,
+    AmountTrackingPicker,
     UpgradeNudgeCard,
     CheckinButton,
     CheckinDayDetailSheet,

@@ -280,12 +280,13 @@ whether `Layout.tsx` is even in your diff. If that is the only signature reporte
 the check as passing and say so; do not add it to the baseline, and do not add an ambient
 declaration to paper over it, which would also hide a genuinely missing dependency.
 
-Three mobile-specific skills cover what lint and tsc cannot:
+Four mobile-specific skills cover what lint and tsc cannot:
 
 | Skill | When |
 |---|---|
 | `/mobile-crash-guard` | After changing anything under `main/**` — audits for runtime-only failure classes (native modules at import time, missing effect cleanup, unguarded nav params and API fields, safe-area/system-bar regressions) |
 | `/mobile-dep-guard` | After adding, upgrading, or removing a dependency — checks the Metro/Babel/tsconfig/Jest/patch-package wiring matrix that silently breaks on device |
 | `/mobile-release-preflight` | Before cutting an EAS or Gradle release build — brand/branch agreement, version bump, patch drift, deprecated Android 15 APIs, locale parity |
+| `/niche-android-release` | To ship Friends with Habits to Play — checks the version is new, merges `niche/HABITS-general` → `-main`, watches whether CI's EAS build actually runs, and builds + `eas submit`s locally only when it doesn't (e.g. EAS quota spent) |
 
 See root `CLAUDE.md` for full requirements.

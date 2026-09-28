@@ -273,9 +273,10 @@ describe('habits dashboard rank-up toast', () => {
 });
 
 /**
- * The Android home-screen widget is fed from the same refresh. It shows the friends board —
- * the app is Friends with Habits — and only falls back to the global board when the user has
- * nobody on theirs, so the widget can offer an invite instead of a one-person ranking.
+ * The Android home-screen widget is fed from the same refresh. It carries both the friends and
+ * the global board, so its Friends / Everyone toggle switches without a fetch, and defaults to
+ * friends — the app is Friends with Habits — unless the user has nobody on theirs, in which case
+ * it defaults to global and offers an invite instead of a one-person ranking.
  */
 describe('habits dashboard home-screen widget feed', () => {
     let publish: jest.SpiedFunction<typeof habitsWidget.publishHabitsWidget>;
@@ -294,19 +295,24 @@ describe('habits dashboard home-screen widget feed', () => {
         publish.mockClear();
     });
 
-    it('publishes the friends board when the user has friends on it', async () => {
-        mockGetLeaderboard.mockResolvedValue(board([friend, me]));
+    it('publishes both boards, defaulting to friends when the user has friends on it', async () => {
+        mockGetLeaderboard.mockImplementation((args: any) => Promise.resolve(
+            args.scope === 'connections' ? board([friend, me]) : board([friend, me], 48),
+        ));
         const instance = buildInstance();
 
         instance.refreshHabitsWidget();
         await flushPromises();
 
         expect(mockGetLeaderboard).toHaveBeenCalledWith({ period: 'week', scope: 'connections', limit: 3 });
-        expect(mockGetLeaderboard).not.toHaveBeenCalledWith({ period: 'week', scope: 'global', limit: 3 });
-        expect(publish).toHaveBeenCalledWith(expect.objectContaining({ scope: 'connections', you: { rank: 2, points: 300, dailyStreak: 5 } }));
+        expect(mockGetLeaderboard).toHaveBeenCalledWith({ period: 'week', scope: 'global', limit: 3 });
+        const snapshot = publish.mock.calls[0][0];
+        expect(snapshot.scope).toBe('connections');
+        expect(snapshot.boards.connections.you).toEqual({ rank: 2, points: 300, dailyStreak: 5 });
+        expect(snapshot.boards.global.you.rank).toBe(48);
     });
 
-    it('falls back to the global board for a user with no friends on theirs', async () => {
+    it('defaults to the global board for a user with no friends on theirs', async () => {
         mockGetLeaderboard.mockImplementation((args: any) => Promise.resolve(
             args.scope === 'connections' ? board([me], 1) : board([friend, me], 2),
         ));
@@ -315,8 +321,19 @@ describe('habits dashboard home-screen widget feed', () => {
         instance.refreshHabitsWidget();
         await flushPromises();
 
-        expect(mockGetLeaderboard).toHaveBeenCalledWith({ period: 'week', scope: 'global', limit: 3 });
-        expect(publish).toHaveBeenCalledWith(expect.objectContaining({ scope: 'global' }));
+        expect(publish).toHaveBeenCalledWith(expect.objectContaining({ scope: 'global', hasFriends: false }));
+    });
+
+    it('keeps the last snapshot when either board fails, so neither side of the toggle is empty', async () => {
+        mockGetLeaderboard.mockImplementation((args: any) => Promise.resolve(
+            args.scope === 'connections' ? board([friend, me]) : { data: {}, isOfflineFallback: true },
+        ));
+        const instance = buildInstance();
+
+        instance.refreshHabitsWidget();
+        await flushPromises();
+
+        expect(publish).not.toHaveBeenCalled();
     });
 
     it('keeps the last snapshot when offline', async () => {

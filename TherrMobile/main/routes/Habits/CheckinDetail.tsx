@@ -38,6 +38,8 @@ interface ICheckinDetailParams {
     goalType?: HabitGoalType;
     /** The goal's currency, for the amount field's prefix. Display only. */
     currencyCode?: string | null;
+    /** A measured habit's unit, which offers an optional amount field. Absent: no field. */
+    amountUnit?: string | null;
 }
 
 interface ICheckinDetailProps {
@@ -86,7 +88,7 @@ export const CheckinDetail = ({
     getActiveStreaks,
 }: ICheckinDetailProps) => {
     const {
-        habitGoalId, habitName, source, goalType, currencyCode,
+        habitGoalId, habitName, source, goalType, currencyCode, amountUnit,
     } = route.params || ({} as ICheckinDetailParams);
     const isSavingsGoal = goalType === HabitGoalTypes.SAVINGS_GOAL;
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -261,6 +263,7 @@ export const CheckinDetail = ({
                             defaultSharePublicly={isFeedEnabled && !!user?.settings?.settingsIsProfilePublic}
                             isSavingsGoal={isSavingsGoal}
                             currencyCode={currencyCode}
+                            amountUnit={amountUnit}
                             onChange={handleDraftChange}
                             translate={translate}
                             colors={theme.colors}

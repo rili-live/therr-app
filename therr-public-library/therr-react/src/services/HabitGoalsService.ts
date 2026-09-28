@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import axios from 'axios';
-import { HabitGoalType, SavingsTargetScope } from 'therr-js-utilities/constants';
+import { HabitAmountUnit, HabitGoalType, SavingsTargetScope } from 'therr-js-utilities/constants';
 
 /**
  * Cadence fields, shared by create and update.
@@ -25,8 +25,8 @@ interface IHabitCadenceBody {
 }
 
 /**
- * The savings target on a `savings_goal` habit. Ignored by the server for any other
- * `goalType`.
+ * The amount fields on a habit goal: the savings target on a `savings_goal` habit, or the
+ * opt-in unit and weekly target on any other one.
  *
  * `null` and absent mean different things on every field, and the distinction travels
  * all the way to the column: an absent key leaves the stored value alone, which is what
@@ -40,6 +40,12 @@ export interface ISavingsTargetBody {
     currencyCode?: string | null;
     /** Whether `targetAmount` is each member's own goal or the group's combined one. */
     savingsTargetScope?: SavingsTargetScope | null;
+    /**
+     * Opt-in amount tracking on any habit that is not a savings goal. With a unit set,
+     * `targetAmount` is a weekly target per member and needs the unit to be accepted.
+     * `null` turns tracking off and clears the target with it. Rejected on a savings goal.
+     */
+    amountUnit?: HabitAmountUnit | null;
 }
 
 export interface ICreateHabitGoalBody extends IHabitCadenceBody, ISavingsTargetBody {

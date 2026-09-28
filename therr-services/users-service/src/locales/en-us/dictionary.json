@@ -106,16 +106,19 @@
             "notFound": "We couldn't find that streak"
         },
         "habitGoals": {
+            "amountUnitOnSavings": "A savings habit is counted in its currency, so it can't also have a unit",
             "cannotDelete": "You can only delete a habit you created",
             "cannotModifyTemplate": "This habit is one of our templates, so it can't be edited",
+            "invalidAmountUnit": "Choose a unit from the list, like minutes or pages",
             "nameRequired": "Give this habit a name",
-            "notOwner": "You can only edit a habit you created"
+            "notOwner": "You can only edit a habit you created",
+            "targetNeedsAmountUnit": "Choose a unit before setting a weekly target"
         },
         "savings": {
             "amountNegative": "Enter an amount of zero or more",
             "amountNotANumber": "Enter an amount as a number, like 25 or 25.50",
             "amountTooLarge": "That amount is too large to record",
-            "amountTooPrecise": "Round to the nearest cent, like 25.50",
+            "amountTooPrecise": "Use at most two decimal places, like 25.50",
             "invalidCurrencyCode": "Use a three-letter currency code, like USD",
             "invalidTargetScope": "Choose whether the target is per person or for the group"
         }

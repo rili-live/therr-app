@@ -6,8 +6,9 @@ import { DEFAULT_SAVINGS_CURRENCY_CODE, parseSavingsAmount, SavingsAmountError }
 import { ITherrThemeColors } from '../../styles/themes';
 
 /**
- * The money field for a savings habit — used by the check-in form and by the
- * create-habit wizard's target step.
+ * The amount field for a habit — money on a savings habit, or a count in the goal's unit
+ * on a measured one. Used by the check-in form and by the create-habit wizard's target
+ * step.
  *
  * It keeps the raw text the user typed rather than a parsed number, which matters while
  * they are mid-entry: storing a number would make "12." unrepresentable and the field
@@ -34,6 +35,11 @@ export interface ISavingsAmountInputProps {
     /** Called with the parsed amount, or null while the text is empty or invalid. */
     onValueChange?: (amount: number | null) => void;
     currencyCode?: string | null;
+    /**
+     * Shown in place of the currency code on a measured habit ("min", "km"). When set, the
+     * field is not about money and `currencyCode` is ignored.
+     */
+    unitLabel?: string;
     label: string;
     placeholder?: string;
     hint?: string;
@@ -47,6 +53,7 @@ const SavingsAmountInput: React.FC<ISavingsAmountInputProps> = ({
     onChangeText,
     onValueChange,
     currencyCode,
+    unitLabel,
     label,
     placeholder,
     hint,
@@ -80,7 +87,7 @@ const SavingsAmountInput: React.FC<ISavingsAmountInputProps> = ({
                 ]}
             >
                 <Text style={[localStyles.currency, { color: colors.textGray }]}>
-                    {(currencyCode || DEFAULT_SAVINGS_CURRENCY_CODE).toUpperCase()}
+                    {unitLabel || (currencyCode || DEFAULT_SAVINGS_CURRENCY_CODE).toUpperCase()}
                 </Text>
                 <TextInput
                     value={value}

@@ -21,7 +21,8 @@ import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { checkHabitCapacity } from './helpers/habitCapacity';
 import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
 import { attachMemberStatsToPact, attachPactMemberStats } from './helpers/pactMemberStats';
-import { withSavingsProgress } from './helpers/savings';
+import { withAmountProgress, withSavingsProgress } from './helpers/savings';
+import resolveWeekBounds from './helpers/weekBounds';
 import {
     validatePactParams,
     isUserInPact,
@@ -416,7 +417,16 @@ const getPact: RequestHandler = async (req: any, res: any) => {
             // the pact detail view renders them inline with the member list, and a
             // separate fetch would make the money appear a beat after the people it
             // belongs to. Only computed for savings pacts — see helpers/savings.
-            return res.status(200).send(await withSavingsProgress(withStats, members, userId));
+            const withSavings = await withSavingsProgress(withStats, members, userId);
+
+            // Weekly amounts on a measured pact, in the viewer's own week. Skipped for
+            // savings pacts, which never carry a unit, and for any pact whose goal has no
+            // unit — most of them — so an unmeasured pact pays for neither the week lookup
+            // nor the goal read in `withAmountProgress`.
+            const weekBounds = withSavings.savingsProgress || !withSavings.habitGoalAmountUnit
+                ? undefined
+                : await resolveWeekBounds(userId, req.query?.timeZone);
+            return res.status(200).send(await withAmountProgress(withSavings, members, userId, weekBounds));
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };

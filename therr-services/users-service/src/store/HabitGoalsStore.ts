@@ -1,5 +1,5 @@
 import KnexBuilder, { Knex } from 'knex';
-import { HabitGoalType, SavingsTargetScope } from 'therr-js-utilities/constants';
+import { HabitAmountUnit, HabitGoalType, SavingsTargetScope } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 import {
     HABIT_GOALS_TABLE_NAME, PACTS_TABLE_NAME, PACT_MEMBERS_TABLE_NAME, USER_HABITS_TABLE_NAME,
@@ -19,6 +19,12 @@ export interface ISavingsTargetParams {
     targetAmount?: number | null;
     currencyCode?: string | null;
     savingsTargetScope?: SavingsTargetScope | null;
+    /**
+     * The unit a measured (non-savings) habit counts in, or null when it is not measured.
+     * On a measured goal `targetAmount` is a weekly target. See
+     * migration 20260927000001_habits.habit_goals.amountUnit.
+     */
+    amountUnit?: HabitAmountUnit | null;
 }
 
 export interface ICreateHabitGoalParams extends ISavingsTargetParams {
