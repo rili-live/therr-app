@@ -5,48 +5,77 @@ import ImageCropPicker from 'react-native-image-crop-picker';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import mixins from '../../styles/mixins';
 import Image from '../../components/BaseImage';
+import { classifyImagePickerError, reportUserImageFailure } from '../../utilities/userImage';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
-const handleImagePress = (onImageReady, user) => {
-    ImageCropPicker.openPicker(
-        {
+// Past this, a profile photo is only upload weight — it renders at a few hundred px at most.
+const MAX_PICKED_IMAGE_DIMENSION = 2048;
+
+/**
+ * Pick first, crop second, rather than `openPicker({ cropping: true })`.
+ *
+ * With cropping inside the picker, a photo the cropper cannot open (some HEIC, cloud-backed
+ * and odd-format images on Android) rejects with E_NO_IMAGE_DATA_FOUND and the whole
+ * selection is lost; the old handler reopened the same picker, which failed the same way on
+ * the same photo. Picking with compression re-encodes to a bounded JPEG, which the cropper
+ * handles, and if cropping still fails the uncropped photo is used instead of nothing.
+ */
+const handleImagePress = async (onImageReady, user, translate) => {
+    const userId = user?.details?.id;
+    const cropSize = Math.min(4 * viewportWidth, MAX_PICKED_IMAGE_DIMENSION);
+
+    let picked;
+    try {
+        picked = await ImageCropPicker.openPicker({
             mediaType: 'photo',
             includeBase64: false,
-            height: 4 * viewportWidth,
-            width: 4 * viewportWidth,
             multiple: false,
-            cropping: true,
-            // selectionLimit: 1,
-        },
-    ).then((cameraResponse) => {
-        onImageReady(cameraResponse);
-    }).catch((err) => {
-        logEvent(getAnalytics(),'user_image_upload_error', {
-            userId: user?.details?.id,
-        }).catch((logErr) => console.log(logErr));
-        if (err?.message.toLowerCase().includes('cancel')) {
-            onImageReady({
-                didCancel: true,
-            });
-        } else if (err?.message.toLowerCase().includes('cannot find image data')) {
-            // TODO: This is a bad user experience. Cropping fails with some datatypes. Upgrade dependency when fixed,
-            // or start with cropping disabled, check image type and call openCrop if image is supported
-            return handleImagePress(onImageReady, user);
+            cropping: false,
+            compressImageMaxWidth: MAX_PICKED_IMAGE_DIMENSION,
+            compressImageMaxHeight: MAX_PICKED_IMAGE_DIMENSION,
+            compressImageQuality: 0.9,
+        });
+    } catch (err) {
+        reportUserImageFailure({ stage: 'pick', err, userId, translate });
+        onImageReady({ didCancel: true });
+        return;
+    }
+
+    try {
+        const cropped = await ImageCropPicker.openCropper({
+            path: picked.path,
+            mediaType: 'photo',
+            width: cropSize,
+            height: cropSize,
+            includeBase64: false,
+        });
+        onImageReady(cropped);
+    } catch (err) {
+        if (classifyImagePickerError(err) === 'cancelled') {
+            onImageReady({ didCancel: true });
+            return;
         }
-    });
+        // Not surfaced to the user: they still get their photo, just not square-cropped.
+        logEvent(getAnalytics(), 'user_image_crop_fallback', {
+            code: String((err as any)?.code || 'unknown').slice(0, 100),
+            userId,
+        }).catch(() => {});
+        onImageReady(picked);
+    }
 };
 
 export default ({
     user,
     onImageReady,
+    translate,
     theme,
     themeForms,
     userImageUri,
 }) => {
     return (
         <Pressable
-            onPress={() => handleImagePress(onImageReady, user)}
+            onPress={() => { handleImagePress(onImageReady, user, translate); }}
             style={themeForms.styles.userImagePressableContainer}
         >
             <View style={[mixins.flexCenter, mixins.marginMediumBot]}>

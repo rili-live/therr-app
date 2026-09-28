@@ -9,11 +9,10 @@ import { bindActionCreators } from 'redux';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
 import { IContentAlgorithmName, IMobileThemeName, IUserState } from 'therr-react/types';
 import { getApiErrorDetail } from '../../utilities/apiErrorMessage';
-import { Content, FilePaths, PasswordRegex } from 'therr-js-utilities/constants';
+import { Content, PasswordRegex } from 'therr-js-utilities/constants';
 import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import RNFB from 'react-native-blob-util';
 import { showToast } from '../../utilities/toasts';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -29,7 +28,8 @@ import PasswordRequirements from '../../components/Input/PasswordRequirements';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import UserImage from '../../components/UserContent/UserImage';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
-import { getUserImageUri, signImageUrl } from '../../utilities/content';
+import { getUserImageUri } from '../../utilities/content';
+import { reportUserImageFailure, uploadProfilePicture } from '../../utilities/userImage';
 import RoundTextInput from '../../components/Input/TextInput/Round';
 import spacingStyles from '../../styles/layouts/spacing';
 
@@ -457,7 +457,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 isCropping: false,
             });
 
-            this.signAndUploadImage(croppedImageDetails).then((imageUploadResponse) => {
+            uploadProfilePicture(croppedImageDetails).then((imageUploadResponse) => {
                 this.requestUserUpdate(user, {
                     media: {
                         profilePicture: {
@@ -468,35 +468,11 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                     },
                 });
             }).catch((err) => {
-                console.log(err);
+                // Clear the preview so the screen does not show a photo that was never saved.
+                this.setState({ croppedImageDetails: {} });
+                reportUserImageFailure({ stage: 'upload', err, userId: user?.details?.id, translate: this.translate });
             });
         }
-    };
-
-    signAndUploadImage = (croppedImageDetails) => {
-        const filePathSplit = croppedImageDetails?.path?.split('.');
-        const fileExtension = `${filePathSplit?.[filePathSplit.length - 1]}` || 'jpeg';
-        return signImageUrl(true, {
-            action: 'write',
-            filename: `${FilePaths.PROFILE_PICTURE}.${fileExtension}`,
-        }).then((response) => {
-            const signedUrl = response?.data?.url && response?.data?.url[0];
-
-            const localFileCroppedPath = `${croppedImageDetails?.path}`;
-
-            // Upload to Google Cloud
-            // TODO: Abstract and add nudity filter sightengine.com
-            return RNFB.fetch(
-                'PUT',
-                signedUrl,
-                {
-                    'Content-Type': croppedImageDetails.mime,
-                    'Content-Length': croppedImageDetails.size.toString(),
-                    'Content-Disposition': 'inline',
-                },
-                RNFB.wrap(localFileCroppedPath),
-            ).then(() => response?.data);
-        });
     };
 
     handleRefresh = () => {
@@ -713,6 +689,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                 <UserImage
                                     user={user}
                                     onImageReady={this.onDoneCropping}
+                                    translate={this.translate}
                                     theme={this.theme}
                                     themeForms={this.themeForms}
                                     userImageUri={userImageUri}
