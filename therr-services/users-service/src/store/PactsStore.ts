@@ -108,6 +108,8 @@ export default class PactsStore {
                 `${HABIT_GOALS_TABLE_NAME}.category as habitGoalCategory`,
                 `${HABIT_GOALS_TABLE_NAME}.frequencyType as habitGoalFrequencyType`,
                 `${HABIT_GOALS_TABLE_NAME}.frequencyCount as habitGoalFrequencyCount`,
+                // So the pact screen knows to offer an amount field without a goal fetch.
+                `${HABIT_GOALS_TABLE_NAME}.amountUnit as habitGoalAmountUnit`,
                 supersededByPactIdSelect(),
             ])
             .from(PACTS_TABLE_NAME)

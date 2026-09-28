@@ -5,6 +5,7 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { validateSavingsTargetInput } from '../utilities/savingsProgress';
+import { validateAmountTrackingInput } from '../utilities/habitAmounts';
 import { hasCadenceChanged } from '../utilities/habitCadence';
 
 // CREATE
@@ -43,6 +44,17 @@ const createHabitGoal: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    // Amount tracking is opt-in for every goal type but savings; see utilities/habitAmounts.ts.
+    const amounts = validateAmountTrackingInput(req.body, savings.params?.targetAmount);
+    if (amounts.errorKey) {
+        return handleHttpError({
+            res,
+            message: translate(locale, amounts.errorKey),
+            statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
+        });
+    }
+
     return Store.habitGoals.create({
         name,
         description,
@@ -56,6 +68,7 @@ const createHabitGoal: RequestHandler = async (req: any, res: any) => {
         isTemplate: false,
         isPublic: isPublic || false,
         ...savings.params,
+        ...amounts.params,
     })
         .then((habitGoal) => res.status(201).send(habitGoal))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:HABIT_GOALS_ROUTES:ERROR' }));
@@ -188,6 +201,16 @@ const updateHabitGoal: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    const amounts = validateAmountTrackingInput(req.body, savings.params?.targetAmount, existingGoal);
+    if (amounts.errorKey) {
+        return handleHttpError({
+            res,
+            message: translate(locale, amounts.errorKey),
+            statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
+        });
+    }
+
     // A cadence change governs from today forward and never re-judges days lived under the old
     // one — see migration 20260920000002 and `countMissedPeriods`. Only a change in meaning
     // stamps it; an edit that merely resends the same cadence leaves history evaluable.
@@ -207,6 +230,7 @@ const updateHabitGoal: RequestHandler = async (req: any, res: any) => {
         isPublic,
         cadenceEffectiveFrom,
         ...savings.params,
+        ...amounts.params,
     })
         .then((habitGoal) => res.status(200).send(habitGoal))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:HABIT_GOALS_ROUTES:ERROR' }));

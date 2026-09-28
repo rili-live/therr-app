@@ -158,7 +158,7 @@ future premium gate. See `habits/HABITS_PAYMENT_WORKFLOW.md`.
 
 ### Phase 2 Features (Post-Launch)
 - 'Friends with Habits' tournaments and competitions
-- Cash stakes option (winners split pot)
+- Charity stakes: a missed week donates a pledged amount to charity. Not "winners split pot", which is real-money gambling under Play policy. See `docs/WORK_IN_PROGRESS.md` § 2.8
 - Corporate wellness programs ($99-199/month per company)
 - Habit coaches marketplace
 - Custom branded white-label versions

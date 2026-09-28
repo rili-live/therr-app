@@ -1899,7 +1899,9 @@ depend on these working correctly.
 > **Start at § 2.6.** It is the highest-impact cluster in this tier — five
 > independent changes that align the Friends with Habits loop with the
 > gamification evidence — and it acts on the retention loop that §§ 2.1–2.5
-> all feed into.
+> all feed into. **§ 2.7** (join-by-link challenges) is the next growth item after
+> it, gated on the conditions listed there. **§ 2.8 Phase A** (charity pledges, no money
+> moves) is a small retention follow-up to measured habits and may go ahead of § 2.7.
 
 ### 2.1 Push notification engagement
 
@@ -2419,6 +2421,197 @@ nothing is published as a side effect of checking in.
 
 What is left is a post-deploy verification, not code: see the 2026-09-11 "Verify check-in
 sharing and proof moderation" item in § Manual Operational Follow-ups.
+
+### 2.7 Join-by-link group challenges (Friends with Habits — added 2026-09-27) (#2988)
+
+Source: a competitive read of Goalify (`com.onebytezero.Goalify`, ~4.4★ on ~1.07K Play
+reviews). Its headline social feature is a **challenge**: one person creates it, shares a
+link, anyone holding the link joins, and a ranking inside the challenge shows who is
+ahead. It was also the top answer on a Reddit thread asking for an app that holds your
+money until you finish a goal. Goalify does not do that; see the note under § 2.7.2.
+
+**Priority: Tier 2, after § 2.6 and before §§ 2.1–2.5.** This is the first viral-mechanics
+item worth building, and it closes three unchecked Phase 3 lines in
+`docs/niche-sub-apps/HABITS_PROJECT_BRIEF.md` at once: shareable pact templates with
+unique links, "Challenge a Friend", and the opt-in public pact directory. It does not
+pre-empt § 2.6, because a challenge multiplies whatever the retention loop is already
+doing. Growing a group that churns only makes the churn larger.
+
+**Start when both of these hold.** Neither is a code gate.
+
+1. **Measured habits (optional amount tracking) have shipped on `general` and on
+   `niche/HABITS-general`.** A ranking by check-in count calls a 5-minute walk equal to a
+   10 km run. With an amount unit and a weekly amount on each member, "most km this week"
+   becomes a ranking people accept as fair. The data exists today:
+   `habits.habit_goals."amountUnit"` and the weekly `amountProgress` on the pact detail.
+2. **The retention loop has a baseline:** at least a few weeks of D7 retention on pact
+   users, measured from the pact and check-in events that have existed since 3 Sep (see
+   § 2.2 "Watch: phone verification drop-off"). Without it, nobody can tell whether
+   challenges helped.
+
+**The design constraint that decides the shape: a challenge is not a big pact.** § 2.6
+rule 4 ("visible to 2–5 specific people") is why `MAX_BULK_INVITEES = 5` in
+`handlers/pacts.ts`, and why a partner's miss triggers a partner push. Stretching a pact to
+40 link-joiners would break both. A stranger's miss would ping people who never chose
+them, and the sense that specific friends are watching would dilute. So:
+
+- Build a new `habits.challenges` object: a goal, an optional amount unit, a start and end
+  date, a join token and a creator. Members join from the link, and **each member keeps
+  their own habit and streak** through `habits.user_habits`. The challenge is a view over
+  its members' check-ins, never a new source of them.
+- Keep partner-miss and partner-check-in pushes **pact-only**. A challenge sends one daily
+  standings digest at most, queued through `enqueueNotification` with a period-stamped
+  `dedupeKey`. The CLAUDE.md rule about keys that vary per call applies here.
+- Sort the ranking by the amount this week when the goal has an `amountUnit`, and by
+  completed check-ins otherwise. Reuse the ranking and freeze logic of
+  `main.leaderboardPeriodResults` rather than writing a new one.
+- The join link is the invite deep link: an install from it lands on the challenge, not on
+  the mandatory-invite gate. A challenge join counts as a "social start" for the purposes
+  of `PactOnboardingGuard`. Decide whether it counts toward
+  `HABITS_SOLO_UNLOCK_INVITE_COUNT` for the *creator* before building. The creator did
+  bring people in, but through a public link, not a personal invite.
+- Brand-scoped from the first migration: a `brandVariation` column defaulting to
+  `'therr'`, an entry in `eslint-config/brand-scoped-tables.js`, a store extending
+  `BrandScopedStore`, and a mirror into the messaging automator's `brandScoped.ts` if it
+  ever reads the table.
+- The free tier is untouched. Joining a challenge starts a habit, so `checkHabitCapacity`
+  already gates it. Creating challenges is a premium candidate (the brief's "create public
+  community challenges" line).
+
+Split: backend, migration and `therr-react` on `general`. Challenge screens, the join deep
+link and share sheet copy on `niche/HABITS-general`.
+
+#### 2.7.1 Group thread for pacts and challenges — follow-up to § 2.7, lower priority (#2989)
+
+Goalify has a chat inside each challenge. In Friends with Habits a pact's detail screen
+opens **one-to-one** DMs only (`goToDirectMessage` in
+`TherrMobile/main/routes/Pacts/PactDetail.tsx`), plus reactions and `encouragement_sent`
+activities (`handlers/pactActivities.ts`). In a pact of 3–5 people, nowhere lets the group
+talk as a group.
+
+**Priority: below § 2.7, and do not start it before § 2.7 has shipped.** Most pacts today
+have 2 members, and for those a DM *is* the group thread. The case for a shared thread only
+becomes strong once challenges produce groups of more than 5.
+
+Build on Therr's existing group chat (forum messaging in the websocket service, § 2.3's
+DM loop) rather than a new messaging stack. Open questions to settle first:
+
+- One thread per pact **and** per challenge, or per challenge only (with pacts keeping DMs)?
+- Moderation: a challenge thread is where strangers who joined by link talk to each other,
+  so it needs the report and block paths the Therr forums already have before it opens.
+- Push volume: route a thread message through the same daily cap as the other habits
+  pushes, or it becomes the loudest thing in the app.
+
+#### 2.7.2 Money stakes — note, not a task
+
+The request behind this research was an app that holds a user's money until they finish a
+goal. Recorded here so it is not re-researched from scratch:
+
+- **Do not custody funds** (hold, then release on completion). That most likely needs a
+  US money-transmitter licence, and a card pre-authorisation expires in about 7 days,
+  which cannot cover a 30-day pact. The shipped models (Forfeit, stickK, Beeminder)
+  charge **only on failure**.
+- **Never let winners split a pot.** Google Play's Real-Money Gambling policy forbids
+  staking real money "to obtain a prize of real world monetary value" without a licence
+  and Google's approval. That rules out the "Cash stakes (winners split pot)" line in the
+  brief's Phase 2, which should be reworked or removed.
+- The cheap first step is to **enforce the consequence that already exists**:
+  `consequenceType` of donation, dare or custom is stored on `habits.pacts` and nothing
+  acts on it. Honour-system confirmation by partners when a pact ends with a miss would
+  show whether a consequence improves retention, before any payment work.
+- **Chosen direction: stakes go to charity.** Planned in § 2.8.
+
+### 2.8 Charity stakes — follow-up to measured habits (added 2026-09-27) (#2990)
+
+**What:** a user can back a habit with a pledge: *"if I miss my week, $5 goes to charity."*
+The money never goes to the app and never goes to a friend. It is a follow-up to measured
+habits (optional amount tracking, `habits.habit_goals."amountUnit"`, shipped on the
+`claude/goalify-feature-research-c2ocvm` branches). That feature gives a pledge
+something objective to be judged against: *this week's amount reached the weekly target*,
+or, for a habit with no amount, *this week's cadence was met*.
+
+**Why it fits the brand.** Friends with Habits is about the people who watch you keep a
+habit, not about punishing you. A missed week that becomes a donation still does some good,
+so a stake can be firm without being cruel. That matches the self-compassion framing the
+comeback messaging already uses (`docs/HABIT_LIFECYCLE_MESSAGING.md`). It also avoids the
+two things that make money stakes risky (§ 2.7.2):
+
+- no pot that anyone wins, so it is not staking for a prize under Google Play's
+  Real-Money Gambling policy;
+- no money held by us between the pledge and the outcome.
+
+One honest caveat: the commitment-contract literature, and stickK's own "anti-charity"
+option, suggest money going to a cause the user *likes* is a weaker deterrent than money
+going somewhere they dislike. Anti-charities do not fit this brand, so accept the weaker
+lever and measure it (Phase A) rather than assume it works.
+
+**Priority.** Phase A is small, reuses columns that already exist, and acts on retention.
+It can start as soon as measured habits are on `main`, ahead of § 2.7. Phase B moves real
+money, so it waits for Phase A's numbers plus the legal and store-policy review listed
+below.
+
+#### Phase A — pledge on the honour system (no payments)
+
+- **Data:** reuse `habits.pacts."consequenceType" = 'donation'` and `consequenceDetails`
+  (`{ amount, recipient }`). `validatePactParams` in `utilities/pactHelpers.ts` already
+  validates the amount. Solo habits have no pact row, so they need a home. Either add
+  `habits.user_habits."pledge"` (jsonb, nullable), or choose pact-only for Phase A and say
+  so in the UI. No mobile code sets `consequenceType` today (checked on
+  `niche/HABITS-general`), so there is nothing to migrate.
+- **Recipients:** a short, curated list of 3–5 well-known charities, not free text. That
+  keeps the choice quick and avoids the app appearing to endorse arbitrary organisations.
+  Store a stable key, translated on the client like `templateKey`.
+- **The weekly verdict:** a missed week is judged when the week closes, per habit, in the
+  user's own zone:
+  - *measured habit with a weekly target:* `weekAmount < targetAmount`;
+  - *otherwise:* the cadence quota was not met, via `isPeriodSatisfied` in
+    `utilities/habitCadence.ts`, which is the one allowed definition.
+
+  A spent streak freeze or a rest week is **not** a miss. The pledge must never contradict
+  the streak rules the user has already been told.
+- **What happens on a miss:** one push and an in-app card: *"You missed your reading
+  target this week. Your pledge: $5 to <charity>."* with a link out to the charity's own
+  donation page and a "Done, I gave" button. Partners see *"Sam honoured their pledge"*
+  on the pact. Queue it through `enqueueNotification` with a period-stamped dedupe key
+  (`pledge-missed:<userHabitId>:<weekStart>`), never anything containing `Date.now()`
+  (CLAUDE.md, Sibling Repos rule 4).
+- **Measure:**
+  - pledge adoption among pacts;
+  - D30 retention and weekly-target hit rate, pledged vs unpledged;
+  - how often a miss ends in "Done, I gave".
+
+  If pledged habits do not keep people longer, stop here.
+
+#### Phase B — charge on a missed week (real money) (#2991)
+
+Only if Phase A shows a lift.
+
+- **Never custody funds.** Save a card at pledge time (a Stripe SetupIntent;
+  `src/api/stripe.ts` exists) and charge **only** after a missed week. The strongly
+  preferred route is a donation platform that is itself the registered charity or
+  donor-advised fund (candidates to evaluate: Every.org, PayPal Giving Fund, Pledge). The
+  charge is then a donation straight to them, they issue the tax receipt, and no money
+  touches our balance.
+- **A grace window before charging:** 24–48h after the week closes, during which the user
+  can log a forgotten check-in (backdating already exists) or a partner can vouch for
+  them. Every charge must be something the user saw coming.
+- **Guardrails:**
+  - a per-week and per-month cap;
+  - a minimum pledge (stickK's is $5);
+  - adults only;
+  - an off switch that takes effect before the next week closes;
+  - a refund path for a verdict the user disputes.
+- **Store policy, to confirm before building, not after.** Apple's App Review Guideline
+  3.2.1(vi) restricts in-app charitable fundraising to approved nonprofits, otherwise
+  sending the user out to a browser. Google Play's Payments policy needs the same check.
+  Charging through a nonprofit partner's hosted flow may satisfy both, but that is the
+  question to put to legal, not an assumption.
+- **Monetisation.** We never keep forfeited money. It would reward us for users failing
+  and contradict the brand. If stakes need to earn anything, make charity stakes a premium
+  feature (§ 2.5), or offer the optional "add a tip" some donation platforms support.
+
+Split: pledge storage, the weekly verdict job and notifications on `general`. The pledge
+picker, miss card and partner view on `niche/HABITS-general`.
 
 ---
 
