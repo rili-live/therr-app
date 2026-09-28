@@ -1112,7 +1112,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                                 ]}
                                             >
                                                 <Text style={this.themeHabits.styles.cadenceRowEditText}>
-                                                    {this.translate('pages.habits.cadence.editTitle')}
+                                                    {this.translate('alertActions.edit')}
                                                 </Text>
                                             </Pressable>
                                         )}
