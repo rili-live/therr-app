@@ -36,6 +36,7 @@ import { CAROUSEL_TABS } from '../../constants';
 import { handleAreaReaction, handleThoughtReaction, loadMorePosts, navToViewContent } from '../../utilities/postViewHelpers';
 import getDirections from '../../utilities/getDirections';
 import { SELECT_ALL } from '../../utilities/categories';
+import { createFeedOrderKey } from '../../utilities/feedRanking';
 import LazyPlaceholder from '../../components/LazyPlaceholder';
 import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
 import AreaCarousel from './AreaCarousel';
@@ -191,6 +192,9 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
     private carouselThoughtsRef;
     private translate: Function;
     private loaderId: ILottieId;
+    // Hold the ranked tabs' rendered order still while they page — see getRankedFeedOrderKey.
+    private discoveriesOrderKey = createFeedOrderKey();
+    private thoughtsOrderKey = createFeedOrderKey();
     private loadMomentsTimeoutId: any;
     private loadThoughtsTimeoutId: any;
     private loadEventsTimeoutId: any;
@@ -720,6 +724,24 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         );
     };
 
+    /**
+     * The `stableOrderKey` for a ranked tab. Without one, every page `onEndReached` appends is
+     * ranked together with the posts already on screen, so the list jumps under the user's
+     * thumb. The key changes — accepting a fresh ranking — only when:
+     *   - a first page of moments or thoughts lands (mount, pull-to-refresh, a stream reset);
+     *   - the user publishes a thought (THOUGHT_CREATED puts it first in `myThoughts`), which
+     *     would otherwise be appended below every post they have already scrolled past;
+     *   - the filters or content algorithm that decide the ranking change.
+     */
+    getRankedFeedOrderKey = (orderKey: ReturnType<typeof createFeedOrderKey>, filters: string[]) => {
+        const { content, user } = this.props;
+
+        return orderKey({
+            paginations: [content.activeMomentsPagination, content.activeThoughtsPagination],
+            resetOn: [user.myThoughts?.[0]?.id, user.settings?.settingsContentAlgorithm, ...filters],
+        });
+    };
+
     renderSceneMap = ({ route }) => {
         const {
             isLoadingMoments,
@@ -782,6 +804,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         renderFooter={this.renderFooter}
                         user={user}
                         rootStyles={this.theme.styles}
+                        stableOrderKey={this.getRankedFeedOrderKey(this.discoveriesOrderKey, [contentTypeFilter, categoriesFilter.join(',')])}
                         // viewportHeight={viewportHeight}
                         // viewportWidth={viewportWidth}
                     />
@@ -824,6 +847,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         renderFooter={this.renderFooter}
                         user={user}
                         rootStyles={this.theme.styles}
+                        stableOrderKey={this.getRankedFeedOrderKey(this.thoughtsOrderKey, [thoughtCategoriesFilter.join(',')])}
                         // viewportHeight={viewportHeight}
                         // viewportWidth={viewportWidth}
                     />

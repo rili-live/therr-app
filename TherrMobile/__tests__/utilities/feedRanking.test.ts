@@ -11,6 +11,7 @@ import {
     getPostRankingScore,
     getReplyCount,
     getTopReply,
+    createFeedOrderKey,
     keepRenderedFeedOrder,
     orderAreaPreviewStrip,
     rankAreaPreviews,
@@ -417,6 +418,57 @@ describe('feedRanking', () => {
         it('matches numeric ids against the stringified ids a list renders', () => {
             const ranked = [{ id: 2, createdAt: hoursAgo(1) }, { id: 1, createdAt: hoursAgo(1) }];
             expect(keepRenderedFeedOrder(ranked, ['1', '2']).map((p) => p.id)).toEqual([1, 2]);
+        });
+    });
+
+    describe('createFeedOrderKey', () => {
+        const firstPage = () => ({ offset: 0, itemsPerPage: 20 });
+        const nextPage = () => ({ offset: 20, itemsPerPage: 20 });
+
+        it('holds the key while later pages arrive and the list re-renders', () => {
+            const orderKey = createFeedOrderKey();
+            const moments = firstPage();
+            const thoughts = firstPage();
+            const key = orderKey({ paginations: [moments, thoughts], resetOn: ['all'] });
+
+            expect(orderKey({ paginations: [moments, thoughts], resetOn: ['all'] })).toBe(key);
+            expect(orderKey({ paginations: [nextPage(), thoughts], resetOn: ['all'] })).toBe(key);
+            expect(orderKey({ paginations: [nextPage(), nextPage()], resetOn: ['all'] })).toBe(key);
+        });
+
+        it('changes when a first page of any merged stream lands (a refresh)', () => {
+            const orderKey = createFeedOrderKey();
+            const thoughts = firstPage();
+            const key = orderKey({ paginations: [firstPage(), thoughts] });
+
+            expect(orderKey({ paginations: [firstPage(), thoughts] })).not.toBe(key);
+        });
+
+        it('treats a pagination with no offset yet (the initial state) as a first page', () => {
+            const orderKey = createFeedOrderKey();
+            const key = orderKey({ paginations: [{}] });
+
+            expect(orderKey({ paginations: [{}] })).not.toBe(key);
+        });
+
+        it('changes when a reset input changes, e.g. the user posts or changes a filter', () => {
+            const orderKey = createFeedOrderKey();
+            const pagination = firstPage();
+            const key = orderKey({ paginations: [pagination], resetOn: ['old-post', 'all'] });
+
+            const afterPost = orderKey({ paginations: [pagination], resetOn: ['new-post', 'all'] });
+            expect(afterPost).not.toBe(key);
+            expect(orderKey({ paginations: [pagination], resetOn: ['new-post', 'moments'] })).not.toBe(afterPost);
+        });
+
+        it('keeps separate keys per carousel', () => {
+            const discoveries = createFeedOrderKey();
+            const thoughts = createFeedOrderKey();
+            const pagination = firstPage();
+            const key = discoveries({ paginations: [pagination], resetOn: ['all'] });
+
+            thoughts({ paginations: [pagination], resetOn: ['other-filter'] });
+            expect(discoveries({ paginations: [pagination], resetOn: ['all'] })).toBe(key);
         });
     });
 });
