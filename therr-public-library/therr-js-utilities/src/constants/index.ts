@@ -93,6 +93,14 @@ import {
     sumSavingsAmounts,
     hasReachedSavingsTarget,
 } from './savingsGoals';
+import {
+    HabitAmountUnits,
+    HabitAmountUnit,
+    HABIT_AMOUNT_UNITS,
+    isHabitAmountUnit,
+    isMeasuredHabitGoal,
+    tracksHabitAmount,
+} from './habitAmounts';
 import CampaignTypes from './enums/CampaignTypes';
 import CampaignAdGoals from './enums/CampaignAdGoals';
 import CampaignAssetTypes from './enums/CampaignAssetTypes';
@@ -165,6 +173,12 @@ export {
     parseSavingsAmount,
     sumSavingsAmounts,
     hasReachedSavingsTarget,
+    HabitAmountUnits,
+    HabitAmountUnit,
+    HABIT_AMOUNT_UNITS,
+    isHabitAmountUnit,
+    isMeasuredHabitGoal,
+    tracksHabitAmount,
     CampaignTypes,
     CampaignAdGoals,
     CampaignAssetTypes,

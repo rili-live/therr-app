@@ -12,8 +12,19 @@ import {
 } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
-import { HabitGoalTypes, hasReachedSavingsTarget } from 'therr-js-utilities/constants';
+import {
+    HabitGoalTypes, hasReachedSavingsTarget, isMeasuredHabitGoal, sumSavingsAmounts,
+} from 'therr-js-utilities/constants';
 import { formatSavingsAmount, getSavingsProgressFraction } from '../../utilities/savingsFormat';
+import { formatHabitAmount, getHabitAmountUnitLabel } from '../../utilities/habitAmountFormat';
+import AmountTrackingPicker from '../../components/Habits/AmountTrackingPicker';
+import {
+    fromGoal as amountTrackingFromGoal,
+    getAmountTrackingProblem,
+    isSameAmountTracking,
+    toGoalFields as amountTrackingToGoalFields,
+    IAmountTrackingChoice,
+} from '../Pacts/amountTrackingOptions';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles, buttonMenuHeight } from '../../styles/navigation/buttonMenu';
@@ -101,6 +112,9 @@ interface IHabitDetailState {
      */
     draftCadence: CadenceChoice | null;
     isSavingCadence: boolean;
+    /** The amount tracking editor, null while closed. Seeded from the goal on open. */
+    draftAmountTracking: IAmountTrackingChoice | null;
+    isSavingAmountTracking: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -156,6 +170,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             isArchiving: false,
             draftCadence: null,
             isSavingCadence: false,
+            draftAmountTracking: null,
+            isSavingAmountTracking: false,
         };
 
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
@@ -265,6 +281,166 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                 )}
             </View>
         );
+    };
+
+    /**
+     * This week's amount on a measured habit, against its weekly target when it has one.
+     *
+     * `weekAmount` is absent when the server could not resolve the user's week, or predates
+     * the feature. That is "unknown", so the card is not drawn rather than claiming zero.
+     */
+    renderAmountCard = (userHabit?: IUserHabit) => {
+        if (!userHabit || !isMeasuredHabitGoal(userHabit) || userHabit.weekAmount === undefined) {
+            return null;
+        }
+
+        const {
+            weekAmount, totalAmount, targetAmount, amountUnit,
+        } = userHabit;
+        const locale = this.props.user?.settings?.locale;
+        const format = (amount: number) => formatHabitAmount(amount, amountUnit, this.translate, locale);
+        const fraction = getSavingsProgressFraction(weekAmount, targetAmount);
+        const hasReached = hasReachedSavingsTarget(weekAmount, targetAmount);
+
+        return (
+            <View style={this.themeHabits.styles.streakWidgetContainer}>
+                <Text style={this.themeHabits.styles.streakWidgetTitle}>
+                    {this.translate('pages.habits.amounts.cardTitle')}
+                </Text>
+                <Text style={{ fontSize: 30, fontWeight: '700', paddingTop: 4 }}>
+                    {format(weekAmount)}
+                </Text>
+                <Text style={this.themeHabits.styles.habitCardSubtitle}>
+                    {targetAmount
+                        ? this.translate('pages.habits.amounts.weekOfTarget', { target: format(targetAmount) })
+                        : this.translate('pages.habits.amounts.weekNoTarget')}
+                </Text>
+                {fraction !== null && (
+                    <View
+                        accessibilityRole="progressbar"
+                        style={{
+                            height: 8,
+                            borderRadius: 4,
+                            backgroundColor: 'rgba(0,0,0,0.12)',
+                            marginTop: 12,
+                            overflow: 'hidden',
+                        }}
+                    >
+                        <View
+                            style={{
+                                height: 8,
+                                borderRadius: 4,
+                                width: `${Math.round(fraction * 100)}%`,
+                                backgroundColor: this.themeHabits.colors.primary3,
+                            }}
+                        />
+                    </View>
+                )}
+                {hasReached && (
+                    <Text
+                        style={{
+                            paddingTop: 8,
+                            fontSize: 14,
+                            fontWeight: '600',
+                            color: this.themeHabits.colors.alertSuccess,
+                        }}
+                    >
+                        {this.translate('pages.habits.amounts.weeklyTargetReached')}
+                    </Text>
+                )}
+                {!hasReached && !!targetAmount && (
+                    <Text style={[this.themeHabits.styles.habitCardSubtitle, { paddingTop: 8 }]}>
+                        {this.translate('pages.habits.amounts.remainingThisWeek', {
+                            amount: format(Math.max(0, sumSavingsAmounts([targetAmount, -weekAmount]))),
+                        })}
+                    </Text>
+                )}
+                {totalAmount !== undefined && (
+                    <Text style={[this.themeHabits.styles.habitCardSubtitle, { paddingTop: 4 }]}>
+                        {this.translate('pages.habits.amounts.allTime', { amount: format(totalAmount) })}
+                    </Text>
+                )}
+            </View>
+        );
+    };
+
+    describeAmountTracking = (habitGoal: IHabitGoal): string => {
+        if (!isMeasuredHabitGoal(habitGoal)) {
+            return this.translate('pages.habits.amounts.rowOff');
+        }
+
+        const unit = getHabitAmountUnitLabel(habitGoal.amountUnit, this.translate);
+        if (!habitGoal.targetAmount) {
+            return unit;
+        }
+
+        return this.translate('pages.habits.amounts.rowWithTarget', {
+            unit,
+            target: formatHabitAmount(
+                habitGoal.targetAmount,
+                habitGoal.amountUnit,
+                this.translate,
+                this.props.user?.settings?.locale,
+            ),
+        });
+    };
+
+    handleEditAmountTrackingPress = () => {
+        const habitGoal = this.getHabitGoal();
+        if (!canEditCadence(habitGoal, this.props.user?.details?.id)) {
+            return;
+        }
+        this.setState({ draftAmountTracking: amountTrackingFromGoal(habitGoal) });
+    };
+
+    handleCancelAmountTracking = () => {
+        this.setState({ draftAmountTracking: null });
+    };
+
+    /**
+     * Save the amount tracking choice. Turning it off sends `amountUnit: null`, which also
+     * clears the weekly target server-side; amounts already recorded on past check-ins are
+     * kept, so turning it back on later shows them again.
+     */
+    handleSaveAmountTracking = () => {
+        const { updateGoal, getUserHabits } = this.props;
+        const habitGoal = this.getHabitGoal();
+        const { draftAmountTracking } = this.state;
+
+        if (!habitGoal || !draftAmountTracking || getAmountTrackingProblem(draftAmountTracking)) {
+            return;
+        }
+
+        if (isSameAmountTracking(draftAmountTracking, habitGoal)) {
+            this.setState({ draftAmountTracking: null });
+            return;
+        }
+
+        this.setState({ isSavingAmountTracking: true });
+
+        updateGoal(habitGoal.id, amountTrackingToGoalFields(draftAmountTracking, isMeasuredHabitGoal(habitGoal)))
+            .then(() => {
+                if (!this.isUnmounted) {
+                    this.setState({ draftAmountTracking: null });
+                }
+                showToast.success({
+                    text1: this.translate('pages.habits.amounts.editSaved'),
+                });
+                // The week and all-time amounts arrive on `habits.userHabits`, which
+                // `updateGoal` does not touch.
+                return getUserHabits().catch(() => undefined);
+            })
+            .catch(() => {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    text2: this.translate('pages.habits.amounts.editFailed'),
+                });
+            })
+            .finally(() => {
+                if (!this.isUnmounted) {
+                    this.setState({ isSavingAmountTracking: false });
+                }
+            });
     };
 
     getUserHabit = (): IUserHabit | undefined => {
@@ -516,6 +692,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             source: 'habitDetail',
             goalType: habitGoal?.goalType,
             currencyCode: habitGoal?.currencyCode,
+            amountUnit: habitGoal?.amountUnit,
         });
     };
 
@@ -733,6 +910,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             isConfirmingArchive,
             isArchiving,
             draftCadence,
+            draftAmountTracking,
+            isSavingAmountTracking,
             isSavingCadence,
         } = this.state;
 
@@ -817,6 +996,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                         </View>
 
                         {this.renderSavingsCard(userHabit)}
+
+                        {this.renderAmountCard(userHabit)}
 
                         {streak && streak.currentStreak > 0 && (
                             <StreakWidget
@@ -906,6 +1087,37 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                         </Pressable>
                                     )}
                                 </View>
+
+                                {/*
+                                  * Amount tracking is opt-in, so the row is how a habit that
+                                  * never had it gets it. A savings habit always tracks money
+                                  * and has no row.
+                                  */}
+                                {habitGoal.goalType !== HabitGoalTypes.SAVINGS_GOAL && (
+                                    <View style={this.themeHabits.styles.cadenceRow}>
+                                        <Text style={this.themeHabits.styles.cadenceRowLabel}>
+                                            {this.translate('pages.habits.amounts.rowLabel')}
+                                        </Text>
+                                        <Text style={this.themeHabits.styles.cadenceRowValue}>
+                                            {this.describeAmountTracking(habitGoal)}
+                                        </Text>
+                                        {canEditCadence(habitGoal, this.props.user?.details?.id) && (
+                                            <Pressable
+                                                accessibilityRole="button"
+                                                accessibilityLabel={this.translate('pages.habits.amounts.editTitle')}
+                                                onPress={this.handleEditAmountTrackingPress}
+                                                style={({ pressed }) => [
+                                                    this.themeHabits.styles.cadenceRowEditButton,
+                                                    pressed && this.themeHabits.styles.pressedOpacity,
+                                                ]}
+                                            >
+                                                <Text style={this.themeHabits.styles.cadenceRowEditText}>
+                                                    {this.translate('pages.habits.cadence.editTitle')}
+                                                </Text>
+                                            </Pressable>
+                                        )}
+                                    </View>
+                                )}
 
                                 {/*
                                   * The number on its own reads as a score. It is
@@ -1039,6 +1251,44 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                 {this.translate('pages.habits.cadence.editForwardOnly')}
                             </Text>
                         </>
+                    )}
+                </BaseModal>
+
+                <BaseModal
+                    isVisible={!!draftAmountTracking}
+                    onDismiss={this.handleCancelAmountTracking}
+                    headerText={this.translate('pages.habits.amounts.editTitle')}
+                    actions={(
+                        <>
+                            <ModalButton
+                                title={this.translate('pages.habits.amounts.editCancel')}
+                                iconName="close"
+                                iconRight={false}
+                                onPress={this.handleCancelAmountTracking}
+                                themeButtons={this.themeButtons}
+                                disabled={isSavingAmountTracking}
+                            />
+                            <ModalButton
+                                title={this.translate('pages.habits.amounts.editSave')}
+                                iconName="check"
+                                iconRight={false}
+                                onPress={this.handleSaveAmountTracking}
+                                themeButtons={this.themeButtons}
+                                loading={isSavingAmountTracking}
+                                disabled={isSavingAmountTracking
+                                    || !draftAmountTracking
+                                    || !!getAmountTrackingProblem(draftAmountTracking)}
+                            />
+                        </>
+                    )}
+                >
+                    {draftAmountTracking && (
+                        <AmountTrackingPicker
+                            value={draftAmountTracking}
+                            onChange={(next) => this.setState({ draftAmountTracking: next })}
+                            themeHabits={this.themeHabits}
+                            translate={this.translate}
+                        />
                     )}
                 </BaseModal>
 

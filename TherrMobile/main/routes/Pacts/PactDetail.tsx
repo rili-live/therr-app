@@ -22,7 +22,7 @@ import { RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import translator from '../../utilities/translator';
 import { Button } from '../../components/BaseButton';
-import { PactMemberRow, SavingsProgressCard } from '../../components/Habits';
+import { AmountProgressCard, PactMemberRow, SavingsProgressCard } from '../../components/Habits';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
@@ -831,6 +831,19 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                         {pact.savingsProgress ? (
                             <SavingsProgressCard
                                 progress={pact.savingsProgress}
+                                members={pact.members}
+                                currentUserId={currentUserId}
+                                translate={this.translate}
+                                themeHabits={this.themeHabits}
+                                locale={this.props.user?.settings?.locale}
+                            />
+                        ) : null}
+
+                        {/* This week's amounts on a measured pact. Presence-checked like
+                            the savings card: absent on a pact that tracks no amount. */}
+                        {pact.amountProgress ? (
+                            <AmountProgressCard
+                                progress={pact.amountProgress}
                                 members={pact.members}
                                 currentUserId={currentUserId}
                                 translate={this.translate}

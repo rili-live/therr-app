@@ -37,7 +37,8 @@ export interface ICreateCheckinBody {
     difficultyRating?: number;
     proofMedias?: ICheckinProofMedia[];
     /**
-     * Money this check-in put away, on a `savings_goal` habit. Major units.
+     * How much this check-in recorded: money put away on a `savings_goal` habit (major
+     * units), or an amount in the goal's `amountUnit` on a measured habit. Always optional.
      *
      * Three states, and they are not interchangeable — the server reads them as written:
      *

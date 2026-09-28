@@ -58,6 +58,13 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import { Button } from '../../components/BaseButton';
 import { HABITS_PRESTAGED_TEMPLATE_ID } from '../../components/Habits/PactPreviewOverlay';
 import SavingsAmountInput, { ERROR_KEY_BY_REASON } from '../../components/Habits/SavingsAmountInput';
+import AmountTrackingPicker from '../../components/Habits/AmountTrackingPicker';
+import {
+    AMOUNT_TRACKING_OFF,
+    getAmountTrackingProblem,
+    toGoalFields as amountTrackingToGoalFields,
+    IAmountTrackingChoice,
+} from './amountTrackingOptions';
 import { buildInviteUrl } from '../../utilities/shareUrls';
 import {
     WizardStep as Step,
@@ -135,6 +142,13 @@ interface ICreatePactInviteState {
     /** The parsed target, or null for an open-ended savings habit. */
     savingsTargetAmount: number | null;
     savingsTargetScope: SavingsTargetScope;
+    /**
+     * Opt-in amount tracking for a habit that is not a savings goal. Off by default, and
+     * ignored whenever the composed habit is a savings goal, which always tracks money.
+     */
+    amountTracking: IAmountTrackingChoice;
+    /** Set once Next was pressed with tracking on and no unit, to show why. */
+    showAmountUnitError: boolean;
     selectedPartnerIds: string[];
     selectedPartnerDetailsById: { [id: string]: IConnectionDetails };
     searchQuery: string;
@@ -251,6 +265,8 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             savingsTargetText: '',
             savingsTargetAmount: null,
             savingsTargetScope: SavingsTargetScopes.PER_MEMBER,
+            amountTracking: AMOUNT_TRACKING_OFF,
+            showAmountUnitError: false,
             selectedPartnerIds: [],
             selectedPartnerDetailsById: {},
             searchQuery: '',
@@ -472,8 +488,14 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     canAdvanceFromConfigure = (): boolean => Boolean(
         (this.state.selectedTemplateId || this.state.customHabitName.trim().length > 0)
         && isCadenceComplete(this.state.cadence)
-        && !this.hasInvalidSavingsTarget(),
+        && !this.hasInvalidSavingsTarget()
+        && !this.getAmountTrackingProblem(),
     );
+
+    /** Why the amount tracking choice cannot be saved, or null. Never blocks a savings habit. */
+    getAmountTrackingProblem = () => (this.getIsSavingsSelection()
+        ? null
+        : getAmountTrackingProblem(this.state.amountTracking));
 
     /**
      * A savings target that was typed but does not parse. `SavingsAmountInput` reports it
@@ -498,6 +520,17 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 Toast.show({
                     type: 'info',
                     text1: this.translate(ERROR_KEY_BY_REASON[error || 'not-a-number']),
+                });
+                return;
+            }
+            const amountProblem = this.getAmountTrackingProblem();
+            if (amountProblem) {
+                this.setState({ showAmountUnitError: true });
+                Toast.show({
+                    type: 'info',
+                    text1: this.translate(amountProblem === 'needs-unit'
+                        ? 'pages.habits.amounts.chooseUnit'
+                        : ERROR_KEY_BY_REASON[amountProblem]),
                 });
                 return;
             }
@@ -680,6 +713,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 // the template carried; a touched one sends what the user asked for.
                 ...cadenceFields,
                 ...this.getSavingsGoalFields(template.goalType),
+                ...this.getAmountGoalFields(template.goalType),
             });
 
             return userGoal?.id || selectedTemplateId;
@@ -693,6 +727,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 // anything but daily however the user actually intended to keep it.
                 ...cadenceFields,
                 ...this.getSavingsGoalFields(isSavingsHabit ? HabitGoalTypes.SAVINGS_GOAL : undefined),
+                ...this.getAmountGoalFields(isSavingsHabit ? HabitGoalTypes.SAVINGS_GOAL : undefined),
             });
 
             return newGoal?.id || null;
@@ -724,6 +759,19 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             currencyCode: this.getSavingsCurrencyCode(),
             savingsTargetScope,
         };
+    };
+
+    /**
+     * The amount unit and weekly target, or nothing at all. Nothing for a savings goal,
+     * which is counted in its currency and would reject a unit, and nothing when tracking is
+     * off, so an ordinary habit sends exactly what it did before amount tracking existed.
+     */
+    getAmountGoalFields = (goalType?: string) => {
+        if (goalType === HabitGoalTypes.SAVINGS_GOAL) {
+            return {};
+        }
+
+        return amountTrackingToGoalFields(this.state.amountTracking);
     };
 
     /**
@@ -1464,6 +1512,16 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 />
 
                 {this.renderSavingsTarget()}
+
+                {!this.getIsSavingsSelection() && (
+                    <AmountTrackingPicker
+                        value={this.state.amountTracking}
+                        onChange={(amountTracking) => this.setState({ amountTracking })}
+                        themeHabits={this.themeHabits}
+                        translate={this.translate}
+                        showUnitError={this.state.showAmountUnitError}
+                    />
+                )}
             </View>
         );
     };

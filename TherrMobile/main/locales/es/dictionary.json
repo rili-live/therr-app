@@ -2217,7 +2217,7 @@
                 "errorNegative": "Ingresa un monto de cero o más",
                 "errorNotANumber": "Ingresa el monto como número, por ejemplo 25 o 25,50",
                 "errorTooLarge": "Ese monto es demasiado grande para registrarlo",
-                "errorTooPrecise": "Redondea al centavo más cercano, por ejemplo 25,50",
+                "errorTooPrecise": "Usa como máximo dos decimales, por ejemplo 25,50",
                 "goalReached": "🎉 ¡Meta alcanzada!",
                 "remainingGroup": "Faltan {amount} entre todos",
                 "remainingYours": "Te faltan {amount}",
@@ -2250,6 +2250,73 @@
                 "atCapBody": "Desbloquea hábitos y pactos ilimitados, con un solo pago, de por vida.",
                 "startCapTitle": "{used} hábitos empezados en los últimos {days} días",
                 "startCapBody": "Las cuentas gratuitas empiezan {limit} cada {days} días. Desbloquea ilimitados, de por vida."
+            },
+            "amounts": {
+                "toggleLabel": "Registrar una cantidad",
+                "toggleHint": "Opcional. Anota cuánto cada vez, como páginas leídas o minutos corridos. Siempre puedes registrar sin un número.",
+                "unitLabel": "¿Qué estás contando?",
+                "chooseUnit": "Elige qué estás contando o desactiva el registro de cantidad",
+                "weeklyTargetLabel": "Meta semanal (opcional)",
+                "weeklyTargetHint": "Por persona. Se reinicia cada lunes.",
+                "checkinAmountLabel": "¿Cuánto? (opcional)",
+                "checkinAmountHint": "Déjalo en blanco para registrar sin un número.",
+                "cardTitle": "Esta semana",
+                "weekOfTarget": "de {target} esta semana",
+                "weekNoTarget": "registrado esta semana",
+                "allTime": "{amount} en total",
+                "weeklyTargetReached": "🎉 ¡Meta semanal alcanzada!",
+                "remainingThisWeek": "Faltan {amount} esta semana",
+                "groupWeek": "{amount} entre todos esta semana",
+                "rowLabel": "Cantidad",
+                "rowOff": "Sin registrar",
+                "rowWithTarget": "{unit} · {target} por semana",
+                "editTitle": "Registro de cantidad",
+                "editSave": "Guardar",
+                "editCancel": "Cancelar",
+                "editSaved": "Registro de cantidad actualizado",
+                "editFailed": "No se pudo actualizar el registro de cantidad. Inténtalo de nuevo.",
+                "units": {
+                    "minutes": {
+                        "label": "Minutos",
+                        "short": "min"
+                    },
+                    "hours": {
+                        "label": "Horas",
+                        "short": "h"
+                    },
+                    "pages": {
+                        "label": "Páginas",
+                        "short": "págs."
+                    },
+                    "steps": {
+                        "label": "Pasos",
+                        "short": "pasos"
+                    },
+                    "reps": {
+                        "label": "Repeticiones",
+                        "short": "reps"
+                    },
+                    "sets": {
+                        "label": "Series",
+                        "short": "series"
+                    },
+                    "km": {
+                        "label": "Kilómetros",
+                        "short": "km"
+                    },
+                    "miles": {
+                        "label": "Millas",
+                        "short": "mi"
+                    },
+                    "glasses": {
+                        "label": "Vasos",
+                        "short": "vasos"
+                    },
+                    "servings": {
+                        "label": "Porciones",
+                        "short": "porciones"
+                    }
+                }
             }
         },
         "pacts": {

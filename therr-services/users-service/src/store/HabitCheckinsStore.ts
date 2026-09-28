@@ -610,6 +610,44 @@ export default class HabitCheckinsStore {
     }
 
     /**
+     * Each pact member's recorded amount on a measured habit: this week's, for the weekly
+     * target, and all-time. One row per member, including members who have recorded
+     * nothing, like `getSavingsTotalsByPactMember`.
+     *
+     * `weekStart`/`today` are the *viewer's* week. Every member's rows are bucketed by
+     * their own `scheduledDate`, which is that member's local day, so a member in another
+     * zone differs by at most the hours between the two Mondays.
+     */
+    getAmountTotalsByPactMember(
+        pactId: string,
+        habitGoalId: string,
+        weekStart: string,
+        today: string,
+    ): Promise<{ userId: string; weekAmount: number; totalAmount: number }[]> {
+        const queryString = knexBuilder.raw(
+            `SELECT pm."userId" AS "userId",
+                COALESCE(SUM(c."savedAmount") FILTER (
+                    WHERE c."scheduledDate" >= ?::date AND c."scheduledDate" <= ?::date
+                ), 0)::text AS "weekAmount",
+                COALESCE(SUM(c."savedAmount"), 0)::text AS "totalAmount"
+            FROM ${PACT_MEMBERS_TABLE_NAME} pm
+            LEFT JOIN ${HABIT_CHECKINS_TABLE_NAME} c
+                ON c."userId" = pm."userId"
+                AND c."habitGoalId" = ?::uuid
+                AND c."savedAmount" IS NOT NULL
+            WHERE pm."pactId" = ?::uuid
+            GROUP BY pm."userId"`,
+            [weekStart, today, habitGoalId, pactId],
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.map((row: any) => ({
+            userId: String(row.userId),
+            weekAmount: Number(row.weekAmount) || 0,
+            totalAmount: Number(row.totalAmount) || 0,
+        })));
+    }
+
+    /**
      * One user's savings total per habit goal, across every check-in they have made on
      * it — in one query for a whole list of goals.
      *
