@@ -1,0 +1,4 @@
+Nouveautés :
+• Les photos de profil impossibles à recadrer sont maintenant utilisées telles quelles au lieu d'échouer
+• Si l'envoi de votre photo de profil échoue, vous verrez pourquoi et pourrez réessayer
+• Corrections et améliorations

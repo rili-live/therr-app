@@ -1,0 +1,4 @@
+What's new:
+• Profile photos that can't be cropped are now used as-is instead of failing
+• If a profile photo upload fails, you'll see why and can try again
+• Fixes and stability improvements

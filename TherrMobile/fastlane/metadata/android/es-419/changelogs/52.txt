@@ -1,0 +1,4 @@
+Novedades:
+• Las fotos de perfil que no se pueden recortar ahora se usan tal cual en lugar de fallar
+• Si falla la subida de tu foto de perfil, verás el motivo y podrás intentarlo de nuevo
+• Correcciones y mejoras
