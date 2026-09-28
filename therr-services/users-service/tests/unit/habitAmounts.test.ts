@@ -104,6 +104,20 @@ describe('buildAmountProgress', () => {
         expect(progress?.amountUnit).to.equal('minutes');
     });
 
+    it('orders members with the same weekly amount the same way on every load', () => {
+        const totals = [
+            { userId: 'c', weekAmount: 60, totalAmount: 60 },
+            { userId: 'a', weekAmount: 60, totalAmount: 60 },
+            { userId: 'b', weekAmount: 120, totalAmount: 120 },
+        ];
+        const ranked = (rows: typeof totals) => buildAmountProgress({
+            goal: MEASURED, memberTotals: rows, weekStart: '2026-09-21',
+        })?.members.map((m) => m.userId);
+
+        expect(ranked(totals)).to.deep.equal(['b', 'a', 'c']);
+        expect(ranked([...totals].reverse())).to.deep.equal(['b', 'a', 'c']);
+    });
+
     it('reports no one as having reached a target that does not exist', () => {
         const progress = buildAmountProgress({
             goal: { ...MEASURED, targetAmount: null },

@@ -1577,6 +1577,7 @@ backend change needed — it refuses to treat Play's own
 - [ ] (2026-09-24, /quality-peer-review) **Confirm the habit template migrations (`20260925000001`/`…02`) ran at `stage` and `main` and seeded the full set.** `SELECT count(*) FROM habits.habit_goals WHERE "isTemplate" AND "templateKey" IS NOT NULL;` should be 43. Fewer than 43 means the SUPER_ADMIN_ID row was missing and the inserts were skipped with a warning; create the row and re-run the file by hand, because knex has already recorded it as applied. Then check `SELECT "frequencyType", "frequencyCount" FROM habits.habit_goals WHERE id = 'b0000001-de00-4000-a000-000000000001';`. If it is still `daily`/1, a pact or tracking row points at the template itself and the move to 3x/week was deliberately skipped (see the peer-review fix to 90263c32a). Already-installed habits clients show all 43 templates in one flat list until the categorized picker (niche 241662127) ships in a Play release.
 - [ ] (2026-09-25, /mobile-release-preflight) **Promote Friends with Habits 1.12.0 (50) out of the internal-track draft and paste its release notes.** It was built locally and uploaded with `eas submit` (submission 4cf0c27e) as a draft on `internal`. In Play Console → Release → Internal testing, roll out the draft, then promote it to production. Paste the notes from `node TherrMobile/_scripts/print-play-release-notes.mjs` (the `50.txt` changelogs) into "What's new in this release" for en-US, es-419 and fr-CA.
 - [ ] (2026-09-25, /mobile-release-preflight) **The EAS free-plan Android build quota ran out, so CI Habits release builds fail until it resets on 2026-10-01.** `eas_build_habits_android` (CircleCI job 18409, merge c13592e43) failed at `eas build` with "This account has used its Android builds from the Free plan this month", and the job goes red without building anything. The last EAS-built Habits AAB was versionCode 45. Until the quota resets or the plan is upgraded, release with `/niche-android-release`: it merges, sees the quota failure, and builds and submits locally. Decide whether to upgrade the plan or move the build off EAS.
+- [ ] (2026-09-28, /quality-peer-review) **Apply `20260927000001_habits.habit_goals.amountUnit.js` on production users-service ahead of (or with) the image, then confirm it ran at `stage` and `main`.** `getDetailByUser` (`GET /habits/user-habits`) and `PactsStore.getByIdWithDetails` (`GET /habits/pacts/:id`) SELECT `g."amountUnit"` unconditionally, and `deploy.sh` runs migrations only *after* the rollout, so every request a new pod serves in that window 500s on the habit list and pact detail. The column is nullable and additive, so applying it first is safe — but **not** with `migrations:run` in a current pod: the migration file ships inside the new image, so the old one cannot see it. Ahead of the deploy, run the migration's own DDL against production: `ALTER TABLE habits."habit_goals" ADD COLUMN IF NOT EXISTS "amountUnit" varchar(24);`. The knex migration then runs as a no-op after the rollout and records its ledger row. If the deploy has already rolled: `./_bin/cicd/run-migrations.sh --service users-service`. Check: `SELECT column_name FROM information_schema.columns WHERE table_schema = 'habits' AND table_name = 'habit_goals' AND column_name = 'amountUnit';`. Introduced by 3e840215d.
 <!-- skill-followups:end -->
 
 ---
@@ -1900,7 +1901,8 @@ depend on these working correctly.
 > independent changes that align the Friends with Habits loop with the
 > gamification evidence — and it acts on the retention loop that §§ 2.1–2.5
 > all feed into. **§ 2.7** (join-by-link challenges) is the next growth item after
-> it, gated on the conditions listed there.
+> it, gated on the conditions listed there. **§ 2.8 Phase A** (charity pledges, no money
+> moves) is a small retention follow-up to measured habits and may go ahead of § 2.7.
 
 ### 2.1 Push notification engagement
 
@@ -2421,7 +2423,7 @@ nothing is published as a side effect of checking in.
 What is left is a post-deploy verification, not code: see the 2026-09-11 "Verify check-in
 sharing and proof moderation" item in § Manual Operational Follow-ups.
 
-### 2.7 Join-by-link group challenges (Friends with Habits — added 2026-09-27)
+### 2.7 Join-by-link group challenges (Friends with Habits — added 2026-09-27) (#2988)
 
 Source: a competitive read of Goalify (`com.onebytezero.Goalify`, ~4.4★ on ~1.07K Play
 reviews). Its headline social feature is a **challenge**: one person creates it, shares a
@@ -2480,7 +2482,7 @@ them, and the sense that specific friends are watching would dilute. So:
 Split: backend, migration and `therr-react` on `general`. Challenge screens, the join deep
 link and share sheet copy on `niche/HABITS-general`.
 
-#### 2.7.1 Group thread for pacts and challenges — follow-up to § 2.7, lower priority
+#### 2.7.1 Group thread for pacts and challenges — follow-up to § 2.7, lower priority (#2989)
 
 Goalify has a chat inside each challenge. In Friends with Habits a pact's detail screen
 opens **one-to-one** DMs only (`goToDirectMessage` in
@@ -2518,6 +2520,99 @@ goal. Recorded here so it is not re-researched from scratch:
   `consequenceType` of donation, dare or custom is stored on `habits.pacts` and nothing
   acts on it. Honour-system confirmation by partners when a pact ends with a miss would
   show whether a consequence improves retention, before any payment work.
+- **Chosen direction: stakes go to charity.** Planned in § 2.8.
+
+### 2.8 Charity stakes — follow-up to measured habits (added 2026-09-27) (#2990)
+
+**What:** a user can back a habit with a pledge: *"if I miss my week, $5 goes to charity."*
+The money never goes to the app and never goes to a friend. It is a follow-up to measured
+habits (optional amount tracking, `habits.habit_goals."amountUnit"`, shipped on the
+`claude/goalify-feature-research-c2ocvm` branches). That feature gives a pledge
+something objective to be judged against: *this week's amount reached the weekly target*,
+or, for a habit with no amount, *this week's cadence was met*.
+
+**Why it fits the brand.** Friends with Habits is about the people who watch you keep a
+habit, not about punishing you. A missed week that becomes a donation still does some good,
+so a stake can be firm without being cruel. That matches the self-compassion framing the
+comeback messaging already uses (`docs/HABIT_LIFECYCLE_MESSAGING.md`). It also avoids the
+two things that make money stakes risky (§ 2.7.2):
+
+- no pot that anyone wins, so it is not staking for a prize under Google Play's
+  Real-Money Gambling policy;
+- no money held by us between the pledge and the outcome.
+
+One honest caveat: the commitment-contract literature, and stickK's own "anti-charity"
+option, suggest money going to a cause the user *likes* is a weaker deterrent than money
+going somewhere they dislike. Anti-charities do not fit this brand, so accept the weaker
+lever and measure it (Phase A) rather than assume it works.
+
+**Priority.** Phase A is small, reuses columns that already exist, and acts on retention.
+It can start as soon as measured habits are on `main`, ahead of § 2.7. Phase B moves real
+money, so it waits for Phase A's numbers plus the legal and store-policy review listed
+below.
+
+#### Phase A — pledge on the honour system (no payments)
+
+- **Data:** reuse `habits.pacts."consequenceType" = 'donation'` and `consequenceDetails`
+  (`{ amount, recipient }`). `validatePactParams` in `utilities/pactHelpers.ts` already
+  validates the amount. Solo habits have no pact row, so they need a home. Either add
+  `habits.user_habits."pledge"` (jsonb, nullable), or choose pact-only for Phase A and say
+  so in the UI. No mobile code sets `consequenceType` today (checked on
+  `niche/HABITS-general`), so there is nothing to migrate.
+- **Recipients:** a short, curated list of 3–5 well-known charities, not free text. That
+  keeps the choice quick and avoids the app appearing to endorse arbitrary organisations.
+  Store a stable key, translated on the client like `templateKey`.
+- **The weekly verdict:** a missed week is judged when the week closes, per habit, in the
+  user's own zone:
+  - *measured habit with a weekly target:* `weekAmount < targetAmount`;
+  - *otherwise:* the cadence quota was not met, via `isPeriodSatisfied` in
+    `utilities/habitCadence.ts`, which is the one allowed definition.
+
+  A spent streak freeze or a rest week is **not** a miss. The pledge must never contradict
+  the streak rules the user has already been told.
+- **What happens on a miss:** one push and an in-app card: *"You missed your reading
+  target this week. Your pledge: $5 to <charity>."* with a link out to the charity's own
+  donation page and a "Done, I gave" button. Partners see *"Sam honoured their pledge"*
+  on the pact. Queue it through `enqueueNotification` with a period-stamped dedupe key
+  (`pledge-missed:<userHabitId>:<weekStart>`), never anything containing `Date.now()`
+  (CLAUDE.md, Sibling Repos rule 4).
+- **Measure:**
+  - pledge adoption among pacts;
+  - D30 retention and weekly-target hit rate, pledged vs unpledged;
+  - how often a miss ends in "Done, I gave".
+
+  If pledged habits do not keep people longer, stop here.
+
+#### Phase B — charge on a missed week (real money) (#2991)
+
+Only if Phase A shows a lift.
+
+- **Never custody funds.** Save a card at pledge time (a Stripe SetupIntent;
+  `src/api/stripe.ts` exists) and charge **only** after a missed week. The strongly
+  preferred route is a donation platform that is itself the registered charity or
+  donor-advised fund (candidates to evaluate: Every.org, PayPal Giving Fund, Pledge). The
+  charge is then a donation straight to them, they issue the tax receipt, and no money
+  touches our balance.
+- **A grace window before charging:** 24–48h after the week closes, during which the user
+  can log a forgotten check-in (backdating already exists) or a partner can vouch for
+  them. Every charge must be something the user saw coming.
+- **Guardrails:**
+  - a per-week and per-month cap;
+  - a minimum pledge (stickK's is $5);
+  - adults only;
+  - an off switch that takes effect before the next week closes;
+  - a refund path for a verdict the user disputes.
+- **Store policy, to confirm before building, not after.** Apple's App Review Guideline
+  3.2.1(vi) restricts in-app charitable fundraising to approved nonprofits, otherwise
+  sending the user out to a browser. Google Play's Payments policy needs the same check.
+  Charging through a nonprofit partner's hosted flow may satisfy both, but that is the
+  question to put to legal, not an assumption.
+- **Monetisation.** We never keep forfeited money. It would reward us for users failing
+  and contradict the brand. If stakes need to earn anything, make charity stakes a premium
+  feature (§ 2.5), or offer the optional "add a tip" some donation platforms support.
+
+Split: pledge storage, the weekly verdict job and notifications on `general`. The pledge
+picker, miss card and partner view on `niche/HABITS-general`.
 
 ---
 

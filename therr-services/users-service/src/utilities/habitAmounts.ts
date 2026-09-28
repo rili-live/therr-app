@@ -155,7 +155,9 @@ export const buildAmountProgress = ({
             ...member,
             hasReachedWeeklyTarget: hasReachedSavingsTarget(member.weekAmount, weeklyTargetAmount),
         }))
-        .sort((a, b) => b.weekAmount - a.weekAmount);
+        // Ties broken by userId: the rows arrive in no guaranteed SQL order, and a ranking
+        // that reshuffles equal members between loads reads as a bug.
+        .sort((a, b) => b.weekAmount - a.weekAmount || a.userId.localeCompare(b.userId));
     const viewer = viewerUserId ? members.find((member) => member.userId === viewerUserId) : undefined;
 
     return {
