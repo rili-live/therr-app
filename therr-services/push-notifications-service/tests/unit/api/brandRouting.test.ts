@@ -117,6 +117,9 @@ const DISPLAY_TYPES = [
     // tray whether or not the app is running, because the whole point is that
     // the user learns the net caught them rather than inferring it later.
     PushNotifications.Types.streakFreezeUsed,
+    // A charity pledge reminder. Display for the same reason, and because it needs no
+    // action button — so it renders on installed builds before the mobile half ships.
+    PushNotifications.Types.pledgeMissed,
     PushNotifications.Types.pactDeclined,
     PushNotifications.Types.morningMotivation,
     // The one lifecycle message aimed at someone who has stopped opening the

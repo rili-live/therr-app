@@ -66,6 +66,41 @@ describe('validateAmountTrackingInput', () => {
         const existing = { goalType: HabitGoalTypes.BUILD_GOOD, amountUnit: 'km', targetAmount: 20 };
         expect(validateAmountTrackingInput({ name: 'Run more' }, undefined, existing)).to.deep.equal({ params: {} });
     });
+
+    describe('changing goalType across the savings boundary', () => {
+        const SAVINGS = { goalType: HabitGoalTypes.SAVINGS_GOAL, amountUnit: null, targetAmount: '500.00' };
+        const MEASURED = { goalType: HabitGoalTypes.BUILD_GOOD, amountUnit: 'minutes', targetAmount: '180.00' };
+
+        it('drops a savings target instead of reading it as a weekly target with no unit', () => {
+            expect(validateAmountTrackingInput({ goalType: HabitGoalTypes.BUILD_GOOD }, undefined, SAVINGS))
+                .to.deep.equal({ params: { targetAmount: null } });
+        });
+
+        it('clears the unit and the weekly target when a measured goal becomes savings', () => {
+            expect(validateAmountTrackingInput({ goalType: HabitGoalTypes.SAVINGS_GOAL }, undefined, MEASURED))
+                .to.deep.equal({ params: { amountUnit: null, targetAmount: null } });
+        });
+
+        it('keeps a new savings target sent in the same request, still clearing the unit', () => {
+            expect(validateAmountTrackingInput({ goalType: HabitGoalTypes.SAVINGS_GOAL, targetAmount: 300 }, 300, MEASURED))
+                .to.deep.equal({ params: { amountUnit: null } });
+        });
+
+        it('keeps a new weekly target leaving savings when the request also sets a unit', () => {
+            const body = { goalType: HabitGoalTypes.BUILD_GOOD, amountUnit: 'pages', targetAmount: 50 };
+            expect(validateAmountTrackingInput(body, 50, SAVINGS)).to.deep.equal({ params: { amountUnit: 'pages' } });
+        });
+
+        it('applies the new type\'s rules to a target sent leaving savings without a unit', () => {
+            expect(validateAmountTrackingInput({ goalType: HabitGoalTypes.BUILD_GOOD, targetAmount: 50 }, 50, SAVINGS).errorKey)
+                .to.equal('errorMessages.habitGoals.targetNeedsAmountUnit');
+        });
+
+        it('keeps a measured target when the type changes without crossing savings', () => {
+            expect(validateAmountTrackingInput({ goalType: HabitGoalTypes.BREAK_BAD }, undefined, MEASURED))
+                .to.deep.equal({ params: {} });
+        });
+    });
 });
 
 describe('buildAmountProgress', () => {

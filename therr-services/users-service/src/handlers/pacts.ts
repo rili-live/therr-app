@@ -1,6 +1,8 @@
 import { RequestHandler } from 'express';
 import {
     ErrorCodes,
+    getPledgeInputError,
+    IHabitPledge,
     MetricNames,
     PushNotifications,
 } from 'therr-js-utilities/constants';
@@ -1566,6 +1568,111 @@ const continueSoloPact: RequestHandler = async (req: any, res: any) => {
     }
 };
 
+// PLEDGE — a member's own charity pledge on a pact (WORK_IN_PROGRESS § 2.8, Phase A). No money
+// moves: the weekly verdict in the habits digest reminds the member of it after a missed week.
+//
+// Per member, never per pact: a pledge on habits.pacts would bind every member to a promise one
+// of them made. Only an `active` member of a pact still in play can pledge — a pending invitee
+// has not joined, and a finished pact has no week left to judge.
+const PLEDGEABLE_PACT_STATUSES = ['pending', 'active'];
+
+const resolvePledgeablePact = async (req: any, res: any) => {
+    const { locale, userId } = parseHeaders(req.headers);
+    const { id } = req.params;
+
+    const pact = await Store.pacts.getById(id);
+    if (!pact) {
+        handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.notFound'),
+            statusCode: 404,
+            errorCode: ErrorCodes.NOT_FOUND,
+        });
+        return null;
+    }
+
+    const member = await Store.pactMembers.getByPactAndUser(id, userId);
+    if (!member || member.status !== 'active') {
+        handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.notParticipant'),
+            statusCode: 403,
+            errorCode: ErrorCodes.NOT_PERMITTED,
+        });
+        return null;
+    }
+
+    if (!PLEDGEABLE_PACT_STATUSES.includes(pact.status)) {
+        handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.pacts.pledgeNotAllowed'),
+            statusCode: 409,
+            errorCode: ErrorCodes.BAD_REQUEST,
+        });
+        return null;
+    }
+
+    return { pact, member };
+};
+
+const setPactPledge: RequestHandler = async (req: any, res: any) => {
+    const { locale, userId } = parseHeaders(req.headers);
+    const { id } = req.params;
+    const { amount, charityKey } = req.body || {};
+
+    const inputError = getPledgeInputError({ amount, charityKey });
+    if (inputError) {
+        return handleHttpError({
+            res,
+            message: translate(locale, inputError === 'invalidAmount'
+                ? 'errorMessages.pacts.invalidPledgeAmount'
+                : 'errorMessages.pacts.invalidPledgeCharity'),
+            statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
+        });
+    }
+
+    try {
+        const resolved = await resolvePledgeablePact(req, res);
+        if (!resolved) {
+            return undefined;
+        }
+
+        // Editing the amount or the charity keeps the original `pledgedAt`. It dates which weeks
+        // the pledge governs, and changing the recipient should not quietly postpone that.
+        const existing: IHabitPledge | null = resolved.member.pledge || null;
+        const pledge: IHabitPledge = {
+            amount: Number(amount),
+            charityKey,
+            pledgedAt: existing?.pledgedAt || new Date().toISOString(),
+        };
+
+        const updated = await Store.pactMembers.setPledge(id, userId, pledge);
+        return res.status(200).send({ pactId: id, pledge: updated?.pledge ?? pledge });
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' });
+    }
+};
+
+// Clearing takes effect for the week in progress: the verdict reads the pledge at the moment the
+// week closes, so a pledge removed on Sunday evening is never judged.
+const clearPactPledge: RequestHandler = async (req: any, res: any) => {
+    const { userId } = parseHeaders(req.headers);
+    const { id } = req.params;
+
+    try {
+        const resolved = await resolvePledgeablePact(req, res);
+        if (!resolved) {
+            return undefined;
+        }
+
+        await Store.pactMembers.setPledge(id, userId, null);
+        return res.status(200).send({ pactId: id, pledge: null });
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' });
+    }
+};
+
 const deletePact: RequestHandler = async (req: any, res: any) => {
     const { locale, userId } = parseHeaders(req.headers);
     const { id } = req.params;
@@ -1752,5 +1859,7 @@ export {
     addPactMembers,
     removePactMember,
     continueSoloPact,
+    setPactPledge,
+    clearPactPledge,
     deletePact,
 };

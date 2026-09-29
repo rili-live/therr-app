@@ -120,6 +120,11 @@
       "title": "Tu racha sobrevivió",
       "body": "Faltaste un día en {habitName}, así que un congelamiento de racha lo cubrió — tu racha de {streakCount} días sigue intacta. Te queda(n) {freezesRemaining}."
     },
+    "pledgeMissed": {
+      "title": "Tu promesa de {habitName}",
+      "body": "No alcanzaste tu meta de {habitName} la semana pasada. Tu promesa: {pledgeAmount} US$ para {charityName}. Abre la app cuando quieras cumplirla.",
+      "charityFallback": "una organización benéfica"
+    },
     "streakBroken": {
       "title": "Racha reiniciada",
       "body": "Tu racha de {streakCount} días en {habitName} terminó — empieza una nueva hoy."

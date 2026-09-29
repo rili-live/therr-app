@@ -82,6 +82,15 @@ export enum Types {
     // lapsed user, and it says something more useful.
     weeklyRecap = 'weekly-recap',
 
+    // HABITS: Charity pledges (WORK_IN_PROGRESS § 2.8, Phase A)
+    //
+    // Sent on the user's local Monday when the week that just closed missed a pact habit they
+    // had pledged against. Like `weeklyRecap` it is about a closed week, so its dedupe key is
+    // stamped with that week's start. No money moves: the copy reminds the member of their
+    // own promise and the app links out to the charity. A week a streak freeze covered is
+    // never a miss — the pledge must not contradict the streak rules.
+    pledgeMissed = 'pledge-missed',
+
     // HABITS: Reminders
     dailyHabitReminder = 'daily-habit-reminder',
     morningMotivation = 'morning-motivation',
