@@ -1,7 +1,7 @@
 import { HabitsActionTypes } from '../../types/redux/habits';
 import { ContentActionTypes } from '../../types/redux/content';
 import HabitGoalsService, { ICreateHabitGoalBody, IUpdateHabitGoalBody } from '../../services/HabitGoalsService';
-import PactsService, { ICreatePactBody, IBulkInvitePactBody } from '../../services/PactsService';
+import PactsService, { ICreatePactBody, IBulkInvitePactBody, ISetPactPledgeBody } from '../../services/PactsService';
 import HabitCheckinsService, { ICreateCheckinBody, IUpdateCheckinBody } from '../../services/HabitCheckinsService';
 import StreaksService from '../../services/StreaksService';
 import DailyStreakService from '../../services/DailyStreakService';
@@ -197,6 +197,26 @@ const Habits = {
         });
         return response.data;
     }),
+
+    // `userId` is the caller: the endpoint only ever touches the caller's own membership, and the
+    // reducer needs it to find that member row.
+    setPactPledge: (id: string, userId: string, data: ISetPactPledgeBody) => (dispatch: any) => PactsService
+        .setPledge(id, data).then((response) => {
+            dispatch({
+                type: HabitsActionTypes.SET_PACT_MEMBER_PLEDGE,
+                data: { pactId: id, userId, pledge: response.data?.pledge ?? null },
+            });
+            return response.data;
+        }),
+
+    removePactPledge: (id: string, userId: string) => (dispatch: any) => PactsService
+        .removePledge(id).then((response) => {
+            dispatch({
+                type: HabitsActionTypes.SET_PACT_MEMBER_PLEDGE,
+                data: { pactId: id, userId, pledge: null },
+            });
+            return response.data;
+        }),
 
     // Checkins
     getTodayCheckins: (habitGoalId?: string, timeZone?: string) => (dispatch: any) => HabitCheckinsService

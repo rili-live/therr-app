@@ -1,5 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import axios from 'axios';
+import { PledgeCharityKey } from 'therr-js-utilities/constants';
 
 export interface ICreatePactBody {
     partnerUserId?: string;
@@ -12,6 +13,12 @@ export interface ICreatePactBody {
         charity?: string;
         description?: string;
     };
+}
+
+/** A member's own charity pledge on a pact (Phase A: no money moves). Validated server-side. */
+export interface ISetPactPledgeBody {
+    amount: number;
+    charityKey: PledgeCharityKey;
 }
 
 export interface IBulkInvitePactBody {
@@ -144,6 +151,23 @@ class PactsService {
     continueSolo = (id: string) => axios({
         method: 'put',
         url: `/users-service/habits/pacts/${id}/continue-solo`,
+    });
+
+    /**
+     * Set or edit the caller's own pledge on a pact. Only an active member of a pending or active
+     * pact may pledge (403 otherwise). Answers 200 with `{ pactId, pledge }`; editing keeps the
+     * original `pledgedAt`, which dates the first week the pledge governs.
+     */
+    setPledge = (id: string, data: ISetPactPledgeBody) => axios({
+        method: 'put',
+        url: `/users-service/habits/pacts/${id}/pledge`,
+        data,
+    });
+
+    /** Remove the caller's own pledge. Answers 200 with `{ pactId, pledge: null }`. */
+    removePledge = (id: string) => axios({
+        method: 'delete',
+        url: `/users-service/habits/pacts/${id}/pledge`,
     });
 
     delete = (id: string) => axios({

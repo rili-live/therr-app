@@ -245,6 +245,58 @@ describe('habits reducer', () => {
         expect(result.pacts[0].status).toBe('abandoned');
     });
 
+    describe('SET_PACT_MEMBER_PLEDGE', () => {
+        const pledge = { amount: 5, charityKey: 'give_directly', pledgedAt: '2026-09-29T12:00:00.000Z' };
+        const members = () => [{ userId: 'me', pledge: null }, { userId: 'partner', pledge: null }];
+
+        it('patches only the caller\'s member row, in every list holding the pact', () => {
+            const withPacts = reducer(initialState, {
+                type: HabitsActionTypes.GET_USER_PACTS,
+                data: [{ id: 'p1', members: members() }, { id: 'p2', members: members() }],
+            });
+            const populated = reducer(withPacts, {
+                type: HabitsActionTypes.GET_ACTIVE_PACTS,
+                data: [{ id: 'p1', members: members() }],
+            });
+            const result = reducer(populated, {
+                type: HabitsActionTypes.SET_PACT_MEMBER_PLEDGE,
+                data: { pactId: 'p1', userId: 'me', pledge },
+            });
+            expect(result.pacts[0].members[0].pledge).toEqual(pledge);
+            expect(result.pacts[0].members[1].pledge).toBeNull();
+            expect(result.pacts[1].members[0].pledge).toBeNull();
+            expect(result.activePacts[0].members[0].pledge).toEqual(pledge);
+        });
+
+        it('clears a pledge', () => {
+            const withPledge = reducer(initialState, {
+                type: HabitsActionTypes.GET_USER_PACTS,
+                data: [{ id: 'p1', members: [{ userId: 'me', pledge }] }],
+            });
+            const result = reducer(withPledge, {
+                type: HabitsActionTypes.SET_PACT_MEMBER_PLEDGE,
+                data: { pactId: 'p1', userId: 'me', pledge: null },
+            });
+            expect(result.pacts[0].members[0].pledge).toBeNull();
+        });
+
+        it('ignores a pact that is not in state, or one with no members loaded', () => {
+            const populated = reducer(initialState, {
+                type: HabitsActionTypes.GET_USER_PACTS,
+                data: [{ id: 'p1' }],
+            });
+            const result = reducer(populated, {
+                type: HabitsActionTypes.SET_PACT_MEMBER_PLEDGE,
+                data: { pactId: 'p1', userId: 'me', pledge },
+            });
+            expect(result.pacts[0].members).toBeUndefined();
+            expect(reducer(populated, {
+                type: HabitsActionTypes.SET_PACT_MEMBER_PLEDGE,
+                data: { pactId: 'missing', userId: 'me', pledge },
+            }).pacts).toEqual(populated.pacts);
+        });
+    });
+
     // Checkins
     it('handles GET_TODAY_CHECKINS', () => {
         const result = reducer(initialState, {
