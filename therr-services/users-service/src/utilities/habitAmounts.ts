@@ -50,6 +50,10 @@ export interface IValidatedAmountTracking {
  *   - Clearing the unit on a measured goal clears its target too. Otherwise a stray
  *     number stays on a habit that no longer measures anything, and switching tracking
  *     back on later resurrects a target the user thought they had removed.
+ *   - Moving a goal across the savings boundary, in either direction, clears its target
+ *     unless the same request sends a new one, and moving to savings clears the unit. A
+ *     weekly amount and a cumulative sum of money don't convert into each other, so a
+ *     "180 minutes" target kept as 180 in the goal's currency could complete a pact.
  */
 export const validateAmountTrackingInput = (
     body: any,
@@ -59,6 +63,8 @@ export const validateAmountTrackingInput = (
     const params: IValidatedAmountTracking['params'] = {};
     const goalType = body.goalType ?? existingGoal?.goalType ?? HabitGoalTypes.BUILD_GOOD;
     const isSavings = goalType === HabitGoalTypes.SAVINGS_GOAL;
+    const wasSavings = existingGoal?.goalType === HabitGoalTypes.SAVINGS_GOAL;
+    const crossesSavingsBoundary = !!existingGoal && isSavings !== wasSavings;
 
     let effectiveUnit: string | null = existingGoal?.amountUnit ?? null;
     if ('amountUnit' in body) {
@@ -77,12 +83,26 @@ export const validateAmountTrackingInput = (
         if (params.amountUnit) {
             return { errorKey: 'errorMessages.habitGoals.amountUnitOnSavings' };
         }
+        if (crossesSavingsBoundary) {
+            if (effectiveUnit) {
+                params.amountUnit = null;
+            }
+            if (parsedTargetAmount === undefined) {
+                params.targetAmount = null;
+            }
+        }
         return { params };
     }
 
-    const effectiveTarget = parsedTargetAmount !== undefined
+    // Leaving savings: the stored target is money, not a weekly amount, so it is dropped
+    // rather than judged against the new type's rules.
+    let effectiveTarget = parsedTargetAmount !== undefined
         ? parsedTargetAmount
         : (existingGoal?.targetAmount ?? null);
+    if (crossesSavingsBoundary && parsedTargetAmount === undefined) {
+        params.targetAmount = null;
+        effectiveTarget = null;
+    }
 
     if (!effectiveUnit && effectiveTarget !== null && effectiveTarget !== undefined) {
         // Turning measuring off on a goal that had a target: take the target with it,
