@@ -187,6 +187,10 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     recapHeadline?: string;
     checkinCount?: number;
     perfectDays?: number;
+    // HABITS charity pledge (WORK_IN_PROGRESS § 2.8). Copy only: the push names the member's
+    // own promise. `charityKey` is one of PLEDGE_CHARITIES; the push service resolves its name.
+    pledgeAmount?: number;
+    charityKey?: string;
 }
 
 interface ISendPushNotificationAndOrEmailConfig {
@@ -253,6 +257,8 @@ export default (
         recapHeadline,
         checkinCount,
         perfectDays,
+        pledgeAmount,
+        charityKey,
     }: ISendPushNotification,
     config: ISendPushNotificationAndOrEmailConfig = {
         shouldSendPushNotification: true,
@@ -393,6 +399,8 @@ export default (
                     recapHeadline,
                     checkinCount,
                     perfectDays,
+                    pledgeAmount,
+                    charityKey,
                     // achievementsCount,
                     // likeCount,
                     // notificationsCount,
