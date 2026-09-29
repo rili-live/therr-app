@@ -2745,6 +2745,26 @@
                 "cycleLabel": "Ciclo {number}",
                 "extendedFrom": "Continuación del pacto anterior",
                 "continuedAs": "Continuado en un pacto más reciente"
+            },
+            "pledge": {
+                "title": "Compromiso solidario",
+                "explainer": "Respalda este hábito con una promesa: si fallas una semana, donas a una organización benéfica que elijas. El dinero nunca pasa por la app, y tus compañeros de pacto ven tu compromiso.",
+                "needsPartner": "Un compromiso necesita a alguien que lo vea. Invita a alguien a este pacto para añadir uno.",
+                "add": "Añadir un compromiso",
+                "summary": "{amount} para {charity} si fallas una semana",
+                "startsNextWeek": "Empieza el próximo lunes. Esta semana no cuenta.",
+                "visibleToPartners": "Tus compañeros de pacto pueden ver este compromiso.",
+                "amountLabel": "Cantidad por semana fallada",
+                "charityLabel": "Organización benéfica",
+                "save": "Guardar compromiso",
+                "cancel": "Cancelar",
+                "edit": "Editar compromiso",
+                "remove": "Quitar compromiso",
+                "saveSuccess": "Compromiso guardado",
+                "removeSuccess": "Compromiso quitado",
+                "error": "No se pudo actualizar tu compromiso. Inténtalo de nuevo.",
+                "memberPledge": "Se comprometió a donar {amount} a {charity}",
+                "renewNotCarried": "Tu compromiso se queda con este pacto. Añádelo de nuevo en el nuevo si quieres mantenerlo."
             }
         },
         "pushOptIn": {

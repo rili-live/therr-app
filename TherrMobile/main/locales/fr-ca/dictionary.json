@@ -2745,6 +2745,26 @@
                 "cycleLabel": "Cycle {number}",
                 "extendedFrom": "Prolongement du pacte précédent",
                 "continuedAs": "Poursuivi dans un pacte plus récent"
+            },
+            "pledge": {
+                "title": "Engagement caritatif",
+                "explainer": "Appuie cette habitude par une promesse : si tu manques une semaine, tu donnes à un organisme de bienfaisance de ton choix. L'argent ne passe jamais par l'appli, et tes partenaires de pacte voient ton engagement.",
+                "needsPartner": "Un engagement a besoin de quelqu'un pour le voir. Invite une personne à ce pacte pour en ajouter un.",
+                "add": "Ajouter un engagement",
+                "summary": "{amount} à {charity} si tu manques une semaine",
+                "startsNextWeek": "Commence lundi prochain. Cette semaine ne compte pas.",
+                "visibleToPartners": "Tes partenaires de pacte peuvent voir cet engagement.",
+                "amountLabel": "Montant par semaine manquée",
+                "charityLabel": "Organisme de bienfaisance",
+                "save": "Enregistrer l'engagement",
+                "cancel": "Annuler",
+                "edit": "Modifier l'engagement",
+                "remove": "Retirer l'engagement",
+                "saveSuccess": "Engagement enregistré",
+                "removeSuccess": "Engagement retiré",
+                "error": "Impossible de mettre à jour ton engagement. Réessaie.",
+                "memberPledge": "S'est engagé·e à donner {amount} à {charity}",
+                "renewNotCarried": "Ton engagement reste avec ce pacte. Ajoute-le de nouveau au nouveau pacte si tu veux le garder."
             }
         },
         "pushOptIn": {

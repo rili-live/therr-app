@@ -2745,6 +2745,26 @@
                 "cycleLabel": "Cycle {number}",
                 "extendedFrom": "Extended from previous pact",
                 "continuedAs": "Continued in a newer pact"
+            },
+            "pledge": {
+                "title": "Charity pledge",
+                "explainer": "Back this habit with a promise: if you miss a week, you give to a charity you choose. No money goes through the app, and your pact partners see your pledge.",
+                "needsPartner": "A pledge needs a partner to see it. Invite someone to this pact to add one.",
+                "add": "Add a pledge",
+                "summary": "{amount} to {charity} if you miss a week",
+                "startsNextWeek": "Starts next Monday. This week doesn't count.",
+                "visibleToPartners": "Your pact partners can see this pledge.",
+                "amountLabel": "Amount for a missed week",
+                "charityLabel": "Charity",
+                "save": "Save pledge",
+                "cancel": "Cancel",
+                "edit": "Edit pledge",
+                "remove": "Remove pledge",
+                "saveSuccess": "Pledge saved",
+                "removeSuccess": "Pledge removed",
+                "error": "Could not update your pledge. Please try again.",
+                "memberPledge": "Pledged {amount} to {charity}",
+                "renewNotCarried": "Your pledge stays with this pact. Add it again on the new one if you want to keep it."
             }
         },
         "pushOptIn": {

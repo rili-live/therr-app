@@ -99,6 +99,30 @@ const getFrequencyText = (
 };
 
 /**
+ * The week as the user sees it: the server's tally plus today, once today is checked in.
+ *
+ * The server's `done` excludes today on purpose — `isRequiredOn` needs it that way, and it stays
+ * the one definition of the week. Folding today in here is what makes the chip read "Week
+ * complete" the moment an optimistic check-in lands, rather than one check-in behind until the
+ * next `/user-habits` refetch (#2961). Undoing today's check-in drops it back by one.
+ */
+export const getDisplayedWeekProgress = (
+    weekProgress: IWeekProgress | undefined,
+    isCompletedToday: boolean,
+): IWeekProgress | undefined => {
+    if (!weekProgress || !isCompletedToday) {
+        return weekProgress;
+    }
+
+    const done = weekProgress.done + 1;
+    return {
+        ...weekProgress,
+        done,
+        isMet: weekProgress.isMet || done >= weekProgress.target,
+    };
+};
+
+/**
  * "2 of 4 this week", when there is a week to report on.
  *
  * Returns null for a daily habit — its progress is the streak, and a chip saying "3 of 7" beside
@@ -143,7 +167,8 @@ const HabitCard: React.FC<IHabitCardProps> = ({
 }) => {
     const isCompleted = todayCheckin?.status === 'completed';
     const showSoloOrArchive = isAwaitingPartner && !!onContinueSolo && !!onArchive;
-    const weekProgressText = getWeekProgressText(weekProgress, translate);
+    const displayedWeekProgress = getDisplayedWeekProgress(weekProgress, isCompleted);
+    const weekProgressText = getWeekProgressText(displayedWeekProgress, translate);
 
     return (
         <Pressable
@@ -171,7 +196,7 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                 {!!weekProgressText && (
                     <View style={[
                         themeHabits.styles.habitCardProgressChip,
-                        weekProgress?.isMet && themeHabits.styles.habitCardProgressChipMet,
+                        displayedWeekProgress?.isMet && themeHabits.styles.habitCardProgressChipMet,
                     ]}>
                         <Text style={themeHabits.styles.habitCardProgressChipText}>
                             {weekProgressText}

@@ -1380,6 +1380,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 habitGoal={goal}
                 todayCheckin={this.getTodayCheckinForHabit(goal.id)}
                 streak={this.getStreakForHabit(goal.id)}
+                weekProgress={userHabit?.weekProgress}
                 onPress={() => this.handleHabitPress(goal)}
                 onCheckin={() => this.handleCheckin(goal)}
                 onAddCheckinDetail={() => this.handleAddCheckinDetail(goal)}

@@ -142,3 +142,48 @@ describe('HabitCard — week progress chip', () => {
         })).some((line) => line.startsWith('pages.habits.cadence.weekProgress'))).toBe(false);
     });
 });
+
+/**
+ * #2961. The server's `done` excludes today by design, so without folding today in the chip sat
+ * one check-in behind exactly when the user looked at it — "3 of 4" right after the check-in
+ * that finished the week.
+ */
+describe('HabitCard — week progress chip counts today once checked in', () => {
+    const weeklyGoal = buildGoal({ frequencyType: 'weekly', frequencyCount: 4 });
+    const threeOfFour = {
+        done: 3, target: 4, daysLeft: 3, isRequiredToday: false, isMet: false,
+    };
+
+    it('reads "week complete" the moment today\'s check-in lands, with no refetch', () => {
+        const lines = getTextLines(renderCard({
+            habitGoal: weeklyGoal,
+            weekProgress: threeOfFour,
+            todayCheckin: { id: 'c1', status: 'completed' },
+        }));
+        expect(lines).toContain('pages.habits.cadence.weekProgressMet(4,4)');
+    });
+
+    it('drops back by one when today is not (or no longer) checked in', () => {
+        expect(getTextLines(renderCard({
+            habitGoal: weeklyGoal,
+            weekProgress: threeOfFour,
+        }))).toContain('pages.habits.cadence.weekProgress(3,4)');
+        expect(getTextLines(renderCard({
+            habitGoal: weeklyGoal,
+            weekProgress: threeOfFour,
+            todayCheckin: { id: 'c1', status: 'skipped' },
+        }))).toContain('pages.habits.cadence.weekProgress(3,4)');
+    });
+
+    it('still renders no chip for a daily habit or an absent weekProgress', () => {
+        const todayCheckin = { id: 'c1', status: 'completed' };
+        expect(getTextLines(renderCard({
+            todayCheckin,
+            weekProgress: {
+                done: 3, target: 7, daysLeft: 4, isRequiredToday: true, isMet: false,
+            },
+        })).some((line) => line.startsWith('pages.habits.cadence.weekProgress'))).toBe(false);
+        expect(getTextLines(renderCard({ habitGoal: weeklyGoal, todayCheckin }))
+            .some((line) => line.startsWith('pages.habits.cadence.weekProgress'))).toBe(false);
+    });
+});
