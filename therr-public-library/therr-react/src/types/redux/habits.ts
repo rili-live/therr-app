@@ -1,4 +1,6 @@
-import { HabitAmountUnit, HabitGoalType, SavingsTargetScope } from 'therr-js-utilities/constants';
+import {
+    HabitAmountUnit, HabitGoalType, IHabitPledge, SavingsTargetScope,
+} from 'therr-js-utilities/constants';
 
 // Habit Goal Types
 export interface IHabitGoal {
@@ -270,6 +272,12 @@ export interface IPactMember {
      * implying the member missed a day.
      */
     checkedInToday?: boolean;
+    /**
+     * This member's own charity pledge on the pact, or null/absent for none. Per member, never
+     * per pact: each member is judged on their own week (WORK_IN_PROGRESS § 2.8, Phase A).
+     * Absent from a users-service that predates pledges.
+     */
+    pledge?: IHabitPledge | null;
     // Joined fields
     userName?: string;
     firstName?: string;
@@ -755,6 +763,9 @@ export enum HabitsActionTypes {
     // solo continuation, which all change the membership or shape of an existing pact rather
     // than creating or ending one.
     UPDATE_PACT = 'UPDATE_PACT',
+    // One member's pledge changed. The pledge endpoints answer with the pledge alone, not the
+    // hydrated pact, so this patches that member in place rather than replacing the pact.
+    SET_PACT_MEMBER_PLEDGE = 'SET_PACT_MEMBER_PLEDGE',
 
     // Checkins
     GET_TODAY_CHECKINS = 'GET_TODAY_CHECKINS',
