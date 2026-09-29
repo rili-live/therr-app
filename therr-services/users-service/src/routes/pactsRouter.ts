@@ -16,6 +16,8 @@ import {
     addPactMembers,
     removePactMember,
     continueSoloPact,
+    setPactPledge,
+    clearPactPledge,
     deletePact,
 } from '../handlers/pacts';
 import runDailyHabitsDigest from '../handlers/habitsDigest';
@@ -46,6 +48,10 @@ router.put('/:id/abandon', abandonPact);
 router.put('/:id/complete', completePact);
 router.put('/:id/renew', renewPact);
 router.put('/:id/continue-solo', continueSoloPact);
+
+// PLEDGE (the caller's own, per member)
+router.put('/:id/pledge', setPactPledge);
+router.delete('/:id/pledge', clearPactPledge);
 
 // MEMBERS
 router.post('/:id/members', addPactMembers);

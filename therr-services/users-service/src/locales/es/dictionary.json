@@ -47,7 +47,10 @@
             "notPending": "Ya respondiste a este pacto",
             "nudgeCreatorOnly": "Solo quien creó este pacto puede enviar un recordatorio",
             "nudgeNoPendingPartners": "Todos ya respondieron a este pacto",
-            "nudgeNotPending": "Este pacto ya comenzó, así que no queda nadie a quien recordar"
+            "nudgeNotPending": "Este pacto ya comenzó, así que no queda nadie a quien recordar",
+            "invalidPledgeAmount": "Elige una promesa en dólares enteros, entre 1 y 500 US$",
+            "invalidPledgeCharity": "Elige una organización benéfica de la lista",
+            "pledgeNotAllowed": "Solo puedes hacer una promesa en un pacto pendiente o en curso"
         },
         "habits": {
             "freeTierHabitLimitReached": "Las cuentas gratuitas pueden seguir {limit} hábitos a la vez. Archiva uno o desbloquea todo de por vida.",

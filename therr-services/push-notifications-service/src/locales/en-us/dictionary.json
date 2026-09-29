@@ -120,6 +120,11 @@
       "title": "Your Streak Survived",
       "body": "You missed a day on {habitName}, so a streak freeze covered it — your {streakCount}-day streak is intact. {freezesRemaining} freeze(s) left."
     },
+    "pledgeMissed": {
+      "title": "Your {habitName} pledge",
+      "body": "You missed your {habitName} target last week. Your pledge: ${pledgeAmount} to {charityName}. Open the app when you're ready to honor it.",
+      "charityFallback": "charity"
+    },
     "streakBroken": {
       "title": "Streak Reset",
       "body": "Your {streakCount}-day {habitName} streak ended — start a new one today."

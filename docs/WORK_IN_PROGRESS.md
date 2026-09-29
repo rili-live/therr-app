@@ -561,6 +561,22 @@ backend change needed — it refuses to treat Play's own
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-09-29, /work-plan) **Run the users-service migration
+  `20260929000001_habits.pact_members.pledge`, then watch `pledgeVerdicts` in the digest
+  log.** Adds the nullable `pledge` jsonb that charity pledges (§ 2.8 Phase A, #2990) live
+  in. Until it runs, `PUT /habits/pacts/:id/pledge` 500s and the digest's pledge pass logs
+  one error per run and queues nothing. Nothing calls either before the mobile half ships,
+  so the order is forgiving, but run it with this deploy. After that, the digest span's
+  `pledgeVerdicts` JSON should read `pledgeMembersEvaluated: 0` until the first pledge exists.
+  Once members have pledged, `pledgeVerdictsCovered` is the check that matters: it counts
+  weeks a streak freeze saved, and every one of those must stay silent. A `pledgeMissed`
+  push that follows a `streakFreezeUsed` for the same week is a bug in
+  `utilities/pledgeVerdict.ts`. Kill switch: `HABIT_PLEDGE_VERDICTS_ENABLED=false`.
+- [ ] (2026-09-29, /work-plan) **Open each charity's donation link on a handset before the
+  pledge picker ships.** `PLEDGE_CHARITIES` in `therr-js-utilities/constants/habitPledges.ts`
+  holds seven `donateUrl`s. From curl, every one returned 200, a redirect or a bot-block
+  403, so none looked dead, but none has been opened in a real browser. The miss card links
+  out to these, and a dead link is where the pledge gets honoured.
 - [ ] (2026-09-05, /work-plan) **Watch `remindersMutedByPreference` and
   `lastChanceMutedByPreference` leave 0 once BOTH halves of the push toggles are out.**
   The two counters have been structurally pinned at 0, not merely unused: the digest has
@@ -2553,6 +2569,49 @@ money, so it waits for Phase A's numbers plus the legal and store-policy review 
 below.
 
 #### Phase A — pledge on the honour system (no payments)
+
+**Server verdict shipped on `general` 2026-09-29 (/work-plan).** Three decisions were
+taken when it was built. Each overrides the plan below it:
+
+- **Per member, not per pact.** `consequenceType` / `consequenceDetails` sit on
+  `habits.pacts`, so a pledge stored there would bind every member to a promise one of
+  them made. The pledge lives in `habits.pact_members."pledge"` (jsonb,
+  `20260929000001_habits.pact_members.pledge`) as `{ amount, charityKey, pledgedAt }`, and
+  each member is judged on their own week. `consequenceType` is untouched.
+- **Pact-only.** Solo habits get no pledge in Phase A. The UI must say a pledge needs a
+  partner.
+- **Seven curated charities, not 3–5.** `PLEDGE_CHARITIES` in
+  `therr-js-utilities/constants/habitPledges.ts`: GiveDirectly, Doctors Without Borders,
+  Feeding America, The Global FoodBanking Network, UNICEF USA, Direct Relief and WWF.
+  Amounts are whole USD from 1 to 500.
+
+What shipped:
+
+- `PUT /habits/pacts/:id/pledge` (`{ amount, charityKey }`) and `DELETE` on the same path.
+  Only an active member of a pending or active pact can use them. Editing a pledge keeps
+  its `pledgedAt`.
+- The digest's pledge pass (`handlers/helpers/pledgeVerdictDigest.ts`) runs on each pledged
+  member's local Monday.
+- The `pledgeMissed` display push, with the dedupe key `pledge-missed:<pactId>:<weekStart>`.
+  It is keyed per pact, not per `userHabitId`, because the pledge lives on the membership.
+
+The rules are in `utilities/pledgeVerdict.ts` and pinned by `tests/unit/pledgeVerdict.test.ts`:
+
+- A week is judged only if the pledge, the pact and the cadence were all in force from its
+  Monday.
+- Pact-carried days count as done, as they do for the streak.
+- A week that a freeze saved, or will save at the next check-in, is `covered` and never
+  notifies.
+
+Still open (#2990):
+
+- **"Done, I gave" + the partner view.** The server needs a way to record it, most likely a
+  `pledge_honoured` pact activity. Nothing records a miss's outcome yet.
+- **The mobile half on `niche/HABITS-general`:** the pledge picker, the miss card, and routing
+  the `pledgeMissed` tap to the pact. Today the push has no `clickAction`, so a tap opens the
+  app, which is safe on every installed build. Add the `clickAction` only in the same release
+  that declares its intent action.
+- **The analytics in the "Measure" list below.**
 
 - **Data:** reuse `habits.pacts."consequenceType" = 'donation'` and `consequenceDetails`
   (`{ amount, recipient }`). `validatePactParams` in `utilities/pactHelpers.ts` already

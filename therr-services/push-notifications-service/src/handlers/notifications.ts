@@ -87,6 +87,9 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         recapHeadline,
         checkinCount,
         perfectDays,
+        // HABITS charity pledge — copy only.
+        pledgeAmount,
+        charityKey,
     } = req.body;
 
     return predictAndSendNotification(
@@ -141,6 +144,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             recapHeadline,
             checkinCount,
             perfectDays,
+            pledgeAmount,
+            charityKey,
         },
         undefined,
         brandVariation,
@@ -240,6 +245,9 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         recapHeadline,
         checkinCount,
         perfectDays,
+        // HABITS charity pledge — copy only.
+        pledgeAmount,
+        charityKey,
     } = req.body;
 
     const recipients: any[] = (users || []).filter((user: any) => !user.shouldMuteNotifs);
@@ -298,6 +306,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             recapHeadline,
             checkinCount,
             perfectDays,
+            pledgeAmount,
+            charityKey,
         },
         undefined,
         brandVariation,

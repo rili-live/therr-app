@@ -38,6 +38,11 @@ import {
     IWeeklyRecapCounters,
     runWeeklyRecapPass,
 } from './helpers/weeklyRecapDigest';
+import {
+    EMPTY_PLEDGE_VERDICT_COUNTERS,
+    IPledgeVerdictCounters,
+    runPledgeVerdictPass,
+} from './helpers/pledgeVerdictDigest';
 
 // Upper bound per run so a runaway pact count can't turn the digest into a
 // multi-minute request. Raise (or page the query) when active pacts approach
@@ -228,6 +233,8 @@ interface IDigestCounters {
 // dozen new sibling keys are not.
 interface IDigestCountersWithRecap extends IDigestCounters {
     weeklyRecap: IWeeklyRecapCounters;
+    // Nested for the same reason as `weeklyRecap`. See helpers/pledgeVerdictDigest.ts.
+    pledgeVerdicts: IPledgeVerdictCounters;
 }
 
 /**
@@ -251,6 +258,10 @@ interface IDigestCountersWithRecap extends IDigestCounters {
  *                    logged at least one check-in in the week that just
  *                    closed. Once per user per week ever, not once per day —
  *                    see helpers/weeklyRecapDigest.ts.
+ *  - pledgeMissed  → on a pledged member's local Monday, when the week that
+ *                    just closed missed the pact habit they pledged against
+ *                    and no streak freeze covered it. Once per pledged pact
+ *                    per week — see helpers/pledgeVerdictDigest.ts.
  *
  * It also sweeps pacts whose window has passed into `expired` before reading
  * the active set — see the sweep below.
@@ -328,6 +339,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
 
     const counters: IDigestCountersWithRecap = {
         weeklyRecap: { ...EMPTY_WEEKLY_RECAP_COUNTERS },
+        pledgeVerdicts: { ...EMPTY_PLEDGE_VERDICT_COUNTERS },
         pactsEvaluated: 0,
         pactsExpired: 0,
         streakAtRiskSent: 0,
@@ -1380,6 +1392,19 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 return { ...EMPTY_WEEKLY_RECAP_COUNTERS, recapErrors: 1 };
             });
 
+        // Best-effort, like the recap. A failed verdict pass sends nothing for that week, which is
+        // the safe direction: a pledge reminder that does not go out costs less than one that goes
+        // out wrong. A re-run on the same day is safe — the dedupe key is stamped with the week.
+        counters.pledgeVerdicts = await runPledgeVerdictPass(queuePushOutcome, new Date())
+            .catch((err: any) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: the pledge verdict pass failed'],
+                });
+                return { ...EMPTY_PLEDGE_VERDICT_COUNTERS, pledgeErrors: 1 };
+            });
+
         logSpan({
             level: 'info',
             messageOrigin: 'API_SERVER',
@@ -1395,6 +1420,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             traceArgs: {
                 ...counters,
                 weeklyRecap: JSON.stringify(counters.weeklyRecap),
+                pledgeVerdicts: JSON.stringify(counters.pledgeVerdicts),
                 'pushNotification.brandVariation': String(brand),
             },
         });

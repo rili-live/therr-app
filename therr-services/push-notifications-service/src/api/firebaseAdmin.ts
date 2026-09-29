@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin';
-import { BrandVariations, PushNotifications } from 'therr-js-utilities/constants';
+import { BrandVariations, getPledgeCharity, PushNotifications } from 'therr-js-utilities/constants';
 import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import translate from '../utilities/translator';
@@ -221,6 +221,11 @@ interface ICreateMessageConfig {
     recapHeadline?: string;
     checkinCount?: number;
     perfectDays?: number;
+    // HABITS charity pledge (WORK_IN_PROGRESS § 2.8). Copy only — `pactId` and `weekStartDate`
+    // already ride the data map as routing ids. `charityKey` is resolved to the charity's own
+    // name through PLEDGE_CHARITIES, so the name has one definition shared with the client.
+    pledgeAmount?: number;
+    charityKey?: string;
 }
 
 interface INotificationMetrics {
@@ -499,6 +504,7 @@ const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.streakAtRisk,
     PushNotifications.Types.streakBroken,
     PushNotifications.Types.streakFreezeUsed,
+    PushNotifications.Types.pledgeMissed,
     PushNotifications.Types.newPersonalRecord,
     PushNotifications.Types.dailyHabitReminder,
     PushNotifications.Types.morningMotivation,
@@ -1254,6 +1260,33 @@ const createMessage = (
                 channelId: AndroidChannelId.reminders,
             });
             return baseMessage;
+        case PushNotifications.Types.pledgeMissed: {
+            // Display, not data-only, for the reason `streakFreezeUsed` is: it needs no action
+            // button, and a display push renders on every installed build today — no manifest
+            // entry or Notifee handler has to ship first. The tap opens the app; routing it to
+            // the pact's miss card is the niche/HABITS-general half, and adding a clickAction
+            // here before that build is out would turn the tap into a no-op.
+            //
+            // The copy names the member's own promise and nothing else. No money moves in
+            // Phase A — the app links out to the charity, it never takes the payment.
+            const charityName = getPledgeCharity(config.charityKey)?.name
+                || translate(config.userLocale, 'notifications.pledgeMissed.charityFallback');
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, 'notifications.pledgeMissed.title', {
+                    habitName: String(config.habitName || ''),
+                }),
+                notificationBody: translate(config.userLocale, 'notifications.pledgeMissed.body', {
+                    habitName: String(config.habitName || ''),
+                    pledgeAmount: Number(config.pledgeAmount || 0),
+                    charityName,
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
+            return baseMessage;
+        }
         case PushNotifications.Types.streakBroken:
             baseMessage = createNotificationMessage({
                 data: modifiedData,
@@ -1786,6 +1819,7 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.partnerCelebrated,
     PushNotifications.Types.partnerCheckedIn,
     PushNotifications.Types.partnerMissedDay,
+    PushNotifications.Types.pledgeMissed,
     PushNotifications.Types.proximityRequiredMoment,
     PushNotifications.Types.proximityRequiredSpace,
     PushNotifications.Types.streakAtRisk,
