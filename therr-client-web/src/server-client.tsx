@@ -487,9 +487,14 @@ const renderHabitsInviteView = async (req, res, match: IHabitsInviteRouteMatch) 
         avatarUri,
         hasAvatar: !!avatarUri,
         firstInitial,
-        // Surfaced so a user who installs first can still find their pact by code.
-        inviteCodeLabel: match.kind === 'claim-pact' ? 'Your pact code' : '',
-        inviteCode: match.kind === 'claim-pact' ? match.value : '',
+        // The claim-pact path segment is the long claim *token*, not the PACT-XXXX code that
+        // Register's code field accepts (users-service users.ts only redeems /^PACT-[A-Z0-9]{4}$/).
+        // Showing the token as "Your pact code" handed invitees a value they could not enter
+        // anywhere. The short code is in the invite email/SMS, and pact invites only go to
+        // people who already have an account the pact is attached to, so drop the line
+        // rather than add an endpoint that turns a token into a code.
+        inviteCodeLabel: '',
+        inviteCode: '',
     });
 };
 
@@ -594,7 +599,12 @@ app.use(async (req, res, next) => {
     if (profileMatch) {
         const userName = profileMatch[1];
         try {
-            const apiResponse = await axios.get(`/users-service/users/by-username/${encodeURIComponent(userName)}`);
+            // Same brand-scoping trap as resolveHabitsInviter: without the habits header the lookup
+            // resolves against axios' THERR default and 404s every habits-only profile.
+            const apiResponse = await axios.get(
+                `/users-service/users/by-username/${encodeURIComponent(userName)}`,
+                { headers: { 'x-brand-variation': BrandVariations.HABITS } },
+            );
             const userInView = apiResponse?.data;
             if (!userInView || !userInView.userName) {
                 return res.status(404).render('habits/profile-not-found', {

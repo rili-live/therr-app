@@ -38,6 +38,7 @@ export default (emailParams: ISendSSONewUserConfig, templateParams: ITemplatePar
         buttonHref: linkUrl,
         buttonText: contextConfig.brandGoLinkText,
         postBody1: translate(locale, 'emails.ssoNewUser.postBody1', { linkUrl }),
+        headerImageVariant: 'progress' as const,
     };
 
     return sendEmail({
