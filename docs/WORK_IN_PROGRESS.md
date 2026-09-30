@@ -491,11 +491,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   it is in *Testing*, Google expires the refresh token after 7 days with no
   warning and no distinguishing error — this is the cause of "it worked last
   week" for every tool built on this API.
-- [ ] **Produce a 15-30s portrait video asset for the App campaign.** Without
-  video, an App campaign is limited to Search and a narrow Display slice: a
-  fraction of the reach at a materially higher CPI. It is the single largest
-  lever on App campaign cost, and `campaign plan` warns on every run until it
-  exists (`assets.videos` in `campaigns/habits-app-install.yaml`).
 - [ ] **Link Google Ads to the Play Console** (Play Console -> Settings ->
   Google Ads links) so installs are reported as conversions. Without the link,
   the App campaign optimises against nothing and `report ads` shows zero installs
