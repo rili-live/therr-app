@@ -91,7 +91,7 @@ import background1 from '../assets/landing-jungle.webp';
 import background2 from '../assets/landing-tree.webp';
 import background3 from '../assets/landing-chameleon.webp';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
-import { getBrandInitialRouteName } from '../utilities/brandLandingRoute';
+import { getBrandInitialRouteName, getHabitsLandingRouteName } from '../utilities/brandLandingRoute';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
 import getDeviceTimeZone from '../utilities/deviceTimeZone';
@@ -519,15 +519,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             this.resetToRouteIfNeeded('CreateProfile');
             return;
         }
-        let optInShown = 'true';
-        try {
-            optInShown = (await AsyncStorage.getItem('HABITS_PUSH_OPTIN_SHOWN')) || '';
-        } catch {
-            // best-effort — fall through to dashboard if AsyncStorage is broken
-            optInShown = 'true';
-        }
-        const target = optInShown ? 'HabitsDashboard' : 'HabitsPushOptIn';
-        this.resetToRouteIfNeeded(target);
+        this.resetToRouteIfNeeded(await getHabitsLandingRouteName());
     };
 
     /**

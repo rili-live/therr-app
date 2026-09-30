@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BrandVariations, FeatureFlags } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
@@ -39,6 +40,30 @@ export const getBrandInitialRouteName = (user?: IUserState): string | undefined 
     const featureFlags = getConfig().featureFlags || {};
 
     return featureFlags[FeatureFlags.ENABLE_HABITS] ? 'HabitsDashboard' : undefined;
+};
+
+// Mirrors `HABITS_PUSH_OPTIN_SHOWN` in routes/Pacts/HabitsPushOptIn.tsx. Redeclared rather
+// than imported so this utility does not pull a screen component into every caller.
+const HABITS_PUSH_OPTIN_SHOWN_KEY = 'HABITS_PUSH_OPTIN_SHOWN';
+
+/**
+ * Where a HABITS user with a complete profile lands: the one-time push opt-in on their
+ * first authenticated landing, the dashboard ever after.
+ *
+ * Shared by Layout's auth-transition reset and the end of CreateProfile. The latter used
+ * to `navigate('Map')` — a route HABITS filters out of the navigator — so finishing
+ * onboarding left the user stranded on the last profile stage.
+ */
+export const getHabitsLandingRouteName = async (): Promise<'HabitsPushOptIn' | 'HabitsDashboard'> => {
+    let optInShown = 'true';
+    try {
+        optInShown = (await AsyncStorage.getItem(HABITS_PUSH_OPTIN_SHOWN_KEY)) || '';
+    } catch {
+        // best-effort — fall through to dashboard if AsyncStorage is broken
+        optInShown = 'true';
+    }
+
+    return optInShown ? 'HabitsDashboard' : 'HabitsPushOptIn';
 };
 
 export default getBrandInitialRouteName;

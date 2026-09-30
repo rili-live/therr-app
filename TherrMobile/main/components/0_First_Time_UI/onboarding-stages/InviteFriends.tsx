@@ -1,6 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import { Button } from '../../BaseButton';
+import { CURRENT_BRAND_VARIATION } from '../../../config/brandConfig';
 import { ITherrThemeColors } from '../../../styles/themes';
 import spacingStyles from '../../../styles/layouts/spacing';
 
@@ -35,7 +37,10 @@ const InviteFriends: React.FC<IInviteFriendsProps> = ({
         <View style={themeSettingsForm.styles.userContainer}>
             <View style={spacingStyles.marginBotLg}>
                 <Text style={[theme.styles.sectionDescription, localStyles.descriptionText]}>
-                    {translate('pages.createProfile.inviteFriends.description')}
+                    {translate(CURRENT_BRAND_VARIATION === BrandVariations.HABITS
+                        // Habits has no Socialite achievement; say what inviting actually does there.
+                        ? 'pages.createProfile.inviteFriends.descriptionHabits'
+                        : 'pages.createProfile.inviteFriends.description')}
                 </Text>
                 <Button
                     containerStyle={localStyles.buttonSpacing}

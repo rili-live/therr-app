@@ -7,6 +7,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
 import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
+import { logAppEvent } from '../../utilities/analyticsEvents';
 import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
 import permissions from '../../utilities/permissionsOrchestrator';
 import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
@@ -209,6 +210,10 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
 
         acceptPact(pactId)
             .then(() => {
+                logAppEvent('habit_pact_accept', {
+                    userId: this.props.user?.details?.id,
+                    source: 'pact-detail',
+                });
                 Toast.show({
                     type: 'success',
                     text1: this.translate('pages.pacts.acceptedTitle'),
