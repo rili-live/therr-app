@@ -11,6 +11,8 @@ import { createUserEmailToken } from '../../utilities/userHelpers';
 
 type IMessageCategories = 'marketing';
 
+export type IHeaderImageVariant = 'social' | 'progress';
+
 const defaultTherrEmailTemplate = Handlebars.compile(templateString);
 
 export interface ISendEmailConfig {
@@ -37,7 +39,10 @@ export interface ISendEmailHtmlConfig {
     bodyWarning?: string;
     buttonHref?: string;
     buttonText?: string; // Should be defined if buttonHref is defined
-    headerImageName?: string;
+    // Explicit header image; wins over headerImageVariant and the brand default
+    headerImageRelativePath?: string;
+    // Picks a brand-specific header from hostContext emailTemplates.headerImageVariants
+    headerImageVariant?: IHeaderImageVariant;
     postBody1?: string;
     messageCategory?: IMessageCategories;
 
@@ -128,6 +133,10 @@ export default (
         homepageLinkUri: htmlConfig.homepageLinkUri || contextConfig.emailTemplates.homepageLinkUri,
         logoAltText: htmlConfig.logoAltText || contextConfig.emailTemplates.logoAltText,
         logoRelativePath: htmlConfig.logoRelativePath || contextConfig.emailTemplates.logoRelativePath,
+        // Brands without a header of their own fall through to the template's default (Therr) image
+        headerImageRelativePath: htmlConfig.headerImageRelativePath
+            || (htmlConfig.headerImageVariant && contextConfig.emailTemplates.headerImageVariants?.[htmlConfig.headerImageVariant])
+            || contextConfig.emailTemplates.headerImageRelativePath,
         footerImageRelativePath: htmlConfig.footerImageRelativePath || contextConfig.emailTemplates.footerImageRelativePath,
         unsubscribeUrl,
         legalBusinessName: htmlConfig.legalBusinessName || contextConfig.emailTemplates.legalBusinessName,

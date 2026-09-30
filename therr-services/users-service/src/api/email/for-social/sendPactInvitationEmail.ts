@@ -47,6 +47,7 @@ export default (emailParams: ISendPactInvitationEmailConfig, templateParams: ITe
             hasCode ? { linkUrl: claimUrl, claimCode } : { linkUrl: claimUrl },
         ),
         fromEmailTitle: `${templateParams.fromName}, ${contextConfig.brandName}`,
+        headerImageVariant: 'social' as const,
     };
 
     return sendEmail({

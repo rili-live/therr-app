@@ -50,6 +50,11 @@ interface IBrandConfig {
         logoRelativePath: string;
         logoAltText: string;
         headerImageRelativePath?: string; // 560 x 190
+        // Per-email-kind overrides of headerImageRelativePath, selected via ISendEmailHtmlConfig.headerImageVariant
+        headerImageVariants?: {
+            social?: string; // invites, pacts, groups
+            progress?: string; // welcome, verification
+        };
         footerImageRelativePath?: string; // 560 x 190
         unsubscribeUrl?: string;
         legalBusinessName: string;
@@ -153,6 +158,11 @@ const hostContext: IBrandConfigs = {
             appHostFull: 'https://habits.therr.com',
             logoRelativePath: 'assets/images/habits-splash-logo-200.png',
             logoAltText: 'Friends with Habits logo',
+            headerImageRelativePath: 'assets/images/habits-email-header.jpg',
+            headerImageVariants: {
+                social: 'assets/images/habits-email-header-friends.jpg',
+                progress: 'assets/images/habits-email-header-streak.jpg',
+            },
             unsubscribeUrl: 'https://habits.therr.com/emails/unsubscribe',
             legalBusinessName: 'Therr Inc.',
             businessCopyrightYear: `${new Date().getFullYear()}`,

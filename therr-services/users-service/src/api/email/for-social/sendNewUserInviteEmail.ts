@@ -36,6 +36,7 @@ export default (emailParams: ISendNewUserInviteEmailConfig, templateParams: ITem
         buttonText: contextConfig.brandGoLinkText,
         postBody1: translate(locale, 'emails.newUserInvite.postBody1', { linkUrl }),
         fromEmailTitle: `${templateParams.fromName}, ${contextConfig.brandName}`,
+        headerImageVariant: 'social' as const,
     };
 
     return sendEmail({
