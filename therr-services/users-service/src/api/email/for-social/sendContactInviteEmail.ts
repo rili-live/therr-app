@@ -45,6 +45,7 @@ export default (emailParams: ISendContactInviteEmailConfig, templateParams: ITem
         buttonText: contextConfig.brandGoLinkText,
         postBody1: translate(locale, 'emails.contactInvite.postBody1', { linkUrl }),
         fromEmailTitle: `${templateParams.fromName}, ${contextConfig.brandName}`,
+        headerImageVariant: 'social' as const,
     };
 
     return sendEmail({

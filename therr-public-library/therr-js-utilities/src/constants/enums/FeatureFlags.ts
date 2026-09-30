@@ -68,9 +68,10 @@ enum FeatureFlags {
  * screen almost nobody saw. Three is the number a committed user reaches in
  * their first weeks, which is when the offer is worth showing.
  *
- * Enforced by `checkHabitCapacity` in the users-service, which is the only
- * place that reads this; the client learns the value from
- * `GET /habits/user-habits/eligibility` rather than from this constant.
+ * Enforced by `checkHabitCapacity` in the users-service; the client learns the
+ * value from `GET /habits/user-habits/eligibility` rather than from this
+ * constant. The habits landing page (therr-client-web) also quotes it, so an
+ * env override belongs on both deployments or the page misstates the cap.
  */
 const DEFAULT_HABITS_FREE_HABIT_LIMIT = 3;
 
