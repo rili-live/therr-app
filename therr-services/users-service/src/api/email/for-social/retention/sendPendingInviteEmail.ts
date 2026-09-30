@@ -35,6 +35,7 @@ export default (emailParams: ISendPendingInviteEmailConfig, templateParams: ITem
         buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}`,
         buttonText: `${contextConfig.brandGoLinkText}`,
         fromEmailTitle: `${templateParams.fromName}, ${contextConfig.brandName}`,
+        headerImageVariant: 'social' as const,
     };
 
     return sendEmail({
