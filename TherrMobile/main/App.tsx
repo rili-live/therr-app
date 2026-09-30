@@ -1,6 +1,6 @@
 import './ReactotronConfig';
 import React, { useMemo } from 'react';
-import { InteractionManager, LogBox, StyleSheet } from 'react-native';
+import { InteractionManager, LogBox } from 'react-native';
 
 // react-native-vector-icons@10 ships dist/ files compiled with the classic JSX
 // transform; React 19 flags these at runtime. Package is deprecated as a monolith
@@ -12,7 +12,7 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import LogRocket from '@logrocket/react-native';
 import { getAnalytics, setAnalyticsCollectionEnabled } from '@react-native-firebase/analytics';
-import Toast, { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
+import Toast from 'react-native-toast-message';
 import { SheetProvider } from 'react-native-actions-sheet';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { SystemBars } from 'react-native-edge-to-edge';
@@ -25,6 +25,7 @@ import getStore from './getStore';
 import initInterceptors from './interceptors';
 import { FeatureFlagProvider } from './context/FeatureFlagContext';
 import Layout from './components/Layout';
+import toastConfig from './components/toastConfig';
 import { buttonMenuHeight } from './styles/navigation/buttonMenu';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -33,13 +34,6 @@ import { HEADER_HEIGHT_MARGIN } from './styles';
 import getTourSteps from './getTourSteps';
 import UsersActions from './redux/actions/UsersActions';
 import { getPaperTheme } from './styles/themes';
-import {
-    ALERT_INFO,
-    ALERT_SUCCESS,
-    ALERT_WARNING,
-    ALERT_ERROR,
-} from './styles/themes/brandConstants';
-import { therrFontFamily } from './styles/font';
 import { startNetworkListener } from './utilities/networkService';
 import './components/ActionSheet';
 
@@ -53,98 +47,6 @@ const ThemedPaperProvider = ({ children }: { children: React.ReactNode }) => {
     const paperTheme = useMemo(() => getPaperTheme(themeName), [themeName]);
 
     return <PaperProvider theme={paperTheme}>{children}</PaperProvider>;
-};
-
-const toastStyles = StyleSheet.create({
-    text1: {
-        fontSize: 17,
-        fontWeight: '600',
-        fontFamily: therrFontFamily,
-    },
-    text2: {
-        fontSize: 14,
-        fontFamily: therrFontFamily,
-    },
-    infoBorder: { borderLeftColor: ALERT_INFO },
-    successBorder: { borderLeftColor: ALERT_SUCCESS },
-    warnBorder: { borderLeftColor: ALERT_WARNING },
-    errorBorder: { borderLeftColor: ALERT_ERROR },
-});
-
-const toastConfig = {
-    info: (props) => (
-        <InfoToast
-            {...props}
-            style={toastStyles.infoBorder}
-            text1Style={toastStyles.text1}
-            text2Style={toastStyles.text2}
-        />
-    ),
-    success: (props) => (
-        <BaseToast
-            {...props}
-            style={toastStyles.successBorder}
-            text1Style={toastStyles.text1}
-            text2Style={toastStyles.text2}
-        />
-    ),
-    successBig: (props) => (
-        <BaseToast
-            {...props}
-            style={[toastStyles.successBorder, props?.props?.extraStyle]}
-            text1Style={toastStyles.text1}
-            text2Style={toastStyles.text2}
-            text2NumberOfLines={3}
-            renderLeadingIcon={props?.props?.renderLeadingIcon}
-            renderTrailingIcon={props?.props?.renderTrailingIcon}
-        />
-    ),
-    warn: (props) => (
-        <ErrorToast
-            {...props}
-            style={toastStyles.warnBorder}
-            text1Style={toastStyles.text1}
-            text2Style={toastStyles.text2}
-        />
-    ),
-    warnBig: (props) => (
-        <ErrorToast
-            {...props}
-            style={toastStyles.warnBorder}
-            text1Style={toastStyles.text1}
-            text2Style={toastStyles.text2}
-            text2NumberOfLines={3}
-        />
-    ),
-    notifyPublic: (props) => (
-        <ErrorToast
-            {...props}
-            style={[toastStyles.infoBorder, props?.props?.extraStyle]}
-            text1Style={toastStyles.text1}
-            text2Style={toastStyles.text2}
-            text2NumberOfLines={3}
-            renderLeadingIcon={props?.props?.renderLeadingIcon}
-            renderTrailingIcon={props?.props?.renderTrailingIcon}
-        />
-    ),
-    error: (props) => (
-        <ErrorToast
-            {...props}
-            style={toastStyles.errorBorder}
-            text1Style={toastStyles.text1}
-            text2Style={toastStyles.text2}
-            text2NumberOfLines={2}
-        />
-    ),
-    errorBig: (props) => (
-        <ErrorToast
-            {...props}
-            style={toastStyles.errorBorder}
-            text1Style={toastStyles.text1}
-            text2Style={toastStyles.text2}
-            text2NumberOfLines={3}
-        />
-    ),
 };
 
 class App extends React.Component<any, any> {
