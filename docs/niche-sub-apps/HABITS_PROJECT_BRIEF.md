@@ -307,7 +307,7 @@ future premium gate. See `habits/HABITS_PAYMENT_WORKFLOW.md`.
 ### Phase 5: Polish & Testing — PENDING
 **Goal:** Optimize user experience and prepare for launch
 
-- [ ] Optimize onboarding flow (reduce friction)
+- [ ] Optimize onboarding flow (reduce friction) — audit and P0 fixes landed 2026-09-30 (phone + interests stages removed from onboarding, onboarding dead end fixed, sign-in link on Landing); remaining P1/P2 redesign in [`habits/ONBOARDING_FRICTION_AUDIT.md`](habits/ONBOARDING_FRICTION_AUDIT.md)
 - [ ] A/B test invite messaging
 - [ ] Bug fixes and performance optimization
 - [ ] Create app store assets (screenshots, video, description)

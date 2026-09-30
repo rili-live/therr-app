@@ -547,7 +547,7 @@ backend change needed — it refuses to treat Play's own
   unverifiable until then. The first thing to check after the campaign starts serving is
   whether a `main."userAcquisition"` row appears with
   `utmCampaign = 'fwh-app-us-installs-2026q3'`.
-- [ ] **Add accepted-invite counts to the acquisition funnel query** so the viral
+- [ ] **Add accepted-invite counts to the acquisition funnel query** (#3015) so the viral
   coefficient is measured rather than assumed. `product.py` currently counts
   invites *sent* (the 3-invite solo-tracking unlock); the loop only pays for
   acquisition if invites are *accepted*. Join `main.invites.isAccepted` to the

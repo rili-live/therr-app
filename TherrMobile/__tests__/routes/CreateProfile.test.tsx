@@ -40,6 +40,14 @@ jest.mock('react-native-toast-message', () => {
 
 jest.mock('lottie-react-native', () => 'LottieView');
 
+// This file exercises the full Therr stage order. HABITS trims it (no interests, no
+// phone stage) and is covered separately in CreateProfile.habits.test.tsx; pinning the
+// brand keeps these tests meaning the same thing on `general` and on niche branches.
+jest.mock('../../main/config/brandConfig', () => ({
+    ...jest.requireActual('../../main/config/brandConfig'),
+    CURRENT_BRAND_VARIATION: 'therr',
+}));
+
 jest.mock('@notifee/react-native', () => ({
     __esModule: true,
     default: { createChannel: jest.fn() },

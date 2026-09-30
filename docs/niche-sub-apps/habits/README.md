@@ -23,6 +23,7 @@ These documents serve as starting points for future Claude agents to implement c
 | [HABITS_REALTIME_DESIGN.md](./HABITS_REALTIME_DESIGN.md) | WebSocket & Activity Feed | Pact Activity Feed | Medium |
 | [HABITS_MEDIA_DESIGN.md](./HABITS_MEDIA_DESIGN.md) | Media Uploads | Proof Uploads (Photo/Video) | Medium |
 | [HABITS_GROUPS_DESIGN.md](./HABITS_GROUPS_DESIGN.md) | Groups | Pact Management | Medium |
+| [ONBOARDING_FRICTION_AUDIT.md](./ONBOARDING_FRICTION_AUDIT.md) | Onboarding flow | Friction ledger, value-equation redesign, Grand Slam onboarding offer | High |
 
 ## Quick Reference: Infrastructure Reuse
 

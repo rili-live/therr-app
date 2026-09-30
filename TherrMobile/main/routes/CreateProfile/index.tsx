@@ -35,6 +35,7 @@ import { getUserImageUri } from '../../utilities/content';
 import { synceMobileContacts } from '../../utilities/contacts';
 import { markContactsSkipped, markContactsSynced, markInterestsSelected } from '../../utilities/profileCompletion';
 import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
+import { getHabitsLandingRouteName } from '../../utilities/brandLandingRoute';
 
 const verifyPhoneLoader = require('../../assets/verify-phone-shield.json');
 
@@ -59,8 +60,22 @@ type StageType = 'details' | 'picture' | 'phone' | 'interests' | 'contacts' | 'i
  * Order the guided flow walks through. Also drives the progress bar, so the
  * user always sees how much of the profile is left. `invite` is a closing
  * flourish rather than a profile field, so it is excluded from the count.
+ *
+ * HABITS drops two stages. Interests feed Therr's content discovery and nothing
+ * in Habits reads them. Phone verification was the single largest measured
+ * drop-off in the Habits funnel (~70% of users who reached it left), and the
+ * only thing it gates is texting invites to people not yet on the app — so it
+ * is asked just-in-time there instead (PhoneContacts routes a 403 back to the
+ * `phone` stage). Both stages stay reachable by `route.params.stage`.
+ * See docs/niche-sub-apps/habits/ONBOARDING_FRICTION_AUDIT.md.
  */
-const STAGE_ORDER: StageType[] = ['details', 'interests', 'picture', 'phone', 'contacts'];
+export const getStageOrder = (brandVariation: BrandVariations = CURRENT_BRAND_VARIATION): StageType[] => (
+    brandVariation === BrandVariations.HABITS
+        ? ['details', 'picture', 'contacts']
+        : ['details', 'interests', 'picture', 'phone', 'contacts']
+);
+
+const STAGE_ORDER: StageType[] = getStageOrder();
 
 /**
  * Order the back arrow walks, which is STAGE_ORDER plus `invite`. Kept separate because
@@ -215,9 +230,35 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
     };
 
     onContinue = () => {
-        this.setState({
-            stage: 'phone',
-        });
+        this.advanceFrom('picture');
+    };
+
+    /**
+     * Move to the stage after `stage` in this brand's STAGE_ORDER.
+     *
+     * A stage outside the order (HABITS' `phone`, opened just-in-time from an SMS invite) or
+     * the last one has nowhere further to go, so hand back to whoever opened this screen.
+     * `contacts` never lands here — it advances through `advancePastContacts`.
+     */
+    advanceFrom = (stage: StageType) => {
+        const index = STAGE_ORDER.indexOf(stage);
+        const nextStage = index === -1 ? undefined : STAGE_ORDER[index + 1];
+
+        if (nextStage) {
+            this.setState({
+                errorMsg: '',
+                stage: nextStage,
+            });
+            return;
+        }
+
+        const { navigation } = this.props;
+        if (navigation.canGoBack?.()) {
+            navigation.goBack();
+            return;
+        }
+
+        this.onFinishOnboarding();
     };
 
     onSubmitInterests = (stage: StageType, interests: any) => {
@@ -231,9 +272,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         })
             .then(() => {
                 markInterestsSelected(user.details?.id);
-                this.setState({
-                    stage: 'picture',
-                });
+                this.advanceFrom('interests');
             }).catch((error: any) => {
                 if (
                     error.statusCode === 400 ||
@@ -305,23 +344,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                         }).catch((err) => console.log(err));
                     }
                     if (!shouldSkipAdvance) {
-                        if (stage === 'details') {
-                            this.setState({
-                                stage: 'interests',
-                            });
-                        } else if (stage === 'interests') {
-                            this.setState({
-                                stage: 'picture',
-                            });
-                        } else if (stage === 'picture') {
-                            this.setState({
-                                stage: 'phone',
-                            });
-                        } else if (stage === 'phone') {
-                            this.setState({
-                                stage: 'contacts',
-                            });
-                        }
+                        this.advanceFrom(stage);
                     }
                 })
                 .catch((error: any) => {
@@ -402,12 +425,29 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
     };
 
     onFinishOnboarding = () => {
-        const { navigation, route } = this.props;
+        const { navigation, route, user } = this.props;
 
         // Entered from the "Finish your profile" checklist: return the user to
         // where they were rather than dumping them on the map mid-session.
         if (route?.params?.isGuidedStep && navigation.canGoBack?.()) {
             navigation.goBack();
+            return;
+        }
+
+        logEvent(getAnalytics(), 'onboarding_complete', {
+            userId: user.details?.id,
+        }).catch((err) => console.log(err));
+
+        // HABITS has no Map route — it is filtered out of the navigator, so
+        // navigate('Map') silently did nothing and stranded the user on the last
+        // onboarding stage until they restarted the app.
+        if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+            getHabitsLandingRouteName().then((routeName) => {
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: routeName }],
+                });
+            });
             return;
         }
 
@@ -531,8 +571,11 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         } = this.state;
         const pageHeaderDetails = this.translate('pages.createProfile.pageHeaderDetails');
         const pageSubHeaderDetails = this.translate('pages.createProfile.pageSubHeaderDetails');
-        const pageHeaderPhone = this.translate('pages.createProfile.pageHeaderPhone');
-        const pageSubHeaderPhone = this.translate('pages.createProfile.pageSubHeaderPhone');
+        // On HABITS this stage is only reached just-in-time, from texting an invite, so the
+        // copy says why the number is needed there rather than framing it as account security.
+        const isHabits = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
+        const pageHeaderPhone = this.translate(isHabits ? 'pages.createProfile.pageHeaderPhoneHabits' : 'pages.createProfile.pageHeaderPhone');
+        const pageSubHeaderPhone = this.translate(isHabits ? 'pages.createProfile.pageSubHeaderPhoneHabits' : 'pages.createProfile.pageSubHeaderPhone');
         const pageHeaderPicture = this.translate('pages.createProfile.pageHeaderPicture');
         const pageSubHeaderPicture = this.translate('pages.createProfile.pageSubHeaderPicture');
         const pageHeaderInterests = this.translate('pages.createProfile.pageHeaderInterests');
