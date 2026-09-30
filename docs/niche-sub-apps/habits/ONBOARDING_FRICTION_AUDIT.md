@@ -1,7 +1,9 @@
 # Friends with Habits — Onboarding Friction Audit & Redesign
 
 **Date:** 2026-09-30 · **Branch scope:** `niche/HABITS-general` (mobile) + `general` (web, backend)
-**Status:** audit complete; P0 fixes shipped with this doc (see § 7); P1/P2 are proposals.
+**Status:** audit complete; P0 fixes shipped with this doc (see § 7); P1/P2 are proposals,
+tracked in #3008: pact seat by link #3009 · first session #3010 · nurture #3011 · sign-up #3012 ·
+web dead ends #3013 · pact edges #3014 · measurement #3015 · founder offer #3016.
 
 This is a screen-by-screen walk from "saw an ad / got an invite" to "second check-in",
 listing every point where a new user can drop off, scored with Alex Hormozi's value
