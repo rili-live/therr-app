@@ -20,6 +20,13 @@ export interface ICreateSubscriberParams {
      */
     brandVariation?: string;
     isSubscribedToIosWaitlist?: boolean;
+    isSubscribedToCoachesWaitlist?: boolean;
+    /**
+     * JSON-encoded answers from the habits.therr.com/coaches form, already whitelisted by the
+     * handler. Passed as a string so knex renders it as a plain literal that Postgres casts to
+     * jsonb, rather than depending on how the query builder serialises an object.
+     */
+    coachesWaitlistDetails?: string;
 }
 
 export default class SubscribersStore {
