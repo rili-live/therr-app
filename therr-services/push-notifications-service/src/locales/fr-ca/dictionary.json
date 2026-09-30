@@ -120,6 +120,11 @@
       "title": "Ta série a tenu",
       "body": "Tu as manqué une journée sur {habitName}, alors un gel de série l'a couverte — ta série de {streakCount} jours est intacte. Il t'en reste {freezesRemaining}."
     },
+    "pledgeMissed": {
+      "title": "Ton engagement pour {habitName}",
+      "body": "Tu n'as pas atteint ton objectif {habitName} la semaine dernière. Ton engagement : {pledgeAmount} $ US à {charityName}. Ouvre l'appli quand tu voudras l'honorer.",
+      "charityFallback": "un organisme de bienfaisance"
+    },
     "streakBroken": {
       "title": "Série réinitialisée",
       "body": "Ta série de {streakCount} jours sur {habitName} s'est terminée — commence-en une nouvelle aujourd'hui."

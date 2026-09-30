@@ -101,6 +101,19 @@ import {
     isMeasuredHabitGoal,
     tracksHabitAmount,
 } from './habitAmounts';
+import {
+    PledgeCharityKeys,
+    PledgeCharityKey,
+    IPledgeCharity,
+    PLEDGE_CHARITIES,
+    isPledgeCharityKey,
+    getPledgeCharity,
+    MIN_PLEDGE_AMOUNT,
+    MAX_PLEDGE_AMOUNT,
+    IHabitPledge,
+    PledgeInputError,
+    getPledgeInputError,
+} from './habitPledges';
 import CampaignTypes from './enums/CampaignTypes';
 import CampaignAdGoals from './enums/CampaignAdGoals';
 import CampaignAssetTypes from './enums/CampaignAssetTypes';
@@ -179,6 +192,17 @@ export {
     isHabitAmountUnit,
     isMeasuredHabitGoal,
     tracksHabitAmount,
+    PledgeCharityKeys,
+    PledgeCharityKey,
+    IPledgeCharity,
+    PLEDGE_CHARITIES,
+    isPledgeCharityKey,
+    getPledgeCharity,
+    MIN_PLEDGE_AMOUNT,
+    MAX_PLEDGE_AMOUNT,
+    IHabitPledge,
+    PledgeInputError,
+    getPledgeInputError,
     CampaignTypes,
     CampaignAdGoals,
     CampaignAssetTypes,

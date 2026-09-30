@@ -1,4 +1,5 @@
 import KnexBuilder, { Knex } from 'knex';
+import { IHabitPledge } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 import { PACTS_TABLE_NAME, PACT_MEMBERS_TABLE_NAME, USERS_TABLE_NAME } from './tableNames';
 
@@ -29,6 +30,20 @@ export interface IUpdatePactMemberParams {
     claimCode?: string | null;
     claimTokenExpiresAt?: Date | null;
     invitedVia?: string | null;
+}
+
+/**
+ * One pledged member of a running pact, as the weekly pledge verdict reads it. See
+ * `getPledgedMembersForVerdict`.
+ */
+export interface IPledgedPactMemberRow {
+    pactMemberId: string;
+    pactId: string;
+    userId: string;
+    habitGoalId: string;
+    pledge: IHabitPledge;
+    pactStartDate: Date | string | null;
+    settingsTimezone?: string | null;
 }
 
 export interface IPactInviteClaim {
@@ -335,6 +350,65 @@ export default class PactMembersStore {
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows[0]);
+    }
+
+    /**
+     * Set or clear one member's own pledge. `null` clears it. Written as a JSON string
+     * because the builder does not serialize objects into a jsonb literal itself — the same
+     * reason PactsStore stringifies `consequenceDetails`.
+     */
+    setPledge(pactId: string, userId: string, pledge: IHabitPledge | null) {
+        const queryString = knexBuilder
+            .where({ pactId, userId })
+            .update({
+                pledge: pledge ? JSON.stringify(pledge) : null,
+                updatedAt: new Date(),
+            })
+            .into(PACT_MEMBERS_TABLE_NAME)
+            .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows[0]);
+    }
+
+    /**
+     * Every member holding a pledge on a pact that is still running, with the zone their week
+     * is judged in. The weekly pledge verdict's whole population.
+     *
+     * Small by construction — only pledged members of active pacts — so it is read in one
+     * query rather than paged. `limit` bounds it anyway, and the caller reports hitting it.
+     *
+     * Both statuses are required: an `active` member of an `active` pact. A member who left,
+     * or a pact the expiry sweep closed, is not held to a pledge on a week they were no longer
+     * in. Soft-deleted accounts are excluded for the same reason the daily-streak sweep
+     * excludes them.
+     */
+    getPledgedMembersForVerdict(limit: number): Promise<IPledgedPactMemberRow[]> {
+        const queryString = knexBuilder
+            .select([
+                'pm.id as pactMemberId',
+                'pm.pactId',
+                'pm.userId',
+                'pm.pledge',
+                'p.habitGoalId',
+                'p.startDate as pactStartDate',
+                'u.settingsTimezone',
+            ])
+            .from(`${PACT_MEMBERS_TABLE_NAME} as pm`)
+            .innerJoin(`${PACTS_TABLE_NAME} as p`, 'p.id', 'pm.pactId')
+            .innerJoin(`${USERS_TABLE_NAME} as u`, 'u.id', 'pm.userId')
+            .whereNotNull('pm.pledge')
+            .andWhere('pm.status', 'active')
+            .andWhere('p.status', 'active')
+            .andWhere((builder) => {
+                builder.where('u.settingsIsAccountSoftDeleted', false)
+                    .orWhereNull('u.settingsIsAccountSoftDeleted');
+            })
+            .orderBy('pm.id', 'asc')
+            .limit(Math.max(1, limit))
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
     }
 
     delete(id: string) {
