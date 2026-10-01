@@ -62,10 +62,11 @@ burned into the image, so a frame that supplies a headline ends up with two.
 ## Video
 
 App campaign video assets must be **YouTube-hosted**, so the deliverable is a
-URL, not a file, and nothing video-shaped belongs in this directory. The first
-one — a 14s portrait clip made in Runway — is unlisted on YouTube and listed
-under `assets.videos` in `campaigns/habits-app-install.yaml`. Like the images
-above, it is not uploaded by `campaign apply`; attach it in the Google Ads UI.
+URL, not a file, and nothing video-shaped belongs in this directory. Two are
+listed under `assets.videos` in `campaigns/habits-app-install.yaml`: a 14s clip
+made in Runway (unlisted), and a 9:16 YouTube Short pitching support "from a
+coach or friends". Like the images above, neither is uploaded by
+`campaign apply`; attach them in the Google Ads UI.
 
 Still outstanding, though it is a Play requirement rather than an Ads one: the
 1024×500 feature graphic, in `docs/niche-sub-apps/HABITS_PLAY_LISTING.md`.
