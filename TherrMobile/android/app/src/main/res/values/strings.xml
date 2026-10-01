@@ -18,4 +18,16 @@
     <string name="habits_widget_loading">Loading your progress…</string>
     <string name="habits_widget_refreshing">Refreshing…</string>
     <string name="habits_widget_refresh_hint">Tap to refresh</string>
+    <!-- Streak widget (layout/widget_habits_streak.xml). Like the leaderboard widget's, its live
+         label comes from the JS snapshot; these cover the picker and a snapshot that predates
+         the streak block. -->
+    <string name="habits_streak_widget_label">Habits streak</string>
+    <string name="habits_streak_widget_description">Your daily streak, at a glance</string>
+    <string name="habits_streak_widget_start">Check in today to start your streak</string>
+    <plurals name="habits_streak_widget_days">
+        <item quantity="one">day streak</item>
+        <item quantity="other">day streak</item>
+    </plurals>
+    <string name="habits_streak_widget_preview_count" translatable="false">12</string>
+    <string name="habits_streak_widget_preview_label">day streak</string>
 </resources>

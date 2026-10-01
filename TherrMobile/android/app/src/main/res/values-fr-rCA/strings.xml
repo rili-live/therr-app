@@ -6,4 +6,12 @@
     <string name="habits_widget_loading">Chargement de votre progression…</string>
     <string name="habits_widget_refreshing">Actualisation…</string>
     <string name="habits_widget_refresh_hint">Touchez pour actualiser</string>
+    <string name="habits_streak_widget_label">Série d\'habitudes</string>
+    <string name="habits_streak_widget_description">Votre série quotidienne en un coup d\'œil</string>
+    <string name="habits_streak_widget_start">Enregistrez une habitude aujourd\'hui pour lancer votre série</string>
+    <plurals name="habits_streak_widget_days">
+        <item quantity="one">jour d\'affilée</item>
+        <item quantity="other">jours d\'affilée</item>
+    </plurals>
+    <string name="habits_streak_widget_preview_label">jours d\'affilée</string>
 </resources>

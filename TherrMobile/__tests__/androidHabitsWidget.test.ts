@@ -158,3 +158,77 @@ describe('Android habits widget background refresh', () => {
         });
     });
 });
+
+describe('Android habits streak widget', () => {
+    const STREAK_PROVIDER_PATH = path.join(ANDROID_MAIN_DIR, 'java/app/therrmobile/widget/HabitsStreakWidgetProvider.kt');
+    const STREAK_INFO_PATH = path.join(ANDROID_MAIN_DIR, 'res/xml/habits_streak_widget_info.xml');
+    const STREAK_LAYOUT_PATH = path.join(ANDROID_MAIN_DIR, 'res/layout/widget_habits_streak.xml');
+    const streakProvider = fs.readFileSync(STREAK_PROVIDER_PATH, 'utf8');
+    const streakInfo = fs.readFileSync(STREAK_INFO_PATH, 'utf8');
+
+    it('is registered as its own app-widget receiver', () => {
+        const manifest = fs.readFileSync(MANIFEST_PATH, 'utf8');
+
+        expect(manifest).toMatch(/<receiver[^>]*android:name="\.widget\.HabitsStreakWidgetProvider"/);
+        expect(manifest).toContain('android:resource="@xml/habits_streak_widget_info"');
+    });
+
+    it('points its provider info at resources that exist', () => {
+        const resDir = path.join(ANDROID_MAIN_DIR, 'res');
+        const refs = [...streakInfo.matchAll(/"@(layout|drawable|string)\/(\w+)"/g)].map((match) => [match[1], match[2]]);
+
+        expect(refs.map(([, name]) => name)).toEqual(expect.arrayContaining([
+            'widget_habits_streak', 'widget_habits_streak_preview', 'habits_streak_widget_art',
+        ]));
+        refs.forEach(([type, name]) => {
+            if (type === 'string') {
+                expect(fs.readFileSync(path.join(resDir, 'values/strings.xml'), 'utf8')).toContain(`name="${name}"`);
+                return;
+            }
+            const found = fs.readdirSync(resDir)
+                .filter((dir) => dir === type || dir.startsWith(`${type}-`))
+                .some((dir) => fs.readdirSync(path.join(resDir, dir)).some((file) => file.split('.')[0] === name));
+            expect(found).toBe(true);
+        });
+    });
+
+    it('draws into ids its layout defines', () => {
+        const layout = fs.readFileSync(STREAK_LAYOUT_PATH, 'utf8');
+        const ids = [...new Set([...streakProvider.matchAll(/R\.id\.(\w+)/g)].map((match) => match[1]))];
+
+        expect(ids.length).toBeGreaterThan(0);
+        ids.forEach((id) => expect(layout).toContain(`android:id="@+id/${id}"`));
+    });
+
+    it('keeps the shared snapshot fresh: counted as placed, redrawn on publish, refreshing on its own tick', () => {
+        // A streak widget alone on a home screen must still make the worker fetch, or it would
+        // show the streak from the last time the app was open.
+        expect(provider).toMatch(/fun hasWidgets\(context: Context\)[\s\S]*?HabitsStreakWidgetProvider\.hasWidgets\(context\)/);
+        expect(provider).toMatch(/fun refreshAll\(context: Context\)[\s\S]*?HabitsStreakWidgetProvider\.drawAll\(context\)/);
+        expect(streakProvider).toMatch(/override fun onEnabled[\s\S]*?requestRefresh\(context, HabitsWidgetRefreshWorker\.REASON_PLACED\)/);
+        expect(streakProvider).toMatch(/override fun onUpdate[\s\S]*?requestRefresh\(context, HabitsWidgetRefreshWorker\.REASON_PERIODIC\)/);
+        expect(Number(streakInfo.match(/android:updatePeriodMillis="(\d+)"/)?.[1])).toBe(30 * 60 * 1000);
+    });
+
+    it('reads the streak block JS publishes, by the same keys', () => {
+        const { buildHabitsWidgetSnapshot } = require('../main/utilities/habitsWidget');
+        const board = { entries: [], currentUser: { rank: 1, points: 0, dailyStreak: 3 }, periodEnd: null };
+        const snapshot = buildHabitsWidgetSnapshot({ connections: board, global: board }, { done: 0, total: 0 }, (key: string) => key);
+
+        expect(Object.keys(snapshot.streak).sort()).toEqual(['days', 'label']);
+        expect(streakProvider).toContain('optJSONObject("streak")');
+        expect(streakProvider).toContain('optInt("days"');
+        expect(streakProvider).toContain('optString("label")');
+    });
+
+    it('opens a screen JS routes when tapped', () => {
+        const actions = [...streakProvider.matchAll(/HabitsWidgetProvider\.(ACTION_\w+)/g)].map((match) => match[1]);
+        const routed = Object.values(WIDGET_ACTION_SUFFIXES).map((suffix) => suffix.slice(1));
+
+        expect(actions).toContain('ACTION_OPEN_TODAY');
+        actions.filter((action) => action !== 'ACTION_OPEN_APP').forEach((action) => {
+            const value = provider.match(new RegExp(`const val ${action} = "(\\w+)"`))?.[1];
+            expect(routed).toContain(value);
+        });
+    });
+});

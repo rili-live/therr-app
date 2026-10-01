@@ -327,6 +327,21 @@
         android:resource="@xml/habits_widget_info" />
     </receiver>
 
+    <!-- Second home-screen widget: the daily streak alone, over the chameleon. It draws the same
+         snapshot as the one above and shares its refresh (widget/HabitsStreakWidgetProvider.kt);
+         its only tap is an explicit intent to MainActivity. -->
+    <receiver
+      android:name=".widget.HabitsStreakWidgetProvider"
+      android:exported="false"
+      android:label="@string/habits_streak_widget_label">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+      </intent-filter>
+      <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/habits_streak_widget_info" />
+    </receiver>
+
     <meta-data
       android:name="com.google.android.geo.API_KEY"
       android:value="${GOOGLE_APIS_ANDROID_KEY}" />
