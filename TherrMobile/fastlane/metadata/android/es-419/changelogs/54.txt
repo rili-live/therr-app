@@ -1,0 +1,5 @@
+Novedades:
+• Las invitaciones a pactos ahora aparecen en tus notificaciones. Toca una para aceptarla o rechazarla
+• Enlaces más fáciles de tocar en la pantalla de registro con teléfono
+• Las invitaciones a grupos abren el grupo correcto
+• Correcciones y mejoras

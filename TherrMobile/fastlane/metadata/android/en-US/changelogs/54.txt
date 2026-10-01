@@ -1,0 +1,5 @@
+What's new:
+• Pact invitations now appear in your notifications. Tap one to accept or decline
+• Easier-to-tap links on the phone sign-up screen
+• Group invitations open the right group
+• Fixes and stability improvements
