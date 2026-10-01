@@ -200,4 +200,56 @@ test('a ledger tag means it was already uploaded locally, whatever CI says', () 
     assert.strictEqual(decideReleasePath({ ciState: 'failure', ciLog: QUOTA_LOG, ledgerTag: true }).decision, 'LOCAL_DONE');
 });
 
+// ------------------------------------------------------------------ decideReleasePath, preferLocal
+//
+// Preferring a local build must never produce two uploads of one versionCode: the EAS build
+// CI started is canceled first, and the local path opens only once it is CANCELED and CI
+// has stopped.
+
+test('preferLocal: no EAS build registered yet means WAIT, not LOCAL_NEEDED', () => {
+    assert.strictEqual(decideReleasePath({ ciState: 'pending', preferLocal: true }).decision, 'WAIT');
+});
+
+test('preferLocal: a queued or running EAS build is canceled', () => {
+    ['NEW', 'IN_QUEUE', 'IN_PROGRESS'].forEach((status) => {
+        const d = decideReleasePath({ ciState: 'pending', easBuilds: [{ id: 'b1', status }], preferLocal: true });
+        assert.strictEqual(d.decision, 'CANCEL_EAS', status);
+        assert.deepStrictEqual(d.builds.map((b) => b.id), ['b1']);
+    });
+});
+
+test('preferLocal: a cancel still in flight means WAIT', () => {
+    const d = decideReleasePath({ ciState: 'pending', easBuilds: [{ status: 'PENDING_CANCEL' }], preferLocal: true });
+    assert.strictEqual(d.decision, 'WAIT');
+    assert.strictEqual(d.reason, 'eas-cancel-pending');
+});
+
+test('preferLocal: a canceled build while CI still runs means WAIT (CI could register another)', () => {
+    const d = decideReleasePath({ ciState: 'pending', easBuilds: [{ status: 'CANCELED' }], preferLocal: true });
+    assert.strictEqual(d.decision, 'WAIT');
+});
+
+test('preferLocal: canceled build and CI stopped → LOCAL_NEEDED (local-preferred)', () => {
+    const d = decideReleasePath({ ciState: 'failure', easBuilds: [{ status: 'CANCELED' }], preferLocal: true });
+    assert.strictEqual(d.decision, 'LOCAL_NEEDED');
+    assert.strictEqual(d.reason, 'local-preferred');
+});
+
+test('preferLocal: a build that finished before the cancel landed is EAS_DONE', () => {
+    const d = decideReleasePath({
+        ciState: 'success', easBuilds: [{ status: 'CANCELED' }, { status: 'FINISHED' }], preferLocal: true,
+    });
+    assert.strictEqual(d.decision, 'EAS_DONE');
+});
+
+test('preferLocal: an errored EAS build still asks for a look first (eas-build-errored)', () => {
+    const d = decideReleasePath({ ciState: 'failure', easBuilds: [{ status: 'ERRORED' }], preferLocal: true });
+    assert.strictEqual(d.reason, 'eas-build-errored');
+});
+
+test('without preferLocal a canceled build is not mistaken for a preference', () => {
+    const d = decideReleasePath({ ciState: 'failure', easBuilds: [{ status: 'CANCELED' }] });
+    assert.strictEqual(d.reason, 'eas-build-canceled');
+});
+
 console.log(`niche-android-release: ${passed} passed`);
