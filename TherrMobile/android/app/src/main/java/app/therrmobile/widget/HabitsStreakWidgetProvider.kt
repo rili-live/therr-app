@@ -32,9 +32,9 @@ import kotlin.math.roundToInt
  *  - Day or night. The chameleon sits under a day sky from [DAY_STARTS_AT_HOUR] and under the
  *    night sky from [NIGHT_STARTS_AT_HOUR], local time.
  *  - The evening warning. From [AT_RISK_FROM_HOUR] until midnight a live streak shows as at risk
- *    — a red "!" on the flame and the warning on a red pill in place of the label — when today is
- *    a due day for one of the user's habits and no check-in has counted for it yet. See
- *    [isAtRisk] for the facts the snapshot supplies and why weekly-count habits never trigger it.
+ *    — a red "!" on the flame and the warning on a red pill in place of the label — when the
+ *    server says today is at stake (or, without its verdict, today is a due day for one of the
+ *    user's habits) and no check-in has counted for it yet. See [isAtRisk].
  *
  * A tap opens the dashboard's habits tab, where a check-in keeps the streak alive, or just the
  * app when there is no snapshot yet.
@@ -113,24 +113,37 @@ class HabitsStreakWidgetProvider : AppWidgetProvider() {
         /**
          * Whether the streak shown should warn that it is about to be lost, at [now].
          *
-         * All four must hold: there is a streak to lose; it is evening; today is in the snapshot's
-         * `streak.dueWeekdays` (0 = Sunday), so missing it costs something; and the snapshot's
-         * `streak.checkedInOn` is not today, so nothing has kept it yet. `checkedInOn` is a date,
-         * so yesterday's check-in stops counting at midnight without a new snapshot.
+         * Never without a streak to lose, never before evening, and never once the snapshot's
+         * `streak.checkedInOn` is today — a check-in after the verdict below settles the day.
+         * `checkedInOn` is a date, so yesterday's check-in stops counting at midnight without a
+         * new snapshot.
          *
-         * `dueWeekdays` holds only daily and fixed-day habits. Whether a weekly-count habit needs
-         * today depends on the rest of its week, which the snapshot does not carry, so such a
-         * habit never triggers the warning — a missed warning is cheaper than a false one. A
-         * snapshot from before these fields existed never warns either.
+         * Then, in order:
+         *  1. `streak.stake` dated today: the server's `isAtStakeToday`, which applies the daily
+         *     streak's own required-day rule, so it knows when a weekly-count habit needs today and
+         *     never warns on a rest day.
+         *  2. Otherwise — no verdict yet (after midnight, before a refresh), or one from an older
+         *     server — today must be in `streak.dueWeekdays` (0 = Sunday). That holds only daily
+         *     and fixed-day habits: whether a weekly-count habit needs today depends on the rest
+         *     of its week, so without the server such a habit never triggers the warning — a
+         *     missed warning is cheaper than a false one. A snapshot from before these fields
+         *     existed never warns either.
          */
         internal fun isAtRisk(snapshot: JSONObject, days: Int, now: Calendar): Boolean {
             if (days <= 0 || now.get(Calendar.HOUR_OF_DAY) < AT_RISK_FROM_HOUR) return false
             val streak = snapshot.optJSONObject("streak") ?: return false
+            val today = localDate(now)
+            val checkedInOn = if (streak.isNull("checkedInOn")) null else streak.optString("checkedInOn")
+            if (checkedInOn == today) return false
+
+            val stake = streak.optJSONObject("stake")
+            if (stake != null && stake.optString("date") == today) {
+                return stake.optBoolean("isAtStake", false)
+            }
+
             val dueWeekdays = streak.optJSONArray("dueWeekdays") ?: return false
             val weekday = now.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY
-            if ((0 until dueWeekdays.length()).none { dueWeekdays.optInt(it, -1) == weekday }) return false
-            val checkedInOn = if (streak.isNull("checkedInOn")) null else streak.optString("checkedInOn")
-            return checkedInOn != localDate(now)
+            return (0 until dueWeekdays.length()).any { dueWeekdays.optInt(it, -1) == weekday }
         }
 
         private fun draw(context: Context, manager: AppWidgetManager, appWidgetId: Int, snapshot: JSONObject?) {
