@@ -13,6 +13,7 @@ export enum Types {
   THOUGHT_REPLY = 'THOUGHT_REPLY',
   THOUGHT_REPOST = 'THOUGHT_REPOST',
   INVITE_FRIENDS_REMINDER = 'INVITE_FRIENDS_REMINDER',
+  PACT_INVITATION = 'PACT_INVITATION',
 }
 
 export enum MessageKeys {
@@ -30,4 +31,5 @@ export enum MessageKeys {
   THOUGHT_REPLY = 'notifications.newThoughtReplyReceived',
   THOUGHT_REPOST = 'notifications.newThoughtRepostReceived',
   INVITE_FRIENDS_REMINDER = 'notifications.inviteFriendsReminder',
+  PACT_INVITATION = 'notifications.pactInvitation',
 }
