@@ -1424,7 +1424,8 @@
                 "description": "Invite 3 friends to earn the Socialite achievement and unlock rewards!",
                 "shareLink": "Share a Link",
                 "syncContacts": "Sync Contacts",
-                "skip": "Skip for Now"
+                "skip": "Skip for Now",
+                "descriptionHabits": "Habits stick when a friend has your back. Share your link so your friends can join you."
             },
             "pageHeaderContacts": "Find your friends",
             "pageSubHeaderContacts": "Sync your contacts to see who is already here",
@@ -1437,7 +1438,9 @@
                 "skip": "Not Now",
                 "errorMessage": "We could not sync your contacts. Please try again.",
                 "permissionsDenied": "Contact access is off. Enable it in your device settings to find friends."
-            }
+            },
+            "pageHeaderPhoneHabits": "Verify your number",
+            "pageSubHeaderPhoneHabits": "Your invites are texted from your number, so we check it is really yours first."
         },
         "cropImage": {
             "headerTitle": "Crop Image"
@@ -1729,7 +1732,8 @@
                 "momentDescription": "with friends or earn bonus points as a local influencer",
                 "claimTitle": "Claim Rewards",
                 "claimDescription": "by checking in at local businesses, posting content, or leaving a review"
-            }
+            },
+            "alreadyHaveAccount": "I already have an account"
         },
         "login": {
             "headerTitle": "{appName}",
@@ -1899,7 +1903,8 @@
             "passwordRequirements1": "Contains a mixture of letters and numbers",
             "passwordRequirements2": "At least one capital letter",
             "passwordRequirements3": "At least one special character !@#$%^&*",
-            "passwordRequirements4": "At least 8 characters"
+            "passwordRequirements4": "At least 8 characters",
+            "pageSubtitleHabits": "Create your account and start your first pact with a friend."
         },
         "settings": {
             "headerTitle": "Settings",
@@ -2745,6 +2750,26 @@
                 "cycleLabel": "Cycle {number}",
                 "extendedFrom": "Extended from previous pact",
                 "continuedAs": "Continued in a newer pact"
+            },
+            "pledge": {
+                "title": "Charity pledge",
+                "explainer": "Back this habit with a promise: if you miss a week, you give to a charity you choose. No money goes through the app, and your pact partners see your pledge.",
+                "needsPartner": "A pledge needs a partner to see it. Invite someone to this pact to add one.",
+                "add": "Add a pledge",
+                "summary": "{amount} to {charity} if you miss a week",
+                "startsNextWeek": "Starts next Monday. This week doesn't count.",
+                "visibleToPartners": "Your pact partners can see this pledge.",
+                "amountLabel": "Amount for a missed week",
+                "charityLabel": "Charity",
+                "save": "Save pledge",
+                "cancel": "Cancel",
+                "edit": "Edit pledge",
+                "remove": "Remove pledge",
+                "saveSuccess": "Pledge saved",
+                "removeSuccess": "Pledge removed",
+                "error": "Could not update your pledge. Please try again.",
+                "memberPledge": "Pledged {amount} to {charity}",
+                "renewNotCarried": "Your pledge stays with this pact. Add it again on the new one if you want to keep it."
             }
         },
         "pushOptIn": {

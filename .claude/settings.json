@@ -9,7 +9,7 @@
           },
           {
             "type": "command",
-            "command": "mkdir -p .memsearch && scripts/memsearch-index.sh >> .memsearch/index.log 2>&1 || true",
+            "command": "mkdir -p \"$CLAUDE_PROJECT_DIR/.memsearch\" && \"$CLAUDE_PROJECT_DIR/scripts/memsearch-index.sh\" >> \"$CLAUDE_PROJECT_DIR/.memsearch/index.log\" 2>&1 || true",
             "async": true,
             "statusMessage": "Refreshing memory index..."
           }
@@ -21,7 +21,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/transcript-capture.js"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/transcript-capture.js\""
           }
         ]
       }

@@ -58,6 +58,7 @@ export default (emailParams: ISendVerificationEmailConfig, templateParams: ITemp
         buttonHref: linkUrl,
         buttonText: translate(locale, 'emails.verification.buttonText'),
         postBody1: translate(locale, 'emails.verification.postBody1', { linkUrl }),
+        headerImageVariant: 'progress' as const,
     };
 
     return sendEmail({

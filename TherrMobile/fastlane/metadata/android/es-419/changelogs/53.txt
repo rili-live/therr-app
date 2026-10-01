@@ -1,0 +1,7 @@
+Novedades:
+• Promesas solidarias: respalda tu pacto con una donación a una organización benéfica si fallas tu semana
+• Empezar requiere menos pasos, y registrarte con tu teléfono inicia tu sesión de inmediato
+• ¿Ya tienes cuenta? Inicia sesión desde la pantalla de bienvenida
+• Al editar un registro ahora ves la nota y la cantidad que ya guardaste
+• Tu progreso semanal se actualiza en cuanto registras tu hábito
+• Correcciones y mejoras

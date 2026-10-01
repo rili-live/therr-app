@@ -491,11 +491,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   it is in *Testing*, Google expires the refresh token after 7 days with no
   warning and no distinguishing error — this is the cause of "it worked last
   week" for every tool built on this API.
-- [ ] **Produce a 15-30s portrait video asset for the App campaign.** Without
-  video, an App campaign is limited to Search and a narrow Display slice: a
-  fraction of the reach at a materially higher CPI. It is the single largest
-  lever on App campaign cost, and `campaign plan` warns on every run until it
-  exists (`assets.videos` in `campaigns/habits-app-install.yaml`).
 - [ ] **Link Google Ads to the Play Console** (Play Console -> Settings ->
   Google Ads links) so installs are reported as conversions. Without the link,
   the App campaign optimises against nothing and `report ads` shows zero installs
@@ -547,7 +542,7 @@ backend change needed — it refuses to treat Play's own
   unverifiable until then. The first thing to check after the campaign starts serving is
   whether a `main."userAcquisition"` row appears with
   `utmCampaign = 'fwh-app-us-installs-2026q3'`.
-- [ ] **Add accepted-invite counts to the acquisition funnel query** so the viral
+- [ ] **Add accepted-invite counts to the acquisition funnel query** (#3015) so the viral
   coefficient is measured rather than assumed. `product.py` currently counts
   invites *sent* (the 3-invite solo-tracking unlock); the loop only pays for
   acquisition if invites are *accepted*. Join `main.invites.isAccepted` to the
@@ -561,6 +556,29 @@ backend change needed — it refuses to treat Play's own
 > `[ ] (YYYY-MM-DD, /<skill-name>) <action> — <why>`
 
 <!-- skill-followups:start -->
+- [ ] (2026-09-29, /work-plan) **Run the users-service migration
+  `20260929000001_habits.pact_members.pledge`, then watch `pledgeVerdicts` in the digest
+  log.** Adds the nullable `pledge` jsonb that charity pledges (§ 2.8 Phase A, #2990) live
+  in. Until it runs, `PUT /habits/pacts/:id/pledge` 500s and the digest's pledge pass logs
+  one error per run and queues nothing. Nothing calls either before the mobile half ships,
+  so the order is forgiving, but run it with this deploy. After that, the digest span's
+  `pledgeVerdicts` JSON should read `pledgeMembersEvaluated: 0` until the first pledge exists.
+  Once members have pledged, `pledgeVerdictsCovered` is the check that matters: it counts
+  weeks a streak freeze saved, and every one of those must stay silent. A `pledgeMissed`
+  push that follows a `streakFreezeUsed` for the same week is a bug in
+  `utilities/pledgeVerdict.ts`. Kill switch: `HABIT_PLEDGE_VERDICTS_ENABLED=false`.
+- [ ] (2026-09-29, /work-plan) **Open each charity's donation link on a handset before the
+  pledge picker ships.** `PLEDGE_CHARITIES` in `therr-js-utilities/constants/habitPledges.ts`
+  holds seven `donateUrl`s. From curl, every one returned 200, a redirect or a bot-block
+  403, so none looked dead, but none has been opened in a real browser. The miss card links
+  out to these, and a dead link is where the pledge gets honoured.
+- [ ] (2026-09-29, /work-plan) **Do not cut a Habits release that carries the pledge picker
+  until users-service is on `main` and `20260929000001_habits.pact_members.pledge` has run.**
+  The picker (`PledgeCard` on `PactDetail`, `niche/HABITS-general`) calls
+  `PUT /habits/pacts/:id/pledge`. That endpoint is on `stage`, not `main`, as of this entry. On
+  a production API without it, "Save pledge" fails with a toast. Nothing breaks, but it is the
+  first thing a user pledging would see. Once both are live, pledge on a real pact from a
+  handset and confirm the partner sees it on their member row.
 - [ ] (2026-09-05, /work-plan) **Watch `remindersMutedByPreference` and
   `lastChanceMutedByPreference` leave 0 once BOTH halves of the push toggles are out.**
   The two counters have been structurally pinned at 0, not merely unused: the digest has
@@ -1550,7 +1568,8 @@ backend change needed — it refuses to treat Play's own
   the false-green shape the pass exists to catch.
 - [ ] (2026-09-22, /work-plan) **Settle the habit-cap count question (#2923) — one query, and
   the code half is already done.** A user hit the free-tier gate on what they counted as their
-  8th habit, against `HABITS_FREE_HABIT_LIMIT = 5`. The fail-open path now reports itself
+  8th habit, against `HABITS_FREE_HABIT_LIMIT = 5` (the limit then; since `3c7996216` the free tier is
+  3 active habits plus 5 starts per 30 days). The fail-open path now reports itself
   (`level: 'error'`, with `habitCapacity.failOpenCount` / `.failedStage` on the span), so a cap
   that has silently stopped enforcing is visible going forward — but that says nothing about
   what already happened. Two candidates remain and one query separates them:
@@ -1571,11 +1590,11 @@ backend change needed — it refuses to treat Play's own
 - [ ] (2026-09-23, /quality-peer-review) **Confirm the two cadence migrations ran at each of `stage` and `main`** — `20260920000001_habits.daily_streak_days.restStatus.js` (widens the status CHECK to allow `rest`) and `20260920000002_habits.habit_goals.cadenceEffectiveFrom.js` (new `date` column, backfilled to the deploy date on every non-daily goal). Both idempotent. `getActiveForReminders`, `getDetailByUser` and `getActiveCadencesByUser` SELECT `cadenceEffectiveFrom` unconditionally, so the digest, the habit list and daily-streak evaluation fail until it exists; and until the CHECK is widened every `rest` day write is rejected. They share timestamp prefixes with the savings migrations but sort before them alphabetically, so check `knex_migrations` by name rather than by "latest". Sanity check the grandfathering backfill: `SELECT count(*) FROM habits.habit_goals WHERE "cadenceEffectiveFrom" IS NOT NULL;` should equal the count of non-daily/weekday-scheduled goals. Introduced by 08108c6c4.
 - [ ] (2026-09-24, /quality-peer-review) **Confirm `20260923000001_habits.habit_checkins.proofXpAwarded.js` ran at each of `stage` and `main`.** If the column is missing, `claimProofXp` throws and `createCheckin` catches it, logs a warning (`Failed to claim check-in proof XP`) and pays nothing — the check-in succeeds, so the only visible symptom is that proof XP never appears. Sanity check after deploy: `SELECT count(*) FROM habits.habit_checkins WHERE "proofXpAwarded" > 0;` should be non-zero (the backfill raises every completed check-in that already had proof). Introduced by a0265514b.
 - [ ] (2026-09-24, /quality-peer-review) **Push the number-free Google Ads copy to the live account.** The specs no longer name a habit count ("Free for Five Habits" → "Start Free, No Card Needed" / "Free to start"), so the free tier can change without the ads going stale. The live ads still say "five" until this is applied, and after 3c7996216 reaches `main` that claim is false. Text: `therrads campaign apply` for `habits-web-landing.yaml` and `habits-app-install.yaml`. Images: the three regenerated `scripts/google-ads/assets/habits/*-pact.png` frames are attached by hand in the Ads UI (the tool uploads text only), and they replace the old "Free for five habits" frames.
-- [ ] (2026-09-24, /quality-peer-review) Mobile follow-up (must land on `niche/HABITS-general` / `TherrMobile`, not `general`): handle the new free-tier refusal `habit-start-limit-reached` (402 `error`, and `habitLimitReason` on `GET /habits/user-habits/eligibility`). `isAtHabitLimit` is now true when *either* cap is hit, so the **already-deployed** `CreatePactInvite` tells a user who has used all 5 starts in the window, but has free slots, "you can track 3 habits at a time — archive one", which won't help. `UpgradePaywall` only renders the limit header for `reason === 'habit-limit-reached'`, so a start-limit 402 falls back to the generic offer. Branch on `habitLimitReason`, and render the window from `habitStartLimit` / `habitStartWindowDays` / `recentHabitStartCount`. Restoring, re-starting or continuing-solo an **archived** habit is gated on the active cap only, so any client-side pre-check on those actions must block only on `'habit-limit-reached'`, never on `'habit-start-limit-reached'`. Offer "restore an archived habit" as the free way past a start-limit refusal. The server side is correct. Introduced by 3c7996216.
 - [ ] (2026-09-24, /aso-listing) **Paste the corrected Friends with Habits Play listing and fix the Data safety form to match.** The live `com.therr.habits` listing still says "1 active pact" free, "Premium $6.99/month coming soon" with features that do not exist, and "we don't need your contacts" (the habits build requests `READ_CONTACTS` for the optional onboarding sync). Copy, screenshot order, pre-paste check and Data safety corrections (Contacts, Phone number) are in `docs/niche-sub-apps/HABITS_PLAY_LISTING_UPDATE_2026-09-24.md`. Record the publish date on this line: the 28-day before/after read of listing conversion, `app_remove`/`first_open` and `phone_verify_success`/`first_open` starts from it.
 - [ ] (2026-09-24, /aso-listing) **Paste the corrected Therr Play listing (`app.therrmobile`).** The live description promises calendar invites, opt-in recurring matches and multi-factor authentication, and the app has none of them. The new copy is in `TherrMobile/fastlane/metadata/android/<locale>/full_description.txt`. Title and short description are unchanged. Paste en-US in Play Console → Store presence → Main store listing. Add es-419 and fr-CA as translations only after a fluent speaker has read them (both are machine-authored and there's no current translation to replace). In the same sitting, check that the `app.therrmobile` Data safety form agrees with the new privacy lines: Phone number is **required**, and Contacts are collected and optional, with invitees kept in `main.invites`, as in the habits contacts item above. Screenshots were not reviewed in this round. Record the publish date on this line. The 28-day before/after read of listing conversion (baseline: 19/89 = 21% for 2026-08-22 to 09-18) starts from that date, but at about 90 visitors a month it will only catch a large change.
 - [ ] (2026-09-24, /quality-peer-review) **Confirm the habit template migrations (`20260925000001`/`…02`) ran at `stage` and `main` and seeded the full set.** `SELECT count(*) FROM habits.habit_goals WHERE "isTemplate" AND "templateKey" IS NOT NULL;` should be 43. Fewer than 43 means the SUPER_ADMIN_ID row was missing and the inserts were skipped with a warning; create the row and re-run the file by hand, because knex has already recorded it as applied. Then check `SELECT "frequencyType", "frequencyCount" FROM habits.habit_goals WHERE id = 'b0000001-de00-4000-a000-000000000001';`. If it is still `daily`/1, a pact or tracking row points at the template itself and the move to 3x/week was deliberately skipped (see the peer-review fix to 90263c32a). Already-installed habits clients show all 43 templates in one flat list until the categorized picker (niche 241662127) ships in a Play release.
 - [ ] (2026-09-25, /mobile-release-preflight) **The EAS free-plan Android build quota ran out, so CI Habits release builds fail until it resets on 2026-10-01.** `eas_build_habits_android` (CircleCI job 18409, merge c13592e43) failed at `eas build` with "This account has used its Android builds from the Free plan this month", and the job goes red without building anything. The last EAS-built Habits AAB was versionCode 45. Until the quota resets or the plan is upgraded, release with `/niche-android-release`: it merges, sees the quota failure, and builds and submits locally. Decide whether to upgrade the plan or move the build off EAS.
+- [ ] (2026-09-28, /niche-android-release) **Promote Friends with Habits 1.13.1 (52) out of the internal-track draft and paste its release notes.** Built locally (EAS quota) from merge 1f41ed6e1 and uploaded as an internal draft via `eas submit` (tag `habits-android-vc52`). Nothing sets "What's new" automatically: roll out the internal draft, promote it to production, and paste `TherrMobile/fastlane/metadata/android/{en-US,es-419,fr-CA}/changelogs/52.txt` (print with `node TherrMobile/_scripts/print-play-release-notes.mjs`). Before promoting, do a device check of the profile-photo HEIC and permission-denied paths.
 <!-- skill-followups:end -->
 
 ---
@@ -2443,6 +2462,8 @@ doing. Growing a group that churns only makes the churn larger.
    10 km run. With an amount unit and a weekly amount on each member, "most km this week"
    becomes a ranking people accept as fair. The data exists today:
    `habits.habit_goals."amountUnit"` and the weekly `amountProgress` on the pact detail.
+   **Met 2026-09-28:** the server half (#2992) is on `main`, and the mobile half (#2993) is on
+   Play production in Habits 1.13.0 (51).
 2. **The retention loop has a baseline:** at least a few weeks of D7 retention on pact
    users, measured from the pact and check-in events that have existed since 3 Sep (see
    § 2.2 "Watch: phone verification drop-off"). Without it, nobody can tell whether
@@ -2524,8 +2545,8 @@ goal. Recorded here so it is not re-researched from scratch:
 
 **What:** a user can back a habit with a pledge: *"if I miss my week, $5 goes to charity."*
 The money never goes to the app and never goes to a friend. It is a follow-up to measured
-habits (optional amount tracking, `habits.habit_goals."amountUnit"`, shipped on the
-`claude/goalify-feature-research-c2ocvm` branches). That feature gives a pledge
+habits (optional amount tracking, `habits.habit_goals."amountUnit"`, on `main` since
+2026-09-28 via #2992; mobile on Play production in Habits 1.13.0 (51) via #2993). That feature gives a pledge
 something objective to be judged against: *this week's amount reached the weekly target*,
 or, for a habit with no amount, *this week's cadence was met*.
 
@@ -2545,11 +2566,65 @@ going somewhere they dislike. Anti-charities do not fit this brand, so accept th
 lever and measure it (Phase A) rather than assume it works.
 
 **Priority.** Phase A is small, reuses columns that already exist, and acts on retention.
-It can start as soon as measured habits are on `main`, ahead of § 2.7. Phase B moves real
+Its gate, measured habits being on `main`, was met on 2026-09-28, so it can start now, ahead of § 2.7. Phase B moves real
 money, so it waits for Phase A's numbers plus the legal and store-policy review listed
 below.
 
 #### Phase A — pledge on the honour system (no payments)
+
+**Server verdict shipped on `general` 2026-09-29 (/work-plan).** Three decisions were
+taken when it was built. Each overrides the plan below it:
+
+- **Per member, not per pact.** `consequenceType` / `consequenceDetails` sit on
+  `habits.pacts`, so a pledge stored there would bind every member to a promise one of
+  them made. The pledge lives in `habits.pact_members."pledge"` (jsonb,
+  `20260929000001_habits.pact_members.pledge`) as `{ amount, charityKey, pledgedAt }`, and
+  each member is judged on their own week. `consequenceType` is untouched.
+- **Pact-only.** Solo habits get no pledge in Phase A. The UI must say a pledge needs a
+  partner.
+- **Seven curated charities, not 3–5.** `PLEDGE_CHARITIES` in
+  `therr-js-utilities/constants/habitPledges.ts`: GiveDirectly, Doctors Without Borders,
+  Feeding America, The Global FoodBanking Network, UNICEF USA, Direct Relief and WWF.
+  Amounts are whole USD from 1 to 500.
+
+What shipped:
+
+- `PUT /habits/pacts/:id/pledge` (`{ amount, charityKey }`) and `DELETE` on the same path.
+  Only an active member of a pending or active pact can use them. Editing a pledge keeps
+  its `pledgedAt`.
+- The digest's pledge pass (`handlers/helpers/pledgeVerdictDigest.ts`) runs on each pledged
+  member's local Monday.
+- The `pledgeMissed` display push, with the dedupe key `pledge-missed:<pactId>:<weekStart>`.
+  It is keyed per pact, not per `userHabitId`, because the pledge lives on the membership.
+
+The rules are in `utilities/pledgeVerdict.ts` and pinned by `tests/unit/pledgeVerdict.test.ts`:
+
+- A week is judged only if the pledge, the pact and the cadence were all in force from its
+  Monday.
+- Pact-carried days count as done, as they do for the streak.
+- A week that a freeze saved, or will save at the next check-in, is `covered` and never
+  notifies.
+
+Still open (#2990):
+
+- **"Done, I gave" + the partner view.** The server needs a way to record it, most likely a
+  `pledge_honoured` pact activity. Nothing records a miss's outcome yet.
+- **The miss card, and routing the `pledgeMissed` tap to the pact** (mobile, on
+  `niche/HABITS-general`). Build it with the "Done, I gave" record above. Today the push has no
+  `clickAction`, so a tap opens the app, which is safe on every installed build. Add the
+  `clickAction` only in the same release that declares its intent action.
+- **The analytics in the "Measure" list below.** The client now fires `habit_pledge_set`,
+  `habit_pledge_update` and `habit_pledge_remove`. Adoption can also be read from
+  `habits.pact_members."pledge"`. D30 retention and the hit rate for pledged vs unpledged
+  habits, and the honour rate, still need a report.
+
+**Pledge picker shipped on `niche/HABITS-general` 2026-09-29 (/work-plan).** The client calls
+are `PactsService.setPledge` and `removePledge` in `therr-react`, on `general`. The mobile side
+is `PledgeCard` on `PactDetail` plus each partner's pledge on their `PactMemberRow`. It is
+offered only where the server's guard allows a pledge, and a new pledge is refused on a solo
+pact. The renew prompt says a pledge does not carry over into the new cycle. It is not a
+one-tap re-pledge, and whether it should become one is still open. Amounts are the presets
+$5, $10, $20 and $50, with no free field.
 
 - **Data:** reuse `habits.pacts."consequenceType" = 'donation'` and `consequenceDetails`
   (`{ amount, recipient }`). `validatePactParams` in `utilities/pactHelpers.ts` already

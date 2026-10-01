@@ -10,6 +10,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
 
     const styles = StyleSheet.create({
+        body: {
+            flex: 1,
+        },
         tabsContainer: {
             flexDirection: 'row',
             paddingHorizontal: 14,

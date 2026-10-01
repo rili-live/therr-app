@@ -711,6 +711,12 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
 
         acceptPact(pact.id)
             .then(() => {
+                // The invitee's half of the viral loop. Without it the invite → accept
+                // step is invisible in GA4 and the viral coefficient cannot be read.
+                logAppEvent('habit_pact_accept', {
+                    userId: this.props.user?.details?.id,
+                    source: 'dashboard',
+                });
                 showToast.success({
                     text1: this.translate('pages.pacts.acceptedTitle'),
                     text2: this.translate('pages.pacts.acceptedMessage'),
@@ -1380,6 +1386,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 habitGoal={goal}
                 todayCheckin={this.getTodayCheckinForHabit(goal.id)}
                 streak={this.getStreakForHabit(goal.id)}
+                weekProgress={userHabit?.weekProgress}
                 onPress={() => this.handleHabitPress(goal)}
                 onCheckin={() => this.handleCheckin(goal)}
                 onAddCheckinDetail={() => this.handleAddCheckinDetail(goal)}

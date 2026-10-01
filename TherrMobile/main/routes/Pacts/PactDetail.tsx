@@ -4,12 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { FeatureFlags } from 'therr-js-utilities/constants';
+import { FeatureFlags, PledgeCharityKey } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
 import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
+import { logAppEvent } from '../../utilities/analyticsEvents';
 import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
 import permissions from '../../utilities/permissionsOrchestrator';
 import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
+import { canAddPactPledge, canEditPactPledge, getValidPledge } from '../../utilities/pactPledge';
 // Shared so the pending-pact wording can't drift between the card and this screen.
 import { getStatusText } from '../../components/Habits/PactCard';
 import {
@@ -22,7 +24,9 @@ import { RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import translator from '../../utilities/translator';
 import { Button } from '../../components/BaseButton';
-import { AmountProgressCard, PactMemberRow, SavingsProgressCard } from '../../components/Habits';
+import {
+    AmountProgressCard, PactMemberRow, PledgeCard, SavingsProgressCard,
+} from '../../components/Habits';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
@@ -42,6 +46,8 @@ interface IPactDetailDispatchProps {
     renewPact: Function;
     continueSoloPact: Function;
     removePactMember: Function;
+    setPactPledge: Function;
+    removePactPledge: Function;
 }
 
 interface IStoreProps extends IPactDetailDispatchProps {
@@ -61,6 +67,7 @@ export interface IPactDetailProps extends IStoreProps {
 interface IPactDetailState {
     isRefreshing: boolean;
     isActionLoading: boolean;
+    isPledgeSaving: boolean;
     showConfirmModal: boolean;
     confirmAction: 'decline' | 'abandon' | 'removeMember' | null;
     /** The member the removal confirm is targeting, set only for confirmAction === 'removeMember'. */
@@ -81,6 +88,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     renewPact: HabitActions.renewPact,
     continueSoloPact: HabitActions.continueSoloPact,
     removePactMember: HabitActions.removePactMember,
+    setPactPledge: HabitActions.setPactPledge,
+    removePactPledge: HabitActions.removePactPledge,
 }, dispatch);
 
 export class PactDetail extends React.Component<IPactDetailProps, IPactDetailState> {
@@ -97,6 +106,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         this.state = {
             isRefreshing: false,
             isActionLoading: false,
+            isPledgeSaving: false,
             showConfirmModal: false,
             confirmAction: null,
             memberToRemove: null,
@@ -209,6 +219,10 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
 
         acceptPact(pactId)
             .then(() => {
+                logAppEvent('habit_pact_accept', {
+                    userId: this.props.user?.details?.id,
+                    source: 'pact-detail',
+                });
                 Toast.show({
                     type: 'success',
                     text1: this.translate('pages.pacts.acceptedTitle'),
@@ -411,6 +425,77 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
             });
     };
 
+    /**
+     * Resolves true once saved, so `PledgeCard` can keep its editor open on a failure. The
+     * server answers 403/409 when the viewer can no longer pledge (they left, or the pact ended
+     * since this screen loaded); its localized message says which.
+     */
+    handleSavePledge = (amount: number, charityKey: PledgeCharityKey): Promise<boolean> => {
+        const { setPactPledge, route, user } = this.props;
+        const { pactId } = route.params;
+        const userId = user.details?.id;
+        const hadPledge = !!getValidPledge(this.getPact()?.members?.find((m) => m.userId === userId));
+
+        this.setState({ isPledgeSaving: true });
+
+        return setPactPledge(pactId, userId, { amount, charityKey })
+            .then(() => {
+                // Adoption is the first number Phase A has to answer (§ 2.8 "Measure").
+                logAppEvent(hadPledge ? 'habit_pledge_update' : 'habit_pledge_set', {
+                    userId,
+                    amount,
+                    charityKey,
+                });
+                Toast.show({
+                    type: 'success',
+                    text1: this.translate('pages.pacts.pledge.saveSuccess'),
+                    visibilityTime: 2000,
+                });
+                return true;
+            })
+            .catch((error: any) => {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.errorTitle'),
+                    text2: getApiErrorMessage(error) || this.translate('pages.pacts.pledge.error'),
+                    visibilityTime: 3000,
+                });
+                return false;
+            })
+            .finally(() => {
+                this.setState({ isPledgeSaving: false });
+            });
+    };
+
+    handleRemovePledge = () => {
+        const { removePactPledge, route, user } = this.props;
+        const { pactId } = route.params;
+        const userId = user.details?.id;
+
+        this.setState({ isPledgeSaving: true });
+
+        removePactPledge(pactId, userId)
+            .then(() => {
+                logAppEvent('habit_pledge_remove', { userId });
+                Toast.show({
+                    type: 'success',
+                    text1: this.translate('pages.pacts.pledge.removeSuccess'),
+                    visibilityTime: 2000,
+                });
+            })
+            .catch((error: any) => {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.errorTitle'),
+                    text2: getApiErrorMessage(error) || this.translate('pages.pacts.pledge.error'),
+                    visibilityTime: 3000,
+                });
+            })
+            .finally(() => {
+                this.setState({ isPledgeSaving: false });
+            });
+    };
+
     handleCancelConfirm = () => {
         this.setState({ showConfirmModal: false, confirmAction: null, memberToRemove: null });
     };
@@ -562,6 +647,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                         onRemovePress={canManageMembers && canRemovePactMember(pact, member)
                             ? () => this.handleRemoveMember(member)
                             : undefined}
+                        locale={this.props.user?.settings?.locale}
                         themeHabits={this.themeHabits}
                         translate={this.translate}
                     />
@@ -710,7 +796,9 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
 
     render() {
         const { user } = this.props;
-        const { isRefreshing, isActionLoading, showConfirmModal, confirmAction } = this.state;
+        const {
+            isRefreshing, isActionLoading, isPledgeSaving, showConfirmModal, confirmAction,
+        } = this.state;
 
         const pact = this.getPact();
         const currentUserId = user.details?.id || '';
@@ -723,6 +811,8 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         const isRenewable = !isInvitedUser && isPactRenewable(pact);
         const isActive = pact?.status === 'active' && !isRenewable;
         const linkableHabitGoalId = pact && this.getLinkableHabitGoalId(pact);
+        const currentUserPledge = getValidPledge(currentUserMember);
+        const canEditPledge = canEditPactPledge(pact, currentUserMember, isRenewable);
         const partnerName = partnerMember?.firstName
             || partnerMember?.userName
             || this.translate('pages.pacts.partnerFallback');
@@ -854,6 +944,20 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
 
                         {this.renderMembersCard(pact, currentUserId)}
 
+                        {canEditPledge && (
+                            <PledgeCard
+                                pledge={currentUserPledge}
+                                canAdd={canAddPactPledge(pact)}
+                                isSaving={isPledgeSaving}
+                                onSave={this.handleSavePledge}
+                                onRemove={this.handleRemovePledge}
+                                locale={user.settings?.locale}
+                                themeHabits={this.themeHabits}
+                                themeButtons={this.themeButtons}
+                                translate={this.translate}
+                            />
+                        )}
+
                         {this.renderPactStreakCard(pact)}
 
                         {this.renderContinueSoloCard(pact, isActionLoading)}
@@ -930,6 +1034,14 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                                 <Text style={this.themeHabits.styles.pactCardInvitePrompt}>
                                     {this.translate('pages.pacts.renew.prompt')}
                                 </Text>
+                                {/* `renewPact` creates fresh member rows, so a pledge stays with
+                                    the cycle it was made on. Said up front rather than letting a
+                                    renewal silently drop a promise the member thinks they kept. */}
+                                {!!currentUserPledge && (
+                                    <Text style={this.themeHabits.styles.cadenceHint}>
+                                        {this.translate('pages.pacts.pledge.renewNotCarried')}
+                                    </Text>
+                                )}
                                 <Button
                                     buttonStyle={this.themeButtons.styles.btnLargeWithText}
                                     titleStyle={this.themeButtons.styles.btnLargeTitle}

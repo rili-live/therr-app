@@ -740,6 +740,17 @@ usersServiceRouter.put('/habits/pacts/:id/continue-solo', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
+// HABITS — the caller's own charity pledge on a pact. The body ({ amount, charityKey }) is
+// validated in users-service against the shared `getPledgeInputError`, so the curated charity
+// list has one definition rather than a second copy in a validator here.
+usersServiceRouter.put('/habits/pacts/:id/pledge', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.delete('/habits/pacts/:id/pledge', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'delete',
+}));
 // HABITS — Pact members (add/remove people from an existing pact)
 usersServiceRouter.post('/habits/pacts/:id/members', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,

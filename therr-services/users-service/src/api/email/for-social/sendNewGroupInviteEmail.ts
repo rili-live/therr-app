@@ -39,6 +39,7 @@ export default (emailParams: ISendNewGroupInviteEmailConfig, templateParams: ITe
         buttonHref: linkUrl,
         buttonText: contextConfig.brandGoLinkText,
         postBody1: translate(locale, 'emails.newGroupInvite.postBody1', { linkUrl }),
+        headerImageVariant: 'social' as const,
     };
 
     return sendEmail({

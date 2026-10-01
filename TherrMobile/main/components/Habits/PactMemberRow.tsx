@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { getPledgeCharity } from 'therr-js-utilities/constants';
 import { IPactMember } from 'therr-react/types';
 import { Avatar } from '../BaseAvatar';
 import { getUserImageUri } from '../../utilities/content';
 import { ITherrThemeColors } from '../../styles/themes';
+import { formatPledgeAmount, getValidPledge } from '../../utilities/pactPledge';
 
 interface IPactMemberRowProps {
     member: IPactMember;
@@ -15,6 +17,7 @@ interface IPactMemberRowProps {
     onMessagePress?: () => void;
     /** Creator-only. Present makes this member removable from the pact. */
     onRemovePress?: () => void;
+    locale?: string;
     themeHabits: {
         colors: ITherrThemeColors;
         styles: any;
@@ -76,10 +79,14 @@ const PactMemberRow: React.FC<IPactMemberRowProps> = ({
     onPress,
     onMessagePress,
     onRemovePress,
+    locale,
     themeHabits,
     translate,
 }) => {
     const name = getMemberName(member, translate);
+    // A partner's pledge is what makes it a pledge: someone they chose can see it. Shown only
+    // while they are in the pact, like the streak.
+    const pledge = member.status === 'active' ? getValidPledge(member) : null;
     const checkedInToday = getCheckedInToday(member);
     // Only meaningful for someone actually in the pact today.
     const showTodayState = member.status === 'active' && checkedInToday !== undefined;
@@ -113,6 +120,14 @@ const PactMemberRow: React.FC<IPactMemberRowProps> = ({
                     <Text style={themeHabits.styles.pactMemberMeta}>
                         {getMemberMeta(member, translate)}
                     </Text>
+                    {pledge && (
+                        <Text style={themeHabits.styles.pactMemberMeta}>
+                            {translate('pages.pacts.pledge.memberPledge', {
+                                amount: formatPledgeAmount(pledge.amount, locale),
+                                charity: getPledgeCharity(pledge.charityKey)?.name,
+                            })}
+                        </Text>
+                    )}
                 </View>
                 {showTodayState && (
                     <View

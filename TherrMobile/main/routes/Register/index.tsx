@@ -7,6 +7,8 @@ import 'react-native-gesture-handler';
 import { showToast } from '../../utilities/toasts';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
+import { BrandVariations } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildAuthFormStyles } from '../../styles/forms/authenticationForms';
@@ -20,6 +22,8 @@ import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
 import setPreLoginLocale from '../../redux/actions/setPreLoginLocale';
 import translator from '../../utilities/translator';
+import { logAppEvent } from '../../utilities/analyticsEvents';
+import { rememberCurrentUser } from '../../utilities/rememberedProfiles';
 import spacingStyles from '../../styles/layouts/spacing';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import LanguageSelector from '../../components/LanguageSelector';
@@ -142,6 +146,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
     };
 
     onSuccess = () => {
+        logAppEvent('sign_up_complete', { method: 'email' });
         showToast.success({
             text1: this.translate('alertTitles.waitlistSuccess'),
             text2: this.translate('alertMessages.waitlistSuccess'),
@@ -151,12 +156,33 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         });
     };
 
+    onPhoneSignupSuccess = ({ email, phoneNumber, password }: { email?: string; phoneNumber: string; password?: string }) => {
+        logAppEvent('sign_up_complete', { method: 'phone' });
+
+        // The number was verified a moment ago and phone signups skip e-mail verification, so a
+        // user who chose a password can be signed straight in. Sending them to Login instead cost
+        // a second SMS code before they saw anything. Without a password there is no credential
+        // to use yet (the sign-up token is scoped to registration), so fall back to Login.
+        if (email && password) {
+            this.props.login({
+                userName: email.toLowerCase().trim(),
+                password,
+                rememberMe: true,
+            })
+                .then(() => rememberCurrentUser(email))
+                .catch(() => this.goToLoginAfterPhoneSignup(phoneNumber));
+            return;
+        }
+
+        this.goToLoginAfterPhoneSignup(phoneNumber);
+    };
+
     /**
-     * Phone-first signups land on the sign-in screen already able to get in — their number is
-     * verified, so a texted code works right away. The message therefore nudges them to
-     * confirm the email they just entered rather than implying they are locked out.
+     * Phone-first signups without a password land on the sign-in screen already able to get
+     * in — their number is verified, so a texted code works right away. The message therefore
+     * nudges them to confirm the email they just entered rather than implying they are locked out.
      */
-    onPhoneSignupSuccess = ({ phoneNumber }: { phoneNumber: string }) => {
+    goToLoginAfterPhoneSignup = (phoneNumber: string) => {
         showToast.success({
             text1: this.translate('alertTitles.registerSuccess'),
             text2: this.translate('alertMessages.phoneRegisterSuccess'),
@@ -217,9 +243,23 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                 <Text style={this.themeFTUI.styles.titleWithNoSpacing}>
                                     {pageTitle}
                                 </Text>
-                                <Text style={this.themeFTUI.styles.subtitle}>
-                                    {pageSubtitle} <Text onPress={this.goToMap} style={this.themeForms.styles.buttonLink}>{pageSubtitleMapPreviewLink}</Text>
-                                </Text>
+                                {
+                                    // HABITS has no Map route, so the "public map" link was a dead tap.
+                                    CURRENT_BRAND_VARIATION === BrandVariations.HABITS
+                                        ? (
+                                            <Text style={this.themeFTUI.styles.subtitle}>
+                                                {this.translate('pages.register.pageSubtitleHabits')}
+                                            </Text>
+                                        )
+                                        : (
+                                            <Text style={this.themeFTUI.styles.subtitle}>
+                                                {pageSubtitle}{' '}
+                                                <Text onPress={this.goToMap} style={this.themeForms.styles.buttonLink}>
+                                                    {pageSubtitleMapPreviewLink}
+                                                </Text>
+                                            </Text>
+                                        )
+                                }
                             </View>
                             {
                                 isLanguageSelectorVisible

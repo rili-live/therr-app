@@ -18,7 +18,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import printLogs from 'therr-js-utilities/print-logs';
 import serialize from 'serialize-javascript';
 import {
-    BrandVariations, Categories, Cities, Content,
+    BrandVariations, Categories, Cities, Content, HABITS_FREE_HABIT_LIMIT,
 } from 'therr-js-utilities/constants';
 import { buildSpaceSlug } from 'therr-js-utilities/slugify';
 import { getGa4Configs } from 'therr-react/utilities/analytics';
@@ -487,9 +487,14 @@ const renderHabitsInviteView = async (req, res, match: IHabitsInviteRouteMatch) 
         avatarUri,
         hasAvatar: !!avatarUri,
         firstInitial,
-        // Surfaced so a user who installs first can still find their pact by code.
-        inviteCodeLabel: match.kind === 'claim-pact' ? 'Your pact code' : '',
-        inviteCode: match.kind === 'claim-pact' ? match.value : '',
+        // The claim-pact path segment is the long claim *token*, not the PACT-XXXX code that
+        // Register's code field accepts (users-service users.ts only redeems /^PACT-[A-Z0-9]{4}$/).
+        // Showing the token as "Your pact code" handed invitees a value they could not enter
+        // anywhere. The short code is in the invite email/SMS, and pact invites only go to
+        // people who already have an account the pact is attached to, so drop the line
+        // rather than add an endpoint that turns a token into a code.
+        inviteCodeLabel: '',
+        inviteCode: '',
     });
 };
 
@@ -502,6 +507,9 @@ app.use(async (req, res, next) => {
     // analytics without anyone remembering to wire it. That is the failure this
     // fixes — the views were never tagged at all, and nothing failed loudly.
     res.locals.gaMeasurementIdsJson = HABITS_GA_MEASUREMENT_IDS_JSON;
+    // Marketing copy quotes the free-tier cap; reading the constant keeps it from drifting when
+    // the default changes. An env override must be set on this deployment too, not only users-service.
+    res.locals.freeHabitLimit = HABITS_FREE_HABIT_LIMIT;
     // Crawler policy for this host. Deliberately permissive to AI retrieval agents —
     // GEO discovery is the point of this subdomain — but the personal, token-bearing
     // and auth-sensitive paths are kept out of the crawl budget. They already carry
@@ -594,7 +602,12 @@ app.use(async (req, res, next) => {
     if (profileMatch) {
         const userName = profileMatch[1];
         try {
-            const apiResponse = await axios.get(`/users-service/users/by-username/${encodeURIComponent(userName)}`);
+            // Same brand-scoping trap as resolveHabitsInviter: without the habits header the lookup
+            // resolves against axios' THERR default and 404s every habits-only profile.
+            const apiResponse = await axios.get(
+                `/users-service/users/by-username/${encodeURIComponent(userName)}`,
+                { headers: { 'x-brand-variation': BrandVariations.HABITS } },
+            );
             const userInView = apiResponse?.data;
             if (!userInView || !userInView.userName) {
                 return res.status(404).render('habits/profile-not-found', {

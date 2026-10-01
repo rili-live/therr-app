@@ -85,9 +85,10 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
         });
         ApiService.verifyPhone(phoneNumber)
             .then(() => {
+                // Fires when the code is *sent*; `phone_verify_code_success` is the verified
+                // step. Never attach the number itself — GA4 forbids PII in event params.
                 logEvent(getAnalytics(),'phone_verify_success', {
                     userId: user?.details?.id,
-                    phoneNumber,
                     platform: 'mobile',
                 }).catch((err) => console.log(err));
                 this.setState({

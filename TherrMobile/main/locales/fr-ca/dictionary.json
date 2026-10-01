@@ -1424,7 +1424,8 @@
                 "description": "Invitez 3 amis pour obtenir la réalisation Mondain et débloquer des récompenses!",
                 "shareLink": "Partager un lien",
                 "syncContacts": "Synchroniser les contacts",
-                "skip": "Passer pour le moment"
+                "skip": "Passer pour le moment",
+                "descriptionHabits": "Les habitudes tiennent quand un ami vous soutient. Partagez votre lien pour que vos amis vous rejoignent."
             },
             "pageHeaderContacts": "Trouvez vos amis",
             "pageSubHeaderContacts": "Synchronisez vos contacts pour voir qui est déjà ici",
@@ -1437,7 +1438,9 @@
                 "skip": "Pas maintenant",
                 "errorMessage": "Nous n’avons pas pu synchroniser vos contacts. Veuillez réessayer.",
                 "permissionsDenied": "L’accès aux contacts est désactivé. Activez-le dans les réglages de votre appareil pour trouver des amis."
-            }
+            },
+            "pageHeaderPhoneHabits": "Vérifiez votre numéro",
+            "pageSubHeaderPhoneHabits": "Vos invitations partent par texto depuis votre numéro, alors on vérifie d’abord qu’il est bien à vous."
         },
         "cropImage": {
             "headerTitle": "Recadrer l'image"
@@ -1729,7 +1732,8 @@
                 "momentDescription": "avec des amis ou gagnez des points bonus en tant qu'influenceur local",
                 "claimTitle": "Réclamez des récompenses",
                 "claimDescription": "en vous enregistrant dans des commerces locaux, en publiant du contenu ou en laissant un avis"
-            }
+            },
+            "alreadyHaveAccount": "J’ai déjà un compte"
         },
         "login": {
             "headerTitle": "{appName}",
@@ -1899,7 +1903,8 @@
             "passwordRequirements1": "Contient un mélange de lettres et de chiffres",
             "passwordRequirements2": "Au moins une lettre majuscule",
             "passwordRequirements3": "Au moins un caractère spécial !@#$%^&*",
-            "passwordRequirements4": "Au moins 8 caractères"
+            "passwordRequirements4": "Au moins 8 caractères",
+            "pageSubtitleHabits": "Créez votre compte et commencez votre premier pacte avec un ami."
         },
         "settings": {
             "headerTitle": "Paramètres",
@@ -2745,6 +2750,26 @@
                 "cycleLabel": "Cycle {number}",
                 "extendedFrom": "Prolongement du pacte précédent",
                 "continuedAs": "Poursuivi dans un pacte plus récent"
+            },
+            "pledge": {
+                "title": "Engagement caritatif",
+                "explainer": "Appuie cette habitude par une promesse : si tu manques une semaine, tu donnes à un organisme de bienfaisance de ton choix. L'argent ne passe jamais par l'appli, et tes partenaires de pacte voient ton engagement.",
+                "needsPartner": "Un engagement a besoin de quelqu'un pour le voir. Invite une personne à ce pacte pour en ajouter un.",
+                "add": "Ajouter un engagement",
+                "summary": "{amount} à {charity} si tu manques une semaine",
+                "startsNextWeek": "Commence lundi prochain. Cette semaine ne compte pas.",
+                "visibleToPartners": "Tes partenaires de pacte peuvent voir cet engagement.",
+                "amountLabel": "Montant par semaine manquée",
+                "charityLabel": "Organisme de bienfaisance",
+                "save": "Enregistrer l'engagement",
+                "cancel": "Annuler",
+                "edit": "Modifier l'engagement",
+                "remove": "Retirer l'engagement",
+                "saveSuccess": "Engagement enregistré",
+                "removeSuccess": "Engagement retiré",
+                "error": "Impossible de mettre à jour ton engagement. Réessaie.",
+                "memberPledge": "S'est engagé·e à donner {amount} à {charity}",
+                "renewNotCarried": "Ton engagement reste avec ce pacte. Ajoute-le de nouveau au nouveau pacte si tu veux le garder."
             }
         },
         "pushOptIn": {

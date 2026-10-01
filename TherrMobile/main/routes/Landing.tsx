@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
-import { View, Text, ImageProps, Pressable } from 'react-native';
+import { View, Text, ImageProps, Pressable, StyleSheet } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/BaseButton';
@@ -69,6 +69,14 @@ const FadeInBackgroundImage: React.FC<FadeInBackgroundImageProps> = ({ opacity, 
     );
 };
 
+const landingStyles = StyleSheet.create({
+    signInLinkTitle: {
+        color: 'white',
+        fontSize: 15,
+        textDecorationLine: 'underline',
+    },
+});
+
 const BackgroundOverlay = ({
     themeFTUI,
 }) => (
@@ -83,6 +91,8 @@ const ContentOverlay = ({
     backgroundButtonText,
     onButtonPress,
     onButtonBackPress,
+    onSignInPress,
+    signInText,
     themeAuthForm,
     themeForms,
     themeFTUI,
@@ -133,11 +143,19 @@ const ContentOverlay = ({
                     title={backgroundButtonText}
                     onPress={onButtonPress}
                 />
+                {/* Returning users (reinstall, new phone) otherwise had to swipe all three
+                    slides and reach Login through the Register screen's back link. */}
+                <Button
+                    type="clear"
+                    titleStyle={landingStyles.signInLinkTitle}
+                    title={signInText}
+                    onPress={onSignInPress}
+                    testID="landing-sign-in"
+                />
             </View>
         </Pressable>
     );
 };
-
 
 // const graphicStyles: any = {
 //     width: '100%',
@@ -254,6 +272,14 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
         navigation.navigate(routeName);
     };
 
+    onSignInPress = (e?: any) => {
+        e?.preventDefault?.();
+        logEvent(getAnalytics(), 'landing_sign_in_click', {
+            slideIndex: this.state.backgroundIndex,
+        }).catch((err) => console.log(err));
+        this.navTo('Login');
+    };
+
     prevBackground = () => {
         const { backgroundIndex } = this.state;
         if (backgroundIndex === 1) {
@@ -355,6 +381,8 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
                         backgroundButtonText={backgroundButtonText}
                         onButtonPress={onButtonPress}
                         onButtonBackPress={onButtonBackPress}
+                        onSignInPress={this.onSignInPress}
+                        signInText={this.translate('pages.landing.alreadyHaveAccount')}
                         themeAuthForm={this.themeAuthForm}
                         themeForms={this.themeForms}
                         themeFTUI={this.themeFTUI}

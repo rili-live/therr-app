@@ -12,6 +12,7 @@ import PactCard from './PactCard';
 import PactMemberRow from './PactMemberRow';
 import PactOnboardingGuard from './PactOnboardingGuard';
 import PactPreviewOverlay, { HABITS_PRESTAGED_TEMPLATE_ID } from './PactPreviewOverlay';
+import PledgeCard from './PledgeCard';
 import SavingsAmountInput from './SavingsAmountInput';
 import SavingsProgressCard from './SavingsProgressCard';
 import SentInviteCard from './SentInviteCard';
@@ -34,6 +35,7 @@ export {
     PactMemberRow,
     PactOnboardingGuard,
     PactPreviewOverlay,
+    PledgeCard,
     SavingsAmountInput,
     SavingsProgressCard,
     SentInviteCard,

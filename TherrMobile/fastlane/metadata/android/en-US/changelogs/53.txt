@@ -1,0 +1,7 @@
+What's new:
+• Charity pledges: back your pact with a pledge to a charity if you miss your week
+• Getting started takes fewer steps, and signing up with your phone signs you straight in
+• Returning? Sign in right from the welcome screen
+• Editing a check-in now shows the note and amount you already saved
+• Your weekly progress updates the moment you check in
+• Fixes and stability improvements

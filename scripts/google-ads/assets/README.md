@@ -59,16 +59,13 @@ Three of the six available screenshots are unusable as ad creative and the
 generator says so in a comment: the onboarding slides carry their own headline
 burned into the image, so a frame that supplies a headline ends up with two.
 
-## Still missing, and it is the expensive one
+## Video
 
-**Video.** An App campaign without one is limited to Search plus a narrow
-Display slice — a fraction of the inventory at a materially higher CPI, and it
-is the single largest lever on what an install costs.
+App campaign video assets must be **YouTube-hosted**, so the deliverable is a
+URL, not a file, and nothing video-shaped belongs in this directory. The first
+one — a 14s portrait clip made in Runway — is unlisted on YouTube and listed
+under `assets.videos` in `campaigns/habits-app-install.yaml`. Like the images
+above, it is not uploaded by `campaign apply`; attach it in the Google Ads UI.
 
-It cannot be produced here at all: App campaign video assets must be
-**YouTube-hosted**, so the deliverable is a URL, not a file, and a channel for
-Friends with Habits is a prerequisite. One 15–30s portrait clip is enough to
-start. Tracked in `docs/WORK_IN_PROGRESS.md § Paid acquisition`.
-
-Also outstanding, though it is a Play requirement rather than an Ads one: the
+Still outstanding, though it is a Play requirement rather than an Ads one: the
 1024×500 feature graphic, in `docs/niche-sub-apps/HABITS_PLAY_LISTING.md`.

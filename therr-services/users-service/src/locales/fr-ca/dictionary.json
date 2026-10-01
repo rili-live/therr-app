@@ -47,7 +47,10 @@
             "notPending": "Tu as déjà répondu à ce pacte",
             "nudgeCreatorOnly": "Seule la personne qui a créé ce pacte peut envoyer un rappel",
             "nudgeNoPendingPartners": "Tout le monde a déjà répondu à ce pacte",
-            "nudgeNotPending": "Ce pacte a déjà commencé, il ne reste donc personne à relancer"
+            "nudgeNotPending": "Ce pacte a déjà commencé, il ne reste donc personne à relancer",
+            "invalidPledgeAmount": "Choisis un engagement en dollars entiers, entre 1 $ et 500 $ US",
+            "invalidPledgeCharity": "Choisis un organisme de bienfaisance dans la liste",
+            "pledgeNotAllowed": "Tu peux seulement prendre un engagement dans un pacte en attente ou en cours"
         },
         "habits": {
             "freeTierHabitLimitReached": "Les comptes gratuits peuvent suivre {limit} habitudes à la fois. Archives-en une ou débloque tout à vie.",

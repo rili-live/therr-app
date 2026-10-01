@@ -125,3 +125,91 @@ describe('CheckinDetailForm — measured habit amount', () => {
         expect(amountInput()).toBeUndefined();
     });
 });
+
+describe('CheckinDetailForm — editing a check-in that already has an amount', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+        mounted.splice(0).forEach((c) => act(() => c.unmount()));
+    });
+
+    const noteInput = (component: renderer.ReactTestRenderer) => component.root
+        .findAllByType(TextInput)
+        .find((node) => node.props.placeholder === 'pages.habits.checkinProof.notePlaceholder');
+
+    it('prefills the saved amount and note rather than opening empty', async () => {
+        const { component, amountInput, lastDraft } = await renderForm({
+            initialSavedAmount: 30,
+            initialNotes: 'Chapter 4',
+        });
+
+        expect(amountInput()!.props.value).toBe('30');
+        expect(noteInput(component)!.props.value).toBe('Chapter 4');
+        expect(lastDraft().savedAmount).toBe(30);
+    });
+
+    it('applies a saved amount that arrives after mount (the screen fetches it)', async () => {
+        const { component, amountInput } = await renderForm();
+        await act(async () => {
+            component.update(
+                <PaperProvider>
+                    <CheckinDetailForm
+                        habitName="Read"
+                        userId="me"
+                        amountUnit="pages"
+                        initialSavedAmount={12.5}
+                        onChange={jest.fn()}
+                        translate={translate}
+                        colors={getTheme('light').colors}
+                        styles={buildHabitStyles('light').styles}
+                    />
+                </PaperProvider>,
+            );
+        });
+
+        expect(amountInput()!.props.value).toBe('12.5');
+    });
+
+    it('does not overwrite what the user already typed when the saved amount arrives late', async () => {
+        const onChange = jest.fn();
+        const { component, amountInput } = await renderForm({ onChange });
+        await act(async () => {
+            amountInput()!.props.onChangeText('45');
+        });
+        await act(async () => {
+            component.update(
+                <PaperProvider>
+                    <CheckinDetailForm
+                        habitName="Read"
+                        userId="me"
+                        amountUnit="pages"
+                        initialSavedAmount={12}
+                        onChange={onChange}
+                        translate={translate}
+                        colors={getTheme('light').colors}
+                        styles={buildHabitStyles('light').styles}
+                    />
+                </PaperProvider>,
+            );
+        });
+
+        expect(amountInput()!.props.value).toBe('45');
+    });
+
+    it('sends null to clear a prefilled amount the user emptied', async () => {
+        const { amountInput, lastDraft } = await renderForm({ initialSavedAmount: 30 });
+        await act(async () => {
+            amountInput()!.props.onChangeText('');
+        });
+
+        expect(lastDraft().savedAmount).toBeNull();
+    });
+
+    it('never sends null for a field that was empty from the start', async () => {
+        const { lastDraft } = await renderForm({ initialSavedAmount: null });
+
+        expect(lastDraft().savedAmount).toBeUndefined();
+    });
+});
