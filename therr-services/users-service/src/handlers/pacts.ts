@@ -4,6 +4,7 @@ import {
     getPledgeInputError,
     IHabitPledge,
     MetricNames,
+    Notifications,
     PushNotifications,
 } from 'therr-js-utilities/constants';
 import { parseHeaders } from 'therr-js-utilities/http';
@@ -47,6 +48,48 @@ import {
 const MAX_BULK_INVITEES = 5;
 
 const dedupeUserIds = (ids: string[]): string[] => Array.from(new Set(ids.filter((id): id is string => typeof id === 'string' && id.length > 0)));
+
+/**
+ * Writes the invitee's in-app notification row. The push alone never reached the notification
+ * list, so an invitee already signed in to the app had nothing in it to act on. Written whatever
+ * channel `dispatchPactInvitation` picks: a row in this brand's list is what a partner who is
+ * not yet on Habits finds after they install and sign in. Fire and forget — the pact and its
+ * pending member row already exist, and a failed notification must not fail the request.
+ * The insert is deferred into the promise because `scopedInsert` throws synchronously on a
+ * missing or unknown brand, which `.catch` alone would not see.
+ */
+const createPactInvitationNotification = (brandVariation: string, {
+    toUserId,
+    pactId,
+    fromUserId,
+    fromUserName,
+    habitName,
+}: {
+    toUserId: string;
+    pactId: string;
+    fromUserId: string;
+    fromUserName: string;
+    habitName: string;
+}) => Promise.resolve().then(() => Store.notifications.createNotification(brandVariation, {
+    userId: toUserId,
+    type: Notifications.Types.PACT_INVITATION,
+    associationId: pactId,
+    isUnread: true,
+    messageLocaleKey: Notifications.MessageKeys.PACT_INVITATION,
+    messageParams: {
+        pactId,
+        userId: fromUserId,
+        fromUserName,
+        habitName,
+    },
+})).catch((err) => {
+    logSpan({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: ['Error creating pact invitation notification'],
+        traceArgs: { 'error.message': err?.message, toUserId, pactId },
+    });
+});
 
 // CREATE
 const createPact: RequestHandler = async (req: any, res: any) => {
@@ -153,6 +196,14 @@ const createPact: RequestHandler = async (req: any, res: any) => {
                     userId: partnerUserId,
                     role: 'partner',
                     status: 'pending',
+                });
+
+                createPactInvitationNotification(brandVariation, {
+                    toUserId: partnerUserId,
+                    pactId: pact.id,
+                    fromUserId: userId,
+                    fromUserName: userName,
+                    habitName: habitGoal.name,
                 });
 
                 // Cross-app routing: if the partner has not used Habits, send
@@ -329,6 +380,13 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
 
             partnerMembers.forEach((member: any) => {
                 const toUserId = member.userId;
+                createPactInvitationNotification(brandVariation, {
+                    toUserId,
+                    pactId: pact.id,
+                    fromUserId: userId,
+                    fromUserName: userName,
+                    habitName: habitGoal.name,
+                });
                 // Mirror createPact's recovery: a dispatch error must still
                 // try the on-brand push, otherwise a transient DB error in
                 // partner lookup silently drops the notification for a Habits
@@ -1247,6 +1305,13 @@ const renewPact: RequestHandler = async (req: any, res: any) => {
 
                 partnerMembers.forEach((member: any) => {
                     const toUserId = member.userId;
+                    createPactInvitationNotification(brandVariation, {
+                        toUserId,
+                        pactId: renewed.id,
+                        fromUserId: userId,
+                        fromUserName: userName,
+                        habitName: habitGoal.name,
+                    });
                     dispatchPactInvitation({
                         pactMemberId: member.id,
                         partnerUserId: toUserId,
@@ -1397,6 +1462,13 @@ const addPactMembers: RequestHandler = async (req: any, res: any) => {
 
         newMembers.forEach((member: any) => {
             const toUserId = member.userId;
+            createPactInvitationNotification(brandVariation, {
+                toUserId,
+                pactId: id,
+                fromUserId: userId,
+                fromUserName: userName,
+                habitName,
+            });
             dispatchPactInvitation({
                 pactMemberId: member.id,
                 partnerUserId: toUserId,

@@ -677,7 +677,8 @@ export class PhoneSignupFormComponent extends React.Component<
                                         onPress={this.props.onSwitchToEmailSignup}
                                     />
                                 </View>
-                                <View style={themeForms.styles.moreLinksContainer}>
+                                {/* Separate the two links so their tap targets don't touch. */}
+                                <View style={[themeForms.styles.moreLinksContainer, spacingStyles.marginTopXLg]}>
                                     <Button
                                         type="clear"
                                         titleStyle={themeForms.styles.buttonLink}

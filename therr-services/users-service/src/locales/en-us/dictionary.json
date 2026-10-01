@@ -142,7 +142,8 @@
         "newGroupInvite": "{inviterUserName} invited you to join {groupName}",
         "newAreasActivated": "You just unlocked {totalAreasActivated} new area(s) — explore what's nearby!",
         "discoveredUniqueMoment": "You found something special! Open the map to check it out.",
-        "discoveredUniqueSpace": "Hidden gem alert — you're near a unique space!"
+        "discoveredUniqueSpace": "Hidden gem alert — you're near a unique space!",
+        "pactInvitation": "{fromUserName} invited you to a pact: {habitName}"
     },
     "invites": {
         "phone": "{name} invited you to {brandName}{brandTagline}. Sign up here to connect: {inviteUrl}",

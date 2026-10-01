@@ -142,7 +142,8 @@
         "newGroupInvite": "{inviterUserName} te invitó a unirte a {groupName}",
         "newAreasActivated": "¡Acabas de desbloquear {totalAreasActivated} nueva(s) área(s) — explora lo que hay cerca!",
         "discoveredUniqueMoment": "¡Encontraste algo especial! Abre el mapa para verlo.",
-        "discoveredUniqueSpace": "Alerta de joya oculta — ¡estás cerca de un espacio único!"
+        "discoveredUniqueSpace": "Alerta de joya oculta — ¡estás cerca de un espacio único!",
+        "pactInvitation": "{fromUserName} te invitó a un pacto: {habitName}"
     },
     "invites": {
         "phone": "{name} te invitó a {brandName}{brandTagline}. Regístrate aquí para conectar: {inviteUrl}",

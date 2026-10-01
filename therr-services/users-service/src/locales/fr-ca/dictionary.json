@@ -142,7 +142,8 @@
         "newGroupInvite": "{inviterUserName} t'a invité à rejoindre {groupName}",
         "newAreasActivated": "Tu viens de débloquer {totalAreasActivated} nouveau(x) secteur(s) — explore ce qu'il y a à proximité!",
         "discoveredUniqueMoment": "Tu as trouvé quelque chose de spécial! Ouvre la carte pour y jeter un coup d'œil.",
-        "discoveredUniqueSpace": "Alerte trésor caché — tu es près d'un espace unique!"
+        "discoveredUniqueSpace": "Alerte trésor caché — tu es près d'un espace unique!",
+        "pactInvitation": "{fromUserName} t'a invité à un pacte : {habitName}"
     },
     "invites": {
         "phone": "{name} t'a invité sur {brandName}{brandTagline}. Inscris-toi ici pour te connecter : {inviteUrl}",

@@ -30,6 +30,7 @@ const getHighlightValues = (notification: any): string[] => {
         if (params.fromUserName) values.push(params.fromUserName);
         if (params.members) values.push(params.members);
         if (params.groupName) values.push(params.groupName);
+        if (params.habitName) values.push(params.habitName);
         if (params.totalAreasActivated) values.push(String(params.totalAreasActivated));
     }
 
@@ -63,6 +64,9 @@ const getHighlightValues = (notification: any): string[] => {
         values.push('activate a moment', 'activar un momento', 'quelque chose de spécial');
     } else if (type === NotificationEnums.Types.DISCOVERED_UNIQUE_SPACE) {
         values.push('activate a space', 'activar un espacio', 'espace unique');
+    } else if (type === NotificationEnums.Types.PACT_INVITATION) {
+        // Must match users-service `notifications.pactInvitation` in each locale.
+        values.push('invited you to a pact', 'te invitó a un pacto', 'invité à un pacte');
     }
 
     return values;

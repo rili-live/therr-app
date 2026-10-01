@@ -1,0 +1,5 @@
+Nouveautés :
+• Les invitations à un pacte apparaissent maintenant dans vos notifications. Touchez-en une pour l'accepter ou la refuser
+• Liens plus faciles à toucher sur l'écran d'inscription par téléphone
+• Les invitations de groupe ouvrent le bon groupe
+• Corrections et améliorations
