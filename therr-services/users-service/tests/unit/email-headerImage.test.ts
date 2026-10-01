@@ -67,7 +67,14 @@ describe('sendEmail header image', () => {
         expect(sentHtml()).to.contain('/assets/images/email-header.jpg');
     });
 
-    it('only references header images that exist in therr-client-web static assets', () => {
+    it('only references header images that exist in therr-client-web static assets', function test() {
+        if (!fs.existsSync(webStaticDir)) {
+            // The service is also built and tested in a container that only copies
+            // therr-services/users-service — skip rather than fail on a missing peer package.
+            // `this.skip()` throws, so nothing below runs.
+            this.skip();
+        }
+
         Object.values(hostContext).forEach(({ emailTemplates }) => {
             [emailTemplates.headerImageRelativePath, ...Object.values(emailTemplates.headerImageVariants || {})]
                 .filter(Boolean)
