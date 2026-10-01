@@ -18,7 +18,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import printLogs from 'therr-js-utilities/print-logs';
 import serialize from 'serialize-javascript';
 import {
-    BrandVariations, Categories, Cities, Content,
+    BrandVariations, Categories, Cities, Content, HABITS_FREE_HABIT_LIMIT,
 } from 'therr-js-utilities/constants';
 import { buildSpaceSlug } from 'therr-js-utilities/slugify';
 import { getGa4Configs } from 'therr-react/utilities/analytics';
@@ -507,6 +507,9 @@ app.use(async (req, res, next) => {
     // analytics without anyone remembering to wire it. That is the failure this
     // fixes — the views were never tagged at all, and nothing failed loudly.
     res.locals.gaMeasurementIdsJson = HABITS_GA_MEASUREMENT_IDS_JSON;
+    // Marketing copy quotes the free-tier cap; reading the constant keeps it from drifting when
+    // the default changes. An env override must be set on this deployment too, not only users-service.
+    res.locals.freeHabitLimit = HABITS_FREE_HABIT_LIMIT;
     // Crawler policy for this host. Deliberately permissive to AI retrieval agents —
     // GEO discovery is the point of this subdomain — but the personal, token-bearing
     // and auth-sensitive paths are kept out of the crawl budget. They already carry

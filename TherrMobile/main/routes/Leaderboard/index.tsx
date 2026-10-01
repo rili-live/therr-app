@@ -304,7 +304,7 @@ export const Leaderboard = ({
                 {/* flex: 1 bounds the body to the screen so the FlatList, not the body, absorbs the height of
                     the placement card, tabs and reset countdown above it. Without it the list's last rows
                     overflow off-screen and can never be scrolled into view. */}
-                <View style={[theme.styles.body, { flex: 1, backgroundColor: theme.colors.backgroundGray }]}>
+                <View style={[theme.styles.body, themeLeaderboard.styles.body, { backgroundColor: theme.colors.backgroundGray }]}>
                     {renderInlinePlacement()}
                     <View style={themeLeaderboard.styles.tabsContainer}>
                         {renderTab('pages.leaderboard.tabs.thisWeek', period === 'week', () => setPeriod('week'))}

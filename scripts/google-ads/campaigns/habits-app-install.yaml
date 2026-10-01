@@ -123,11 +123,13 @@ assets:
         - scripts/google-ads/assets/habits/portrait-1200x1500-streak.png
         - scripts/google-ads/assets/habits/portrait-1200x1500-pact.png
         - scripts/google-ads/assets/habits/portrait-1200x1500-partner.png
-    # Still empty, and it is the expensive gap: without video an App campaign is
-    # limited to Search and a narrow Display slice. App campaign video assets
-    # must be YouTube-HOSTED, so this takes a URL, not a file, and a channel is
-    # a prerequisite. The validator warns on every run until it is filled.
-    videos: []
+    # App campaign video assets must be YouTube-HOSTED, so this takes a URL, not
+    # a file. Without one the campaign is limited to Search and a narrow Display
+    # slice. Unlisted is enough for Ads; the master .mp4 lives outside the repo.
+    # Like images, this is NOT uploaded by `apply` -- attach it in the Ads UI.
+    videos:
+        # 14s portrait (Runway, 2026-09-29): "Friends with Habits is free on Google Play".
+        - "https://www.youtube.com/watch?v=8IArnFqK0Sw"
 
 tracking:
     # Recorded for documentation and for the reporting join only. An App
