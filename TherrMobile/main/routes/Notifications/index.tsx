@@ -258,13 +258,17 @@ class Notifications extends React.Component<
             const groupId = notification.associationId || notification.messageParams?.groupId;
             if (groupId) {
                 navigation.navigate('ViewGroup', {
-                    id: notification.associationId,
+                    id: groupId,
                 });
             } else {
                 navigation.navigate('Groups', {
                     activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
                 });
             }
+        } else if (notification.type === NotificationsEmuns.Types.PACT_INVITATION) {
+            // Same destination as the pactInvitation push: the pending tab is where the invite
+            // is accepted or declined.
+            navigation.navigate('HabitsDashboard', { initialTab: 'pending' });
         }
     };
 
