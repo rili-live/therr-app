@@ -130,6 +130,9 @@ assets:
     videos:
         # 14s portrait (Runway, 2026-09-29): "Friends with Habits is free on Google Play".
         - "https://www.youtube.com/watch?v=8IArnFqK0Sw"
+        # 9:16 YouTube Short (2026-10-01): "achieve goals with support from a coach or friends".
+        # Normalised from the /shorts/ share link to the watch?v= form used above.
+        - "https://www.youtube.com/watch?v=_1vXPuQiVHk"
 
 tracking:
     # Recorded for documentation and for the reporting join only. An App

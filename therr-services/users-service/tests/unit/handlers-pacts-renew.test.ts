@@ -152,6 +152,7 @@ describe('Pact renewal — handler', () => {
         });
         sinon.stub(Store.userHabits, 'getOrCreate').resolves({} as any);
         sinon.stub(Store.users, 'findUser').resolves([] as any);
+        sinon.stub(Store.notifications, 'createNotification').resolves([] as any);
     };
 
     const endedPact = (overrides: any = {}) => ({
@@ -233,6 +234,50 @@ describe('Pact renewal — handler', () => {
         // Pending invites mean the pact activates on the first acceptance, the
         // same path every other pact follows.
         expect(createdPact.status).to.equal('pending');
+    });
+
+    // The push alone never reached the in-app notification list, so a partner already signed in
+    // had nothing there to act on.
+    it('writes an in-app pact invitation for each re-invited partner', async () => {
+        stubStores({
+            pact: endedPact(),
+            members: [
+                { userId: RENEWER, status: 'active', role: 'creator' },
+                { userId: PARTNER, status: 'active', role: 'partner' },
+            ],
+        });
+
+        await run();
+
+        const createNotification = Store.notifications.createNotification as sinon.SinonStub;
+        expect(createNotification.callCount).to.equal(1);
+        const [brand, params] = createNotification.firstCall.args;
+        expect(brand).to.equal('habits');
+        expect(params).to.include({
+            userId: PARTNER,
+            type: 'PACT_INVITATION',
+            associationId: 'pact-2',
+            messageLocaleKey: 'notifications.pactInvitation',
+        });
+        expect(params.messageParams).to.include({ habitName: 'Morning run', userId: RENEWER });
+    });
+
+    // The brand-scoped insert throws synchronously on a missing or unknown brand. Left uncaught,
+    // that turned a renewal whose pact already existed into a 500.
+    it('still renews when writing the in-app invitation throws synchronously', async () => {
+        stubStores({
+            pact: endedPact(),
+            members: [
+                { userId: RENEWER, status: 'active', role: 'creator' },
+                { userId: PARTNER, status: 'active', role: 'partner' },
+            ],
+        });
+        (Store.notifications.createNotification as sinon.SinonStub).throws(new Error('missing brand context'));
+
+        const { statusCode } = await run();
+
+        expect(statusCode).to.equal(201);
+        expect(bulkMembers).to.have.length(1);
     });
 
     it('activates immediately when nobody is left to accept', async () => {
