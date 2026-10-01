@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The widget picker's preview of the streak widget on Android 12+ (previewLayout in
+  xml/habits_streak_widget_info.xml): widget_habits_streak.xml with a sample count filled in,
+  since the real layout starts in its empty state. Keep the two in step. Older pickers show
+  previewImage, the chameleon art alone.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/habits_streak_widget_background"
+    android:clipToOutline="true"
+    tools:targetApi="31">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop"
+        android:src="@drawable/habits_streak_widget_art" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingStart="10dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="10dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="2dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/habits_streak_widget_flame" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:shadowColor="@color/habits_streak_widget_text_shadow"
+                android:shadowDy="1"
+                android:shadowRadius="4"
+                android:text="@string/habits_streak_widget_preview_count"
+                android:textColor="@color/habits_widget_text"
+                android:textSize="34sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:shadowColor="@color/habits_streak_widget_text_shadow"
+            android:shadowDy="1"
+            android:shadowRadius="4"
+            android:text="@string/habits_streak_widget_preview_label"
+            android:textColor="@color/habits_streak_widget_label"
+            android:textSize="13sp" />
+    </LinearLayout>
+</FrameLayout>

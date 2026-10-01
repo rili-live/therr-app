@@ -44,6 +44,10 @@ import kotlin.math.max
  * tap only records the choice in prefs ([KEY_SCOPE]) and redraws — no launch, no fetch, works
  * offline. The choice outlives refreshes and reboots; until one is made the widget shows the
  * snapshot's own default `scope`.
+ *
+ * [HabitsStreakWidgetProvider] is a second widget over the same snapshot. The snapshot store,
+ * the refresh request and "is any widget placed" live here and cover both, so a streak widget
+ * alone on a home screen still keeps the snapshot fresh, and every publish redraws both.
  */
 class HabitsWidgetProvider : AppWidgetProvider() {
 
@@ -80,7 +84,7 @@ class HabitsWidgetProvider : AppWidgetProvider() {
             val scope = intent.getStringExtra(EXTRA_SCOPE)
             if (scope == SCOPE_CONNECTIONS || scope == SCOPE_GLOBAL) {
                 prefs(context).edit().putString(KEY_SCOPE, scope).apply()
-                refreshAll(context)
+                drawLeaderboards(context)
             }
             return
         }
@@ -95,10 +99,10 @@ class HabitsWidgetProvider : AppWidgetProvider() {
         /** The board last picked on the toggle, or absent for the snapshot's default. */
         const val KEY_SCOPE = "scope"
 
-        private const val ACTION_OPEN_APP = "WIDGET_OPEN_APP"
+        internal const val ACTION_OPEN_APP = "WIDGET_OPEN_APP"
         private const val ACTION_OPEN_LEADERBOARD = "WIDGET_OPEN_LEADERBOARD"
         private const val ACTION_OPEN_LEADERBOARD_GLOBAL = "WIDGET_OPEN_LEADERBOARD_GLOBAL"
-        private const val ACTION_OPEN_TODAY = "WIDGET_OPEN_TODAY"
+        internal const val ACTION_OPEN_TODAY = "WIDGET_OPEN_TODAY"
         private const val ACTION_INVITE_FRIENDS = "WIDGET_INVITE_FRIENDS"
         private const val ACTION_REFRESH = "WIDGET_REFRESH"
         private const val ACTION_SET_SCOPE = "WIDGET_SET_SCOPE"
@@ -133,11 +137,21 @@ class HabitsWidgetProvider : AppWidgetProvider() {
             AppWidgetManager.getInstance(context)
                 .getAppWidgetIds(ComponentName(context, HabitsWidgetProvider::class.java))
 
-        /** Whether at least one widget is placed. The refresh worker skips its fetch otherwise. */
-        fun hasWidgets(context: Context): Boolean = widgetIds(context).isNotEmpty()
+        /**
+         * Whether at least one widget of either kind is placed. The refresh worker skips its
+         * fetch otherwise.
+         */
+        fun hasWidgets(context: Context): Boolean =
+            widgetIds(context).isNotEmpty() || HabitsStreakWidgetProvider.hasWidgets(context)
 
-        /** Redraw every placed widget from the stored snapshot. */
+        /** Redraw every placed widget, of both kinds, from the stored snapshot. */
         fun refreshAll(context: Context) {
+            drawLeaderboards(context)
+            HabitsStreakWidgetProvider.drawAll(context)
+        }
+
+        /** Redraw the leaderboard widgets only — for a toggle tap, which the streak cannot show. */
+        private fun drawLeaderboards(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
             val ids = widgetIds(context)
             if (ids.isEmpty()) return
@@ -175,7 +189,11 @@ class HabitsWidgetProvider : AppWidgetProvider() {
             return since > 0L && now - since in 0 until REFRESH_IN_FLIGHT_MS
         }
 
-        private fun readSnapshot(context: Context): JSONObject? {
+        /** Whether a background refresh is believed to be running right now. */
+        internal fun isRefreshing(context: Context): Boolean =
+            isRefreshing(prefs(context), System.currentTimeMillis())
+
+        internal fun readSnapshot(context: Context): JSONObject? {
             val raw = prefs(context).getString(KEY_SNAPSHOT, null) ?: return null
             return runCatching { JSONObject(raw) }.getOrNull()
         }
@@ -410,7 +428,7 @@ class HabitsWidgetProvider : AppWidgetProvider() {
             return row
         }
 
-        private fun tapIntent(context: Context, actionSuffix: String, requestCode: Int): PendingIntent {
+        internal fun tapIntent(context: Context, actionSuffix: String, requestCode: Int): PendingIntent {
             val intent = Intent(context, MainActivity::class.java).apply {
                 action = "${context.packageName}.$actionSuffix"
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP

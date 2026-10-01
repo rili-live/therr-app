@@ -9,4 +9,10 @@
     <color name="habits_widget_text_muted">#D9D2E3</color>
     <color name="habits_widget_accent">#F2B233</color>
     <color name="habits_widget_track">#33FCFEFF</color>
+    <!-- Streak widget (layout/widget_habits_streak.xml). The sky is the art's top row; see
+         resources/widget-art/build_streak_widget_art.py. -->
+    <color name="habits_streak_widget_sky">#0F1136</color>
+    <color name="habits_streak_widget_flame_core">#FFE08A</color>
+    <color name="habits_streak_widget_label">#EDE8F5</color>
+    <color name="habits_streak_widget_text_shadow">#73000000</color>
 </resources>

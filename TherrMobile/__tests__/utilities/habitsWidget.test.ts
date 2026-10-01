@@ -124,6 +124,55 @@ describe('buildHabitsWidgetSnapshot', () => {
     });
 });
 
+describe('streak widget block', () => {
+    const withStreak = (dailyStreak?: number) => ({
+        connections: { ...friendsBoard, currentUser: { rank: 4, points: 420, dailyStreak } },
+        global: { ...globalBoard, currentUser: { rank: 48, points: 420, dailyStreak } },
+    });
+
+    it("carries the user's daily streak with the plural label beside it", () => {
+        const { buildHabitsWidgetSnapshot } = loadModule();
+        const snapshot = buildHabitsWidgetSnapshot(boards, { done: 0, total: 1 }, translate);
+
+        expect(snapshot.streak).toEqual({ days: 12, label: 'pages.celebration.streak.dayStreak' });
+    });
+
+    it('says one day in the singular, which Spanish and French need', () => {
+        const { buildHabitsWidgetSnapshot } = loadModule();
+
+        expect(buildHabitsWidgetSnapshot(withStreak(1), { done: 1, total: 1 }, translate).streak)
+            .toEqual({ days: 1, label: 'pages.habits.widget.streakDayOne' });
+    });
+
+    it('asks for a check-in instead of labelling a zero, missing or broken streak', () => {
+        const { buildHabitsWidgetSnapshot } = loadModule();
+        [0, undefined, NaN].forEach((dailyStreak) => {
+            expect(buildHabitsWidgetSnapshot(withStreak(dailyStreak), { done: 0, total: 1 }, translate).streak)
+                .toEqual({ days: 0, label: 'pages.habits.widget.streakStart' });
+        });
+    });
+
+    it('still finds the streak when one board left the requester out', () => {
+        const { buildHabitsWidgetSnapshot } = loadModule();
+        const snapshot = buildHabitsWidgetSnapshot(
+            { connections: { ...friendsBoard, currentUser: undefined }, global: globalBoard },
+            { done: 0, total: 1 },
+            translate,
+        );
+
+        expect(snapshot.streak.days).toBe(12);
+    });
+
+    it('has every streak label in every locale', () => {
+        const dictionaries = ['en-us', 'es', 'fr-ca'].map((locale) => require(`../../main/locales/${locale}/dictionary.json`));
+        dictionaries.forEach((dictionary) => {
+            expect(typeof dictionary.pages.habits.widget.streakDayOne).toBe('string');
+            expect(typeof dictionary.pages.habits.widget.streakStart).toBe('string');
+            expect(typeof dictionary.pages.celebration.streak.dayStreak).toBe('string');
+        });
+    });
+});
+
 describe('hasFriendsOnBoard', () => {
     it('is false when the requester is the only one on it', () => {
         const { hasFriendsOnBoard } = loadModule();

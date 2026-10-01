@@ -11,6 +11,9 @@ import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
  * and redraws every placed widget (android/.../widget/HabitsWidgetProvider.kt). `periodEnd`
  * lets the widget notice a week rollover on its own and stop showing last week's rank.
  *
+ * The same snapshot feeds a second, smaller widget (android/.../widget/HabitsStreakWidgetProvider.kt)
+ * that shows only `streak`: the app-level daily streak, with its label already pluralized here.
+ *
  * Both boards ride in every snapshot so the widget's Friends / Everyone toggle switches
  * instantly, offline included. The choice is stored natively and sticks across refreshes and
  * reboots; until the user makes one, the widget shows `scope` (friends, or global for a user
@@ -78,6 +81,11 @@ export interface IHabitsWidgetSnapshot {
     periodEnd: string | null;
     updatedAt: number;
     today: { done: number; total: number };
+    /**
+     * The app-level daily streak, for the streak widget. `label` is what sits under the count
+     * ("day streak", pluralized for `days`), or the prompt to start one when `days` is 0.
+     */
+    streak: { days: number; label: string };
     boards: Record<HabitsWidgetScope, IHabitsWidgetBoardView>;
     labels: {
         /** The toggle's two segments. */
@@ -149,6 +157,19 @@ const buildBoardView = (
     };
 };
 
+/**
+ * The line under the streak widget's count. Chosen here rather than natively so it follows the
+ * in-app locale; Spanish and French need the singular at 1, and English reads the same either way.
+ */
+export const getStreakLabel = (days: number, translate: Translate): string => {
+    if (days <= 0) {
+        return translate('pages.habits.widget.streakStart');
+    }
+    return days === 1
+        ? translate('pages.habits.widget.streakDayOne')
+        : translate('pages.celebration.streak.dayStreak');
+};
+
 export const buildHabitsWidgetSnapshot = (
     boards: IHabitsWidgetBoards,
     today: { done: number; total: number },
@@ -158,6 +179,10 @@ export const buildHabitsWidgetSnapshot = (
     const total = Math.max(0, today.total);
     const done = Math.min(Math.max(0, today.done), total);
     const hasFriends = hasFriendsOnBoard(boards.connections);
+    const friendsBoard = buildBoardView(boards.connections, 'connections', translate);
+    const globalBoard = buildBoardView(boards.global, 'global', translate);
+    // The same number on both boards; the larger survives a board that left `currentUser` out.
+    const streakDays = Math.max(friendsBoard.you.dailyStreak, globalBoard.you.dailyStreak);
 
     return {
         v: 2,
@@ -167,10 +192,8 @@ export const buildHabitsWidgetSnapshot = (
         periodEnd: boards.connections.periodEnd || boards.global.periodEnd || null,
         updatedAt: now,
         today: { done, total },
-        boards: {
-            connections: buildBoardView(boards.connections, 'connections', translate),
-            global: buildBoardView(boards.global, 'global', translate),
-        },
+        streak: { days: streakDays, label: getStreakLabel(streakDays, translate) },
+        boards: { connections: friendsBoard, global: globalBoard },
         labels: {
             scopeFriends: translate('pages.leaderboard.tabs.friends'),
             scopeEveryone: translate('pages.leaderboard.tabs.everyone'),

@@ -2247,7 +2247,9 @@
                 "minutesAgo": "{minutes}m ago",
                 "hoursAgo": "{hours}h ago",
                 "daysAgo": "{days}d ago",
-                "refreshHint": "Updated {ago}. Tap to refresh"
+                "refreshHint": "Updated {ago}. Tap to refresh",
+                "streakDayOne": "day streak",
+                "streakStart": "Check in today to start your streak"
             },
             "upgradeNudge": {
                 "nearCapTitle": "{used} of {limit} free habits in use",

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Streak widget card. The chameleon art covers it edge to edge; this is the sky color the art
+     fades in from (its top row), so the moment before the art draws and any sliver the crop leaves
+     read as more of the same night sky. The corners are what clipToOutline clips the art to. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="16dp" />
+    <solid android:color="@color/habits_streak_widget_sky" />
+</shape>

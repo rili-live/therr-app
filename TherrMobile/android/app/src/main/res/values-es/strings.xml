@@ -6,4 +6,12 @@
     <string name="habits_widget_loading">Cargando tu progreso…</string>
     <string name="habits_widget_refreshing">Actualizando…</string>
     <string name="habits_widget_refresh_hint">Toca para actualizar</string>
+    <string name="habits_streak_widget_label">Racha de hábitos</string>
+    <string name="habits_streak_widget_description">Tu racha diaria de un vistazo</string>
+    <string name="habits_streak_widget_start">Registra un hábito hoy para empezar tu racha</string>
+    <plurals name="habits_streak_widget_days">
+        <item quantity="one">día seguido</item>
+        <item quantity="other">días seguidos</item>
+    </plurals>
+    <string name="habits_streak_widget_preview_label">días seguidos</string>
 </resources>

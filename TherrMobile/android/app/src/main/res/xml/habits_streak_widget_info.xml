@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The streak widget: the daily streak over the chameleon, 2x2 like Duolingo's. It shares the
+  leaderboard widget's snapshot and background refresh (widget/HabitsWidgetRefreshWorker.kt), so
+  its tick does the same thing that widget's does: redraw from the snapshot, then queue a fetch
+  unless the app published within the last few minutes. 30 minutes is the platform minimum, and
+  keeps a streak that a missed day reset from lingering on the home screen.
+
+  Resizing stops at 3x3: the art is cropped to fill the card, and past that the crop cuts into
+  the chameleon's face. previewLayout (Android 12+) shows a sample count; older pickers fall back
+  to previewImage, the art alone.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/habits_streak_widget_description"
+    android:initialLayout="@layout/widget_habits_streak"
+    android:minWidth="110dp"
+    android:minHeight="110dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="110dp"
+    android:maxResizeWidth="260dp"
+    android:maxResizeHeight="260dp"
+    android:previewImage="@drawable/habits_streak_widget_art"
+    android:previewLayout="@layout/widget_habits_streak_preview"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />
