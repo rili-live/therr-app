@@ -226,17 +226,26 @@ const habits = produce((draft: IHabitsState, action: any) => {
         // Streaks
         // Daily streak (app-level)
         case HabitsActionTypes.GET_DAILY_STREAK:
-        case HabitsActionTypes.SET_DAILY_STREAK:
+        case HabitsActionTypes.SET_DAILY_STREAK: {
             // The check-in response carries no `pendingPlacements` (that read belongs to the
             // summary endpoint), so a SET must not wipe placements a GET already loaded.
-            draft.dailyStreak = {
+            const merged = {
                 ...(draft.dailyStreak || {}),
                 ...action.data,
                 pendingPlacements: action.data?.pendingPlacements
                     || draft.dailyStreak?.pendingPlacements
                     || [],
             };
+            // Nor does it carry `isAtStakeToday`, and the merge above would keep the summary's
+            // stale `true` past the very check-in that settled it. A today that now reads upheld
+            // is never at stake; otherwise (a backdated check-in, say) the last answer stands.
+            if (typeof action.data?.isAtStakeToday !== 'boolean'
+                && (merged.week || []).some((day: any) => day.isToday && day.status === 'upheld')) {
+                merged.isAtStakeToday = false;
+            }
+            draft.dailyStreak = merged;
             return draft;
+        }
         case HabitsActionTypes.DAILY_STREAK_CELEBRATED:
             if (draft.dailyStreak) {
                 draft.dailyStreak.pendingCelebration = null;

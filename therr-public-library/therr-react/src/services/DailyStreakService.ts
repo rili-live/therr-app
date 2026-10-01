@@ -38,6 +38,11 @@ export interface IDailyStreakSummary {
     week: IDailyStreakWeekDay[];
     pendingCelebration: IDailyStreakPendingCelebration | null;
     pendingPlacements: IDailyStreakPendingPlacement[];
+    /**
+     * Whether today, left as it is, finalizes as a miss: a live streak, today not yet upheld,
+     * and today required by the user's habit cadences. Optional because older servers omit it.
+     */
+    isAtStakeToday?: boolean;
 }
 
 /**
