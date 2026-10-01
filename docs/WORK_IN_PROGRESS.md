@@ -491,11 +491,6 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   it is in *Testing*, Google expires the refresh token after 7 days with no
   warning and no distinguishing error — this is the cause of "it worked last
   week" for every tool built on this API.
-- [ ] **Produce a 15-30s portrait video asset for the App campaign.** Without
-  video, an App campaign is limited to Search and a narrow Display slice: a
-  fraction of the reach at a materially higher CPI. It is the single largest
-  lever on App campaign cost, and `campaign plan` warns on every run until it
-  exists (`assets.videos` in `campaigns/habits-app-install.yaml`).
 - [ ] **Link Google Ads to the Play Console** (Play Console -> Settings ->
   Google Ads links) so installs are reported as conversions. Without the link,
   the App campaign optimises against nothing and `report ads` shows zero installs
@@ -577,6 +572,13 @@ backend change needed — it refuses to treat Play's own
   holds seven `donateUrl`s. From curl, every one returned 200, a redirect or a bot-block
   403, so none looked dead, but none has been opened in a real browser. The miss card links
   out to these, and a dead link is where the pledge gets honoured.
+- [ ] (2026-09-29, /work-plan) **Do not cut a Habits release that carries the pledge picker
+  until users-service is on `main` and `20260929000001_habits.pact_members.pledge` has run.**
+  The picker (`PledgeCard` on `PactDetail`, `niche/HABITS-general`) calls
+  `PUT /habits/pacts/:id/pledge`. That endpoint is on `stage`, not `main`, as of this entry. On
+  a production API without it, "Save pledge" fails with a toast. Nothing breaks, but it is the
+  first thing a user pledging would see. Once both are live, pledge on a real pact from a
+  handset and confirm the partner sees it on their member row.
 - [ ] (2026-09-05, /work-plan) **Watch `remindersMutedByPreference` and
   `lastChanceMutedByPreference` leave 0 once BOTH halves of the push toggles are out.**
   The two counters have been structurally pinned at 0, not merely unused: the digest has
@@ -2607,11 +2609,22 @@ Still open (#2990):
 
 - **"Done, I gave" + the partner view.** The server needs a way to record it, most likely a
   `pledge_honoured` pact activity. Nothing records a miss's outcome yet.
-- **The mobile half on `niche/HABITS-general`:** the pledge picker, the miss card, and routing
-  the `pledgeMissed` tap to the pact. Today the push has no `clickAction`, so a tap opens the
-  app, which is safe on every installed build. Add the `clickAction` only in the same release
-  that declares its intent action.
-- **The analytics in the "Measure" list below.**
+- **The miss card, and routing the `pledgeMissed` tap to the pact** (mobile, on
+  `niche/HABITS-general`). Build it with the "Done, I gave" record above. Today the push has no
+  `clickAction`, so a tap opens the app, which is safe on every installed build. Add the
+  `clickAction` only in the same release that declares its intent action.
+- **The analytics in the "Measure" list below.** The client now fires `habit_pledge_set`,
+  `habit_pledge_update` and `habit_pledge_remove`. Adoption can also be read from
+  `habits.pact_members."pledge"`. D30 retention and the hit rate for pledged vs unpledged
+  habits, and the honour rate, still need a report.
+
+**Pledge picker shipped on `niche/HABITS-general` 2026-09-29 (/work-plan).** The client calls
+are `PactsService.setPledge` and `removePledge` in `therr-react`, on `general`. The mobile side
+is `PledgeCard` on `PactDetail` plus each partner's pledge on their `PactMemberRow`. It is
+offered only where the server's guard allows a pledge, and a new pledge is refused on a solo
+pact. The renew prompt says a pledge does not carry over into the new cycle. It is not a
+one-tap re-pledge, and whether it should become one is still open. Amounts are the presets
+$5, $10, $20 and $50, with no free field.
 
 - **Data:** reuse `habits.pacts."consequenceType" = 'donation'` and `consequenceDetails`
   (`{ amount, recipient }`). `validatePactParams` in `utilities/pactHelpers.ts` already

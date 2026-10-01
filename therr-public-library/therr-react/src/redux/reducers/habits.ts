@@ -163,6 +163,20 @@ const habits = produce((draft: IHabitsState, action: any) => {
             }
             break;
         }
+        case HabitsActionTypes.SET_PACT_MEMBER_PLEDGE: {
+            const { pactId, userId, pledge } = action.data || {};
+            if (!pactId || !userId) {
+                break;
+            }
+            (['pacts', 'activePacts', 'pendingInvites'] as const).forEach((key) => {
+                const pact = draft[key].find((p) => p.id === pactId);
+                const member = pact?.members?.find((m) => m.userId === userId);
+                if (member) {
+                    member.pledge = pledge ?? null;
+                }
+            });
+            break;
+        }
 
         // Checkins
         case HabitsActionTypes.GET_TODAY_CHECKINS:
