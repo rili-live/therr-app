@@ -35,12 +35,18 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <ImageView
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_marginEnd="2dp"
-                android:importantForAccessibility="no"
-                android:src="@drawable/habits_streak_widget_flame" />
+            <FrameLayout
+                android:layout_width="32dp"
+                android:layout_height="31dp"
+                android:layout_marginEnd="1dp">
+
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_gravity="bottom|start"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/habits_streak_widget_flame" />
+            </FrameLayout>
 
             <TextView
                 android:layout_width="wrap_content"

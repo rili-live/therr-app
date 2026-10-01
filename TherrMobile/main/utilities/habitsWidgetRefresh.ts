@@ -8,6 +8,7 @@ import translator from './translator';
 import {
     buildHabitsWidgetSnapshot,
     finishHabitsWidgetRefresh,
+    getDueWeekdays,
     hasHabitsWidgets,
     HabitsWidgetScope,
     isHabitsWidgetSupported,
@@ -192,7 +193,10 @@ const refreshHabitsWidgetInBackground = async (
     const published = publishHabitsWidget(
         buildHabitsWidgetSnapshot(
             { connections: friends.data, global: global.data },
-            countTodayProgress(live, asList(todayCheckins.data)),
+            {
+                ...countTodayProgress(live, asList(todayCheckins.data)),
+                dueWeekdays: getDueWeekdays(live.map(({ goal }) => goal)),
+            },
             (key: string, params?: any) => translator(locale, key, params),
         ),
         { force: true },

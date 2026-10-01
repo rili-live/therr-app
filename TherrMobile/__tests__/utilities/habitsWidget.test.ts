@@ -134,21 +134,21 @@ describe('streak widget block', () => {
         const { buildHabitsWidgetSnapshot } = loadModule();
         const snapshot = buildHabitsWidgetSnapshot(boards, { done: 0, total: 1 }, translate);
 
-        expect(snapshot.streak).toEqual({ days: 12, label: 'pages.celebration.streak.dayStreak' });
+        expect(snapshot.streak).toMatchObject({ days: 12, label: 'pages.celebration.streak.dayStreak' });
     });
 
     it('says one day in the singular, which Spanish and French need', () => {
         const { buildHabitsWidgetSnapshot } = loadModule();
 
         expect(buildHabitsWidgetSnapshot(withStreak(1), { done: 1, total: 1 }, translate).streak)
-            .toEqual({ days: 1, label: 'pages.habits.widget.streakDayOne' });
+            .toMatchObject({ days: 1, label: 'pages.habits.widget.streakDayOne' });
     });
 
     it('asks for a check-in instead of labelling a zero, missing or broken streak', () => {
         const { buildHabitsWidgetSnapshot } = loadModule();
         [0, undefined, NaN].forEach((dailyStreak) => {
             expect(buildHabitsWidgetSnapshot(withStreak(dailyStreak), { done: 0, total: 1 }, translate).streak)
-                .toEqual({ days: 0, label: 'pages.habits.widget.streakStart' });
+                .toMatchObject({ days: 0, label: 'pages.habits.widget.streakStart' });
         });
     });
 
@@ -163,13 +163,51 @@ describe('streak widget block', () => {
         expect(snapshot.streak.days).toBe(12);
     });
 
+    it('stamps the local day a check-in already counts for, and nothing before one', () => {
+        const { buildHabitsWidgetSnapshot } = loadModule();
+        const evening = new Date(2026, 9, 1, 20, 15).getTime();
+
+        expect(buildHabitsWidgetSnapshot(boards, { done: 1, total: 2 }, translate, evening).streak.checkedInOn).toBe('2026-10-01');
+        expect(buildHabitsWidgetSnapshot(boards, { done: 0, total: 2 }, translate, evening).streak.checkedInOn).toBeNull();
+    });
+
+    it('carries the due weekdays it is given, and the warning label', () => {
+        const { buildHabitsWidgetSnapshot } = loadModule();
+        const snapshot = buildHabitsWidgetSnapshot(boards, { done: 0, total: 1, dueWeekdays: [1, 3] }, translate);
+        const withoutDays = buildHabitsWidgetSnapshot(boards, { done: 0, total: 1 }, translate);
+
+        expect(snapshot.streak.dueWeekdays).toEqual([1, 3]);
+        expect(snapshot.streak.atRiskLabel).toBe('pages.habits.widget.streakAtRisk');
+        // No cadence known means no warning, not a warning every evening.
+        expect(withoutDays.streak.dueWeekdays).toEqual([]);
+    });
+
     it('has every streak label in every locale', () => {
         const dictionaries = ['en-us', 'es', 'fr-ca'].map((locale) => require(`../../main/locales/${locale}/dictionary.json`));
         dictionaries.forEach((dictionary) => {
             expect(typeof dictionary.pages.habits.widget.streakDayOne).toBe('string');
             expect(typeof dictionary.pages.habits.widget.streakStart).toBe('string');
+            expect(typeof dictionary.pages.habits.widget.streakAtRisk).toBe('string');
             expect(typeof dictionary.pages.celebration.streak.dayStreak).toBe('string');
         });
+    });
+});
+
+describe('getDueWeekdays', () => {
+    it('counts every day for a daily habit and its own days for a fixed-day one', () => {
+        const { getDueWeekdays } = loadModule();
+
+        expect(getDueWeekdays([{ frequencyType: 'daily' }])).toEqual([0, 1, 2, 3, 4, 5, 6]);
+        expect(getDueWeekdays([{ frequencyType: 'weekly', targetDaysOfWeek: [5, 1, 1] }])).toEqual([1, 5]);
+        expect(getDueWeekdays([{ targetDaysOfWeek: [0] }, { frequencyType: 'weekly', targetDaysOfWeek: [6] }])).toEqual([0, 6]);
+    });
+
+    it('leaves a weekly-count habit out, since only its week can say whether today is needed', () => {
+        const { getDueWeekdays } = loadModule();
+
+        expect(getDueWeekdays([{ frequencyType: 'weekly', frequencyCount: 4 }])).toEqual([]);
+        expect(getDueWeekdays([{ frequencyType: 'weekly', frequencyCount: 4 }, { targetDaysOfWeek: [2] }])).toEqual([2]);
+        expect(getDueWeekdays([null, undefined])).toEqual([]);
     });
 });
 

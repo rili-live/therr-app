@@ -1,6 +1,7 @@
 import { NativeModules, Platform } from 'react-native';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
+import { fromGoal, ICadenceGoalFields } from '../routes/Pacts/cadenceOptions';
 
 /**
  * The Friends with Habits Android home-screen widget.
@@ -13,6 +14,9 @@ import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
  *
  * The same snapshot feeds a second, smaller widget (android/.../widget/HabitsStreakWidgetProvider.kt)
  * that shows only `streak`: the app-level daily streak, with its label already pluralized here.
+ * That widget also warns in the evening when the streak is at stake. The warning depends on the
+ * clock, so the widget decides it at draw time; the snapshot carries the two facts it needs —
+ * the local day a check-in already counted (`checkedInOn`) and the weekdays a habit is due on.
  *
  * Both boards ride in every snapshot so the widget's Friends / Everyone toggle switches
  * instantly, offline included. The choice is stored natively and sticks across refreshes and
@@ -85,7 +89,25 @@ export interface IHabitsWidgetSnapshot {
      * The app-level daily streak, for the streak widget. `label` is what sits under the count
      * ("day streak", pluralized for `days`), or the prompt to start one when `days` is 0.
      */
-    streak: { days: number; label: string };
+    streak: {
+        days: number;
+        label: string;
+        /** Shown in place of `label` while the streak is at risk. */
+        atRiskLabel: string;
+        /**
+         * The device-local day (YYYY-MM-DD) a completed check-in already counts for, or null.
+         * A date rather than a flag, so the widget can tell yesterday's check-in from today's
+         * after midnight without the app.
+         */
+        checkedInOn: string | null;
+        /**
+         * Weekdays (0 = Sunday … 6 = Saturday) on which a live habit is due: every day for a daily
+         * habit, its days for a fixed-day one. A weekly-count habit adds none — whether today is
+         * one it needs depends on the rest of its week, which the widget cannot see, and a
+         * warning on a day that costs nothing is how a warning stops being believed.
+         */
+        dueWeekdays: number[];
+    };
     boards: Record<HabitsWidgetScope, IHabitsWidgetBoardView>;
     labels: {
         /** The toggle's two segments. */
@@ -109,6 +131,14 @@ export interface IHabitsWidgetSnapshot {
 }
 
 type Translate = (key: string, params?: any) => string;
+
+/** Today's check-ins, as the dashboard counts them, plus what the streak widget's warning needs. */
+export interface IHabitsWidgetToday {
+    done: number;
+    total: number;
+    /** See `streak.dueWeekdays`; from `getDueWeekdays`. Absent means no warning. */
+    dueWeekdays?: number[];
+}
 
 export const WIDGET_TOP_ROWS = 3;
 
@@ -170,9 +200,35 @@ export const getStreakLabel = (days: number, translate: Translate): string => {
         : translate('pages.celebration.streak.dayStreak');
 };
 
+const ALL_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
+
+/** The weekdays a live habit is due on; see `streak.dueWeekdays`. */
+export const getDueWeekdays = (goals: Array<ICadenceGoalFields | null | undefined>): number[] => {
+    const due = new Set<number>();
+    goals.forEach((goal) => {
+        if (!goal) {
+            return;
+        }
+        const cadence = fromGoal(goal);
+        if (cadence.kind === 'daily') {
+            ALL_WEEKDAYS.forEach((day) => due.add(day));
+        } else if (cadence.kind === 'weekdays') {
+            cadence.days.forEach((day) => due.add(day));
+        }
+    });
+    return ALL_WEEKDAYS.filter((day) => due.has(day));
+};
+
+/** YYYY-MM-DD in the device's own zone — the same day the widget reads off its clock. */
+export const toLocalDateString = (at: number): string => {
+    const date = new Date(at);
+    const pad = (value: number) => String(value).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
+
 export const buildHabitsWidgetSnapshot = (
     boards: IHabitsWidgetBoards,
-    today: { done: number; total: number },
+    today: IHabitsWidgetToday,
     translate: Translate,
     now: number = Date.now(),
 ): IHabitsWidgetSnapshot => {
@@ -192,7 +248,15 @@ export const buildHabitsWidgetSnapshot = (
         periodEnd: boards.connections.periodEnd || boards.global.periodEnd || null,
         updatedAt: now,
         today: { done, total },
-        streak: { days: streakDays, label: getStreakLabel(streakDays, translate) },
+        streak: {
+            days: streakDays,
+            label: getStreakLabel(streakDays, translate),
+            atRiskLabel: translate('pages.habits.widget.streakAtRisk'),
+            // Today's check-ins are read in the device's zone (see habitsWidgetRefresh.ts), so a
+            // completed one counts for the device's today.
+            checkedInOn: done > 0 ? toLocalDateString(now) : null,
+            dueWeekdays: today.dueWeekdays || [],
+        },
         boards: { connections: friendsBoard, global: globalBoard },
         labels: {
             scopeFriends: translate('pages.leaderboard.tabs.friends'),
