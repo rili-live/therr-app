@@ -15,8 +15,9 @@ import { fromGoal, ICadenceGoalFields } from '../routes/Pacts/cadenceOptions';
  * The same snapshot feeds a second, smaller widget (android/.../widget/HabitsStreakWidgetProvider.kt)
  * that shows only `streak`: the app-level daily streak, with its label already pluralized here.
  * That widget also warns in the evening when the streak is at stake. The warning depends on the
- * clock, so the widget decides it at draw time; the snapshot carries the two facts it needs —
- * the local day a check-in already counted (`checkedInOn`) and the weekdays a habit is due on.
+ * clock, so the widget decides it at draw time; the snapshot carries the facts it needs — the
+ * server's verdict on whether today is at stake (`stake`), the local day a check-in already
+ * counted (`checkedInOn`), and the weekdays a habit is due on, for when there is no verdict.
  *
  * Both boards ride in every snapshot so the widget's Friends / Everyone toggle switches
  * instantly, offline included. The choice is stored natively and sticks across refreshes and
@@ -101,6 +102,14 @@ export interface IHabitsWidgetSnapshot {
          */
         checkedInOn: string | null;
         /**
+         * The server's verdict (`isAtStakeToday` on GET /habits/daily-streak/me) and the local day
+         * it is about, or null when there is none. The widget trusts it only on that day, so a
+         * verdict from before midnight, or from a server that predates the field, falls back to
+         * `dueWeekdays`. It knows what `dueWeekdays` cannot: whether a weekly-count habit needs
+         * today.
+         */
+        stake: IHabitsWidgetStakeVerdict | null;
+        /**
          * Weekdays (0 = Sunday … 6 = Saturday) on which a live habit is due: every day for a daily
          * habit, its days for a fixed-day one. A weekly-count habit adds none — whether today is
          * one it needs depends on the rest of its week, which the widget cannot see, and a
@@ -132,13 +141,33 @@ export interface IHabitsWidgetSnapshot {
 
 type Translate = (key: string, params?: any) => string;
 
+/** Whether the daily streak is at stake on `date`, as users-service decided it. */
+export interface IHabitsWidgetStakeVerdict {
+    date: string;
+    isAtStake: boolean;
+}
+
 /** Today's check-ins, as the dashboard counts them, plus what the streak widget's warning needs. */
 export interface IHabitsWidgetToday {
     done: number;
     total: number;
     /** See `streak.dueWeekdays`; from `getDueWeekdays`. Absent means no warning. */
     dueWeekdays?: number[];
+    /** See `streak.stake`; from `getStakeVerdict`. */
+    stake?: IHabitsWidgetStakeVerdict | null;
 }
+
+/**
+ * The verdict in a GET /habits/daily-streak/me summary, or null when the summary is missing or
+ * comes from a server that does not send `isAtStakeToday` yet.
+ */
+export const getStakeVerdict = (summary?: { today?: unknown; isAtStakeToday?: unknown } | null): IHabitsWidgetStakeVerdict | null => {
+    if (!summary || typeof summary.isAtStakeToday !== 'boolean' || typeof summary.today !== 'string'
+        || !/^\d{4}-\d{2}-\d{2}$/.test(summary.today)) {
+        return null;
+    }
+    return { date: summary.today, isAtStake: summary.isAtStakeToday };
+};
 
 export const WIDGET_TOP_ROWS = 3;
 
@@ -255,6 +284,7 @@ export const buildHabitsWidgetSnapshot = (
             // Today's check-ins are read in the device's zone (see habitsWidgetRefresh.ts), so a
             // completed one counts for the device's today.
             checkedInOn: done > 0 ? toLocalDateString(now) : null,
+            stake: today.stake || null,
             dueWeekdays: today.dueWeekdays || [],
         },
         boards: { connections: friendsBoard, global: globalBoard },

@@ -100,6 +100,7 @@ const stubApi = (overrides: Record<string, any> = {}) => {
         'pacts/active': jsonResponse(activePacts),
         'habits/pacts': jsonResponse(pacts),
         'user-habits': jsonResponse({ userHabits: [] }),
+        'daily-streak/me': jsonResponse({ currentStreak: 12, today: '2026-10-01', isAtStakeToday: true }),
         ...overrides,
     };
     mockFetch.mockImplementation((url: any) => {
@@ -140,6 +141,30 @@ describe('refreshHabitsWidgetInBackground', () => {
     });
 
     const published = () => JSON.parse(setSnapshot.mock.calls[0][0] as string);
+
+    describe('the streak widget\'s at-stake verdict', () => {
+        it('carries the server verdict, dated, from the daily streak summary', async () => {
+            await loadModule().default({ reason: 'periodic' });
+
+            expect(published().streak.stake).toEqual({ date: '2026-10-01', isAtStake: true });
+            expect(calledUrls().find((url) => url.includes('daily-streak/me'))).toContain('timeZone=America%2FChicago');
+        });
+
+        it('still publishes, with no verdict, when the summary read fails', async () => {
+            stubApi({ 'daily-streak/me': jsonResponse({ message: 'boom' }, 500) });
+            const result = await loadModule().default({ reason: 'periodic' });
+
+            expect(result.published).toBe(true);
+            expect(published().streak.stake).toBeNull();
+        });
+
+        it('sends no verdict for a server that predates the field', async () => {
+            stubApi({ 'daily-streak/me': jsonResponse({ currentStreak: 12, today: '2026-10-01' }) });
+            await loadModule().default({ reason: 'periodic' });
+
+            expect(published().streak.stake).toBeNull();
+        });
+    });
 
     it('publishes both boards with today derived the way the dashboard derives it', async () => {
         const result = await loadModule().default({ reason: 'periodic' });

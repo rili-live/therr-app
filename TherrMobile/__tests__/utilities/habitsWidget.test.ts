@@ -177,6 +177,7 @@ describe('streak widget block', () => {
         const withoutDays = buildHabitsWidgetSnapshot(boards, { done: 0, total: 1 }, translate);
 
         expect(snapshot.streak.dueWeekdays).toEqual([1, 3]);
+        expect(snapshot.streak.stake).toBeNull();
         expect(snapshot.streak.atRiskLabel).toBe('pages.habits.widget.streakAtRisk');
         // No cadence known means no warning, not a warning every evening.
         expect(withoutDays.streak.dueWeekdays).toEqual([]);
@@ -190,6 +191,22 @@ describe('streak widget block', () => {
             expect(typeof dictionary.pages.habits.widget.streakAtRisk).toBe('string');
             expect(typeof dictionary.pages.celebration.streak.dayStreak).toBe('string');
         });
+    });
+});
+
+describe('getStakeVerdict', () => {
+    it('dates the server verdict with the day it was about', () => {
+        const { getStakeVerdict } = loadModule();
+
+        expect(getStakeVerdict({ today: '2026-10-01', isAtStakeToday: false })).toEqual({ date: '2026-10-01', isAtStake: false });
+        expect(getStakeVerdict({ today: '2026-10-01', isAtStakeToday: true })).toEqual({ date: '2026-10-01', isAtStake: true });
+    });
+
+    it('is null without a usable verdict, so the widget falls back to cadence', () => {
+        const { getStakeVerdict } = loadModule();
+
+        [null, undefined, {}, { today: '2026-10-01' }, { isAtStakeToday: true }, { today: 'Oct 1', isAtStakeToday: true }]
+            .forEach((summary) => expect(getStakeVerdict(summary as any)).toBeNull());
     });
 });
 

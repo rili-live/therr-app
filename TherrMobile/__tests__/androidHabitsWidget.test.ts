@@ -215,7 +215,9 @@ describe('Android habits streak widget', () => {
         const board = { entries: [], currentUser: { rank: 1, points: 0, dailyStreak: 3 }, periodEnd: null };
         const snapshot = buildHabitsWidgetSnapshot({ connections: board, global: board }, { done: 0, total: 0 }, (key: string) => key);
 
-        expect(Object.keys(snapshot.streak).sort()).toEqual(['atRiskLabel', 'checkedInOn', 'days', 'dueWeekdays', 'label']);
+        expect(Object.keys(snapshot.streak).sort()).toEqual(['atRiskLabel', 'checkedInOn', 'days', 'dueWeekdays', 'label', 'stake']);
+        expect(streakProvider).toContain('optJSONObject("stake")');
+        expect(streakProvider).toContain('optBoolean("isAtStake"');
         expect(streakProvider).toContain('optJSONObject("streak")');
         expect(streakProvider).toContain('optInt("days"');
         expect(streakProvider).toContain('optString("label")');

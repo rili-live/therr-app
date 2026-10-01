@@ -9,6 +9,49 @@ describe('habits reducer', () => {
         initialState = reducer(undefined, { type: '@@INIT' });
     });
 
+    describe('daily streak isAtStakeToday', () => {
+        const summary = (todayStatus: string, isAtStakeToday: boolean) => ({
+            currentStreak: 4,
+            longestStreak: 9,
+            today: '2026-10-01',
+            week: [
+                {
+                    date: '2026-09-30', dow: 2, status: 'upheld', isToday: false,
+                },
+                {
+                    date: '2026-10-01', dow: 3, status: todayStatus, isToday: true,
+                },
+            ],
+            pendingCelebration: null,
+            pendingPlacements: [],
+            isAtStakeToday,
+        });
+        // What a check-in response carries: the view, without the summary-only fields.
+        const checkinStreak = (todayStatus: string) => {
+            const streak: any = summary(todayStatus, false);
+            delete streak.isAtStakeToday;
+            delete streak.pendingPlacements;
+            return streak;
+        };
+
+        it('takes the summary value as given', () => {
+            const state = reducer(initialState, { type: HabitsActionTypes.GET_DAILY_STREAK, data: summary('pending', true) });
+            expect(state.dailyStreak.isAtStakeToday).toBe(true);
+        });
+
+        it('clears it when a check-in response shows today upheld', () => {
+            const atStake = reducer(initialState, { type: HabitsActionTypes.GET_DAILY_STREAK, data: summary('pending', true) });
+            const state = reducer(atStake, { type: HabitsActionTypes.SET_DAILY_STREAK, data: checkinStreak('upheld') });
+            expect(state.dailyStreak.isAtStakeToday).toBe(false);
+        });
+
+        it('keeps it when the check-in did not settle today, such as a backdated one', () => {
+            const atStake = reducer(initialState, { type: HabitsActionTypes.GET_DAILY_STREAK, data: summary('pending', true) });
+            const state = reducer(atStake, { type: HabitsActionTypes.SET_DAILY_STREAK, data: checkinStreak('pending') });
+            expect(state.dailyStreak.isAtStakeToday).toBe(true);
+        });
+    });
+
     it('returns initial state with correct shape', () => {
         expect(Array.from(initialState.habitGoals)).toEqual([]);
         expect(Array.from(initialState.pacts)).toEqual([]);

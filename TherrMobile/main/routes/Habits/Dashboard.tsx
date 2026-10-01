@@ -44,6 +44,7 @@ import getConfig from '../../utilities/getConfig';
 import {
     buildHabitsWidgetSnapshot,
     getDueWeekdays,
+    getStakeVerdict,
     IHabitsWidgetBoards,
     isHabitsWidgetSupported,
     publishHabitsWidget,
@@ -289,7 +290,9 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
     componentDidUpdate(prevProps: IHabitsDashboardProps) {
         // A check-in moved the numerator, or a habit started, archived or lost its pact moved
         // the denominator — keep the widget's "2/3" in step with the progress card either way.
-        if (this.widgetBoards && didTodayProgressInputsChange(prevProps.habits, this.props.habits)) {
+        // The daily streak too: its `isAtStakeToday` is the streak widget's evening warning.
+        if (this.widgetBoards && (didTodayProgressInputsChange(prevProps.habits, this.props.habits)
+            || prevProps.habits?.dailyStreak !== this.props.habits?.dailyStreak)) {
             this.publishWidgetSnapshot();
         }
 
@@ -412,6 +415,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             {
                 ...this.getTodayProgress(live),
                 dueWeekdays: getDueWeekdays(live.map(({ goal }) => goal)),
+                // Loaded by Layout on open; a check-in's response keeps it current.
+                stake: getStakeVerdict(this.props.habits?.dailyStreak),
             },
             this.translate,
         ));

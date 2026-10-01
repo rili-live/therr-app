@@ -17,6 +17,9 @@ import { closeElapsedLeaderboardPeriods } from './helpers/leaderboardPeriods';
  * placements. Lazily finalizes every day through the user's local yesterday first, so the
  * numbers are right even for a user the scheduled pass has not reached.
  *
+ * `isAtStakeToday` says whether today, left as it is, finalizes as a miss: a live streak, today
+ * not yet upheld, and today required by the user's habit cadences (not a rest day).
+ *
  * `timeZone` is the device zone, used only when the account has no `settingsTimezone`.
  */
 const getMyDailyStreak: RequestHandler = async (req: any, res: any) => {

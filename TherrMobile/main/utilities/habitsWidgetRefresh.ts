@@ -9,6 +9,7 @@ import {
     buildHabitsWidgetSnapshot,
     finishHabitsWidgetRefresh,
     getDueWeekdays,
+    getStakeVerdict,
     hasHabitsWidgets,
     HabitsWidgetScope,
     isHabitsWidgetSupported,
@@ -136,6 +137,16 @@ const buildTodayCheckinsPath = (): string => {
     return `/users-service/habits/checkins/today${timeZone ? `?timeZone=${encodeURIComponent(timeZone)}` : ''}`;
 };
 
+/**
+ * The daily streak summary, for its `isAtStakeToday` verdict. The device zone rides along for the
+ * same reason as above. The read also finalizes past days, which is idempotent and is what the
+ * app does on every open anyway.
+ */
+const buildDailyStreakPath = (): string => {
+    const timeZone = getDeviceTimeZone();
+    return `/users-service/habits/daily-streak/me${timeZone ? `?timeZone=${encodeURIComponent(timeZone)}` : ''}`;
+};
+
 const isBoard = (result: IJsonResult): boolean => result.ok && typeof result.data?.currentUser?.rank === 'number';
 
 const asList = (value: any): any[] => (Array.isArray(value) ? value : []);
@@ -160,7 +171,7 @@ const refreshHabitsWidgetInBackground = async (
 
     // Both boards, so the widget's Friends / Everyone toggle has something to switch to — the
     // same pair the dashboard fetches in `refreshHabitsWidget`.
-    const [friends, global, todayCheckins, goals, activePacts, pacts, userHabits] = await Promise.all([
+    const [friends, global, todayCheckins, goals, activePacts, pacts, userHabits, dailyStreak] = await Promise.all([
         getJson(buildLeaderboardPath('connections'), session),
         getJson(buildLeaderboardPath('global'), session),
         getJson(buildTodayCheckinsPath(), session),
@@ -168,6 +179,7 @@ const refreshHabitsWidgetInBackground = async (
         getJson('/users-service/habits/pacts/active', session),
         getJson('/users-service/habits/pacts', session),
         getJson('/users-service/habits/user-habits', session),
+        getJson(buildDailyStreakPath(), session),
     ]);
 
     const results = [friends, global, todayCheckins, goals, activePacts, pacts];
@@ -176,7 +188,8 @@ const refreshHabitsWidgetInBackground = async (
         return { published: false, reason, skipped: 'unauthorized' };
     }
     // The tracking registry is the one input the dashboard tolerates losing (it drops the
-    // archived filter rather than the refresh), so it is the one input tolerated here.
+    // archived filter rather than the refresh), so it is the one input tolerated here. The daily
+    // streak summary is tolerated too: without its verdict the widget falls back to cadence.
     if (!isBoard(friends) || !isBoard(global) || results.some((result) => !result.ok)) {
         finishHabitsWidgetRefresh();
         return { published: false, reason, skipped: 'request-failed' };
@@ -196,6 +209,7 @@ const refreshHabitsWidgetInBackground = async (
             {
                 ...countTodayProgress(live, asList(todayCheckins.data)),
                 dueWeekdays: getDueWeekdays(live.map(({ goal }) => goal)),
+                stake: dailyStreak.ok ? getStakeVerdict(dailyStreak.data) : null,
             },
             (key: string, params?: any) => translator(locale, key, params),
         ),
