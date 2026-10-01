@@ -12,7 +12,6 @@ import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
 import permissions from '../../utilities/permissionsOrchestrator';
 import isPactInviteAwaitingResponse from '../../utilities/pactInviteState';
 import { canAddPactPledge, canEditPactPledge, getValidPledge } from '../../utilities/pactPledge';
-import { logAppEvent } from '../../utilities/analyticsEvents';
 // Shared so the pending-pact wording can't drift between the card and this screen.
 import { getStatusText } from '../../components/Habits/PactCard';
 import {
