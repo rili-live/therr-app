@@ -12,6 +12,7 @@
 //   check                    is the versionCode/versionName on niche/<TAG>-general new?
 //   merge [--dry-run]        merge niche/<TAG>-general into niche/<TAG>-main and push it
 //   watch <merge-sha>        poll CI + EAS until it is clear who uploads this versionCode
+//         [--prefer-local]   ...cancelling CI's EAS build so this machine uploads it instead
 //   build <merge-sha>        rebuild shared libs, bundleRelease, verify package/version/key
 //   submit <merge-sha>       eas submit the local AAB, then push the ledger tag
 //
@@ -312,9 +313,11 @@ const runWatch = async (app, shaArg) => {
     const repo = githubRepo();
     const deadline = Date.now() + Number(opt('timeout-min', 45)) * 60000;
     const interval = Number(opt('interval-sec', 30)) * 1000;
+    const preferLocal = flag('prefer-local');
     let last = '';
 
-    log(`Watching ${app.ciJob} + EAS for ${app.displayName} ${versionName} (${versionCode}) @ ${sha.slice(0, 9)}`);
+    log(`Watching ${app.ciJob} + EAS for ${app.displayName} ${versionName} (${versionCode}) @ ${sha.slice(0, 9)}`
+        + `${preferLocal ? ' — preferring a local build: EAS builds of it will be canceled' : ''}`);
     // A poll loop: each iteration has to finish before the next is meaningful.
     /* eslint-disable no-await-in-loop */
     for (;;) {
@@ -323,13 +326,23 @@ const runWatch = async (app, shaArg) => {
         const ledgerTag = ledgerTags(app).includes(versionCode);
         const ciLog = ci.state === 'failure' || ci.state === 'error' ? await circleFailureLog(ci.url, repo) : '';
         const d = decideReleasePath({
-            ciState: ci.state, easBuilds: builds, ciLog, ledgerTag,
+            ciState: ci.state, easBuilds: builds, ciLog, ledgerTag, preferLocal,
         });
 
         const line = `${d.decision} (${d.reason})${d.build ? ` EAS ${d.build.status}` : ''}  CI=${ci.state || 'not reported'}`;
         if (line !== last) { log(`  ${new Date().toLocaleTimeString()}  ${line}`); last = line; }
 
-        const keepGoing = d.decision === 'WAIT' || (flag('until-finished') && d.decision === 'EAS_HANDLING');
+        if (d.decision === 'CANCEL_EAS') {
+            d.builds.forEach((b) => {
+                log(`  canceling EAS build ${b.url} so this machine can upload versionCode ${versionCode}`);
+                // A failure here is usually the build finishing first. Not fatal: the next
+                // poll reads the build's real status, and FINISHED means EAS_DONE.
+                const r = spawnSync('eas', ['build:cancel', b.id, '--non-interactive'], { cwd: MOBILE, encoding: 'utf8' });
+                if (r.status !== 0) note(`  (eas build:cancel ${b.id} failed: ${(r.stderr || r.stdout || '').trim().slice(-400)})`);
+            });
+        }
+
+        const keepGoing = d.decision === 'WAIT' || d.decision === 'CANCEL_EAS' || (flag('until-finished') && d.decision === 'EAS_HANDLING');
         if (!keepGoing) {
             if (d.build) log(`  EAS build: ${d.build.url}`);
             if (ci.url) log(`  CI job:    ${ci.url}`);

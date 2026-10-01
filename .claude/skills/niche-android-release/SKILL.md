@@ -3,7 +3,7 @@ name: niche-android-release
 description: Ship a niche Android app (Friends with Habits) to the Google Play internal track end to end. Checks that the versionCode/versionName on niche/<TAG>-general are new, merges it into niche/<TAG>-main and pushes (which starts the CircleCI EAS build), watches CI and EAS to see whether EAS is actually building and auto-submitting it, and — only when nothing else will upload that versionCode (EAS quota spent, CI skipped) — builds the signed AAB locally and submits it with eas submit. Use when asked to release, ship, publish or build-and-upload the habits app / an AAB, or when a niche/HABITS-main merge's EAS job failed.
 user-invocable: true
 allowed-tools: Bash(node _bin/niche-android-release.js*), Bash(node*), Bash(git*), Bash(npm*), Bash(gh*), Bash(eas*), Read, Edit, Skill, AskUserQuestion
-argument-hint: [habits] [--skip-preflight] [--allow-same-version-name] [--dry-run]
+argument-hint: [habits] [--local] [--skip-preflight] [--allow-same-version-name] [--dry-run]
 ---
 
 # Niche Android Release
@@ -25,6 +25,13 @@ Doing it by hand has two failure modes, and Play reports both only *after* the u
 This skill does the merge, then decides from CI **and** EAS who uploads the build, and builds
 locally only when the answer is nobody.
 
+**`--local`**: build and upload from this machine instead of waiting on EAS. CI still starts
+an EAS build on the merge (nothing in the merge can stop it), so `watch --prefer-local`
+**cancels** that build and opens the local path only once EAS reports it `CANCELED` and the
+CI job has stopped. A canceled build never auto-submits, so there is still exactly one upload
+per versionCode. If EAS finishes before the cancel lands, it has already uploaded, and the
+result is `EAS_DONE` like any other run.
+
 All mechanics live in `_bin/niche-android-release.js`, and its decisions live in
 `_bin/lib/niche-android-release.js`, tested by `npm run test:bin-scripts`. Run it from the
 repo root. Every subcommand accepts `--tag HABITS` (inferred from a `niche/<TAG>-*` branch)
@@ -34,7 +41,7 @@ and `--json`.
 |---|---|---|
 | `check` | versionCode/versionName novelty against main's history, EAS builds and ledger tags | 1 on blockers |
 | `merge [--dry-run]` | merge in memory (`merge-tree` + `commit-tree`, no checkout) and push to `niche/<TAG>-main` | 1 if blocked |
-| `watch <sha>` | poll the CircleCI status and EAS until it's decided who uploads | 3 = local needed |
+| `watch <sha> [--prefer-local]` | poll the CircleCI status and EAS until it's decided who uploads; with `--prefer-local`, cancel CI's EAS build first | 3 = local needed |
 | `build <sha>` | rebuild the shared libs, `:app:bundleRelease`, verify package/version/upload key | 1 on failure |
 | `submit <sha>` | `eas submit` to the internal track as a draft, then push the ledger tag | 1 on failure |
 
@@ -91,7 +98,12 @@ Run it in the background, since it can take minutes before CI reports anything:
 
 ```bash
 node _bin/niche-android-release.js watch <merge-sha>          # --timeout-min 45 by default
+node _bin/niche-android-release.js watch <merge-sha> --prefer-local   # when --local was passed
 ```
+
+`--local` can also be applied after the fact. If a plain `watch` returned `EAS_HANDLING` and
+the user then says they'd rather not wait, re-run `watch` with `--prefer-local`. Pass it only
+when the user asked for it in this session. It cancels an EAS build the user may be waiting on.
 
 It exits as soon as the path is decided:
 
@@ -100,6 +112,7 @@ It exits as soon as the path is decided:
 | `EAS_HANDLING` | an EAS build of this commit/versionCode is queued or running; it auto-submits | Report the EAS build link and stop. **Do not build locally.** Add `--until-finished` if the user wants to wait for it |
 | `EAS_DONE` | EAS finished and auto-submitted | Step 7 |
 | `LOCAL_DONE` | a ledger tag shows it was already uploaded locally | Step 7 |
+| `LOCAL_NEEDED` / `local-preferred` | `--prefer-local` canceled the EAS build and CI has stopped | Step 5, no need to ask |
 | `LOCAL_NEEDED` / `eas-quota` | EAS free-plan quota spent, no build exists | Step 5, no need to ask |
 | `LOCAL_NEEDED` / `ci-skipped` | CI went green without building. It judged the merge to have no mobile changes | Step 5, but say that this is unexpected for a release |
 | `LOCAL_NEEDED` / `ci-failed`, `eas-auth`, `eas-build-errored` | CI or the EAS build broke for another reason | Show the CI/EAS log excerpt and **ask the user** before Step 5. A code failure on EAS will usually fail locally too, and an auth failure needs fixing in CI rather than bypassing |
@@ -153,11 +166,11 @@ node TherrMobile/_scripts/print-play-release-notes.mjs
 Then add to `docs/WORK_IN_PROGRESS.md`, immediately before `<!-- skill-followups:end -->`, after
 reading the file and matching on action text so nothing is duplicated:
 
-- `- [ ] (YYYY-MM-DD, /niche-android-release) **Promote <App> <versionName> (<versionCode>) out of the internal-track draft and paste its release notes.** …`
-  Include this every time: nothing sets "What's new" automatically, and the draft reaches
-  nobody until someone rolls it out.
 - Only when the reason was `eas-quota` and no open item already covers it: the quota
   follow-up, with its reset date.
+
+Do **not** add a follow-up to promote the draft or paste the release notes. The user handles
+that from the report, and a backlog item for it is noise.
 
 Log the release to today's `context/memory/` daily log, silently.
 
@@ -183,7 +196,9 @@ Next in Play Console: roll out the internal draft → promote to production → 
   commit it.
 - **Never build or submit locally while `watch` says `EAS_HANDLING`/`EAS_DONE`**, and never
   work around the `build`/`submit` guards. They exist because Play accepts only one upload
-  per versionCode.
+  per versionCode. To go local while EAS is building, use `watch --prefer-local`. Never cancel
+  an EAS build by hand and skip `watch`, because only `watch` waits for the cancel to land
+  and for CI to stop.
 - **Never force-push `niche/<TAG>-main`**, and never `--no-verify` the merge push.
 - **Never delete or move a ledger tag.** If one is wrong, tell the user.
 - To backfill a tag for a build already uploaded by hand, confirm the upload with the user
