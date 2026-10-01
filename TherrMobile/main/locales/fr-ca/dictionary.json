@@ -2249,7 +2249,8 @@
                 "daysAgo": "il y a {days} j",
                 "refreshHint": "Mis à jour {ago}. Touchez pour actualiser",
                 "streakDayOne": "jour d'affilée",
-                "streakStart": "Enregistrez une habitude aujourd'hui pour lancer votre série"
+                "streakStart": "Enregistrez une habitude aujourd'hui pour lancer votre série",
+                "streakAtRisk": "Enregistrez pour sauver votre série"
             },
             "upgradeNudge": {
                 "nearCapTitle": "{used} habitudes gratuites sur {limit} utilisées",

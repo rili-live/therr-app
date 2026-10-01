@@ -43,6 +43,7 @@ import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 import getConfig from '../../utilities/getConfig';
 import {
     buildHabitsWidgetSnapshot,
+    getDueWeekdays,
     IHabitsWidgetBoards,
     isHabitsWidgetSupported,
     publishHabitsWidget,
@@ -405,9 +406,13 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         if (!this.widgetBoards) {
             return;
         }
+        const { live } = this.getHabitsByPactState();
         publishHabitsWidget(buildHabitsWidgetSnapshot(
             this.widgetBoards,
-            this.getTodayProgress(this.getHabitsByPactState().live),
+            {
+                ...this.getTodayProgress(live),
+                dueWeekdays: getDueWeekdays(live.map(({ goal }) => goal)),
+            },
             this.translate,
         ));
     };

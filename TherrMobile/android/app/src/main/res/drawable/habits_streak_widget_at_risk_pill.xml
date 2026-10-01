@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Behind the streak widget's label while the streak is at risk, so the warning reads at a glance
+     over either sky rather than as one more line of white text. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="10dp" />
+    <solid android:color="@color/habits_streak_widget_at_risk" />
+</shape>

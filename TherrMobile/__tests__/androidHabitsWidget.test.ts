@@ -215,10 +215,36 @@ describe('Android habits streak widget', () => {
         const board = { entries: [], currentUser: { rank: 1, points: 0, dailyStreak: 3 }, periodEnd: null };
         const snapshot = buildHabitsWidgetSnapshot({ connections: board, global: board }, { done: 0, total: 0 }, (key: string) => key);
 
-        expect(Object.keys(snapshot.streak).sort()).toEqual(['days', 'label']);
+        expect(Object.keys(snapshot.streak).sort()).toEqual(['atRiskLabel', 'checkedInOn', 'days', 'dueWeekdays', 'label']);
         expect(streakProvider).toContain('optJSONObject("streak")');
         expect(streakProvider).toContain('optInt("days"');
         expect(streakProvider).toContain('optString("label")');
+        expect(streakProvider).toContain('optString("atRiskLabel")');
+        expect(streakProvider).toContain('optJSONArray("dueWeekdays")');
+        expect(streakProvider).toContain('optString("checkedInOn")');
+    });
+
+    it('compares checkedInOn against a local date in the format JS writes it', () => {
+        // A mismatch (say, unpadded months) would never equal today, and every evening would warn.
+        const { toLocalDateString } = require('../main/utilities/habitsWidget');
+        expect(toLocalDateString(new Date(2026, 2, 7, 21).getTime())).toBe('2026-03-07');
+        expect(streakProvider).toContain('"%04d-%02d-%02d"');
+        // Weekdays are 0 = Sunday on both sides: JS's getDay() and targetDaysOfWeek, Calendar here.
+        expect(streakProvider).toContain('now.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY');
+    });
+
+    it('ships a day sky and an at-risk badge the provider switches to', () => {
+        expect(streakProvider).toContain('R.drawable.habits_streak_widget_art_day');
+        expect(streakProvider).toContain('R.drawable.habits_streak_widget_background_day');
+        expect(streakProvider).toContain('R.drawable.habits_streak_widget_at_risk_pill');
+        ['drawable-nodpi/habits_streak_widget_art_day.webp', 'drawable/habits_streak_widget_background_day.xml',
+            'drawable/habits_streak_widget_badge.xml', 'drawable/habits_streak_widget_at_risk_pill.xml'].forEach((file) => {
+            expect(fs.existsSync(path.join(ANDROID_MAIN_DIR, 'res', file))).toBe(true);
+        });
+        ['values', 'values-es', 'values-fr-rCA'].forEach((dir) => {
+            expect(fs.readFileSync(path.join(ANDROID_MAIN_DIR, 'res', dir, 'strings.xml'), 'utf8'))
+                .toContain('name="habits_streak_widget_at_risk"');
+        });
     });
 
     it('opens a screen JS routes when tapped', () => {

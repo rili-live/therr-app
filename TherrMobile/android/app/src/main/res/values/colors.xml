@@ -15,4 +15,7 @@
     <color name="habits_streak_widget_flame_core">#FFE08A</color>
     <color name="habits_streak_widget_label">#EDE8F5</color>
     <color name="habits_streak_widget_text_shadow">#73000000</color>
+    <!-- Day art's top row (DAY_TOP in the build script), and the evening at-risk warning. -->
+    <color name="habits_streak_widget_sky_day">#3A92E6</color>
+    <color name="habits_streak_widget_at_risk">#E5484D</color>
 </resources>

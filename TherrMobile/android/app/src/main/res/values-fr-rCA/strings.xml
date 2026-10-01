@@ -14,4 +14,5 @@
         <item quantity="other">jours d\'affilée</item>
     </plurals>
     <string name="habits_streak_widget_preview_label">jours d\'affilée</string>
+    <string name="habits_streak_widget_at_risk">Enregistrez pour sauver votre série</string>
 </resources>
