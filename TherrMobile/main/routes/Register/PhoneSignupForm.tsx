@@ -50,7 +50,7 @@ const ACCOUNT_TYPE_LABEL_KEYS: { [key in PhoneAccountType]: string } = {
 
 interface IPhoneSignupFormProps {
     register: Function;
-    onSuccess: (args: { email: string; phoneNumber: string }) => void;
+    onSuccess: (args: { email: string; phoneNumber: string; password?: string }) => void;
     onSwitchToEmailSignup: () => void;
     onSwitchToSignIn: () => void;
     /**
@@ -355,7 +355,7 @@ export class PhoneSignupFormComponent extends React.Component<
                 // anything malformed rather than failing the signup.
                 userAcquisition: userAcquisition || undefined,
             })
-            .then(() => this.props.onSuccess({ email: email.trim(), phoneNumber }))
+            .then(() => this.props.onSuccess({ email: email.trim(), phoneNumber, password: password || undefined }))
             // Shared with the e-mail sign-up form, so the two paths cannot drift. It maps
             // TOO_MANY_ACCOUNTS (the number filled its last slot between verification and
             // submit) and USER_EXISTS to real copy, and everything else to a message rather

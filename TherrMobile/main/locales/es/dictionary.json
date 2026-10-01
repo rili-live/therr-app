@@ -1424,7 +1424,8 @@
                 "description": "¡Invita a 3 amigos para ganar el logro de Socialite y desbloquear recompensas!",
                 "shareLink": "Compartir un enlace",
                 "syncContacts": "Sincronizar contactos",
-                "skip": "Omitir por ahora"
+                "skip": "Omitir por ahora",
+                "descriptionHabits": "Los hábitos se mantienen cuando un amigo te respalda. Comparte tu enlace para que tus amigos se unan."
             },
             "pageHeaderContacts": "Encuentra a tus amigos",
             "pageSubHeaderContacts": "Sincroniza tus contactos para ver quién ya está aquí",
@@ -1437,7 +1438,9 @@
                 "skip": "Ahora no",
                 "errorMessage": "No pudimos sincronizar tus contactos. Inténtalo de nuevo.",
                 "permissionsDenied": "El acceso a los contactos está desactivado. Actívalo en la configuración de tu dispositivo para encontrar amigos."
-            }
+            },
+            "pageHeaderPhoneHabits": "Verifica tu número",
+            "pageSubHeaderPhoneHabits": "Tus invitaciones se envían por mensaje desde tu número, así que primero confirmamos que es tuyo."
         },
         "cropImage": {
             "headerTitle": "Recortar imagen"
@@ -1729,7 +1732,8 @@
                 "momentDescription": "con amigos o gana puntos extra como influencer local",
                 "claimTitle": "Reclama recompensas",
                 "claimDescription": "registrándote en negocios locales, publicando contenido o dejando una reseña"
-            }
+            },
+            "alreadyHaveAccount": "Ya tengo una cuenta"
         },
         "login": {
             "headerTitle": "{appName}",
@@ -1899,7 +1903,8 @@
             "passwordRequirements1": "Contiene una combinación de letras y números",
             "passwordRequirements2": "Al menos una letra mayúscula",
             "passwordRequirements3": "Al menos un carácter especial !@#$%^&*",
-            "passwordRequirements4": "Al menos 8 caracteres"
+            "passwordRequirements4": "Al menos 8 caracteres",
+            "pageSubtitleHabits": "Crea tu cuenta y comienza tu primer pacto con un amigo."
         },
         "settings": {
             "headerTitle": "Configuración",
