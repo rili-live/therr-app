@@ -91,7 +91,7 @@ A per-versionCode file (`<versionCode>.txt`) is preferred; `default.txt` is the 
 
 The script only reads files — no credentials, no network. It exits non-zero only when a locale exceeds Play's 500-character limit, which **is** a blocker: the text cannot be pasted as-is.
 
-**Nothing sets these notes automatically** — CI prints them, a human pastes them into the Play Console. So whenever this step produces output, add it to the post-release follow-ups (P11): *paste the printed release notes into Play Console → Release → Releases overview → the release → Edit → "What's new in this release", for each language.*
+**Nothing sets these notes automatically.** CI prints them and a human pastes them into the Play Console. Include the printed notes in the report so they can be copied, but do **not** record pasting them as a follow-up in `docs/WORK_IN_PROGRESS.md`. The user handles that step from the report.
 
 ---
 

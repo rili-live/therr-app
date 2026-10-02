@@ -520,3 +520,27 @@ export const isWeekPerfectThrough = (
     }
     return upheldCount > 0;
 };
+
+/**
+ * Whether today decides the daily streak and has not been decided yet: there is a live streak,
+ * today is not upheld, and today is a required day (`computeRequiredDates` in
+ * utilities/habitCadence.ts — the same verdict the evaluator will apply to it tonight).
+ *
+ * "At stake" means the day, left as it is, finalizes as a miss: it either spends a freeze or
+ * ends the streak. Both are losses the user can still prevent today, so a freeze in reserve does
+ * not make the streak safe. A rest day is never at stake — leaving it empty costs nothing — and
+ * that is the whole difference from "nothing logged yet today", which is what a client could
+ * say on its own.
+ *
+ * Read by the Friends with Habits home-screen streak widget, which decides *when* to warn from
+ * the device's clock; this only says *whether* there is anything to warn about.
+ */
+export const isDailyStreakAtStakeToday = ({
+    currentStreak,
+    todayStatus,
+    isTodayRequired,
+}: {
+    currentStreak: number;
+    todayStatus: DailyStreakDayStatus | 'pending' | 'future' | undefined;
+    isTodayRequired: boolean;
+}): boolean => currentStreak > 0 && todayStatus !== 'upheld' && isTodayRequired;

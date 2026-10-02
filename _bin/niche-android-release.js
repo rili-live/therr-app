@@ -12,6 +12,7 @@
 //   check                    is the versionCode/versionName on niche/<TAG>-general new?
 //   merge [--dry-run]        merge niche/<TAG>-general into niche/<TAG>-main and push it
 //   watch <merge-sha>        poll CI + EAS until it is clear who uploads this versionCode
+//         [--prefer-local]   ...cancelling CI's EAS build so this machine uploads it instead
 //   build <merge-sha>        rebuild shared libs, bundleRelease, verify package/version/key
 //   submit <merge-sha>       eas submit the local AAB, then push the ledger tag
 //
@@ -35,6 +36,7 @@ const AAB_PATH = path.join(MOBILE, 'android/app/build/outputs/bundle/release/app
 const MERGED_MANIFEST = path.join(MOBILE, 'android/app/build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml');
 const NOTES_LOCALES = ['en-US', 'es-419', 'fr-CA'];
 const SHARED_LIBS = ['therr-js-utilities', 'therr-styles', 'therr-react'];
+const MAX_CANCEL_ATTEMPTS = 3;
 
 // ---------------------------------------------------------------------------- utilities
 
@@ -312,9 +314,14 @@ const runWatch = async (app, shaArg) => {
     const repo = githubRepo();
     const deadline = Date.now() + Number(opt('timeout-min', 45)) * 60000;
     const interval = Number(opt('interval-sec', 30)) * 1000;
+    const preferLocal = flag('prefer-local');
+    // build id → failed `eas build:cancel` attempts, so a cancel that keeps failing is reported once
+    // and then stops the watch instead of retrying every poll until the timeout.
+    const cancelFailures = new Map();
     let last = '';
 
-    log(`Watching ${app.ciJob} + EAS for ${app.displayName} ${versionName} (${versionCode}) @ ${sha.slice(0, 9)}`);
+    log(`Watching ${app.ciJob} + EAS for ${app.displayName} ${versionName} (${versionCode}) @ ${sha.slice(0, 9)}`
+        + `${preferLocal ? ' — preferring a local build: EAS builds of it will be canceled' : ''}`);
     // A poll loop: each iteration has to finish before the next is meaningful.
     /* eslint-disable no-await-in-loop */
     for (;;) {
@@ -323,13 +330,34 @@ const runWatch = async (app, shaArg) => {
         const ledgerTag = ledgerTags(app).includes(versionCode);
         const ciLog = ci.state === 'failure' || ci.state === 'error' ? await circleFailureLog(ci.url, repo) : '';
         const d = decideReleasePath({
-            ciState: ci.state, easBuilds: builds, ciLog, ledgerTag,
+            ciState: ci.state, easBuilds: builds, ciLog, ledgerTag, preferLocal,
         });
 
         const line = `${d.decision} (${d.reason})${d.build ? ` EAS ${d.build.status}` : ''}  CI=${ci.state || 'not reported'}`;
         if (line !== last) { log(`  ${new Date().toLocaleTimeString()}  ${line}`); last = line; }
 
-        const keepGoing = d.decision === 'WAIT' || (flag('until-finished') && d.decision === 'EAS_HANDLING');
+        if (d.decision === 'CANCEL_EAS') {
+            d.builds.forEach((b) => {
+                const failures = cancelFailures.get(b.id) || 0;
+                if (!failures) log(`  canceling EAS build ${b.url} so this machine can upload versionCode ${versionCode}`);
+                // A failure here is usually the build finishing first. Not fatal: the next
+                // poll reads the build's real status, and FINISHED means EAS_DONE.
+                const r = spawnSync('eas', ['build:cancel', b.id, '--non-interactive'], { cwd: MOBILE, encoding: 'utf8' });
+                if (r.status === 0) return;
+                note(`  (eas build:cancel ${b.id} failed: ${(r.stderr || r.stdout || '').trim().slice(-400)})`);
+                cancelFailures.set(b.id, failures + 1);
+                // A build still cancellable after repeated failures is not one that finished
+                // first: the cancel itself is broken (auth, CLI). Stop rather than retry it until
+                // the timeout while the build carries on and auto-submits.
+                if (failures + 1 >= MAX_CANCEL_ATTEMPTS) {
+                    throw new Blocked(`could not cancel EAS build ${b.url} after ${MAX_CANCEL_ATTEMPTS} attempts — it is still `
+                        + `${b.status} and will auto-submit if it finishes. Cancel it by hand and re-run watch --prefer-local, `
+                        + 'or let it finish');
+                }
+            });
+        }
+
+        const keepGoing = d.decision === 'WAIT' || d.decision === 'CANCEL_EAS' || (flag('until-finished') && d.decision === 'EAS_HANDLING');
         if (!keepGoing) {
             if (d.build) log(`  EAS build: ${d.build.url}`);
             if (ci.url) log(`  CI job:    ${ci.url}`);

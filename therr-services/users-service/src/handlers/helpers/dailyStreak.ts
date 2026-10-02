@@ -11,6 +11,7 @@ import {
     getWeekEnd,
     getWeekStart,
     isDailyStreakMilestone,
+    isDailyStreakAtStakeToday,
     isDateString,
     isWeekEnd,
     isWeekPerfectThrough,
@@ -536,6 +537,12 @@ export interface IDailyStreakView {
 export interface IDailyStreakSummary extends IDailyStreakView {
     timeZone: string;
     pendingPlacements: IPendingPlacement[];
+    /**
+     * Whether today, left as it is, finalizes as a miss — see `isDailyStreakAtStakeToday`. Read by
+     * the Friends with Habits home-screen streak widget. False, never an error, when the cadence
+     * read fails: the widget then simply does not warn.
+     */
+    isAtStakeToday: boolean;
 }
 
 export const buildWeek = (today: string, rows: IDailyStreakDay[]): IWeekDay[] => {
@@ -598,6 +605,24 @@ export const getDailyStreakView = async (
     };
 };
 
+/**
+ * Whether the user's daily streak is at stake today (`isDailyStreakAtStakeToday`), with today's
+ * requirement decided by the evaluator's own `loadRequiredDates` so the answer cannot drift from
+ * the verdict tonight's pass will write. Skips the cadence read when the answer is already no.
+ */
+export const getIsAtStakeToday = async (userId: string, view: IDailyStreakView): Promise<boolean> => {
+    const todayStatus = view.week.find((day) => day.isToday)?.status;
+    if (view.currentStreak <= 0 || todayStatus === 'upheld') {
+        return false;
+    }
+    const requiredDates = await loadRequiredDates(userId, view.today, view.today);
+    return isDailyStreakAtStakeToday({
+        currentStreak: view.currentStreak,
+        todayStatus,
+        isTodayRequired: requiredDates.has(view.today),
+    });
+};
+
 export const getDailyStreakSummary = async (
     userId: string,
     headers: InternalConfigHeaders,
@@ -616,7 +641,16 @@ export const getDailyStreakSummary = async (
         }),
     ]);
 
-    return { ...view, timeZone, pendingPlacements };
+    // Best-effort, like the placements: `loadRequiredDates` deliberately throws on a failed read
+    // (the evaluator must not mistake it for a rest day), but here a failure only costs a warning.
+    const isAtStakeToday = await getIsAtStakeToday(userId, view).catch((err) => {
+        swallow('at-stake read', userId)(err);
+        return false;
+    });
+
+    return {
+        ...view, timeZone, pendingPlacements, isAtStakeToday,
+    };
 };
 
 export interface IEvaluateAllCounters {
