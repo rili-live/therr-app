@@ -104,6 +104,9 @@ node _bin/niche-android-release.js watch <merge-sha> --prefer-local   # when --l
 `--local` can also be applied after the fact. If a plain `watch` returned `EAS_HANDLING` and
 the user then says they'd rather not wait, re-run `watch` with `--prefer-local`. Pass it only
 when the user asked for it in this session. It cancels an EAS build the user may be waiting on.
+If `eas build:cancel` fails three times on a build that is still running (auth, CLI), `watch`
+exits `BLOCKED` rather than retrying until the timeout. Show the user the error. The build
+will auto-submit if it finishes, so do not build locally unless it is canceled first.
 
 It exits as soon as the path is decided:
 

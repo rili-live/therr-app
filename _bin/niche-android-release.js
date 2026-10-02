@@ -36,6 +36,7 @@ const AAB_PATH = path.join(MOBILE, 'android/app/build/outputs/bundle/release/app
 const MERGED_MANIFEST = path.join(MOBILE, 'android/app/build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml');
 const NOTES_LOCALES = ['en-US', 'es-419', 'fr-CA'];
 const SHARED_LIBS = ['therr-js-utilities', 'therr-styles', 'therr-react'];
+const MAX_CANCEL_ATTEMPTS = 3;
 
 // ---------------------------------------------------------------------------- utilities
 
@@ -314,6 +315,9 @@ const runWatch = async (app, shaArg) => {
     const deadline = Date.now() + Number(opt('timeout-min', 45)) * 60000;
     const interval = Number(opt('interval-sec', 30)) * 1000;
     const preferLocal = flag('prefer-local');
+    // build id → failed `eas build:cancel` attempts, so a cancel that keeps failing is reported once
+    // and then stops the watch instead of retrying every poll until the timeout.
+    const cancelFailures = new Map();
     let last = '';
 
     log(`Watching ${app.ciJob} + EAS for ${app.displayName} ${versionName} (${versionCode}) @ ${sha.slice(0, 9)}`
@@ -334,11 +338,22 @@ const runWatch = async (app, shaArg) => {
 
         if (d.decision === 'CANCEL_EAS') {
             d.builds.forEach((b) => {
-                log(`  canceling EAS build ${b.url} so this machine can upload versionCode ${versionCode}`);
+                const failures = cancelFailures.get(b.id) || 0;
+                if (!failures) log(`  canceling EAS build ${b.url} so this machine can upload versionCode ${versionCode}`);
                 // A failure here is usually the build finishing first. Not fatal: the next
                 // poll reads the build's real status, and FINISHED means EAS_DONE.
                 const r = spawnSync('eas', ['build:cancel', b.id, '--non-interactive'], { cwd: MOBILE, encoding: 'utf8' });
-                if (r.status !== 0) note(`  (eas build:cancel ${b.id} failed: ${(r.stderr || r.stdout || '').trim().slice(-400)})`);
+                if (r.status === 0) return;
+                note(`  (eas build:cancel ${b.id} failed: ${(r.stderr || r.stdout || '').trim().slice(-400)})`);
+                cancelFailures.set(b.id, failures + 1);
+                // A build still cancellable after repeated failures is not one that finished
+                // first: the cancel itself is broken (auth, CLI). Stop rather than retry it until
+                // the timeout while the build carries on and auto-submits.
+                if (failures + 1 >= MAX_CANCEL_ATTEMPTS) {
+                    throw new Blocked(`could not cancel EAS build ${b.url} after ${MAX_CANCEL_ATTEMPTS} attempts — it is still `
+                        + `${b.status} and will auto-submit if it finishes. Cancel it by hand and re-run watch --prefer-local, `
+                        + 'or let it finish');
+                }
             });
         }
 
