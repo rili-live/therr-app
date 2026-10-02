@@ -1,6 +1,7 @@
 import { NativeModules, Platform } from 'react-native';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
+import { fromGoal, ICadenceGoalFields } from '../routes/Pacts/cadenceOptions';
 
 /**
  * The Friends with Habits Android home-screen widget.
@@ -10,6 +11,13 @@ import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
  * and the global board) and hands it to the native `HabitsWidget` module, which stores it in private SharedPreferences
  * and redraws every placed widget (android/.../widget/HabitsWidgetProvider.kt). `periodEnd`
  * lets the widget notice a week rollover on its own and stop showing last week's rank.
+ *
+ * The same snapshot feeds a second, smaller widget (android/.../widget/HabitsStreakWidgetProvider.kt)
+ * that shows only `streak`: the app-level daily streak, with its label already pluralized here.
+ * That widget also warns in the evening when the streak is at stake. The warning depends on the
+ * clock, so the widget decides it at draw time; the snapshot carries the facts it needs — the
+ * server's verdict on whether today is at stake (`stake`), the local day a check-in already
+ * counted (`checkedInOn`), and the weekdays a habit is due on, for when there is no verdict.
  *
  * Both boards ride in every snapshot so the widget's Friends / Everyone toggle switches
  * instantly, offline included. The choice is stored natively and sticks across refreshes and
@@ -78,6 +86,37 @@ export interface IHabitsWidgetSnapshot {
     periodEnd: string | null;
     updatedAt: number;
     today: { done: number; total: number };
+    /**
+     * The app-level daily streak, for the streak widget. `label` is what sits under the count
+     * ("day streak", pluralized for `days`), or the prompt to start one when `days` is 0.
+     */
+    streak: {
+        days: number;
+        label: string;
+        /** Shown in place of `label` while the streak is at risk. */
+        atRiskLabel: string;
+        /**
+         * The device-local day (YYYY-MM-DD) a completed check-in already counts for, or null.
+         * A date rather than a flag, so the widget can tell yesterday's check-in from today's
+         * after midnight without the app.
+         */
+        checkedInOn: string | null;
+        /**
+         * The server's verdict (`isAtStakeToday` on GET /habits/daily-streak/me) and the local day
+         * it is about, or null when there is none. The widget trusts it only on that day, so a
+         * verdict from before midnight, or from a server that predates the field, falls back to
+         * `dueWeekdays`. It knows what `dueWeekdays` cannot: whether a weekly-count habit needs
+         * today.
+         */
+        stake: IHabitsWidgetStakeVerdict | null;
+        /**
+         * Weekdays (0 = Sunday … 6 = Saturday) on which a live habit is due: every day for a daily
+         * habit, its days for a fixed-day one. A weekly-count habit adds none — whether today is
+         * one it needs depends on the rest of its week, which the widget cannot see, and a
+         * warning on a day that costs nothing is how a warning stops being believed.
+         */
+        dueWeekdays: number[];
+    };
     boards: Record<HabitsWidgetScope, IHabitsWidgetBoardView>;
     labels: {
         /** The toggle's two segments. */
@@ -101,6 +140,34 @@ export interface IHabitsWidgetSnapshot {
 }
 
 type Translate = (key: string, params?: any) => string;
+
+/** Whether the daily streak is at stake on `date`, as users-service decided it. */
+export interface IHabitsWidgetStakeVerdict {
+    date: string;
+    isAtStake: boolean;
+}
+
+/** Today's check-ins, as the dashboard counts them, plus what the streak widget's warning needs. */
+export interface IHabitsWidgetToday {
+    done: number;
+    total: number;
+    /** See `streak.dueWeekdays`; from `getDueWeekdays`. Absent means no warning. */
+    dueWeekdays?: number[];
+    /** See `streak.stake`; from `getStakeVerdict`. */
+    stake?: IHabitsWidgetStakeVerdict | null;
+}
+
+/**
+ * The verdict in a GET /habits/daily-streak/me summary, or null when the summary is missing or
+ * comes from a server that does not send `isAtStakeToday` yet.
+ */
+export const getStakeVerdict = (summary?: { today?: unknown; isAtStakeToday?: unknown } | null): IHabitsWidgetStakeVerdict | null => {
+    if (!summary || typeof summary.isAtStakeToday !== 'boolean' || typeof summary.today !== 'string'
+        || !/^\d{4}-\d{2}-\d{2}$/.test(summary.today)) {
+        return null;
+    }
+    return { date: summary.today, isAtStake: summary.isAtStakeToday };
+};
 
 export const WIDGET_TOP_ROWS = 3;
 
@@ -149,15 +216,58 @@ const buildBoardView = (
     };
 };
 
+/**
+ * The line under the streak widget's count. Chosen here rather than natively so it follows the
+ * in-app locale; Spanish and French need the singular at 1, and English reads the same either way.
+ */
+export const getStreakLabel = (days: number, translate: Translate): string => {
+    if (days <= 0) {
+        return translate('pages.habits.widget.streakStart');
+    }
+    return days === 1
+        ? translate('pages.habits.widget.streakDayOne')
+        : translate('pages.celebration.streak.dayStreak');
+};
+
+const ALL_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
+
+/** The weekdays a live habit is due on; see `streak.dueWeekdays`. */
+export const getDueWeekdays = (goals: Array<ICadenceGoalFields | null | undefined>): number[] => {
+    const due = new Set<number>();
+    goals.forEach((goal) => {
+        if (!goal) {
+            return;
+        }
+        const cadence = fromGoal(goal);
+        if (cadence.kind === 'daily') {
+            ALL_WEEKDAYS.forEach((day) => due.add(day));
+        } else if (cadence.kind === 'weekdays') {
+            cadence.days.forEach((day) => due.add(day));
+        }
+    });
+    return ALL_WEEKDAYS.filter((day) => due.has(day));
+};
+
+/** YYYY-MM-DD in the device's own zone — the same day the widget reads off its clock. */
+export const toLocalDateString = (at: number): string => {
+    const date = new Date(at);
+    const pad = (value: number) => String(value).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
+
 export const buildHabitsWidgetSnapshot = (
     boards: IHabitsWidgetBoards,
-    today: { done: number; total: number },
+    today: IHabitsWidgetToday,
     translate: Translate,
     now: number = Date.now(),
 ): IHabitsWidgetSnapshot => {
     const total = Math.max(0, today.total);
     const done = Math.min(Math.max(0, today.done), total);
     const hasFriends = hasFriendsOnBoard(boards.connections);
+    const friendsBoard = buildBoardView(boards.connections, 'connections', translate);
+    const globalBoard = buildBoardView(boards.global, 'global', translate);
+    // The same number on both boards; the larger survives a board that left `currentUser` out.
+    const streakDays = Math.max(friendsBoard.you.dailyStreak, globalBoard.you.dailyStreak);
 
     return {
         v: 2,
@@ -167,10 +277,17 @@ export const buildHabitsWidgetSnapshot = (
         periodEnd: boards.connections.periodEnd || boards.global.periodEnd || null,
         updatedAt: now,
         today: { done, total },
-        boards: {
-            connections: buildBoardView(boards.connections, 'connections', translate),
-            global: buildBoardView(boards.global, 'global', translate),
+        streak: {
+            days: streakDays,
+            label: getStreakLabel(streakDays, translate),
+            atRiskLabel: translate('pages.habits.widget.streakAtRisk'),
+            // Today's check-ins are read in the device's zone (see habitsWidgetRefresh.ts), so a
+            // completed one counts for the device's today.
+            checkedInOn: done > 0 ? toLocalDateString(now) : null,
+            stake: today.stake || null,
+            dueWeekdays: today.dueWeekdays || [],
         },
+        boards: { connections: friendsBoard, global: globalBoard },
         labels: {
             scopeFriends: translate('pages.leaderboard.tabs.friends'),
             scopeEveryone: translate('pages.leaderboard.tabs.everyone'),

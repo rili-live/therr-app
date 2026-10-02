@@ -2247,7 +2247,10 @@
                 "minutesAgo": "hace {minutes} min",
                 "hoursAgo": "hace {hours} h",
                 "daysAgo": "hace {days} d",
-                "refreshHint": "Actualizado {ago}. Toca para actualizar"
+                "refreshHint": "Actualizado {ago}. Toca para actualizar",
+                "streakDayOne": "día seguido",
+                "streakStart": "Registra un hábito hoy para empezar tu racha",
+                "streakAtRisk": "Registra hoy y salva tu racha"
             },
             "upgradeNudge": {
                 "nearCapTitle": "{used} de {limit} hábitos gratuitos en uso",

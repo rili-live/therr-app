@@ -45,6 +45,8 @@ const NICHE_ANDROID_APPS = {
 // EAS build statuses (as `eas build:list --json` reports them).
 const EAS_ACTIVE = ['NEW', 'IN_QUEUE', 'IN_PROGRESS', 'PENDING_CANCEL'];
 const EAS_FAILED = ['ERRORED', 'CANCELED'];
+// Statuses `eas build:cancel` can still stop before the build finishes and auto-submits.
+const EAS_CANCELLABLE = ['NEW', 'IN_QUEUE', 'IN_PROGRESS'];
 
 // A tag per locally uploaded versionCode, pushed to origin. EAS keeps its own record of
 // the builds it made; this is the record for the ones it didn't.
@@ -160,21 +162,53 @@ const classifyCiFailure = (log) => {
 // easBuilds: EAS builds for this merge commit (or this versionCode)
 // ciLog:     the failed step's output, when ciState is failure/error
 // ledgerTag: a ledger tag for this versionCode already exists
+// preferLocal: the user would rather build and upload from this machine than wait on EAS
 //
 // decision:
 //   WAIT          — nothing decided yet; poll again
 //   EAS_HANDLING  — an EAS build exists and is running; it will auto-submit
 //   EAS_DONE      — an EAS build finished; it auto-submitted to Play
 //   LOCAL_DONE    — a ledger tag says this was already uploaded locally
+//   CANCEL_EAS    — (preferLocal) cancel `builds`, then poll again
 //   LOCAL_NEEDED  — nothing is going to upload this versionCode; build and submit locally
 //
 // An EAS build that exists always wins over the CI job's state: the job can be killed by
 // its own no-output timeout after the build is registered, and the build (and its
 // auto-submit) carries on server-side regardless.
 const decideReleasePath = ({
-    ciState, easBuilds = [], ciLog = '', ledgerTag = false,
+    ciState, easBuilds = [], ciLog = '', ledgerTag = false, preferLocal = false,
 }) => {
     if (ledgerTag) return { decision: 'LOCAL_DONE', reason: 'ledger-tag' };
+
+    // Preferring local doesn't skip EAS, it cancels it: CI starts an EAS build on every
+    // release merge whether or not anyone waits for it, and its auto-submit would race the
+    // local upload. EAS registers that submission at build creation but only fires it on a
+    // successful build, so a CANCELED build never reaches Play.
+    if (preferLocal) {
+        const finished = easBuilds.find((b) => b.status === 'FINISHED');
+        if (finished) return { decision: 'EAS_DONE', reason: 'eas-build-finished', build: finished };
+        const cancellable = easBuilds.filter((b) => EAS_CANCELLABLE.includes(b.status));
+        if (cancellable.length) {
+            return {
+                decision: 'CANCEL_EAS', reason: 'local-preferred', build: cancellable[0], builds: cancellable,
+            };
+        }
+        const pending = easBuilds.find((b) => b.status === 'PENDING_CANCEL');
+        if (pending) return { decision: 'WAIT', reason: 'eas-cancel-pending', build: pending };
+        // Hand over only once the CI job has stopped too: while it runs it could still
+        // register another build. With no EAS build yet, fall through — the build has to
+        // exist before it can be cancelled, and a quota or CI failure means there won't be one.
+        const canceled = easBuilds.find((b) => b.status === 'CANCELED');
+        if (canceled && ciState && ciState !== 'pending') {
+            return {
+                decision: 'LOCAL_NEEDED',
+                reason: 'local-preferred',
+                detail: 'the EAS build was canceled so this machine can build and upload instead',
+                build: canceled,
+            };
+        }
+        if (canceled) return { decision: 'WAIT', reason: 'ci-still-running', build: canceled };
+    }
 
     const active = easBuilds.find((b) => EAS_ACTIVE.includes(b.status));
     if (active) return { decision: 'EAS_HANDLING', reason: 'eas-build-active', build: active };
@@ -212,6 +246,7 @@ module.exports = {
     NICHE_ANDROID_APPS,
     EAS_ACTIVE,
     EAS_FAILED,
+    EAS_CANCELLABLE,
     LEDGER_TAG_RE,
     ledgerTagName,
     parseGradleVersion,
