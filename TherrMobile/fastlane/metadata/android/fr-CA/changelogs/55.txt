@@ -1,0 +1,4 @@
+Nouveautés :
+• Nouveau widget de série : gardez votre série quotidienne sur votre écran d'accueil, avec une flamme dorée et un compteur qui se met à jour tout seul
+• En soirée, le widget vous avertit quand l'enregistrement d'aujourd'hui est encore requis pour sauver votre série
+• Corrections et améliorations

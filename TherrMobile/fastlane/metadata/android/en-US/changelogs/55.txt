@@ -1,0 +1,4 @@
+What's new:
+• New streak widget: keep your daily streak on your home screen, with a gold flame and a count that updates on its own
+• In the evening, the widget warns you when today's check-in is still needed to save your streak
+• Fixes and stability improvements

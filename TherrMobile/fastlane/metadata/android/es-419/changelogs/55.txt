@@ -1,0 +1,4 @@
+Novedades:
+• Nuevo widget de racha: lleva tu racha diaria en la pantalla de inicio, con una llama dorada y un contador que se actualiza solo
+• Por la tarde, el widget te avisa cuando aún falta el registro de hoy para salvar tu racha
+• Correcciones y mejoras
