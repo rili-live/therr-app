@@ -713,6 +713,8 @@ export interface IDailyStreak {
     week: IDailyStreakWeekDay[];
     pendingCelebration: IDailyStreakPendingCelebration | null;
     pendingPlacements?: IDailyStreakPendingPlacement[];
+    /** See `IDailyStreakSummary.isAtStakeToday` in DailyStreakService. */
+    isAtStakeToday?: boolean;
 }
 
 export interface IHabitsState {
