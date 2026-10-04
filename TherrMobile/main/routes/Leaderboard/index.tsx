@@ -204,8 +204,18 @@ export const Leaderboard = ({
                 }}
                 size="small"
             />
-            <Text style={themeLeaderboard.styles.userNameText} numberOfLines={1}>
-                {item.isRequestingUser ? translate('pages.leaderboard.labels.you') : item.userName}
+            <Text
+                style={[
+                    themeLeaderboard.styles.userNameText,
+                    !item.isRequestingUser && !item.userName ? themeLeaderboard.styles.userNameTextAnonymous : null,
+                ]}
+                numberOfLines={1}
+            >
+                {/* Accounts that never chose a username come back with an empty one. Label them
+                    rather than leave a blank row that reads as a loading bug. */}
+                {item.isRequestingUser
+                    ? translate('pages.leaderboard.labels.you')
+                    : item.userName || translate('pages.userProfile.anonymous')}
             </Text>
             {item.dailyStreak ? (
                 <View

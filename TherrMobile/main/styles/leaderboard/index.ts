@@ -74,6 +74,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '600',
             color: therrTheme.colors.textWhite,
         },
+        // Accounts that never chose a username. Muted and italic so the placeholder reads as
+        // deliberate rather than as a name that failed to load.
+        userNameTextAnonymous: {
+            fontStyle: 'italic',
+            fontWeight: '400',
+            color: therrTheme.colors.textGray,
+        },
         pointsText: {
             fontSize: 15,
             fontWeight: '700',
