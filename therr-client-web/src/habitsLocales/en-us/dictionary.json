@@ -1,0 +1,177 @@
+{
+  "meta": {
+    "title": "Friends with Habits — Habit Tracker with an Accountability Partner",
+    "description": "A free habit tracker built around accountability partners. Make a pact with a friend, check in daily with photo proof, and keep each other on streak.",
+    "ogImageAlt": "Friends with Habits — habits that stick when a friend's on the hook too."
+  },
+  "languageSwitcher": {
+    "ariaLabel": "Change language",
+    "listAriaLabel": "Select language"
+  },
+  "header": {
+    "homeAriaLabel": "Friends with Habits home",
+    "navAriaLabel": "Page sections",
+    "howItWorks": "How it works",
+    "whyItWorks": "Why it works",
+    "founderOffer": "Founder offer",
+    "faq": "FAQ",
+    "blog": "Blog",
+    "signIn": "Sign in",
+    "getTheApp": "Get the app"
+  },
+  "hero": {
+    "motto": "Friends don't let friends give up on change.",
+    "headlineHtml": "Habits that stick when a friend's <em>on the hook</em> too.",
+    "lede": "Most habit apps let you give up in private. Friends with Habits doesn't. Pact with a friend, check in daily, and keep each other on streak.",
+    "googlePlayCta": "Get it on Google Play",
+    "registerCta": "Create your account",
+    "iosCta": "iPhone? Join the waitlist",
+    "ctaNoteHtml": "Free to install &mdash; now available to everyone on Google Play. iOS coming next.",
+    "founderNoteHtml": "<strong>Founding member offer:</strong> the first 5,000 accounts get every paid feature free for life for a one-time $20.",
+    "highlightsAriaLabel": "Highlights",
+    "chipNoSubscription": "No subscription",
+    "chipInstall": "Install in seconds",
+    "chipPhotoProof": "Photo-proof check-ins"
+  },
+  "demo": {
+    "pactTitle": "Morning run",
+    "pactSubHtml": "Maya &amp; Theo &middot; every day, 6:30am",
+    "streak": "23-day streak",
+    "firstWho": "Maya checked in",
+    "firstWhatHtml": "Photo proof &middot; 6:41am &middot; \"5k, done before coffee\"",
+    "secondWho": "Theo checked in",
+    "secondWhatHtml": "Note &middot; 7:02am &middot; \"Rain. Ran anyway. You owe me.\"",
+    "footHtml": "Both in today &mdash; <strong>streak +1</strong>"
+  },
+  "definition": {
+    "eyebrow": "What it is",
+    "madeByHtml": "It is free, made by <a href=\"https://www.therr.app/\" rel=\"noopener\">Therr, Inc.</a>, and out now on Android through Google Play while an iOS version is in the works."
+  },
+  "steps": {
+    "eyebrow": "How it works",
+    "heading": "Three steps. Two people. One streak.",
+    "intro": "A pact takes a minute to set up and a friend to keep. Everything else is just showing up.",
+    "createTitle": "Create a pact",
+    "createBody": "Pick a habit — workout, reading, meditation, anything daily. Set the time you'll both show up.",
+    "inviteTitle": "Invite a friend",
+    "inviteBody": "You can't do this alone. Your friend joins and becomes your accountability partner.",
+    "checkInTitle": "Check in daily",
+    "checkInBody": "Add a photo or quick note as proof. Watch the streak grow together."
+  },
+  "why": {
+    "eyebrow": "Why it works",
+    "heading": "Why accountability changes everything",
+    "intro": "The same goal, the same person, the same month. The only difference is whether someone else is expecting you.",
+    "withPartnerStat": "95%",
+    "withPartnerHtml": "<strong>With a partner.</strong> How often people follow through on a goal when they have a standing accountability appointment with someone else.",
+    "onYourOwnStat": "10%",
+    "onYourOwnHtml": "<strong>On your own.</strong> How often the same goal gets done when it stays an idea you never commit to anyone. Solo apps can't bridge that gap. We make accountability the default.",
+    "sourceNoteHtml": "Figures from the American Society for Training &amp; Development's study on commitment and goal follow-through, which found a 10% follow-through rate for a goal you only have an idea about, rising to 95% when you have a specific accountability appointment with the person you committed to."
+  },
+  "compare": {
+    "eyebrow": "The difference",
+    "heading": "How it's different from other habit trackers",
+    "partnerRequiredHtml": "<strong>A partner is required, not optional.</strong> Streaks, Habitify, Done and most other habit apps are built for one person. Here a pact needs two, so there is no version of the app where nobody notices you stopped.",
+    "proofHtml": "<strong>Check-ins carry proof.</strong> Every daily check-in takes a photo or a note, so a streak is evidence rather than a tap.",
+    "sharedStreakHtml": "<strong>The streak is shared.</strong> You and your partner are on the same streak, so a missed day costs both of you — the reason it is uncomfortable is the reason it works.",
+    "freeHtml": "<strong>It is free to start.</strong> No waitlist, no invite code, no card. Install it and make your first pact.",
+    "noSubscriptionHtml": "<strong>No subscription to sign up for.</strong> Free accounts track a limited number of active habits. The first 5,000 accounts can lift that limit permanently with a one-time $20 founder unlock instead of a monthly bill."
+  },
+  "founder": {
+    "badge": "Founding member offer",
+    "headingHtml": "<span>$20 once.</span> Free for life.",
+    "lede": "The first 5,000 accounts can unlock everything permanently for a single $20 payment. No subscription, no renewal, nothing to cancel.",
+    "noCapHtml": "No cap on active habits &mdash; free accounts track {freeHabitLimit} at a time",
+    "futureFeatures": "Every premium feature we ship later, included",
+    "forLife": "Yours for life, on every device you sign in on",
+    "note": "Available inside the app through Google Play. When 5,000 people have claimed it, the offer is gone."
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "heading": "Frequently asked questions",
+    "whatIs": {
+      "question": "What is Friends with Habits?",
+      "answer": "Friends with Habits is a habit-tracking app that requires an accountability partner. Instead of tracking a habit alone, you make a pact with a friend: you both commit to the same daily habit, you both check in with proof, and you both see it when the other one misses."
+    },
+    "isFree": {
+      "question": "Is Friends with Habits free?",
+      "answer": "Yes. Friends with Habits is free to download and free to use, with no waitlist, no invite code and no card. A free account tracks a limited number of active habits at a time, and archiving a habit you have finished with frees a slot back up."
+    },
+    "founderUnlock": {
+      "question": "What is the founder free-for-life unlock?",
+      "answer": "The first 5,000 accounts can pay $20 once and never pay again. The founder unlock removes the free tier's active-habit limit and includes every premium feature we add later, for life. There is no subscription attached to it and nothing to cancel. You buy it inside the app through Google Play, and once 5,000 people have claimed it the offer is gone for good."
+    },
+    "whatIsPact": {
+      "question": "What is a pact?",
+      "answer": "A pact is a daily habit that you and a friend commit to together — a workout, a reading session, a meditation, a language lesson, anything you want to do every day. The pact holds the habit, the schedule, and the streak that the two of you share."
+    },
+    "needFriend": {
+      "question": "Do I need a friend to use the app?",
+      "answer": "Yes, and that is deliberate. A pact needs two people, so you invite a friend when you create one. Solo habit trackers let you quit in private, which is the failure mode this app exists to remove. If your friend has not installed the app yet, your invite link walks them through it."
+    },
+    "checkIns": {
+      "question": "How do daily check-ins work?",
+      "answer": "Each day you check in on your pact and attach a photo or a short note as proof. Your partner sees the check-in, you see theirs, and the shared streak grows for every day you both show up. Miss a day and the streak resets for both of you."
+    },
+    "iphone": {
+      "question": "Is Friends with Habits available on iPhone?",
+      "answer": "Not yet. Friends with Habits is on Android via Google Play today, and an iOS version is next on the roadmap. Your account works across every Therr app, so an account you create on Android will carry over.",
+      "cta": "Tell us you want it on iPhone"
+    },
+    "whoMakes": {
+      "question": "Who makes Friends with Habits?",
+      "answer": "Friends with Habits is built by Therr, Inc., the company behind the Therr app for local discovery and community. The two apps share one account system, so a single Therr login works for both.",
+      "answerHtml": "Friends with Habits is built by Therr, Inc., the company behind the <a href=\"https://www.therr.app/\" rel=\"noopener\">Therr app</a> for local discovery and community. The two apps share one account system, so a single Therr login works for both."
+    }
+  },
+  "closer": {
+    "heading": "Make your first pact tonight.",
+    "body": "Pick the habit you keep putting off, send one invite, and let a friend make quitting the harder option."
+  },
+  "featured": {
+    "label": "As seen on",
+    "badgeAlt": "Featured on LaunchKiwi"
+  },
+  "iosModal": {
+    "closeAriaLabel": "Close",
+    "title": "Friends with Habits for iPhone is on the way",
+    "bodyHtml": "There is no iPhone app yet &mdash; we are on Android via Google Play today. Every tap of that button tells us how many people are waiting on iOS, so thanks for the nudge.",
+    "emailLabel": "Want an email the day it lands on the App Store? (Optional)",
+    "emailPlaceholder": "you@example.com",
+    "honeypotLabel": "Leave this field empty",
+    "submit": "Notify me",
+    "submitting": "Adding you…",
+    "fineprint": "We will only email you about the iPhone launch and occasional product news. Unsubscribe any time.",
+    "done": "You are on the list. We will email you when the iPhone app is live.",
+    "errorEmpty": "Enter an email address, or just close this window.",
+    "errorInvalid": "That does not look like an email address.",
+    "errorSaveFailed": "We could not save that address. Try again.",
+    "errorNetwork": "Network error. Try again in a moment."
+  },
+  "footer": {
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "googlePlay": "Google Play",
+    "familyPrefixHtml": "Part of the Therr family of apps &mdash;",
+    "familyLink": "Therr, for local discovery and community"
+  },
+  "jsonLd": {
+    "websiteDescription": "A free habit tracker built around accountability partners.",
+    "appDescription": "A habit tracker that requires an accountability partner. Make a pact with a friend, check in daily with a photo or note as proof, and build a shared streak.",
+    "applicationSubCategory": "Habit Tracker",
+    "operatingSystem": "Android 8.0 and up",
+    "releaseNotes": "Now generally available on the Google Play production track.",
+    "features": {
+      "pacts": "Habit pacts with an accountability partner",
+      "checkIns": "Daily check-ins with photo or note proof",
+      "streaks": "Shared streak tracking",
+      "notifications": "Push notifications when your partner checks in or misses",
+      "feed": "Partner activity feed"
+    },
+    "freeOfferName": "Free",
+    "freeOfferDescription": "Free to install and use, with a limited number of active habits at a time.",
+    "founderOfferName": "Founder free-for-life unlock",
+    "founderOfferDescription": "A one-time $20 purchase, limited to the first 5,000 accounts, that removes the habit limit and includes every premium feature for life. Sold in the app through Google Play Billing.",
+    "accountsUnit": "accounts"
+  }
+}

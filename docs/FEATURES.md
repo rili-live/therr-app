@@ -152,6 +152,11 @@
   rather than linking a listing. Fires `ios_interest_click` (the demand metric) and, for the
   optional email field, `ios_waitlist_submit`; addresses land in
   `main."emailMarketingSubscribers"` flagged `isSubscribedToIosWaitlist`
+- **Localized habits.therr.com landing** — English at `/`, Spanish at `/es`, French at `/fr`,
+  with hreflang alternates and a header language switcher. `/` redirects a visitor to
+  `/es` or `/fr` from their remembered switcher choice (`habits-locale` cookie) or browser
+  Accept-Language, keeping gclid/utm params. Copy lives in `therr-client-web/src/habitsLocales/`;
+  only the landing page is localized — `/register`, `/login` and the legal pages are English
 - **Explore hub** — central discovery page with moments, spaces, thoughts, and people tabs
 - **Space management** — list and manage all user-created spaces
 - **Discovered feed** — recently shared community content

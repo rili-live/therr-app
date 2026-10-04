@@ -1,0 +1,177 @@
+{
+  "meta": {
+    "title": "Friends with Habits — Rastreador de hábitos con un compañero de responsabilidad",
+    "description": "Un rastreador de hábitos gratis creado alrededor de compañeros de responsabilidad. Haz un pacto con un amigo, haz check-in diario con una foto como prueba y mantengan la racha juntos.",
+    "ogImageAlt": "Friends with Habits — hábitos que sí se cumplen cuando un amigo también está comprometido."
+  },
+  "languageSwitcher": {
+    "ariaLabel": "Cambiar idioma",
+    "listAriaLabel": "Seleccionar idioma"
+  },
+  "header": {
+    "homeAriaLabel": "Inicio de Friends with Habits",
+    "navAriaLabel": "Secciones de la página",
+    "howItWorks": "Cómo funciona",
+    "whyItWorks": "Por qué funciona",
+    "founderOffer": "Oferta",
+    "faq": "Preguntas",
+    "blog": "Blog",
+    "signIn": "Entrar",
+    "getTheApp": "Descargar"
+  },
+  "hero": {
+    "motto": "Los amigos no dejan que sus amigos se rindan.",
+    "headlineHtml": "Hábitos que sí se cumplen cuando un amigo también <em>se compromete</em>.",
+    "lede": "La mayoría de las apps de hábitos te dejan rendirte en privado. Friends with Habits no. Haz un pacto con un amigo, haz check-in todos los días y mantengan la racha juntos.",
+    "googlePlayCta": "Disponible en Google Play",
+    "registerCta": "Crea tu cuenta",
+    "iosCta": "¿iPhone? Únete a la lista de espera",
+    "ctaNoteHtml": "Gratis &mdash; ya disponible para todos en Google Play. iOS muy pronto.",
+    "founderNoteHtml": "<strong>Oferta para miembros fundadores:</strong> las primeras 5,000 cuentas obtienen todas las funciones de pago gratis de por vida con un solo pago de $20 USD.",
+    "highlightsAriaLabel": "Lo más destacado",
+    "chipNoSubscription": "Sin suscripción",
+    "chipInstall": "Se instala en segundos",
+    "chipPhotoProof": "Check-ins con foto como prueba"
+  },
+  "demo": {
+    "pactTitle": "Correr en la mañana",
+    "pactSubHtml": "Maya y Theo &middot; todos los días, 6:30 a. m.",
+    "streak": "Racha de 23 días",
+    "firstWho": "Maya hizo check-in",
+    "firstWhatHtml": "Foto &middot; 6:41 a. m. &middot; \"5 km, antes del café\"",
+    "secondWho": "Theo hizo check-in",
+    "secondWhatHtml": "Nota &middot; 7:02 a. m. &middot; \"Llovió. Corrí igual. Me debes una.\"",
+    "footHtml": "Los dos cumplieron hoy &mdash; <strong>racha +1</strong>"
+  },
+  "definition": {
+    "eyebrow": "Qué es",
+    "madeByHtml": "Es gratis, lo hace <a href=\"https://www.therr.app/\" rel=\"noopener\">Therr, Inc.</a> y ya está disponible en Android a través de Google Play, mientras preparamos la versión para iOS."
+  },
+  "steps": {
+    "eyebrow": "Cómo funciona",
+    "heading": "Tres pasos. Dos personas. Una racha.",
+    "intro": "Crear un pacto toma un minuto, y cumplirlo, un amigo. Lo demás es solo presentarse.",
+    "createTitle": "Crea un pacto",
+    "createBody": "Elige un hábito: ejercicio, lectura, meditación, lo que quieras hacer a diario. Define la hora en la que los dos van a cumplir.",
+    "inviteTitle": "Invita a un amigo",
+    "inviteBody": "Esto no se hace solo. Tu amigo se une y se convierte en tu compañero de responsabilidad.",
+    "checkInTitle": "Haz check-in diario",
+    "checkInBody": "Agrega una foto o una nota rápida como prueba. Vean cómo crece la racha juntos."
+  },
+  "why": {
+    "eyebrow": "Por qué funciona",
+    "heading": "Por qué la responsabilidad compartida lo cambia todo",
+    "intro": "La misma meta, la misma persona, el mismo mes. La única diferencia es si alguien más te está esperando.",
+    "withPartnerStat": "95%",
+    "withPartnerHtml": "<strong>Con un compañero.</strong> Qué tan seguido las personas cumplen una meta cuando tienen una cita fija para rendirle cuentas a alguien más.",
+    "onYourOwnStat": "10%",
+    "onYourOwnHtml": "<strong>Por tu cuenta.</strong> Qué tan seguido se cumple esa misma meta cuando se queda en una idea que nunca le prometiste a nadie. Las apps para una sola persona no cierran esa brecha. Nosotros hacemos que la responsabilidad compartida sea lo normal.",
+    "sourceNoteHtml": "Cifras del estudio de la American Society for Training &amp; Development sobre compromiso y cumplimiento de metas, que encontró una tasa de cumplimiento del 10% cuando una meta es solo una idea, y del 95% cuando tienes una cita específica para rendirle cuentas a la persona con quien te comprometiste."
+  },
+  "compare": {
+    "eyebrow": "La diferencia",
+    "heading": "En qué se diferencia de otros rastreadores de hábitos",
+    "partnerRequiredHtml": "<strong>El compañero es obligatorio, no opcional.</strong> Streaks, Habitify, Done y la mayoría de las apps de hábitos están hechas para una sola persona. Aquí un pacto necesita dos, así que no existe una versión de la app en la que nadie note que lo dejaste.",
+    "proofHtml": "<strong>Cada check-in lleva prueba.</strong> Todos los check-ins diarios llevan una foto o una nota, así que una racha es evidencia, no un simple toque.",
+    "sharedStreakHtml": "<strong>La racha es compartida.</strong> Tú y tu compañero tienen la misma racha, así que un día perdido les cuesta a los dos. Justo por eso es incómodo, y justo por eso funciona.",
+    "freeHtml": "<strong>Empezar es gratis.</strong> Sin lista de espera, sin código de invitación, sin tarjeta. Instálala y haz tu primer pacto.",
+    "noSubscriptionHtml": "<strong>Sin suscripciones.</strong> Las cuentas gratis tienen un número limitado de hábitos activos. Las primeras 5,000 cuentas pueden quitar ese límite para siempre con un pago único de $20 USD como fundadores, en lugar de una mensualidad."
+  },
+  "founder": {
+    "badge": "Oferta para miembros fundadores",
+    "headingHtml": "<span>$20 USD, una vez.</span> Gratis de por vida.",
+    "lede": "Las primeras 5,000 cuentas pueden desbloquear todo para siempre con un solo pago de $20 USD. Sin suscripción, sin renovación, nada que cancelar.",
+    "noCapHtml": "Sin límite de hábitos activos &mdash; las cuentas gratis tienen {freeHabitLimit} a la vez",
+    "futureFeatures": "Todas las funciones premium que lancemos después, incluidas",
+    "forLife": "Tuyo de por vida, en cada dispositivo donde inicies sesión",
+    "note": "Disponible dentro de la app a través de Google Play. Cuando 5,000 personas la hayan reclamado, la oferta se acaba."
+  },
+  "faq": {
+    "eyebrow": "Preguntas frecuentes",
+    "heading": "Preguntas frecuentes",
+    "whatIs": {
+      "question": "¿Qué es Friends with Habits?",
+      "answer": "Friends with Habits es una app para dar seguimiento a tus hábitos que requiere un compañero de responsabilidad. En lugar de llevar un hábito por tu cuenta, haces un pacto con un amigo: los dos se comprometen con el mismo hábito diario, los dos hacen check-in con prueba y los dos se enteran cuando el otro falla."
+    },
+    "isFree": {
+      "question": "¿Friends with Habits es gratis?",
+      "answer": "Sí. Friends with Habits es gratis para descargar y gratis para usar, sin lista de espera, sin código de invitación y sin tarjeta. Una cuenta gratis puede tener un número limitado de hábitos activos a la vez, y al archivar un hábito que ya terminaste liberas ese espacio."
+    },
+    "founderUnlock": {
+      "question": "¿Qué es el desbloqueo de fundador gratis de por vida?",
+      "answer": "Las primeras 5,000 cuentas pueden pagar $20 USD una sola vez y nunca volver a pagar. El desbloqueo de fundador quita el límite de hábitos activos de la versión gratis e incluye todas las funciones premium que agreguemos después, de por vida. No tiene ninguna suscripción asociada y no hay nada que cancelar. Lo compras dentro de la app a través de Google Play, y cuando 5,000 personas lo hayan reclamado, la oferta se acaba para siempre."
+    },
+    "whatIsPact": {
+      "question": "¿Qué es un pacto?",
+      "answer": "Un pacto es un hábito diario con el que tú y un amigo se comprometen juntos: hacer ejercicio, leer, meditar, una lección de idiomas, lo que quieras hacer todos los días. El pacto guarda el hábito, el horario y la racha que comparten los dos."
+    },
+    "needFriend": {
+      "question": "¿Necesito un amigo para usar la app?",
+      "answer": "Sí, y es a propósito. Un pacto necesita dos personas, así que invitas a un amigo cuando lo creas. Las apps de hábitos para una sola persona te dejan rendirte en privado, y eso es justo lo que esta app existe para evitar. Si tu amigo todavía no tiene la app, tu enlace de invitación lo guía paso a paso."
+    },
+    "checkIns": {
+      "question": "¿Cómo funcionan los check-ins diarios?",
+      "answer": "Cada día haces check-in en tu pacto y agregas una foto o una nota corta como prueba. Tu compañero ve tu check-in, tú ves el suyo, y la racha compartida crece cada día que los dos cumplen. Si alguien falla un día, la racha se reinicia para los dos."
+    },
+    "iphone": {
+      "question": "¿Friends with Habits está disponible para iPhone?",
+      "answer": "Todavía no. Hoy Friends with Habits está en Android a través de Google Play, y la versión para iOS es lo siguiente en nuestros planes. Tu cuenta funciona en todas las apps de Therr, así que la cuenta que crees en Android se mantiene.",
+      "cta": "Dinos que la quieres para iPhone"
+    },
+    "whoMakes": {
+      "question": "¿Quién hace Friends with Habits?",
+      "answer": "Friends with Habits está hecha por Therr, Inc., la empresa detrás de la app Therr para descubrir lugares locales y conectar con tu comunidad. Las dos apps comparten el mismo sistema de cuentas, así que un solo inicio de sesión de Therr funciona para ambas.",
+      "answerHtml": "Friends with Habits está hecha por Therr, Inc., la empresa detrás de la <a href=\"https://www.therr.app/\" rel=\"noopener\">app Therr</a> para descubrir lugares locales y conectar con tu comunidad. Las dos apps comparten el mismo sistema de cuentas, así que un solo inicio de sesión de Therr funciona para ambas."
+    }
+  },
+  "closer": {
+    "heading": "Haz tu primer pacto hoy mismo.",
+    "body": "Elige ese hábito que sigues posponiendo, manda una invitación y deja que un amigo haga que rendirse sea lo más difícil."
+  },
+  "featured": {
+    "label": "Nos viste en",
+    "badgeAlt": "Destacado en LaunchKiwi"
+  },
+  "iosModal": {
+    "closeAriaLabel": "Cerrar",
+    "title": "Friends with Habits para iPhone ya viene en camino",
+    "bodyHtml": "Todavía no hay app para iPhone &mdash; hoy estamos en Android a través de Google Play. Cada vez que alguien toca ese botón sabemos cuántas personas esperan la versión de iOS, así que gracias por el empujón.",
+    "emailLabel": "¿Quieres que te avisemos por correo el día que llegue al App Store? (Opcional)",
+    "emailPlaceholder": "tu@ejemplo.com",
+    "honeypotLabel": "Deja este campo vacío",
+    "submit": "Avísame",
+    "submitting": "Agregándote…",
+    "fineprint": "Solo te escribiremos sobre el lanzamiento para iPhone y novedades ocasionales del producto. Puedes darte de baja cuando quieras.",
+    "done": "Ya estás en la lista. Te escribiremos cuando la app para iPhone esté disponible.",
+    "errorEmpty": "Escribe un correo electrónico, o simplemente cierra esta ventana.",
+    "errorInvalid": "Eso no parece un correo electrónico.",
+    "errorSaveFailed": "No pudimos guardar ese correo. Inténtalo de nuevo.",
+    "errorNetwork": "Error de red. Inténtalo de nuevo en un momento."
+  },
+  "footer": {
+    "privacyPolicy": "Política de privacidad",
+    "termsOfService": "Términos del servicio",
+    "googlePlay": "Google Play",
+    "familyPrefixHtml": "Parte de la familia de apps de Therr &mdash;",
+    "familyLink": "Therr, para descubrir lugares locales y conectar con tu comunidad"
+  },
+  "jsonLd": {
+    "websiteDescription": "Un rastreador de hábitos gratis creado alrededor de compañeros de responsabilidad.",
+    "appDescription": "Un rastreador de hábitos que requiere un compañero de responsabilidad. Haz un pacto con un amigo, haz check-in diario con una foto o una nota como prueba y construyan una racha compartida.",
+    "applicationSubCategory": "Rastreador de hábitos",
+    "operatingSystem": "Android 8.0 o superior",
+    "releaseNotes": "Ya disponible para todos en Google Play.",
+    "features": {
+      "pacts": "Pactos de hábitos con un compañero de responsabilidad",
+      "checkIns": "Check-ins diarios con foto o nota como prueba",
+      "streaks": "Seguimiento de rachas compartidas",
+      "notifications": "Notificaciones cuando tu compañero hace check-in o falla",
+      "feed": "Actividad de tu compañero"
+    },
+    "freeOfferName": "Gratis",
+    "freeOfferDescription": "Gratis para instalar y usar, con un número limitado de hábitos activos a la vez.",
+    "founderOfferName": "Desbloqueo de fundador gratis de por vida",
+    "founderOfferDescription": "Un pago único de $20 USD, limitado a las primeras 5,000 cuentas, que quita el límite de hábitos e incluye todas las funciones premium de por vida. Se vende dentro de la app a través de Google Play Billing.",
+    "accountsUnit": "cuentas"
+  }
+}
