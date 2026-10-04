@@ -219,7 +219,7 @@ export const Leaderboard = ({
             </Text>
             {item.dailyStreak ? (
                 <View
-                    style={themeCelebration.styles.streakChip}
+                    style={[themeCelebration.styles.streakChip, themeLeaderboard.styles.streakChipSpacing]}
                     accessibilityLabel={translate('pages.leaderboard.labels.dailyStreakAccessibility', {
                         count: item.dailyStreak,
                     })}

@@ -81,6 +81,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '400',
             color: therrTheme.colors.textGray,
         },
+        // The streak chip sits directly before the XP total. Without a gap, a 1-day streak
+        // beside "55 XP" reads as "155 XP" and the board looks mis-sorted.
+        streakChipSpacing: {
+            marginLeft: 8,
+            marginRight: 12,
+        },
         pointsText: {
             fontSize: 15,
             fontWeight: '700',
