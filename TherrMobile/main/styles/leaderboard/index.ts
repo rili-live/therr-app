@@ -74,6 +74,19 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '600',
             color: therrTheme.colors.textWhite,
         },
+        // Accounts that never chose a username. Muted and italic so the placeholder reads as
+        // deliberate rather than as a name that failed to load.
+        userNameTextAnonymous: {
+            fontStyle: 'italic',
+            fontWeight: '400',
+            color: therrTheme.colors.textGray,
+        },
+        // The streak chip sits directly before the XP total. Without a gap, a 1-day streak
+        // beside "55 XP" reads as "155 XP" and the board looks mis-sorted.
+        streakChipSpacing: {
+            marginLeft: 8,
+            marginRight: 12,
+        },
         pointsText: {
             fontSize: 15,
             fontWeight: '700',
