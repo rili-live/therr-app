@@ -157,6 +157,13 @@
   `/es` or `/fr` from their remembered switcher choice (`habits-locale` cookie) or browser
   Accept-Language, keeping gclid/utm params. Copy lives in `therr-client-web/src/habitsLocales/`;
   only the landing page is localized — `/register`, `/login` and the legal pages are English
+- **Coach waitlist (habits.therr.com/coaches)** — landing page testing whether habit-based
+  coaches would pay for a client-accountability tier before any of it is built. Its form asks
+  coaching type, client count and willingness to pay; addresses land in
+  `main."emailMarketingSubscribers"` flagged `isSubscribedToCoachesWaitlist` with the answers
+  in `coachesWaitlistDetails`, and each new coach emails the admin inboxes. Fires
+  `coach_waitlist_cta_click` and `coach_waitlist_submit`. Paid traffic comes from
+  `scripts/google-ads/campaigns/habits-coaches-web.yaml`
 - **Explore hub** — central discovery page with moments, spaces, thoughts, and people tabs
 - **Space management** — list and manage all user-created spaces
 - **Discovered feed** — recently shared community content

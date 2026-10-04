@@ -283,6 +283,16 @@ const HABITS_NO_STORE = 'no-store';
 // The landing page ('/', '/es', '/fr') is not in this table: it is localized, and
 // handled by renderHabitsLandingView below.
 const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
+    // Coach waitlist: the demand test for a coach tier (campaigns/habits-coaches-web.yaml).
+    // Public and indexable, since coaches searching for a client-accountability tool are the
+    // audience; the waitlist form posts to /subscribers/signup, hence needsApiBase.
+    '/coaches': {
+        view: 'habits/coaches',
+        title: 'Friends with Habits for Coaches — Client Habit Accountability',
+        description: 'See your clients\' habits between sessions. Daily check-ins with photo proof, '
+            + 'streaks and nudges for habit-based coaches. Join the coach waitlist.',
+        needsApiBase: true,
+    },
     '/privacy-policy': {
         view: 'habits/privacy-policy',
         title: 'Privacy Policy — Friends with Habits',
@@ -568,6 +578,7 @@ app.use(async (req, res, next) => {
             { loc: 'https://habits.therr.com/es', priority: '1.0', changefreq: 'weekly' },
             { loc: 'https://habits.therr.com/fr', priority: '1.0', changefreq: 'weekly' },
             { loc: 'https://habits.therr.com/blog', priority: '0.8', changefreq: 'weekly' },
+            { loc: 'https://habits.therr.com/coaches', priority: '0.8', changefreq: 'monthly' },
             // Generated from the same list the routes serve, so a new cross-post is
             // never published without a sitemap entry — this subdomain has almost no
             // inbound links, so the sitemap is most of how a page gets discovered.

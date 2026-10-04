@@ -5,8 +5,10 @@ import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import { getHostContext } from '../constants/hostContext';
 import Store from '../store';
+import { ICreateSubscriberParams } from '../store/SubscribersStore';
 import sendUserFeedbackEmail from '../api/email/admin/sendUserFeedbackEmail';
 import sendSubscriberVerificationEmail from '../api/email/sendSubscriberVerificationEmail';
+import sendCoachesWaitlistAdminEmail from '../api/email/admin/sendCoachesWaitlistAdminEmail';
 import { redactUserCreds } from './helpers/user';
 
 // READ
@@ -92,6 +94,39 @@ const createFeedback: RequestHandler = (req: any, res: any) => {
     }));
 };
 
+/**
+ * The answers the habits.therr.com/coaches waitlist form may send, and the only values stored.
+ * The option values in therr-client-web/src/views/habits/coaches.hbs must match these; its test
+ * (habitsCoachesLanding.test.ts) pins the same lists.
+ *
+ * monthlyBudget is bucketed around $20 on purpose: the go/no-go for building the coach view is
+ * roughly ten coaches saying they would pay at least that.
+ */
+export const COACHES_WAITLIST_ANSWERS: Record<string, readonly string[]> = {
+    coachingType: ['nutrition', 'fitness', 'wellness', 'adhd', 'life-business', 'other'],
+    clientCount: ['1-5', '6-15', '16-40', '41-plus'],
+    monthlyBudget: ['under-20', '20-40', '40-plus', 'unsure'],
+};
+
+/**
+ * Keeps only whitelisted answers. The gateway proxies the body verbatim, so anything could
+ * arrive here; an unknown key or value is dropped rather than rejected, because losing a coach's
+ * email over a malformed optional answer would cost the one thing the form exists to collect.
+ */
+export const sanitizeCoachesWaitlistDetails = (raw: unknown): Record<string, string> => {
+    const details: Record<string, string> = {};
+    if (!raw || typeof raw !== 'object') {
+        return details;
+    }
+    Object.keys(COACHES_WAITLIST_ANSWERS).forEach((key) => {
+        const value = (raw as Record<string, unknown>)[key];
+        if (typeof value === 'string' && COACHES_WAITLIST_ANSWERS[key].includes(value)) {
+            details[key] = value;
+        }
+    });
+    return details;
+};
+
 const createSubscriber: RequestHandler = (req: any, res: any) => {
     const {
         locale,
@@ -109,31 +144,73 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
     }
 
     const { email } = req.body;
-    // Coerced rather than trusted: the gateway forwards the body verbatim and the signup
-    // route runs its validation chain without `validate`, so anything could arrive here.
+    // Coerced rather than trusted: the gateway forwards the body verbatim, so anything could
+    // arrive here.
     const isSubscribedToIosWaitlist = req.body.isSubscribedToIosWaitlist === true
         || req.body.isSubscribedToIosWaitlist === 'true';
+    const isSubscribedToCoachesWaitlist = req.body.isSubscribedToCoachesWaitlist === true
+        || req.body.isSubscribedToCoachesWaitlist === 'true';
+    const isWaitlistRequest = isSubscribedToIosWaitlist || isSubscribedToCoachesWaitlist;
+    const coachesWaitlistDetails = isSubscribedToCoachesWaitlist
+        ? sanitizeCoachesWaitlistDetails(req.body.coachesWaitlistDetails)
+        : {};
     const resolvedBrand = brandVariation || BrandVariations.THERR;
     const contextConfig = getHostContext(whiteLabelOrigin, resolvedBrand);
+
+    // Best-effort: a failed notification must never fail the signup it reports on.
+    const notifyCoachSignup = () => sendCoachesWaitlistAdminEmail({
+        subject: `[${contextConfig.brandName}] New coach on the waitlist`,
+        agencyDomainName: whiteLabelOrigin,
+        brandVariation: resolvedBrand,
+    }, {
+        email,
+        details: coachesWaitlistDetails,
+    }).catch((error) => {
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: ['Coach waitlist admin notification failed', error?.message],
+            traceArgs: {
+                'user.email': email,
+            },
+        });
+    });
 
     return Store.subscribers.findSubscriber({ email })
         .then((findResults) => {
             if (findResults.length) {
-                // An address already on the general list that now asks for the iOS
-                // announcement is an upgrade, not a duplicate. Rejecting it (which is still
-                // what a plain re-subscribe gets, so the therr-landing signup form's
-                // behaviour is unchanged) would throw away the only demand signal the
-                // waitlist exists to collect.
-                if (isSubscribedToIosWaitlist && !findResults[0].isSubscribedToIosWaitlist) {
-                    return Store.subscribers.updateSubscriber({
-                        isSubscribedToIosWaitlist: true,
-                    }, { email }).then(([updatedSubscriber]) => res.status(200).send(updatedSubscriber));
+                const existing = findResults[0];
+                // An address already on the list that now asks for a waitlist is an upgrade, not
+                // a duplicate. Rejecting it (which is still what a plain re-subscribe gets, so the
+                // therr-landing signup form's behaviour is unchanged) would throw away the only
+                // demand signal the waitlist exists to collect.
+                const upgrade: Partial<ICreateSubscriberParams> = {};
+                if (isSubscribedToIosWaitlist && !existing.isSubscribedToIosWaitlist) {
+                    upgrade.isSubscribedToIosWaitlist = true;
+                }
+                const isNewCoach = isSubscribedToCoachesWaitlist && !existing.isSubscribedToCoachesWaitlist;
+                if (isNewCoach) {
+                    upgrade.isSubscribedToCoachesWaitlist = true;
+                }
+                if (isSubscribedToCoachesWaitlist) {
+                    // A coach who submits again has probably changed an answer; keep the latest.
+                    upgrade.coachesWaitlistDetails = JSON.stringify(coachesWaitlistDetails);
                 }
 
-                if (isSubscribedToIosWaitlist) {
+                if (Object.keys(upgrade).length) {
+                    return Store.subscribers.updateSubscriber(upgrade, { email })
+                        .then(([updatedSubscriber]) => {
+                            if (isNewCoach) {
+                                notifyCoachSignup();
+                            }
+                            return res.status(200).send(updatedSubscriber);
+                        });
+                }
+
+                if (isWaitlistRequest) {
                     // Already on the waitlist. Idempotent success so a double submit reads as
                     // "you're on the list" rather than an error.
-                    return res.status(200).send(findResults[0]);
+                    return res.status(200).send(existing);
                 }
 
                 return handleHttpError({
@@ -148,6 +225,11 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
                 email,
                 brandVariation: resolvedBrand,
                 isSubscribedToIosWaitlist,
+                // Only present on a coach signup, so every other insert keeps its exact column list.
+                ...(isSubscribedToCoachesWaitlist ? {
+                    isSubscribedToCoachesWaitlist: true,
+                    coachesWaitlistDetails: JSON.stringify(coachesWaitlistDetails),
+                } : {}),
             }).then((subscribers) => {
                 sendSubscriberVerificationEmail({
                     subject: `[${contextConfig.brandName}] Subscribed to General Updates`,
@@ -165,6 +247,9 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
                         },
                     });
                 });
+                if (isSubscribedToCoachesWaitlist) {
+                    notifyCoachSignup();
+                }
 
                 return res.status(201).send(subscribers[0]);
             });
