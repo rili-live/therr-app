@@ -130,6 +130,23 @@ The prod repair itself ran 2026-09-19 14:42 UTC (`repair-space-claims`: 25 consu
   `approve-space-claim`) records it. Section 7 of the audit SQL shows weekly volume to compare
   against the inbox.
 
+## Coach waitlist demand test (added 2026-09-30)
+
+- [ ] **Mark `coach_waitlist_submit` as a key event in GA4 and import it into Google Ads.**
+  Property 549794383, Admin → Events → Mark as key event; then Ads → Goals → Conversions →
+  Import → Google Analytics 4. That property has no Ads link yet, so create it first.
+  `campaigns/habits-coaches-web.yaml` bids toward this conversion and has nothing to optimise
+  without it. Also register `coaching_type`, `client_count` and `monthly_budget` as
+  event-scoped custom dimensions, or the answer breakdown shows as `(not set)`.
+- [ ] **Resume `FwH-Coaches-US-Search-2026Q4` only after the conversion import.**
+  `./therrads campaign apply campaigns/habits-coaches-web.yaml --confirm`, review in the Ads
+  UI, then `campaign resume`. It is created PAUSED at $15/day.
+- [ ] **Decide on the coach view after ~$450 or ~30 days.** Build it if roughly ten coaches
+  joined and most answered `20-40` or `40-plus` for monthly budget:
+  `SELECT email, "coachesWaitlistDetails", "createdAt" FROM main."emailMarketingSubscribers"
+  WHERE "isSubscribedToCoachesWaitlist" ORDER BY "createdAt" DESC;`
+  Reply to each coach by hand as they arrive. The admin inboxes get an email per signup.
+
 ## iOS demand tracking (added 2026-09-14)
 
 - [ ] **Mark `ios_interest_click` and `ios_waitlist_submit` as key events in GA4.** Both

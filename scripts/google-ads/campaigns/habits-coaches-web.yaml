@@ -1,0 +1,154 @@
+# =============================================================================
+# Friends with Habits — Search to the coach waitlist (the COACH DEMAND TEST)
+#
+#   ./therrads campaign plan  campaigns/habits-coaches-web.yaml
+#   ./therrads campaign apply campaigns/habits-coaches-web.yaml --confirm
+#
+# WHY THIS IS ITS OWN CAMPAIGN AND NOT A FOURTH AD GROUP IN habits-web-landing.yaml
+# It sells something different to someone different, and all three things a
+# campaign controls differ with it:
+#   - the conversion: `coach_waitlist_submit` on /coaches, not `sign_up` on
+#     /register. One campaign bids toward one conversion goal, and mixing them
+#     would let the cheaper consumer signups starve the coach keywords.
+#   - the click price: B2B software keywords cost several times the consumer
+#     ones, so a shared budget would be spent almost entirely on consumers.
+#   - the join key: its own utm_campaign keeps coach signups separable in
+#     main."userAcquisition" and in the landingPath the attribution partial
+#     records.
+#
+# WHAT IT IS FOR
+# The consumer funnel's own data (see habits-app-install.yaml: 182 installs ->
+# 2 invites sent) says a user who arrives alone rarely brings a partner. A coach
+# arrives with 10-50 clients who already answer to them, which removes that
+# wall. Whether coaches will PAY for it is unknown, and nothing is built for
+# them yet beyond the pact mechanic itself. This campaign buys the answer before
+# the build: /coaches is a waitlist, and its form asks what the coach would pay.
+#
+# The coach view gets built if roughly ten coaches join and say they'd pay
+# $20/month or more (monthlyBudget 20-40 or 40-plus). Read the answers from
+# main."emailMarketingSubscribers" WHERE "isSubscribedToCoachesWaitlist", or
+# from the coach_waitlist_submit event params in GA4 property 549794383.
+# =============================================================================
+
+hypothesis: >
+  Coaches who sell habit-based programs will pay for a client-accountability
+  tool. If ~10 coaches join the waitlist within the first ~$450 of spend and
+  most say they would pay $20/month or more, build the coach view and a per-seat
+  Stripe plan. If clicks come but nobody joins, the pitch or the page is wrong;
+  rewrite /coaches before concluding anything. If the keywords barely serve,
+  search demand is too thin, and the next test is direct outreach to coaches,
+  not more budget.
+
+campaign:
+    name: "FwH-Coaches-US-Search-2026Q4"
+    kind: web_landing
+    status: PAUSED
+    start_date: ""
+    end_date: ""
+
+budget:
+    # ~30 days at $15 is ~$450: enough clicks at B2B prices to read a waitlist
+    # rate, and a sum the decision it informs (weeks of build time) easily
+    # justifies. Research cost, not acquisition cost.
+    daily: 15.00
+    currency: USD
+    delivery: STANDARD
+
+bidding:
+    # No target_cpa on the first run. `coach_waitlist_submit` has no conversion
+    # history, and a CPA target on a goal the bidder has never seen convert
+    # throttles delivery to near zero. Let Maximize Conversions learn first, then
+    # set a target once there are ~15 conversions to base it on.
+    #
+    # BEFORE RESUMING: mark `coach_waitlist_submit` as a key event in GA4 admin
+    # on property 549794383 and import it under Ads -> Goals -> Conversions ->
+    # Import -> Google Analytics 4 (the same property-to-Ads link the consumer web
+    # arm needs, which does not exist yet). Without it the bidder has nothing to
+    # maximize.
+    goal: OPTIMIZE_INSTALLS_TARGET_INSTALL_COST
+
+targeting:
+    location_ids: ["2840"]
+    language_ids: ["1000"]
+    notes: >
+      US + English, like the other two arms. The page, the app and the answers
+      are English-only for now.
+
+ad_groups:
+    # ---------------------------------------------------------------------
+    # Theme A — coaches looking for exactly this: a way to see whether
+    # clients are doing the work between sessions.
+    # ---------------------------------------------------------------------
+    - name: "client-accountability"
+      match_type: PHRASE
+      final_url: "https://habits.therr.com/coaches"
+      keywords:
+          - "client accountability app"
+          - "client accountability software"
+          - "accountability app for coaches"
+          - "client habit tracking app"
+          - "habit tracker for coaching clients"
+          - "coaching client check in app"
+      negative_keywords:
+          - "free"
+          - "jobs"
+          - "salary"
+          - "certification"
+          - "course"
+          - "become a"
+          - "template"
+
+    # ---------------------------------------------------------------------
+    # Theme B — nutrition coaches, the sharpest sub-niche: habit-based
+    # nutrition coaching is built around one daily habit at a time, which is
+    # what a pact is. If this group converts far better than Theme A, narrow
+    # the page's copy to nutrition coaches.
+    # ---------------------------------------------------------------------
+    - name: "nutrition-coach"
+      match_type: PHRASE
+      final_url: "https://habits.therr.com/coaches"
+      keywords:
+          - "nutrition coaching app"
+          - "app for nutrition coaches"
+          - "habit based nutrition coaching"
+          - "nutrition coach client tracking"
+      negative_keywords:
+          - "free"
+          - "jobs"
+          - "salary"
+          - "certification"
+          - "course"
+          - "near me"
+          - "become a"
+
+assets:
+    # Every claim here is true of the page: the check-ins, photo proof and
+    # nudges exist in the app today; the coach view is presented as a waitlist
+    # and never as a shipped feature. Keep it that way. An ad promising a coach
+    # dashboard would land coaches on a page that says it doesn't exist yet.
+    headlines:
+        - "Client Habit Accountability"
+        - "For Habit-Based Coaches"
+        - "See Client Check-Ins Daily"
+        - "Photo Proof Between Sessions"
+        - "Stop Chasing Clients by Text"
+        - "Join the Coach Waitlist"
+        - "Founding Coach Early Access"
+        - "Habits Between Sessions"
+    descriptions:
+        - "Clients check in daily with photo proof. See a slip the day it happens, not next week."
+        - "A coach view of every client is in development. Join the waitlist for early access."
+        - "Not another all-in-one platform. Just client habits, streaks and nudges between calls."
+        - "Founding coaches get early access and a say in what gets built first. No card needed."
+
+tracking:
+    # utm_campaign is the join key into main."userAcquisition".utmCampaign.
+    # IMMUTABLE once this campaign has served — start a new campaign instead.
+    utm_source: google
+    utm_medium: cpc
+    utm_campaign: fwh-coaches-us-search-2026q4
+    value_track:
+        utm_term: "{keyword}"
+        gad_matchtype: "{matchtype}"
+        gad_network: "{network}"
+        gad_device: "{device}"
