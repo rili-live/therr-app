@@ -23,6 +23,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import hbs from 'hbs';
+import { HabitsLandingLocale, buildHabitsLandingViewContext } from '../utilities/habitsLanding';
 
 const VIEW_PATH = path.join(__dirname, '../views/habits/landing.hbs');
 const SERVER_CLIENT_PATH = path.join(__dirname, '../server-client.tsx');
@@ -39,11 +40,9 @@ beforeAll((done) => {
  * scripts (analytics, CTA tracking, the chameleon); this picks the one by content rather than
  * by position so adding another script cannot silently point these tests at the wrong one.
  */
-const mountAndRun = (): void => {
+const mountAndRun = (locale: HabitsLandingLocale = 'en-us'): void => {
     const rendered = hbs.handlebars.compile(fs.readFileSync(VIEW_PATH, 'utf8'))({
-        title: 'Friends with Habits',
-        description: 'description',
-        canonicalUrl: 'https://habits.therr.com',
+        ...buildHabitsLandingViewContext(locale, { freeHabitLimit: 3 }),
         apiBaseJson: JSON.stringify(API_BASE),
     });
     const body = rendered.match(/<body>([\s\S]*)<\/body>/);
@@ -233,6 +232,27 @@ describe('habits landing iOS waitlist', () => {
                 .toContain('email address');
         });
 
+        it('shows its messages in the page language', async () => {
+            // The script reads every string from the form's data-msg-* attributes. A message
+            // left hardcoded in the script would show English to a visitor on /es.
+            fetchMock.mockImplementation(() => Promise.reject(new Error('offline')));
+            mountAndRun('es');
+            click('hero-ios-cta');
+            setEmail('streakqueen');
+            submit();
+
+            const errorBox = document.getElementById('ios-waitlist-error') as HTMLElement;
+            expect(errorBox.textContent).toBe('Eso no parece un correo electrónico.');
+
+            setEmail('streakqueen@example.com');
+            submit();
+            expect((document.getElementById('ios-waitlist-submit') as HTMLButtonElement).textContent).toBe('Agregándote…');
+            await flushPromises();
+
+            expect(errorBox.textContent).toBe('Error de red. Inténtalo de nuevo en un momento.');
+            expect((document.getElementById('ios-waitlist-submit') as HTMLButtonElement).textContent).toBe('Avísame');
+        });
+
         it('silently drops a honeypot submission without counting it', async () => {
             mountAndRun();
             click('hero-ios-cta');
@@ -297,15 +317,15 @@ describe('habits landing iOS waitlist', () => {
     });
 
     describe('server wiring', () => {
-        it('marks the landing route as needing the API base', () => {
-            // The dialog's fetch target comes from `apiBaseJson`. Without `needsApiBase` on
-            // the '/' renderer the template interpolates an empty base and every submission
-            // posts to a relative path on habits.therr.com, which does not serve the API.
+        it('hands the landing view the API base', () => {
+            // The dialog's fetch target comes from `apiBaseJson`. Without it the template
+            // interpolates an empty base and every submission posts to a relative path on
+            // habits.therr.com, which does not serve the API.
             const serverClient = fs.readFileSync(SERVER_CLIENT_PATH, 'utf8');
-            const landingEntry = serverClient.match(/'\/': \{[\s\S]*?\n {4}\},/);
+            const landingRenderer = serverClient.match(/const renderHabitsLandingView = [\s\S]*?\n\};/);
 
-            expect(landingEntry).not.toBeNull();
-            expect((landingEntry as RegExpMatchArray)[0]).toContain('needsApiBase: true');
+            expect(landingRenderer).not.toBeNull();
+            expect((landingRenderer as RegExpMatchArray)[0]).toContain('apiBaseJson: serialize(');
         });
 
         it('never links the iOS CTA to an App Store listing', () => {

@@ -4,40 +4,66 @@
 
 import fs from 'fs';
 import path from 'path';
+import hbs from 'hbs';
+import {
+    HABITS_LANDING_LOCALES,
+    HabitsLandingLocale,
+    buildHabitsLandingViewContext,
+} from '../utilities/habitsLanding';
 
 /**
- * Structural SEO/GEO guards for the Friends with Habits landing page.
+ * Structural SEO/GEO guards for the Friends with Habits landing page, in every language
+ * it is served in ('/', '/es', '/fr').
  *
  * These assert the things that break silently: Google demotes (and can penalise)
- * FAQPage markup whose answers are not visible on the page, and a malformed
- * JSON-LD block is simply dropped by every consumer with no error surfaced
- * anywhere. Neither shows up in a build, a lint, or a render test.
+ * FAQPage markup whose answers are not visible on the page, a malformed JSON-LD block
+ * is simply dropped by every consumer with no error surfaced anywhere, and an
+ * incomplete hreflang set is ignored outright. None of it shows up in a build or a lint.
  *
- * The template is read as text rather than rendered because the only Handlebars
- * expressions in it are `{{title}}`/`{{description}}`/`{{canonicalUrl}}` in the
- * head — every assertion below is on static markup.
+ * Each locale is rendered through Handlebars with the context the server builds, because
+ * the copy (and the JSON-LD built from it) now comes from src/habitsLocales.
  */
 const TEMPLATE_PATH = path.join(__dirname, '../views/habits/landing.hbs');
+const PARTIALS_DIR = path.join(__dirname, '../views/partials');
 const template = fs.readFileSync(TEMPLATE_PATH, 'utf8');
+
+// Registered synchronously (hbs.registerPartials is async) so it.each tables below can be
+// built from rendered output at collection time.
+fs.readdirSync(PARTIALS_DIR)
+    .filter((file) => file.endsWith('.hbs'))
+    .forEach((file) => {
+        hbs.handlebars.registerPartial(path.basename(file, '.hbs'), fs.readFileSync(path.join(PARTIALS_DIR, file), 'utf8'));
+    });
+
+const compiled = hbs.handlebars.compile(template);
+const render = (locale: HabitsLandingLocale) => compiled({
+    ...buildHabitsLandingViewContext(locale, { freeHabitLimit: 3 }),
+    apiBaseJson: '"https://api.test.therr.com/v1"',
+});
+
+const LOCALES = HABITS_LANDING_LOCALES.map((config) => config.locale);
 
 const stripTags = (html: string) => html.replace(/<[^>]+>/g, '');
 
-const getJsonLd = () => {
-    const match = template.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+const getJsonLd = (html: string) => {
+    const match = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
     if (!match) {
-        throw new Error('No JSON-LD block found in habits/landing.hbs');
+        throw new Error('No JSON-LD block found in rendered habits/landing.hbs');
     }
     return JSON.parse(match[1]);
 };
 
-describe('habits landing page SEO markup', () => {
+describe.each(LOCALES)('habits landing page SEO markup (%s)', (locale) => {
+    const html = render(locale);
+    const config = HABITS_LANDING_LOCALES.find((entry) => entry.locale === locale) as typeof HABITS_LANDING_LOCALES[number];
+
     it('embeds a parseable JSON-LD graph', () => {
-        expect(() => getJsonLd()).not.toThrow();
-        expect(getJsonLd()['@graph']).toEqual(expect.any(Array));
+        expect(() => getJsonLd(html)).not.toThrow();
+        expect(getJsonLd(html)['@graph']).toEqual(expect.any(Array));
     });
 
     it('declares the node types search and answer engines read', () => {
-        const types = getJsonLd()['@graph'].map((node) => node['@type']);
+        const types = getJsonLd(html)['@graph'].map((node) => node['@type']);
         expect(types).toEqual(expect.arrayContaining([
             'WebSite', 'Organization', 'WebPage', 'MobileApplication', 'FAQPage',
         ]));
@@ -46,24 +72,28 @@ describe('habits landing page SEO markup', () => {
     it('attributes the app to the same Organization node declared on www.therr.app', () => {
         // The cross-domain @id is what merges habits.therr.com and www.therr.app into
         // one company entity. A typo here silently splits them back into two.
-        const app = getJsonLd()['@graph'].find((node) => node['@type'] === 'MobileApplication');
+        const app = getJsonLd(html)['@graph'].find((node) => node['@type'] === 'MobileApplication');
         expect(app.publisher['@id']).toBe('https://www.therr.app/#organization');
     });
 
     it('points install links at the Habits application id, not the Therr app', () => {
         // app.therrmobile installs an app that cannot open a Friends with Habits account.
-        const app = getJsonLd()['@graph'].find((node) => node['@type'] === 'MobileApplication');
+        const app = getJsonLd(html)['@graph'].find((node) => node['@type'] === 'MobileApplication');
         expect(app.installUrl).toContain('id=com.therr.habits');
         // Scoped to hrefs: the template names app.therrmobile in a comment explaining
         // why it must not be linked.
-        const playStoreHrefs = template.match(/href="https:\/\/play\.google\.com[^"]*"/g) || [];
+        const playStoreHrefs = html.match(/href="https:\/\/play\.google\.com[^"]*"/g) || [];
         expect(playStoreHrefs.length).toBeGreaterThan(0);
         playStoreHrefs.forEach((href) => expect(href).toContain('id=com.therr.habits'));
     });
 
     describe('FAQPage markup matches the visible copy', () => {
-        const faq = getJsonLd()['@graph'].find((node) => node['@type'] === 'FAQPage');
-        const visibleText = stripTags(template);
+        const faq = getJsonLd(html)['@graph'].find((node) => node['@type'] === 'FAQPage');
+        const visibleText = stripTags(html);
+
+        it('has every question', () => {
+            expect(faq.mainEntity).toHaveLength(8);
+        });
 
         it.each(faq.mainEntity.map((entry) => [entry.name, entry.acceptedAnswer.text]))(
             '%s',
@@ -76,30 +106,70 @@ describe('habits landing page SEO markup', () => {
 
     it('renders the brand motto and keeps the JSON-LD slogans byte-identical to it', () => {
         // The motto is written in three places (visible copy, WebSite.slogan,
-        // MobileApplication.slogan). Nothing rejects a partial edit, so a reworded
-        // tagline silently leaves two stale copies in the structured data.
-        const MOTTO = "Friends don't let friends give up on change.";
-        expect(template).toContain(`<p class="motto">${MOTTO}</p>`);
+        // MobileApplication.slogan). All three now come from one dictionary key; this
+        // guards the wiring.
+        const motto = config.copy.hero.motto;
+        expect(html).toContain(`<p class="motto">${motto}</p>`);
 
-        const slogans = getJsonLd()['@graph']
+        const slogans = getJsonLd(html)['@graph']
             .filter((node) => node.slogan)
             .map((node) => node.slogan);
         expect(slogans).toHaveLength(2);
-        slogans.forEach((slogan) => expect(slogan).toBe(MOTTO));
+        slogans.forEach((slogan) => expect(slogan).toBe(motto));
     });
 
     it('keeps the motto out of the h1', () => {
         // The headline has to carry the head term this page ranks for; the motto is
         // additive brand copy and must not displace it.
-        const h1 = template.match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
+        const h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
         if (!h1) {
             throw new Error('No h1 found in habits/landing.hbs');
         }
-        expect(h1[1]).not.toContain('give up on change');
+        expect(h1[1]).not.toContain(config.copy.hero.motto);
+        expect(stripTags(h1[1]).trim().length).toBeGreaterThan(0);
     });
 
     it('has exactly one h1', () => {
-        expect(template.match(/<h1[\s>]/g)).toHaveLength(1);
+        expect(html.match(/<h1[\s>]/g)).toHaveLength(1);
+    });
+
+    it('declares its own language on the document and in the structured data', () => {
+        expect(html).toContain(`<html lang="${config.htmlLang}">`);
+        expect(html).toContain(`<meta property="og:locale" content="${config.ogLocale}">`);
+        getJsonLd(html)['@graph']
+            .filter((node) => node.inLanguage)
+            .forEach((node) => expect(node.inLanguage).toBe(config.htmlLang));
+    });
+
+    it('lists every language, and x-default, as an hreflang alternate', () => {
+        // Google ignores an hreflang set that is not complete and reciprocal on every page.
+        const alternates = (html.match(/<link rel="alternate" hreflang="[^"]+" href="[^"]+">/g) || []);
+        expect(alternates).toEqual([
+            '<link rel="alternate" hreflang="en" href="https://habits.therr.com">',
+            '<link rel="alternate" hreflang="es" href="https://habits.therr.com/es">',
+            '<link rel="alternate" hreflang="fr" href="https://habits.therr.com/fr">',
+            '<link rel="alternate" hreflang="x-default" href="https://habits.therr.com">',
+        ]);
+        expect(html).toContain(`<link rel="canonical" href="https://habits.therr.com${config.path === '/' ? '' : config.path}">`);
+    });
+
+    it('offers a switch to every language, marking the current one', () => {
+        LOCALES.forEach((other) => {
+            const otherConfig = HABITS_LANDING_LOCALES.find((entry) => entry.locale === other) as typeof config;
+            expect(html).toContain(`href="${otherConfig.path}?lang=${otherConfig.code}"`);
+        });
+        expect(html.match(/aria-current="true"/g)).toHaveLength(1);
+    });
+
+    it('leaves no placeholder or missing copy behind', () => {
+        // A missing dictionary key renders as an empty string, and an uninterpolated
+        // variable as a literal {name}; both are invisible to every other check here.
+        const body = (html.match(/<main>[\s\S]*<\/main>/) as RegExpMatchArray)[0];
+        expect(stripTags(body)).not.toMatch(/\{[a-zA-Z]+\}/);
+        expect(body).not.toMatch(/<(h1|h2|h3|p|li|span|div)[^>]*>\s*<\/\1>/);
+        // The free-tier cap is interpolated from HABITS_FREE_HABIT_LIMIT, not hardcoded.
+        const founderList = (body.match(/<ul class="founder-list">[\s\S]*?<\/ul>/) as RegExpMatchArray)[0];
+        expect(stripTags(founderList)).toMatch(/\b3\b/);
     });
 
     it('allows every third-party image host it embeds through the CSP', () => {
