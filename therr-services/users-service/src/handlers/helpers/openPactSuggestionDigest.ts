@@ -158,7 +158,7 @@ export const runOpenPactSuggestionPass = async (
             }
 
             if (canPush) {
-                const schedule = resolveReminderSchedule(preferences, now);
+                const schedule = resolveReminderSchedule(preferences, now, { jitterSeed: pact.creatorUserId });
                 // eslint-disable-next-line no-await-in-loop
                 const outcome = await queuePush(
                     pact.creatorUserId,
