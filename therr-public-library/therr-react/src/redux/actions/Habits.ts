@@ -218,6 +218,30 @@ const Habits = {
             return response.data;
         }),
 
+    // Open pacts. Only the two that change a pact already in the store are actions; the open-pact
+    // list and a pact's join requests are screen-local reads (PactsService directly).
+    setPactOpen: (id: string, isOpen: boolean) => (dispatch: any) => PactsService
+        .setOpen(id, isOpen).then((response) => {
+            dispatch({
+                type: HabitsActionTypes.SET_PACT_OPEN,
+                data: { pactId: id, isOpen: !!response.data?.isOpen },
+            });
+            return response.data;
+        }),
+
+    // Approving changes the pact's membership — and may start it — but the endpoint answers with
+    // the bare pact row, so the hydrated detail is re-read rather than patched.
+    approvePactJoinRequest: (id: string, requestId: string) => (dispatch: any) => PactsService
+        .approveJoinRequest(id, requestId)
+        .then(() => PactsService.get(id))
+        .then((response: any) => {
+            dispatch({
+                type: HabitsActionTypes.GET_PACT_DETAILS,
+                data: response.data,
+            });
+            return response.data;
+        }),
+
     // Checkins
     getTodayCheckins: (habitGoalId?: string, timeZone?: string) => (dispatch: any) => HabitCheckinsService
         .getTodayCheckins(habitGoalId, timeZone).then((response: any) => {

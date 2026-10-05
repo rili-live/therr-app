@@ -13,6 +13,8 @@ export interface ICreatePactBody {
         charity?: string;
         description?: string;
     };
+    /** Let people outside the pact ask to join it. Opt-in; omitted means closed. */
+    isOpen?: boolean;
 }
 
 /** A member's own charity pledge on a pact (Phase A: no money moves). Validated server-side. */
@@ -32,6 +34,8 @@ export interface IBulkInvitePactBody {
         charity?: string;
         description?: string;
     };
+    /** Let people outside the pact ask to join it. Opt-in; omitted means closed. */
+    isOpen?: boolean;
 }
 
 class PactsService {
@@ -168,6 +172,63 @@ class PactsService {
     removePledge = (id: string) => axios({
         method: 'delete',
         url: `/users-service/habits/pacts/${id}/pledge`,
+    });
+
+    // ---- Open pacts ---------------------------------------------------------------------
+    // Opt-in on both sides: a creator opens a pact, and someone outside it asks to join. The
+    // creator answers each request. Approving makes the requester an ordinary active member.
+
+    /**
+     * Open pacts the caller could ask to join, answered as `{ pacts: IOpenPact[] }`. With
+     * `habitGoalId`, only those on the same habit as that goal — matched on the template it came
+     * from, or its name — which is what an unanswered invite offers instead.
+     */
+    getOpenPacts = (habitGoalId?: string) => axios({
+        method: 'get',
+        url: `/users-service/habits/pacts/open${habitGoalId ? `?habitGoalId=${encodeURIComponent(habitGoalId)}` : ''}`,
+    });
+
+    /** Creator only. Opening needs a pending or running pact; closing is always allowed. */
+    setOpen = (id: string, isOpen: boolean) => axios({
+        method: 'put',
+        url: `/users-service/habits/pacts/${id}/open`,
+        data: { isOpen },
+    });
+
+    /**
+     * Ask to join an open pact. 201 with the new request; 200 with the one already waiting (the
+     * creator is not notified twice); 402 at the free-tier habit cap, like any habit start.
+     */
+    requestToJoin = (id: string) => axios({
+        method: 'post',
+        url: `/users-service/habits/pacts/${id}/join-requests`,
+    });
+
+    /** Withdraw the caller's own pending request. */
+    cancelJoinRequest = (id: string) => axios({
+        method: 'delete',
+        url: `/users-service/habits/pacts/${id}/join-requests/mine`,
+    });
+
+    /** Creator only: pending requests on a pact, as `{ requests: IPactJoinRequest[] }`. */
+    getJoinRequests = (id: string) => axios({
+        method: 'get',
+        url: `/users-service/habits/pacts/${id}/join-requests`,
+    });
+
+    /**
+     * Creator only. Answers 200 with the pact; 409 when the requester has no free habit slot (the
+     * request stays pending); 400 when the pact has filled up or ended.
+     */
+    approveJoinRequest = (id: string, requestId: string) => axios({
+        method: 'put',
+        url: `/users-service/habits/pacts/${id}/join-requests/${requestId}/approve`,
+    });
+
+    /** Creator only. Silent to the requester. */
+    declineJoinRequest = (id: string, requestId: string) => axios({
+        method: 'put',
+        url: `/users-service/habits/pacts/${id}/join-requests/${requestId}/decline`,
     });
 
     delete = (id: string) => axios({

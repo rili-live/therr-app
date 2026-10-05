@@ -79,6 +79,7 @@ import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 import { readApiError } from '../../utilities/apiErrorMessage';
 import { getHabitCapPaywallParams, isHabitCapPaywallAvailable } from '../../utilities/habitCapPaywall';
 import getDeviceSavingsCurrencyCode from '../../utilities/savingsCurrency';
+import { checkOpenPactsSupported } from '../../utilities/openPactsSupport';
 
 /** Sunday-first, matching `targetDaysOfWeek` and the `daysOfWeekShort` dictionary. */
 const CADENCE_DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -151,6 +152,13 @@ interface ICreatePactInviteState {
     showAmountUnitError: boolean;
     selectedPartnerIds: string[];
     selectedPartnerDetailsById: { [id: string]: IConnectionDetails };
+    /**
+     * Open pacts: let people outside the invite list ask to join. Off by default and offered only
+     * on the review step of a pact with partners — an optional extra, never part of the core flow.
+     */
+    isOpenPact: boolean;
+    /** The open-pact switch is offered only once the server is known to honor it. */
+    isOpenPactSupported: boolean;
     searchQuery: string;
     isSearching: boolean;
     isSending: boolean;
@@ -247,6 +255,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     private themeHabits = buildHabitStyles();
     private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     private backHandlerSubscription: NativeEventSubscription | null = null;
+    private isUnmounted = false;
     // The goal created for the current step-1 selection, so a retry after a
     // failed invite/start reuses it instead of creating a duplicate.
     private resolvedGoal: { selectionKey: string; habitGoalId: string } | null = null;
@@ -269,6 +278,8 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             showAmountUnitError: false,
             selectedPartnerIds: [],
             selectedPartnerDetailsById: {},
+            isOpenPact: false,
+            isOpenPactSupported: false,
             searchQuery: '',
             isSearching: false,
             isSending: false,
@@ -301,10 +312,21 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         // finish the flow the normal way by choosing a partner.
         this.props.getUserHabitEligibility().catch(() => {});
 
+        // An older server ignores `isOpen`, so offering the switch there would promise something
+        // that never happens. See utilities/openPactsSupport.ts.
+        const { pacts, activePacts, pendingInvites } = this.props.habits;
+        checkOpenPactsSupported([...(pacts || []), ...(activePacts || []), ...(pendingInvites || [])])
+            .then((isOpenPactSupported) => {
+                if (!this.isUnmounted && isOpenPactSupported) {
+                    this.setState({ isOpenPactSupported });
+                }
+            });
+
         this.backHandlerSubscription = BackHandler.addEventListener('hardwareBackPress', this.onHardwareBackPress);
     }
 
     componentWillUnmount() {
+        this.isUnmounted = true;
         this.backHandlerSubscription?.remove();
         this.backHandlerSubscription = null;
         if (this.searchDebounceTimer) {
@@ -714,6 +736,9 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 ...cadenceFields,
                 ...this.getSavingsGoalFields(template.goalType),
                 ...this.getAmountGoalFields(template.goalType),
+                // Lets the server record which template this copy came from, which is how open pacts
+                // match "the same habit" across users and languages. Ignored by an older server.
+                sourceTemplateId: template.id,
             });
 
             return userGoal?.id || selectedTemplateId;
@@ -1015,7 +1040,8 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
 
     handleSend = async () => {
         const { bulkInvitePact, navigation } = this.props;
-        const { selectedPartnerIds } = this.state;
+        const { selectedPartnerIds, isOpenPactSupported } = this.state;
+        const isOpenPact = this.state.isOpenPact && isOpenPactSupported;
 
         this.setState({ isSending: true });
 
@@ -1036,6 +1062,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 partnerUserIds: selectedPartnerIds,
                 pactType: 'accountability',
                 durationDays: DEFAULT_PACT_DURATION_DAYS,
+                ...(isOpenPact ? { isOpen: true } : {}),
             });
 
             // THE activation event. `_rule_app_activation` in
@@ -1051,6 +1078,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 userId: this.props.user?.details?.id,
                 partnerCount: selectedPartnerIds.length,
                 pactType: 'accountability',
+                isOpen: isOpenPact,
             });
 
             // Separate from the pact because the solo-tracking unlock counts
@@ -1306,6 +1334,14 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 <Text style={[this.themeHabits.styles.dashboardSubtitle, { paddingHorizontal: 20 }]}>
                     {this.translate('pages.pacts.wizard.step1Subtitle')}
                 </Text>
+                {/* Says up front that a friend comes next, so the partner step is the plan rather
+                    than a wall met after the user has already invested in a habit. Omitted where
+                    that step will be skipped. */}
+                {getNextStep('configure', this.getWizardContext()) === 'partners' && (
+                    <Text style={[this.themeHabits.styles.habitCardSubtitle, { paddingHorizontal: 20, marginTop: 4 }]}>
+                        {this.translate('pages.pacts.wizard.nextInviteHint')}
+                    </Text>
+                )}
 
                 {this.renderHabitLimitNotice()}
 
@@ -1789,6 +1825,28 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 <Text style={[this.themeHabits.styles.streakMilestoneText, { paddingHorizontal: 20, marginTop: 12 }]}>
                     {this.translate('pages.pacts.wizard.freezeRule', streakFreezeRuleParams)}
                 </Text>
+                {/*
+                  * Open pacts. Last and off by default: the invite is the point of this screen, and
+                  * this only widens who may *ask* to join — the creator still answers each request.
+                  */}
+                {!isSolo && this.state.isOpenPactSupported && (
+                    <View style={[this.themeHabits.styles.habitNotificationPrefsRow, { paddingHorizontal: 20, marginTop: 12 }]}>
+                        <View style={this.themeHabits.styles.habitNotificationPrefsLabelContainer}>
+                            <Text style={this.themeHabits.styles.habitNotificationPrefsLabel}>
+                                {this.translate('pages.pacts.openPact.toggleLabel')}
+                            </Text>
+                            <Text style={this.themeHabits.styles.habitNotificationPrefsHint}>
+                                {this.translate('pages.pacts.openPact.toggleHint')}
+                            </Text>
+                        </View>
+                        <Switch
+                            accessibilityLabel={this.translate('pages.pacts.openPact.toggleLabel')}
+                            color={this.themeHabits.colors.primary3}
+                            value={this.state.isOpenPact}
+                            onValueChange={(isOpenPact) => this.setState({ isOpenPact })}
+                        />
+                    </View>
+                )}
             </View>
         );
     };

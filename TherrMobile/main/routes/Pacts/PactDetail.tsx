@@ -6,6 +6,7 @@ import { bindActionCreators } from 'redux';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { FeatureFlags, PledgeCharityKey } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
+import { PactsService } from 'therr-react/services';
 import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
@@ -19,13 +20,16 @@ import {
 } from '../Habits/pactState';
 import getPactTimeline from '../../utilities/pactTimeline';
 import getConfig from '../../utilities/getConfig';
-import { IUserState, IHabitsState, IPact, IPactMember } from 'therr-react/types';
+import { pactShowsOpenPactSupport } from '../../utilities/openPactsSupport';
+import {
+    IUserState, IHabitsState, IPact, IPactJoinRequest, IPactMember,
+} from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import translator from '../../utilities/translator';
 import { Button } from '../../components/BaseButton';
 import {
-    AmountProgressCard, PactMemberRow, PledgeCard, SavingsProgressCard,
+    AmountProgressCard, OpenPactCard, PactMemberRow, PledgeCard, SavingsProgressCard,
 } from '../../components/Habits';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
@@ -48,6 +52,8 @@ interface IPactDetailDispatchProps {
     removePactMember: Function;
     setPactPledge: Function;
     removePactPledge: Function;
+    setPactOpen: Function;
+    approvePactJoinRequest: Function;
 }
 
 interface IStoreProps extends IPactDetailDispatchProps {
@@ -72,6 +78,10 @@ interface IPactDetailState {
     confirmAction: 'decline' | 'abandon' | 'removeMember' | null;
     /** The member the removal confirm is targeting, set only for confirmAction === 'removeMember'. */
     memberToRemove: IPactMember | null;
+    /** Open pacts: requests waiting on the creator. Only ever fetched for the creator. */
+    joinRequests: IPactJoinRequest[];
+    isOpenSaving: boolean;
+    answeringRequestId: string | null;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -90,6 +100,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     removePactMember: HabitActions.removePactMember,
     setPactPledge: HabitActions.setPactPledge,
     removePactPledge: HabitActions.removePactPledge,
+    setPactOpen: HabitActions.setPactOpen,
+    approvePactJoinRequest: HabitActions.approvePactJoinRequest,
 }, dispatch);
 
 export class PactDetail extends React.Component<IPactDetailProps, IPactDetailState> {
@@ -110,6 +122,9 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
             showConfirmModal: false,
             confirmAction: null,
             memberToRemove: null,
+            joinRequests: [],
+            isOpenSaving: false,
+            answeringRequestId: null,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -161,8 +176,112 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         Promise.all([
             getPactDetails(pactId),
             getUserGoals(),
-        ]).catch(() => undefined).finally(() => {
-            this.setState({ isRefreshing: false });
+        ]).then(([pact]) => this.fetchJoinRequests(pact))
+            .catch(() => undefined)
+            .finally(() => {
+                this.setState({ isRefreshing: false });
+            });
+    };
+
+    /**
+     * Open pacts: the requests waiting on this pact's creator. Read only for the creator of a pact
+     * that can still take members — nobody else can answer one, and the server would refuse them.
+     * Not at all on a server without open pacts, which has no such route.
+     * Kept in screen state rather than redux: nothing else in the app shows them.
+     */
+    fetchJoinRequests = (pact?: IPact) => {
+        const currentUserId = this.props.user.details?.id;
+        if (!pact?.id || pact.creatorUserId !== currentUserId || !['pending', 'active'].includes(pact.status)
+            || !pactShowsOpenPactSupport(pact)) {
+            this.setState({ joinRequests: [] });
+            return undefined;
+        }
+
+        return PactsService.getJoinRequests(pact.id)
+            .then((response: any) => {
+                this.setState({ joinRequests: response?.data?.requests || [] });
+            })
+            .catch(() => undefined);
+    };
+
+    handleToggleOpen = (isOpen: boolean) => {
+        const { setPactOpen, route } = this.props;
+        const { pactId } = route.params;
+
+        this.setState({ isOpenSaving: true });
+
+        setPactOpen(pactId, isOpen)
+            .then(() => {
+                logAppEvent(isOpen ? 'habit_pact_opened' : 'habit_pact_closed', {
+                    userId: this.props.user?.details?.id,
+                });
+                Toast.show({
+                    type: 'success',
+                    text1: this.translate(isOpen ? 'pages.pacts.openPact.openedToast' : 'pages.pacts.openPact.closedToast'),
+                    visibilityTime: 2500,
+                });
+            })
+            .catch((error: any) => {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.errorTitle'),
+                    text2: getApiErrorMessage(error) || this.translate('pages.pacts.openPact.toggleError'),
+                    visibilityTime: 3000,
+                });
+            })
+            .finally(() => {
+                this.setState({ isOpenSaving: false });
+            });
+    };
+
+    handleAnswerJoinRequest = (request: IPactJoinRequest, answer: 'approve' | 'decline') => {
+        const { approvePactJoinRequest, route } = this.props;
+        const { pactId } = route.params;
+
+        this.setState({ answeringRequestId: request.id });
+
+        const action = answer === 'approve'
+            ? approvePactJoinRequest(pactId, request.id)
+            : PactsService.declineJoinRequest(pactId, request.id);
+
+        Promise.resolve(action)
+            .then(() => {
+                logAppEvent(answer === 'approve' ? 'habit_pact_join_approve' : 'habit_pact_join_decline', {
+                    userId: this.props.user?.details?.id,
+                });
+                if (answer === 'approve') {
+                    Toast.show({
+                        type: 'success',
+                        text1: this.translate('pages.pacts.openPact.approvedToast', {
+                            name: request.requesterUserName || this.translate('pages.pacts.partnerFallback'),
+                        }),
+                        visibilityTime: 2500,
+                    });
+                }
+                this.setState((prev) => ({
+                    joinRequests: prev.joinRequests.filter((r) => r.id !== request.id),
+                }));
+            })
+            .catch((error: any) => {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.errorTitle'),
+                    text2: getApiErrorMessage(error) || this.translate('pages.pacts.openPact.answerError'),
+                    visibilityTime: 3000,
+                });
+                // An answer the server refused is most often one already given elsewhere; the
+                // re-read shows what is actually still waiting.
+                this.fetchJoinRequests(this.getPact());
+            })
+            .finally(() => {
+                this.setState({ answeringRequestId: null });
+            });
+    };
+
+    goToOpenPacts = (pact: IPact) => {
+        this.props.navigation.navigate('OpenPacts', {
+            habitGoalId: pact.habitGoalId,
+            habitName: pact.habitGoalName,
         });
     };
 
@@ -798,6 +917,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         const { user } = this.props;
         const {
             isRefreshing, isActionLoading, isPledgeSaving, showConfirmModal, confirmAction,
+            joinRequests, isOpenSaving, answeringRequestId,
         } = this.state;
 
         const pact = this.getPact();
@@ -816,6 +936,13 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         const partnerName = partnerMember?.firstName
             || partnerMember?.userName
             || this.translate('pages.pacts.partnerFallback');
+        // Open pacts: the creator may open a pact that can still take members. A pending pact is one
+        // nobody has accepted yet, which is when looking for someone else's open pact helps. Both
+        // wait for a server that supports open pacts — see utilities/openPactsSupport.ts.
+        const canManageOpenPact = !!pact && pact.creatorUserId === currentUserId && pactShowsOpenPactSupport(pact);
+        const canToggleOpen = canManageOpenPact && !isRenewable
+            && (pact?.status === 'pending' || pact?.status === 'active');
+        const canFindOpenPacts = canManageOpenPact && pact?.status === 'pending';
 
         if (!pact) {
             return (
@@ -943,6 +1070,21 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                         ) : null}
 
                         {this.renderMembersCard(pact, currentUserId)}
+
+                        <OpenPactCard
+                            isOpen={!!pact.isOpen}
+                            canToggle={canToggleOpen}
+                            isSaving={isOpenSaving}
+                            onToggle={this.handleToggleOpen}
+                            joinRequests={canManageOpenPact ? joinRequests : []}
+                            answeringRequestId={answeringRequestId}
+                            onApprove={(request) => this.handleAnswerJoinRequest(request, 'approve')}
+                            onDecline={(request) => this.handleAnswerJoinRequest(request, 'decline')}
+                            onFindOpenPacts={canFindOpenPacts ? () => this.goToOpenPacts(pact) : undefined}
+                            translate={this.translate}
+                            themeHabits={this.themeHabits}
+                            themeButtons={this.themeButtons}
+                        />
 
                         {canEditPledge && (
                             <PledgeCard

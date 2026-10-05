@@ -3,12 +3,13 @@ import {
     View, Text, ScrollView, Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { HabitActions, MapActions } from 'therr-react/redux/actions';
 import {
     IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IHabitCheckinProof, IStreak,
-    IUserHabit, UserHabitNotificationCategory,
+    IPact, IUserHabit, UserHabitNotificationCategory,
 } from 'therr-react/types';
 import { RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
@@ -49,6 +50,7 @@ import {
     CadenceChoice,
 } from '../Pacts/cadenceOptions';
 import { getProofMediaRequests, resolveProofUris } from './checkinDayDetail';
+import { getHabitPact, getPartnerNames } from './pactState';
 import {
     getFreezeConsumed,
     getStreakSavedByFreeze,
@@ -71,6 +73,7 @@ interface IHabitDetailDispatchProps {
     getCheckinProofs: Function;
     fetchMedia: Function;
     getUserHabits: Function;
+    getUserPacts: Function;
     archiveUserHabit: Function;
     updateHabitNotificationPreferences: Function;
     updateGoal: Function;
@@ -133,6 +136,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getCheckinProofs: HabitActions.getCheckinProofs,
     fetchMedia: MapActions.fetchMedia,
     getUserHabits: HabitActions.getUserHabits,
+    getUserPacts: HabitActions.getUserPacts,
     archiveUserHabit: HabitActions.archiveUserHabit,
     updateHabitNotificationPreferences: HabitActions.updateHabitNotificationPreferences,
     updateGoal: HabitActions.updateGoal,
@@ -189,6 +193,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         });
 
         this.handleRefresh();
+        this.loadPacts();
     };
 
     componentWillUnmount() {
@@ -487,6 +492,76 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         }).finally(() => {
             this.setState({ isRefreshing: false });
         });
+    };
+
+    /**
+     * The pacts behind the "Pact with …" link. Already in the store when the user came from the
+     * dashboard, but this screen is also a push deep-link target, where nothing has loaded. Kept
+     * out of `handleRefresh`, which also runs on every calendar month change, and a failure only
+     * costs the link.
+     */
+    loadPacts = () => {
+        this.props.getUserPacts().catch(() => undefined);
+    };
+
+    handlePullToRefresh = () => {
+        this.handleRefresh();
+        this.loadPacts();
+    };
+
+    getHabitPact = (): IPact | undefined => {
+        const { habits, route } = this.props;
+        return getHabitPact(route.params.habitGoalId, habits.activePacts, habits.pacts);
+    };
+
+    handleViewPact = (pact: IPact) => {
+        this.props.navigation.navigate('PactDetail', { pactId: pact.id });
+    };
+
+    /**
+     * The way from a habit to the pact it is kept under. PactDetail links back here ("View habit
+     * & check in"), but the dashboard's habit card opens this screen, so without this the pact —
+     * its members, pledge and renewal — was reachable only from the dashboard's pact tabs.
+     *
+     * Named by the partners, matching the habit card. A pending pact names its invitees too, the
+     * way the dashboard's "waiting for …" line does; a pact with no one to name (every partner left)
+     * falls back to a plain label.
+     */
+    renderPactLink = () => {
+        const pact = this.getHabitPact();
+        if (!pact) {
+            return null;
+        }
+
+        const partnerNames = getPartnerNames(
+            [pact],
+            this.props.user?.details?.id,
+            pact.status === 'pending' ? undefined : 'active',
+        );
+        const label = partnerNames.length
+            ? this.translate('pages.habits.pactWithPartners', { partners: partnerNames.join(', ') })
+            : this.translate('pages.habits.viewPact');
+
+        return (
+            <Pressable
+                accessibilityRole="link"
+                accessibilityLabel={label}
+                onPress={() => this.handleViewPact(pact)}
+                style={({ pressed }) => [
+                    this.themeHabits.styles.pactLinkRow,
+                    pressed && this.themeHabits.styles.pactPressedSurface,
+                ]}
+            >
+                <Text style={this.themeHabits.styles.pactLinkText}>
+                    {label}
+                </Text>
+                <MaterialIcon
+                    name="chevron-right"
+                    size={24}
+                    color={this.themeHabits.colors.primary3}
+                />
+            </Pressable>
+        );
     };
 
     /**
@@ -962,7 +1037,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                         refreshControl={
                             <RefreshControl
                                 refreshing={isRefreshing}
-                                onRefresh={this.handleRefresh}
+                                onRefresh={this.handlePullToRefresh}
                             />
                         }
                     >
@@ -993,6 +1068,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                 completedTitle={this.translate('pages.habits.completed')}
                                 themeHabits={this.themeHabits}
                             />
+
+                            {this.renderPactLink()}
                         </View>
 
                         {this.renderSavingsCard(userHabit)}

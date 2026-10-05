@@ -51,6 +51,19 @@ export enum Types {
     // false for a pact that has not yet passed its `endDate`, so the renew
     // CTA cannot ride `pactExpiring`.
     pactEnded = 'pact-ended',
+    // Open pacts (habits.pacts.isOpen). All three are display notifications with no click
+    // action, for the reason `pledgeMissed` is: they render on every installed build today, and
+    // the tap opens the app rather than dead-ending on an intent action an older manifest lacks.
+    //
+    // To the creator of an open pact, when someone outside it asks to join. Sent inline — it
+    // is the direct consequence of the requester's tap. The in-app PACT_JOIN_REQUEST
+    // notification row is what routes to the pact.
+    pactJoinRequested = 'pact-join-requested',
+    // To the requester, when the creator approves them. A decline is deliberately silent.
+    pactJoinApproved = 'pact-join-approved',
+    // Queued by the daily habits digest, once per pact ever, to a creator whose invitees never
+    // answered — when someone else's open pact on the same habit could take them instead.
+    openPactSuggestion = 'open-pact-suggestion',
 
     // HABITS: Partner Activity
     partnerCheckedIn = 'partner-checked-in',

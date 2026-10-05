@@ -202,7 +202,8 @@ const buildBoardView = (
         },
         top: (board.entries || []).slice(0, WIDGET_TOP_ROWS).map((entry) => ({
             rank: Number(entry.rank) || 0,
-            userName: entry.userName || '',
+            // An account that never chose a username would otherwise render as a blank row.
+            userName: entry.userName || translate('pages.userProfile.anonymous'),
             points: Number(entry.points) || 0,
             dailyStreak: Number(entry.dailyStreak) || 0,
             isYou: !!entry.isRequestingUser,

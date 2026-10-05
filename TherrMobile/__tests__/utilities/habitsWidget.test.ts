@@ -73,6 +73,20 @@ describe('buildHabitsWidgetSnapshot', () => {
         expect(snapshot.boards.global.top.map((row: any) => row.userName)).toEqual(['alex', 'maya']);
     });
 
+    it('labels an account with no username rather than leaving a blank row', () => {
+        const { buildHabitsWidgetSnapshot } = loadModule();
+        const unnamedBoard = {
+            ...globalBoard,
+            entries: [
+                { rank: 1, userName: null, points: 990, isRequestingUser: false },
+                { rank: 2, userName: 'maya', points: 610, isRequestingUser: false },
+            ],
+        };
+        const snapshot = buildHabitsWidgetSnapshot({ connections: friendsBoard, global: unnamedBoard }, { done: 0, total: 1 }, translate);
+
+        expect(snapshot.boards.global.top.map((row: any) => row.userName)).toEqual(['pages.userProfile.anonymous', 'maya']);
+    });
+
     it('labels each board and both halves of the toggle', () => {
         const { buildHabitsWidgetSnapshot } = loadModule();
         const snapshot = buildHabitsWidgetSnapshot(boards, { done: 0, total: 1 }, translate);

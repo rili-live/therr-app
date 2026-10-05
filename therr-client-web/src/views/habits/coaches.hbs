@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link rel="canonical" href="{{canonicalUrl}}">
+    <meta name="description" content="{{description}}">
+    <meta name="author" content="Therr Inc.">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <meta name="theme-color" content="#2e2140">
+    <meta property="og:site_name" content="Friends with Habits">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:url" content="{{canonicalUrl}}">
+    <meta property="og:title" content="{{title}}">
+    <meta property="og:description" content="{{description}}">
+    <meta property="og:image" content="https://habits.therr.com/assets/images/habits-og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{title}}">
+    <meta name="twitter:description" content="{{description}}">
+    <meta name="twitter:image" content="https://habits.therr.com/assets/images/habits-og-image.png">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&display=swap">
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon-habits.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon-habits.png">
+    <style>
+        /* Same palette as landing.hbs, which documents where it comes from. */
+        :root {
+            --fwh-plum: #2e2140;
+            --fwh-purple: #5b4273;
+            --fwh-purple-soft: #ece6f3;
+            --fwh-purple-tint: #f6f2fa;
+            --fwh-gold: #f6c94a;
+            --fwh-gold-dark: #d49617;
+            --fwh-gold-deep: #a86f05;
+            --fwh-cream: #fbf7f1;
+            --fwh-white: #ffffff;
+            --fwh-text: #3a2f4a;
+            --fwh-text-muted: #6f6582;
+            --fwh-border: #e6dfee;
+            --fwh-error: #b42318;
+            --fwh-shadow: 0 18px 40px -20px rgba(46, 33, 64, 0.35);
+            --fwh-radius: 1.25rem;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Lexend', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--fwh-text);
+            background: var(--fwh-cream);
+            -webkit-font-smoothing: antialiased;
+        }
+        a { color: var(--fwh-purple); }
+        :focus-visible { outline: 3px solid var(--fwh-gold); outline-offset: 3px; }
+        [hidden] { display: none !important; }
+        .container {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 0 clamp(1rem, 4vw, 1.5rem);
+        }
+        .container--narrow { max-width: 720px; }
+        .eyebrow {
+            display: inline-block;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--fwh-gold-deep);
+            margin: 0 0 0.75rem;
+        }
+        h1, h2, h3 { color: var(--fwh-plum); letter-spacing: -0.02em; }
+        h2 { font-size: clamp(1.5rem, 3.5vw, 2rem); margin: 0 0 1rem; }
+        h3 { font-size: 1.125rem; margin: 0 0 0.375rem; }
+        section { padding: clamp(3rem, 7vw, 5rem) 0; }
+        section.alt { background: var(--fwh-white); border-block: 1px solid var(--fwh-border); }
+
+        /* ---------- Header ---------- */
+        header.site-header {
+            padding: 0.875rem 0;
+            border-bottom: 1px solid rgba(46, 33, 64, 0.08);
+        }
+        header.site-header .container {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+        header.site-header .brand-link {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            text-decoration: none;
+        }
+        header.site-header .brand-mark { width: 2rem; height: 2rem; display: block; }
+        header.site-header .brand { font-weight: 800; font-size: 1.0625rem; color: var(--fwh-plum); }
+        header.site-header .brand-tag {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--fwh-purple);
+            background: var(--fwh-purple-soft);
+            border-radius: 999px;
+            padding: 0.125rem 0.625rem;
+        }
+        header.site-header .header-cta { margin-left: auto; }
+
+        /* ---------- Buttons ---------- */
+        .cta {
+            display: inline-block;
+            padding: 0.875rem 1.75rem;
+            background: var(--fwh-plum);
+            color: var(--fwh-white);
+            font: inherit;
+            font-weight: 700;
+            border-radius: 999px;
+            border: 0;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: background 0.15s ease;
+        }
+        .cta:hover { background: var(--fwh-purple); }
+        .cta:disabled { background: var(--fwh-text-muted); cursor: not-allowed; }
+        .cta--small { padding: 0.5rem 1.125rem; font-size: 0.875rem; }
+
+        /* ---------- Hero ---------- */
+        .hero { padding: clamp(3rem, 8vw, 6rem) 0 clamp(2.5rem, 6vw, 4rem); }
+        .hero h1 {
+            font-size: clamp(2rem, 6vw, 3.25rem);
+            line-height: 1.1;
+            margin: 0 0 1.25rem;
+            max-width: 16ch;
+        }
+        .hero .lede { font-size: clamp(1.0625rem, 2.2vw, 1.25rem); max-width: 38rem; margin: 0 0 2rem; }
+        .hero .note { font-size: 0.875rem; color: var(--fwh-text-muted); margin: 1rem 0 0; }
+
+        /* ---------- Cards ---------- */
+        .grid {
+            display: grid;
+            gap: 1.25rem;
+            grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+        }
+        .card {
+            background: var(--fwh-white);
+            border: 1px solid var(--fwh-border);
+            border-radius: var(--fwh-radius);
+            padding: 1.5rem;
+        }
+        section.alt .card { background: var(--fwh-purple-tint); }
+        .card p { margin: 0; color: var(--fwh-text-muted); }
+        .status {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 0.125rem 0.625rem;
+            margin: 0 0 0.75rem;
+        }
+        .status--live { background: #e3f4e8; color: #1e6b3a; }
+        .status--building { background: #fff1cc; color: var(--fwh-gold-deep); }
+        .section-intro { max-width: 40rem; margin: 0 0 2rem; }
+
+        /* ---------- Waitlist form ---------- */
+        form.waitlist-form {
+            background: var(--fwh-white);
+            border: 1px solid var(--fwh-border);
+            border-radius: var(--fwh-radius);
+            box-shadow: var(--fwh-shadow);
+            padding: clamp(1.25rem, 4vw, 2rem);
+        }
+        form.waitlist-form label,
+        form.waitlist-form legend {
+            display: block;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--fwh-plum);
+            margin: 0 0 0.375rem;
+            padding: 0;
+        }
+        form.waitlist-form .optional { font-weight: 400; color: var(--fwh-text-muted); }
+        form.waitlist-form input[type="email"],
+        form.waitlist-form select {
+            width: 100%;
+            padding: 0.75rem 0.875rem;
+            border: 1px solid var(--fwh-border);
+            border-radius: 0.625rem;
+            font: inherit;
+            background: var(--fwh-white);
+            color: var(--fwh-text);
+            margin: 0 0 1.25rem;
+        }
+        form.waitlist-form .cta { width: 100%; }
+        .form-error {
+            padding: 0.75rem 0.875rem;
+            border-radius: 0.625rem;
+            margin: 0 0 1rem;
+            background: #fef3f2;
+            color: var(--fwh-error);
+            border: 1px solid #fecdca;
+        }
+        .form-done {
+            background: var(--fwh-white);
+            border: 1px solid var(--fwh-border);
+            border-radius: var(--fwh-radius);
+            padding: 2rem;
+            text-align: center;
+        }
+        .form-done h3 { font-size: 1.375rem; }
+        .form-done p { margin: 0; }
+        /* Honeypot. Off-screen rather than display:none: a bot that renders CSS skips
+           hidden fields, and one that does not sees a normal input. */
+        .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+        /* ---------- FAQ ---------- */
+        .faq details {
+            border-bottom: 1px solid var(--fwh-border);
+            padding: 1rem 0;
+        }
+        .faq summary { font-weight: 600; color: var(--fwh-plum); cursor: pointer; }
+        .faq details p { margin: 0.75rem 0 0; }
+
+        /* ---------- Footer (styles for the shared footer partial) ---------- */
+        footer.site-footer {
+            padding: 2rem 0 3rem;
+            border-top: 1px solid var(--fwh-border);
+            background: var(--fwh-white);
+            text-align: center;
+            color: var(--fwh-text-muted);
+            font-size: 0.875rem;
+        }
+        footer.site-footer .footer-links { margin-bottom: 0.75rem; }
+        footer.site-footer .footer-links a { margin: 0 0.5rem; color: var(--fwh-text-muted); }
+        footer.site-footer .footer-family { margin-top: 0.5rem; }
+
+        @media (max-width: 480px) {
+            header.site-header .brand-tag { display: none; }
+        }
+    </style>
+    {{> habitsAnalytics}}
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a class="brand-link" href="/">
+                <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
+                <span class="brand">Friends with Habits</span>
+            </a>
+            <span class="brand-tag">for Coaches</span>
+            <a class="cta cta--small header-cta" id="header-waitlist-cta" href="#waitlist">Join the waitlist</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <p class="eyebrow">For habit-based coaches</p>
+                <h1>See your clients' habits between sessions.</h1>
+                <p class="lede">
+                    Your clients do the real work between calls, or they don't, and you find out a
+                    week later. Friends with Habits turns each habit into a daily check-in with photo
+                    proof, so you see a slip the day it happens instead of at the next session.
+                </p>
+                <a class="cta" id="hero-waitlist-cta" href="#waitlist">Join the coach waitlist</a>
+                <p class="note">Early access for a small group of founding coaches. No card, no commitment.</p>
+            </div>
+        </section>
+
+        <section class="alt">
+            <div class="container">
+                <h2>Coaching works in the session. Results come from the days in between.</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>You find out too late</h3>
+                        <p>A client who stopped logging meals on Tuesday usually tells you on the next call, if at all. By then the week is gone.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Chasing doesn't scale</h3>
+                        <p>Checking in by text with every client, every day, works for five clients. It doesn't work for thirty.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Clients who stall, cancel</h3>
+                        <p>People rarely leave because the plan was wrong. They leave because they stopped doing it and felt they'd failed.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div class="container">
+                <h2>What coaches get</h2>
+                <p class="section-intro">
+                    Some of this is in the app today. Some of it is what the waitlist decides we build
+                    next, and we'd rather tell you which is which up front.
+                </p>
+                <div class="grid">
+                    <div class="card">
+                        <span class="status status--live">In the app today</span>
+                        <h3>Check-ins with photo proof</h3>
+                        <p>Clients check in on each habit with a photo or a short note: a meal, a workout, a walk.</p>
+                    </div>
+                    <div class="card">
+                        <span class="status status--live">In the app today</span>
+                        <h3>Streaks, reminders and nudges</h3>
+                        <p>Daily, a few times a week, or set days. Clients get reminders, and a partner can nudge someone who hasn't checked in.</p>
+                    </div>
+                    <div class="card">
+                        <span class="status status--building">Next, if coaches want it</span>
+                        <h3>One view of every client</h3>
+                        <p>Every client's check-ins and streaks on one screen, with the ones who've gone quiet at the top.</p>
+                    </div>
+                    <div class="card">
+                        <span class="status status--building">Next, if coaches want it</span>
+                        <h3>Client accountability pods</h3>
+                        <p>Pair clients up so each one has someone to answer to between your calls, not only you.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="alt" id="waitlist">
+            <div class="container container--narrow">
+                <h2>Join the coach waitlist</h2>
+                <p class="section-intro">
+                    Founding coaches get early access and a direct line to the person building it. Three
+                    quick questions help decide what gets built first. All of them are optional.
+                </p>
+
+                <div class="form-done" id="coach-waitlist-done" hidden>
+                    <h3>You're on the list.</h3>
+                    <p>We'll email you personally when there's something to try. Replies go straight to the founder.</p>
+                </div>
+
+                <form class="waitlist-form" id="coach-waitlist-form" novalidate>
+                    <p class="form-error" id="coach-waitlist-error" hidden></p>
+
+                    <label for="coach-email">Work email</label>
+                    <input id="coach-email" type="email" autocomplete="email" placeholder="you@yourpractice.com" required>
+
+                    {{!
+                        Option values must match COACHES_WAITLIST_ANSWERS in
+                        therr-services/users-service/src/handlers/subscribers.ts. The service drops any
+                        value it does not recognise, so a mismatch loses the answer silently.
+                    }}
+                    <label for="coach-type">What do you coach? <span class="optional">(optional)</span></label>
+                    <select id="coach-type">
+                        <option value="">Choose one</option>
+                        <option value="nutrition">Nutrition</option>
+                        <option value="fitness">Fitness or personal training</option>
+                        <option value="wellness">Health and wellness</option>
+                        <option value="adhd">ADHD or executive function</option>
+                        <option value="life-business">Life or business</option>
+                        <option value="other">Something else</option>
+                    </select>
+
+                    <label for="coach-clients">How many active clients do you have? <span class="optional">(optional)</span></label>
+                    <select id="coach-clients">
+                        <option value="">Choose one</option>
+                        <option value="1-5">1 to 5</option>
+                        <option value="6-15">6 to 15</option>
+                        <option value="16-40">16 to 40</option>
+                        <option value="41-plus">More than 40</option>
+                    </select>
+
+                    <label for="coach-budget">What would this be worth to you per month? <span class="optional">(optional)</span></label>
+                    <select id="coach-budget">
+                        <option value="">Choose one</option>
+                        <option value="under-20">Less than $20</option>
+                        <option value="20-40">$20 to $40</option>
+                        <option value="40-plus">More than $40</option>
+                        <option value="unsure">Not sure yet</option>
+                    </select>
+
+                    <div class="hp-field" aria-hidden="true">
+                        <label for="coach_sweety_pie">Leave this field empty</label>
+                        <input id="coach_sweety_pie" type="text" tabindex="-1" autocomplete="off">
+                    </div>
+
+                    <button class="cta" type="submit" id="coach-waitlist-submit">Join the waitlist</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="faq">
+            <div class="container container--narrow">
+                <h2>Questions coaches ask</h2>
+                <details>
+                    <summary>Can I use it with clients today?</summary>
+                    <p>
+                        Partly. Any client can install Friends with Habits and make a pact with you, and
+                        you'll see their check-ins as their partner. A free account keeps only a few
+                        habits active at a time, so that works for a handful of clients, not a full
+                        roster. What doesn't exist yet is a coach view across all your clients. That's
+                        what this waitlist is for.
+                    </p>
+                </details>
+                <details>
+                    <summary>Would my clients have to pay?</summary>
+                    <p>
+                        The app is free for them to download and use. What a coach plan costs, and what
+                        it includes, is exactly what we're asking founding coaches before we set it.
+                    </p>
+                </details>
+                <details>
+                    <summary>Does it work on iPhone?</summary>
+                    <p>
+                        Friends with Habits is on Google Play today. The iPhone version is in the works.
+                        If most of your clients are on iPhone, say so when we email you. It changes what
+                        we build first.
+                    </p>
+                </details>
+                <details>
+                    <summary>Is this another all-in-one coaching platform?</summary>
+                    <p>
+                        No. It doesn't do workouts, meal plans or scheduling. It does one thing: keep
+                        clients doing their habits between sessions, with someone watching. It's meant to
+                        sit next to whatever you already use.
+                    </p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    {{> habitsFooter}}
+
+    {{!
+        Coach waitlist.
+
+        The whole page is a demand test: whether coaches who sell habit-based programs will pay
+        for a client-accountability tool before any of it is built. Two numbers answer it:
+          - coach_waitlist_cta_click: interest, fired on any CTA that scrolls to the form.
+          - coach_waitlist_submit: the signup, carrying the three answers as event params so the
+            buckets are countable in GA4 without querying the database.
+        Mark coach_waitlist_submit as a key event in GA4 admin (property 549794383) and import
+        it into Ads; it is the conversion campaigns/habits-coaches-web.yaml bids toward.
+
+        The email goes to /subscribers/signup with isSubscribedToCoachesWaitlist, which separates
+        these rows from the general and iOS lists and emails the founder about each new coach.
+        Analytics are guarded everywhere: they may never stop a signup.
+    }}
+    <script>
+        (function () {
+            var API_BASE = {{#if apiBaseJson}}{{{apiBaseJson}}}{{else}}''{{/if}};
+            var form = document.getElementById('coach-waitlist-form');
+            var emailInput = document.getElementById('coach-email');
+            var typeInput = document.getElementById('coach-type');
+            var clientsInput = document.getElementById('coach-clients');
+            var budgetInput = document.getElementById('coach-budget');
+            var honeypotInput = document.getElementById('coach_sweety_pie');
+            var submitBtn = document.getElementById('coach-waitlist-submit');
+            var errorBox = document.getElementById('coach-waitlist-error');
+            var doneBox = document.getElementById('coach-waitlist-done');
+            if (!form) { return; }
+
+            function track(name, params) {
+                try {
+                    if (typeof window.gtag === 'function') { window.gtag('event', name, params || {}); }
+                } catch (e) { /* no-op */ }
+            }
+
+            function showError(msg) {
+                errorBox.textContent = msg;
+                errorBox.hidden = false;
+            }
+
+            function bindCta(id, location) {
+                var el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('click', function () {
+                        track('coach_waitlist_cta_click', { app: 'habits', location: location });
+                    });
+                }
+            }
+            bindCta('header-waitlist-cta', 'header');
+            bindCta('hero-waitlist-cta', 'hero');
+
+            function done() {
+                form.hidden = true;
+                doneBox.hidden = false;
+            }
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                errorBox.hidden = true;
+
+                var email = emailInput.value.trim();
+                if (!email) {
+                    showError('Enter an email address so we can reach you.');
+                    return;
+                }
+                // The gateway rejects a malformed address with a generic validation message.
+                // Failing fast here says something useful instead; the server rule still counts.
+                if (!/^\S+@\S+\.\S+$/.test(email)) {
+                    showError('That does not look like an email address.');
+                    return;
+                }
+
+                // Honeypot filled: show a person's success, send nothing, count nothing. A padded
+                // waitlist would make the build decision on numbers that are not coaches.
+                if (honeypotInput && honeypotInput.value) {
+                    done();
+                    return;
+                }
+
+                // Unanswered questions are left out rather than sent empty.
+                var details = {};
+                if (typeInput.value) { details.coachingType = typeInput.value; }
+                if (clientsInput.value) { details.clientCount = clientsInput.value; }
+                if (budgetInput.value) { details.monthlyBudget = budgetInput.value; }
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Adding you…';
+
+                fetch(API_BASE + '/users-service/subscribers/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-brand-variation': 'habits' },
+                    body: JSON.stringify({
+                        email: email,
+                        isSubscribedToCoachesWaitlist: true,
+                        coachesWaitlistDetails: details,
+                    }),
+                }).then(function (res) {
+                    return res.json().then(function (body) { return { res: res, body: body }; })
+                        .catch(function () { return { res: res, body: {} }; });
+                }).then(function (out) {
+                    if (!out.res.ok) {
+                        showError((out.body && out.body.message) || 'We could not save that address. Try again.');
+                        return;
+                    }
+                    track('coach_waitlist_submit', {
+                        app: 'habits',
+                        coaching_type: details.coachingType || 'unanswered',
+                        client_count: details.clientCount || 'unanswered',
+                        monthly_budget: details.monthlyBudget || 'unanswered',
+                    });
+                    done();
+                }).catch(function () {
+                    showError('Network error. Try again in a moment.');
+                }).then(function () {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Join the waitlist';
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

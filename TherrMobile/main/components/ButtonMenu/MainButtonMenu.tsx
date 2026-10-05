@@ -489,7 +489,9 @@ class MainButtonMenuAlt extends ButtonMenu {
 const localStyles = StyleSheet.create({
     toastLottie: {
         width: 75,
-        height: '100%',
+        // The toast card is auto-height, so a percentage height would resolve against an
+        // undefined parent height; stretching fills it on the cross axis instead.
+        alignSelf: 'stretch',
         marginRight: 10,
     },
 });

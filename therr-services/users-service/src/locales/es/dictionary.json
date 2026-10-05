@@ -50,7 +50,16 @@
             "nudgeNotPending": "Este pacto ya comenzó, así que no queda nadie a quien recordar",
             "invalidPledgeAmount": "Elige una promesa en dólares enteros, entre 1 y 500 US$",
             "invalidPledgeCharity": "Elige una organización benéfica de la lista",
-            "pledgeNotAllowed": "Solo puedes hacer una promesa en un pacto pendiente o en curso"
+            "pledgeNotAllowed": "Solo puedes hacer una promesa en un pacto pendiente o en curso",
+            "invalidOpenFlag": "Elige si este pacto acepta solicitudes para unirse",
+            "openCreatorOnly": "Solo quien creó este pacto puede cambiar quién puede pedir unirse",
+            "openNotAllowed": "Solo un pacto pendiente o en curso puede abrirse a solicitudes",
+            "notOpen": "Este pacto no acepta solicitudes para unirse en este momento",
+            "alreadyInPact": "Ya formas parte de este pacto",
+            "tooManyJoinRequests": "Tienes {limit} solicitudes esperando respuesta: dales un poco de tiempo antes de volver a pedir",
+            "joinRequestNotFound": "Esa solicitud ya fue respondida",
+            "joinRequestCreatorOnly": "Solo quien creó este pacto puede responder a las solicitudes",
+            "joinRequesterAtCapacity": "Esa persona no puede añadir otro hábito ahora mismo, así que todavía no puede unirse"
         },
         "habits": {
             "freeTierHabitLimitReached": "Las cuentas gratuitas pueden seguir {limit} hábitos a la vez. Archiva uno o desbloquea todo de por vida.",
@@ -143,7 +152,8 @@
         "newAreasActivated": "¡Acabas de desbloquear {totalAreasActivated} nueva(s) área(s) — explora lo que hay cerca!",
         "discoveredUniqueMoment": "¡Encontraste algo especial! Abre el mapa para verlo.",
         "discoveredUniqueSpace": "Alerta de joya oculta — ¡estás cerca de un espacio único!",
-        "pactInvitation": "{fromUserName} te invitó a un pacto: {habitName}"
+        "pactInvitation": "{fromUserName} te invitó a un pacto: {habitName}",
+        "pactJoinRequest": "{fromUserName} pidió unirse a tu pacto: {habitName}"
     },
     "invites": {
         "phone": "{name} te invitó a {brandName}{brandTagline}. Regístrate aquí para conectar: {inviteUrl}",
@@ -247,6 +257,15 @@
             "buttonText": "Instalar {brandName}",
             "postBody1": "Si el botón no funciona, abre este enlace en tu teléfono: {linkUrl} — o ingresa el código {claimCode} en la aplicación.",
             "postBody1TokenOnly": "Si el botón no funciona, abre este enlace en tu teléfono: {linkUrl}"
+        },
+        "openPactSuggestion": {
+            "subject": "Encuentra un compañero para {habitName}",
+            "header": "Encuentra un compañero para {habitName}",
+            "dearUser": "¡Hola, {toName}!",
+            "body1": "Nadie ha respondido todavía a tu invitación al pacto de {habitName}. Pasa, y no tienes por qué esperar.",
+            "body2": "Otras personas en {brandName} trabajan en {habitName} en pactos abiertos que todavía tienen lugar. Abre la app y pide unirte a uno: su creador recibirá tu solicitud.",
+            "buttonText": "Abrir {brandName}",
+            "postBody1": "Tu invitación original sigue abierta, así que tus amigos todavía pueden aceptarla."
         },
         "coinsReceived": {
             "header": "¡Ganaste monedas!",

@@ -696,6 +696,11 @@ usersServiceRouter.get('/habits/pacts/invites', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
+// HABITS — Open pacts. Registered before '/habits/pacts/:id', which would otherwise read "open" as an id.
+usersServiceRouter.get('/habits/pacts/open', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
 usersServiceRouter.get('/habits/pacts/:id', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
@@ -750,6 +755,32 @@ usersServiceRouter.put('/habits/pacts/:id/pledge', handleServiceRequest({
 usersServiceRouter.delete('/habits/pacts/:id/pledge', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'delete',
+}));
+// HABITS — Open pacts: the creator opens a pact to join requests and answers them; anyone
+// else may ask to join an open one. Bodies are validated in users-service.
+usersServiceRouter.put('/habits/pacts/:id/open', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.get('/habits/pacts/:id/join-requests', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/pacts/:id/join-requests', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.delete('/habits/pacts/:id/join-requests/mine', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'delete',
+}));
+usersServiceRouter.put('/habits/pacts/:id/join-requests/:requestId/approve', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.put('/habits/pacts/:id/join-requests/:requestId/decline', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
 }));
 // HABITS — Pact members (add/remove people from an existing pact)
 usersServiceRouter.post('/habits/pacts/:id/members', handleServiceRequest({

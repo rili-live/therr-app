@@ -1397,10 +1397,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             case PushNotifications.Types.pactCompleted:
             case PushNotifications.Types.pactExpiring:
             case PushNotifications.Types.pactEnded:
+            // Open pacts: a request to answer, or a pact the user was just let into.
+            case PushNotifications.Types.pactJoinRequested:
+            case PushNotifications.Types.pactJoinApproved:
             case PushNotifications.Types.partnerCheckedIn:
             case PushNotifications.Types.partnerMissedDay:
             case PushNotifications.Types.partnerCelebrated:
                 return buildPactRoute();
+
+            // "Your invite went unanswered" — the open pacts on that habit. Without a goal id there
+            // is nothing to match on, so the unanswered pact itself is the next best place.
+            case PushNotifications.Types.openPactSuggestion:
+                return habitGoalId
+                    ? { targetRouteView: 'OpenPacts', targetRouteParams: { habitGoalId } }
+                    : buildPactRoute();
 
             // Anything asking the user to check in opens the habit itself, with
             // the dashboard's habits segment when it cannot name one — that is

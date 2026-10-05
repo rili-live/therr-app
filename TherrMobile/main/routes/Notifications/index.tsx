@@ -269,6 +269,14 @@ class Notifications extends React.Component<
             // Same destination as the pactInvitation push: the pending tab is where the invite
             // is accepted or declined.
             navigation.navigate('HabitsDashboard', { initialTab: 'pending' });
+        } else if (notification.type === NotificationsEmuns.Types.PACT_JOIN_REQUEST) {
+            // The pact screen is where its creator approves or declines the request.
+            const pactId = notification.associationId || notification.messageParams?.pactId;
+            if (pactId) {
+                navigation.navigate('PactDetail', { pactId });
+            } else {
+                navigation.navigate('HabitsDashboard', {});
+            }
         }
     };
 

@@ -8,6 +8,7 @@ import HabitCard from './HabitCard';
 import HabitNotificationSettings from './HabitNotificationSettings';
 import HabitsListLoader from './HabitsListLoader';
 import NewPactButton from './NewPactButton';
+import OpenPactCard from './OpenPactCard';
 import PactCard from './PactCard';
 import PactMemberRow from './PactMemberRow';
 import PactOnboardingGuard from './PactOnboardingGuard';
@@ -31,6 +32,7 @@ export {
     HabitNotificationSettings,
     HabitsListLoader,
     NewPactButton,
+    OpenPactCard,
     PactCard,
     PactMemberRow,
     PactOnboardingGuard,
