@@ -1527,7 +1527,16 @@
                 "notificationSettingsUpdated": "Vos paramètres de notification et d'alerte ont été mis à jour.",
                 "notificationSettingsUpdatedError": "Oups! Une erreur est survenue."
             },
-            "pageHeaderPushSettings": "Préférences de notifications"
+            "pageHeaderPushSettings": "Préférences de notifications",
+            "pageHeaderReminderTimes": "Heures des rappels",
+            "reminderTimesDescription": "Choisissez quand vos rappels d’habitudes arrivent. Chacun arrive à environ 15 minutes de l’heure choisie, pour qu’ils n’apparaissent pas à la même minute chaque jour.",
+            "reminderTimesOffDescription": "Activez les rappels quotidiens d’habitudes pour choisir leur heure.",
+            "eveningReminderDescription": "Envoyé seulement quand une série est en jeu et que vous n’avez pas encore fait votre suivi.",
+            "labels": {
+                "morningReminderTime": "Rappel du matin",
+                "eveningReminderTime": "Rappel du soir",
+                "defaultReminderTime": "Par défaut (vers {time})"
+            }
         },
         "managePreferences": {
             "headerTitle": "Paramètres de contenu",

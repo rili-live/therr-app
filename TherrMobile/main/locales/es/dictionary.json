@@ -1527,7 +1527,16 @@
                 "notificationSettingsUpdated": "Tu configuración de notificaciones y alertas ha sido actualizada.",
                 "notificationSettingsUpdatedError": "¡Ups! Algo salió mal."
             },
-            "pageHeaderPushSettings": "Preferencias de notificaciones"
+            "pageHeaderPushSettings": "Preferencias de notificaciones",
+            "pageHeaderReminderTimes": "Horarios de recordatorios",
+            "reminderTimesDescription": "Elige cuándo llegan tus recordatorios de hábitos. Cada uno llega dentro de unos 15 minutos de tu hora, para que no aparezcan exactamente en el mismo minuto todos los días.",
+            "reminderTimesOffDescription": "Activa los recordatorios diarios de hábitos para elegir cuándo llegan.",
+            "eveningReminderDescription": "Solo se envía cuando una racha está en juego y aún no has registrado tu hábito.",
+            "labels": {
+                "morningReminderTime": "Recordatorio de la mañana",
+                "eveningReminderTime": "Recordatorio de la noche",
+                "defaultReminderTime": "Predeterminado (alrededor de las {time})"
+            }
         },
         "managePreferences": {
             "headerTitle": "Config. de Contenido",
