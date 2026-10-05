@@ -127,6 +127,14 @@ export const sanitizeCoachesWaitlistDetails = (raw: unknown): Record<string, str
     return details;
 };
 
+/**
+ * What a signup answers with. The endpoint is unauthenticated and keyed on an email address the
+ * caller types, so it must not echo the stored row: for an existing address that would hand
+ * anyone who knows it which lists it is on and a coach's waitlist answers. No client reads more
+ * than the status code (and `message` on an error).
+ */
+const toSignupResponse = (email: string) => ({ email });
+
 const createSubscriber: RequestHandler = (req: any, res: any) => {
     const {
         locale,
@@ -199,18 +207,18 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
 
                 if (Object.keys(upgrade).length) {
                     return Store.subscribers.updateSubscriber(upgrade, { email })
-                        .then(([updatedSubscriber]) => {
+                        .then(() => {
                             if (isNewCoach) {
                                 notifyCoachSignup();
                             }
-                            return res.status(200).send(updatedSubscriber);
+                            return res.status(200).send(toSignupResponse(email));
                         });
                 }
 
                 if (isWaitlistRequest) {
                     // Already on the waitlist. Idempotent success so a double submit reads as
                     // "you're on the list" rather than an error.
-                    return res.status(200).send(existing);
+                    return res.status(200).send(toSignupResponse(email));
                 }
 
                 return handleHttpError({
@@ -230,7 +238,7 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
                     isSubscribedToCoachesWaitlist: true,
                     coachesWaitlistDetails: JSON.stringify(coachesWaitlistDetails),
                 } : {}),
-            }).then((subscribers) => {
+            }).then(() => {
                 sendSubscriberVerificationEmail({
                     subject: `[${contextConfig.brandName}] Subscribed to General Updates`,
                     locale,
@@ -251,7 +259,7 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
                     notifyCoachSignup();
                 }
 
-                return res.status(201).send(subscribers[0]);
+                return res.status(201).send(toSignupResponse(email));
             });
         })
         .catch((err) => handleHttpError({

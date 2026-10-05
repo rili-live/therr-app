@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+import { validate as isUuid } from 'uuid';
 import {
     ErrorCodes,
     Notifications,
@@ -46,7 +47,11 @@ const getOpenPacts: RequestHandler = async (req: any, res: any) => {
     try {
         let matchKey;
         if (habitGoalId) {
-            const goal = await Store.habitGoals.getById(String(habitGoalId));
+            // A value that is not a uuid cannot name a goal. Checked here because Postgres would
+            // otherwise reject the comparison with a cast error, which surfaces as a 500.
+            const goal = isUuid(String(habitGoalId))
+                ? await Store.habitGoals.getById(String(habitGoalId))
+                : undefined;
             if (!goal) {
                 return handleHttpError({
                     res,
@@ -59,7 +64,8 @@ const getOpenPacts: RequestHandler = async (req: any, res: any) => {
         }
 
         const pacts = await Store.pacts.getOpenPacts(userId, matchKey);
-        return res.status(200).send({ pacts });
+        // `maxMembers` lets a client show "n of N spots" without hard-coding the server's ceiling.
+        return res.status(200).send({ pacts, maxMembers: MAX_OPEN_PACT_MEMBERS });
     } catch (err: any) {
         return handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' });
     }
