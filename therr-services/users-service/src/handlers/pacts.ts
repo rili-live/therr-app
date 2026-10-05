@@ -162,7 +162,9 @@ const createPact: RequestHandler = async (req: any, res: any) => {
         consequenceType,
         consequenceDetails,
         // Opt-in: only an explicit `true` opens the pact to join requests (handlers/pactJoinRequests.ts).
-        isOpen: isOpen === true,
+        // Sent only when true — the column defaults to false — so a closed pact's insert keeps its old
+        // column list and still works in the window before migration 20261005000001 has run.
+        ...(isOpen === true ? { isOpen: true } : {}),
     })
         .then(async (pact) => {
             // Create pact member entry for creator
@@ -354,7 +356,8 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
         durationDays,
         consequenceType,
         consequenceDetails,
-        isOpen: isOpen === true,
+        // Only when true, for the same pre-migration reason as createPact.
+        ...(isOpen === true ? { isOpen: true } : {}),
     })
         .then(async (pact) => {
             await Store.pactMembers.create({
@@ -1196,8 +1199,9 @@ const renewPact: RequestHandler = async (req: any, res: any) => {
             // An open pact stays open into its next cycle — the creator chose it, and re-committing
             // is not the moment to quietly undo that choice. Carried only when the renewer is the
             // one who opened it: whoever renews becomes the new cycle's creator, and a partner
-            // renewing must not inherit someone else's decision to let strangers ask in.
-            isOpen: pact.isOpen === true && pact.creatorUserId === userId,
+            // renewing must not inherit someone else's decision to let strangers ask in. Only sent when
+            // true, for the same pre-migration reason as createPact.
+            ...(pact.isOpen === true && pact.creatorUserId === userId ? { isOpen: true } : {}),
         })
             .then(async (renewed) => {
                 await Store.pactMembers.create({

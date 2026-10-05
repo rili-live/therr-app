@@ -9,6 +9,7 @@ import {
     requestToJoinPact,
     setPactOpen,
 } from '../../src/handlers/pactJoinRequests';
+import { createPact } from '../../src/handlers/pacts';
 import { MAX_OPEN_PACT_MEMBERS, MAX_PENDING_JOIN_REQUESTS_PER_USER } from '../../src/utilities/openPacts';
 
 /**
@@ -20,7 +21,7 @@ const CREATOR = 'aaaaaaaa-0000-4000-8000-00000000000c';
 const REQUESTER = 'aaaaaaaa-0000-4000-8000-00000000000r';
 const PACT_ID = 'pact-1';
 const REQUEST_ID = 'request-1';
-const HABIT_GOAL_ID = 'goal-1';
+const HABIT_GOAL_ID = 'aaaaaaaa-0000-4000-8000-0000000000a1';
 
 const openPact = (overrides: any = {}) => ({
     id: PACT_ID,
@@ -236,6 +237,17 @@ describe('open pacts — endpoints', () => {
 
             expect(getOpenPactsStub.firstCall.args).to.deep.equal([REQUESTER, undefined]);
         });
+
+        it('answers 404 for a habitGoalId that is not a uuid, without querying', async () => {
+            const getById = sinon.stub(Store.habitGoals, 'getById').resolves(undefined);
+            const getOpenPactsStub = sinon.stub(Store.pacts, 'getOpenPacts').resolves([]);
+
+            const result = await call(getOpenPacts, { query: { habitGoalId: 'not-a-uuid' } });
+
+            expect(result.statusCode).to.equal(404);
+            expect(getById.called).to.equal(false);
+            expect(getOpenPactsStub.called).to.equal(false);
+        });
     });
 
     describe('PUT /habits/pacts/:id/join-requests/:requestId/approve', () => {
@@ -359,5 +371,36 @@ describe('open pacts — endpoints', () => {
             expect(resolvePending.firstCall.args).to.deep.equal([REQUEST_ID, 'declined']);
             expect(createMember.called).to.equal(false);
         });
+    });
+});
+
+describe('POST /habits/pacts — the isOpen column', () => {
+    afterEach(() => sinon.restore());
+
+    // Deploy runs migrate:latest after the new pod is serving, so until 20261005000001 lands the
+    // column does not exist. A closed pact — every pact any shipped client creates — must insert
+    // without naming it, or pact creation fails for everyone in that window.
+    const createWith = async (body: any) => {
+        sinon.stub(Store.habitGoals, 'getById').resolves({ id: HABIT_GOAL_ID, name: 'Read' } as any);
+        stubCapacity();
+        const create = sinon.stub(Store.pacts, 'create').rejects(new Error('stop after insert'));
+        await call(createPact, { userId: CREATOR, params: {}, body: { habitGoalId: HABIT_GOAL_ID, ...body } });
+        return create;
+    };
+
+    it('leaves the column out of a closed pact\'s insert', async () => {
+        const create = await createWith({});
+        expect(create.calledOnce).to.equal(true);
+        expect(create.firstCall.args[0]).to.not.have.property('isOpen');
+    });
+
+    it('leaves it out when the flag is anything but true', async () => {
+        const create = await createWith({ isOpen: 'true' });
+        expect(create.firstCall.args[0]).to.not.have.property('isOpen');
+    });
+
+    it('sends it for a pact opened at creation', async () => {
+        const create = await createWith({ isOpen: true });
+        expect(create.firstCall.args[0].isOpen).to.equal(true);
     });
 });
