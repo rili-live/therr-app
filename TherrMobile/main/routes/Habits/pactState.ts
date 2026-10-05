@@ -337,3 +337,40 @@ export const isPactRenewable = (
 
     return Date.now() > endDate.getTime();
 };
+
+/** Most relevant first: the pact being kept now, then one waiting to start, then a finished cycle. */
+const HABIT_PACT_STATUS_RANK: Record<string, number> = {
+    active: 0,
+    pending: 1,
+    completed: 2,
+    expired: 2,
+};
+
+/**
+ * The pact the habit detail screen links to: the one this habit is being kept under.
+ *
+ * A habit can sit under several pacts — renewed cycles, a second group, an invite nobody
+ * answered — so this picks one rather than listing them: an active pact over a pending one over
+ * a finished one, newest first within each. An abandoned pact is one the user walked away from,
+ * and a superseded cycle has a successor to link to instead, so neither is offered.
+ *
+ * Reads both lists because each misses pacts the other holds: `activePacts` is fetched on its
+ * own and can be fresher, and `pacts` is the only one carrying pending and finished pacts.
+ */
+export const getHabitPact = (
+    habitGoalId: string,
+    activePacts: IPact[] = [],
+    allPacts: IPact[] = [],
+): IPact | undefined => {
+    const byId = new Map<string, IPact>();
+    [...allPacts, ...activePacts].forEach((pact) => {
+        if (pact?.habitGoalId === habitGoalId
+            && HABIT_PACT_STATUS_RANK[pact.status] !== undefined
+            && !isPactSuperseded(pact)) {
+            byId.set(pact.id, pact);
+        }
+    });
+
+    return [...byId.values()].sort((a, b) => (HABIT_PACT_STATUS_RANK[a.status] - HABIT_PACT_STATUS_RANK[b.status])
+        || (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))[0];
+};

@@ -2063,6 +2063,7 @@
             "noHabitsSubtitle": "Créez une habitude pour commencer à suivre vos progrès",
             "pendingHabits": "En attente des partenaires",
             "pactWithPartners": "Pacte avec {partners}",
+            "viewPact": "Voir le pacte",
             "awaitingPartnerAcceptance": "En attente de l'acceptation de {partners} pour démarrer ce pacte.",
             "awaitingAnyPartnerAcceptance": "En attente de l'acceptation de votre invitation pour démarrer ce pacte.",
             "soloOrArchivePrompt": "Personne ne s'est joint pour l'instant. Continuer seul ou suspendre les rappels?",

@@ -2063,6 +2063,7 @@
             "noHabitsSubtitle": "Crea un hábito para comenzar a seguir tu progreso",
             "pendingHabits": "Esperando a los compañeros",
             "pactWithPartners": "Pacto con {partners}",
+            "viewPact": "Ver pacto",
             "awaitingPartnerAcceptance": "Esperando a que {partners} acepte para que comience este pacto.",
             "awaitingAnyPartnerAcceptance": "Esperando a que se acepte tu invitación para que comience este pacto.",
             "soloOrArchivePrompt": "Nadie se ha unido todavía. ¿Sigues por tu cuenta o pausas los recordatorios?",
