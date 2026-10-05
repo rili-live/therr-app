@@ -1,0 +1,178 @@
+{
+  "meta": {
+    "title": "Friends with Habits — Suivi d'habitudes avec un partenaire de responsabilisation",
+    "description": "Un suivi d'habitudes gratuit conçu autour des partenaires de responsabilisation. Faites un pacte avec un ami, faites un check-in chaque jour avec une photo comme preuve et gardez votre série ensemble.",
+    "ogImageAlt": "Friends with Habits — des habitudes qui tiennent quand un ami s'est engagé lui aussi."
+  },
+  "languageSwitcher": {
+    "ariaLabel": "Changer de langue",
+    "listAriaLabel": "Choisir la langue"
+  },
+  "header": {
+    "homeAriaLabel": "Accueil de Friends with Habits",
+    "navAriaLabel": "Sections de la page",
+    "howItWorks": "Fonctionnement",
+    "whyItWorks": "Pourquoi",
+    "founderOffer": "Offre",
+    "faq": "FAQ",
+    "blog": "Blogue",
+    "signIn": "Se connecter",
+    "getTheApp": "Obtenir l'appli"
+  },
+  "hero": {
+    "motto": "Les vrais amis ne laissent pas leurs amis abandonner.",
+    "headlineHtml": "Des habitudes qui tiennent quand un ami s'est <em>engagé lui aussi</em>.",
+    "lede": "La plupart des applis d'habitudes vous laissent abandonner en privé. Pas Friends with Habits. Faites un pacte avec un ami, faites un check-in chaque jour et gardez votre série ensemble.",
+    "googlePlayCta": "Disponible sur Google Play",
+    "registerCta": "Créer votre compte",
+    "iosCta": "iPhone? Liste d'attente",
+    "ctaNoteHtml": "Gratuit &mdash; maintenant offert à tous sur Google Play. iOS bientôt.",
+    "founderNoteHtml": "<strong>Offre membre fondateur :</strong> les 5 000 premiers comptes obtiennent toutes les fonctions payantes gratuitement à vie pour un paiement unique de 20 $ US.",
+    "highlightsAriaLabel": "Points forts",
+    "chipNoSubscription": "Aucun abonnement",
+    "chipInstall": "S'installe en quelques secondes",
+    "chipPhotoProof": "Check-ins avec photo comme preuve"
+  },
+  "demo": {
+    "pactTitle": "Course matinale",
+    "pactSubHtml": "Maya et Theo &middot; tous les jours, 6 h 30",
+    "streak": "Série de 23 jours",
+    "firstWho": "Maya a fait son check-in",
+    "firstWhatHtml": "Photo &middot; 6 h 41 &middot; « 5 km, avant le café »",
+    "secondWho": "Theo a fait son check-in",
+    "secondWhatHtml": "Note &middot; 7 h 02 &middot; « Pluie. J'ai couru quand même. Tu m'en dois une. »",
+    "footHtml": "Tous les deux au rendez-vous &mdash; <strong>série +1</strong>"
+  },
+  "definition": {
+    "eyebrow": "Ce que c'est",
+    "madeByHtml": "C'est gratuit, conçu par <a href=\"https://www.therr.app/\" rel=\"noopener\">Therr, Inc.</a>, et déjà offert sur Android via Google Play pendant que nous préparons une version iOS."
+  },
+  "steps": {
+    "eyebrow": "Fonctionnement",
+    "heading": "Trois étapes. Deux personnes. Une série.",
+    "intro": "Un pacte prend une minute à créer et un ami pour le tenir. Le reste, c'est simplement d'être au rendez-vous.",
+    "createTitle": "Créez un pacte",
+    "createBody": "Choisissez une habitude — entraînement, lecture, méditation, tout ce qui se fait chaque jour. Fixez l'heure où vous serez tous les deux au rendez-vous.",
+    "inviteTitle": "Invitez un ami",
+    "inviteBody": "Impossible de le faire seul. Votre ami se joint à vous et devient votre partenaire de responsabilisation.",
+    "checkInTitle": "Faites un check-in chaque jour",
+    "checkInBody": "Ajoutez une photo ou une courte note comme preuve. Regardez votre série grandir ensemble."
+  },
+  "why": {
+    "eyebrow": "Pourquoi ça marche",
+    "heading": "Pourquoi la responsabilisation change tout",
+    "intro": "Le même objectif, la même personne, le même mois. La seule différence : quelqu'un d'autre compte sur vous ou non.",
+    "withPartnerStat": "95 %",
+    "withPartnerHtml": "<strong>Avec un partenaire.</strong> La fréquence à laquelle les gens atteignent un objectif lorsqu'ils ont un rendez-vous fixe pour en rendre compte à quelqu'un d'autre.",
+    "onYourOwnStat": "10 %",
+    "onYourOwnHtml": "<strong>Seul.</strong> La fréquence à laquelle ce même objectif est atteint quand il reste une idée à laquelle vous ne vous êtes engagé auprès de personne. Les applis en solo ne comblent pas cet écart. Chez nous, la responsabilisation est la norme.",
+    "sourceNoteHtml": "Chiffres tirés de l'étude de l'American Society for Training &amp; Development sur l'engagement et l'atteinte des objectifs, qui a relevé un taux de réussite de 10 % pour un objectif qui n'est qu'une idée, et de 95 % lorsque vous avez un rendez-vous précis pour en rendre compte à la personne envers qui vous vous êtes engagé."
+  },
+  "compare": {
+    "eyebrow": "La différence",
+    "heading": "En quoi c'est différent des autres applis de suivi d'habitudes",
+    "partnerRequiredHtml": "<strong>Un partenaire est obligatoire, pas facultatif.</strong> Streaks, Habitify, Done et la plupart des autres applis d'habitudes sont conçues pour une seule personne. Ici, un pacte se fait à deux : il n'existe aucune version de l'appli où personne ne remarque que vous avez arrêté.",
+    "proofHtml": "<strong>Chaque check-in comporte une preuve.</strong> Chaque check-in quotidien inclut une photo ou une note, alors une série est une preuve plutôt qu'un simple toucher.",
+    "sharedStreakHtml": "<strong>La série est partagée.</strong> Votre partenaire et vous avez la même série, donc une journée manquée vous coûte à tous les deux — c'est inconfortable, et c'est justement pour ça que ça marche.",
+    "freeHtml": "<strong>C'est gratuit pour commencer.</strong> Aucune liste d'attente, aucun code d'invitation, aucune carte. Installez-la et créez votre premier pacte.",
+    "noSubscriptionHtml": "<strong>Aucun abonnement à souscrire.</strong> Les comptes gratuits suivent un nombre limité d'habitudes actives. Les 5 000 premiers comptes peuvent lever cette limite pour de bon avec un déblocage fondateur unique de 20 $ US plutôt qu'une facture mensuelle."
+  },
+  "founder": {
+    "badge": "Offre membre fondateur",
+    "headingHtml": "<span>20 $ US, une fois.</span> Gratuit à vie.",
+    "lede": "Les 5 000 premiers comptes peuvent tout débloquer pour de bon avec un seul paiement de 20 $ US. Aucun abonnement, aucun renouvellement, rien à annuler.",
+    "noCapHtml": "Aucune limite d'habitudes actives &mdash; les comptes gratuits en suivent {freeHabitLimit} à la fois",
+    "futureFeatures": "Toutes les fonctions premium que nous lancerons plus tard, incluses",
+    "forLife": "À vous pour la vie, sur chaque appareil où vous vous connectez",
+    "note": "Offert dans l'appli via Google Play. Quand 5 000 personnes l'auront réclamée, l'offre disparaîtra."
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "heading": "Questions fréquentes",
+    "whatIs": {
+      "question": "Qu'est-ce que Friends with Habits?",
+      "answer": "Friends with Habits est une appli de suivi d'habitudes qui exige un partenaire de responsabilisation. Au lieu de suivre une habitude seul, vous faites un pacte avec un ami : vous vous engagez tous les deux dans la même habitude quotidienne, vous faites tous les deux un check-in avec preuve, et chacun voit quand l'autre en manque un."
+    },
+    "isFree": {
+      "question": "Friends with Habits est-elle gratuite?",
+      "answer": "Oui. Friends with Habits est gratuite à télécharger et à utiliser, sans liste d'attente, sans code d'invitation et sans carte. Un compte gratuit suit un nombre limité d'habitudes actives à la fois, et archiver une habitude terminée libère une place."
+    },
+    "founderUnlock": {
+      "question": "Qu'est-ce que le déblocage fondateur gratuit à vie?",
+      "answer": "Les 5 000 premiers comptes peuvent payer 20 $ US une seule fois et ne plus jamais payer. Le déblocage fondateur retire la limite d'habitudes actives de la version gratuite et inclut à vie toutes les fonctions premium que nous ajouterons. Aucun abonnement n'y est rattaché et il n'y a rien à annuler. Vous l'achetez dans l'appli via Google Play, et une fois que 5 000 personnes l'auront réclamé, l'offre disparaîtra pour de bon."
+    },
+    "whatIsPact": {
+      "question": "Qu'est-ce qu'un pacte?",
+      "answer": "Un pacte est une habitude quotidienne que vous et un ami vous engagez à tenir ensemble — un entraînement, une séance de lecture, une méditation, une leçon de langue, tout ce que vous voulez faire chaque jour. Le pacte regroupe l'habitude, l'horaire et la série que vous partagez tous les deux."
+    },
+    "needFriend": {
+      "question": "Ai-je besoin d'un ami pour utiliser l'appli?",
+      "answer": "Oui, et c'est voulu. Un pacte se fait à deux, alors vous invitez un ami quand vous en créez un. Les applis d'habitudes en solo vous laissent abandonner en privé, et c'est exactement ce que cette appli existe pour éviter. Si votre ami n'a pas encore installé l'appli, votre lien d'invitation le guide pas à pas."
+    },
+    "checkIns": {
+      "question": "Comment fonctionnent les check-ins quotidiens?",
+      "answer": "Chaque jour, vous faites un check-in dans votre pacte et joignez une photo ou une courte note comme preuve. Votre partenaire voit votre check-in, vous voyez le sien, et la série partagée grandit chaque jour où vous êtes tous les deux au rendez-vous. Manquez une journée et la série repart à zéro pour vous deux."
+    },
+    "iphone": {
+      "question": "Friends with Habits est-elle offerte sur iPhone?",
+      "answer": "Pas encore. Friends with Habits est offerte sur Android via Google Play aujourd'hui, et une version iOS est la prochaine étape. Votre compte fonctionne dans toutes les applis Therr, alors un compte créé sur Android vous suivra.",
+      "cta": "Dites-nous que vous la voulez sur iPhone"
+    },
+    "whoMakes": {
+      "question": "Qui conçoit Friends with Habits?",
+      "answer": "Friends with Habits est conçue par Therr, Inc., l'entreprise derrière l'appli Therr pour la découverte locale et la communauté. Les deux applis partagent le même système de comptes, alors une seule connexion Therr fonctionne pour les deux.",
+      "answerHtml": "Friends with Habits est conçue par Therr, Inc., l'entreprise derrière l'<a href=\"https://www.therr.app/\" rel=\"noopener\">appli Therr</a> pour la découverte locale et la communauté. Les deux applis partagent le même système de comptes, alors une seule connexion Therr fonctionne pour les deux."
+    }
+  },
+  "closer": {
+    "heading": "Créez votre premier pacte ce soir.",
+    "body": "Choisissez l'habitude que vous remettez toujours à plus tard, envoyez une invitation et laissez un ami rendre l'abandon plus difficile que l'effort."
+  },
+  "featured": {
+    "label": "Vu sur",
+    "badgeAlt": "En vedette sur LaunchKiwi"
+  },
+  "iosModal": {
+    "closeAriaLabel": "Fermer",
+    "title": "Friends with Habits pour iPhone s'en vient",
+    "bodyHtml": "Il n'y a pas encore d'appli iPhone &mdash; nous sommes sur Android via Google Play pour l'instant. Chaque toucher de ce bouton nous indique combien de personnes attendent la version iOS, alors merci du coup de pouce.",
+    "emailLabel": "Voulez-vous un courriel le jour où elle arrive sur l'App Store? (Facultatif)",
+    "emailPlaceholder": "vous@exemple.com",
+    "honeypotLabel": "Laissez ce champ vide",
+    "submit": "Prévenez-moi",
+    "submitting": "Ajout en cours…",
+    "fineprint": "Nous vous écrirons seulement au sujet du lancement sur iPhone et de nouvelles occasionnelles sur le produit. Désabonnez-vous en tout temps.",
+    "done": "Vous êtes sur la liste. Nous vous écrirons quand l'appli iPhone sera disponible.",
+    "errorEmpty": "Entrez une adresse courriel, ou fermez simplement cette fenêtre.",
+    "errorInvalid": "Cette adresse courriel ne semble pas valide.",
+    "errorSaveFailed": "Nous n'avons pas pu enregistrer cette adresse. Réessayez.",
+    "errorNetwork": "Erreur réseau. Réessayez dans un instant."
+  },
+  "footer": {
+    "privacyPolicy": "Politique de confidentialité",
+    "termsOfService": "Conditions d'utilisation",
+    "forCoaches": "Pour les coachs",
+    "googlePlay": "Google Play",
+    "familyPrefixHtml": "Fait partie de la famille d'applis Therr &mdash;",
+    "familyLink": "Therr, pour la découverte locale et la communauté"
+  },
+  "jsonLd": {
+    "websiteDescription": "Un suivi d'habitudes gratuit conçu autour des partenaires de responsabilisation.",
+    "appDescription": "Un suivi d'habitudes qui exige un partenaire de responsabilisation. Faites un pacte avec un ami, faites un check-in chaque jour avec une photo ou une note comme preuve et bâtissez une série partagée.",
+    "applicationSubCategory": "Suivi d'habitudes",
+    "operatingSystem": "Android 8.0 et versions ultérieures",
+    "releaseNotes": "Maintenant offerte à tous sur Google Play.",
+    "features": {
+      "pacts": "Pactes d'habitudes avec un partenaire de responsabilisation",
+      "checkIns": "Check-ins quotidiens avec photo ou note comme preuve",
+      "streaks": "Suivi des séries partagées",
+      "notifications": "Notifications quand votre partenaire fait son check-in ou en manque un",
+      "feed": "Fil d'activité de votre partenaire"
+    },
+    "freeOfferName": "Gratuit",
+    "freeOfferDescription": "Gratuit à installer et à utiliser, avec un nombre limité d'habitudes actives à la fois.",
+    "founderOfferName": "Déblocage fondateur gratuit à vie",
+    "founderOfferDescription": "Un achat unique de 20 $ US, limité aux 5 000 premiers comptes, qui retire la limite d'habitudes et inclut toutes les fonctions premium à vie. Vendu dans l'appli via Google Play Billing.",
+    "accountsUnit": "comptes"
+  }
+}

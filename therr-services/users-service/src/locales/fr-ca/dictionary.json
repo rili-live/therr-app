@@ -50,7 +50,16 @@
             "nudgeNotPending": "Ce pacte a déjà commencé, il ne reste donc personne à relancer",
             "invalidPledgeAmount": "Choisis un engagement en dollars entiers, entre 1 $ et 500 $ US",
             "invalidPledgeCharity": "Choisis un organisme de bienfaisance dans la liste",
-            "pledgeNotAllowed": "Tu peux seulement prendre un engagement dans un pacte en attente ou en cours"
+            "pledgeNotAllowed": "Tu peux seulement prendre un engagement dans un pacte en attente ou en cours",
+            "invalidOpenFlag": "Choisis si ce pacte accepte les demandes pour s'y joindre",
+            "openCreatorOnly": "Seule la personne qui a créé ce pacte peut changer qui peut demander à s'y joindre",
+            "openNotAllowed": "Seul un pacte en attente ou en cours peut être ouvert aux demandes",
+            "notOpen": "Ce pacte n'accepte pas de demandes pour le moment",
+            "alreadyInPact": "Tu fais déjà partie de ce pacte",
+            "tooManyJoinRequests": "Tu as {limit} demandes en attente de réponse — laisse-leur un peu de temps avant d'en envoyer une autre",
+            "joinRequestNotFound": "On a déjà répondu à cette demande",
+            "joinRequestCreatorOnly": "Seule la personne qui a créé ce pacte peut répondre aux demandes",
+            "joinRequesterAtCapacity": "Cette personne ne peut pas ajouter une autre habitude pour l'instant, alors elle ne peut pas encore se joindre"
         },
         "habits": {
             "freeTierHabitLimitReached": "Les comptes gratuits peuvent suivre {limit} habitudes à la fois. Archives-en une ou débloque tout à vie.",
@@ -143,7 +152,8 @@
         "newAreasActivated": "Tu viens de débloquer {totalAreasActivated} nouveau(x) secteur(s) — explore ce qu'il y a à proximité!",
         "discoveredUniqueMoment": "Tu as trouvé quelque chose de spécial! Ouvre la carte pour y jeter un coup d'œil.",
         "discoveredUniqueSpace": "Alerte trésor caché — tu es près d'un espace unique!",
-        "pactInvitation": "{fromUserName} t'a invité à un pacte : {habitName}"
+        "pactInvitation": "{fromUserName} t'a invité à un pacte : {habitName}",
+        "pactJoinRequest": "{fromUserName} a demandé à se joindre à ton pacte : {habitName}"
     },
     "invites": {
         "phone": "{name} t'a invité sur {brandName}{brandTagline}. Inscris-toi ici pour te connecter : {inviteUrl}",
@@ -247,6 +257,15 @@
             "buttonText": "Installer {brandName}",
             "postBody1": "Si le bouton ne fonctionne pas, ouvre ce lien sur ton téléphone : {linkUrl} — ou saisis le code {claimCode} dans l'application.",
             "postBody1TokenOnly": "Si le bouton ne fonctionne pas, ouvre ce lien sur ton téléphone : {linkUrl}"
+        },
+        "openPactSuggestion": {
+            "subject": "Trouve un partenaire pour {habitName}",
+            "header": "Trouve un partenaire pour {habitName}",
+            "dearUser": "Salut {toName}!",
+            "body1": "Personne n'a encore répondu à ton invitation au pacte {habitName}. Ça arrive — et tu n'as pas à attendre.",
+            "body2": "D'autres personnes sur {brandName} travaillent sur {habitName} dans des pactes ouverts où il reste de la place. Ouvre l'appli et demande à t'y joindre : la personne qui l'a créé recevra ta demande.",
+            "buttonText": "Ouvrir {brandName}",
+            "postBody1": "Ton invitation originale reste ouverte : tes amis peuvent encore l'accepter."
         },
         "coinsReceived": {
             "header": "Tu as gagné des pièces!",

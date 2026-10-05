@@ -19,6 +19,10 @@
          rest of the block leaked onto the rendered page as visible text. Hence
          the short bare-bang form here.
 
+    Copy comes from footerCopy when the view passes one (the localized landing page
+    does, from src/habitsLocales); every other view omits it and gets the English
+    inline here, which must stay identical to the en-us dictionary's footer block.
+
     The styles it depends on - footer.site-footer, .footer-links, .footer-family
     and .container - live in each view's own style block, since these templates
     are otherwise self-contained and have no shared stylesheet.
@@ -26,9 +30,10 @@
 <footer class="site-footer">
     <div class="container">
         <div class="footer-links">
-            <a href="/privacy-policy">Privacy Policy</a>
-            <a href="/terms-of-service">Terms of Service</a>
-            <a href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Google Play</a>
+            <a href="/privacy-policy">{{#if footerCopy}}{{{footerCopy.privacyPolicy}}}{{else}}Privacy Policy{{/if}}</a>
+            <a href="/terms-of-service">{{#if footerCopy}}{{{footerCopy.termsOfService}}}{{else}}Terms of Service{{/if}}</a>
+            <a href="/coaches">{{#if footerCopy}}{{{footerCopy.forCoaches}}}{{else}}For coaches{{/if}}</a>
+            <a href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">{{#if footerCopy}}{{{footerCopy.googlePlay}}}{{else}}Google Play{{/if}}</a>
         </div>
         <div>&copy; Therr Inc.</div>
         <!--
@@ -38,8 +43,8 @@
             domain, and this side ties the two entities together.
         -->
         <div class="footer-family">
-            Part of the Therr family of apps &mdash;
-            <a href="https://www.therr.app/" rel="noopener">Therr, for local discovery and community</a>.
+            {{#if footerCopy}}{{{footerCopy.familyPrefixHtml}}}{{else}}Part of the Therr family of apps &mdash;{{/if}}
+            <a href="https://www.therr.app/" rel="noopener">{{#if footerCopy}}{{{footerCopy.familyLink}}}{{else}}Therr, for local discovery and community{{/if}}</a>.
         </div>
     </div>
 </footer>

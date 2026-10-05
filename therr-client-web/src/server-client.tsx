@@ -43,6 +43,7 @@ import {
     isHabitsBlogListPath,
     matchHabitsBlogPost,
 } from './utilities/habitsBlog';
+import { HabitsLandingResolution, buildHabitsLandingViewContext, resolveHabitsLandingRequest } from './utilities/habitsLanding';
 import { HABITS_HOSTS, resolveAssetLinksFileName } from './utilities/wellKnownAssets';
 
 axios.defaults.baseURL = (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute;
@@ -279,18 +280,17 @@ const HABITS_GA_MEASUREMENT_IDS_JSON = serialize(
 );
 const HABITS_DEFAULT_CACHE = 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400';
 const HABITS_NO_STORE = 'no-store';
+// The landing page ('/', '/es', '/fr') is not in this table: it is localized, and
+// handled by renderHabitsLandingView below.
 const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
-    '/': {
-        view: 'habits/landing',
-        // Brand name first, then the head term the page is actually competing for.
-        // The old title led with the tagline and ran past ~70 chars, so SERPs
-        // truncated it before reaching any keyword.
-        title: 'Friends with Habits — Habit Tracker with an Accountability Partner',
-        description: 'A free habit tracker built around accountability partners. Make a pact with a friend, '
-            + 'check in daily with photo proof, and keep each other on streak.',
-        // The iOS waitlist dialog posts to /subscribers/signup. The value is build-time
-        // config, identical for every visitor, so it does not make this page unsafe to
-        // serve from the shared cache HABITS_DEFAULT_CACHE puts it in.
+    // Coach waitlist: the demand test for a coach tier (campaigns/habits-coaches-web.yaml).
+    // Public and indexable, since coaches searching for a client-accountability tool are the
+    // audience; the waitlist form posts to /subscribers/signup, hence needsApiBase.
+    '/coaches': {
+        view: 'habits/coaches',
+        title: 'Friends with Habits for Coaches — Client Habit Accountability',
+        description: 'See your clients\' habits between sessions. Daily check-ins with photo proof, '
+            + 'streaks and nudges for habit-based coaches. Join the coach waitlist.',
         needsApiBase: true,
     },
     '/privacy-policy': {
@@ -498,6 +498,42 @@ const renderHabitsInviteView = async (req, res, match: IHabitsInviteRouteMatch) 
     });
 };
 
+/**
+ * The Friends with Habits landing page, in English ('/'), Spanish ('/es') or French ('/fr').
+ *
+ * '/' picks a language for visitors who did not ask for one — the remembered switcher
+ * choice, else the browser's Accept-Language — so a visitor from Mexico arriving on the
+ * bare domain is redirected to '/es'. See utilities/habitsLanding.ts for the full order.
+ */
+const renderHabitsLandingView = (req, res, resolution: HabitsLandingResolution) => {
+    if (resolution.action === 'redirect') {
+        // Depends on the visitor's cookie and language, so no shared cache may keep it.
+        res.setHeader('Cache-Control', HABITS_NO_STORE);
+        res.setHeader('Vary', 'Accept-Language, Cookie');
+        if (resolution.setCookie) {
+            res.setHeader('Set-Cookie', resolution.setCookie);
+        }
+        return res.redirect(302, resolution.location);
+    }
+
+    res.setHeader('Cache-Control', HABITS_DEFAULT_CACHE);
+    if (req.path === '/') {
+        // A Spanish- or French-preferring browser is redirected away from '/', so the English
+        // body it would otherwise get is only correct for the headers that produced it.
+        res.setHeader('Vary', 'Accept-Language, Cookie');
+    }
+    return res.render('habits/landing', {
+        ...buildHabitsLandingViewContext(resolution.locale, { freeHabitLimit: HABITS_FREE_HABIT_LIMIT }),
+        // The iOS waitlist dialog posts to /subscribers/signup. The value is build-time
+        // config, identical for every visitor, so it does not make this page unsafe to
+        // serve from the shared cache HABITS_DEFAULT_CACHE puts it in.
+        apiBaseJson: serialize(
+            (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute,
+            { isJSON: true },
+        ),
+    });
+};
+
 app.use(async (req, res, next) => {
     if (!HABITS_HOSTS.has(req.hostname)) {
         return next();
@@ -507,9 +543,6 @@ app.use(async (req, res, next) => {
     // analytics without anyone remembering to wire it. That is the failure this
     // fixes — the views were never tagged at all, and nothing failed loudly.
     res.locals.gaMeasurementIdsJson = HABITS_GA_MEASUREMENT_IDS_JSON;
-    // Marketing copy quotes the free-tier cap; reading the constant keeps it from drifting when
-    // the default changes. An env override must be set on this deployment too, not only users-service.
-    res.locals.freeHabitLimit = HABITS_FREE_HABIT_LIMIT;
     // Crawler policy for this host. Deliberately permissive to AI retrieval agents —
     // GEO discovery is the point of this subdomain — but the personal, token-bearing
     // and auth-sensitive paths are kept out of the crawl budget. They already carry
@@ -542,7 +575,10 @@ app.use(async (req, res, next) => {
         const today = new Date().toISOString().split('T')[0];
         const urls = [
             { loc: 'https://habits.therr.com/', priority: '1.0', changefreq: 'weekly' },
+            { loc: 'https://habits.therr.com/es', priority: '1.0', changefreq: 'weekly' },
+            { loc: 'https://habits.therr.com/fr', priority: '1.0', changefreq: 'weekly' },
             { loc: 'https://habits.therr.com/blog', priority: '0.8', changefreq: 'weekly' },
+            { loc: 'https://habits.therr.com/coaches', priority: '0.8', changefreq: 'monthly' },
             // Generated from the same list the routes serve, so a new cross-post is
             // never published without a sitemap entry — this subdomain has almost no
             // inbound links, so the sitemap is most of how a page gets discovered.
@@ -656,6 +692,15 @@ app.use(async (req, res, next) => {
     const inviteMatch = matchHabitsInviteRoute(req.path);
     if (inviteMatch) {
         return renderHabitsInviteView(req, res, inviteMatch);
+    }
+    const landingResolution = resolveHabitsLandingRequest({
+        pathname: req.path,
+        search: req.originalUrl.split('?')[1] || '',
+        cookieHeader: req.headers.cookie,
+        acceptLanguage: req.headers['accept-language'],
+    });
+    if (landingResolution) {
+        return renderHabitsLandingView(req, res, landingResolution);
     }
     const renderer = HABITS_ROUTE_RENDERERS[req.path];
     if (!renderer) {

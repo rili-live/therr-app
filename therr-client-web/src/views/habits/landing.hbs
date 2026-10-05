@@ -1,10 +1,18 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="{{htmlLang}}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{title}}</title>
     <link rel="canonical" href="{{canonicalUrl}}">
+    {{!
+        One URL per language, each pointing at all of them. Google needs the full set on
+        every member or it ignores the annotation; x-default is the unprefixed English page,
+        which is also where Accept-Language detection runs.
+    }}
+    {{#each hreflangAlternates}}
+    <link rel="alternate" hreflang="{{hreflang}}" href="{{href}}">
+    {{/each}}
     <meta name="description" content="{{description}}">
     <meta name="author" content="Therr Inc.">
     <!-- Allow full snippets and large image previews so AI answer engines and SERPs
@@ -13,7 +21,10 @@
     <meta name="theme-color" content="#2e2140">
     <meta property="og:site_name" content="Friends with Habits">
     <meta property="og:type" content="website">
-    <meta property="og:locale" content="en_US">
+    <meta property="og:locale" content="{{ogLocale}}">
+    {{#each ogLocaleAlternates}}
+    <meta property="og:locale:alternate" content="{{this}}">
+    {{/each}}
     <meta property="og:url" content="{{canonicalUrl}}">
     <meta property="og:title" content="{{title}}">
     <meta property="og:description" content="{{description}}">
@@ -22,13 +33,13 @@
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Friends with Habits — habits that stick when a friend's on the hook too.">
+    <meta property="og:image:alt" content="{{t.meta.ogImageAlt}}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@therr_app">
     <meta name="twitter:title" content="{{title}}">
     <meta name="twitter:description" content="{{description}}">
     <meta name="twitter:image" content="https://habits.therr.com/assets/images/habits-og-image.png">
-    <meta name="twitter:image:alt" content="Friends with Habits — habits that stick when a friend's on the hook too.">
+    <meta name="twitter:image:alt" content="{{t.meta.ogImageAlt}}">
     <!-- Play Store association for Android smart banners / app indexing. -->
     <meta name="google-play-app" content="app-id=com.therr.habits">
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
@@ -162,7 +173,7 @@
         nav.site-nav {
             display: none;
             margin-left: auto;
-            gap: 1.75rem;
+            gap: 1.25rem;
         }
         nav.site-nav a {
             white-space: nowrap;
@@ -178,7 +189,62 @@
             align-items: center;
             gap: 1rem;
         }
+        /* Language switcher — a <details> dropdown, so it needs no script to open. */
+        .lang-switcher {
+            position: relative;
+        }
+        .lang-switcher summary {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.375rem 0.5rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: var(--fwh-purple);
+            cursor: pointer;
+            list-style: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .lang-switcher summary::-webkit-details-marker { display: none; }
+        .lang-switcher summary::after {
+            content: '';
+            border: 4px solid transparent;
+            border-top-color: currentColor;
+            margin-top: 4px;
+        }
+        .lang-switcher summary:hover,
+        .lang-switcher[open] summary { background: rgba(46, 33, 64, 0.06); }
+        .lang-switcher summary svg { width: 1.125rem; height: 1.125rem; }
+        .lang-switcher ul {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.375rem);
+            z-index: 50;
+            min-width: 9.5rem;
+            margin: 0;
+            padding: 0.375rem;
+            list-style: none;
+            background: #fff;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 30px rgba(46, 33, 64, 0.16);
+            border: 1px solid rgba(46, 33, 64, 0.08);
+        }
+        .lang-switcher li a {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem 0.625rem;
+            border-radius: 0.5rem;
+            font-size: 0.9375rem;
+            color: var(--fwh-plum);
+            white-space: nowrap;
+        }
+        .lang-switcher li a strong { width: 1.5rem; color: var(--fwh-text-muted); }
+        .lang-switcher li a:hover { background: rgba(46, 33, 64, 0.06); text-decoration: none; }
+        .lang-switcher li a[aria-current] { background: rgba(46, 33, 64, 0.06); font-weight: 700; }
         .header-actions .sign-in {
+            white-space: nowrap;
             display: none;
             font-weight: 600;
             font-size: 0.9375rem;
@@ -387,6 +453,9 @@
         .hero .container {
             position: relative;
             display: grid;
+            /* minmax(0, …) so a long unbreakable button label in a translation cannot
+               widen the column past the screen and drag all the hero copy with it. */
+            grid-template-columns: minmax(0, 1fr);
             gap: 3rem;
             align-items: center;
         }
@@ -990,7 +1059,7 @@
         }
         @media (min-width: 1024px) {
             nav.site-nav { display: flex; }
-            .header-actions { margin-left: 1.5rem; }
+            .header-actions { margin-left: 1rem; gap: 1rem; }
         }
         @media (max-width: 899px) {
             /* Five stacked drop-shadows are a GPU cost a phone notices while scrolling,
@@ -1002,6 +1071,11 @@
                left once the rig is reserved; the tile carries the brand on its own and
                the link keeps its accessible name. */
             header.site-header .brand { display: none; }
+            /* The highlighted phrase is kept on one line where there is room for it, but a
+               translation can be longer than the phone column; never let it push the copy
+               off-screen. */
+            .hero h1 em { white-space: normal; }
+            .cta-row .cta { white-space: normal; text-align: center; }
         }
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
@@ -1011,174 +1085,14 @@
         }
     </style>
     <!--
-        Entity graph for search and AI answer engines. Deliberately hardcoded rather
-        than interpolated: this view only ever renders at '/', and Handlebars escapes
-        apostrophes to &#x27; — which are NOT decoded inside a JSON-LD script block,
-        so an interpolated {{title}} would corrupt the JSON string.
-
-        `publisher` points at the Organization node declared on www.therr.app so the
-        two properties resolve to one company entity across both domains.
-        FAQPage answers must stay byte-identical to the visible FAQ copy below.
+        Entity graph for search and AI answer engines. Built per locale in
+        utilities/habitsLanding.ts from the same dictionary as the visible copy, so the
+        FAQPage answers cannot drift from the FAQ below. Serialized there rather than
+        interpolated here: Handlebars escapes apostrophes to &#x27;, which is NOT decoded
+        inside a JSON-LD script block and would corrupt every string that has one.
     -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "WebSite",
-          "@id": "https://habits.therr.com/#website",
-          "url": "https://habits.therr.com/",
-          "name": "Friends with Habits",
-          "description": "A free habit tracker built around accountability partners.",
-          "slogan": "Friends don't let friends give up on change.",
-          "inLanguage": "en-US",
-          "publisher": { "@id": "https://www.therr.app/#organization" }
-        },
-        {
-          "@type": "Organization",
-          "@id": "https://www.therr.app/#organization",
-          "name": "Therr, Inc.",
-          "url": "https://www.therr.app/",
-          "logo": "https://www.therr.app/assets/img/therr-splash-logo-200.png",
-          "sameAs": [
-            "https://www.therr.com/",
-            "https://www.instagram.com/therr.app/",
-            "https://twitter.com/therr_app",
-            "https://www.linkedin.com/company/therr"
-          ]
-        },
-        {
-          "@type": "WebPage",
-          "@id": "https://habits.therr.com/#webpage",
-          "url": "https://habits.therr.com/",
-          "name": "Friends with Habits — Habit Tracker with an Accountability Partner",
-          "isPartOf": { "@id": "https://habits.therr.com/#website" },
-          "about": { "@id": "https://habits.therr.com/#app" },
-          "primaryImageOfPage": "https://habits.therr.com/assets/images/habits-og-image.png",
-          "inLanguage": "en-US"
-        },
-        {
-          "@type": "MobileApplication",
-          "@id": "https://habits.therr.com/#app",
-          "name": "Friends with Habits",
-          "alternateName": "Therr: Friends With Habits",
-          "url": "https://habits.therr.com/",
-          "description": "A habit tracker that requires an accountability partner. Make a pact with a friend, check in daily with a photo or note as proof, and build a shared streak.",
-          "slogan": "Friends don't let friends give up on change.",
-          "applicationCategory": "LifestyleApplication",
-          "applicationSubCategory": "Habit Tracker",
-          "operatingSystem": "Android 8.0 and up",
-          "releaseNotes": "Now generally available on the Google Play production track.",
-          "installUrl": "https://play.google.com/store/apps/details?id=com.therr.habits",
-          "downloadUrl": "https://play.google.com/store/apps/details?id=com.therr.habits",
-          "screenshot": "https://habits.therr.com/assets/images/habits-og-image.png",
-          "image": "https://habits.therr.com/assets/images/habits-og-image.png",
-          "inLanguage": "en-US",
-          "featureList": [
-            "Habit pacts with an accountability partner",
-            "Daily check-ins with photo or note proof",
-            "Shared streak tracking",
-            "Push notifications when your partner checks in or misses",
-            "Partner activity feed"
-          ],
-          "offers": [
-            {
-              "@type": "Offer",
-              "name": "Free",
-              "description": "Free to install and use, with a limited number of active habits at a time.",
-              "price": "0",
-              "priceCurrency": "USD",
-              "availability": "https://schema.org/InStock"
-            },
-            {
-              "@type": "Offer",
-              "name": "Founder free-for-life unlock",
-              "description": "A one-time $20 purchase, limited to the first 5,000 accounts, that removes the habit limit and includes every premium feature for life. Sold in the app through Google Play Billing.",
-              "price": "20",
-              "priceCurrency": "USD",
-              "availability": "https://schema.org/LimitedAvailability",
-              "eligibleQuantity": {
-                "@type": "QuantitativeValue",
-                "value": 5000,
-                "unitText": "accounts"
-              }
-            }
-          ],
-          "publisher": { "@id": "https://www.therr.app/#organization" }
-        },
-        {
-          "@type": "FAQPage",
-          "@id": "https://habits.therr.com/#faq",
-          "isPartOf": { "@id": "https://habits.therr.com/#webpage" },
-          "mainEntity": [
-            {
-              "@type": "Question",
-              "name": "What is Friends with Habits?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Friends with Habits is a habit-tracking app that requires an accountability partner. Instead of tracking a habit alone, you make a pact with a friend: you both commit to the same daily habit, you both check in with proof, and you both see it when the other one misses."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Is Friends with Habits free?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Yes. Friends with Habits is free to download and free to use, with no waitlist, no invite code and no card. A free account tracks a limited number of active habits at a time, and archiving a habit you have finished with frees a slot back up."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "What is the founder free-for-life unlock?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "The first 5,000 accounts can pay $20 once and never pay again. The founder unlock removes the free tier's active-habit limit and includes every premium feature we add later, for life. There is no subscription attached to it and nothing to cancel. You buy it inside the app through Google Play, and once 5,000 people have claimed it the offer is gone for good."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "What is a pact?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "A pact is a daily habit that you and a friend commit to together — a workout, a reading session, a meditation, a language lesson, anything you want to do every day. The pact holds the habit, the schedule, and the streak that the two of you share."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Do I need a friend to use the app?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Yes, and that is deliberate. A pact needs two people, so you invite a friend when you create one. Solo habit trackers let you quit in private, which is the failure mode this app exists to remove. If your friend has not installed the app yet, your invite link walks them through it."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "How do daily check-ins work?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Each day you check in on your pact and attach a photo or a short note as proof. Your partner sees the check-in, you see theirs, and the shared streak grows for every day you both show up. Miss a day and the streak resets for both of you."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Is Friends with Habits available on iPhone?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Not yet. Friends with Habits is on Android via Google Play today, and an iOS version is next on the roadmap. Your account works across every Therr app, so an account you create on Android will carry over."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Who makes Friends with Habits?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Friends with Habits is built by Therr, Inc., the company behind the Therr app for local discovery and community. The two apps share one account system, so a single Therr login works for both."
-              }
-            }
-          ]
-        }
-      ]
-    }
+{{{jsonLd}}}
     </script>
     {{> habitsAnalytics}}
 </head>
@@ -1233,22 +1147,40 @@
 
     <header class="site-header">
         <div class="container">
-            <a class="brand-link" href="/" aria-label="Friends with Habits home">
+            <a class="brand-link" href="{{homePath}}" aria-label="{{t.header.homeAriaLabel}}">
                 <img class="brand-mark" src="/assets/images/habits-logo.svg" width="36" height="36" alt="">
                 <span class="brand">Friends with Habits</span>
             </a>
-            <nav class="site-nav" aria-label="Page sections">
-                <a href="#how-it-works">How it works</a>
-                <a href="#why-it-works">Why it works</a>
-                <a href="#founder-offer">Founder offer</a>
-                <a href="#faq">FAQ</a>
-                <a href="/blog">Blog</a>
+            <nav class="site-nav" aria-label="{{t.header.navAriaLabel}}">
+                <a href="#how-it-works">{{{t.header.howItWorks}}}</a>
+                <a href="#why-it-works">{{{t.header.whyItWorks}}}</a>
+                <a href="#founder-offer">{{{t.header.founderOffer}}}</a>
+                <a href="#faq">{{{t.header.faq}}}</a>
+                <a href="/blog">{{{t.header.blog}}}</a>
             </nav>
             <div class="header-actions">
-                <a class="sign-in" href="/login">Sign in</a>
+                {{!
+                    Language switcher, modelled on the one on www.therr.app. A <details>
+                    element so it opens and closes with no script at all; the links go
+                    through ?lang= so the server can remember the choice (see
+                    utilities/habitsLanding.ts) — a plain link to / would send a
+                    Spanish-language browser straight back to /es.
+                }}
+                <details class="lang-switcher" id="lang-switcher">
+                    <summary aria-label="{{t.languageSwitcher.ariaLabel}}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg>
+                        <span>{{currentLanguageLabel}}</span>
+                    </summary>
+                    <ul aria-label="{{t.languageSwitcher.listAriaLabel}}">
+                        {{#each languageOptions}}
+                        <li><a href="{{{href}}}" hreflang="{{hreflang}}" lang="{{hreflang}}"{{#if isCurrent}} aria-current="true"{{/if}}><strong>{{shortLabel}}</strong> {{nativeName}}</a></li>
+                        {{/each}}
+                    </ul>
+                </details>
+                <a class="sign-in" href="/login">{{{t.header.signIn}}}</a>
                 <a class="cta cta--small" id="header-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">
                     <svg aria-hidden="true"><use href="#fwh-play"/></svg>
-                    Get the app
+                    {{{t.header.getTheApp}}}
                 </a>
             </div>
         </div>
@@ -1258,9 +1190,9 @@
         <section class="hero">
             <div class="container">
                 <div class="hero-copy">
-                    <p class="motto">Friends don't let friends give up on change.</p>
-                    <h1>Habits that stick when a friend's <em>on the hook</em> too.</h1>
-                    <p class="lede">Most habit apps let you give up in private. Friends with Habits doesn't. Pact with a friend, check in daily, and keep each other on streak.</p>
+                    <p class="motto">{{{t.hero.motto}}}</p>
+                    <h1>{{{t.hero.headlineHtml}}}</h1>
+                    <p class="lede">{{{t.hero.lede}}}</p>
                     <!--
                         Friends with Habits applicationId — NOT app.therrmobile. Sending a
                         visitor to the Therr listing installs an app that cannot open a
@@ -1270,9 +1202,9 @@
                     <div class="cta-row">
                         <a class="cta" id="hero-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">
                             <svg aria-hidden="true"><use href="#fwh-play"/></svg>
-                            Get it on Google Play
+                            {{{t.hero.googlePlayCta}}}
                         </a>
-                        <a class="cta cta--secondary" id="hero-register-cta" href="/register">Create your account</a>
+                        <a class="cta cta--secondary" id="hero-register-cta" href="/register">{{{t.hero.registerCta}}}</a>
                         <!--
                             No iOS build exists yet, so this deliberately does not link to the
                             App Store. It is a <button> because it opens a dialog rather than
@@ -1281,19 +1213,19 @@
                         -->
                         <button type="button" class="cta cta--ghost" id="hero-ios-cta" aria-haspopup="dialog">
                             <svg aria-hidden="true"><use href="#fwh-apple"/></svg>
-                            iPhone? Join the waitlist
+                            {{{t.hero.iosCta}}}
                         </button>
                     </div>
-                    <div class="cta-note">Free to install &mdash; now available to everyone on Google Play. iOS coming next.</div>
-                    <div class="cta-note"><strong>Founding member offer:</strong> the first 5,000 accounts get every paid feature free for life for a one-time $20.</div>
+                    <div class="cta-note">{{{t.hero.ctaNoteHtml}}}</div>
+                    <div class="cta-note">{{{t.hero.founderNoteHtml}}}</div>
                     <!-- role="list" so the aria-label is announced; a bare div's label is ignored. -->
-                    <div class="chip-row" role="list" aria-label="Highlights">
-                        <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> No subscription</span>
+                    <div class="chip-row" role="list" aria-label="{{t.hero.highlightsAriaLabel}}">
+                        <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> {{{t.hero.chipNoSubscription}}}</span>
                         <!-- Was "No waitlist", which now contradicts the iPhone waitlist button above it.
                              The claim it was making — you can install right now, nothing to wait for — is
                              about Android, so it is said that way instead. -->
-                        <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> Install in seconds</span>
-                        <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> Photo-proof check-ins</span>
+                        <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> {{{t.hero.chipInstall}}}</span>
+                        <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> {{{t.hero.chipPhotoProof}}}</span>
                     </div>
                 </div>
 
@@ -1306,12 +1238,12 @@
                                 <span class="avatar avatar--b">T</span>
                             </div>
                             <div class="pact-card__meta">
-                                <p class="pact-card__title">Morning run</p>
-                                <p class="pact-card__sub">Maya &amp; Theo &middot; every day, 6:30am</p>
+                                <p class="pact-card__title">{{{t.demo.pactTitle}}}</p>
+                                <p class="pact-card__sub">{{{t.demo.pactSubHtml}}}</p>
                             </div>
                             <span class="streak-pill">
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2s1 3.5-1 6c-1.3 1.6-3 2.4-3 5a5 5 0 0 0 10 0c0-4-3-5-3-8 0 0-1 1.5-2 2-1-2-1-5-1-5z" fill="#d49617"/></svg>
-                                23-day streak
+                                {{{t.demo.streak}}}
                             </span>
                         </div>
                         <ul class="checkin-list">
@@ -1320,8 +1252,8 @@
                                     <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg>
                                 </span>
                                 <span class="checkin__text">
-                                    <span class="checkin__who">Maya checked in</span>
-                                    <span class="checkin__what">Photo proof &middot; 6:41am &middot; "5k, done before coffee"</span>
+                                    <span class="checkin__who">{{{t.demo.firstWho}}}</span>
+                                    <span class="checkin__what">{{{t.demo.firstWhatHtml}}}</span>
                                 </span>
                                 <span class="checkin__tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span>
                             </li>
@@ -1330,14 +1262,14 @@
                                     <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M8 12h8M8 16h6"/></svg>
                                 </span>
                                 <span class="checkin__text">
-                                    <span class="checkin__who">Theo checked in</span>
-                                    <span class="checkin__what">Note &middot; 7:02am &middot; "Rain. Ran anyway. You owe me."</span>
+                                    <span class="checkin__who">{{{t.demo.secondWho}}}</span>
+                                    <span class="checkin__what">{{{t.demo.secondWhatHtml}}}</span>
                                 </span>
                                 <span class="checkin__tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span>
                             </li>
                         </ul>
                         <div class="pact-card__foot">
-                            <span>Both in today &mdash; <strong>streak +1</strong></span>
+                            <span>{{{t.demo.footHtml}}}</span>
                             <span class="day-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i class="today"></i></span>
                         </div>
                     </div>
@@ -1353,12 +1285,12 @@
         <section class="definition">
             <div class="container">
                 <div>
-                    <p class="eyebrow">What it is</p>
-                    <h2>What is Friends with Habits?</h2>
+                    <p class="eyebrow">{{{t.definition.eyebrow}}}</p>
+                    <h2>{{{t.faq.whatIs.question}}}</h2>
                 </div>
                 <div>
-                    <p>Friends with Habits is a habit-tracking app that requires an accountability partner. Instead of tracking a habit alone, you make a pact with a friend: you both commit to the same daily habit, you both check in with proof, and you both see it when the other one misses.</p>
-                    <p>It is free, made by <a href="https://www.therr.app/" rel="noopener">Therr, Inc.</a>, and out now on Android through Google Play while an iOS version is in the works.</p>
+                    <p>{{{t.faq.whatIs.answer}}}</p>
+                    <p>{{{t.definition.madeByHtml}}}</p>
                 </div>
             </div>
         </section>
@@ -1366,9 +1298,9 @@
         <section class="steps alt" id="how-it-works">
             <div class="container">
                 <div class="section-head">
-                    <p class="eyebrow">How it works</p>
-                    <h2>Three steps. Two people. One streak.</h2>
-                    <p>A pact takes a minute to set up and a friend to keep. Everything else is just showing up.</p>
+                    <p class="eyebrow">{{{t.steps.eyebrow}}}</p>
+                    <h2>{{{t.steps.heading}}}</h2>
+                    <p>{{{t.steps.intro}}}</p>
                 </div>
                 <ol class="step-list">
                     <li class="step-card">
@@ -1377,8 +1309,8 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l3-3 5 5 3-3 5 5"/><path d="M4 17h16"/><path d="M4 5h5"/></svg>
                         </span>
                         <div class="step-body">
-                            <h3>Create a pact</h3>
-                            <p>Pick a habit — workout, reading, meditation, anything daily. Set the time you'll both show up.</p>
+                            <h3>{{{t.steps.createTitle}}}</h3>
+                            <p>{{{t.steps.createBody}}}</p>
                         </div>
                     </li>
                     <li class="step-card">
@@ -1387,8 +1319,8 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M17 8v6M14 11h6"/></svg>
                         </span>
                         <div class="step-body">
-                            <h3>Invite a friend</h3>
-                            <p>You can't do this alone. Your friend joins and becomes your accountability partner.</p>
+                            <h3>{{{t.steps.inviteTitle}}}</h3>
+                            <p>{{{t.steps.inviteBody}}}</p>
                         </div>
                     </li>
                     <li class="step-card">
@@ -1397,8 +1329,8 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg>
                         </span>
                         <div class="step-body">
-                            <h3>Check in daily</h3>
-                            <p>Add a photo or quick note as proof. Watch the streak grow together.</p>
+                            <h3>{{{t.steps.checkInTitle}}}</h3>
+                            <p>{{{t.steps.checkInBody}}}</p>
                         </div>
                     </li>
                 </ol>
@@ -1408,20 +1340,20 @@
         <section class="why" id="why-it-works">
             <div class="container">
                 <div class="section-head">
-                    <p class="eyebrow">Why it works</p>
-                    <h2>Why accountability changes everything</h2>
-                    <p>The same goal, the same person, the same month. The only difference is whether someone else is expecting you.</p>
+                    <p class="eyebrow">{{{t.why.eyebrow}}}</p>
+                    <h2>{{{t.why.heading}}}</h2>
+                    <p>{{{t.why.intro}}}</p>
                 </div>
                 <div class="stat-grid">
                     <div class="stat-card">
-                        <div class="stat">95%</div>
+                        <div class="stat">{{{t.why.withPartnerStat}}}</div>
                         <div class="stat-bar" aria-hidden="true"><i style="width: 95%"></i></div>
-                        <p><strong>With a partner.</strong> How often people follow through on a goal when they have a standing accountability appointment with someone else.</p>
+                        <p>{{{t.why.withPartnerHtml}}}</p>
                     </div>
                     <div class="stat-card stat-card--dim">
-                        <div class="stat">10%</div>
+                        <div class="stat">{{{t.why.onYourOwnStat}}}</div>
                         <div class="stat-bar" aria-hidden="true"><i style="width: 10%"></i></div>
-                        <p><strong>On your own.</strong> How often the same goal gets done when it stays an idea you never commit to anyone. Solo apps can't bridge that gap. We make accountability the default.</p>
+                        <p>{{{t.why.onYourOwnHtml}}}</p>
                     </div>
                 </div>
                 <!--
@@ -1429,22 +1361,22 @@
                     rungs of the ASTD commitment ladder, and an uncited "95%" is both a
                     trust signal AI answer engines penalise and a Play-listing claim risk.
                 -->
-                <p class="source-note">Figures from the American Society for Training &amp; Development's study on commitment and goal follow-through, which found a 10% follow-through rate for a goal you only have an idea about, rising to 95% when you have a specific accountability appointment with the person you committed to.</p>
+                <p class="source-note">{{{t.why.sourceNoteHtml}}}</p>
             </div>
         </section>
 
         <section class="compare alt">
             <div class="container container--narrow">
                 <div class="section-head">
-                    <p class="eyebrow">The difference</p>
-                    <h2>How it's different from other habit trackers</h2>
+                    <p class="eyebrow">{{{t.compare.eyebrow}}}</p>
+                    <h2>{{{t.compare.heading}}}</h2>
                 </div>
                 <ul class="compare-list">
-                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div><strong>A partner is required, not optional.</strong> Streaks, Habitify, Done and most other habit apps are built for one person. Here a pact needs two, so there is no version of the app where nobody notices you stopped.</div></li>
-                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div><strong>Check-ins carry proof.</strong> Every daily check-in takes a photo or a note, so a streak is evidence rather than a tap.</div></li>
-                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div><strong>The streak is shared.</strong> You and your partner are on the same streak, so a missed day costs both of you — the reason it is uncomfortable is the reason it works.</div></li>
-                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div><strong>It is free to start.</strong> No waitlist, no invite code, no card. Install it and make your first pact.</div></li>
-                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div><strong>No subscription to sign up for.</strong> Free accounts track a limited number of active habits. The first 5,000 accounts can lift that limit permanently with a one-time $20 founder unlock instead of a monthly bill.</div></li>
+                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div>{{{t.compare.partnerRequiredHtml}}}</div></li>
+                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div>{{{t.compare.proofHtml}}}</div></li>
+                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div>{{{t.compare.sharedStreakHtml}}}</div></li>
+                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div>{{{t.compare.freeHtml}}}</div></li>
+                    <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div>{{{t.compare.noSubscriptionHtml}}}</div></li>
                 </ul>
             </div>
         </section>
@@ -1459,15 +1391,15 @@
         <section class="founder" id="founder-offer">
             <div class="container">
                 <div class="founder-card">
-                    <div class="founder-badge">Founding member offer</div>
-                    <h2><span>$20 once.</span> Free for life.</h2>
-                    <p class="founder-lede">The first 5,000 accounts can unlock everything permanently for a single $20 payment. No subscription, no renewal, nothing to cancel.</p>
+                    <div class="founder-badge">{{{t.founder.badge}}}</div>
+                    <h2>{{{t.founder.headingHtml}}}</h2>
+                    <p class="founder-lede">{{{t.founder.lede}}}</p>
                     <ul class="founder-list">
-                        <li>No cap on active habits &mdash; free accounts track {{freeHabitLimit}} at a time</li>
-                        <li>Every premium feature we ship later, included</li>
-                        <li>Yours for life, on every device you sign in on</li>
+                        <li>{{{t.founder.noCapHtml}}}</li>
+                        <li>{{{t.founder.futureFeatures}}}</li>
+                        <li>{{{t.founder.forLife}}}</li>
                     </ul>
-                    <p class="founder-note">Available inside the app through Google Play. When 5,000 people have claimed it, the offer is gone.</p>
+                    <p class="founder-note">{{{t.founder.note}}}</p>
                 </div>
             </div>
         </section>
@@ -1475,38 +1407,38 @@
         <section class="faq alt" id="faq">
             <div class="container">
                 <div class="section-head">
-                    <p class="eyebrow">FAQ</p>
-                    <h2>Frequently asked questions</h2>
+                    <p class="eyebrow">{{{t.faq.eyebrow}}}</p>
+                    <h2>{{{t.faq.heading}}}</h2>
                 </div>
                 <div class="faq-grid">
                     <div class="faq-item">
-                        <h3>Is Friends with Habits free?</h3>
-                        <p>Yes. Friends with Habits is free to download and free to use, with no waitlist, no invite code and no card. A free account tracks a limited number of active habits at a time, and archiving a habit you have finished with frees a slot back up.</p>
+                        <h3>{{{t.faq.isFree.question}}}</h3>
+                        <p>{{{t.faq.isFree.answer}}}</p>
                     </div>
                     <div class="faq-item">
-                        <h3>What is the founder free-for-life unlock?</h3>
-                        <p>The first 5,000 accounts can pay $20 once and never pay again. The founder unlock removes the free tier's active-habit limit and includes every premium feature we add later, for life. There is no subscription attached to it and nothing to cancel. You buy it inside the app through Google Play, and once 5,000 people have claimed it the offer is gone for good.</p>
+                        <h3>{{{t.faq.founderUnlock.question}}}</h3>
+                        <p>{{{t.faq.founderUnlock.answer}}}</p>
                     </div>
                     <div class="faq-item">
-                        <h3>What is a pact?</h3>
-                        <p>A pact is a daily habit that you and a friend commit to together — a workout, a reading session, a meditation, a language lesson, anything you want to do every day. The pact holds the habit, the schedule, and the streak that the two of you share.</p>
+                        <h3>{{{t.faq.whatIsPact.question}}}</h3>
+                        <p>{{{t.faq.whatIsPact.answer}}}</p>
                     </div>
                     <div class="faq-item">
-                        <h3>Do I need a friend to use the app?</h3>
-                        <p>Yes, and that is deliberate. A pact needs two people, so you invite a friend when you create one. Solo habit trackers let you quit in private, which is the failure mode this app exists to remove. If your friend has not installed the app yet, your invite link walks them through it.</p>
+                        <h3>{{{t.faq.needFriend.question}}}</h3>
+                        <p>{{{t.faq.needFriend.answer}}}</p>
                     </div>
                     <div class="faq-item">
-                        <h3>How do daily check-ins work?</h3>
-                        <p>Each day you check in on your pact and attach a photo or a short note as proof. Your partner sees the check-in, you see theirs, and the shared streak grows for every day you both show up. Miss a day and the streak resets for both of you.</p>
+                        <h3>{{{t.faq.checkIns.question}}}</h3>
+                        <p>{{{t.faq.checkIns.answer}}}</p>
                     </div>
                     <div class="faq-item">
-                        <h3>Is Friends with Habits available on iPhone?</h3>
-                        <p>Not yet. Friends with Habits is on Android via Google Play today, and an iOS version is next on the roadmap. Your account works across every Therr app, so an account you create on Android will carry over.
-                            <button type="button" class="link-button" id="faq-ios-cta" aria-haspopup="dialog">Tell us you want it on iPhone</button>.</p>
+                        <h3>{{{t.faq.iphone.question}}}</h3>
+                        <p>{{{t.faq.iphone.answer}}}
+                            <button type="button" class="link-button" id="faq-ios-cta" aria-haspopup="dialog">{{{t.faq.iphone.cta}}}</button>.</p>
                     </div>
                     <div class="faq-item">
-                        <h3>Who makes Friends with Habits?</h3>
-                        <p>Friends with Habits is built by Therr, Inc., the company behind the <a href="https://www.therr.app/" rel="noopener">Therr app</a> for local discovery and community. The two apps share one account system, so a single Therr login works for both.</p>
+                        <h3>{{{t.faq.whoMakes.question}}}</h3>
+                        <p>{{{t.faq.whoMakes.answerHtml}}}</p>
                     </div>
                 </div>
             </div>
@@ -1516,17 +1448,17 @@
             <div class="container">
                 <div class="closer-card">
                     <svg class="closer-mascot" viewBox="0 0 800 580" aria-hidden="true"><use href="#fwh-face"/></svg>
-                    <h2>Make your first pact tonight.</h2>
-                    <p>Pick the habit you keep putting off, send one invite, and let a friend make quitting the harder option.</p>
+                    <h2>{{{t.closer.heading}}}</h2>
+                    <p>{{{t.closer.body}}}</p>
                     <div class="cta-row">
                         <a class="cta" id="closer-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">
                             <svg aria-hidden="true"><use href="#fwh-play"/></svg>
-                            Get it on Google Play
+                            {{{t.hero.googlePlayCta}}}
                         </a>
-                        <a class="cta cta--secondary" id="closer-register-cta" href="/register">Create your account</a>
+                        <a class="cta cta--secondary" id="closer-register-cta" href="/register">{{{t.hero.registerCta}}}</a>
                         <button type="button" class="cta cta--ghost" id="closer-ios-cta" aria-haspopup="dialog">
                             <svg aria-hidden="true"><use href="#fwh-apple"/></svg>
-                            iPhone? Join the waitlist
+                            {{{t.hero.iosCta}}}
                         </button>
                     </div>
                 </div>
@@ -1550,11 +1482,11 @@
         -->
         <section class="featured">
             <div class="container">
-                <p class="featured-label">As seen on</p>
+                <p class="featured-label">{{{t.featured.label}}}</p>
                 <a href="https://launchkiwi.com/p/friends-with-habits" target="_blank" rel="noopener">
                     <picture>
                         <source srcset="https://launchkiwi.com/badge-dark.svg" media="(prefers-color-scheme: dark)">
-                        <img src="https://launchkiwi.com/badge-light.svg" alt="Featured on LaunchKiwi" width="198" height="62">
+                        <img src="https://launchkiwi.com/badge-light.svg" alt="{{t.featured.badgeAlt}}" width="198" height="62">
                     </picture>
                 </a>
             </div>
@@ -1575,34 +1507,36 @@
     -->
     <div class="modal-backdrop" id="ios-modal" role="dialog" aria-modal="true" aria-labelledby="ios-modal-title" hidden>
         <div class="modal-card">
-            <button type="button" class="modal-close" id="ios-modal-close" aria-label="Close">&times;</button>
-            <h2 id="ios-modal-title">Friends with Habits for iPhone is on the way</h2>
-            <p>
-                There is no iPhone app yet &mdash; we are on Android via Google Play today. Every tap of
-                that button tells us how many people are waiting on iOS, so thanks for the nudge.
-            </p>
-            <form class="modal-form" id="ios-waitlist-form" novalidate>
-                <label for="ios-waitlist-email">Want an email the day it lands on the App Store? (Optional)</label>
-                <input id="ios-waitlist-email" type="email" autocomplete="email" placeholder="you@example.com">
+            <button type="button" class="modal-close" id="ios-modal-close" aria-label="{{t.iosModal.closeAriaLabel}}">&times;</button>
+            <h2 id="ios-modal-title">{{{t.iosModal.title}}}</h2>
+            <p>{{{t.iosModal.bodyHtml}}}</p>
+            {{!
+                The script below is locale-agnostic: every message it shows is read from
+                these data attributes, which the double-stash escapes correctly for an attribute.
+            }}
+            <form class="modal-form" id="ios-waitlist-form" novalidate
+                data-msg-empty="{{t.iosModal.errorEmpty}}"
+                data-msg-invalid="{{t.iosModal.errorInvalid}}"
+                data-msg-save-failed="{{t.iosModal.errorSaveFailed}}"
+                data-msg-network="{{t.iosModal.errorNetwork}}"
+                data-msg-submit="{{t.iosModal.submit}}"
+                data-msg-submitting="{{t.iosModal.submitting}}">
+                <label for="ios-waitlist-email">{{{t.iosModal.emailLabel}}}</label>
+                <input id="ios-waitlist-email" type="email" autocomplete="email" placeholder="{{t.iosModal.emailPlaceholder}}">
                 {{!
                     Honeypot. Checked in this page's script only — /subscribers/signup does not
                     inspect it — so it filters naive bots and nothing more. Labelled and
                     tab-indexed out so a screen reader never offers it to a real person.
                 }}
                 <div class="hp-field" aria-hidden="true">
-                    <label for="ios_sweety_pie">Leave this field empty</label>
+                    <label for="ios_sweety_pie">{{{t.iosModal.honeypotLabel}}}</label>
                     <input id="ios_sweety_pie" type="text" name="website" tabindex="-1" autocomplete="off">
                 </div>
                 <p class="modal-error" id="ios-waitlist-error" hidden></p>
-                <button class="cta" type="submit" id="ios-waitlist-submit">Notify me</button>
-                <p class="modal-fineprint">
-                    We will only email you about the iPhone launch and occasional product news.
-                    Unsubscribe any time.
-                </p>
+                <button class="cta" type="submit" id="ios-waitlist-submit">{{{t.iosModal.submit}}}</button>
+                <p class="modal-fineprint">{{{t.iosModal.fineprint}}}</p>
             </form>
-            <p class="modal-done" id="ios-waitlist-done" hidden>
-                You are on the list. We will email you when the iPhone app is live.
-            </p>
+            <p class="modal-done" id="ios-waitlist-done" hidden>{{{t.iosModal.done}}}</p>
         </div>
     </div>
 
@@ -1725,6 +1659,23 @@
             bindStore('closer-store-cta', 'closer');
             bindRegister('hero-register-cta', 'hero');
             bindRegister('closer-register-cta', 'closer');
+
+            // The language switcher opens without script; this only closes it on an outside
+            // click or Escape, and records which language visitors switch to.
+            var switcher = document.getElementById('lang-switcher');
+            if (switcher) {
+                document.addEventListener('click', function (e) {
+                    if (switcher.open && !switcher.contains(e.target)) { switcher.open = false; }
+                });
+                document.addEventListener('keydown', function (e) {
+                    if (switcher.open && (e.key === 'Escape' || e.key === 'Esc')) { switcher.open = false; }
+                });
+                Array.prototype.forEach.call(switcher.querySelectorAll('a[hreflang]'), function (link) {
+                    link.addEventListener('click', function () {
+                        track('language_switch', { language: link.getAttribute('hreflang'), from: document.documentElement.lang });
+                    });
+                });
+            }
         })();
     </script>
     {{!
@@ -1768,6 +1719,12 @@
                 try {
                     if (typeof window.gtag === 'function') { window.gtag('event', name, params || {}); }
                 } catch (e) { /* no-op */ }
+            }
+
+            // Localized copy rides on the form's data-msg-* attributes.
+            function message(name) {
+                var attr = 'data-msg-' + name.replace(/[A-Z]/g, function (c) { return '-' + c.toLowerCase(); });
+                return form.getAttribute(attr) || '';
             }
 
             function showError(msg) {
@@ -1818,14 +1775,14 @@
 
                 var email = emailInput.value.trim();
                 if (!email) {
-                    showError('Enter an email address, or just close this window.');
+                    showError(message('empty'));
                     return;
                 }
                 // The gateway rejects a malformed address with a generic validation message.
                 // Failing fast here says something useful instead; the server rule is still
                 // the one that counts.
                 if (!/^\S+@\S+\.\S+$/.test(email)) {
-                    showError('That does not look like an email address.');
+                    showError(message('invalid'));
                     return;
                 }
 
@@ -1838,7 +1795,7 @@
                 }
 
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Adding you…';
+                submitBtn.textContent = message('submitting');
 
                 fetch(API_BASE + '/users-service/subscribers/signup', {
                     method: 'POST',
@@ -1852,17 +1809,17 @@
                         .catch(function () { return { res: res, body: {} }; });
                 }).then(function (out) {
                     if (!out.res.ok) {
-                        showError((out.body && out.body.message) || 'We could not save that address. Try again.');
+                        showError((out.body && out.body.message) || message('saveFailed'));
                         return;
                     }
                     track('ios_waitlist_submit', { app: 'habits', location: openedFrom });
                     form.hidden = true;
                     doneBox.hidden = false;
                 }).catch(function () {
-                    showError('Network error. Try again in a moment.');
+                    showError(message('network'));
                 }).then(function () {
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Notify me';
+                    submitBtn.textContent = message('submit');
                 });
             });
         })();

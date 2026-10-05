@@ -20,6 +20,15 @@ import {
     clearPactPledge,
     deletePact,
 } from '../handlers/pacts';
+import {
+    getOpenPacts,
+    setPactOpen,
+    requestToJoinPact,
+    cancelJoinRequest,
+    getPactJoinRequests,
+    approveJoinRequest,
+    declineJoinRequest,
+} from '../handlers/pactJoinRequests';
 import runDailyHabitsDigest from '../handlers/habitsDigest';
 
 const router = express.Router();
@@ -32,6 +41,8 @@ router.post('/digest/run-daily', runDailyHabitsDigest);
 // READ
 router.get('/active', getActivePacts);
 router.get('/invites', getPendingInvites);
+// Before '/:id', which would otherwise read "open" as a pact id.
+router.get('/open', getOpenPacts);
 router.get('/:id', getPact);
 router.get('/', getUserPacts);
 
@@ -52,6 +63,14 @@ router.put('/:id/continue-solo', continueSoloPact);
 // PLEDGE (the caller's own, per member)
 router.put('/:id/pledge', setPactPledge);
 router.delete('/:id/pledge', clearPactPledge);
+
+// OPEN PACTS (opt-in; see handlers/pactJoinRequests.ts)
+router.put('/:id/open', setPactOpen);
+router.get('/:id/join-requests', getPactJoinRequests);
+router.post('/:id/join-requests', requestToJoinPact);
+router.delete('/:id/join-requests/mine', cancelJoinRequest);
+router.put('/:id/join-requests/:requestId/approve', approveJoinRequest);
+router.put('/:id/join-requests/:requestId/decline', declineJoinRequest);
 
 // MEMBERS
 router.post('/:id/members', addPactMembers);
