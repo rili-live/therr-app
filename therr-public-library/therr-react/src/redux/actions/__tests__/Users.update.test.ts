@@ -123,4 +123,23 @@ describe('UsersActions.update — Redux settings dispatch scoping', () => {
         );
         expect(updateDispatch[0].data.settings).toBeDefined();
     });
+
+    // The HABITS push toggles on ManageNotifications render an absent value as On (absent
+    // means opted in). These fields were missing from the allowlist below, so a saved Off
+    // never reached redux and the screen showed On again on its next mount — while the
+    // server had in fact stored the Off.
+    it('carries the habits push preferences into redux settings', async () => {
+        (UsersService.update as jest.Mock).mockResolvedValue({
+            data: { ...serverUser, settingsPushHabitReminders: false, settingsPushStreakAlerts: false },
+        });
+        const dispatch = jest.fn();
+        const actions = createActions();
+        await actions.update('u1', { settingsPushHabitReminders: false, settingsPushStreakAlerts: false })(dispatch);
+
+        const updateDispatch = dispatch.mock.calls.find(
+            ([action]) => action?.type === SocketClientActionTypes.UPDATE_USER,
+        );
+        expect(updateDispatch[0].data.settings.settingsPushHabitReminders).toBe(false);
+        expect(updateDispatch[0].data.settings.settingsPushStreakAlerts).toBe(false);
+    });
 });
