@@ -21,7 +21,7 @@ const CREATOR = 'aaaaaaaa-0000-4000-8000-00000000000c';
 const REQUESTER = 'aaaaaaaa-0000-4000-8000-00000000000r';
 const PACT_ID = 'pact-1';
 const REQUEST_ID = 'request-1';
-const HABIT_GOAL_ID = 'goal-1';
+const HABIT_GOAL_ID = 'aaaaaaaa-0000-4000-8000-0000000000a1';
 
 const openPact = (overrides: any = {}) => ({
     id: PACT_ID,
@@ -236,6 +236,17 @@ describe('open pacts — endpoints', () => {
             await call(getOpenPacts);
 
             expect(getOpenPactsStub.firstCall.args).to.deep.equal([REQUESTER, undefined]);
+        });
+
+        it('answers 404 for a habitGoalId that is not a uuid, without querying', async () => {
+            const getById = sinon.stub(Store.habitGoals, 'getById').resolves(undefined);
+            const getOpenPactsStub = sinon.stub(Store.pacts, 'getOpenPacts').resolves([]);
+
+            const result = await call(getOpenPacts, { query: { habitGoalId: 'not-a-uuid' } });
+
+            expect(result.statusCode).to.equal(404);
+            expect(getById.called).to.equal(false);
+            expect(getOpenPactsStub.called).to.equal(false);
         });
     });
 
