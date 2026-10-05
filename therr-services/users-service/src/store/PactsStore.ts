@@ -1,6 +1,18 @@
 import KnexBuilder, { Knex } from 'knex';
 import { IConnection } from './connection';
-import { PACTS_TABLE_NAME, HABIT_GOALS_TABLE_NAME, PACT_MEMBERS_TABLE_NAME } from './tableNames';
+import {
+    PACTS_TABLE_NAME,
+    HABIT_GOALS_TABLE_NAME,
+    PACT_JOIN_REQUESTS_TABLE_NAME,
+    PACT_MEMBERS_TABLE_NAME,
+    USERS_TABLE_NAME,
+} from './tableNames';
+import {
+    IHabitMatchKey,
+    JOINABLE_PACT_STATUSES,
+    MAX_OPEN_PACT_MEMBERS,
+    OPEN_PACTS_LIST_LIMIT,
+} from '../utilities/openPacts';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -18,6 +30,8 @@ export interface ICreatePactParams {
     renewedFromPactId?: string;
     /** 1 for a first cycle; the predecessor's value plus one for a renewal. */
     renewalCycleNumber?: number;
+    /** Whether people outside the pact may ask to join it. See utilities/openPacts.ts. */
+    isOpen?: boolean;
 }
 
 /**
@@ -65,7 +79,58 @@ export interface IUpdatePactParams {
     longestPactStreak?: number;
     lastPactStreakDate?: string;
     isSolo?: boolean;
+    isOpen?: boolean;
 }
+
+/**
+ * One open pact as a prospective member sees it — enough to decide whether to ask, and nothing
+ * about the members beyond how many there are. See `getOpenPacts`.
+ */
+export interface IOpenPactRow {
+    id: string;
+    status: string;
+    habitGoalId: string;
+    durationDays: number;
+    startDate: Date | null;
+    endDate: Date | null;
+    createdAt: Date;
+    creatorUserId: string;
+    creatorUserName: string;
+    habitGoalName: string;
+    habitGoalEmoji: string | null;
+    habitGoalCategory: string | null;
+    habitGoalFrequencyType: string | null;
+    habitGoalFrequencyCount: number | null;
+    memberCount: number;
+    hasPendingJoinRequest: boolean;
+}
+
+/**
+ * One unanswered pact the open-pact suggestion pass may prompt about, with what the prompt needs
+ * about its creator. See `getStalePendingForOpenSuggestion`.
+ */
+export interface IStalePendingPactRow {
+    pactId: string;
+    creatorUserId: string;
+    habitGoalId: string;
+    habitGoalName: string;
+    templateKey: string | null;
+    sourceTemplateKey: string | null;
+    userName: string | null;
+    firstName: string | null;
+    email: string | null;
+    isUnclaimed: boolean | null;
+    settingsEmailReminders: boolean | null;
+    settingsLocale: string | null;
+}
+
+// A pact's occupied seats: every member who is in it or has been asked and not yet answered. Left,
+// removed and declined members free their seat.
+const seatCountSql = () => `(SELECT COUNT(*) FROM ${PACT_MEMBERS_TABLE_NAME} AS seat`
+    + ` WHERE seat."pactId" = ${PACTS_TABLE_NAME}."id" AND seat."status" IN ('pending', 'active'))`;
+
+// Must stay the SQL twin of `normalizeHabitName` in utilities/openPacts.ts.
+const normalizedGoalNameSql = () => `LOWER(REGEXP_REPLACE(TRIM(${HABIT_GOALS_TABLE_NAME}."name"), '\\s+', ' ', 'g'))`;
 
 export default class PactsStore {
     db: IConnection;
@@ -465,6 +530,171 @@ export default class PactsStore {
      */
     setSolo(id: string) {
         return this.update(id, { isSolo: true });
+    }
+
+    setOpen(id: string, isOpen: boolean) {
+        return this.update(id, { isOpen });
+    }
+
+    /**
+     * Open pacts someone outside them could ask to join, optionally only those on the same habit as
+     * `matchKey` (see `getHabitMatchKey`). Never the viewer's own, never one they are already in or
+     * invited to, never a full or finished one, never one whose creator deleted their account.
+     *
+     * `hasPendingJoinRequest` is the viewer's own request state, so the list can show "Requested"
+     * instead of offering the button twice.
+     */
+    getOpenPacts(viewerUserId: string, matchKey?: IHabitMatchKey, limit = OPEN_PACTS_LIST_LIMIT): Promise<IOpenPactRow[]> {
+        let queryString = knexBuilder
+            .select([
+                `${PACTS_TABLE_NAME}.id`,
+                `${PACTS_TABLE_NAME}.status`,
+                `${PACTS_TABLE_NAME}.habitGoalId`,
+                `${PACTS_TABLE_NAME}.durationDays`,
+                `${PACTS_TABLE_NAME}.startDate`,
+                `${PACTS_TABLE_NAME}.endDate`,
+                `${PACTS_TABLE_NAME}.createdAt`,
+                `${PACTS_TABLE_NAME}.creatorUserId`,
+                `${USERS_TABLE_NAME}.userName as creatorUserName`,
+                `${HABIT_GOALS_TABLE_NAME}.name as habitGoalName`,
+                `${HABIT_GOALS_TABLE_NAME}.emoji as habitGoalEmoji`,
+                `${HABIT_GOALS_TABLE_NAME}.category as habitGoalCategory`,
+                `${HABIT_GOALS_TABLE_NAME}.frequencyType as habitGoalFrequencyType`,
+                `${HABIT_GOALS_TABLE_NAME}.frequencyCount as habitGoalFrequencyCount`,
+                knexBuilder.raw(`${seatCountSql()} as "memberCount"`),
+                knexBuilder.raw(
+                    `EXISTS (SELECT 1 FROM ${PACT_JOIN_REQUESTS_TABLE_NAME} AS jr`
+                    + ` WHERE jr."pactId" = ${PACTS_TABLE_NAME}."id" AND jr."requesterUserId" = ? AND jr."status" = 'pending')`
+                    + ' as "hasPendingJoinRequest"',
+                    [viewerUserId],
+                ),
+            ])
+            .from(PACTS_TABLE_NAME)
+            .innerJoin(HABIT_GOALS_TABLE_NAME, `${PACTS_TABLE_NAME}.habitGoalId`, `${HABIT_GOALS_TABLE_NAME}.id`)
+            .innerJoin(USERS_TABLE_NAME, `${PACTS_TABLE_NAME}.creatorUserId`, `${USERS_TABLE_NAME}.id`)
+            .where(`${PACTS_TABLE_NAME}.isOpen`, true)
+            .whereIn(`${PACTS_TABLE_NAME}.status`, JOINABLE_PACT_STATUSES)
+            .andWhere((builder) => {
+                builder.whereNull(`${PACTS_TABLE_NAME}.endDate`)
+                    .orWhere(`${PACTS_TABLE_NAME}.endDate`, '>', new Date());
+            })
+            .andWhereNot(`${PACTS_TABLE_NAME}.creatorUserId`, viewerUserId)
+            .andWhere((builder) => {
+                builder.where(`${USERS_TABLE_NAME}.settingsIsAccountSoftDeleted`, false)
+                    .orWhereNull(`${USERS_TABLE_NAME}.settingsIsAccountSoftDeleted`);
+            })
+            .andWhereRaw(
+                `NOT EXISTS (SELECT 1 FROM ${PACT_MEMBERS_TABLE_NAME} AS mine`
+                + ` WHERE mine."pactId" = ${PACTS_TABLE_NAME}."id" AND mine."userId" = ? AND mine."status" IN ('pending', 'active'))`,
+                [viewerUserId],
+            )
+            .andWhereRaw(`${seatCountSql()} < ?`, [MAX_OPEN_PACT_MEMBERS]);
+
+        if (matchKey) {
+            const { templateKey, normalizedName } = matchKey;
+            if (!templateKey && !normalizedName) {
+                return Promise.resolve([]);
+            }
+            queryString = queryString.andWhere((builder) => {
+                if (templateKey) {
+                    builder.where(`${HABIT_GOALS_TABLE_NAME}.templateKey`, templateKey)
+                        .orWhere(`${HABIT_GOALS_TABLE_NAME}.sourceTemplateKey`, templateKey);
+                }
+                if (normalizedName) {
+                    builder.orWhereRaw(`${normalizedGoalNameSql()} = ?`, [normalizedName]);
+                }
+            });
+        }
+
+        queryString = queryString
+            .orderBy(`${PACTS_TABLE_NAME}.updatedAt`, 'desc')
+            .limit(Math.max(1, Math.min(limit, OPEN_PACTS_LIST_LIMIT)));
+
+        return this.db.read.query(queryString.toString())
+            .then((response) => response.rows.map((row: any) => ({
+                ...row,
+                memberCount: parseInt(row.memberCount ?? '0', 10),
+                hasPendingJoinRequest: !!row.hasPendingJoinRequest,
+            })));
+    }
+
+    /** Occupied seats on one pact — see `seatCountSql`. Checked again at approval time. */
+    countSeats(id: string): Promise<number> {
+        const queryString = knexBuilder
+            .from(PACT_MEMBERS_TABLE_NAME)
+            .where({ pactId: id })
+            .whereIn('status', ['pending', 'active'])
+            .count('id as count')
+            .toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => parseInt(response.rows[0]?.count ?? '0', 10));
+    }
+
+    /**
+     * First-cycle pacts nobody has accepted, created inside the suggestion window, that have not
+     * been prompted about yet — the population of the digest's open-pact suggestion pass.
+     *
+     * `status = 'pending'` already means no invitee accepted (the first acceptance activates the
+     * pact); the EXISTS keeps out a pending pact with no invitees left to wait on. Renewals are
+     * excluded: their invitees are past partners, a different situation from strangers who never
+     * answered.
+     */
+    getStalePendingForOpenSuggestion(createdBefore: Date, createdAfter: Date, limit: number): Promise<IStalePendingPactRow[]> {
+        const queryString = knexBuilder
+            .select([
+                `${PACTS_TABLE_NAME}.id as pactId`,
+                `${PACTS_TABLE_NAME}.creatorUserId`,
+                `${PACTS_TABLE_NAME}.habitGoalId`,
+                `${HABIT_GOALS_TABLE_NAME}.name as habitGoalName`,
+                `${HABIT_GOALS_TABLE_NAME}.templateKey`,
+                `${HABIT_GOALS_TABLE_NAME}.sourceTemplateKey`,
+                `${USERS_TABLE_NAME}.userName`,
+                `${USERS_TABLE_NAME}.firstName`,
+                `${USERS_TABLE_NAME}.email`,
+                `${USERS_TABLE_NAME}.isUnclaimed`,
+                `${USERS_TABLE_NAME}.settingsEmailReminders`,
+                `${USERS_TABLE_NAME}.settingsLocale`,
+            ])
+            .from(PACTS_TABLE_NAME)
+            .innerJoin(HABIT_GOALS_TABLE_NAME, `${PACTS_TABLE_NAME}.habitGoalId`, `${HABIT_GOALS_TABLE_NAME}.id`)
+            .innerJoin(USERS_TABLE_NAME, `${PACTS_TABLE_NAME}.creatorUserId`, `${USERS_TABLE_NAME}.id`)
+            .where(`${PACTS_TABLE_NAME}.status`, 'pending')
+            .whereNull(`${PACTS_TABLE_NAME}.renewedFromPactId`)
+            .whereNull(`${PACTS_TABLE_NAME}.openSuggestionSentAt`)
+            .andWhere(`${PACTS_TABLE_NAME}.createdAt`, '<=', createdBefore)
+            .andWhere(`${PACTS_TABLE_NAME}.createdAt`, '>=', createdAfter)
+            .andWhere((builder) => {
+                builder.where(`${USERS_TABLE_NAME}.settingsIsAccountSoftDeleted`, false)
+                    .orWhereNull(`${USERS_TABLE_NAME}.settingsIsAccountSoftDeleted`);
+            })
+            .andWhereRaw(
+                `EXISTS (SELECT 1 FROM ${PACT_MEMBERS_TABLE_NAME} AS invitee`
+                + ` WHERE invitee."pactId" = ${PACTS_TABLE_NAME}."id" AND invitee."role" = 'partner' AND invitee."status" = 'pending')`,
+            )
+            .orderBy(`${PACTS_TABLE_NAME}.createdAt`, 'asc')
+            .limit(Math.max(1, limit))
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
+    /**
+     * Claims the once-per-pact open-pact suggestion. Conditional on it being unclaimed, so two
+     * overlapping digest runs cannot both send; the loser gets false. Claimed *before* sending —
+     * a crash between claim and send costs one suggestion, which is the right way round for a
+     * nice-to-have prompt.
+     */
+    claimOpenSuggestion(id: string): Promise<boolean> {
+        const queryString = knexBuilder
+            .where({ id })
+            .whereNull('openSuggestionSentAt')
+            .update({ openSuggestionSentAt: new Date() })
+            .into(PACTS_TABLE_NAME)
+            .returning('id')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows.length > 0);
     }
 
     delete(id: string, userId: string) {

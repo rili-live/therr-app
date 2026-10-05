@@ -50,7 +50,16 @@
             "nudgeNotPending": "This pact has already started, so there is no one left to nudge",
             "invalidPledgeAmount": "Pick a whole-dollar pledge between $1 and $500",
             "invalidPledgeCharity": "Pick a charity from the list",
-            "pledgeNotAllowed": "Pledges can only be set on a pact that is pending or running"
+            "pledgeNotAllowed": "Pledges can only be set on a pact that is pending or running",
+            "invalidOpenFlag": "Choose whether this pact is open to join requests",
+            "openCreatorOnly": "Only the person who created this pact can change who can ask to join",
+            "openNotAllowed": "Only a pact that is pending or running can be opened to join requests",
+            "notOpen": "This pact isn't taking join requests right now",
+            "alreadyInPact": "You're already part of this pact",
+            "tooManyJoinRequests": "You have {limit} requests waiting for an answer — give them a little time before asking again",
+            "joinRequestNotFound": "That request has already been answered",
+            "joinRequestCreatorOnly": "Only the person who created this pact can answer join requests",
+            "joinRequesterAtCapacity": "They can't take on another habit right now, so they can't join yet"
         },
         "habits": {
             "freeTierHabitLimitReached": "Free accounts can track {limit} habits at a time. Archive one, or unlock everything for life.",
@@ -143,7 +152,8 @@
         "newAreasActivated": "You just unlocked {totalAreasActivated} new area(s) — explore what's nearby!",
         "discoveredUniqueMoment": "You found something special! Open the map to check it out.",
         "discoveredUniqueSpace": "Hidden gem alert — you're near a unique space!",
-        "pactInvitation": "{fromUserName} invited you to a pact: {habitName}"
+        "pactInvitation": "{fromUserName} invited you to a pact: {habitName}",
+        "pactJoinRequest": "{fromUserName} asked to join your pact: {habitName}"
     },
     "invites": {
         "phone": "{name} invited you to {brandName}{brandTagline}. Sign up here to connect: {inviteUrl}",
@@ -247,6 +257,15 @@
             "buttonText": "Install {brandName}",
             "postBody1": "If the button doesn't work, open this link on your phone: {linkUrl} — or enter the code {claimCode} in the app.",
             "postBody1TokenOnly": "If the button doesn't work, open this link on your phone: {linkUrl}"
+        },
+        "openPactSuggestion": {
+            "subject": "Find a partner for {habitName}",
+            "header": "Find a partner for {habitName}",
+            "dearUser": "Hey {toName}!",
+            "body1": "Your pact invite for {habitName} hasn't been answered yet. It happens — and you don't have to wait.",
+            "body2": "Other people on {brandName} are working on {habitName} in open pacts that still have room. Open the app and ask to join one — its creator will get your request.",
+            "buttonText": "Open {brandName}",
+            "postBody1": "Your original invite stays open, so your friends can still accept it."
         },
         "coinsReceived": {
             "header": "You Earned Coins!",
