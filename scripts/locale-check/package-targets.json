@@ -14,6 +14,17 @@
       ]
     },
     {
+      "name": "therr-client-web-habits-landing",
+      "srcDir": "therr-client-web/src/habitsLocales",
+      "baseDir": "therr-client-web/src/habitsLocales",
+      "baseLocale": "en-us",
+      "expectedLocales": [
+        "en-us",
+        "es",
+        "fr-ca"
+      ]
+    },
+    {
       "name": "therr-client-web-dashboard",
       "srcDir": "therr-client-web-dashboard/src",
       "baseDir": "therr-client-web-dashboard/src/locales",

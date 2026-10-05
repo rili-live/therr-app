@@ -98,6 +98,19 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Open pacts (added 2026-10-05)
+
+- [ ] **Run the users-service migrations after the deploy** (`20261005000001`–`03`: `pacts.isOpen` /
+  `openSuggestionSentAt`, `habit_goals.sourceTemplateKey` with its English-name backfill,
+  `habits.pact_join_requests`). All additive, so neither automator is affected.
+- [ ] **Watch `openPactSuggestions` in the first digest runs.** It is logged as a JSON string on the
+  "Habits daily digest completed" span. Expect `suggestionsNoOpenMatch` to dominate until a few pacts
+  are opened; `suggestionErrors > 0` with nothing queued or emailed means the pass is failing. Kill
+  switch: `HABIT_OPEN_PACT_SUGGESTIONS_ENABLED=false`.
+- [ ] **Confirm one `pactJoinRequested` push lands in the Habits app on a handset.** All three new
+  types are display pushes with no click action, so they render on installed builds; the tap only
+  opens the app. Routing it to the pact is the mobile half on `niche/HABITS-general`.
+
 ## Authenticated image pulls (added 2026-09-20)
 
 - [ ] **After the next `stage → main` deploy, confirm the three wedged services actually
@@ -129,6 +142,23 @@ The prod repair itself ran 2026-09-19 14:42 UTC (`repair-space-claims`: 25 consu
   finds the space, and `repair-space-claims --claim <spaceId>:<userId>` (or
   `approve-space-claim`) records it. Section 7 of the audit SQL shows weekly volume to compare
   against the inbox.
+
+## Coach waitlist demand test (added 2026-09-30)
+
+- [ ] **Mark `coach_waitlist_submit` as a key event in GA4 and import it into Google Ads.**
+  Property 549794383, Admin → Events → Mark as key event; then Ads → Goals → Conversions →
+  Import → Google Analytics 4. That property has no Ads link yet, so create it first.
+  `campaigns/habits-coaches-web.yaml` bids toward this conversion and has nothing to optimise
+  without it. Also register `coaching_type`, `client_count` and `monthly_budget` as
+  event-scoped custom dimensions, or the answer breakdown shows as `(not set)`.
+- [ ] **Resume `FwH-Coaches-US-Search-2026Q4` only after the conversion import.**
+  `./therrads campaign apply campaigns/habits-coaches-web.yaml --confirm`, review in the Ads
+  UI, then `campaign resume`. It is created PAUSED at $15/day.
+- [ ] **Decide on the coach view after ~$450 or ~30 days.** Build it if roughly ten coaches
+  joined and most answered `20-40` or `40-plus` for monthly budget:
+  `SELECT email, "coachesWaitlistDetails", "createdAt" FROM main."emailMarketingSubscribers"
+  WHERE "isSubscribedToCoachesWaitlist" ORDER BY "createdAt" DESC;`
+  Reply to each coach by hand as they arrive. The admin inboxes get an email per signup.
 
 ## iOS demand tracking (added 2026-09-14)
 
@@ -1594,7 +1624,7 @@ backend change needed — it refuses to treat Play's own
 - [ ] (2026-09-24, /aso-listing) **Paste the corrected Therr Play listing (`app.therrmobile`).** The live description promises calendar invites, opt-in recurring matches and multi-factor authentication, and the app has none of them. The new copy is in `TherrMobile/fastlane/metadata/android/<locale>/full_description.txt`. Title and short description are unchanged. Paste en-US in Play Console → Store presence → Main store listing. Add es-419 and fr-CA as translations only after a fluent speaker has read them (both are machine-authored and there's no current translation to replace). In the same sitting, check that the `app.therrmobile` Data safety form agrees with the new privacy lines: Phone number is **required**, and Contacts are collected and optional, with invitees kept in `main.invites`, as in the habits contacts item above. Screenshots were not reviewed in this round. Record the publish date on this line. The 28-day before/after read of listing conversion (baseline: 19/89 = 21% for 2026-08-22 to 09-18) starts from that date, but at about 90 visitors a month it will only catch a large change.
 - [ ] (2026-09-24, /quality-peer-review) **Confirm the habit template migrations (`20260925000001`/`…02`) ran at `stage` and `main` and seeded the full set.** `SELECT count(*) FROM habits.habit_goals WHERE "isTemplate" AND "templateKey" IS NOT NULL;` should be 43. Fewer than 43 means the SUPER_ADMIN_ID row was missing and the inserts were skipped with a warning; create the row and re-run the file by hand, because knex has already recorded it as applied. Then check `SELECT "frequencyType", "frequencyCount" FROM habits.habit_goals WHERE id = 'b0000001-de00-4000-a000-000000000001';`. If it is still `daily`/1, a pact or tracking row points at the template itself and the move to 3x/week was deliberately skipped (see the peer-review fix to 90263c32a). Already-installed habits clients show all 43 templates in one flat list until the categorized picker (niche 241662127) ships in a Play release.
 - [ ] (2026-09-25, /mobile-release-preflight) **The EAS free-plan Android build quota ran out, so CI Habits release builds fail until it resets on 2026-10-01.** `eas_build_habits_android` (CircleCI job 18409, merge c13592e43) failed at `eas build` with "This account has used its Android builds from the Free plan this month", and the job goes red without building anything. The last EAS-built Habits AAB was versionCode 45. Until the quota resets or the plan is upgraded, release with `/niche-android-release`: it merges, sees the quota failure, and builds and submits locally. Decide whether to upgrade the plan or move the build off EAS.
-- [ ] (2026-10-01, /mobile-release-preflight) **Deploy `stage → main` before promoting Habits 1.14.1 (54) to production.** Its headline release note is pact invitations in the notification list, but the users-service change that writes those `PACT_INVITATION` notifications (`78ad5acf4`, with `ee3ec0786`) is on `stage` and not `main`. The build is safe without it (no new API calls; the list just never shows one), but the advertised feature does nothing until the backend ships.
+- [ ] (2026-10-01, /mobile-release-preflight) **Deploy `stage → main` before promoting Habits 1.14.1 (54) or 1.15.0 (55) to production.** Its headline release note is pact invitations in the notification list, but the users-service change that writes those `PACT_INVITATION` notifications (`78ad5acf4`, with `ee3ec0786`) is on `stage` and not `main`. The build is safe without it (no new API calls; the list just never shows one), but the advertised feature does nothing until the backend ships. 1.15.0's streak widget reads `isAtStakeToday` from `GET /habits/daily-streak/me` (`463db1a8b`, also on `stage` only); until it ships, the evening warning falls back to the device's due-weekday rule, which misses weekly-count habits and can warn on a rest day.
 <!-- skill-followups:end -->
 
 ---

@@ -31,6 +31,7 @@ import HabitGoalsStore from './HabitGoalsStore';
 import PactsStore from './PactsStore';
 import PactMembersStore from './PactMembersStore';
 import PactStreakDaysStore from './PactStreakDaysStore';
+import PactJoinRequestsStore from './PactJoinRequestsStore';
 import HabitCheckinsStore from './HabitCheckinsStore';
 import StreaksStore from './StreaksStore';
 import HabitPhasesStore from './HabitPhasesStore';
@@ -110,6 +111,8 @@ class Store {
 
     pactStreakDays: PactStreakDaysStore;
 
+    pactJoinRequests: PactJoinRequestsStore;
+
     habitCheckins: HabitCheckinsStore;
 
     streaks: StreaksStore;
@@ -173,6 +176,7 @@ class Store {
         this.pacts = new PactsStore(this.db);
         this.pactMembers = new PactMembersStore(this.db);
         this.pactStreakDays = new PactStreakDaysStore(this.db);
+        this.pactJoinRequests = new PactJoinRequestsStore(this.db);
         this.habitCheckins = new HabitCheckinsStore(this.db);
         this.streaks = new StreaksStore(this.db);
         this.habitPhases = new HabitPhasesStore(this.db);

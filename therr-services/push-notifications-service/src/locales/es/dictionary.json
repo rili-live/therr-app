@@ -181,6 +181,18 @@
       "title": "Tu pacto de {habitName} ha terminado",
       "body": "{durationDays} días completados. La mayoría de los hábitos tardan meses, no semanas — empieza un nuevo ciclo y tu racha continúa."
     },
+    "pactJoinRequested": {
+      "title": "Nueva solicitud para unirse a tu pacto",
+      "body": "{userName} pidió unirse a tu pacto de {habitName}. Abre el pacto para aceptar o rechazar."
+    },
+    "pactJoinApproved": {
+      "title": "¡Ya estás dentro!",
+      "body": "{userName} te aceptó en su pacto de {habitName}. Registra tu avance hoy para empezar."
+    },
+    "openPactSuggestion": {
+      "title": "¿Sigues esperando a un compañero?",
+      "body": "Nadie ha respondido a tu invitación de {habitName}. Otras personas lo hacen en pactos abiertos: pide unirte a uno."
+    },
     "dailyHabitReminder": {
       "title": "Hora de registrarte",
       "body": "Registra {habitName} hoy — un solo registro pone tu racha en marcha.",

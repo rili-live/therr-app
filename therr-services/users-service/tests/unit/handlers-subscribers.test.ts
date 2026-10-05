@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import Store from '../../src/store';
-import { createSubscriber } from '../../src/handlers/subscribers';
+import { createSubscriber, sanitizeCoachesWaitlistDetails } from '../../src/handlers/subscribers';
 
 /**
  * The iOS waitlist path through createSubscriber.
@@ -134,6 +134,8 @@ describe('Subscribers Handler', () => {
 
             expect(res.statusCode).to.eq(200);
             expect(updateStub.called).to.eq(false);
+            // Unauthenticated and keyed on a typed address: never echo the stored row.
+            expect(res.body).to.deep.equal({ email: 'streakqueen@example.com' });
         });
 
         it('still rejects a plain duplicate subscribe, which therr-landing depends on', async () => {
@@ -157,6 +159,89 @@ describe('Subscribers Handler', () => {
             await createSubscriber(buildReq({}) as any, res, (() => {}) as any);
 
             expect(res.statusCode).to.eq(400);
+        });
+    });
+
+    /**
+     * The coach waitlist on habits.therr.com/coaches. Its answers decide whether the coach view
+     * gets built, so what matters is that only whitelisted answers are stored and that an
+     * existing subscriber is upgraded rather than turned away.
+     */
+    describe('createSubscriber (coaches waitlist)', () => {
+        it('stores a new coach with only whitelisted answers', async () => {
+            sinon.stub(Store.subscribers, 'findSubscriber').resolves([]);
+            const createStub = sinon.stub(Store.subscribers, 'createSubscriber').resolves([{ id: 'sub-1' }]);
+
+            const res = buildRes();
+            await createSubscriber(buildReq({
+                email: 'coach@example.com',
+                isSubscribedToCoachesWaitlist: true,
+                coachesWaitlistDetails: {
+                    coachingType: 'nutrition',
+                    clientCount: '6-15',
+                    monthlyBudget: 'a million dollars',
+                    notes: '<script>',
+                },
+            }, 'habits') as any, res, (() => {}) as any);
+
+            expect(createStub.args[0][0]).to.deep.equal({
+                email: 'coach@example.com',
+                brandVariation: 'habits',
+                isSubscribedToIosWaitlist: false,
+                isSubscribedToCoachesWaitlist: true,
+                coachesWaitlistDetails: JSON.stringify({ coachingType: 'nutrition', clientCount: '6-15' }),
+            });
+            expect(res.statusCode).to.eq(201);
+            expect(res.body).to.deep.equal({ email: 'coach@example.com' });
+        });
+
+        it('upgrades an existing subscriber onto the coach waitlist', async () => {
+            sinon.stub(Store.subscribers, 'findSubscriber')
+                .resolves([{ id: 'sub-1', email: 'coach@example.com', isSubscribedToCoachesWaitlist: false }]);
+            const updateStub = sinon.stub(Store.subscribers, 'updateSubscriber').resolves([{ id: 'sub-1' }]);
+
+            const res = buildRes();
+            await createSubscriber(buildReq({
+                email: 'coach@example.com',
+                isSubscribedToCoachesWaitlist: 'true',
+                coachesWaitlistDetails: { monthlyBudget: '20-40' },
+            }, 'habits') as any, res, (() => {}) as any);
+
+            expect(updateStub.args[0][0]).to.deep.equal({
+                isSubscribedToCoachesWaitlist: true,
+                coachesWaitlistDetails: JSON.stringify({ monthlyBudget: '20-40' }),
+            });
+            expect(res.statusCode).to.eq(200);
+        });
+
+        it('keeps the latest answers when a coach submits again', async () => {
+            sinon.stub(Store.subscribers, 'findSubscriber')
+                .resolves([{ id: 'sub-1', email: 'coach@example.com', isSubscribedToCoachesWaitlist: true }]);
+            const updateStub = sinon.stub(Store.subscribers, 'updateSubscriber').resolves([{ id: 'sub-1' }]);
+
+            const res = buildRes();
+            await createSubscriber(buildReq({
+                email: 'coach@example.com',
+                isSubscribedToCoachesWaitlist: true,
+                coachesWaitlistDetails: { clientCount: '41-plus' },
+            }) as any, res, (() => {}) as any);
+
+            expect(updateStub.args[0][0]).to.deep.equal({
+                coachesWaitlistDetails: JSON.stringify({ clientCount: '41-plus' }),
+            });
+            expect(res.statusCode).to.eq(200);
+            expect(res.body).to.deep.equal({ email: 'coach@example.com' });
+        });
+    });
+
+    describe('sanitizeCoachesWaitlistDetails', () => {
+        it('returns an empty object for anything that is not an object', () => {
+            expect(sanitizeCoachesWaitlistDetails(undefined)).to.deep.equal({});
+            expect(sanitizeCoachesWaitlistDetails('nutrition')).to.deep.equal({});
+        });
+
+        it('drops non-string values', () => {
+            expect(sanitizeCoachesWaitlistDetails({ clientCount: ['1-5'] })).to.deep.equal({});
         });
     });
 });

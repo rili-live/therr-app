@@ -39,6 +39,8 @@ export interface ICreateHabitGoalParams extends ISavingsTargetParams {
     createdByUserId: string;
     isTemplate?: boolean;
     isPublic?: boolean;
+    /** The `templateKey` of the template this goal was cloned from. See migration 20261005000002. */
+    sourceTemplateKey?: string | null;
 }
 
 export interface IUpdateHabitGoalParams extends ISavingsTargetParams {
