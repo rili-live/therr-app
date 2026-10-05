@@ -874,7 +874,7 @@
                 "manageAccount": "Manage Account",
                 "manageSpaces": "My Business Spaces",
                 "managePreferences": "Manage Interests & Content Algorithms",
-                "manageNotifications": "Manage Email Settings",
+                "manageNotifications": "Manage Email/Push Settings",
                 "deleteAccount": "Delete Account?",
                 "settingsEmailBusMarketing": "Business Insights marketing e-mails",
                 "settingsEmailMarketing": "Social App marketing e-mails",
@@ -2397,8 +2397,8 @@
             "preview": {
                 "bannerTitle": "Start your first pact",
                 "bannerSubtitle": "Pacts require at least one other person — that's how habits stick.",
-                "bannerHelper": "Tap below to send your first invite",
-                "bannerCTA": "Invite a friend",
+                "bannerHelper": "About a minute: pick a habit, then invite a friend to lock it in",
+                "bannerCTA": "Pick a habit & invite a friend",
                 "bannerSecondaryCTA": "View sent invites",
                 "soloCTA": "Or track a habit on your own",
                 "soloUnlockProgress": "{invited} of {required} friends invited — invite the rest to unlock solo habits",
@@ -2419,7 +2419,11 @@
                 "pactCardHeader": "Your pact",
                 "samplePactStatus": "Pending your accepted invite",
                 "stepOf": "Step {current} of {total}",
-                "stepDone": "Completed"
+                "stepDone": "Completed",
+                "pickHabitToastTitle": "Start by picking a habit",
+                "pickHabitToastBody": "Next you'll invite a friend to do it with you.",
+                "inviteGateToastTitle": "Continuing requires inviting a friend",
+                "inviteGateToastBody": "Pacts need at least two people. Tap here to pick a habit and send your invite."
             },
             "outgoing": {
                 "tabLabel": "Sent",
@@ -2444,6 +2448,7 @@
             "wizard": {
                 "step1Title": "Pick a habit",
                 "step1Subtitle": "Choose what you'd like to build with your friend",
+                "nextInviteHint": "Next: invite a friend to keep you accountable.",
                 "step2Title": "Choose your friends",
                 "step2Subtitle": "Invite up to 5 people — anyone who accepts joins your pact",
                 "step3Title": "Send your pact invite",

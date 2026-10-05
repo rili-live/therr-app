@@ -874,7 +874,7 @@
                 "manageAccount": "Administrar cuenta",
                 "manageSpaces": "Mis Negocios",
                 "managePreferences": "Administrar intereses y algoritmos de contenido",
-                "manageNotifications": "Administrar configuración de correo",
+                "manageNotifications": "Administrar configuración de correo/notificaciones push",
                 "deleteAccount": "¿Eliminar cuenta?",
                 "settingsEmailBusMarketing": "Correos de marketing de negocios",
                 "settingsEmailMarketing": "Correos de marketing de la app social",
@@ -2397,8 +2397,8 @@
             "preview": {
                 "bannerTitle": "Empieza tu primer pacto",
                 "bannerSubtitle": "Los pactos requieren al menos a otra persona — así es como los hábitos se mantienen.",
-                "bannerHelper": "Toca abajo para enviar tu primera invitación",
-                "bannerCTA": "Invitar a un amigo",
+                "bannerHelper": "Toma un minuto: elige un hábito y luego invita a un amigo para confirmarlo",
+                "bannerCTA": "Elige un hábito e invita a un amigo",
                 "bannerSecondaryCTA": "Ver invitaciones enviadas",
                 "soloCTA": "O sigue un hábito por tu cuenta",
                 "soloUnlockProgress": "{invited} de {required} amigos invitados: invita al resto para desbloquear los hábitos en solitario",
@@ -2419,7 +2419,11 @@
                 "pactCardHeader": "Tu pacto",
                 "samplePactStatus": "Pendiente que acepten tu invitación",
                 "stepOf": "Paso {current} de {total}",
-                "stepDone": "Completado"
+                "stepDone": "Completado",
+                "pickHabitToastTitle": "Empieza eligiendo un hábito",
+                "pickHabitToastBody": "Después invitarás a un amigo para hacerlo contigo.",
+                "inviteGateToastTitle": "Para continuar, invita a un amigo",
+                "inviteGateToastBody": "Los pactos necesitan al menos dos personas. Toca aquí para elegir un hábito y enviar tu invitación."
             },
             "outgoing": {
                 "tabLabel": "Enviadas",
@@ -2444,6 +2448,7 @@
             "wizard": {
                 "step1Title": "Elige un hábito",
                 "step1Subtitle": "Elige lo que te gustaría construir con tu amigo",
+                "nextInviteHint": "Siguiente: invita a un amigo para que te ayude a cumplir.",
                 "step2Title": "Elige a tus amigos",
                 "step2Subtitle": "Invita hasta 5 personas — cualquiera que acepte se une a tu pacto",
                 "step3Title": "Envía tu invitación de pacto",

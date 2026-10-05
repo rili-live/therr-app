@@ -1317,6 +1317,14 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 <Text style={[this.themeHabits.styles.dashboardSubtitle, { paddingHorizontal: 20 }]}>
                     {this.translate('pages.pacts.wizard.step1Subtitle')}
                 </Text>
+                {/* Says up front that a friend comes next, so the partner step is the plan rather
+                    than a wall met after the user has already invested in a habit. Omitted where
+                    that step will be skipped. */}
+                {getNextStep('configure', this.getWizardContext()) === 'partners' && (
+                    <Text style={[this.themeHabits.styles.habitCardSubtitle, { paddingHorizontal: 20, marginTop: 4 }]}>
+                        {this.translate('pages.pacts.wizard.nextInviteHint')}
+                    </Text>
+                )}
 
                 {this.renderHabitLimitNotice()}
 
