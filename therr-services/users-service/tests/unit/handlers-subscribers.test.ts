@@ -134,6 +134,8 @@ describe('Subscribers Handler', () => {
 
             expect(res.statusCode).to.eq(200);
             expect(updateStub.called).to.eq(false);
+            // Unauthenticated and keyed on a typed address: never echo the stored row.
+            expect(res.body).to.deep.equal({ email: 'streakqueen@example.com' });
         });
 
         it('still rejects a plain duplicate subscribe, which therr-landing depends on', async () => {
@@ -190,6 +192,7 @@ describe('Subscribers Handler', () => {
                 coachesWaitlistDetails: JSON.stringify({ coachingType: 'nutrition', clientCount: '6-15' }),
             });
             expect(res.statusCode).to.eq(201);
+            expect(res.body).to.deep.equal({ email: 'coach@example.com' });
         });
 
         it('upgrades an existing subscriber onto the coach waitlist', async () => {
@@ -227,6 +230,7 @@ describe('Subscribers Handler', () => {
                 coachesWaitlistDetails: JSON.stringify({ clientCount: '41-plus' }),
             });
             expect(res.statusCode).to.eq(200);
+            expect(res.body).to.deep.equal({ email: 'coach@example.com' });
         });
     });
 

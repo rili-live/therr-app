@@ -61,6 +61,7 @@ jest.mock('react-native-permissions', () => ({
 // Imported after the mocks above deliberately — PactDetail pulls in a chain of
 // native modules at import time.
 import Toast from 'react-native-toast-message';
+import { PactsService } from 'therr-react/services';
 import { PactDetail } from '../../main/routes/Pacts/PactDetail';
 
 const CURRENT_USER_ID = 'me';
@@ -318,5 +319,51 @@ describe('PactDetail accept at the habit cap', () => {
         expect(navigate).not.toHaveBeenCalledWith('UpgradePaywall', expect.anything());
         expect((Toast.show as any).mock.calls).toHaveLength(1);
         expect(((Toast.show as any).mock.calls[0][0] as any).type).toBe('error');
+    });
+});
+
+/**
+ * The Play build can reach users before the open-pacts API reaches production. A server with open
+ * pacts returns `isOpen` (NOT NULL) on every pact; an older one returns no such field. Without the
+ * gate, the creator saw a switch that 404s and a "find an open pact" link to an always-empty list.
+ */
+describe('PactDetail open pacts against an older server', () => {
+    const findOpenPactCard = (instance: any) => flattenElements(instance.render())
+        .find((el) => el.props && 'canToggle' in el.props && 'joinRequests' in el.props);
+
+    beforeEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it('offers no open-pact controls on a pact without isOpen', () => {
+        const pact = { ...PACT, status: 'pending' };
+        const { instance } = buildInstance({ pacts: [pact], activePacts: [pact] });
+
+        const card = findOpenPactCard(instance);
+
+        expect(card.props.canToggle).toBe(false);
+        expect(card.props.onFindOpenPacts).toBeUndefined();
+    });
+
+    it('offers them to the creator once the server sends isOpen', () => {
+        const pact = { ...PACT, status: 'pending', isOpen: false };
+        const { instance } = buildInstance({ pacts: [pact], activePacts: [pact] });
+
+        const card = findOpenPactCard(instance);
+
+        expect(card.props.canToggle).toBe(true);
+        expect(card.props.onFindOpenPacts).toEqual(expect.any(Function));
+    });
+
+    it('does not ask an older server for join requests', () => {
+        const getJoinRequests = jest.spyOn(PactsService, 'getJoinRequests')
+            .mockImplementation(() => Promise.resolve({ data: { requests: [] } }) as any);
+        const { instance } = buildInstance();
+
+        instance.fetchJoinRequests(PACT);
+        expect(getJoinRequests).not.toHaveBeenCalled();
+
+        instance.fetchJoinRequests({ ...PACT, isOpen: false });
+        expect(getJoinRequests).toHaveBeenCalledWith('pact-1');
     });
 });

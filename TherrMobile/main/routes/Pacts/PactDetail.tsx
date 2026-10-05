@@ -20,6 +20,7 @@ import {
 } from '../Habits/pactState';
 import getPactTimeline from '../../utilities/pactTimeline';
 import getConfig from '../../utilities/getConfig';
+import { pactShowsOpenPactSupport } from '../../utilities/openPactsSupport';
 import {
     IUserState, IHabitsState, IPact, IPactJoinRequest, IPactMember,
 } from 'therr-react/types';
@@ -185,11 +186,13 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
     /**
      * Open pacts: the requests waiting on this pact's creator. Read only for the creator of a pact
      * that can still take members — nobody else can answer one, and the server would refuse them.
+     * Not at all on a server without open pacts, which has no such route.
      * Kept in screen state rather than redux: nothing else in the app shows them.
      */
     fetchJoinRequests = (pact?: IPact) => {
         const currentUserId = this.props.user.details?.id;
-        if (!pact?.id || pact.creatorUserId !== currentUserId || !['pending', 'active'].includes(pact.status)) {
+        if (!pact?.id || pact.creatorUserId !== currentUserId || !['pending', 'active'].includes(pact.status)
+            || !pactShowsOpenPactSupport(pact)) {
             this.setState({ joinRequests: [] });
             return undefined;
         }
@@ -934,11 +937,12 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
             || partnerMember?.userName
             || this.translate('pages.pacts.partnerFallback');
         // Open pacts: the creator may open a pact that can still take members. A pending pact is one
-        // nobody has accepted yet, which is when looking for someone else's open pact helps.
-        const isCreator = !!pact && pact.creatorUserId === currentUserId;
-        const canToggleOpen = isCreator && !isRenewable
+        // nobody has accepted yet, which is when looking for someone else's open pact helps. Both
+        // wait for a server that supports open pacts — see utilities/openPactsSupport.ts.
+        const canManageOpenPact = !!pact && pact.creatorUserId === currentUserId && pactShowsOpenPactSupport(pact);
+        const canToggleOpen = canManageOpenPact && !isRenewable
             && (pact?.status === 'pending' || pact?.status === 'active');
-        const canFindOpenPacts = isCreator && pact?.status === 'pending';
+        const canFindOpenPacts = canManageOpenPact && pact?.status === 'pending';
 
         if (!pact) {
             return (
@@ -1072,7 +1076,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                             canToggle={canToggleOpen}
                             isSaving={isOpenSaving}
                             onToggle={this.handleToggleOpen}
-                            joinRequests={isCreator ? joinRequests : []}
+                            joinRequests={canManageOpenPact ? joinRequests : []}
                             answeringRequestId={answeringRequestId}
                             onApprove={(request) => this.handleAnswerJoinRequest(request, 'approve')}
                             onDecline={(request) => this.handleAnswerJoinRequest(request, 'decline')}

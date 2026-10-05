@@ -9,7 +9,7 @@ import 'react-native-gesture-handler';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import TherrIcon from '../components/TherrIcon';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
-import getConfig from '../utilities/getConfig';
+import { getHeaderLogoTarget } from '../utilities/brandLandingRoute';
 import { checkIsConnected } from '../utilities/networkService';
 import translator from '../utilities/translator';
 
@@ -52,20 +52,8 @@ const HeaderMenuLeft = ({
             setOfflineModalOpen(true);
             return;
         }
-        const isMapEnabled = getConfig()?.featureFlags?.ENABLE_MAP === true;
-        if (isAuthenticated && !isEmailVerifed) {
-            navigation.navigate('CreateProfile');
-            return;
-        }
-        if (!isAuthenticated && CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
-            navigation.navigate('Landing');
-            return;
-        }
-        if (isMapEnabled) {
-            navigation.navigate('Map', isAuthenticated ? { shouldShowPreview: false } : undefined);
-            return;
-        }
-        navigation.navigate('Home');
+        const target = getHeaderLogoTarget({ isAuthenticated, isEmailVerified: isEmailVerifed });
+        navigation.navigate(target.name, target.params);
     };
 
     const handleRefresh = async () => {
