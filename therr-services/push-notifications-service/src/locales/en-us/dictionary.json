@@ -181,6 +181,18 @@
       "title": "Your {habitName} Pact Wrapped Up",
       "body": "{durationDays} days in. Most habits take months, not weeks — start a new cycle and your streak carries over."
     },
+    "pactJoinRequested": {
+      "title": "New request to join your pact",
+      "body": "{userName} asked to join your {habitName} pact. Open the pact to say yes or no."
+    },
+    "pactJoinApproved": {
+      "title": "You're in!",
+      "body": "{userName} let you into their {habitName} pact. Check in today to get started."
+    },
+    "openPactSuggestion": {
+      "title": "Still waiting on a partner?",
+      "body": "Nobody has answered your {habitName} invite yet. Others are doing it in open pacts — ask to join one."
+    },
     "dailyHabitReminder": {
       "title": "Time to Check In",
       "body": "Log {habitName} today — one check-in gets your streak going.",

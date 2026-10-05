@@ -98,6 +98,19 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Open pacts (added 2026-10-05)
+
+- [ ] **Run the users-service migrations after the deploy** (`20261005000001`–`03`: `pacts.isOpen` /
+  `openSuggestionSentAt`, `habit_goals.sourceTemplateKey` with its English-name backfill,
+  `habits.pact_join_requests`). All additive, so neither automator is affected.
+- [ ] **Watch `openPactSuggestions` in the first digest runs.** It is logged as a JSON string on the
+  "Habits daily digest completed" span. Expect `suggestionsNoOpenMatch` to dominate until a few pacts
+  are opened; `suggestionErrors > 0` with nothing queued or emailed means the pass is failing. Kill
+  switch: `HABIT_OPEN_PACT_SUGGESTIONS_ENABLED=false`.
+- [ ] **Confirm one `pactJoinRequested` push lands in the Habits app on a handset.** All three new
+  types are display pushes with no click action, so they render on installed builds; the tap only
+  opens the app. Routing it to the pact is the mobile half on `niche/HABITS-general`.
+
 ## Authenticated image pulls (added 2026-09-20)
 
 - [ ] **After the next `stage → main` deploy, confirm the three wedged services actually

@@ -43,6 +43,11 @@ import {
     IPledgeVerdictCounters,
     runPledgeVerdictPass,
 } from './helpers/pledgeVerdictDigest';
+import {
+    EMPTY_OPEN_PACT_SUGGESTION_COUNTERS,
+    IOpenPactSuggestionCounters,
+    runOpenPactSuggestionPass,
+} from './helpers/openPactSuggestionDigest';
 
 // Upper bound per run so a runaway pact count can't turn the digest into a
 // multi-minute request. Raise (or page the query) when active pacts approach
@@ -235,6 +240,8 @@ interface IDigestCountersWithRecap extends IDigestCounters {
     weeklyRecap: IWeeklyRecapCounters;
     // Nested for the same reason as `weeklyRecap`. See helpers/pledgeVerdictDigest.ts.
     pledgeVerdicts: IPledgeVerdictCounters;
+    // Nested for the same reason. See helpers/openPactSuggestionDigest.ts.
+    openPactSuggestions: IOpenPactSuggestionCounters;
 }
 
 /**
@@ -340,6 +347,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
     const counters: IDigestCountersWithRecap = {
         weeklyRecap: { ...EMPTY_WEEKLY_RECAP_COUNTERS },
         pledgeVerdicts: { ...EMPTY_PLEDGE_VERDICT_COUNTERS },
+        openPactSuggestions: { ...EMPTY_OPEN_PACT_SUGGESTION_COUNTERS },
         pactsEvaluated: 0,
         pactsExpired: 0,
         streakAtRiskSent: 0,
@@ -1405,6 +1413,22 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 return { ...EMPTY_PLEDGE_VERDICT_COUNTERS, pledgeErrors: 1 };
             });
 
+        // Best-effort, like the two passes above. A failure sends nothing, and the pacts it did not
+        // reach stay unclaimed for the next run — the claim on `openSuggestionSentAt` is what keeps
+        // a re-run, or a retry after a partial failure, from prompting anyone twice.
+        counters.openPactSuggestions = await runOpenPactSuggestionPass(queuePushOutcome, {
+            brandVariation: brand,
+            whiteLabelOrigin,
+        }, new Date())
+            .catch((err: any) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: the open-pact suggestion pass failed'],
+                });
+                return { ...EMPTY_OPEN_PACT_SUGGESTION_COUNTERS, suggestionErrors: 1 };
+            });
+
         logSpan({
             level: 'info',
             messageOrigin: 'API_SERVER',
@@ -1421,6 +1445,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 ...counters,
                 weeklyRecap: JSON.stringify(counters.weeklyRecap),
                 pledgeVerdicts: JSON.stringify(counters.pledgeVerdicts),
+                openPactSuggestions: JSON.stringify(counters.openPactSuggestions),
                 'pushNotification.brandVariation': String(brand),
             },
         });
