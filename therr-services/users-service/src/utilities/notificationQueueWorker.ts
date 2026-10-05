@@ -43,6 +43,18 @@ const CLAIM_BATCH_SIZE = 25;
 const MAX_ATTEMPTS = 3;
 const REQUEUE_BATCH_SIZE = 25;
 
+/**
+ * How long a claimed-or-failed row must sit untouched before `requeueFailed`
+ * may hand it out again. Has to outlast the batch a worker can still be sending
+ * — 25 sequential sends, normally well under a second each — or a second pod
+ * (every rollout runs two, see `requeueFailed`) re-claims rows the first is
+ * mid-way through and the user gets the notification twice. Ten minutes is far
+ * past a healthy batch, and doubles as a backoff for a genuine failure. (The
+ * internal push request sets no timeout of its own, so a hung send can still
+ * outlive any lease; the lease narrows the window, it does not close it.)
+ */
+const CLAIM_LEASE_MS = 10 * 60 * 1000;
+
 // The safety valve on send frequency. docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md
 // caps at 3-5/day per user across all types and notes that past that point
 // frequency *reduces* DAU. 5 is the top of that range, enforced here rather than
@@ -339,7 +351,7 @@ const sendOne = async (row: INotificationQueueRow): Promise<void> => {
 const drainBrand = async (brand: BrandVariations): Promise<number> => {
     // Bounded retry first, so a batch orphaned by a crashed tick becomes
     // eligible again before this tick claims new work.
-    await Store.notificationQueue.requeueFailed(brand, MAX_ATTEMPTS, REQUEUE_BATCH_SIZE).catch(() => 0);
+    await Store.notificationQueue.requeueFailed(brand, MAX_ATTEMPTS, REQUEUE_BATCH_SIZE, CLAIM_LEASE_MS).catch(() => 0);
 
     const rows = await Store.notificationQueue.claimDue(brand, CLAIM_BATCH_SIZE);
     if (!rows.length) return 0;
