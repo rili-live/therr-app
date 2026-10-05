@@ -280,6 +280,8 @@ const HABITS_GA_MEASUREMENT_IDS_JSON = serialize(
 );
 const HABITS_DEFAULT_CACHE = 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400';
 const HABITS_NO_STORE = 'no-store';
+// The landing root varies by visitor (see renderHabitsLandingView), so only the browser caches it.
+const HABITS_LANDING_ROOT_CACHE = 'private, max-age=300';
 // The landing page ('/', '/es', '/fr') is not in this table: it is localized, and
 // handled by renderHabitsLandingView below.
 const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
@@ -516,11 +518,17 @@ const renderHabitsLandingView = (req, res, resolution: HabitsLandingResolution) 
         return res.redirect(302, resolution.location);
     }
 
-    res.setHeader('Cache-Control', HABITS_DEFAULT_CACHE);
     if (req.path === '/') {
         // A Spanish- or French-preferring browser is redirected away from '/', so the English
-        // body it would otherwise get is only correct for the headers that produced it.
+        // body it would otherwise get is only correct for the headers that produced it. Vary says
+        // so, but a CDN (Cloudflare among them) ignores Vary on HTML and would hand one cached
+        // English copy to every visitor, so the redirect would never fire on a cache hit. Hence
+        // `private`: the browser may keep its own copy, which Vary does describe, and no shared
+        // cache keeps one. '/es' and '/fr' are the same for everyone and stay shared-cacheable.
+        res.setHeader('Cache-Control', HABITS_LANDING_ROOT_CACHE);
         res.setHeader('Vary', 'Accept-Language, Cookie');
+    } else {
+        res.setHeader('Cache-Control', HABITS_DEFAULT_CACHE);
     }
     return res.render('habits/landing', {
         ...buildHabitsLandingViewContext(resolution.locale, { freeHabitLimit: HABITS_FREE_HABIT_LIMIT }),
