@@ -61,6 +61,17 @@ describe('readHabitsLocaleCookie', () => {
         expect(readHabitsLocaleCookie(`x${HABITS_LOCALE_COOKIE}=es`)).toBeNull();
         expect(readHabitsLocaleCookie(undefined)).toBeNull();
     });
+
+    it('treats a malformed percent-escape as no choice instead of throwing', () => {
+        expect(() => readHabitsLocaleCookie(`${HABITS_LOCALE_COOKIE}=%E0`)).not.toThrow();
+        expect(readHabitsLocaleCookie(`${HABITS_LOCALE_COOKIE}=%E0`)).toBeNull();
+        expect(resolveHabitsLandingRequest({
+            pathname: '/',
+            search: '',
+            cookieHeader: `${HABITS_LOCALE_COOKIE}=%`,
+            acceptLanguage: 'es-MX,es;q=0.9',
+        })).toEqual({ action: 'redirect', location: '/es' });
+    });
 });
 
 describe('resolveHabitsLandingRequest', () => {

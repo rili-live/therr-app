@@ -131,10 +131,24 @@ export const parseHabitsAcceptLanguage = (header: string | null | undefined): Ha
     return best ? best.locale : null;
 };
 
-/** The locale a visitor picked with the switcher on an earlier visit, if any. */
+const safeDecodeURIComponent = (value: string): string | null => {
+    try {
+        return decodeURIComponent(value);
+    } catch (err) {
+        return null;
+    }
+};
+
+/**
+ * The locale a visitor picked with the switcher on an earlier visit, if any.
+ *
+ * The cookie is client-controlled, so a malformed escape ('%E0') must read as "no choice":
+ * decodeURIComponent throws on it, and this runs inside an async Express 4 middleware where a
+ * throw becomes an unhandled rejection that takes the whole process down.
+ */
 export const readHabitsLocaleCookie = (cookieHeader: string | null | undefined): HabitsLandingLocale | null => {
     const match = (cookieHeader || '').match(new RegExp(`(?:^|;\\s*)${HABITS_LOCALE_COOKIE}=([^;]*)`));
-    const config = match ? getLocaleConfigByCode(decodeURIComponent(match[1])) : null;
+    const config = match ? getLocaleConfigByCode(safeDecodeURIComponent(match[1])) : null;
     return config ? config.locale : null;
 };
 
