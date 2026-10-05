@@ -22,6 +22,7 @@ const createHabitGoal: RequestHandler = async (req: any, res: any) => {
         frequencyCount,
         targetDaysOfWeek,
         isPublic,
+        sourceTemplateId,
     } = req.body;
 
     if (!name) {
@@ -55,6 +56,15 @@ const createHabitGoal: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    // A clone of a template records which one, so open-pact matching can tell that this "Leer"
+    // and someone else's "Read" are the same habit. Resolved from the template row rather than
+    // trusted from the body, and silently skipped for an id that is not a template: the link is
+    // best-effort metadata, and a stale client must never be refused a habit over it.
+    const sourceTemplate = typeof sourceTemplateId === 'string' && sourceTemplateId
+        ? await Store.habitGoals.getById(sourceTemplateId).catch(() => undefined)
+        : undefined;
+    const sourceTemplateKey = sourceTemplate?.isTemplate ? sourceTemplate.templateKey || null : null;
+
     return Store.habitGoals.create({
         name,
         description,
@@ -67,6 +77,7 @@ const createHabitGoal: RequestHandler = async (req: any, res: any) => {
         createdByUserId: userId,
         isTemplate: false,
         isPublic: isPublic || false,
+        ...(sourceTemplateKey ? { sourceTemplateKey } : {}),
         ...savings.params,
         ...amounts.params,
     })

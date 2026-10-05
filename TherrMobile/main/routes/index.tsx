@@ -64,7 +64,9 @@ import ViewUser from './ViewUser';
 import { HabitsDashboard, HabitDetail, CheckinDetail, UpgradePaywall } from './Habits';
 import Journal from './Journal';
 import WeeklyRecap from './WeeklyRecap';
-import { PactDetail, CreatePactInvite, HabitsPushOptIn, AddPactMembers } from './Pacts';
+import {
+    PactDetail, CreatePactInvite, HabitsPushOptIn, AddPactMembers, OpenPacts,
+} from './Pacts';
 import { AccessPresets } from './access';
 import { editStackOptions, momentStackOptions, viewStackOptions } from './stackOptions';
 
@@ -660,6 +662,15 @@ const routes: RouteConfig<
         component: AddPactMembers,
         options: () => ({
             title: 'Add Members',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'OpenPacts',
+        component: OpenPacts,
+        options: () => ({
+            title: 'Open Pacts',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),

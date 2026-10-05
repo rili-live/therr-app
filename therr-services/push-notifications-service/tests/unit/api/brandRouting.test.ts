@@ -120,6 +120,11 @@ const DISPLAY_TYPES = [
     // A charity pledge reminder. Display for the same reason, and because it needs no
     // action button — so it renders on installed builds before the mobile half ships.
     PushNotifications.Types.pledgeMissed,
+    // Open pacts. Display for the same reason as `pledgeMissed`: no action button, and they
+    // render on installed builds before any manifest change ships.
+    PushNotifications.Types.pactJoinRequested,
+    PushNotifications.Types.pactJoinApproved,
+    PushNotifications.Types.openPactSuggestion,
     PushNotifications.Types.pactDeclined,
     PushNotifications.Types.morningMotivation,
     // The one lifecycle message aimed at someone who has stopped opening the

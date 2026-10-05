@@ -55,6 +55,12 @@ export interface ICreateHabitGoalBody extends IHabitCadenceBody, ISavingsTargetB
     emoji?: string;
     goalType?: HabitGoalType;
     isPublic?: boolean;
+    /**
+     * The template this habit is a copy of, when it is one. The server records the template's
+     * language-neutral key on the copy, which is what lets open pacts match "the same habit"
+     * across users and locales. Ignored when it is not a template's id.
+     */
+    sourceTemplateId?: string;
 }
 
 /**

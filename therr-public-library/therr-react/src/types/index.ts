@@ -20,6 +20,8 @@ import {
     // Habits
     IHabitGoal,
     IPact,
+    IOpenPact,
+    IPactJoinRequest,
     IPactMember,
     IPactNudgeResult,
     IAmountProgress,
@@ -135,6 +137,8 @@ export {
     // Habits
     IHabitGoal,
     IPact,
+    IOpenPact,
+    IPactJoinRequest,
     IPactMember,
     IPactNudgeResult,
     IAmountProgress,

@@ -69,6 +69,8 @@ Key tables: `users`, `userConnections`, `userGroups`, `notifications`, `userAchi
 - `habit_goals` - Habit templates and user-created goals
 - `pacts` - Accountability partnerships
 - `pact_members` - Membership with per-user stats
+- `pact_join_requests` - Requests to join an *open* pact (`pacts.isOpen`). Deliberately not `pact_members` rows,
+  so an unanswered stranger counts in no membership query; approval turns one into an ordinary active member
 - `habit_checkins` - Daily completion records
 - `streaks` - Streak state per user/habit (also the freeze pool the daily streak borrows from)
 - `streak_history` - Event log for analytics
