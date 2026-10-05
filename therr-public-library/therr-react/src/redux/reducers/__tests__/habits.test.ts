@@ -288,6 +288,27 @@ describe('habits reducer', () => {
         expect(result.pacts[0].status).toBe('abandoned');
     });
 
+    describe('SET_PACT_OPEN', () => {
+        it('patches the flag in every list holding the pact, keeping its members', () => {
+            const withPacts = reducer(initialState, {
+                type: HabitsActionTypes.GET_USER_PACTS,
+                data: [{ id: 'p1', members: [{ userId: 'me' }] }, { id: 'p2' }],
+            });
+            const populated = reducer(withPacts, {
+                type: HabitsActionTypes.GET_ACTIVE_PACTS,
+                data: [{ id: 'p1', members: [{ userId: 'me' }] }],
+            });
+            const result = reducer(populated, {
+                type: HabitsActionTypes.SET_PACT_OPEN,
+                data: { pactId: 'p1', isOpen: true },
+            });
+            expect(result.pacts[0].isOpen).toBe(true);
+            expect(result.pacts[0].members).toHaveLength(1);
+            expect(result.pacts[1].isOpen).toBeUndefined();
+            expect(result.activePacts[0].isOpen).toBe(true);
+        });
+    });
+
     describe('SET_PACT_MEMBER_PLEDGE', () => {
         const pledge = { amount: 5, charityKey: 'give_directly', pledgedAt: '2026-09-29T12:00:00.000Z' };
         const members = () => [{ userId: 'me', pledge: null }, { userId: 'partner', pledge: null }];

@@ -144,6 +144,11 @@ export interface IPact {
     /** True once the last remaining member opted to continue the pact solo. */
     isSolo?: boolean;
     /**
+     * True when the creator lets people outside the pact ask to join it (open pacts). Opt-in;
+     * absent on a users-service that predates the feature, which means closed.
+     */
+    isOpen?: boolean;
+    /**
      * Derived server-side. How many members are actively participating right now (the majority
      * denominator, and what gates add/remove), and whether the sole remaining member should be
      * shown the continue-solo offer.
@@ -247,6 +252,41 @@ export interface ISavingsProgress {
      * Null when there is no target; never negative once the target is passed.
      */
     remainingAmount: number | null;
+}
+
+/**
+ * An open pact as someone outside it sees it (`GET /habits/pacts/open`): enough to decide whether
+ * to ask, and nothing about its members beyond how many there are.
+ */
+export interface IOpenPact {
+    id: string;
+    status: 'pending' | 'active';
+    habitGoalId: string;
+    durationDays: number;
+    startDate?: string | null;
+    endDate?: string | null;
+    createdAt: string;
+    creatorUserId: string;
+    creatorUserName: string;
+    habitGoalName: string;
+    habitGoalEmoji?: string | null;
+    habitGoalCategory?: string | null;
+    habitGoalFrequencyType?: string | null;
+    habitGoalFrequencyCount?: number | null;
+    /** Members in the pact or invited and not yet answered — its occupied seats. */
+    memberCount: number;
+    /** The viewer already asked and is waiting on an answer. */
+    hasPendingJoinRequest: boolean;
+}
+
+/** A request to join an open pact, as its creator sees it. */
+export interface IPactJoinRequest {
+    id: string;
+    pactId: string;
+    requesterUserId: string;
+    requesterUserName?: string;
+    status: 'pending' | 'approved' | 'declined' | 'cancelled';
+    createdAt: string;
 }
 
 export interface IPactMember {
@@ -768,6 +808,9 @@ export enum HabitsActionTypes {
     // One member's pledge changed. The pledge endpoints answer with the pledge alone, not the
     // hydrated pact, so this patches that member in place rather than replacing the pact.
     SET_PACT_MEMBER_PLEDGE = 'SET_PACT_MEMBER_PLEDGE',
+    // The creator opened or closed a pact to join requests. The endpoint answers with the bare
+    // pact row (no members), so this patches the flag in place rather than replacing the pact.
+    SET_PACT_OPEN = 'SET_PACT_OPEN',
 
     // Checkins
     GET_TODAY_CHECKINS = 'GET_TODAY_CHECKINS',

@@ -163,6 +163,19 @@ const habits = produce((draft: IHabitsState, action: any) => {
             }
             break;
         }
+        case HabitsActionTypes.SET_PACT_OPEN: {
+            const { pactId, isOpen } = action.data || {};
+            if (!pactId) {
+                break;
+            }
+            (['pacts', 'activePacts', 'pendingInvites'] as const).forEach((key) => {
+                const pact = draft[key].find((p) => p.id === pactId);
+                if (pact) {
+                    pact.isOpen = !!isOpen;
+                }
+            });
+            break;
+        }
         case HabitsActionTypes.SET_PACT_MEMBER_PLEDGE: {
             const { pactId, userId, pledge } = action.data || {};
             if (!pactId || !userId) {
