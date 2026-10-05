@@ -64,7 +64,8 @@ const getOpenPacts: RequestHandler = async (req: any, res: any) => {
         }
 
         const pacts = await Store.pacts.getOpenPacts(userId, matchKey);
-        return res.status(200).send({ pacts });
+        // `maxMembers` lets a client show "n of N spots" without hard-coding the server's ceiling.
+        return res.status(200).send({ pacts, maxMembers: MAX_OPEN_PACT_MEMBERS });
     } catch (err: any) {
         return handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' });
     }
