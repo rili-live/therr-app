@@ -9,6 +9,7 @@ import {
     requestToJoinPact,
     setPactOpen,
 } from '../../src/handlers/pactJoinRequests';
+import { createPact } from '../../src/handlers/pacts';
 import { MAX_OPEN_PACT_MEMBERS, MAX_PENDING_JOIN_REQUESTS_PER_USER } from '../../src/utilities/openPacts';
 
 /**
@@ -359,5 +360,36 @@ describe('open pacts — endpoints', () => {
             expect(resolvePending.firstCall.args).to.deep.equal([REQUEST_ID, 'declined']);
             expect(createMember.called).to.equal(false);
         });
+    });
+});
+
+describe('POST /habits/pacts — the isOpen column', () => {
+    afterEach(() => sinon.restore());
+
+    // Deploy runs migrate:latest after the new pod is serving, so until 20261005000001 lands the
+    // column does not exist. A closed pact — every pact any shipped client creates — must insert
+    // without naming it, or pact creation fails for everyone in that window.
+    const createWith = async (body: any) => {
+        sinon.stub(Store.habitGoals, 'getById').resolves({ id: HABIT_GOAL_ID, name: 'Read' } as any);
+        stubCapacity();
+        const create = sinon.stub(Store.pacts, 'create').rejects(new Error('stop after insert'));
+        await call(createPact, { userId: CREATOR, params: {}, body: { habitGoalId: HABIT_GOAL_ID, ...body } });
+        return create;
+    };
+
+    it('leaves the column out of a closed pact\'s insert', async () => {
+        const create = await createWith({});
+        expect(create.calledOnce).to.equal(true);
+        expect(create.firstCall.args[0]).to.not.have.property('isOpen');
+    });
+
+    it('leaves it out when the flag is anything but true', async () => {
+        const create = await createWith({ isOpen: 'true' });
+        expect(create.firstCall.args[0]).to.not.have.property('isOpen');
+    });
+
+    it('sends it for a pact opened at creation', async () => {
+        const create = await createWith({ isOpen: true });
+        expect(create.firstCall.args[0].isOpen).to.equal(true);
     });
 });
