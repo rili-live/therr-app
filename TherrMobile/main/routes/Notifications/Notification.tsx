@@ -67,6 +67,9 @@ const getHighlightValues = (notification: any): string[] => {
     } else if (type === NotificationEnums.Types.PACT_INVITATION) {
         // Must match users-service `notifications.pactInvitation` in each locale.
         values.push('invited you to a pact', 'te invitó a un pacto', 'invité à un pacte');
+    } else if (type === NotificationEnums.Types.PACT_JOIN_REQUEST) {
+        // Must match users-service `notifications.pactJoinRequest` in each locale.
+        values.push('asked to join your pact', 'pidió unirse a tu pacto', 'demandé à se joindre à ton pacte');
     }
 
     return values;

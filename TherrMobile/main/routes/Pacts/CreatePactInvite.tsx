@@ -151,6 +151,11 @@ interface ICreatePactInviteState {
     showAmountUnitError: boolean;
     selectedPartnerIds: string[];
     selectedPartnerDetailsById: { [id: string]: IConnectionDetails };
+    /**
+     * Open pacts: let people outside the invite list ask to join. Off by default and offered only
+     * on the review step of a pact with partners — an optional extra, never part of the core flow.
+     */
+    isOpenPact: boolean;
     searchQuery: string;
     isSearching: boolean;
     isSending: boolean;
@@ -269,6 +274,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             showAmountUnitError: false,
             selectedPartnerIds: [],
             selectedPartnerDetailsById: {},
+            isOpenPact: false,
             searchQuery: '',
             isSearching: false,
             isSending: false,
@@ -714,6 +720,9 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 ...cadenceFields,
                 ...this.getSavingsGoalFields(template.goalType),
                 ...this.getAmountGoalFields(template.goalType),
+                // Lets the server record which template this copy came from, which is how open pacts
+                // match "the same habit" across users and languages. Ignored by an older server.
+                sourceTemplateId: template.id,
             });
 
             return userGoal?.id || selectedTemplateId;
@@ -1015,7 +1024,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
 
     handleSend = async () => {
         const { bulkInvitePact, navigation } = this.props;
-        const { selectedPartnerIds } = this.state;
+        const { selectedPartnerIds, isOpenPact } = this.state;
 
         this.setState({ isSending: true });
 
@@ -1036,6 +1045,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 partnerUserIds: selectedPartnerIds,
                 pactType: 'accountability',
                 durationDays: DEFAULT_PACT_DURATION_DAYS,
+                ...(isOpenPact ? { isOpen: true } : {}),
             });
 
             // THE activation event. `_rule_app_activation` in
@@ -1051,6 +1061,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 userId: this.props.user?.details?.id,
                 partnerCount: selectedPartnerIds.length,
                 pactType: 'accountability',
+                isOpen: isOpenPact,
             });
 
             // Separate from the pact because the solo-tracking unlock counts
@@ -1789,6 +1800,28 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 <Text style={[this.themeHabits.styles.streakMilestoneText, { paddingHorizontal: 20, marginTop: 12 }]}>
                     {this.translate('pages.pacts.wizard.freezeRule', streakFreezeRuleParams)}
                 </Text>
+                {/*
+                  * Open pacts. Last and off by default: the invite is the point of this screen, and
+                  * this only widens who may *ask* to join — the creator still answers each request.
+                  */}
+                {!isSolo && (
+                    <View style={[this.themeHabits.styles.habitNotificationPrefsRow, { paddingHorizontal: 20, marginTop: 12 }]}>
+                        <View style={this.themeHabits.styles.habitNotificationPrefsLabelContainer}>
+                            <Text style={this.themeHabits.styles.habitNotificationPrefsLabel}>
+                                {this.translate('pages.pacts.openPact.toggleLabel')}
+                            </Text>
+                            <Text style={this.themeHabits.styles.habitNotificationPrefsHint}>
+                                {this.translate('pages.pacts.openPact.toggleHint')}
+                            </Text>
+                        </View>
+                        <Switch
+                            accessibilityLabel={this.translate('pages.pacts.openPact.toggleLabel')}
+                            color={this.themeHabits.colors.primary3}
+                            value={this.state.isOpenPact}
+                            onValueChange={(isOpenPact) => this.setState({ isOpenPact })}
+                        />
+                    </View>
+                )}
             </View>
         );
     };
