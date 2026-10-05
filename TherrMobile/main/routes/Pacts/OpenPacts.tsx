@@ -19,12 +19,6 @@ import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 
-/**
- * The server's ceiling on an open pact's seats (users-service `MAX_OPEN_PACT_MEMBERS`). Display only:
- * the list never includes a full pact, and the server re-checks at request and approval time.
- */
-const OPEN_PACT_SEATS = 6;
-
 interface IStoreProps {
     user: IUserState;
 }
@@ -40,6 +34,14 @@ interface IOpenPactsState {
     pacts: IOpenPact[];
     isLoading: boolean;
     hasLoaded: boolean;
+    /** The last read failed. Kept apart from an empty list, which is an answer rather than a failure. */
+    loadError: boolean;
+    /**
+     * The server's seat ceiling (users-service `MAX_OPEN_PACT_MEMBERS`), sent with the list. Display
+     * only: the list never includes a full pact, and the server re-checks at request and approval
+     * time. Null from a server that predates the field, which drops "of N" rather than guess N.
+     */
+    maxMembers: number | null;
     pendingPactId: string | null;
 }
 
@@ -68,6 +70,8 @@ export class OpenPacts extends React.Component<IOpenPactsProps, IOpenPactsState>
             pacts: [],
             isLoading: false,
             hasLoaded: false,
+            loadError: false,
+            maxMembers: null,
             pendingPactId: null,
         };
 
@@ -95,10 +99,22 @@ export class OpenPacts extends React.Component<IOpenPactsProps, IOpenPactsState>
 
         PactsService.getOpenPacts(habitGoalId)
             .then((response: any) => {
-                this.setState({ pacts: response?.data?.pacts || [] });
+                // The interceptor answers a transient GET failure with `{ data: {}, isOfflineFallback }`,
+                // which must not read as "nobody has an open pact". Whatever is on screen stays.
+                const pacts = response?.data?.pacts;
+                if (response?.isOfflineFallback || !Array.isArray(pacts)) {
+                    this.setState({ loadError: true });
+                    return;
+                }
+                const maxMembers = response.data.maxMembers;
+                this.setState({
+                    pacts,
+                    loadError: false,
+                    maxMembers: typeof maxMembers === 'number' && maxMembers > 0 ? maxMembers : null,
+                });
             })
             .catch(() => {
-                this.setState({ pacts: [] });
+                this.setState({ loadError: true });
             })
             .finally(() => {
                 this.setState({ isLoading: false, hasLoaded: true });
@@ -171,7 +187,7 @@ export class OpenPacts extends React.Component<IOpenPactsProps, IOpenPactsState>
     };
 
     renderPactRow = (pact: IOpenPact, index: number) => {
-        const { pendingPactId } = this.state;
+        const { pendingPactId, maxMembers } = this.state;
         const isPending = pendingPactId === pact.id;
         const creatorName = pact.creatorUserName || this.translate('pages.pacts.partnerFallback');
 
@@ -192,10 +208,12 @@ export class OpenPacts extends React.Component<IOpenPactsProps, IOpenPactsState>
                         {pact.habitGoalName}
                     </Text>
                     <Text style={this.themeHabits.styles.habitNotificationPrefsHint}>
-                        {this.translate('pages.pacts.openPact.rowDetail', {
+                        {this.translate(maxMembers
+                            ? 'pages.pacts.openPact.rowDetail'
+                            : 'pages.pacts.openPact.rowDetailNoSeats', {
                             name: creatorName,
                             count: pact.memberCount,
-                            seats: OPEN_PACT_SEATS,
+                            seats: maxMembers,
                             days: pact.durationDays,
                         })}
                     </Text>
@@ -229,7 +247,9 @@ export class OpenPacts extends React.Component<IOpenPactsProps, IOpenPactsState>
 
     render() {
         const { user, route } = this.props;
-        const { pacts, isLoading, hasLoaded } = this.state;
+        const {
+            pacts, isLoading, hasLoaded, loadError,
+        } = this.state;
         const habitName = route?.params?.habitName;
 
         return (
@@ -268,7 +288,25 @@ export class OpenPacts extends React.Component<IOpenPactsProps, IOpenPactsState>
                             </View>
                         )}
 
-                        {hasLoaded && !pacts.length && (
+                        {hasLoaded && loadError && !pacts.length && (
+                            <View style={[this.themeHabits.styles.emptyStateContainer, { paddingTop: 24 }]}>
+                                <Text style={this.themeHabits.styles.emptyStateTitle}>
+                                    {this.translate('pages.pacts.openPact.loadErrorTitle')}
+                                </Text>
+                                <Text style={[this.themeHabits.styles.habitNotificationPrefsHint, { textAlign: 'center', paddingHorizontal: 24 }]}>
+                                    {this.translate('pages.pacts.openPact.loadErrorHint')}
+                                </Text>
+                                <Button
+                                    buttonStyle={this.themeButtons.styles.btnClear}
+                                    titleStyle={this.themeButtons.styles.btnTitleBlack}
+                                    title={this.translate('pages.pacts.openPact.retry')}
+                                    onPress={this.handleRefresh}
+                                    disabled={isLoading}
+                                />
+                            </View>
+                        )}
+
+                        {hasLoaded && !loadError && !pacts.length && (
                             <View style={[this.themeHabits.styles.emptyStateContainer, { paddingTop: 24 }]}>
                                 <Text style={this.themeHabits.styles.emptyStateEmoji}>{'🤝'}</Text>
                                 <Text style={this.themeHabits.styles.emptyStateTitle}>
