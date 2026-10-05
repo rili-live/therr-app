@@ -5,7 +5,7 @@ import { it, describe, expect } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
 import { AccessLevels } from 'therr-js-utilities/constants';
-import { getBrandInitialRouteName } from '../../main/utilities/brandLandingRoute';
+import { getBrandInitialRouteName, getHeaderLogoTarget } from '../../main/utilities/brandLandingRoute';
 
 /**
  * Guards the HABITS cold-start landing screen against a visible route flash.
@@ -87,5 +87,34 @@ describe('HABITS initial route', () => {
 
         expect(source).toMatch(/resetToRouteIfNeeded/);
         expect(source).not.toMatch(/routes: \[\{ name: 'CreateProfile' \}\]/);
+    });
+});
+
+/**
+ * The top-left logo is the HABITS user's way home. It used to fall through to
+ * `Home`, the share-feedback form, so a user who got lost in onboarding and
+ * tapped the logo to start over landed on a screen asking for feedback.
+ */
+describe('getHeaderLogoTarget (HABITS)', () => {
+    it('sends a signed-in user to the habits dashboard, never the feedback screen', () => {
+        const target = getHeaderLogoTarget({ isAuthenticated: true, isEmailVerified: true });
+
+        expect(target.name).toBe('HabitsDashboard');
+        expect(target.name).not.toBe('Home');
+    });
+
+    it('asks for the habits segment explicitly so an earlier guard bypass is cleared', () => {
+        // A pact-segment `initialTab` bypasses the onboarding walkthrough, and
+        // React Navigation keeps old params when navigate() is given none.
+        expect(getHeaderLogoTarget({ isAuthenticated: true, isEmailVerified: true }).params)
+            .toEqual({ initialTab: 'habits' });
+    });
+
+    it('keeps an onboarding user on CreateProfile', () => {
+        expect(getHeaderLogoTarget({ isAuthenticated: true, isEmailVerified: false }).name).toBe('CreateProfile');
+    });
+
+    it('sends a signed-out user to the landing screen', () => {
+        expect(getHeaderLogoTarget({ isAuthenticated: false, isEmailVerified: false }).name).toBe('Landing');
     });
 });
