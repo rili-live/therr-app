@@ -161,6 +161,18 @@ describe('NotificationQueueStore', () => {
             expect(sql).to.have.string('3');
             expect(sql).to.have.string(`SET "status" = 'pending'`);
         });
+
+        it('only re-pends rows nothing has touched for the lease, so an in-flight claim is never sent twice', async () => {
+            // claimDue marks a row 'failed' as it claims it. Without an age bound,
+            // the second pod of every rollout re-pends rows the first is still
+            // sending, claims them again, and the user gets both.
+            const { store, last } = buildStore();
+
+            await store.requeueFailed(BrandVariations.HABITS, 3, 25, 10 * 60 * 1000);
+
+            const sql = last();
+            expect(sql).to.have.string(`"updatedAt" <= now() - (600000 * interval '1 millisecond')`);
+        });
     });
 
     describe('countSentSince', () => {

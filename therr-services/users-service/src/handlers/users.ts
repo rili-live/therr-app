@@ -32,7 +32,7 @@ import { resolveAccessLevelsForAccountEmail } from './helpers/checkoutSessionAcc
 import { isClaimCodePreVerified, isMatchingInvitee } from './helpers/pactRedemption';
 import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
-import { isValidTimeZone } from '../utilities/localReminderSchedule';
+import { isValidTimeZone, normalizePreferredReminderTimeInput } from '../utilities/localReminderSchedule';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
 import { createOrUpdateAchievement } from './helpers/achievements';
@@ -925,6 +925,36 @@ const updateUser = (req, res) => {
                 });
             }
 
+            // The user's chosen morning / evening habit reminder times (Friends with
+            // Habits → Notifications). Rejected rather than coerced for the same reason
+            // as the timezone: the scheduler ignores a value outside the window the
+            // settings screen offers, so a bad one stored here would look saved and
+            // silently do nothing. `null` (or '') clears the choice back to the default.
+            const reminderTimeInputs = {
+                settingsPreferredReminderTime: 'morning',
+                settingsPreferredEveningReminderTime: 'evening',
+            } as const;
+            const reminderTimeUpdates: Record<string, string | null | undefined> = {};
+            const invalidReminderTimeField = (Object.keys(reminderTimeInputs) as (keyof typeof reminderTimeInputs)[])
+                .find((field) => {
+                    if (req.body[field] === undefined) {
+                        return false;
+                    }
+                    const normalized = normalizePreferredReminderTimeInput(req.body[field], reminderTimeInputs[field]);
+                    if (!normalized.isValid) {
+                        return true;
+                    }
+                    reminderTimeUpdates[field] = normalized.value;
+                    return false;
+                });
+            if (invalidReminderTimeField) {
+                return handleHttpError({
+                    res,
+                    message: `Invalid ${invalidReminderTimeField} (expected HH:MM within the offered range, or null)`,
+                    statusCode: 400,
+                });
+            }
+
             // TODO: Don't allow updating phone number unless user phone number is already verified
             const updateArgs: any = {
                 firstName: req.body.firstName,
@@ -961,6 +991,8 @@ const updateUser = (req, res) => {
                 settingsPushStreakAlerts: req.body.settingsPushStreakAlerts,
                 settingsLocale: req.body.settingsLocale,
                 settingsTimezone: rawTimezone,
+                settingsPreferredReminderTime: reminderTimeUpdates.settingsPreferredReminderTime,
+                settingsPreferredEveningReminderTime: reminderTimeUpdates.settingsPreferredEveningReminderTime,
                 settingsIsAccountSoftDeleted: req.body.settingsIsAccountSoftDeleted,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
                 autoRechargeEnabled: rawAutoRechargeEnabled,

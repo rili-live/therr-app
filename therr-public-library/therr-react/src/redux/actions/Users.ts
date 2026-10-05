@@ -82,6 +82,10 @@ class UsersActions {
             settingsPushMentions,
             settingsPushMessages,
             settingsPushReminders,
+            settingsPushHabitReminders,
+            settingsPushStreakAlerts,
+            settingsPreferredReminderTime,
+            settingsPreferredEveningReminderTime,
             integrations,
             isBusinessAccount,
             loginCount,
@@ -141,6 +145,10 @@ class UsersActions {
             settingsPushMentions,
             settingsPushMessages,
             settingsPushReminders,
+            settingsPushHabitReminders,
+            settingsPushStreakAlerts,
+            settingsPreferredReminderTime,
+            settingsPreferredEveningReminderTime,
             navigationTourCount,
         };
 
@@ -533,6 +541,10 @@ class UsersActions {
             settingsPushMentions,
             settingsPushMessages,
             settingsPushReminders,
+            settingsPushHabitReminders,
+            settingsPushStreakAlerts,
+            settingsPreferredReminderTime,
+            settingsPreferredEveningReminderTime,
             shouldHideMatureContent,
             organizations,
         } = response?.data || {};
@@ -579,6 +591,10 @@ class UsersActions {
             settingsPushMentions,
             settingsPushMessages,
             settingsPushReminders,
+            settingsPushHabitReminders,
+            settingsPushStreakAlerts,
+            settingsPreferredReminderTime,
+            settingsPreferredEveningReminderTime,
         };
         (this.NativeStorage || localStorage).setItem('therrUser', JSON.stringify(userData));
         (this.NativeStorage || localStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
