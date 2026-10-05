@@ -66,4 +66,51 @@ export const getHabitsLandingRouteName = async (): Promise<'HabitsPushOptIn' | '
     return optInShown ? 'HabitsDashboard' : 'HabitsPushOptIn';
 };
 
+export interface IHeaderLogoTarget {
+    name: string;
+    params?: Record<string, any>;
+}
+
+/**
+ * Where the top-left logo goes — the app's "home" button.
+ *
+ * On HABITS this used to fall through to `Home`, which on that brand is the
+ * share-feedback form: a user stuck in onboarding who tapped the logo to start
+ * over was dropped onto a screen asking them for feedback. Home on HABITS is the
+ * habits dashboard. `PactOnboardingGuard` already decides what that shows — the
+ * first-pact walkthrough until the user has started, their habits after — so the
+ * logo needs no knowledge of either.
+ *
+ * `initialTab: 'habits'` is explicit rather than omitted. React Navigation keeps
+ * a screen's previous params when it is navigated to without new ones, so a user
+ * who reached the dashboard through "View sent invites" (`initialTab: 'outgoing'`,
+ * which bypasses the guard) would otherwise stay on that bypassed view and never
+ * see the walkthrough again.
+ */
+export const getHeaderLogoTarget = ({
+    isAuthenticated,
+    isEmailVerified,
+}: {
+    isAuthenticated: boolean;
+    isEmailVerified: boolean;
+}): IHeaderLogoTarget => {
+    const featureFlags = getConfig()?.featureFlags || {};
+    const isHabits = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
+
+    if (isAuthenticated && !isEmailVerified) {
+        return { name: 'CreateProfile' };
+    }
+    if (isHabits && !isAuthenticated) {
+        return { name: 'Landing' };
+    }
+    if (isHabits && featureFlags[FeatureFlags.ENABLE_HABITS]) {
+        return { name: 'HabitsDashboard', params: { initialTab: 'habits' } };
+    }
+    if (featureFlags.ENABLE_MAP === true) {
+        return { name: 'Map', params: isAuthenticated ? { shouldShowPreview: false } : undefined };
+    }
+
+    return { name: 'Home' };
+};
+
 export default getBrandInitialRouteName;

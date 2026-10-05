@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import React, { useRef, useState } from 'react';
+import {
+    Animated, View, Text, ScrollView, Pressable,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import Toast from 'react-native-toast-message';
 import { FeatureFlags } from 'therr-js-utilities/constants';
 import { IUserState, IHabitsState, IHabitGoal, IPact } from 'therr-react/types';
 import { Button } from '../BaseButton';
@@ -15,8 +18,10 @@ import { space } from '../../styles/layouts/spacing';
 import translator from '../../utilities/translator';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 import getConfig from '../../utilities/getConfig';
+import { logAppEvent } from '../../utilities/analyticsEvents';
 import { localizeTemplate } from '../../routes/Pacts/habitTemplates';
 import BaseStatusBar from '../BaseStatusBar';
+import { getOnboardingTapAction, OnboardingStepNumber } from './onboardingTapAction';
 
 export const HABITS_PRESTAGED_TEMPLATE_ID = 'HABITS_PRESTAGED_TEMPLATE_ID';
 
@@ -42,9 +47,12 @@ interface IStepperProps {
     activeStep: number;
     themeHabits: any;
     translate: (key: string, params?: any) => string;
+    onPressStep: (step: OnboardingStepNumber) => void;
 }
 
-const PactStepper: React.FC<IStepperProps> = ({ activeStep, themeHabits, translate }) => {
+const PactStepper: React.FC<IStepperProps> = ({
+    activeStep, themeHabits, translate, onPressStep,
+}) => {
     const steps = [
         { label: translate('pages.pacts.preview.step1Label'), sublabel: translate('pages.pacts.preview.step1Sublabel') },
         { label: translate('pages.pacts.preview.step2Label'), sublabel: translate('pages.pacts.preview.step2Sublabel') },
@@ -62,7 +70,19 @@ const PactStepper: React.FC<IStepperProps> = ({ activeStep, themeHabits, transla
                 const isCurrent = stepNum === activeStep;
                 const isLast = index === steps.length - 1;
                 return (
-                    <View key={stepNum} style={themeHabits.styles.stepperItem}>
+                    // Every step answers a tap — see `onboardingTapAction` for why.
+                    <Pressable
+                        key={stepNum}
+                        onPress={() => onPressStep(stepNum as OnboardingStepNumber)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${step.label}. ${translate(
+                            isDone
+                                ? 'pages.pacts.preview.stepDone'
+                                : 'pages.pacts.preview.stepOf',
+                            { current: stepNum, total: steps.length },
+                        )}`}
+                        style={themeHabits.styles.stepperItem}
+                    >
                         {!isLast && (
                             <View
                                 style={[
@@ -72,13 +92,6 @@ const PactStepper: React.FC<IStepperProps> = ({ activeStep, themeHabits, transla
                             />
                         )}
                         <View
-                            accessibilityRole="text"
-                            accessibilityLabel={`${step.label}. ${translate(
-                                isDone
-                                    ? 'pages.pacts.preview.stepDone'
-                                    : 'pages.pacts.preview.stepOf',
-                                { current: stepNum, total: steps.length },
-                            )}`}
                             style={[
                                 themeHabits.styles.stepperCircle,
                                 isCurrent && themeHabits.styles.stepperCircleCurrent,
@@ -107,7 +120,7 @@ const PactStepper: React.FC<IStepperProps> = ({ activeStep, themeHabits, transla
                             {step.label}
                         </Text>
                         <Text style={themeHabits.styles.stepperSublabel}>{step.sublabel}</Text>
-                    </View>
+                    </Pressable>
                 );
             })}
         </View>
@@ -251,6 +264,58 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
         navigation.navigate('HabitsDashboard', { initialTab: 'pending' });
     };
 
+    // Draws the eye to the one control that moves the user forward, after a tap
+    // on something that cannot. Native driver: transform only, no layout.
+    const ctaScale = useRef(new Animated.Value(1)).current;
+    const pulseCta = () => {
+        ctaScale.stopAnimation();
+        ctaScale.setValue(1);
+        Animated.sequence([
+            Animated.timing(ctaScale, { toValue: 1.06, duration: 140, useNativeDriver: true }),
+            Animated.spring(ctaScale, { toValue: 1, friction: 3, tension: 120, useNativeDriver: true }),
+        ]).start();
+    };
+
+    // See `onboardingTapAction` for the rule. The event is how we learn whether
+    // anyone still gets stuck here — taps on step 2/3 before an invite is the
+    // confusion the user test surfaced.
+    const handleStepPress = (step: OnboardingStepNumber) => {
+        const action = getOnboardingTapAction(step, { hasOutgoingInvite: hasOutgoing });
+
+        logAppEvent('habits_onboarding_step_tap', {
+            userId: user.details?.id,
+            step,
+            activeStep,
+            action,
+        });
+
+        if (action === 'openWizard') {
+            Toast.show({
+                type: 'info',
+                text1: translate('pages.pacts.preview.pickHabitToastTitle'),
+                text2: translate('pages.pacts.preview.pickHabitToastBody'),
+            });
+            handleInvite();
+            return;
+        }
+
+        if (action === 'viewSentInvites') {
+            handleViewSent();
+            return;
+        }
+
+        Toast.show({
+            type: 'info',
+            text1: translate('pages.pacts.preview.inviteGateToastTitle'),
+            text2: translate('pages.pacts.preview.inviteGateToastBody'),
+            onPress: () => {
+                Toast.hide();
+                handleInvite();
+            },
+        });
+        pulseCta();
+    };
+
     return (
         <>
             <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
@@ -278,9 +343,15 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                         activeStep={activeStep}
                         themeHabits={themeHabits}
                         translate={translate}
+                        onPressStep={handleStepPress}
                     />
 
-                    <View style={themeHabits.styles.habitCardContainer}>
+                    <Pressable
+                        onPress={() => handleStepPress(1)}
+                        accessibilityRole="button"
+                        accessibilityHint={translate('pages.pacts.preview.pickHabitToastTitle')}
+                        style={themeHabits.styles.habitCardContainer}
+                    >
                         <OnboardingCardHeader
                             stepNum={1}
                             activeStep={activeStep}
@@ -295,14 +366,21 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                                 <Text style={themeHabits.styles.onboardingCardTitle}>{sampleHabitName}</Text>
                                 <Text style={themeHabits.styles.onboardingCardBody}>{sampleHabitSubtitle}</Text>
                             </View>
+                            {/* The one card that is a real action, so it is the one that looks like one. */}
+                            <Text style={themeHabits.styles.habitPickRowChevron}>{'›'}</Text>
                         </View>
                         <Text style={themeHabits.styles.onboardingCardFooter}>
                             {'🔒 '}
                             {translate('pages.pacts.preview.sampleStreakLabel')}
                         </Text>
-                    </View>
+                    </Pressable>
 
-                    <View style={themeHabits.styles.habitCardContainer}>
+                    <Pressable
+                        onPress={() => handleStepPress(2)}
+                        accessibilityRole="button"
+                        accessibilityHint={translate('pages.pacts.preview.inviteGateToastTitle')}
+                        style={themeHabits.styles.habitCardContainer}
+                    >
                         <OnboardingCardHeader
                             stepNum={2}
                             activeStep={activeStep}
@@ -322,9 +400,16 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                                 </Text>
                             </View>
                         </View>
-                    </View>
+                    </Pressable>
 
-                    <View style={themeHabits.styles.habitCardContainer}>
+                    <Pressable
+                        onPress={() => handleStepPress(3)}
+                        accessibilityRole="button"
+                        accessibilityHint={translate(hasOutgoing
+                            ? 'pages.pacts.preview.bannerSecondaryCTA'
+                            : 'pages.pacts.preview.inviteGateToastTitle')}
+                        style={themeHabits.styles.habitCardContainer}
+                    >
                         <OnboardingCardHeader
                             stepNum={3}
                             activeStep={activeStep}
@@ -341,7 +426,7 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                                 </Text>
                             </View>
                         </View>
-                    </View>
+                    </Pressable>
                 </ScrollView>
 
                 <View
@@ -354,12 +439,14 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                     <Text style={themeHabits.styles.onboardingFooterHelper}>
                         {translate('pages.pacts.preview.bannerHelper')}
                     </Text>
-                    <Button
-                        buttonStyle={themeButtons.styles.btnLargeWithText}
-                        titleStyle={themeButtons.styles.btnLargeTitle}
-                        title={translate('pages.pacts.preview.bannerCTA')}
-                        onPress={handleInvite}
-                    />
+                    <Animated.View style={{ transform: [{ scale: ctaScale }] }}>
+                        <Button
+                            buttonStyle={themeButtons.styles.btnLargeWithText}
+                            titleStyle={themeButtons.styles.btnLargeTitle}
+                            title={translate('pages.pacts.preview.bannerCTA')}
+                            onPress={handleInvite}
+                        />
+                    </Animated.View>
                     {hasOutgoing && (
                         <Pressable
                             accessibilityRole="button"
