@@ -223,7 +223,7 @@ describe('open pacts — endpoints', () => {
             const result = await call(getOpenPacts, { query: { habitGoalId: HABIT_GOAL_ID } });
 
             expect(result.statusCode).to.equal(200);
-            expect(result.body).to.deep.equal({ pacts: [] });
+            expect(result.body).to.deep.equal({ pacts: [], maxMembers: MAX_OPEN_PACT_MEMBERS });
             expect(getOpenPactsStub.firstCall.args).to.deep.equal([
                 REQUESTER,
                 { templateKey: 'read', normalizedName: 'leer más' },
