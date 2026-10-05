@@ -46,6 +46,13 @@ export interface IUserSettings {
   settingsContentAlgorithm?: IContentAlgorithmName;
   navigationTourCount?: number;
   settingsTherrCoinTotal?: any;
+  // Friends with Habits reminder settings, read by the users-service habits digest. The two
+  // booleans mute only on an explicit `false`; the two times are Postgres `time` strings
+  // ('HH:MM:SS') or null for "use the default".
+  settingsPushHabitReminders?: boolean | null;
+  settingsPushStreakAlerts?: boolean | null;
+  settingsPreferredReminderTime?: string | null;
+  settingsPreferredEveningReminderTime?: string | null;
   [key: string]: any;
 }
 
