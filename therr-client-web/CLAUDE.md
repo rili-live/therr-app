@@ -54,6 +54,11 @@ All user-facing text must use translation keys from `src/locales/`. When adding 
 4. The URL prefix is the source of truth for locale — see `server-client.tsx` middleware
 5. All `<Link>` and `navigate()` calls auto-include the locale prefix via React Router's `basename`
 
+The habits.therr.com landing (`views/habits/landing.hbs`) is not React and has its own
+dictionaries in `src/habitsLocales/{en-us,es,fr-ca}/dictionary.json` (also covered by
+`npm run locales:check`). Locale routing and the JSON-LD built from that copy live in
+`utilities/habitsLanding.ts`. Its paths are `/`, `/es`, `/fr` — note `/fr`, not `/fr-ca`.
+
 ## Key Routes
 
 Routes below are shown without locale prefix. All public routes are also served at `/es/<route>`.

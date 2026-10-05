@@ -5,6 +5,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import hbs from 'hbs';
+import { buildHabitsLandingViewContext } from '../utilities/habitsLanding';
 
 const VIEWS_DIR = path.join(__dirname, '../views/habits');
 const PARTIALS_DIR = path.join(__dirname, '../views/partials');
@@ -21,6 +22,9 @@ const renderView = (fileName: string): string => {
         description: 'description',
         canonicalUrl: 'https://habits.therr.com/',
         userName: 'someuser',
+        // The landing page is the one localized view; render it as the English page it is
+        // at '/', footer copy included, so its footer is compared as visitors see it.
+        ...(fileName === 'landing.hbs' ? buildHabitsLandingViewContext('en-us', { freeHabitLimit: 3 }) : {}),
     });
 };
 
@@ -86,6 +90,25 @@ describe('habits footer consistency', () => {
         expect(source).toContain('footer.site-footer .footer-links');
         expect(source).toContain('footer.site-footer .footer-family');
         expect(source).toMatch(/\.container\s*\{/);
+    });
+
+    it('renders the en-us dictionary footer byte-identical to the partial\'s English fallback', () => {
+        // Every view but the landing omits footerCopy and gets the fallback inline in the
+        // partial; the English landing passes the dictionary. If the two drift, the footer
+        // differs between '/' and every other habits page.
+        const { footerCopy } = buildHabitsLandingViewContext('en-us', { freeHabitLimit: 3 });
+        const partial = hbs.handlebars.compile('{{> habitsFooter}}');
+
+        expect(partial({ footerCopy })).toBe(partial({}));
+    });
+
+    it.each(['es', 'fr-ca'] as const)('translates the footer on the %s landing page', (locale) => {
+        const { footerCopy } = buildHabitsLandingViewContext(locale, { freeHabitLimit: 3 });
+        const rendered = hbs.handlebars.compile('{{> habitsFooter}}')({ footerCopy });
+
+        expect(rendered).toContain(footerCopy.privacyPolicy);
+        expect(rendered).not.toContain('Privacy Policy');
+        expect(rendered).toContain('href="https://www.therr.app/"');
     });
 
     it('keeps the outbound link to the sibling therr.app property', () => {

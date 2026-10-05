@@ -22,7 +22,7 @@ import {
 } from '../utilities/pactNudgeOutcome';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { checkHabitCapacity } from './helpers/habitCapacity';
-import { ensureCompletedUserConnection } from './helpers/inviteAcceptance';
+import { activatePactMembership } from './helpers/pactMembership';
 import { attachMemberStatsToPact, attachPactMemberStats } from './helpers/pactMemberStats';
 import { withAmountProgress, withSavingsProgress } from './helpers/savings';
 import resolveWeekBounds from './helpers/weekBounds';
@@ -109,6 +109,7 @@ const createPact: RequestHandler = async (req: any, res: any) => {
         durationDays,
         consequenceType,
         consequenceDetails,
+        isOpen,
     } = req.body;
 
     if (!habitGoalId) {
@@ -160,6 +161,10 @@ const createPact: RequestHandler = async (req: any, res: any) => {
         durationDays,
         consequenceType,
         consequenceDetails,
+        // Opt-in: only an explicit `true` opens the pact to join requests (handlers/pactJoinRequests.ts).
+        // Sent only when true — the column defaults to false — so a closed pact's insert keeps its old
+        // column list and still works in the window before migration 20261005000001 has run.
+        ...(isOpen === true ? { isOpen: true } : {}),
     })
         .then(async (pact) => {
             // Create pact member entry for creator
@@ -279,6 +284,7 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
         durationDays,
         consequenceType,
         consequenceDetails,
+        isOpen,
     } = req.body;
 
     if (!habitGoalId) {
@@ -350,6 +356,8 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
         durationDays,
         consequenceType,
         consequenceDetails,
+        // Only when true, for the same pre-migration reason as createPact.
+        ...(isOpen === true ? { isOpen: true } : {}),
     })
         .then(async (pact) => {
             await Store.pactMembers.create({
@@ -631,76 +639,13 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
         return res.status(402).send(capacityDenial);
     }
 
-    // Activate the pact only on the first acceptance (status=pending);
-    // subsequent group acceptances just join an already-active pact.
-    const activationPromise = pact.status === 'pending'
-        ? Store.pacts.activate(id)
-        : Promise.resolve(pact);
-
-    return activationPromise
+    // The first acceptance activates the pact (and the creator); later group acceptances just
+    // join an already-active pact. Shared with join-request approval — see helpers/pactMembership.
+    return activatePactMembership(pact, userId)
         .then(async (updatedPact) => {
-            // Activate creator member only on first acceptance — getOrCreate
-            // semantics aren't available here, but activate() is a no-op
-            // idempotent UPDATE so calling it on an already-active member is
-            // safe and cheap.
-            const memberActivations: Promise<any>[] = [Store.pactMembers.activate(id, userId)];
-            if (pact.status === 'pending') {
-                memberActivations.push(Store.pactMembers.activate(id, pact.creatorUserId));
-            }
-            await Promise.all(memberActivations);
-
-            // Streaks: always create for the accepting user; for the creator
-            // create only on first acceptance (when transitioning the pact
-            // from pending → active). getOrCreate makes this idempotent.
-            const streakPromises: Promise<any>[] = [
-                Store.streaks.getOrCreate(userId, pact.habitGoalId, id),
-            ];
-            if (pact.status === 'pending') {
-                streakPromises.push(Store.streaks.getOrCreate(pact.creatorUserId, pact.habitGoalId, id));
-            }
-            await Promise.all(streakPromises);
-
-            // Tracking rows, mirroring the streak logic above: always for the
-            // accepter, and for the creator only on first acceptance.
-            //
-            // Both go through getOrCreate *and* reviveArchivedByHabit. getOrCreate
-            // deliberately will not resurrect an archived row (a stray check-in must
-            // not un-archive a habit and put the user back over the cap), but a
-            // partner accepting the invite is precisely the event that should:
-            //   - the creator may have archived this habit to stop the reminders
-            //     while nobody had accepted — "revive only if an invitee accepts
-            //     after the fact" is exactly this path;
-            //   - the accepter may have archived the same goal in a past life, and
-            //     they just passed the capacity check above for the slot.
-            // reviveArchivedByHabit is a no-op when the row is already active, so
-            // every acceptance after the first costs one guarded UPDATE and nothing
-            // else.
-            const ensureActiveTracking = async (trackingUserId: string) => {
-                await Store.userHabits.getOrCreate(trackingUserId, pact.habitGoalId);
-                await Store.userHabits.reviveArchivedByHabit(trackingUserId, pact.habitGoalId);
-            };
-            const trackingPromises: Promise<any>[] = [ensureActiveTracking(userId)];
-            if (pact.status === 'pending') {
-                trackingPromises.push(ensureActiveTracking(pact.creatorUserId));
-            }
-            await Promise.all(trackingPromises);
-
             recordFunnelMetric(MetricNames.FUNNEL_PACT_INVITE_ACCEPTED, userId, {
                 brandVariation: brandVariation || '',
                 via: 'in-app',
-            });
-
-            // Accountability partners are connections by definition — guarantee
-            // the userConnection exists so each partner appears in the other's
-            // connections list (invited-user-is-connected-to-inviter contract).
-            // Fire-and-forget: a connection failure must not block acceptance.
-            ensureCompletedUserConnection(pact.creatorUserId, userId).catch((err) => {
-                logSpan({
-                    level: 'error',
-                    messageOrigin: 'API_SERVER',
-                    messages: ['Failed to ensure connection between pact partners on accept'],
-                    traceArgs: { 'error.message': err?.message, pactId: id },
-                });
             });
 
             // Award accepting partner for joining their first pact
@@ -1251,6 +1196,12 @@ const renewPact: RequestHandler = async (req: any, res: any) => {
             // is a first cycle as far as anything can know — so an unset value counts as 1
             // and its renewal becomes cycle 2.
             renewalCycleNumber: (pact.renewalCycleNumber || 1) + 1,
+            // An open pact stays open into its next cycle — the creator chose it, and re-committing
+            // is not the moment to quietly undo that choice. Carried only when the renewer is the
+            // one who opened it: whoever renews becomes the new cycle's creator, and a partner
+            // renewing must not inherit someone else's decision to let strangers ask in. Only sent when
+            // true, for the same pre-migration reason as createPact.
+            ...(pact.isOpen === true && pact.creatorUserId === userId ? { isOpen: true } : {}),
         })
             .then(async (renewed) => {
                 await Store.pactMembers.create({

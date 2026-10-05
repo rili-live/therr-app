@@ -497,6 +497,9 @@ const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.pactCompleted,
     PushNotifications.Types.pactExpiring,
     PushNotifications.Types.pactEnded,
+    PushNotifications.Types.pactJoinRequested,
+    PushNotifications.Types.pactJoinApproved,
+    PushNotifications.Types.openPactSuggestion,
     PushNotifications.Types.partnerCheckedIn,
     PushNotifications.Types.partnerMissedDay,
     PushNotifications.Types.partnerCelebrated,
@@ -1287,6 +1290,49 @@ const createMessage = (
             });
             return baseMessage;
         }
+        // Open pacts. Display, with no click action, for the reason `pledgeMissed` is: these need no
+        // action button, and a display push renders on every installed build today — a click
+        // action naming an intent the installed manifest lacks would turn the tap into a no-op.
+        // The tap opens the app; the creator's PACT_JOIN_REQUEST in-app notification is what
+        // routes to the pact.
+        case PushNotifications.Types.pactJoinRequested:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, 'notifications.pactJoinRequested.title'),
+                notificationBody: translate(config.userLocale, 'notifications.pactJoinRequested.body', {
+                    userName: String(config.fromUserName || ''),
+                    habitName: String(config.habitName || ''),
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
+            return baseMessage;
+        case PushNotifications.Types.pactJoinApproved:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, 'notifications.pactJoinApproved.title'),
+                notificationBody: translate(config.userLocale, 'notifications.pactJoinApproved.body', {
+                    userName: String(config.fromUserName || ''),
+                    habitName: String(config.habitName || ''),
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
+            return baseMessage;
+        case PushNotifications.Types.openPactSuggestion:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, 'notifications.openPactSuggestion.title'),
+                notificationBody: translate(config.userLocale, 'notifications.openPactSuggestion.body', {
+                    habitName: String(config.habitName || ''),
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
+            return baseMessage;
         case PushNotifications.Types.streakBroken:
             baseMessage = createNotificationMessage({
                 data: modifiedData,
@@ -1815,7 +1861,10 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.pactEnded,
     PushNotifications.Types.pactExpiring,
     PushNotifications.Types.pactInvitation,
+    PushNotifications.Types.pactJoinApproved,
+    PushNotifications.Types.pactJoinRequested,
     PushNotifications.Types.pactNudge,
+    PushNotifications.Types.openPactSuggestion,
     PushNotifications.Types.partnerCelebrated,
     PushNotifications.Types.partnerCheckedIn,
     PushNotifications.Types.partnerMissedDay,

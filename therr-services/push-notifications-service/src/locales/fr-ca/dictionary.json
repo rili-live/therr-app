@@ -181,6 +181,18 @@
       "title": "Ton pacte {habitName} est terminé",
       "body": "{durationDays} jours accomplis. La plupart des habitudes prennent des mois, pas des semaines — lance un nouveau cycle et ta série se poursuit."
     },
+    "pactJoinRequested": {
+      "title": "Nouvelle demande pour ton pacte",
+      "body": "{userName} a demandé à se joindre à ton pacte {habitName}. Ouvre le pacte pour accepter ou refuser."
+    },
+    "pactJoinApproved": {
+      "title": "Tu es dedans!",
+      "body": "{userName} t'a accepté dans son pacte {habitName}. Fais ton suivi aujourd'hui pour commencer."
+    },
+    "openPactSuggestion": {
+      "title": "Toujours en attente d'un partenaire?",
+      "body": "Personne n'a encore répondu à ton invitation {habitName}. D'autres le font dans des pactes ouverts — demande à t'y joindre."
+    },
     "dailyHabitReminder": {
       "title": "C'est l'heure de t'enregistrer",
       "body": "Enregistre {habitName} aujourd'hui — un seul enregistrement lance ta série.",

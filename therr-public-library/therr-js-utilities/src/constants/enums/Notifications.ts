@@ -14,6 +14,7 @@ export enum Types {
   THOUGHT_REPOST = 'THOUGHT_REPOST',
   INVITE_FRIENDS_REMINDER = 'INVITE_FRIENDS_REMINDER',
   PACT_INVITATION = 'PACT_INVITATION',
+  PACT_JOIN_REQUEST = 'PACT_JOIN_REQUEST',
 }
 
 export enum MessageKeys {
@@ -32,4 +33,5 @@ export enum MessageKeys {
   THOUGHT_REPOST = 'notifications.newThoughtRepostReceived',
   INVITE_FRIENDS_REMINDER = 'notifications.inviteFriendsReminder',
   PACT_INVITATION = 'notifications.pactInvitation',
+  PACT_JOIN_REQUEST = 'notifications.pactJoinRequest',
 }
