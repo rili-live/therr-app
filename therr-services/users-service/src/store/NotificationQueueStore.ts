@@ -218,7 +218,17 @@ export default class NotificationQueueStore extends BrandScopedStore {
 
     // Bounded retry for rows a worker claimed but never completed (crash, pod
     // eviction mid-batch) and for transient send failures.
-    requeueFailed(brand: BrandValue, maxAttempts: number, limit: number): Promise<number> {
+    //
+    // `staleAfterMs` is a lease, and it is what keeps this from double-sending.
+    // `claimDue` marks a row 'failed' *as it claims it* — that status means "in
+    // flight" until the send finishes — so without an age bound a second worker
+    // reverts rows the first is still sending, claims them again, and both
+    // deliver. "Second worker" is not hypothetical with `replicas: 1`: the
+    // deployment's `maxSurge: 1` runs the old and new pod side by side on every
+    // rollout, and the old pod finishes its in-flight batch after SIGTERM clears
+    // its timer. Every claim, failure and deferral stamps `updatedAt`, so a row is
+    // only eligible once nothing has touched it for the lease.
+    requeueFailed(brand: BrandValue, maxAttempts: number, limit: number, staleAfterMs = 0): Promise<number> {
         this.assertBrand(brand);
         const queryString = knexBuilder
             .raw(
@@ -229,11 +239,19 @@ export default class NotificationQueueStore extends BrandScopedStore {
                      WHERE inner_q."status" = 'failed'
                        AND inner_q."brandVariation" = ?
                        AND inner_q."attempts" < ?
+                       AND inner_q."updatedAt" <= now() - (? * interval '1 millisecond')
                      ORDER BY inner_q."updatedAt" ASC
                      LIMIT ?
                      FOR UPDATE SKIP LOCKED
                  )`,
-                [NOTIFICATION_QUEUE_TABLE_NAME, NOTIFICATION_QUEUE_TABLE_NAME, brand, maxAttempts, limit],
+                [
+                    NOTIFICATION_QUEUE_TABLE_NAME,
+                    NOTIFICATION_QUEUE_TABLE_NAME,
+                    brand,
+                    maxAttempts,
+                    Math.max(0, Math.floor(staleAfterMs)),
+                    limit,
+                ],
             )
             .toString();
         return this.db.write.query(queryString).then((response) => response.rowCount ?? 0);

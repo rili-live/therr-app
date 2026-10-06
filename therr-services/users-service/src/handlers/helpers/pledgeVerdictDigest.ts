@@ -159,7 +159,7 @@ export const runPledgeVerdictPass = async (
             }
 
             const preferences = preferencesByUserId[member.userId] || {};
-            const schedule = resolveReminderSchedule(preferences, now);
+            const schedule = resolveReminderSchedule(preferences, now, { jitterSeed: member.userId });
             const weekStart = getRecapWeekStart(schedule.localDate);
 
             const verdict = await judgeMember(member, goal, weekStart, schedule.timeZone);
