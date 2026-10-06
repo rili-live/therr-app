@@ -898,6 +898,69 @@ describe('Users Handler', () => {
             expect(updateStub.firstCall.args[0].settingsPushHabitReminders).to.be.eq(undefined);
             expect(updateStub.firstCall.args[0].settingsPushStreakAlerts).to.be.eq(undefined);
         });
+
+        describe('preferred reminder times', () => {
+            const stubUser = () => sinon.stub(Store.users, 'getUserById').resolves([{
+                id: 'user-1',
+                phoneNumber: '+1 317-555-1234',
+                userName: 'someone',
+                isBusinessAccount: false,
+                isCreatorAccount: false,
+                accessLevels: [AccessLevels.DEFAULT],
+            }] as any);
+
+            it('normalizes a chosen morning and evening time', async () => {
+                stubUser();
+                const updateStub = stubUpdateChain();
+
+                const res = makeRes();
+                await updateUser(makeReq({
+                    settingsPreferredReminderTime: '07:15:00',
+                    settingsPreferredEveningReminderTime: '21:30',
+                }), res);
+
+                expect(res.statusCode).to.equal(202);
+                expect(updateStub.firstCall.args[0].settingsPreferredReminderTime).to.equal('07:15');
+                expect(updateStub.firstCall.args[0].settingsPreferredEveningReminderTime).to.equal('21:30');
+            });
+
+            it('forwards null so "Default" clears the choice', async () => {
+                stubUser();
+                const updateStub = stubUpdateChain();
+
+                const res = makeRes();
+                await updateUser(makeReq({
+                    settingsPreferredReminderTime: null,
+                    settingsPreferredEveningReminderTime: '',
+                }), res);
+
+                expect(res.statusCode).to.equal(202);
+                expect(updateStub.firstCall.args[0].settingsPreferredReminderTime).to.equal(null);
+                expect(updateStub.firstCall.args[0].settingsPreferredEveningReminderTime).to.equal(null);
+            });
+
+            it('leaves both undefined when the save does not mention them', async () => {
+                stubUser();
+                const updateStub = stubUpdateChain();
+
+                const res = makeRes();
+                await updateUser(makeReq({ settingsBio: 'a new bio' }), res);
+
+                expect(updateStub.firstCall.args[0].settingsPreferredReminderTime).to.be.eq(undefined);
+                expect(updateStub.firstCall.args[0].settingsPreferredEveningReminderTime).to.be.eq(undefined);
+            });
+
+            it('rejects a time outside the offered range instead of storing one the digest would ignore', async () => {
+                stubUser();
+                const updateStub = stubUpdateChain();
+
+                const res = makeRes();
+                await updateUser(makeReq({ settingsPreferredEveningReminderTime: '03:00' }), res);
+
+                expect(res.statusCode).to.equal(400);
+                expect(updateStub.called).to.equal(false);
+            });
+        });
     });
 
     describe('updateUserCoins', () => {

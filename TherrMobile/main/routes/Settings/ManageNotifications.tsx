@@ -21,6 +21,13 @@ import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/setti
 import { buildStyles as buildModalStyles } from '../../styles/modal';
 import spacingStyles from '../../styles/layouts/spacing';
 import getHabitsPushPreferences from './pushPreferences';
+import DropDown from '../../components/Input/DropDown';
+import {
+    buildReminderTimeOptions,
+    getReminderTimeInputs,
+    IReminderTimeOption,
+    toReminderTimePayload,
+} from './reminderTimes';
 
 /**
  * These two columns are read only by the HABITS daily digest
@@ -106,6 +113,48 @@ const NotificationSettingSwitch = ({
     );
 };
 
+/**
+ * One labelled reminder-time picker. Every option is a time the users-service accepts,
+ * so a save can never be rejected for a value chosen here.
+ */
+const ReminderTimePicker = ({
+    label,
+    description,
+    options,
+    value,
+    onChange,
+    enabled,
+    themeForms,
+    themeModal,
+    theme,
+}: {
+    label: string;
+    description?: string;
+    options: IReminderTimeOption[];
+    value: string;
+    onChange: (newValue: string) => void;
+    enabled: boolean;
+    themeForms: any;
+    themeModal: any;
+    theme: any;
+}) => (
+    <View style={[spacingStyles.padBotLg, spacingStyles.padHorizSm]}>
+        <Text style={themeModal.styles.label}>{label}</Text>
+        <DropDown
+            enabled={enabled}
+            initialValue={value}
+            options={options}
+            onChange={(newValue) => onChange(newValue || '')}
+            style={themeForms.styles.picker}
+            formStyles={themeForms.styles}
+        />
+        {
+            !!description &&
+                <Text style={theme.styles.sectionDescription}>{description}</Text>
+        }
+    </View>
+);
+
 const mapStateToProps = (state) => ({
     user: state.user,
 });
@@ -142,6 +191,8 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
                 // An absent value renders as On, because absent means opted in. See
                 // `getHabitsPushPreferences` for why.
                 ...getHabitsPushPreferences(props.user.settings),
+                // '' renders as "Default"; see `reminderTimes` for why it is not null.
+                ...getReminderTimeInputs(props.user.settings),
             },
             isSubmitting: false,
         };
@@ -177,6 +228,9 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
 
         const updateArgs: any = {
             ...this.state.inputs,
+            // "Default" is '' in the form and must reach the server as null, which is
+            // what clears a previously chosen time.
+            ...toReminderTimePayload(this.state.inputs),
         };
 
         if (!this.isFormDisabled()) {
@@ -218,6 +272,15 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
         });
     };
 
+    onReminderTimeChange = (name: string, value: string) => {
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                [name]: value,
+            },
+        });
+    };
+
     handleRefresh = () => {
         console.log('refresh');
     };
@@ -227,6 +290,12 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
         const  { inputs, isSubmitting } = this.state;
         const pageHeaderAdvancedSettings = this.translate('pages.manageNotifications.pageHeaderEmailSettings');
         const pageHeaderPushSettings = this.translate('pages.manageNotifications.pageHeaderPushSettings');
+        const locale = user.settings?.locale || 'en-us';
+        const areRemindersOn = inputs.settingsPushHabitReminders !== false;
+        const defaultTimeLabel = (time: string) => this.translate(
+            'pages.manageNotifications.labels.defaultReminderTime',
+            { time },
+        );
 
         return (
             <>
@@ -353,6 +422,39 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
                                                 themeModal={this.themeModal}
                                                 translate={this.translate}
                                                 disabled={isSubmitting}
+                                            />
+                                        </View>
+                                        <View style={this.theme.styles.sectionContainer}>
+                                            <Text style={this.theme.styles.sectionTitle}>
+                                                {this.translate('pages.manageNotifications.pageHeaderReminderTimes')}
+                                            </Text>
+                                            <Text style={this.theme.styles.sectionDescription}>
+                                                {this.translate(areRemindersOn
+                                                    ? 'pages.manageNotifications.reminderTimesDescription'
+                                                    : 'pages.manageNotifications.reminderTimesOffDescription')}
+                                            </Text>
+                                        </View>
+                                        <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                            <ReminderTimePicker
+                                                label={this.translate('pages.manageNotifications.labels.morningReminderTime')}
+                                                options={buildReminderTimeOptions('morning', locale, defaultTimeLabel)}
+                                                value={inputs.settingsPreferredReminderTime}
+                                                onChange={(value) => this.onReminderTimeChange('settingsPreferredReminderTime', value)}
+                                                enabled={!isSubmitting && areRemindersOn}
+                                                theme={this.theme}
+                                                themeForms={this.themeForms}
+                                                themeModal={this.themeModal}
+                                            />
+                                            <ReminderTimePicker
+                                                label={this.translate('pages.manageNotifications.labels.eveningReminderTime')}
+                                                description={this.translate('pages.manageNotifications.eveningReminderDescription')}
+                                                options={buildReminderTimeOptions('evening', locale, defaultTimeLabel)}
+                                                value={inputs.settingsPreferredEveningReminderTime}
+                                                onChange={(value) => this.onReminderTimeChange('settingsPreferredEveningReminderTime', value)}
+                                                enabled={!isSubmitting && areRemindersOn && inputs.settingsPushStreakAlerts !== false}
+                                                theme={this.theme}
+                                                themeForms={this.themeForms}
+                                                themeModal={this.themeModal}
                                             />
                                         </View>
                                     </>

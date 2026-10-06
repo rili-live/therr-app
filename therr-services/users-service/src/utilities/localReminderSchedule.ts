@@ -24,12 +24,37 @@
  * Two slots per local day, from one digest run:
  *
  *   - **morning** — the streak-status nudge. Where it used to fire at the
- *     digest's own clock time, it now lands at the user's preferred reminder
- *     time (or 08:00 local), and is pushed to the end of quiet hours rather
- *     than delivered at 02:00.
- *   - **last chance** — the new evening reminder. Mid-to-late in the *user's*
- *     day, while there is still time to act on it, and never once their local
- *     day is effectively over.
+ *     digest's own clock time, it now lands at the user's preferred morning
+ *     time (`settingsPreferredReminderTime`, else 08:00 local), and is pushed
+ *     to the end of quiet hours rather than delivered at 02:00.
+ *   - **last chance** — the evening reminder. At the user's preferred evening
+ *     time (`settingsPreferredEveningReminderTime`, else 19:30 local), while
+ *     there is still time to act on it, and never once their local day is
+ *     effectively over.
+ *
+ * Both preference columns are set from the Friends with Habits notification
+ * settings screen. NULL means "not chosen", and is deliberately different from
+ * any time: an explicit choice is allowed to sit inside the *default* quiet
+ * hours (the user told us when they are awake, which beats our guess), while
+ * the default never is. A stored value outside the window that screen offers
+ * (`MORNING_REMINDER_WINDOW` / `EVENING_REMINDER_WINDOW`) is ignored rather
+ * than honoured — it can only have arrived some other way, and a 03:00 push is
+ * the failure this module exists to prevent.
+ *
+ * ## Daily jitter
+ *
+ * A reminder at exactly 09:30 every day stops being read; it becomes part of
+ * the furniture, and then it becomes the reason notifications get turned off.
+ * So each slot moves by up to `REMINDER_JITTER_MINUTES` either side of its
+ * target, by a different amount each day. The offset is derived from
+ * (user, local date, slot) rather than `Math.random()`, which keeps a re-run of
+ * the digest on the same day computing the same instant and keeps every test
+ * deterministic. It is opt-in per call (`jitterSeed`), and
+ * `HABIT_REMINDER_JITTER_MINUTES=0` turns it off everywhere.
+ *
+ * Jitter never changes *how many* reminders anyone gets: dedupe keys are
+ * stamped with the date, not the time, so a moved slot cannot produce a second
+ * row.
  *
  * ## The rules, and why each one is a rule
  *
@@ -56,6 +81,8 @@
  * that wrap midnight) are only reachable in a test if the instant and the zone
  * are both arguments.
  */
+
+import { createHash } from 'crypto';
 
 /** Minutes past local midnight. */
 export type MinutesOfDay = number;
@@ -99,13 +126,66 @@ export const MIN_MINUTES_BETWEEN_SLOTS = 4 * 60;
  */
 export const LAST_CHANCE_QUIET_BUFFER_MINUTES = 30;
 
+/** Upper bound on the jitter an operator can configure; past an hour it stops being "around" a time. */
+const MAX_REMINDER_JITTER_MINUTES = 60;
+
+const parseJitterMinutes = (value: string | undefined): number => {
+    const parsed = Number(value);
+    if (value === undefined || value === '' || !Number.isFinite(parsed)) {
+        return 15;
+    }
+    return Math.min(Math.max(Math.round(parsed), 0), MAX_REMINDER_JITTER_MINUTES);
+};
+
+/**
+ * How far either side of its target a slot may move from one day to the next.
+ * `HABIT_REMINDER_JITTER_MINUTES=0` restores exact, fixed-time delivery.
+ */
+export const REMINDER_JITTER_MINUTES = parseJitterMinutes(process.env.HABIT_REMINDER_JITTER_MINUTES);
+
+export interface IReminderWindow {
+    earliest: MinutesOfDay;
+    latest: MinutesOfDay;
+}
+
+/**
+ * The times a user may choose, inclusive. Wider than "morning" and "evening"
+ * strictly need to be, but chosen so that the two never come within
+ * `MIN_MINUTES_BETWEEN_SLOTS` of each other even at the edges of the jitter
+ * (11:30 + 15 → 11:45 against 16:00 − 15 → 15:45 is exactly four hours): a
+ * pair of choices the settings screen offers must never silently cost the user
+ * their evening reminder. The users handler validates against these, and the
+ * scheduler ignores a stored value outside them.
+ */
+export const MORNING_REMINDER_WINDOW: IReminderWindow = { earliest: 5 * 60, latest: 11 * 60 + 30 };
+export const EVENING_REMINDER_WINDOW: IReminderWindow = { earliest: 16 * 60, latest: 23 * 60 };
+
+export type ReminderSlot = 'morning' | 'evening';
+
+const REMINDER_WINDOWS: Record<ReminderSlot, IReminderWindow> = {
+    morning: MORNING_REMINDER_WINDOW,
+    evening: EVENING_REMINDER_WINDOW,
+};
+
 export interface IReminderPreferences {
     /** IANA zone, e.g. 'America/New_York'. Null/invalid falls back. */
     settingsTimezone?: string | null;
-    /** Postgres `time`, e.g. '07:15:00'. Overrides the morning default. */
+    /** Postgres `time`, e.g. '07:15:00'. The user's morning target; null means the default. */
     settingsPreferredReminderTime?: string | null;
+    /** Postgres `time`, e.g. '20:45:00'. The user's evening target; null means the default. */
+    settingsPreferredEveningReminderTime?: string | null;
     settingsQuietHoursStart?: string | null;
     settingsQuietHoursEnd?: string | null;
+}
+
+export interface IReminderScheduleOptions {
+    /**
+     * Stable per-user value (the user id) that makes each slot move by a
+     * different, reproducible amount each day. Omitted means no jitter.
+     */
+    jitterSeed?: string | null;
+    /** Overrides `REMINDER_JITTER_MINUTES`; for tests. */
+    jitterMinutes?: number;
 }
 
 export interface IReminderSchedule {
@@ -113,6 +193,10 @@ export interface IReminderSchedule {
     timeZone: string;
     /** True when `settingsTimezone` was absent or unusable. Counted by the digest. */
     usedFallbackTimeZone: boolean;
+    /** True when the morning slot targeted the user's own chosen time rather than the default. */
+    usedPreferredMorningTime: boolean;
+    /** True when the evening slot targeted the user's own chosen time rather than the default. */
+    usedPreferredEveningTime: boolean;
     /** The user's calendar date at `at`, YYYY-MM-DD — the day the digest is deciding about. */
     localDate: string;
     /** When to deliver the streak-status nudge. Never null — everyone gets one. */
@@ -293,6 +377,61 @@ export const isWithinQuietHours = (
 };
 
 /**
+ * Read a user's chosen reminder time for one slot: minutes past midnight, or
+ * null when it is unset, unreadable or outside the window the settings screen
+ * offers. Null always means "use the default", so a bad value degrades to the
+ * behaviour every user had before the preference existed.
+ */
+export const readPreferredReminderTime = (value: unknown, slot: ReminderSlot): MinutesOfDay | null => {
+    const minutes = parseTimeOfDay(value);
+    const window = REMINDER_WINDOWS[slot];
+    if (minutes === null || minutes < window.earliest || minutes > window.latest) {
+        return null;
+    }
+    return minutes;
+};
+
+export type PreferredReminderTimeInput =
+    | { isValid: true; value: string | null }
+    | { isValid: false };
+
+/**
+ * Validate a preferred reminder time from a settings update and normalise it to
+ * what is stored. `null` and `''` clear the preference (back to the default);
+ * anything else must be 'HH:MM' or 'HH:MM:SS' inside the slot's window.
+ * Callers treat `undefined` as "not part of this update" before calling this.
+ */
+export const normalizePreferredReminderTimeInput = (value: unknown, slot: ReminderSlot): PreferredReminderTimeInput => {
+    if (value === null || value === '') {
+        return { isValid: true, value: null };
+    }
+    const minutes = readPreferredReminderTime(value, slot);
+    if (minutes === null) {
+        return { isValid: false };
+    }
+    return { isValid: true, value: `${pad2(Math.floor(minutes / 60))}:${pad2(minutes % 60)}` };
+};
+
+/**
+ * This slot's offset for this user on this local day, in whole minutes within
+ * ±`maxMinutes`. Reproducible — the same inputs always give the same offset —
+ * so the digest re-deciding on a re-run lands on the same instant, and the
+ * morning and evening slots move independently of one another.
+ */
+export const getDailyJitterMinutes = (
+    seed: string | null | undefined,
+    localDate: string,
+    slot: ReminderSlot,
+    maxMinutes: number = REMINDER_JITTER_MINUTES,
+): number => {
+    if (!seed || maxMinutes <= 0) {
+        return 0;
+    }
+    const digest = createHash('sha256').update(`${seed}:${localDate}:${slot}`).digest();
+    return (digest.readUInt32BE(0) % (2 * maxMinutes + 1)) - maxMinutes;
+};
+
+/**
  * Both delivery instants for one user, from one digest run.
  *
  * `at` is the moment the digest is deciding — passed in rather than read from
@@ -301,6 +440,7 @@ export const isWithinQuietHours = (
 export const resolveReminderSchedule = (
     preferences: IReminderPreferences,
     at: Date,
+    options: IReminderScheduleOptions = {},
 ): IReminderSchedule => {
     const requested = typeof preferences.settingsTimezone === 'string' ? preferences.settingsTimezone.trim() : '';
     const usedFallbackTimeZone = !requested || getTimeZoneOffsetMinutes(requested, at) === null;
@@ -313,36 +453,76 @@ export const resolveReminderSchedule = (
     const resolvedZone = preferredParts ? preferredZone : 'UTC';
     const local = preferredParts || getLocalParts('UTC', at) as ILocalParts;
 
-    const quietStart = parseTimeOfDay(preferences.settingsQuietHoursStart)
-        ?? parseTimeOfDay(DEFAULT_QUIET_HOURS_START) as MinutesOfDay;
-    const quietEnd = parseTimeOfDay(preferences.settingsQuietHoursEnd)
-        ?? parseTimeOfDay(DEFAULT_QUIET_HOURS_END) as MinutesOfDay;
+    const jitterMinutes = options.jitterMinutes ?? REMINDER_JITTER_MINUTES;
+    const morningJitter = getDailyJitterMinutes(options.jitterSeed, local.date, 'morning', jitterMinutes);
+    const eveningJitter = getDailyJitterMinutes(options.jitterSeed, local.date, 'evening', jitterMinutes);
 
-    const morningPreferred = parseTimeOfDay(preferences.settingsPreferredReminderTime)
-        ?? parseTimeOfDay(DEFAULT_MORNING_LOCAL_TIME) as MinutesOfDay;
-    const lastChancePreferred = parseTimeOfDay(DEFAULT_LAST_CHANCE_LOCAL_TIME) as MinutesOfDay;
+    const explicitMorning = readPreferredReminderTime(preferences.settingsPreferredReminderTime, 'morning');
+    const explicitEvening = readPreferredReminderTime(preferences.settingsPreferredEveningReminderTime, 'evening');
+
+    const ownQuietStart = parseTimeOfDay(preferences.settingsQuietHoursStart);
+    const ownQuietEnd = parseTimeOfDay(preferences.settingsQuietHoursEnd);
+    let quietStart = ownQuietStart ?? parseTimeOfDay(DEFAULT_QUIET_HOURS_START) as MinutesOfDay;
+    let quietEnd = ownQuietEnd ?? parseTimeOfDay(DEFAULT_QUIET_HOURS_END) as MinutesOfDay;
+
+    // The default quiet window is our guess at when people sleep; a reminder
+    // time the user picked is better evidence. So when they have not set quiet
+    // hours of their own, the window shrinks to keep their chosen times (and
+    // the jitter around them) outside it — otherwise a 07:00 or 22:30 choice
+    // would be clamped back to 08:00 / 21:00 and the setting would do nothing.
+    // Quiet hours the user set themselves are never overridden.
+    if (ownQuietStart === null && ownQuietEnd === null && quietStart > quietEnd) {
+        if (explicitMorning !== null) {
+            quietEnd = Math.max(0, Math.min(quietEnd, explicitMorning - jitterMinutes));
+        }
+        if (explicitEvening !== null) {
+            quietStart = Math.min(
+                MINUTES_PER_DAY - 1,
+                Math.max(quietStart, explicitEvening + jitterMinutes + LAST_CHANCE_QUIET_BUFFER_MINUTES),
+            );
+        }
+    }
 
     // ---- Morning slot -------------------------------------------------------
-    // Rule 1: never in the past. Rule 2: never inside quiet hours — a slot that
-    // lands there moves to the end of them, which is the next moment the user
-    // has agreed to hear from us.
-    let morningMinutes = Math.max(morningPreferred, local.minutesOfDay);
+    const morningTarget = explicitMorning ?? parseTimeOfDay(DEFAULT_MORNING_LOCAL_TIME) as MinutesOfDay;
+    let jitteredMorning = morningTarget + morningJitter;
+    // The default target sits exactly on the default quiet-hours end, so a
+    // negative offset would jitter it *into* quiet hours. Mirror it forward.
+    if (explicitMorning === null
+        && isWithinQuietHours(jitteredMorning, quietStart, quietEnd)
+        && !isWithinQuietHours(morningTarget, quietStart, quietEnd)) {
+        jitteredMorning = morningTarget + Math.abs(morningJitter);
+    }
+
+    let morningMinutes: MinutesOfDay;
     let morningDayOffset = 0;
 
-    // The quiet-hours clamp applies only when the slot had to be *moved* — i.e.
-    // the preferred hour has already gone past locally. A preferred hour that is
-    // still ahead is a time the user themselves asked for, and a default quiet
-    // window has no business overriding it: someone who sets a 07:15 reminder
-    // against the default 08:00 quiet-hours end means 07:15, and clamping it
-    // would silently make their explicit setting do nothing.
-    const isMorningAtPreferredHour = morningMinutes === morningPreferred;
-    if (!isMorningAtPreferredHour && isWithinQuietHours(morningMinutes, quietStart, quietEnd)) {
-        morningMinutes = quietEnd;
-        // Late-evening decisions sit *after* quiet hours begin, so the next
-        // quiet-hours end is tomorrow's. Early-morning ones are before it and
-        // stay on today.
-        if (local.minutesOfDay >= quietEnd) {
-            morningDayOffset = 1;
+    if (jitteredMorning >= local.minutesOfDay) {
+        // Still ahead: deliver at the target. A time the user asked for is
+        // honoured as-is — no quiet window has any business overriding it.
+        morningMinutes = jitteredMorning;
+    } else {
+        // Rule 1: the target has passed locally, so "as soon as possible" — not
+        // tomorrow. Spread forward by the day's jitter so even this case is not
+        // the same minute every day.
+        morningMinutes = Math.min(local.minutesOfDay + Math.abs(morningJitter), MINUTES_PER_DAY - 1);
+
+        // Rule 2: never inside quiet hours. A slot that lands there moves to the
+        // next moment the user has agreed to hear from us.
+        if (isWithinQuietHours(morningMinutes, quietStart, quietEnd)) {
+            // Late-evening decisions sit *after* quiet hours begin, so the next
+            // quiet-hours end is tomorrow's. Early-morning ones are before it and
+            // stay on today.
+            if (local.minutesOfDay >= quietEnd) {
+                morningDayOffset = 1;
+                // Tomorrow morning is a fresh target, so a time the user chose
+                // applies to it in full.
+                morningMinutes = explicitMorning !== null
+                    ? jitteredMorning
+                    : quietEnd + Math.abs(morningJitter);
+            } else {
+                morningMinutes = quietEnd + Math.abs(morningJitter);
+            }
         }
     }
 
@@ -357,15 +537,19 @@ export const resolveReminderSchedule = (
     // "later" is not a valid answer for it the way it is for the morning one.
     let lastChanceAt: Date | null = null;
 
-    // An early sleeper's own quiet hours can begin before the default
-    // last-chance time. Pull the slot earlier rather than dropping them from
-    // the feature — the alternative silently excludes exactly the users who
-    // bothered to set a preference.
+    // An early sleeper's own quiet hours can begin before the evening target.
+    // Pull the slot earlier rather than dropping them from the feature — the
+    // alternative silently excludes exactly the users who bothered to set a
+    // preference.
     const latestUsable = quietStart > quietEnd
         ? quietStart - LAST_CHANCE_QUIET_BUFFER_MINUTES
         : MINUTES_PER_DAY - 1;
+    const eveningTarget = explicitEvening ?? parseTimeOfDay(DEFAULT_LAST_CHANCE_LOCAL_TIME) as MinutesOfDay;
+    const jitteredEvening = eveningTarget + eveningJitter;
     const lastChanceMinutes = Math.min(
-        Math.max(lastChancePreferred, local.minutesOfDay),
+        jitteredEvening >= local.minutesOfDay
+            ? jitteredEvening
+            : local.minutesOfDay + Math.abs(eveningJitter),
         latestUsable,
     );
 
@@ -386,6 +570,8 @@ export const resolveReminderSchedule = (
     return {
         timeZone: resolvedZone,
         usedFallbackTimeZone,
+        usedPreferredMorningTime: explicitMorning !== null,
+        usedPreferredEveningTime: explicitEvening !== null,
         localDate: local.date,
         morningAt,
         morningLocalDate: getLocalParts(resolvedZone, morningAt)?.date || local.date,

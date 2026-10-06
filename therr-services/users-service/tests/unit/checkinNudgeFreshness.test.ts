@@ -122,6 +122,65 @@ describe('checkinNudgeFreshness', () => {
         expect(decision.shouldSend).to.equal(true);
         expect(read.called).to.equal(false);
     });
+
+    describe('partner check-ins', () => {
+        // "{partner} hit Day 5 — don't let them lap you", with a Check In button.
+        // A call to check in, so it is stale for a recipient who already has.
+        const partnerRow = (overrides: Record<string, any> = {}) => buildRow({
+            type: 'partner-checked-in',
+            dedupeKey: 'partner-checked-in:goal-1:partner-1:2026-07-15',
+            payload: {
+                habitGoalId: 'goal-1', partnerName: 'Sam', habitName: 'Morning run', streakCount: 5,
+            },
+            ...overrides,
+        });
+
+        it('suppresses the push when the recipient already checked in on the shared habit', async () => {
+            const clock = sinon.useFakeTimers({ now: new Date('2026-07-16T03:00:00.000Z').getTime(), toFake: ['Date'] });
+            sinon.stub(Store.users, 'getUserById').resolves([{ id: USER, settingsTimezone: 'America/Chicago' }] as any);
+            const read = sinon.stub(Store.habitCheckins, 'getCompletedOnDateForPairs')
+                .resolves(new Set([`${USER}:goal-1`]));
+
+            try {
+                const decision = await evaluateCheckinNudgeFreshness(partnerRow());
+
+                expect(decision.shouldSend).to.equal(false);
+                expect(decision.reason).to.contain('already-checked-in');
+                expect(read.firstCall.args[0]).to.deep.equal([{ userId: USER, habitGoalId: 'goal-1' }]);
+                // The *recipient's* day: 03:00 UTC on the 16th is still the 15th
+                // in Chicago, whatever date the checker was on.
+                expect(read.firstCall.args[1]).to.equal('2026-07-15');
+            } finally {
+                clock.restore();
+            }
+        });
+
+        it('sends when the recipient has not checked in yet', async () => {
+            sinon.stub(Store.users, 'getUserById').resolves([{ id: USER, settingsTimezone: null }] as any);
+            sinon.stub(Store.habitCheckins, 'getCompletedOnDateForPairs').resolves(new Set());
+
+            const decision = await evaluateCheckinNudgeFreshness(partnerRow());
+
+            expect(decision.shouldSend).to.equal(true);
+        });
+
+        it('sends a row with no habit goal rather than guessing', async () => {
+            const read = sinon.stub(Store.habitCheckins, 'getCompletedOnDateForPairs').resolves(new Set());
+
+            const decision = await evaluateCheckinNudgeFreshness(partnerRow({ payload: { partnerName: 'Sam' } }));
+
+            expect(decision.shouldSend).to.equal(true);
+            expect(read.called).to.equal(false);
+        });
+
+        it('fails open when either read fails', async () => {
+            sinon.stub(Store.users, 'getUserById').rejects(new Error('read pool exhausted'));
+
+            const decision = await evaluateCheckinNudgeFreshness(partnerRow());
+
+            expect(decision.shouldSend).to.equal(true);
+        });
+    });
 });
 
 describe('notificationQueueWorker — a stale check-in nudge is skipped, not sent', () => {

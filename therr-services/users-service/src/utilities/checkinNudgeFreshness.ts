@@ -2,6 +2,7 @@ import { PushNotifications } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
 import { INotificationQueueRow } from '../store/NotificationQueueStore';
+import { getLocalDate, resolveCheckinTimeZone } from './dailyStreak';
 
 /**
  * "Is this check-in nudge still worth sending?", asked at send time.
@@ -70,6 +71,62 @@ const SEND: IFreshnessDecision = { shouldSend: true };
 
 export const isCheckinNudgeType = (type: string): boolean => CHECKIN_NUDGE_TYPES.has(type);
 
+/**
+ * `partnerCheckedIn` is a fact *and* a nudge: "{partner} hit Day 5 on Running —
+ * don't let them lap you", with a Check In button on it. The fact half stays
+ * true; the nudge half does not survive the recipient having already checked in
+ * on that same habit today, and the push is still sent then — partners who check
+ * in first get told to check in by every partner who follows them. That is the
+ * exact "a reminder for something I already did" this module exists to stop, so
+ * it shares the gate, with one difference: the producer is the *checker's*
+ * request, which knows the checker's local date but not the recipient's, so the
+ * recipient's day is resolved here, at send time, from their own timezone.
+ */
+export const PARTNER_CHECKIN_TYPES: Set<string> = new Set([
+    String(PushNotifications.Types.partnerCheckedIn),
+]);
+
+const evaluatePartnerCheckinFreshness = async (row: INotificationQueueRow): Promise<IFreshnessDecision> => {
+    const habitGoalId = row.payload?.habitGoalId;
+    if (typeof habitGoalId !== 'string' || !habitGoalId) {
+        return SEND;
+    }
+
+    try {
+        const [recipient] = await Store.users.getUserById(row.userId, ['id', 'settingsTimezone']);
+        const recipientDate = getLocalDate(resolveCheckinTimeZone(recipient?.settingsTimezone));
+        const completed = await Store.habitCheckins.getCompletedOnDateForPairs(
+            [{ userId: row.userId, habitGoalId }],
+            recipientDate,
+        );
+
+        if (completed.size) {
+            return {
+                shouldSend: false,
+                reason: `already-checked-in (shared habit done on ${recipientDate})`,
+            };
+        }
+
+        return SEND;
+    } catch (err: any) {
+        // Fails open, like the nudge gate below: an extra partner push is
+        // visible and recoverable, silence is neither.
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'API_SERVER',
+            messages: ['Notification queue: partner check-in freshness read failed; sending anyway'],
+            traceArgs: {
+                'error.message': err?.message,
+                'notificationQueue.id': row.id,
+                'notificationQueue.type': row.type,
+                'user.id': row.userId,
+                source: 'users-service',
+            },
+        });
+        return SEND;
+    }
+};
+
 const readHabitGoalIds = (payload: Record<string, any> | null | undefined): string[] => {
     const raw = payload?.habitGoalIds;
     if (!Array.isArray(raw)) {
@@ -81,10 +138,14 @@ const readHabitGoalIds = (payload: Record<string, any> | null | undefined): stri
 /**
  * Decide whether a claimed queue row should still go out.
  *
- * Only ever consulted for `CHECKIN_NUDGE_TYPES`; every other type returns
- * `shouldSend` without touching the database.
+ * Only ever consulted for `CHECKIN_NUDGE_TYPES` and `PARTNER_CHECKIN_TYPES`;
+ * every other type returns `shouldSend` without touching the database.
  */
 const evaluateCheckinNudgeFreshness = async (row: INotificationQueueRow): Promise<IFreshnessDecision> => {
+    if (PARTNER_CHECKIN_TYPES.has(row.type)) {
+        return evaluatePartnerCheckinFreshness(row);
+    }
+
     if (!isCheckinNudgeType(row.type)) {
         return SEND;
     }

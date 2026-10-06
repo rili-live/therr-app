@@ -86,7 +86,10 @@ appear.
 
 It is long-running, runs at `replicas: 1`, and already owns
 `sendEmailAndOrPushNotification`. `SKIP LOCKED` is insurance against a future
-scale-up rather than a present requirement.
+scale-up rather than a present requirement — but `replicas: 1` is not "one
+worker": the deployment's `maxSurge: 1` runs the old and new pod side by side on
+every rollout, so anything that assumes a single worker has to survive two (see
+the claim lease below).
 
 ---
 
@@ -140,6 +143,17 @@ Enqueue is `ON CONFLICT DO NOTHING` (not `DO UPDATE`): a re-run must not reset
 terminal, *visible* state with the attempt counted, instead of a limbo needing
 its own reaper. The happy path overwrites with `sent` moments later;
 `requeueFailed` is the explicit, bounded retry (`MAX_ATTEMPTS = 3`).
+
+The catch is that `failed` therefore also means *in flight*, and `requeueFailed`
+used to re-pend every `failed` row regardless of age. During a rollout the new
+pod's tick could revert rows the old pod had just claimed and was still sending,
+claim them again, and deliver each one twice. `requeueFailed` now takes a lease
+(`CLAIM_LEASE_MS`, 10 minutes): a row is only eligible once nothing has touched
+its `updatedAt` for that long. Every claim, failure and deferral stamps
+`updatedAt`, so the lease also doubles as a backoff for a genuine send failure.
+The internal push request sets no timeout of its own, so a send that hangs past
+the lease can still be retried while in flight — the lease narrows that window,
+it does not close it.
 
 ---
 
@@ -206,6 +220,43 @@ A user with no stored timezone falls back to `America/Chicago` — the zone the
 scheduler already fires in — so they keep exactly the delivery time they have
 today, and the change is strictly additive.
 
+#### User-chosen times and daily jitter
+
+Friends with Habits → Settings → Notifications lets a user pick their own
+**morning** (`settingsPreferredReminderTime`, 05:00–11:30) and **evening**
+(`settingsPreferredEveningReminderTime`, 16:00–23:00) reminder time. NULL means
+"not chosen" and keeps the defaults (08:00 / 19:30). The two windows are chosen
+so the closest pair the screen offers, at the worst edges of the jitter, is still
+exactly four hours apart — no offered choice can silently cost the user their
+evening slot through rule 4. The users handler rejects a time outside its window
+(400) and the scheduler ignores one that got into the column some other way, so
+a bad value degrades to the default rather than to a 03:00 push.
+
+A chosen time is better evidence of when someone is awake than the default quiet
+window, so when the user has no quiet hours of their own the default window
+shrinks to keep their choice outside it: 07:00 and 22:30 are honoured, not
+clamped back to 08:00 and 21:00. Quiet hours a user set themselves still win.
+
+Every slot then moves by up to ±15 minutes (`HABIT_REMINDER_JITTER_MINUTES`,
+`0` disables) around its target, by a different amount each day — a reminder at
+the same minute every morning is the one people learn to swipe away unread. The
+offset is a hash of (user, local date, slot), not `Math.random()`, so a re-run of
+the digest computes the same instant, and the weekly recap / pledge / open-pact
+passes that share the morning slot land on the same instant as the nudge. Jitter
+cannot add a notification: dedupe keys carry the date, never the time. An
+as-soon-as-possible slot (its target already passed) is spread *forward* by the
+day's offset rather than back into the past, and the default morning slot is
+never jittered into the default quiet hours.
+
+**The firing-time floor.** A morning time is only honoured if it is still ahead
+when the digest decides — at 14:00 UTC (09:00 CDT, 10:00 EDT, 07:00 PDT). A
+Chicago user who picks 07:00 gets their morning nudge as soon as possible after
+09:00 instead, by rule 1 (deciding a day ahead would cite a stale streak).
+Evening times and every morning time west of the firing are unaffected. Lifting
+the floor needs an earlier decision, not a later send, and an earlier firing is
+not free: `partnerMissedDay` and `pactExpiring` queue with `scheduledFor = now()`
+and would then be delivered in the small hours.
+
 ### Relevance expires: the send-time gate
 
 Deciding hours before sending creates a failure the queue had not had before.
@@ -222,6 +273,14 @@ the send succeeds. So `utilities/checkinNudgeFreshness.ts` re-reads
 marks the row `skipped` with `already-checked-in` when every habit it names is
 done. Ordering matters — a row that no longer needs sending must not spend one
 of the user's five daily sends.
+
+`partnerCheckedIn` goes through the same gate. It is a fact *and* a nudge —
+"{partner} hit Day 5 — don't let them lap you", with a Check In button — and it
+used to reach partners who had already checked in on that habit, so whoever
+checked in first was told to check in by everyone who followed. The worker now
+skips it (`already-checked-in`) when the recipient has a completed check-in on
+the shared habit goal for *their own* local date, resolved at send time from
+their `settingsTimezone` (the producer only knows the checker's date).
 
 Two properties keep it honest. It **fails open**: a read failure sends, because
 silence on the feature whose purpose is not being silent is invisible, while an

@@ -1271,7 +1271,13 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             // Where, in real time, this user's morning and evening slots fall.
             // Everything about local delivery is decided here; the rest of this
             // loop only queues what it returns.
-            const schedule = resolveReminderSchedule(preferences, decidedAt);
+            //
+            // Seeded with the user id so each slot drifts around its target by a
+            // different, reproducible amount each day — a reminder at the same
+            // minute every morning is the one people learn to swipe away unread.
+            // The dedupe keys below carry the date, not the time, so the drift
+            // can never turn into a second row.
+            const schedule = resolveReminderSchedule(preferences, decidedAt, { jitterSeed: row.userId });
             if (schedule.usedFallbackTimeZone) {
                 counters.usersWithoutTimezone += 1;
             }
