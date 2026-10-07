@@ -317,6 +317,18 @@ describe('UsersStore', () => {
             expect(generatedSql.includes(`"settingsPushStreakAlerts" = false`)).to.be.equal(true);
         });
 
+        it('writes an explicit false for the leaderboard race alerts preference', () => {
+            const mockStore = {
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.updateUser({ settingsPushLeaderboardAlerts: false }, { id: 5 });
+
+            expect(mockStore.write.query.args[0][0].includes(`"settingsPushLeaderboardAlerts" = false`)).to.be.equal(true);
+        });
+
         it('omits the habits push preferences when they are not submitted', () => {
             const mockStore = {
                 write: {
@@ -333,6 +345,7 @@ describe('UsersStore', () => {
             const generatedSql = mockStore.write.query.args[0][0];
             expect(generatedSql.includes('settingsPushHabitReminders')).to.be.equal(false);
             expect(generatedSql.includes('settingsPushStreakAlerts')).to.be.equal(false);
+            expect(generatedSql.includes('settingsPushLeaderboardAlerts')).to.be.equal(false);
         });
 
         it('requires email or id', () => {

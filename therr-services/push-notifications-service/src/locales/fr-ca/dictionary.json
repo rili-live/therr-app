@@ -8,6 +8,15 @@
       "title": "Jalon du classement!",
       "body": "Tu viens de grimper au rang #{rank} du classement de cette semaine. Continue de gagner des XP pour défendre ta place!"
     },
+    "leaderboardPodiumWithinReach": {
+      "title": "Le podium est à ta portée",
+      "body": "Tu es au rang #{rank}, à seulement {pointsBehind} XP du #3. Le classement se réinitialise dans {hoursLeft} heures — un dernier effort pourrait suffire!"
+    },
+    "leaderboardRankLost": {
+      "title": "Sorti du top 3",
+      "body": "{userName} vient de te dépasser — tu es au rang #{rank} du classement de cette semaine. Gagne quelques XP aujourd'hui pour reprendre ta place!",
+      "bodyAnonymous": "Quelqu'un vient de te dépasser — tu es au rang #{rank} du classement de cette semaine. Gagne quelques XP aujourd'hui pour reprendre ta place!"
+    },
     "connectionRequestAccepted": {
       "title": "Vous êtes connectés!",
       "body": "{userName} a accepté ta demande — dis bonjour et commence une conversation!",

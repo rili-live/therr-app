@@ -23,6 +23,10 @@ notification needs either a second human or the daily digest:
 |---|---|---|
 | `streakMilestone` | yourself | a check-in landing on **exactly** 3, 7, 14, 30, 60, 90, 180 or 365 consecutive days (`STREAK_MILESTONES`) — so day 3 at the earliest, on 3 separate calendar days |
 | `leaderboardRankMilestone` | yourself | weekly rank crossing a milestone |
+| `leaderboardRankLost` | whoever was #3 | someone *else* climbing into the weekly top 3 past them; queued, so it needs `NOTIFICATION_QUEUE_WORKER_ENABLED=true`, and at most one a day |
+| `leaderboardPodiumWithinReach` | anyone ≤ 50 XP from tying #3 | the habits digest on a **UTC Sunday only**, outside the recipient's quiet hours |
+
+Both leaderboard nudges are silent for a user with `settingsPushLeaderboardAlerts = false`.
 | `partnerCheckedIn`, `partnerMissedDay` | pact partners | someone *else* acting |
 | `pactInvitation`, `pactAccepted`, `pactDeclined`, `pactNudge` | the other party | someone *else* acting |
 | `streakAtRisk`, `partnerMissedDay`, `pactExpiring` | members | the **daily digest only** — and it iterates `activePacts`, so no pact means no sends at all |

@@ -783,6 +783,11 @@ export default class UsersStore {
             modifiedParams.settingsPushStreakAlerts = params.settingsPushStreakAlerts;
         }
 
+        // Same contract: the leaderboard race producers mute on an explicit `false` only.
+        if (params.settingsPushLeaderboardAlerts != null) {
+            modifiedParams.settingsPushLeaderboardAlerts = params.settingsPushLeaderboardAlerts;
+        }
+
         // `!== undefined`, unlike the booleans above: `null` is a real value here. It
         // clears the user's chosen reminder time and hands the slot back to the
         // digest's default (`utilities/localReminderSchedule.ts`), which is what the

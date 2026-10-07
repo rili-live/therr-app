@@ -98,6 +98,23 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Leaderboard rank-lost push (added 2026-10-07)
+
+- [ ] **Confirm one `leaderboardRankLost` push lands in the Habits app on a handset and opens the
+  leaderboard.** It borrows the `LEADERBOARD_RANK_MILESTONE` intent action and channel bucket, so no
+  build is needed — but that reuse is exactly the kind of thing only a device can prove. Easiest
+  repro: two test accounts on a quiet board, push one past the other at #3. It is queued, so it only
+  sends where `NOTIFICATION_QUEUE_WORKER_ENABLED=true`.
+- [ ] **Run the users-service migration after the deploy** (`20261007000001_main.users.settingsPushLeaderboardAlerts`,
+  additive, default true — neither automator reads `main.users` settings, so no cross-repo change).
+  Until it runs, both leaderboard nudge queries fail on the missing column: rank-lost logs and sends
+  nothing, the podium pass reports `podiumErrors: 1`.
+- [ ] **Read the first Sunday's `podiumWithinReach` counters** on the "Habits daily digest completed"
+  span. `podiumPassRan: true` with `podiumCandidates: 0` is normal on a sparse board; a high
+  `podiumNudgesSkippedQuietHours` means the 9am-Chicago firing is too late for a large share of users.
+- [ ] **Ship the habits build carrying the "Leaderboard alerts" switch** (niche/HABITS-general). Until it
+  does, the column can only be changed by API, so every user is opted in.
+
 ## Open pacts (added 2026-10-05)
 
 - [ ] **Run the users-service migrations after the deploy** (`20261005000001`–`03`: `pacts.isOpen` /

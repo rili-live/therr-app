@@ -51,6 +51,8 @@ export interface IUserSettings {
   // ('HH:MM:SS') or null for "use the default".
   settingsPushHabitReminders?: boolean | null;
   settingsPushStreakAlerts?: boolean | null;
+  // Leaderboard race alerts (rank lost / podium within reach); also mutes only on `false`.
+  settingsPushLeaderboardAlerts?: boolean | null;
   settingsPreferredReminderTime?: string | null;
   settingsPreferredEveningReminderTime?: string | null;
   [key: string]: any;
