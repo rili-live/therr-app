@@ -143,7 +143,7 @@ The prod repair itself ran 2026-09-19 14:42 UTC (`repair-space-claims`: 25 consu
   `approve-space-claim`) records it. Section 7 of the audit SQL shows weekly volume to compare
   against the inbox.
 
-## Coach waitlist demand test (added 2026-09-30)
+## Coach waitlist demand test (added 2026-09-30) (#3049, #3053)
 
 - [ ] **Mark `coach_waitlist_submit` as a key event in GA4 and import it into Google Ads.**
   Property 549794383, Admin → Events → Mark as key event; then Ads → Goals → Conversions →
@@ -160,7 +160,7 @@ The prod repair itself ran 2026-09-19 14:42 UTC (`repair-space-claims`: 25 consu
   WHERE "isSubscribedToCoachesWaitlist" ORDER BY "createdAt" DESC;`
   Reply to each coach by hand as they arrive. The admin inboxes get an email per signup.
 
-## iOS demand tracking (added 2026-09-14)
+## iOS demand tracking (added 2026-09-14) (#3049)
 
 - [ ] **Mark `ios_interest_click` and `ios_waitlist_submit` as key events in GA4.** Both
   landing pages now fire them (therr.com via `IosWaitlistModal.tsx`, habits.therr.com inline
@@ -265,7 +265,7 @@ The prod repair itself ran 2026-09-19 14:42 UTC (`repair-space-claims`: 25 consu
   design), so the fix is to confirm the ended cycle reappears in their list
   rather than to hand-create a pact for them.
 
-## Analytics & traffic (added 2026-08-24, from the GA4 review)
+## Analytics & traffic (added 2026-08-24, from the GA4 review) (#3047, #3051, #3052)
 
 - [ ] **Cut off the headless-Chrome crawler polluting the consolidated property.**
   1,010 of 1,156 sessions (87%) in Consolidated Domains (`549794383`) over the 60
