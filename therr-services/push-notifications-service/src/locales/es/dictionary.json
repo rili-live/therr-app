@@ -8,6 +8,10 @@
       "title": "¡Hito en la tabla de clasificación!",
       "body": "Acabas de subir al puesto #{rank} en la tabla de esta semana. ¡Sigue ganando XP para defender tu lugar!"
     },
+    "leaderboardPodiumWithinReach": {
+      "title": "Un lugar en el podio está a tu alcance",
+      "body": "Estás en el puesto #{rank}, a solo {pointsBehind} XP del #3. La tabla se reinicia en {hoursLeft} horas — ¡un último esfuerzo podría bastar!"
+    },
     "leaderboardRankLost": {
       "title": "Saliste del top 3",
       "body": "{userName} acaba de superarte — estás en el puesto #{rank} de la tabla de esta semana. ¡Gana un poco de XP hoy para recuperar tu lugar!",

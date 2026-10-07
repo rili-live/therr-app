@@ -212,6 +212,9 @@ interface ICreateMessageConfig {
     bestStreakCount?: number;
     // Leaderboards: new weekly rank for rank-milestone copy
     rank?: number;
+    // Leaderboards: XP short of the podium, and hours until the weekly reset (podium-within-reach copy)
+    pointsBehind?: number;
+    hoursLeft?: number;
     // HABITS weekly recap. `weekStartDate` is promoted into the FCM data map
     // (see routingIds) because the client acts on it: the recap screen opens
     // that week, not the current one. The rest are copy only.
@@ -1382,6 +1385,22 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'LEADERBOARD_RANK_MILESTONE'), brandVariation);
             return baseMessage;
+        case PushNotifications.Types.leaderboardPodiumWithinReach:
+            // Same intent-action reuse as leaderboardRankLost, for the same reason.
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.leaderboardPodiumWithinReach.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.leaderboardPodiumWithinReach.body', {
+                        rank: Number(config.rank || 0),
+                        pointsBehind: Number(config.pointsBehind || 0),
+                        hoursLeft: Number(config.hoursLeft || 0),
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.leaderboardView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'LEADERBOARD_RANK_MILESTONE'), brandVariation);
+            return baseMessage;
         case PushNotifications.Types.streakMilestone:
             baseMessage = createDataOnlyMessage({
                 data: {
@@ -1863,6 +1882,7 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.inviteFriendsReminder,
     PushNotifications.Types.latestPostLikesStats,
     PushNotifications.Types.latestPostViewcountStats,
+    PushNotifications.Types.leaderboardPodiumWithinReach,
     PushNotifications.Types.leaderboardRankLost,
     PushNotifications.Types.leaderboardRankMilestone,
     PushNotifications.Types.morningMotivation,

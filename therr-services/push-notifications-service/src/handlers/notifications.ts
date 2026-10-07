@@ -81,6 +81,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         bestStreakCount,
         // Leaderboards
         rank,
+        pointsBehind,
+        hoursLeft,
         // HABITS weekly recap. `weekStartDate` is the only one the client acts
         // on; the rest are the copy's snapshot of the week.
         weekStartDate,
@@ -140,6 +142,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             consistencyPercent,
             bestStreakCount,
             rank,
+            pointsBehind,
+            hoursLeft,
             weekStartDate,
             recapHeadline,
             checkinCount,
@@ -239,6 +243,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         bestStreakCount,
         // Leaderboards
         rank,
+        pointsBehind,
+        hoursLeft,
         // HABITS weekly recap. `weekStartDate` is the only one the client acts
         // on; the rest are the copy's snapshot of the week.
         weekStartDate,
@@ -302,6 +308,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             consistencyPercent,
             bestStreakCount,
             rank,
+            pointsBehind,
+            hoursLeft,
             weekStartDate,
             recapHeadline,
             checkinCount,
