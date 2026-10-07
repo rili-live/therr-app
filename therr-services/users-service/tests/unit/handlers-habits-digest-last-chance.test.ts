@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import Store from '../../src/store';
 import runDailyHabitsDigest from '../../src/handlers/habitsDigest';
+import { REMINDER_JITTER_MINUTES } from '../../src/utilities/localReminderSchedule';
 
 /**
  * Habits digest — per-user local scheduling and the evening "last chance" nudge.
@@ -126,6 +127,16 @@ const localHourOf = (timeZone: string, at?: Date): number => {
     return (lookup.hour === 24 ? 0 : lookup.hour) + lookup.minute / 60;
 };
 
+/**
+ * The digest jitters each slot by up to REMINDER_JITTER_MINUTES around its
+ * target, by a different amount per user per day — a reminder at the same
+ * minute every morning is the one people stop reading. So a delivery time is
+ * asserted as "within the jitter of", never as an exact minute.
+ */
+const expectWithinJitter = (actualHours: number, expectedHours: number) => {
+    expect(Math.abs(actualHours - expectedHours)).to.be.at.most(REMINDER_JITTER_MINUTES / 60 + 1e-9);
+};
+
 describe('Habits digest — local scheduling and the last-chance nudge', () => {
     let queue: ReturnType<typeof buildFakeQueue>;
     let clock: sinon.SinonFakeTimers;
@@ -159,7 +170,7 @@ describe('Habits digest — local scheduling and the last-chance nudge', () => {
                 // 14:00 UTC is 16:00 in Berlin — 08:00 has gone, so the rule is
                 // "as soon as possible", not "tomorrow": deferring a full day
                 // would make the streak count stale before it was ever sent.
-                expect(localHourOf('Europe/Berlin', morning.scheduledFor)).to.equal(16);
+                expectWithinJitter(localHourOf('Europe/Berlin', morning.scheduledFor), 16);
             });
         });
 
@@ -170,7 +181,7 @@ describe('Habits digest — local scheduling and the last-chance nudge', () => {
                 const [morning] = queue.ofType('streak-at-risk');
                 // This is the case the feature exists for. Before it, this row
                 // said `scheduledFor = now()` and the user was woken up.
-                expect(localHourOf('Pacific/Auckland', morning.scheduledFor)).to.equal(8);
+                expectWithinJitter(localHourOf('Pacific/Auckland', morning.scheduledFor), 8);
             });
         });
 
@@ -179,10 +190,78 @@ describe('Habits digest — local scheduling and the last-chance nudge', () => {
 
             return runDigest().then((counters) => {
                 const [morning] = queue.ofType('streak-at-risk');
-                // 09:00 CDT — exactly where this notification landed before any
-                // of this existed. A user we know nothing about must not move.
-                expect(localHourOf('America/Chicago', morning.scheduledFor)).to.equal(9);
+                // 09:00 CDT — where this notification landed before any of this
+                // existed. A user we know nothing about only drifts by the daily
+                // jitter, never to a different part of their day.
+                expectWithinJitter(localHourOf('America/Chicago', morning.scheduledFor), 9);
                 expect(counters.usersWithoutTimezone).to.equal(1);
+            });
+        });
+    });
+
+    describe('user-chosen reminder times', () => {
+        // 11:00 UTC is 06:00 CDT: early enough that both chosen times are
+        // still ahead, which is the case the settings screen promises.
+        const EARLY_RUN_AT = new Date('2026-07-15T11:00:00.000Z');
+
+        it('lands both slots around the user\'s own morning and evening times', () => {
+            clock.setSystemTime(EARLY_RUN_AT.getTime());
+            stubDigest({
+                settingsTimezone: 'America/Chicago',
+                settingsPreferredReminderTime: '07:00:00',
+                settingsPreferredEveningReminderTime: '21:45:00',
+            });
+
+            return runDigest().then(() => {
+                const [morning] = queue.ofType('streak-at-risk');
+                const [evening] = queue.ofType('evening-check-in');
+                // 07:00 sits inside the *default* quiet hours and 21:45 after
+                // their default start. Both are the user's own choice, so both win.
+                expectWithinJitter(localHourOf('America/Chicago', morning.scheduledFor), 7);
+                expectWithinJitter(localHourOf('America/Chicago', evening.scheduledFor), 21.75);
+                // Never in the past, however the jitter fell.
+                expect((morning.scheduledFor as Date).getTime()).to.be.at.least(EARLY_RUN_AT.getTime());
+            });
+        });
+
+        it('moves a chosen time around by a different amount on different days, without a second row', () => {
+            const minutesOn = async (isoDay: string) => {
+                clock.setSystemTime(new Date(`${isoDay}T11:00:00.000Z`).getTime());
+                await runDigest();
+                const rows = queue.ofType('streak-at-risk');
+                return Math.round(localHourOf('America/Chicago', rows[rows.length - 1].scheduledFor) * 60);
+            };
+            stubDigest({ settingsTimezone: 'America/Chicago', settingsPreferredReminderTime: '07:00:00' });
+
+            return (async () => {
+                const days = ['2026-07-13', '2026-07-14', '2026-07-15', '2026-07-16', '2026-07-17'];
+                const minutes: number[] = [];
+                // eslint-disable-next-line no-restricted-syntax
+                for (const day of days) {
+                    // eslint-disable-next-line no-await-in-loop
+                    minutes.push(await minutesOn(day));
+                }
+                expect(new Set(minutes).size).to.be.greaterThan(1);
+                minutes.forEach((value) => expect(Math.abs(value - 7 * 60)).to.be.at.most(REMINDER_JITTER_MINUTES));
+
+                // Re-running a day lands on the same instant and inserts nothing:
+                // the dedupe key carries the date, the jitter only moves the time.
+                const before = queue.ofType('streak-at-risk').length;
+                const sameDayAgain = await minutesOn('2026-07-17');
+                expect(sameDayAgain).to.equal(minutes[minutes.length - 1]);
+                expect(queue.ofType('streak-at-risk')).to.have.length(before + 1);
+                expect(new Set(queue.ofType('streak-at-risk').map((call) => call.dedupeKey)).size).to.equal(days.length);
+            })();
+        });
+
+        it('falls back to the defaults for a stored time outside the offered range', () => {
+            // Only reachable by writing the column some other way. A 03:00 push is
+            // the failure local scheduling exists to prevent, so it is not honoured.
+            clock.setSystemTime(EARLY_RUN_AT.getTime());
+            stubDigest({ settingsTimezone: 'America/Chicago', settingsPreferredReminderTime: '03:00:00' });
+
+            return runDigest().then(() => {
+                expectWithinJitter(localHourOf('America/Chicago', queue.ofType('streak-at-risk')[0].scheduledFor), 8);
             });
         });
     });
@@ -194,7 +273,7 @@ describe('Habits digest — local scheduling and the last-chance nudge', () => {
             return runDigest().then((counters) => {
                 const lastChance = queue.ofType('evening-check-in');
                 expect(lastChance).to.have.length(1);
-                expect(localHourOf('America/Chicago', lastChance[0].scheduledFor)).to.equal(19.5);
+                expectWithinJitter(localHourOf('America/Chicago', lastChance[0].scheduledFor), 19.5);
                 expect(counters.lastChanceSent).to.equal(1);
 
                 // Stamped with the goals it covers and the local date it lands
@@ -306,7 +385,7 @@ describe('Habits digest — local scheduling and the last-chance nudge', () => {
 
             return runDigest().then((counters) => {
                 expect(queue.ofType('streak-at-risk')).to.have.length(1);
-                expect(localHourOf('America/Chicago', queue.ofType('streak-at-risk')[0].scheduledFor)).to.equal(9);
+                expectWithinJitter(localHourOf('America/Chicago', queue.ofType('streak-at-risk')[0].scheduledFor), 9);
                 // Counted as a fault, not folded into `deduped` — a degraded
                 // run and a healthy one must not look alike.
                 expect(counters.errors).to.equal(1);

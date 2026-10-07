@@ -1,7 +1,12 @@
 import { expect } from 'chai';
 import {
+    EVENING_REMINDER_WINDOW,
     FALLBACK_TIME_ZONE,
     MIN_MINUTES_BETWEEN_SLOTS,
+    MORNING_REMINDER_WINDOW,
+    getDailyJitterMinutes,
+    normalizePreferredReminderTimeInput,
+    readPreferredReminderTime,
     getLocalParts,
     getTimeZoneOffsetMinutes,
     isValidTimeZone,
@@ -204,6 +209,181 @@ describe('localReminderSchedule', () => {
 
             expect(schedule.usedFallbackTimeZone).to.equal(true);
             expect(schedule.timeZone).to.equal(FALLBACK_TIME_ZONE);
+        });
+    });
+    describe('preferred reminder times', () => {
+        it('normalizes what the settings screen sends and rejects what it never offers', () => {
+            expect(normalizePreferredReminderTimeInput('07:15', 'morning')).to.deep.equal({ isValid: true, value: '07:15' });
+            expect(normalizePreferredReminderTimeInput('21:30:00', 'evening')).to.deep.equal({ isValid: true, value: '21:30' });
+            // null and '' are "back to the default", not errors.
+            expect(normalizePreferredReminderTimeInput(null, 'morning')).to.deep.equal({ isValid: true, value: null });
+            expect(normalizePreferredReminderTimeInput('', 'evening')).to.deep.equal({ isValid: true, value: null });
+            ['03:00', '12:00', 'morning', 715, true].forEach((value) => {
+                expect(normalizePreferredReminderTimeInput(value, 'morning').isValid, String(value)).to.equal(false);
+            });
+            // A morning time is not a valid evening time, and vice versa.
+            expect(normalizePreferredReminderTimeInput('09:00', 'evening').isValid).to.equal(false);
+            expect(normalizePreferredReminderTimeInput('20:00', 'morning').isValid).to.equal(false);
+        });
+
+        it('keeps the two windows far enough apart that no offered pair can cost the evening slot', () => {
+            // The latest morning and earliest evening choice, each at the worst
+            // edge of the jitter, must still be MIN_MINUTES_BETWEEN_SLOTS apart.
+            const worstGap = (EVENING_REMINDER_WINDOW.earliest - 15) - (MORNING_REMINDER_WINDOW.latest + 15);
+            expect(worstGap).to.be.at.least(MIN_MINUTES_BETWEEN_SLOTS);
+        });
+
+        it('ignores a stored value outside the window rather than honouring it', () => {
+            expect(readPreferredReminderTime('03:00:00', 'morning')).to.equal(null);
+            expect(readPreferredReminderTime('07:00:00', 'morning')).to.equal(420);
+        });
+
+        it('honours a chosen evening time past the default quiet-hours start', () => {
+            // Honolulu at 14:00 UTC is 04:00, so the whole day is ahead. 22:30 is
+            // after the default quiet start (21:30) and must not be clamped to 21:00.
+            const schedule = resolveReminderSchedule({
+                settingsTimezone: 'Pacific/Honolulu',
+                settingsPreferredEveningReminderTime: '22:30:00',
+            }, digestRunAt('2026-07-15'));
+
+            expect(schedule.usedPreferredEveningTime).to.equal(true);
+            expect(localHourIn('Pacific/Honolulu', schedule.lastChanceAt)).to.equal(22.5);
+        });
+
+        it('still lets the user\'s own quiet hours win over their chosen evening time', () => {
+            const schedule = resolveReminderSchedule({
+                settingsTimezone: 'Pacific/Honolulu',
+                settingsPreferredEveningReminderTime: '22:30:00',
+                settingsQuietHoursStart: '21:00:00',
+                settingsQuietHoursEnd: '07:00:00',
+            }, digestRunAt('2026-07-15'));
+
+            expect(localHourIn('Pacific/Honolulu', schedule.lastChanceAt)).to.equal(20.5);
+        });
+
+        it('still lets the user\'s own quiet hours win over their chosen morning time', () => {
+            // 11:00 UTC is 06:00 CDT, so a 07:15 choice is still ahead — but this
+            // user set their own quiet hours to end at 08:00, and those win, just
+            // as they do for the evening slot.
+            const schedule = resolveReminderSchedule({
+                settingsTimezone: 'America/Chicago',
+                settingsPreferredReminderTime: '07:15:00',
+                settingsQuietHoursStart: '22:00:00',
+                settingsQuietHoursEnd: '08:00:00',
+            }, new Date('2026-07-15T11:00:00.000Z'));
+
+            expect(localHourIn('America/Chicago', schedule.morningAt)).to.equal(8);
+        });
+
+        it('keeps the default morning slot out of the user\'s own quiet hours', () => {
+            const schedule = resolveReminderSchedule({
+                settingsTimezone: 'America/Chicago',
+                settingsQuietHoursStart: '22:00:00',
+                settingsQuietHoursEnd: '09:00:00',
+            }, new Date('2026-07-15T11:00:00.000Z'));
+
+            expect(localHourIn('America/Chicago', schedule.morningAt)).to.equal(9);
+        });
+
+        it('uses the chosen morning time for tomorrow when the decision is made late at night', () => {
+            // Tokyo at 14:00 UTC is 23:00. The default case waits for the end of
+            // quiet hours (08:00); a user who chose 06:30 gets 06:30.
+            const schedule = resolveReminderSchedule({
+                settingsTimezone: 'Asia/Tokyo',
+                settingsPreferredReminderTime: '06:30:00',
+            }, digestRunAt('2026-07-15'));
+
+            expect(localHourIn('Asia/Tokyo', schedule.morningAt)).to.equal(6.5);
+            expect(schedule.morningLocalDate).to.equal('2026-07-16');
+            expect(schedule.lastChanceAt).to.equal(null);
+        });
+
+        it('sends as soon as possible, not tomorrow, once the chosen morning time has passed', () => {
+            // Berlin at 14:00 UTC is 16:00. Rule 1 still holds for a chosen time:
+            // a day's deferral would make the streak counts stale.
+            const schedule = resolveReminderSchedule({
+                settingsTimezone: 'Europe/Berlin',
+                settingsPreferredReminderTime: '07:00:00',
+            }, digestRunAt('2026-07-15'));
+
+            expect(localHourIn('Europe/Berlin', schedule.morningAt)).to.equal(16);
+            expect(schedule.morningLocalDate).to.equal('2026-07-15');
+        });
+    });
+
+    describe('daily jitter', () => {
+        const seeds = Array.from({ length: 200 }, (_, i) => `user-${i}`);
+
+        it('is reproducible, bounded and different from day to day', () => {
+            expect(getDailyJitterMinutes('user-1', '2026-07-15', 'morning', 15))
+                .to.equal(getDailyJitterMinutes('user-1', '2026-07-15', 'morning', 15));
+
+            const days = Array.from({ length: 14 }, (_, i) => `2026-07-${String(i + 1).padStart(2, '0')}`);
+            const offsets = days.map((day) => getDailyJitterMinutes('user-1', day, 'morning', 15));
+            offsets.forEach((offset) => expect(Math.abs(offset)).to.be.at.most(15));
+            expect(new Set(offsets).size).to.be.greaterThan(3);
+
+            const all = seeds.map((seed) => getDailyJitterMinutes(seed, '2026-07-15', 'morning', 15));
+            expect(Math.min(...all)).to.equal(-15);
+            expect(Math.max(...all)).to.equal(15);
+        });
+
+        it('is off without a seed or with a zero range', () => {
+            expect(getDailyJitterMinutes(null, '2026-07-15', 'morning', 15)).to.equal(0);
+            expect(getDailyJitterMinutes('user-1', '2026-07-15', 'morning', 0)).to.equal(0);
+        });
+
+        it('moves a chosen time within the range and never into the past', () => {
+            const at = new Date('2026-07-15T11:00:00.000Z'); // 06:00 CDT
+            seeds.forEach((seed) => {
+                const schedule = resolveReminderSchedule({
+                    settingsTimezone: 'America/Chicago',
+                    settingsPreferredReminderTime: '07:00:00',
+                    settingsPreferredEveningReminderTime: '20:00:00',
+                }, at, { jitterSeed: seed, jitterMinutes: 15 });
+
+                expect(Math.abs(localHourIn('America/Chicago', schedule.morningAt) - 7)).to.be.at.most(0.25);
+                expect(Math.abs(localHourIn('America/Chicago', schedule.lastChanceAt) - 20)).to.be.at.most(0.25);
+                expect(schedule.morningAt.getTime()).to.be.at.least(at.getTime());
+            });
+        });
+
+        it('never jitters the default morning slot into the default quiet hours', () => {
+            // The default 08:00 target sits exactly on the default quiet-hours end.
+            const at = new Date('2026-07-15T11:00:00.000Z'); // 06:00 CDT
+            seeds.forEach((seed) => {
+                const schedule = resolveReminderSchedule({ settingsTimezone: 'America/Chicago' }, at, { jitterSeed: seed });
+                const hour = localHourIn('America/Chicago', schedule.morningAt);
+                expect(hour).to.be.at.least(8);
+                expect(hour).to.be.at.most(8.25);
+            });
+        });
+
+        it('spreads an as-soon-as-possible slot forward rather than pinning it to the digest\'s minute', () => {
+            const minutes = seeds.map((seed) => localHourIn(
+                'Europe/Berlin',
+                resolveReminderSchedule({ settingsTimezone: 'Europe/Berlin' }, digestRunAt('2026-07-15'), {
+                    jitterSeed: seed,
+                    jitterMinutes: 15,
+                }).morningAt,
+            ));
+            minutes.forEach((hour) => {
+                expect(hour).to.be.at.least(16);
+                expect(hour).to.be.at.most(16.25);
+            });
+            expect(new Set(minutes).size).to.be.greaterThan(5);
+        });
+
+        it('cannot cost the evening slot for the closest pair of times the screen offers', () => {
+            const at = new Date('2026-07-15T14:00:00.000Z'); // 04:00 in Honolulu
+            seeds.forEach((seed) => {
+                const schedule = resolveReminderSchedule({
+                    settingsTimezone: 'Pacific/Honolulu',
+                    settingsPreferredReminderTime: '11:30:00',
+                    settingsPreferredEveningReminderTime: '16:00:00',
+                }, at, { jitterSeed: seed, jitterMinutes: 15 });
+                expect(schedule.lastChanceAt, seed).to.not.equal(null);
+            });
         });
     });
 });
