@@ -888,7 +888,8 @@
                 "off": "Off",
                 "myQRCodes": "Manage My QR Codes",
                 "settingsPushHabitReminders": "Daily habit reminders",
-                "settingsPushStreakAlerts": "Evening streak reminders"
+                "settingsPushStreakAlerts": "Evening streak reminders",
+                "settingsPushLeaderboardAlerts": "Leaderboard alerts"
             },
             "errorMessages": {
                 "repeatPassword": "Passwords do not match",

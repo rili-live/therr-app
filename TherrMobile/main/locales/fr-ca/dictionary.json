@@ -888,7 +888,8 @@
                 "off": "Désactivé",
                 "myQRCodes": "Gérer mes codes QR",
                 "settingsPushHabitReminders": "Rappels quotidiens d’habitudes",
-                "settingsPushStreakAlerts": "Rappels de série en soirée"
+                "settingsPushStreakAlerts": "Rappels de série en soirée",
+                "settingsPushLeaderboardAlerts": "Alertes du classement"
             },
             "errorMessages": {
                 "repeatPassword": "Les mots de passe ne correspondent pas",
