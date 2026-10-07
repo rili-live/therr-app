@@ -302,8 +302,12 @@ interface IDigestCountersWithRecap extends IDigestCounters {
  * The keys are the whole mechanism: see docs/NOTIFICATION_QUEUE_DESIGN.md.
  */
 const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
+    // No `locale` here on purpose. The request is the scheduler's, not any
+    // recipient's — therr-messaging-automator hardcodes `x-localecode: en-us` —
+    // so a header locale stamped on every row sent Spanish and French-Canadian
+    // users their pushes in English. Each row takes its recipient's own
+    // `settingsLocale` instead; see `getRecipientLocale` below.
     const {
-        locale,
         whiteLabelOrigin,
         brandVariation,
     } = parseHeaders(req.headers);
@@ -419,6 +423,29 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
     ]);
 
     /**
+     * The recipient's own locale, memoized for the run.
+     *
+     * One read per distinct recipient rather than per row: the digest notifies
+     * the same pact members several times over. The promise is cached, not the
+     * value, so two passes racing on one user share a single read. A failed read
+     * falls back to `en-us` rather than dropping the notification — a push in the
+     * wrong language is better than none, and it is what every run before this
+     * one sent anyway.
+     */
+    const recipientLocaleCache = new Map<string, Promise<string>>();
+    const getRecipientLocale = (userId: string): Promise<string> => {
+        if (!recipientLocaleCache.has(userId)) {
+            recipientLocaleCache.set(
+                userId,
+                Store.users.findUser({ id: userId }, ['settingsLocale'])
+                    .then((rows: any[]) => rows?.[0]?.settingsLocale || 'en-us')
+                    .catch(() => 'en-us'),
+            );
+        }
+        return recipientLocaleCache.get(userId) as Promise<string>;
+    };
+
+    /**
      * Resolves true when a row was queued. `enqueueNotification` never throws, so
      * a queue failure is reported rather than aborting the pact loop — but it is
      * counted under `errors`, NOT under `deduped`. The two are the same "nothing
@@ -445,7 +472,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             // The worker reads `locale` and `whiteLabelOrigin` off the payload
             // when it builds the send, so they have to travel with the row —
             // by the time it drains, this request's headers are long gone.
-            payload: { ...extras, locale, whiteLabelOrigin },
+            // The locale is the recipient's, never the request's.
+            payload: { ...extras, locale: await getRecipientLocale(toUserId), whiteLabelOrigin },
             scheduledFor,
         });
         if (outcome === 'duplicate') {
