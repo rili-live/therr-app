@@ -1,0 +1,4 @@
+Nouveautés :
+• Choisissez quand vos rappels d'habitudes arrivent : une heure le matin et une le soir dans Paramètres → Notifications
+• Nouvel interrupteur « Alertes du classement » pour couper les avis quand quelqu'un vous dépasse ou que le podium est à votre portée
+• Corrections et améliorations

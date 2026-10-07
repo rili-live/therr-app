@@ -1,0 +1,4 @@
+Novedades:
+• Elige cuándo llegan tus recordatorios de hábitos: escoge una hora de la mañana y una de la noche en Ajustes → Notificaciones
+• Nuevo interruptor "Alertas de la tabla de clasificación" para desactivar los avisos cuando alguien te supera o el podio está a tu alcance
+• Correcciones y mejoras
