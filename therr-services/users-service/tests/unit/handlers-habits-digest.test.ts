@@ -238,6 +238,39 @@ describe('Habits digest — queues instead of sending', () => {
         expect(streakRow.payload.locale).to.equal('en-us');
     });
 
+    it("stamps each row with its recipient's settingsLocale, not the scheduler's header locale", async () => {
+        // The automator calls with `x-localecode: en-us` for everyone. Before
+        // this, that header was stamped on every row, so an `es` user got
+        // English pushes with nothing failing anywhere.
+        const storedLocales: Record<string, string> = { [MEMBER_A]: 'es', [MEMBER_B]: 'fr-ca' };
+        (Store.users.findUser as any).restore();
+        sinon.stub(Store.users, 'findUser').callsFake((params: any) => Promise.resolve([{
+            firstName: 'Alex',
+            settingsLocale: storedLocales[params?.id] || null,
+        }]) as any);
+
+        await runDigest({ 'x-brand-variation': 'habits', 'x-localecode': 'en-us' });
+
+        const rowsFor = (userId: string) => queue.calls.filter((call) => call.userId === userId);
+        expect(rowsFor(MEMBER_A).length).to.be.greaterThan(0);
+        expect(rowsFor(MEMBER_B).length).to.be.greaterThan(0);
+        expect(rowsFor(MEMBER_C).length).to.be.greaterThan(0);
+        rowsFor(MEMBER_A).forEach((call) => expect(call.payload.locale).to.equal('es'));
+        rowsFor(MEMBER_B).forEach((call) => expect(call.payload.locale).to.equal('fr-ca'));
+        // No stored locale falls back to en-us.
+        rowsFor(MEMBER_C).forEach((call) => expect(call.payload.locale).to.equal('en-us'));
+    });
+
+    it('falls back to en-us when the recipient locale read fails, rather than dropping the row', async () => {
+        (Store.users.findUser as any).restore();
+        sinon.stub(Store.users, 'findUser').rejects(new Error('read pool exhausted'));
+
+        await runDigest({ 'x-brand-variation': 'habits', 'x-localecode': 'es' });
+
+        expect(queue.calls.length).to.be.greaterThan(0);
+        queue.calls.forEach((call) => expect(call.payload.locale).to.equal('en-us'));
+    });
+
     it('files under habits when the trigger sends no brand header, never under an empty brand', async () => {
         // The queue column has no default and the worker only claims known
         // brands, so a row written under '' would sit pending forever.
