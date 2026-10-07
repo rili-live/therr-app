@@ -989,6 +989,8 @@ const updateUser = (req, res) => {
                 // dropped here — a save that reported success and changed nothing.
                 settingsPushHabitReminders: req.body.settingsPushHabitReminders,
                 settingsPushStreakAlerts: req.body.settingsPushStreakAlerts,
+                // Leaderboard race alerts (rank lost / podium within reach). Mutes on `false` only.
+                settingsPushLeaderboardAlerts: req.body.settingsPushLeaderboardAlerts,
                 settingsLocale: req.body.settingsLocale,
                 settingsTimezone: rawTimezone,
                 settingsPreferredReminderTime: reminderTimeUpdates.settingsPreferredReminderTime,

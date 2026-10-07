@@ -39,6 +39,11 @@ import {
     runWeeklyRecapPass,
 } from './helpers/weeklyRecapDigest';
 import {
+    EMPTY_PODIUM_WITHIN_REACH_COUNTERS,
+    IPodiumWithinReachCounters,
+    runPodiumWithinReachPass,
+} from './helpers/podiumWithinReachDigest';
+import {
     EMPTY_PLEDGE_VERDICT_COUNTERS,
     IPledgeVerdictCounters,
     runPledgeVerdictPass,
@@ -242,6 +247,8 @@ interface IDigestCountersWithRecap extends IDigestCounters {
     pledgeVerdicts: IPledgeVerdictCounters;
     // Nested for the same reason. See helpers/openPactSuggestionDigest.ts.
     openPactSuggestions: IOpenPactSuggestionCounters;
+    // Nested for the same reason. See helpers/podiumWithinReachDigest.ts.
+    podiumWithinReach: IPodiumWithinReachCounters;
 }
 
 /**
@@ -348,6 +355,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         weeklyRecap: { ...EMPTY_WEEKLY_RECAP_COUNTERS },
         pledgeVerdicts: { ...EMPTY_PLEDGE_VERDICT_COUNTERS },
         openPactSuggestions: { ...EMPTY_OPEN_PACT_SUGGESTION_COUNTERS },
+        podiumWithinReach: { ...EMPTY_PODIUM_WITHIN_REACH_COUNTERS },
         pactsEvaluated: 0,
         pactsExpired: 0,
         streakAtRiskSent: 0,
@@ -1435,6 +1443,21 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 return { ...EMPTY_OPEN_PACT_SUGGESTION_COUNTERS, suggestionErrors: 1 };
             });
 
+        // Leaderboard podium-within-reach. A no-op except on the Sunday run, the last before the
+        // Monday (UTC) reset. Best-effort like the passes above; the dedupe key is the period.
+        counters.podiumWithinReach = await runPodiumWithinReachPass({
+            brandVariation: brand,
+            whiteLabelOrigin,
+        }, new Date())
+            .catch((err: any) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: the podium-within-reach pass failed'],
+                });
+                return { ...EMPTY_PODIUM_WITHIN_REACH_COUNTERS, podiumErrors: 1 };
+            });
+
         logSpan({
             level: 'info',
             messageOrigin: 'API_SERVER',
@@ -1452,6 +1475,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 weeklyRecap: JSON.stringify(counters.weeklyRecap),
                 pledgeVerdicts: JSON.stringify(counters.pledgeVerdicts),
                 openPactSuggestions: JSON.stringify(counters.openPactSuggestions),
+                podiumWithinReach: JSON.stringify(counters.podiumWithinReach),
                 'pushNotification.brandVariation': String(brand),
             },
         });

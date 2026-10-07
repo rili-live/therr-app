@@ -567,6 +567,9 @@ describe('UserLeaderboardScoresStore.getUsersDisplacedFromRank', () => {
         expect(sql).to.contain('"ranked"."boardRank" = 3');
         expect(sql).to.contain('"ranked"."points" >= 40');
         expect(sql).to.contain('"ranked"."points" < 70');
+        // Muting alerts filters the recipients, never the ranking pool.
+        expect(sql).to.contain('"ranked"."settingsPushLeaderboardAlerts" IS DISTINCT FROM false');
+        expect(sql.indexOf('IS DISTINCT FROM false')).to.be.greaterThan(sql.indexOf('as "ranked"'));
         expect(rows).to.deep.equal([{ userId: 'user-2', points: 50, settingsLocale: 'fr-ca' }]);
     });
 

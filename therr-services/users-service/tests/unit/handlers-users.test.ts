@@ -873,11 +873,13 @@ describe('Users Handler', () => {
             await updateUser(makeReq({
                 settingsPushHabitReminders: false,
                 settingsPushStreakAlerts: false,
+                settingsPushLeaderboardAlerts: false,
             }), res);
 
             expect(res.statusCode).to.equal(202);
             expect(updateStub.firstCall.args[0].settingsPushHabitReminders).to.equal(false);
             expect(updateStub.firstCall.args[0].settingsPushStreakAlerts).to.equal(false);
+            expect(updateStub.firstCall.args[0].settingsPushLeaderboardAlerts).to.equal(false);
         });
 
         it('leaves both undefined when the save does not mention them', async () => {
@@ -897,6 +899,7 @@ describe('Users Handler', () => {
             expect(res.statusCode).to.equal(202);
             expect(updateStub.firstCall.args[0].settingsPushHabitReminders).to.be.eq(undefined);
             expect(updateStub.firstCall.args[0].settingsPushStreakAlerts).to.be.eq(undefined);
+            expect(updateStub.firstCall.args[0].settingsPushLeaderboardAlerts).to.be.eq(undefined);
         });
 
         describe('preferred reminder times', () => {

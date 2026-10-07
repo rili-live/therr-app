@@ -22,6 +22,14 @@ export const getRankLostDedupeKey = (threshold: number, date: Date = new Date())
     `leaderboard-rank-lost:top${threshold}:${date.toISOString().split('T')[0]}`
 );
 
+// The podium-within-reach nudge goes to users at most this much XP short of tying #3 — about
+// what two or three check-ins with proof earn, so the gap is closable in the hours left.
+export const PODIUM_WITHIN_REACH_MAX_GAP = 50;
+
+// Below this many hours to the reset the nudge is skipped: "resets in 1 hours" is both bad
+// copy and too late to act on.
+export const PODIUM_WITHIN_REACH_MIN_HOURS_LEFT = 2;
+
 // weeklyChampion tier awarded per crossed rank threshold.
 export const WEEKLY_CHAMPION_TIER_BY_MILESTONE: { [milestone: number]: string } = {
     10: '1_1',
@@ -167,3 +175,21 @@ export const getLeaderboardPeriodEnd = (periodStart: string): string => {
     start.setUTCDate(start.getUTCDate() + 7);
     return start.toISOString().split('T')[0];
 };
+
+/**
+ * Whether the habits digest firing at `now` is the last one before the weekly reset. The board
+ * resets Monday 00:00 UTC and the digest fires once a day (9am America/Chicago, ~14:00–15:00
+ * UTC), so that is the run on a UTC Sunday.
+ */
+export const isLastDigestBeforeReset = (now: Date = new Date()): boolean => now.getUTCDay() === 0;
+
+/** Whole hours from `now` until the current weekly period resets, rounded down. */
+export const getHoursUntilReset = (now: Date = new Date()): number => {
+    const periodEnd = new Date(`${getLeaderboardPeriodEnd(getLeaderboardPeriodStart(now))}T00:00:00Z`);
+    return Math.max(0, Math.floor((periodEnd.getTime() - now.getTime()) / (60 * 60 * 1000)));
+};
+
+/** One podium nudge per user per weekly period: the period is the key, nothing else. */
+export const getPodiumWithinReachDedupeKey = (periodStart: string): string => (
+    `leaderboard-podium-within-reach:${periodStart}`
+);
