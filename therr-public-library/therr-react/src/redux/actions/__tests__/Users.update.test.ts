@@ -142,4 +142,18 @@ describe('UsersActions.update — Redux settings dispatch scoping', () => {
         expect(updateDispatch[0].data.settings.settingsPushHabitReminders).toBe(false);
         expect(updateDispatch[0].data.settings.settingsPushStreakAlerts).toBe(false);
     });
+
+    it('carries the leaderboard alerts preference into redux settings', async () => {
+        (UsersService.update as jest.Mock).mockResolvedValue({
+            data: { ...serverUser, settingsPushLeaderboardAlerts: false },
+        });
+        const dispatch = jest.fn();
+        const actions = createActions();
+        await actions.update('u1', { settingsPushLeaderboardAlerts: false })(dispatch);
+
+        const updateDispatch = dispatch.mock.calls.find(
+            ([action]) => action?.type === SocketClientActionTypes.UPDATE_USER,
+        );
+        expect(updateDispatch[0].data.settings.settingsPushLeaderboardAlerts).toBe(false);
+    });
 });

@@ -261,6 +261,30 @@ describe('localReminderSchedule', () => {
             expect(localHourIn('Pacific/Honolulu', schedule.lastChanceAt)).to.equal(20.5);
         });
 
+        it('still lets the user\'s own quiet hours win over their chosen morning time', () => {
+            // 11:00 UTC is 06:00 CDT, so a 07:15 choice is still ahead — but this
+            // user set their own quiet hours to end at 08:00, and those win, just
+            // as they do for the evening slot.
+            const schedule = resolveReminderSchedule({
+                settingsTimezone: 'America/Chicago',
+                settingsPreferredReminderTime: '07:15:00',
+                settingsQuietHoursStart: '22:00:00',
+                settingsQuietHoursEnd: '08:00:00',
+            }, new Date('2026-07-15T11:00:00.000Z'));
+
+            expect(localHourIn('America/Chicago', schedule.morningAt)).to.equal(8);
+        });
+
+        it('keeps the default morning slot out of the user\'s own quiet hours', () => {
+            const schedule = resolveReminderSchedule({
+                settingsTimezone: 'America/Chicago',
+                settingsQuietHoursStart: '22:00:00',
+                settingsQuietHoursEnd: '09:00:00',
+            }, new Date('2026-07-15T11:00:00.000Z'));
+
+            expect(localHourIn('America/Chicago', schedule.morningAt)).to.equal(9);
+        });
+
         it('uses the chosen morning time for tomorrow when the decision is made late at night', () => {
             // Tokyo at 14:00 UTC is 23:00. The default case waits for the end of
             // quiet hours (08:00); a user who chose 06:30 gets 06:30.
