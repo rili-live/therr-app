@@ -22,6 +22,9 @@ export enum Types {
 
     // Leaderboards (all brands)
     leaderboardRankMilestone = 'leaderboard-rank-milestone',
+    // Sent to a user bumped out of the weekly top 3 by someone climbing past them.
+    // Reuses the LEADERBOARD_RANK_MILESTONE intent action, so it needs no native change.
+    leaderboardRankLost = 'leaderboard-rank-lost',
 
     // Automation
     createYourProfileReminder = 'create-your-profile-reminder',

@@ -1360,6 +1360,28 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'LEADERBOARD_RANK_MILESTONE'), brandVariation);
             return baseMessage;
+        case PushNotifications.Types.leaderboardRankLost:
+            // Deliberately borrows the milestone's intent action: it is already declared in
+            // every brand's manifest and bucketed into a channel on the habits build, so this
+            // type is tappable on installs that shipped before it existed. The tap opens the
+            // leaderboard either way, via the shared press action.
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.leaderboardRankLost.title'),
+                    notificationBody: config.fromUserName
+                        ? translate(config.userLocale, 'notifications.leaderboardRankLost.body', {
+                            userName: String(config.fromUserName),
+                            rank: Number(config.rank || 0),
+                        })
+                        : translate(config.userLocale, 'notifications.leaderboardRankLost.bodyAnonymous', {
+                            rank: Number(config.rank || 0),
+                        }),
+                    notificationPressActionId: PushNotifications.PressActionIds.leaderboardView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'LEADERBOARD_RANK_MILESTONE'), brandVariation);
+            return baseMessage;
         case PushNotifications.Types.streakMilestone:
             baseMessage = createDataOnlyMessage({
                 data: {
@@ -1841,6 +1863,7 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.inviteFriendsReminder,
     PushNotifications.Types.latestPostLikesStats,
     PushNotifications.Types.latestPostViewcountStats,
+    PushNotifications.Types.leaderboardRankLost,
     PushNotifications.Types.leaderboardRankMilestone,
     PushNotifications.Types.morningMotivation,
     PushNotifications.Types.newAreasActivated,

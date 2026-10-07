@@ -53,6 +53,7 @@ const DATA_ONLY_TYPES = [
     PushNotifications.Types.newThoughtReplyReceived,
     PushNotifications.Types.newThoughtRepostReceived,
     PushNotifications.Types.leaderboardRankMilestone,
+    PushNotifications.Types.leaderboardRankLost,
     PushNotifications.Types.streakAtRisk,
     // Moved off the display path so Notifee can render its "Check In" action
     // button — the OS-rendered path cannot carry one. See the DEPLOY ORDER note
@@ -177,6 +178,32 @@ describe('firebaseAdmin brand routing', () => {
 
             expect(message.apns.headers['apns-push-type']).to.equal('alert');
             expect(message.apns.payload.aps.alert.title).to.be.a('string').that.is.not.empty;
+        });
+
+        it('routes the rank-lost push through the milestone intent action so existing installs can open it', () => {
+            // leaderboardRankLost has no intent action of its own on purpose: borrowing the
+            // milestone's means no manifest change and no new build before it is tappable.
+            const message: any = createMessage(
+                PushNotifications.Types.leaderboardRankLost,
+                {},
+                config,
+                BrandVariations.HABITS,
+            );
+
+            expect(message.data.clickActionId).to.equal('com.therr.mobile.habits.LEADERBOARD_RANK_MILESTONE');
+            expect(message.data.notificationPressActionId).to.equal(PushNotifications.PressActionIds.leaderboardView);
+            expect(message.data.notificationBody).to.contain('partner').and.to.contain('#4');
+        });
+
+        it('falls back to anonymous rank-lost copy when the overtaker has no name', () => {
+            const message: any = createMessage(
+                PushNotifications.Types.leaderboardRankLost,
+                {},
+                { ...config, fromUserName: '' },
+                BrandVariations.HABITS,
+            );
+
+            expect(message.data.notificationBody).to.contain('Someone').and.to.contain('#4');
         });
     });
 
