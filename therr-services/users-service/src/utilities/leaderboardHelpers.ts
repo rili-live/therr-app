@@ -8,6 +8,20 @@
 // achievement progress) when crossed from outside. Ordered best-first.
 export const LEADERBOARD_RANK_MILESTONES = [1, 3, 10];
 
+// A user pushed from exactly this weekly rank to the one below it is told who passed them
+// (leaderboardRankLost). Only the podium: losing #10 is not worth a push, and losing #1
+// while staying on the podium is still a podium finish.
+export const LEADERBOARD_DISPLACEMENT_THRESHOLD = 3;
+
+/**
+ * Dedup key for the rank-lost push. One per user per UTC day: a tight race at #3 can swap
+ * places many times in an afternoon, and every swap after the first is noise. The date is
+ * what makes it re-arm tomorrow — never put the climber or a timestamp in it.
+ */
+export const getRankLostDedupeKey = (threshold: number, date: Date = new Date()): string => (
+    `leaderboard-rank-lost:top${threshold}:${date.toISOString().split('T')[0]}`
+);
+
 // weeklyChampion tier awarded per crossed rank threshold.
 export const WEEKLY_CHAMPION_TIER_BY_MILESTONE: { [milestone: number]: string } = {
     10: '1_1',

@@ -213,4 +213,58 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
         return this.db.read.query(queryBuilder.toString())
             .then((response) => 1 + (Number(response.rows[0]?.count) || 0));
     }
+
+    /**
+     * Eligible users the climber just pushed from exactly `rank` to `rank + 1` on a weekly
+     * board, by moving from prevPoints to newPoints.
+     *
+     * A climb shifts another user's rank only if it jumps them: their score s satisfies
+     * prevPoints <= s < newPoints. Such a user's rank goes from 1 + A to 2 + A, where A is
+     * the number of OTHER users (climber excluded) strictly ahead of them — which is what
+     * RANK() over the climber-less pool computes. So "was exactly `rank`, now one worse" is
+     * that window rank equalling `rank` within the jumped score band. Ties at `rank` all
+     * fall together, matching how getRankForScore ranks them.
+     */
+    getUsersDisplacedFromRank(brand: BrandValue, {
+        periodStart,
+        rank,
+        climberUserId,
+        prevPoints,
+        newPoints,
+    }: {
+        periodStart: string,
+        rank: number,
+        climberUserId: string,
+        prevPoints: number,
+        newPoints: number,
+    }): Promise<{ userId: string, points: number, settingsLocale?: string }[]> {
+        if (newPoints <= prevPoints) {
+            return Promise.resolve([]);
+        }
+        const pointsColumn = `"${this.tableName.split('.')[1]}"."points"`;
+        let rankedPool = this.scopedQuery(brand)
+            .select([
+                `${this.tableName}.userId`,
+                `${this.tableName}.points`,
+                `${USERS_TABLE_NAME}.settingsLocale`,
+                knexBuilder.raw(`RANK() OVER (ORDER BY ${pointsColumn} DESC) AS "boardRank"`),
+            ])
+            .andWhere(`${this.tableName}.periodStart`, periodStart)
+            .whereNot(`${this.tableName}.userId`, climberUserId);
+        rankedPool = this.applyEligibilityFilters(rankedPool);
+
+        const queryString = knexBuilder
+            .select(['ranked.userId', 'ranked.points', 'ranked.settingsLocale'])
+            .from(rankedPool.as('ranked'))
+            .where('ranked.boardRank', rank)
+            .andWhere('ranked.points', '>=', prevPoints)
+            .andWhere('ranked.points', '<', newPoints)
+            .toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => response.rows.map((row) => ({
+                ...row,
+                points: Number(row.points) || 0,
+            })));
+    }
 }

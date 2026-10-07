@@ -98,6 +98,14 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Leaderboard rank-lost push (added 2026-10-07)
+
+- [ ] **Confirm one `leaderboardRankLost` push lands in the Habits app on a handset and opens the
+  leaderboard.** It borrows the `LEADERBOARD_RANK_MILESTONE` intent action and channel bucket, so no
+  build is needed — but that reuse is exactly the kind of thing only a device can prove. Easiest
+  repro: two test accounts on a quiet board, push one past the other at #3. It is queued, so it only
+  sends where `NOTIFICATION_QUEUE_WORKER_ENABLED=true`.
+
 ## Open pacts (added 2026-10-05)
 
 - [ ] **Run the users-service migrations after the deploy** (`20261005000001`–`03`: `pacts.isOpen` /
