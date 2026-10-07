@@ -4,7 +4,8 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import Store from '../../store';
 import sendEmailAndOrPushNotification from '../../utilities/sendEmailAndOrPushNotification';
-import enqueueNotification from '../../utilities/enqueueNotification';
+import enqueueNotification, { EnqueueOutcome } from '../../utilities/enqueueNotification';
+import { isInQuietHoursAt } from '../../utilities/localReminderSchedule';
 import {
     getCrossedRankMilestones,
     getLeaderboardPeriodStart,
@@ -21,6 +22,11 @@ import {
  * score. Queued rather than sent inline — the recipient isn't watching for this, and the
  * queue gives a per-day dedup (see getRankLostDedupeKey) plus the per-user daily cap, so a
  * see-saw race at #3 costs each user at most one push a day.
+ *
+ * The climber's afternoon is often the recipient's night, so a recipient inside their own
+ * quiet hours is skipped rather than woken. Skipped, not deferred: "you're #4" is a snapshot
+ * that the morning may no longer bear out, and skipping leaves the day's dedupe key unspent,
+ * so a later displacement while they are awake still reaches them.
  */
 const notifyUsersDisplacedFromPodium = async ({
     brandVariation,
@@ -29,6 +35,7 @@ const notifyUsersDisplacedFromPodium = async ({
     prevPoints,
     newPoints,
     whiteLabelOrigin,
+    now = new Date(),
 }: {
     brandVariation: string,
     periodStart: string,
@@ -36,7 +43,8 @@ const notifyUsersDisplacedFromPodium = async ({
     prevPoints: number,
     newPoints: number,
     whiteLabelOrigin?: string,
-}) => {
+    now?: Date,
+}): Promise<(EnqueueOutcome | 'quiet-hours')[]> => {
     const displaced = await Store.userLeaderboardScores.getUsersDisplacedFromRank(brandVariation, {
         periodStart,
         rank: LEADERBOARD_DISPLACEMENT_THRESHOLD,
@@ -47,23 +55,25 @@ const notifyUsersDisplacedFromPodium = async ({
     if (!displaced.length) {
         return [];
     }
-    const dedupeKey = getRankLostDedupeKey(LEADERBOARD_DISPLACEMENT_THRESHOLD);
+    const dedupeKey = getRankLostDedupeKey(LEADERBOARD_DISPLACEMENT_THRESHOLD, now);
 
-    return Promise.all(displaced.map((displacedUser) => enqueueNotification({
-        brandVariation,
-        toUserId: displacedUser.userId,
-        type: PushNotifications.Types.leaderboardRankLost,
-        dedupeKey,
-        payload: {
+    return Promise.all(displaced.map((displacedUser) => (isInQuietHoursAt(displacedUser, now)
+        ? Promise.resolve('quiet-hours' as const)
+        : enqueueNotification({
+            brandVariation,
+            toUserId: displacedUser.userId,
+            type: PushNotifications.Types.leaderboardRankLost,
+            dedupeKey,
+            payload: {
             // The worker rebuilds the send from this payload alone, so the copy's locale
             // must be the recipient's — not the climber's, whose request this is.
-            locale: displacedUser.settingsLocale || 'en-us',
-            whiteLabelOrigin: whiteLabelOrigin || '',
-            fromUserId: climber.id,
-            fromUser: { id: climber.id, userName: climber.userName },
-            rank: LEADERBOARD_DISPLACEMENT_THRESHOLD + 1,
-        },
-    })));
+                locale: displacedUser.settingsLocale || 'en-us',
+                whiteLabelOrigin: whiteLabelOrigin || '',
+                fromUserId: climber.id,
+                fromUser: { id: climber.id, userName: climber.userName },
+                rank: LEADERBOARD_DISPLACEMENT_THRESHOLD + 1,
+            },
+        }))));
 };
 
 /**

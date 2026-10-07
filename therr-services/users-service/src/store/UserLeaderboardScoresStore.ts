@@ -289,7 +289,14 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
         climberUserId: string,
         prevPoints: number,
         newPoints: number,
-    }): Promise<{ userId: string, points: number, settingsLocale?: string }[]> {
+    }): Promise<{
+        userId: string,
+        points: number,
+        settingsLocale?: string | null,
+        settingsTimezone?: string | null,
+        settingsQuietHoursStart?: string | null,
+        settingsQuietHoursEnd?: string | null,
+    }[]> {
         if (newPoints <= prevPoints) {
             return Promise.resolve([]);
         }
@@ -299,6 +306,9 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
                 `${this.tableName}.userId`,
                 `${this.tableName}.points`,
                 `${USERS_TABLE_NAME}.settingsLocale`,
+                `${USERS_TABLE_NAME}.settingsTimezone`,
+                `${USERS_TABLE_NAME}.settingsQuietHoursStart`,
+                `${USERS_TABLE_NAME}.settingsQuietHoursEnd`,
                 `${USERS_TABLE_NAME}.settingsPushLeaderboardAlerts`,
                 knexBuilder.raw(`RANK() OVER (ORDER BY ${pointsColumn} DESC) AS "boardRank"`),
             ])
@@ -307,7 +317,14 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
         rankedPool = this.applyEligibilityFilters(rankedPool);
 
         const queryString = knexBuilder
-            .select(['ranked.userId', 'ranked.points', 'ranked.settingsLocale'])
+            .select([
+                'ranked.userId',
+                'ranked.points',
+                'ranked.settingsLocale',
+                'ranked.settingsTimezone',
+                'ranked.settingsQuietHoursStart',
+                'ranked.settingsQuietHoursEnd',
+            ])
             .from(rankedPool.as('ranked'))
             .where('ranked.boardRank', rank)
             .andWhere('ranked.points', '>=', prevPoints)

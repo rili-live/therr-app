@@ -33,15 +33,7 @@ import { PushNotifications } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../../store';
 import enqueueNotification from '../../utilities/enqueueNotification';
-import { resolveCheckinTimeZone } from '../../utilities/dailyStreak';
-import {
-    DEFAULT_QUIET_HOURS_END,
-    DEFAULT_QUIET_HOURS_START,
-    getLocalParts,
-    isWithinQuietHours,
-    MinutesOfDay,
-    parseTimeOfDay,
-} from '../../utilities/localReminderSchedule';
+import { isInQuietHoursAt } from '../../utilities/localReminderSchedule';
 import {
     getHoursUntilReset,
     getLeaderboardPeriodStart,
@@ -77,21 +69,6 @@ export const EMPTY_PODIUM_WITHIN_REACH_COUNTERS: IPodiumWithinReachCounters = {
     podiumNudgesDeduped: 0,
     podiumNudgesSkippedQuietHours: 0,
     podiumErrors: 0,
-};
-
-const isInQuietHoursNow = (user: {
-    settingsTimezone?: string | null,
-    settingsQuietHoursStart?: string | null,
-    settingsQuietHoursEnd?: string | null,
-}, now: Date): boolean => {
-    const local = getLocalParts(resolveCheckinTimeZone(user.settingsTimezone), now)
-        || getLocalParts('UTC', now);
-    if (!local) {
-        return false;
-    }
-    const quietStart = parseTimeOfDay(user.settingsQuietHoursStart) ?? parseTimeOfDay(DEFAULT_QUIET_HOURS_START) as MinutesOfDay;
-    const quietEnd = parseTimeOfDay(user.settingsQuietHoursEnd) ?? parseTimeOfDay(DEFAULT_QUIET_HOURS_END) as MinutesOfDay;
-    return isWithinQuietHours(local.minutesOfDay, quietStart, quietEnd);
 };
 
 export const runPodiumWithinReachPass = async (
@@ -143,7 +120,7 @@ export const runPodiumWithinReachPass = async (
             return Promise.resolve();
         }
 
-        if (isInQuietHoursNow(chaser, now)) {
+        if (isInQuietHoursAt(chaser, now)) {
             counters.podiumNudgesSkippedQuietHours += 1;
             return Promise.resolve();
         }
@@ -154,9 +131,8 @@ export const runPodiumWithinReachPass = async (
             type: PushNotifications.Types.leaderboardPodiumWithinReach,
             dedupeKey,
             payload: {
-                // The recipient's own locale. The digest's shared enqueue helper stamps the
-                // scheduler request's locale on every row, which is why this pass queues
-                // directly instead of going through it.
+                // The recipient's own locale — this row is built from the chaser query,
+                // not the scheduler request, so it never sees the request's header locale.
                 locale: chaser.settingsLocale || 'en-us',
                 whiteLabelOrigin: whiteLabelOrigin || '',
                 rank,

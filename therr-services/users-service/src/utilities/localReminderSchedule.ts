@@ -377,6 +377,28 @@ export const isWithinQuietHours = (
 };
 
 /**
+ * Whether `at` falls inside this user's quiet hours, in their own zone (the
+ * fallback zone when theirs is missing or invalid) and with the default window
+ * standing in for any end they have not set. For producers that send *now*
+ * rather than at a scheduled slot, and so have to decide between sending and
+ * not sending instead of moving the delivery.
+ */
+export const isInQuietHoursAt = (preferences: {
+    settingsTimezone?: string | null,
+    settingsQuietHoursStart?: string | null,
+    settingsQuietHoursEnd?: string | null,
+}, at: Date): boolean => {
+    const timeZone = isValidTimeZone(preferences.settingsTimezone) ? preferences.settingsTimezone.trim() : FALLBACK_TIME_ZONE;
+    const local = getLocalParts(timeZone, at) || getLocalParts('UTC', at);
+    if (!local) {
+        return false;
+    }
+    const quietStart = parseTimeOfDay(preferences.settingsQuietHoursStart) ?? parseTimeOfDay(DEFAULT_QUIET_HOURS_START) as MinutesOfDay;
+    const quietEnd = parseTimeOfDay(preferences.settingsQuietHoursEnd) ?? parseTimeOfDay(DEFAULT_QUIET_HOURS_END) as MinutesOfDay;
+    return isWithinQuietHours(local.minutesOfDay, quietStart, quietEnd);
+};
+
+/**
  * Read a user's chosen reminder time for one slot: minutes past midnight, or
  * null when it is unset, unreadable or outside the window the settings screen
  * offers. Null always means "use the default", so a bad value degrades to the
@@ -524,6 +546,17 @@ export const resolveReminderSchedule = (
                 morningMinutes = quietEnd + Math.abs(morningJitter);
             }
         }
+    }
+
+    // Quiet hours the user set themselves outrank everything above, a chosen
+    // time included — the evening slot already works this way, and it is the
+    // stronger statement of the two. The default window was shrunk around any
+    // chosen time earlier, so this only ever moves a slot out of the user's own.
+    // Limited to a window that ends later the same local day; anything else
+    // cannot be a morning conflict.
+    const hasOwnQuietHours = ownQuietStart !== null || ownQuietEnd !== null;
+    if (hasOwnQuietHours && morningMinutes < quietEnd && isWithinQuietHours(morningMinutes, quietStart, quietEnd)) {
+        morningMinutes = Math.min(quietEnd + Math.abs(morningJitter), MINUTES_PER_DAY - 1);
     }
 
     const morningAt = localTimeToInstant(

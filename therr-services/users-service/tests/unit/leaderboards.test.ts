@@ -496,12 +496,15 @@ describe('leaderboardRankLost — knocked off the podium', () => {
         ]);
         const enqueueStub = sinon.stub(Store.notificationQueue, 'enqueue').resolves({ id: 'row' } as any);
 
+        // 13:00 in the fallback zone (America/Chicago) — outside the default quiet hours.
+        const now = new Date('2026-10-07T18:00:00Z');
         const outcomes = await notifyUsersDisplacedFromPodium({
             brandVariation: BrandVariations.HABITS,
             periodStart: '2026-10-05',
             climber: { id: 'user-1', userName: 'tester' },
             prevPoints: 40,
             newPoints: 70,
+            now,
         });
 
         expect(outcomes).to.deep.equal(['queued', 'queued']);
@@ -511,11 +514,42 @@ describe('leaderboardRankLost — knocked off the podium', () => {
         expect(row).to.include({
             userId: 'user-2',
             type: 'leaderboard-rank-lost',
-            dedupeKey: getRankLostDedupeKey(3),
+            dedupeKey: getRankLostDedupeKey(3, now),
         });
         expect(row.payload).to.deep.include({ locale: 'es', rank: 4, fromUserId: 'user-1' });
         expect(row.payload.fromUser).to.deep.equal({ id: 'user-1', userName: 'tester' });
         expect((enqueueStub.secondCall.args as any[])[1].payload.locale).to.equal('en-us');
+    });
+
+    it('does not wake a displaced user who is inside their own quiet hours', async () => {
+        // 18:00 UTC is 13:00 in Chicago but 03:00 in Tokyo. The climber's afternoon must not
+        // become a 3am push on the other side of the world.
+        sinon.stub(Store.userLeaderboardScores, 'getUsersDisplacedFromRank').resolves([
+            { userId: 'user-2', points: 50, settingsTimezone: 'Asia/Tokyo' },
+            { userId: 'user-3', points: 50, settingsTimezone: 'America/Chicago' },
+            // Own quiet hours win over the default window.
+            {
+                userId: 'user-4',
+                points: 50,
+                settingsTimezone: 'America/Chicago',
+                settingsQuietHoursStart: '12:00:00',
+                settingsQuietHoursEnd: '14:00:00',
+            },
+        ]);
+        const enqueueStub = sinon.stub(Store.notificationQueue, 'enqueue').resolves({ id: 'row' } as any);
+
+        const outcomes = await notifyUsersDisplacedFromPodium({
+            brandVariation: BrandVariations.HABITS,
+            periodStart: '2026-10-05',
+            climber: { id: 'user-1', userName: 'tester' },
+            prevPoints: 40,
+            newPoints: 70,
+            now: new Date('2026-10-07T18:00:00Z'),
+        });
+
+        expect(outcomes).to.deep.equal(['quiet-hours', 'queued', 'quiet-hours']);
+        expect(enqueueStub.callCount).to.equal(1);
+        expect((enqueueStub.firstCall.args as any[])[1].userId).to.equal('user-3');
     });
 
     it('queues nothing when no one was sitting at #3 in the jumped band', async () => {
@@ -567,6 +601,10 @@ describe('UserLeaderboardScoresStore.getUsersDisplacedFromRank', () => {
         expect(sql).to.contain('"ranked"."boardRank" = 3');
         expect(sql).to.contain('"ranked"."points" >= 40');
         expect(sql).to.contain('"ranked"."points" < 70');
+        // What the producer needs to keep the push out of the recipient's quiet hours.
+        expect(sql).to.contain('"ranked"."settingsTimezone"');
+        expect(sql).to.contain('"ranked"."settingsQuietHoursStart"');
+        expect(sql).to.contain('"ranked"."settingsQuietHoursEnd"');
         // Muting alerts filters the recipients, never the ranking pool.
         expect(sql).to.contain('"ranked"."settingsPushLeaderboardAlerts" IS DISTINCT FROM false');
         expect(sql.indexOf('IS DISTINCT FROM false')).to.be.greaterThan(sql.indexOf('as "ranked"'));
