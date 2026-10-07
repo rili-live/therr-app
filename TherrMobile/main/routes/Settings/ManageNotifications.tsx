@@ -423,6 +423,16 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
                                                 translate={this.translate}
                                                 disabled={isSubmitting}
                                             />
+                                            <NotificationSettingSwitch
+                                                label={this.translate('forms.settings.buttons.settingsPushLeaderboardAlerts')}
+                                                value={inputs.settingsPushLeaderboardAlerts}
+                                                onChange={() => this.onSwitchChange('settingsPushLeaderboardAlerts')}
+                                                theme={this.theme}
+                                                themeForms={this.themeForms}
+                                                themeModal={this.themeModal}
+                                                translate={this.translate}
+                                                disabled={isSubmitting}
+                                            />
                                         </View>
                                         <View style={this.theme.styles.sectionContainer}>
                                             <Text style={this.theme.styles.sectionTitle}>

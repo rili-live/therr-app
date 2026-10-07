@@ -19,11 +19,15 @@
 export interface IHabitsPushPreferences {
     settingsPushHabitReminders: boolean;
     settingsPushStreakAlerts: boolean;
+    // Leaderboard race alerts ("Sam just passed you", "30 XP from the podium"). Same
+    // contract: the users-service producers mute on an explicit `false` only.
+    settingsPushLeaderboardAlerts: boolean;
 }
 
 const getHabitsPushPreferences = (settings: any): IHabitsPushPreferences => ({
     settingsPushHabitReminders: settings?.settingsPushHabitReminders !== false,
     settingsPushStreakAlerts: settings?.settingsPushStreakAlerts !== false,
+    settingsPushLeaderboardAlerts: settings?.settingsPushLeaderboardAlerts !== false,
 });
 
 export default getHabitsPushPreferences;

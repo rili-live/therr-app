@@ -13,9 +13,11 @@ describe('getHabitsPushPreferences', () => {
         expect(getHabitsPushPreferences({
             settingsPushHabitReminders: false,
             settingsPushStreakAlerts: false,
+            settingsPushLeaderboardAlerts: false,
         })).toEqual({
             settingsPushHabitReminders: false,
             settingsPushStreakAlerts: false,
+            settingsPushLeaderboardAlerts: false,
         });
     });
 
@@ -23,9 +25,11 @@ describe('getHabitsPushPreferences', () => {
         expect(getHabitsPushPreferences({
             settingsPushHabitReminders: true,
             settingsPushStreakAlerts: true,
+            settingsPushLeaderboardAlerts: true,
         })).toEqual({
             settingsPushHabitReminders: true,
             settingsPushStreakAlerts: true,
+            settingsPushLeaderboardAlerts: true,
         });
     });
 
@@ -35,6 +39,7 @@ describe('getHabitsPushPreferences', () => {
         expect(getHabitsPushPreferences({})).toEqual({
             settingsPushHabitReminders: true,
             settingsPushStreakAlerts: true,
+            settingsPushLeaderboardAlerts: true,
         });
     });
 
@@ -42,6 +47,7 @@ describe('getHabitsPushPreferences', () => {
         expect(getHabitsPushPreferences(undefined)).toEqual({
             settingsPushHabitReminders: true,
             settingsPushStreakAlerts: true,
+            settingsPushLeaderboardAlerts: true,
         });
     });
 
@@ -50,9 +56,11 @@ describe('getHabitsPushPreferences', () => {
         expect(getHabitsPushPreferences({
             settingsPushHabitReminders: null,
             settingsPushStreakAlerts: null,
+            settingsPushLeaderboardAlerts: null,
         })).toEqual({
             settingsPushHabitReminders: true,
             settingsPushStreakAlerts: true,
+            settingsPushLeaderboardAlerts: true,
         });
     });
 
@@ -60,9 +68,18 @@ describe('getHabitsPushPreferences', () => {
         expect(getHabitsPushPreferences({
             settingsPushHabitReminders: true,
             settingsPushStreakAlerts: false,
+            settingsPushLeaderboardAlerts: false,
         })).toEqual({
             settingsPushHabitReminders: true,
             settingsPushStreakAlerts: false,
+            settingsPushLeaderboardAlerts: false,
+        });
+    });
+    it('mutes leaderboard alerts without touching the habit reminders', () => {
+        expect(getHabitsPushPreferences({ settingsPushLeaderboardAlerts: false })).toEqual({
+            settingsPushHabitReminders: true,
+            settingsPushStreakAlerts: true,
+            settingsPushLeaderboardAlerts: false,
         });
     });
 });
