@@ -157,7 +157,7 @@ export const runWeeklyRecapPass = async (
                         return;
                     }
 
-                    const schedule = resolveReminderSchedule(preferences, now);
+                    const schedule = resolveReminderSchedule(preferences, now, { jitterSeed: target.userId });
                     const weekStartDate = getRecapWeekStart(schedule.localDate);
 
                     const recap = await buildWeeklyRecap({

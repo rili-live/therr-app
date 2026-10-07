@@ -141,6 +141,7 @@ export interface IHabitReminderPreferenceRow {
     id: string;
     settingsTimezone: string | null;
     settingsPreferredReminderTime: string | null;
+    settingsPreferredEveningReminderTime: string | null;
     settingsQuietHoursStart: string | null;
     settingsQuietHoursEnd: string | null;
     settingsPushHabitReminders: boolean | null;
@@ -312,6 +313,7 @@ export default class UsersStore {
                 'id',
                 'settingsTimezone',
                 'settingsPreferredReminderTime',
+                'settingsPreferredEveningReminderTime',
                 'settingsQuietHoursStart',
                 'settingsQuietHoursEnd',
                 'settingsPushHabitReminders',
@@ -779,6 +781,24 @@ export default class UsersStore {
 
         if (params.settingsPushStreakAlerts != null) {
             modifiedParams.settingsPushStreakAlerts = params.settingsPushStreakAlerts;
+        }
+
+        // Same contract: the leaderboard race producers mute on an explicit `false` only.
+        if (params.settingsPushLeaderboardAlerts != null) {
+            modifiedParams.settingsPushLeaderboardAlerts = params.settingsPushLeaderboardAlerts;
+        }
+
+        // `!== undefined`, unlike the booleans above: `null` is a real value here. It
+        // clears the user's chosen reminder time and hands the slot back to the
+        // digest's default (`utilities/localReminderSchedule.ts`), which is what the
+        // settings screen's "Default" option sends. The handler has already
+        // validated and normalised both.
+        if (params.settingsPreferredReminderTime !== undefined) {
+            modifiedParams.settingsPreferredReminderTime = params.settingsPreferredReminderTime;
+        }
+
+        if (params.settingsPreferredEveningReminderTime !== undefined) {
+            modifiedParams.settingsPreferredEveningReminderTime = params.settingsPreferredEveningReminderTime;
         }
 
         if (params.shouldHideMatureContent != null) {

@@ -12,7 +12,10 @@ import { BrandVariations } from 'therr-js-utilities/constants';
 import Store from '../../src/store';
 import { createOrUpdateAchievement } from '../../src/handlers/helpers/achievements';
 import { awardLeaderboardPoints } from '../../src/handlers/helpers/leaderboards';
-import { detectAndCelebrateRankMilestones } from '../../src/handlers/helpers/leaderboardRankMilestones';
+import {
+    detectAndCelebrateRankMilestones,
+    notifyUsersDisplacedFromPodium,
+} from '../../src/handlers/helpers/leaderboardRankMilestones';
 import HabitCheckinsStore from '../../src/store/HabitCheckinsStore';
 import {
     LeaderboardXpValues,
@@ -20,6 +23,7 @@ import {
     checkinProofXp,
     getCrossedRankMilestones,
     getLeaderboardPeriodStart,
+    getRankLostDedupeKey,
     getLeaderboardPeriodEnd,
     weeklyQuotaBonus,
     withCompetitionRanks,
@@ -411,6 +415,215 @@ describe('UserLeaderboardScoresStore.getRankForScore — excludeUserId', () => {
         await store.getRankForScore(BrandVariations.THERR, 100, { periodStart: '2026-07-13' });
 
         expect(query.firstCall.args[0]).to.not.contain('not "main"."userLeaderboardScores"."userId" =');
+    });
+});
+
+describe('leaderboardRankLost — knocked off the podium', () => {
+    const eligibleUser = {
+        id: 'user-1',
+        userName: 'tester',
+        settingsIsLeaderboardEnabled: true,
+        settingsIsAccountSoftDeleted: false,
+    };
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    const stubCelebrationSideEffects = () => {
+        sinon.stub(Store.users, 'getUserById').resolves([eligibleUser]);
+        sinon.stub(Store.users, 'findUser').resolves([] as any);
+        sinon.stub(Store.userAchievements, 'get').resolves([]);
+        sinon.stub(Store.userAchievements, 'updateAndCreateConsecutive').resolves({
+            created: [],
+            updated: [],
+            action: 'incomplete',
+        } as any);
+        sinon.stub(Store.userLeaderboardScores, 'incrementPoints').resolves([]);
+    };
+
+    it('looks for a displaced #3 when the climber crosses into the top 3', async () => {
+        sinon.stub(Store.userLeaderboardScores, 'getRankForScore')
+            .onFirstCall().resolves(5)
+            .onSecondCall()
+            .resolves(3);
+        stubCelebrationSideEffects();
+        const displacedStub = sinon.stub(Store.userLeaderboardScores, 'getUsersDisplacedFromRank').resolves([]);
+
+        await detectAndCelebrateRankMilestones(therrHeaders as any, { prevPoints: 40, newPoints: 70 });
+
+        expect(displacedStub.calledOnce).to.equal(true);
+        expect(displacedStub.firstCall.args[1]).to.include({
+            rank: 3,
+            climberUserId: 'user-1',
+            prevPoints: 40,
+            newPoints: 70,
+        });
+    });
+
+    it('does not look for anyone when the climb stays outside the top 3', async () => {
+        // Only crossing into the top 3 can push someone out of it — a climb into the
+        // top 10, or within the top 3, leaves the #3 → #4 boundary untouched.
+        sinon.stub(Store.userLeaderboardScores, 'getRankForScore')
+            .onFirstCall().resolves(15)
+            .onSecondCall()
+            .resolves(8);
+        stubCelebrationSideEffects();
+        const displacedStub = sinon.stub(Store.userLeaderboardScores, 'getUsersDisplacedFromRank').resolves([]);
+
+        await detectAndCelebrateRankMilestones(therrHeaders as any, { prevPoints: 10, newPoints: 60 });
+
+        expect(displacedStub.called).to.equal(false);
+    });
+
+    it('does not look for anyone when the climber is opted out of the board', async () => {
+        sinon.stub(Store.userLeaderboardScores, 'getRankForScore')
+            .onFirstCall().resolves(5)
+            .onSecondCall()
+            .resolves(2);
+        sinon.stub(Store.users, 'getUserById').resolves([{ ...eligibleUser, settingsIsLeaderboardEnabled: false }]);
+        const displacedStub = sinon.stub(Store.userLeaderboardScores, 'getUsersDisplacedFromRank').resolves([]);
+
+        await detectAndCelebrateRankMilestones(therrHeaders as any, { prevPoints: 40, newPoints: 90 });
+
+        expect(displacedStub.called).to.equal(false);
+    });
+
+    it('queues one rank-lost push per displaced user, in the recipient\'s locale, deduped per day', async () => {
+        sinon.stub(Store.userLeaderboardScores, 'getUsersDisplacedFromRank').resolves([
+            { userId: 'user-2', points: 50, settingsLocale: 'es' },
+            { userId: 'user-3', points: 50 },
+        ]);
+        const enqueueStub = sinon.stub(Store.notificationQueue, 'enqueue').resolves({ id: 'row' } as any);
+
+        // 13:00 in the fallback zone (America/Chicago) — outside the default quiet hours.
+        const now = new Date('2026-10-07T18:00:00Z');
+        const outcomes = await notifyUsersDisplacedFromPodium({
+            brandVariation: BrandVariations.HABITS,
+            periodStart: '2026-10-05',
+            climber: { id: 'user-1', userName: 'tester' },
+            prevPoints: 40,
+            newPoints: 70,
+            now,
+        });
+
+        expect(outcomes).to.deep.equal(['queued', 'queued']);
+        expect(enqueueStub.callCount).to.equal(2);
+        const [brand, row] = enqueueStub.firstCall.args as any[];
+        expect(brand).to.equal(BrandVariations.HABITS);
+        expect(row).to.include({
+            userId: 'user-2',
+            type: 'leaderboard-rank-lost',
+            dedupeKey: getRankLostDedupeKey(3, now),
+        });
+        expect(row.payload).to.deep.include({ locale: 'es', rank: 4, fromUserId: 'user-1' });
+        expect(row.payload.fromUser).to.deep.equal({ id: 'user-1', userName: 'tester' });
+        expect((enqueueStub.secondCall.args as any[])[1].payload.locale).to.equal('en-us');
+    });
+
+    it('does not wake a displaced user who is inside their own quiet hours', async () => {
+        // 18:00 UTC is 13:00 in Chicago but 03:00 in Tokyo. The climber's afternoon must not
+        // become a 3am push on the other side of the world.
+        sinon.stub(Store.userLeaderboardScores, 'getUsersDisplacedFromRank').resolves([
+            { userId: 'user-2', points: 50, settingsTimezone: 'Asia/Tokyo' },
+            { userId: 'user-3', points: 50, settingsTimezone: 'America/Chicago' },
+            // Own quiet hours win over the default window.
+            {
+                userId: 'user-4',
+                points: 50,
+                settingsTimezone: 'America/Chicago',
+                settingsQuietHoursStart: '12:00:00',
+                settingsQuietHoursEnd: '14:00:00',
+            },
+        ]);
+        const enqueueStub = sinon.stub(Store.notificationQueue, 'enqueue').resolves({ id: 'row' } as any);
+
+        const outcomes = await notifyUsersDisplacedFromPodium({
+            brandVariation: BrandVariations.HABITS,
+            periodStart: '2026-10-05',
+            climber: { id: 'user-1', userName: 'tester' },
+            prevPoints: 40,
+            newPoints: 70,
+            now: new Date('2026-10-07T18:00:00Z'),
+        });
+
+        expect(outcomes).to.deep.equal(['quiet-hours', 'queued', 'quiet-hours']);
+        expect(enqueueStub.callCount).to.equal(1);
+        expect((enqueueStub.firstCall.args as any[])[1].userId).to.equal('user-3');
+    });
+
+    it('queues nothing when no one was sitting at #3 in the jumped band', async () => {
+        sinon.stub(Store.userLeaderboardScores, 'getUsersDisplacedFromRank').resolves([]);
+        const enqueueStub = sinon.stub(Store.notificationQueue, 'enqueue');
+
+        await notifyUsersDisplacedFromPodium({
+            brandVariation: BrandVariations.HABITS,
+            periodStart: '2026-10-05',
+            climber: { id: 'user-1' },
+            prevPoints: 40,
+            newPoints: 70,
+        });
+
+        expect(enqueueStub.called).to.equal(false);
+    });
+
+    it('keys the dedup on the UTC day only, so a see-saw race costs one push a day', () => {
+        expect(getRankLostDedupeKey(3, new Date('2026-10-07T01:00:00Z')))
+            .to.equal(getRankLostDedupeKey(3, new Date('2026-10-07T23:59:59Z')));
+        expect(getRankLostDedupeKey(3, new Date('2026-10-07T12:00:00Z'))).to.equal('leaderboard-rank-lost:top3:2026-10-07');
+        expect(getRankLostDedupeKey(3, new Date('2026-10-08T00:00:00Z'))).to.not.equal(getRankLostDedupeKey(3, new Date('2026-10-07T00:00:00Z')));
+    });
+});
+
+describe('UserLeaderboardScoresStore.getUsersDisplacedFromRank', () => {
+    const buildStore = () => {
+        const query = sinon.stub().resolves({ rows: [{ userId: 'user-2', points: '50', settingsLocale: 'fr-ca' }] });
+        // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+        const StoreClass = require('../../src/store/UserLeaderboardScoresStore').default;
+        return { query, store: new StoreClass({ read: { query }, write: { query } }) };
+    };
+
+    it('ranks the climber-less, eligible weekly pool and keeps only #N inside the jumped band', async () => {
+        const { query, store } = buildStore();
+
+        const rows = await store.getUsersDisplacedFromRank(BrandVariations.HABITS, {
+            periodStart: '2026-10-05',
+            rank: 3,
+            climberUserId: 'user-1',
+            prevPoints: 40,
+            newPoints: 70,
+        });
+
+        const sql: string = query.firstCall.args[0];
+        expect(sql).to.contain('RANK() OVER (ORDER BY "userLeaderboardScores"."points" DESC)');
+        expect(sql).to.contain('not "main"."userLeaderboardScores"."userId" = \'user-1\'');
+        expect(sql).to.contain('"settingsIsLeaderboardEnabled" = true');
+        expect(sql).to.contain('"ranked"."boardRank" = 3');
+        expect(sql).to.contain('"ranked"."points" >= 40');
+        expect(sql).to.contain('"ranked"."points" < 70');
+        // What the producer needs to keep the push out of the recipient's quiet hours.
+        expect(sql).to.contain('"ranked"."settingsTimezone"');
+        expect(sql).to.contain('"ranked"."settingsQuietHoursStart"');
+        expect(sql).to.contain('"ranked"."settingsQuietHoursEnd"');
+        // Muting alerts filters the recipients, never the ranking pool.
+        expect(sql).to.contain('"ranked"."settingsPushLeaderboardAlerts" IS DISTINCT FROM false');
+        expect(sql.indexOf('IS DISTINCT FROM false')).to.be.greaterThan(sql.indexOf('as "ranked"'));
+        expect(rows).to.deep.equal([{ userId: 'user-2', points: 50, settingsLocale: 'fr-ca' }]);
+    });
+
+    it('skips the query when the score did not go up', async () => {
+        const { query, store } = buildStore();
+
+        const rows = await store.getUsersDisplacedFromRank(BrandVariations.HABITS, {
+            periodStart: '2026-10-05',
+            rank: 3,
+            climberUserId: 'user-1',
+            prevPoints: 70,
+            newPoints: 70,
+        });
+
+        expect(query.called).to.equal(false);
+        expect(rows).to.deep.equal([]);
     });
 });
 

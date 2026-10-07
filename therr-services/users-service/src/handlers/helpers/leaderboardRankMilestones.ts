@@ -4,16 +4,83 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import Store from '../../store';
 import sendEmailAndOrPushNotification from '../../utilities/sendEmailAndOrPushNotification';
+import enqueueNotification, { EnqueueOutcome } from '../../utilities/enqueueNotification';
+import { isInQuietHoursAt } from '../../utilities/localReminderSchedule';
 import {
     getCrossedRankMilestones,
     getLeaderboardPeriodStart,
+    getRankLostDedupeKey,
+    LEADERBOARD_DISPLACEMENT_THRESHOLD,
     WEEKLY_CHAMPION_TIER_BY_MILESTONE,
 } from '../../utilities/leaderboardHelpers';
 
 /**
+ * Tells whoever the climber just bumped off the podium (#3 → #4) who passed them.
+ *
+ * Only called when the climber crossed into the top 3, which is exactly when someone can
+ * fall out of it: if the climber was already inside, no one at #3 was ahead of their old
+ * score. Queued rather than sent inline — the recipient isn't watching for this, and the
+ * queue gives a per-day dedup (see getRankLostDedupeKey) plus the per-user daily cap, so a
+ * see-saw race at #3 costs each user at most one push a day.
+ *
+ * The climber's afternoon is often the recipient's night, so a recipient inside their own
+ * quiet hours is skipped rather than woken. Skipped, not deferred: "you're #4" is a snapshot
+ * that the morning may no longer bear out, and skipping leaves the day's dedupe key unspent,
+ * so a later displacement while they are awake still reaches them.
+ */
+const notifyUsersDisplacedFromPodium = async ({
+    brandVariation,
+    periodStart,
+    climber,
+    prevPoints,
+    newPoints,
+    whiteLabelOrigin,
+    now = new Date(),
+}: {
+    brandVariation: string,
+    periodStart: string,
+    climber: { id: string, userName?: string },
+    prevPoints: number,
+    newPoints: number,
+    whiteLabelOrigin?: string,
+    now?: Date,
+}): Promise<(EnqueueOutcome | 'quiet-hours')[]> => {
+    const displaced = await Store.userLeaderboardScores.getUsersDisplacedFromRank(brandVariation, {
+        periodStart,
+        rank: LEADERBOARD_DISPLACEMENT_THRESHOLD,
+        climberUserId: climber.id,
+        prevPoints,
+        newPoints,
+    });
+    if (!displaced.length) {
+        return [];
+    }
+    const dedupeKey = getRankLostDedupeKey(LEADERBOARD_DISPLACEMENT_THRESHOLD, now);
+
+    return Promise.all(displaced.map((displacedUser) => (isInQuietHoursAt(displacedUser, now)
+        ? Promise.resolve('quiet-hours' as const)
+        : enqueueNotification({
+            brandVariation,
+            toUserId: displacedUser.userId,
+            type: PushNotifications.Types.leaderboardRankLost,
+            dedupeKey,
+            payload: {
+            // The worker rebuilds the send from this payload alone, so the copy's locale
+            // must be the recipient's — not the climber's, whose request this is.
+                locale: displacedUser.settingsLocale || 'en-us',
+                whiteLabelOrigin: whiteLabelOrigin || '',
+                fromUserId: climber.id,
+                fromUser: { id: climber.id, userName: climber.userName },
+                rank: LEADERBOARD_DISPLACEMENT_THRESHOLD + 1,
+            },
+        }))));
+};
+
+/**
  * Celebrates weekly-rank milestones (top 10 / top 3 / #1) after an XP award moves a
  * user up the board: one push notification (best threshold crossed) plus weeklyChampion
- * achievement progress per crossed threshold.
+ * achievement progress per crossed threshold. Crossing into the top 3 also queues a
+ * leaderboardRankLost push for whoever that climb knocked from #3 to #4.
  *
  * Fire-and-forget — never throws into the XP path. Crossing detection is edge-triggered
  * (was strictly outside the threshold before the award), so sitting inside the top N
@@ -86,6 +153,22 @@ const detectAndCelebrateRankMilestones = async (
             traceArgs: { 'error.message': err?.message, 'user.id': userId },
         }));
 
+        if (crossedMilestones.includes(LEADERBOARD_DISPLACEMENT_THRESHOLD)) {
+            notifyUsersDisplacedFromPodium({
+                brandVariation,
+                periodStart,
+                climber: { id: userId, userName: userName || user.userName },
+                prevPoints,
+                newPoints,
+                whiteLabelOrigin,
+            }).catch((err) => logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['Failed to queue leaderboard rank-lost notifications'],
+                traceArgs: { 'error.message': err?.message, 'user.id': userId },
+            }));
+        }
+
         // weeklyChampion progress per crossed threshold. Lazily required to break the
         // module cycle: achievements.ts → leaderboards.ts → (this file) → achievements.ts.
         // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
@@ -113,4 +196,5 @@ const detectAndCelebrateRankMilestones = async (
 
 export {
     detectAndCelebrateRankMilestones,
+    notifyUsersDisplacedFromPodium,
 };
