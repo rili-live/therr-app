@@ -39,6 +39,11 @@ import {
     runWeeklyRecapPass,
 } from './helpers/weeklyRecapDigest';
 import {
+    EMPTY_PODIUM_WITHIN_REACH_COUNTERS,
+    IPodiumWithinReachCounters,
+    runPodiumWithinReachPass,
+} from './helpers/podiumWithinReachDigest';
+import {
     EMPTY_PLEDGE_VERDICT_COUNTERS,
     IPledgeVerdictCounters,
     runPledgeVerdictPass,
@@ -242,6 +247,8 @@ interface IDigestCountersWithRecap extends IDigestCounters {
     pledgeVerdicts: IPledgeVerdictCounters;
     // Nested for the same reason. See helpers/openPactSuggestionDigest.ts.
     openPactSuggestions: IOpenPactSuggestionCounters;
+    // Nested for the same reason. See helpers/podiumWithinReachDigest.ts.
+    podiumWithinReach: IPodiumWithinReachCounters;
 }
 
 /**
@@ -302,8 +309,12 @@ interface IDigestCountersWithRecap extends IDigestCounters {
  * The keys are the whole mechanism: see docs/NOTIFICATION_QUEUE_DESIGN.md.
  */
 const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
+    // No `locale` here on purpose. The request is the scheduler's, not any
+    // recipient's — therr-messaging-automator hardcodes `x-localecode: en-us` —
+    // so a header locale stamped on every row sent Spanish and French-Canadian
+    // users their pushes in English. Each row takes its recipient's own
+    // `settingsLocale` instead; see `getRecipientLocale` below.
     const {
-        locale,
         whiteLabelOrigin,
         brandVariation,
     } = parseHeaders(req.headers);
@@ -348,6 +359,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         weeklyRecap: { ...EMPTY_WEEKLY_RECAP_COUNTERS },
         pledgeVerdicts: { ...EMPTY_PLEDGE_VERDICT_COUNTERS },
         openPactSuggestions: { ...EMPTY_OPEN_PACT_SUGGESTION_COUNTERS },
+        podiumWithinReach: { ...EMPTY_PODIUM_WITHIN_REACH_COUNTERS },
         pactsEvaluated: 0,
         pactsExpired: 0,
         streakAtRiskSent: 0,
@@ -419,6 +431,29 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
     ]);
 
     /**
+     * The recipient's own locale, memoized for the run.
+     *
+     * One read per distinct recipient rather than per row: the digest notifies
+     * the same pact members several times over. The promise is cached, not the
+     * value, so two passes racing on one user share a single read. A failed read
+     * falls back to `en-us` rather than dropping the notification — a push in the
+     * wrong language is better than none, and it is what every run before this
+     * one sent anyway.
+     */
+    const recipientLocaleCache = new Map<string, Promise<string>>();
+    const getRecipientLocale = (userId: string): Promise<string> => {
+        if (!recipientLocaleCache.has(userId)) {
+            recipientLocaleCache.set(
+                userId,
+                Store.users.findUser({ id: userId }, ['settingsLocale'])
+                    .then((rows: any[]) => rows?.[0]?.settingsLocale || 'en-us')
+                    .catch(() => 'en-us'),
+            );
+        }
+        return recipientLocaleCache.get(userId) as Promise<string>;
+    };
+
+    /**
      * Resolves true when a row was queued. `enqueueNotification` never throws, so
      * a queue failure is reported rather than aborting the pact loop — but it is
      * counted under `errors`, NOT under `deduped`. The two are the same "nothing
@@ -445,7 +480,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             // The worker reads `locale` and `whiteLabelOrigin` off the payload
             // when it builds the send, so they have to travel with the row —
             // by the time it drains, this request's headers are long gone.
-            payload: { ...extras, locale, whiteLabelOrigin },
+            // The locale is the recipient's, never the request's.
+            payload: { ...extras, locale: await getRecipientLocale(toUserId), whiteLabelOrigin },
             scheduledFor,
         });
         if (outcome === 'duplicate') {
@@ -1271,7 +1307,13 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             // Where, in real time, this user's morning and evening slots fall.
             // Everything about local delivery is decided here; the rest of this
             // loop only queues what it returns.
-            const schedule = resolveReminderSchedule(preferences, decidedAt);
+            //
+            // Seeded with the user id so each slot drifts around its target by a
+            // different, reproducible amount each day — a reminder at the same
+            // minute every morning is the one people learn to swipe away unread.
+            // The dedupe keys below carry the date, not the time, so the drift
+            // can never turn into a second row.
+            const schedule = resolveReminderSchedule(preferences, decidedAt, { jitterSeed: row.userId });
             if (schedule.usedFallbackTimeZone) {
                 counters.usersWithoutTimezone += 1;
             }
@@ -1429,6 +1471,21 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 return { ...EMPTY_OPEN_PACT_SUGGESTION_COUNTERS, suggestionErrors: 1 };
             });
 
+        // Leaderboard podium-within-reach. A no-op except on the Sunday run, the last before the
+        // Monday (UTC) reset. Best-effort like the passes above; the dedupe key is the period.
+        counters.podiumWithinReach = await runPodiumWithinReachPass({
+            brandVariation: brand,
+            whiteLabelOrigin,
+        }, new Date())
+            .catch((err: any) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: the podium-within-reach pass failed'],
+                });
+                return { ...EMPTY_PODIUM_WITHIN_REACH_COUNTERS, podiumErrors: 1 };
+            });
+
         logSpan({
             level: 'info',
             messageOrigin: 'API_SERVER',
@@ -1446,6 +1503,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 weeklyRecap: JSON.stringify(counters.weeklyRecap),
                 pledgeVerdicts: JSON.stringify(counters.pledgeVerdicts),
                 openPactSuggestions: JSON.stringify(counters.openPactSuggestions),
+                podiumWithinReach: JSON.stringify(counters.podiumWithinReach),
                 'pushNotification.brandVariation': String(brand),
             },
         });

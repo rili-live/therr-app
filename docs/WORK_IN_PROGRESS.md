@@ -98,6 +98,23 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Leaderboard rank-lost push (added 2026-10-07)
+
+- [ ] **Confirm one `leaderboardRankLost` push lands in the Habits app on a handset and opens the
+  leaderboard.** It borrows the `LEADERBOARD_RANK_MILESTONE` intent action and channel bucket, so no
+  build is needed — but that reuse is exactly the kind of thing only a device can prove. Easiest
+  repro: two test accounts on a quiet board, push one past the other at #3. It is queued, so it only
+  sends where `NOTIFICATION_QUEUE_WORKER_ENABLED=true`.
+- [ ] **Run the users-service migration after the deploy** (`20261007000001_main.users.settingsPushLeaderboardAlerts`,
+  additive, default true — neither automator reads `main.users` settings, so no cross-repo change).
+  Until it runs, both leaderboard nudge queries fail on the missing column: rank-lost logs and sends
+  nothing, the podium pass reports `podiumErrors: 1`.
+- [ ] **Read the first Sunday's `podiumWithinReach` counters** on the "Habits daily digest completed"
+  span. `podiumPassRan: true` with `podiumCandidates: 0` is normal on a sparse board; a high
+  `podiumNudgesSkippedQuietHours` means the 9am-Chicago firing is too late for a large share of users.
+- [ ] **Ship the habits build carrying the "Leaderboard alerts" switch** (niche/HABITS-general). Until it
+  does, the column can only be changed by API, so every user is opted in.
+
 ## Open pacts (added 2026-10-05)
 
 - [ ] **Run the users-service migrations after the deploy** (`20261005000001`–`03`: `pacts.isOpen` /
@@ -143,7 +160,7 @@ The prod repair itself ran 2026-09-19 14:42 UTC (`repair-space-claims`: 25 consu
   `approve-space-claim`) records it. Section 7 of the audit SQL shows weekly volume to compare
   against the inbox.
 
-## Coach waitlist demand test (added 2026-09-30)
+## Coach waitlist demand test (added 2026-09-30) (#3049, #3053)
 
 - [ ] **Mark `coach_waitlist_submit` as a key event in GA4 and import it into Google Ads.**
   Property 549794383, Admin → Events → Mark as key event; then Ads → Goals → Conversions →
@@ -160,7 +177,7 @@ The prod repair itself ran 2026-09-19 14:42 UTC (`repair-space-claims`: 25 consu
   WHERE "isSubscribedToCoachesWaitlist" ORDER BY "createdAt" DESC;`
   Reply to each coach by hand as they arrive. The admin inboxes get an email per signup.
 
-## iOS demand tracking (added 2026-09-14)
+## iOS demand tracking (added 2026-09-14) (#3049)
 
 - [ ] **Mark `ios_interest_click` and `ios_waitlist_submit` as key events in GA4.** Both
   landing pages now fire them (therr.com via `IosWaitlistModal.tsx`, habits.therr.com inline
@@ -265,7 +282,7 @@ The prod repair itself ran 2026-09-19 14:42 UTC (`repair-space-claims`: 25 consu
   design), so the fix is to confirm the ended cycle reappears in their list
   rather than to hand-create a pact for them.
 
-## Analytics & traffic (added 2026-08-24, from the GA4 review)
+## Analytics & traffic (added 2026-08-24, from the GA4 review) (#3047, #3051, #3052)
 
 - [ ] **Cut off the headless-Chrome crawler polluting the consolidated property.**
   1,010 of 1,156 sessions (87%) in Consolidated Domains (`549794383`) over the 60
@@ -1625,6 +1642,7 @@ backend change needed — it refuses to treat Play's own
 - [ ] (2026-09-24, /quality-peer-review) **Confirm the habit template migrations (`20260925000001`/`…02`) ran at `stage` and `main` and seeded the full set.** `SELECT count(*) FROM habits.habit_goals WHERE "isTemplate" AND "templateKey" IS NOT NULL;` should be 43. Fewer than 43 means the SUPER_ADMIN_ID row was missing and the inserts were skipped with a warning; create the row and re-run the file by hand, because knex has already recorded it as applied. Then check `SELECT "frequencyType", "frequencyCount" FROM habits.habit_goals WHERE id = 'b0000001-de00-4000-a000-000000000001';`. If it is still `daily`/1, a pact or tracking row points at the template itself and the move to 3x/week was deliberately skipped (see the peer-review fix to 90263c32a). Already-installed habits clients show all 43 templates in one flat list until the categorized picker (niche 241662127) ships in a Play release.
 - [ ] (2026-09-25, /mobile-release-preflight) **The EAS free-plan Android build quota ran out, so CI Habits release builds fail until it resets on 2026-10-01.** `eas_build_habits_android` (CircleCI job 18409, merge c13592e43) failed at `eas build` with "This account has used its Android builds from the Free plan this month", and the job goes red without building anything. The last EAS-built Habits AAB was versionCode 45. Until the quota resets or the plan is upgraded, release with `/niche-android-release`: it merges, sees the quota failure, and builds and submits locally. Decide whether to upgrade the plan or move the build off EAS.
 - [ ] (2026-10-01, /mobile-release-preflight) **Deploy `stage → main` before promoting Habits 1.14.1 (54) or 1.15.0 (55) to production.** Its headline release note is pact invitations in the notification list, but the users-service change that writes those `PACT_INVITATION` notifications (`78ad5acf4`, with `ee3ec0786`) is on `stage` and not `main`. The build is safe without it (no new API calls; the list just never shows one), but the advertised feature does nothing until the backend ships. 1.15.0's streak widget reads `isAtStakeToday` from `GET /habits/daily-streak/me` (`463db1a8b`, also on `stage` only); until it ships, the evening warning falls back to the device's due-weekday rule, which misses weekly-count habits and can warn on a rest day.
+- [ ] (2026-10-07, /quality-peer-review) **Confirm `20261005000004_main.users.settingsPreferredEveningReminderTime.js` ran at `stage` and `main`, alongside `20261007000001`.** `UsersStore.getHabitReminderPreferences` SELECTs the new column unconditionally, and the digest's reminder, weekly-recap, pledge-verdict and open-pact passes all read through it. Until the column exists that read fails on every run: the reminder pass degrades to the fallback zone and default quiet hours for *everyone* (ignoring stored timezones) and counts `errors: 1`, so a non-zero `errors` on the "Habits daily digest completed" span is the tell. `SELECT column_name FROM information_schema.columns WHERE table_schema = 'main' AND table_name = 'users' AND column_name IN ('settingsPreferredEveningReminderTime', 'settingsPushLeaderboardAlerts');` should return both. Additive and nullable, so neither automator is affected. Introduced by 1264b73a6.
 <!-- skill-followups:end -->
 
 ---

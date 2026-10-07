@@ -176,6 +176,9 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     bestStreakCount?: number;
     // Leaderboards: the user's new weekly rank, for rank-milestone copy
     rank?: number;
+    // Leaderboards: XP short of the weekly podium and hours left before the reset
+    pointsBehind?: number;
+    hoursLeft?: number;
     // HABITS weekly recap. `weekStartDate` is the Monday of the week being
     // recapped and is the only one of these the client acts on — the screen
     // opens that exact week rather than whatever week it is when the user taps.
@@ -253,6 +256,8 @@ export default (
         consistencyPercent,
         bestStreakCount,
         rank,
+        pointsBehind,
+        hoursLeft,
         weekStartDate,
         recapHeadline,
         checkinCount,
@@ -395,6 +400,8 @@ export default (
                     consistencyPercent,
                     bestStreakCount,
                     rank,
+                    pointsBehind,
+                    hoursLeft,
                     weekStartDate,
                     recapHeadline,
                     checkinCount,

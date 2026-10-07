@@ -213,4 +213,130 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
         return this.db.read.query(queryBuilder.toString())
             .then((response) => 1 + (Number(response.rows[0]?.count) || 0));
     }
+
+    /**
+     * Eligible users on a weekly board scoring below `targetPoints` by at most `maxGap`, who
+     * have not muted leaderboard alerts. With targetPoints = the third-highest score, these
+     * are exactly the users who would reach the podium by tying it (competition ranking:
+     * tying #3 makes you #3). Includes what the podium-within-reach push needs to schedule
+     * and localize itself.
+     */
+    getUsersWithinReachOfScore(brand: BrandValue, {
+        periodStart,
+        targetPoints,
+        maxGap,
+    }: {
+        periodStart: string,
+        targetPoints: number,
+        maxGap: number,
+    }): Promise<{
+        userId: string,
+        points: number,
+        settingsLocale?: string | null,
+        settingsTimezone?: string | null,
+        settingsQuietHoursStart?: string | null,
+        settingsQuietHoursEnd?: string | null,
+    }[]> {
+        if (targetPoints <= 0 || maxGap <= 0) {
+            return Promise.resolve([]);
+        }
+        let queryBuilder = this.scopedQuery(brand)
+            .select([
+                `${this.tableName}.userId`,
+                `${this.tableName}.points`,
+                `${USERS_TABLE_NAME}.settingsLocale`,
+                `${USERS_TABLE_NAME}.settingsTimezone`,
+                `${USERS_TABLE_NAME}.settingsQuietHoursStart`,
+                `${USERS_TABLE_NAME}.settingsQuietHoursEnd`,
+            ])
+            .andWhere(`${this.tableName}.periodStart`, periodStart)
+            .andWhere(`${this.tableName}.points`, '<', targetPoints)
+            .andWhere(`${this.tableName}.points`, '>=', Math.max(targetPoints - maxGap, 1))
+            // Mutes on an explicit false only; null is a row that predates the column.
+            .andWhereRaw(`"${USERS_TABLE_NAME.split('.')[1]}"."settingsPushLeaderboardAlerts" IS DISTINCT FROM false`);
+        queryBuilder = this.applyEligibilityFilters(queryBuilder);
+
+        return this.db.read.query(queryBuilder.orderBy(`${this.tableName}.points`, 'desc').toString())
+            .then((response) => response.rows.map((row) => ({
+                ...row,
+                points: Number(row.points) || 0,
+            })));
+    }
+
+    /**
+     * Eligible users the climber just pushed from exactly `rank` to `rank + 1` on a weekly
+     * board, by moving from prevPoints to newPoints.
+     *
+     * A climb shifts another user's rank only if it jumps them: their score s satisfies
+     * prevPoints <= s < newPoints. Such a user's rank goes from 1 + A to 2 + A, where A is
+     * the number of OTHER users (climber excluded) strictly ahead of them — which is what
+     * RANK() over the climber-less pool computes. So "was exactly `rank`, now one worse" is
+     * that window rank equalling `rank` within the jumped score band. Ties at `rank` all
+     * fall together, matching how getRankForScore ranks them.
+     *
+     * Users who muted leaderboard alerts are dropped only AFTER ranking: they are still on
+     * the board, and ranking without them would mis-rank everyone below.
+     */
+    getUsersDisplacedFromRank(brand: BrandValue, {
+        periodStart,
+        rank,
+        climberUserId,
+        prevPoints,
+        newPoints,
+    }: {
+        periodStart: string,
+        rank: number,
+        climberUserId: string,
+        prevPoints: number,
+        newPoints: number,
+    }): Promise<{
+        userId: string,
+        points: number,
+        settingsLocale?: string | null,
+        settingsTimezone?: string | null,
+        settingsQuietHoursStart?: string | null,
+        settingsQuietHoursEnd?: string | null,
+    }[]> {
+        if (newPoints <= prevPoints) {
+            return Promise.resolve([]);
+        }
+        const pointsColumn = `"${this.tableName.split('.')[1]}"."points"`;
+        let rankedPool = this.scopedQuery(brand)
+            .select([
+                `${this.tableName}.userId`,
+                `${this.tableName}.points`,
+                `${USERS_TABLE_NAME}.settingsLocale`,
+                `${USERS_TABLE_NAME}.settingsTimezone`,
+                `${USERS_TABLE_NAME}.settingsQuietHoursStart`,
+                `${USERS_TABLE_NAME}.settingsQuietHoursEnd`,
+                `${USERS_TABLE_NAME}.settingsPushLeaderboardAlerts`,
+                knexBuilder.raw(`RANK() OVER (ORDER BY ${pointsColumn} DESC) AS "boardRank"`),
+            ])
+            .andWhere(`${this.tableName}.periodStart`, periodStart)
+            .whereNot(`${this.tableName}.userId`, climberUserId);
+        rankedPool = this.applyEligibilityFilters(rankedPool);
+
+        const queryString = knexBuilder
+            .select([
+                'ranked.userId',
+                'ranked.points',
+                'ranked.settingsLocale',
+                'ranked.settingsTimezone',
+                'ranked.settingsQuietHoursStart',
+                'ranked.settingsQuietHoursEnd',
+            ])
+            .from(rankedPool.as('ranked'))
+            .where('ranked.boardRank', rank)
+            .andWhere('ranked.points', '>=', prevPoints)
+            .andWhere('ranked.points', '<', newPoints)
+            // Mutes on an explicit false only; null is a row that predates the column.
+            .andWhereRaw('"ranked"."settingsPushLeaderboardAlerts" IS DISTINCT FROM false')
+            .toString();
+
+        return this.db.read.query(queryString)
+            .then((response) => response.rows.map((row) => ({
+                ...row,
+                points: Number(row.points) || 0,
+            })));
+    }
 }

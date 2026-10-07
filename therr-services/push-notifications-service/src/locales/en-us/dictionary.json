@@ -8,6 +8,15 @@
       "title": "Leaderboard Milestone!",
       "body": "You just climbed to #{rank} on this week's leaderboard. Keep earning XP to defend your spot!"
     },
+    "leaderboardPodiumWithinReach": {
+      "title": "A podium spot is within reach",
+      "body": "You're #{rank}, just {pointsBehind} XP behind #3. The leaderboard resets in {hoursLeft} hours — one more push could do it!"
+    },
+    "leaderboardRankLost": {
+      "title": "Knocked out of the top 3",
+      "body": "{userName} just passed you — you're #{rank} on this week's leaderboard. Earn a little XP today to take your spot back!",
+      "bodyAnonymous": "Someone just passed you — you're #{rank} on this week's leaderboard. Earn a little XP today to take your spot back!"
+    },
     "connectionRequestAccepted": {
       "title": "You're Connected!",
       "body": "{userName} accepted your request — say hello and start a conversation!",

@@ -1,0 +1,4 @@
+What's new:
+• Choose when your habit reminders arrive: pick a morning and an evening time in Settings → Notifications
+• New "Leaderboard alerts" switch to turn off pushes when someone passes you or the podium is within reach
+• Fixes and stability improvements
