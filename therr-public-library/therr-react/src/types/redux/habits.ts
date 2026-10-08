@@ -573,9 +573,36 @@ export const getUserHabitNotificationPreferences = (
  * to unlocking them, and where they stand against the free-tier cap. Fetched as
  * one object so the client never has to re-derive the rule the server enforces.
  */
+/**
+ * The habit a user is tracking alone under the first-habit grace (users-service
+ * `helpers/soloHabitAccess.ts`). Free for `soloGraceDays`; after that, check-ins on it
+ * need `soloGraceKeepInviteCount` invites sent, and are refused with 403
+ * `solo-grace-ended` while `isLocked`.
+ */
+export interface IUserHabitSoloGrace {
+    userHabitId: string;
+    habitGoalId: string;
+    startedAt: string;
+    endsAt: string;
+    hasEnded: boolean;
+    isLocked: boolean;
+}
+
 export interface IUserHabitEligibility {
-    /** True once `invitedCount` reaches `soloUnlockInviteCount`. */
+    /**
+     * May start a solo habit now: `invitedCount` has reached `soloUnlockInviteCount`, or the
+     * first-habit grace is still unused (`isSoloGraceAvailable`).
+     */
     canCreateSolo: boolean;
+    /**
+     * The first-habit grace is unused, and is what `canCreateSolo` rests on. Absent from servers
+     * predating the grace (2026-10); treat `undefined` as false.
+     */
+    isSoloGraceAvailable?: boolean;
+    /** The habit the grace was spent on, once it has been. */
+    soloGrace?: IUserHabitSoloGrace | null;
+    soloGraceDays?: number;
+    soloGraceKeepInviteCount?: number;
     /**
      * Distinct people the user has invited to a pact they created, in any
      * state — the numerator of the unlock progress the client renders while

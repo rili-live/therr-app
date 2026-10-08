@@ -143,3 +143,74 @@ describe('createCheckin — free-tier habit cap', () => {
         });
     });
 });
+
+/**
+ * The first-habit solo grace at check-in (#3010). The grace habit is free to track alone for
+ * SOLO_GRACE_DAYS; after that a check-in on it needs one invite sent. Only a row the grace was
+ * spent on is ever refused, so a habit that is solo for any other reason (a partner left, an
+ * invites-unlocked solo habit) never is.
+ */
+describe('createCheckin — first-habit solo grace', () => {
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    let getByUserAndHabitStub: sinon.SinonStub;
+    let countInvitedStub: sinon.SinonStub;
+    let getActivePactsStub: sinon.SinonStub;
+
+    const graceRow = (daysAgo: number) => ({
+        id: 'uh-1', userId: USER_ID, habitGoalId: GOAL_ID, status: 'active', soloGraceStartedAt: new Date(Date.now() - daysAgo * DAY_MS),
+    });
+
+    beforeEach(() => {
+        sinon.stub(Store.habitGoals, 'getById').resolves({ id: GOAL_ID, goalType: 'build_good' } as any);
+        getActivePactsStub = sinon.stub(Store.pacts, 'getActiveByUserAndHabitGoal').resolves([]);
+        getByUserAndHabitStub = sinon.stub(Store.userHabits, 'getByUserAndHabit').resolves(graceRow(8) as any);
+        countInvitedStub = sinon.stub(Store.pactMembers, 'countDistinctInvitedByCreator').resolves(0);
+        sinon.stub(Store.userHabits, 'getOrCreate').rejects(PASSED_GATE);
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    it('refuses a check-in on the grace habit once the window has passed with no invite', async () => {
+        const { captured } = await callHandler();
+
+        expect(captured.statusCode).to.equal(403);
+        expect(captured.body.error).to.equal('solo-grace-ended');
+        expect(captured.body).to.include({ habitGoalId: GOAL_ID, invitedCount: 0, requiredCount: 1 });
+    });
+
+    it('lets it through inside the window, without reading the invite count', async () => {
+        getByUserAndHabitStub.resolves(graceRow(6) as any);
+
+        const { error } = await callHandler();
+
+        expect(error).to.equal(PASSED_GATE);
+        expect(countInvitedStub.called).to.equal(false);
+    });
+
+    it('keeps the habit going once one invite has been sent', async () => {
+        countInvitedStub.resolves(1);
+
+        const { error } = await callHandler();
+
+        expect(error).to.equal(PASSED_GATE);
+    });
+
+    it('never refuses a solo habit the grace was not spent on', async () => {
+        getByUserAndHabitStub.resolves({ ...graceRow(30), soloGraceStartedAt: null } as any);
+
+        const { error } = await callHandler();
+
+        expect(error).to.equal(PASSED_GATE);
+        expect(countInvitedStub.called).to.equal(false);
+    });
+
+    it('is lifted by an active pact on the goal', async () => {
+        getActivePactsStub.resolves([{ id: 'pact-1', habitGoalId: GOAL_ID, status: 'active' }] as any);
+
+        const { error } = await callHandler();
+
+        expect(error).to.equal(PASSED_GATE);
+    });
+});
