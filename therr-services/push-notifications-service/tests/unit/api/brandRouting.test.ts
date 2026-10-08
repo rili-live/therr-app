@@ -129,6 +129,10 @@ const DISPLAY_TYPES = [
     PushNotifications.Types.pactJoinRequested,
     PushNotifications.Types.pactJoinApproved,
     PushNotifications.Types.openPactSuggestion,
+    // Onboarding nurture (#3011): display, no action button, renders on installed builds.
+    PushNotifications.Types.habitsFirstHabitNudge,
+    PushNotifications.Types.pactInviteUnclaimed,
+    PushNotifications.Types.habitsFounderOffer,
     PushNotifications.Types.pactDeclined,
     PushNotifications.Types.morningMotivation,
     // The one lifecycle message aimed at someone who has stopped opening the
