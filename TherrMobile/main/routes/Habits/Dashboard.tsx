@@ -30,6 +30,7 @@ import { getHabitCapacityNudge, readHabitCapacity } from '../../utilities/upgrad
 import { getFreezeConsumed, getStreakSavedByFreeze } from '../../utilities/streakFreezes';
 import { getApiErrorMessage, readApiError } from '../../utilities/apiErrorMessage';
 import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
+import { readSoloGraceEnded } from '../../utilities/soloGrace';
 import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/celebrationQueue';
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { logAppEvent } from '../../utilities/analyticsEvents';
@@ -660,6 +661,21 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 const paywallParams = getHabitCapPaywallParams(err, 'dashboard-checkin');
                 if (paywallParams) {
                     this.props.navigation.navigate('UpgradePaywall', paywallParams);
+                    return;
+                }
+
+                // The first habit's free week alone is over and nobody has been invited yet: the
+                // way to keep checking in is to invite someone to this habit (#3010).
+                if (readSoloGraceEnded(err)) {
+                    showToast.info({
+                        text1: this.translate('pages.habits.soloGraceEnded.title', { habitName: habitGoal.name }),
+                        text2: this.translate('pages.habits.soloGraceEnded.body'),
+                    });
+                    this.props.navigation.navigate('CreatePactInvite', {
+                        habitGoalId: habitGoal.id,
+                        habitName: habitGoal.name,
+                        habitEmoji: habitGoal.emoji,
+                    });
                     return;
                 }
 

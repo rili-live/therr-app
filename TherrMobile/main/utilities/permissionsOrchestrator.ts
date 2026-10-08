@@ -24,6 +24,9 @@ export type Trigger =
     | 'firstConnectionAccepted'
     | 'pactCreate'
     | 'pactAccept'
+    // The first session's first check-in (routes/Habits/FirstCheckin.tsx): the first moment a
+    // reminder has something to protect, which is why the pre-dashboard opt-in screen is gone.
+    | 'firstCheckin'
     | 'habitsOnboarding'
     | 'secondSession';
 

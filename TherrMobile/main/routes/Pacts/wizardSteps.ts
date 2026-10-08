@@ -43,7 +43,16 @@ export interface IWizardContext {
      * only mirrors it, since `POST /habits/user-habits` enforces it regardless.
      */
     canCreateSolo: boolean;
+    /**
+     * Opened on a habit the user already tracks, to invite a friend to it — the ask after a first
+     * check-in, or the way back into a solo habit whose grace has ended. There is nothing to pick
+     * or configure, so the wizard starts on the partner step and choosing someone is the point.
+     */
+    isExistingHabit?: boolean;
 }
+
+/** Where the wizard opens. */
+export const getInitialStep = ({ isExistingHabit }: IWizardContext): WizardStep => (isExistingHabit ? 'partners' : 'pick');
 
 /**
  * Solo mode is a shortcut through a door the user has already unlocked, never a
@@ -78,7 +87,8 @@ export const getBackTarget = (
         case 'configure':
             return 'pick';
         case 'partners':
-            return 'configure';
+            // Nothing before it was rendered for an existing habit; back leaves.
+            return context.isExistingHabit ? 'exit' : 'configure';
         case 'review':
         default:
             // Solo mode never rendered the partner step, so walking back into it would
@@ -94,11 +104,15 @@ export const getBackTarget = (
  * requires the unlock — this is the client half of the rule the server enforces
  * on create, and the reason a locked user still gets the "choose a friend"
  * prompt rather than a dead end at the review step.
+ *
+ * On an existing habit nobody selected means nothing to do — the habit is
+ * already tracked — so a partner is required there whatever the unlock says.
  */
 export const canAdvanceFromPartnerStep = (
     selectedPartnerCount: number,
     canCreateSolo: boolean,
-): boolean => selectedPartnerCount > 0 || canCreateSolo;
+    isExistingHabit = false,
+): boolean => selectedPartnerCount > 0 || (canCreateSolo && !isExistingHabit);
 
 /**
  * Whether the review step is reviewing a personal habit. Keyed on the partner

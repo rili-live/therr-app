@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BrandVariations, FeatureFlags } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
@@ -42,29 +41,19 @@ export const getBrandInitialRouteName = (user?: IUserState): string | undefined 
     return featureFlags[FeatureFlags.ENABLE_HABITS] ? 'HabitsDashboard' : undefined;
 };
 
-// Mirrors `HABITS_PUSH_OPTIN_SHOWN` in routes/Pacts/HabitsPushOptIn.tsx. Redeclared rather
-// than imported so this utility does not pull a screen component into every caller.
-const HABITS_PUSH_OPTIN_SHOWN_KEY = 'HABITS_PUSH_OPTIN_SHOWN';
-
 /**
- * Where a HABITS user with a complete profile lands: the one-time push opt-in on their
- * first authenticated landing, the dashboard ever after.
+ * Where a HABITS user with a complete profile lands: the dashboard, whose onboarding overlay leads
+ * a new user to their first habit and first check-in.
  *
- * Shared by Layout's auth-transition reset and the end of CreateProfile. The latter used
- * to `navigate('Map')` — a route HABITS filters out of the navigator — so finishing
- * onboarding left the user stranded on the last profile stage.
+ * This used to send a first landing to the push opt-in screen (`HabitsPushOptIn`) before the user
+ * had done anything — an ask with nothing behind it yet (#3010, audit row D1). The notification
+ * ask now comes at the first check-in (`trigger: 'firstCheckin'`), and on pact create and accept
+ * as before, where a reminder has a streak or a partner to protect.
+ *
+ * Shared by Layout's auth-transition reset and the end of CreateProfile, which is why it stays a
+ * function rather than a constant. Async because callers already await it.
  */
-export const getHabitsLandingRouteName = async (): Promise<'HabitsPushOptIn' | 'HabitsDashboard'> => {
-    let optInShown = 'true';
-    try {
-        optInShown = (await AsyncStorage.getItem(HABITS_PUSH_OPTIN_SHOWN_KEY)) || '';
-    } catch {
-        // best-effort — fall through to dashboard if AsyncStorage is broken
-        optInShown = 'true';
-    }
-
-    return optInShown ? 'HabitsDashboard' : 'HabitsPushOptIn';
-};
+export const getHabitsLandingRouteName = async (): Promise<'HabitsPushOptIn' | 'HabitsDashboard'> => 'HabitsDashboard';
 
 export interface IHeaderLogoTarget {
     name: string;

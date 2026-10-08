@@ -1724,7 +1724,7 @@
         },
         "landing": {
             "background": {
-                "shareYourInterests": "Bâtissez des habitudes qui durent",
+                "shareYourInterests": "Lance une série aujourd’hui — pas besoin de partenaire pour commencer",
                 "inviteFriends": "Invitez vos amis pour vous tenir responsables",
                 "getMatched": "Faites des pactes avec vos amis et changez vos vies ensemble"
             },
@@ -2074,8 +2074,8 @@
             "pendingHabits": "En attente des partenaires",
             "pactWithPartners": "Pacte avec {partners}",
             "viewPact": "Voir le pacte",
-            "awaitingPartnerAcceptance": "En attente de l'acceptation de {partners} pour démarrer ce pacte.",
-            "awaitingAnyPartnerAcceptance": "En attente de l'acceptation de votre invitation pour démarrer ce pacte.",
+            "awaitingPartnerAcceptance": "Le jour 1 compte — fais ton check-in maintenant. Ta série sera partagée quand {partners} se joindra.",
+            "awaitingAnyPartnerAcceptance": "Le jour 1 compte — fais ton check-in maintenant. Ta série sera partagée quand ton ami se joindra.",
             "soloOrArchivePrompt": "Personne ne s'est joint pour l'instant. Continuer seul ou suspendre les rappels?",
             "continueSolo": "Continuer en solo",
             "archiveHabit": "Archiver",
@@ -2337,6 +2337,10 @@
                         "short": "portions"
                     }
                 }
+            },
+            "soloGraceEnded": {
+                "title": "Garde {habitName} en marche",
+                "body": "Ta semaine gratuite à le suivre seul est terminée. Invite un ami pour continuer tes check-ins."
             }
         },
         "pacts": {
@@ -2437,7 +2441,10 @@
                 "pickHabitToastTitle": "Commence par choisir une habitude",
                 "pickHabitToastBody": "Ensuite, tu inviteras un ami à la faire avec toi.",
                 "inviteGateToastTitle": "Pour continuer, invite un ami",
-                "inviteGateToastBody": "Un pacte demande au moins deux personnes. Touche ici pour choisir une habitude et envoyer ton invitation."
+                "inviteGateToastBody": "Un pacte demande au moins deux personnes. Touche ici pour choisir une habitude et envoyer ton invitation.",
+                "firstHabitCTA": "Choisis ta première habitude",
+                "firstHabitHelper": "Choisis une habitude et fais ton check-in aujourd’hui. Invite un ami une fois ta série lancée.",
+                "startWithFriendCTA": "Ou commence avec un ami"
             },
             "outgoing": {
                 "tabLabel": "Envoyées",
@@ -3138,6 +3145,19 @@
                 "done": "Terminé",
                 "lockInForLife": "Verrouille toutes les fonctionnalités à vie"
             }
+        },
+        "firstCheckin": {
+            "title": "Jour 1",
+            "defaultHabitName": "ton habitude",
+            "askTitle": "Ton check-in pour aujourd’hui?",
+            "askSubtitle": "Tu as fait {habitName} aujourd’hui? Un toucher et le jour 1 est inscrit.",
+            "checkinButton": "C’est fait — check-in",
+            "notYetButton": "Pas encore",
+            "doneTitle": "Jour 1 réussi",
+            "doneStreak": "Série : 1 🔥",
+            "inviteAsk": "Les habitudes tiennent quand un ami compte sur toi. Envoie {habitName} à un ami — ta série sera partagée quand il se joindra.",
+            "inviteButton": "Inviter un ami",
+            "laterButton": "Plus tard"
         }
     },
     "modals": {

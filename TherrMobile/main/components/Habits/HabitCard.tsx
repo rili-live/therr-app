@@ -221,7 +221,7 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                 </Text>
             )}
 
-            {showStreak && !isAwaitingPartner && streak && streak.currentStreak > 0 && (
+            {showStreak && streak && streak.currentStreak > 0 && (
                 /*
                  * Compact and embedded, always. This card is a list row: the full widget stacks
                  * four rows and draws its own surface, shadow and 16dp side margins *inside* a
@@ -293,7 +293,14 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                 </View>
             )}
 
-            {onCheckin && !isAwaitingPartner && (
+            {/*
+              * Offered while a partner has yet to accept, too. The server always took that
+              * check-in and HabitDetail always offered it; hiding it here left a creator unsure
+              * whether day 1 counted, and the first check-in waiting on someone else installing
+              * the app (#3010). It does count: the habit is tracked, and the streak is shared
+              * once they join.
+              */}
+            {onCheckin && (
                 <View style={themeHabits.styles.habitCardFooter}>
                     <CheckinButton
                         isCompleted={isCompleted}

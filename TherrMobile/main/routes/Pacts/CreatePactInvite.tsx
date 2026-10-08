@@ -71,6 +71,7 @@ import {
     IWizardContext,
     canAdvanceFromPartnerStep,
     getBackTarget,
+    getInitialStep,
     getFinalAction,
     getNextStep,
     isSoloReview,
@@ -110,6 +111,23 @@ interface IStoreProps extends IDispatchProps {
     habits: IHabitsState;
     userConnections: any;
 }
+
+/**
+ * `habitGoalId` (with its `habitName` and `habitEmoji` for display) opens the wizard on a habit the
+ * user already tracks, to invite someone to it: the ask after a first check-in, and the way back
+ * into a solo habit whose grace has ended.
+ */
+const readExistingHabit = (route: any): { habitGoalId: string; habitName: string; habitEmoji?: string } | null => {
+    const params = route?.params;
+    if (typeof params?.habitGoalId !== 'string' || !params.habitGoalId) {
+        return null;
+    }
+    return {
+        habitGoalId: params.habitGoalId,
+        habitName: typeof params.habitName === 'string' ? params.habitName : '',
+        habitEmoji: typeof params.habitEmoji === 'string' ? params.habitEmoji : undefined,
+    };
+};
 
 interface ICreatePactInviteProps extends IStoreProps {
     navigation: any;
@@ -263,13 +281,16 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     constructor(props: ICreatePactInviteProps) {
         super(props);
 
+        const existingHabit = readExistingHabit(props.route);
+
         this.state = {
-            step: 'pick',
+            step: getInitialStep({ isSoloMode: false, canCreateSolo: false, isExistingHabit: !!existingHabit }),
             selectedTemplateId: null,
-            isCustomHabit: false,
+            isCustomHabit: !!existingHabit,
             templateCategory: POPULAR_CATEGORY,
             cadence: DAILY_CADENCE,
-            customHabitName: '',
+            // Read by the review step, which names the habit from this when no template is chosen.
+            customHabitName: existingHabit?.habitName || '',
             isSavingsHabit: false,
             savingsTargetText: '',
             savingsTargetAmount: null,
@@ -296,8 +317,14 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
 
     componentDidMount() {
         this.props.navigation.setOptions({
-            title: this.getStepTitle('pick'),
+            title: this.getStepTitle(this.state.step),
         });
+
+        // An existing habit opens on the partner step, which needs its browse list just as it
+        // does when `setStep` reaches it.
+        if (this.state.step === 'partners') {
+            this.runUserSearch('');
+        }
 
         if (!this.props.habits.templates?.length) {
             this.setState({ isLoadingTemplates: true });
@@ -343,6 +370,14 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      */
     isSoloMode = (): boolean => this.props.route?.params?.mode === 'solo';
 
+    getExistingHabit = () => readExistingHabit(this.props.route);
+
+    /**
+     * Opened from the first-session overlay: a solo start hands off to the first check-in rather
+     * than to the dashboard.
+     */
+    isFirstSession = (): boolean => this.props.route?.params?.firstSession === true;
+
     getSoloProgress = () => getSoloUnlockProgress(
         this.props.habits.userHabitEligibility,
         getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_SOLO] === true,
@@ -351,6 +386,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
     getWizardContext = (): IWizardContext => ({
         isSoloMode: this.isSoloMode(),
         canCreateSolo: this.getSoloProgress().isUnlocked,
+        isExistingHabit: !!this.getExistingHabit(),
     });
 
     /**
@@ -574,6 +610,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         if (step === 'partners' && !canAdvanceFromPartnerStep(
             this.state.selectedPartnerIds.length,
             this.getSoloProgress().isUnlocked,
+            !!this.getExistingHabit(),
         )) {
             // Locked: choosing someone is the only way on. The toast says how
             // many invites unlock the solo path so the requirement reads as
@@ -667,6 +704,12 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      * changing the habit still creates a new goal.
      */
     resolveHabitGoalId = async (): Promise<string | null> => {
+        // An existing habit is already a goal; creating another would be a duplicate habit.
+        const existingHabit = this.getExistingHabit();
+        if (existingHabit) {
+            return existingHabit.habitGoalId;
+        }
+
         const { selectedTemplateId, customHabitName, cadence } = this.state;
 
         // The cadence belongs in this key. Without it, changing the cadence after a failed
@@ -1019,6 +1062,15 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             logAppEvent('habit_solo_start', {
                 userId: this.props.user?.details?.id,
             });
+
+            // The first session's first habit goes straight to its first check-in: the win comes
+            // before the ask for a friend (#3010). `replace` so back from there does not land on a
+            // wizard that has already done its job.
+            if (this.isFirstSession()) {
+                const { habitName, habitEmoji } = this.getSelectedHabitDisplay();
+                navigation.replace('FirstCheckin', { habitGoalId, habitName, habitEmoji });
+                return;
+            }
 
             Toast.show({
                 type: 'success',
@@ -1765,16 +1817,24 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         );
     };
 
-    renderStep3 = () => {
-        const { habits } = this.props;
-        const {
-            selectedTemplateId, customHabitName, selectedPartnerIds, cadence,
-        } = this.state;
+    /** The name and emoji of the habit being reviewed or started, as the user saw them. */
+    getSelectedHabitDisplay = (): { habitName: string; habitEmoji: string } => {
+        const { selectedTemplateId, customHabitName } = this.state;
         const template = selectedTemplateId
-            ? habits.templates?.find((t) => t.id === selectedTemplateId)
+            ? this.props.habits.templates?.find((t) => t.id === selectedTemplateId)
             : undefined;
-        const habitName = (template && localizeTemplate(template, this.translate).name) || customHabitName.trim();
-        const habitEmoji = template?.emoji || this.translate('pages.pacts.wizard.habitDefaultEmoji');
+
+        return {
+            habitName: (template && localizeTemplate(template, this.translate).name) || customHabitName.trim(),
+            habitEmoji: template?.emoji
+                || this.getExistingHabit()?.habitEmoji
+                || this.translate('pages.pacts.wizard.habitDefaultEmoji'),
+        };
+    };
+
+    renderStep3 = () => {
+        const { selectedPartnerIds, cadence } = this.state;
+        const { habitName, habitEmoji } = this.getSelectedHabitDisplay();
         const partnerCount = selectedPartnerIds.length;
         const isSolo = this.isSoloReview();
 
