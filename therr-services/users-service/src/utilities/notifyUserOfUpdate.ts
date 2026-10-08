@@ -1,5 +1,5 @@
 import { Notifications, PushNotifications } from 'therr-js-utilities/constants';
-import { getBrandContext } from 'therr-js-utilities/http';
+import { getBrandContext, isTestAccount } from 'therr-js-utilities/http';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { ICreateNotificationParams } from '../store/NotificationsStore';
 import Store from '../store';
@@ -51,7 +51,7 @@ interface INotifyUserOfUpdateConfig {
     shouldSendEmail?: boolean;
 }
 
-export default (
+const createAndSendNotification = (
     headers: InternalConfigHeaders,
     dbNotification: ICreateNotificationParams,
     emailAndPushParams: IEmailAndPushParams,
@@ -115,3 +115,27 @@ export default (
             return notification;
         });
 };
+
+type NotifyArgs = Parameters<typeof createAndSendNotification>;
+
+/**
+ * A store-review / QA account must never reach a real user's inbox or phone: replying to their
+ * thread, requesting to connect or inviting them to a pact would otherwise notify a stranger
+ * about a test account's content. The recipient lookup only runs when the actor is a test
+ * account, so ordinary traffic pays nothing for it. Test accounts still notify each other, so a
+ * two-device review of a flow works end to end.
+ */
+const notifyUserOfUpdate = (...args: NotifyArgs): ReturnType<typeof createAndSendNotification> => {
+    const [headers, dbNotification] = args;
+
+    if (isTestAccount(headers) && dbNotification.userId && dbNotification.userId !== headers['x-userid']) {
+        return Store.users.getUserById(dbNotification.userId, ['accessLevels'])
+            .then(([recipient]) => (isTestAccount(recipient?.accessLevels)
+                ? createAndSendNotification(...args)
+                : undefined));
+    }
+
+    return createAndSendNotification(...args);
+};
+
+export default notifyUserOfUpdate;

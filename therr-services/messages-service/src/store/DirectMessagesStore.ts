@@ -201,6 +201,22 @@ export default class DirectMessagesStore extends BrandScopedStore {
      * once the counterpart account no longer exists, and leaving the received half
      * behind would keep the deleted user's message content in the database.
      */
+    /**
+     * Test account cleanup (DELETE /test-account-content, driven by users-service's
+     * testAccountCleanupWorker). Only rows older than `createdBefore`, so a reviewer
+     * mid-session keeps what they just sent. Unscoped by brand, like deleteByUserId.
+     */
+    deleteTestAccountContent(userId: string, createdBefore: Date): Promise<number> {
+        const queryString = knexBuilder
+            .from(DIRECT_MESSAGES_TABLE_NAME)
+            .where({ fromUserId: userId })
+            .andWhere('createdAt', '<', createdBefore)
+            .delete()
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rowCount || 0);
+    }
+
     deleteByUserId(userId: string) {
         const queryString = knexBuilder
             .from(DIRECT_MESSAGES_TABLE_NAME)

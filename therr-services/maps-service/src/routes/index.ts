@@ -7,11 +7,13 @@ import spacesRouter from './spacesRouter';
 import spaceMetricsRouter from './spaceMetricsRouter';
 import spaceDisplayRequestsRouter from './spaceDisplayRequestsRouter';
 import createMediaUrls from '../handlers/createMediaUrls';
+import deleteTestAccountContent from '../handlers/deleteTestAccountContent';
 import deleteUserData from '../handlers/deleteUserData';
 
 const router = express.Router();
 
 router.delete('/delete-user-data', deleteUserData);
+router.delete('/test-account-content', deleteTestAccountContent);
 
 router.post('/media/signed-urls', createMediaUrls);
 

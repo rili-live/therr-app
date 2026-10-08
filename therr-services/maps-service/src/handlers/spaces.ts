@@ -15,6 +15,7 @@ import areaMetricsService from '../api/areaMetricsService';
 import * as globalConfig from '../../../../global-config';
 import getReactions, { countReactions } from '../utilities/getReactions';
 import handleHttpError from '../utilities/handleHttpError';
+import keepTestAccountContentPrivate from '../utilities/keepTestAccountContentPrivate';
 import translate from '../utilities/translator';
 import Store from '../store';
 import { checkIsMediaSafeForWork } from './helpers';
@@ -28,6 +29,8 @@ const MAX_DISTANCE_TO_ADDRESS_METERS = 2000;
 
 // CREATE
 const createSpace = async (req, res) => {
+    keepTestAccountContentPrivate(req);
+
     const {
         authorization,
         locale,
@@ -1012,6 +1015,8 @@ const getSignedUrlPublicBucket = (req, res) => getSignedUrl(req, res, process.en
 
 // WRITE
 const updateSpace = async (req, res) => {
+    keepTestAccountContentPrivate(req);
+
     const {
         userAccessLevels: accessLevels,
         locale,

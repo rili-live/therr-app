@@ -1,6 +1,7 @@
 import KnexBuilder, { Knex } from 'knex';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import {
+    AccessLevels,
     BrandVariations,
     Categories,
     Content,
@@ -25,6 +26,20 @@ type BrandValue = BrandVariations | string;
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const THOUGHTS_TABLE_NAME = 'main.thoughts';
+
+/**
+ * SQL predicate that drops reply rows (aliased `replies`) whose author is a store-review / QA
+ * account (AccessLevels.TEST_ACCOUNT).
+ *
+ * Only replies need it: a test account's top-level thought is forced private on create, but a
+ * reply carries no privacy of its own (visibility follows the parent), so a Play reviewer
+ * "testing comments" on a real user's thread would otherwise show up under it. Callers apply
+ * it only when the viewer is not a test account themselves, so the reviewer still sees their
+ * reply land. `@>` rather than `?` keeps knex from reading the operator as a binding.
+ */
+const EXCLUDE_TEST_ACCOUNT_REPLIES_SQL = 'NOT EXISTS (SELECT 1 FROM main.users AS "testAuthor" '
+    + 'WHERE "testAuthor".id = replies."fromUserId" '
+    + `AND "testAuthor"."accessLevels" @> '["${AccessLevels.TEST_ACCOUNT}"]'::jsonb)`;
 
 /**
  * The thought's own coordinates as a PostGIS point.
@@ -771,6 +786,9 @@ export default class ThoughtsStore {
                     if (repliesJoinClause) {
                         this.andOn(knexBuilder.raw(repliesJoinClause));
                     }
+                    if (options.hideTestAccountReplies) {
+                        this.andOn(knexBuilder.raw(EXCLUDE_TEST_ACCOUNT_REPLIES_SQL));
+                    }
                 })
                 .columns([
                     `${THOUGHTS_TABLE_NAME}.*`,
@@ -1051,6 +1069,9 @@ export default class ThoughtsStore {
             const repliesMatureClause = options?.shouldHideMatureContent
                 ? 'AND replies."isMatureContent" = false'
                 : '';
+            const repliesTestAccountClause = options?.hideTestAccountReplies
+                ? `AND ${EXCLUDE_TEST_ACCOUNT_REPLIES_SQL}`
+                : '';
             const orderColumn = orderBy.split('.').pop();
             query = knexBuilder
                 .from(query.as('parents'))
@@ -1068,6 +1089,7 @@ export default class ThoughtsStore {
                     WHERE replies."parentId" = parents.id
                     ${repliesBrandClause}
                     ${repliesMatureClause}
+                    ${repliesTestAccountClause}
                     ORDER BY replies."createdAt" DESC
                     LIMIT 3
                 ) AS replies ON TRUE`)
@@ -1292,6 +1314,30 @@ export default class ThoughtsStore {
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    /**
+     * Test account cleanup (DELETE /test-account-content, driven by users-service's
+     * testAccountCleanupWorker). Hides everything the account has posted — covering anything
+     * created before the account was flagged, when the create-time guard was not yet in force —
+     * and deletes what is older than `createdBefore`, so a reviewer mid-session keeps the post
+     * they just made.
+     */
+    purgeTestAccountContent(userId: string, createdBefore: Date): Promise<{ hidden: number; deleted: number }> {
+        const hideQuery = knexBuilder.update({ isPublic: false, updatedAt: new Date() })
+            .into(THOUGHTS_TABLE_NAME)
+            .where('fromUserId', userId)
+            .andWhere('isPublic', true)
+            .toString();
+        const deleteQuery = knexBuilder.delete()
+            .from(THOUGHTS_TABLE_NAME)
+            .where('fromUserId', userId)
+            .andWhere('createdAt', '<', createdBefore)
+            .toString();
+
+        return this.db.write.query(hideQuery)
+            .then((hidden) => this.db.write.query(deleteQuery)
+                .then((deleted) => ({ hidden: hidden.rowCount || 0, deleted: deleted.rowCount || 0 })));
     }
 
     delete(fromUserId: string) {
