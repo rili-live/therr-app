@@ -148,6 +148,19 @@ describe('Solo habits', () => {
             expect(claimGraceStub.called).to.equal(false);
         });
 
+        it('keeps the grace unspent when re-tapping a habit already tracked actively', async () => {
+            // e.g. a pact habit: the start is a no-op, so the one grace must survive it.
+            getByUserAndHabitStub.resolves({
+                id: 'uh-1', userId: 'user-1', habitGoalId: 'goal-1', status: 'active', soloGraceStartedAt: null,
+            } as any);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(201);
+            expect(claimGraceStub.called).to.equal(false);
+        });
+
         // Two starts racing for the one grace: both read "unused", the partial unique index lets
         // one write win. The loser must not keep a solo habit it was never granted.
         it('refuses, and archives the row it created, when the grace was spent concurrently', async () => {

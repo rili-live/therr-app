@@ -208,8 +208,9 @@ const createUserHabit: RequestHandler = async (req: any, res: any) => {
 
         // Spent after the row exists because the grace marks a row. A start that lost the grace
         // to a concurrent one is refused like any other locked start, and a row this request
-        // created is archived rather than left behind as an unpaid-for solo habit.
-        if (!isGraceHabit && !(await spendSoloGraceIfNeeded(soloProgress, userHabit))) {
+        // created is archived rather than left behind as an unpaid-for solo habit. A habit already
+        // tracked actively is a no-op start (often a pact habit), so it never spends the grace.
+        if (!isGraceHabit && !isAlreadyTrackingActively && !(await spendSoloGraceIfNeeded(soloProgress, userHabit))) {
             if (!existingTracking) {
                 await Store.userHabits.setStatus(userHabit.id, userId, 'archived');
             }

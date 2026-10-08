@@ -11,6 +11,7 @@ import {
     NO_HABIT_MESSAGE_KEY,
     runOnboardingNurturePass,
 } from '../../src/handlers/helpers/onboardingNurtureDigest';
+import { UNCAPPABLE_TYPES } from '../../src/utilities/notificationQueueWorker';
 
 /**
  * The Habits onboarding nurture sequence (#3011).
@@ -293,5 +294,17 @@ describe('onboarding nurture — the digest pass', () => {
 
         expect(noHabit.called).to.equal(false);
         expect(founderSlots.called).to.equal(false);
+    });
+
+    // Each message is claimed once ever before it is queued, so a row the daily cap dropped would
+    // never be queued again. The cap may delay these, never drop them.
+    it('exempts every nurture push from the daily cap drop', () => {
+        [
+            PushNotifications.Types.habitsFirstHabitNudge,
+            PushNotifications.Types.pactInviteUnclaimed,
+            PushNotifications.Types.habitsFounderOffer,
+        ].forEach((type) => {
+            expect(UNCAPPABLE_TYPES.has(type)).to.equal(true);
+        });
     });
 });
