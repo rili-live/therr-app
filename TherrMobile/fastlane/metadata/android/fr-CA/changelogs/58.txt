@@ -1,0 +1,5 @@
+Nouveautés :
+• Commencez votre première habitude seul : suivez-la gratuitement pendant 7 jours, puis invitez un ami pour la garder
+• Pointez votre jour 1 dès que vous avez choisi votre habitude
+• L'invitation d'un ami s'affiche maintenant en premier, et vous pouvez pointer en attendant que votre partenaire se joigne
+• Les notifications d'invitation indiquent qui vous a invité, et Accepter fonctionne directement depuis la notification

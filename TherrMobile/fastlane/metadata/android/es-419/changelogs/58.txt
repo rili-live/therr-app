@@ -1,0 +1,5 @@
+Novedades:
+• Empieza tu primer hábito por tu cuenta: síguelo gratis durante 7 días y luego invita a un amigo para mantenerlo
+• Registra tu día 1 justo después de elegir tu hábito
+• La invitación de un amigo ahora aparece primero al abrir la app, y puedes registrar mientras esperas a que tu compañero se una
+• Las notificaciones de invitación ahora dicen quién te invitó, y Aceptar funciona desde la notificación
