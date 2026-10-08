@@ -82,8 +82,22 @@ const RATE_WINDOW_MS = 24 * 60 * 60 * 1000;
  *
  * Membership rule for anything added later: a type belongs here if and only if
  * its dedupe key carries no date. That is what makes a drop permanent.
+ *
+ * `pact-invitation` qualifies: the only queued one is the invite reminder, keyed
+ * on the invite alone (`pact-invite-reminder:<pactMemberId>`), and the send-time
+ * freshness check drops it if the invite closes while it waits.
+ *
+ * The onboarding nurture pushes qualify too (handlers/helpers/onboardingNurtureDigest.ts): each is
+ * keyed once per user or seat ever, and claimed in habits.onboarding_messages before it is queued,
+ * so a dropped row is never re-queued.
  */
-export const UNCAPPABLE_TYPES: Set<string> = new Set(['pact-ended']);
+export const UNCAPPABLE_TYPES: Set<string> = new Set([
+    'pact-ended',
+    'pact-invitation',
+    'habits-first-habit-nudge',
+    'pact-invite-unclaimed',
+    'habits-founder-offer',
+]);
 
 /**
  * How long an uncappable row waits for the cap window to open before it is sent

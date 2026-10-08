@@ -127,6 +127,44 @@ const evaluatePartnerCheckinFreshness = async (row: INotificationQueueRow): Prom
     }
 };
 
+/**
+ * The queued `pactInvitation` is the invite reminder (handlers/helpers/pactInviteReminderDigest.ts);
+ * the original invite is sent inline and never touches the queue. It is queued for the invitee's
+ * morning, and an invite accepted, declined or ended before then must not be pushed with an Accept
+ * button that can only fail. Fails open like the other gates; a row with no `pactMemberId` sends.
+ */
+export const PACT_INVITE_TYPES: Set<string> = new Set([
+    String(PushNotifications.Types.pactInvitation),
+]);
+
+const evaluatePactInviteFreshness = async (row: INotificationQueueRow): Promise<IFreshnessDecision> => {
+    const pactMemberId = row.payload?.pactMemberId;
+    if (typeof pactMemberId !== 'string' || !pactMemberId) {
+        return SEND;
+    }
+
+    try {
+        if (await Store.pactMembers.isInviteOpen(pactMemberId)) {
+            return SEND;
+        }
+        return { shouldSend: false, reason: 'invite-no-longer-open' };
+    } catch (err: any) {
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'API_SERVER',
+            messages: ['Notification queue: pact invite freshness read failed; sending anyway'],
+            traceArgs: {
+                'error.message': err?.message,
+                'notificationQueue.id': row.id,
+                'notificationQueue.type': row.type,
+                'user.id': row.userId,
+                source: 'users-service',
+            },
+        });
+        return SEND;
+    }
+};
+
 const readHabitGoalIds = (payload: Record<string, any> | null | undefined): string[] => {
     const raw = payload?.habitGoalIds;
     if (!Array.isArray(raw)) {
@@ -138,12 +176,17 @@ const readHabitGoalIds = (payload: Record<string, any> | null | undefined): stri
 /**
  * Decide whether a claimed queue row should still go out.
  *
- * Only ever consulted for `CHECKIN_NUDGE_TYPES` and `PARTNER_CHECKIN_TYPES`;
- * every other type returns `shouldSend` without touching the database.
+ * Only ever consulted for `CHECKIN_NUDGE_TYPES`, `PARTNER_CHECKIN_TYPES` and
+ * `PACT_INVITE_TYPES`; every other type returns `shouldSend` without touching
+ * the database.
  */
 const evaluateCheckinNudgeFreshness = async (row: INotificationQueueRow): Promise<IFreshnessDecision> => {
     if (PARTNER_CHECKIN_TYPES.has(row.type)) {
         return evaluatePartnerCheckinFreshness(row);
+    }
+
+    if (PACT_INVITE_TYPES.has(row.type)) {
+        return evaluatePactInviteFreshness(row);
     }
 
     if (!isCheckinNudgeType(row.type)) {

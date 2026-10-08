@@ -25,6 +25,10 @@ import {
  *   3. Starting one consumes a free-tier slot exactly like a pact does, and the
  *      unlock is checked before the cap — being short of invites is not a
  *      paywall, and must not be answered with one.
+ *   4. The first solo habit is the exception: free to start with no invite, once
+ *      per user (the first-habit grace, #3010). Every test outside that block
+ *      runs with the grace already spent on another habit, so it exercises the
+ *      invite rule alone.
  */
 const makeRes = () => {
     const res: any = {
@@ -62,8 +66,14 @@ describe('Solo habits', () => {
     let getOrCreateStub: sinon.SinonStub;
     let setStatusStub: sinon.SinonStub;
     let getByUserAndHabitStub: sinon.SinonStub;
+    let graceRowStub: sinon.SinonStub;
+    let claimGraceStub: sinon.SinonStub;
 
     beforeEach(() => {
+        graceRowStub = sinon.stub(Store.userHabits, 'getSoloGraceRow').resolves({
+            id: 'uh-old', userId: 'user-1', habitGoalId: 'goal-old', status: 'active', soloGraceStartedAt: new Date('2026-01-01T00:00:00Z'),
+        } as any);
+        claimGraceStub = sinon.stub(Store.userHabits, 'claimSoloGrace').resolves(true);
         countInvitedStub = sinon.stub(Store.pactMembers, 'countDistinctInvitedByCreator')
             .resolves(HABITS_SOLO_UNLOCK_INVITE_COUNT);
         findUserStub = sinon.stub(Store.users, 'findUser').resolves([{ accessLevels: [] }]);
@@ -87,6 +97,118 @@ describe('Solo habits', () => {
 
     afterEach(() => {
         sinon.restore();
+    });
+
+    describe('the first-habit grace', () => {
+        beforeEach(() => {
+            countInvitedStub.resolves(0);
+            graceRowStub.resolves(undefined);
+        });
+
+        it('starts a first solo habit with no invite, and spends the grace on it', async () => {
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(201);
+            expect(claimGraceStub.calledOnceWith('uh-1', 'user-1')).to.equal(true);
+        });
+
+        it('spends nothing for a user already unlocked by invites', async () => {
+            countInvitedStub.resolves(HABITS_SOLO_UNLOCK_INVITE_COUNT);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(201);
+            expect(claimGraceStub.called).to.equal(false);
+        });
+
+        it('refuses a second solo habit once the grace is spent', async () => {
+            graceRowStub.resolves({ id: 'uh-old', habitGoalId: 'goal-old', soloGraceStartedAt: new Date() } as any);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(403);
+            expect(res.body.error).to.equal('solo-locked');
+            expect(getOrCreateStub.called).to.equal(false);
+        });
+
+        it('treats re-starting the grace habit itself as a no-op, not a second start', async () => {
+            const graceRow = {
+                id: 'uh-1', userId: 'user-1', habitGoalId: 'goal-1', status: 'active', soloGraceStartedAt: new Date(),
+            };
+            graceRowStub.resolves(graceRow as any);
+            getByUserAndHabitStub.resolves(graceRow as any);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(201);
+            expect(claimGraceStub.called).to.equal(false);
+        });
+
+        it('keeps the grace unspent when re-tapping a habit already tracked actively', async () => {
+            // e.g. a pact habit: the start is a no-op, so the one grace must survive it.
+            getByUserAndHabitStub.resolves({
+                id: 'uh-1', userId: 'user-1', habitGoalId: 'goal-1', status: 'active', soloGraceStartedAt: null,
+            } as any);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(201);
+            expect(claimGraceStub.called).to.equal(false);
+        });
+
+        // Two starts racing for the one grace: both read "unused", the partial unique index lets
+        // one write win. The loser must not keep a solo habit it was never granted.
+        it('refuses, and archives the row it created, when the grace was spent concurrently', async () => {
+            claimGraceStub.resolves(false);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(403);
+            expect(setStatusStub.calledOnceWith('uh-1', 'user-1', 'archived')).to.equal(true);
+        });
+
+        it('fails closed when the grace cannot be read', async () => {
+            graceRowStub.rejects(new Error('db down'));
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(403);
+            expect(getOrCreateStub.called).to.equal(false);
+        });
+
+        it('reports the grace on eligibility, and counts it as able to start solo', async () => {
+            const res = makeRes();
+            await getSoloEligibility(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.body).to.include({
+                canCreateSolo: true,
+                isSoloGraceAvailable: true,
+                soloGrace: null,
+                soloGraceDays: 7,
+                soloGraceKeepInviteCount: 1,
+            });
+        });
+
+        it('reports the window of a spent grace, locked once it ends with no invite', async () => {
+            const startedAt = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000);
+            graceRowStub.resolves({ id: 'uh-g', habitGoalId: 'goal-g', soloGraceStartedAt: startedAt } as any);
+
+            const res = makeRes();
+            await getSoloEligibility(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.body.canCreateSolo).to.equal(false);
+            expect(res.body.isSoloGraceAvailable).to.equal(false);
+            expect(res.body.soloGrace).to.include({
+                userHabitId: 'uh-g', habitGoalId: 'goal-g', hasEnded: true, isLocked: true,
+            });
+        });
     });
 
     describe('the invite unlock', () => {
@@ -471,6 +593,20 @@ describe('Solo habits', () => {
             // Re-committing an active habit to solo consumes nothing; a cap check
             // here would 402 a no-op.
             expect(countActiveStub.called).to.equal(false);
+        });
+
+        // A creator whose invite went unanswered has already sent one, which is what keeps a grace
+        // habit past its window — so continuing solo on the grace never locks later.
+        it('lets a creator short of the invite threshold continue solo on the first-habit grace', async () => {
+            countInvitedStub.resolves(1);
+            graceRowStub.resolves(undefined);
+
+            const res = makeRes();
+            await continueSoloHabit(makeReq({ params: { id: 'uh-1' } }) as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(200);
+            expect(claimGraceStub.calledOnceWith('uh-1', 'user-1')).to.equal(true);
+            expect(abandonStub.calledOnce).to.equal(true);
         });
 
         it('re-gates on the solo unlock and does not touch the pact when locked', async () => {

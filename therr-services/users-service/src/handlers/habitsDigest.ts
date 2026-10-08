@@ -53,6 +53,16 @@ import {
     IOpenPactSuggestionCounters,
     runOpenPactSuggestionPass,
 } from './helpers/openPactSuggestionDigest';
+import {
+    emptyOnboardingNurtureCounters,
+    IOnboardingNurtureCounters,
+    runOnboardingNurturePass,
+} from './helpers/onboardingNurtureDigest';
+import {
+    EMPTY_PACT_INVITE_REMINDER_COUNTERS,
+    IPactInviteReminderCounters,
+    runPactInviteReminderPass,
+} from './helpers/pactInviteReminderDigest';
 
 // Upper bound per run so a runaway pact count can't turn the digest into a
 // multi-minute request. Raise (or page the query) when active pacts approach
@@ -247,6 +257,9 @@ interface IDigestCountersWithRecap extends IDigestCounters {
     pledgeVerdicts: IPledgeVerdictCounters;
     // Nested for the same reason. See helpers/openPactSuggestionDigest.ts.
     openPactSuggestions: IOpenPactSuggestionCounters;
+    pactInviteReminders: IPactInviteReminderCounters;
+    // Nested for the same reason. See helpers/onboardingNurtureDigest.ts.
+    onboardingNurture: IOnboardingNurtureCounters;
     // Nested for the same reason. See helpers/podiumWithinReachDigest.ts.
     podiumWithinReach: IPodiumWithinReachCounters;
 }
@@ -359,6 +372,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         weeklyRecap: { ...EMPTY_WEEKLY_RECAP_COUNTERS },
         pledgeVerdicts: { ...EMPTY_PLEDGE_VERDICT_COUNTERS },
         openPactSuggestions: { ...EMPTY_OPEN_PACT_SUGGESTION_COUNTERS },
+        pactInviteReminders: { ...EMPTY_PACT_INVITE_REMINDER_COUNTERS },
+        onboardingNurture: emptyOnboardingNurtureCounters(),
         podiumWithinReach: { ...EMPTY_PODIUM_WITHIN_REACH_COUNTERS },
         pactsEvaluated: 0,
         pactsExpired: 0,
@@ -1471,6 +1486,33 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 return { ...EMPTY_OPEN_PACT_SUGGESTION_COUNTERS, suggestionErrors: 1 };
             });
 
+        // Best-effort, like the passes above. The dedupe key is the invite itself, so a re-run, or a
+        // retry after a partial failure, reminds nobody twice.
+        counters.pactInviteReminders = await runPactInviteReminderPass(queuePushOutcome, brand, new Date())
+            .catch((err: any) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: the pact invite reminder pass failed'],
+                });
+                return { ...EMPTY_PACT_INVITE_REMINDER_COUNTERS, reminderErrors: 1 };
+            });
+
+        // Best-effort, like the passes above. Every message is claimed in habits.onboarding_messages
+        // before it is sent, so a re-run, or a retry after a partial failure, sends nobody a second.
+        counters.onboardingNurture = await runOnboardingNurturePass(queuePushOutcome, {
+            brandVariation: brand,
+            whiteLabelOrigin,
+        }, new Date())
+            .catch((err: any) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: the onboarding nurture pass failed'],
+                });
+                return emptyOnboardingNurtureCounters();
+            });
+
         // Leaderboard podium-within-reach. A no-op except on the Sunday run, the last before the
         // Monday (UTC) reset. Best-effort like the passes above; the dedupe key is the period.
         counters.podiumWithinReach = await runPodiumWithinReachPass({
@@ -1503,6 +1545,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 weeklyRecap: JSON.stringify(counters.weeklyRecap),
                 pledgeVerdicts: JSON.stringify(counters.pledgeVerdicts),
                 openPactSuggestions: JSON.stringify(counters.openPactSuggestions),
+                pactInviteReminders: JSON.stringify(counters.pactInviteReminders),
+                onboardingNurture: JSON.stringify(counters.onboardingNurture),
                 podiumWithinReach: JSON.stringify(counters.podiumWithinReach),
                 'pushNotification.brandVariation': String(brand),
             },
