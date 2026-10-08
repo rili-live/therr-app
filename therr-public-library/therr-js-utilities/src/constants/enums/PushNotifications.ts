@@ -71,6 +71,17 @@ export enum Types {
     // answered — when someone else's open pact on the same habit could take them instead.
     openPactSuggestion = 'open-pact-suggestion',
 
+    // HABITS: Onboarding nurture (#3011), queued by the daily habits digest, once per user (or per
+    // invite) ever. Display pushes with no click action, like the open-pact set above, so they
+    // render on every installed build and the tap opens the app.
+    //
+    // To an account a day or more old with no habit and no pact.
+    habitsFirstHabitNudge = 'habits-first-habit-nudge',
+    // To an inviter whose invite has gone unanswered for a day.
+    pactInviteUnclaimed = 'pact-invite-unclaimed',
+    // To a user who has checked in 3+ times over their first week and still has no partner.
+    habitsFounderOffer = 'habits-founder-offer',
+
     // HABITS: Partner Activity
     partnerCheckedIn = 'partner-checked-in',
     partnerMissedDay = 'partner-missed-day',

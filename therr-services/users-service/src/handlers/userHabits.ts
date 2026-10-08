@@ -9,7 +9,13 @@ import {
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { checkHabitCapacity, getHabitCapacityStatus } from './helpers/habitCapacity';
-import { getSoloInviteProgress } from './helpers/soloHabitAccess';
+import {
+    getSoloInviteProgress,
+    ISoloInviteProgress,
+    SOLO_GRACE_DAYS,
+    SOLO_GRACE_KEEP_INVITE_COUNT,
+    spendSoloGraceIfNeeded,
+} from './helpers/soloHabitAccess';
 import { describeWeekProgress, getCadence } from '../utilities/habitCadence';
 import { attachAmountTotals } from './helpers/savings';
 import resolveWeekBounds from './helpers/weekBounds';
@@ -17,12 +23,17 @@ import resolveWeekBounds from './helpers/weekBounds';
 /**
  * Personal ("solo") habits — habits tracked without an accountability partner.
  *
- * Friends with Habits is built on the principle that you do not start a habit
- * alone; that mandatory invite is the app's growth loop. Solo habits keep the
- * requirement and change its shape: rather than one invite acting as a toll on
- * the way in, it takes `HABITS_SOLO_UNLOCK_INVITE_COUNT` distinct people, and
- * the client shows progress toward it. A requirement the user can see coming is
- * something to finish; an invisible one is just a wall.
+ * Friends with Habits is built on the principle that you do not keep a habit
+ * alone; the invite is the app's growth loop. Solo habits keep the requirement
+ * and change its shape: rather than one invite acting as a toll on the way in,
+ * it takes `HABITS_SOLO_UNLOCK_INVITE_COUNT` distinct people, and the client
+ * shows progress toward it. A requirement the user can see coming is something
+ * to finish; an invisible one is just a wall.
+ *
+ * The one exception is the first solo habit, which needs no invite for
+ * `SOLO_GRACE_DAYS` and one invite to keep after that (see
+ * `helpers/soloHabitAccess.ts` and #3010): the ask comes once there is a streak
+ * worth protecting, not before the first check-in.
  *
  * Two things this deliberately does NOT do:
  *
@@ -57,6 +68,21 @@ const withWeekProgress = (userHabits: IUserHabitDetail[], today?: string) => use
             Number(habit.completionsEarlierThisWeek) || 0,
         ),
     };
+});
+
+/**
+ * The 403 every solo refusal sends. The counts ride along so the client can render how far off
+ * the user is without a second round trip — this response is what it draws the "invite N more
+ * friends" state from.
+ */
+const sendSoloLocked = (res: any, locale: string, soloProgress: ISoloInviteProgress) => res.status(403).send({
+    error: 'solo-locked',
+    message: translate(locale, 'errorMessages.habits.soloLocked', {
+        remaining: soloProgress.requiredCount - soloProgress.invitedCount,
+        required: soloProgress.requiredCount,
+    }),
+    invitedCount: soloProgress.invitedCount,
+    requiredCount: soloProgress.requiredCount,
 });
 
 // READ
@@ -109,24 +135,9 @@ const createUserHabit: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    const soloProgress = await getSoloInviteProgress(userId);
-
-    if (!soloProgress.canCreateSolo) {
-        // The counts ride along so the client can render how far off the user
-        // is without a second round trip — this response is what it draws the
-        // "invite N more friends" state from.
-        return res.status(403).send({
-            error: 'solo-locked',
-            message: translate(locale, 'errorMessages.habits.soloLocked', {
-                remaining: soloProgress.requiredCount - soloProgress.invitedCount,
-                required: soloProgress.requiredCount,
-            }),
-            invitedCount: soloProgress.invitedCount,
-            requiredCount: soloProgress.requiredCount,
-        });
-    }
-
     try {
+        const soloProgress = await getSoloInviteProgress(userId);
+
         // The cap counts *active* tracking rows, so a habit already being tracked
         // actively occupies its slot already and re-starting it consumes nothing.
         // Checking capacity unconditionally would 402 a user at the limit for
@@ -140,6 +151,12 @@ const createUserHabit: RequestHandler = async (req: any, res: any) => {
             ? await Store.userHabits.getByUserAndHabit(userId, habitGoalId)
             : undefined;
         const isAlreadyTrackingActively = existingTracking?.status === 'active';
+        // Re-starting the habit the grace was spent on is not a second solo start.
+        const isGraceHabit = !!existingTracking && soloProgress.soloGrace?.userHabitId === existingTracking.id;
+
+        if (!soloProgress.canCreateSolo && !isGraceHabit) {
+            return sendSoloLocked(res, locale, soloProgress);
+        }
 
         // Checked before anything is written — see the note on `checkHabitCapacity`
         // about why the tracking row must not exist yet when the count is taken.
@@ -188,6 +205,17 @@ const createUserHabit: RequestHandler = async (req: any, res: any) => {
         }
 
         const userHabit = await Store.userHabits.getOrCreate(userId, resolvedGoalId);
+
+        // Spent after the row exists because the grace marks a row. A start that lost the grace
+        // to a concurrent one is refused like any other locked start, and a row this request
+        // created is archived rather than left behind as an unpaid-for solo habit. A habit already
+        // tracked actively is a no-op start (often a pact habit), so it never spends the grace.
+        if (!isGraceHabit && !isAlreadyTrackingActively && !(await spendSoloGraceIfNeeded(soloProgress, userHabit))) {
+            if (!existingTracking) {
+                await Store.userHabits.setStatus(userHabit.id, userId, 'archived');
+            }
+            return sendSoloLocked(res, locale, { ...soloProgress, isGraceAvailable: false, canCreateSolo: false });
+        }
 
         // A habit the user had archived and is now starting again comes back
         // through this path rather than through restore, because from their
@@ -295,12 +323,14 @@ const restoreUserHabit: RequestHandler = async (req: any, res: any) => {
  *
  * So it does two things:
  *
- *   1. Enforces the solo-habit constraint. Tracking a habit alone is gated on
- *      the same invite threshold every solo habit is (see `getSoloInviteProgress`
- *      and the note atop this file) — an unanswered pact does not buy a pass
- *      around the growth loop. A user short of the threshold gets the same
- *      403 `solo-locked` the create path returns, with progress, so the client
- *      can render "invite N more, or archive" rather than a dead end.
+ *   1. Enforces the solo-habit constraint. Tracking a habit alone is gated the
+ *      same way every solo habit is (see `getSoloInviteProgress` and the note
+ *      atop this file): by the invite threshold, or by spending the first-habit
+ *      grace on this habit. A user with neither gets the same 403 `solo-locked`
+ *      the create path returns, with progress, so the client can render
+ *      "invite N more, or archive" rather than a dead end. Having sent the
+ *      unanswered invite already covers SOLO_GRACE_KEEP_INVITE_COUNT, so a habit
+ *      continued on the grace never locks.
  *   2. Abandons the outstanding invite(s). This is what makes the two options
  *      genuinely distinct: after this the habit is solo with nothing pending, so
  *      it stops being surfaced as "waiting on a friend" and there is nothing left
@@ -336,17 +366,10 @@ const continueSoloHabit: RequestHandler = async (req: any, res: any) => {
         // habit is theirs, while wrongly denying is a retryable error on a screen
         // they are already on (mirrors createUserHabit).
         const soloProgress = await getSoloInviteProgress(userId);
+        const isGraceHabit = soloProgress.soloGrace?.userHabitId === existing.id;
 
-        if (!soloProgress.canCreateSolo) {
-            return res.status(403).send({
-                error: 'solo-locked',
-                message: translate(locale, 'errorMessages.habits.soloLocked', {
-                    remaining: soloProgress.requiredCount - soloProgress.invitedCount,
-                    required: soloProgress.requiredCount,
-                }),
-                invitedCount: soloProgress.invitedCount,
-                requiredCount: soloProgress.requiredCount,
-            });
+        if (!soloProgress.canCreateSolo && !isGraceHabit) {
+            return sendSoloLocked(res, locale, soloProgress);
         }
 
         // Reviving an archived habit into solo takes a slot; an already-active one
@@ -361,7 +384,15 @@ const continueSoloHabit: RequestHandler = async (req: any, res: any) => {
             if (denial) {
                 return res.status(402).send(denial);
             }
+        }
 
+        // After the capacity check, so a 402 does not spend the grace, and before the revive, so
+        // a grace lost to a concurrent start leaves the habit as it was.
+        if (!isGraceHabit && !(await spendSoloGraceIfNeeded(soloProgress, existing))) {
+            return sendSoloLocked(res, locale, { ...soloProgress, isGraceAvailable: false, canCreateSolo: false });
+        }
+
+        if (existing.status === 'archived') {
             await Store.userHabits.setStatus(existing.id, userId, 'active');
         }
 
@@ -473,6 +504,13 @@ const getSoloEligibility: RequestHandler = async (req: any, res: any) => {
             canCreateSolo: soloProgress.canCreateSolo,
             invitedCount: soloProgress.invitedCount,
             soloUnlockInviteCount: soloProgress.requiredCount,
+            // The first-habit grace. `canCreateSolo` already includes it; these say *why*, so the
+            // client can offer "start your first habit" rather than "you've unlocked solo", and
+            // count down the grace on the habit it was spent on.
+            isSoloGraceAvailable: soloProgress.isGraceAvailable,
+            soloGrace: soloProgress.soloGrace,
+            soloGraceDays: SOLO_GRACE_DAYS,
+            soloGraceKeepInviteCount: SOLO_GRACE_KEEP_INVITE_COUNT,
             activeHabitCount: capacity.activeHabitCount,
             isAtHabitLimit: !!capacity.denial,
             habitLimitReason: capacity.denial?.error ?? null,

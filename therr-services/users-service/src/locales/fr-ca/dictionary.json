@@ -76,7 +76,8 @@
             "premiumPurchaseNotActive": "Cet abonnement n'est pas encore actif",
             "premiumPurchaseNotFound": "Cet abonnement est introuvable",
             "premiumVerificationFailed": "Nous n'avons pas pu vérifier cet abonnement pour le moment. Réessaie dans un instant.",
-            "soloLocked": "Invite {remaining} ami(s) de plus pour débloquer les habitudes que tu suis seul — {required} invitations en tout."
+            "soloLocked": "Invite {remaining} ami(s) de plus pour débloquer les habitudes que tu suis seul — {required} invitations en tout.",
+            "soloGraceEnded": "Tes {days} jours gratuits à suivre ceci seul sont terminés. Invite {required} ami pour continuer — ta série t'attend."
         },
         "user": {
             "invalidUserNamePassword": "La combinaison utilisateur/mot de passe est incorrecte",
@@ -266,6 +267,21 @@
             "body2": "D'autres personnes sur {brandName} travaillent sur {habitName} dans des pactes ouverts où il reste de la place. Ouvre l'appli et demande à t'y joindre : la personne qui l'a créé recevra ta demande.",
             "buttonText": "Ouvrir {brandName}",
             "postBody1": "Ton invitation originale reste ouverte : tes amis peuvent encore l'accepter."
+        },
+        "firstHabitNudge": {
+            "subject": "Ta première habitude prend dix secondes",
+            "header": "Le jour 1 est à un toucher",
+            "dearUser": "Salut {toName}!",
+            "body1": "Choisis une habitude — boire de l'eau, marcher dix minutes, lire avant de dormir. Puis fais un check-in. C'est le jour 1, et ta série est lancée.",
+            "body2": "Pas besoin d'un partenaire pour commencer. Une fois ta série lancée, invite un ami pour la garder vivante.",
+            "buttonText": "Ouvrir {brandName}",
+            "postBody1": "Une habitude. Un check-in. C'est tout ce qu'aujourd'hui demande."
+        },
+        "pactSeatReminder": {
+            "subject": "{fromName} t'attend toujours",
+            "header": "{fromName} t'attend toujours",
+            "dearUser": "Salut {toName}!",
+            "body1": "{fromName} t'a invité à faire {habitName} ensemble, et ta place est toujours libre — encore {daysLeft} jour(s)."
         },
         "coinsReceived": {
             "header": "Tu as gagné des pièces!",
