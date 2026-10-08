@@ -115,6 +115,11 @@ append new items here rather than only printing them once.
 - [ ] **Ship the habits build carrying the "Leaderboard alerts" switch** (niche/HABITS-general). Until it
   does, the column can only be changed by API, so every user is opted in.
 
+## First-habit solo grace (added 2026-10-08, #3010)
+
+- [ ] **Run the users-service migration after the deploy** (`20261008000001`: `habits.user_habits."soloGraceStartedAt"` plus a partial unique index). Additive; neither automator reads the column. Until it runs, every solo start that relies on the grace fails closed with 403 `solo-locked`, i.e. the old behaviour.
+- [ ] **Ship the mobile first-session flow** (`niche/HABITS-general`) to make the grace reachable from onboarding. Server-side it is live on deploy: an installed build already shows "track solo" whenever `canCreateSolo` is true.
+
 ## Pact invite reminder (added 2026-10-08, #3062)
 
 - [ ] **Watch `pactInviteReminders` in the first digest runs.** Logged as a JSON string on the

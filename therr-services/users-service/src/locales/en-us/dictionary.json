@@ -76,7 +76,8 @@
             "premiumPurchaseNotActive": "That subscription is not active yet",
             "premiumPurchaseNotFound": "That subscription could not be found",
             "premiumVerificationFailed": "We could not verify that subscription right now. Please try again shortly.",
-            "soloLocked": "Invite {remaining} more friend(s) to unlock habits you track on your own — {required} invites total."
+            "soloLocked": "Invite {remaining} more friend(s) to unlock habits you track on your own — {required} invites total.",
+            "soloGraceEnded": "Your {days} free days tracking this alone are up. Invite {required} friend to keep it going — your streak is waiting."
         },
         "user": {
             "invalidUserNamePassword": "User/password combination is incorrect",

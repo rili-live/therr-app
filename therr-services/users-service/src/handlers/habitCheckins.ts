@@ -37,6 +37,7 @@ import { checkIsMediaSafeForWork } from './helpers';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
 import { resolvePactPartnerIds } from './helpers/pactPartners';
 import { checkHabitCapacity } from './helpers/habitCapacity';
+import { describeSoloGrace, SOLO_GRACE_DAYS, SOLO_GRACE_KEEP_INVITE_COUNT } from './helpers/soloHabitAccess';
 import {
     awardStreakAchievement,
     awardConsistencyAchievement,
@@ -220,6 +221,29 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
             if (denial) {
                 return res.status(402).send(denial);
+            }
+        }
+
+        // The first-habit solo grace (helpers/soloHabitAccess.ts): free for SOLO_GRACE_DAYS, then
+        // kept by one sent invite. Only a row the grace was spent on is ever refused here, and
+        // only once the window has passed, so the invite count is read just for that case. A
+        // pact on this goal going active (above) lifts it too.
+        if (existingTracking && describeSoloGrace(existingTracking, SOLO_GRACE_KEEP_INVITE_COUNT)?.hasEnded) {
+            const invitedCount = await Store.pactMembers.countDistinctInvitedByCreator(userId);
+            const soloGrace = describeSoloGrace(existingTracking, invitedCount);
+
+            if (soloGrace?.isLocked) {
+                return res.status(403).send({
+                    error: 'solo-grace-ended',
+                    message: translate(locale, 'errorMessages.habits.soloGraceEnded', {
+                        days: SOLO_GRACE_DAYS,
+                        required: SOLO_GRACE_KEEP_INVITE_COUNT,
+                    }),
+                    habitGoalId,
+                    invitedCount,
+                    requiredCount: SOLO_GRACE_KEEP_INVITE_COUNT,
+                    soloGrace,
+                });
             }
         }
     }

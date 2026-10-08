@@ -67,6 +67,8 @@ export interface IUserHabitRow extends IUserHabitNotificationPreferences {
     status: UserHabitStatus;
     startedAt: Date;
     archivedAt: Date | null;
+    /** Set on the one row tracked under the first-habit solo grace. See `getSoloGraceRow`. */
+    soloGraceStartedAt?: Date | null;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -202,6 +204,47 @@ export default class UserHabitsStore {
 
     getByUserAndHabit(userId: string, habitGoalId: string): Promise<IUserHabitRow | undefined> {
         return this.get({ userId, habitGoalId }, 1).then((rows) => rows[0]);
+    }
+
+    /**
+     * The row this user is tracking under the first-habit solo grace, if they have used it — in
+     * any status, because archiving the habit must not hand the grace back. At most one exists
+     * (partial unique index, migration 20261008000001).
+     */
+    getSoloGraceRow(userId: string): Promise<IUserHabitRow | undefined> {
+        const queryString = knexBuilder
+            .from(USER_HABITS_TABLE_NAME)
+            .where({ userId })
+            .whereNotNull('soloGraceStartedAt')
+            .limit(1)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows[0]);
+    }
+
+    /**
+     * Mark a tracking row as the user's solo-grace habit. Conditional on the row not already being
+     * marked; the partial unique index refuses a second marked row for the same user, which is
+     * reported as `false` rather than thrown so the caller can treat a lost race like any other
+     * "already used".
+     */
+    claimSoloGrace(id: string, userId: string): Promise<boolean> {
+        const queryString = knexBuilder
+            .where({ id, userId })
+            .whereNull('soloGraceStartedAt')
+            .update({ soloGraceStartedAt: knexBuilder.fn.now() })
+            .into(USER_HABITS_TABLE_NAME)
+            .returning('id')
+            .toString();
+
+        return this.db.write.query(queryString)
+            .then((response) => response.rows.length > 0)
+            .catch((err: any) => {
+                if (err?.code === '23505') {
+                    return false;
+                }
+                throw err;
+            });
     }
 
     /**
