@@ -202,6 +202,18 @@
       "title": "Toujours en attente d'un partenaire?",
       "body": "Personne n'a encore répondu à ton invitation {habitName}. D'autres le font dans des pactes ouverts — demande à t'y joindre."
     },
+    "habitsFirstHabitNudge": {
+      "title": "Le jour 1 prend dix secondes",
+      "body": "Choisis une habitude et fais un check-in. C'est ta série qui commence."
+    },
+    "pactInviteUnclaimed": {
+      "title": "{partnerName} ne s'est pas encore joint",
+      "body": "Ton invitation pour {habitName} attend toujours. Renvoie-la — un rappel de ta part marche mieux qu'un des nôtres."
+    },
+    "habitsFounderOffer": {
+      "title": "{checkinCount} check-ins. Tu bâtis quelque chose.",
+      "body": "Débloque des habitudes illimitées à vie en un seul paiement. Sans abonnement."
+    },
     "dailyHabitReminder": {
       "title": "C'est l'heure de t'enregistrer",
       "body": "Enregistre {habitName} aujourd'hui — un seul enregistrement lance ta série.",

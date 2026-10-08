@@ -54,6 +54,11 @@ import {
     runOpenPactSuggestionPass,
 } from './helpers/openPactSuggestionDigest';
 import {
+    emptyOnboardingNurtureCounters,
+    IOnboardingNurtureCounters,
+    runOnboardingNurturePass,
+} from './helpers/onboardingNurtureDigest';
+import {
     EMPTY_PACT_INVITE_REMINDER_COUNTERS,
     IPactInviteReminderCounters,
     runPactInviteReminderPass,
@@ -253,6 +258,8 @@ interface IDigestCountersWithRecap extends IDigestCounters {
     // Nested for the same reason. See helpers/openPactSuggestionDigest.ts.
     openPactSuggestions: IOpenPactSuggestionCounters;
     pactInviteReminders: IPactInviteReminderCounters;
+    // Nested for the same reason. See helpers/onboardingNurtureDigest.ts.
+    onboardingNurture: IOnboardingNurtureCounters;
     // Nested for the same reason. See helpers/podiumWithinReachDigest.ts.
     podiumWithinReach: IPodiumWithinReachCounters;
 }
@@ -366,6 +373,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         pledgeVerdicts: { ...EMPTY_PLEDGE_VERDICT_COUNTERS },
         openPactSuggestions: { ...EMPTY_OPEN_PACT_SUGGESTION_COUNTERS },
         pactInviteReminders: { ...EMPTY_PACT_INVITE_REMINDER_COUNTERS },
+        onboardingNurture: emptyOnboardingNurtureCounters(),
         podiumWithinReach: { ...EMPTY_PODIUM_WITHIN_REACH_COUNTERS },
         pactsEvaluated: 0,
         pactsExpired: 0,
@@ -1490,6 +1498,21 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 return { ...EMPTY_PACT_INVITE_REMINDER_COUNTERS, reminderErrors: 1 };
             });
 
+        // Best-effort, like the passes above. Every message is claimed in habits.onboarding_messages
+        // before it is sent, so a re-run, or a retry after a partial failure, sends nobody a second.
+        counters.onboardingNurture = await runOnboardingNurturePass(queuePushOutcome, {
+            brandVariation: brand,
+            whiteLabelOrigin,
+        }, new Date())
+            .catch((err: any) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: the onboarding nurture pass failed'],
+                });
+                return emptyOnboardingNurtureCounters();
+            });
+
         // Leaderboard podium-within-reach. A no-op except on the Sunday run, the last before the
         // Monday (UTC) reset. Best-effort like the passes above; the dedupe key is the period.
         counters.podiumWithinReach = await runPodiumWithinReachPass({
@@ -1523,6 +1546,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 pledgeVerdicts: JSON.stringify(counters.pledgeVerdicts),
                 openPactSuggestions: JSON.stringify(counters.openPactSuggestions),
                 pactInviteReminders: JSON.stringify(counters.pactInviteReminders),
+                onboardingNurture: JSON.stringify(counters.onboardingNurture),
                 podiumWithinReach: JSON.stringify(counters.podiumWithinReach),
                 'pushNotification.brandVariation': String(brand),
             },

@@ -503,6 +503,9 @@ const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.pactJoinRequested,
     PushNotifications.Types.pactJoinApproved,
     PushNotifications.Types.openPactSuggestion,
+    PushNotifications.Types.habitsFirstHabitNudge,
+    PushNotifications.Types.pactInviteUnclaimed,
+    PushNotifications.Types.habitsFounderOffer,
     PushNotifications.Types.partnerCheckedIn,
     PushNotifications.Types.partnerMissedDay,
     PushNotifications.Types.partnerCelebrated,
@@ -1336,6 +1339,44 @@ const createMessage = (
                 channelId: AndroidChannelId.reminders,
             });
             return baseMessage;
+        // Onboarding nurture (#3011). Display pushes with no click action, for the reason the
+        // open-pact set above is: they render on installed builds and the tap opens the app.
+        case PushNotifications.Types.habitsFirstHabitNudge:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, 'notifications.habitsFirstHabitNudge.title'),
+                notificationBody: translate(config.userLocale, 'notifications.habitsFirstHabitNudge.body'),
+                channelId: AndroidChannelId.reminders,
+            });
+            return baseMessage;
+        case PushNotifications.Types.pactInviteUnclaimed:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, 'notifications.pactInviteUnclaimed.title', {
+                    partnerName: String(config.partnerName || ''),
+                }),
+                notificationBody: translate(config.userLocale, 'notifications.pactInviteUnclaimed.body', {
+                    habitName: String(config.habitName || ''),
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
+            return baseMessage;
+        case PushNotifications.Types.habitsFounderOffer:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, 'notifications.habitsFounderOffer.title', {
+                    checkinCount: Number(config.checkinCount || 0),
+                }),
+                notificationBody: translate(config.userLocale, 'notifications.habitsFounderOffer.body'),
+                channelId: AndroidChannelId.rewardUpdates,
+            });
+            return baseMessage;
         case PushNotifications.Types.streakBroken:
             baseMessage = createNotificationMessage({
                 data: modifiedData,
@@ -1879,6 +1920,8 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.habitComeback,
     PushNotifications.Types.habitEstablished,
     PushNotifications.Types.habitMaintenanceCheckIn,
+    PushNotifications.Types.habitsFirstHabitNudge,
+    PushNotifications.Types.habitsFounderOffer,
     PushNotifications.Types.inviteFriendsReminder,
     PushNotifications.Types.latestPostLikesStats,
     PushNotifications.Types.latestPostViewcountStats,
@@ -1904,6 +1947,7 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.pactEnded,
     PushNotifications.Types.pactExpiring,
     PushNotifications.Types.pactInvitation,
+    PushNotifications.Types.pactInviteUnclaimed,
     PushNotifications.Types.pactJoinApproved,
     PushNotifications.Types.pactJoinRequested,
     PushNotifications.Types.pactNudge,

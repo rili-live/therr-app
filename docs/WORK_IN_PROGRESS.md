@@ -132,6 +132,13 @@ append new items here rather than only printing them once.
   toast) rather than opening the pending tab. Both the inline invite and the queued reminder now carry
   `pactId`/`habitName`; before this, neither did, and nothing server-side can see the difference.
 
+## Onboarding nurture (added 2026-10-08, #3011)
+
+- [ ] **Run the users-service migration after the deploy** (`20261008000002`: the `habits.onboarding_messages` ledger). Until it runs, every claim fails and the pass sends nothing, so the order is safe either way.
+- [ ] **Watch `onboardingNurture` in the first digest runs.** It is logged as a JSON string on the "Habits daily digest completed" span, with one counter set per message. On 2026-10-08 the reads matched 8 no-habit accounts, 8 unanswered seats for the inviter prompt, 0 emailed seats, and 6 founder candidates before the entitlement filter. `errors > 0` with nothing queued or emailed means a message is failing. Kill switch: `HABIT_ONBOARDING_NURTURE_ENABLED=false`.
+- [ ] **On a Habits handset, confirm the three new display pushes render** (`habitsFirstHabitNudge`, `pactInviteUnclaimed`, `habitsFounderOffer`). They have no click action, so the tap only opens the app. Nothing server-side can see a push that fails to render.
+- [ ] **therr-messaging-automator: rewrite `introHabits` to lead with the first habit.** It is the welcome email #3011 asked for, and it already reaches every opted-in Habits user, but its copy asks for a friend first ("Pick a habit… invite a friend or two"). The change is in the sibling repo, `src/locales/*.ts`.
+
 ## Open pacts (added 2026-10-05)
 
 - [ ] **Run the users-service migrations after the deploy** (`20261005000001`–`03`: `pacts.isOpen` /

@@ -202,6 +202,18 @@
       "title": "¿Sigues esperando a un compañero?",
       "body": "Nadie ha respondido a tu invitación de {habitName}. Otras personas lo hacen en pactos abiertos: pide unirte a uno."
     },
+    "habitsFirstHabitNudge": {
+      "title": "El día 1 toma diez segundos",
+      "body": "Elige un hábito y registra un check-in. Así empieza tu racha."
+    },
+    "pactInviteUnclaimed": {
+      "title": "{partnerName} aún no se ha unido",
+      "body": "Tu invitación a {habitName} sigue esperando. Envíala de nuevo: un empujón tuyo funciona mejor que uno nuestro."
+    },
+    "habitsFounderOffer": {
+      "title": "{checkinCount} check-ins. Estás construyendo algo.",
+      "body": "Desbloquea hábitos ilimitados de por vida con un solo pago. Sin suscripción."
+    },
     "dailyHabitReminder": {
       "title": "Hora de registrarte",
       "body": "Registra {habitName} hoy — un solo registro pone tu racha en marcha.",
