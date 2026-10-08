@@ -41,8 +41,26 @@ const localStyles = StyleSheet.create({
     journalIconContainer: {
         marginRight: 4,
     },
+    // Every other tab's container is `flex: 1`, and under Yoga a positive
+    // `flex` resolves to a flex-basis of 0, so their `width: buttonWidth` is
+    // ignored and they share whatever the bar has left. This wrapper used to be
+    // the one tab with a fixed `width: buttonWidth` and no flex. `buttonWidth`
+    // comes from a module-load `Dimensions` read, which can be stale (e.g. read
+    // while the window still reported its landscape width), and then the Habits
+    // tab took that stale width and squeezed the other four into the remainder.
+    // Its height also came only from row stretch, unlike the siblings'
+    // `height: '100%'`, which is the likely reason the tab was seen rendering
+    // blank in its slot. Sizing it exactly like its siblings removes both.
+    habitsTabWrapper: {
+        flex: 1,
+        height: '100%',
+    },
+    // Right edge 20px past the tab's centre, as a percentage so it tracks the
+    // tab's real laid-out width rather than `buttonWidth`.
     badge: {
         position: 'absolute',
+        right: '50%',
+        marginRight: -20,
         top: 7,
         minWidth: 18,
         height: 18,
@@ -227,7 +245,10 @@ class HabitsButtonMenu extends ButtonMenu {
         return (
             <ButtonMenu {...this.props}>
                 {/* Habits Tab — habits and pacts both live behind this one */}
-                <View style={{ width: buttonWidth }}>
+                {/* The wrapper (it anchors the badge) must size like its sibling
+                    tabs: flex 1 against the bar, not a fixed `buttonWidth`. See
+                    `habitsTabWrapper`. */}
+                <View style={localStyles.habitsTabWrapper}>
                     <Button
                         title={!isCompact ? translate('menus.habits.buttons.habits') : null}
                         buttonStyle={
@@ -235,14 +256,11 @@ class HabitsButtonMenu extends ButtonMenu {
                                 ? themeMenu.styles.buttonsActive
                                 : themeMenu.styles.buttons
                         }
-                        containerStyle={[
-                            (isHabitsActive
+                        containerStyle={
+                            isHabitsActive
                                 ? themeMenu.styles.buttonContainerActive
-                                : themeMenu.styles.buttonContainer),
-                            {
-                                width: buttonWidth,
-                            },
-                        ]}
+                                : themeMenu.styles.buttonContainer
+                        }
                         titleStyle={
                             isHabitsActive
                                 ? themeMenu.styles.buttonsTitleActive
@@ -269,7 +287,7 @@ class HabitsButtonMenu extends ButtonMenu {
                         says it in words. */}
                     {badgeCount > 0 && (
                         <View
-                            style={[localStyles.badge, { right: buttonWidth / 2 - 20 }]}
+                            style={localStyles.badge}
                             pointerEvents="none"
                             importantForAccessibility="no-hide-descendants"
                             accessibilityElementsHidden
