@@ -3,7 +3,7 @@ import { RequestHandler } from 'express';
 import moment from 'moment';
 // eslint-disable-next-line import/extensions, import/no-unresolved
 import {
-    getBrandContext, getSearchQueryArgs, getSearchQueryString, parseHeaders,
+    getBrandContext, getSearchQueryArgs, getSearchQueryString, isTestAccount, parseHeaders,
 } from 'therr-js-utilities/http';
 import {
     ErrorCodes,
@@ -65,7 +65,7 @@ const createActivity = (req, res) => {
         iconColor: group.iconColor,
         maxCommentsPerMin: group.maxCommentsPerMin || 50,
         doesExpire: group.doesExpire || true,
-        isPublic: group.isPublic,
+        isPublic: isTestAccount(req.headers) ? false : group.isPublic,
         city: group.city,
         region: group.region,
         country: group.country,
@@ -167,7 +167,9 @@ const createForum = async (req, res) => {
         iconColor: req.body.iconColor,
         maxCommentsPerMin: req.body.maxCommentsPerMin || 50,
         doesExpire: req.body.doesExpire || true,
-        isPublic: req.body.isPublic || true,
+        // Store-review / QA accounts' forums stay out of public discovery; the test account
+        // cleanup worker purges them (DELETE /test-account-content).
+        isPublic: isTestAccount(req.headers) ? false : (req.body.isPublic || true),
         media: JSON.stringify(media),
         city: req.body.city,
         region: req.body.region,
@@ -482,7 +484,7 @@ const updateForum = (req, res) => {
         iconColor: req.body.iconColor,
         maxCommentsPerMin: req.body.maxCommentsPerMin,
         doesExpire: req.body.doesExpire,
-        isPublic: req.body.isPublic,
+        isPublic: isTestAccount(req.headers) ? false : req.body.isPublic,
         city: req.body.city,
         region: req.body.region,
         country: req.body.country,

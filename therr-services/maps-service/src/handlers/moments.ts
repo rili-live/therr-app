@@ -1,6 +1,8 @@
 import axios from 'axios';
 import * as countryGeo from 'country-reverse-geocoding';
-import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
+import {
+    getSearchQueryArgs, getSearchQueryString, isTestAccount, parseHeaders,
+} from 'therr-js-utilities/http';
 import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import submitToIndexNow from 'therr-js-utilities/index-now';
 import {
@@ -21,6 +23,7 @@ import { RequestHandler } from 'express';
 import * as globalConfig from '../../../../global-config';
 import getReactions, { countReactions } from '../utilities/getReactions';
 import handleHttpError from '../utilities/handleHttpError';
+import keepTestAccountContentPrivate from '../utilities/keepTestAccountContentPrivate';
 import translate from '../utilities/translator';
 import Store from '../store';
 import {
@@ -164,6 +167,8 @@ const rewardMomentPosted = ({
 
 // CREATE
 const createMoment = async (req, res) => {
+    keepTestAccountContentPrivate(req);
+
     const {
         authorization,
         locale,
@@ -231,7 +236,7 @@ const createMoment = async (req, res) => {
             const expiryHours = Categories.QuickReportExpiryHoursMap[req.body.category] || 2;
             req.body.expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000).toISOString();
         }
-        if (isQuickReport) {
+        if (isQuickReport && !isTestAccount(req.headers)) {
             req.body.isPublic = true;
         }
 
@@ -695,6 +700,8 @@ const dynamicCreateIntegratedMoment = (req, res) => {
 
 // UPDATE
 const updateMoment = (req, res) => {
+    keepTestAccountContentPrivate(req);
+
     const {
         authorization,
         locale,

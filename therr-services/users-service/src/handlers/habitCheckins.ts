@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import {
     ErrorCodes, HabitGoalType, HABIT_CHECKIN_THOUGHT_CATEGORY, MetricNames, PushNotifications, parseSavingsAmount,
 } from 'therr-js-utilities/constants';
-import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
+import { getBrandContext, isTestAccount, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
 import UserDailyStreaksStore from '../store/UserDailyStreaksStore';
@@ -1047,12 +1047,16 @@ const shareCheckin: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    // A store-review / QA account's share is created private, like everything else it posts
+    // (handlers/thoughts.ts createThought): the reviewer still sees it on their own profile.
+    const isTestAccountShare = isTestAccount(req.headers);
+
     let thought;
     try {
         [thought] = await Store.thoughts.create(brandVariation, {
             fromUserId: userId as any,
             locale,
-            isPublic: true,
+            isPublic: !isTestAccountShare,
             message: leadIn,
             // Marks this post as a shared check-in rather than a composed goal update.
             // The Therr feed reads it to decide whether to prefix the "Goals update:"
@@ -1075,7 +1079,10 @@ const shareCheckin: RequestHandler = async (req: any, res: any) => {
     // was shared, sees it nowhere, and can never retry — the repeat-share short-circuit below makes
     // the failure permanent. Treat it as the moderation rejection it is: roll the post back, drop
     // the public copy, and reuse the same 422 the image check returns.
-    if (thought && thought.isPublic === false) {
+    //
+    // A test account's share is private by design, so for it only the mature-content flag that
+    // the same moderation sets is read as a rejection.
+    if (thought && (isTestAccountShare ? thought.isMatureContent : thought.isPublic === false)) {
         await Store.thoughts.deleteThoughts({ fromUserId: userId, ids: [thought.id] })
             .catch((rollbackErr: any) => logSpan({
                 level: 'error',

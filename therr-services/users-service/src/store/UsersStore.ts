@@ -952,6 +952,45 @@ export default class UsersStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    /**
+     * Grants AccessLevels.TEST_ACCOUNT to the accounts behind `emails` (the TEST_ACCOUNT_EMAILS
+     * env var — see utilities/testAccountCleanupWorker.ts). Emails are normalized exactly as
+     * sign-up stores them, which for gmail drops the dots, so the configured address matches
+     * however it was typed. Returns only the rows it actually changed; already-flagged accounts
+     * are left alone, so the call is safe to repeat every tick.
+     */
+    grantTestAccountAccess(emails: string[]): Promise<{ id: string; userName: string }[]> {
+        const normalizedEmails = [...new Set(emails.filter((email) => !!email).map((email) => normalizeEmail(email)))];
+        if (!normalizedEmails.length) {
+            return Promise.resolve([]);
+        }
+
+        const testAccessLevel = JSON.stringify([AccessLevels.TEST_ACCOUNT]);
+        const queryString = knexBuilder
+            .from(USERS_TABLE_NAME)
+            .whereIn('email', normalizedEmails)
+            .andWhereRaw('NOT (COALESCE("accessLevels", \'[]\'::jsonb) @> ?::jsonb)', [testAccessLevel])
+            .update({
+                accessLevels: knexBuilder.raw('COALESCE("accessLevels", \'[]\'::jsonb) || ?::jsonb', [testAccessLevel]),
+                updatedAt: new Date(),
+            })
+            .returning(['id', 'userName'])
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    /** Every account carrying AccessLevels.TEST_ACCOUNT, for the test account cleanup worker. */
+    getTestAccounts(): Promise<{ id: string; userName: string; accessLevels: string[] }[]> {
+        const queryString = knexBuilder
+            .select(['id', 'userName', 'accessLevels'])
+            .from(USERS_TABLE_NAME)
+            .whereRaw('"accessLevels" @> ?::jsonb', [JSON.stringify([AccessLevels.TEST_ACCOUNT])])
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
     deleteUsers(conditions) {
         const normalizedConditions: any = { ...conditions };
 

@@ -1,4 +1,5 @@
 import KnexBuilder, { Knex } from 'knex';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import { quoteTableName } from 'therr-js-utilities/db';
 import BrandScopedStore, { BrandValue } from './BrandScopedStore';
 import { IConnection } from './connection';
@@ -95,6 +96,7 @@ export default class LeaderboardPeriodResultsStore extends BrandScopedStore {
                     AND s."periodStart" = ?::date
                     AND u."settingsIsLeaderboardEnabled" = true
                     AND (u."settingsIsAccountSoftDeleted" = false OR u."settingsIsAccountSoftDeleted" IS NULL)
+                    AND NOT (COALESCE(u."accessLevels", '[]'::jsonb) @> '["${AccessLevels.TEST_ACCOUNT}"]'::jsonb)
             ) ranked
             ON CONFLICT ("brandVariation", "periodStart", "userId") DO NOTHING`,
             [brand, periodStart, brand, periodStart],

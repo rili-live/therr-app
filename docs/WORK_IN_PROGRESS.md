@@ -98,6 +98,23 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Test account isolation & cleanup (added 2026-10-08, docs/TEST_ACCOUNTS.md)
+
+- [ ] **After deploy, have the Play review account (`rili.main@gmail.com`) sign out and back in**
+  (or wait for its token to refresh). The flag rides in the JWT, so until then its new posts are
+  still created public, and only the 6-hourly hide step catches them.
+- [ ] **Confirm `rili.main@gmail.com` holds nothing worth keeping before turning on deletion.**
+  If it's also used as a real company account, give Play a dedicated login instead and swap the
+  email in `TEST_ACCOUNT_EMAILS`. Then read the first `Test account content cleaned up` logs
+  (hide-only) and set `TEST_ACCOUNT_CLEANUP_ENABLED="true"` in
+  `k8s/prod/users-service-deployment.yaml`. Deletion is permanent.
+- [ ] **Check production for the `SpacesStore.reassign` damage** (fixed in the same change). It
+  wrote the space's primary key, so look for `SELECT id, "fromUserId" FROM main.spaces WHERE id =
+  '568bf5d2-8595-4fd6-95da-32cc318618d3'` (a space whose id became the super admin's user id) and
+  for spaces whose `fromUserId` no longer exists in `main.users` (deletions that failed partway).
+- [ ] **Update the Play Console app-access instructions** to say posts from the review account
+  are visible only to that account, so a reviewer doesn't report "my post isn't in the public feed".
+
 ## Leaderboard rank-lost push (added 2026-10-07)
 
 - [ ] **Confirm one `leaderboardRankLost` push lands in the Habits app on a handset and opens the
