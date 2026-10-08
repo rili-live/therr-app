@@ -222,6 +222,9 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
     const outgoingInvites = findOutgoingInvites(habits, user.details?.id || '');
     const hasOutgoing = outgoingInvites.length > 0;
     const hasPendingInvite = (habits.pendingInvites?.length || 0) > 0;
+    // Newest first (the server orders by createdAt desc). Only one is shown; the pending tab the
+    // button opens lists them all.
+    const firstPendingInvite = habits.pendingInvites?.[0];
 
     // Active step drives the stepper highlight: prestaged habit advances to step 2,
     // an already-sent invite advances to step 3 (waiting for acceptance).
@@ -262,6 +265,20 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
 
     const handleViewPending = () => {
         navigation.navigate('HabitsDashboard', { initialTab: 'pending' });
+    };
+
+    // A friend's invite is the fastest way past this screen, and the one that leads to a habit that
+    // sticks: in production, 20 of 21 users whose pact was accepted went on to check in, while
+    // invitees who never answered almost never did. It used to sit below the footer as a small text
+    // link under "pick a habit & invite a friend" — asking someone who already had an invite to go
+    // and send one. So when one is waiting it leads, and starting a pact of their own is secondary.
+    // Accepting happens on the pending tab, which already owns the paywall, toast and refresh.
+    const handleRespondToInvite = () => {
+        logAppEvent('habits_onboarding_invite_open', {
+            userId: user.details?.id,
+            inviteCount: habits.pendingInvites?.length || 0,
+        });
+        handleViewPending();
     };
 
     // Draws the eye to the one control that moves the user forward, after a tap
@@ -338,6 +355,35 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                             {translate('pages.pacts.preview.bannerSubtitle')}
                         </Text>
                     </View>
+
+                    {firstPendingInvite && (
+                        <Pressable
+                            onPress={handleRespondToInvite}
+                            accessibilityRole="button"
+                            accessibilityHint={translate('pages.pacts.preview.respondToInviteCTA')}
+                            style={themeHabits.styles.habitCardContainer}
+                        >
+                            <Text style={themeHabits.styles.onboardingCardFooter}>
+                                {translate('pages.pacts.preview.invitedCardHeader')}
+                            </Text>
+                            <View style={themeHabits.styles.habitCardHeader}>
+                                <View style={themeHabits.styles.habitCardEmojiContainer}>
+                                    <Text style={themeHabits.styles.habitCardEmojiContained}>
+                                        {firstPendingInvite.habitGoalEmoji || '\uD83E\uDD1D'}
+                                    </Text>
+                                </View>
+                                <View style={themeHabits.styles.habitCardTitleContainer}>
+                                    <Text style={themeHabits.styles.onboardingCardTitle}>
+                                        {firstPendingInvite.habitGoalName || translate('pages.pacts.defaultTitle')}
+                                    </Text>
+                                    <Text style={themeHabits.styles.onboardingCardBody}>
+                                        {translate('pages.pacts.preview.invitedCardBody')}
+                                    </Text>
+                                </View>
+                                <Text style={themeHabits.styles.habitPickRowChevron}>{'›'}</Text>
+                            </View>
+                        </Pressable>
+                    )}
 
                     <PactStepper
                         activeStep={activeStep}
@@ -436,15 +482,20 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                         { paddingBottom: space.lg + bottomSafeAreaInset },
                     ]}
                 >
-                    <Text style={themeHabits.styles.onboardingFooterHelper}>
-                        {translate('pages.pacts.preview.bannerHelper')}
-                    </Text>
+                    {/* "Pick a habit, then invite a friend" is the other path; the invite card says what this one is. */}
+                    {!hasPendingInvite && (
+                        <Text style={themeHabits.styles.onboardingFooterHelper}>
+                            {translate('pages.pacts.preview.bannerHelper')}
+                        </Text>
+                    )}
                     <Animated.View style={{ transform: [{ scale: ctaScale }] }}>
                         <Button
                             buttonStyle={themeButtons.styles.btnLargeWithText}
                             titleStyle={themeButtons.styles.btnLargeTitle}
-                            title={translate('pages.pacts.preview.bannerCTA')}
-                            onPress={handleInvite}
+                            title={hasPendingInvite
+                                ? translate('pages.pacts.preview.respondToInviteCTA')
+                                : translate('pages.pacts.preview.bannerCTA')}
+                            onPress={hasPendingInvite ? handleRespondToInvite : handleInvite}
                         />
                     </Animated.View>
                     {hasOutgoing && (
@@ -461,11 +512,11 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                     {hasPendingInvite && (
                         <Pressable
                             accessibilityRole="button"
-                            onPress={handleViewPending}
+                            onPress={handleInvite}
                             style={themeHabits.styles.onboardingFooterSecondary}
                         >
                             <Text style={themeHabits.styles.onboardingFooterSecondaryText}>
-                                {translate('pages.pacts.onboarding.viewInvites', { count: habits.pendingInvites!.length })}
+                                {translate('pages.pacts.preview.startOwnPactCTA')}
                             </Text>
                         </Pressable>
                     )}

@@ -2401,7 +2401,6 @@
                 "title": "Empieza con un amigo",
                 "subtitle": "{appName} está hecho para dos — o más. Invita a un amigo o forma un grupo en torno a una meta compartida (como ahorrar para unas vacaciones) y construyan hábitos a los que se comprometan juntos.",
                 "createPact": "Invitar a un amigo",
-                "viewInvites": "Ver {count} invitación(es) de pacto",
                 "findPartner": "Explorar personas",
                 "benefit2": "Check-ins diarios con alguien que comparte metas similares"
             },
@@ -2411,6 +2410,10 @@
                 "bannerHelper": "Toma un minuto: elige un hábito y luego invita a un amigo para confirmarlo",
                 "bannerCTA": "Elige un hábito e invita a un amigo",
                 "bannerSecondaryCTA": "Ver invitaciones enviadas",
+                "invitedCardHeader": "Un amigo te invitó",
+                "invitedCardBody": "Te está esperando. Acepta para empezar su racha juntos.",
+                "respondToInviteCTA": "Ver tu invitación",
+                "startOwnPactCTA": "O crea tu propio pacto",
                 "soloCTA": "O sigue un hábito por tu cuenta",
                 "soloUnlockProgress": "{invited} de {required} amigos invitados: invita al resto para desbloquear los hábitos en solitario",
                 "sampleHabitTitle": "Empieza con un hábito/meta",
