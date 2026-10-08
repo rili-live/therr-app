@@ -115,6 +115,18 @@ append new items here rather than only printing them once.
 - [ ] **Ship the habits build carrying the "Leaderboard alerts" switch** (niche/HABITS-general). Until it
   does, the column can only be changed by API, so every user is opted in.
 
+## Pact invite reminder (added 2026-10-08, #3062)
+
+- [ ] **Watch `pactInviteReminders` in the first digest runs.** Logged as a JSON string on the
+  "Habits daily digest completed" span. The first run picks up every invite 1–14 days old (11
+  invites, 6 invitees on 2026-10-08), so expect one burst of `remindersQueued` and then a trickle;
+  later runs should show the same invites under `remindersDeduped`. `reminderErrors > 0` with nothing
+  queued means the pass is failing. Kill switch: `HABIT_PACT_INVITE_REMINDERS_ENABLED=false`.
+- [ ] **On a handset with the Habits app, confirm a pact invitation push names the inviter and the
+  habit, and that its Accept action accepts the pact** (lands on PactDetail with the "Pact accepted"
+  toast) rather than opening the pending tab. Both the inline invite and the queued reminder now carry
+  `pactId`/`habitName`; before this, neither did, and nothing server-side can see the difference.
+
 ## Open pacts (added 2026-10-05)
 
 - [ ] **Run the users-service migrations after the deploy** (`20261005000001`–`03`: `pacts.isOpen` /

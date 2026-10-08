@@ -21,6 +21,7 @@ import {
     getCooldownOutcome,
 } from '../utilities/pactNudgeOutcome';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { resolveUserDisplayName } from '../utilities/notificationNames';
 import { checkHabitCapacity } from './helpers/habitCapacity';
 import { activatePactMembership } from './helpers/pactMembership';
 import { attachMemberStatsToPact, attachPactMemberStats } from './helpers/pactMemberStats';
@@ -196,6 +197,9 @@ const createPact: RequestHandler = async (req: any, res: any) => {
 
             // If partner is specified, create their member entry and send notification
             if (partnerUserId) {
+                // The push names the inviter. The header `userName` is empty for an account with no handle,
+                // which rendered " invited you to …"; this falls back to a first name, then "Your partner".
+                const inviterName = await resolveUserDisplayName(userId);
                 const partnerMember = await Store.pactMembers.create({
                     pactId: pact.id,
                     userId: partnerUserId,
@@ -235,10 +239,16 @@ const createPact: RequestHandler = async (req: any, res: any) => {
                 if (dispatchResult.isOnBrand) {
                     sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                         authorization,
-                        fromUser: { id: userId, userName },
+                        fromUser: { id: userId, userName: inviterName },
                         locale,
                         toUserId: partnerUserId,
                         type: PushNotifications.Types.pactInvitation,
+                        // Both are read by the push itself: `habitName` fills the body's
+                        // "{habitName}", and `pactId` is what its Accept button accepts.
+                        // Without them the body read "invited you to do  together" and
+                        // Accept could only open the pending tab.
+                        pactId: pact.id,
+                        habitName: habitGoal.name,
                         whiteLabelOrigin,
                         brandVariation,
                     }).catch((err) => {
@@ -386,6 +396,7 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
                 brandVariation: brandVariation || '',
             }, String(invitees.length));
 
+            const inviterName = await resolveUserDisplayName(userId);
             partnerMembers.forEach((member: any) => {
                 const toUserId = member.userId;
                 createPactInvitationNotification(brandVariation, {
@@ -421,10 +432,12 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
                     }
                     return sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                         authorization,
-                        fromUser: { id: userId, userName },
+                        fromUser: { id: userId, userName: inviterName },
                         locale,
                         toUserId,
                         type: PushNotifications.Types.pactInvitation,
+                        pactId: pact.id,
+                        habitName: habitGoal.name,
                         whiteLabelOrigin,
                         brandVariation,
                     });
@@ -1254,6 +1267,7 @@ const renewPact: RequestHandler = async (req: any, res: any) => {
                     }, String(partnerMembers.length));
                 }
 
+                const inviterName = await resolveUserDisplayName(userId);
                 partnerMembers.forEach((member: any) => {
                     const toUserId = member.userId;
                     createPactInvitationNotification(brandVariation, {
@@ -1285,10 +1299,12 @@ const renewPact: RequestHandler = async (req: any, res: any) => {
                         }
                         return sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                             authorization,
-                            fromUser: { id: userId, userName },
+                            fromUser: { id: userId, userName: inviterName },
                             locale,
                             toUserId,
                             type: PushNotifications.Types.pactInvitation,
+                            pactId: renewed.id,
+                            habitName: habitGoal.name,
                             whiteLabelOrigin,
                             brandVariation,
                         });
@@ -1411,6 +1427,7 @@ const addPactMembers: RequestHandler = async (req: any, res: any) => {
             brandVariation: brandVariation || '',
         }, String(invitees.length));
 
+        const inviterName = await resolveUserDisplayName(userId);
         newMembers.forEach((member: any) => {
             const toUserId = member.userId;
             createPactInvitationNotification(brandVariation, {
@@ -1442,10 +1459,12 @@ const addPactMembers: RequestHandler = async (req: any, res: any) => {
                 }
                 return sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                     authorization,
-                    fromUser: { id: userId, userName },
+                    fromUser: { id: userId, userName: inviterName },
                     locale,
                     toUserId,
                     type: PushNotifications.Types.pactInvitation,
+                    pactId: id,
+                    habitName,
                     whiteLabelOrigin,
                     brandVariation,
                 });
