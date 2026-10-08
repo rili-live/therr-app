@@ -2401,7 +2401,6 @@
                 "title": "Start with a Friend",
                 "subtitle": "{appName} is built for two — or more. Invite a friend, or form a group around a shared goal (like saving for a vacation), and build habits you'll hold each other to.",
                 "createPact": "Invite a Friend",
-                "viewInvites": "View {count} Pact Invite(s)",
                 "findPartner": "Browse People",
                 "benefit2": "Daily check-ins with someone sharing similar goals"
             },
@@ -2411,6 +2410,10 @@
                 "bannerHelper": "About a minute: pick a habit, then invite a friend to lock it in",
                 "bannerCTA": "Pick a habit & invite a friend",
                 "bannerSecondaryCTA": "View sent invites",
+                "invitedCardHeader": "A friend invited you",
+                "invitedCardBody": "They're waiting on you. Accept to start your streak together.",
+                "respondToInviteCTA": "See your invite",
+                "startOwnPactCTA": "Or start your own pact",
                 "soloCTA": "Or track a habit on your own",
                 "soloUnlockProgress": "{invited} of {required} friends invited — invite the rest to unlock solo habits",
                 "sampleHabitTitle": "Start with a habit/goal",

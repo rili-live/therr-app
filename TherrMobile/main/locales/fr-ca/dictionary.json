@@ -2401,7 +2401,6 @@
                 "title": "Commence avec un ami",
                 "subtitle": "{appName} est conçu pour deux — ou plus. Invite un ami ou forme un groupe autour d'un objectif commun (comme épargner pour des vacances) et bâtissez ensemble des habitudes dont vous vous tiendrez responsables.",
                 "createPact": "Inviter un ami",
-                "viewInvites": "Voir {count} invitation(s) de pacte",
                 "findPartner": "Parcourir les gens",
                 "benefit2": "Des check-ins quotidiens avec quelqu'un partageant des objectifs similaires"
             },
@@ -2411,6 +2410,10 @@
                 "bannerHelper": "Environ une minute : choisis une habitude, puis invite un ami pour la confirmer",
                 "bannerCTA": "Choisis une habitude et invite un ami",
                 "bannerSecondaryCTA": "Voir les invitations envoyées",
+                "invitedCardHeader": "Un ami t'a invité",
+                "invitedCardBody": "Il t'attend. Accepte pour commencer votre série ensemble.",
+                "respondToInviteCTA": "Voir ton invitation",
+                "startOwnPactCTA": "Ou crée ton propre pacte",
                 "soloCTA": "Ou suis une habitude de ton côté",
                 "soloUnlockProgress": "{invited} amis invités sur {required} — invite les autres pour débloquer les habitudes en solo",
                 "sampleHabitTitle": "Commence avec une habitude/un objectif",
