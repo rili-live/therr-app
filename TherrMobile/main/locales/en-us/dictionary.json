@@ -1724,7 +1724,7 @@
         },
         "landing": {
             "background": {
-                "shareYourInterests": "Build Habits That Stick",
+                "shareYourInterests": "Start a streak today — no partner needed to begin",
                 "inviteFriends": "Invite Friends to Keep You Accountable",
                 "getMatched": "Make pacts with friends and change your lives together"
             },
@@ -2074,8 +2074,8 @@
             "pendingHabits": "Waiting on Partners",
             "pactWithPartners": "Pact with {partners}",
             "viewPact": "View pact",
-            "awaitingPartnerAcceptance": "Waiting for {partners} to accept before this pact starts.",
-            "awaitingAnyPartnerAcceptance": "Waiting for your invite to be accepted before this pact starts.",
+            "awaitingPartnerAcceptance": "Day 1 counts — check in now. Your streak is shared once {partners} joins.",
+            "awaitingAnyPartnerAcceptance": "Day 1 counts — check in now. Your streak is shared once your friend joins.",
             "soloOrArchivePrompt": "No one has joined yet. Keep going on your own, or pause the reminders?",
             "continueSolo": "Continue solo",
             "archiveHabit": "Archive",
@@ -2337,6 +2337,10 @@
                         "short": "servings"
                     }
                 }
+            },
+            "soloGraceEnded": {
+                "title": "Keep {habitName} going",
+                "body": "Your free week tracking it alone is up. Invite a friend to keep checking in."
             }
         },
         "pacts": {
@@ -2401,7 +2405,6 @@
                 "title": "Start with a Friend",
                 "subtitle": "{appName} is built for two — or more. Invite a friend, or form a group around a shared goal (like saving for a vacation), and build habits you'll hold each other to.",
                 "createPact": "Invite a Friend",
-                "viewInvites": "View {count} Pact Invite(s)",
                 "findPartner": "Browse People",
                 "benefit2": "Daily check-ins with someone sharing similar goals"
             },
@@ -2411,6 +2414,10 @@
                 "bannerHelper": "About a minute: pick a habit, then invite a friend to lock it in",
                 "bannerCTA": "Pick a habit & invite a friend",
                 "bannerSecondaryCTA": "View sent invites",
+                "invitedCardHeader": "A friend invited you",
+                "invitedCardBody": "They're waiting on you. Accept to start your streak together.",
+                "respondToInviteCTA": "See your invite",
+                "startOwnPactCTA": "Or start your own pact",
                 "soloCTA": "Or track a habit on your own",
                 "soloUnlockProgress": "{invited} of {required} friends invited — invite the rest to unlock solo habits",
                 "sampleHabitTitle": "Start with a habit/goal",
@@ -2434,7 +2441,10 @@
                 "pickHabitToastTitle": "Start by picking a habit",
                 "pickHabitToastBody": "Next you'll invite a friend to do it with you.",
                 "inviteGateToastTitle": "Continuing requires inviting a friend",
-                "inviteGateToastBody": "Pacts need at least two people. Tap here to pick a habit and send your invite."
+                "inviteGateToastBody": "Pacts need at least two people. Tap here to pick a habit and send your invite.",
+                "firstHabitCTA": "Pick your first habit",
+                "firstHabitHelper": "Pick a habit and check in today. Bring a friend in once your streak is going.",
+                "startWithFriendCTA": "Or start with a friend"
             },
             "outgoing": {
                 "tabLabel": "Sent",
@@ -3135,6 +3145,19 @@
                 "done": "Done",
                 "lockInForLife": "Lock in every feature for life"
             }
+        },
+        "firstCheckin": {
+            "title": "Day 1",
+            "defaultHabitName": "your habit",
+            "askTitle": "Check in for today?",
+            "askSubtitle": "Done {habitName} today? One tap and day 1 is on the board.",
+            "checkinButton": "I did it — check in",
+            "notYetButton": "Not yet",
+            "doneTitle": "Day 1 done",
+            "doneStreak": "Streak: 1 🔥",
+            "inviteAsk": "Habits stick when a friend is counting on you. Send {habitName} to a friend — your streak is shared once they join.",
+            "inviteButton": "Invite a friend",
+            "laterButton": "Later"
         }
     },
     "modals": {

@@ -1,7 +1,10 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
+import { PushNotifications } from 'therr-js-utilities/constants';
 import Store from '../../src/store';
 import { renewPact } from '../../src/handlers/pacts';
+import * as dispatchPactInvitationModule from '../../src/utilities/dispatchPactInvitation';
+import * as sendEmailAndOrPushModule from '../../src/utilities/sendEmailAndOrPushNotification';
 import { isPactRenewable, selectRenewalInvitees } from '../../src/utilities/pactHelpers';
 
 /**
@@ -260,6 +263,35 @@ describe('Pact renewal — handler', () => {
             messageLocaleKey: 'notifications.pactInvitation',
         });
         expect(params.messageParams).to.include({ habitName: 'Morning run', userId: RENEWER });
+    });
+
+    // The push renders "{userName} invited you to do {habitName} together", and its Accept button
+    // accepts `pactId`. The invite sends used to pass neither: the body read "invited you to do
+    // together" and Accept could only fall back to the pending tab.
+    it('sends the invitation push with the pact and habit it is about', async () => {
+        stubStores({
+            pact: endedPact(),
+            members: [
+                { userId: RENEWER, status: 'active', role: 'creator' },
+                { userId: PARTNER, status: 'active', role: 'partner' },
+            ],
+        });
+        sinon.stub(dispatchPactInvitationModule, 'dispatchPactInvitation').resolves({ isOnBrand: true });
+        const push = sinon.stub(sendEmailAndOrPushModule, 'default').resolves({} as any);
+
+        await run();
+        // The push is fire-and-forget behind the dispatch promise.
+        await new Promise((resolve) => { setImmediate(resolve); });
+
+        expect(push.callCount).to.equal(1);
+        expect(push.firstCall.args[2]).to.include({
+            toUserId: PARTNER,
+            type: PushNotifications.Types.pactInvitation,
+            pactId: 'pact-2',
+            habitName: 'Morning run',
+        });
+        // `findUser` resolves no row here, so the inviter is named by the fallback, never blank.
+        expect(push.firstCall.args[2].fromUser).to.deep.equal({ id: RENEWER, userName: 'Your partner' });
     });
 
     // The brand-scoped insert throws synchronously on a missing or unknown brand. Left uncaught,

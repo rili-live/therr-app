@@ -202,6 +202,18 @@
       "title": "Still waiting on a partner?",
       "body": "Nobody has answered your {habitName} invite yet. Others are doing it in open pacts — ask to join one."
     },
+    "habitsFirstHabitNudge": {
+      "title": "Day 1 takes ten seconds",
+      "body": "Pick one habit and check in once. That is your streak started."
+    },
+    "pactInviteUnclaimed": {
+      "title": "{partnerName} hasn't joined yet",
+      "body": "Your {habitName} invite is still waiting. Send it again — a nudge from you lands better than one from us."
+    },
+    "habitsFounderOffer": {
+      "title": "{checkinCount} check-ins. You're building something.",
+      "body": "Unlock unlimited habits for life with one payment. No subscription."
+    },
     "dailyHabitReminder": {
       "title": "Time to Check In",
       "body": "Log {habitName} today — one check-in gets your streak going.",

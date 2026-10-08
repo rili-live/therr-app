@@ -17,6 +17,7 @@ import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
 import { space } from '../../styles/layouts/spacing';
 import translator from '../../utilities/translator';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
+import { isFirstHabitGraceAvailable } from '../../utilities/soloGrace';
 import getConfig from '../../utilities/getConfig';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { localizeTemplate } from '../../routes/Pacts/habitTemplates';
@@ -222,6 +223,9 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
     const outgoingInvites = findOutgoingInvites(habits, user.details?.id || '');
     const hasOutgoing = outgoingInvites.length > 0;
     const hasPendingInvite = (habits.pendingInvites?.length || 0) > 0;
+    // Newest first (the server orders by createdAt desc). Only one is shown; the pending tab the
+    // button opens lists them all.
+    const firstPendingInvite = habits.pendingInvites?.[0];
 
     // Active step drives the stepper highlight: prestaged habit advances to step 2,
     // an already-sent invite advances to step 3 (waiting for acceptance).
@@ -248,10 +252,21 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
     // remaining count here is what turns "you must invite people" into a target
     // worth finishing; a user who only meets the rule at the moment it blocks
     // them has already formed the impression that the app is stonewalling.
-    const soloUnlock = getSoloUnlockProgress(
-        habits.userHabitEligibility,
-        getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_SOLO] === true,
-    );
+    const isSoloEnabled = getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_SOLO] === true;
+    const soloUnlock = getSoloUnlockProgress(habits.userHabitEligibility, isSoloEnabled);
+
+    // A new user's first habit needs no partner (the first-habit grace, #3010), so onboarding leads
+    // with it: pick a habit, check in today, and only then bring a friend in to protect the streak.
+    // A friend's waiting invite still comes first — accepting it is the faster way in.
+    const leadsWithFirstHabit = !hasPendingInvite && isFirstHabitGraceAvailable(habits.userHabitEligibility, isSoloEnabled);
+
+    const handleStartFirstHabit = () => {
+        logAppEvent('habits_onboarding_first_habit_start', { userId: user.details?.id });
+        navigation.navigate('CreatePactInvite', { mode: 'solo', firstSession: true });
+    };
+
+    // What "pick a habit" means right now: the solo first-session path when it leads, the pact wizard otherwise.
+    const handlePickHabit = leadsWithFirstHabit ? handleStartFirstHabit : handleInvite;
 
     // Both land on the dashboard's pact segments. The `initialTab` is what tells
     // `PactOnboardingGuard` to stand down for that visit — without it a user who
@@ -262,6 +277,20 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
 
     const handleViewPending = () => {
         navigation.navigate('HabitsDashboard', { initialTab: 'pending' });
+    };
+
+    // A friend's invite is the fastest way past this screen, and the one that leads to a habit that
+    // sticks: in production, 20 of 21 users whose pact was accepted went on to check in, while
+    // invitees who never answered almost never did. It used to sit below the footer as a small text
+    // link under "pick a habit & invite a friend" — asking someone who already had an invite to go
+    // and send one. So when one is waiting it leads, and starting a pact of their own is secondary.
+    // Accepting happens on the pending tab, which already owns the paywall, toast and refresh.
+    const handleRespondToInvite = () => {
+        logAppEvent('habits_onboarding_invite_open', {
+            userId: user.details?.id,
+            inviteCount: habits.pendingInvites?.length || 0,
+        });
+        handleViewPending();
     };
 
     // Draws the eye to the one control that moves the user forward, after a tap
@@ -295,7 +324,7 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                 text1: translate('pages.pacts.preview.pickHabitToastTitle'),
                 text2: translate('pages.pacts.preview.pickHabitToastBody'),
             });
-            handleInvite();
+            handlePickHabit();
             return;
         }
 
@@ -338,6 +367,35 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                             {translate('pages.pacts.preview.bannerSubtitle')}
                         </Text>
                     </View>
+
+                    {firstPendingInvite && (
+                        <Pressable
+                            onPress={handleRespondToInvite}
+                            accessibilityRole="button"
+                            accessibilityHint={translate('pages.pacts.preview.respondToInviteCTA')}
+                            style={themeHabits.styles.habitCardContainer}
+                        >
+                            <Text style={themeHabits.styles.onboardingCardFooter}>
+                                {translate('pages.pacts.preview.invitedCardHeader')}
+                            </Text>
+                            <View style={themeHabits.styles.habitCardHeader}>
+                                <View style={themeHabits.styles.habitCardEmojiContainer}>
+                                    <Text style={themeHabits.styles.habitCardEmojiContained}>
+                                        {firstPendingInvite.habitGoalEmoji || '\uD83E\uDD1D'}
+                                    </Text>
+                                </View>
+                                <View style={themeHabits.styles.habitCardTitleContainer}>
+                                    <Text style={themeHabits.styles.onboardingCardTitle}>
+                                        {firstPendingInvite.habitGoalName || translate('pages.pacts.defaultTitle')}
+                                    </Text>
+                                    <Text style={themeHabits.styles.onboardingCardBody}>
+                                        {translate('pages.pacts.preview.invitedCardBody')}
+                                    </Text>
+                                </View>
+                                <Text style={themeHabits.styles.habitPickRowChevron}>{'›'}</Text>
+                            </View>
+                        </Pressable>
+                    )}
 
                     <PactStepper
                         activeStep={activeStep}
@@ -436,15 +494,25 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                         { paddingBottom: space.lg + bottomSafeAreaInset },
                     ]}
                 >
-                    <Text style={themeHabits.styles.onboardingFooterHelper}>
-                        {translate('pages.pacts.preview.bannerHelper')}
-                    </Text>
+                    {/* "Pick a habit, then invite a friend" is the other path; the invite card says what this one is. */}
+                    {!hasPendingInvite && (
+                        <Text style={themeHabits.styles.onboardingFooterHelper}>
+                            {translate(leadsWithFirstHabit
+                                ? 'pages.pacts.preview.firstHabitHelper'
+                                : 'pages.pacts.preview.bannerHelper')}
+                        </Text>
+                    )}
                     <Animated.View style={{ transform: [{ scale: ctaScale }] }}>
                         <Button
                             buttonStyle={themeButtons.styles.btnLargeWithText}
                             titleStyle={themeButtons.styles.btnLargeTitle}
-                            title={translate('pages.pacts.preview.bannerCTA')}
-                            onPress={handleInvite}
+                            title={(() => {
+                                if (hasPendingInvite) {
+                                    return translate('pages.pacts.preview.respondToInviteCTA');
+                                }
+                                return translate(leadsWithFirstHabit ? 'pages.pacts.preview.firstHabitCTA' : 'pages.pacts.preview.bannerCTA');
+                            })()}
+                            onPress={hasPendingInvite ? handleRespondToInvite : handlePickHabit}
                         />
                     </Animated.View>
                     {hasOutgoing && (
@@ -461,15 +529,27 @@ const PactPreviewOverlay: React.FC<IPactPreviewOverlayProps> = ({
                     {hasPendingInvite && (
                         <Pressable
                             accessibilityRole="button"
-                            onPress={handleViewPending}
+                            onPress={handleInvite}
                             style={themeHabits.styles.onboardingFooterSecondary}
                         >
                             <Text style={themeHabits.styles.onboardingFooterSecondaryText}>
-                                {translate('pages.pacts.onboarding.viewInvites', { count: habits.pendingInvites!.length })}
+                                {translate('pages.pacts.preview.startOwnPactCTA')}
                             </Text>
                         </Pressable>
                     )}
-                    {soloUnlock.isUnlocked && (
+                    {leadsWithFirstHabit && (
+                        <Pressable
+                            accessibilityRole="button"
+                            onPress={handleInvite}
+                            style={themeHabits.styles.onboardingFooterSecondary}
+                        >
+                            <Text style={themeHabits.styles.onboardingFooterSecondaryText}>
+                                {translate('pages.pacts.preview.startWithFriendCTA')}
+                            </Text>
+                        </Pressable>
+                    )}
+                    {/* The first-habit CTA above already is the solo start. */}
+                    {soloUnlock.isUnlocked && !leadsWithFirstHabit && (
                         <Pressable
                             accessibilityRole="button"
                             onPress={handleStartSolo}

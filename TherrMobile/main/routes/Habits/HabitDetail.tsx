@@ -58,6 +58,7 @@ import {
 } from '../../utilities/streakFreezes';
 import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
+import { readSoloGraceEnded } from '../../utilities/soloGrace';
 import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/celebrationQueue';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
@@ -836,6 +837,21 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                 const paywallParams = getHabitCapPaywallParams(err, 'habit-detail');
                 if (paywallParams) {
                     this.props.navigation.navigate('UpgradePaywall', paywallParams);
+                    return;
+                }
+
+                // The same refusal, and the same way forward, as on the dashboard (#3010).
+                if (readSoloGraceEnded(err)) {
+                    const habitGoal = this.getHabitGoal();
+                    showToast.info({
+                        text1: this.translate('pages.habits.soloGraceEnded.title', { habitName: habitGoal?.name || '' }),
+                        text2: this.translate('pages.habits.soloGraceEnded.body'),
+                    });
+                    this.props.navigation.navigate('CreatePactInvite', {
+                        habitGoalId,
+                        habitName: habitGoal?.name || '',
+                        habitEmoji: habitGoal?.emoji,
+                    });
                     return;
                 }
 

@@ -115,6 +115,30 @@ append new items here rather than only printing them once.
 - [ ] **Ship the habits build carrying the "Leaderboard alerts" switch** (niche/HABITS-general). Until it
   does, the column can only be changed by API, so every user is opted in.
 
+## First-habit solo grace (added 2026-10-08, #3010)
+
+- [ ] **Run the users-service migration after the deploy** (`20261008000001`: `habits.user_habits."soloGraceStartedAt"` plus a partial unique index). Additive; neither automator reads the column. Until it runs, every solo start that relies on the grace fails closed with 403 `solo-locked`, i.e. the old behaviour.
+- [ ] **Ship the mobile first-session flow** (`niche/HABITS-general`) to make the grace reachable from onboarding. Server-side it is live on deploy: an installed build already shows "track solo" whenever `canCreateSolo` is true.
+
+## Pact invite reminder (added 2026-10-08, #3062)
+
+- [ ] **Watch `pactInviteReminders` in the first digest runs.** Logged as a JSON string on the
+  "Habits daily digest completed" span. The first run picks up every invite 1–14 days old (11
+  invites, 6 invitees on 2026-10-08), so expect one burst of `remindersQueued` and then a trickle;
+  later runs should show the same invites under `remindersDeduped`. `reminderErrors > 0` with nothing
+  queued means the pass is failing. Kill switch: `HABIT_PACT_INVITE_REMINDERS_ENABLED=false`.
+- [ ] **On a handset with the Habits app, confirm a pact invitation push names the inviter and the
+  habit, and that its Accept action accepts the pact** (lands on PactDetail with the "Pact accepted"
+  toast) rather than opening the pending tab. Both the inline invite and the queued reminder now carry
+  `pactId`/`habitName`; before this, neither did, and nothing server-side can see the difference.
+
+## Onboarding nurture (added 2026-10-08, #3011)
+
+- [ ] **Run the users-service migration after the deploy** (`20261008000002`: the `habits.onboarding_messages` ledger). Until it runs, every claim fails and the pass sends nothing, so the order is safe either way.
+- [ ] **Watch `onboardingNurture` in the first digest runs.** It is logged as a JSON string on the "Habits daily digest completed" span, with one counter set per message. On 2026-10-08 the reads matched 8 no-habit accounts, 8 unanswered seats for the inviter prompt, 0 emailed seats, and 6 founder candidates before the entitlement filter. `errors > 0` with nothing queued or emailed means a message is failing. Kill switch: `HABIT_ONBOARDING_NURTURE_ENABLED=false`.
+- [ ] **On a Habits handset, confirm the three new display pushes render** (`habitsFirstHabitNudge`, `pactInviteUnclaimed`, `habitsFounderOffer`). They have no click action, so the tap only opens the app. Nothing server-side can see a push that fails to render.
+- [ ] **therr-messaging-automator: rewrite `introHabits` to lead with the first habit.** It is the welcome email #3011 asked for, and it already reaches every opted-in Habits user, but its copy asks for a friend first ("Pick a habit… invite a friend or two"). The change is in the sibling repo, `src/locales/*.ts`.
+
 ## Open pacts (added 2026-10-05)
 
 - [ ] **Run the users-service migrations after the deploy** (`20261005000001`–`03`: `pacts.isOpen` /

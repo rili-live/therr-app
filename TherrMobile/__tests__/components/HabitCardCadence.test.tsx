@@ -187,3 +187,21 @@ describe('HabitCard — week progress chip counts today once checked in', () => 
             .some((line) => line.startsWith('pages.habits.cadence.weekProgress'))).toBe(false);
     });
 });
+
+/**
+ * A habit whose pact is still waiting on a partner (#3010). The server always took a check-in on
+ * it and the detail screen always offered one; the card hid it, so a creator could not tell
+ * whether day 1 counted and their first check-in waited on someone else installing the app.
+ */
+describe('HabitCard — a partner has not accepted yet', () => {
+    it('still offers the check-in, and says day 1 counts', () => {
+        const lines = getTextLines(renderCard({
+            isAwaitingPartner: true,
+            awaitingPartnerNames: ['Sam'],
+            onCheckin: () => undefined,
+        }));
+
+        expect(lines).toContain('pages.habits.checkin');
+        expect(lines).toContain('pages.habits.awaitingPartnerAcceptance(Sam)');
+    });
+});

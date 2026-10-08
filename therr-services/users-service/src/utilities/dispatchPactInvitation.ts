@@ -41,6 +41,18 @@ export const isOnHabits = (brandVariationsJson: any): boolean => {
         && entry.isActive !== false);
 };
 
+/**
+ * The link a claim-token invite sends, shared with the seat-expiry reminder
+ * (handlers/helpers/onboardingNurtureDigest.ts) so a reminder can never point somewhere the
+ * original invite did not.
+ */
+export const buildPactClaimUrl = (whiteLabelOrigin: string, brandVariation: string, claimToken: string): string => {
+    const contextConfig = getHostContext(whiteLabelOrigin, brandVariation);
+    const baseHost = contextConfig.emailTemplates.appHostFull
+        || contextConfig.parentHomepageUrl;
+    return `${baseHost}/claim-pact/${claimToken}`;
+};
+
 export interface IDispatchPactInvitationArgs {
     pactMemberId: string;
     partnerUserId: string;
@@ -151,9 +163,7 @@ export const dispatchPactInvitation = async (
 
     const partnerLocale = partner.settingsLocale || args.locale || 'en-us';
     const contextConfig = getHostContext(args.whiteLabelOrigin, args.brandVariation);
-    const baseHost = contextConfig.emailTemplates.appHostFull
-        || contextConfig.parentHomepageUrl;
-    const claimUrl = `${baseHost}/claim-pact/${claimToken}`;
+    const claimUrl = buildPactClaimUrl(args.whiteLabelOrigin, args.brandVariation, claimToken);
     const hasCode = !!claimCode;
 
     // Single-channel delivery: email is preferred, SMS is the fallback only

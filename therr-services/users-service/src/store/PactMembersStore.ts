@@ -1,7 +1,12 @@
 import KnexBuilder, { Knex } from 'knex';
 import { IHabitPledge } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
-import { PACTS_TABLE_NAME, PACT_MEMBERS_TABLE_NAME, USERS_TABLE_NAME } from './tableNames';
+import {
+    HABIT_GOALS_TABLE_NAME,
+    PACTS_TABLE_NAME,
+    PACT_MEMBERS_TABLE_NAME,
+    USERS_TABLE_NAME,
+} from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -44,6 +49,18 @@ export interface IPledgedPactMemberRow {
     pledge: IHabitPledge;
     pactStartDate: Date | string | null;
     settingsTimezone?: string | null;
+}
+
+/**
+ * One unanswered invite to someone already on the brand, as the invite reminder reads it. See
+ * `getUnansweredInvitesForReminder`.
+ */
+export interface IUnansweredInviteRow {
+    pactMemberId: string;
+    pactId: string;
+    inviteeUserId: string;
+    habitGoalName: string | null;
+    creatorUserId: string;
 }
 
 export interface IPactInviteClaim {
@@ -409,6 +426,75 @@ export default class PactMembersStore {
             .toString();
 
         return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
+    /**
+     * Invites still waiting on someone who already uses `brand`: the invite reminder's
+     * population (handlers/helpers/pactInviteReminderDigest.ts).
+     *
+     * "Uses the brand" is the same test `dispatchPactInvitation` makes when it decides an invite
+     * goes out as a push rather than an email/SMS claim link, so these are exactly the invitees
+     * whose only prompt was that one push. A pending seat on an `active` pact counts too: a
+     * group pact goes active on its first acceptance and the other invitees can still accept.
+     *
+     * Invitees who turned invite pushes off, and soft-deleted accounts, are left out here rather
+     * than filtered by the caller, so a capped read is not spent on rows that can never send.
+     */
+    getUnansweredInvitesForReminder(
+        brand: string,
+        invitedBefore: Date,
+        invitedAfter: Date,
+        limit: number,
+    ): Promise<IUnansweredInviteRow[]> {
+        const queryString = knexBuilder
+            .select([
+                'pm.id as pactMemberId',
+                'pm.pactId',
+                'pm.userId as inviteeUserId',
+                'g.name as habitGoalName',
+                'p.creatorUserId',
+            ])
+            .from(`${PACT_MEMBERS_TABLE_NAME} as pm`)
+            .innerJoin(`${PACTS_TABLE_NAME} as p`, 'p.id', 'pm.pactId')
+            .innerJoin(`${HABIT_GOALS_TABLE_NAME} as g`, 'g.id', 'p.habitGoalId')
+            .innerJoin(`${USERS_TABLE_NAME} as invitee`, 'invitee.id', 'pm.userId')
+            .where('pm.role', 'partner')
+            .andWhere('pm.status', 'pending')
+            .whereIn('p.status', ['pending', 'active'])
+            .andWhere('pm.invitedAt', '<=', invitedBefore)
+            .andWhere('pm.invitedAt', '>=', invitedAfter)
+            .andWhereRaw('invitee."brandVariations" @> ?::jsonb', [JSON.stringify([{ brand }])])
+            .andWhere((builder) => {
+                builder.where('invitee.settingsPushInvites', true)
+                    .orWhereNull('invitee.settingsPushInvites');
+            })
+            .andWhere((builder) => {
+                builder.where('invitee.settingsIsAccountSoftDeleted', false)
+                    .orWhereNull('invitee.settingsIsAccountSoftDeleted');
+            })
+            .orderBy('pm.invitedAt', 'asc')
+            .limit(Math.max(1, limit))
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
+    /**
+     * Whether an invite can still be accepted: the seat is pending and its pact has not ended.
+     * Read at send time by the notification queue, because hours can pass between queueing a
+     * reminder and the worker draining it.
+     */
+    isInviteOpen(pactMemberId: string): Promise<boolean> {
+        const queryString = knexBuilder
+            .select('pm.id')
+            .from(`${PACT_MEMBERS_TABLE_NAME} as pm`)
+            .innerJoin(`${PACTS_TABLE_NAME} as p`, 'p.id', 'pm.pactId')
+            .where('pm.id', pactMemberId)
+            .andWhere('pm.status', 'pending')
+            .whereIn('p.status', ['pending', 'active'])
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.length > 0);
     }
 
     delete(id: string) {
