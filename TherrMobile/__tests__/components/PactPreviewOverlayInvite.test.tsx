@@ -22,6 +22,10 @@ jest.mock('../../main/components/BaseStatusBar', () => ({
 jest.mock('../../main/utilities/analyticsEvents', () => ({
     logAppEvent: jest.fn(),
 }));
+jest.mock('../../main/utilities/getConfig', () => ({
+    __esModule: true,
+    default: () => ({ featureFlags: { ENABLE_HABITS_SOLO: true } }),
+}));
 // Keys, not copy: these assertions are about which action leads, not about wording.
 jest.mock('../../main/utilities/translator', () => ({
     __esModule: true,
@@ -62,7 +66,7 @@ const store: any = {
     dispatch: () => undefined,
 };
 
-const render = (pendingInvites: any[]) => {
+const render = (pendingInvites: any[], userHabitEligibility?: any) => {
     const navigation = { navigate: jest.fn() };
     let tree: renderer.ReactTestRenderer | undefined;
     act(() => {
@@ -70,7 +74,9 @@ const render = (pendingInvites: any[]) => {
             <Provider store={store}>
                 <PactPreviewOverlay
                     user={user}
-                    habits={{ pendingInvites, pacts: [], templates: [] } as any}
+                    habits={{
+                        pendingInvites, pacts: [], templates: [], userHabitEligibility,
+                    } as any}
                     navigation={navigation}
                 />
             </Provider>,
@@ -121,5 +127,41 @@ describe('PactPreviewOverlay — a friend\'s invite is waiting', () => {
         act(() => { button.props.onPress(); });
 
         expect(navigation.navigate).toHaveBeenCalledWith('CreatePactInvite');
+    });
+});
+
+/**
+ * A brand-new user with no invite waiting (#3010). Their first habit needs no partner, so the
+ * overlay leads with picking it and checking in today; a friend comes after the first check-in.
+ */
+describe('PactPreviewOverlay — the first habit is free to start alone', () => {
+    const graceAvailable = {
+        canCreateSolo: true, isSoloGraceAvailable: true, invitedCount: 0, soloUnlockInviteCount: 3,
+    };
+
+    it('leads with the first habit, into the wizard\'s first-session solo path', () => {
+        const { tree, navigation } = render([], graceAvailable);
+
+        const button = primaryButton(tree);
+        expect(button.props.title).toBe('pages.pacts.preview.firstHabitCTA');
+        act(() => { button.props.onPress(); });
+
+        expect(navigation.navigate).toHaveBeenCalledWith('CreatePactInvite', { mode: 'solo', firstSession: true });
+        expect(texts(tree)).toContain('pages.pacts.preview.firstHabitHelper');
+        expect(texts(tree)).toContain('pages.pacts.preview.startWithFriendCTA');
+        // The first-habit button already is the solo start; a second solo link would repeat it.
+        expect(texts(tree)).not.toContain('pages.pacts.preview.soloCTA');
+    });
+
+    it('still puts a friend\'s waiting invite first', () => {
+        const { tree } = render([invite], graceAvailable);
+
+        expect(primaryButton(tree).props.title).toBe('pages.pacts.preview.respondToInviteCTA');
+    });
+
+    it('keeps the pact wizard in front of a user who already spent the grace', () => {
+        const { tree } = render([], { ...graceAvailable, canCreateSolo: false, isSoloGraceAvailable: false });
+
+        expect(primaryButton(tree).props.title).toBe('pages.pacts.preview.bannerCTA');
     });
 });

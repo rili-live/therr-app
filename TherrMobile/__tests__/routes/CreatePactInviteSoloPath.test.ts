@@ -3,6 +3,7 @@ import {
     canAdvanceFromPartnerStep,
     getBackTarget,
     getFinalAction,
+    getInitialStep,
     getNextStep,
     isSoloReview,
 } from '../../main/routes/Pacts/wizardSteps';
@@ -118,5 +119,29 @@ describe('wizard final action', () => {
         // land in exactly the same place as one who never opened it.
         expect(isSoloReview(0)).toBe(true);
         expect(isSoloReview(1)).toBe(false);
+    });
+});
+
+/**
+ * The wizard opened on a habit the user already tracks — the invite ask after a first check-in,
+ * and the way back into a solo habit whose free week has ended (#3010). There is nothing to pick
+ * or configure, and nobody selected would mean nothing to do.
+ */
+describe('create-habit wizard — inviting to an existing habit', () => {
+    const existing = { isSoloMode: false, canCreateSolo: true, isExistingHabit: true };
+
+    it('opens on the partner step', () => {
+        expect(getInitialStep(existing)).toBe('partners');
+        expect(getInitialStep({ isSoloMode: false, canCreateSolo: true })).toBe('pick');
+    });
+
+    it('leaves the wizard on back from the partner step, which is the first one it rendered', () => {
+        expect(getBackTarget('partners', existing)).toBe('exit');
+        expect(getBackTarget('review', existing)).toBe('partners');
+    });
+
+    it('requires a partner even for a user unlocked for solo habits', () => {
+        expect(canAdvanceFromPartnerStep(0, true, true)).toBe(false);
+        expect(canAdvanceFromPartnerStep(1, true, true)).toBe(true);
     });
 });

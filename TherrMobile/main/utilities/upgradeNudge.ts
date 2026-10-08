@@ -28,6 +28,7 @@ export type PaywallSource =
     | 'drawer'
     | 'dashboard-capacity'
     | 'dashboard-checkin'
+    | 'first-checkin'
     | 'habit-detail'
     | 'create-pact'
     | 'create-pact-wizard'

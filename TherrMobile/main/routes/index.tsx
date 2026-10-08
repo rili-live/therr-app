@@ -61,7 +61,9 @@ import MyHabits from './MyHabits';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
 // HABITS routes
-import { HabitsDashboard, HabitDetail, CheckinDetail, UpgradePaywall } from './Habits';
+import {
+    HabitsDashboard, HabitDetail, CheckinDetail, FirstCheckin, UpgradePaywall,
+} from './Habits';
 import Journal from './Journal';
 import WeeklyRecap from './WeeklyRecap';
 import {
@@ -583,6 +585,16 @@ const routes: RouteConfig<
         component: HabitsDashboard,
         options: () => ({
             title: 'My Habits',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        // The first session's first check-in, reached from the wizard's solo start (#3010).
+        name: 'FirstCheckin',
+        component: FirstCheckin,
+        options: () => ({
+            title: 'Day 1',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),

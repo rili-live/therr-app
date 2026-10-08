@@ -1724,7 +1724,7 @@
         },
         "landing": {
             "background": {
-                "shareYourInterests": "Construye hábitos duraderos",
+                "shareYourInterests": "Empieza una racha hoy, sin necesidad de compañero para comenzar",
                 "inviteFriends": "Invita a tus amigos para mantenerte responsable",
                 "getMatched": "Haz pactos con amigos y cambien sus vidas juntos"
             },
@@ -2074,8 +2074,8 @@
             "pendingHabits": "Esperando a los compañeros",
             "pactWithPartners": "Pacto con {partners}",
             "viewPact": "Ver pacto",
-            "awaitingPartnerAcceptance": "Esperando a que {partners} acepte para que comience este pacto.",
-            "awaitingAnyPartnerAcceptance": "Esperando a que se acepte tu invitación para que comience este pacto.",
+            "awaitingPartnerAcceptance": "El día 1 cuenta: registra tu check-in ahora. Tu racha se comparte cuando {partners} se una.",
+            "awaitingAnyPartnerAcceptance": "El día 1 cuenta: registra tu check-in ahora. Tu racha se comparte cuando tu amigo se una.",
             "soloOrArchivePrompt": "Nadie se ha unido todavía. ¿Sigues por tu cuenta o pausas los recordatorios?",
             "continueSolo": "Seguir en solitario",
             "archiveHabit": "Archivar",
@@ -2337,6 +2337,10 @@
                         "short": "porciones"
                     }
                 }
+            },
+            "soloGraceEnded": {
+                "title": "Mantén {habitName} en marcha",
+                "body": "Tu semana gratis siguiéndolo por tu cuenta terminó. Invita a un amigo para seguir registrando check-ins."
             }
         },
         "pacts": {
@@ -2437,7 +2441,10 @@
                 "pickHabitToastTitle": "Empieza eligiendo un hábito",
                 "pickHabitToastBody": "Después invitarás a un amigo para hacerlo contigo.",
                 "inviteGateToastTitle": "Para continuar, invita a un amigo",
-                "inviteGateToastBody": "Los pactos necesitan al menos dos personas. Toca aquí para elegir un hábito y enviar tu invitación."
+                "inviteGateToastBody": "Los pactos necesitan al menos dos personas. Toca aquí para elegir un hábito y enviar tu invitación.",
+                "firstHabitCTA": "Elige tu primer hábito",
+                "firstHabitHelper": "Elige un hábito y registra tu check-in hoy. Invita a un amigo cuando tu racha esté en marcha.",
+                "startWithFriendCTA": "O empieza con un amigo"
             },
             "outgoing": {
                 "tabLabel": "Enviadas",
@@ -3138,6 +3145,19 @@
                 "done": "Listo",
                 "lockInForLife": "Asegura todas las funciones de por vida"
             }
+        },
+        "firstCheckin": {
+            "title": "Día 1",
+            "defaultHabitName": "tu hábito",
+            "askTitle": "¿Registras tu check-in de hoy?",
+            "askSubtitle": "¿Hiciste {habitName} hoy? Un toque y el día 1 queda registrado.",
+            "checkinButton": "Lo hice: registrar check-in",
+            "notYetButton": "Todavía no",
+            "doneTitle": "Día 1 completado",
+            "doneStreak": "Racha: 1 🔥",
+            "inviteAsk": "Los hábitos se mantienen cuando un amigo cuenta contigo. Envía {habitName} a un amigo: tu racha se comparte cuando se una.",
+            "inviteButton": "Invitar a un amigo",
+            "laterButton": "Más tarde"
         }
     },
     "modals": {
