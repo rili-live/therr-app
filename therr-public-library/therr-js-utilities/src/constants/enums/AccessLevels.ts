@@ -34,6 +34,14 @@ enum AccessLevels {
    * `hasHabitsPremiumEntitlement` rather than testing either directly.
    */
   HABITS_LIFETIME = 'user.habits.lifetime',
+  /**
+   * Marks a store-review or QA account (e.g. the login handed to Google Play review).
+   * Granted by users-service from the TEST_ACCOUNT_EMAILS env var, never by sign-up.
+   * Content these accounts create is kept off every surface real users can reach, and
+   * users-service periodically purges it. Read via `isTestAccount`, not directly.
+   * See docs/TEST_ACCOUNTS.md.
+   */
+  TEST_ACCOUNT = 'user.test.account',
 }
 
 export default AccessLevels;
