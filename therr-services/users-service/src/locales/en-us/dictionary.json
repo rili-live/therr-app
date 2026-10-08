@@ -76,7 +76,8 @@
             "premiumPurchaseNotActive": "That subscription is not active yet",
             "premiumPurchaseNotFound": "That subscription could not be found",
             "premiumVerificationFailed": "We could not verify that subscription right now. Please try again shortly.",
-            "soloLocked": "Invite {remaining} more friend(s) to unlock habits you track on your own — {required} invites total."
+            "soloLocked": "Invite {remaining} more friend(s) to unlock habits you track on your own — {required} invites total.",
+            "soloGraceEnded": "Your {days} free days tracking this alone are up. Invite {required} friend to keep it going — your streak is waiting."
         },
         "user": {
             "invalidUserNamePassword": "User/password combination is incorrect",
@@ -266,6 +267,21 @@
             "body2": "Other people on {brandName} are working on {habitName} in open pacts that still have room. Open the app and ask to join one — its creator will get your request.",
             "buttonText": "Open {brandName}",
             "postBody1": "Your original invite stays open, so your friends can still accept it."
+        },
+        "firstHabitNudge": {
+            "subject": "Your first habit takes ten seconds",
+            "header": "Day 1 is one tap away",
+            "dearUser": "Hey {toName}!",
+            "body1": "Pick one habit — drink water, a ten-minute walk, reading before bed. Then check in once. That is day 1, and your streak has started.",
+            "body2": "You don't need a partner to begin. Once your streak is going, bring a friend in to keep it alive.",
+            "buttonText": "Open {brandName}",
+            "postBody1": "One habit. One check-in. That is all today asks."
+        },
+        "pactSeatReminder": {
+            "subject": "{fromName} is still waiting for you",
+            "header": "{fromName} is still waiting for you",
+            "dearUser": "Hey {toName}!",
+            "body1": "{fromName} invited you to do {habitName} together, and your spot is still open — for {daysLeft} more day(s)."
         },
         "coinsReceived": {
             "header": "You Earned Coins!",
