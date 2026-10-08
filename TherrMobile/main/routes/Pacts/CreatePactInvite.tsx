@@ -1864,12 +1864,17 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                   * other half of the agreement the freeze rule below describes — a rule about
                   * "a day your habit asked for" only means something once the user can see
                   * which days those are.
+                  *
+                  * Not for an existing habit: the wizard skipped the configure step, so `cadence`
+                  * is the daily default rather than the habit's own schedule.
                   */}
-                <Text style={[this.themeHabits.styles.streakMilestoneText, { paddingHorizontal: 20, marginTop: 12 }]}>
-                    {this.translate('pages.pacts.wizard.cadenceReview', {
-                        cadence: this.describeCadence(cadence),
-                    })}
-                </Text>
+                {!this.getExistingHabit() && (
+                    <Text style={[this.themeHabits.styles.streakMilestoneText, { paddingHorizontal: 20, marginTop: 12 }]}>
+                        {this.translate('pages.pacts.wizard.cadenceReview', {
+                            cadence: this.describeCadence(cadence),
+                        })}
+                    </Text>
+                )}
                 {isSolo && (
                     <Text style={[this.themeHabits.styles.streakMilestoneText, { paddingHorizontal: 20, marginTop: 12 }]}>
                         {this.translate('pages.pacts.wizard.soloAddPartnersLater')}

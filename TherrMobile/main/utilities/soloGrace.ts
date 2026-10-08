@@ -13,23 +13,11 @@ import { readApiError } from './apiErrorMessage';
  */
 
 /**
- * The eligibility fields the grace adds. Declared here as optional rather than read from
- * `therr-react` because this branch does not carry the server half yet; a server predating the
- * grace sends none of them, and every reader treats their absence as "no grace".
+ * The eligibility the grace is read from. The grace fields are optional on `IUserHabitEligibility`:
+ * a server predating the grace sends none of them, and every reader treats their absence as
+ * "no grace".
  */
-export interface IEligibilityWithSoloGrace extends IUserHabitEligibility {
-    isSoloGraceAvailable?: boolean;
-    soloGrace?: {
-        userHabitId: string;
-        habitGoalId: string;
-        startedAt: string;
-        endsAt: string;
-        hasEnded: boolean;
-        isLocked: boolean;
-    } | null;
-    soloGraceDays?: number;
-    soloGraceKeepInviteCount?: number;
-}
+export type IEligibilityWithSoloGrace = IUserHabitEligibility;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
