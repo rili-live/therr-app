@@ -583,17 +583,19 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 > `First open` (`7586156155`) is ENABLED and primary, `phone_verify_success`
 > (`7586157256`) ENABLED as secondary; property `549794383` is Ads-linked and
 > `Consolidated Domains (web) sign_up` (`7825267363`) is ENABLED and primary, with
-> `coach_waitlist_submit` (`7825267372`) beside it. `FwH-App-US-Installs-2026Q3` was
-> created PAUSED (campaign id `24331885080`); the three legacy Therr campaigns in the
+> `coach_waitlist_submit` (`7825267372`) beside it. `FwH-App-US-Installs-2026Q3` (campaign id
+> `24331885080`) went live the same day; the three legacy Therr campaigns in the
 > account are PAUSED and already past their end dates.
 
-- [ ] **Attach the App campaign's images and videos in the Ads UI before resuming it.**
-  `apply` sends text only. Campaign `FwH-App-US-Installs-2026Q3` -> Assets: the nine
-  `scripts/google-ads/assets/habits/{landscape,square,portrait}-*-{streak,pact,partner}.png`
-  frames and the two YouTube videos (`8IArnFqK0Sw`, `_1vXPuQiVHk`) listed in
-  `campaigns/habits-app-install.yaml`. Without them the ad serves text-only and loses
-  most App-campaign inventory. Then `./therrads campaign resume
-  "FwH-App-US-Installs-2026Q3" --confirm` and log the start date in the playbook.
+- [ ] **Read the App campaign's first week on 2026-10-17** (day 8): `./therrads analyze
+  --days 7`, then check `main."userAcquisition"` for `utmCampaign =
+  'fwh-app-us-installs-2026q3'` (the referrer item below). It went live 2026-10-09 at
+  $9/day with a 2026-10-19 end date — a $90 test, images + one video attached. If
+  impressions are near zero by ~2026-10-12, raise `target_cpa` rather than the budget.
+- [ ] **Fix the coach Short (`_1vXPuQiVHk`) and attach it.** Its 0:08–0:10 end card is a
+  blank white box (needs the app name + official Play badge), and its "coach" line
+  promises a feature the app does not have. Upload the fixed cut as a new unlisted video,
+  replace the URL in `campaigns/habits-app-install.yaml`, attach it in the Ads UI.
 - [ ] **Link Google Ads to the Play Console** (Play Console -> Settings ->
   Google Ads links). No longer blocking — the App campaign optimises on the
   Firebase `First open` action — but there is no `GOOGLE_PLAY_DOWNLOAD`
