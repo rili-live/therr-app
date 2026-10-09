@@ -1,0 +1,3 @@
+Novedades:
+• "Invitar a alguien más" en un pacto pendiente ahora agrega un nuevo compañero a ese mismo pacto en lugar de crear uno nuevo
+• Corregimos la pestaña Hábitos, que a veces aparecía en blanco o apretaba las demás pestañas de la barra inferior

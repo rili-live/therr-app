@@ -1,0 +1,3 @@
+What's new:
+• "Invite someone else" on a pending pact now adds a new partner to that same pact instead of starting a new one
+• Fixed the Habits tab sometimes appearing blank or crowding the other tabs in the bottom bar
