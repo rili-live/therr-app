@@ -331,3 +331,64 @@ class V23FieldShapeTest(unittest.TestCase):
         self.assertEqual(ids.next("campaignBudget"), "customers/123/campaignBudgets/-1")
         self.assertEqual(ids.next("campaign"), "customers/123/campaigns/-2")
         self.assertEqual(ids.next("adGroup"), "customers/123/adGroups/-3")
+
+
+class UpdateMaskTest(unittest.TestCase):
+    """`budget` and `pause`/`resume` must build their update mask from the
+    operation itself. They used to call client.get_type("FieldMask"), which is a
+    protobuf type the Ads client does not serve, so both commands raised before
+    sending anything — found on the first real budget change, 2026-10-09.
+    """
+
+    class _Mask:
+        def __init__(self):
+            self.paths = []
+
+    class _Operation:
+        def __init__(self):
+            self.update = type("Resource", (), {})()
+            self.update_mask = UpdateMaskTest._Mask()
+
+    def _client(self, sent):
+        test = self
+
+        class Service:
+            def campaign_path(self, customer_id, campaign_id):
+                return f"customers/{customer_id}/campaigns/{campaign_id}"
+
+            def _record(self, customer_id, operations):
+                sent.extend(operations)
+                result = type("Result", (), {"resource_name": "ok"})()
+                return type("Response", (), {"results": [result]})()
+
+            mutate_campaign_budgets = _record
+            mutate_campaigns = _record
+
+        class Client:
+            enums = type("Enums", (), {"CampaignStatusEnum": {"PAUSED": "PAUSED", "ENABLED": "ENABLED"}})
+
+            def get_type(self, name):
+                if name not in ("CampaignBudgetOperation", "CampaignOperation"):
+                    test.fail(f"get_type({name!r}) is not an Ads API type")
+                return UpdateMaskTest._Operation()
+
+            def get_service(self, name):
+                return Service()
+
+        return Client()
+
+    def test_budget_update_masks_only_the_amount(self):
+        from therr_ads.campaigns import set_budget
+
+        sent = []
+        set_budget(self._client(sent), "123", "customers/123/campaignBudgets/9", Decimal("9"))
+        self.assertEqual(sent[0].update_mask.paths, ["amount_micros"])
+        self.assertEqual(sent[0].update.amount_micros, 9_000_000)
+
+    def test_status_update_masks_only_the_status(self):
+        from therr_ads.campaigns import set_status
+
+        sent = []
+        set_status(self._client(sent), "123", 456, "ENABLED")
+        self.assertEqual(sent[0].update_mask.paths, ["status"])
+        self.assertEqual(sent[0].update.resource_name, "customers/123/campaigns/456")
