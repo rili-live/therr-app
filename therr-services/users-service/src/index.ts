@@ -11,6 +11,7 @@ import { version as packageVersion } from '../package.json';
 import config, { validateEnv } from './config';
 import { drainPools } from './store/connection';
 import { startNotificationQueueWorker } from './utilities/notificationQueueWorker';
+import { startTestAccountCleanupWorker } from './utilities/testAccountCleanupWorker';
 
 validateEnv();
 tracing.start();
@@ -97,6 +98,10 @@ server.headersTimeout = 35000;
 // observed filling before it is allowed to send.
 const stopNotificationQueueWorker = startNotificationQueueWorker();
 
+// Flags, hides and purges store-review / QA accounts' content (docs/TEST_ACCOUNTS.md). Inert
+// unless TEST_ACCOUNT_EMAILS or TEST_ACCOUNT_CLEANUP_ENABLED=true is set.
+const stopTestAccountCleanupWorker = startTestAccountCleanupWorker();
+
 // Graceful shutdown on pod eviction.
 //
 // k8s removes the pod from Service endpoints and sends SIGTERM concurrently, so
@@ -146,6 +151,7 @@ const gracefulShutdown = (signal: string) => {
         // Stop claiming new work before the pools go away, so an in-flight tick
         // is the only thing racing the drain rather than a fresh batch.
         stopNotificationQueueWorker();
+        stopTestAccountCleanupWorker();
         drainPools()
             .then(() => process.exit(0))
             .catch(() => process.exit(1));

@@ -190,6 +190,22 @@ export default class DirectMessagesStore extends BrandScopedStore {
     }
 
     /**
+     * Test account cleanup (DELETE /test-account-content, driven by users-service's
+     * testAccountCleanupWorker). Only rows older than `createdBefore`, so a reviewer
+     * mid-session keeps what they just sent. Unscoped by brand, like deleteByUserId.
+     */
+    deleteTestAccountContent(userId: string, createdBefore: Date): Promise<number> {
+        const queryString = knexBuilder
+            .from(DIRECT_MESSAGES_TABLE_NAME)
+            .where({ fromUserId: userId })
+            .andWhere('createdAt', '<', createdBefore)
+            .delete()
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rowCount || 0);
+    }
+
+    /**
      * Deletes every direct message the user sent OR received, across all brands.
      *
      * Deliberately unscoped by brand. This only runs from the account-deletion fan-out,

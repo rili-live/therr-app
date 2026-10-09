@@ -321,6 +321,31 @@ export default class ForumsStore extends BrandScopedStore {
     }
 
     /**
+     * Test account cleanup (DELETE /test-account-content). Hides every forum the account
+     * authored (covering ones created before it was flagged) and deletes those older than
+     * `createdBefore`; their messages go with them (forumMessages.forumId cascades). Unlike
+     * reassignByAuthorId, nothing is handed to the super admin — a test forum is not a
+     * conversation worth keeping.
+     */
+    purgeTestAccountForums(userId: string, createdBefore: Date): Promise<{ hidden: number; deleted: number }> {
+        const hideQuery = knexBuilder
+            .from(FORUMS_TABLE_NAME)
+            .where({ authorId: userId, isPublic: true })
+            .update({ isPublic: false, updatedAt: new Date() })
+            .toString();
+        const deleteQuery = knexBuilder
+            .from(FORUMS_TABLE_NAME)
+            .where({ authorId: userId })
+            .andWhere('createdAt', '<', createdBefore)
+            .delete()
+            .toString();
+
+        return this.db.write.query(hideQuery)
+            .then((hidden) => this.db.write.query(deleteQuery)
+                .then((deleted) => ({ hidden: hidden.rowCount || 0, deleted: deleted.rowCount || 0 })));
+    }
+
+    /**
      * Hands every forum authored by the user to the super admin, across all brands.
      *
      * Reassign rather than delete: a forum is shared space, and deleting one because its

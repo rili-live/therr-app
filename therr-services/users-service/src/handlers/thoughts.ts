@@ -3,6 +3,7 @@ import {
     getBrandContext,
     getSearchQueryArgs,
     getSearchQueryString,
+    isTestAccount,
     parseHeaders,
 } from 'therr-js-utilities/http';
 import {
@@ -166,6 +167,10 @@ const createThought = async (req, res) => {
         repostThoughtId,
         locale,
         fromUserId: userId,
+        // Store-review / QA accounts (e.g. Google Play's reviewer) post real-looking test text.
+        // Private keeps it out of every other user's feed while the author still sees it on
+        // their own profile, so the review flow works. The cleanup worker purges it later.
+        ...(isTestAccount(req.headers) ? { isPublic: false } : {}),
     })
         .then(([thought]) => {
             logSpan({
@@ -456,6 +461,7 @@ const getThoughtDetails = (req, res) => {
             withReplies: shouldFetchReplies,
             withParent: shouldFetchParent,
             shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
+            hideTestAccountReplies: !isTestAccount(req.headers),
         }),
         Store.userMetrics.countWhere('thoughtId', thoughtId),
     ])
@@ -743,6 +749,7 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
         withUser: !!withUser,
         withReplies: !!withReplies,
         shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
+        hideTestAccountReplies: !isTestAccount(req.headers),
         isMe: userId === authorId,
         // `isFriend` drops the `isPublic = true` filter in ThoughtsStore.find, so it has to
         // mean a *live* connection. Keying off requestStatus alone left a broken (unconnected)

@@ -61,6 +61,7 @@ went unread.
 - [DEPLOY_PIPELINE.md](./DEPLOY_PIPELINE.md) — general → stage → main: what `VERSIONS.txt` records, how the deploy decides per service, and the silent-staleness failures it now refuses
 - [PROD_DEBUG_CLAUDE.md](./PROD_DEBUG_CLAUDE.md) — production debugging runbook
 - [PUSH_NOTIFICATIONS_DEBUGGING.md](./PUSH_NOTIFICATIONS_DEBUGGING.md) — why a push didn't arrive; the diagnostics endpoints, and why a separate Firebase project per brand is usually the wrong fix
+- [TEST_ACCOUNTS.md](./TEST_ACCOUNTS.md) — store-review / QA accounts: how one is flagged, what stays hidden from real users, the cleanup worker, and the known gaps (#3073)
 - [NOTIFICATION_QUEUE_DESIGN.md](./NOTIFICATION_QUEUE_DESIGN.md) — the deduplicated, schedulable notification queue; what must land before send frequency goes up
 - [HABIT_LIFECYCLE_MESSAGING.md](./HABIT_LIFECYCLE_MESSAGING.md) — habit phases and adaptive taper; why "21 days" is a myth, what Lally (2010) actually measured, and the split between push (users-service) and email (messaging automator)
 - [CLOUDFLARE_CDN.md](./CLOUDFLARE_CDN.md) — CDN configuration
