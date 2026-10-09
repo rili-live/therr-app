@@ -625,6 +625,30 @@ export default class MomentsStore {
         });
     }
 
+    /**
+     * Test account cleanup (DELETE /test-account-content, driven by users-service's
+     * testAccountCleanupWorker). Hides everything the account has posted — covering anything
+     * created before the account was flagged, when the create-time guard was not yet in force —
+     * and deletes what is older than `createdBefore`, so a reviewer mid-session keeps the post
+     * they just made.
+     */
+    purgeTestAccountContent(userId: string, createdBefore: Date): Promise<{ hidden: number; deleted: number }> {
+        const hideQuery = knexBuilder.update({ isPublic: false, updatedAt: new Date() })
+            .into(MOMENTS_TABLE_NAME)
+            .where('fromUserId', userId)
+            .andWhere('isPublic', true)
+            .toString();
+        const deleteQuery = knexBuilder.delete()
+            .from(MOMENTS_TABLE_NAME)
+            .where('fromUserId', userId)
+            .andWhere('createdAt', '<', createdBefore)
+            .toString();
+
+        return this.db.write.query(hideQuery)
+            .then((hidden) => this.db.write.query(deleteQuery)
+                .then((deleted) => ({ hidden: hidden.rowCount || 0, deleted: deleted.rowCount || 0 })));
+    }
+
     delete(fromUserId: string) {
         const queryString = knexBuilder.delete()
             .from(MOMENTS_TABLE_NAME)

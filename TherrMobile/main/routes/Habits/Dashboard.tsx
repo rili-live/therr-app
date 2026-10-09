@@ -37,7 +37,8 @@ import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
 import { DURATION, showToast } from '../../utilities/toasts';
 import {
-    countTodayProgress, IHabitWithPactState, isPactSuperseded, splitHabitsByPactState,
+    canManagePactMembers, countTodayProgress, getNonTerminalPactMemberIds, IHabitWithPactState,
+    isPactSuperseded, splitHabitsByPactState,
 } from './pactState';
 import { getNudgeErrorMessage, getNudgeOutcomeToast } from '../Pacts/nudgeOutcome';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
@@ -723,11 +724,31 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
 
     // The invite wizard is the single creation flow: it creates the habit goal
     // (from a template or a custom name) and sends the pact invites together.
-    // Shared by the floating action, the empty states, and the Sent-tab card's
-    // "invite someone else" link.
+    // Shared by the floating action and the empty states.
     handleCreatePact = () => {
         const { navigation } = this.props;
         navigation.navigate('CreatePactInvite');
+    };
+
+    // The Sent-tab card's "invite someone else" recovery path adds people to the
+    // pact the card is showing, the same picker PactDetail's "add members" opens.
+    // Sending it through the wizard instead started an unrelated second pact and
+    // left this one still waiting on the partner who never answered. Falls back
+    // to the wizard only when this pact can't take members (an older service that
+    // doesn't hydrate `activeMemberCount`, or a pact the user didn't create).
+    handleInviteSomeoneElse = (pact: IPact) => {
+        const { navigation, user } = this.props;
+
+        if (!canManagePactMembers(pact, user.details?.id)) {
+            this.handleCreatePact();
+            return;
+        }
+
+        navigation.navigate('AddPactMembers', {
+            pactId: pact.id,
+            habitName: pact.habitGoalName,
+            existingMemberIds: getNonTerminalPactMemberIds(pact),
+        });
     };
 
     handleAcceptInvite = (pact: IPact) => {
@@ -1452,7 +1473,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                     userName={user.details?.userName || ''}
                     isNudging={nudgingPactId === item.id}
                     onNudge={this.handleNudge}
-                    onInviteSomeoneElse={this.handleCreatePact}
+                    onInviteSomeoneElse={this.handleInviteSomeoneElse}
                     themeHabits={this.themeHabits}
                     translate={this.translate}
                     onPress={() => this.handlePactPress(item)}

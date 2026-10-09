@@ -4,6 +4,7 @@ import getBrandContext, { IBrandContext } from './get-brand-context';
 import getSearchQueryArgs, { IReqQuery } from './get-search-query-args';
 import getSearchQueryString from './get-search-query-string';
 import parseHeaders from './parse-headers';
+import isTestAccount from './is-test-account';
 
 // NOTE: The node keep-alive agents (httpKeepAliveAgent/httpsKeepAliveAgent) intentionally
 // live in './agents' and are NOT re-exported here. They statically import node's `http`/`https`
@@ -25,4 +26,5 @@ export {
     getSearchQueryArgs,
     getSearchQueryString,
     parseHeaders,
+    isTestAccount,
 };

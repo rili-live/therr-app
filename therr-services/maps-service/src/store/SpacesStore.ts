@@ -858,14 +858,33 @@ export default class SpacesStore {
     }
 
     reassign(fromUserId: string, toUserId: string) {
+        // Ownership is `fromUserId`. This once wrote `id` — the space's primary key — so a deleted
+        // account's spaces were never actually handed over, and an account owning two or more
+        // failed the whole delete on a primary key conflict.
         const queryString = knexBuilder.update({
-            id: toUserId,
+            fromUserId: toUserId,
         })
             .from(SPACES_TABLE_NAME)
             .where('fromUserId', fromUserId)
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    /**
+     * Test account cleanup (DELETE /test-account-content). Spaces are hidden, never deleted: a
+     * space can carry other users' moments (no cascade, by design — see deleteUserData) plus
+     * incentives, metrics and claims, and a reviewer's test space is already private from the
+     * moment it is created. Hiding here covers spaces made before the account was flagged.
+     */
+    hideTestAccountSpaces(userId: string): Promise<number> {
+        const queryString = knexBuilder.update({ isPublic: false, updatedAt: new Date() })
+            .into(SPACES_TABLE_NAME)
+            .where('fromUserId', userId)
+            .andWhere('isPublic', true)
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rowCount || 0);
     }
 
     delete(fromUserId: string) {

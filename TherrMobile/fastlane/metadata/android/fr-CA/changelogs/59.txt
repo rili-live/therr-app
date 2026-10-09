@@ -1,0 +1,3 @@
+Nouveautés :
+• « Inviter quelqu'un d'autre » sur un pacte en attente ajoute maintenant un nouveau partenaire à ce même pacte au lieu d'en créer un nouveau
+• Correction de l'onglet Habitudes qui apparaissait parfois vide ou tassait les autres onglets de la barre du bas
