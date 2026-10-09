@@ -98,6 +98,23 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Test account isolation & cleanup (added 2026-10-08, docs/TEST_ACCOUNTS.md)
+
+- [ ] **After deploy, have the Play review account (`rili.main@gmail.com`) sign out and back in**
+  (or wait for its token to refresh). The flag rides in the JWT, so until then its new posts are
+  still created public, and only the 6-hourly hide step catches them.
+- [ ] **Confirm `rili.main@gmail.com` holds nothing worth keeping before turning on deletion.**
+  If it's also used as a real company account, give Play a dedicated login instead and swap the
+  email in `TEST_ACCOUNT_EMAILS`. Then read the first `Test account content cleaned up` logs
+  (hide-only) and set `TEST_ACCOUNT_CLEANUP_ENABLED="true"` in
+  `k8s/prod/users-service-deployment.yaml`. Deletion is permanent.
+- [ ] **Check production for the `SpacesStore.reassign` damage** (fixed in the same change). It
+  wrote the space's primary key, so look for `SELECT id, "fromUserId" FROM main.spaces WHERE id =
+  '568bf5d2-8595-4fd6-95da-32cc318618d3'` (a space whose id became the super admin's user id) and
+  for spaces whose `fromUserId` no longer exists in `main.users` (deletions that failed partway).
+- [ ] **Update the Play Console app-access instructions** to say posts from the review account
+  are visible only to that account, so a reviewer doesn't report "my post isn't in the public feed".
+
 ## Leaderboard rank-lost push (added 2026-10-07)
 
 - [ ] **Confirm one `leaderboardRankLost` push lands in the Habits app on a handset and opens the
@@ -562,39 +579,35 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
   it is in *Testing*, Google expires the refresh token after 7 days with no
   warning and no distinguishing error — this is the cause of "it worked last
   week" for every tool built on this API.
+> **Conversion setup re-read live on 2026-10-09.** Done since 2026-09-14: habits
+> `First open` (`7586156155`) is ENABLED and primary, `phone_verify_success`
+> (`7586157256`) ENABLED as secondary; property `549794383` is Ads-linked and
+> `Consolidated Domains (web) sign_up` (`7825267363`) is ENABLED and primary, with
+> `coach_waitlist_submit` (`7825267372`) beside it. `FwH-App-US-Installs-2026Q3` (campaign id
+> `24331885080`) went live the same day; the three legacy Therr campaigns in the
+> account are PAUSED and already past their end dates.
+
+- [ ] **Read the App campaign's first week on 2026-10-17** (day 8): `./therrads analyze
+  --days 7`, then check `main."userAcquisition"` for `utmCampaign =
+  'fwh-app-us-installs-2026q3'` (the referrer item below). It went live 2026-10-09 at
+  $9/day with a 2026-10-19 end date — a $90 test, images + one video attached. If
+  impressions are near zero by ~2026-10-12, raise `target_cpa` rather than the budget.
+- [ ] **Fix the coach Short (`_1vXPuQiVHk`) and attach it.** Its 0:08–0:10 end card is a
+  blank white box (needs the app name + official Play badge), and its "coach" line
+  promises a feature the app does not have. Upload the fixed cut as a new unlisted video,
+  replace the URL in `campaigns/habits-app-install.yaml`, attach it in the Ads UI.
 - [ ] **Link Google Ads to the Play Console** (Play Console -> Settings ->
-  Google Ads links) so installs are reported as conversions. Without the link,
-  the App campaign optimises against nothing and `report ads` shows zero installs
-  regardless of what actually happened.
-- [ ] **Enable the imported `com.therr.habits` conversion actions in Ads.** A
-  GAQL read on 2026-09-14 shows the GA4 import already happened — 22
-  `com.therr.habits (Android)` conversion actions exist (ids `7586156155`
-  First open, `7586157256` phone_verify_success, `7586157262`
-  connection_invites_sent, `7586157277` profile_create_start, ...) — but **every
-  one is `status: HIDDEN`**, so the App campaign would still optimise against
-  nothing. Ads UI -> Goals -> Conversions -> Settings: un-hide `First open` as
-  the primary goal for run 1, and `phone_verify_success` as secondary. Leave the
-  `app.therrmobile` ones alone; those are the flagship's.
-- [ ] **Mark the six habits events as key events, then import them as conversion
-  actions — in that order.** GA4 admin on property `267810693`, stream "Friends with
-  Habits": `habit_pact_create`, `habit_invite_sent`, `habit_solo_start`,
-  `habit_checkin_complete`, `habits_paywall_view`, `habits_founder_unlock_purchase`.
-  An event that is collected but not marked cannot be imported into Ads as a
-  conversion action, which is why none of them appear in the account's conversion
-  actions today. **The app is not the blocker:** the events ship (versionCode 35 /
-  1.5.0, `niche/HABITS-general`, 2026-09-03) and GA4 shows pact and check-in users on
-  the production build. `ga4.APP_FUNNEL_STEPS` already declares all six, so the
-  reporting side needs no change once they are marked.
-- [ ] **Create a Google Ads link on GA4 property `549794383`.** The app property
-  (`267810693`) has had one since 2022; the consolidated web property has
-  **none** (re-confirmed via the Admin API 2026-09-14), so the web arm has no
-  path to import a conversion even after `sign_up` is marked. GA4 Admin ->
-  Product links -> Google Ads links.
-- [ ] **Mark `sign_up` as a key event** on property `549794383` and import it as
-  the web arm's conversion action. `habits.therr.com/register` fires it on a
-  successful registration, and the landing page fires `store_click` /
-  `register_start`. Without this the Search campaign's `target_cpa: 8.00` has no
-  conversion to count and bids against nothing.
+  Google Ads links). No longer blocking — the App campaign optimises on the
+  Firebase `First open` action — but there is no `GOOGLE_PLAY_DOWNLOAD`
+  conversion for `com.therr.habits` without it, so Play-reported installs are
+  invisible to Ads.
+- [ ] **Mark the rest of the habits events as key events and import them.** Already
+  imported (HIDDEN, which is right for run 1): `habit_pact_create`,
+  `habit_pact_accept`, `habit_checkin_complete`, `habits_founder_unlock_purchase`.
+  Still missing from the account's conversion actions: `habit_invite_sent`,
+  `habit_solo_start`, `habits_paywall_view` — GA4 admin on property `267810693`,
+  stream "Friends with Habits", mark as key events first, then import. Needed
+  before run 2 switches bidding to `OPTIMIZE_IN_APP_CONVERSIONS_*`.
 - [ ] **Set `settings.yaml` -> `product_db.enabled: true`** against the READ
   replica once credentials are sourced. Ads and GA4 alone cannot answer whether
   paid users activate or pay; that join lives only in our own database.

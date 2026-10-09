@@ -1,4 +1,5 @@
 import KnexBuilder, { Knex } from 'knex';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 import {
     PACTS_TABLE_NAME,
@@ -543,8 +544,17 @@ export default class PactsStore {
      *
      * `hasPendingJoinRequest` is the viewer's own request state, so the list can show "Requested"
      * instead of offering the button twice.
+     *
+     * Store-review / QA accounts (AccessLevels.TEST_ACCOUNT) and real users are kept apart in both
+     * directions: a reviewer's open pact is never offered to a real user, and a reviewer is only
+     * offered other test accounts' pacts, so their join request can never land on a stranger.
      */
-    getOpenPacts(viewerUserId: string, matchKey?: IHabitMatchKey, limit = OPEN_PACTS_LIST_LIMIT): Promise<IOpenPactRow[]> {
+    getOpenPacts(
+        viewerUserId: string,
+        matchKey?: IHabitMatchKey,
+        limit = OPEN_PACTS_LIST_LIMIT,
+        viewerIsTestAccount = false,
+    ): Promise<IOpenPactRow[]> {
         let queryString = knexBuilder
             .select([
                 `${PACTS_TABLE_NAME}.id`,
@@ -588,7 +598,11 @@ export default class PactsStore {
                 + ` WHERE mine."pactId" = ${PACTS_TABLE_NAME}."id" AND mine."userId" = ? AND mine."status" IN ('pending', 'active'))`,
                 [viewerUserId],
             )
-            .andWhereRaw(`${seatCountSql()} < ?`, [MAX_OPEN_PACT_MEMBERS]);
+            .andWhereRaw(`${seatCountSql()} < ?`, [MAX_OPEN_PACT_MEMBERS])
+            .andWhereRaw(
+                `(COALESCE(${USERS_TABLE_NAME}."accessLevels", '[]'::jsonb) @> '["${AccessLevels.TEST_ACCOUNT}"]'::jsonb) = ?`,
+                [viewerIsTestAccount],
+            );
 
         if (matchKey) {
             const { templateKey, normalizedName } = matchKey;

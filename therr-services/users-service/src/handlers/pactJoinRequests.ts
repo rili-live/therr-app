@@ -5,7 +5,7 @@ import {
     Notifications,
     PushNotifications,
 } from 'therr-js-utilities/constants';
-import { parseHeaders } from 'therr-js-utilities/http';
+import { isTestAccount, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
@@ -63,7 +63,7 @@ const getOpenPacts: RequestHandler = async (req: any, res: any) => {
             matchKey = getHabitMatchKey(goal);
         }
 
-        const pacts = await Store.pacts.getOpenPacts(userId, matchKey);
+        const pacts = await Store.pacts.getOpenPacts(userId, matchKey, undefined, isTestAccount(req.headers));
         // `maxMembers` lets a client show "n of N spots" without hard-coding the server's ceiling.
         return res.status(200).send({ pacts, maxMembers: MAX_OPEN_PACT_MEMBERS });
     } catch (err: any) {

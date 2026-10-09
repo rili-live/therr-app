@@ -44,14 +44,21 @@ campaign:
     # `./therrads campaign resume "FwH-App-US-Installs-2026Q3" --confirm`.
     status: PAUSED
     start_date: ""     # empty = starts when enabled
-    end_date: ""       # empty = runs until paused. Budget caps the exposure.
+    # Run 1 is a $100 test (2026-10-09): ~10 days at $9/day, with the end date as
+    # the hard stop. The tool sets this only on create; the live campaign's end
+    # date was set in the Ads UI (Settings -> Start and end dates).
+    end_date: "2026-10-19"
 
 budget:
     # Deliberately small. The goal of the first 30 days is a believable CPI
     # number and a first cohort to watch, not growth. Raise it with
     # `./therrads campaign budget <name> --daily N` once CPI is known — in
     # steps of <=20%, or the learning phase restarts.
-    daily: 20.00
+    # Run 1: $9/day under a $100 total, leaving headroom for Google's up-to-2x
+    # daily overdelivery. Well under the 50x-target-CPA guidance, so expect slow
+    # delivery at first; if impressions are near zero after ~3 days, raise
+    # target_cpa rather than the budget.
+    daily: 9.00
     currency: USD
     delivery: STANDARD
 
@@ -131,6 +138,9 @@ assets:
         # 14s portrait (Runway, 2026-09-29): "Friends with Habits is free on Google Play".
         - "https://www.youtube.com/watch?v=8IArnFqK0Sw"
         # 9:16 YouTube Short (2026-10-01): "achieve goals with support from a coach or friends".
+        # NOT ATTACHED for run 1: a blank white box at 0:08-0:10 needs the app name /
+        # Play badge filled in, and "coach" promises a feature the app does not have
+        # yet. Re-upload the fixed cut as a new video and replace this URL.
         # Normalised from the /shorts/ share link to the watch?v= form used above.
         - "https://www.youtube.com/watch?v=_1vXPuQiVHk"
 

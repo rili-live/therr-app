@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { HABITS_FREE_HABIT_LIMIT, Notifications } from 'therr-js-utilities/constants';
+import { AccessLevels, HABITS_FREE_HABIT_LIMIT, Notifications } from 'therr-js-utilities/constants';
 import Store from '../../src/store';
 import {
     approveJoinRequest,
@@ -39,6 +39,7 @@ const call = async (handler: any, {
     params = { id: PACT_ID },
     body = {},
     query = {},
+    accessLevels = [],
 }: any = {}) => {
     const captured: { statusCode?: number; body?: any } = {};
     const res = {
@@ -53,6 +54,7 @@ const call = async (handler: any, {
             'x-username': userId === CREATOR ? 'creator_name' : 'requester_name',
             'x-localecode': 'en-us',
             'x-brand-variation': 'habits',
+            'x-user-access-levels': JSON.stringify(accessLevels),
         },
         params,
         body,
@@ -227,6 +229,8 @@ describe('open pacts — endpoints', () => {
             expect(getOpenPactsStub.firstCall.args).to.deep.equal([
                 REQUESTER,
                 { templateKey: 'read', normalizedName: 'leer más' },
+                undefined,
+                false,
             ]);
         });
 
@@ -235,7 +239,15 @@ describe('open pacts — endpoints', () => {
 
             await call(getOpenPacts);
 
-            expect(getOpenPactsStub.firstCall.args).to.deep.equal([REQUESTER, undefined]);
+            expect(getOpenPactsStub.firstCall.args).to.deep.equal([REQUESTER, undefined, undefined, false]);
+        });
+
+        it('keeps a store-review / QA account to other test accounts\' open pacts', async () => {
+            const getOpenPactsStub = sinon.stub(Store.pacts, 'getOpenPacts').resolves([]);
+
+            await call(getOpenPacts, { accessLevels: [AccessLevels.DEFAULT, AccessLevels.TEST_ACCOUNT] });
+
+            expect(getOpenPactsStub.firstCall.args[3]).to.equal(true);
         });
 
         it('answers 404 for a habitGoalId that is not a uuid, without querying', async () => {
