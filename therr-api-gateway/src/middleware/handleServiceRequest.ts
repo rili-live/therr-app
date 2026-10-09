@@ -25,11 +25,13 @@ const handleServiceRequest = ({
             'x-platform': req.headers['x-platform'] || '',
             'x-brand-variation': req.headers['x-brand-variation'] || '',
             'x-user-device-token': req.headers['x-user-device-token'] || '',
-            // (securely) Tacked on from JWT decode
-            'x-userid': req.headers['x-userid'] || req['x-userid'] || '',
-            'x-username': req.headers['x-username'] || req['x-username'] || '',
-            'x-user-access-levels': req.headers['x-user-access-levels'] || req['x-user-access-levels'] || '',
-            'x-organizations': req.headers['x-organizations'] || req['x-organizations'] || '',
+            // (securely) Tacked on from JWT decode. The decoded value must win: every client also
+            // sends its own `x-userid`, and preferring the request header let any signed-in user
+            // act as another account (or claim another's access levels) just by setting it.
+            'x-userid': req['x-userid'] || req.headers['x-userid'] || '',
+            'x-username': req['x-username'] || req.headers['x-username'] || '',
+            'x-user-access-levels': req['x-user-access-levels'] || req.headers['x-user-access-levels'] || '',
+            'x-organizations': req['x-organizations'] || req.headers['x-organizations'] || '',
             'x-therr-origin-host': req.headers.origin?.match(hostRegex)?.[1] || '',
             'x-auth-type': req['x-auth-type'] || '',
             'x-correction-identity-hash': req.headers['x-correction-identity-hash'] || '',

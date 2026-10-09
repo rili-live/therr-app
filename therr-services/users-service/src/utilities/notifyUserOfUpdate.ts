@@ -1,16 +1,9 @@
 import { Notifications, PushNotifications } from 'therr-js-utilities/constants';
 import { getBrandContext, isTestAccount } from 'therr-js-utilities/http';
-import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
+import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { ICreateNotificationParams } from '../store/NotificationsStore';
 import Store from '../store';
 import sendEmailAndOrPushNotification, { ISendPushNotification } from './sendEmailAndOrPushNotification';
-
-interface IHeaders {
-    authorization: string;
-    locale: string;
-    whiteLabelOrigin: string;
-    brandVariation: string;
-}
 
 interface IEmailAndPushParams extends PushNotifications.INotificationData {
     toUserId: string;
@@ -120,10 +113,11 @@ type NotifyArgs = Parameters<typeof createAndSendNotification>;
 
 /**
  * A store-review / QA account must never reach a real user's inbox or phone: replying to their
- * thread, requesting to connect or inviting them to a pact would otherwise notify a stranger
- * about a test account's content. The recipient lookup only runs when the actor is a test
- * account, so ordinary traffic pays nothing for it. Test accounts still notify each other, so a
- * two-device review of a flow works end to end.
+ * thread would otherwise notify a stranger about a test account's content. This covers only
+ * notifications sent through here — connection requests and pact invitations notify by other
+ * paths and are still open (docs/TEST_ACCOUNTS.md § Known gaps, #3073). The recipient lookup
+ * only runs when the actor is a test account, so ordinary traffic pays nothing for it. Test
+ * accounts still notify each other, so a two-device review of a flow works end to end.
  */
 const notifyUserOfUpdate = (...args: NotifyArgs): ReturnType<typeof createAndSendNotification> => {
     const [headers, dbNotification] = args;

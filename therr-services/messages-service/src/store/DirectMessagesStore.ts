@@ -190,18 +190,6 @@ export default class DirectMessagesStore extends BrandScopedStore {
     }
 
     /**
-     * Deletes every direct message the user sent OR received, across all brands.
-     *
-     * Deliberately unscoped by brand. This only runs from the account-deletion fan-out,
-     * by which point the identity row in main.users is already gone — scoping to the
-     * requesting brand would strand the same user's messages under every other brand
-     * they belonged to, which is the gap this closes rather than a case to preserve.
-     *
-     * Both sides of a thread are removed: a DM has no meaning to the surviving party
-     * once the counterpart account no longer exists, and leaving the received half
-     * behind would keep the deleted user's message content in the database.
-     */
-    /**
      * Test account cleanup (DELETE /test-account-content, driven by users-service's
      * testAccountCleanupWorker). Only rows older than `createdBefore`, so a reviewer
      * mid-session keeps what they just sent. Unscoped by brand, like deleteByUserId.
@@ -217,6 +205,18 @@ export default class DirectMessagesStore extends BrandScopedStore {
         return this.db.write.query(queryString).then((response) => response.rowCount || 0);
     }
 
+    /**
+     * Deletes every direct message the user sent OR received, across all brands.
+     *
+     * Deliberately unscoped by brand. This only runs from the account-deletion fan-out,
+     * by which point the identity row in main.users is already gone — scoping to the
+     * requesting brand would strand the same user's messages under every other brand
+     * they belonged to, which is the gap this closes rather than a case to preserve.
+     *
+     * Both sides of a thread are removed: a DM has no meaning to the surviving party
+     * once the counterpart account no longer exists, and leaving the received half
+     * behind would keep the deleted user's message content in the database.
+     */
     deleteByUserId(userId: string) {
         const queryString = knexBuilder
             .from(DIRECT_MESSAGES_TABLE_NAME)
