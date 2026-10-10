@@ -146,6 +146,25 @@ const getWeekProgressText = (
     return translate(key, { done: weekProgress.done, target: weekProgress.target });
 };
 
+/**
+ * Whether skipping today would cost this habit its streak — the cue for the card's at-risk outline.
+ *
+ * Keyed off the server's `isRequiredToday` rather than `streak.riskLevel`. The latter is computed
+ * as if every habit were daily, so a 5x/week habit reads "critical" two days after its last
+ * check-in while the week still has room for it. `isRequiredToday` is the cadence-aware answer the
+ * evening "last chance" push already uses (`hasStreakAtStakeToday` in `checkinNudgeRollup`), so
+ * the card and the push agree on which habits are on the line.
+ *
+ * Unknown progress (an absent `weekProgress`) is never at risk — no outline beats a false alarm.
+ */
+export const isHabitStreakAtRisk = (
+    streak: IStreak | undefined,
+    weekProgress: IWeekProgress | undefined,
+    isCompletedToday: boolean,
+): boolean => !isCompletedToday
+    && (streak?.currentStreak ?? 0) > 0
+    && weekProgress?.isRequiredToday === true;
+
 const HabitCard: React.FC<IHabitCardProps> = ({
     habitGoal,
     todayCheckin,
@@ -169,10 +188,15 @@ const HabitCard: React.FC<IHabitCardProps> = ({
     const showSoloOrArchive = isAwaitingPartner && !!onContinueSolo && !!onArchive;
     const displayedWeekProgress = getDisplayedWeekProgress(weekProgress, isCompleted);
     const weekProgressText = getWeekProgressText(displayedWeekProgress, translate);
+    const isAtRisk = isHabitStreakAtRisk(streak, weekProgress, isCompleted);
 
     return (
         <Pressable
-            style={themeHabits.styles.habitCardContainer}
+            style={[
+                themeHabits.styles.habitCardContainer,
+                isAtRisk && themeHabits.styles.habitCardContainerAtRisk,
+            ]}
+            accessibilityHint={isAtRisk ? translate('pages.habits.widget.streakAtRisk') : undefined}
             onPress={onPress}
         >
             <View style={themeHabits.styles.habitCardHeader}>

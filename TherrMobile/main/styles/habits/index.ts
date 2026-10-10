@@ -41,6 +41,8 @@ const getStreakBarColors = (theme: ITherrTheme, themeName?: IMobileThemeName) =>
 
 // Height of the floating "new pact" action, and the bottom padding a scrolling
 // surface needs so its last row clears both that action and the button menu.
+const AT_RISK_BORDER_WIDTH = 1.5;
+
 const NEW_PACT_FAB_HEIGHT = 48;
 const newPactFabClearance = buttonMenuHeight + NEW_PACT_FAB_HEIGHT + (space.lg * 2);
 
@@ -449,6 +451,21 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginHorizontal: space.lg,
             marginVertical: space.xs + 2,
             ...shadowSm,
+        },
+        // A live streak that today's check-in is still owed to (see `isHabitStreakAtRisk`).
+        // Deliberately quiet: a hairline of the theme's warning tone and a faint warm wash on
+        // the surface, so it reads as "this one first" without competing with the risk badge.
+        // `alertWarning` is already tuned per theme (deep amber on light, bright amber on
+        // dark), so one rule holds in both. The wash is mixed into the surface rather than
+        // layered as an alpha fill, which would let the grey list background show through.
+        // Padding gives back the border width so the card's contents do not shift.
+        habitCardContainerAtRisk: {
+            borderWidth: AT_RISK_BORDER_WIDTH,
+            borderColor: tint(therrTheme.colors.alertWarning, isDarkTheme(themeName) ? 0.5 : 0.55),
+            backgroundColor: new Color(therrTheme.colors.surface)
+                .mix(new Color(therrTheme.colors.alertWarning), isDarkTheme(themeName) ? 0.07 : 0.04)
+                .hex(),
+            padding: space.md - AT_RISK_BORDER_WIDTH,
         },
         habitCardHeader: {
             flexDirection: 'row',
