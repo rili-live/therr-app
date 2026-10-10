@@ -184,6 +184,20 @@ spec:
         # four new message types on top. See docs/HABIT_LIFECYCLE_MESSAGING.md.
         - name: HABIT_PHASE_ENGINE_ENABLED
           value: "true"
+        # Store-review / QA accounts (src/utilities/testAccountCleanupWorker.ts,
+        # docs/TEST_ACCOUNTS.md). Every account listed is granted the
+        # user.test.account access level, which keeps what it posts off every
+        # surface real users see. rili.main@gmail.com is the login handed to
+        # Google Play review. Comma-separated; matched the way sign-up stores
+        # emails (gmail dots ignored).
+        - name: TEST_ACCOUNT_EMAILS
+          value: "rili.main@gmail.com"
+        # Off: the worker only flags and hides. "true" also deletes those
+        # accounts' posts older than TEST_ACCOUNT_CONTENT_RETENTION_HOURS
+        # (default 48). Deletion is permanent — turn it on only once the
+        # "Test account content cleaned up" logs show nothing worth keeping.
+        - name: TEST_ACCOUNT_CLEANUP_ENABLED
+          value: "false"
         - name: REDIS_PUB_HOST
           value: "redis-cluster-ip-service"
         - name: REDIS_PUB_PORT

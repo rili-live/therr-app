@@ -19,6 +19,7 @@ import { getReadableDistance } from 'therr-js-utilities/location';
 import { RequestHandler } from 'express';
 import * as globalConfig from '../../../../global-config';
 import handleHttpError from '../utilities/handleHttpError';
+import keepTestAccountContentPrivate from '../utilities/keepTestAccountContentPrivate';
 import translate from '../utilities/translator';
 import Store from '../store';
 import {
@@ -161,6 +162,8 @@ const rewardEventPosted = ({
 
 // CREATE
 const createEvent = async (req, res) => {
+    keepTestAccountContentPrivate(req);
+
     const {
         authorization,
         locale,
@@ -500,6 +503,8 @@ const createEvent = async (req, res) => {
 
 // UPDATE
 const updateEvent = (req, res) => {
+    keepTestAccountContentPrivate(req);
+
     const {
         authorization,
         locale,

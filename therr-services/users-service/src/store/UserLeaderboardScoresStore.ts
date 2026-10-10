@@ -1,4 +1,5 @@
 import KnexBuilder, { Knex } from 'knex';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import BrandScopedStore, { BrandValue } from './BrandScopedStore';
 import { IConnection } from './connection';
 
@@ -80,7 +81,10 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
             .andWhere((builder) => {
                 builder.where(`${USERS_TABLE_NAME}.settingsIsAccountSoftDeleted`, false)
                     .orWhereNull(`${USERS_TABLE_NAME}.settingsIsAccountSoftDeleted`);
-            });
+            })
+            // Store-review / QA accounts never rank on a public board: a fresh reviewer who checks
+            // in a few times can top a small brand's weekly board and push a real user off it.
+            .andWhereRaw(`NOT (COALESCE(${USERS_TABLE_NAME}."accessLevels", '[]'::jsonb) @> '["${AccessLevels.TEST_ACCOUNT}"]'::jsonb)`);
     }
 
     /**

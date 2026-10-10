@@ -123,6 +123,34 @@ describe('HABITS check-in public share', () => {
         expect(createThoughtStub.firstCall.args[1]).to.include({ category: 'habit-checkin' });
     });
 
+    // A store-review / QA account (Google Play review) must be able to share — the review is
+    // checking that the flow works — without the post reaching any real user's feed.
+    describe('from a store-review / QA account', () => {
+        const testAccountHeaders = { 'x-user-access-levels': JSON.stringify(['user.default', 'user.test.account']) };
+
+        it('creates the post private and still reports the share as done', async () => {
+            createThoughtStub.resolves([{ id: 'thought-1', isPublic: false, isMatureContent: false }]);
+
+            const res = makeRes();
+            await shareCheckin(makeReq({ headers: testAccountHeaders }) as any, res, (() => {}) as any);
+
+            expect(createThoughtStub.firstCall.args[1]).to.include({ isPublic: false });
+            expect(res.statusCode).to.equal(201);
+            expect(deleteThoughtsStub.called).to.equal(false);
+            expect(updateCheckinStub.firstCall.args[1]).to.deep.equal({ sharedThoughtId: 'thought-1' });
+        });
+
+        it('still rolls back when moderation flags the text', async () => {
+            createThoughtStub.resolves([{ id: 'thought-1', isPublic: false, isMatureContent: true }]);
+
+            const res = makeRes();
+            await shareCheckin(makeReq({ headers: testAccountHeaders }) as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(422);
+            expect(deleteThoughtsStub.calledOnce).to.equal(true);
+        });
+    });
+
     // The feed renders only thoughts the viewer has activated, and activation is otherwise
     // the distributor's job — gated, ranked, and never guaranteed. An author who cannot see
     // their own share reads it as a failed share.

@@ -487,10 +487,9 @@ def set_budget(client, customer_id: str, budget_resource: str, daily) -> str:
     budget.amount_micros = to_micros(daily)
     # Without a field mask the API treats every unset field as an intentional
     # clear, which wipes the budget's name and delivery method.
-    client.copy_from(
-        operation.update_mask,
-        client.get_type("FieldMask")(paths=["amount_micros"]),
-    )
+    # FieldMask is a protobuf well-known type, not an Ads API type, so
+    # client.get_type("FieldMask") raises; fill the operation's own mask instead.
+    operation.update_mask.paths.append("amount_micros")
     service = client.get_service("CampaignBudgetService")
     response = service.mutate_campaign_budgets(customer_id=customer_id, operations=[operation])
     return response.results[0].resource_name
@@ -502,7 +501,7 @@ def set_status(client, customer_id: str, campaign_id: int, status: str) -> str:
     campaign = operation.update
     campaign.resource_name = service.campaign_path(customer_id, campaign_id)
     campaign.status = client.enums.CampaignStatusEnum[status]
-    client.copy_from(operation.update_mask, client.get_type("FieldMask")(paths=["status"]))
+    operation.update_mask.paths.append("status")
     response = service.mutate_campaigns(customer_id=customer_id, operations=[operation])
     return response.results[0].resource_name
 
