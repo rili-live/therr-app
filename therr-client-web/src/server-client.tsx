@@ -144,6 +144,7 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://*.google-analytics.com',
                     'https://*.googletagmanager.com',
                     // Leaflet map tiles and marker icons
+                    'https://tile.openstreetmap.org',
                     'https://*.tile.openstreetmap.org',
                     'https://*.basemaps.cartocdn.com',
                     'https://unpkg.com',
