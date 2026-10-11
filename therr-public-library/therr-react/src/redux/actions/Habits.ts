@@ -364,6 +364,19 @@ const Habits = {
         return DailyStreakService.markCelebrated(date, timeZone).then((response: any) => response?.data);
     },
 
+    /**
+     * Open the reward chest offered with the celebration for `date`. Not optimistic: the reward
+     * is rolled server-side, so there is nothing to show until it answers. Resolves with the
+     * opened chest (`alreadyOpened` when another tap or device got there first).
+     */
+    openDailyRewardChest: (date: string, timeZone?: string) => (dispatch: any) => DailyStreakService
+        .openRewardChest(date, timeZone).then((response: any) => {
+            if (response?.data) {
+                dispatch({ type: HabitsActionTypes.DAILY_REWARD_CHEST_OPENED, data: response.data });
+            }
+            return response?.data;
+        }),
+
     acknowledgePlacement: (periodId: string) => (dispatch: any) => {
         dispatch({ type: HabitsActionTypes.ACKNOWLEDGE_PLACEMENT, data: { periodId } });
         return DailyStreakService.acknowledgePlacement(periodId).then((response: any) => response?.data);
