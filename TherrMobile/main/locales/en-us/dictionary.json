@@ -3145,22 +3145,22 @@
                 "done": "Done",
                 "lockInForLife": "Lock in every feature for life"
             },
-            "chest": {
-                "title": "You earned a chest!",
-                "titleBoosted": "You earned a golden chest!",
-                "hintTap": "Tap the chest {count} times to open it",
-                "hintKeepGoing": "Keep going…",
-                "hintOneMore": "One more tap!",
-                "opening": "Opening…",
-                "error": "We couldn't open your chest. Tap it to try again.",
-                "addedToLeaderboard": "Added to this week's leaderboard.",
-                "accessibilityLabel": "Reward chest. Tap {remaining} more times to open it.",
-                "revealAccessibility": "{rarity} You earned {xp} XP.",
+            "bonus": {
+                "title": "Today's bonus",
+                "titleBoosted": "A golden bonus",
+                "hintTap": "Tap the chameleon",
+                "hintKeepGoing": "A little further…",
+                "hintOneMore": "One more!",
+                "alreadyYours": "It's already yours — tap to see what it catches.",
+                "addedToLeaderboard": "Already added to this week's leaderboard.",
+                "xp": "+{xp} XP",
+                "accessibilityLabel": "Chameleon. Tap to see today's bonus.",
+                "revealAccessibility": "{rarity} Your bonus is {xp} XP.",
                 "rarity": {
-                    "common": "Nice!",
-                    "rare": "Rare!",
-                    "epic": "Epic!",
-                    "jackpot": "JACKPOT!"
+                    "common": "Nice catch!",
+                    "rare": "Shiny!",
+                    "epic": "Brilliant!",
+                    "jackpot": "Dazzling!"
                 }
             }
         },

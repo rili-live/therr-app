@@ -1,5 +1,5 @@
 import {
-    IDailyRewardChestOffer,
+    IDailyBonus,
     IDailyStreak,
     IDailyStreakPendingPlacement,
     IDailyStreakWeekDay,
@@ -21,8 +21,8 @@ export type ICelebration =
         newLongest: boolean;
         /** The local day being celebrated; POSTed back on dismiss to gate the next one. */
         date: string;
-        /** The day's reward chest, opened on the screen after the streak. Absent on older servers. */
-        rewardChest?: IDailyRewardChestOffer | null;
+        /** The day's bonus, already paid at check-in; revealed after the streak. Absent on older servers. */
+        dailyBonus?: IDailyBonus | null;
     }
     | {
         type: 'placement';
@@ -186,7 +186,7 @@ export const enqueueStreakCelebration = (dailyStreak?: IDailyStreak | null) => {
         perfectWeek: pending.isPerfectWeek,
         newLongest: pending.isNewLongest,
         date: dailyStreak?.today || '',
-        rewardChest: pending.rewardChest || null,
+        dailyBonus: pending.dailyBonus || null,
     });
 };
 

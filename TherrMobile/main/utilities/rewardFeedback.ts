@@ -353,10 +353,11 @@ export const triggerRewardCelebration = (): (() => void) => {
 };
 
 /**
- * One knock on the reward chest. Each of the three taps lands harder and a step higher than the
- * last, so the build-up is felt before anything is revealed. `tapIndex` is 0, 1 or 2.
+ * One flick of the chameleon's tongue on the daily-bonus reveal. Each of the three lands harder
+ * and a step higher than the last, so the build-up is felt before the catch. `tapIndex` is 0,
+ * 1 or 2.
  */
-export const triggerChestTapFeedback = (tapIndex: number) => {
+export const triggerTongueFlickFeedback = (tapIndex: number) => {
     const step = Math.max(0, Math.min(2, tapIndex));
     triggerHaptic([
         HapticFeedbackTypes.impactLight,
@@ -370,10 +371,10 @@ export const triggerChestTapFeedback = (tapIndex: number) => {
     }
     const { context, output, startAt } = cue;
     try {
-        // A wooden "tock": a quick downward sweep, pitched up a fifth per knock.
+        // A quick upward "thwip", pitched up a fifth per flick.
         const frequency = [NOTE_C5, NOTE_G5, NOTE_C6][step];
         scheduleTone(context, output, {
-            startAt, frequency, endFrequency: frequency * 0.5, durationSeconds: 0.09, peakGain: 0.55, shape: 'triangle',
+            startAt, frequency, endFrequency: frequency * 1.6, durationSeconds: 0.08, peakGain: 0.5, shape: 'triangle',
         });
         scheduleAudioRelease(0.12);
     } catch {
@@ -382,11 +383,11 @@ export const triggerChestTapFeedback = (tapIndex: number) => {
 };
 
 /**
- * The chest bursting open. Small rewards get the coin "ka-ching"; an epic or a jackpot gets the
- * full fanfare and haptic ramp on top, so the rare outcome feels rare. Returns a canceller for
- * any haptics still queued.
+ * The rock bursting into gems. A small bonus gets the coin "ka-ching"; an epic or a jackpot gets
+ * the full fanfare and haptic ramp on top, so the rare outcome feels rare. Returns a canceller
+ * for any haptics still queued.
  */
-export const triggerChestOpenFeedback = (rarity?: string): (() => void) => {
+export const triggerGemBurstFeedback = (rarity?: string): (() => void) => {
     triggerHaptic(HapticFeedbackTypes.notificationSuccess);
     playCoinCollectSound();
     if (rarity === 'epic' || rarity === 'jackpot') {

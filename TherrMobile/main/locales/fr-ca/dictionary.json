@@ -3145,22 +3145,22 @@
                 "done": "Terminé",
                 "lockInForLife": "Verrouille toutes les fonctionnalités à vie"
             },
-            "chest": {
-                "title": "Tu as gagné un coffre!",
-                "titleBoosted": "Tu as gagné un coffre doré!",
-                "hintTap": "Touche le coffre {count} fois pour l'ouvrir",
-                "hintKeepGoing": "Continue…",
-                "hintOneMore": "Encore une fois!",
-                "opening": "Ouverture…",
-                "error": "Impossible d'ouvrir ton coffre. Touche-le pour réessayer.",
-                "addedToLeaderboard": "Ajouté au classement de cette semaine.",
-                "accessibilityLabel": "Coffre de récompense. Touche-le encore {remaining} fois pour l'ouvrir.",
-                "revealAccessibility": "{rarity} Tu as gagné {xp} XP.",
+            "bonus": {
+                "title": "Le bonus du jour",
+                "titleBoosted": "Un bonus doré",
+                "hintTap": "Touche le caméléon",
+                "hintKeepGoing": "Encore un peu…",
+                "hintOneMore": "Une dernière fois!",
+                "alreadyYours": "Il est déjà à toi — touche pour voir ce qu'il attrape.",
+                "addedToLeaderboard": "Déjà ajouté au classement de cette semaine.",
+                "xp": "+{xp} XP",
+                "accessibilityLabel": "Caméléon. Touche pour voir le bonus du jour.",
+                "revealAccessibility": "{rarity} Ton bonus est de {xp} XP.",
                 "rarity": {
-                    "common": "Bien joué!",
-                    "rare": "Rare!",
-                    "epic": "Épique!",
-                    "jackpot": "GROS LOT!"
+                    "common": "Belle prise!",
+                    "rare": "Brillant!",
+                    "epic": "Splendide!",
+                    "jackpot": "Éblouissant!"
                 }
             }
         },

@@ -3145,22 +3145,22 @@
                 "done": "Listo",
                 "lockInForLife": "Asegura todas las funciones de por vida"
             },
-            "chest": {
-                "title": "¡Ganaste un cofre!",
-                "titleBoosted": "¡Ganaste un cofre dorado!",
-                "hintTap": "Toca el cofre {count} veces para abrirlo",
-                "hintKeepGoing": "Sigue así…",
-                "hintOneMore": "¡Un toque más!",
-                "opening": "Abriendo…",
-                "error": "No pudimos abrir tu cofre. Tócalo para intentarlo de nuevo.",
-                "addedToLeaderboard": "Sumado a la clasificación de esta semana.",
-                "accessibilityLabel": "Cofre de recompensa. Tócalo {remaining} veces más para abrirlo.",
-                "revealAccessibility": "{rarity} Ganaste {xp} XP.",
+            "bonus": {
+                "title": "El bono de hoy",
+                "titleBoosted": "Un bono dorado",
+                "hintTap": "Toca al camaleón",
+                "hintKeepGoing": "Un poco más…",
+                "hintOneMore": "¡Una más!",
+                "alreadyYours": "Ya es tuyo: toca para ver qué atrapa.",
+                "addedToLeaderboard": "Ya sumado a la clasificación de esta semana.",
+                "xp": "+{xp} XP",
+                "accessibilityLabel": "Camaleón. Toca para ver el bono de hoy.",
+                "revealAccessibility": "{rarity} Tu bono es de {xp} XP.",
                 "rarity": {
-                    "common": "¡Bien!",
-                    "rare": "¡Raro!",
-                    "epic": "¡Épico!",
-                    "jackpot": "¡PREMIO MAYOR!"
+                    "common": "¡Buena atrapada!",
+                    "rare": "¡Brillante!",
+                    "epic": "¡Espléndido!",
+                    "jackpot": "¡Deslumbrante!"
                 }
             }
         },

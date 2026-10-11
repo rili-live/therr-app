@@ -23,7 +23,7 @@ import getBrandInitialRouteName from '../../utilities/brandLandingRoute';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import WeekStrip from '../../components/Celebrations/WeekStrip';
 import { PlacementHero, StreakHero } from '../../components/Celebrations/CelebrationHero';
-import RewardChest, { IRewardChestResult, isBigWin } from '../../components/Celebrations/RewardChest';
+import ChameleonCatch, { isBigBonus } from '../../components/Celebrations/ChameleonCatch';
 import celebrationQueue, { ICelebration } from '../../utilities/celebrationQueue';
 import { triggerRewardCelebration } from '../../utilities/rewardFeedback';
 import translator from '../../utilities/translator';
@@ -50,7 +50,6 @@ interface ICelebrationProps {
     lifetimeOffer?: IHabitsLifetimeOffer | null;
     markDailyStreakCelebrated: Function;
     acknowledgePlacement: Function;
-    openDailyRewardChest: Function;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -64,7 +63,6 @@ type ICelebrationExit = 'leaderboard' | 'paywall';
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     markDailyStreakCelebrated: HabitActions.markDailyStreakCelebrated,
     acknowledgePlacement: HabitActions.acknowledgePlacement,
-    openDailyRewardChest: HabitActions.openDailyRewardChest,
 }, dispatch);
 
 /**
@@ -83,20 +81,14 @@ export const Celebration = ({
     lifetimeOffer,
     markDailyStreakCelebrated,
     acknowledgePlacement,
-    openDailyRewardChest,
 }: ICelebrationProps) => {
     const celebration: ICelebration = route.params;
-    // A streak day can end on a reward chest (server-offered, once per upheld day). It is its own
-    // stage, after the streak, so the streak still gets its moment. An already-opened chest (the
-    // app was killed between opening it and Continue) is not offered again.
-    const chestOffer = celebration.type === 'streak' && celebration.rewardChest && !celebration.rewardChest.isOpened
-        ? celebration.rewardChest
-        : null;
-    const [stage, setStage] = useState<'celebration' | 'chest'>('celebration');
-    const [chestResult, setChestResult] = useState<IRewardChestResult | null>(null);
-    const [isChestError, setIsChestError] = useState(false);
-    const [isChestRevealed, setIsChestRevealed] = useState(false);
-    const chestRequestRef = useRef<Promise<any> | null>(null);
+    // A streak day ends on the reveal of the daily bonus, its own stage after the streak so the
+    // streak still gets its moment. The bonus was paid at check-in; the reveal is decoration, and
+    // Continue skips it at any point without costing the user anything.
+    const dailyBonus = celebration.type === 'streak' ? celebration.dailyBonus || null : null;
+    const [stage, setStage] = useState<'celebration' | 'bonus'>('celebration');
+    const [isBonusRevealed, setIsBonusRevealed] = useState(false);
     const [isReduceMotionEnabled, setIsReduceMotionEnabled] = useState(false);
     // The dismiss path is reachable from two buttons and the hardware back button; a ref rather
     // than state because the guard has to hold within a single tick, before a re-render. It
@@ -125,7 +117,7 @@ export const Celebration = ({
      * (`shouldShowFounderCta`): no offer loaded, entitled, sold out, or store
      * unconfigured means no button.
      */
-    const isOnFinalStage = !chestOffer || (stage === 'chest' && (isChestRevealed || isChestError));
+    const isOnFinalStage = !dailyBonus || stage === 'bonus';
     const showFounderOffer = isMilestone
         && isOnFinalStage
         && getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true
@@ -277,77 +269,51 @@ export const Celebration = ({
         celebrationQueue.onDismissed();
     }, []);
 
-    /**
-     * First knock on the chest: send the open request now, so the network is hidden behind the
-     * next two knocks. One request at a time; a failure clears it so the retry sends another.
-     */
-    const onChestFirstTap = useCallback(() => {
-        if (chestRequestRef.current || celebration.type !== 'streak') {
-            return;
-        }
-        setIsChestError(false);
-        const request = Promise.resolve(openDailyRewardChest(
-            celebration.date,
-            Intl.DateTimeFormat().resolvedOptions().timeZone,
-        ));
-        chestRequestRef.current = request;
-        request.then((opened: any) => {
-            if (!opened || typeof opened.rewardXp !== 'number') {
-                throw new Error('No chest in the response');
-            }
-            setChestResult({ rarity: opened.rarity, rewardXp: opened.rewardXp });
-        }).catch(() => {
-            chestRequestRef.current = null;
-            setIsChestError(true);
-        });
-    }, [celebration, openDailyRewardChest]);
-
-    const onChestRevealed = useCallback((result: IRewardChestResult) => {
-        setIsChestRevealed(true);
-        logAppEvent('habits_reward_chest_open', {
-            rarity: result.rarity,
-            xp: result.rewardXp,
-            tier: chestOffer?.tier,
+    const onBonusRevealed = useCallback(() => {
+        setIsBonusRevealed(true);
+        logAppEvent('habits_daily_bonus_reveal', {
+            rarity: dailyBonus?.rarity,
+            xp: dailyBonus?.bonusXp,
+            tier: dailyBonus?.tier,
             streak: celebration.type === 'streak' ? celebration.streak : undefined,
         });
-    }, [celebration, chestOffer?.tier]);
+    }, [celebration, dailyBonus]);
 
     const onContinue = () => {
-        if (chestOffer && stage === 'celebration') {
-            setStage('chest');
+        if (dailyBonus && stage === 'celebration') {
+            setStage('bonus');
             return;
         }
         dismiss();
     };
 
-    const renderChestStage = () => (
+    const renderBonusStage = () => (dailyBonus ? (
         <>
+            <View style={themeCelebration.styles.center}>
+                <Text style={themeCelebration.styles.label}>
+                    {translate(dailyBonus.tier === 'boosted'
+                        ? 'pages.celebration.bonus.titleBoosted'
+                        : 'pages.celebration.bonus.title')}
+                </Text>
+            </View>
             <View style={themeCelebration.styles.hero}>
-                <RewardChest
-                    isBoosted={chestOffer?.tier === 'boosted'}
-                    result={chestResult}
-                    isError={isChestError}
+                <ChameleonCatch
+                    bonus={dailyBonus}
                     isReduceMotionEnabled={isReduceMotionEnabled}
                     colors={theme.colors}
                     translate={translate}
-                    onFirstTap={onChestFirstTap}
-                    onRevealed={onChestRevealed}
+                    onRevealed={onBonusRevealed}
                 />
             </View>
             <View style={themeCelebration.styles.center}>
-                <Text style={themeCelebration.styles.label}>
-                    {translate(chestOffer?.tier === 'boosted'
-                        ? 'pages.celebration.chest.titleBoosted'
-                        : 'pages.celebration.chest.title')}
+                <Text style={themeCelebration.styles.copy}>
+                    {translate(isBonusRevealed
+                        ? 'pages.celebration.bonus.addedToLeaderboard'
+                        : 'pages.celebration.bonus.alreadyYours')}
                 </Text>
-                {isChestRevealed ? (
-                    <Text style={themeCelebration.styles.copy}>
-                        {translate('pages.celebration.chest.addedToLeaderboard')}
-                    </Text>
-                ) : null}
             </View>
         </>
-    );
+    ) : null);
 
     const renderStreakBody = () => {
         if (celebration.type !== 'streak') {
@@ -441,9 +407,9 @@ export const Celebration = ({
             <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
             <SafeAreaView style={[theme.styles.safeAreaView, { backgroundColor: theme.colors.backgroundGray }]}>
                 <View style={themeCelebration.styles.root}>
-                    {stage === 'chest' ? renderChestStage() : null}
+                    {stage === 'bonus' ? renderBonusStage() : null}
                     {((stage === 'celebration' && isMilestone)
-                        || (stage === 'chest' && isChestRevealed && isBigWin(chestResult?.rarity)))
+                        || (stage === 'bonus' && isBonusRevealed && isBigBonus(dailyBonus?.rarity)))
                         && !isReduceMotionEnabled ? (
                         // Wrapped rather than given `pointerEvents` directly: LottieView does
                         // not accept it, and the confetti must not swallow taps on the CTA.
@@ -501,27 +467,25 @@ export const Celebration = ({
                                 </Text>
                             </Pressable>
                         ) : null}
-                        {isOnFinalStage || stage === 'celebration' ? (
-                            <Pressable
-                                onPress={onContinue}
-                                accessibilityRole="button"
-                                style={[
-                                    themeCelebration.styles.button,
-                                    isPlacement || showFounderOffer
-                                        ? themeCelebration.styles.buttonSecondary
-                                        : themeCelebration.styles.buttonPrimary,
-                                ]}
+                        <Pressable
+                            onPress={onContinue}
+                            accessibilityRole="button"
+                            style={[
+                                themeCelebration.styles.button,
+                                isPlacement || showFounderOffer
+                                    ? themeCelebration.styles.buttonSecondary
+                                    : themeCelebration.styles.buttonPrimary,
+                            ]}
+                        >
+                            <Text style={isPlacement || showFounderOffer
+                                ? themeCelebration.styles.buttonSecondaryText
+                                : themeCelebration.styles.buttonPrimaryText}
                             >
-                                <Text style={isPlacement || showFounderOffer
-                                    ? themeCelebration.styles.buttonSecondaryText
-                                    : themeCelebration.styles.buttonPrimaryText}
-                                >
-                                    {translate(isPlacement
-                                        ? 'pages.celebration.actions.done'
-                                        : 'pages.celebration.actions.continue')}
-                                </Text>
-                            </Pressable>
-                        ) : null}
+                                {translate(isPlacement
+                                    ? 'pages.celebration.actions.done'
+                                    : 'pages.celebration.actions.continue')}
+                            </Text>
+                        </Pressable>
                     </View>
                 </View>
             </SafeAreaView>
