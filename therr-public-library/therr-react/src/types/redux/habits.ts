@@ -753,11 +753,26 @@ export interface IDailyStreakWeekDay {
     isToday: boolean;
 }
 
+export type DailyBonusTier = 'standard' | 'boosted';
+export type DailyBonusRarity = 'common' | 'rare' | 'epic' | 'jackpot';
+
+/**
+ * The day's bonus XP, rolled and paid server-side at the first check-in of the day — the user
+ * has it whether or not they watch the celebration that reveals it.
+ */
+export interface IDailyBonus {
+    tier: DailyBonusTier;
+    rarity: DailyBonusRarity;
+    bonusXp: number;
+}
+
 export interface IDailyStreakPendingCelebration {
     kind: 'day' | 'milestone';
     streak: number;
     isPerfectWeek: boolean;
     isNewLongest: boolean;
+    /** Already paid; for the celebration to reveal. Absent on older servers, null when none. */
+    dailyBonus?: IDailyBonus | null;
 }
 
 export interface IDailyStreakPendingPlacement {

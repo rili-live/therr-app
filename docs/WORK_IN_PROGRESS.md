@@ -98,6 +98,19 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Daily bonus (added 2026-10-11)
+
+- [ ] **Run the users-service migration after the deploy** (`20261011000001`: the `habits.daily_bonuses`
+  ledger). Additive; nothing outside users-service reads it. Until it runs, the bonus fails closed
+  inside the check-in (logged as "Daily bonus failed", the check-in still succeeds) and nobody is paid
+  it — which also means running it late loses nothing but those days' bonuses.
+- [ ] **Ship the habits build carrying the chameleon reveal** (`niche/HABITS-general`). The XP is paid
+  on deploy regardless; until the build ships, users get it without seeing it. Kill switch:
+  `HABIT_DAILY_BONUS_ENABLED=false`.
+- [ ] **After two weeks, read the `Daily bonus awarded` spans** (`dailyBonus.rarity`/`bonusXp`)
+  against the weekly board. The odds in `utilities/dailyBonus.ts` are a first guess sized to one
+  check-in's XP; if the bonus moves the weekly board more than check-ins do, lower them.
+
 ## Test account isolation & cleanup (added 2026-10-08, docs/TEST_ACCOUNTS.md)
 
 - [ ] **After deploy, have the Play review account (`rili.main@gmail.com`) sign out and back in**
