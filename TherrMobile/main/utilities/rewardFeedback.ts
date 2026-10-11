@@ -352,6 +352,50 @@ export const triggerRewardCelebration = (): (() => void) => {
     return runHapticSequence(CELEBRATION_HAPTIC_STEPS);
 };
 
+/**
+ * One knock on the reward chest. Each of the three taps lands harder and a step higher than the
+ * last, so the build-up is felt before anything is revealed. `tapIndex` is 0, 1 or 2.
+ */
+export const triggerChestTapFeedback = (tapIndex: number) => {
+    const step = Math.max(0, Math.min(2, tapIndex));
+    triggerHaptic([
+        HapticFeedbackTypes.impactLight,
+        HapticFeedbackTypes.impactMedium,
+        HapticFeedbackTypes.impactHeavy,
+    ][step]);
+
+    const cue = beginCue(0.3);
+    if (!cue) {
+        return;
+    }
+    const { context, output, startAt } = cue;
+    try {
+        // A wooden "tock": a quick downward sweep, pitched up a fifth per knock.
+        const frequency = [NOTE_C5, NOTE_G5, NOTE_C6][step];
+        scheduleTone(context, output, {
+            startAt, frequency, endFrequency: frequency * 0.5, durationSeconds: 0.09, peakGain: 0.55, shape: 'triangle',
+        });
+        scheduleAudioRelease(0.12);
+    } catch {
+        dropAudioContext();
+    }
+};
+
+/**
+ * The chest bursting open. Small rewards get the coin "ka-ching"; an epic or a jackpot gets the
+ * full fanfare and haptic ramp on top, so the rare outcome feels rare. Returns a canceller for
+ * any haptics still queued.
+ */
+export const triggerChestOpenFeedback = (rarity?: string): (() => void) => {
+    triggerHaptic(HapticFeedbackTypes.notificationSuccess);
+    playCoinCollectSound();
+    if (rarity === 'epic' || rarity === 'jackpot') {
+        playAchievementFanfareSound();
+        return runHapticSequence(CELEBRATION_HAPTIC_STEPS);
+    }
+    return () => undefined;
+};
+
 /** Test seam — drops the cached context so each case starts from a clean slate. */
 export const resetRewardFeedbackForTesting = () => {
     if (releaseTimeoutId) {

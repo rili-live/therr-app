@@ -3144,6 +3144,24 @@
                 "seeLeaderboard": "Voir le classement",
                 "done": "Terminé",
                 "lockInForLife": "Verrouille toutes les fonctionnalités à vie"
+            },
+            "chest": {
+                "title": "Tu as gagné un coffre!",
+                "titleBoosted": "Tu as gagné un coffre doré!",
+                "hintTap": "Touche le coffre {count} fois pour l'ouvrir",
+                "hintKeepGoing": "Continue…",
+                "hintOneMore": "Encore une fois!",
+                "opening": "Ouverture…",
+                "error": "Impossible d'ouvrir ton coffre. Touche-le pour réessayer.",
+                "addedToLeaderboard": "Ajouté au classement de cette semaine.",
+                "accessibilityLabel": "Coffre de récompense. Touche-le encore {remaining} fois pour l'ouvrir.",
+                "revealAccessibility": "{rarity} Tu as gagné {xp} XP.",
+                "rarity": {
+                    "common": "Bien joué!",
+                    "rare": "Rare!",
+                    "epic": "Épique!",
+                    "jackpot": "GROS LOT!"
+                }
             }
         },
         "firstCheckin": {

@@ -3144,6 +3144,24 @@
                 "seeLeaderboard": "Ver clasificación",
                 "done": "Listo",
                 "lockInForLife": "Asegura todas las funciones de por vida"
+            },
+            "chest": {
+                "title": "¡Ganaste un cofre!",
+                "titleBoosted": "¡Ganaste un cofre dorado!",
+                "hintTap": "Toca el cofre {count} veces para abrirlo",
+                "hintKeepGoing": "Sigue así…",
+                "hintOneMore": "¡Un toque más!",
+                "opening": "Abriendo…",
+                "error": "No pudimos abrir tu cofre. Tócalo para intentarlo de nuevo.",
+                "addedToLeaderboard": "Sumado a la clasificación de esta semana.",
+                "accessibilityLabel": "Cofre de recompensa. Tócalo {remaining} veces más para abrirlo.",
+                "revealAccessibility": "{rarity} Ganaste {xp} XP.",
+                "rarity": {
+                    "common": "¡Bien!",
+                    "rare": "¡Raro!",
+                    "epic": "¡Épico!",
+                    "jackpot": "¡PREMIO MAYOR!"
+                }
             }
         },
         "firstCheckin": {

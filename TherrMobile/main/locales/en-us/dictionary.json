@@ -3144,6 +3144,24 @@
                 "seeLeaderboard": "See leaderboard",
                 "done": "Done",
                 "lockInForLife": "Lock in every feature for life"
+            },
+            "chest": {
+                "title": "You earned a chest!",
+                "titleBoosted": "You earned a golden chest!",
+                "hintTap": "Tap the chest {count} times to open it",
+                "hintKeepGoing": "Keep going…",
+                "hintOneMore": "One more tap!",
+                "opening": "Opening…",
+                "error": "We couldn't open your chest. Tap it to try again.",
+                "addedToLeaderboard": "Added to this week's leaderboard.",
+                "accessibilityLabel": "Reward chest. Tap {remaining} more times to open it.",
+                "revealAccessibility": "{rarity} You earned {xp} XP.",
+                "rarity": {
+                    "common": "Nice!",
+                    "rare": "Rare!",
+                    "epic": "Epic!",
+                    "jackpot": "JACKPOT!"
+                }
             }
         },
         "firstCheckin": {

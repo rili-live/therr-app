@@ -23,6 +23,7 @@ import getBrandInitialRouteName from '../../utilities/brandLandingRoute';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import WeekStrip from '../../components/Celebrations/WeekStrip';
 import { PlacementHero, StreakHero } from '../../components/Celebrations/CelebrationHero';
+import RewardChest, { IRewardChestResult, isBigWin } from '../../components/Celebrations/RewardChest';
 import celebrationQueue, { ICelebration } from '../../utilities/celebrationQueue';
 import { triggerRewardCelebration } from '../../utilities/rewardFeedback';
 import translator from '../../utilities/translator';
@@ -49,6 +50,7 @@ interface ICelebrationProps {
     lifetimeOffer?: IHabitsLifetimeOffer | null;
     markDailyStreakCelebrated: Function;
     acknowledgePlacement: Function;
+    openDailyRewardChest: Function;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -62,6 +64,7 @@ type ICelebrationExit = 'leaderboard' | 'paywall';
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     markDailyStreakCelebrated: HabitActions.markDailyStreakCelebrated,
     acknowledgePlacement: HabitActions.acknowledgePlacement,
+    openDailyRewardChest: HabitActions.openDailyRewardChest,
 }, dispatch);
 
 /**
@@ -80,8 +83,20 @@ export const Celebration = ({
     lifetimeOffer,
     markDailyStreakCelebrated,
     acknowledgePlacement,
+    openDailyRewardChest,
 }: ICelebrationProps) => {
     const celebration: ICelebration = route.params;
+    // A streak day can end on a reward chest (server-offered, once per upheld day). It is its own
+    // stage, after the streak, so the streak still gets its moment. An already-opened chest (the
+    // app was killed between opening it and Continue) is not offered again.
+    const chestOffer = celebration.type === 'streak' && celebration.rewardChest && !celebration.rewardChest.isOpened
+        ? celebration.rewardChest
+        : null;
+    const [stage, setStage] = useState<'celebration' | 'chest'>('celebration');
+    const [chestResult, setChestResult] = useState<IRewardChestResult | null>(null);
+    const [isChestError, setIsChestError] = useState(false);
+    const [isChestRevealed, setIsChestRevealed] = useState(false);
+    const chestRequestRef = useRef<Promise<any> | null>(null);
     const [isReduceMotionEnabled, setIsReduceMotionEnabled] = useState(false);
     // The dismiss path is reachable from two buttons and the hardware back button; a ref rather
     // than state because the guard has to hold within a single tick, before a re-render. It
@@ -110,7 +125,9 @@ export const Celebration = ({
      * (`shouldShowFounderCta`): no offer loaded, entitled, sold out, or store
      * unconfigured means no button.
      */
+    const isOnFinalStage = !chestOffer || (stage === 'chest' && (isChestRevealed || isChestError));
     const showFounderOffer = isMilestone
+        && isOnFinalStage
         && getConfig().featureFlags?.[FeatureFlags.ENABLE_HABITS_LIFETIME_OFFER] === true
         && shouldShowFounderCta(lifetimeOffer);
 
@@ -260,6 +277,78 @@ export const Celebration = ({
         celebrationQueue.onDismissed();
     }, []);
 
+    /**
+     * First knock on the chest: send the open request now, so the network is hidden behind the
+     * next two knocks. One request at a time; a failure clears it so the retry sends another.
+     */
+    const onChestFirstTap = useCallback(() => {
+        if (chestRequestRef.current || celebration.type !== 'streak') {
+            return;
+        }
+        setIsChestError(false);
+        const request = Promise.resolve(openDailyRewardChest(
+            celebration.date,
+            Intl.DateTimeFormat().resolvedOptions().timeZone,
+        ));
+        chestRequestRef.current = request;
+        request.then((opened: any) => {
+            if (!opened || typeof opened.rewardXp !== 'number') {
+                throw new Error('No chest in the response');
+            }
+            setChestResult({ rarity: opened.rarity, rewardXp: opened.rewardXp });
+        }).catch(() => {
+            chestRequestRef.current = null;
+            setIsChestError(true);
+        });
+    }, [celebration, openDailyRewardChest]);
+
+    const onChestRevealed = useCallback((result: IRewardChestResult) => {
+        setIsChestRevealed(true);
+        logAppEvent('habits_reward_chest_open', {
+            rarity: result.rarity,
+            xp: result.rewardXp,
+            tier: chestOffer?.tier,
+            streak: celebration.type === 'streak' ? celebration.streak : undefined,
+        });
+    }, [celebration, chestOffer?.tier]);
+
+    const onContinue = () => {
+        if (chestOffer && stage === 'celebration') {
+            setStage('chest');
+            return;
+        }
+        dismiss();
+    };
+
+    const renderChestStage = () => (
+        <>
+            <View style={themeCelebration.styles.hero}>
+                <RewardChest
+                    isBoosted={chestOffer?.tier === 'boosted'}
+                    result={chestResult}
+                    isError={isChestError}
+                    isReduceMotionEnabled={isReduceMotionEnabled}
+                    colors={theme.colors}
+                    translate={translate}
+                    onFirstTap={onChestFirstTap}
+                    onRevealed={onChestRevealed}
+                />
+            </View>
+            <View style={themeCelebration.styles.center}>
+                <Text style={themeCelebration.styles.label}>
+                    {translate(chestOffer?.tier === 'boosted'
+                        ? 'pages.celebration.chest.titleBoosted'
+                        : 'pages.celebration.chest.title')}
+                </Text>
+                {isChestRevealed ? (
+                    <Text style={themeCelebration.styles.copy}>
+                        {translate('pages.celebration.chest.addedToLeaderboard')}
+                    </Text>
+                ) : null}
+            </View>
+        </>
+    );
+
     const renderStreakBody = () => {
         if (celebration.type !== 'streak') {
             return null;
@@ -352,36 +441,43 @@ export const Celebration = ({
             <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
             <SafeAreaView style={[theme.styles.safeAreaView, { backgroundColor: theme.colors.backgroundGray }]}>
                 <View style={themeCelebration.styles.root}>
-                    {isMilestone && !isReduceMotionEnabled ? (
+                    {stage === 'chest' ? renderChestStage() : null}
+                    {((stage === 'celebration' && isMilestone)
+                        || (stage === 'chest' && isChestRevealed && isBigWin(chestResult?.rarity)))
+                        && !isReduceMotionEnabled ? (
                         // Wrapped rather than given `pointerEvents` directly: LottieView does
                         // not accept it, and the confetti must not swallow taps on the CTA.
-                        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-                            <LottieView
-                                source={celebrationConfetti}
-                                resizeMode="cover"
-                                speed={1}
-                                autoPlay
-                                loop={false}
-                                style={StyleSheet.absoluteFill}
-                            />
-                        </View>
+                            <View style={StyleSheet.absoluteFill} pointerEvents="none">
+                                <LottieView
+                                    source={celebrationConfetti}
+                                    resizeMode="cover"
+                                    speed={1}
+                                    autoPlay
+                                    loop={false}
+                                    style={StyleSheet.absoluteFill}
+                                />
+                            </View>
+                        ) : null}
+                    {stage === 'celebration' ? (
+                        <>
+                            <Animated.View
+                                style={[themeCelebration.styles.hero, { transform: [{ scale: scaleAnim }] }]}
+                            >
+                                {celebration.type === 'streak' ? (
+                                    <StreakHero
+                                        size={isMilestone ? 220 : 160}
+                                        burst={isMilestone}
+                                        colors={theme.colors}
+                                    />
+                                ) : (
+                                    <PlacementHero tier={celebration.placement} colors={theme.colors} />
+                                )}
+                            </Animated.View>
+                            <Animated.View style={[themeCelebration.styles.center, { opacity: fadeAnim }]}>
+                                {celebration.type === 'streak' ? renderStreakBody() : renderPlacementBody()}
+                            </Animated.View>
+                        </>
                     ) : null}
-                    <Animated.View
-                        style={[themeCelebration.styles.hero, { transform: [{ scale: scaleAnim }] }]}
-                    >
-                        {celebration.type === 'streak' ? (
-                            <StreakHero
-                                size={isMilestone ? 220 : 160}
-                                burst={isMilestone}
-                                colors={theme.colors}
-                            />
-                        ) : (
-                            <PlacementHero tier={celebration.placement} colors={theme.colors} />
-                        )}
-                    </Animated.View>
-                    <Animated.View style={[themeCelebration.styles.center, { opacity: fadeAnim }]}>
-                        {celebration.type === 'streak' ? renderStreakBody() : renderPlacementBody()}
-                    </Animated.View>
                     <View style={themeCelebration.styles.actions}>
                         {isPlacement ? (
                             <Pressable
@@ -405,25 +501,27 @@ export const Celebration = ({
                                 </Text>
                             </Pressable>
                         ) : null}
-                        <Pressable
-                            onPress={() => dismiss()}
-                            accessibilityRole="button"
-                            style={[
-                                themeCelebration.styles.button,
-                                isPlacement || showFounderOffer
-                                    ? themeCelebration.styles.buttonSecondary
-                                    : themeCelebration.styles.buttonPrimary,
-                            ]}
-                        >
-                            <Text style={isPlacement || showFounderOffer
-                                ? themeCelebration.styles.buttonSecondaryText
-                                : themeCelebration.styles.buttonPrimaryText}
+                        {isOnFinalStage || stage === 'celebration' ? (
+                            <Pressable
+                                onPress={onContinue}
+                                accessibilityRole="button"
+                                style={[
+                                    themeCelebration.styles.button,
+                                    isPlacement || showFounderOffer
+                                        ? themeCelebration.styles.buttonSecondary
+                                        : themeCelebration.styles.buttonPrimary,
+                                ]}
                             >
-                                {translate(isPlacement
-                                    ? 'pages.celebration.actions.done'
-                                    : 'pages.celebration.actions.continue')}
-                            </Text>
-                        </Pressable>
+                                <Text style={isPlacement || showFounderOffer
+                                    ? themeCelebration.styles.buttonSecondaryText
+                                    : themeCelebration.styles.buttonPrimaryText}
+                                >
+                                    {translate(isPlacement
+                                        ? 'pages.celebration.actions.done'
+                                        : 'pages.celebration.actions.continue')}
+                                </Text>
+                            </Pressable>
+                        ) : null}
                     </View>
                 </View>
             </SafeAreaView>
