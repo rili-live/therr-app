@@ -98,6 +98,19 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Daily reward chest (added 2026-10-11)
+
+- [ ] **Run the users-service migration after the deploy** (`20261011000001`: the `habits.reward_chests`
+  ledger). Additive; nothing outside users-service reads it. Until it runs the celebration simply
+  offers no chest (the read is caught) and `POST /habits/daily-streak/me/reward-chest` returns 500,
+  which only a build carrying the chest screen ever calls.
+- [ ] **Ship the habits build carrying the chest stage** of the celebration screen
+  (`niche/HABITS-general`). Server-side the chest is inert until then: older builds ignore
+  `pendingCelebration.rewardChest`. Kill switch: `HABIT_REWARD_CHESTS_ENABLED=false`.
+- [ ] **After two weeks, read the `Reward chest opened` spans** (`rewardChest.rarity`/`rewardXp`)
+  against the share of celebrations shown. The odds in `utilities/rewardChest.ts` are a first guess
+  sized to one check-in's XP; if chests move the weekly board more than check-ins do, lower them.
+
 ## Test account isolation & cleanup (added 2026-10-08, docs/TEST_ACCOUNTS.md)
 
 - [ ] **After deploy, have the Play review account (`rili.main@gmail.com`) sign out and back in**

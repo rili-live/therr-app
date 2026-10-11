@@ -4,6 +4,7 @@ import {
     markDailyStreakCelebrated,
     evaluateAllDailyStreaksHandler,
 } from '../handlers/dailyStreak';
+import { openDailyRewardChest } from '../handlers/rewardChests';
 
 const router = express.Router();
 
@@ -17,5 +18,6 @@ router.get('/me', getMyDailyStreak);
 
 // UPDATE
 router.post('/me/celebrated', markDailyStreakCelebrated);
+router.post('/me/reward-chest', openDailyRewardChest);
 
 export default router;

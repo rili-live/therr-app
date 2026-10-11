@@ -32,6 +32,7 @@ import { IUserHabitCadence } from '../../store/UserHabitsStore';
 import { createOrUpdateAchievement } from './achievements';
 import { awardLeaderboardPoints } from './leaderboards';
 import { getPendingPlacementsForUser, IPendingPlacement } from './leaderboardPeriods';
+import { getRewardChestTier, isRewardChestEnabled, RewardChestTier } from '../../utilities/rewardChest';
 
 /**
  * Leaderboard XP for each day the daily streak is upheld by a real check-in (frozen days earn
@@ -519,11 +520,25 @@ export interface IWeekDay {
     isToday: boolean;
 }
 
+/**
+ * The day's reward chest, offered on the celebration screen. `rarity`/`rewardXp` are set once it
+ * has been opened (a celebration re-shown after the app was killed mid-flow replays the result
+ * rather than offering a second chest). See utilities/rewardChest.ts.
+ */
+export interface IPendingRewardChest {
+    tier: RewardChestTier;
+    isOpened: boolean;
+    rarity?: string;
+    rewardXp?: number;
+}
+
 export interface IPendingCelebration {
     kind: 'day' | 'milestone';
     streak: number;
     isPerfectWeek: boolean;
     isNewLongest: boolean;
+    /** Null when chests are switched off or the read failed — the celebration still shows. */
+    rewardChest?: IPendingRewardChest | null;
 }
 
 export interface IDailyStreakView {
@@ -584,6 +599,32 @@ export const getPendingCelebration = (state: IDBUserDailyStreak, today: string, 
 };
 
 /**
+ * The chest owed with today's celebration. Only read while a celebration is pending (once a day),
+ * and best-effort: a failed read drops the chest, never the celebration.
+ */
+export const getPendingRewardChest = async (
+    userId: string,
+    today: string,
+    celebration: IPendingCelebration,
+): Promise<IPendingRewardChest | null> => {
+    if (!isRewardChestEnabled()) {
+        return null;
+    }
+    const tier = getRewardChestTier({ isMilestone: celebration.kind === 'milestone', isPerfectWeek: celebration.isPerfectWeek });
+    try {
+        const opened = await Store.rewardChests.get(userId, 'daily-streak', today);
+        return opened
+            ? {
+                tier: opened.tier as RewardChestTier, isOpened: true, rarity: opened.rarity, rewardXp: opened.rewardXp,
+            }
+            : { tier, isOpened: false };
+    } catch (err: any) {
+        swallow('reward chest read', userId)(err);
+        return null;
+    }
+};
+
+/**
  * The streak the client renders: the numbers, this week's strip, and whether a celebration is
  * owed. Reads only — call `syncDailyStreak` first when the state may be stale.
  */
@@ -595,13 +636,16 @@ export const getDailyStreakView = async (
     const resolvedState = state || await Store.userDailyStreaks.getOrCreate(userId);
     const rows = await Store.dailyStreakDays.getRange(userId, getWeekStart(today), getWeekEnd(today));
     const week = buildWeek(today, rows);
+    const pendingCelebration = getPendingCelebration(resolvedState, today, week);
 
     return {
         currentStreak: resolvedState.currentStreak,
         longestStreak: resolvedState.longestStreak,
         today,
         week,
-        pendingCelebration: getPendingCelebration(resolvedState, today, week),
+        pendingCelebration: pendingCelebration
+            ? { ...pendingCelebration, rewardChest: await getPendingRewardChest(userId, today, pendingCelebration) }
+            : null,
     };
 };
 

@@ -872,6 +872,11 @@ usersServiceRouter.post('/habits/daily-streak/me/celebrated', handleServiceReque
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
+// The day's reward chest: the XP is rolled and paid server-side, once per upheld local day.
+usersServiceRouter.post('/habits/daily-streak/me/reward-chest', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
 
 // HABITS — Weekly recap. Read-only view over the daily-streak ledger for one
 // Monday–Sunday week; `weekStart` and `timeZone` ride along as query params.
