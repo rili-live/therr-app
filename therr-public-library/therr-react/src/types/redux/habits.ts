@@ -753,11 +753,27 @@ export interface IDailyStreakWeekDay {
     isToday: boolean;
 }
 
+export type DailyRewardChestTier = 'standard' | 'boosted';
+export type DailyRewardChestRarity = 'common' | 'rare' | 'epic' | 'jackpot';
+
+/**
+ * The reward chest offered with today's celebration. `rarity`/`rewardXp` are present once it has
+ * been opened, so a celebration re-shown after the app was killed replays the result.
+ */
+export interface IDailyRewardChestOffer {
+    tier: DailyRewardChestTier;
+    isOpened: boolean;
+    rarity?: DailyRewardChestRarity;
+    rewardXp?: number;
+}
+
 export interface IDailyStreakPendingCelebration {
     kind: 'day' | 'milestone';
     streak: number;
     isPerfectWeek: boolean;
     isNewLongest: boolean;
+    /** Absent on older servers; null when chests are off. */
+    rewardChest?: IDailyRewardChestOffer | null;
 }
 
 export interface IDailyStreakPendingPlacement {
@@ -853,6 +869,7 @@ export enum HabitsActionTypes {
     // celebration can run without a second round trip.
     SET_DAILY_STREAK = 'SET_DAILY_STREAK',
     DAILY_STREAK_CELEBRATED = 'DAILY_STREAK_CELEBRATED',
+    DAILY_REWARD_CHEST_OPENED = 'DAILY_REWARD_CHEST_OPENED',
     ACKNOWLEDGE_PLACEMENT = 'ACKNOWLEDGE_PLACEMENT',
 
     // Streaks
