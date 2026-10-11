@@ -133,8 +133,7 @@ export const getLocalDate = (timeZone: string, at: Date = new Date()): string =>
 const LATEST_LOCAL_DAY_TIME_ZONE = 'Pacific/Kiritimati';
 
 /**
- * The latest local day a "celebrated" (or chest-opened) report may name — `clampCelebratedDate`
- * pulls a later one back to it.
+ * The latest local day a "celebrated" report may name.
  *
  * With a resolvable zone (saved `settingsTimezone`, else the device zone on the request) that
  * is the user's own today. Without one it is the latest today anywhere, NOT the service
@@ -143,22 +142,15 @@ const LATEST_LOCAL_DAY_TIME_ZONE = 'Pacific/Kiritimati';
  * Anything later than the bound is a skewed clock or a hand-made request, and is pulled back to
  * it so it cannot silence celebrations until that day arrives. Earlier dates pass through.
  */
-export const getLatestReportableLocalDate = (
+export const clampCelebratedDate = (
+    requestedDate: string,
     { settingsTimezone, deviceTimezone }: { settingsTimezone: unknown; deviceTimezone?: unknown },
     now: Date = new Date(),
 ): string => {
     const hasOwnZone = isValidTimeZone(settingsTimezone) || isValidTimeZone(deviceTimezone);
-    return hasOwnZone
+    const latest = hasOwnZone
         ? getLocalDate(resolveCheckinTimeZone(settingsTimezone, deviceTimezone), now)
         : getLocalDate(LATEST_LOCAL_DAY_TIME_ZONE, now);
-};
-
-export const clampCelebratedDate = (
-    requestedDate: string,
-    zones: { settingsTimezone: unknown; deviceTimezone?: unknown },
-    now: Date = new Date(),
-): string => {
-    const latest = getLatestReportableLocalDate(zones, now);
     return requestedDate > latest ? latest : requestedDate;
 };
 
