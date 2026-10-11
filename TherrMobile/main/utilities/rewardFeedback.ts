@@ -352,6 +352,51 @@ export const triggerRewardCelebration = (): (() => void) => {
     return runHapticSequence(CELEBRATION_HAPTIC_STEPS);
 };
 
+/**
+ * One flick of the chameleon's tongue on the daily-bonus reveal. Each of the three lands harder
+ * and a step higher than the last, so the build-up is felt before the catch. `tapIndex` is 0,
+ * 1 or 2.
+ */
+export const triggerTongueFlickFeedback = (tapIndex: number) => {
+    const step = Math.max(0, Math.min(2, tapIndex));
+    triggerHaptic([
+        HapticFeedbackTypes.impactLight,
+        HapticFeedbackTypes.impactMedium,
+        HapticFeedbackTypes.impactHeavy,
+    ][step]);
+
+    const cue = beginCue(0.3);
+    if (!cue) {
+        return;
+    }
+    const { context, output, startAt } = cue;
+    try {
+        // A quick upward "thwip", pitched up a fifth per flick.
+        const frequency = [NOTE_C5, NOTE_G5, NOTE_C6][step];
+        scheduleTone(context, output, {
+            startAt, frequency, endFrequency: frequency * 1.6, durationSeconds: 0.08, peakGain: 0.5, shape: 'triangle',
+        });
+        scheduleAudioRelease(0.12);
+    } catch {
+        dropAudioContext();
+    }
+};
+
+/**
+ * The rock bursting into gems. A small bonus gets the coin "ka-ching"; an epic or a jackpot gets
+ * the full fanfare and haptic ramp on top, so the rare outcome feels rare. Returns a canceller
+ * for any haptics still queued.
+ */
+export const triggerGemBurstFeedback = (rarity?: string): (() => void) => {
+    triggerHaptic(HapticFeedbackTypes.notificationSuccess);
+    playCoinCollectSound();
+    if (rarity === 'epic' || rarity === 'jackpot') {
+        playAchievementFanfareSound();
+        return runHapticSequence(CELEBRATION_HAPTIC_STEPS);
+    }
+    return () => undefined;
+};
+
 /** Test seam — drops the cached context so each case starts from a clean slate. */
 export const resetRewardFeedbackForTesting = () => {
     if (releaseTimeoutId) {

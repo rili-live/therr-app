@@ -3144,6 +3144,24 @@
                 "seeLeaderboard": "Voir le classement",
                 "done": "Terminé",
                 "lockInForLife": "Verrouille toutes les fonctionnalités à vie"
+            },
+            "bonus": {
+                "title": "Le bonus du jour",
+                "titleBoosted": "Un bonus doré",
+                "hintTap": "Touche le caméléon",
+                "hintKeepGoing": "Encore un peu…",
+                "hintOneMore": "Une dernière fois!",
+                "alreadyYours": "Il est déjà à toi — touche pour voir ce qu'il attrape.",
+                "addedToLeaderboard": "Déjà ajouté au classement de cette semaine.",
+                "xp": "+{xp} XP",
+                "accessibilityLabel": "Caméléon. Touche pour voir le bonus du jour.",
+                "revealAccessibility": "{rarity} Ton bonus est de {xp} XP.",
+                "rarity": {
+                    "common": "Belle prise!",
+                    "rare": "Brillant!",
+                    "epic": "Splendide!",
+                    "jackpot": "Éblouissant!"
+                }
             }
         },
         "firstCheckin": {

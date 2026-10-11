@@ -3144,6 +3144,24 @@
                 "seeLeaderboard": "See leaderboard",
                 "done": "Done",
                 "lockInForLife": "Lock in every feature for life"
+            },
+            "bonus": {
+                "title": "Today's bonus",
+                "titleBoosted": "A golden bonus",
+                "hintTap": "Tap the chameleon",
+                "hintKeepGoing": "A little further…",
+                "hintOneMore": "One more!",
+                "alreadyYours": "It's already yours — tap to see what it catches.",
+                "addedToLeaderboard": "Already added to this week's leaderboard.",
+                "xp": "+{xp} XP",
+                "accessibilityLabel": "Chameleon. Tap to see today's bonus.",
+                "revealAccessibility": "{rarity} Your bonus is {xp} XP.",
+                "rarity": {
+                    "common": "Nice catch!",
+                    "rare": "Shiny!",
+                    "epic": "Brilliant!",
+                    "jackpot": "Dazzling!"
+                }
             }
         },
         "firstCheckin": {
