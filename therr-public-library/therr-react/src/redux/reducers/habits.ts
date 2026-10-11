@@ -264,19 +264,6 @@ const habits = produce((draft: IHabitsState, action: any) => {
                 draft.dailyStreak.pendingCelebration = null;
             }
             return draft;
-        case HabitsActionTypes.DAILY_REWARD_CHEST_OPENED:
-            // Mark the offer opened in place, so a celebration re-rendered from the store replays
-            // the result instead of offering the chest again. The celebration itself stays owed
-            // until the screen is dismissed.
-            if (draft.dailyStreak?.pendingCelebration?.rewardChest && action.data) {
-                draft.dailyStreak.pendingCelebration.rewardChest = {
-                    tier: action.data.tier,
-                    isOpened: true,
-                    rarity: action.data.rarity,
-                    rewardXp: action.data.rewardXp,
-                };
-            }
-            return draft;
         case HabitsActionTypes.ACKNOWLEDGE_PLACEMENT:
             if (draft.dailyStreak?.pendingPlacements) {
                 draft.dailyStreak.pendingPlacements = draft.dailyStreak.pendingPlacements
