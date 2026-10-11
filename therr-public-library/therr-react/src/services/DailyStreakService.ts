@@ -11,18 +11,17 @@ export interface IDailyStreakWeekDay {
     isToday: boolean;
 }
 
-export type DailyRewardChestTier = 'standard' | 'boosted';
-export type DailyRewardChestRarity = 'common' | 'rare' | 'epic' | 'jackpot';
+export type DailyBonusTier = 'standard' | 'boosted';
+export type DailyBonusRarity = 'common' | 'rare' | 'epic' | 'jackpot';
 
 /**
- * The reward chest offered with today's celebration. `rarity`/`rewardXp` are present once it has
- * been opened, so a celebration re-shown after the app was killed replays the result.
+ * The day's bonus XP, rolled and paid server-side at the first check-in of the day — the user
+ * has it whether or not they watch the celebration that reveals it.
  */
-export interface IDailyRewardChestOffer {
-    tier: DailyRewardChestTier;
-    isOpened: boolean;
-    rarity?: DailyRewardChestRarity;
-    rewardXp?: number;
+export interface IDailyBonus {
+    tier: DailyBonusTier;
+    rarity: DailyBonusRarity;
+    bonusXp: number;
 }
 
 export interface IDailyStreakPendingCelebration {
@@ -30,8 +29,8 @@ export interface IDailyStreakPendingCelebration {
     streak: number;
     isPerfectWeek: boolean;
     isNewLongest: boolean;
-    /** Absent on older servers; null when chests are off. */
-    rewardChest?: IDailyRewardChestOffer | null;
+    /** Already paid; for the celebration to reveal. Absent on older servers, null when none. */
+    dailyBonus?: IDailyBonus | null;
 }
 
 export interface IDailyStreakPendingPlacement {
@@ -44,17 +43,6 @@ export interface IDailyStreakPendingPlacement {
     /** Reserved for leagues; always null today. */
     leagueFrom: string | null;
     leagueTo: string | null;
-}
-
-/** `POST /habits/daily-streak/me/reward-chest` response. */
-export interface IOpenedDailyRewardChest {
-    id: string;
-    tier: DailyRewardChestTier;
-    rarity: DailyRewardChestRarity;
-    rewardXp: number;
-    sourceKey: string;
-    /** True when this day's chest had already been opened — nothing new was paid. */
-    alreadyOpened: boolean;
 }
 
 export interface IDailyStreakSummary {
@@ -104,16 +92,6 @@ class DailyStreakService {
     markCelebrated = (date: string, timeZone?: string) => axios({
         method: 'post',
         url: '/users-service/habits/daily-streak/me/celebrated',
-        data: timeZone ? { date, timeZone } : { date },
-    });
-
-    /**
-     * Open the reward chest offered with the celebration for `date` (the `today` it was handed).
-     * The XP is rolled and paid server-side; calling it twice replays the first roll.
-     */
-    openRewardChest = (date: string, timeZone?: string) => axios({
-        method: 'post',
-        url: '/users-service/habits/daily-streak/me/reward-chest',
         data: timeZone ? { date, timeZone } : { date },
     });
 

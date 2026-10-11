@@ -44,9 +44,9 @@ import {
     IDailyStreak,
     IDailyStreakWeekDay,
     IDailyStreakPendingCelebration,
-    IDailyRewardChestOffer,
-    DailyRewardChestTier,
-    DailyRewardChestRarity,
+    IDailyBonus,
+    DailyBonusTier,
+    DailyBonusRarity,
     IDailyStreakPendingPlacement,
 } from './habits';
 import {
@@ -138,9 +138,9 @@ export {
     IDailyStreak,
     IDailyStreakWeekDay,
     IDailyStreakPendingCelebration,
-    IDailyRewardChestOffer,
-    DailyRewardChestTier,
-    DailyRewardChestRarity,
+    IDailyBonus,
+    DailyBonusTier,
+    DailyBonusRarity,
     IDailyStreakPendingPlacement,
 
     // Maps
