@@ -392,3 +392,61 @@ class UpdateMaskTest(unittest.TestCase):
         set_status(self._client(sent), "123", 456, "ENABLED")
         self.assertEqual(sent[0].update_mask.paths, ["status"])
         self.assertEqual(sent[0].update.resource_name, "customers/123/campaigns/456")
+
+
+class LocationModeTest(unittest.TestCase):
+    """Campaigns target by PRESENCE. Google's default, PRESENCE_OR_INTEREST, sent
+    ~52% of the first US-only App run's spend to Nigeria and South Africa."""
+
+    def test_plan_states_the_location_mode(self):
+        spec = load_spec(APP_SPEC)
+        plan = build_plan(spec, Settings(customer_id="123"))
+        self.assertIn("location mode PRESENCE", plan.render())
+
+    def _client(self, sent):
+        class Request:
+            def __init__(self):
+                self.operations = []
+                self.customer_id = ""
+                self.validate_only = False
+
+        class Service:
+            def campaign_path(self, customer_id, campaign_id):
+                return f"customers/{customer_id}/campaigns/{campaign_id}"
+
+            def mutate_campaigns(self, request):
+                sent.append(request)
+                return type("Response", (), {"results": []})()
+
+        class Client:
+            enums = type("Enums", (), {"PositiveGeoTargetTypeEnum": {"PRESENCE": "PRESENCE"}})
+
+            def get_type(self, name):
+                if name == "MutateCampaignsRequest":
+                    return Request()
+                operation = UpdateMaskTest._Operation()
+                operation.update.geo_target_type_setting = type("Geo", (), {})()
+                return operation
+
+            def get_service(self, name):
+                return Service()
+
+        return Client()
+
+    def test_location_mode_update_masks_only_the_geo_setting(self):
+        from therr_ads.campaigns import set_location_mode
+
+        sent = []
+        set_location_mode(self._client(sent), "123", 456, "PRESENCE", validate_only=True)
+        operation = sent[0].operations[0]
+        self.assertEqual(operation.update_mask.paths, ["geo_target_type_setting.positive_geo_target_type"])
+        self.assertEqual(operation.update.geo_target_type_setting.positive_geo_target_type, "PRESENCE")
+        self.assertTrue(sent[0].validate_only)
+
+    def test_an_unknown_location_mode_is_refused_before_sending(self):
+        from therr_ads.campaigns import set_location_mode
+
+        sent = []
+        with self.assertRaises(ValueError):
+            set_location_mode(self._client(sent), "123", 456, "INTEREST")
+        self.assertEqual(sent, [])
