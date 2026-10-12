@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import {
     ErrorCodes, HabitGoalType, HABIT_CHECKIN_THOUGHT_CATEGORY, MetricNames, PushNotifications, parseSavingsAmount,
+    hasHabitsPremiumEntitlement,
 } from 'therr-js-utilities/constants';
 import { getBrandContext, isTestAccount, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
@@ -227,12 +228,19 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
         // The first-habit solo grace (helpers/soloHabitAccess.ts): free for SOLO_GRACE_DAYS, then
         // kept by one sent invite. Only a row the grace was spent on is ever refused here, and
         // only once the window has passed, so the invite count is read just for that case. A
-        // pact on this goal going active (above) lifts it too.
+        // pact on this goal going active (above) lifts it too, and so does a paid entitlement: the
+        // invite requirement is a free-tier limit, so a user who spent the grace and then bought
+        // the founder unlock or premium must not be locked out of their own streak.
         if (existingTracking && describeSoloGrace(existingTracking, SOLO_GRACE_KEEP_INVITE_COUNT)?.hasEnded) {
             const invitedCount = await Store.pactMembers.countDistinctInvitedByCreator(userId);
             const soloGrace = describeSoloGrace(existingTracking, invitedCount);
+            // Read only once the habit would otherwise lock, so ordinary check-ins pay nothing.
+            const isEntitled = soloGrace?.isLocked
+                ? await Store.users.findUser({ id: userId }, ['accessLevels'])
+                    .then(([requester]) => hasHabitsPremiumEntitlement(requester?.accessLevels as string[] | undefined))
+                : false;
 
-            if (soloGrace?.isLocked) {
+            if (soloGrace?.isLocked && !isEntitled) {
                 return res.status(403).send({
                     error: 'solo-grace-ended',
                     message: translate(locale, 'errorMessages.habits.soloGraceEnded', {

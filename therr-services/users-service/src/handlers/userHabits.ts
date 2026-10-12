@@ -35,6 +35,11 @@ import resolveWeekBounds from './helpers/weekBounds';
  * `helpers/soloHabitAccess.ts` and #3010): the ask comes once there is a streak
  * worth protecting, not before the first check-in.
  *
+ * Paid accounts (`hasHabitsPremiumEntitlement`: founder lifetime, premium, super
+ * admin) skip the invite requirement entirely. It is a free-tier limit like the
+ * habit cap, and telling a customer who paid to lift the limits to "invite 3
+ * more" asks them to pay twice.
+ *
  * Two things this deliberately does NOT do:
  *
  *   - It does not wait on acceptance. The bar is invites *sent*, so a friend
@@ -508,6 +513,8 @@ const getSoloEligibility: RequestHandler = async (req: any, res: any) => {
             // client can offer "start your first habit" rather than "you've unlocked solo", and
             // count down the grace on the habit it was spent on.
             isSoloGraceAvailable: soloProgress.isGraceAvailable,
+            // A paid account is exempt from the invite requirement entirely, like the habit cap.
+            isSoloUnlockedByEntitlement: soloProgress.isUnlockedByEntitlement,
             soloGrace: soloProgress.soloGrace,
             soloGraceDays: SOLO_GRACE_DAYS,
             soloGraceKeepInviteCount: SOLO_GRACE_KEEP_INVITE_COUNT,
