@@ -1,4 +1,4 @@
-import { HABITS_SOLO_UNLOCK_INVITE_COUNT } from 'therr-js-utilities/constants';
+import { HABITS_SOLO_UNLOCK_INVITE_COUNT, hasHabitsPremiumEntitlement } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../../store';
 import { IUserHabitRow } from '../../store/UserHabitsStore';
@@ -39,6 +39,12 @@ export interface ISoloInviteProgress {
     requiredCount: number;
     /** At or past `requiredCount`: any number of solo habits, subject only to the free-tier cap. */
     isUnlockedByInvites: boolean;
+    /**
+     * A paid account (founder lifetime, premium subscription, or super admin — see
+     * `hasHabitsPremiumEntitlement`). The invite requirement is a free-tier mechanic like the habit
+     * cap, so paying lifts it the same way: any number of solo habits, no grace spent, never locked.
+     */
+    isUnlockedByEntitlement: boolean;
     /** Not unlocked by invites, and the first-habit grace is still unused. */
     isGraceAvailable: boolean;
     /** May start a solo habit now: unlocked by invites, or by spending the grace. */
@@ -83,6 +89,7 @@ const DENIED = (requiredCount: number): ISoloInviteProgress => ({
     invitedCount: 0,
     requiredCount,
     isUnlockedByInvites: false,
+    isUnlockedByEntitlement: false,
     isGraceAvailable: false,
     canCreateSolo: false,
     soloGrace: null,
@@ -91,8 +98,13 @@ const DENIED = (requiredCount: number): ISoloInviteProgress => ({
 /**
  * Progress toward tracking habits alone.
  *
- * Two ways in:
+ * Three ways in:
  *
+ *   - By paying: an account with the Friends with Habits premium entitlement (the founder lifetime
+ *     unlock or the subscription) is exempt, exactly as it is from the habit cap. Both are free-tier
+ *     limits, and a paying customer told to "invite 3 more to unlock solo habits" is being asked to
+ *     pay twice.
+
  *   - By invites: HABITS_SOLO_UNLOCK_INVITE_COUNT distinct people invited, in any state. The
  *     inviting is the growth loop. Sent rather than accepted, because gating on acceptance
  *     measures the friend's action, not the user's, and would park someone whose friends install
@@ -113,20 +125,29 @@ export const getSoloInviteProgress = async (userId: string, now: Date = new Date
     const requiredCount = HABITS_SOLO_UNLOCK_INVITE_COUNT;
 
     try {
-        const [invitedCount, graceRow] = await Promise.all([
+        // `accessLevels` is selected explicitly: it is JSONB and arrives undefined when not asked
+        // for, which reads as "not entitled" and puts the invite wall back in front of a paying
+        // customer.
+        const [invitedCount, graceRow, [requester]] = await Promise.all([
             Store.pactMembers.countDistinctInvitedByCreator(userId),
             Store.userHabits.getSoloGraceRow(userId),
+            Store.users.findUser({ id: userId }, ['accessLevels']),
         ]);
+        const isUnlockedByEntitlement = hasHabitsPremiumEntitlement(requester?.accessLevels as string[] | undefined);
         const isUnlockedByInvites = invitedCount >= requiredCount;
-        const isGraceAvailable = !isUnlockedByInvites && !graceRow;
+        const isUnlocked = isUnlockedByInvites || isUnlockedByEntitlement;
+        const isGraceAvailable = !isUnlocked && !graceRow;
 
         return {
             invitedCount,
             requiredCount,
             isUnlockedByInvites,
+            isUnlockedByEntitlement,
             isGraceAvailable,
-            canCreateSolo: isUnlockedByInvites || isGraceAvailable,
-            soloGrace: graceRow ? describeSoloGrace(graceRow, invitedCount, now) : null,
+            canCreateSolo: isUnlocked || isGraceAvailable,
+            // No grace window applies to a paid account, even one spent before the purchase, so
+            // none is reported: a client must never count one down or lock on it.
+            soloGrace: graceRow && !isUnlockedByEntitlement ? describeSoloGrace(graceRow, invitedCount, now) : null,
         };
     } catch (err: any) {
         logSpan({
@@ -145,7 +166,7 @@ export const getSoloInviteProgress = async (userId: string, now: Date = new Date
 
 /**
  * Spend the grace on the row the caller just started tracking, when the grace is what allowed it.
- * A user unlocked by invites spends nothing.
+ * A user unlocked by invites or by a paid entitlement spends nothing.
  *
  * Returns false when the grace was used in between the caller's read and this write (a
  * concurrent start); the caller must then treat the start as refused.
@@ -154,7 +175,7 @@ export const spendSoloGraceIfNeeded = async (
     progress: ISoloInviteProgress,
     userHabit: Pick<IUserHabitRow, 'id' | 'userId'>,
 ): Promise<boolean> => {
-    if (progress.isUnlockedByInvites) {
+    if (progress.isUnlockedByInvites || progress.isUnlockedByEntitlement) {
         return true;
     }
 
