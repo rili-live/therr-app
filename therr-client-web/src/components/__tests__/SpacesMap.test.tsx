@@ -135,7 +135,8 @@ describe('SpacesMap', () => {
 
         expect(L.map).toHaveBeenCalled();
         expect(L.tileLayer).toHaveBeenCalledWith(
-            expect.stringContaining('cartocdn.com'),
+            // Keyless Carto serves a watermark on every tile, so no key means OSM
+            expect.stringContaining('tile.openstreetmap.org'),
             expect.any(Object),
         );
     });
