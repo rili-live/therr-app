@@ -1,6 +1,20 @@
 import { produce } from 'immer';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
-import { IHabitsState, HabitsActionTypes } from '../../types/redux/habits';
+import { IHabitsState, HabitsActionTypes, IUserHabitEligibility } from '../../types/redux/habits';
+
+/**
+ * Mirror what the server reports for a paid account (users-service `getSoloEligibility`): no
+ * habit cap, and solo habits with no invite requirement or grace window. Applied on a verified
+ * purchase so the screen the user bought from unlocks without waiting for a refetch.
+ */
+const liftFreeTierLimits = (draft: IUserHabitEligibility) => {
+    draft.isAtHabitLimit = false;
+    draft.habitLimitReason = null;
+    draft.canCreateSolo = true;
+    draft.isSoloUnlockedByEntitlement = true;
+    draft.isSoloGraceAvailable = false;
+    draft.soloGrace = null;
+};
 
 const initialState: IHabitsState = {
     habitGoals: [],
@@ -386,10 +400,11 @@ const habits = produce((draft: IHabitsState, action: any) => {
                 draft.lifetimeOffer.purchase = action.data?.purchase || null;
                 draft.lifetimeOffer.isEntitled = true;
             }
-            // The habit cap is lifted from here on, so the cached eligibility
-            // snapshot would otherwise keep the paywall showing until refetch.
+            // The habit cap and the solo invite requirement are lifted from here
+            // on, so the cached eligibility snapshot would otherwise keep the
+            // paywall and the "invite N more" lock showing until refetch.
             if (draft.userHabitEligibility) {
-                draft.userHabitEligibility.isAtHabitLimit = false;
+                liftFreeTierLimits(draft.userHabitEligibility);
             }
             break;
 
@@ -419,11 +434,11 @@ const habits = produce((draft: IHabitsState, action: any) => {
                     isStoreConfigured: true,
                 };
             }
-            // Premium lifts the same free-tier cap the founder unlock does, so the
-            // cached eligibility snapshot would otherwise keep the paywall showing
-            // until the next refetch.
+            // Premium lifts the same free-tier limits the founder unlock does, so
+            // the cached eligibility snapshot would otherwise keep the paywall and
+            // the solo lock showing until the next refetch.
             if (draft.userHabitEligibility) {
-                draft.userHabitEligibility.isAtHabitLimit = false;
+                liftFreeTierLimits(draft.userHabitEligibility);
             }
             break;
 
