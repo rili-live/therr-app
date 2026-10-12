@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { BrandVariations, HABITS_FREE_HABIT_LIMIT } from 'therr-js-utilities/constants';
+import { AccessLevels, BrandVariations, HABITS_FREE_HABIT_LIMIT } from 'therr-js-utilities/constants';
 import Store from '../../src/store';
 import { createCheckin } from '../../src/handlers/habitCheckins';
 
@@ -155,6 +155,7 @@ describe('createCheckin — first-habit solo grace', () => {
     let getByUserAndHabitStub: sinon.SinonStub;
     let countInvitedStub: sinon.SinonStub;
     let getActivePactsStub: sinon.SinonStub;
+    let findUserStub: sinon.SinonStub;
 
     const graceRow = (daysAgo: number) => ({
         id: 'uh-1', userId: USER_ID, habitGoalId: GOAL_ID, status: 'active', soloGraceStartedAt: new Date(Date.now() - daysAgo * DAY_MS),
@@ -165,6 +166,7 @@ describe('createCheckin — first-habit solo grace', () => {
         getActivePactsStub = sinon.stub(Store.pacts, 'getActiveByUserAndHabitGoal').resolves([]);
         getByUserAndHabitStub = sinon.stub(Store.userHabits, 'getByUserAndHabit').resolves(graceRow(8) as any);
         countInvitedStub = sinon.stub(Store.pactMembers, 'countDistinctInvitedByCreator').resolves(0);
+        findUserStub = sinon.stub(Store.users, 'findUser').resolves([{ accessLevels: [] }] as any);
         sinon.stub(Store.userHabits, 'getOrCreate').rejects(PASSED_GATE);
     });
 
@@ -204,6 +206,25 @@ describe('createCheckin — first-habit solo grace', () => {
 
         expect(error).to.equal(PASSED_GATE);
         expect(countInvitedStub.called).to.equal(false);
+    });
+
+    // A user who spent the grace, then bought the founder unlock or premium with no invite sent,
+    // must not be locked out of the habit they paid to keep tracking alone.
+    it('is lifted by a paid entitlement', async () => {
+        findUserStub.resolves([{ accessLevels: [AccessLevels.HABITS_LIFETIME] }] as any);
+
+        const { error } = await callHandler();
+
+        expect(error).to.equal(PASSED_GATE);
+        expect(findUserStub.calledWith({ id: USER_ID }, ['accessLevels'])).to.equal(true);
+    });
+
+    it('does not read the entitlement for a check-in that would not lock', async () => {
+        getByUserAndHabitStub.resolves(graceRow(6) as any);
+
+        await callHandler();
+
+        expect(findUserStub.called).to.equal(false);
     });
 
     it('is lifted by an active pact on the goal', async () => {
