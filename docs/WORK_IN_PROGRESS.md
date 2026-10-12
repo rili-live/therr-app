@@ -600,16 +600,11 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 > `24331885080`) went live the same day; the three legacy Therr campaigns in the
 > account are PAUSED and already past their end dates.
 
-- [ ] **Switch `FwH-App-US-Installs-2026Q3` to PRESENCE location targeting.** It was
-  created before `apply` set this, so it runs on Google's default *presence or
-  interest*: by 2026-10-12 ~52% of spend ($15 of $29) had gone to Nigeria and South
-  Africa and 6 of 9 paid installs were non-US. `./therrads campaign location-mode
-  "FwH-App-US-Installs-2026Q3" --confirm` (passes `--validate-only` live). Restarts
-  learning; read results from the change date.
 - [ ] **Read the App campaign on 2026-10-20**, the day after its 2026-10-19 end date:
   `./therrads analyze --days 7` (covers 10-13 to 10-19, the post-PRESENCE week), then
   check `main."userAcquisition"` for `utmCampaign = 'fwh-app-us-installs-2026q3'` (the
-  referrer item below). Day-3 read (2026-10-09 to 11, before the fix): 6 installs at
+  referrer item below). Switched to PRESENCE location targeting 2026-10-12, which
+  restarted learning. Day-3 read (2026-10-09 to 11, before the fix): 6 installs at
   $4.49 each, 9 paid first opens → 3 profile starts → 0 sign-ups, 3 uninstalls.
 - [ ] **Fix the coach Short (`_1vXPuQiVHk`) and attach it.** Its 0:08–0:10 end card is a
   blank white box (needs the app name + official Play badge), and its "coach" line
