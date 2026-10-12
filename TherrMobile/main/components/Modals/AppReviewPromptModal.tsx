@@ -69,67 +69,22 @@ const AppReviewPromptModal: React.FC<IAppReviewPromptModalProps> = ({
         feedback: translate('modals.appReviewPrompt.feedback.message'),
     };
 
-    const renderActions = () => {
-        if (stage === 'review') {
-            return (
-                <>
-                    <ModalButton
-                        iconName="clock-outline"
-                        title={translate('modals.appReviewPrompt.review.maybeLater')}
-                        onPress={() => onClose('dismissed')}
-                        iconRight={false}
-                        themeButtons={themeButtons}
-                    />
-                    <ModalButton
-                        iconName="star"
-                        title={translate('modals.appReviewPrompt.review.writeReview')}
-                        onPress={() => onClose('reviewRequested')}
-                        iconRight={false}
-                        themeButtons={themeButtons}
-                    />
-                </>
-            );
-        }
-
-        if (stage === 'feedback') {
-            return (
-                <>
-                    <ModalButton
-                        iconName="close"
-                        title={translate('modals.appReviewPrompt.feedback.noThanks')}
-                        onPress={() => onClose('declined')}
-                        iconRight={false}
-                        themeButtons={themeButtons}
-                    />
-                    <ModalButton
-                        iconName="email-outline"
-                        title={translate('modals.appReviewPrompt.feedback.sendFeedback')}
-                        onPress={() => onClose('feedbackRequested')}
-                        iconRight={false}
-                        themeButtons={themeButtons}
-                    />
-                </>
-            );
-        }
-
-        return (
-            <>
-                <ModalButton
-                    iconName="thumb-down-outline"
-                    title={translate('modals.appReviewPrompt.sentiment.notReally')}
-                    onPress={() => setStage('feedback')}
-                    iconRight={false}
-                    themeButtons={themeButtons}
-                />
-                <ModalButton
-                    iconName="thumb-up-outline"
-                    title={translate('modals.appReviewPrompt.sentiment.yes')}
-                    onPress={() => setStage('review')}
-                    iconRight={false}
-                    themeButtons={themeButtons}
-                />
-            </>
-        );
+    // Plain lists rather than Fragments: `Dialog.Actions` clones each direct child with
+    // `compact` and `style`, and a Fragment child accepts neither — React warns "Invalid prop
+    // `compact` supplied to `React.Fragment`" and the buttons lose Paper's action spacing.
+    const actionsByStage: { [key in PromptStage]: { iconName: string; titleKey: string; onPress: () => void }[] } = {
+        sentiment: [
+            { iconName: 'thumb-down-outline', titleKey: 'modals.appReviewPrompt.sentiment.notReally', onPress: () => setStage('feedback') },
+            { iconName: 'thumb-up-outline', titleKey: 'modals.appReviewPrompt.sentiment.yes', onPress: () => setStage('review') },
+        ],
+        review: [
+            { iconName: 'clock-outline', titleKey: 'modals.appReviewPrompt.review.maybeLater', onPress: () => onClose('dismissed') },
+            { iconName: 'star', titleKey: 'modals.appReviewPrompt.review.writeReview', onPress: () => onClose('reviewRequested') },
+        ],
+        feedback: [
+            { iconName: 'close', titleKey: 'modals.appReviewPrompt.feedback.noThanks', onPress: () => onClose('declined') },
+            { iconName: 'email-outline', titleKey: 'modals.appReviewPrompt.feedback.sendFeedback', onPress: () => onClose('feedbackRequested') },
+        ],
     };
 
     return (
@@ -146,7 +101,16 @@ const AppReviewPromptModal: React.FC<IAppReviewPromptModalProps> = ({
                     <Text style={themeModal.styles.bodyText}>{messageByStage[stage]}</Text>
                 </Dialog.Content>
                 <Dialog.Actions style={themeModal.styles.buttonsContainer}>
-                    {renderActions()}
+                    {actionsByStage[stage].map((action) => (
+                        <ModalButton
+                            key={action.titleKey}
+                            iconName={action.iconName}
+                            title={translate(action.titleKey)}
+                            onPress={action.onPress}
+                            iconRight={false}
+                            themeButtons={themeButtons}
+                        />
+                    ))}
                 </Dialog.Actions>
             </Dialog>
         </Portal>

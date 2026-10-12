@@ -48,8 +48,10 @@ class CampaignRow:
     conversion_value: Decimal = Decimal("0")
     # App campaigns report installs as a conversion action of type
     # DOWNLOAD/FIRST_OPEN; kept separate because "conversions" on the web arm
-    # means signups and adding the two would be meaningless.
+    # means signups and adding the two would be meaningless. Only the campaign's
+    # own app's install action counts — see split_installs.
     installs: Decimal = Decimal("0")
+    app_id: str = ""
 
     @property
     def ctr(self) -> Decimal:
@@ -67,6 +69,10 @@ class CampaignRow:
     def conversion_rate(self) -> Decimal:
         return _rate(self.conversions, self.clicks)
 
+    @property
+    def cost_per_install(self) -> Decimal:
+        return _per(self.cost, self.installs)
+
     def to_dict(self) -> dict:
         data = {k: _plain(v) for k, v in asdict(self).items()}
         data.update(
@@ -74,6 +80,7 @@ class CampaignRow:
             cpc=_plain(self.cpc),
             cost_per_conversion=_plain(self.cost_per_conversion),
             conversion_rate=_plain(self.conversion_rate),
+            cost_per_install=_plain(self.cost_per_install),
         )
         return data
 
@@ -181,9 +188,65 @@ def _plain(value):
     return value
 
 
+@dataclass(frozen=True)
+class InstallAction:
+    """A DOWNLOAD-category conversion action, reduced to what decides whether
+    its conversions are installs of a given app."""
+
+    resource_name: str
+    name: str
+    type: str
+    app_id: str = ""
+
+
+# One conversion per person who installed and opened the app. Preferred over
+# the store's download count because it is what the App campaign bids on, and
+# because counting both would count each install twice.
+FIRST_OPEN_TYPES = frozenset({
+    "FIREBASE_ANDROID_FIRST_OPEN",
+    "FIREBASE_IOS_FIRST_OPEN",
+    "THIRD_PARTY_APP_ANALYTICS_ANDROID_FIRST_OPEN",
+    "THIRD_PARTY_APP_ANALYTICS_IOS_FIRST_OPEN",
+})
+# Fallback when the app has no first-open action imported.
+STORE_INSTALL_TYPES = frozenset({"GOOGLE_PLAY_DOWNLOAD"})
+
+
+def split_installs(
+    app_id: str,
+    conversions_by_action: dict[str, Decimal],
+    actions: list[InstallAction],
+) -> tuple[Decimal, dict[str, Decimal]]:
+    """(installs, excluded-by-action-name) for one App campaign.
+
+    Every DOWNLOAD-category conversion used to count as an install. On the first
+    App run that included Google's catch-all "Android installs (all other apps)"
+    (7 on day one, on top of 4 first opens), which made the report's $2.07 CPI
+    read about 40% better than the ~$3.30 it was, and fed the same inflated
+    count into the CHANNEL verdict. Only this app's own install action counts:
+    its first-open action, else its Play download action. Everything else is
+    returned so the report can say what it left out.
+    """
+    own = [a for a in actions if app_id and a.app_id == app_id]
+    counted = {a.resource_name for a in own if a.type in FIRST_OPEN_TYPES}
+    if not counted:
+        counted = {a.resource_name for a in own if a.type in STORE_INSTALL_TYPES}
+
+    names = {a.resource_name: a.name for a in actions}
+    installs = Decimal("0")
+    excluded: dict[str, Decimal] = {}
+    for resource_name, conversions in conversions_by_action.items():
+        if resource_name in counted:
+            installs += conversions
+        elif conversions:
+            name = names.get(resource_name, resource_name)
+            excluded[name] = excluded.get(name, Decimal("0")) + conversions
+    return installs, excluded
+
+
 CAMPAIGN_QUERY = """
     SELECT campaign.id, campaign.name, campaign.status,
-           campaign.advertising_channel_sub_type,
+           campaign.advertising_channel_sub_type, campaign.app_campaign_setting.app_id,
            metrics.impressions, metrics.clicks, metrics.cost_micros,
            metrics.conversions, metrics.conversions_value
     FROM campaign
@@ -215,12 +278,19 @@ SEARCH_TERM_QUERY = """
 # action category is the only way to split "install" from "in-app signup" once
 # both exist; DOWNLOAD is the category Play install actions carry.
 INSTALL_QUERY = """
-    SELECT campaign.id, campaign.name,
-           segments.conversion_action_category, metrics.conversions
+    SELECT campaign.id, segments.conversion_action, segments.conversion_action_category,
+           metrics.conversions
     FROM campaign
     WHERE segments.date BETWEEN '{start}' AND '{end}'
       AND campaign.status != 'REMOVED'
       AND segments.conversion_action_category = 'DOWNLOAD'
+"""
+
+INSTALL_ACTION_QUERY = """
+    SELECT conversion_action.resource_name, conversion_action.name,
+           conversion_action.type, conversion_action.app_id
+    FROM conversion_action
+    WHERE conversion_action.category = 'DOWNLOAD'
 """
 
 
@@ -239,6 +309,7 @@ def fetch(client, customer_id: str, days: int = 14, include_search_terms: bool =
                 campaign_name=row.campaign.name,
                 status=row.campaign.status.name,
                 sub_type=row.campaign.advertising_channel_sub_type.name,
+                app_id=row.campaign.app_campaign_setting.app_id,
             ),
         )
         campaign.impressions += row.metrics.impressions
@@ -247,10 +318,33 @@ def fetch(client, customer_id: str, days: int = 14, include_search_terms: bool =
         campaign.conversions += Decimal(str(row.metrics.conversions))
         campaign.conversion_value += Decimal(str(row.metrics.conversions_value))
 
+    by_action: dict[int, dict[str, Decimal]] = {}
     for row in _search(client, service, customer_id, INSTALL_QUERY.format(start=start, end=end)):
-        campaign = by_id.get(row.campaign.id)
-        if campaign is not None:
-            campaign.installs += Decimal(str(row.metrics.conversions))
+        if row.campaign.id in by_id:
+            tally = by_action.setdefault(row.campaign.id, {})
+            action = row.segments.conversion_action
+            tally[action] = tally.get(action, Decimal("0")) + Decimal(str(row.metrics.conversions))
+
+    if by_action:
+        actions = [
+            InstallAction(
+                resource_name=row.conversion_action.resource_name,
+                name=row.conversion_action.name,
+                type=row.conversion_action.type_.name,
+                app_id=row.conversion_action.app_id,
+            )
+            for row in _search(client, service, customer_id, INSTALL_ACTION_QUERY)
+        ]
+        for campaign_id, tally in by_action.items():
+            campaign = by_id[campaign_id]
+            campaign.installs, excluded = split_installs(campaign.app_id, tally, actions)
+            if excluded:
+                left_out = ", ".join(f"{name} ({count:g})" for name, count in excluded.items())
+                report.notes.append(
+                    f"{campaign.campaign_name}: not counted as installs — {left_out}. Only "
+                    f"{campaign.app_id or 'the campaign app'}'s own first-open (or Play download) "
+                    "action is an install; Google's 'conversions' column still includes these."
+                )
 
     report.campaigns = list(by_id.values())
 

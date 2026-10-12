@@ -3144,6 +3144,23 @@
                 "seeLeaderboard": "Ver clasificación",
                 "done": "Listo",
                 "lockInForLife": "Asegura todas las funciones de por vida"
+            },
+            "bonus": {
+                "title": "El bono de hoy",
+                "titleBoosted": "Un bono dorado",
+                "hintTap": "Toca para desbloquear tu bono diario",
+                "hintKeepGoing": "Un poco más…",
+                "hintOneMore": "¡Una más!",
+                "addedToLeaderboard": "Ya sumado a la clasificación de esta semana.",
+                "xp": "+{xp} XP",
+                "accessibilityLabel": "Camaleón. Toca para ver el bono de hoy.",
+                "revealAccessibility": "{rarity} Tu bono es de {xp} XP.",
+                "rarity": {
+                    "common": "¡Buena atrapada!",
+                    "rare": "¡Brillante!",
+                    "epic": "¡Espléndido!",
+                    "jackpot": "¡Deslumbrante!"
+                }
             }
         },
         "firstCheckin": {

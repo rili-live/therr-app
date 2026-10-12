@@ -44,6 +44,7 @@ import SubscriptionPurchasesStore from './SubscriptionPurchasesStore';
 import JournalEntriesStore from './JournalEntriesStore';
 import UserDailyStreaksStore from './UserDailyStreaksStore';
 import DailyStreakDaysStore from './DailyStreakDaysStore';
+import DailyBonusesStore from './DailyBonusesStore';
 import LeaderboardPeriodResultsStore from './LeaderboardPeriodResultsStore';
 
 class Store {
@@ -138,6 +139,8 @@ class Store {
 
     dailyStreakDays: DailyStreakDaysStore;
 
+    dailyBonuses: DailyBonusesStore;
+
     leaderboardPeriodResults: LeaderboardPeriodResultsStore;
 
     constructor(dbConnection) {
@@ -192,6 +195,7 @@ class Store {
         this.journalEntries = new JournalEntriesStore(this.db);
         this.userDailyStreaks = new UserDailyStreaksStore(this.db);
         this.dailyStreakDays = new DailyStreakDaysStore(this.db);
+        this.dailyBonuses = new DailyBonusesStore(this.db);
         this.leaderboardPeriodResults = new LeaderboardPeriodResultsStore(this.db);
     }
 }

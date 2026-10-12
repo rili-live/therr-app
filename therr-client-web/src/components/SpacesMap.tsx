@@ -1,7 +1,7 @@
 import * as React from 'react';
 import 'leaflet/dist/leaflet.css';
 
-// Tile provider: Carto Voyager (CDN-backed, free, no API key, proper cache headers)
+// Tile provider: Carto Voyager when CARTO_BASEMAPS_KEY is set, otherwise OpenStreetMap.
 // Override via tileLayerUrl in global-config.js if needed
 import * as globalConfig from '../../../global-config';
 
@@ -40,7 +40,14 @@ const escapeHtml = (str: string): string => {
 const ICON_CDN = 'https://unpkg.com/leaflet@1.9.4/dist/images';
 
 const envConfig = globalConfig[process.env.NODE_ENV || 'production'] || globalConfig.production;
-const TILE_LAYER_URL = envConfig.tileLayerUrl || 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+// Carto has required a key since 2026-09-23: keyless requests still return 200, but every tile is an
+// "API KEY REQUIRED" watermark. Free commercial tier is 1M requests/month (carto.com/basemaps/apikey).
+// The key ships in every tile URL, so it is public by design — same as a browser Maps key.
+// Kept here rather than in global-config.js because editing that file rebuilds the whole fleet.
+const CARTO_BASEMAPS_KEY = '';
+const TILE_LAYER_URL = envConfig.tileLayerUrl || (CARTO_BASEMAPS_KEY
+    ? `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_BASEMAPS_KEY}`
+    : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png');
 const TILE_ATTRIBUTION = TILE_LAYER_URL.includes('cartocdn')
     ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
     : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
