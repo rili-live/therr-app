@@ -287,8 +287,10 @@ export const Celebration = ({
         dismiss();
     };
 
+    // Centered in the space above the actions. The leaderboard line is always laid out and only
+    // faded in on reveal, so the stack does not re-center (and jump) the moment the gems fly.
     const renderBonusStage = () => (dailyBonus ? (
-        <>
+        <View style={themeCelebration.styles.stageCentered}>
             <View style={themeCelebration.styles.center}>
                 <Text style={themeCelebration.styles.label}>
                     {translate(dailyBonus.tier === 'boosted'
@@ -305,14 +307,16 @@ export const Celebration = ({
                     onRevealed={onBonusRevealed}
                 />
             </View>
-            <View style={themeCelebration.styles.center}>
+            <View
+                style={[themeCelebration.styles.center, !isBonusRevealed && themeCelebration.styles.hidden]}
+                accessibilityElementsHidden={!isBonusRevealed}
+                importantForAccessibility={isBonusRevealed ? 'auto' : 'no-hide-descendants'}
+            >
                 <Text style={themeCelebration.styles.copy}>
-                    {translate(isBonusRevealed
-                        ? 'pages.celebration.bonus.addedToLeaderboard'
-                        : 'pages.celebration.bonus.alreadyYours')}
+                    {translate('pages.celebration.bonus.addedToLeaderboard')}
                 </Text>
             </View>
-        </>
+        </View>
     ) : null);
 
     const renderStreakBody = () => {

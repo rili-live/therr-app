@@ -3148,10 +3148,9 @@
             "bonus": {
                 "title": "El bono de hoy",
                 "titleBoosted": "Un bono dorado",
-                "hintTap": "Toca al camaleón",
+                "hintTap": "Toca para desbloquear tu bono diario",
                 "hintKeepGoing": "Un poco más…",
                 "hintOneMore": "¡Una más!",
-                "alreadyYours": "Ya es tuyo: toca para ver qué atrapa.",
                 "addedToLeaderboard": "Ya sumado a la clasificación de esta semana.",
                 "xp": "+{xp} XP",
                 "accessibilityLabel": "Camaleón. Toca para ver el bono de hoy.",

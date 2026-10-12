@@ -3148,10 +3148,9 @@
             "bonus": {
                 "title": "Today's bonus",
                 "titleBoosted": "A golden bonus",
-                "hintTap": "Tap the chameleon",
+                "hintTap": "Tap to unlock your daily bonus",
                 "hintKeepGoing": "A little further…",
                 "hintOneMore": "One more!",
-                "alreadyYours": "It's already yours — tap to see what it catches.",
                 "addedToLeaderboard": "Already added to this week's leaderboard.",
                 "xp": "+{xp} XP",
                 "accessibilityLabel": "Chameleon. Tap to see today's bonus.",

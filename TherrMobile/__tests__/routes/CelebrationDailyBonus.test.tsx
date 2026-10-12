@@ -146,7 +146,8 @@ describe('Celebration — daily bonus reveal', () => {
         expect(findChameleon(tree)).toBeTruthy();
         // The chameleon and Continue: skipping the reveal is always possible.
         expect(findButtons(tree)).toHaveLength(2);
-        expect(textContent(tree)).toContain("It's already yours");
+        expect(textContent(tree)).toContain('Tap to unlock your daily bonus');
+        expect(textContent(tree)).not.toContain('already yours');
     });
 
     it('lets the user skip the reveal without tapping — the bonus is already paid', () => {

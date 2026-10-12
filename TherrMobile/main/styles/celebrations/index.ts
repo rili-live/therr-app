@@ -29,6 +29,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             alignItems: 'center',
             gap: 8,
         },
+        // Fills the space above the pinned actions and centers a stage within it.
+        stageCentered: {
+            flex: 1,
+            justifyContent: 'center',
+        },
+        hidden: {
+            opacity: 0,
+        },
         bigNumber: {
             fontSize: 88,
             lineHeight: 96,

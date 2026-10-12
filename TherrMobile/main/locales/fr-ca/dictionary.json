@@ -3148,10 +3148,9 @@
             "bonus": {
                 "title": "Le bonus du jour",
                 "titleBoosted": "Un bonus doré",
-                "hintTap": "Touche le caméléon",
+                "hintTap": "Touche pour débloquer ton bonus du jour",
                 "hintKeepGoing": "Encore un peu…",
                 "hintOneMore": "Une dernière fois!",
-                "alreadyYours": "Il est déjà à toi — touche pour voir ce qu'il attrape.",
                 "addedToLeaderboard": "Déjà ajouté au classement de cette semaine.",
                 "xp": "+{xp} XP",
                 "accessibilityLabel": "Caméléon. Touche pour voir le bonus du jour.",
