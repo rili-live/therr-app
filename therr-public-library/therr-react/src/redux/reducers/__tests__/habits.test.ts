@@ -565,6 +565,30 @@ describe('habits reducer', () => {
         expect(result.userHabitEligibility?.isAtHabitLimit).toBe(false);
     });
 
+    // A paid account is exempt from the solo invite requirement too, so the "invite N more to
+    // unlock solo habits" lock must not linger on the screen the user just bought from.
+    [HabitsActionTypes.VERIFY_LIFETIME_PURCHASE, HabitsActionTypes.VERIFY_PREMIUM_PURCHASE].forEach((type) => {
+        it(`unlocks solo habits on ${type}`, () => {
+            const populated = reducer(initialState, {
+                type: HabitsActionTypes.GET_USER_HABIT_ELIGIBILITY,
+                data: {
+                    canCreateSolo: false,
+                    isSoloGraceAvailable: false,
+                    soloGrace: { userHabitId: 'uh-g', isLocked: true },
+                    invitedCount: 0,
+                    soloUnlockInviteCount: 3,
+                },
+            });
+            const result = reducer(populated, { type, data: {} });
+
+            expect(result.userHabitEligibility).toMatchObject({
+                canCreateSolo: true,
+                isSoloUnlockedByEntitlement: true,
+                soloGrace: null,
+            });
+        });
+    });
+
     describe('UPDATE_USER_HABIT_NOTIFICATION_PREFERENCES', () => {
         const trackedHabit = {
             id: 'uh-1',

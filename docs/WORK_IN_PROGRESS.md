@@ -98,6 +98,19 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Daily bonus (added 2026-10-11)
+
+- [ ] **Run the users-service migration after the deploy** (`20261011000001`: the `habits.daily_bonuses`
+  ledger). Additive; nothing outside users-service reads it. Until it runs, the bonus fails closed
+  inside the check-in (logged as "Daily bonus failed", the check-in still succeeds) and nobody is paid
+  it — which also means running it late loses nothing but those days' bonuses.
+- [ ] **Ship the habits build carrying the chameleon reveal** (`niche/HABITS-general`). The XP is paid
+  on deploy regardless; until the build ships, users get it without seeing it. Kill switch:
+  `HABIT_DAILY_BONUS_ENABLED=false`.
+- [ ] **After two weeks, read the `Daily bonus awarded` spans** (`dailyBonus.rarity`/`bonusXp`)
+  against the weekly board. The odds in `utilities/dailyBonus.ts` are a first guess sized to one
+  check-in's XP; if the bonus moves the weekly board more than check-ins do, lower them.
+
 ## Test account isolation & cleanup (added 2026-10-08, docs/TEST_ACCOUNTS.md)
 
 - [ ] **After deploy, have the Play review account (`rili.main@gmail.com`) sign out and back in**
@@ -587,11 +600,12 @@ are the steps code cannot do. Strategy, thresholds and the decision log live in
 > `24331885080`) went live the same day; the three legacy Therr campaigns in the
 > account are PAUSED and already past their end dates.
 
-- [ ] **Read the App campaign's first week on 2026-10-17** (day 8): `./therrads analyze
-  --days 7`, then check `main."userAcquisition"` for `utmCampaign =
-  'fwh-app-us-installs-2026q3'` (the referrer item below). It went live 2026-10-09 at
-  $9/day with a 2026-10-19 end date — a $90 test, images + one video attached. If
-  impressions are near zero by ~2026-10-12, raise `target_cpa` rather than the budget.
+- [ ] **Read the App campaign on 2026-10-20**, the day after its 2026-10-19 end date:
+  `./therrads analyze --days 7` (covers 10-13 to 10-19, the post-PRESENCE week), then
+  check `main."userAcquisition"` for `utmCampaign = 'fwh-app-us-installs-2026q3'` (the
+  referrer item below). Switched to PRESENCE location targeting 2026-10-12, which
+  restarted learning. Day-3 read (2026-10-09 to 11, before the fix): 6 installs at
+  $4.49 each, 9 paid first opens → 3 profile starts → 0 sign-ups, 3 uninstalls.
 - [ ] **Fix the coach Short (`_1vXPuQiVHk`) and attach it.** Its 0:08–0:10 end card is a
   blank white box (needs the app name + official Play badge), and its "coach" line
   promises a feature the app does not have. Upload the fixed cut as a new unlisted video,
@@ -1680,6 +1694,7 @@ backend change needed — it refuses to treat Play's own
 - [ ] (2026-09-25, /mobile-release-preflight) **The EAS free-plan Android build quota ran out, so CI Habits release builds fail until it resets on 2026-10-01.** `eas_build_habits_android` (CircleCI job 18409, merge c13592e43) failed at `eas build` with "This account has used its Android builds from the Free plan this month", and the job goes red without building anything. The last EAS-built Habits AAB was versionCode 45. Until the quota resets or the plan is upgraded, release with `/niche-android-release`: it merges, sees the quota failure, and builds and submits locally. Decide whether to upgrade the plan or move the build off EAS.
 - [ ] (2026-10-01, /mobile-release-preflight) **Deploy `stage → main` before promoting Habits 1.14.1 (54) or 1.15.0 (55) to production.** Its headline release note is pact invitations in the notification list, but the users-service change that writes those `PACT_INVITATION` notifications (`78ad5acf4`, with `ee3ec0786`) is on `stage` and not `main`. The build is safe without it (no new API calls; the list just never shows one), but the advertised feature does nothing until the backend ships. 1.15.0's streak widget reads `isAtStakeToday` from `GET /habits/daily-streak/me` (`463db1a8b`, also on `stage` only); until it ships, the evening warning falls back to the device's due-weekday rule, which misses weekly-count habits and can warn on a rest day.
 - [ ] (2026-10-07, /quality-peer-review) **Confirm `20261005000004_main.users.settingsPreferredEveningReminderTime.js` ran at `stage` and `main`, alongside `20261007000001`.** `UsersStore.getHabitReminderPreferences` SELECTs the new column unconditionally, and the digest's reminder, weekly-recap, pledge-verdict and open-pact passes all read through it. Until the column exists that read fails on every run: the reminder pass degrades to the fallback zone and default quiet hours for *everyone* (ignoring stored timezones) and counts `errors: 1`, so a non-zero `errors` on the "Habits daily digest completed" span is the tell. `SELECT column_name FROM information_schema.columns WHERE table_schema = 'main' AND table_name = 'users' AND column_name IN ('settingsPreferredEveningReminderTime', 'settingsPushLeaderboardAlerts');` should return both. Additive and nullable, so neither automator is affected. Introduced by 1264b73a6.
+- [ ] (2026-10-12, /quality-peer-review) **After the maps-service deploy, open a `/locations/city/:slug` page in each locale and confirm no "edit | edit source" text is left in its sections.** `20261012000000_main.cityWikiCache.expire_edit_links.js` only expires the cached rows; each one is re-fetched lazily on its next view, so the first visit to a city still serves the old text and the second should be clean. If the text persists after a refresh, Wikivoyage changed its edit-link markup and `stripHtml` in `maps-service/src/utilities/wikiFetcher.ts` no longer matches it. Introduced by 3cc469c86.
 <!-- skill-followups:end -->
 
 ---

@@ -32,6 +32,7 @@ import { IUserHabitCadence } from '../../store/UserHabitsStore';
 import { createOrUpdateAchievement } from './achievements';
 import { awardLeaderboardPoints } from './leaderboards';
 import { getPendingPlacementsForUser, IPendingPlacement } from './leaderboardPeriods';
+import { awardDailyBonus, getDailyBonusForDay, IDailyBonusView } from './dailyBonus';
 
 /**
  * Leaderboard XP for each day the daily streak is upheld by a real check-in (frozen days earn
@@ -482,6 +483,10 @@ export const onCheckinCompleted = async ({
     if (isFirstForDay && DAILY_STREAK_BONUS_XP > 0) {
         awardLeaderboardPoints(headers, DAILY_STREAK_BONUS_XP, `daily-streak-day:${localDate}`);
     }
+    if (isFirstForDay) {
+        // Awaited so the check-in response's celebration can reveal it. Never throws.
+        await awardDailyBonus(userId, localDate, state, headers);
+    }
 
     return state;
 };
@@ -524,6 +529,11 @@ export interface IPendingCelebration {
     streak: number;
     isPerfectWeek: boolean;
     isNewLongest: boolean;
+    /**
+     * The day's bonus, already paid at check-in, for the celebration to reveal. Null when there
+     * is none (off, not Friends with Habits, or the read failed) — the celebration still shows.
+     */
+    dailyBonus?: IDailyBonusView | null;
 }
 
 export interface IDailyStreakView {
@@ -595,13 +605,16 @@ export const getDailyStreakView = async (
     const resolvedState = state || await Store.userDailyStreaks.getOrCreate(userId);
     const rows = await Store.dailyStreakDays.getRange(userId, getWeekStart(today), getWeekEnd(today));
     const week = buildWeek(today, rows);
+    const pendingCelebration = getPendingCelebration(resolvedState, today, week);
 
     return {
         currentStreak: resolvedState.currentStreak,
         longestStreak: resolvedState.longestStreak,
         today,
         week,
-        pendingCelebration: getPendingCelebration(resolvedState, today, week),
+        pendingCelebration: pendingCelebration
+            ? { ...pendingCelebration, dailyBonus: await getDailyBonusForDay(userId, today) }
+            : null,
     };
 };
 

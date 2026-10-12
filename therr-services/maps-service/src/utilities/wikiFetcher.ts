@@ -34,12 +34,17 @@ export interface IWikivoyageSections {
  * Strip wiki markup / HTML noise out of a parse-API section.
  * Wikivoyage returns HTML via ?prop=text; we flatten it to plain text paragraphs.
  */
-const stripHtml = (html: string): string => html
+export const stripHtml = (html: string): string => html
     // Drop script/style blocks entirely (paranoia — unlikely in Wikivoyage output)
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
-    // Drop edit/see-also navboxes
-    .replace(/<span class="mw-editsection[\s\S]*?<\/span>/gi, '')
+    // Drop "[edit | edit source]" section links. The parse call already passes
+    // `disableeditsection`; this is the fallback. The wrapper span nests a span
+    // per bracket, link label and divider, so a lazy match to the first
+    // `</span>` leaves "editedit source" behind — match through the closing
+    // bracket span instead.
+    .replace(/<span class="mw-editsection[^"]*"[^>]*>[\s\S]*?<span class="mw-editsection-bracket">\]<\/span>\s*<\/span>/gi, '')
+    // Drop see-also navboxes
     .replace(/<table[\s\S]*?<\/table>/gi, '')
     // Convert paragraph/br to newlines
     .replace(/<\/(p|li|h[1-6])>/gi, '\n\n')
@@ -163,6 +168,8 @@ export const fetchWikivoyageSections = async (
                     page: title,
                     prop: 'text',
                     section: sectionIndex,
+                    // Omit the "[edit | edit source]" links from the rendered HTML.
+                    disableeditsection: 1,
                     format: 'json',
                     redirects: 1,
                 },

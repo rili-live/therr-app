@@ -63,7 +63,8 @@ class Plan:
             f" = {format_micros(to_micros(spec.budget.daily), spec.budget.currency)}",
             f"  bidding:   {spec.bidding.goal}"
             + (f" @ target CPA {spec.bidding.target_cpa}" if spec.bidding.target_cpa else ""),
-            f"  targeting: locations={spec.targeting.location_ids} languages={spec.targeting.language_ids}",
+            f"  targeting: locations={spec.targeting.location_ids} languages={spec.targeting.language_ids}"
+            f" (location mode {LOCATION_MODE})",
         ]
         if spec.kind == "web_landing":
             lines.append(f"  final URL suffix: {spec.tracking.final_url_suffix()}")
@@ -270,6 +271,16 @@ class _TempIds:
         return resource
 
 
+# How a location criterion matches people. Google's default, PRESENCE_OR_INTEREST,
+# also serves to people *outside* the targeted country who have shown interest in
+# it. On the first App run (2026-10-09, US-only) that put ~52% of spend into
+# Nigeria and South Africa and 6 of 9 paid installs outside the US, which made
+# the "US CPI" the hypothesis asks about unreadable. PRESENCE serves only to
+# people in, or regularly in, the targeted locations.
+LOCATION_MODE = "PRESENCE"
+LOCATION_MODES = ("PRESENCE", "PRESENCE_OR_INTEREST")
+
+
 def _budget_operation(client, customer_id: str, spec: CampaignSpec, resource_name: str):
     operation = client.get_type("MutateOperation")
     budget = operation.campaign_budget_operation.create
@@ -302,6 +313,10 @@ def _campaign_operation(client, customer_id: str, spec: CampaignSpec, budget_res
     # start_date_time / end_date_time ("yyyy-MM-dd HH:mm:ss" in the customer's
     # time zone). Time-of-day granularity is not supported for these campaign
     # types, so the times are the whole-day boundaries the docs prescribe.
+    campaign.geo_target_type_setting.positive_geo_target_type = (
+        client.enums.PositiveGeoTargetTypeEnum[LOCATION_MODE]
+    )
+
     if spec.start_date:
         campaign.start_date_time = f"{spec.start_date} 00:00:00"
     if spec.end_date:
@@ -454,7 +469,8 @@ def find_campaign(client, customer_id: str, name: str) -> dict | None:
     query = """
         SELECT campaign.id, campaign.name, campaign.status, campaign.start_date_time,
                campaign.campaign_budget, campaign_budget.amount_micros,
-               campaign_budget.id, campaign.advertising_channel_sub_type
+               campaign_budget.id, campaign.advertising_channel_sub_type,
+               campaign.geo_target_type_setting.positive_geo_target_type
         FROM campaign
         WHERE campaign.name = @name AND campaign.status != 'REMOVED'
         LIMIT 1
@@ -471,6 +487,7 @@ def find_campaign(client, customer_id: str, name: str) -> dict | None:
             "budget_resource": row.campaign.campaign_budget,
             "budget_micros": row.campaign_budget.amount_micros,
             "sub_type": row.campaign.advertising_channel_sub_type.name,
+            "location_mode": row.campaign.geo_target_type_setting.positive_geo_target_type.name,
         }
     return None
 
@@ -504,6 +521,26 @@ def set_status(client, customer_id: str, campaign_id: int, status: str) -> str:
     operation.update_mask.paths.append("status")
     response = service.mutate_campaigns(customer_id=customer_id, operations=[operation])
     return response.results[0].resource_name
+
+
+def set_location_mode(client, customer_id: str, campaign_id: int, mode: str, validate_only: bool = False) -> str:
+    """Change who a campaign's location criteria match. See LOCATION_MODE."""
+    if mode not in LOCATION_MODES:
+        raise ValueError(f"location mode must be one of {LOCATION_MODES}, not {mode!r}")
+    service = client.get_service("CampaignService")
+    operation = client.get_type("CampaignOperation")
+    campaign = operation.update
+    campaign.resource_name = service.campaign_path(customer_id, campaign_id)
+    campaign.geo_target_type_setting.positive_geo_target_type = client.enums.PositiveGeoTargetTypeEnum[mode]
+    operation.update_mask.paths.append("geo_target_type_setting.positive_geo_target_type")
+    # The flattened mutate_campaigns(customer_id=, operations=) signature has no
+    # validate_only, so this one goes through the request object.
+    request = client.get_type("MutateCampaignsRequest")
+    request.customer_id = customer_id
+    request.operations.append(operation)
+    request.validate_only = validate_only
+    response = service.mutate_campaigns(request=request)
+    return response.results[0].resource_name if response.results else ""
 
 
 def days_since(start_date: str) -> int | None:
