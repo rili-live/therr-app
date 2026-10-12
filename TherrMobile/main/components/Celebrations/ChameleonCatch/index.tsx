@@ -505,7 +505,8 @@ const ChameleonCatch = ({
                     <Pressable onPress={onPress} disabled={phase !== 'aiming'} accessible={false} style={styles.aiming}>
                         <View style={styles.pips} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
                             {skinsForPips.map((pipColor, index) => (
-                                <Pip key={pipColor} color={pipColor} index={index} progress={pips} />
+                                // A fixed set of three; a theme may repeat a colour, so the index is the identity.
+                                <Pip key={`pip-${index}`} color={pipColor} index={index} progress={pips} />
                             ))}
                         </View>
                         <Text style={[styles.hint, { color: colors.textWhite }]} accessibilityLiveRegion="polite">{hint}</Text>
