@@ -140,6 +140,19 @@ def _build_parser() -> argparse.ArgumentParser:
         status_parser.add_argument("--confirm", action="store_true")
         status_parser.set_defaults(handler=_cmd_campaign_status, status=status)
 
+    location = campaign_sub.add_parser(
+        "location-mode", help="who the location targets match: PRESENCE (in the place) or also interest"
+    )
+    location.add_argument("name")
+    location.add_argument("--mode", choices=campaigns.LOCATION_MODES, default=campaigns.LOCATION_MODE)
+    location.add_argument("--confirm", action="store_true")
+    location.add_argument(
+        "--validate-only",
+        action="store_true",
+        help="send the request with validate_only: full server-side validation, nothing changed",
+    )
+    location.set_defaults(handler=_cmd_campaign_location_mode)
+
     # report -----------------------------------------------------------------
     report_parser = sub.add_parser("report", help="pull performance data")
     report_sub = report_parser.add_subparsers(dest="subcommand")
@@ -557,6 +570,38 @@ def _cmd_campaign_status(args) -> int:
     return 0
 
 
+def _cmd_campaign_location_mode(args) -> int:
+    settings = _settings(args)
+    client = _client(args)
+    customer_id = settings.require_customer_id()
+
+    campaign = _call(campaigns.find_campaign, client, customer_id, args.name)
+    if campaign is None:
+        print(f"\nNo campaign named {args.name!r}.\n", file=sys.stderr)
+        return 2
+
+    print(f"\n{campaign['name']}: location mode {campaign['location_mode']} -> {args.mode}")
+    if campaign["location_mode"] == args.mode:
+        print("  Already set. Nothing to do.\n")
+        return 0
+    if campaign["status"] == "ENABLED":
+        print(
+            "  ! The campaign is serving. Google treats a targeting change as a significant edit and\n"
+            "  ! restarts the learning period; read results from the change date, not the start date."
+        )
+
+    if args.validate_only:
+        _call(campaigns.set_location_mode, client, customer_id, campaign["id"], args.mode, validate_only=True)
+        print("\nVALIDATE ONLY — the API accepted the change and applied nothing.\n")
+        return 0
+    if not _guard(args.confirm, "Re-run with --confirm to apply it."):
+        return 0
+
+    _call(campaigns.set_location_mode, client, customer_id, campaign["id"], args.mode)
+    print(f"\n{campaign['name']} now targets by {args.mode}.\n")
+    return 0
+
+
 # ---------------------------------------------------------------------------
 # report
 # ---------------------------------------------------------------------------
@@ -580,10 +625,15 @@ def _format_ads(report) -> str:
             f"    {campaign.impressions:,} impr  {campaign.clicks:,} clicks  CTR {campaign.ctr:.2%}  "
             f"CPC {campaign.cpc}  spend {campaign.cost}"
         )
-        lines.append(
-            f"    {campaign.conversions:g} conversions ({campaign.installs:g} installs)  "
-            f"cost/conv {campaign.cost_per_conversion}"
-        )
+        if campaign.sub_type == "APP_CAMPAIGN":
+            lines.append(
+                f"    {campaign.installs:g} installs  cost/install {campaign.cost_per_install}  "
+                f"(Google 'conversions' {campaign.conversions:g}, cost/conv {campaign.cost_per_conversion})"
+            )
+        else:
+            lines.append(
+                f"    {campaign.conversions:g} conversions  cost/conv {campaign.cost_per_conversion}"
+            )
     if report.ad_groups:
         lines += ["", "  BY AD GROUP (the keyword-theme experiment):"]
         for group in sorted(report.ad_groups, key=lambda g: -g.cost)[:15]:

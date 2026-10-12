@@ -49,6 +49,9 @@ import {
     IDailyStreak,
     IDailyStreakWeekDay,
     IDailyStreakPendingCelebration,
+    IDailyBonus,
+    DailyBonusTier,
+    DailyBonusRarity,
     IDailyStreakPendingPlacement,
 
     // Messages
@@ -167,6 +170,9 @@ export {
     IDailyStreak,
     IDailyStreakWeekDay,
     IDailyStreakPendingCelebration,
+    IDailyBonus,
+    DailyBonusTier,
+    DailyBonusRarity,
     IDailyStreakPendingPlacement,
 
     // Maps

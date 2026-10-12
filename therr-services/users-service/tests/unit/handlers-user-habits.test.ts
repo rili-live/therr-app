@@ -310,6 +310,86 @@ describe('Solo habits', () => {
         });
     });
 
+    /**
+     * The invite requirement is a free-tier limit, like the habit cap, so the founder unlock and
+     * the premium subscription lift it too. Before this, a customer who had paid was still told
+     * to "choose a friend — or invite 3 more to unlock solo habits".
+     */
+    describe('a paid account', () => {
+        beforeEach(() => {
+            countInvitedStub.resolves(0);
+        });
+
+        [AccessLevels.HABITS_LIFETIME, AccessLevels.HABITS_PREMIUM].forEach((accessLevel) => {
+            it(`starts a solo habit with no invites for ${accessLevel}, spending no grace`, async () => {
+                findUserStub.resolves([{ accessLevels: [accessLevel] }]);
+
+                const res = makeRes();
+                await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+                expect(res.statusCode).to.equal(201);
+                expect(claimGraceStub.called).to.equal(false);
+            });
+        });
+
+        it('selects accessLevels explicitly, since the JSONB column is otherwise undefined', async () => {
+            findUserStub.resolves([{ accessLevels: [AccessLevels.HABITS_LIFETIME] }]);
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(findUserStub.calledWith({ id: 'user-1' }, ['accessLevels'])).to.equal(true);
+        });
+
+        it('still blocks a free account with the same invite count', async () => {
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(403);
+            expect(res.body.error).to.equal('solo-locked');
+        });
+
+        it('continues a habit solo with no invites, spending no grace', async () => {
+            findUserStub.resolves([{ accessLevels: [AccessLevels.HABITS_LIFETIME] }]);
+            sinon.stub(Store.userHabits, 'getById').resolves({
+                id: 'uh-1', userId: 'user-1', habitGoalId: 'goal-1', status: 'active',
+            } as any);
+            sinon.stub(Store.pacts, 'get').resolves([]);
+
+            const res = makeRes();
+            await continueSoloHabit(makeReq({ params: { id: 'uh-1' } }) as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(200);
+            expect(claimGraceStub.called).to.equal(false);
+        });
+
+        it('fails closed when the account cannot be read', async () => {
+            findUserStub.rejects(new Error('connection terminated'));
+
+            const res = makeRes();
+            await createUserHabit(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.equal(403);
+            expect(getOrCreateStub.called).to.equal(false);
+        });
+
+        it('reports solo as unlocked on eligibility, with no grace window, even one spent before paying', async () => {
+            findUserStub.resolves([{ accessLevels: [AccessLevels.HABITS_PREMIUM] }]);
+            const startedAt = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000);
+            graceRowStub.resolves({ id: 'uh-g', habitGoalId: 'goal-g', soloGraceStartedAt: startedAt } as any);
+
+            const res = makeRes();
+            await getSoloEligibility(makeReq() as any, res, (() => {}) as any);
+
+            expect(res.body).to.include({
+                canCreateSolo: true,
+                isSoloUnlockedByEntitlement: true,
+                isSoloGraceAvailable: false,
+                soloGrace: null,
+            });
+        });
+    });
+
     describe('the free-tier cap', () => {
         it('denies a start when the user is at the limit', async () => {
             countActiveStub.resolves(HABITS_FREE_HABIT_LIMIT);
