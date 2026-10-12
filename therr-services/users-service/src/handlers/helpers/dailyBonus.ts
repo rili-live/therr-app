@@ -58,7 +58,8 @@ export const awardDailyBonus = async (
 
     try {
         // Boosted on the bigger days, judged as the celebration judges them. A backdated
-        // check-in (yesterday) is never the streak's head, so it never counts as a milestone.
+        // check-in (yesterday) counts as a milestone only while it is still the streak's head,
+        // i.e. today is not upheld yet; once today is, `currentStreak` is today's, not its.
         const isMilestone = state.lastUpheldDate === localDate && isDailyStreakMilestone(state.currentStreak);
         let isPerfectWeek = false;
         if (isWeekEnd(localDate)) {
