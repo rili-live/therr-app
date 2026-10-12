@@ -123,7 +123,15 @@ Now leave it alone for seven days. Edits during the learning period reset it.
 ./therrads campaign list                                          # what exists, and its budget
 ./therrads campaign budget "FwH-App-US-Installs-2026Q3" --daily 24 --confirm
 ./therrads campaign pause  "FwH-App-US-Installs-2026Q3" --confirm
+./therrads campaign location-mode "FwH-App-US-Installs-2026Q3" --confirm   # PRESENCE (default)
 ```
+
+`apply` creates every campaign with location mode **PRESENCE** — people in, or
+regularly in, the targeted country. Google's own default, *presence or
+interest*, also serves to people elsewhere who are "interested in" it, and on the
+first US-only App run that put about half the spend into Nigeria and South
+Africa. `location-mode` fixes a campaign created before that, or by hand in the
+UI; it takes `--validate-only` like `apply`.
 
 Budget is a per-campaign number in a version-controlled YAML file, changeable at
 any time, with three guards between you and a mistake:
@@ -145,6 +153,8 @@ possible, it is just never accidental.
 
 ```bash
 ./therrads report ads     --days 14    # impressions, clicks, CPI, ad groups, search terms
+                                       # (installs = the app's own first-open action only;
+                                       #  Google's "conversions" column also counts catch-alls)
 ./therrads report ga4     --days 14    # web sessions by campaign + the in-app funnel
                                        # (GA4 uses Application Default Credentials, NOT config.yaml;
                                        #  see "GA4 authentication" below)
