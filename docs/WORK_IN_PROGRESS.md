@@ -98,9 +98,44 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Engagement outage hardening (added 2026-10-13)
+
+From 2026-10-08 22:49 UTC to 10-12 20:48 UTC users-service ran the 10-08 code without its two
+migrations, after five deploys in a row failed on ProgressDeadlineExceeded. The solo-grace read
+failed closed, so no new Friends with Habits user could start a habit; the weekly board fell
+20 → 14 → 1. Fixed on `general` by `fix(deploy): boot at most two Deployments of a wave at a time`
+and `fix(push): clear dead device tokens for the recipient, not the sender`.
+
+- [ ] **Upgrade cert-manager before the TLS certificates expire on 2026-11-18.** Renewal has been
+  stuck since 2026-10-12 19:55 UTC: every DNS-01 challenge fails with `DELETE "/zones//dns_records/<id>"`
+  (`kubectl get challenges -A`). The cluster runs cert-manager **v1.9.0**, which builds that URL from
+  the `zone_id` field of the DNS record, and Cloudflare stopped returning that field in early 2025
+  (cert-manager #7540). Not a token-scope problem: the records themselves are found. Upgrade to a
+  current supported release (confirm its changelog includes the Cloudflare cleanup fix), stepping
+  through the per-minor upgrade notes since 1.9 — CRDs are Helm-managed (release `cert-manager`,
+  revision 1). Use `k8s/prod/values/cert-manager-values.yaml`. Then delete the stuck `challenges`/`orders`
+  so they retry, and confirm with `kubectl get certificate` plus
+  `openssl s_client -servername api.therr.com -connect api.therr.com:443 </dev/null | openssl x509 -noout -enddate`.
+  Delete the stale `_acme-challenge` TXT records in Cloudflare afterwards; the old version never removed them.
+- [ ] **After the push fix deploys, confirm dead tokens clear.** On 2026-10-13, 11 habits users had
+  failed every queued push daily on FCM NotRegistered (502), some since July. Expect their next rows
+  to settle `skipped / no-device-token` and the habits queue's daily `failed` count to drop from
+  ~20 to near zero: `SELECT "scheduledFor"::date, status, COUNT(*) FROM main."notificationQueue"
+  WHERE "brandVariation" = 'habits' GROUP BY 1, 2 ORDER BY 1 DESC`.
+- [ ] **Decide whether the deploy should apply migrations a serving pod is missing.**
+  `run-migrations.sh`'s verify pass printed "users-service is running code with 2 unapplied
+  migration(s)" on three deploys (10-08, 10-10 ×2) and skipped them each time as out of scope, because
+  the rollout that carried them had missed its deadline. A proposed change — apply them when the pod
+  reporting them is Ready — was drafted and not landed; it puts a `migrate:latest` on a path the
+  deploy currently refuses. Until decided, a red deploy that names unapplied migrations needs
+  `./_bin/cicd/run-migrations.sh --service <key>` by hand the same day.
+- [ ] **Read the 2026-10-19 weekly board.** Signups from 10-08..11 that never started a habit have all
+  had the onboarding first-habit nudge (verified 10-13). If the board is still under ~10, the cause is
+  the funnel, not the outage.
+
 ## Daily bonus (added 2026-10-11)
 
-- [ ] **Run the users-service migration after the deploy** (`20261011000001`: the `habits.daily_bonuses`
+- [x] **Run the users-service migration after the deploy** _(Verified applied in prod `knex_migrations` 2026-10-13: batch 94, 2026-10-12 20:47 UTC.)_ (`20261011000001`: the `habits.daily_bonuses`
   ledger). Additive; nothing outside users-service reads it. Until it runs, the bonus fails closed
   inside the check-in (logged as "Daily bonus failed", the check-in still succeeds) and nobody is paid
   it — which also means running it late loses nothing but those days' bonuses.
@@ -135,7 +170,7 @@ append new items here rather than only printing them once.
   build is needed — but that reuse is exactly the kind of thing only a device can prove. Easiest
   repro: two test accounts on a quiet board, push one past the other at #3. It is queued, so it only
   sends where `NOTIFICATION_QUEUE_WORKER_ENABLED=true`.
-- [ ] **Run the users-service migration after the deploy** (`20261007000001_main.users.settingsPushLeaderboardAlerts`,
+- [x] **Run the users-service migration after the deploy** _(Verified applied in prod `knex_migrations` 2026-10-13: batch 93, 2026-10-07 22:07 UTC.)_ (`20261007000001_main.users.settingsPushLeaderboardAlerts`,
   additive, default true — neither automator reads `main.users` settings, so no cross-repo change).
   Until it runs, both leaderboard nudge queries fail on the missing column: rank-lost logs and sends
   nothing, the podium pass reports `podiumErrors: 1`.
@@ -147,7 +182,7 @@ append new items here rather than only printing them once.
 
 ## First-habit solo grace (added 2026-10-08, #3010)
 
-- [ ] **Run the users-service migration after the deploy** (`20261008000001`: `habits.user_habits."soloGraceStartedAt"` plus a partial unique index). Additive; neither automator reads the column. Until it runs, every solo start that relies on the grace fails closed with 403 `solo-locked`, i.e. the old behaviour.
+- [x] **Run the users-service migration after the deploy** _(Verified applied in prod `knex_migrations` 2026-10-13: batch 94, 2026-10-12 20:47 UTC — four days late, see the engagement outage section.)_ (`20261008000001`: `habits.user_habits."soloGraceStartedAt"` plus a partial unique index). Additive; neither automator reads the column. Until it runs, every solo start that relies on the grace fails closed with 403 `solo-locked`, i.e. the old behaviour.
 - [ ] **Ship the mobile first-session flow** (`niche/HABITS-general`) to make the grace reachable from onboarding. Server-side it is live on deploy: an installed build already shows "track solo" whenever `canCreateSolo` is true.
 
 ## Pact invite reminder (added 2026-10-08, #3062)
@@ -164,14 +199,14 @@ append new items here rather than only printing them once.
 
 ## Onboarding nurture (added 2026-10-08, #3011)
 
-- [ ] **Run the users-service migration after the deploy** (`20261008000002`: the `habits.onboarding_messages` ledger). Until it runs, every claim fails and the pass sends nothing, so the order is safe either way.
+- [x] **Run the users-service migration after the deploy** _(Verified applied in prod `knex_migrations` 2026-10-13: batch 94, 2026-10-12 20:47 UTC.)_ (`20261008000002`: the `habits.onboarding_messages` ledger). Until it runs, every claim fails and the pass sends nothing, so the order is safe either way.
 - [ ] **Watch `onboardingNurture` in the first digest runs.** It is logged as a JSON string on the "Habits daily digest completed" span, with one counter set per message. On 2026-10-08 the reads matched 8 no-habit accounts, 8 unanswered seats for the inviter prompt, 0 emailed seats, and 6 founder candidates before the entitlement filter. `errors > 0` with nothing queued or emailed means a message is failing. Kill switch: `HABIT_ONBOARDING_NURTURE_ENABLED=false`.
 - [ ] **On a Habits handset, confirm the three new display pushes render** (`habitsFirstHabitNudge`, `pactInviteUnclaimed`, `habitsFounderOffer`). They have no click action, so the tap only opens the app. Nothing server-side can see a push that fails to render.
 - [ ] **therr-messaging-automator: rewrite `introHabits` to lead with the first habit.** It is the welcome email #3011 asked for, and it already reaches every opted-in Habits user, but its copy asks for a friend first ("Pick a habit… invite a friend or two"). The change is in the sibling repo, `src/locales/*.ts`.
 
 ## Open pacts (added 2026-10-05)
 
-- [ ] **Run the users-service migrations after the deploy** (`20261005000001`–`03`: `pacts.isOpen` /
+- [x] **Run the users-service migrations after the deploy** _(Verified applied in prod `knex_migrations` 2026-10-13: batch 92, 2026-10-05 17:17 UTC.)_ (`20261005000001`–`03`: `pacts.isOpen` /
   `openSuggestionSentAt`, `habit_goals.sourceTemplateKey` with its English-name backfill,
   `habits.pact_join_requests`). All additive, so neither automator is affected.
 - [ ] **Watch `openPactSuggestions` in the first digest runs.** It is logged as a JSON string on the
@@ -1693,7 +1728,7 @@ backend change needed — it refuses to treat Play's own
 - [ ] (2026-09-24, /quality-peer-review) **Confirm the habit template migrations (`20260925000001`/`…02`) ran at `stage` and `main` and seeded the full set.** `SELECT count(*) FROM habits.habit_goals WHERE "isTemplate" AND "templateKey" IS NOT NULL;` should be 43. Fewer than 43 means the SUPER_ADMIN_ID row was missing and the inserts were skipped with a warning; create the row and re-run the file by hand, because knex has already recorded it as applied. Then check `SELECT "frequencyType", "frequencyCount" FROM habits.habit_goals WHERE id = 'b0000001-de00-4000-a000-000000000001';`. If it is still `daily`/1, a pact or tracking row points at the template itself and the move to 3x/week was deliberately skipped (see the peer-review fix to 90263c32a). Already-installed habits clients show all 43 templates in one flat list until the categorized picker (niche 241662127) ships in a Play release.
 - [ ] (2026-09-25, /mobile-release-preflight) **The EAS free-plan Android build quota ran out, so CI Habits release builds fail until it resets on 2026-10-01.** `eas_build_habits_android` (CircleCI job 18409, merge c13592e43) failed at `eas build` with "This account has used its Android builds from the Free plan this month", and the job goes red without building anything. The last EAS-built Habits AAB was versionCode 45. Until the quota resets or the plan is upgraded, release with `/niche-android-release`: it merges, sees the quota failure, and builds and submits locally. Decide whether to upgrade the plan or move the build off EAS.
 - [ ] (2026-10-01, /mobile-release-preflight) **Deploy `stage → main` before promoting Habits 1.14.1 (54) or 1.15.0 (55) to production.** Its headline release note is pact invitations in the notification list, but the users-service change that writes those `PACT_INVITATION` notifications (`78ad5acf4`, with `ee3ec0786`) is on `stage` and not `main`. The build is safe without it (no new API calls; the list just never shows one), but the advertised feature does nothing until the backend ships. 1.15.0's streak widget reads `isAtStakeToday` from `GET /habits/daily-streak/me` (`463db1a8b`, also on `stage` only); until it ships, the evening warning falls back to the device's due-weekday rule, which misses weekly-count habits and can warn on a rest day.
-- [ ] (2026-10-07, /quality-peer-review) **Confirm `20261005000004_main.users.settingsPreferredEveningReminderTime.js` ran at `stage` and `main`, alongside `20261007000001`.** `UsersStore.getHabitReminderPreferences` SELECTs the new column unconditionally, and the digest's reminder, weekly-recap, pledge-verdict and open-pact passes all read through it. Until the column exists that read fails on every run: the reminder pass degrades to the fallback zone and default quiet hours for *everyone* (ignoring stored timezones) and counts `errors: 1`, so a non-zero `errors` on the "Habits daily digest completed" span is the tell. `SELECT column_name FROM information_schema.columns WHERE table_schema = 'main' AND table_name = 'users' AND column_name IN ('settingsPreferredEveningReminderTime', 'settingsPushLeaderboardAlerts');` should return both. Additive and nullable, so neither automator is affected. Introduced by 1264b73a6.
+- [x] (2026-10-07, /quality-peer-review) **Confirm `20261005000004_main.users.settingsPreferredEveningReminderTime.js` ran at `stage` and `main`, alongside `20261007000001`.** _(Verified on `main` in prod `knex_migrations` 2026-10-13: batch 93, 2026-10-07 22:07 UTC, with `20261007000001`.)_ `UsersStore.getHabitReminderPreferences` SELECTs the new column unconditionally, and the digest's reminder, weekly-recap, pledge-verdict and open-pact passes all read through it. Until the column exists that read fails on every run: the reminder pass degrades to the fallback zone and default quiet hours for *everyone* (ignoring stored timezones) and counts `errors: 1`, so a non-zero `errors` on the "Habits daily digest completed" span is the tell. `SELECT column_name FROM information_schema.columns WHERE table_schema = 'main' AND table_name = 'users' AND column_name IN ('settingsPreferredEveningReminderTime', 'settingsPushLeaderboardAlerts');` should return both. Additive and nullable, so neither automator is affected. Introduced by 1264b73a6.
 - [ ] (2026-10-12, /quality-peer-review) **After the maps-service deploy, open a `/locations/city/:slug` page in each locale and confirm no "edit | edit source" text is left in its sections.** `20261012000000_main.cityWikiCache.expire_edit_links.js` only expires the cached rows; each one is re-fetched lazily on its next view, so the first visit to a city still serves the old text and the second should be clean. If the text persists after a refresh, Wikivoyage changed its edit-link markup and `stripHtml` in `maps-service/src/utilities/wikiFetcher.ts` no longer matches it. Introduced by 3cc469c86.
 <!-- skill-followups:end -->
 

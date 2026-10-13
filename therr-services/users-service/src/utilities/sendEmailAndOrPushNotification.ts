@@ -380,6 +380,9 @@ export default (
                     groupMembersList: fromUserNames,
                     postType,
                     toUserDeviceToken: resolvedDeviceToken,
+                    // The token's owner. `x-userid` above is the sender (empty for system
+                    // pushes), so without this the push service cannot clear a dead token.
+                    toUserId,
                     type,
                     thought,
                     streakCount,
