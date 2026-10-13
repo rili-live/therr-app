@@ -153,6 +153,12 @@ interface ICreateMessageConfig {
     groupId?: string;
     groupName?: string;
     userId: string | string[];
+    /**
+     * The recipient — the user `deviceToken` belongs to. Distinct from `userId`, which the
+     * single-send route fills from `x-userid`, and users-service sets that header to the
+     * *sender* (empty for system pushes like reminders). Only used to clear a dead token.
+     */
+    toUserId?: string;
     userLocale: string;
     viewCount?: number;
     groupMembersList?: string[],
@@ -2085,7 +2091,13 @@ const predictAndSendNotification = (
         .catch((error) => {
             const fcmErrorCode = error?.code || error?.errorInfo?.code;
             const tokenInvalid = isInvalidTokenError(error);
-            const targetUserId = typeof config.userId === 'string' ? config.userId : undefined;
+            // The token's owner. `config.userId` is the sender on the single-send route, and
+            // empty for system pushes, which made clearInvalidDeviceToken return early: dead
+            // tokens for reminder recipients were never deleted and failed every send, daily,
+            // for months. The sender fallback remains for callers that predate `toUserId`;
+            // users-service's cleanup also deletes the brand-scoped row by token alone.
+            const senderUserId = typeof config.userId === 'string' ? config.userId : undefined;
+            const targetUserId = config.toUserId || senderUserId || undefined;
 
             logSpan({
                 level: 'error',
