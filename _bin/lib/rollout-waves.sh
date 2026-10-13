@@ -30,6 +30,11 @@
 # can be preempted. If node sizes are ever reduced, re-measure before trusting this:
 # the packing rule removed from `assert_rollout_waves` is what compensated for it.
 #
+# Memory fits; CPU does not. Six backend boots at once starved each other past their
+# progress deadlines on 2026-10-07, 10-08 and 10-10 (a different service each run), so
+# deploy.sh now boots at most DEPLOY_MAX_CONCURRENT_ROLLOUTS (default 2) Deployments of
+# a wave at a time. The waves below still define ordering; that cap defines pacing.
+#
 # What survives the capacity increase is the reason that was never about capacity:
 #
 #   Skew direction. Waves run inside-out — everything internal, then the API
@@ -52,7 +57,8 @@
 
 K8S_PROD_DIR="${K8S_PROD_DIR:-k8s/prod}"
 
-# Each entry is a space-separated list of Deployment names rolled concurrently.
+# Each entry is a space-separated list of Deployment names rolled concurrently, up to
+# deploy.sh's DEPLOY_MAX_CONCURRENT_ROLLOUTS at a time, in the order listed.
 # Deployment name == manifest basename, for every file in k8s/prod.
 ROLLOUT_WAVES=(
   "redis-deployment redis-ephemeral-deployment users-service-deployment messages-service-deployment websocket-service-deployment reactions-service-deployment maps-service-deployment push-notifications-service-deployment"

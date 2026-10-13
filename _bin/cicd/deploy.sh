@@ -74,6 +74,17 @@ ROLLOUT_TIMEOUT="${DEPLOY_ROLLOUT_TIMEOUT:-360s}"
 # number of seconds to bring the gate back, e.g. while draining a node pool or
 # after shrinking the cluster.
 DRAIN_TIMEOUT="${DEPLOY_DRAIN_TIMEOUT:-0}"
+# How many Deployments within one wave may be booting at once. Wave order is about
+# version skew, not capacity, but capacity still bites inside a wave: main-pool is
+# a single e2-small (940m allocatable, ~648m of it requested by kube-system — see
+# k8s/prod/values/cert-manager-values.yaml), and every backend boot is CPU-bound
+# (bundle parse + OpenTelemetry patching before app.listen) with a 350m limit.
+# Surging all six backend services together starved them past their progress
+# deadlines on 2026-10-07, 10-08 and three times on 10-10 — a different service
+# each run — and the run that left users-service live ahead of its schema for four
+# days was one of them. Batching the boots costs a minute or two per deploy.
+# 0 removes the cap (every changed Deployment in a wave rolls at once).
+MAX_CONCURRENT_ROLLOUTS="${DEPLOY_MAX_CONCURRENT_ROLLOUTS:-2}"
 
 # Each Deployment's manifest is rendered with the image it should run before it is
 # applied — see _bin/lib/render-manifest.sh for why the tag goes into the manifest
@@ -450,7 +461,45 @@ wait_for_drain()
   return 0
 }
 
+# Verifies the batch of Deployments the caller has started (its ROLLING array),
+# then lets their superseded Pods drain. On failure, names everything that was
+# never applied — the rest of this wave ($3...) and every later wave — and returns
+# non-zero so deploy_waves stops.
+#
+#   $1  wave label, for messages
+#   $2  index of the next wave in ROLLOUT_WAVES
+#   $3… the members of this wave not yet applied
+settle_rolling_batch()
+{
+  local WAVE_LABEL=$1
+  local NEXT_WAVE_INDEX=$2
+  shift 2
+
+  printMessageNeutral "Rolling $WAVE_LABEL: ${ROLLING[*]}"
+
+  if ! wait_for_rollouts "${ROLLING[@]}"; then
+    printMessageError "Aborting deploy at $WAVE_LABEL."
+    # Stopping here keeps the skew window closed in the safe direction: if the
+    # backend never came up, the last thing we want is to hand browsers a new
+    # bundle that calls it.
+    local REMAINING
+    REMAINING=("$@")
+    local LATER
+    for LATER in "${ROLLOUT_WAVES[@]:$NEXT_WAVE_INDEX}"; do
+      REMAINING+=($LATER)
+    done
+    if [ ${#REMAINING[@]} -gt 0 ]; then
+      printMessageError "Not deployed (still on the previous version): ${REMAINING[*]}"
+    fi
+    return 1
+  fi
+
+  wait_for_drain "${ROLLING[@]}"
+}
+
 # Walks the wave plan, rolling each wave to completion before starting the next.
+# Within a wave, at most MAX_CONCURRENT_ROLLOUTS Deployments boot at once; an
+# unchanged Deployment takes no slot.
 #
 # Both kinds of change are applied here: a manifest edit (probes, env, strategy,
 # resources) rolls a Deployment just as an image bump does, so applying the
@@ -468,9 +517,14 @@ deploy_waves()
 
     local ROLLING
     ROLLING=()
+    local ROLLED_ANY=false
+    local MEMBERS
+    MEMBERS=($WAVE)
+    local MEMBER_INDEX=0
 
     local DEPLOYMENT
-    for DEPLOYMENT in $WAVE; do
+    for DEPLOYMENT in "${MEMBERS[@]}"; do
+      MEMBER_INDEX=$((MEMBER_INDEX + 1))
       local IS_ROLLING=false
 
       # The manifest pins `:latest`; the copy applied here has the image the service
@@ -504,34 +558,22 @@ deploy_waves()
 
       if [ "$IS_ROLLING" = "true" ]; then
         ROLLING+=("$DEPLOYMENT")
+        ROLLED_ANY=true
+      fi
+
+      if [ "$MAX_CONCURRENT_ROLLOUTS" -gt 0 ] && [ ${#ROLLING[@]} -ge "$MAX_CONCURRENT_ROLLOUTS" ]; then
+        settle_rolling_batch "$WAVE_LABEL" "$WAVE_INDEX" "${MEMBERS[@]:$MEMBER_INDEX}" || return 1
+        ROLLING=()
       fi
     done
 
-    if [ ${#ROLLING[@]} -eq 0 ]; then
+    if [ ${#ROLLING[@]} -gt 0 ]; then
+      settle_rolling_batch "$WAVE_LABEL" "$WAVE_INDEX" || return 1
+    fi
+
+    if [ "$ROLLED_ANY" != "true" ]; then
       echo "Skipping $WAVE_LABEL — nothing changed."
-      continue
     fi
-
-    printMessageNeutral "Rolling $WAVE_LABEL: ${ROLLING[*]}"
-
-    if ! wait_for_rollouts "${ROLLING[@]}"; then
-      printMessageError "Aborting deploy at $WAVE_LABEL."
-      # Stopping here keeps the skew window closed in the safe direction: if the
-      # backend never came up, the last thing we want is to hand browsers a new
-      # bundle that calls it.
-      local REMAINING
-      REMAINING=()
-      local LATER
-      for LATER in "${ROLLOUT_WAVES[@]:$WAVE_INDEX}"; do
-        REMAINING+=($LATER)
-      done
-      if [ ${#REMAINING[@]} -gt 0 ]; then
-        printMessageError "Not deployed (still on the previous version): ${REMAINING[*]}"
-      fi
-      return 1
-    fi
-
-    wait_for_drain "${ROLLING[@]}"
   done
 
   return 0

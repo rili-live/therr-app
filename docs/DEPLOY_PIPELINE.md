@@ -344,6 +344,7 @@ opts out.
 | `DEPLOY_ALLOW_ROLLBACK` | unset | Allows a `behind` verdict to deploy |
 | `DEPLOY_ROLLOUT_TIMEOUT` | `360s` | Per-Deployment `rollout status` timeout |
 | `DEPLOY_DRAIN_TIMEOUT` | `0` | Seconds to wait for superseded pods between waves |
+| `DEPLOY_MAX_CONCURRENT_ROLLOUTS` | `2` | Deployments within one wave booting at once; `0` rolls them all together. Without it, CPU contention on main-pool's e2-small pushed five deploys in 2026-10 past their progress deadlines |
 | `DOCKERHUB_PULL_TOKEN` | unset | Read-only Docker Hub token to write into the pull Secret instead of `DOCKERHUB_PASSWORD` |
 | `RUN_MIGRATIONS_ON_DEPLOY` | unset | `false` skips automated migrations |
 | `GKE_CLUSTER` / `GKE_ZONE` / `GKE_PROJECT` | `therr-prod-1` / `us-central1-a` / `therr-app` | Cluster cutover without a code merge |
