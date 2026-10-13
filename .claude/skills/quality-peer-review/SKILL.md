@@ -182,6 +182,7 @@ Record and report:
 | `LINT_RULES` | `eslint-config/**` | `npm run test:lint-rules` |
 | `MIRRORED` | any file listed in `scripts/mirrored-files/mirror-targets.json` | `npm run mirrors:check` |
 | `GOOGLE_ADS` | `scripts/google-ads/**` | `npm run test:google-ads` (needs PyYAML) |
+| `BIN_SCRIPTS` | `_bin/**` | `npm run test:bin-scripts` |
 
 ---
 
@@ -410,7 +411,14 @@ npm run locales:check     2>&1   # if LOCALES in scope (or any user-facing strin
 npm run mirrors:check     2>&1   # if MIRRORED in scope
 npm run test:lint-rules   2>&1   # if LINT_RULES in scope, or any file under **/migrations/** changed
 npm run test:google-ads   2>&1   # if GOOGLE_ADS in scope
+npm run test:bin-scripts  2>&1   # if BIN_SCRIPTS in scope
 ```
+
+`test:bin-scripts` covers the deploy pipeline's decision logic (`_bin/cicd/deploy.sh`,
+`_bin/lib/**`) — none of it is reached by any package's unit suite, so a `_bin`-only diff
+with this gate skipped is reviewed by nothing. The `has-diff-changes` cases print
+`fatal: … does not appear to be a git repository` on purpose; check the exit code, not
+the noise.
 
 `test:google-ads` prints a sample dry-run plan on its way out, so its tail is not the verdict — check the exit code, or grep the output for the unittest `OK` / `FAILED` line.
 
