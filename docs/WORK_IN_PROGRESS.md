@@ -106,17 +106,13 @@ failed closed, so no new Friends with Habits user could start a habit; the weekl
 20 → 14 → 1. Fixed on `general` by `fix(deploy): boot at most two Deployments of a wave at a time`
 and `fix(push): clear dead device tokens for the recipient, not the sender`.
 
-- [ ] **Upgrade cert-manager before the TLS certificates expire on 2026-11-18.** Renewal has been
-  stuck since 2026-10-12 19:55 UTC: every DNS-01 challenge fails with `DELETE "/zones//dns_records/<id>"`
-  (`kubectl get challenges -A`). The cluster runs cert-manager **v1.9.0**, which builds that URL from
-  the `zone_id` field of the DNS record, and Cloudflare stopped returning that field in early 2025
-  (cert-manager #7540). Not a token-scope problem: the records themselves are found. Upgrade to a
-  current supported release (confirm its changelog includes the Cloudflare cleanup fix), stepping
-  through the per-minor upgrade notes since 1.9 — CRDs are Helm-managed (release `cert-manager`,
-  revision 1). Use `k8s/prod/values/cert-manager-values.yaml`. Then delete the stuck `challenges`/`orders`
-  so they retry, and confirm with `kubectl get certificate` plus
-  `openssl s_client -servername api.therr.com -connect api.therr.com:443 </dev/null | openssl x509 -noout -enddate`.
-  Delete the stale `_acme-challenge` TXT records in Cloudflare afterwards; the old version never removed them.
+- [x] **Upgrade cert-manager before the TLS certificates expire on 2026-11-18.** _(Done 2026-10-13:
+  v1.9.0 → v1.21.2 one minor at a time, Helm revision 13. Duplicate ingress-shim Certificates removed
+  (`5a7750421`), stuck challenges cleared, `therr-network-tls` / `therr-network-rewrites-tls` reissued
+  at 14:50 UTC with notAfter 2027-01-11, served by the origin ingress, and the stale `_acme-challenge`
+  TXT records deleted.)_ Cause: v1.9.0 built the DNS-01 cleanup URL from each record's `zone_id`, which
+  Cloudflare stopped returning in early 2025 (cert-manager #7540, fixed in v1.17.1). How to check a
+  renewal against the origin rather than Cloudflare's edge cert: `k8s/prod/values/cert-manager-values.yaml`.
 - [ ] **After the push fix deploys, confirm dead tokens clear.** On 2026-10-13, 11 habits users had
   failed every queued push daily on FCM NotRegistered (502), some since July. Expect their next rows
   to settle `skipped / no-device-token` and the habits queue's daily `failed` count to drop from
