@@ -31,6 +31,14 @@
 # --version explicitly when running the upgrade so it does not silently bump
 # cert-manager itself.
 #
+# UPGRADE REQUIRED (2026-10-13): v1.9.0 can no longer renew. Its Cloudflare
+# DNS-01 solver builds the record DELETE URL from each record's `zone_id`,
+# which Cloudflare stopped returning in early 2025 (cert-manager #7540), so
+# every challenge fails on `/zones//dns_records/<id>` and the certificates
+# (expiring 2026-11-18) are not being renewed. For that upgrade, --version is
+# the new target, not the installed one. Steps and verification:
+# docs/WORK_IN_PROGRESS.md -> "Engagement outage hardening".
+#
 # Usage:
 #   helm repo add jetstack https://charts.jetstack.io && helm repo update
 #   helm upgrade cert-manager jetstack/cert-manager \
