@@ -141,6 +141,15 @@ describe('notificationQueueWorker — queue row overrides payload', () => {
         expect(data.toUserDeviceToken).to.equal('habits-device-token');
     });
 
+    it('names the token\'s owner, so push-notifications-service can clear it if FCM rejects it', async () => {
+        // `x-userid` on this request is the sender, and a queued reminder has none. Without
+        // `toUserId` a dead token was never cleared and failed every send, every day.
+        await runNotificationQueueTick();
+
+        const { data } = internalRestRequest.firstCall.args[1];
+        expect(data.toUserId).to.equal(ROW_USER_ID);
+    });
+
     it('still forwards the payload fields that are only decoration', async () => {
         // The fix must not throw the payload away — habitName, streakCount and the
         // rest of the copy variables are the whole reason payload exists.

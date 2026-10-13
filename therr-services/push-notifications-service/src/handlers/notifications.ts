@@ -26,6 +26,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         fromUserName,
         fromUser,
         toUserDeviceToken,
+        // The recipient, so a dead token can be cleared — `x-userid` is the sender.
+        toUserId,
         thought,
         type,
 
@@ -110,6 +112,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         {
             deviceToken: toUserDeviceToken,
             userId: headers.userId,
+            toUserId: typeof toUserId === 'string' ? toUserId : undefined,
             userLocale: headers.locale,
             fromUserName: fromUserName || fromUser?.userName,
             achievementsCount,
