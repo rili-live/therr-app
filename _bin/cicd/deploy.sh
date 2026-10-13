@@ -182,6 +182,13 @@ deployment_rollout_complete()
   rollout_is_complete "$GENERATION" "$OBSERVED" "$SPEC_REPLICAS" "$STATUS_REPLICAS" "$UPDATED" "$AVAILABLE"
 }
 
+# A Deployment's .metadata.generation, or nothing when it cannot be read (including
+# before its first apply). Read either side of an apply — see apply_changed_spec.
+deployment_generation()
+{
+  kubectl get "deployment/$1" -o jsonpath='{.metadata.generation}' 2>/dev/null || true
+}
+
 running_tag_for()
 {
   image_tag_of "$(running_image_for "$1" "$2")"
@@ -531,18 +538,22 @@ deploy_waves()
       # should run rendered in (see queue_image), so one apply carries both the spec
       # and the version.
       #
-      # `apply` prints "deployment.apps/<name> configured" only when it actually
-      # changed the spec — an image bump included — and "unchanged" otherwise, so
-      # this both reconciles the manifest and tells us whether doing so started a
-      # rollout.
-      local APPLY_OUTPUT
+      # `apply` prints "deployment.apps/<name> configured" when its patch was
+      # non-empty and "unchanged" otherwise — but "configured" also covers a patch
+      # the server found nothing to do with, so the generation either side decides
+      # whether the spec actually moved (see apply_changed_spec). Together they
+      # reconcile the manifest and tell us whether doing so started a rollout.
+      local APPLY_OUTPUT GENERATION_BEFORE GENERATION_AFTER
+      GENERATION_BEFORE="$(deployment_generation "$DEPLOYMENT")"
       APPLY_OUTPUT="$(kubectl apply -f "$(manifest_for "$DEPLOYMENT")")"
       echo "$APPLY_OUTPUT"
+      GENERATION_AFTER="$(deployment_generation "$DEPLOYMENT")"
       # Matched per line, not against the whole blob: kubectl writes deprecation and
       # field-validation notices to stdout in some versions, and a suffix match on the
       # combined output then reads a rolling Deployment as "unchanged" — which skips
       # its `rollout status` verification and lets a wedged rollout report green.
-      if printf '%s\n' "$APPLY_OUTPUT" | grep -q ' configured$'; then
+      if printf '%s\n' "$APPLY_OUTPUT" | grep -q ' configured$' \
+        && apply_changed_spec "$GENERATION_BEFORE" "$GENERATION_AFTER"; then
         IS_ROLLING=true
       elif ! deployment_rollout_complete "$DEPLOYMENT"; then
         # apply had nothing to change, but the previous rollout of this same

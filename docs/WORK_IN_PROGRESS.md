@@ -124,8 +124,10 @@ and `fix(push): clear dead device tokens for the recipient, not the sender`.
   nothing. Tests: `_bin/lib/tests/run-migrations-heal.test.js`.)_ It had printed "users-service is
   running code with 2 unapplied migration(s)" on three deploys (10-08, 10-10 ×2) and skipped them as
   out of scope because the rollout that carried them missed its deadline.
-- [ ] **Watch the first deploy after the heal lands for `Applied migrations that serving code was
-  missing`.** Any occurrence means an earlier step left a service ahead of its schema; find out which.
+- [x] **Watch the first deploy after the heal lands for `Applied migrations that serving code was
+  missing`.** _(Done 2026-10-13: the first deploy carrying it, CircleCI job 20156 for e1c154b, printed
+  no heal and verified all four schemas caught up.)_ Any occurrence means an earlier step left a
+  service ahead of its schema; find out which.
 - [ ] **Read the 2026-10-19 weekly board.** Signups from 10-08..11 that never started a habit have all
   had the onboarding first-habit nudge (verified 10-13). If the board is still under ~10, the cause is
   the funnel, not the outage.

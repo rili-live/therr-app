@@ -9,14 +9,18 @@
 //
 // deploy.sh does its work at the top level, so it cannot be sourced; the two functions
 // under test are extracted and run against stubbed kubectl and rollout verification.
+// apply_changed_spec, which decides whether an apply started a boot, comes from the real
+// deploy-plan.sh.
 
 const assert = require('assert');
 const { execFileSync } = require('child_process');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const DEPLOY = fs.readFileSync(path.join(REPO_ROOT, '_bin', 'cicd', 'deploy.sh'), 'utf8');
+const PLAN_LIB = path.join(REPO_ROOT, '_bin', 'lib', 'deploy-plan.sh');
 
 const extract = (name) => {
     const match = DEPLOY.match(new RegExp(`^${name}\\(\\)\\n\\{[\\s\\S]*?^\\}`, 'm'));
@@ -27,15 +31,25 @@ const extract = (name) => {
 const FUNCTIONS = `${extract('settle_rolling_batch')}\n${extract('deploy_waves')}`;
 
 // Returns { verified: [[...batch], ...], output, code }.
-const runWaves = ({ max, unchanged = [], fail = '' }) => {
+//
+// `noop` Deployments print "configured" without their generation moving — what client-side
+// apply does when its patch is non-empty but the server has nothing to change.
+const runWaves = ({
+    max, unchanged = [], noop = [], fail = '',
+}) => {
+    const state = fs.mkdtempSync(path.join(os.tmpdir(), 'deploy-waves-'));
     const script = `
+source "${PLAN_LIB}"
 printMessageNeutral() { echo "N: $*"; }
 printMessageError() { echo "E: $*"; }
 printMessageWarning() { echo "W: $*"; }
 manifest_for() { echo "$1"; }
 deployment_rollout_complete() { return 0; }
+deployment_generation() { if [ -f "$STATE/$1" ]; then echo 2; else echo 1; fi; }
 kubectl() {
-  if [[ " $UNCHANGED " == *" $3 "* ]]; then echo "deployment.apps/$3 unchanged"; else echo "deployment.apps/$3 configured"; fi
+  if [[ " $UNCHANGED " == *" $3 "* ]]; then echo "deployment.apps/$3 unchanged"; return; fi
+  [[ " $NOOP " == *" $3 "* ]] || touch "$STATE/$3"
+  echo "deployment.apps/$3 configured"
 }
 wait_for_rollouts() {
   echo "VERIFY: $*"
@@ -47,12 +61,19 @@ ROLLOUT_WAVES=("redis users messages websocket reactions maps push" "gateway" "c
 ROLLOUT_WAVE_NAMES=("internal" "api edge" "public web")
 MAX_CONCURRENT_ROLLOUTS="${max}"
 UNCHANGED="${unchanged.join(' ')}"
+NOOP="${noop.join(' ')}"
+STATE="${state}"
 FAIL="${fail}"
 ${FUNCTIONS}
 deploy_waves
 echo "EXIT=$?"
 `;
-    const output = execFileSync('bash', ['-c', script], { encoding: 'utf8' });
+    let output;
+    try {
+        output = execFileSync('bash', ['-c', script], { encoding: 'utf8' });
+    } finally {
+        fs.rmSync(state, { recursive: true, force: true });
+    }
     const verified = output.split('\n')
         .filter((line) => line.startsWith('VERIFY: '))
         .map((line) => line.slice('VERIFY: '.length).split(' '));
@@ -73,6 +94,16 @@ echo "EXIT=$?"
     // An unchanged Deployment boots nothing, so it must not take a slot.
     const { verified } = runWaves({ max: 2, unchanged: ['redis', 'websocket'] });
     assert.deepStrictEqual(verified, [['users', 'messages'], ['reactions', 'maps'], ['push'], ['gateway'], ['client']]);
+}
+
+{
+    // The 2026-10-13 deploy: websocket printed "configured" at an unchanged generation and
+    // took the second slot, so push waited a whole batch behind users for a boot that never
+    // happened. A no-op apply must take no slot, exactly like "unchanged".
+    const unchanged = ['redis', 'messages', 'reactions', 'maps'];
+    const { verified, code } = runWaves({ max: 2, unchanged, noop: ['websocket', 'gateway', 'client'] });
+    assert.deepStrictEqual(verified, [['users', 'push']]);
+    assert.strictEqual(code, 0);
 }
 
 {

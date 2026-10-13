@@ -369,4 +369,19 @@ const complete = (args) => bash(
     assert.strictEqual(complete([2, 2, 0, 0, 0, 0]), 'yes');
 }
 
+// apply_changed_spec <generation-before> <generation-after>
+{
+    const changed = (before, after) => bash(
+        `source "${PLAN_LIB}"; apply_changed_spec '${before}' '${after}' && echo yes || echo no`,
+    );
+
+    assert.strictEqual(changed('53', '54'), 'yes', 'A moved generation is a spec change.');
+    // Client-side apply printed "configured" for these on 2026-10-13; nothing changed.
+    assert.strictEqual(changed('53', '53'), 'no', 'An unmoved generation is not a spec change.');
+    // Unreadable either side must fail toward verifying, never toward skipping.
+    assert.strictEqual(changed('', '1'), 'yes', 'A Deployment created by this apply has no prior generation.');
+    assert.strictEqual(changed('53', ''), 'yes');
+    assert.strictEqual(changed('', ''), 'yes');
+}
+
 console.log('deploy-plan: all assertions passed');
