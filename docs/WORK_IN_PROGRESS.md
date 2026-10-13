@@ -118,13 +118,14 @@ and `fix(push): clear dead device tokens for the recipient, not the sender`.
   to settle `skipped / no-device-token` and the habits queue's daily `failed` count to drop from
   ~20 to near zero: `SELECT "scheduledFor"::date, status, COUNT(*) FROM main."notificationQueue"
   WHERE "brandVariation" = 'habits' GROUP BY 1, 2 ORDER BY 1 DESC`.
-- [ ] **Decide whether the deploy should apply migrations a serving pod is missing.**
-  `run-migrations.sh`'s verify pass printed "users-service is running code with 2 unapplied
-  migration(s)" on three deploys (10-08, 10-10 ×2) and skipped them each time as out of scope, because
-  the rollout that carried them had missed its deadline. A proposed change — apply them when the pod
-  reporting them is Ready — was drafted and not landed; it puts a `migrate:latest` on a path the
-  deploy currently refuses. Until decided, a red deploy that names unapplied migrations needs
-  `./_bin/cicd/run-migrations.sh --service <key>` by hand the same day.
+- [x] **Decide whether the deploy should apply migrations a serving pod is missing.** _(Decided yes
+  2026-10-13: `run-migrations.sh`'s verify pass now applies them in a Ready pod during the deploy step
+  and logs `Applied migrations that serving code was missing: …`; `--verify-only` still applies
+  nothing. Tests: `_bin/lib/tests/run-migrations-heal.test.js`.)_ It had printed "users-service is
+  running code with 2 unapplied migration(s)" on three deploys (10-08, 10-10 ×2) and skipped them as
+  out of scope because the rollout that carried them missed its deadline.
+- [ ] **Watch the first deploy after the heal lands for `Applied migrations that serving code was
+  missing`.** Any occurrence means an earlier step left a service ahead of its schema; find out which.
 - [ ] **Read the 2026-10-19 weekly board.** Signups from 10-08..11 that never started a habit have all
   had the onboarding first-habit nudge (verified 10-13). If the board is still under ~10, the cause is
   the funnel, not the outage.

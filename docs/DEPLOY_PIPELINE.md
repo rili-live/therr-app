@@ -337,6 +337,21 @@ diff. A migration missed by a skipped deploy is therefore picked up by the next 
 which the `HEAD^1` range could not do. Expand/contract only; `RUN_MIGRATIONS_ON_DEPLOY=false`
 opts out.
 
+It then asks every migratable service's running pod how many of *its own* migrations
+are unapplied. If a **Ready** pod reports any, the deploy applies them in that pod — the
+code needing them is already serving, so whether this deploy "moved" the service no
+longer matters — and prints `Applied migrations that serving code was missing: …`. A
+pod that is Running but not Ready is only reported. This closes the gap behind the
+2026-10-08..12 outage, when users-service rolled out after its deploy's deadline and
+three later runs reported its two missing migrations without applying them.
+
+To see what is behind without changing anything:
+
+```bash
+./_bin/cicd/run-migrations.sh --verify-only        # schema vs. the code each pod runs
+./_bin/cicd/run-migrations.sh --service <key>      # apply one service's migrations by hand
+```
+
 ## Environment overrides
 
 | Variable | Default | Effect |
