@@ -26,17 +26,31 @@
 # No limits are set deliberately: CPU limits would reintroduce throttling on a
 # node this tight, and these are latency-sensitive control-plane components.
 #
-# NOTE: the installed release reports chart "cert-manager-v1.3.1" but app
-# version "v1.9.0", and sits at Helm revision 1 (never upgraded). Pin
-# --version explicitly when running the upgrade so it does not silently bump
-# cert-manager itself.
+# INSTALLED: chart and app v1.21.2 (2026-10-13, upgraded one minor at a time
+# from v1.9.0). v1.9.0 could no longer renew: its Cloudflare DNS-01 solver
+# built the cleanup DELETE URL from each DNS record's `zone_id`, which
+# Cloudflare stopped returning in early 2025 (cert-manager #7540, fixed in
+# v1.17.1), so every challenge failed on `/zones//dns_records/<id>`. CRDs are
+# Helm-managed via `crds.enabled` (the old `installCRDs` was renamed in v1.15).
 #
-# Usage:
+# TLS for each host list comes only from k8s/prod/certificate*.yaml. Do not
+# add `cert-manager.io/cluster-issuer` to an Ingress: ingress-shim would create
+# a second Certificate for the same secretName.
+#
+# Checking a renewal: the public hostnames are Cloudflare-proxied, so
+# `openssl s_client -connect therr.com:443` shows Cloudflare's edge cert. Ask
+# the origin instead:
+#   echo | openssl s_client -servername api.therr.com \
+#     -connect "$(kubectl get svc therr-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')":443 \
+#     2>/dev/null | openssl x509 -noout -enddate
+#
+# Usage (re-apply these values without changing the version — pin --version to
+# the installed chart, and step through each minor's release notes to upgrade):
 #   helm repo add jetstack https://charts.jetstack.io && helm repo update
 #   helm upgrade cert-manager jetstack/cert-manager \
 #     --namespace cert-manager \
-#     --version <the currently installed chart version> \
-#     --reuse-values \
+#     --version v1.21.2 \
+#     --set crds.enabled=true --set crds.keep=true \
 #     -f k8s/prod/values/cert-manager-values.yaml
 
 resources:
