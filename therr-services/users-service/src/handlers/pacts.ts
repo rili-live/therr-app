@@ -869,7 +869,13 @@ const abandonPact: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    if (!isUserInPact(userId, pact.creatorUserId, pact.partnerUserId)) {
+    // Authorized via pact_members as well as the 1:1 columns. A group pact has no
+    // partnerUserId, so checking the columns alone answered 403 to every group member who
+    // tapped "Abandon pact" — the only way out was to ask the creator to remove them.
+    const isCreatorOrPartner = isUserInPact(userId, pact.creatorUserId, pact.partnerUserId);
+    const member = isCreatorOrPartner ? null : await Store.pactMembers.getByPactAndUser(id, userId);
+    const isGroupMember = member?.status === 'active';
+    if (!isCreatorOrPartner && !isGroupMember) {
         return handleHttpError({
             res,
             message: translate(locale, 'errorMessages.pacts.notParticipant'),
@@ -887,6 +893,36 @@ const abandonPact: RequestHandler = async (req: any, res: any) => {
         });
     }
 
+    // A group member leaving ends their own involvement, not the pact: everyone else is still
+    // carrying it. Same rule as a group invitee declining (declinePact). When this leaves one
+    // active member, `continueSolo` is how they keep it going.
+    if (isGroupMember) {
+        try {
+            await Store.pactMembers.leave(id, userId);
+        } catch (err: any) {
+            return handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' });
+        }
+
+        sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
+            authorization,
+            fromUser: { id: userId, userName },
+            locale,
+            toUserId: pact.creatorUserId,
+            type: PushNotifications.Types.pactDeclined,
+            whiteLabelOrigin,
+            brandVariation,
+        }).catch((err) => {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['Error sending pact member left notification'],
+                traceArgs: { 'error.message': err?.message },
+            });
+        });
+
+        return res.status(200).send(pact);
+    }
+
     const userIsCreator = isCreator(userId, pact.creatorUserId);
     const partnerId = userIsCreator ? pact.partnerUserId : pact.creatorUserId;
 
@@ -895,9 +931,13 @@ const abandonPact: RequestHandler = async (req: any, res: any) => {
             // Mark members as left
             await Store.pactMembers.leave(id, userId);
 
-            // Deactivate streaks
-            const streaks = await Store.streaks.getByPactId(id);
-            await Promise.all(streaks.map((s) => Store.streaks.deactivate(s.id)));
+            // Streaks are deliberately left alone. `habits.streaks` is one row per
+            // (userId, habitGoalId) that carries across pacts (see renewPact), so this used to
+            // deactivate the *partner's* streak too — someone who did nothing wrong — and
+            // nothing ever re-activated it: the habit's freezes stopped covering their daily
+            // streak, it vanished from /streaks/active, and the digest stopped warning them
+            // when it was at risk. Ending the pact is not the user stopping the habit; archiving
+            // the habit is.
 
             // Notify partner
             if (partnerId) {
