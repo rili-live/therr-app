@@ -194,6 +194,9 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     // own promise. `charityKey` is one of PLEDGE_CHARITIES; the push service resolves its name.
     pledgeAmount?: number;
     charityKey?: string;
+    // `pactDeclined` copy selector: 'memberLeft' when an active group member left a pact that
+    // carries on without them. Copy only — see push-notifications-service/api/pactDeclinedCopy.ts.
+    pactDeclineReason?: 'memberLeft';
 }
 
 interface ISendPushNotificationAndOrEmailConfig {
@@ -264,6 +267,7 @@ export default (
         perfectDays,
         pledgeAmount,
         charityKey,
+        pactDeclineReason,
     }: ISendPushNotification,
     config: ISendPushNotificationAndOrEmailConfig = {
         shouldSendPushNotification: true,
@@ -411,6 +415,7 @@ export default (
                     perfectDays,
                     pledgeAmount,
                     charityKey,
+                    pactDeclineReason,
                     // achievementsCount,
                     // likeCount,
                     // notificationsCount,

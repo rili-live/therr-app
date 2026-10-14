@@ -156,6 +156,14 @@ const habits = produce((draft: IHabitsState, action: any) => {
             break;
         case HabitsActionTypes.ABANDON_PACT: {
             draft.activePacts = draft.activePacts.filter((p) => p.id !== action.data.id);
+            // A group member leaving gets the pact back still live — it carries on for everyone
+            // else. Storing that would show the leaver a running pact they are no longer in, so
+            // it is dropped, which is also what the server's list does on the next fetch. Ending
+            // the pact (creator or 1:1 partner) returns it abandoned, which stays as history.
+            if (action.data.status === 'pending' || action.data.status === 'active') {
+                draft.pacts = draft.pacts.filter((p) => p.id !== action.data.id);
+                break;
+            }
             const abandonIdx = draft.pacts.findIndex((p) => p.id === action.data.id);
             if (abandonIdx > -1) {
                 draft.pacts[abandonIdx] = action.data;
