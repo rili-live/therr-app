@@ -1354,8 +1354,20 @@ const getPactCheckins: RequestHandler = async (req: any, res: any) => {
     const { pactId } = req.params;
     const { limit, offset } = req.query;
 
-    // Verify user is participant in pact
-    const pact = await Store.pacts.getById(pactId);
+    // Verify user is participant in pact. The reads are guarded for the same reason as in
+    // getCheckinProofs: a malformed uuid makes Postgres throw, and an unguarded await here
+    // leaves the request hanging to its timeout.
+    let pact;
+    let membership;
+    try {
+        pact = await Store.pacts.getById(pactId);
+        membership = pact && !isUserInPact(userId, pact.creatorUserId, pact.partnerUserId)
+            ? await Store.pactMembers.getByPactAndUser(pactId, userId)
+            : undefined;
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
+    }
+
     if (!pact) {
         return handleHttpError({
             res,
@@ -1365,7 +1377,9 @@ const getPactCheckins: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    if (pact.creatorUserId !== userId && pact.partnerUserId !== userId) {
+    // Group members are authorized via pact_members, as createCheckin does: a group pact has
+    // no partnerUserId, so the 1:1 columns alone refused every member but the creator.
+    if (!isUserInPact(userId, pact.creatorUserId, pact.partnerUserId) && membership?.status !== 'active') {
         return handleHttpError({
             res,
             message: translate(locale, 'errorMessages.pacts.notParticipant'),
@@ -1395,8 +1409,13 @@ const updateCheckin: RequestHandler = async (req: any, res: any) => {
         difficultyRating,
     } = req.body;
 
-    // Verify ownership
-    const existingCheckin = await Store.habitCheckins.getById(id);
+    // Verify ownership. Guarded: a malformed uuid rejects, and an unguarded await hangs.
+    let existingCheckin;
+    try {
+        existingCheckin = await Store.habitCheckins.getById(id);
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
+    }
     if (!existingCheckin) {
         return handleHttpError({
             res,
@@ -1453,8 +1472,13 @@ const skipCheckin: RequestHandler = async (req: any, res: any) => {
     const { id } = req.params;
     const { notes } = req.body;
 
-    // Verify ownership
-    const existingCheckin = await Store.habitCheckins.getById(id);
+    // Verify ownership. Guarded: a malformed uuid rejects, and an unguarded await hangs.
+    let existingCheckin;
+    try {
+        existingCheckin = await Store.habitCheckins.getById(id);
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
+    }
     if (!existingCheckin) {
         return handleHttpError({
             res,
