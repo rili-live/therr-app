@@ -180,6 +180,27 @@ service_in_scope()
   return 1
 }
 
+# Says why an out-of-scope service is not being migrated. deploy.sh only ever names
+# services with a `deploy` verdict, so most out-of-scope services were simply up to
+# date. Warning about every one of them ("did not reach its intended version") fired
+# on every healthy deploy, and it is the same line that was the only signal of the
+# 2026-10-08..12 outage — noise there teaches people to read past it. The warning is
+# kept for a service the plan meant to move, and for one with no plan row to ask.
+report_out_of_scope()
+{
+  local KEY=$1
+  local ROW PREVIOUS DESIRED VERDICT
+  ROW="$(plan_row_for "$KEY")"
+  IFS='|' read -r PREVIOUS DESIRED VERDICT <<< "$ROW"
+
+  if [ -n "$VERDICT" ] && [ "$VERDICT" != "deploy" ]; then
+    printMessageNeutral "$KEY was not deployed in this run ($VERDICT) — nothing to migrate."
+    return 0
+  fi
+
+  printMessageWarning "$KEY did not reach its intended version in this deploy — not migrating underneath it."
+}
+
 # Echoes the name of a running pod for a service, or nothing.
 pod_for()
 {
@@ -425,7 +446,7 @@ main()
     for KEY in $KEYS; do
       if [ "$STANDALONE" != "true" ]; then
         if ! service_in_scope "$KEY"; then
-          printMessageWarning "$KEY did not reach its intended version in this deploy — not migrating underneath it."
+          report_out_of_scope "$KEY"
           continue
         fi
 

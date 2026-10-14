@@ -373,12 +373,18 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     ? normalizeDateString(streak.lastCompletedDate)
                     : null;
 
-                // Same-day duplicate submission (createOrUpdate updated the
-                // existing checkin row): the streak was already credited for
-                // this date — incrementing again would double-count it, and
-                // history/achievements/partner pushes already fired. Proofs
-                // and notes were still updated above.
-                if (lastCompletedStr === checkinDate) {
+                // Re-submission of a check-in the streak has already credited (createOrUpdate
+                // updated the existing row): incrementing again would double-count it, and
+                // history/achievements/partner pushes already fired. Proofs and notes were
+                // still updated above.
+                //
+                // Judged on the row's own `contributedToStreak` as well as on the streak's last
+                // date. The date alone only recognises the *latest* day: re-saving an older
+                // check-in (a note added to yesterday after checking in today, or a retried
+                // request landing late) used to run the whole credit path again — +1 streak,
+                // `lastCompletedDate` moved backwards, and the next check-in then saw a
+                // phantom gap that spent a freeze or reset the streak.
+                if (lastCompletedStr === checkinDate || checkin.contributedToStreak) {
                     // The daily streak was credited by the check-in this one updated, so it is
                     // read rather than re-driven — but it is still returned, since this is the
                     // response the "add a note or photo" save renders from.
@@ -418,6 +424,13 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                 // contributedToStreak=false before this block has ever run for the row, so
                 // re-submitted check-ins (edits, added proofs) never double-award XP.
                 const isFirstCompletionForDate = !checkin.contributedToStreak;
+
+                // A first completion for a day *before* the streak's last one — a backdated
+                // check-in, or a queued request delivered after a later day's. It counts as a
+                // check-in (XP, pact stats, the daily streak), but it cannot extend a run that
+                // already ends later, and crediting it would move `lastCompletedDate` backwards.
+                // The per-habit streak is left exactly as it was.
+                const isBeforeLastCompletion = Boolean(lastCompletedStr) && checkinDate < (lastCompletedStr as string);
                 if (isFirstCompletionForDate) {
                     // Direct XP hook — base XP for every completed check-in, independent of the
                     // achievement ladder. Streak/consistency achievements below add their own
@@ -469,7 +482,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                 // "4x per week" it is a week, judged only once that week has
                 // closed — so an off day in the middle of a good week is not a
                 // miss and costs no freeze.
-                if (lastCompletedStr && streak.currentStreak > 0) {
+                if (lastCompletedStr && streak.currentStreak > 0 && !isBeforeLastCompletion) {
                     const pactIds = pacts.map((p: any) => p.id);
 
                     // Majority-day protection: a day the user's pact carried (a majority of its
@@ -592,8 +605,15 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
 
                 const streakBefore = streak.currentStreak;
                 const longestBefore = streak.longestStreak;
-                await Store.streaks.incrementStreak(streak.id, checkinDate);
-                const updatedStreak = await Store.streaks.getById(streak.id);
+                // An earlier day leaves the streak untouched (see `isBeforeLastCompletion`), so
+                // nothing below that reacts to the streak *moving* — history, the streak
+                // ladders, the milestone push and its freeze — may fire for it. A streak sitting
+                // on 7 would otherwise re-announce its milestone and earn another freeze.
+                const isStreakCredited = !isBeforeLastCompletion;
+                if (isStreakCredited) {
+                    await Store.streaks.incrementStreak(streak.id, checkinDate);
+                }
+                const updatedStreak = isStreakCredited ? await Store.streaks.getById(streak.id) : streak;
 
                 recordFunnelMetric(MetricNames.FUNNEL_HABIT_CHECKIN, userId, {
                     brandVariation: brandVariation || '',
@@ -601,33 +621,36 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                 });
 
                 // Record history and check for milestone
-                await Store.streaks.recordCompletion(
-                    streak.id,
-                    userId,
-                    checkin.id,
-                    checkinDate,
-                    streakBefore,
-                    updatedStreak.currentStreak,
-                );
+                if (isStreakCredited) {
+                    await Store.streaks.recordCompletion(
+                        streak.id,
+                        userId,
+                        checkin.id,
+                        checkinDate,
+                        streakBefore,
+                        updatedStreak.currentStreak,
+                    );
 
-                // Award achievements (HABITS only; brand allow-list filters non-HABITS calls)
-                const goalType: HabitGoalType = (habitGoal.goalType as HabitGoalType) || 'build_good';
-                awardStreakAchievement(req.headers, {
-                    goalType,
-                    currentStreak: updatedStreak.currentStreak,
-                });
-                awardConsistencyAchievement(req.headers, updatedStreak.currentStreak);
+                    // Award achievements (HABITS only; brand allow-list filters non-HABITS calls)
+                    const goalType: HabitGoalType = (habitGoal.goalType as HabitGoalType) || 'build_good';
+                    awardStreakAchievement(req.headers, {
+                        goalType,
+                        currentStreak: updatedStreak.currentStreak,
+                    });
+                    awardConsistencyAchievement(req.headers, updatedStreak.currentStreak);
+                    if (isComebackStart(streakBefore, updatedStreak.currentStreak, longestBefore)) {
+                        awardResilienceComebackAchievement(req.headers, 1);
+                    }
+                    if (isPhoenixMoment(updatedStreak.currentStreak, longestBefore)) {
+                        awardResilienceComebackAchievement(req.headers, 1);
+                    }
+                }
                 // Multi-habit consistency (Two At Once / Triple Threat / All Things at Once).
                 // No-op if the user has fewer than 2 active habits or no perfect 7-day window.
+                // Reads the check-in rows, not the streak, so a filled-in earlier day counts.
                 scanMultiHabitConsistency(req.headers, userId, checkinDate);
-                if (isComebackStart(streakBefore, updatedStreak.currentStreak, longestBefore)) {
-                    awardResilienceComebackAchievement(req.headers, 1);
-                }
-                if (isPhoenixMoment(updatedStreak.currentStreak, longestBefore)) {
-                    awardResilienceComebackAchievement(req.headers, 1);
-                }
 
-                const milestone = checkMilestoneReached(updatedStreak.currentStreak);
+                const milestone = isStreakCredited ? checkMilestoneReached(updatedStreak.currentStreak) : null;
                 if (milestone) {
                     if (isFirstCompletionForDate) {
                         awardLeaderboardPoints(
@@ -770,6 +793,14 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                         });
                         // Someone else already won the day for this pact — nothing to advance.
                         if (!credited) {
+                            return;
+                        }
+
+                        // A day before the pact streak's last credited one is recorded in the
+                        // ledger (it still covers members on that day) but cannot advance the
+                        // streak, and writing it would move `lastPactStreakDate` backwards — the
+                        // next day the group wins would then read a phantom gap and reset to 1.
+                        if (p.lastPactStreakDate && checkinDate < normalizeDateString(p.lastPactStreakDate)) {
                             return;
                         }
 
@@ -1323,8 +1354,20 @@ const getPactCheckins: RequestHandler = async (req: any, res: any) => {
     const { pactId } = req.params;
     const { limit, offset } = req.query;
 
-    // Verify user is participant in pact
-    const pact = await Store.pacts.getById(pactId);
+    // Verify user is participant in pact. The reads are guarded for the same reason as in
+    // getCheckinProofs: a malformed uuid makes Postgres throw, and an unguarded await here
+    // leaves the request hanging to its timeout.
+    let pact;
+    let membership;
+    try {
+        pact = await Store.pacts.getById(pactId);
+        membership = pact && !isUserInPact(userId, pact.creatorUserId, pact.partnerUserId)
+            ? await Store.pactMembers.getByPactAndUser(pactId, userId)
+            : undefined;
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
+    }
+
     if (!pact) {
         return handleHttpError({
             res,
@@ -1334,7 +1377,9 @@ const getPactCheckins: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    if (pact.creatorUserId !== userId && pact.partnerUserId !== userId) {
+    // Group members are authorized via pact_members, as createCheckin does: a group pact has
+    // no partnerUserId, so the 1:1 columns alone refused every member but the creator.
+    if (!isUserInPact(userId, pact.creatorUserId, pact.partnerUserId) && membership?.status !== 'active') {
         return handleHttpError({
             res,
             message: translate(locale, 'errorMessages.pacts.notParticipant'),
@@ -1364,8 +1409,13 @@ const updateCheckin: RequestHandler = async (req: any, res: any) => {
         difficultyRating,
     } = req.body;
 
-    // Verify ownership
-    const existingCheckin = await Store.habitCheckins.getById(id);
+    // Verify ownership. Guarded: a malformed uuid rejects, and an unguarded await hangs.
+    let existingCheckin;
+    try {
+        existingCheckin = await Store.habitCheckins.getById(id);
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
+    }
     if (!existingCheckin) {
         return handleHttpError({
             res,
@@ -1422,8 +1472,13 @@ const skipCheckin: RequestHandler = async (req: any, res: any) => {
     const { id } = req.params;
     const { notes } = req.body;
 
-    // Verify ownership
-    const existingCheckin = await Store.habitCheckins.getById(id);
+    // Verify ownership. Guarded: a malformed uuid rejects, and an unguarded await hangs.
+    let existingCheckin;
+    try {
+        existingCheckin = await Store.habitCheckins.getById(id);
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:HABIT_CHECKINS_ROUTES:ERROR' });
+    }
     if (!existingCheckin) {
         return handleHttpError({
             res,

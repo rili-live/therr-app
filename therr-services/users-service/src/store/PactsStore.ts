@@ -219,6 +219,18 @@ export default class PactsStore {
                     .orWhere(`${PACTS_TABLE_NAME}.partnerUserId`, userId)
                     .orWhereNotNull(`${PACT_MEMBERS_TABLE_NAME}.id`);
             })
+            // A pact the user left (or was removed from) while it carries on for everyone else
+            // is not theirs any more. Listed, it came back with the pact's own status — still
+            // `active` — so the app went on showing a pact they had walked out of as running.
+            // Once the pact itself has ended it is history, and stays listed: the 1:1 abandoner's
+            // own row is `left` too, and their abandoned pact must not vanish from their list.
+            // Spelled out rather than `whereNot`, which a missing member row (NULL status) would
+            // turn into NULL and drop every legacy pact with no pact_members rows.
+            .andWhere((visible) => {
+                visible.whereNull(`${PACT_MEMBERS_TABLE_NAME}.id`)
+                    .orWhereNotIn(`${PACT_MEMBERS_TABLE_NAME}.status`, ['left', 'removed'])
+                    .orWhereNotIn(`${PACTS_TABLE_NAME}.status`, ['pending', 'active']);
+            })
             .orderBy(`${PACTS_TABLE_NAME}.createdAt`, 'desc');
 
         if (status) {

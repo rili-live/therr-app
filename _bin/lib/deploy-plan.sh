@@ -186,3 +186,22 @@ rollout_is_complete()
 
   return 0
 }
+
+# apply_changed_spec <generation-before> <generation-after>
+#
+# Whether a `kubectl apply` changed a Deployment's spec. .metadata.generation moves
+# on every spec change, an image bump included, and on nothing else.
+#
+# `apply` printing "configured" is not that signal. Client-side apply prints it
+# whenever the patch it computes is non-empty, even when the server finds nothing to
+# change: on 2026-10-13 websocket-service, api-gateway and client all printed
+# "configured" at an unchanged generation. Each was then counted as booting, and
+# websocket took one of wave 1's two slots, so push-notifications-service waited a
+# whole batch behind users-service for a boot that never happened.
+#
+# An unreadable generation on either side counts as changed: verifying a rollout
+# that did not happen costs a second, skipping one that did is a silent green.
+apply_changed_spec()
+{
+  [ -z "$1" ] || [ -z "$2" ] || [ "$1" != "$2" ]
+}

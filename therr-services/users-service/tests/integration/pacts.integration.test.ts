@@ -232,6 +232,65 @@ describe('Integration Tests - Pact resolution from a habit goal', () => {
         expect(forCreator.map((p: any) => p.id)).to.deep.equal([pact.id]);
     });
 
+    // `getByUserId` is the user's pact list. A member who left a pact that carries on without
+    // them got it back with the pact's own status — still `active` — so the app showed them a
+    // running pact they had walked out of.
+    it('does not list a still-running pact the user left', async () => {
+        if (skipTests) return;
+
+        const creator = await createTestUser('l1');
+        const leaver = await createTestUser('l2');
+        const goal = await createGoal(creator.id);
+        const pact = await createActivePact(creator.id, leaver.id, goal.id);
+
+        await pactMembersStore.create({
+            pactId: pact.id, userId: creator.id, role: 'creator', status: 'active',
+        });
+        await pactMembersStore.create({
+            pactId: pact.id, userId: leaver.id, role: 'partner', status: 'left',
+        });
+
+        expect(await pactsStore.getByUserId(leaver.id)).to.deep.equal([]);
+        const forCreator = await pactsStore.getByUserId(creator.id);
+        expect(forCreator.map((p: any) => p.id)).to.deep.equal([pact.id]);
+    });
+
+    // The 1:1 abandoner's own member row is `left` as well. Once the pact has ended it is
+    // history, and must stay in their list.
+    it('still lists an ended pact to the member who left it', async () => {
+        if (skipTests) return;
+
+        const creator = await createTestUser('m1');
+        const partner = await createTestUser('m2');
+        const goal = await createGoal(creator.id);
+        const pact = await createActivePact(creator.id, partner.id, goal.id);
+
+        await pactMembersStore.create({
+            pactId: pact.id, userId: creator.id, role: 'creator', status: 'left',
+        });
+        await pactMembersStore.create({
+            pactId: pact.id, userId: partner.id, role: 'partner', status: 'active',
+        });
+        await pactsStore.update(pact.id, { status: 'abandoned' });
+
+        const forCreator = await pactsStore.getByUserId(creator.id);
+        expect(forCreator.map((p: any) => p.id)).to.deep.equal([pact.id]);
+    });
+
+    // A legacy 1:1 pact with no pact_members rows has a NULL member status after the LEFT
+    // JOIN, which a negated predicate would turn into NULL and silently drop.
+    it('still lists a pact with no member rows to its creator and partner', async () => {
+        if (skipTests) return;
+
+        const creator = await createTestUser('n1');
+        const partner = await createTestUser('n2');
+        const goal = await createGoal(creator.id);
+        const pact = await createActivePact(creator.id, partner.id, goal.id);
+
+        expect((await pactsStore.getByUserId(creator.id)).map((p: any) => p.id)).to.deep.equal([pact.id]);
+        expect((await pactsStore.getByUserId(partner.id)).map((p: any) => p.id)).to.deep.equal([pact.id]);
+    });
+
     it('does not resolve a pact for an invitee who has not accepted yet', async () => {
         if (skipTests) return;
 
