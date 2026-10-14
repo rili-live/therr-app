@@ -14,7 +14,7 @@ export interface ICreateStreakParams {
 
 export interface IUpdateStreakParams {
     currentStreak?: number;
-    currentStreakStartDate?: string;
+    currentStreakStartDate?: string | null;
     lastCompletedDate?: string;
     longestStreak?: number;
     longestStreakStartDate?: string;
@@ -180,22 +180,32 @@ export default class StreaksStore {
 
             const newStreak = streak.currentStreak + 1;
             const isNewRecord = newStreak > streak.longestStreak;
+            const isNewRun = streak.currentStreak === 0;
+            const currentRunStartDate = isNewRun ? completionDate : (streak.currentStreakStartDate || completionDate);
             const updates: IUpdateStreakParams = {
                 currentStreak: newStreak,
                 lastCompletedDate: completionDate,
             };
 
+            // A credited check-in is the user building this habit, so the row is active again.
+            // Rows were deactivated when a pact on the habit was abandoned — the partner's
+            // included — and nothing else ever set them back, which left the habit's freezes,
+            // its /streaks/active entry and its at-risk warning off for good.
+            if (streak.isActive === false) {
+                updates.isActive = true;
+            }
+
             // If this is the first day of a new streak, set the start date
-            if (streak.currentStreak === 0) {
+            if (isNewRun) {
                 updates.currentStreakStartDate = completionDate;
             }
 
-            // Update longest streak if we beat the record
+            // Update longest streak if we beat the record. The record is now *this* run, so
+            // its start is this run's start — not the previous record's, which is what the
+            // old "only when empty" guard kept once a later streak beat an earlier one.
             if (isNewRecord) {
                 updates.longestStreak = newStreak;
-                if (!streak.longestStreakStartDate) {
-                    updates.longestStreakStartDate = streak.currentStreakStartDate || completionDate;
-                }
+                updates.longestStreakStartDate = currentRunStartDate;
                 updates.longestStreakEndDate = completionDate;
             }
 
@@ -210,9 +220,11 @@ export default class StreaksStore {
             }
 
             // If current streak was the longest, record its end date
+            // `null`, not `undefined`: Knex drops undefined keys from an update, so the old
+            // value silently stayed on a streak of 0.
             const updates: IUpdateStreakParams = {
                 currentStreak: 0,
-                currentStreakStartDate: undefined,
+                currentStreakStartDate: null,
                 graceDaysUsed: 0,
             };
 
