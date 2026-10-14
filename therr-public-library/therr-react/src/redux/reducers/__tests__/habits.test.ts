@@ -288,6 +288,24 @@ describe('habits reducer', () => {
         expect(result.pacts[0].status).toBe('abandoned');
     });
 
+    it('drops a group pact the user left from every list, since it is still running without them', () => {
+        const populated = reducer(initialState, {
+            type: HabitsActionTypes.GET_ACTIVE_PACTS,
+            data: [{ id: 'p1' }, { id: 'p2' }],
+        });
+        const withPacts = reducer(populated, {
+            type: HabitsActionTypes.GET_USER_PACTS,
+            data: [{ id: 'p1', status: 'active' }, { id: 'p2', status: 'active' }],
+        });
+        // A member leaving answers with the pact as it stands for everyone else: active.
+        const result = reducer(withPacts, {
+            type: HabitsActionTypes.ABANDON_PACT,
+            data: { id: 'p1', status: 'active' },
+        });
+        expect(result.activePacts.map((p: any) => p.id)).toEqual(['p2']);
+        expect(result.pacts.map((p: any) => p.id)).toEqual(['p2']);
+    });
+
     describe('SET_PACT_OPEN', () => {
         it('patches the flag in every list holding the pact, keeping its members', () => {
             const withPacts = reducer(initialState, {
