@@ -909,6 +909,7 @@ const abandonPact: RequestHandler = async (req: any, res: any) => {
             locale,
             toUserId: pact.creatorUserId,
             type: PushNotifications.Types.pactDeclined,
+            pactDeclineReason: 'memberLeft',
             whiteLabelOrigin,
             brandVariation,
         }).catch((err) => {

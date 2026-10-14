@@ -12,6 +12,7 @@ import {
     shouldOfferOnePressCheckin,
 } from './checkinNudgeCopy';
 import { selectWeeklyRecapBodyKey, selectWeeklyRecapTitleKey } from './weeklyRecapCopy';
+import { PactDeclineReason, selectPactDeclinedCopyKey } from './pactDeclinedCopy';
 
 // FCM error codes for tokens that should be removed from the database.
 // See https://firebase.google.com/docs/cloud-messaging/send-message#admin
@@ -235,6 +236,10 @@ interface ICreateMessageConfig {
     // name through PLEDGE_CHARITIES, so the name has one definition shared with the client.
     pledgeAmount?: number;
     charityKey?: string;
+    // `pactDeclined` covers both an invitee saying no and an active group member leaving a
+    // pact that carries on without them. One type, so the tap routes and the channel are the
+    // ones every installed app already knows; this only picks the copy. Copy only.
+    pactDeclineReason?: PactDeclineReason;
 }
 
 interface INotificationMetrics {
@@ -1680,19 +1685,22 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'PACT_ACCEPTED'), brandVariation);
             return baseMessage;
-        case PushNotifications.Types.pactDeclined:
+        case PushNotifications.Types.pactDeclined: {
+            // A group member leaving rides this type too; only the copy differs (pactDeclinedCopy.ts).
+            const copyKey = selectPactDeclinedCopyKey(config.pactDeclineReason);
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 brandVariation,
-                notificationTitle: translate(config.userLocale, 'notifications.pactDeclined.title'),
-                notificationBody: translate(config.userLocale, 'notifications.pactDeclined.body', {
+                notificationTitle: translate(config.userLocale, `notifications.${copyKey}.title`),
+                notificationBody: translate(config.userLocale, `notifications.${copyKey}.body`, {
                     partnerName: String(config.partnerName || config.fromUserName || ''),
                 }),
                 channelId: AndroidChannelId.reminders,
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'PACT_DECLINED');
             return baseMessage;
+        }
         case PushNotifications.Types.pactCompleted:
             baseMessage = createDataOnlyMessage({
                 data: {

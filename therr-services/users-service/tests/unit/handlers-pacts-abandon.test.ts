@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { BrandVariations } from 'therr-js-utilities/constants';
+import { BrandVariations, PushNotifications } from 'therr-js-utilities/constants';
 import Store from '../../src/store';
+import * as sendEmailAndOrPushModule from '../../src/utilities/sendEmailAndOrPushNotification';
 import { abandonPact } from '../../src/handlers/pacts';
 
 /**
@@ -94,6 +95,24 @@ describe('abandonPact', () => {
         expect(leave.calledOnceWith(PACT_ID, GROUP_MEMBER)).to.equal(true);
         expect(abandon.called, 'ended the pact for the remaining members').to.equal(false);
         expect(deactivate.called).to.equal(false);
+    });
+
+    it('tells the creator a member left, rather than that the pact was declined', async () => {
+        stubPact({ partnerUserId: null });
+        getByPactAndUser.resolves({
+            id: 'member-3', userId: GROUP_MEMBER, role: 'partner', status: 'active',
+        });
+        const push = sinon.stub(sendEmailAndOrPushModule, 'default').resolves({} as any);
+
+        await callHandler(GROUP_MEMBER);
+
+        expect(push.callCount).to.equal(1);
+        // Same type, so installed apps keep its tap route; the reason only selects the copy.
+        expect(push.firstCall.args[2]).to.include({
+            toUserId: CREATOR,
+            type: PushNotifications.Types.pactDeclined,
+            pactDeclineReason: 'memberLeft',
+        });
     });
 
     it('still refuses someone with no active membership', async () => {

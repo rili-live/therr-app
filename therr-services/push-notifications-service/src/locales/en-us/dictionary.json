@@ -178,6 +178,10 @@
       "title": "Pact Declined",
       "body": "{partnerName} can't commit to this one. Invite someone else to keep the goal alive."
     },
+    "pactMemberLeft": {
+      "title": "A Member Left Your Pact",
+      "body": "{partnerName} left your group pact. Everyone else is still in — your streak keeps going."
+    },
     "pactCompleted": {
       "title": "Pact Complete!",
       "body": "You and {partnerName} finished your {habitName} pact — that's a win for both of you."
