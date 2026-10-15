@@ -236,6 +236,11 @@ describe('handlers/helpers/user', () => {
 
     // TODO: Add tests for sendEmail args
     describe('createUserHelper', () => {
+        beforeEach(() => {
+            // Registration XP (covered in leaderboardRegistrationAndAppOpenXp.test.ts)
+            sinon.stub(Store.userLeaderboardScores, 'incrementPoints').resolves([]);
+        });
+
         it('handle basic auth', (done) => {
             const mockUserDetails = {
                 email: 'test.user@gmail.com', // this email should get normalized

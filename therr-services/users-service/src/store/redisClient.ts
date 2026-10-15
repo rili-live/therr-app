@@ -124,6 +124,51 @@ export const clearDistributorRun = async (userId: string): Promise<void> => {
     }
 };
 
+const APP_OPEN_XP_PREFIX = 'leaderboard:app-open:';
+// Outlives the UTC day it counts, so a key never expires while its day is still running.
+const APP_OPEN_XP_TTL_SECONDS = 2 * 24 * 60 * 60;
+
+/**
+ * Counts one app open toward a user's daily app-open XP and says whether it is within `limit`.
+ * The key carries the UTC day, so the count re-arms at midnight UTC by itself. INCR is atomic,
+ * so two devices opening at once can't both take the last slot.
+ *
+ * INCR and EXPIRE go in one MULTI so the key never exists without a TTL: as two separate calls,
+ * a crash or a failed EXPIRE between them left a key that never expired. Re-arming the TTL on
+ * every open is harmless — the key is dated, so a later expiry only delays its cleanup.
+ *
+ * Fails CLOSED: with Redis unreachable the open earns nothing. The worst a lost keyspace can
+ * do is let a user earn `limit` more points that day, which is not worth a database ledger.
+ */
+export const tryClaimAppOpenXp = async (brandVariation: string, userId: string, utcDate: string, limit: number): Promise<boolean> => {
+    if (!userId || !utcDate || limit <= 0) {
+        return false;
+    }
+
+    try {
+        const key = `${APP_OPEN_XP_PREFIX}${brandVariation}:${userId}:${utcDate}`;
+        const results = await redisEphemeralClient.multi()
+            .incr(key)
+            .expire(key, APP_OPEN_XP_TTL_SECONDS)
+            .exec();
+        const [incrError, count] = results?.[0] || [new Error('App-open XP transaction was aborted'), null];
+        if (incrError) {
+            throw incrError;
+        }
+        return Number(count) <= limit;
+    } catch (err) {
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'REDIS_EPHEMERAL_ERROR',
+            messages: ['Failed to count app open; awarding no XP for it', (err as any)?.message],
+            traceArgs: {
+                'user.id': userId,
+            },
+        });
+        return false;
+    }
+};
+
 export const mintHandoffCode = async (code: string, entry: IHandoffEntry): Promise<void> => {
     if (!code || !entry?.userId || !entry?.targetBrand) {
         throw new Error('mintHandoffCode requires code, userId, and targetBrand');
