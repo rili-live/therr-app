@@ -29,6 +29,25 @@ const mockResponse = () => {
     return res;
 };
 
+/**
+ * A stand-in for ioredis' MULTI chain: records the queued commands and answers `exec()` with
+ * `execResult(queued)`, in ioredis' `[error, reply][]` shape.
+ */
+const stubMulti = (execResult: (queued: { cmd: string, args: any[] }[]) => Promise<any>) => {
+    const transactions: { cmd: string, args: any[] }[][] = [];
+    sinon.stub(redisEphemeralClient, 'multi').callsFake((() => {
+        const queued: { cmd: string, args: any[] }[] = [];
+        transactions.push(queued);
+        const chain: any = {
+            incr: (...args: any[]) => { queued.push({ cmd: 'incr', args }); return chain; },
+            expire: (...args: any[]) => { queued.push({ cmd: 'expire', args }); return chain; },
+            exec: () => execResult(queued),
+        };
+        return chain;
+    }) as any);
+    return transactions;
+};
+
 describe('tryClaimAppOpenXp — daily cap', () => {
     afterEach(() => {
         sinon.restore();
@@ -36,11 +55,10 @@ describe('tryClaimAppOpenXp — daily cap', () => {
 
     it('allows the first opens up to the limit and refuses the rest', async () => {
         let count = 0;
-        sinon.stub(redisEphemeralClient, 'incr').callsFake(async () => {
+        stubMulti(async () => {
             count += 1;
-            return count;
+            return [[null, count], [null, 1]];
         });
-        const expireStub = sinon.stub(redisEphemeralClient, 'expire').resolves(1);
 
         const results: boolean[] = [];
         for (let i = 0; i < APP_OPEN_XP_DAILY_LIMIT + 2; i += 1) {
@@ -49,21 +67,35 @@ describe('tryClaimAppOpenXp — daily cap', () => {
         }
 
         expect(results).to.deep.equal([true, true, true, false, false]);
-        // The TTL is set once, when the day's key is created.
-        expect(expireStub.calledOnce).to.equal(true);
     });
 
-    it('keys the count by brand, user and UTC day', async () => {
-        const incrStub = sinon.stub(redisEphemeralClient, 'incr').resolves(1);
-        sinon.stub(redisEphemeralClient, 'expire').resolves(1);
+    it('sets the TTL in the same transaction as the count, so the key never exists without one', async () => {
+        const transactions = stubMulti(async () => [[null, 1], [null, 1]]);
 
         await redisClient.tryClaimAppOpenXp('habits', 'user-1', '2026-10-14', APP_OPEN_XP_DAILY_LIMIT);
 
-        expect(incrStub.firstCall.args[0]).to.equal('leaderboard:app-open:habits:user-1:2026-10-14');
+        const key = 'leaderboard:app-open:habits:user-1:2026-10-14';
+        expect(transactions).to.have.length(1);
+        expect(transactions[0]).to.deep.equal([
+            { cmd: 'incr', args: [key] },
+            { cmd: 'expire', args: [key, 2 * 24 * 60 * 60] },
+        ]);
     });
 
     it('fails closed when Redis is unreachable', async () => {
-        sinon.stub(redisEphemeralClient, 'incr').rejects(new Error('redis down'));
+        stubMulti(() => Promise.reject(new Error('redis down')));
+
+        expect(await redisClient.tryClaimAppOpenXp('habits', 'user-1', '2026-10-14', APP_OPEN_XP_DAILY_LIMIT)).to.equal(false);
+    });
+
+    it('fails closed when the count itself errors inside the transaction', async () => {
+        stubMulti(async () => [[new Error('WRONGTYPE'), null], [null, 1]]);
+
+        expect(await redisClient.tryClaimAppOpenXp('habits', 'user-1', '2026-10-14', APP_OPEN_XP_DAILY_LIMIT)).to.equal(false);
+    });
+
+    it('fails closed when the transaction is aborted', async () => {
+        stubMulti(async () => null);
 
         expect(await redisClient.tryClaimAppOpenXp('habits', 'user-1', '2026-10-14', APP_OPEN_XP_DAILY_LIMIT)).to.equal(false);
     });

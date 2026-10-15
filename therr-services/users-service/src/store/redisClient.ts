@@ -133,6 +133,10 @@ const APP_OPEN_XP_TTL_SECONDS = 2 * 24 * 60 * 60;
  * The key carries the UTC day, so the count re-arms at midnight UTC by itself. INCR is atomic,
  * so two devices opening at once can't both take the last slot.
  *
+ * INCR and EXPIRE go in one MULTI so the key never exists without a TTL: as two separate calls,
+ * a crash or a failed EXPIRE between them left a key that never expired. Re-arming the TTL on
+ * every open is harmless — the key is dated, so a later expiry only delays its cleanup.
+ *
  * Fails CLOSED: with Redis unreachable the open earns nothing. The worst a lost keyspace can
  * do is let a user earn `limit` more points that day, which is not worth a database ledger.
  */
@@ -143,11 +147,15 @@ export const tryClaimAppOpenXp = async (brandVariation: string, userId: string, 
 
     try {
         const key = `${APP_OPEN_XP_PREFIX}${brandVariation}:${userId}:${utcDate}`;
-        const count = await redisEphemeralClient.incr(key);
-        if (count === 1) {
-            await redisEphemeralClient.expire(key, APP_OPEN_XP_TTL_SECONDS);
+        const results = await redisEphemeralClient.multi()
+            .incr(key)
+            .expire(key, APP_OPEN_XP_TTL_SECONDS)
+            .exec();
+        const [incrError, count] = results?.[0] || [new Error('App-open XP transaction was aborted'), null];
+        if (incrError) {
+            throw incrError;
         }
-        return count <= limit;
+        return Number(count) <= limit;
     } catch (err) {
         logSpan({
             level: 'warn',
