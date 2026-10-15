@@ -25,6 +25,8 @@ import * as globalConfig from '../../../../../global-config';
 import handleHttpError from '../../utilities/handleHttpError';
 import { getMappedSocialSyncResults } from '../socialSync';
 import { createOrUpdateAchievement } from './achievements';
+import { awardLeaderboardPoints } from './leaderboards';
+import { LeaderboardXpValues } from '../../utilities/leaderboardHelpers';
 import { oAuthFacebook } from '../../api/oauth2';
 import * as facebook from '../../api/facebook';
 
@@ -549,6 +551,17 @@ const createUserHelper = (
                         traceArgs: { 'error.message': err?.message, inviteId: matchedInvite.id },
                     });
                 });
+            }
+
+            // Registration XP, so a new user shows up on this week's leaderboard straight away.
+            // Paid once because the account is created once. Not for a placeholder account made
+            // when someone else invites an unknown email — that person hasn't registered.
+            // Never throws: a failed award is logged inside.
+            if (!userByInviteDetails) {
+                awardLeaderboardPoints({
+                    ...headers,
+                    'x-userid': user.id,
+                }, LeaderboardXpValues.registration, 'registration');
             }
 
             if (hasInviteCode) {

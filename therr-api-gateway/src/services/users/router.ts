@@ -138,6 +138,11 @@ usersServiceRouter.post('/users/leaderboards/periods/:periodStart/acknowledge', 
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
+// The app was opened. The users-service caps how many opens a day earn XP.
+usersServiceRouter.post('/users/leaderboards/app-opens', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
 
 // Auth
 // Optional auth when already logged in and using oauth2 providers
