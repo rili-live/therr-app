@@ -2,6 +2,7 @@ import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Dimensions,
+    PixelRatio,
     Text,
     View} from 'react-native';
 import { FAB } from 'react-native-paper';
@@ -49,13 +50,14 @@ import UserDisplayHeader from './UserDisplayHeader';
 import ProfileCompletionLink from '../../components/ProfileCompletionLink';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import RepostModal from '../../components/Modals/RepostModal';
+import FullScreenImageModal from '../../components/Modals/FullScreenImageModal';
 import LazyPlaceholder from '../../components/LazyPlaceholder';
 import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
 import CollapsibleHeaderTabView, { ICollapsibleSceneProps } from '../../components/CollapsibleHeaderTabView';
 import AreaCarousel from '../Areas/AreaCarousel';
 import { PactCard } from '../../components/Habits';
 import AchievementTile from '../Achievements/AchievementTile';
-import { isMyContent } from '../../utilities/content';
+import { getUserImageUri, isMyContent } from '../../utilities/content';
 import { SheetManager } from 'react-native-actions-sheet';
 import { IContentSelectionType } from '../../components/ActionSheet/ContentOptionsSheet';
 import { handleAreaReaction, handleThoughtReaction, navToViewContent } from '../../utilities/postViewHelpers';
@@ -70,6 +72,8 @@ const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
 
 const { width: viewportWidth } = Dimensions.get('window');
 const HABITS_TAB_LIST_CONTENT_STYLE = { paddingBottom: 120, paddingTop: 8 };
+// Device-pixel size for the full-screen profile picture, capped so very dense screens don't request an oversized original.
+const fullSizeImagePx = Math.min(PixelRatio.getPixelSizeForLayoutSize(viewportWidth), 1440);
 
 // HABITS renders every profile tab as a list of elevated cards, and the tab bar casts a
 // shadow of its own. Padded flush to the overlay, the first card's own shadow lands inside
@@ -133,6 +137,8 @@ interface IViewUserState {
     confirmModalText: string;
     activeConfirmModal: '' | 'report-user' | 'block-user' | 'remove-connection-request' | 'send-connection-request';
     activeTabIndex: number;
+    // Uri of the profile picture open in the full-screen viewer (null when closed).
+    fullScreenImageUri: string | null;
     isConfirmProcessing: boolean;
     isLoading: boolean;
     isRefreshingUserMedia: boolean;
@@ -209,6 +215,7 @@ class ViewUser extends React.Component<
             activeTabIndex,
             confirmModalText: '',
             activeConfirmModal: '',
+            fullScreenImageUri: null,
             isConfirmProcessing: false,
             isLoading: true,
             isRefreshingUserMedia: false,
@@ -663,8 +670,17 @@ class ViewUser extends React.Component<
         });
     };
 
-    onProfilePicturePress = (selectedUser, isOwnProfile) => {
-        console.log('onProfilePicturePress', selectedUser, isOwnProfile);
+    onProfilePicturePress = (selectedUser) => {
+        if (!selectedUser?.id) {
+            return;
+        }
+        this.setState({
+            fullScreenImageUri: getUserImageUri({ details: selectedUser }, fullSizeImagePx),
+        });
+    };
+
+    onCloseFullScreenImage = () => {
+        this.setState({ fullScreenImageUri: null });
     };
 
     onBlockUser = (context, selectedUser) => {
@@ -1084,6 +1100,7 @@ class ViewUser extends React.Component<
             activeTabIndex,
             activeConfirmModal,
             confirmModalText,
+            fullScreenImageUri,
             isConfirmProcessing,
             isLoading,
             isReposting,
@@ -1164,6 +1181,14 @@ class ViewUser extends React.Component<
                     thought={repostTarget}
                     translate={this.translate}
                     themeButtons={this.themeButtons}
+                />
+                <FullScreenImageModal
+                    imageUri={fullScreenImageUri}
+                    onRequestClose={this.onCloseFullScreenImage}
+                    accessibilityLabel={this.translate('modals.fullScreenImage.profilePictureLabel', {
+                        userName: user.userInView?.userName || '',
+                    })}
+                    closeLabel={this.translate('modals.fullScreenImage.close', {})}
                 />
                 <MainButtonMenu
                     activeRoute="ViewUser"
