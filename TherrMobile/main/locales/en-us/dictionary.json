@@ -3342,6 +3342,10 @@
             "placeholder": "Add a comment (optional)",
             "confirm": "Repost",
             "cancel": "Cancel"
+        },
+        "fullScreenImage": {
+            "close": "Close image",
+            "profilePictureLabel": "Full-size profile picture of {userName}"
         }
     },
     "permissions": {

@@ -26,8 +26,12 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         fromUserName,
         fromUser,
         toUserDeviceToken,
+        // The recipient, so a dead token can be cleared — `x-userid` is the sender.
+        toUserId,
         thought,
         type,
+        // The queue row this send came from, echoed back by the device on tap.
+        notificationQueueId,
 
         // optional
         area,
@@ -92,6 +96,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         // HABITS charity pledge — copy only.
         pledgeAmount,
         charityKey,
+        // Which `pactDeclined` story to tell — copy only.
+        pactDeclineReason,
     } = req.body;
 
     return predictAndSendNotification(
@@ -110,6 +116,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         {
             deviceToken: toUserDeviceToken,
             userId: headers.userId,
+            toUserId: typeof toUserId === 'string' ? toUserId : undefined,
+            notificationQueueId: typeof notificationQueueId === 'string' ? notificationQueueId : undefined,
             userLocale: headers.locale,
             fromUserName: fromUserName || fromUser?.userName,
             achievementsCount,
@@ -150,6 +158,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             perfectDays,
             pledgeAmount,
             charityKey,
+            pactDeclineReason,
         },
         undefined,
         brandVariation,
@@ -254,6 +263,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         // HABITS charity pledge — copy only.
         pledgeAmount,
         charityKey,
+        // Which `pactDeclined` story to tell — copy only.
+        pactDeclineReason,
     } = req.body;
 
     const recipients: any[] = (users || []).filter((user: any) => !user.shouldMuteNotifs);
@@ -316,6 +327,7 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             perfectDays,
             pledgeAmount,
             charityKey,
+            pactDeclineReason,
         },
         undefined,
         brandVariation,

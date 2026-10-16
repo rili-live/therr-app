@@ -380,6 +380,12 @@ class UsersService {
         });
     };
 
+    // Reports an app open. The server pays leaderboard XP for the first few of each day.
+    recordAppOpen = () => axios({
+        method: 'post',
+        url: '/users-service/users/leaderboards/app-opens',
+    });
+
     requestRewardsExchange = (amount: number, provider: string) => axios({
         method: 'post',
         url: '/users-service/rewards',

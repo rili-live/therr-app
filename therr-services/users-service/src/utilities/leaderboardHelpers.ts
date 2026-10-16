@@ -58,7 +58,16 @@ export const LeaderboardXpValues = {
     // On top of `habitCheckin`, for a completed check-in that carries proof. See `checkinProofXp`.
     proofNote: 5,
     proofPhoto: 10,
+    // Once, when the account is created — puts every new user on that week's board instead of
+    // leaving them invisible until their first habit check-in. The size of one check-in.
+    registration: 10,
+    // Per app open, up to `APP_OPEN_XP_DAILY_LIMIT` a day. Deliberately tiny: it is there to
+    // keep returning users on the board, never to outrank a single day of actual effort.
+    appOpen: 1,
 };
+
+// App opens that earn `LeaderboardXpValues.appOpen` per UTC day. The rest earn nothing.
+export const APP_OPEN_XP_DAILY_LIMIT = 3;
 
 // A note shorter than this ("done", "✅") is a tap with extra steps, not a record of the day.
 export const PROOF_NOTE_MIN_LENGTH = 10;

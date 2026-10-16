@@ -3342,6 +3342,10 @@
             "placeholder": "Añade un comentario (opcional)",
             "confirm": "Republicar",
             "cancel": "Cancelar"
+        },
+        "fullScreenImage": {
+            "close": "Cerrar imagen",
+            "profilePictureLabel": "Foto de perfil a tamaño completo de {userName}"
         }
     },
     "permissions": {

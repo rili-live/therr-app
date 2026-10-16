@@ -344,6 +344,8 @@ const sendOne = async (row: INotificationQueueRow): Promise<void> => {
             type: row.type as any,
             whiteLabelOrigin: payload.whiteLabelOrigin || '',
             brandVariation: row.brandVariation,
+            // Rides to the device so a tap can be recorded against this row (openedAt).
+            notificationQueueId: row.id,
         },
         {
             // Queue entries are push-only. The retention emails have their own
