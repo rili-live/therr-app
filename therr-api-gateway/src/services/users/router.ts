@@ -47,7 +47,7 @@ import {
     sendFeedbackValidation,
     subscribersSignupValidation,
 } from './validation/subscribers';
-import { updateNotificationValidation } from './validation/notifications';
+import { recordPushOpenValidation, updateNotificationValidation } from './validation/notifications';
 import {
     feedbackAttemptLimiter,
     forgotPasswordLimiter,
@@ -544,6 +544,13 @@ usersServiceRouter.delete('/users-groups/:id', handleServiceRequest({
 
 // Notifications
 usersServiceRouter.post('/users/notifications', createNotificationValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+// A tap on a push sent through the notification queue. Fire-and-forget from the device;
+// see users-service recordPushOpen.
+usersServiceRouter.post('/users/notifications/push-opens', recordPushOpenValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));

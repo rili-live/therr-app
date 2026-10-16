@@ -21,6 +21,9 @@ export interface INotificationQueueRow {
     attempts: number;
     lastError: string | null;
     sentAt: Date | null;
+    // First tap on the push this row sent, and the press action it came through.
+    openedAt?: Date | null;
+    openAction?: string | null;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -148,6 +151,35 @@ export default class NotificationQueueStore extends BrandScopedStore {
                 `UPDATE ?? SET "status" = 'failed', "lastError" = ?, "updatedAt" = now()
                  WHERE "id" = ?::uuid`,
                 [NOTIFICATION_QUEUE_TABLE_NAME, error, id],
+            )
+            .toString();
+        return this.db.write.query(queryString).then((response) => response.rowCount ?? 0);
+    }
+
+    /**
+     * Records the recipient's first tap on the push this row sent.
+     *
+     * Scoped to the requesting user *and* brand, not just the id: the id arrives from the
+     * device, so without those predicates any authenticated caller could stamp opens onto
+     * someone else's rows. A row that does not match is indistinguishable from one already
+     * opened — both update nothing — which is the point: the caller learns nothing about ids
+     * it does not own.
+     *
+     * Status is deliberately not checked. A row can read 'failed' while its push was in fact
+     * delivered (the send landed, the response did not), and a tap is the best evidence of
+     * delivery there is. `updatedAt` is left alone: it is the worker's claim lease and
+     * retention clock, and a user's tap is neither.
+     */
+    markOpened(brand: BrandValue, userId: string, id: string, openAction: string | null): Promise<number> {
+        this.assertBrand(brand);
+        const queryString = knexBuilder
+            .raw(
+                `UPDATE ?? SET "openedAt" = now(), "openAction" = ?
+                 WHERE "id" = ?::uuid
+                   AND "userId" = ?::uuid
+                   AND "brandVariation" = ?
+                   AND "openedAt" IS NULL`,
+                [NOTIFICATION_QUEUE_TABLE_NAME, openAction, id, userId, brand],
             )
             .toString();
         return this.db.write.query(queryString).then((response) => response.rowCount ?? 0);
