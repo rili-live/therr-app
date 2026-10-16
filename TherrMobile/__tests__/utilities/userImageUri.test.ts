@@ -12,7 +12,7 @@ import { getUserImageUri } from '../../main/utilities/content';
 
 jest.mock('therr-react/services', () => ({
     MapsService: {},
-}), { virtual: true });
+}));
 
 jest.mock('../../main/utilities/getConfig', () => () => ({
     baseImageKitEndpoint: 'https://images.example/',
