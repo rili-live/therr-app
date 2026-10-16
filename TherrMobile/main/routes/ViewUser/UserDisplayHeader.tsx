@@ -270,6 +270,7 @@ const UserDisplayHeader = ({
                 <Pressable
                     onPress={() => onProfilePicturePress(userInView, isMe)}
                     style={themeUser.styles.profileImageContainer}
+                    accessibilityRole="imagebutton"
                 >
                     <Image
                         source={{ uri: getUserImageUri({ details: userInView }, 400) }}
