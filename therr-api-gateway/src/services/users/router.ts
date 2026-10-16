@@ -306,6 +306,13 @@ usersServiceRouter.get('/rewards/exchange-rate', validate, async (req, res, next
 }, (response) => CacheStore.usersService.setExchangeRate(response.exchangeRate)));
 
 // Interests / User Interests
+// Public: a signed-out install must still learn that it is too old to use. Reads only
+// `x-app-version` / `x-app-os` / `x-brand-variation`; see users-service utilities/appVersionPolicy.ts.
+usersServiceRouter.get('/app-version/policy', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
 usersServiceRouter.get('/interests', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
