@@ -151,6 +151,36 @@ describe('FCM data payload validity', () => {
         });
     });
 
+    // Open tracking: the device echoes this id back on tap, so it must survive into
+    // `data` — `config` never reaches the device.
+    it('promotes notificationQueueId into the data map so a tap can be attributed', () => {
+        const message: any = createMessage(
+            PushNotifications.Types.streakAtRisk,
+            digestNotificationData(),
+            {
+                ...baseConfig,
+                habitName: 'Morning workout',
+                streakCount: 4,
+                notificationQueueId: 'd0000001-de00-4000-a000-000000000001',
+            },
+            BrandVariations.HABITS,
+        );
+
+        expect(message.data.notificationQueueId).to.equal('d0000001-de00-4000-a000-000000000001');
+        expect(() => validateMessage(message)).to.not.throw();
+    });
+
+    it('omits notificationQueueId for an inline send', () => {
+        const message: any = createMessage(
+            PushNotifications.Types.streakAtRisk,
+            digestNotificationData(),
+            { ...baseConfig, habitName: 'Morning workout', streakCount: 4 },
+            BrandVariations.HABITS,
+        );
+
+        expect(message.data).to.not.have.property('notificationQueueId');
+    });
+
     // `pactEnded` is the only notification carrying an action that starts a new
     // cycle, and the action is useless — worse, it is a dead button — without
     // the pact id it acts on. The gate is the same one `buildCheckinPressActions`

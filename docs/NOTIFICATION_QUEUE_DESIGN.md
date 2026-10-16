@@ -309,6 +309,60 @@ missing table or an exhausted write pool report as a clean re-run while
 notifying nobody. Failures land in `errors`. Any new producer should map the
 three outcomes the same way.
 
+## Open tracking
+
+The queue recorded what was *sent*. Nothing recorded what was *opened*, so neither the
+5/day cap nor the reminder times could be tuned from evidence. That is now a column on the
+same row:
+
+```
+worker ──► push-notifications-service ──► FCM data.notificationQueueId ──► device
+                                                                             │ tap
+main.notificationQueue.openedAt / openAction ◄── POST /users/notifications/push-opens
+```
+
+- **The worker stamps `notificationQueueId: row.id`** into the send, after the payload
+  spread, so a payload cannot point a tap at another row. push-notifications-service promotes
+  it into the FCM `data` map alongside the other routing ids.
+- **Mobile reports the tap** from `handleNotifeeNotificationEvent` in `Layout.tsx`, which every
+  tap path funnels into (Notifee press, the iOS `onNotificationOpenedApp` /
+  `getInitialNotification` alerts). `utilities/pushOpenTracking.ts` reports each push once per
+  session, because one tap reaches several of those listeners, and also logs `push_open` to
+  Firebase Analytics for every tap, queued or not. "Mark as read" is a dismissal and is not
+  reported.
+- **`markOpened` is scoped to the caller's user and brand**, and keeps the first open
+  (`openedAt IS NULL`). The endpoint answers 204 whether or not anything matched, so it does
+  not reveal which ids exist. It ignores `status`: a row can read `failed` when the push landed
+  but the response did not, and a tap is the best evidence of delivery there is.
+- **`openAction`** is the press action id: `default` for the body, otherwise the button
+  (`habit-checkin`, `checkin-view`, …). A one-press check-in from the tray counts as an
+  engagement even though it never opens the app.
+
+What it does not see: **Android display notifications** (`createNotificationMessage`:
+`habitComeback`, `morningMotivation`, the onboarding nurture types, …) open through an intent
+filter whose JS event carries only the action string, not the data map. Whether
+`@react-native-firebase/messaging` also delivers those taps on Android is unverified, so
+treat their open rate as a lower bound until it is checked on a handset. Inline sends have
+no row and only reach Firebase Analytics.
+
+Open rate by type and by local send hour, over the 30-day retention window:
+
+```sql
+SELECT q."type",
+       EXTRACT(HOUR FROM q."sentAt" AT TIME ZONE COALESCE(u."settingsTimezone", 'America/Chicago')) AS "localHour",
+       COUNT(*) AS sent,
+       COUNT(q."openedAt") AS opened,
+       ROUND(100.0 * COUNT(q."openedAt") / COUNT(*), 1) AS "openRatePct"
+FROM main."notificationQueue" q
+JOIN main."users" u ON u."id" = q."userId"
+WHERE q."brandVariation" = 'habits' AND q."status" = 'sent'
+GROUP BY 1, 2
+ORDER BY 1, 2;
+```
+
+A row's `openedAt` lags `sentAt` by however long the push sat in the tray, so the last day's
+rate always reads low.
+
 ## What is NOT built yet
 
 ### Blockers to clear before raising frequency

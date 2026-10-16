@@ -160,6 +160,12 @@ interface ICreateMessageConfig {
      * *sender* (empty for system pushes like reminders). Only used to clear a dead token.
      */
     toUserId?: string;
+    /**
+     * The users-service `main.notificationQueue` row this push was sent from, when it came
+     * through the queue. Echoed back by the device on tap so the open lands on the row that
+     * recorded the send — see users-service `recordPushOpen`. Absent for inline sends.
+     */
+    notificationQueueId?: string;
     userLocale: string;
     viewCount?: number;
     groupMembersList?: string[],
@@ -847,6 +853,10 @@ const createMessage = (
         // the tap can only open "the latest week", which is the wrong week for
         // anyone who opens the notification a day or more after it arrived.
         weekStartDate: config.weekStartDate,
+        // Not routing either: the queue row the device reports a tap against. Without it an
+        // open can only be attributed to a type and a time, never to the send it answers,
+        // so there is no open rate per type or per local hour to tune the cap against.
+        notificationQueueId: config.notificationQueueId,
     };
     Object.keys(routingIds).forEach((key) => {
         const value = routingIds[key];

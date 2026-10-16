@@ -5,6 +5,7 @@ import {
 import {
     createNotification,
     getNotification,
+    recordPushOpen,
     searchNotifications,
     updateNotification,
 } from '../handlers/notifications';
@@ -13,6 +14,8 @@ const router = express.Router();
 
 // CREATE
 router.post('/', createNotification);
+// A tap on a queued push (main.notificationQueue.openedAt)
+router.post('/push-opens', recordPushOpen);
 
 // READ
 router.get('/:notificationId', getNotification);

@@ -98,6 +98,17 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Push open tracking (added 2026-10-16)
+
+- [ ] **Run the users-service migration after the deploy** (`20261016000001`: `main.notificationQueue."openedAt"` /
+  `"openAction"`). Additive and nullable; neither automator reads this table. Until it runs, every
+  `POST /users/notifications/push-opens` answers 500 and the worker is unaffected.
+- [ ] **On a Habits handset with a build carrying `pushOpenTracking.ts`, tap a queued push and confirm its row gets
+  `openedAt`.** Check one data-only type (`streakAtRisk` / `dailyHabitReminder`) and one Android display type
+  (`habitComeback`, `morningMotivation`) — the second is the unverified path in
+  `docs/NOTIFICATION_QUEUE_DESIGN.md` → "Open tracking". Until the mobile release ships, `openedAt` stays NULL
+  everywhere and reads as a 0% open rate, not as a broken pipe.
+
 ## Engagement outage hardening (added 2026-10-13)
 
 From 2026-10-08 22:49 UTC to 10-12 20:48 UTC users-service ran the 10-08 code without its two
