@@ -230,12 +230,7 @@ class HabitsButtonMenu extends ButtonMenu {
         // count no longer badges the tab bar. That count still exists: it is the
         // chip on the dashboard's Sent segment, beside the nudge and re-invite
         // actions that can actually move it.
-        const { badgeCount, initialTab: initialHabitsTab } = getHabitsBadgeState(
-            habits?.pendingInvites,
-            habits?.pacts,
-            habits?.activePacts,
-            user?.details?.id,
-        );
+        const { badgeCount, initialTab: initialHabitsTab } = getHabitsBadgeState(habits?.pendingInvites);
         const imageStyle = {
             height: 26,
             width: 26,

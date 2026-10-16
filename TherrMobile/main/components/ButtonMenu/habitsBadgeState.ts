@@ -1,6 +1,6 @@
 import { IPact } from 'therr-react/types';
 
-export type HabitsLandingTab = 'habits' | 'pending' | 'outgoing';
+export type HabitsLandingTab = 'habits' | 'pending';
 
 export interface IHabitsBadgeState {
     /** Number to show on the Habits tab. 0 means no badge. */
@@ -20,33 +20,24 @@ export interface IHabitsBadgeState {
  * reading badges. Everything counted here has an Accept/Decline one tap away.
  *
  * The landing segment follows the badge so the count and the destination always
- * agree: badge the tab, open the list the badge is about. With nothing awaiting
- * a reply it falls back to the previous behaviour — Sent when there is no active
- * pact to check in on, Habits when there is.
+ * agree: badge the tab, open the list the badge is about. Otherwise it opens on
+ * the Habits list, because checking in is what people tap the tab to do. It used
+ * to open on Sent whenever the user had no active pact but an unanswered invite
+ * out, which buried solo habits behind a list the user could not act on beyond
+ * a nudge — and that list is still one segment tap away.
  *
  * Kept free of react-native imports so it stays unit-testable without the
  * native module graph the menu pulls in.
  */
 export const getHabitsBadgeState = (
     pendingInvites: IPact[] | undefined,
-    pacts: IPact[] | undefined,
-    activePacts: IPact[] | undefined,
-    currentUserId?: string,
 ): IHabitsBadgeState => {
     const badgeCount = (pendingInvites || []).length;
-    const outgoingCount = (pacts || []).filter(
-        (pact) => pact.status === 'pending' && !!currentUserId && pact.creatorUserId === currentUserId,
-    ).length;
-    const hasActivePacts = (activePacts || []).length > 0;
 
-    let initialTab: HabitsLandingTab = 'habits';
-    if (badgeCount > 0) {
-        initialTab = 'pending';
-    } else if (!hasActivePacts && outgoingCount > 0) {
-        initialTab = 'outgoing';
-    }
-
-    return { badgeCount, initialTab };
+    return {
+        badgeCount,
+        initialTab: badgeCount > 0 ? 'pending' : 'habits',
+    };
 };
 
 export default getHabitsBadgeState;
