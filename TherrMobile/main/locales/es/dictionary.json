@@ -3178,6 +3178,10 @@
         }
     },
     "modals": {
+        "fullScreenImage": {
+            "close": "Cerrar imagen",
+            "profilePictureLabel": "Foto de perfil a tamaño completo de {userName}"
+        },
         "appReviewPrompt": {
             "sentiment": {
                 "header": "¿Te gusta {appName}?",

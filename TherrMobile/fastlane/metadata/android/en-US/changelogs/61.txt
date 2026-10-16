@@ -1,0 +1,4 @@
+What's new:
+• Tap a profile picture to see it full screen
+• The Habits tab now opens on your habits list so you can check in right away
+• Fixed everyone without a profile photo showing the same robot avatar on the leaderboard

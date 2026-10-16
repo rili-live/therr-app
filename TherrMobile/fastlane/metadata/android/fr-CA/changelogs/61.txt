@@ -1,0 +1,4 @@
+Nouveautés :
+• Touchez une photo de profil pour l'afficher en plein écran
+• L'onglet Habitudes s'ouvre maintenant sur votre liste d'habitudes pour faire votre suivi tout de suite
+• Correction de l'avatar robot identique affiché au classement pour tous les utilisateurs sans photo de profil
