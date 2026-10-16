@@ -2216,6 +2216,10 @@
       "placeholder": "Ajoute un commentaire (optionnel)",
       "confirm": "Republier",
       "cancel": "Annuler"
+    },
+    "fullScreenImage": {
+      "close": "Fermer l'image",
+      "profilePictureLabel": "Photo de profil en taille réelle de {userName}"
     }
   },
   "permissions": {
