@@ -37,6 +37,7 @@ const unauthenticatedPaths: IUnauthenticatedPath[] = [
     // { url: '/favicon.ico', methods: ['GET'] }, // favicon
     { url: '/v1/users-service/interests', methods: ['GET'] },
     { url: '/v1/users-service/rewards/exchange-rate', methods: ['GET'] },
+    { url: '/v1/users-service/app-version/policy', methods: ['GET'] }, // mobile update prompt — must work signed out
     { url: '/v1/users-service/emails/bounced', methods: ['POST'] }, // bounced email handler
     { url: '/v1/users-service/subscribers/signup', methods: ['POST'] }, // email marketing subscribe
     { url: '/v1/users-service/subscribers/preferences', methods: ['GET'] }, // Update E-mail subscription settings

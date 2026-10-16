@@ -2053,6 +2053,18 @@
     }
   },
   "modals": {
+    "appUpdatePrompt": {
+      "recommended": {
+        "header": "Update available",
+        "message": "A new version of {appName} is ready, with fixes and improvements. Update to get the latest."
+      },
+      "required": {
+        "header": "Update required",
+        "message": "This version of {appName} is no longer supported. Update to keep using the app."
+      },
+      "notNow": "Not now",
+      "update": "Update"
+    },
     "appReviewPrompt": {
       "sentiment": {
         "header": "Enjoying {appName}?",
