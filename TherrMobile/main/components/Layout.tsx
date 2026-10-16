@@ -81,6 +81,7 @@ import {
 } from '../utilities/appReviewPrompt';
 import { openStoreReviewPage } from '../utilities/appStoreReviewLink';
 import { openSupportEmail } from '../utilities/supportContact';
+import { reportPushOpen } from '../utilities/pushOpenTracking';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
@@ -1356,6 +1357,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 // Remove the notification
                 return notifee.cancelNotification(notification?.id);
             }
+
+            // After the dismiss branch on purpose: "mark as read" clears the tray, it is not an
+            // open. Every other press — the body or any action button — counts.
+            reportPushOpen(notification?.data, pressAction?.id);
 
             const { user } = this.props;
             const isUserAuthorized = UsersService.isAuthorized(
