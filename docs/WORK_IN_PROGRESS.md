@@ -100,7 +100,7 @@ append new items here rather than only printing them once.
 
 ## Push open tracking (added 2026-10-16)
 
-- [ ] **Run the users-service migration after the deploy** (`20261016000001`: `main.notificationQueue."openedAt"` /
+- [x] **Run the users-service migration after the deploy** _(Verified applied in prod 2026-10-16: the stage → main deploy (CircleCI 20510, main `09e81f34b`) ran it; `run-migrations.sh --verify-only` reports users-service caught up.)_ (`20261016000001`: `main.notificationQueue."openedAt"` /
   `"openAction"`). Additive and nullable; neither automator reads this table. Until it runs, every
   `POST /users/notifications/push-opens` answers 500 and the worker is unaffected.
 - [ ] **On a Habits handset with a build carrying `pushOpenTracking.ts`, tap a queued push and confirm its row gets
