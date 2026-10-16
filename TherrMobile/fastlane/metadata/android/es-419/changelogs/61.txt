@@ -1,0 +1,4 @@
+Novedades:
+• Toca una foto de perfil para verla en pantalla completa
+• La pestaña Hábitos ahora abre en tu lista de hábitos para que puedas registrarte de inmediato
+• Corregimos que todos los usuarios sin foto de perfil mostraran el mismo avatar de robot en la clasificación
