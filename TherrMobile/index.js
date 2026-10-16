@@ -135,6 +135,7 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
 
     const habitGoalId = notification?.data?.habitGoalId;
     const pactId = notification?.data?.pactId;
+    const notificationQueueId = notification?.data?.notificationQueueId;
     // `detail.input` is only populated for an action declared with `input`, so it is
     // undefined for the plain check-in — which is exactly the "no amount recorded"
     // case the service already handles.
@@ -142,6 +143,10 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
         habitGoalId: habitGoalId ? String(habitGoalId) : '',
         pactId: pactId ? String(pactId) : undefined,
         savedAmount: typeof input === 'string' ? input : undefined,
+        // Layout's reportPushOpen does not exist on a killed app, so the press is
+        // reported as the queued send's open from here.
+        notificationQueueId: typeof notificationQueueId === 'string' ? notificationQueueId : undefined,
+        pressActionId: pressAction?.id,
     });
 
     if (notification?.id) {

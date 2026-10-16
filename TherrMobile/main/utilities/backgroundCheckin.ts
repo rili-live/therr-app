@@ -1,6 +1,6 @@
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import getConfig from './getConfig';
-import readStoredSession from './storedSession';
+import readStoredSession, { IStoredSession } from './storedSession';
 
 /**
  * Completes a habit check-in straight from a notification action, without
@@ -43,11 +43,62 @@ export interface IBackgroundCheckinArgs {
      * check-in with no amount rather than clearing anything.
      */
     savedAmount?: string;
+    /**
+     * The `main.notificationQueue` row the pressed push was sent from, when it was queued.
+     * The press is reported as that send's open (docs/NOTIFICATION_QUEUE_DESIGN.md → "Open tracking").
+     */
+    notificationQueueId?: string;
+    /** The press action id, recorded as the open's `openAction`. */
+    pressActionId?: string;
 }
 
 const REQUEST_TIMEOUT_MS = 10 * 1000;
 
 export const buildCheckinUrl = (baseApiGatewayRoute: string): string => `${baseApiGatewayRoute}/users-service/habits/checkins`;
+
+export const buildPushOpenUrl = (baseApiGatewayRoute: string): string => `${baseApiGatewayRoute}/users-service/users/notifications/push-opens`;
+
+/**
+ * One authenticated JSON POST from the headless context. Resolves whether the server
+ * accepted it; never rejects.
+ */
+const postInBackground = async (url: string, session: IStoredSession, body: Record<string, unknown>): Promise<boolean> => {
+    // Without a timeout a background handler can be held open until the OS kills
+    // it, which on Android costs the notification update the caller is waiting
+    // to post.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            // React Native ships its own `AbortSignal` declaration alongside the
+            // DOM lib, and the two disagree on `onabort` nullability — so the
+            // signal a `new AbortController()` produces does not typecheck
+            // against RN's `RequestInit`. The runtime supports it; only the
+            // declarations conflict. Cast to RN's own type rather than `any` so
+            // a real mismatch here would still be caught.
+            signal: controller.signal as unknown as RequestInit['signal'],
+            headers: {
+                'content-type': 'application/json',
+                authorization: `Bearer ${session.idToken}`,
+                'x-userid': session.id as string,
+                'x-platform': 'mobile',
+                'x-localecode': session.locale,
+                'x-brand-variation': CURRENT_BRAND_VARIATION,
+            },
+            body: JSON.stringify(body),
+        });
+
+        return response.ok;
+    } catch {
+        // Network failure, timeout, or abort — all indistinguishable from the
+        // caller's point of view, and all mean "open the app instead".
+        return false;
+    } finally {
+        clearTimeout(timeoutId);
+    }
+};
 
 export interface IBackgroundCheckinResult {
     didCheckIn: boolean;
@@ -71,60 +122,53 @@ const completeCheckinInBackground = async ({
     habitGoalId,
     pactId,
     savedAmount,
+    notificationQueueId,
+    pressActionId,
 }: IBackgroundCheckinArgs): Promise<IBackgroundCheckinResult> => {
-    const { id, idToken, locale } = await readStoredSession();
+    const session = await readStoredSession();
+    const { id, idToken, locale } = session;
 
-    if (!habitGoalId || !id || !idToken) {
+    if (!id || !idToken) {
         return { didCheckIn: false, locale };
     }
 
-    // Without a timeout a background handler can be held open until the OS kills
-    // it, which on Android costs the notification update the caller is waiting
-    // to post.
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const { baseApiGatewayRoute } = getConfig();
 
-    try {
-        const response = await fetch(buildCheckinUrl(getConfig().baseApiGatewayRoute), {
-            method: 'POST',
-            // React Native ships its own `AbortSignal` declaration alongside the
-            // DOM lib, and the two disagree on `onabort` nullability — so the
-            // signal a `new AbortController()` produces does not typecheck
-            // against RN's `RequestInit`. The runtime supports it; only the
-            // declarations conflict. Cast to RN's own type rather than `any` so
-            // a real mismatch here would still be caught.
-            signal: controller.signal as unknown as RequestInit['signal'],
-            headers: {
-                'content-type': 'application/json',
-                authorization: `Bearer ${idToken}`,
-                'x-userid': id,
-                'x-platform': 'mobile',
-                'x-localecode': locale,
-                'x-brand-variation': CURRENT_BRAND_VARIATION,
-            },
-            body: JSON.stringify({
-                habitGoalId,
-                // Omitted rather than sent as undefined: the handler resolves
-                // the active pacts backing the goal itself when none is given,
-                // which is the correct behaviour for a habit in several pacts.
-                ...(pactId ? { pactId } : {}),
-                // Same reasoning as `pactId`: omitted rather than sent empty. An
-                // explicit empty value would *clear* an amount already recorded for
-                // today, so a user who submitted the quick-reply without typing
-                // anything would erase what they logged in the app this morning.
-                ...(savedAmount && savedAmount.trim().length ? { savedAmount } : {}),
-                status: 'completed',
-            }),
-        });
+    // Open tracking: in the app, a press on a queued push is reported by Layout's
+    // notifee handler (`reportPushOpen`). On a killed app that handler does not exist —
+    // this one runs instead — so without this the most valuable press a reminder gets,
+    // the check-in itself, reads as an unopened send in `main.notificationQueue`.
+    // Started alongside the check-in rather than after it, so it adds no latency to the
+    // confirmation the user is waiting for, and it can never change the check-in result.
+    // Reported even when the check-in cannot be attempted: the press still happened.
+    const openReport = notificationQueueId
+        ? postInBackground(buildPushOpenUrl(baseApiGatewayRoute), session, {
+            notificationQueueId,
+            pressActionId: pressActionId || 'default',
+        })
+        : Promise.resolve(false);
 
-        return { didCheckIn: response.ok, locale };
-    } catch {
-        // Network failure, timeout, or abort — all indistinguishable from the
-        // caller's point of view, and all mean "open the app instead".
-        return { didCheckIn: false, locale };
-    } finally {
-        clearTimeout(timeoutId);
-    }
+    const didCheckIn = habitGoalId
+        ? await postInBackground(buildCheckinUrl(baseApiGatewayRoute), session, {
+            habitGoalId,
+            // Omitted rather than sent as undefined: the handler resolves
+            // the active pacts backing the goal itself when none is given,
+            // which is the correct behaviour for a habit in several pacts.
+            ...(pactId ? { pactId } : {}),
+            // Same reasoning as `pactId`: omitted rather than sent empty. An
+            // explicit empty value would *clear* an amount already recorded for
+            // today, so a user who submitted the quick-reply without typing
+            // anything would erase what they logged in the app this morning.
+            ...(savedAmount && savedAmount.trim().length ? { savedAmount } : {}),
+            status: 'completed',
+        })
+        : false;
+
+    // Awaited before returning because the headless task may be torn down once the
+    // handler resolves, which would drop a report still in flight.
+    await openReport;
+
+    return { didCheckIn, locale };
 };
 
 export default completeCheckinInBackground;

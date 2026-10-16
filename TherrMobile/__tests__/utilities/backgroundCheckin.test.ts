@@ -190,6 +190,78 @@ describe('backgroundCheckin', () => {
         expect(result.locale).toBe('en-us');
     });
 
+    describe('open tracking', () => {
+        // On a killed app Layout's notifee handler (and its reportPushOpen) does not exist,
+        // so a check-in pressed from the tray was never stamped on its notificationQueue row
+        // and read as an unopened send — undercounting the press a reminder most wants.
+        const PUSH_OPEN_URL = 'https://api.example.com/v1/users-service/users/notifications/push-opens';
+        const callTo = (url: string) => mockFetch.mock.calls.find((call: any[]) => call[0] === url) as any[] | undefined;
+
+        it('reports the press as the queued send\'s open alongside the check-in', async () => {
+            stubSession(SESSION);
+            mockFetch.mockResolvedValue({ ok: true } as never);
+
+            const result = await loadModule().default({
+                habitGoalId: 'goal-1',
+                notificationQueueId: 'queue-row-1',
+                pressActionId: 'habit-checkin',
+            });
+
+            expect(result.didCheckIn).toBe(true);
+            expect(mockFetch).toHaveBeenCalledTimes(2);
+            const [, init] = callTo(PUSH_OPEN_URL) as any[];
+            expect(init.method).toBe('POST');
+            expect(init.headers.authorization).toBe('Bearer token-abc');
+            expect(init.headers['x-userid']).toBe('user-1');
+            expect(init.headers['x-brand-variation']).toBe('habits');
+            expect(JSON.parse(init.body)).toEqual({ notificationQueueId: 'queue-row-1', pressActionId: 'habit-checkin' });
+        });
+
+        it('does not report an open for an inline send with no queue row', async () => {
+            stubSession(SESSION);
+            mockFetch.mockResolvedValue({ ok: true } as never);
+
+            await loadModule().default({ habitGoalId: 'goal-1', pressActionId: 'habit-checkin' });
+
+            expect(mockFetch).toHaveBeenCalledTimes(1);
+            expect(callTo(PUSH_OPEN_URL)).toBeUndefined();
+        });
+
+        it('never lets a failed open report fail the check-in', async () => {
+            stubSession(SESSION);
+            mockFetch.mockImplementation((url: any) => (url === PUSH_OPEN_URL
+                ? Promise.reject(new Error('Network request failed'))
+                : Promise.resolve({ ok: true })) as never);
+
+            const result = await loadModule().default({ habitGoalId: 'goal-1', notificationQueueId: 'queue-row-1' });
+
+            expect(result.didCheckIn).toBe(true);
+        });
+
+        it('still reports the open when the notification named no habit', async () => {
+            // The press happened even though there is nothing to check in.
+            stubSession(SESSION);
+            mockFetch.mockResolvedValue({ ok: true } as never);
+
+            const result = await loadModule().default({ habitGoalId: '', notificationQueueId: 'queue-row-1' });
+
+            expect(result.didCheckIn).toBe(false);
+            expect(mockFetch).toHaveBeenCalledTimes(1);
+            expect(JSON.parse((callTo(PUSH_OPEN_URL) as any[])[1].body)).toEqual({
+                notificationQueueId: 'queue-row-1',
+                pressActionId: 'default',
+            });
+        });
+
+        it('reports nothing without a session to attribute the open to', async () => {
+            stubSession(null);
+
+            await loadModule().default({ habitGoalId: 'goal-1', notificationQueueId: 'queue-row-1' });
+
+            expect(mockFetch).not.toHaveBeenCalled();
+        });
+    });
+
     it('tolerates corrupt stored JSON', async () => {
         stubSession('not json at all', 'also not json');
 
