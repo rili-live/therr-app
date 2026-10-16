@@ -76,6 +76,7 @@ import {
 } from '../utilities/appReviewPrompt';
 import { openStoreReviewPage } from '../utilities/appStoreReviewLink';
 import { openSupportEmail } from '../utilities/supportContact';
+import { reportPushOpen } from '../utilities/pushOpenTracking';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import celebrationQueue, { enqueueCelebrationsFromSummary } from '../utilities/celebrationQueue';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
@@ -180,6 +181,9 @@ const APP_REVIEW_PROMPT_COLD_START_DELAY_MS = 8000;
 const APP_REVIEW_PROMPT_FOREGROUND_DELAY_MS = 3000;
 /** How long the app must have been away for a return to count as the user coming back to it. */
 const APP_REVIEW_PROMPT_MIN_AWAY_MS = 60000;
+// A return from the background counts as an app open (leaderboard XP) only after this long
+// away, so the camera, the share sheet or an OS permission dialog doesn't count as one.
+const APP_OPEN_MIN_AWAY_MS = 60000;
 
 const mapStateToProps = (state: any) => ({
     content: state.content,
@@ -351,6 +355,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             // soft-ask a chance via the second-session fallback.
             this.tryRegisterDeviceTokenIfAuthorized();
             permissions.requestIfAppropriate('notifications', { trigger: 'secondSession' });
+            this.recordAppOpen();
         }
     }
 
@@ -459,6 +464,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 // Notification permission asks are anchored to engagement triggers
                 // and a second-session fallback via permissionsOrchestrator.
                 this.tryRegisterDeviceTokenIfAuthorized();
+                this.recordAppOpen();
 
                 // A fresh sign-in is a return too: the cold-start fetch above ran before
                 // there was a session to ask about.
@@ -592,6 +598,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const backgroundedAt = this.lastBackgroundedAt;
         this.lastBackgroundedAt = null;
 
+        if (backgroundedAt !== null && Date.now() - backgroundedAt >= APP_OPEN_MIN_AWAY_MS) {
+            this.recordAppOpen();
+        }
+
         // Only a deliberate return counts. The app also goes inactive for an OS permission
         // dialog, the camera, and the share sheet — all of which are the middle of a flow the
         // user started, and the worst possible moment to interrupt with a review prompt.
@@ -603,6 +613,18 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // sits backgrounded for five minutes, and a period closes overnight. The queue drops a
         // celebration it is already showing or holding, so re-asking is cheap.
         this.fetchAndQueueCelebrations();
+    };
+
+    /**
+     * Reports an app open (launch, login, or return from the background). The server pays a
+     * point of leaderboard XP for the first few each day and decides which; fire-and-forget,
+     * since a missed point is never worth an error the user sees.
+     */
+    recordAppOpen = () => {
+        if (!this.isUserAuthenticated()) {
+            return;
+        }
+        UsersService.recordAppOpen().catch((err) => console.log('RECORD_APP_OPEN_ERROR', err?.message));
     };
 
     /**
@@ -1461,6 +1483,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 // Remove the notification
                 return notifee.cancelNotification(notification?.id);
             }
+
+            // After the dismiss branch on purpose: "mark as read" clears the tray, it is not an
+            // open. Every other press — the body or any action button — counts.
+            reportPushOpen(notification?.data, pressAction?.id);
 
             const { user } = this.props;
             const isUserAuthorized = UsersService.isAuthorized(

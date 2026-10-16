@@ -178,6 +178,10 @@
       "title": "Pacte refusé",
       "body": "{partnerName} ne peut pas s'engager sur celui-ci. Invite quelqu'un d'autre pour garder l'objectif vivant."
     },
+    "pactMemberLeft": {
+      "title": "Départ dans ton pacte",
+      "body": "{partnerName} a quitté ton pacte de groupe. Les autres sont toujours là — ta série continue."
+    },
     "pactCompleted": {
       "title": "Pacte complété!",
       "body": "Toi et {partnerName} avez terminé votre pacte sur {habitName} — une victoire pour vous deux."

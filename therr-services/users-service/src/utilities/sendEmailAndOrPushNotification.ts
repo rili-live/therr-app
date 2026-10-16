@@ -194,6 +194,13 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     // own promise. `charityKey` is one of PLEDGE_CHARITIES; the push service resolves its name.
     pledgeAmount?: number;
     charityKey?: string;
+    // `pactDeclined` copy selector: 'memberLeft' when an active group member left a pact that
+    // carries on without them. Copy only — see push-notifications-service/api/pactDeclinedCopy.ts.
+    pactDeclineReason?: 'memberLeft';
+    // Set only by the notification queue worker: the row this push is sent from. It reaches
+    // the device in the FCM data map and comes back on tap (POST /users/notifications/push-opens),
+    // which is what attributes an open to a send. Inline callers leave it unset.
+    notificationQueueId?: string;
 }
 
 interface ISendPushNotificationAndOrEmailConfig {
@@ -264,6 +271,8 @@ export default (
         perfectDays,
         pledgeAmount,
         charityKey,
+        pactDeclineReason,
+        notificationQueueId,
     }: ISendPushNotification,
     config: ISendPushNotificationAndOrEmailConfig = {
         shouldSendPushNotification: true,
@@ -380,6 +389,9 @@ export default (
                     groupMembersList: fromUserNames,
                     postType,
                     toUserDeviceToken: resolvedDeviceToken,
+                    // The token's owner. `x-userid` above is the sender (empty for system
+                    // pushes), so without this the push service cannot clear a dead token.
+                    toUserId,
                     type,
                     thought,
                     streakCount,
@@ -408,6 +420,8 @@ export default (
                     perfectDays,
                     pledgeAmount,
                     charityKey,
+                    pactDeclineReason,
+                    notificationQueueId,
                     // achievementsCount,
                     // likeCount,
                     // notificationsCount,

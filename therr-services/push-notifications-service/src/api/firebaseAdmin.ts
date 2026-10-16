@@ -12,6 +12,7 @@ import {
     shouldOfferOnePressCheckin,
 } from './checkinNudgeCopy';
 import { selectWeeklyRecapBodyKey, selectWeeklyRecapTitleKey } from './weeklyRecapCopy';
+import { PactDeclineReason, selectPactDeclinedCopyKey } from './pactDeclinedCopy';
 
 // FCM error codes for tokens that should be removed from the database.
 // See https://firebase.google.com/docs/cloud-messaging/send-message#admin
@@ -153,6 +154,18 @@ interface ICreateMessageConfig {
     groupId?: string;
     groupName?: string;
     userId: string | string[];
+    /**
+     * The recipient — the user `deviceToken` belongs to. Distinct from `userId`, which the
+     * single-send route fills from `x-userid`, and users-service sets that header to the
+     * *sender* (empty for system pushes like reminders). Only used to clear a dead token.
+     */
+    toUserId?: string;
+    /**
+     * The users-service `main.notificationQueue` row this push was sent from, when it came
+     * through the queue. Echoed back by the device on tap so the open lands on the row that
+     * recorded the send — see users-service `recordPushOpen`. Absent for inline sends.
+     */
+    notificationQueueId?: string;
     userLocale: string;
     viewCount?: number;
     groupMembersList?: string[],
@@ -229,6 +242,10 @@ interface ICreateMessageConfig {
     // name through PLEDGE_CHARITIES, so the name has one definition shared with the client.
     pledgeAmount?: number;
     charityKey?: string;
+    // `pactDeclined` covers both an invitee saying no and an active group member leaving a
+    // pact that carries on without them. One type, so the tap routes and the channel are the
+    // ones every installed app already knows; this only picks the copy. Copy only.
+    pactDeclineReason?: PactDeclineReason;
 }
 
 interface INotificationMetrics {
@@ -836,6 +853,10 @@ const createMessage = (
         // the tap can only open "the latest week", which is the wrong week for
         // anyone who opens the notification a day or more after it arrived.
         weekStartDate: config.weekStartDate,
+        // Not routing either: the queue row the device reports a tap against. Without it an
+        // open can only be attributed to a type and a time, never to the send it answers,
+        // so there is no open rate per type or per local hour to tune the cap against.
+        notificationQueueId: config.notificationQueueId,
     };
     Object.keys(routingIds).forEach((key) => {
         const value = routingIds[key];
@@ -1674,19 +1695,22 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'PACT_ACCEPTED'), brandVariation);
             return baseMessage;
-        case PushNotifications.Types.pactDeclined:
+        case PushNotifications.Types.pactDeclined: {
+            // A group member leaving rides this type too; only the copy differs (pactDeclinedCopy.ts).
+            const copyKey = selectPactDeclinedCopyKey(config.pactDeclineReason);
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 brandVariation,
-                notificationTitle: translate(config.userLocale, 'notifications.pactDeclined.title'),
-                notificationBody: translate(config.userLocale, 'notifications.pactDeclined.body', {
+                notificationTitle: translate(config.userLocale, `notifications.${copyKey}.title`),
+                notificationBody: translate(config.userLocale, `notifications.${copyKey}.body`, {
                     partnerName: String(config.partnerName || config.fromUserName || ''),
                 }),
                 channelId: AndroidChannelId.reminders,
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'PACT_DECLINED');
             return baseMessage;
+        }
         case PushNotifications.Types.pactCompleted:
             baseMessage = createDataOnlyMessage({
                 data: {
@@ -2085,7 +2109,13 @@ const predictAndSendNotification = (
         .catch((error) => {
             const fcmErrorCode = error?.code || error?.errorInfo?.code;
             const tokenInvalid = isInvalidTokenError(error);
-            const targetUserId = typeof config.userId === 'string' ? config.userId : undefined;
+            // The token's owner. `config.userId` is the sender on the single-send route, and
+            // empty for system pushes, which made clearInvalidDeviceToken return early: dead
+            // tokens for reminder recipients were never deleted and failed every send, daily,
+            // for months. The sender fallback remains for callers that predate `toUserId`;
+            // users-service's cleanup also deletes the brand-scoped row by token alone.
+            const senderUserId = typeof config.userId === 'string' ? config.userId : undefined;
+            const targetUserId = config.toUserId || senderUserId || undefined;
 
             logSpan({
                 level: 'error',

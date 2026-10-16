@@ -107,8 +107,12 @@ The manifests in `k8s/prod` pin `:latest`; the tag is never hand-edited there. B
 Deployment is applied, `deploy.sh` renders a copy of its manifest with the image it should
 run — the desired tag for a `deploy` verdict, the tag it is already running for anything
 else — and applies **that** (`_bin/lib/render-manifest.sh`). One apply therefore carries
-both the spec and the version: `configured` means a rollout started, `unchanged` means
-nothing moved, and the live tag is always a SHA.
+both the spec and the version, and the live tag is always a SHA. Whether that apply started
+a rollout is read from the Deployment's `.metadata.generation` either side of it, not from
+kubectl's output alone: client-side apply prints `configured` for any non-empty patch, even
+one the server finds nothing to change, and on 2026-10-13 websocket-service, api-gateway and
+client all printed it at an unchanged generation (`apply_changed_spec`,
+`_bin/lib/deploy-plan.sh`). Counted as boots, they took rollout slots for nothing.
 
 It used to apply the manifest as-is and `kubectl set image` the SHA afterwards, on the
 belief that apply would leave the live image alone because `:latest` matched the
@@ -337,6 +341,21 @@ diff. A migration missed by a skipped deploy is therefore picked up by the next 
 which the `HEAD^1` range could not do. Expand/contract only; `RUN_MIGRATIONS_ON_DEPLOY=false`
 opts out.
 
+It then asks every migratable service's running pod how many of *its own* migrations
+are unapplied. If a **Ready** pod reports any, the deploy applies them in that pod — the
+code needing them is already serving, so whether this deploy "moved" the service no
+longer matters — and prints `Applied migrations that serving code was missing: …`. A
+pod that is Running but not Ready is only reported. This closes the gap behind the
+2026-10-08..12 outage, when users-service rolled out after its deploy's deadline and
+three later runs reported its two missing migrations without applying them.
+
+To see what is behind without changing anything:
+
+```bash
+./_bin/cicd/run-migrations.sh --verify-only        # schema vs. the code each pod runs
+./_bin/cicd/run-migrations.sh --service <key>      # apply one service's migrations by hand
+```
+
 ## Environment overrides
 
 | Variable | Default | Effect |
@@ -344,6 +363,7 @@ opts out.
 | `DEPLOY_ALLOW_ROLLBACK` | unset | Allows a `behind` verdict to deploy |
 | `DEPLOY_ROLLOUT_TIMEOUT` | `360s` | Per-Deployment `rollout status` timeout |
 | `DEPLOY_DRAIN_TIMEOUT` | `0` | Seconds to wait for superseded pods between waves |
+| `DEPLOY_MAX_CONCURRENT_ROLLOUTS` | `2` | Deployments within one wave booting at once; `0` rolls them all together. Without it, CPU contention on main-pool's e2-small pushed five deploys in 2026-10 past their progress deadlines |
 | `DOCKERHUB_PULL_TOKEN` | unset | Read-only Docker Hub token to write into the pull Secret instead of `DOCKERHUB_PASSWORD` |
 | `RUN_MIGRATIONS_ON_DEPLOY` | unset | `false` skips automated migrations |
 | `GKE_CLUSTER` / `GKE_ZONE` / `GKE_PROJECT` | `therr-prod-1` / `us-central1-a` / `therr-app` | Cluster cutover without a code merge |

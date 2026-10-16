@@ -47,7 +47,7 @@ import {
     sendFeedbackValidation,
     subscribersSignupValidation,
 } from './validation/subscribers';
-import { updateNotificationValidation } from './validation/notifications';
+import { recordPushOpenValidation, updateNotificationValidation } from './validation/notifications';
 import {
     feedbackAttemptLimiter,
     forgotPasswordLimiter,
@@ -135,6 +135,11 @@ usersServiceRouter.get('/users/leaderboards', handleServiceRequest({
 // Dismissing an end-of-period placement (the celebration screen or the inline card).
 // `periodStart` (YYYY-MM-DD, the Monday of the week) is the period id.
 usersServiceRouter.post('/users/leaderboards/periods/:periodStart/acknowledge', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+// The app was opened. The users-service caps how many opens a day earn XP.
+usersServiceRouter.post('/users/leaderboards/app-opens', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
@@ -539,6 +544,13 @@ usersServiceRouter.delete('/users-groups/:id', handleServiceRequest({
 
 // Notifications
 usersServiceRouter.post('/users/notifications', createNotificationValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+// A tap on a push sent through the notification queue. Fire-and-forget from the device;
+// see users-service recordPushOpen.
+usersServiceRouter.post('/users/notifications/push-opens', recordPushOpenValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));

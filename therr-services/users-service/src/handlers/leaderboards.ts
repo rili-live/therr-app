@@ -3,8 +3,16 @@ import { ErrorCodes } from 'therr-js-utilities/constants';
 import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
-import { getLeaderboardPeriodStart, getLeaderboardPeriodEnd, withCompetitionRanks } from '../utilities/leaderboardHelpers';
+import {
+    APP_OPEN_XP_DAILY_LIMIT,
+    getLeaderboardPeriodStart,
+    getLeaderboardPeriodEnd,
+    LeaderboardXpValues,
+    withCompetitionRanks,
+} from '../utilities/leaderboardHelpers';
 import { isDateString } from '../utilities/dailyStreak';
+import { tryClaimAppOpenXp } from '../store/redisClient';
+import { awardLeaderboardPoints } from './helpers/leaderboards';
 
 const DEFAULT_PAGE_SIZE = 25;
 
@@ -117,7 +125,37 @@ const acknowledgeLeaderboardPeriod: RequestHandler = async (req: any, res: any) 
     }
 };
 
+/**
+ * POST /users/leaderboards/app-opens
+ *
+ * The client reports that the user opened the app (a launch, a login, or a return from the
+ * background). The first `APP_OPEN_XP_DAILY_LIMIT` of a UTC day each earn
+ * `LeaderboardXpValues.appOpen` on the current weekly board; the rest earn nothing. The cap is
+ * enforced here, never trusted to the client. Answers 200 either way — an open past the cap is
+ * not an error, just unpaid.
+ */
+const recordAppOpen: RequestHandler = async (req: any, res: any) => {
+    const { userId } = parseHeaders(req.headers);
+    const { brandVariation } = getBrandContext(req.headers);
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
+    const utcDate = new Date().toISOString().split('T')[0];
+    const isClaimed = await tryClaimAppOpenXp(brandVariation, userId, utcDate, APP_OPEN_XP_DAILY_LIMIT);
+    if (isClaimed) {
+        // Never throws: a failed award is logged inside.
+        await awardLeaderboardPoints(req.headers, LeaderboardXpValues.appOpen, `app-open:${utcDate}`);
+    }
+
+    return res.status(200).send({
+        xpAwarded: isClaimed ? LeaderboardXpValues.appOpen : 0,
+    });
+};
+
 export {
     getLeaderboard,
     acknowledgeLeaderboardPeriod,
+    recordAppOpen,
 };

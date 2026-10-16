@@ -54,6 +54,7 @@ const buildPoisonedRow = () => ({
         toUserId: PAYLOAD_USER_ID,
         brandVariation: BrandVariations.THERR,
         type: 'some-other-type',
+        notificationQueueId: 'dddddddd-0000-4000-8000-000000000004',
     },
     status: 'failed' as const,
     scheduledFor: new Date(),
@@ -139,6 +140,23 @@ describe('notificationQueueWorker — queue row overrides payload', () => {
         const { data } = internalRestRequest.firstCall.args[1];
         expect(data.type).to.equal('streak-at-risk');
         expect(data.toUserDeviceToken).to.equal('habits-device-token');
+    });
+
+    it('names the token\'s owner, so push-notifications-service can clear it if FCM rejects it', async () => {
+        // `x-userid` on this request is the sender, and a queued reminder has none. Without
+        // `toUserId` a dead token was never cleared and failed every send, every day.
+        await runNotificationQueueTick();
+
+        const { data } = internalRestRequest.firstCall.args[1];
+        expect(data.toUserId).to.equal(ROW_USER_ID);
+    });
+
+    it('forwards the row id as notificationQueueId, so a tap is recorded against this row', async () => {
+        // A payload-supplied id would let one row's tap stamp another row's openedAt.
+        await runNotificationQueueTick();
+
+        const { data } = internalRestRequest.firstCall.args[1];
+        expect(data.notificationQueueId).to.equal('cccccccc-0000-4000-8000-000000000003');
     });
 
     it('still forwards the payload fields that are only decoration', async () => {

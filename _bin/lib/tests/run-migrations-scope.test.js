@@ -112,6 +112,40 @@ const scope = (snippet, env) => run(
     );
 }
 
+// --- What an out-of-scope service is reported as ---------------------------------------------
+
+{
+    // On 2026-10-13 a healthy deploy printed "maps-service did not reach its intended version"
+    // for three services that were simply up to date — the same warning that was the only sign
+    // of the 2026-10-08..12 outage. Only a service the plan meant to move earns it.
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'run-migrations-plan-'));
+    const plan = path.join(dir, 'plan.tsv');
+    fs.writeFileSync(plan, [
+        'maps-service\tabc\tabc\tup-to-date',
+        'users-service\tabc\tdef\tdeploy',
+    ].join('\n'));
+
+    try {
+        const report = (key) => run(`report_out_of_scope '${key}'`, { DEPLOY_PLAN_FILE: plan });
+
+        const upToDate = report('maps-service');
+        assert.ok(upToDate.includes('was not deployed in this run (up-to-date)'), `Got:\n${upToDate}`);
+        assert.ok(!upToDate.includes('did not reach'), `An up-to-date service must not be warned about. Got:\n${upToDate}`);
+
+        assert.ok(
+            report('users-service').includes('did not reach its intended version'),
+            'A service the plan meant to deploy, left out of scope, must still be warned about.',
+        );
+
+        assert.ok(
+            report('messages-service').includes('did not reach its intended version'),
+            'With no plan row to say why, the warning must stay.',
+        );
+    } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+    }
+}
+
 // --- The registry predicate deploy.sh filters on -----------------------------------------------
 
 {

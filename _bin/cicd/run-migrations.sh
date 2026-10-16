@@ -180,6 +180,27 @@ service_in_scope()
   return 1
 }
 
+# Says why an out-of-scope service is not being migrated. deploy.sh only ever names
+# services with a `deploy` verdict, so most out-of-scope services were simply up to
+# date. Warning about every one of them ("did not reach its intended version") fired
+# on every healthy deploy, and it is the same line that was the only signal of the
+# 2026-10-08..12 outage — noise there teaches people to read past it. The warning is
+# kept for a service the plan meant to move, and for one with no plan row to ask.
+report_out_of_scope()
+{
+  local KEY=$1
+  local ROW PREVIOUS DESIRED VERDICT
+  ROW="$(plan_row_for "$KEY")"
+  IFS='|' read -r PREVIOUS DESIRED VERDICT <<< "$ROW"
+
+  if [ -n "$VERDICT" ] && [ "$VERDICT" != "deploy" ]; then
+    printMessageNeutral "$KEY was not deployed in this run ($VERDICT) — nothing to migrate."
+    return 0
+  fi
+
+  printMessageWarning "$KEY did not reach its intended version in this deploy — not migrating underneath it."
+}
+
 # Echoes the name of a running pod for a service, or nothing.
 pod_for()
 {
@@ -262,12 +283,32 @@ pending_migration_count()
     | tail -n 1
 }
 
+# Whether a pod is Ready, i.e. in Service rotation and answering real traffic.
+pod_is_ready()
+{
+  local READY
+
+  READY="$(kubectl get pod "$1" -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || true)"
+  [ "$READY" = "True" ]
+}
+
 # Asserts that no migratable service is running code whose migrations are unapplied.
 #
 # Independent of the deploy plan on purpose. The plan answers "did *this* deploy add
 # migrations"; this answers "is the schema caught up with what is running right now",
 # which is the question the 2026-09-20 outage turned on — the migrations that were
 # missing had been added by a deploy that had already reported done.
+#
+# With HEAL_PENDING=true (the deploy step), a Ready pod that reports pending migrations
+# has them applied in place instead of only being reported. The count comes from the
+# pod's own code, so a positive count from a Ready pod means the code that needs those
+# migrations is already serving traffic: service_in_scope's "don't migrate underneath
+# code that never moved" cannot apply, and leaving the schema behind *is* the outage.
+# That is what happened 2026-10-08..12: users-service finished rolling after its
+# deploy's deadline, three later runs printed "running code with 2 unapplied
+# migration(s)" and skipped it as out of scope, and no new Friends with Habits user
+# could start a habit for four days. A pod that is Running but not Ready is still only
+# reported — it may be a replacement that never came up.
 #
 # Echoes the services still outstanding. Returns non-zero if any could not be checked.
 verify_no_pending_migrations()
@@ -302,6 +343,27 @@ verify_no_pending_migrations()
       printMessageError "Could not read pending migrations for $KEY (does knex still print 'Found N Pending Migration' / 'No Pending Migration files Found'?)."
       UNCHECKED=1
       continue
+    fi
+
+    if [ "$COUNT" -gt 0 ] && [ "${HEAL_PENDING:-false}" = "true" ] && pod_is_ready "$POD"; then
+      printMessageWarning "$KEY is serving code with $COUNT unapplied migration(s) — applying them in $POD."
+      if kubectl exec "$POD" -c "$COMPONENT" -- npm run migrations:run; then
+        COUNT="$(pending_migration_count "$POD" "$COMPONENT")"
+      else
+        printMessageError "Applying $KEY's pending migrations failed."
+      fi
+
+      if [ "$COUNT" = "0" ]; then
+        printMessageSuccess "$KEY: schema caught up with the code it is serving."
+        HEALED_SERVICES+=("$KEY")
+        continue
+      fi
+
+      if [ -z "$COUNT" ] || [ "$COUNT" = "unsupported" ]; then
+        printMessageError "Could not re-read pending migrations for $KEY after applying them."
+        UNCHECKED=1
+        continue
+      fi
     fi
 
     if [ "$COUNT" -gt 0 ]; then
@@ -369,6 +431,13 @@ main()
   local KEYS="${SELECTED:-$THERR_MIGRATABLE_SERVICES}"
   local FAILED=()
   PENDING_SERVICES=()
+  HEALED_SERVICES=()
+
+  # Only the deploy step heals: --verify-only promises to apply nothing, and --service /
+  # --all have just run migrate:latest on what they were asked to.
+  if [ "$STANDALONE" != "true" ]; then
+    HEAL_PENDING=true
+  fi
 
   if [ "$VERIFY_ONLY" != "true" ]; then
     printMessageNeutral "Starting automated database migrations..."
@@ -377,7 +446,7 @@ main()
     for KEY in $KEYS; do
       if [ "$STANDALONE" != "true" ]; then
         if ! service_in_scope "$KEY"; then
-          printMessageWarning "$KEY did not reach its intended version in this deploy — not migrating underneath it."
+          report_out_of_scope "$KEY"
           continue
         fi
 
@@ -401,6 +470,12 @@ main()
   printMessageNeutral "Verifying every service's schema is caught up with the code it is running..."
   local VERIFY_INCOMPLETE=false
   verify_no_pending_migrations || VERIFY_INCOMPLETE=true
+
+  if [ ${#HEALED_SERVICES[@]} -gt 0 ]; then
+    # Loud on purpose: a heal means some earlier step left a service serving code ahead of
+    # its schema, which is worth finding out why even though it is now fixed.
+    printMessageWarning "Applied migrations that serving code was missing: ${HEALED_SERVICES[*]}"
+  fi
 
   if [ ${#PENDING_SERVICES[@]} -gt 0 ]; then
     printMessageError "These services are running code ahead of their schema:"
