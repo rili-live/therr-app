@@ -210,7 +210,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                 roomName: resolvedTitle,
                 userId: user.details.id,
                 userName: user.details.userName,
-                userImgSrc: getUserImageUri(user.details, 100),
+                userImgSrc: getUserImageUri(user, 100),
             });
         }).catch((err) => {
             console.log(err);
@@ -353,7 +353,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                 message: msgInputVal,
                 userId: user.details.id,
                 userName: user.details.userName,
-                userImgSrc: getUserImageUri(user.details, 100),
+                userImgSrc: getUserImageUri(user, 100),
             });
 
             this.setState({
