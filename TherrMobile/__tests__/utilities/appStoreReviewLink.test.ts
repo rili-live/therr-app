@@ -1,7 +1,7 @@
 // Note: import explicitly to use the types shipped with jest.
 import { it, describe, expect } from '@jest/globals';
 
-import { getStoreReviewLinks } from '../../main/utilities/appStoreReviewLink';
+import { getStoreListingLinks, getStoreReviewLinks } from '../../main/utilities/appStoreReviewLink';
 import { CURRENT_BRAND_VARIATION } from '../../main/config/brandConfig';
 
 /**
@@ -42,5 +42,21 @@ describe('getStoreReviewLinks', () => {
         const { primary } = getStoreReviewLinks('android');
 
         expect(primary).toContain(CURRENT_BRAND_VARIATION === 'habits' ? 'com.therr.habits' : 'app.therrmobile');
+    });
+});
+
+describe('getStoreListingLinks', () => {
+    it('opens the plain listing, not the review composer, so the Update button is on screen', () => {
+        const ios = getStoreListingLinks('ios');
+
+        expect(ios.primary).toMatch(/^itms-apps:\/\/itunes\.apple\.com\/app\/id\d+$/);
+        expect(ios.fallback).toMatch(/^https:\/\/apps\.apple\.com\/app\/id\d+$/);
+    });
+
+    it('links the Play listing of the brand this binary was built as', () => {
+        const { primary, fallback } = getStoreListingLinks('android');
+
+        expect(primary).toBe(getStoreReviewLinks('android').primary);
+        expect(fallback).toContain(CURRENT_BRAND_VARIATION === 'habits' ? 'com.therr.habits' : 'app.therrmobile');
     });
 });
