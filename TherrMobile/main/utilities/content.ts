@@ -37,7 +37,12 @@ const getUserImageUri = (user, size = screenWidth) => {
         return `${BASE_ENDPOINT}${user.details.media.profilePicture.path}?tr=h-${size},w-${size},f-auto,q-90`;
     }
 
-    return `https://robohash.org/${user.details?.id}?set=set5&size=${size}x${size}`;
+    // Robohash derives the avatar from the path segment, so a missing id renders the same
+    // `robohash.org/undefined` image for every user. Callers that hold a row keyed by `userId`
+    // (leaderboards, pact members) must map it to `id`; this fallback covers the ones that don't.
+    const robohashSeed = user.details?.id || user.details?.userId || user.details?.userName;
+
+    return `https://robohash.org/${robohashSeed}?set=set5&size=${size}x${size}`;
 };
 
 const signImageUrl = (isPublic: boolean, {

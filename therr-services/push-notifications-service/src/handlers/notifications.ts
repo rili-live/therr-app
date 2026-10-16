@@ -30,6 +30,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         toUserId,
         thought,
         type,
+        // The queue row this send came from, echoed back by the device on tap.
+        notificationQueueId,
 
         // optional
         area,
@@ -115,6 +117,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             deviceToken: toUserDeviceToken,
             userId: headers.userId,
             toUserId: typeof toUserId === 'string' ? toUserId : undefined,
+            notificationQueueId: typeof notificationQueueId === 'string' ? notificationQueueId : undefined,
             userLocale: headers.locale,
             fromUserName: fromUserName || fromUser?.userName,
             achievementsCount,

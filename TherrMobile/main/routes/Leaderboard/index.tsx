@@ -161,7 +161,7 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
                 title={`${item.firstName?.substring(0, 1) || ''}${item.lastName?.substring(0, 1) || ''}`}
                 rounded
                 source={{
-                    uri: getUserImageUri({ details: item }, 100),
+                    uri: getUserImageUri({ details: { id: item.userId, media: item.media } }, 100),
                 }}
                 size="small"
             />

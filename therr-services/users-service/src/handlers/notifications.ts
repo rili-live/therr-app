@@ -170,9 +170,42 @@ const updateNotification = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
 };
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const MAX_OPEN_ACTION_LENGTH = 100;
+
+// Push open tracking. The device reports a tap on a queued push by echoing the
+// `notificationQueueId` it carried; see docs/NOTIFICATION_QUEUE_DESIGN.md → "Open tracking".
+//
+// Always 204 for a well-formed request, recorded or not. The id comes from the device, and
+// answering 404 for an id that is not the caller's would be an oracle for ids that exist. A
+// repeat tap, a second listener reporting the same tap, and a row already pruned by
+// retention are all the same non-event.
+const recordPushOpen = (req, res) => {
+    const { userId } = parseHeaders(req.headers);
+    const { brandVariation } = getBrandContext(req.headers);
+    const { notificationQueueId, pressActionId } = req.body || {};
+
+    if (!userId || typeof notificationQueueId !== 'string' || !UUID_PATTERN.test(notificationQueueId)) {
+        return handleHttpError({
+            res,
+            message: 'A valid notificationQueueId is required.',
+            statusCode: 400,
+        });
+    }
+
+    const openAction = typeof pressActionId === 'string' && pressActionId.length
+        ? pressActionId.slice(0, MAX_OPEN_ACTION_LENGTH)
+        : null;
+
+    return Store.notificationQueue.markOpened(brandVariation, userId as string, notificationQueueId, openAction)
+        .then(() => res.status(204).send())
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
+};
+
 export {
     createNotification,
     getNotification,
+    recordPushOpen,
     searchNotifications,
     updateNotification,
 };
