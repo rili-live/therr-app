@@ -51,6 +51,7 @@ describe('unauthenticatedPaths', () => {
     describe('genuinely public routes still skip auth', () => {
         const cases: Array<[string, string]> = [
             ['/healthcheck', 'GET'],
+            ['/v1/users-service/app-version/policy', 'GET'],
             ['/v1/users-service/auth', 'POST'],
             ['/v1/users-service/users', 'POST'],
             ['/v1/users-service/auth/token/refresh', 'POST'],
