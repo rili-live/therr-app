@@ -89,6 +89,7 @@ import {
 } from '../utilities/appUpdatePrompt';
 import { openSupportEmail } from '../utilities/supportContact';
 import { reportPushOpen } from '../utilities/pushOpenTracking';
+import { getIntentNavigation } from '../utilities/intentNavigation';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
@@ -1203,13 +1204,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             }
         }
 
-        if (isNotAuthorized) {
+        // The launch intent (android.intent.action.MAIN) also arrives here and routes nowhere;
+        // see getIntentNavigation for why that must not push a signed-out user onto Login.
+        const intentNavigation = getIntentNavigation(isNotAuthorized, targetRouteView);
+        if (intentNavigation === 'login') {
             this.setState({
                 targetRouteView,
                 targetRouteParams,
             });
             RootNavigation.navigate('Login');
-        } else if (targetRouteView) {
+        } else if (intentNavigation === 'target') {
             RootNavigation.navigate(targetRouteView, targetRouteParams);
         }
     };
@@ -2285,8 +2289,18 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
                     ref={navigationRef}
                     onReady={() => {
-                        this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
+                        const initialRouteName = navigationRef?.getCurrentRoute()?.name;
+                        this.routeNameRef.current = initialRouteName;
                         this.lastNavigationState = navigationRef?.getRootState();
+                        // onStateChange only fires on a change, so without this the screen a user
+                        // first sees is never logged by name and reads as "(not set)" in GA4.
+                        if (initialRouteName) {
+                            logScreenView(getAnalytics(), {
+                                screen_name: initialRouteName,
+                                screen_class: initialRouteName,
+                                is_authenticated: this.isUserAuthenticated() ? 'yes' : 'no',
+                            }).catch((err) => console.log(err));
+                        }
                         Promise.allSettled(preLoadImageList.map((image) => {
                             const img = Image.resolveAssetSource(image).uri;
                             return Image.prefetch(img);
