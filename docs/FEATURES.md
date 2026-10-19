@@ -134,6 +134,7 @@
 - **Animated onboarding** — landing page with background carousel
 - **Android app shortcuts** — long-press the launcher icon for quick links straight into Create Moment / Create Thought
 - **App review prompt** — after several delight moments (a posted moment, a claimed reward) and a few days of use, asks whether the user is enjoying the app; "yes" links to that brand's store listing to write a review, "not really" opens a support email instead. Rate-limited and one-way: opting out or reviewing is permanent per install
+- **App update prompt** — on launch and on return to the foreground (at most every 6 hours), asks `GET /v1/users-service/app-version/policy` whether this build is behind, using the `x-app-version` / `x-app-os` headers every request now carries. Below the recommended version: a dismissible nudge, shown once per recommended version. Below the minimum: a blocking dialog whose only action opens that brand's store listing. Driven by `main.config` rows `appVersion.<brand>.<android|ios>.{minimum,recommended}` — no rows, no prompt. Builds older than the header never call it, so they still cannot be forced
 
 ---
 
