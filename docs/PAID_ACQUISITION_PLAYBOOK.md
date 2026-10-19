@@ -100,6 +100,16 @@ The web arm's three ad groups are a hypothesis in testable form:
 Whichever produces payers *is* the market. The others are pivot evidence. The
 search-terms report is where the unanticipated third answer shows up.
 
+### The adjacency arm
+
+A third spec, `campaigns/habits-web-adjacent.yaml` (PAUSED, $5/day), bids on intents
+next to things people already think are cool: 30/90-day challenges, streaks, the
+habits-book audience, step and zone 2 challenges. It does not bid on the category.
+It carries its own copy and `utm_campaign`, so it is read against the category campaign
+above on cost per activated user. Strategy and rules: [`ADJACENCY_MARKETING.md`](ADJACENCY_MARKETING.md).
+Start it only after the category arm has a readable result, so the two are not learning
+at the same time on one small budget.
+
 ---
 
 ## Thresholds
