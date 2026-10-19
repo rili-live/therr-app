@@ -2722,6 +2722,38 @@
                 "laundry": {
                     "name": "Laundry day",
                     "description": "Wash, dry, fold and put away"
+                },
+                "steps10k": {
+                    "name": "Hit 10,000 steps",
+                    "description": "Get your steps in, however you walk them"
+                },
+                "zone2Cardio": {
+                    "name": "Zone 2 cardio",
+                    "description": "30+ minutes at an easy pace you could hold a conversation at"
+                },
+                "coldShower": {
+                    "name": "Cold shower",
+                    "description": "Finish your shower with at least 30 seconds of cold"
+                },
+                "proteinGoal": {
+                    "name": "Hit your protein goal",
+                    "description": "Reach the daily protein target you set for yourself"
+                },
+                "noAddedSugar": {
+                    "name": "No added sugar",
+                    "description": "A day without sweets, soda or sugary snacks"
+                },
+                "soberCurious": {
+                    "name": "Sober-curious month",
+                    "description": "An alcohol-free day — pair it with a 30-day pact"
+                },
+                "morningSunlight": {
+                    "name": "Morning sunlight",
+                    "description": "10 minutes of daylight soon after you wake up"
+                },
+                "twoMinuteStart": {
+                    "name": "Two-minute start",
+                    "description": "Do just the first two minutes — showing up is the habit"
                 }
             },
             "status": {

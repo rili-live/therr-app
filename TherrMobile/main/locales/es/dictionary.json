@@ -2722,6 +2722,38 @@
                 "laundry": {
                     "name": "Día de lavandería",
                     "description": "Lava, seca, dobla y guarda"
+                },
+                "steps10k": {
+                    "name": "Llegar a 10.000 pasos",
+                    "description": "Completa tus pasos, como prefieras caminarlos"
+                },
+                "zone2Cardio": {
+                    "name": "Cardio en zona 2",
+                    "description": "30+ minutos a un ritmo suave en el que podrías conversar"
+                },
+                "coldShower": {
+                    "name": "Ducha fría",
+                    "description": "Termina tu ducha con al menos 30 segundos de agua fría"
+                },
+                "proteinGoal": {
+                    "name": "Cumplir tu meta de proteína",
+                    "description": "Alcanza la meta diaria de proteína que te pusiste"
+                },
+                "noAddedSugar": {
+                    "name": "Sin azúcar añadido",
+                    "description": "Un día sin dulces, refrescos ni snacks azucarados"
+                },
+                "soberCurious": {
+                    "name": "Mes sin alcohol",
+                    "description": "Un día sin alcohol — combínalo con un pacto de 30 días"
+                },
+                "morningSunlight": {
+                    "name": "Luz solar por la mañana",
+                    "description": "10 minutos de luz natural poco después de despertar"
+                },
+                "twoMinuteStart": {
+                    "name": "Empezar con dos minutos",
+                    "description": "Haz solo los primeros dos minutos — presentarte es el hábito"
                 }
             },
             "status": {
