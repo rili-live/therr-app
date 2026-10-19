@@ -149,6 +149,79 @@ describe('habits attribution capture', () => {
         });
     });
 
+    describe('store links carry the session attribution into the app', () => {
+        // Regression: visitors leave habits.therr.com through the store button,
+        // not /register (16 store clicks to 1 register_start in the 30 days to
+        // 18 Oct 2026). A bare store link dropped their UTMs at Play, so every
+        // web-driven install read as google-play / organic.
+        const STORE = 'https://play.google.com/store/apps/details?id=com.therr.habits';
+
+        const storeLinkScript = (): string => {
+            const blocks = fs.readFileSync(ATTRIBUTION_PARTIAL, 'utf8').match(/<script>([\s\S]*?)<\/script>/g) || [];
+
+            if (blocks.length < 2) throw new Error('habitsAttribution.hbs no longer contains the store-link <script> block');
+
+            return blocks[1].replace(/<\/?script>/g, '');
+        };
+
+        /** The referrer Play would hand the app, decoded the way installReferrer.ts reads it. */
+        const referrerFor = (stored: Record<string, string> | null, href = STORE): URLSearchParams | null => {
+            window.sessionStorage.clear();
+            if (stored) window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+            document.body.innerHTML = `<a id="store" href="${href}">Get it</a>`;
+            // eslint-disable-next-line no-new-func
+            new Function(storeLinkScript())();
+
+            const decorated = new URL((document.getElementById('store') as HTMLAnchorElement).href);
+            const referrer = decorated.searchParams.get('referrer');
+
+            return referrer === null ? null : new URLSearchParams(referrer);
+        };
+
+        it('passes a paid click\'s UTMs through unchanged', () => {
+            const referrer = referrerFor({
+                utmSource: 'google', utmMedium: 'cpc', utmCampaign: 'fwh-web-us-search-2026q3', utmTerm: 'habit app', surface: 'habits',
+            });
+
+            expect(referrer?.get('utm_source')).toBe('google');
+            expect(referrer?.get('utm_medium')).toBe('cpc');
+            expect(referrer?.get('utm_campaign')).toBe('fwh-web-us-search-2026q3');
+            expect(referrer?.get('utm_term')).toBe('habit app');
+        });
+
+        it('keeps the app id as the first query parameter', () => {
+            referrerFor({ utmCampaign: 'x', surface: 'habits' });
+
+            expect((document.getElementById('store') as HTMLAnchorElement).getAttribute('href'))
+                .toMatch(/^https:\/\/play\.google\.com\/store\/apps\/details\?id=com\.therr\.habits&referrer=/);
+        });
+
+        it('marks an untagged visit as web-driven, never as Play\'s organic placeholder', () => {
+            // installReferrer.ts discards google-play / organic, so this must differ from it.
+            const referrer = referrerFor({ surface: 'habits', landingPath: '/' });
+
+            expect(referrer?.get('utm_source')).toBe('habits.therr.com');
+            expect(referrer?.get('utm_medium')).toBe('referral');
+        });
+
+        it('names the external referring host for an untagged visit', () => {
+            const referrer = referrerFor({ surface: 'habits', referrer: 'https://www.reddit.com/r/getdisciplined/comments/1' });
+
+            expect(referrer?.get('utm_content')).toBe('reddit.com');
+        });
+
+        it('still decorates when there is no stored record at all', () => {
+            expect(referrerFor(null)?.get('utm_source')).toBe('habits.therr.com');
+        });
+
+        it('leaves other apps\' store links and already-decorated links alone', () => {
+            expect(referrerFor({ surface: 'habits' }, 'https://play.google.com/store/apps/details?id=com.therr.mobile.Therr'))
+                .toBeNull();
+            expect(referrerFor({ utmCampaign: 'x', surface: 'habits' }, `${STORE}&referrer=utm_source%3Dkept`)?.get('utm_source'))
+                .toBe('kept');
+        });
+    });
+
     describe('parity with therr-react/utilities/attribution.ts', () => {
         // The server sanitizer drops unknown keys silently, so a field renamed on
         // one side and not the other does not error — it just stops being
