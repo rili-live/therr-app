@@ -80,12 +80,15 @@ click (utm_campaign)
 That chain is what `./therrads report product` walks. It is the only place the
 PRODUCT and MODEL questions can be answered.
 
-**Closing the gap on the app arm** requires the Play Install Referrer API in
-`TherrMobile` — read the referrer on first launch, parse the UTMs, include them
-in the registration payload's `userAcquisition` object. The server side already
-exists and needs no change. This is the highest-value measurement work
-outstanding; it is tracked in WORK_IN_PROGRESS.md and belongs on
-`niche/HABITS-general`.
+**Closing the gap on the app arm.** `TherrMobile/main/utilities/installReferrer.ts`
+(shipped on `niche/HABITS-main`) reads the Play Install Referrer on first launch
+and sends its UTMs in the registration's `userAcquisition`. Since 2026-10-19
+every habits.therr.com store link also carries the session's first-touch UTMs
+in its `referrer` parameter (`views/partials/habitsAttribution.hbs`), so a
+visitor who leaves through the store button instead of `/register` stays
+attributed. Visitors mostly do: in the 30 days to 18 Oct, 16 store clicks
+against 1 `register_start` and 0 `sign_up`. An untagged visit arrives as
+`habits.therr.com / referral`, with the referring host in `utm_content`.
 
 ### The market-targeting experiment
 
@@ -197,6 +200,7 @@ human or agent — able to pick up without re-deriving the reasoning.
 
 | Date | Decision | Evidence | Consequence |
 |---|---|---|---|
+| 2026-10-19 | **App arm ends on schedule — CHANNEL is Red; not re-funded.** `FwH-App-US-Installs-2026Q3` stops at its 10-19 end date. Web Search arm stays PAUSED. | ~$94 spent, 12 first opens (Ads). US-only after the PRESENCE switch: $70.04 for 6, **$11.67 per install**. GA4's more generous count, 11 US paid opens on $84.55, is **$7.70**. Both are over the $5.00 red line, and more spend wouldn't plausibly bring that under $3. Paid US cohort: 11 opens, 3 profile starts (27%, organic 61%), 2 sign-ups, 2 pacts, 2 invites, 1 check-in, 0 purchases. That's ~$42 per pact creator against a $17 lifetime ceiling. Total weekly first opens stayed at 45/45/40 while uncredited installs fell 45, 37, 26, so the paid installs may not be incremental. Video drove 6 of 12 installs; the image frames barely served; Display took $24 in the last two days for 1 install. On the web, habits.therr.com had 0 `sign_up` in 30 days, so a campaign bidding on `sign_up` would be bidding on an event that has never fired. | Use the stop as a holdout: if total habits first opens stay at ~40/week over 10-20..11-02, paid was mostly not incremental. Store links now carry a referrer (above), so a web arm can be attributed through the store hop. Next spend, if any, is the coach waitlist test (recurring price, the only test that bears on the $17 ceiling), after `coach_waitlist_submit` is imported. `therrads analyze` is stale: it treats `phone_verify_success` as a funnel step (the phone stage left Habits onboarding in `e1fe98daf`) and issues a PRODUCT verdict below `min_conversions_for_verdict`. Don't `--write-work-items` until it's fixed. |
 | 2026-10-12 | **Day-3 read: half the spend left the US; switch to PRESENCE.** No other edits. | $29.45 spent through 10-11 on pace. The campaign ran on Google's default *presence or interest* location mode: US $14.04, Nigeria $10.26, South Africa $4.73; GA4 puts 6 of 9 paid first opens outside the US. Ads' $2.07 cost/conv counted a catch-all "Android installs (all other apps)" action (7 on day one); the app's own first opens give **$4.49 per install** (6 in 10-09..11), US-only ~$4.70. Paid cohort: 9 opens → 3 profile starts → 0 sign-ups, pacts or check-ins; 3 uninstalls. Display took 93% of clicks; YouTube spent $7.08 for no installs. | `therrads` now creates campaigns with PRESENCE, has `campaign location-mode` to fix this one, and `report ads` counts only the app's own first-open as an install. Learning restarts on the switch, so the read moves to 2026-10-20 over the 10-13..10-19 week. The early non-US cohort is not evidence about US users either way. |
 | 2026-10-09 | **App arm live — a $90 test.** Resumed `FwH-App-US-Installs-2026Q3` at $9/day with a hard end date of 2026-10-19, target CPI $2.50 unchanged; 9 image frames + the 14s video attached, the coach Short held back. | Budget capped at $100 by the founder. At $2.50–$5 CPI that buys ~20–40 installs: enough to read CHANNEL (what an install costs), likely short of `min_conversions_for_verdict` (30) for PRODUCT. $9/day is ~1/14 of the 50x-target-CPA guidance, so slow early delivery is expected. Ad APPROVED; campaign SERVING, in learning. | No edits until 2026-10-17 (day 8): then `analyze --days 7` and check the install-referrer join. If delivery is near zero by ~2026-10-12, raise `target_cpa`, not the budget. Next spend decision waits on that read. |
 | 2026-10-09 | **App arm created, PAUSED.** `FwH-App-US-Installs-2026Q3` (id `24331885080`) applied at $20/day, target CPI $2.50, US + English, copy unchanged after an `/ad-creative` audit. Legacy Therr campaigns in the account confirmed PAUSED. | Live GAQL: habits `First open` ENABLED + primary and `phone_verify_success` secondary, so the app arm has a goal to optimise on; property `549794383` is Ads-linked with web `sign_up` ENABLED + primary, which unblocks the web arm too. The 2026-09-14 gating list is done apart from the remaining `habit_*` key events (run 2 only). | Resume waits only on attaching the 9 image frames and 2 YouTube videos in the Ads UI. Start date is logged here on resume; day 8 is `analyze --days 7`, then the web arm. |
