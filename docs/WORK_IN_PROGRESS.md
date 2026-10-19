@@ -108,12 +108,12 @@ append new items here rather than only printing them once.
 - [ ] **Before applying `habits-web-adjacent.yaml`, wait for a readable result from the
   category web arm**, then `./therrads campaign apply campaigns/habits-web-adjacent.yaml
   --confirm` (creates it PAUSED) and resume it. Both need an explicit go-ahead, because they spend money.
-- [ ] **Mobile (`niche/HABITS-general`): add `pages.pacts.templates.<key>` translations** for
-  `steps10k`, `zone2Cardio`, `coldShower`, `proteinGoal`, `noAddedSugar`, `soberCurious`,
-  `morningSunlight`, `twoMinuteStart` in `es` and `fr-ca`. Until then those users see the
-  stored English names.
-- [ ] **Play listing (`niche/HABITS-general`, `/aso-listing`):** test the "bring the challenge
-  you're already doing" angle in the short description and first screenshot.
+- [ ] **Merge #3114 into `niche/HABITS-general`**: mobile `pages.pacts.templates.<key>` strings for the
+  eight templates. Until it ships in a release, es and fr-ca users see the stored English names. Its es/fr
+  copy is machine-written, so have a fluent speaker check it first.
+- [ ] **After this PR deploys, paste #3114's Play full description into Play Console** (Store presence → Main
+  store listing, en-US / es-419 / fr-CA) and record the publish date here. Title and short description are
+  unchanged. Measure with `play_acquisition` listing conversion over the 28 days before vs after.
 
 ## Push open tracking (added 2026-10-16)
 
