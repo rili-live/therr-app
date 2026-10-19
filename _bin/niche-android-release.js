@@ -13,7 +13,7 @@
 //   merge [--dry-run]        merge niche/<TAG>-general into niche/<TAG>-main and push it
 //   watch <merge-sha>        poll CI + EAS until it is clear who uploads this versionCode
 //         [--prefer-local]   ...cancelling CI's EAS build so this machine uploads it instead
-//   build <merge-sha>        rebuild shared libs, bundleRelease, verify package/version/key
+//   build <merge-sha>        brand's Firebase config, npm install, shared libs, bundleRelease, verify package/version/key
 //   submit <merge-sha>       eas submit the local AAB, then push the ledger tag
 //
 // Common flags: --tag <TAG> (default: from the current niche/<TAG>-* branch), --json.
@@ -448,9 +448,21 @@ const runBuild = async (app, shaArg) => {
             + `check out ${app.generalBranch} at origin's tip and stash local changes, so the build is the release`);
     }
 
+    // A local build inherits whatever the last one left on disk. Coming off a Therr build, the
+    // Firebase config is Therr's. The per-brand vault is the source of truth — the same copy
+    // ./_bin/switch-brand.sh makes — so take it from there rather than stopping.
     const gsj = path.join(MOBILE, 'android/app/google-services.json');
-    if (!fs.existsSync(gsj) || !fs.readFileSync(gsj, 'utf8').includes(`"${app.applicationId}"`)) {
-        throw new Blocked(`TherrMobile/android/app/google-services.json is missing or has no client for ${app.applicationId}`);
+    const vaultGsj = path.join(REPO, '_bin/firebase', app.brand, 'google-services.json');
+    const hasClient = (file) => fs.existsSync(file) && fs.readFileSync(file, 'utf8').includes(`"${app.applicationId}"`);
+    if (!hasClient(gsj) && hasClient(vaultGsj)) {
+        fs.copyFileSync(vaultGsj, gsj);
+        // Gradle caches the resources it derived from the old file; make it re-derive them.
+        fs.rmSync(path.join(MOBILE, 'android/app/build/generated/res/google-services'), { recursive: true, force: true });
+        log(`  copied _bin/firebase/${app.brand}/google-services.json — the one on disk had no client for ${app.applicationId}`);
+    }
+    if (!hasClient(gsj)) {
+        throw new Blocked(`TherrMobile/android/app/google-services.json is missing or has no client for ${app.applicationId}, `
+            + `and _bin/firebase/${app.brand}/google-services.json can't supply one`);
     }
     const dotenv = readProps(path.join(MOBILE, '.env'));
     if (!dotenv.GOOGLE_APIS_ANDROID_KEY) throw new Blocked('TherrMobile/.env has no GOOGLE_APIS_ANDROID_KEY (react-native-dotenv fails the bundle without it)');
@@ -466,6 +478,15 @@ const runBuild = async (app, shaArg) => {
     log(`Building ${app.displayName} ${expected.versionName} (${expected.versionCode}) from ${sha.slice(0, 9)} — log: ${logFile}`);
     const started = Date.now();
     const env = { ...process.env, ...dotenv };
+
+    // node_modules is only as current as the last install, which may have been for another
+    // brand's branch. A package in the lockfile but not on disk fails deep inside Gradle
+    // ("Configuring project ':react-native-nitro-modules' without an existing directory").
+    await runStep('npm install (TherrMobile)', 'npm', ['install', '--legacy-peer-deps'], MOBILE, env, logFile);
+    if (spawnSync('git', ['diff', '--quiet', sha, '--', 'TherrMobile/package-lock.json'], { cwd: REPO }).status !== 0) {
+        throw new Blocked(`npm install rewrote TherrMobile/package-lock.json, so the build would no longer be ${sha.slice(0, 9)} — `
+            + 'inspect the diff, restore the file, and fix the lockfile on the branch');
+    }
 
     // Metro bundles the compiled lib/ output, which is gitignored and only as fresh as the
     // last local build. EAS rebuilds it in eas-build-pre-install.sh; a local build must too.
