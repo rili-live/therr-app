@@ -47,6 +47,23 @@
     "eyebrow": "What it is",
     "madeByHtml": "It is free, made by <a href=\"https://www.therr.app/\" rel=\"noopener\">Therr, Inc.</a>, and out now on Android through Google Play while an iOS version is in the works."
   },
+  "popular": {
+    "eyebrow": "Popular pacts",
+    "heading": "Bring the challenge you're already doing.",
+    "intro": "Step goals, zone 2, cold showers, the two-minute rule. The habits everyone is talking about are better with someone on the other end. Pick one, invite the friend who's doing it too, and run it for 7 to 90 days.",
+    "pactsAriaLabel": "Ready-made pacts you can start today",
+    "pacts": {
+      "steps10k": "👟 Hit 10,000 steps",
+      "zone2Cardio": "🚴 Zone 2 cardio",
+      "coldShower": "🧊 Cold shower",
+      "morningSunlight": "🌅 Morning sunlight",
+      "proteinGoal": "🍳 Hit your protein goal",
+      "noAddedSugar": "🍬 No added sugar",
+      "soberCurious": "🫧 Sober-curious month",
+      "twoMinuteStart": "⏱️ Two-minute start"
+    },
+    "note": "All of these are ready-made in the app, alongside 40 more. Or write your own."
+  },
   "steps": {
     "eyebrow": "How it works",
     "heading": "Three steps. Two people. One streak.",

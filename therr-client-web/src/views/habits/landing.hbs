@@ -652,6 +652,33 @@
         }
         section.definition p:last-child { margin-bottom: 0; }
 
+        section.popular { padding-top: 1rem; }
+        .pact-chips {
+            list-style: none;
+            padding: 0;
+            margin: 0 auto;
+            max-width: 760px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.625rem;
+        }
+        .pact-chips li {
+            background: var(--fwh-white);
+            border: 1px solid var(--fwh-border);
+            border-radius: 999px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--fwh-plum);
+        }
+        .pact-chips__note {
+            margin: 1.5rem auto 0;
+            text-align: center;
+            color: var(--fwh-text-muted);
+            font-size: 0.9375rem;
+        }
+
         .step-list {
             list-style: none;
             padding: 0;
@@ -1292,6 +1319,30 @@
                     <p>{{{t.faq.whatIs.answer}}}</p>
                     <p>{{{t.definition.madeByHtml}}}</p>
                 </div>
+            </div>
+        </section>
+
+        <!--
+            Adjacency block (docs/ADJACENCY_MARKETING.md). The adjacency search campaign
+            sends people who typed a trend — "step challenge with friends", "zone 2 cardio
+            tracker" — to this page, so the trend has to be visible on the first scroll.
+            Every chip is a real template in the picker (migration
+            20261019000001_habits.habit_goals.seedTrendTemplates); keys match templateKey.
+            Generic trend words only, never a trademark.
+        -->
+        <section class="popular" id="popular-pacts">
+            <div class="container">
+                <div class="section-head">
+                    <p class="eyebrow">{{{t.popular.eyebrow}}}</p>
+                    <h2>{{{t.popular.heading}}}</h2>
+                    <p>{{{t.popular.intro}}}</p>
+                </div>
+                <ul class="pact-chips" aria-label="{{t.popular.pactsAriaLabel}}">
+                    {{#each t.popular.pacts}}
+                    <li>{{{this}}}</li>
+                    {{/each}}
+                </ul>
+                <p class="pact-chips__note">{{{t.popular.note}}}</p>
             </div>
         </section>
 
