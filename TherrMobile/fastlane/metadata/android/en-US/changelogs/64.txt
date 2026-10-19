@@ -1,0 +1,3 @@
+What's new:
+• New here? Opening the app now starts with the welcome tour instead of jumping straight to sign-in
+• Clearer welcome screens: start a habit solo today and invite a partner whenever you're ready
