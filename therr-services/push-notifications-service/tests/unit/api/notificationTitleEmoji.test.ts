@@ -69,6 +69,8 @@ describe('notification title emoji', () => {
         expect(once).to.equal('🏅 Milestone Hit!');
         expect(withTitleEmoji(once, PushNotifications.Types.streakMilestone, BrandVariations.HABITS)).to.equal(once);
         expect(withTitleEmoji('Hello', 'not-a-type', BrandVariations.HABITS)).to.equal('Hello');
+        expect(withTitleEmoji('Hello', 'constructor', BrandVariations.HABITS)).to.equal('Hello');
+        expect(withTitleEmoji('Hello', undefined, BrandVariations.HABITS)).to.equal('Hello');
         expect(withTitleEmoji('', PushNotifications.Types.streakMilestone, BrandVariations.HABITS)).to.equal('');
     });
 });

@@ -113,7 +113,10 @@ export const withTitleEmoji = (
     if (!title || !BRANDS_WITH_TITLE_EMOJI.has(brandVariation)) {
         return title;
     }
-    const emoji = NOTIFICATION_TITLE_EMOJI[type as PushNotifications.Types];
+    // Own keys only: a plain-object lookup of e.g. "constructor" would return a function.
+    const emoji = type && Object.prototype.hasOwnProperty.call(NOTIFICATION_TITLE_EMOJI, type)
+        ? NOTIFICATION_TITLE_EMOJI[type as PushNotifications.Types]
+        : undefined;
     if (!emoji || title.startsWith(emoji)) {
         return title;
     }
