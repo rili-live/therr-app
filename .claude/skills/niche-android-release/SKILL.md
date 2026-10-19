@@ -42,7 +42,7 @@ and `--json`.
 | `check` | versionCode/versionName novelty against main's history, EAS builds and ledger tags | 1 on blockers |
 | `merge [--dry-run]` | merge in memory (`merge-tree` + `commit-tree`, no checkout) and push to `niche/<TAG>-main` | 1 if blocked |
 | `watch <sha> [--prefer-local]` | poll the CircleCI status and EAS until it's decided who uploads; with `--prefer-local`, cancel CI's EAS build first | 3 = local needed |
-| `build <sha>` | rebuild the shared libs, `:app:bundleRelease`, verify package/version/upload key | 1 on failure |
+| `build <sha>` | sync the brand's Firebase config, `npm install`, rebuild the shared libs, `:app:bundleRelease`, verify package/version/upload key | 1 on failure |
 | `submit <sha>` | `eas submit` to the internal track as a draft, then push the ledger tag | 1 on failure |
 
 **Ledger tags.** Each local upload pushes an annotated tag `<brand>-android-vc<versionCode>`
@@ -135,10 +135,25 @@ It refuses when:
   The fix is to check out `niche/<TAG>-general` at origin's tip and stash local changes. Never
   build from a dirty tree, because then the AAB isn't the release.
 - `brandConfig.ts` / `app.json` aren't this brand's.
-- `google-services.json` has no client for the applicationId, `.env` lacks
+- `google-services.json` has no client for the applicationId and
+  `_bin/firebase/<brand>/google-services.json` can't supply one, `.env` lacks
   `GOOGLE_APIS_ANDROID_KEY`, or `<PREFIX>_UPLOAD_STORE_FILE` isn't in
   `~/.gradle/gradle.properties`.
 - An EAS build of this versionCode is live or finished, or its ledger tag exists.
+
+A local build inherits whatever the last one left on disk, and coming off a Therr build that is
+the wrong brand's. So before Gradle it:
+
+- copies `_bin/firebase/<brand>/google-services.json` into `TherrMobile/android/app/` when the
+  one there has no client for this applicationId (the same copy `switch-brand.sh` makes), and
+  clears Gradle's generated google-services resources;
+- runs `npm install --legacy-peer-deps` in `TherrMobile/`, because a package that is in the
+  lockfile but not in `node_modules` fails deep inside Gradle (`Configuring project
+  ':react-native-nitro-modules' without an existing directory`). If the install rewrites
+  `package-lock.json`, it stops, since the build would no longer be the merge commit.
+
+It does not run `npm run ios:pod:install`. Pods only feed the iOS project and don't touch the
+AAB, but an iOS build after a brand switch needs them.
 
 It rebuilds `therr-js-utilities`, `therr-styles` and `therr-react` before Gradle. Metro bundles
 their gitignored `lib/` output, which is only as fresh as the last local build. EAS rebuilds
