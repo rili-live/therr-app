@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { Platform } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { UsersService } from 'therr-react/services';
 import { isOfflineError } from 'therr-react/utilities/cacheHelpers';
@@ -184,6 +186,10 @@ const initInterceptors = (
     axios.defaults.headers['x-platform'] = REQUEST_PLATFORM;
     // NICHE - Brand variation is now set via config/brandConfig.ts
     axios.defaults.headers['x-brand-variation'] = CURRENT_BRAND_VARIATION;
+    // Read by the users-service app version policy (in-app update prompt) and recorded on
+    // gateway spans, so we can see which builds are still in use.
+    axios.defaults.headers['x-app-version'] = DeviceInfo.getVersion();
+    axios.defaults.headers['x-app-os'] = Platform.OS;
 
     // Global axios interceptor
     axios.interceptors.request.use((config) => {

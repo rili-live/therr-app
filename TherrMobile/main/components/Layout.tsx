@@ -68,13 +68,20 @@ import permissions, { PermType } from '../utilities/permissionsOrchestrator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PermissionPrimerModal from './Modals/PermissionPrimerModal';
 import AppReviewPromptModal, { AppReviewPromptOutcome } from './Modals/AppReviewPromptModal';
+import AppUpdatePromptModal, { AppUpdatePromptOutcome } from './Modals/AppUpdatePromptModal';
 import {
     markReviewPromptCompleted,
     markReviewPromptDeclined,
     markReviewPromptShown,
     shouldShowReviewPrompt,
 } from '../utilities/appReviewPrompt';
-import { openStoreReviewPage } from '../utilities/appStoreReviewLink';
+import { openStoreListingPage, openStoreReviewPage } from '../utilities/appStoreReviewLink';
+import {
+    APP_UPDATE_CHECK_INTERVAL_MS,
+    AppUpdatePromptType,
+    checkAppUpdatePrompt,
+    markRecommendedUpdateDismissed,
+} from '../utilities/appUpdatePrompt';
 import { openSupportEmail } from '../utilities/supportContact';
 import { reportPushOpen } from '../utilities/pushOpenTracking';
 import { navigationRef, RootNavigation } from './RootNavigation';
@@ -169,6 +176,7 @@ interface ILayoutState {
     shouldSpinSplashLogo: boolean;
     isSplashSpinnerVisible: boolean;
     isAppReviewPromptVisible: boolean;
+    appUpdatePromptType: AppUpdatePromptType | null;
 }
 
 /**
@@ -257,6 +265,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private appStateListener: NativeEventSubscription | null = null;
     private lastBackgroundedAt: number | null = null;
     private appReviewPromptTimeout: ReturnType<typeof setTimeout> | null = null;
+    private lastAppUpdateCheckAt = 0;
+    private appUpdateRecommendedVersion: string | null = null;
 
     constructor(props) {
         super(props);
@@ -268,6 +278,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             shouldSpinSplashLogo: false,
             isSplashSpinnerVisible: true,
             isAppReviewPromptVisible: false,
+            appUpdatePromptType: null,
         };
 
         this.reloadTheme();
@@ -314,6 +325,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // Returning to the app is the calmest moment we get: nothing is mid-flow and no
         // other modal is being opened, which is where the review prompt belongs.
         this.appStateListener = AppState.addEventListener('change', this.handleAppStateChange);
+        this.checkAppUpdate();
 
         if (appleAuth.isSupported) {
             this.authCredentialListener = appleAuth.onCredentialRevoked(async () => {
@@ -598,6 +610,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const backgroundedAt = this.lastBackgroundedAt;
         this.lastBackgroundedAt = null;
 
+        this.checkAppUpdate();
+
         if (backgroundedAt !== null && Date.now() - backgroundedAt >= APP_OPEN_MIN_AWAY_MS) {
             this.recordAppOpen();
         }
@@ -634,6 +648,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
      */
     isAppReviewPromptInterruptible = (): boolean => {
         const {
+            appUpdatePromptType,
             isAppReviewPromptVisible,
             isSplashSpinnerVisible,
             permissionPrimerType,
@@ -641,6 +656,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         return this.isUserAuthenticated()
             && !isAppReviewPromptVisible
+            && !appUpdatePromptType
             && !isSplashSpinnerVisible
             && !permissionPrimerType
             && !this.props.user?.settings?.isTouring;
@@ -715,6 +731,65 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         // 'dismissed' leaves the user eligible for a later prompt; the shown-stamp above
         // already started the quiet period.
+    };
+
+    /**
+     * Asks the server whether this build is behind (see `utilities/appUpdatePrompt`). Runs on
+     * launch and on every return to the foreground, throttled — except while a required update
+     * is showing, where each return re-asks so that lowering the minimum releases the block.
+     * Signed-out users are checked too: a build too old to work should say so before login.
+     */
+    checkAppUpdate = () => {
+        const isBlocked = this.state.appUpdatePromptType === 'required';
+
+        if (!isBlocked && Date.now() - this.lastAppUpdateCheckAt < APP_UPDATE_CHECK_INTERVAL_MS) {
+            return;
+        }
+        this.lastAppUpdateCheckAt = Date.now();
+
+        checkAppUpdatePrompt().then((prompt) => {
+            if (!prompt) {
+                if (this.state.appUpdatePromptType === 'required') {
+                    this.setState({ appUpdatePromptType: null });
+                }
+
+                return;
+            }
+
+            if (prompt.type === this.state.appUpdatePromptType) {
+                return;
+            }
+
+            this.appUpdateRecommendedVersion = prompt.recommendedVersion;
+            this.setState({ appUpdatePromptType: prompt.type });
+            logEvent(getAnalytics(), 'app_update_prompt_shown', {
+                promptType: prompt.type,
+            }).catch((err) => console.log(err));
+        }).catch((err) => console.log('APP_UPDATE_CHECK_ERROR', err));
+    };
+
+    handleAppUpdatePromptClose = (outcome: AppUpdatePromptOutcome) => {
+        const { appUpdatePromptType } = this.state;
+
+        logEvent(getAnalytics(), 'app_update_prompt_closed', {
+            promptType: appUpdatePromptType,
+            outcome,
+        }).catch((err) => console.log(err));
+
+        if (outcome === 'update') {
+            openStoreListingPage().catch((err) => console.log('APP_UPDATE_STORE_LINK_ERROR', err));
+        }
+
+        // A required update stays on screen until the server says otherwise; the store link
+        // is the only way forward. Coming back without updating finds it still there.
+        if (appUpdatePromptType === 'required') {
+            return;
+        }
+
+        // Either answer settles this version: a user who went to the store and backed out
+        // has seen the nudge, and is asked again only when a newer version is recommended.
+        markRecommendedUpdateDismissed(this.appUpdateRecommendedVersion);
+        this.setState({ appUpdatePromptType: null });
     };
 
     reloadTheme = (shouldForceUpdate: boolean = false) => {
@@ -2534,6 +2609,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             user,
         } = this.props;
         const {
+            appUpdatePromptType,
             isAppReviewPromptVisible,
             permissionPrimerType,
             isSplashSpinnerVisible,
@@ -2846,6 +2922,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     <AppReviewPromptModal
                         isVisible={isAppReviewPromptVisible}
                         onClose={this.handleAppReviewPromptClose}
+                        translate={this.translate}
+                        themeModal={this.themeConfirmModal}
+                        themeButtons={this.themeButtons}
+                    />
+                    <AppUpdatePromptModal
+                        promptType={appUpdatePromptType}
+                        onClose={this.handleAppUpdatePromptClose}
                         translate={this.translate}
                         themeModal={this.themeConfirmModal}
                         themeButtons={this.themeButtons}

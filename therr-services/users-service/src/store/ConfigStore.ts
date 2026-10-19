@@ -21,4 +21,12 @@ export default class ConfigStore {
             .toString();
         return this.db.read.query(queryString).then((response) => response.rows);
     }
+
+    getMany(keys: string[]) {
+        const queryString = knexBuilder.select('*')
+            .from(CONFIG_TABLE_NAME)
+            .whereIn('key', keys)
+            .toString();
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
 }

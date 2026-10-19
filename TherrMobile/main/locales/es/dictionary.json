@@ -3214,6 +3214,18 @@
             "close": "Cerrar imagen",
             "profilePictureLabel": "Foto de perfil a tamaño completo de {userName}"
         },
+        "appUpdatePrompt": {
+            "recommended": {
+                "header": "Actualización disponible",
+                "message": "Hay una nueva versión de {appName} con correcciones y mejoras. Actualiza para obtener lo más reciente."
+            },
+            "required": {
+                "header": "Actualización necesaria",
+                "message": "Esta versión de {appName} ya no es compatible. Actualiza para seguir usando la aplicación."
+            },
+            "notNow": "Ahora no",
+            "update": "Actualizar"
+        },
         "appReviewPrompt": {
             "sentiment": {
                 "header": "¿Te gusta {appName}?",

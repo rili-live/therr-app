@@ -47,6 +47,23 @@
     "eyebrow": "Ce que c'est",
     "madeByHtml": "C'est gratuit, conçu par <a href=\"https://www.therr.app/\" rel=\"noopener\">Therr, Inc.</a>, et déjà offert sur Android via Google Play pendant que nous préparons une version iOS."
   },
+  "popular": {
+    "eyebrow": "Pactes populaires",
+    "heading": "Amenez le défi que vous faites déjà.",
+    "intro": "Objectifs de pas, zone 2, douches froides, la règle des deux minutes. Les habitudes dont tout le monde parle fonctionnent mieux avec quelqu'un de l'autre côté. Choisissez-en une, invitez l'ami qui la fait aussi et tenez-la de 7 à 90 jours.",
+    "pactsAriaLabel": "Pactes prêts à commencer aujourd'hui",
+    "pacts": {
+      "steps10k": "👟 Atteindre 10 000 pas",
+      "zone2Cardio": "🚴 Cardio en zone 2",
+      "coldShower": "🧊 Douche froide",
+      "morningSunlight": "🌅 Lumière du matin",
+      "proteinGoal": "🍳 Atteindre votre objectif de protéines",
+      "noAddedSugar": "🍬 Sans sucre ajouté",
+      "soberCurious": "🫧 Mois sans alcool",
+      "twoMinuteStart": "⏱️ Commencer par deux minutes"
+    },
+    "note": "Tous sont prêts dans l'appli, avec plus de 40 autres. Ou créez le vôtre."
+  },
   "steps": {
     "eyebrow": "Fonctionnement",
     "heading": "Trois étapes. Deux personnes. Une série.",

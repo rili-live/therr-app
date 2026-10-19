@@ -3214,6 +3214,18 @@
             "close": "Fermer l'image",
             "profilePictureLabel": "Photo de profil en taille réelle de {userName}"
         },
+        "appUpdatePrompt": {
+            "recommended": {
+                "header": "Mise à jour disponible",
+                "message": "Une nouvelle version de {appName} est prête, avec des correctifs et des améliorations. Mettez à jour pour en profiter."
+            },
+            "required": {
+                "header": "Mise à jour requise",
+                "message": "Cette version de {appName} n'est plus prise en charge. Mettez à jour pour continuer à utiliser l'application."
+            },
+            "notNow": "Pas maintenant",
+            "update": "Mettre à jour"
+        },
         "appReviewPrompt": {
             "sentiment": {
                 "header": "Aimez-vous {appName}?",
