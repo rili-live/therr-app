@@ -1,0 +1,8 @@
+Novedades de esta actualización:
+• Toca una foto de perfil para verla en pantalla completa
+• Elegir tu foto de perfil es más confiable y, si falla la subida, te decimos por qué
+• Quien no tiene foto ahora tiene su propio avatar en la clasificación
+• La clasificación se desplaza hasta la última fila
+• Te avisaremos cuando haya una versión nueva de Therr
+
+¡Gracias por usar Therr! ¿Comentarios? Escríbenos desde los ajustes de la app.

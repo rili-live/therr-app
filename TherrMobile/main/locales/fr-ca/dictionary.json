@@ -2722,6 +2722,38 @@
                 "laundry": {
                     "name": "Journée lavage",
                     "description": "Laver, sécher, plier et ranger"
+                },
+                "steps10k": {
+                    "name": "Atteindre 10 000 pas",
+                    "description": "Faites vos pas, peu importe comment vous marchez"
+                },
+                "zone2Cardio": {
+                    "name": "Cardio en zone 2",
+                    "description": "30+ minutes à un rythme facile où vous pourriez tenir une conversation"
+                },
+                "coldShower": {
+                    "name": "Douche froide",
+                    "description": "Terminez votre douche par au moins 30 secondes d'eau froide"
+                },
+                "proteinGoal": {
+                    "name": "Atteindre votre objectif de protéines",
+                    "description": "Atteignez l'objectif quotidien de protéines que vous vous êtes fixé"
+                },
+                "noAddedSugar": {
+                    "name": "Sans sucre ajouté",
+                    "description": "Une journée sans sucreries, boissons gazeuses ni collations sucrées"
+                },
+                "soberCurious": {
+                    "name": "Mois sans alcool",
+                    "description": "Une journée sans alcool — jumelez-la à un pacte de 30 jours"
+                },
+                "morningSunlight": {
+                    "name": "Lumière du matin",
+                    "description": "10 minutes de lumière du jour peu après le réveil"
+                },
+                "twoMinuteStart": {
+                    "name": "Commencer par deux minutes",
+                    "description": "Faites seulement les deux premières minutes — se présenter, c'est l'habitude"
                 }
             },
             "status": {
@@ -3181,6 +3213,18 @@
         "fullScreenImage": {
             "close": "Fermer l'image",
             "profilePictureLabel": "Photo de profil en taille réelle de {userName}"
+        },
+        "appUpdatePrompt": {
+            "recommended": {
+                "header": "Mise à jour disponible",
+                "message": "Une nouvelle version de {appName} est prête, avec des correctifs et des améliorations. Mettez à jour pour en profiter."
+            },
+            "required": {
+                "header": "Mise à jour requise",
+                "message": "Cette version de {appName} n'est plus prise en charge. Mettez à jour pour continuer à utiliser l'application."
+            },
+            "notNow": "Pas maintenant",
+            "update": "Mettre à jour"
         },
         "appReviewPrompt": {
             "sentiment": {

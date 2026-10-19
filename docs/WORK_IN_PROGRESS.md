@@ -98,9 +98,26 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Adjacency marketing (added 2026-10-19, docs/ADJACENCY_MARKETING.md)
+
+- [ ] **After the deploy, confirm the eight trend templates exist in prod.** Migration
+  `20261019000001_habits.habit_goals.seedTrendTemplates` inserts them only when the
+  SUPER_ADMIN_ID row exists: `SELECT "templateKey" FROM habits.habit_goals WHERE id >=
+  'b0000044-de00-4000-a000-000000000044' AND "isTemplate"` should return 8 rows. The landing
+  page's "Popular pacts" chips promise all eight.
+- [ ] **Before applying `habits-web-adjacent.yaml`, wait for a readable result from the
+  category web arm**, then `./therrads campaign apply campaigns/habits-web-adjacent.yaml
+  --confirm` (creates it PAUSED) and resume it. Both need an explicit go-ahead, because they spend money.
+- [ ] **Mobile (`niche/HABITS-general`): add `pages.pacts.templates.<key>` translations** for
+  `steps10k`, `zone2Cardio`, `coldShower`, `proteinGoal`, `noAddedSugar`, `soberCurious`,
+  `morningSunlight`, `twoMinuteStart` in `es` and `fr-ca`. Until then those users see the
+  stored English names.
+- [ ] **Play listing (`niche/HABITS-general`, `/aso-listing`):** test the "bring the challenge
+  you're already doing" angle in the short description and first screenshot.
+
 ## Push open tracking (added 2026-10-16)
 
-- [ ] **Run the users-service migration after the deploy** (`20261016000001`: `main.notificationQueue."openedAt"` /
+- [x] **Run the users-service migration after the deploy** _(Verified applied in prod 2026-10-16: the stage → main deploy (CircleCI 20510, main `09e81f34b`) ran it; `run-migrations.sh --verify-only` reports users-service caught up.)_ (`20261016000001`: `main.notificationQueue."openedAt"` /
   `"openAction"`). Additive and nullable; neither automator reads this table. Until it runs, every
   `POST /users/notifications/push-opens` answers 500 and the worker is unaffected.
 - [ ] **On a Habits handset with a build carrying `pushOpenTracking.ts`, tap a queued push and confirm its row gets
