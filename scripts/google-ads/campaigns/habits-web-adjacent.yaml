@@ -1,0 +1,215 @@
+# =============================================================================
+# Friends with Habits — Search on adjacent "already cool" intents (the ADJACENCY arm)
+#
+#   ./therrads campaign validate campaigns/habits-web-adjacent.yaml
+#   ./therrads campaign plan     campaigns/habits-web-adjacent.yaml
+#   ./therrads campaign apply    campaigns/habits-web-adjacent.yaml --confirm
+#
+# WHY A THIRD CAMPAIGN
+# habits-web-landing.yaml bids on the category: "habit tracker app", "accountability
+# partner app". Streaks, Habitify and every other tracker bid there too, so those clicks
+# are priced by the competition, and a cold searcher has no reason to prefer us.
+#
+# This campaign bids next to things people already think are cool — a 30-day challenge,
+# keeping a streak, the habits book everyone has read, a step challenge, zone 2 — and sells
+# the one thing those trends lack: someone else doing it with you. Those searchers already
+# want the behaviour; we are the social layer on top. The bet is that their clicks cost
+# less than category clicks and convert at least as well. Strategy and rules:
+# docs/ADJACENCY_MARKETING.md.
+#
+# WHY NOT AN AD GROUP IN habits-web-landing.yaml
+# 1. Copy is campaign-level in therr_ads/spec.py, and these themes need their own
+#    headlines. An adjacency ad group under the category copy would test the wrong ad.
+# 2. That campaign's three ad groups are a running experiment. Adding a fourth changes
+#    what its comparison means.
+# 3. A separate utm_campaign keeps adjacency signups separable in main."userAcquisition".
+#
+# TRADEMARKS: brand names may appear as KEYWORDS (Google allows bidding on them in the US);
+# they never appear in ad TEXT. Every headline below names a behaviour, not a product.
+# =============================================================================
+
+hypothesis: >
+  Searchers on adjacent, already-popular habit intents (30/90-day challenges, streaks,
+  the two-minute rule and habit stacking from the habits-book audience, step and zone 2
+  challenges) cost less per click than the category terms in FwH-Web-US-Search-2026Q3
+  and activate at least as well, because they already want the behaviour and are only
+  missing a partner. If cost per activated user beats the category campaign, adjacency
+  becomes the default way to buy attention for this app: the Play listing, landing page
+  and App-campaign copy should lead with "bring the challenge you're already doing". If
+  clicks are cheaper but activation is worse, these searchers wanted a tracker for
+  someone else's program and the partner wall stops them. In that case adjacency is a
+  content/SEO play, not a paid one.
+
+campaign:
+    name: "FwH-Web-US-Adjacent-2026Q4"
+    kind: web_landing
+    status: PAUSED
+    start_date: ""
+    end_date: ""
+
+budget:
+    # Half the category campaign. Size it for a readable per-theme comparison, not growth.
+    # Read it against FwH-Web-US-Search-2026Q3 on cost per ACTIVATED user, not CPC alone:
+    # a cheap click that stalls at the partner wall is the expensive kind.
+    daily: 5.00
+    currency: USD
+    delivery: STANDARD
+
+bidding:
+    # Same goal and conversion action (web `sign_up`, property 549794383) as the category
+    # campaign, so the two can be compared. The target sits under its $8.00 because the
+    # cheaper click is the hypothesis being tested.
+    goal: OPTIMIZE_INSTALLS_TARGET_INSTALL_COST
+    target_cpa: 6.00
+
+targeting:
+    location_ids: ["2840"]
+    language_ids: ["1000"]
+    notes: >
+      US + English, matching both other arms. If the category campaign runs at the same
+      time, its "streak tracker app" keyword and this campaign's streak-culture group
+      can match the same query. Add "streak" as a campaign negative there for the
+      overlap window, or the two campaigns bid against each other.
+
+ad_groups:
+    # final_url is the bare landing page on every group, never a #fragment: Google
+    # appends the tracking parameters after the URL, and a fragment would swallow them
+    # (captureAttribution reads location.search). The "Popular pacts" section follows the
+    # hero and the one-paragraph definition, so the searcher's trend is on the first scroll.
+
+    # ---------------------------------------------------------------------
+    # Theme A: challenge culture. Fixed-length challenges are the most viral habit
+    # format there is, and a pact is already one (7, 14, 30, 60 or 90 days).
+    # Deliberately NOT bidding on the branded 75-day challenge: no 75-day pact exists
+    # (pactHelpers.validatePactParams), and searchers for it want its rules, which a
+    # pact does not enforce. See docs/ADJACENCY_MARKETING.md § Not yet.
+    # ---------------------------------------------------------------------
+    - name: "challenge-culture"
+      match_type: PHRASE
+      final_url: "https://habits.therr.com"
+      keywords:
+          - "30 day challenge app"
+          - "90 day challenge app"
+          - "30 day habit challenge"
+          - "challenge app with friends"
+          - "fitness challenge with friends"
+          - "habit challenge with friends"
+      negative_keywords:
+          - "free"
+          - "printable"
+          - "calendar"
+          - "ideas"
+          - "list"
+          - "tiktok"
+          - "75"
+
+    # ---------------------------------------------------------------------
+    # Theme B: streak culture. Language-app and photo-app streaks taught a generation
+    # to protect a number every day. A shared streak is that habit with a person on it.
+    # ---------------------------------------------------------------------
+    - name: "streak-culture"
+      match_type: PHRASE
+      final_url: "https://habits.therr.com"
+      keywords:
+          - "streak app with friends"
+          - "keep a streak with friends"
+          - "shared streak app"
+          - "daily streak app"
+      negative_keywords:
+          - "free"
+          - "snapchat"
+          - "snap"
+          - "duolingo"
+          - "restore"
+          - "lost"
+          - "freeze"
+
+    # ---------------------------------------------------------------------
+    # Theme C: the habits-book audience. Tens of millions of readers know habit
+    # stacking and the two-minute rule, and most never act on them. The two-minute
+    # start template (migration 20261019000001) is that rule as a pact. Brand-name
+    # keywords are allowed; the ad text never names the book or its author.
+    # ---------------------------------------------------------------------
+    - name: "habits-book-readers"
+      match_type: PHRASE
+      final_url: "https://habits.therr.com"
+      keywords:
+          - "atomic habits app"
+          - "atomic habits tracker"
+          - "habit stacking app"
+          - "two minute rule habit"
+      negative_keywords:
+          - "free"
+          - "pdf"
+          - "summary"
+          - "audiobook"
+          - "quotes"
+          - "book"
+          - "author"
+          - "workbook"
+
+    # ---------------------------------------------------------------------
+    # Theme D: fitness trends. Each keyword maps to a template a visitor will find in
+    # the picker on first open (steps10k, zone2Cardio, coldShower).
+    # ---------------------------------------------------------------------
+    - name: "fitness-trends"
+      match_type: PHRASE
+      final_url: "https://habits.therr.com"
+      keywords:
+          - "step challenge with friends"
+          - "10000 steps challenge"
+          - "walking challenge app"
+          - "zone 2 cardio tracker"
+          - "cold shower challenge"
+      negative_keywords:
+          - "free"
+          - "fitbit"
+          - "garmin"
+          - "apple watch"
+          - "work"
+          - "corporate"
+          - "benefits"
+
+    # Considered and left out: sober-curious and dry-month terms. The template exists
+    # (soberCurious), but Google treats alcohol-reduction searches as close to its
+    # restricted addiction-services category, and habits-web-landing.yaml already
+    # excludes recovery terms on purpose. Organic and landing-page only.
+
+assets:
+    # Every headline names a behaviour the searcher already likes, plus the partner.
+    # At least one keyword-bearing headline per theme, because assets are shared
+    # across ad groups:
+    #   challenge-culture -> "Do the Challenge With a Friend", "30- or 90-Day Habit Pacts"
+    #   streak-culture    -> "Keep a Streak With a Friend", "Streaks Are Better Together"
+    #   habits-book       -> "Start With Just Two Minutes", "Habit Stacking, With a Friend"
+    #   fitness-trends    -> "Step Challenge With Friends", "Zone 2 Cardio, Together"
+    headlines:
+        - "Do the Challenge With a Friend"
+        - "30- or 90-Day Habit Pacts"
+        - "Keep a Streak With a Friend"
+        - "Streaks Are Better Together"
+        - "Start With Just Two Minutes"
+        - "Habit Stacking, With a Friend"
+        - "Step Challenge With Friends"
+        - "Zone 2 Cardio, Together"
+        - "Your Challenge Buddy App"
+        # Not "on every check-in": a check-in takes a photo OR a note (landing compare.proofHtml).
+        - "Photo Proof for Check-Ins"
+        - "A Partner Who Notices"
+        - "Start Free, No Card Needed"
+    descriptions:
+        - "Pick a 30-, 60- or 90-day pact, invite a friend, and check in with photo proof."
+        - "A streak alone is easy to quit. Share one with a friend who sees the day you skip."
+        - "You know the two-minute rule. Now start it with a partner who expects you to show up."
+        - "Ready-made pacts for steps, zone 2, cold showers and more. Bring one friend to start."
+
+tracking:
+    # Join key into main."userAcquisition"."utmCampaign". Immutable once served.
+    utm_source: google
+    utm_medium: cpc
+    utm_campaign: fwh-web-us-adjacent-2026q4
+    value_track:
+        utm_term: "{keyword}"
+        gad_matchtype: "{matchtype}"
+        gad_network: "{network}"
+        gad_device: "{device}"

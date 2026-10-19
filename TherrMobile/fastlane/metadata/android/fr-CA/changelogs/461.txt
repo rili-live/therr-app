@@ -1,0 +1,8 @@
+Nouveautés de cette mise à jour :
+• Touchez une photo de profil pour l'afficher en plein écran
+• Choisir sa photo de profil est plus fiable, et on vous dit pourquoi si l'envoi échoue
+• Chaque personne sans photo a maintenant son propre avatar au classement
+• Le classement défile jusqu'à la dernière ligne
+• On vous avertit quand une nouvelle version de Therr est disponible
+
+Merci d'utiliser Therr! Des commentaires? Écrivez-nous dans les réglages.
