@@ -532,7 +532,7 @@
         "loginForm": {
             "buttons": {
                 "login": "Se connecter",
-                "signUp": "Créer un compte?",
+                "signUp": "Nouveau ici? Créez un compte gratuit",
                 "forgotPassword": "Mot de passe oublié?",
                 "sendCode": "M’envoyer un code",
                 "verifyAndSignIn": "Vérifier et se connecter",
@@ -1724,15 +1724,15 @@
         },
         "landing": {
             "background": {
-                "shareYourInterests": "Lance une série aujourd’hui — pas besoin de partenaire pour commencer",
-                "inviteFriends": "Invitez vos amis pour vous tenir responsables",
-                "getMatched": "Faites des pactes avec vos amis et changez vos vies ensemble"
+                "shareYourInterests": "Bâtissez une habitude avec un ami qui remarque quand vous sautez une journée",
+                "inviteFriends": "Pas encore de partenaire? Commencez seul et invitez quelqu’un plus tard",
+                "getMatched": "Faites votre check-in chaque jour, protégez votre série et tenez parole ensemble"
             },
             "headerTitle": "Bienvenue",
             "buttons": {
                 "continue": "Continuer",
                 "next": "Suivant",
-                "getStarted": "Commencer",
+                "getStarted": "Commencer gratuitement",
                 "signIn": "Se connecter"
             },
             "carousel": {
@@ -1747,8 +1747,8 @@
         },
         "login": {
             "headerTitle": "{appName}",
-            "pageTitle": "Bienvenue",
-            "pageSubtitle": "Connectez-vous pour faire votre check-in avec vos amis",
+            "pageTitle": "Bon retour",
+            "pageSubtitle": "Connectez-vous pour garder vos séries actives",
             "userAlerts": {
                 "registerSuccess": "Inscription réussie! Vérifiez votre courriel pour la confirmation.",
                 "phoneRegisterSuccess": "Compte créé! Connectez-vous avec un code envoyé à votre téléphone."
@@ -1914,7 +1914,7 @@
             "passwordRequirements2": "Au moins une lettre majuscule",
             "passwordRequirements3": "Au moins un caractère spécial !@#$%^&*",
             "passwordRequirements4": "Au moins 8 caractères",
-            "pageSubtitleHabits": "Créez votre compte et commencez votre premier pacte avec un ami."
+            "pageSubtitleHabits": "Commencez votre première habitude aujourd’hui. Seul, c’est correct — ajoutez un partenaire quand vous voulez."
         },
         "settings": {
             "headerTitle": "Paramètres",
