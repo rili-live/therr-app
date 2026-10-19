@@ -13,6 +13,7 @@ import {
 } from './checkinNudgeCopy';
 import { selectWeeklyRecapBodyKey, selectWeeklyRecapTitleKey } from './weeklyRecapCopy';
 import { PactDeclineReason, selectPactDeclinedCopyKey } from './pactDeclinedCopy';
+import { withTitleEmoji } from './notificationTitleEmoji';
 
 // FCM error codes for tokens that should be removed from the database.
 // See https://firebase.google.com/docs/cloud-messaging/send-message#admin
@@ -688,9 +689,15 @@ const createDataOnlyMessage = (
     clickActionId: string,
     brandVariation: BrandVariations,
 ): admin.messaging.Message | false => {
+    // Prefixed here, once, so Notifee on Android and the APNS alert below both
+    // render the same title.
+    const title = typeof data.notificationTitle === 'string'
+        ? withTitleEmoji(data.notificationTitle, data.type, brandVariation)
+        : '';
     const baseMessage = createBaseMessage({
         data: {
             ...data,
+            ...(title ? { notificationTitle: title } : {}),
             clickActionId,
         },
         deviceToken,
@@ -728,12 +735,11 @@ const createDataOnlyMessage = (
     // APIs. Tracked for a future PR — the data payload this function sends
     // already contains everything the NSE would need (notificationLinkPress-
     // Actions, notificationPressActionId, clickActionId).
-    const iosTitle = typeof data.notificationTitle === 'string' ? data.notificationTitle : '';
     const iosBody = typeof data.notificationBody === 'string' ? data.notificationBody : '';
     baseMessage.apns = {
         payload: {
             aps: {
-                alert: { title: iosTitle, body: iosBody },
+                alert: { title, body: iosBody },
                 sound: 'default',
                 mutableContent: true,
             },
@@ -776,7 +782,7 @@ const createNotificationMessage = ({
         },
     },
     notification: {
-        title: notificationTitle,
+        title: withTitleEmoji(notificationTitle, data?.type, brandVariation),
         body: notificationBody,
     },
     token: deviceToken,
