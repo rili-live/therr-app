@@ -1670,9 +1670,11 @@
         Until this existed the landing page fired no gtag event at all, so the
         paid Search arm had nothing to optimise toward and nothing to import
         into Google Ads as a conversion action: every click looked identical to
-        a bounce. `store_click` is the app arm's only web-side signal (the Play
-        Store hop is where measurement ends), and `sign_up` on /register is the
-        real conversion. Mark both as key events in GA4 admin, then import them
+        a bounce. `store_click` is the app arm's only web-side signal (past the
+        Play Store hop, the store link's referrer parameter, set by the
+        habitsAttribution partial, carries the visit's UTMs into the app), and
+        `sign_up` on /register is the real conversion. Mark both as key events
+        in GA4 admin, then import them
         under Ads -> Goals -> Conversions -> Import -> Google Analytics 4.
 
         `location` distinguishes the header, hero and closing-band copies of each

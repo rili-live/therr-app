@@ -93,3 +93,83 @@
         } catch (e) { /* storage disabled or blocked - attribution is advisory */ }
     })();
 </script>
+{{!
+    Carry the session's attribution across the Play Store hop.
+
+    Most visitors leave this site through a store button, not /register: in the
+    30 days to 18 Oct 2026, 16 store clicks against 1 register_start and 0
+    sign_up. A bare store link drops the visitor's UTMs at Play, so the install
+    reads as google-play / organic and the click that paid for it is lost.
+
+    Play hands whatever is in the link's referrer parameter to the installed
+    app, where TherrMobile's installReferrer.ts parses it into the registration's
+    userAcquisition record, and where GA4 reads it as the app user's first-touch
+    source. So every habits store link gets the session's first-touch UTMs as its
+    referrer. An untagged visit is marked habits.therr.com / referral, with the
+    external referring host in utm_content when there is one, so a web-driven
+    install stays distinguishable from Play's own placeholder, which the app
+    deliberately discards.
+
+    A separate script block from the capture above on purpose: the capture
+    test runs that block with document shadowed down to document.referrer, and
+    this one needs the real DOM.
+}}
+<script>
+    (function () {
+        var STORE_URL = /^https:\/\/play\.google\.com\/store\/apps\/details\?id=com\.therr\.habits(&|$)/;
+        var utmKeys = [
+            ['utmSource', 'utm_source'],
+            ['utmMedium', 'utm_medium'],
+            ['utmCampaign', 'utm_campaign'],
+            ['utmContent', 'utm_content'],
+            ['utmTerm', 'utm_term']
+        ];
+
+        function storeReferrer() {
+            var stored = {};
+            try {
+                stored = JSON.parse(window.sessionStorage.getItem('therrUserAcquisition') || '{}') || {};
+            } catch (e) { /* no record - still mark the install as web-driven */ }
+
+            var params = new URLSearchParams();
+            utmKeys.forEach(function (pair) {
+                if (stored[pair[0]]) { params.set(pair[1], stored[pair[0]]); }
+            });
+            if (!params.toString() && stored.referrer) {
+                try {
+                    params.set('utm_content', new URL(stored.referrer).hostname.replace(/^www\./, ''));
+                } catch (e) { /* unparseable referrer - leave it out */ }
+            }
+            if (!params.get('utm_source')) { params.set('utm_source', 'habits.therr.com'); }
+            if (!params.get('utm_medium')) { params.set('utm_medium', 'referral'); }
+            return params.toString();
+        }
+
+        function decorate(anchor) {
+            var href = anchor && anchor.getAttribute && anchor.getAttribute('href');
+            if (!href || !STORE_URL.test(href) || /[?&]referrer=/.test(href)) { return; }
+            anchor.setAttribute('href', href + '&referrer=' + encodeURIComponent(storeReferrer()));
+        }
+
+        function decorateAll() {
+            try {
+                Array.prototype.forEach.call(document.querySelectorAll('a[href]'), decorate);
+            } catch (e) { /* a broken link decorator must never break the store link */ }
+        }
+
+        // This partial loads in <head>, before the links exist. The click
+        // listener is the backstop for a link added to the page after load.
+        try {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', decorateAll);
+            } else {
+                decorateAll();
+            }
+            document.addEventListener('click', function (event) {
+                try {
+                    decorate(event.target && event.target.closest && event.target.closest('a[href]'));
+                } catch (e) { /* no-op */ }
+            }, true);
+        } catch (e) { /* no-op */ }
+    })();
+</script>
