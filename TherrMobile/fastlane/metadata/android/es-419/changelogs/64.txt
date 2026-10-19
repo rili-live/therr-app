@@ -1,0 +1,3 @@
+Novedades:
+• ¿Eres nuevo? Al abrir la app ahora verás el recorrido de bienvenida en lugar de ir directo al inicio de sesión
+• Pantallas de bienvenida más claras: empieza un hábito solo hoy e invita a un compañero cuando quieras

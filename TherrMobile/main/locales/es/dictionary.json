@@ -532,7 +532,7 @@
         "loginForm": {
             "buttons": {
                 "login": "Iniciar sesión",
-                "signUp": "¿Crear una cuenta?",
+                "signUp": "¿Eres nuevo? Crea una cuenta gratis",
                 "forgotPassword": "¿Olvidaste tu contraseña?",
                 "sendCode": "Enviarme un código",
                 "verifyAndSignIn": "Verificar e iniciar sesión",
@@ -1724,15 +1724,15 @@
         },
         "landing": {
             "background": {
-                "shareYourInterests": "Empieza una racha hoy, sin necesidad de compañero para comenzar",
-                "inviteFriends": "Invita a tus amigos para mantenerte responsable",
-                "getMatched": "Haz pactos con amigos y cambien sus vidas juntos"
+                "shareYourInterests": "Crea un hábito con un amigo que note cuando te lo saltas",
+                "inviteFriends": "¿Aún sin compañero? Empieza solo e invita a alguien después",
+                "getMatched": "Haz check-in cada día, cuida tu racha y cumplan su palabra juntos"
             },
             "headerTitle": "Bienvenido",
             "buttons": {
                 "continue": "Continuar",
                 "next": "Siguiente",
-                "getStarted": "Comenzar",
+                "getStarted": "Empieza gratis",
                 "signIn": "Iniciar sesión"
             },
             "carousel": {
@@ -1747,8 +1747,8 @@
         },
         "login": {
             "headerTitle": "{appName}",
-            "pageTitle": "Bienvenido",
-            "pageSubtitle": "Inicia sesión para hacer tu check-in con tus amigos",
+            "pageTitle": "Bienvenido de nuevo",
+            "pageSubtitle": "Inicia sesión para mantener tus rachas",
             "userAlerts": {
                 "registerSuccess": "¡Registro exitoso! Revisa tu correo electrónico para la verificación.",
                 "phoneRegisterSuccess": "¡Cuenta creada! Inicia sesión con un código enviado a tu teléfono."
@@ -1914,7 +1914,7 @@
             "passwordRequirements2": "Al menos una letra mayúscula",
             "passwordRequirements3": "Al menos un carácter especial !@#$%^&*",
             "passwordRequirements4": "Al menos 8 caracteres",
-            "pageSubtitleHabits": "Crea tu cuenta y comienza tu primer pacto con un amigo."
+            "pageSubtitleHabits": "Empieza tu primer hábito hoy. Puedes empezar solo y sumar un compañero cuando quieras."
         },
         "settings": {
             "headerTitle": "Configuración",
@@ -3390,10 +3390,6 @@
             "placeholder": "Añade un comentario (opcional)",
             "confirm": "Republicar",
             "cancel": "Cancelar"
-        },
-        "fullScreenImage": {
-            "close": "Cerrar imagen",
-            "profilePictureLabel": "Foto de perfil a tamaño completo de {userName}"
         }
     },
     "permissions": {

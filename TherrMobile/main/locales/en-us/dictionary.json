@@ -532,7 +532,7 @@
         "loginForm": {
             "buttons": {
                 "login": "Sign In",
-                "signUp": "Create an Account?",
+                "signUp": "New here? Create a free account",
                 "forgotPassword": "Forgot Password?",
                 "sendCode": "Text Me a Code",
                 "verifyAndSignIn": "Verify & Sign In",
@@ -1724,15 +1724,15 @@
         },
         "landing": {
             "background": {
-                "shareYourInterests": "Start a streak today — no partner needed to begin",
-                "inviteFriends": "Invite Friends to Keep You Accountable",
-                "getMatched": "Make pacts with friends and change your lives together"
+                "shareYourInterests": "Build a habit with a friend who notices when you skip",
+                "inviteFriends": "No partner yet? Start solo and invite one later",
+                "getMatched": "Check in every day, protect your streak, and keep each other honest"
             },
             "headerTitle": "Welcome",
             "buttons": {
                 "continue": "Continue",
                 "next": "Next",
-                "getStarted": "Get Started",
+                "getStarted": "Start Free",
                 "signIn": "Sign In"
             },
             "carousel": {
@@ -1747,8 +1747,8 @@
         },
         "login": {
             "headerTitle": "{appName}",
-            "pageTitle": "Welcome",
-            "pageSubtitle": "Sign in to check in with your friends",
+            "pageTitle": "Welcome Back",
+            "pageSubtitle": "Sign in to keep your streaks going",
             "userAlerts": {
                 "registerSuccess": "Registration success! Check your e-mail for verification.",
                 "phoneRegisterSuccess": "Account created! Sign in with a code sent to your phone."
@@ -1914,7 +1914,7 @@
             "passwordRequirements2": "At least one capital letter",
             "passwordRequirements3": "At least one special character !@#$%^&*",
             "passwordRequirements4": "At least 8 characters",
-            "pageSubtitleHabits": "Create your account and start your first pact with a friend."
+            "pageSubtitleHabits": "Start your first habit today. Solo is fine — add a partner anytime."
         },
         "settings": {
             "headerTitle": "Settings",
@@ -3390,10 +3390,6 @@
             "placeholder": "Add a comment (optional)",
             "confirm": "Repost",
             "cancel": "Cancel"
-        },
-        "fullScreenImage": {
-            "close": "Close image",
-            "profilePictureLabel": "Full-size profile picture of {userName}"
         }
     },
     "permissions": {

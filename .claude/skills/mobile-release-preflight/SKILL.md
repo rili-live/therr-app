@@ -114,14 +114,14 @@ fs.readdirSync('TherrMobile/patches').filter(f=>f.endsWith('.patch')).forEach(f=
   try { actual=require('./TherrMobile/node_modules/'+name+'/package.json').version; } catch (e) {
     const e2=lock['node_modules/'+name]; actual=e2&&e2.version; src='lockfile';
   }
-  const status=!actual?'MISSING':(actual===pinned?'ok   ':'DRIFT');
+  const status=!actual?'MISSING':(actual!==pinned?'DRIFT':(src==='lockfile'?'UNINSTALLED':'ok   '));
   console.log(status+'  '+name+'  patch='+pinned+'  '+src+'='+(actual||'not found'));
 });" 2>&1
 ```
 
 Run from the repo root. It prefers the installed version and falls back to the lockfile's resolved version. **Do not compare against the range in `package.json`** — `react-native-tab-view` is declared `^3.3.0` and resolves to `3.5.2`, so a range comparison reports drift that isn't there.
 
-Any `DRIFT` is a blocker. `MISSING` means the patch targets a package that is no longer a dependency — delete the patch file. The `react-native` patch specifically neutralizes `StatusBarModule`'s references to the deprecated Android 15 status-bar color getter/setter. If `react-native` was bumped, the patch **must be regenerated** — edit the installed `StatusBarModule.kt`, run `npx patch-package react-native` from `TherrMobile/`, and re-verify against the Play Console pre-launch report. Carrying the old patch forward means the deprecated reference returns to the bytecode.
+Any `DRIFT` is a blocker. `UNINSTALLED` means the lockfile has the right version but `TherrMobile/node_modules` doesn't have the package at all — typical after switching from another brand's branch. It is a **BLOCKER for a local build only** (Gradle fails configuring the missing native module); fix it with `cd TherrMobile && npm install --legacy-peer-deps`. An EAS build installs from the lockfile itself, so it doesn't apply there. `MISSING` means the patch targets a package that is no longer a dependency — delete the patch file. The `react-native` patch specifically neutralizes `StatusBarModule`'s references to the deprecated Android 15 status-bar color getter/setter. If `react-native` was bumped, the patch **must be regenerated** — edit the installed `StatusBarModule.kt`, run `npx patch-package react-native` from `TherrMobile/`, and re-verify against the Play Console pre-launch report. Carrying the old patch forward means the deprecated reference returns to the bytecode.
 
 ### P7 — No deprecated Android 15 window APIs (BLOCKER)
 
