@@ -24,6 +24,8 @@ const handleServiceRequest = ({
             'x-localecode': req.headers['x-localecode'] || '',
             'x-platform': req.headers['x-platform'] || '',
             'x-brand-variation': req.headers['x-brand-variation'] || '',
+            'x-app-version': req.headers['x-app-version'] || '',
+            'x-app-os': req.headers['x-app-os'] || '',
             'x-user-device-token': req.headers['x-user-device-token'] || '',
             // (securely) Tacked on from JWT decode. The decoded value must win: every client also
             // sends its own `x-userid`, and preferring the request header let any signed-in user
