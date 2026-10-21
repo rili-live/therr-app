@@ -12,13 +12,17 @@ import {
     chargeExtendedSmsBudget,
     chargeGlobalSmsBudget,
     chargeSmsSendBudget,
+    chargeUnattestedSmsBudget,
     DEFAULT_SMS_GLOBAL_HOURLY_CAP,
+    DEFAULT_SMS_UNATTESTED_HOURLY_CAP,
     generateVerificationCode,
     DEFAULT_SMS_EXTENDED_HOURLY_CAP,
     getSmsExtendedHourlyCap,
     getSmsGlobalHourlyCap,
+    getSmsUnattestedHourlyCap,
     SMS_EXTENDED_BUDGET_KEY,
     SMS_GLOBAL_BUDGET_KEY,
+    SMS_UNATTESTED_BUDGET_KEY,
 } from '../../../../src/services/phone/verificationCodes';
 
 /** In-memory stand-in for the counter half of the Redis client. */
@@ -228,5 +232,33 @@ describe('extended-tier SMS budget', () => {
         expect(await chargeExtendedSmsBudget(store)).to.equal(false);
         expect(store.expiries[SMS_EXTENDED_BUDGET_KEY]).to.equal(60 * 60);
         expect(store.counters[SMS_GLOBAL_BUDGET_KEY]).to.equal(undefined);
+    });
+});
+
+describe('unattested (strict-lane) SMS budget', () => {
+    const originalCap = process.env.TWILIO_SMS_UNATTESTED_HOURLY_CAP;
+
+    afterEach(() => {
+        if (originalCap === undefined) {
+            delete process.env.TWILIO_SMS_UNATTESTED_HOURLY_CAP;
+        } else {
+            process.env.TWILIO_SMS_UNATTESTED_HOURLY_CAP = originalCap;
+        }
+    });
+
+    it('defaults below the global cap, so scripts cannot spend the allowance attested installs share', () => {
+        expect(getSmsUnattestedHourlyCap(undefined)).to.equal(DEFAULT_SMS_UNATTESTED_HOURLY_CAP);
+        expect(DEFAULT_SMS_UNATTESTED_HOURLY_CAP).to.be.lessThan(getSmsGlobalHourlyCap(undefined));
+    });
+
+    it('refuses once spent, on a counter separate from the global and extended budgets', async () => {
+        process.env.TWILIO_SMS_UNATTESTED_HOURLY_CAP = '1';
+        const store = fakeStore();
+
+        expect(await chargeUnattestedSmsBudget(store)).to.equal(true);
+        expect(await chargeUnattestedSmsBudget(store)).to.equal(false);
+        expect(store.expiries[SMS_UNATTESTED_BUDGET_KEY]).to.equal(60 * 60);
+        expect(store.counters[SMS_GLOBAL_BUDGET_KEY]).to.equal(undefined);
+        expect(store.counters[SMS_EXTENDED_BUDGET_KEY]).to.equal(undefined);
     });
 });
