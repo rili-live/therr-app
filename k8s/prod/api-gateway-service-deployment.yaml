@@ -115,6 +115,20 @@ spec:
             secretKeyRef:
               name: twilio-auth-token
               key: TWILIOAUTHTOKEN
+        # Preferred over the Auth Token when both are set (src/api/twilio.ts). Optional so pods
+        # still start, on the Auth Token, until these secrets exist.
+        - name: TWILIO_API_KEY_SID
+          valueFrom:
+            secretKeyRef:
+              name: twilio-api-key-sid-api-gateway
+              key: TWILIOAPIKEYSID
+              optional: true
+        - name: TWILIO_API_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: twilio-api-key-secret-api-gateway
+              key: TWILIOAPIKEYSECRET
+              optional: true
         - name: TWILIO_SENDER_PHONE_NUMBER
           value: "+14783124948"
         - name: TWILIO_SENDER_PHONE_NUMBER_GB
