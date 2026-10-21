@@ -26,7 +26,7 @@ export const DEFAULT_SMS_ALLOWED_REGIONS = [
     // Spanish-speaking South America
     'AR', 'BO', 'CL', 'CO', 'EC', 'PE', 'PY', 'UY', 'VE',
     // EU / EEA, the UK, Switzerland and the French- and English-speaking microstates. Not Slovenia:
-    // ~600 of the 2026-10-20/21 pumped texts went to Slovenian +386 65 numbers (the rest to Belarus
+    // 370 of the 2026-10-20/21 pumped texts went to Slovenian +386 65 numbers (the rest to Belarus
     // and Egypt), so it stays out until there is a real user there to weigh against that.
     'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT',
     'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'ES', 'SE', 'IS', 'LI', 'NO', 'GB', 'CH', 'MC', 'AD',
