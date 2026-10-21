@@ -1,6 +1,6 @@
 import RateLimit from 'express-rate-limit';
 import handleHttpError from '../utilities/handleHttpError';
-import { RateLimiterRedisStore } from '../store/redisClient';
+import { createRateLimiterRedisStore } from '../store/redisClient';
 
 const limitReachedStatusCode = 429;
 const limitReachedMessage = 'Too many requests, please try again later.';
@@ -8,7 +8,7 @@ const serviceLimitReachedMessage = 'Too many service requests, please try again 
 
 // TODO: Add store fallback to prevent single source of failure
 const genericRateLimiter = RateLimit({
-    store: RateLimiterRedisStore,
+    store: createRateLimiterRedisStore('generic'),
     windowMs: 1 * 60 * 1000, // 1 minutes
     max: 300, // limit each IP to 300 requests per windowMs (5 req/s)
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
@@ -22,7 +22,7 @@ const genericRateLimiter = RateLimit({
 });
 
 const serviceRateLimiter = (maxRequests = 200) => RateLimit({
-    store: RateLimiterRedisStore,
+    store: createRateLimiterRedisStore(`service:${maxRequests}`),
     windowMs: 10 * 1000, // 10 seconds
     max: maxRequests, // limit each IP to 200 requests per windowMs
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers

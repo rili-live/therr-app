@@ -63,11 +63,20 @@ describe('Pacts handler — claim flow', () => {
         });
 
         it('routes UK numbers (+44) through the GB sender', () => {
-            expect(getSmsSender('+447700900000')).to.match(/^\+44/);
+            expect(getSmsSender('+447400123456')).to.match(/^\+44/);
         });
 
         it('routes other countries through the default sender', () => {
             expect(getSmsSender('+13175551234')).to.match(/^\+1/);
+        });
+
+        it('returns no sender for destinations outside the SMS allowlist', () => {
+            // Shares the +1 / +44 prefix but not the region — the SMS-pumping shapes.
+            expect(getSmsSender('+18765551234')).to.equal(undefined); // Jamaica
+            expect(getSmsSender('+447911123456')).to.equal(undefined); // Guernsey
+            expect(getSmsSender('+5511912345678')).to.equal(undefined); // Brazil
+            // Extended-tier countries are texted only by the gateway, against its hourly budget.
+            expect(getSmsSender('+254712345678')).to.equal(undefined); // Kenya
         });
     });
 

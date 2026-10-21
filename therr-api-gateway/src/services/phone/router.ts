@@ -14,7 +14,9 @@ import {
     getBrandName,
     getMaxAccountsPerPhone,
 } from 'therr-js-utilities/constants';
+import { getSmsDestinationTier, SMS_DESTINATION_NOT_ALLOWED } from 'therr-js-utilities/sms-destination-policy';
 import handleHttpError from '../../utilities/handleHttpError';
+import isBlacklisted from '../../utilities/isBlacklisted';
 import { validate } from '../../validation';
 import redisClient, { storeRefreshToken } from '../../store/redisClient';
 import twilioClient from '../../api/twilio';
@@ -32,7 +34,20 @@ import {
 } from './validation/phone';
 import resolvePhoneLoginError from './resolvePhoneLoginError';
 import canonicalizePhoneNumber, { ICanonicalPhoneNumber } from './canonicalizePhoneNumber';
-import { chargeSmsSendBudget, generateVerificationCode } from './verificationCodes';
+import {
+    chargeExtendedSmsBudget,
+    chargeGlobalSmsBudget,
+    chargeSmsSendBudget,
+    generateVerificationCode,
+    SMS_EXTENDED_BUDGET_EXHAUSTED,
+    SMS_GLOBAL_BUDGET_EXHAUSTED,
+} from './verificationCodes';
+import {
+    clearUnverifiedSmsSends,
+    getSmsSenderKey,
+    isSmsSenderFlagged,
+    recordUnverifiedSmsSend,
+} from './smsSenderFlagging';
 import * as globalConfig from '../../../../global-config';
 import restRequest from '../../utilities/restRequest';
 import { hostRegex } from '../../utilities/patterns';
@@ -92,13 +107,53 @@ const buildInternalHeaders = (req: any) => ({
  * brand is interpolated rather than baked into the dictionary. `getBrandName` falls back to
  * Therr for an absent or unrecognized header, matching `getBrandContext`.
  */
-const sendVerificationSms = (
+const logSmsAbuseSignal = (message: string, traceArgs: Record<string, any> = {}) => logSpan({
+    level: 'error',
+    messageOrigin: 'API_SERVER',
+    messages: [message],
+    traceArgs: { ...traceArgs, 'process.id': process.pid },
+});
+
+const sendVerificationSms = async (
     locale: string,
     brandVariation: string,
     toPhoneNumber: string,
     verificationCode: number,
-) => twilioClient.messages
-    .create({
+    requesterIp: string,
+) => {
+    // Every route sends through here, so these are the gates against SMS pumping, in order: who is
+    // asking (`./smsSenderFlagging`), where we will text (`therr-js-utilities/sms-destination-policy`),
+    // and how much we will text in total. Abuse signals are logged here as well as by the caller,
+    // because `/auth/start` swallows its errors.
+    const senderKey = getSmsSenderKey(requesterIp);
+
+    // Flagged and blacklisted clients are shadow-banned: resolve as if sent, send nothing.
+    if (isBlacklisted(requesterIp) || (await isSmsSenderFlagged(redisClient, senderKey))) {
+        return undefined;
+    }
+
+    const tier = getSmsDestinationTier(toPhoneNumber);
+
+    if (!tier) {
+        throw new Error(SMS_DESTINATION_NOT_ALLOWED);
+    }
+
+    if (tier === 'extended' && !(await chargeExtendedSmsBudget(redisClient))) {
+        logSmsAbuseSignal(SMS_EXTENDED_BUDGET_EXHAUSTED);
+        throw new Error(SMS_EXTENDED_BUDGET_EXHAUSTED);
+    }
+
+    if (!(await chargeGlobalSmsBudget(redisClient))) {
+        logSmsAbuseSignal(SMS_GLOBAL_BUDGET_EXHAUSTED);
+        throw new Error(SMS_GLOBAL_BUDGET_EXHAUSTED);
+    }
+
+    if (await recordUnverifiedSmsSend(redisClient, senderKey)) {
+        logSmsAbuseSignal('SMS sender flagged: too many unverified verification texts', { 'sms.senderKey': senderKey });
+        return undefined;
+    }
+
+    return twilioClient.messages.create({
         body: translate(locale, 'sms.yourVerificationCode', {
             brandName: getBrandName(brandVariation),
             code: verificationCode,
@@ -106,6 +161,24 @@ const sendVerificationSms = (
         to: toPhoneNumber, // Text this number
         from: getTherrFromPhoneNumber(toPhoneNumber), // From a valid Twilio number
     });
+};
+
+const isRegionRefusal = (err: any) => err?.message === SMS_DESTINATION_NOT_ALLOWED
+    || err?.message?.includes('SMS has not been enabled for the region');
+
+const isBudgetRefusal = (err: any) => err?.message === SMS_GLOBAL_BUDGET_EXHAUSTED
+    || err?.message === SMS_EXTENDED_BUDGET_EXHAUSTED;
+
+/** Best-effort: a verified code proves a real handset behind this client. Never blocks the response. */
+const forgetUnverifiedSends = (requesterIp: string) => clearUnverifiedSmsSends(redisClient, getSmsSenderKey(requesterIp))
+    .catch(() => undefined);
+
+const sendBudgetExhausted = (err: any, res: any) => handleHttpError({
+    err,
+    res,
+    message: 'Too many verification codes requested. Please try again later.',
+    statusCode: 429,
+});
 
 /**
  * Asks the users-service which accounts are attached to a phone number. Used by both
@@ -243,6 +316,7 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
                 `${req.headers['x-brand-variation'] || ''}`,
                 normalizedPhoneNumber,
                 verificationCode,
+                req.ip,
             ))
             // eslint-disable-next-line arrow-body-style
             .then(() => {
@@ -250,7 +324,10 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
                     phoneNumber: normalizedPhoneNumber,
                 });
             }).catch((err: any) => {
-                if (err?.message?.includes('SMS has not been enabled for the region')) {
+                if (isBudgetRefusal(err)) {
+                    return sendBudgetExhausted(err, res);
+                }
+                if (isRegionRefusal(err)) {
                     return handleHttpError({
                         err,
                         errorCode: ErrorCodes.INVALID_REGION,
@@ -291,6 +368,8 @@ phoneRouter.post('/validate-code', verifyPhoneLongLimiter, validate, async (req,
                         },
                     };
 
+                    forgetUnverifiedSends(req.ip);
+
                     return restRequest(config);
                 }
                 return Promise.reject(new Error('Invalid verification code'));
@@ -323,7 +402,7 @@ phoneRouter.post('/validate-code', verifyPhoneLongLimiter, validate, async (req,
  * route an SMS is only ever attempted for a number that has an account, so answering "region
  * not enabled" would confirm the account's existence — the one thing this flow withholds.
  */
-const dispatchLoginCode = async (headers: any, locale: string, phone: ICanonicalPhoneNumber) => {
+const dispatchLoginCode = async (headers: any, locale: string, phone: ICanonicalPhoneNumber, requesterIp: string) => {
     try {
         const { accountCount } = await lookupAccountsByPhone(headers, phone.canonical);
 
@@ -338,7 +417,7 @@ const dispatchLoginCode = async (headers: any, locale: string, phone: ICanonical
         const verificationCode = generateVerificationCode();
         await redisClient.setex(authCodeKey('login', phone.e164), AUTH_CODE_EXPIRE_SECONDS, verificationCode);
         await redisClient.del(authAttemptsKey('login', phone.e164));
-        await sendVerificationSms(locale, `${headers['x-brand-variation'] || ''}`, phone.e164, verificationCode);
+        await sendVerificationSms(locale, `${headers['x-brand-variation'] || ''}`, phone.e164, verificationCode, requesterIp);
     } catch (err: any) {
         // The caller is already gone, so logging is the only channel left. Without this a
         // misconfigured Twilio sender would look, from the outside, exactly like a user
@@ -397,7 +476,7 @@ phoneRouter.post('/auth/start', phoneAuthStartLimiter, phoneAuthStartValidation,
     // any rejection escaping it would be an unhandled rejection — which Node surfaces as an
     // uncaught exception, and this service's `uncaughtException` handler answers by exiting.
     // One SMS failing must never be able to take the gateway down.
-    return dispatchLoginCode(internalHeaders, userLocale, phone).catch(() => undefined);
+    return dispatchLoginCode(internalHeaders, userLocale, phone, req.ip).catch(() => undefined);
 });
 
 /**
@@ -454,6 +533,8 @@ phoneRouter.post('/auth/verify', phoneAuthVerifyLimiter, phoneAuthVerifyValidati
                 statusCode: 400,
             });
         }
+
+        forgetUnverifiedSends(req.ip);
 
         const { accountCount, accounts } = await lookupAccountsByPhone(buildInternalHeaders(req), phone.canonical);
 
@@ -568,7 +649,7 @@ phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidat
         const verificationCode = generateVerificationCode();
         await redisClient.setex(authCodeKey('register', phone.e164), AUTH_CODE_EXPIRE_SECONDS, verificationCode);
         await redisClient.del(authAttemptsKey('register', phone.e164));
-        await sendVerificationSms(userLocale, brandVariation, phone.e164, verificationCode);
+        await sendVerificationSms(userLocale, brandVariation, phone.e164, verificationCode, req.ip);
 
         return res.status(200).send({
             status: 'sent',
@@ -576,7 +657,10 @@ phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidat
             expiresInSeconds: AUTH_CODE_EXPIRE_SECONDS,
         });
     } catch (err: any) {
-        if (err?.message?.includes('SMS has not been enabled for the region')) {
+        if (isBudgetRefusal(err)) {
+            return sendBudgetExhausted(err, res);
+        }
+        if (isRegionRefusal(err)) {
             return handleHttpError({
                 err,
                 errorCode: ErrorCodes.INVALID_REGION,
@@ -623,6 +707,8 @@ phoneRouter.post('/register/verify', phoneAuthVerifyLimiter, phoneAuthVerifyVali
                 statusCode: 400,
             });
         }
+
+        forgetUnverifiedSends(req.ip);
 
         await clearSubmittedCode('register', phone.e164);
 
