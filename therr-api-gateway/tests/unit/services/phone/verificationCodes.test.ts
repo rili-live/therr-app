@@ -9,8 +9,12 @@ import { expect } from 'chai';
 import {
     AUTH_SMS_MAX_SENDS_PER_NUMBER,
     AUTH_SMS_SEND_WINDOW_SECONDS,
+    chargeGlobalSmsBudget,
     chargeSmsSendBudget,
+    DEFAULT_SMS_GLOBAL_HOURLY_CAP,
     generateVerificationCode,
+    getSmsGlobalHourlyCap,
+    SMS_GLOBAL_BUDGET_KEY,
 } from '../../../../src/services/phone/verificationCodes';
 
 /** In-memory stand-in for the counter half of the Redis client. */
@@ -160,5 +164,37 @@ describe('chargeSmsSendBudget', () => {
 
         expect(await chargeSmsSendBudget(store, 'phone-login-sends:+13175551234')).to.equal(false);
         expect(await chargeSmsSendBudget(store, 'phone-register-sends:+13175551234')).to.equal(true);
+    });
+});
+
+describe('global SMS budget', () => {
+    const originalCap = process.env.TWILIO_SMS_GLOBAL_HOURLY_CAP;
+
+    afterEach(() => {
+        if (originalCap === undefined) {
+            delete process.env.TWILIO_SMS_GLOBAL_HOURLY_CAP;
+        } else {
+            process.env.TWILIO_SMS_GLOBAL_HOURLY_CAP = originalCap;
+        }
+    });
+
+    it('falls back to the default cap when the override is unset or not a positive integer', () => {
+        expect(getSmsGlobalHourlyCap(undefined)).to.equal(DEFAULT_SMS_GLOBAL_HOURLY_CAP);
+        expect(getSmsGlobalHourlyCap('abc')).to.equal(DEFAULT_SMS_GLOBAL_HOURLY_CAP);
+        expect(getSmsGlobalHourlyCap('0')).to.equal(DEFAULT_SMS_GLOBAL_HOURLY_CAP);
+        expect(getSmsGlobalHourlyCap('250')).to.equal(250);
+    });
+
+    it('refuses once the hourly cap is spent, across every destination number', async () => {
+        // Regression for the 2026-10-20/21 pumping run: thousands of distinct numbers from 151
+        // IPs, each comfortably inside its own per-number and per-IP allowance.
+        process.env.TWILIO_SMS_GLOBAL_HOURLY_CAP = '3';
+        const store = fakeStore();
+
+        expect(await chargeGlobalSmsBudget(store)).to.equal(true);
+        expect(await chargeGlobalSmsBudget(store)).to.equal(true);
+        expect(await chargeGlobalSmsBudget(store)).to.equal(true);
+        expect(await chargeGlobalSmsBudget(store)).to.equal(false);
+        expect(store.expiries[SMS_GLOBAL_BUDGET_KEY]).to.equal(60 * 60);
     });
 });

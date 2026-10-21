@@ -1,6 +1,7 @@
 import { randomBytes, randomUUID } from 'crypto';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { isSmsDestinationAllowed } from 'therr-js-utilities/sms-destination-policy';
 import Store from '../store';
 import sendPactInvitationEmail from '../api/email/for-social/sendPactInvitationEmail';
 import twilioClient from '../api/twilio';
@@ -28,8 +29,10 @@ export const generateClaimCode = (): string => {
 };
 
 // Read env at call time, not module load. Otherwise import order vs dotenv
-// (or unset env in test) silently produces undefined senders.
+// (or unset env in test) silently produces undefined senders. A destination outside
+// the SMS allowlist also gets no sender, which the caller already reports as undeliverable.
 export const getSmsSender = (toPhoneNumber: string): string | undefined => {
+    if (!isSmsDestinationAllowed(toPhoneNumber)) return undefined;
     if (toPhoneNumber.startsWith('+44')) return process.env.TWILIO_SENDER_PHONE_NUMBER_GB;
     return process.env.TWILIO_SENDER_PHONE_NUMBER;
 };

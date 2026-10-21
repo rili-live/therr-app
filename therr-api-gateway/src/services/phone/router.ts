@@ -14,6 +14,7 @@ import {
     getBrandName,
     getMaxAccountsPerPhone,
 } from 'therr-js-utilities/constants';
+import { isSmsDestinationAllowed, SMS_DESTINATION_NOT_ALLOWED } from 'therr-js-utilities/sms-destination-policy';
 import handleHttpError from '../../utilities/handleHttpError';
 import { validate } from '../../validation';
 import redisClient, { storeRefreshToken } from '../../store/redisClient';
@@ -32,7 +33,12 @@ import {
 } from './validation/phone';
 import resolvePhoneLoginError from './resolvePhoneLoginError';
 import canonicalizePhoneNumber, { ICanonicalPhoneNumber } from './canonicalizePhoneNumber';
-import { chargeSmsSendBudget, generateVerificationCode } from './verificationCodes';
+import {
+    chargeGlobalSmsBudget,
+    chargeSmsSendBudget,
+    generateVerificationCode,
+    SMS_GLOBAL_BUDGET_EXHAUSTED,
+} from './verificationCodes';
 import * as globalConfig from '../../../../global-config';
 import restRequest from '../../utilities/restRequest';
 import { hostRegex } from '../../utilities/patterns';
@@ -92,13 +98,31 @@ const buildInternalHeaders = (req: any) => ({
  * brand is interpolated rather than baked into the dictionary. `getBrandName` falls back to
  * Therr for an absent or unrecognized header, matching `getBrandContext`.
  */
-const sendVerificationSms = (
+const sendVerificationSms = async (
     locale: string,
     brandVariation: string,
     toPhoneNumber: string,
     verificationCode: number,
-) => twilioClient.messages
-    .create({
+) => {
+    // Every route sends through here, so these are the gates against SMS pumping: where we will
+    // text (`therr-js-utilities/sms-destination-policy`), then how much we will text in total.
+    if (!isSmsDestinationAllowed(toPhoneNumber)) {
+        throw new Error(SMS_DESTINATION_NOT_ALLOWED);
+    }
+
+    if (!(await chargeGlobalSmsBudget(redisClient))) {
+        // Logged here as well as by the caller: `/auth/start` swallows its errors, and a tripped
+        // global cap is the one signal that an attack is underway right now.
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: [SMS_GLOBAL_BUDGET_EXHAUSTED],
+            traceArgs: { 'process.id': process.pid },
+        });
+        throw new Error(SMS_GLOBAL_BUDGET_EXHAUSTED);
+    }
+
+    return twilioClient.messages.create({
         body: translate(locale, 'sms.yourVerificationCode', {
             brandName: getBrandName(brandVariation),
             code: verificationCode,
@@ -106,6 +130,17 @@ const sendVerificationSms = (
         to: toPhoneNumber, // Text this number
         from: getTherrFromPhoneNumber(toPhoneNumber), // From a valid Twilio number
     });
+};
+
+const isRegionRefusal = (err: any) => err?.message === SMS_DESTINATION_NOT_ALLOWED
+    || err?.message?.includes('SMS has not been enabled for the region');
+
+const sendGlobalBudgetExhausted = (err: any, res: any) => handleHttpError({
+    err,
+    res,
+    message: 'Too many verification codes requested. Please try again later.',
+    statusCode: 429,
+});
 
 /**
  * Asks the users-service which accounts are attached to a phone number. Used by both
@@ -250,7 +285,10 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
                     phoneNumber: normalizedPhoneNumber,
                 });
             }).catch((err: any) => {
-                if (err?.message?.includes('SMS has not been enabled for the region')) {
+                if (err?.message === SMS_GLOBAL_BUDGET_EXHAUSTED) {
+                    return sendGlobalBudgetExhausted(err, res);
+                }
+                if (isRegionRefusal(err)) {
                     return handleHttpError({
                         err,
                         errorCode: ErrorCodes.INVALID_REGION,
@@ -576,7 +614,10 @@ phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidat
             expiresInSeconds: AUTH_CODE_EXPIRE_SECONDS,
         });
     } catch (err: any) {
-        if (err?.message?.includes('SMS has not been enabled for the region')) {
+        if (err?.message === SMS_GLOBAL_BUDGET_EXHAUSTED) {
+            return sendGlobalBudgetExhausted(err, res);
+        }
+        if (isRegionRefusal(err)) {
             return handleHttpError({
                 err,
                 errorCode: ErrorCodes.INVALID_REGION,
