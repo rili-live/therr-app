@@ -9,11 +9,15 @@ import { expect } from 'chai';
 import {
     AUTH_SMS_MAX_SENDS_PER_NUMBER,
     AUTH_SMS_SEND_WINDOW_SECONDS,
+    chargeExtendedSmsBudget,
     chargeGlobalSmsBudget,
     chargeSmsSendBudget,
     DEFAULT_SMS_GLOBAL_HOURLY_CAP,
     generateVerificationCode,
+    DEFAULT_SMS_EXTENDED_HOURLY_CAP,
+    getSmsExtendedHourlyCap,
     getSmsGlobalHourlyCap,
+    SMS_EXTENDED_BUDGET_KEY,
     SMS_GLOBAL_BUDGET_KEY,
 } from '../../../../src/services/phone/verificationCodes';
 
@@ -196,5 +200,33 @@ describe('global SMS budget', () => {
         expect(await chargeGlobalSmsBudget(store)).to.equal(true);
         expect(await chargeGlobalSmsBudget(store)).to.equal(false);
         expect(store.expiries[SMS_GLOBAL_BUDGET_KEY]).to.equal(60 * 60);
+    });
+});
+
+describe('extended-tier SMS budget', () => {
+    const originalCap = process.env.TWILIO_SMS_EXTENDED_HOURLY_CAP;
+
+    afterEach(() => {
+        if (originalCap === undefined) {
+            delete process.env.TWILIO_SMS_EXTENDED_HOURLY_CAP;
+        } else {
+            process.env.TWILIO_SMS_EXTENDED_HOURLY_CAP = originalCap;
+        }
+    });
+
+    it('defaults well below the global cap', () => {
+        expect(getSmsExtendedHourlyCap(undefined)).to.equal(DEFAULT_SMS_EXTENDED_HOURLY_CAP);
+        expect(DEFAULT_SMS_EXTENDED_HOURLY_CAP).to.be.lessThan(getSmsGlobalHourlyCap(undefined));
+    });
+
+    it('refuses once spent, on a counter separate from the global budget', async () => {
+        process.env.TWILIO_SMS_EXTENDED_HOURLY_CAP = '2';
+        const store = fakeStore();
+
+        expect(await chargeExtendedSmsBudget(store)).to.equal(true);
+        expect(await chargeExtendedSmsBudget(store)).to.equal(true);
+        expect(await chargeExtendedSmsBudget(store)).to.equal(false);
+        expect(store.expiries[SMS_EXTENDED_BUDGET_KEY]).to.equal(60 * 60);
+        expect(store.counters[SMS_GLOBAL_BUDGET_KEY]).to.equal(undefined);
     });
 });

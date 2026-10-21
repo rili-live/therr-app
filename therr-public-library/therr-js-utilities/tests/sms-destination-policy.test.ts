@@ -1,7 +1,10 @@
 import { expect } from 'chai';
 import {
     DEFAULT_SMS_ALLOWED_REGIONS,
+    DEFAULT_SMS_EXTENDED_REGIONS,
     getSmsAllowedRegions,
+    getSmsDestinationTier,
+    getSmsExtendedRegions,
     isSmsDestinationAllowed,
 } from '../src/sms-destination-policy';
 
@@ -57,6 +60,47 @@ describe('sms-destination-policy', () => {
             expect(isSmsDestinationAllowed('', regions)).to.equal(false);
             expect(isSmsDestinationAllowed(undefined as any, regions)).to.equal(false);
             expect(isSmsDestinationAllowed('+1555', regions)).to.equal(false);
+        });
+    });
+
+    describe('getSmsDestinationTier', () => {
+        it('puts our core markets in the core tier', () => {
+            expect(getSmsDestinationTier('+13175551234')).to.equal('core'); // US
+            expect(getSmsDestinationTier('+33612345678')).to.equal('core'); // France
+            expect(getSmsDestinationTier('+491711234567')).to.equal('core'); // Germany
+            expect(getSmsDestinationTier('+61412345678')).to.equal('core'); // Australia
+        });
+
+        it('puts English- and French-speaking growth markets in the extended tier', () => {
+            expect(getSmsDestinationTier('+254712345678')).to.equal('extended'); // Kenya
+            expect(getSmsDestinationTier('+221701234567')).to.equal('extended'); // Senegal
+            expect(getSmsDestinationTier('+917012345678')).to.equal('extended'); // India
+        });
+
+        it('refuses Twilio high-risk countries and island pumping destinations outright', () => {
+            expect(getSmsDestinationTier('+923001234567')).to.equal(undefined); // Pakistan
+            expect(getSmsDestinationTier('+2348031234567')).to.equal(undefined); // Nigeria
+            expect(getSmsDestinationTier('+18765551234')).to.equal(undefined); // Jamaica
+            expect(getSmsDestinationTier('+447911123456')).to.equal(undefined); // Guernsey
+        });
+
+        it('lets core win when an override lists a region in both tiers', () => {
+            expect(getSmsDestinationTier('+254712345678', ['KE'], ['KE'])).to.equal('core');
+        });
+
+        it('honours an extended-tier override', () => {
+            expect(getSmsExtendedRegions(' ke ')).to.deep.equal(['KE']);
+            expect(getSmsExtendedRegions(undefined)).to.deep.equal(DEFAULT_SMS_EXTENDED_REGIONS);
+            expect(getSmsDestinationTier('+221701234567', DEFAULT_SMS_ALLOWED_REGIONS, ['KE'])).to.equal(undefined);
+        });
+
+        it('keeps the tiers disjoint by default', () => {
+            expect(DEFAULT_SMS_EXTENDED_REGIONS.filter((r) => DEFAULT_SMS_ALLOWED_REGIONS.includes(r))).to.deep.equal([]);
+        });
+
+        it('isSmsDestinationAllowed admits the core tier only', () => {
+            expect(isSmsDestinationAllowed('+33612345678')).to.equal(true); // France — core
+            expect(isSmsDestinationAllowed('+254712345678')).to.equal(false); // Kenya — extended
         });
     });
 });

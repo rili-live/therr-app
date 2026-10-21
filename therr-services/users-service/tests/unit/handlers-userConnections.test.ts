@@ -24,7 +24,7 @@ describe('UserConnections Handler', () => {
 
         it('refuses destinations outside the allowlist and numbers that never parsed', () => {
             expect(isSmsInviteDestinationAllowed(normalizePhoneNumber('+18765551234'))).to.equal(false); // Jamaica
-            expect(isSmsInviteDestinationAllowed(normalizePhoneNumber('+33612345678'))).to.equal(false); // France
+            expect(isSmsInviteDestinationAllowed(normalizePhoneNumber('+5511912345678'))).to.equal(false); // Brazil
             expect(isSmsInviteDestinationAllowed(normalizePhoneNumber('8765551234'))).to.equal(false); // Jamaica, no code
             expect(isSmsInviteDestinationAllowed(normalizePhoneNumber('12345'))).to.equal(false);
         });

@@ -1,5 +1,6 @@
 import RateLimit from 'express-rate-limit';
 import handleHttpError from '../../../utilities/handleHttpError';
+import { getSmsSenderKey } from '../smsSenderFlagging';
 import { createRateLimiterRedisStore } from '../../../store/redisClient';
 
 const limitReachedStatusCode = 429;
@@ -12,7 +13,8 @@ const buildRateLimiter = (msg, count = 1, minutes = 1) => RateLimit({
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
     statusCode: limitReachedStatusCode,
-    keyGenerator: (req) => `${req.method}${req.path}${req.ip}`,
+    // IPv6 clients are keyed by /64 — see `getSmsSenderKey`.
+    keyGenerator: (req) => `${req.method}${req.path}${getSmsSenderKey(req.ip)}`,
     handler: (req, res) => handleHttpError({
         res,
         message: msg,

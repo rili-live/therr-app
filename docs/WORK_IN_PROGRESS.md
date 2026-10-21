@@ -98,6 +98,18 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## SMS country tiers (added 2026-10-21, after the SMS-pumping incident)
+
+- [ ] **Match Twilio's Messaging Geo Permissions to the code tiers** in
+  `therr-public-library/therr-js-utilities/src/sms-destination-policy.ts` — enable exactly
+  `DEFAULT_SMS_ALLOWED_REGIONS` + `DEFAULT_SMS_EXTENDED_REGIONS`, nothing else (in particular not the
+  Global satellite/international-network group, Caribbean or Pacific island nations, or Twilio's
+  "High Risk" countries). A text needs both to allow it; the console is the second lock.
+- [ ] **After deploy, watch for `SMS sender flagged` and `Extended-tier SMS budget exhausted`** in the
+  gateway logs (`_bin/prod-debug/collect-incident.sh`). The first is an attack being absorbed; the
+  second, if it recurs without an attack, means the extended cap (`TWILIO_SMS_EXTENDED_HOURLY_CAP`,
+  default 10/hour) is too tight for real demand.
+
 ## Adjacency marketing (added 2026-10-19, docs/ADJACENCY_MARKETING.md)
 
 - [ ] **After the deploy, confirm the eight trend templates exist in prod.** Migration
