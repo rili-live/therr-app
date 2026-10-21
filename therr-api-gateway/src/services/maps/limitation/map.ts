@@ -1,6 +1,6 @@
 import RateLimit from 'express-rate-limit';
 import handleHttpError from '../../../utilities/handleHttpError';
-import { RateLimiterRedisStore } from '../../../store/redisClient';
+import { createRateLimiterRedisStore } from '../../../store/redisClient';
 
 const MAX_ACTIVITIES_PER_USER_PER_DAY = 10;
 const MAX_EVENTS_PER_USER_PER_DAY = 10;
@@ -14,7 +14,7 @@ const spacesLimitReachedMessage = 'Space creation is limited per day. Try again 
 const pairingFeedbackLimitReachedMessage = 'Pairing feedback is limited. Try again later.';
 
 const buildRateLimiter = (msg, count = 1, minutes = 1, keySuffix = '') => RateLimit({
-    store: RateLimiterRedisStore,
+    store: createRateLimiterRedisStore(`maps:${count}/${minutes}m`),
     windowMs: minutes * 60 * 1000, // 1 minutes
     max: process.env.NODE_ENV !== 'development' ? count : 25, // limit each IP to x requests per windowMs
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
@@ -31,7 +31,7 @@ const buildRateLimiter = (msg, count = 1, minutes = 1, keySuffix = '') => RateLi
 // Variant keyed on userId when present, else IP. Used to cap per-identity
 // volume on endpoints that authenticateOptional admits both.
 const buildIdentityRateLimiter = (msg, count = 1, minutes = 1, keySuffix = '') => RateLimit({
-    store: RateLimiterRedisStore,
+    store: createRateLimiterRedisStore(`maps-identity:${count}/${minutes}m`),
     windowMs: minutes * 60 * 1000,
     max: process.env.NODE_ENV !== 'development' ? count : 50,
     standardHeaders: true,

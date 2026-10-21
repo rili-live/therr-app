@@ -1,0 +1,2 @@
+Nouveautés :
+• Les codes de connexion envoyés par texto sont maintenant mieux protégés contre les abus, pour qu'ils continuent d'arriver sans problème

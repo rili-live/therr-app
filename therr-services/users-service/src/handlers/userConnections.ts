@@ -6,6 +6,7 @@ import {
 import { getBrandContext, getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
+import { isSmsDestinationAllowed } from 'therr-js-utilities/sms-destination-policy';
 import normalizeEmail from 'normalize-email';
 import emailValidator from 'therr-js-utilities/email-validator';
 import deepEmailValidate from 'deep-email-validator';
@@ -27,6 +28,19 @@ import { getInterestRanking, logShadowInterestRanking } from '../utilities/inter
 
 // Moved to utilities/interestWeights so the live formula and the shadow candidate it is
 // being compared against live side by side and can be unit-tested together.
+
+// Every phone invite is a paid SMS to a number the requester chose. The gateway limits this
+// route per IP, but nothing bounded the size of `inviteList`, so one request could text an
+// entire address book. Email invites are free and stay uncapped.
+const MAX_SMS_INVITES_PER_REQUEST = 25;
+
+// Address books routinely store numbers without a country code. `normalizePhoneNumber` assumes
+// US for those and returns them as "1 (317) 555-1234" — no `+`, so the allowlist (which fails
+// closed on a missing country code) would silently drop every such contact. Restore the `+` it
+// already implied before asking; a string that never parsed stays invalid either way.
+const isSmsInviteDestinationAllowed = (normalizedPhoneNumber: string) => isSmsDestinationAllowed(
+    normalizedPhoneNumber.startsWith('+') ? normalizedPhoneNumber : `+${normalizedPhoneNumber}`,
+);
 
 const getTherrFromPhoneNumber = (receivingPhoneNumber: string) => {
     if (receivingPhoneNumber.startsWith('+44')) {
@@ -411,9 +425,10 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             'email',
         );
         const sendablePhoneContacts = dedupeByKey(
-            otherUserPhoneNumbers.filter((contact) => !recentInvitePhones.has(contact.phoneNumber)),
+            otherUserPhoneNumbers.filter((contact) => !recentInvitePhones.has(contact.phoneNumber)
+                && isSmsInviteDestinationAllowed(contact.phoneNumber)),
             'phoneNumber',
-        );
+        ).slice(0, MAX_SMS_INVITES_PER_REQUEST);
 
         // NOTE: Current set to 0 coin reward while we debug spammers
         coinRewardsTotal += (sendableEmailContacts.length * CurrentSocialValuations.inviteSent)
@@ -1118,4 +1133,5 @@ export {
     updateUserConnection,
     updateUserConnectionType,
     incrementUserConnection,
+    isSmsInviteDestinationAllowed,
 };

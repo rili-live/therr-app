@@ -1,0 +1,2 @@
+What's new:
+• Sign-in codes sent by text message now come with stronger protection against abuse, so they keep arriving reliably

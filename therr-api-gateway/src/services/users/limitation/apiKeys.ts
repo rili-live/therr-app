@@ -1,6 +1,6 @@
 import RateLimit from 'express-rate-limit';
 import handleHttpError from '../../../utilities/handleHttpError';
-import { RateLimiterRedisStore } from '../../../store/redisClient';
+import { createRateLimiterRedisStore } from '../../../store/redisClient';
 
 const limitReachedStatusCode = 429;
 const apiKeyCreateLimitMessage = 'Too many API key creation requests, please try again later.';
@@ -8,7 +8,7 @@ const apiKeyRequestLimitMessage = 'Too many API requests, please try again later
 
 // Rate limit for API key creation: 5 per hour per user
 const apiKeyCreateLimiter = RateLimit({
-    store: RateLimiterRedisStore,
+    store: createRateLimiterRedisStore('apikey-create'),
     windowMs: 60 * 60 * 1000, // 1 hour
     max: process.env.NODE_ENV !== 'development' ? 5 : 25,
     standardHeaders: true,
@@ -24,7 +24,7 @@ const apiKeyCreateLimiter = RateLimit({
 
 // Rate limit for API key authenticated requests: 100 per minute per key
 const apiKeyRequestLimiter = RateLimit({
-    store: RateLimiterRedisStore,
+    store: createRateLimiterRedisStore('apikey-request'),
     windowMs: 60 * 1000, // 1 minute
     max: process.env.NODE_ENV !== 'development' ? 100 : 500,
     standardHeaders: true,

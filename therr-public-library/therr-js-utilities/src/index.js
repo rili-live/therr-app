@@ -54,6 +54,7 @@ const utilities = [
     'print-logs',
     'log-or-update-span',
     'slugify',
+    'sms-destination-policy',
 ];
 
 module.exports = utilities;

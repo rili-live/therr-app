@@ -15,6 +15,7 @@ module.exports = {
         'therr-js-utilities/(.*)':
             '<rootDir>../therr-public-library/therr-js-utilities/lib/$1',
         '@react-native-firebase/messaging': '<rootDir>/__mocks__/firebase/messaging.ts',
+        '^@react-native-firebase/app-check$': '<rootDir>/__mocks__/firebase/appCheck.ts',
         '@invertase/react-native-apple-authentication': '<rootDir>/__mocks__/@invertase/react-native-apple-authentication.js',
         'react-native-device-info': '<rootDir>/__mocks__/react-native-device-info.ts',
         // Reaches for a JSI native module at import time, which is unavailable under Jest.

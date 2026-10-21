@@ -51,10 +51,103 @@ export interface ISmsBudgetStore {
  * to receive a sign-in code. NX is idempotent, so a later call repairs the missing TTL while
  * still refusing to re-arm a live one.
  */
-export const chargeSmsSendBudget = async (store: ISmsBudgetStore, key: string): Promise<boolean> => {
+export const chargeSmsSendBudget = async (
+    store: ISmsBudgetStore,
+    key: string,
+    maxSends = AUTH_SMS_MAX_SENDS_PER_NUMBER,
+    windowSeconds = AUTH_SMS_SEND_WINDOW_SECONDS,
+): Promise<boolean> => {
     const sends = await store.incr(key);
 
-    await store.expire(key, AUTH_SMS_SEND_WINDOW_SECONDS, 'NX');
+    await store.expire(key, windowSeconds, 'NX');
 
-    return sends <= AUTH_SMS_MAX_SENDS_PER_NUMBER;
+    return sends <= maxSends;
 };
+
+/**
+ * A ceiling on verification texts across the whole gateway, whatever the number or caller.
+ *
+ * The per-IP and per-number limits bound one attacker; they don't bound a botnet. The pumping run
+ * on 2026-10-20/21 came from 151 IPs, so even correctly enforced per-IP limits would still have
+ * allowed well over a thousand texts an hour. Real traffic is a handful of codes a day, so a cap
+ * far above that costs real users nothing and turns an unbounded bill into a bounded one. Read at
+ * call time so `TWILIO_SMS_GLOBAL_HOURLY_CAP` can be raised without a rebuild.
+ */
+export const DEFAULT_SMS_GLOBAL_HOURLY_CAP = 60;
+export const SMS_GLOBAL_BUDGET_KEY = 'sms-global-sends';
+
+const parseHourlyCap = (rawCap: string | undefined, fallback: number): number => {
+    const cap = Number.parseInt(`${rawCap || ''}`, 10);
+
+    return Number.isFinite(cap) && cap > 0 ? cap : fallback;
+};
+
+export const getSmsGlobalHourlyCap = (rawCap = process.env.TWILIO_SMS_GLOBAL_HOURLY_CAP): number => parseHourlyCap(
+    rawCap,
+    DEFAULT_SMS_GLOBAL_HOURLY_CAP,
+);
+
+/** Error message a send rejects with once the global hourly budget is spent. */
+export const SMS_GLOBAL_BUDGET_EXHAUSTED = 'Global SMS budget exhausted for this hour';
+
+/** Charges one SMS against the gateway-wide hourly budget, resolving `false` once it is spent. */
+export const chargeGlobalSmsBudget = (store: ISmsBudgetStore): Promise<boolean> => chargeSmsSendBudget(
+    store,
+    SMS_GLOBAL_BUDGET_KEY,
+    getSmsGlobalHourlyCap(),
+    60 * 60,
+);
+
+/**
+ * A much smaller hourly budget shared by every extended-tier destination (see
+ * `therr-js-utilities/sms-destination-policy`): markets we want to reach, but where a text costs
+ * many times a US one and pumping is common. Real volume there is a few codes a day, so a pumping
+ * run aimed at them is capped here long before the global ceiling. Charged *before* the global
+ * budget, so a spent extended budget doesn't also drain the core tier's allowance.
+ */
+export const DEFAULT_SMS_EXTENDED_HOURLY_CAP = 10;
+export const SMS_EXTENDED_BUDGET_KEY = 'sms-extended-sends';
+
+export const getSmsExtendedHourlyCap = (rawCap = process.env.TWILIO_SMS_EXTENDED_HOURLY_CAP): number => parseHourlyCap(
+    rawCap,
+    DEFAULT_SMS_EXTENDED_HOURLY_CAP,
+);
+
+/** Error message a send rejects with once the extended tier's hourly budget is spent. */
+export const SMS_EXTENDED_BUDGET_EXHAUSTED = 'Extended-tier SMS budget exhausted for this hour';
+
+/** Charges one SMS against the extended tier's hourly budget, resolving `false` once it is spent. */
+export const chargeExtendedSmsBudget = (store: ISmsBudgetStore): Promise<boolean> => chargeSmsSendBudget(
+    store,
+    SMS_EXTENDED_BUDGET_KEY,
+    getSmsExtendedHourlyCap(),
+    60 * 60,
+);
+
+/**
+ * The strict lane's hourly budget: every send for a request without a valid App Check token (see
+ * `./appAttestation`) — app builds that predate App Check, and scripts. Charged *before* the global
+ * budget, so a script hammering the strict lane spends this allowance and not the one attested
+ * installs draw on.
+ */
+export const DEFAULT_SMS_UNATTESTED_HOURLY_CAP = 10;
+export const SMS_UNATTESTED_BUDGET_KEY = 'sms-unattested-sends';
+
+export const getSmsUnattestedHourlyCap = (rawCap = process.env.TWILIO_SMS_UNATTESTED_HOURLY_CAP): number => parseHourlyCap(
+    rawCap,
+    DEFAULT_SMS_UNATTESTED_HOURLY_CAP,
+);
+
+/** Error message a send rejects with once the strict lane's hourly budget is spent. */
+export const SMS_UNATTESTED_BUDGET_EXHAUSTED = 'Unattested SMS budget exhausted for this hour';
+
+/** Error message a send rejects with when `SMS_APP_CHECK_MODE=enforce` and the request is unattested. */
+export const SMS_APP_ATTESTATION_REQUIRED = 'SMS requires an App Check token';
+
+/** Charges one SMS against the strict lane's hourly budget, resolving `false` once it is spent. */
+export const chargeUnattestedSmsBudget = (store: ISmsBudgetStore): Promise<boolean> => chargeSmsSendBudget(
+    store,
+    SMS_UNATTESTED_BUDGET_KEY,
+    getSmsUnattestedHourlyCap(),
+    60 * 60,
+);
