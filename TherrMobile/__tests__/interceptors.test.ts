@@ -41,6 +41,12 @@ jest.mock('therr-react/services', () => ({
     },
 }));
 
+const mockGetAppCheckToken = jest.fn();
+jest.mock('../main/utilities/appCheck', () => ({
+    ...jest.requireActual('../main/utilities/appCheck'),
+    getAppCheckToken: (...args: any[]) => mockGetAppCheckToken(...args),
+}));
+
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import initInterceptors from '../main/interceptors';
 import SecureStorage from '../main/utilities/SecureStorage';
@@ -102,8 +108,12 @@ describe('interceptors', () => {
         axios.defaults.adapter = mockAdapter;
     });
 
-    afterEach(() => {
-        jest.runAllTimers();
+    afterEach(async () => {
+        // Drain the refresh retry chain while timers are still fake. A sync runAllTimers()
+        // fires the pending retry, but its promise chain schedules the next retry after
+        // useRealTimers() — a real 3s timer that logs once this file is torn down, which
+        // makes Jest exit 1 with every test passing.
+        await jest.runAllTimersAsync();
         jest.useRealTimers();
         (axios.interceptors.request as any).handlers = [];
         (axios.interceptors.response as any).handlers = [];
@@ -375,6 +385,33 @@ describe('interceptors', () => {
 
             // getItem should not have been called again — isRefreshing blocks a new refresh
             expect((SecureStorage.getItem as jest.Mock).mock.calls.length).toBe(getItemCallCount);
+        });
+    });
+
+    describe('App Check token', () => {
+        const sentHeaders = () => (mockAdapter as jest.Mock).mock.calls[0][0].headers;
+
+        it('attaches a token to the requests that send a verification text', async () => {
+            mockGetAppCheckToken.mockResolvedValueOnce('app-check-token');
+
+            await axios.post('/phone/register/start', {});
+
+            expect(sentHeaders()['x-firebase-appcheck']).toBe('app-check-token');
+        });
+
+        it('sends the request without the header when no token is available', async () => {
+            mockGetAppCheckToken.mockResolvedValueOnce(undefined);
+
+            await axios.post('/phone/auth/start', {});
+
+            expect(sentHeaders()['x-firebase-appcheck']).toBeUndefined();
+        });
+
+        it('never fetches a token for other requests', async () => {
+            await axios.get('/users-service/users/me');
+
+            expect(mockGetAppCheckToken).not.toHaveBeenCalled();
+            expect(sentHeaders()['x-firebase-appcheck']).toBeUndefined();
         });
     });
 });

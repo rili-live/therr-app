@@ -11,7 +11,8 @@
 //
 // It is also the recovery when a stage publish fails outright and leaves nothing
 // to re-run against: a comment-only edit here is enough (as after a0318b6 on
-// 2026-10-09, when CircleCI's outage killed the image build for that merge).
+// 2026-10-09, when CircleCI's outage killed the image build for that merge, and
+// after 10eb28e on 2026-10-21, when a failed test_clients job blocked the publish).
 //
 // The corollary is the reason to be careful here: any edit to this file is a full
 // fleet rebuild and rollout, never a narrow change.

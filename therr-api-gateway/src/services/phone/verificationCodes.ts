@@ -123,3 +123,31 @@ export const chargeExtendedSmsBudget = (store: ISmsBudgetStore): Promise<boolean
     getSmsExtendedHourlyCap(),
     60 * 60,
 );
+
+/**
+ * The strict lane's hourly budget: every send for a request without a valid App Check token (see
+ * `./appAttestation`) — app builds that predate App Check, and scripts. Charged *before* the global
+ * budget, so a script hammering the strict lane spends this allowance and not the one attested
+ * installs draw on.
+ */
+export const DEFAULT_SMS_UNATTESTED_HOURLY_CAP = 10;
+export const SMS_UNATTESTED_BUDGET_KEY = 'sms-unattested-sends';
+
+export const getSmsUnattestedHourlyCap = (rawCap = process.env.TWILIO_SMS_UNATTESTED_HOURLY_CAP): number => parseHourlyCap(
+    rawCap,
+    DEFAULT_SMS_UNATTESTED_HOURLY_CAP,
+);
+
+/** Error message a send rejects with once the strict lane's hourly budget is spent. */
+export const SMS_UNATTESTED_BUDGET_EXHAUSTED = 'Unattested SMS budget exhausted for this hour';
+
+/** Error message a send rejects with when `SMS_APP_CHECK_MODE=enforce` and the request is unattested. */
+export const SMS_APP_ATTESTATION_REQUIRED = 'SMS requires an App Check token';
+
+/** Charges one SMS against the strict lane's hourly budget, resolving `false` once it is spent. */
+export const chargeUnattestedSmsBudget = (store: ISmsBudgetStore): Promise<boolean> => chargeSmsSendBudget(
+    store,
+    SMS_UNATTESTED_BUDGET_KEY,
+    getSmsUnattestedHourlyCap(),
+    60 * 60,
+);

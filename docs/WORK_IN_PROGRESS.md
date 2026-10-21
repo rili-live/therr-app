@@ -109,6 +109,54 @@ append new items here rather than only printing them once.
   gateway logs (`_bin/prod-debug/collect-incident.sh`). The first is an attack being absorbed; the
   second, if it recurs without an attack, means the extended cap (`TWILIO_SMS_EXTENDED_HOURLY_CAP`,
   default 10/hour) is too tight for real demand.
+- [ ] **Remove the live SMS env overrides once `fix/sms-app-check` is deployed.** On 2026-10-21 the
+  narrowed tiers were applied by hand with `kubectl set env` (`TWILIO_SMS_ALLOWED_REGIONS`,
+  `TWILIO_SMS_EXTENDED_REGIONS=US`, `TWILIO_SMS_EXTENDED_HOURLY_CAP=3`, `TWILIO_SMS_GLOBAL_HOURLY_CAP=20`
+  on the gateway; `TWILIO_SMS_ALLOWED_REGIONS` on users-service). Client-side `kubectl apply` keeps env
+  entries absent from the manifest, so they outlive every deploy and would silently override the next
+  change to the code defaults. Once the code defaults match, drop them:
+  `kubectl set env deployment/api-gateway-service-deployment TWILIO_SMS_ALLOWED_REGIONS- TWILIO_SMS_EXTENDED_REGIONS- TWILIO_SMS_EXTENDED_HOURLY_CAP-`
+  and `kubectl set env deployment/users-service-deployment TWILIO_SMS_ALLOWED_REGIONS-`. Keep
+  `TWILIO_SMS_GLOBAL_HOURLY_CAP=20` only if it is meant to stay — then put it in the manifest instead.
+
+## App Check for verification texts (added 2026-10-21, docs/APP_CHECK.md)
+
+Full checklist and rationale in `docs/APP_CHECK.md`. The console steps must be done **before** the
+first App Check build reaches users, or every token is rejected and everyone lands in the strict lane.
+
+- [x] **Firebase console → App Check → Apps:** register `app.therrmobile` and `com.therr.habits` with
+  the **Play Integrity** provider. Leave **enforcement off** for every Firebase product (Auth,
+  Firestore, …) — enforcing Firebase Auth would break sign-in on every build that predates App Check.
+  Done for both apps 2026-10-21.
+- [x] **Firebase console → Project settings → each Android app:** add the SHA-256 of the **Play app
+  signing key** (Play Console → Test and release → App integrity → App signing).
+  Done for both apps 2026-10-21.
+- [x] **Play Console → App integrity → Play Integrity API** for both apps (Therr already had it; Friends
+  with Habits enabled 2026-10-21). If a new build still attests as `unattested`, first confirm both
+  are linked to the `therr-app` Cloud project specifically, and that the API is enabled there.
+- [ ] **After the release reaches users,** read the gateway's `Sending verification SMS` spans by
+  `appCheck.attestation`: attested on new builds, unattested only on old ones. A new-build send that is
+  unattested means a console step above is missing. `SMS request with a forged App Check token` should
+  be scripts only.
+- [ ] **Once almost all active Android sign-ups are attested,** set `SMS_APP_CHECK_MODE=enforce` in
+  both k8s manifests (or narrow the strict lane further) and redeploy.
+
+## Twilio API keys (added 2026-10-21, after the SMS-pumping incident)
+
+- [ ] **Create one Twilio API key per service** (Console → Account → API keys & tokens →
+  Standard key) named `api-gateway-prod` and `users-service-prod`. The secret is shown once.
+- [ ] **Create the k8s secrets and restart.** The deployments reference them as optional, so
+  until they exist each service keeps using the Auth Token. For `<svc>` = `api-gateway` and
+  `users-service`, with that service's own key:
+  `kubectl create secret generic twilio-api-key-sid-<svc> --from-literal=TWILIOAPIKEYSID=SK…` and
+  `kubectl create secret generic twilio-api-key-secret-<svc> --from-literal=TWILIOAPIKEYSECRET=…`, then
+  `kubectl rollout restart deployment/api-gateway-service-deployment deployment/users-service-deployment`.
+- [ ] **Confirm the switch:** the gateway and users-service logs say `Twilio client authenticating
+  with api-key` (a warning instead means the pair is incomplete or the SID isn't an `SK…`). The
+  gateway logs it at startup; users-service builds its client lazily, so it logs only on its first
+  SMS send (a connection or pact invite) — no line right after the restart is not a failure.
+- [ ] **Then remove the Auth Token fallback** from both `src/api/twilio.ts`, drop the
+  `TWILIO_AUTH_TOKEN` env entries and delete the `twilio-auth-token` secret.
 
 ## Adjacency marketing (added 2026-10-19, docs/ADJACENCY_MARKETING.md)
 
