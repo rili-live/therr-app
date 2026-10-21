@@ -74,6 +74,17 @@ describe('appAttestation', () => {
             expect(result.attestation).to.equal('unattested');
         });
 
+        it('never shadow-bans a token signed with a key missing from the cached key set', async () => {
+            // firebase-admin caches the JWKS for 6h without refetching on a miss, so a rotated key looks like this.
+            const result = await getAppAttestation('tok', verifierThatThrows(appCheckError(
+                'app-check/invalid-argument',
+                'The provided App Check token has "kid" claim which does not correspond to a known public key. '
+                    + 'Most likely the provided App Check token is expired, so get a fresh token from your client app and try again.',
+            )));
+
+            expect(result.attestation).to.equal('unattested');
+        });
+
         it('puts an expired token, or a misconfigured verifier, in the strict lane rather than banning it', async () => {
             expect((await getAppAttestation('tok', verifierThatThrows(
                 appCheckError('app-check/app-check-token-expired', 'The provided App Check token has expired.'),

@@ -24,7 +24,7 @@ The thing to authenticate is the *request*.
 | Lane | When | What may be texted |
 |---|---|---|
 | **attested** | `x-firebase-appcheck` verifies against `therr-app` | Normal core tier (`DEFAULT_SMS_ALLOWED_REGIONS`), normal limits |
-| **unattested** (strict lane) | No token, an expired token, or the token could not be checked (Firebase unreachable) | `TWILIO_SMS_UNATTESTED_REGIONS` only (default US, CA), under its own hourly budget (`TWILIO_SMS_UNATTESTED_HOURLY_CAP`, default 10) |
+| **unattested** (strict lane) | No token, an expired token, a signing key not yet in the cached key set, or the token could not be checked (Firebase unreachable) | `TWILIO_SMS_UNATTESTED_REGIONS` only (default US, CA), under its own hourly budget (`TWILIO_SMS_UNATTESTED_HOURLY_CAP`, default 10) |
 | **forged** | A token that is present and provably not ours (bad signature, other project, garbage) | Nothing — shadow-banned: the route answers as if sent |
 
 Only an *affirmatively* bad token is forged. A Firebase outage therefore degrades real users to

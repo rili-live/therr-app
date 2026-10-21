@@ -49,8 +49,10 @@ export interface IAppCheckVerifier {
 
 // Signals, in the SDK's own messages, that the token could not be *checked* rather than that it
 // failed the check. firebase-admin maps a JWKS fetch failure to the same `invalid-argument` code
-// as a forged signature, so the message is the only thing that tells them apart.
-const UNVERIFIABLE_MESSAGE_PATTERNS = [/error fetching/i, /public keys/i];
+// as a forged signature, so the message is the only thing that tells them apart. The same goes for
+// a `kid` missing from the key set: firebase-admin caches the JWKS for a fixed 6h and never refetches
+// on a miss, so a genuine token signed with a freshly rotated key fails this way too.
+const UNVERIFIABLE_MESSAGE_PATTERNS = [/error fetching/i, /public keys/i, /known public key/i];
 const UNVERIFIABLE_ERROR_CODES = ['app-check/app-check-token-expired', 'app-check/invalid-credential'];
 
 export const isUnverifiableAppCheckError = (err: any): boolean => UNVERIFIABLE_ERROR_CODES.includes(err?.code)
