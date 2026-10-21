@@ -121,7 +121,9 @@ append new items here rather than only printing them once.
   `kubectl create secret generic twilio-api-key-secret-<svc> --from-literal=TWILIOAPIKEYSECRET=…`, then
   `kubectl rollout restart deployment/api-gateway-service-deployment deployment/users-service-deployment`.
 - [ ] **Confirm the switch:** the gateway and users-service logs say `Twilio client authenticating
-  with api-key` (a warning instead means the pair is incomplete or the SID isn't an `SK…`).
+  with api-key` (a warning instead means the pair is incomplete or the SID isn't an `SK…`). The
+  gateway logs it at startup; users-service builds its client lazily, so it logs only on its first
+  SMS send (a connection or pact invite) — no line right after the restart is not a failure.
 - [ ] **Then remove the Auth Token fallback** from both `src/api/twilio.ts`, drop the
   `TWILIO_AUTH_TOKEN` env entries and delete the `twilio-auth-token` secret.
 
