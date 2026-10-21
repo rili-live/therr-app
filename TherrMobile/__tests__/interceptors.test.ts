@@ -108,8 +108,12 @@ describe('interceptors', () => {
         axios.defaults.adapter = mockAdapter;
     });
 
-    afterEach(() => {
-        jest.runAllTimers();
+    afterEach(async () => {
+        // Drain the refresh retry chain while timers are still fake. A sync runAllTimers()
+        // fires the pending retry, but its promise chain schedules the next retry after
+        // useRealTimers() — a real 3s timer that logs once this file is torn down, which
+        // makes Jest exit 1 with every test passing.
+        await jest.runAllTimersAsync();
         jest.useRealTimers();
         (axios.interceptors.request as any).handlers = [];
         (axios.interceptors.response as any).handlers = [];
