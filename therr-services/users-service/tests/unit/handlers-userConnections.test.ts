@@ -1,12 +1,33 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { UserConnectionTypes } from 'therr-js-utilities/constants';
+import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import Store from '../../src/store';
-import { getUserConnection } from '../../src/handlers/userConnections';
+import { getUserConnection, isSmsInviteDestinationAllowed } from '../../src/handlers/userConnections';
 
 describe('UserConnections Handler', () => {
     afterEach(() => {
         sinon.restore();
+    });
+
+    describe('isSmsInviteDestinationAllowed', () => {
+        it('still invites US contacts saved without a country code', () => {
+            // normalizePhoneNumber turns these into "1 (317) 555-1234", which has no `+`.
+            expect(isSmsInviteDestinationAllowed(normalizePhoneNumber('(317) 555-1234'))).to.equal(true);
+            expect(isSmsInviteDestinationAllowed(normalizePhoneNumber('3175551234'))).to.equal(true);
+        });
+
+        it('invites contacts saved with a country code in an allowed region', () => {
+            expect(isSmsInviteDestinationAllowed(normalizePhoneNumber('+1 317 555 1234'))).to.equal(true);
+            expect(isSmsInviteDestinationAllowed(normalizePhoneNumber('+447400123456'))).to.equal(true);
+        });
+
+        it('refuses destinations outside the allowlist and numbers that never parsed', () => {
+            expect(isSmsInviteDestinationAllowed(normalizePhoneNumber('+18765551234'))).to.equal(false); // Jamaica
+            expect(isSmsInviteDestinationAllowed(normalizePhoneNumber('+33612345678'))).to.equal(false); // France
+            expect(isSmsInviteDestinationAllowed(normalizePhoneNumber('8765551234'))).to.equal(false); // Jamaica, no code
+            expect(isSmsInviteDestinationAllowed(normalizePhoneNumber('12345'))).to.equal(false);
+        });
     });
 
     describe('createUserConnection', () => {

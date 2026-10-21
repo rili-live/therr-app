@@ -34,6 +34,14 @@ import { getInterestRanking, logShadowInterestRanking } from '../utilities/inter
 // entire address book. Email invites are free and stay uncapped.
 const MAX_SMS_INVITES_PER_REQUEST = 25;
 
+// Address books routinely store numbers without a country code. `normalizePhoneNumber` assumes
+// US for those and returns them as "1 (317) 555-1234" — no `+`, so the allowlist (which fails
+// closed on a missing country code) would silently drop every such contact. Restore the `+` it
+// already implied before asking; a string that never parsed stays invalid either way.
+const isSmsInviteDestinationAllowed = (normalizedPhoneNumber: string) => isSmsDestinationAllowed(
+    normalizedPhoneNumber.startsWith('+') ? normalizedPhoneNumber : `+${normalizedPhoneNumber}`,
+);
+
 const getTherrFromPhoneNumber = (receivingPhoneNumber: string) => {
     if (receivingPhoneNumber.startsWith('+44')) {
         return process.env.TWILIO_SENDER_PHONE_NUMBER_GB;
@@ -418,7 +426,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
         );
         const sendablePhoneContacts = dedupeByKey(
             otherUserPhoneNumbers.filter((contact) => !recentInvitePhones.has(contact.phoneNumber)
-                && isSmsDestinationAllowed(contact.phoneNumber)),
+                && isSmsInviteDestinationAllowed(contact.phoneNumber)),
             'phoneNumber',
         ).slice(0, MAX_SMS_INVITES_PER_REQUEST);
 
@@ -1125,4 +1133,5 @@ export {
     updateUserConnection,
     updateUserConnectionType,
     incrementUserConnection,
+    isSmsInviteDestinationAllowed,
 };
