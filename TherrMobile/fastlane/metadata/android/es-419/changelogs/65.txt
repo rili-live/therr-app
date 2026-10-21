@@ -1,0 +1,2 @@
+Novedades:
+• Los códigos de inicio de sesión que enviamos por mensaje de texto ahora tienen mayor protección contra abusos, para que sigan llegando sin problemas
