@@ -74,7 +74,9 @@ describe('Pacts handler — claim flow', () => {
             // Shares the +1 / +44 prefix but not the region — the SMS-pumping shapes.
             expect(getSmsSender('+18765551234')).to.equal(undefined); // Jamaica
             expect(getSmsSender('+447911123456')).to.equal(undefined); // Guernsey
-            expect(getSmsSender('+33612345678')).to.equal(undefined); // France
+            expect(getSmsSender('+5511912345678')).to.equal(undefined); // Brazil
+            // Extended-tier countries are texted only by the gateway, against its hourly budget.
+            expect(getSmsSender('+254712345678')).to.equal(undefined); // Kenya
         });
     });
 

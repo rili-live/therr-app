@@ -119,9 +119,6 @@ spec:
           value: "+14783124948"
         - name: TWILIO_SENDER_PHONE_NUMBER_GB
           value: "+447700158631"
-        # Destination allowlist (ISO regions) — the SMS-pumping guard. See therr-js-utilities/sms-destination-policy.
-        - name: TWILIO_SMS_ALLOWED_REGIONS
-          value: "US,CA,MX,GB,AR,BO,CL,CO,EC,PE,PY,UY,VE"
         - name: BUCKET_PUBLIC_USER_DATA
           value: "therr-public-user-data"
         - name: GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY
