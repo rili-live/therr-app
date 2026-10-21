@@ -110,19 +110,33 @@ const connectToRedis = (client: Redis, options, callback) => {
 connectToRedis(redisClient, {}, () => { console.log('Attempting to connect to Redis...'); });
 connectToRedis(redisEphemeralClient, {}, () => { console.log('Attempting to connect to ephemeral Redis...'); });
 
+const rateLimiterRedisStores: RedisStore[] = [];
+
 /**
- * This must be instantiated after the redisClient connects because it also calls connect which causes an error otherwise
+ * Every rate limiter needs a store of its own. A `RedisStore` keeps a single `windowMs`, which each
+ * limiter's `init()` overwrites, and every key it touches expires after that value. One store
+ * shared by every limiter made all of them expire on whichever window was registered last (the 10s
+ * service limiter), so "3 per 15 minutes" on the SMS routes was really "3 per ~10 seconds" — which
+ * is how a handful of IPs sent thousands of verification texts on 2026-10-20/21.
+ *
+ * `name` namespaces the keys, so two limiters that both key on the bare IP (the express-rate-limit
+ * default) no longer share a counter either. Keep it stable: changing it resets that limiter's counts.
  */
-export const RateLimiterRedisStore = new RedisStore({
-    prefix: 'api-gateway:rl:', // This overrides the default prefix in redisClient
-    // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
-    sendCommand: (...args: string[]) => redisClient.call(...args),
-});
+export const createRateLimiterRedisStore = (name: string) => {
+    const store = new RedisStore({
+        prefix: `api-gateway:rl:${name}:`, // This overrides the default prefix in redisClient
+        // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
+        sendCommand: (...args: string[]) => redisClient.call(...args),
+    });
+    rateLimiterRedisStores.push(store);
+
+    return store;
+};
 
 redisClient.on('connect', () => {
     // This fixes a bug where rate-limit-redis fails to load the script it gets unloaded when Redis restarts
     console.log('Connected to Redis');
-    RateLimiterRedisStore.loadScript();
+    rateLimiterRedisStores.forEach((store) => store.loadScript());
 });
 
 redisEphemeralClient.on('connect', () => {
