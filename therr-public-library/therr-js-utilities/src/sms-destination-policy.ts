@@ -18,40 +18,32 @@ import { parsePhoneNumber } from 'awesome-phonenumber';
 // Two tiers. Keep their union in step with Twilio's Messaging Geo Permissions, which are the
 // account-level copy of this list — a country must be enabled in both places to receive a text.
 //
-// CORE: where our users are and where SMS is cheap and rarely pumped. Normal per-IP, per-number and
-// global limits apply.
+// CORE: countries where we have users *and* Twilio charges at most ~$0.10 a text. Price is the
+// filter because pumping is paid out of the termination fee — on 2026-10-21, after the broader
+// list shipped, the attack moved within hours to Bolivia ($0.22), the priciest region it still
+// allowed. Normal per-IP, per-number and global limits apply. Check a candidate's price with the
+// Twilio Pricing API (`/v1/Messaging/Countries/<ISO>`) before adding it.
 export const DEFAULT_SMS_ALLOWED_REGIONS = [
-    // North America
-    'US', 'CA', 'MX', 'PR',
-    // Spanish-speaking South America
-    'AR', 'BO', 'CL', 'CO', 'EC', 'PE', 'PY', 'UY', 'VE',
-    // EU / EEA, the UK, Switzerland and the French- and English-speaking microstates
-    'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT',
-    'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'LI', 'NO', 'GB', 'CH', 'MC', 'AD',
-    // English-speaking Asia-Pacific
-    'AU', 'NZ', 'SG',
+    // North America (NANP regions only — Caribbean +1 is excluded by region, see above)
+    'US', 'CA', 'PR',
+    // UK and Western/Northern Europe
+    'GB', 'IE', 'FR', 'DE', 'IT', 'ES', 'PT', 'PL', 'AT', 'CH', 'SE', 'NO', 'DK', 'FI',
+    // Asia-Pacific and Turkey
+    'IN', 'TR', 'AU', 'SG',
 ];
 
-// EXTENDED: English- and French-speaking markets (and non-EU Europe) worth reaching for growth, but
-// where a text costs many times a US one and pumping is common. Allowed, but every send also draws on
-// one small shared hourly budget (see the gateway's `chargeExtendedSmsBudget`), so a pumping run
-// aimed here is capped at a few texts an hour instead of the global ceiling.
-//
-// Deliberately absent: Twilio's own "High Risk" countries (NG, PK, BD, LK, DZ, TN, …), small
-// Caribbean and Pacific island nations (the classic artificially-inflated-traffic destinations), and
-// satellite / international-network ranges. Add a region here, not to CORE, to trial it.
-export const DEFAULT_SMS_EXTENDED_REGIONS = [
-    // Non-EU Europe
-    'UA', 'MD', 'RS', 'BA', 'ME', 'MK', 'AL', 'XK', 'TR',
-    // French overseas departments
-    'GP', 'MQ', 'GF', 'RE', 'YT',
-    // English-speaking Africa
-    'ZA', 'KE', 'GH', 'UG', 'TZ', 'ZM', 'ZW', 'BW', 'NA', 'RW', 'MW', 'MU', 'SL', 'LR', 'GM',
-    // French-speaking Africa
-    'SN', 'CI', 'CM', 'BJ', 'TG', 'BF', 'ML', 'NE', 'GN', 'GA', 'CG', 'CD', 'MG', 'MA',
-    // English-speaking Asia
-    'IN', 'PH', 'MY', 'HK',
-];
+// EXTENDED: regions we want to keep reachable despite a text costing several times the core price.
+// Allowed, but every send also draws on one small shared hourly budget (see the gateway's
+// `chargeExtendedSmsBudget`), so a pumping run aimed here is capped at a few texts an hour instead
+// of the global ceiling. Empty by default; trial a region via `TWILIO_SMS_EXTENDED_REGIONS` and
+// enable it in Twilio Geo Permissions at the same time.
+export const DEFAULT_SMS_EXTENDED_REGIONS: string[] = [];
+
+// UNATTESTED: where a verification text may go when the request carries no valid App Check token —
+// every app build that predates App Check, and every script. Kept to the cheapest destinations, so
+// a pumping run that never touches the real app has nothing worth collecting. See the gateway's
+// `./appAttestation`.
+export const DEFAULT_SMS_UNATTESTED_REGIONS = ['US', 'CA'];
 
 export type SmsDestinationTier = 'core' | 'extended';
 
@@ -81,6 +73,12 @@ export const getSmsAllowedRegions = (rawRegions = process.env.TWILIO_SMS_ALLOWED
 export const getSmsExtendedRegions = (rawRegions = process.env.TWILIO_SMS_EXTENDED_REGIONS): string[] => parseRegionList(
     rawRegions,
     DEFAULT_SMS_EXTENDED_REGIONS,
+);
+
+/** Reads `TWILIO_SMS_UNATTESTED_REGIONS` (requests without a valid App Check token), the same way. */
+export const getSmsUnattestedRegions = (rawRegions = process.env.TWILIO_SMS_UNATTESTED_REGIONS): string[] => parseRegionList(
+    rawRegions,
+    DEFAULT_SMS_UNATTESTED_REGIONS,
 );
 
 /**
