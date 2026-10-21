@@ -14,7 +14,11 @@ import {
     getBrandName,
     getMaxAccountsPerPhone,
 } from 'therr-js-utilities/constants';
-import { getSmsDestinationTier, SMS_DESTINATION_NOT_ALLOWED } from 'therr-js-utilities/sms-destination-policy';
+import {
+    getSmsDestinationTier,
+    getSmsUnattestedRegions,
+    SMS_DESTINATION_NOT_ALLOWED,
+} from 'therr-js-utilities/sms-destination-policy';
 import handleHttpError from '../../utilities/handleHttpError';
 import isBlacklisted from '../../utilities/isBlacklisted';
 import { validate } from '../../validation';
@@ -38,10 +42,19 @@ import {
     chargeExtendedSmsBudget,
     chargeGlobalSmsBudget,
     chargeSmsSendBudget,
+    chargeUnattestedSmsBudget,
     generateVerificationCode,
+    SMS_APP_ATTESTATION_REQUIRED,
     SMS_EXTENDED_BUDGET_EXHAUSTED,
     SMS_GLOBAL_BUDGET_EXHAUSTED,
+    SMS_UNATTESTED_BUDGET_EXHAUSTED,
 } from './verificationCodes';
+import {
+    APP_CHECK_HEADER,
+    getAppAttestation,
+    getSmsAppCheckMode,
+    IAppAttestationResult,
+} from './appAttestation';
 import {
     clearUnverifiedSmsSends,
     getSmsSenderKey,
@@ -120,11 +133,12 @@ const sendVerificationSms = async (
     toPhoneNumber: string,
     verificationCode: number,
     requesterIp: string,
+    appCheckToken: unknown,
 ) => {
     // Every route sends through here, so these are the gates against SMS pumping, in order: who is
-    // asking (`./smsSenderFlagging`), where we will text (`therr-js-utilities/sms-destination-policy`),
-    // and how much we will text in total. Abuse signals are logged here as well as by the caller,
-    // because `/auth/start` swallows its errors.
+    // asking (`./smsSenderFlagging`), whether it is our app asking (`./appAttestation`), where we
+    // will text (`therr-js-utilities/sms-destination-policy`), and how much we will text in total.
+    // Abuse signals are logged here as well as by the caller, because `/auth/start` swallows its errors.
     const senderKey = getSmsSenderKey(requesterIp);
 
     // Flagged and blacklisted clients are shadow-banned: resolve as if sent, send nothing.
@@ -132,10 +146,37 @@ const sendVerificationSms = async (
         return undefined;
     }
 
+    const appCheckMode = getSmsAppCheckMode();
+    const { attestation, appId, reason }: IAppAttestationResult = appCheckMode === 'off'
+        ? { attestation: 'attested', reason: 'mode-off' }
+        : await getAppAttestation(appCheckToken);
+
+    // A token no genuine install could have sent: shadow-ban, like a flagged sender.
+    if (attestation === 'forged') {
+        logSmsAbuseSignal('SMS request with a forged App Check token', { 'sms.senderKey': senderKey, 'appCheck.reason': reason });
+        return undefined;
+    }
+
     const tier = getSmsDestinationTier(toPhoneNumber);
 
     if (!tier) {
         throw new Error(SMS_DESTINATION_NOT_ALLOWED);
+    }
+
+    if (attestation === 'unattested') {
+        if (appCheckMode === 'enforce') {
+            throw new Error(SMS_APP_ATTESTATION_REQUIRED);
+        }
+
+        // The strict lane: old builds and scripts may only text the cheapest regions, under their own budget.
+        if (getSmsDestinationTier(toPhoneNumber, getSmsUnattestedRegions(), []) !== 'core') {
+            throw new Error(SMS_DESTINATION_NOT_ALLOWED);
+        }
+
+        if (!(await chargeUnattestedSmsBudget(redisClient))) {
+            logSmsAbuseSignal(SMS_UNATTESTED_BUDGET_EXHAUSTED, { 'appCheck.reason': reason });
+            throw new Error(SMS_UNATTESTED_BUDGET_EXHAUSTED);
+        }
     }
 
     if (tier === 'extended' && !(await chargeExtendedSmsBudget(redisClient))) {
@@ -153,6 +194,19 @@ const sendVerificationSms = async (
         return undefined;
     }
 
+    logSpan({
+        level: 'info',
+        messageOrigin: 'API_SERVER',
+        messages: ['Sending verification SMS'],
+        traceArgs: {
+            'appCheck.attestation': attestation,
+            'appCheck.appId': appId,
+            'appCheck.reason': reason,
+            'sms.tier': tier,
+            'process.id': process.pid,
+        },
+    });
+
     return twilioClient.messages.create({
         body: translate(locale, 'sms.yourVerificationCode', {
             brandName: getBrandName(brandVariation),
@@ -167,7 +221,20 @@ const isRegionRefusal = (err: any) => err?.message === SMS_DESTINATION_NOT_ALLOW
     || err?.message?.includes('SMS has not been enabled for the region');
 
 const isBudgetRefusal = (err: any) => err?.message === SMS_GLOBAL_BUDGET_EXHAUSTED
-    || err?.message === SMS_EXTENDED_BUDGET_EXHAUSTED;
+    || err?.message === SMS_EXTENDED_BUDGET_EXHAUSTED
+    || err?.message === SMS_UNATTESTED_BUDGET_EXHAUSTED;
+
+const isAttestationRefusal = (err: any) => err?.message === SMS_APP_ATTESTATION_REQUIRED;
+
+// Only reachable with `SMS_APP_CHECK_MODE=enforce`: the build predates App Check, so it needs updating.
+// 400, not 403 — the mobile interceptor reads 401/403 as a dead session and logs the user out, and
+// `/phone/verify` is called signed in.
+const sendAttestationRequired = (err: any, res: any) => handleHttpError({
+    err,
+    res,
+    message: 'Please update the app to receive a verification code.',
+    statusCode: 400,
+});
 
 /** Best-effort: a verified code proves a real handset behind this client. Never blocks the response. */
 const forgetUnverifiedSends = (requesterIp: string) => clearUnverifiedSmsSends(redisClient, getSmsSenderKey(requesterIp))
@@ -317,6 +384,7 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
                 normalizedPhoneNumber,
                 verificationCode,
                 req.ip,
+                req.headers[APP_CHECK_HEADER],
             ))
             // eslint-disable-next-line arrow-body-style
             .then(() => {
@@ -326,6 +394,9 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
             }).catch((err: any) => {
                 if (isBudgetRefusal(err)) {
                     return sendBudgetExhausted(err, res);
+                }
+                if (isAttestationRefusal(err)) {
+                    return sendAttestationRequired(err, res);
                 }
                 if (isRegionRefusal(err)) {
                     return handleHttpError({
@@ -402,7 +473,13 @@ phoneRouter.post('/validate-code', verifyPhoneLongLimiter, validate, async (req,
  * route an SMS is only ever attempted for a number that has an account, so answering "region
  * not enabled" would confirm the account's existence — the one thing this flow withholds.
  */
-const dispatchLoginCode = async (headers: any, locale: string, phone: ICanonicalPhoneNumber, requesterIp: string) => {
+const dispatchLoginCode = async (
+    headers: any,
+    locale: string,
+    phone: ICanonicalPhoneNumber,
+    requesterIp: string,
+    appCheckToken: unknown,
+) => {
     try {
         const { accountCount } = await lookupAccountsByPhone(headers, phone.canonical);
 
@@ -417,7 +494,7 @@ const dispatchLoginCode = async (headers: any, locale: string, phone: ICanonical
         const verificationCode = generateVerificationCode();
         await redisClient.setex(authCodeKey('login', phone.e164), AUTH_CODE_EXPIRE_SECONDS, verificationCode);
         await redisClient.del(authAttemptsKey('login', phone.e164));
-        await sendVerificationSms(locale, `${headers['x-brand-variation'] || ''}`, phone.e164, verificationCode, requesterIp);
+        await sendVerificationSms(locale, `${headers['x-brand-variation'] || ''}`, phone.e164, verificationCode, requesterIp, appCheckToken);
     } catch (err: any) {
         // The caller is already gone, so logging is the only channel left. Without this a
         // misconfigured Twilio sender would look, from the outside, exactly like a user
@@ -459,6 +536,7 @@ phoneRouter.post('/auth/start', phoneAuthStartLimiter, phoneAuthStartValidation,
     // Snapshot the forwarding headers while the request is unambiguously in scope: the work
     // below outlives the response.
     const internalHeaders = buildInternalHeaders(req);
+    const appCheckToken = req.headers[APP_CHECK_HEADER];
 
     // Answer first, unconditionally, and only then decide whether to send anything. Every
     // check that governs the decision — does this number have an account, has it had its
@@ -476,7 +554,7 @@ phoneRouter.post('/auth/start', phoneAuthStartLimiter, phoneAuthStartValidation,
     // any rejection escaping it would be an unhandled rejection — which Node surfaces as an
     // uncaught exception, and this service's `uncaughtException` handler answers by exiting.
     // One SMS failing must never be able to take the gateway down.
-    return dispatchLoginCode(internalHeaders, userLocale, phone, req.ip).catch(() => undefined);
+    return dispatchLoginCode(internalHeaders, userLocale, phone, req.ip, appCheckToken).catch(() => undefined);
 });
 
 /**
@@ -649,7 +727,7 @@ phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidat
         const verificationCode = generateVerificationCode();
         await redisClient.setex(authCodeKey('register', phone.e164), AUTH_CODE_EXPIRE_SECONDS, verificationCode);
         await redisClient.del(authAttemptsKey('register', phone.e164));
-        await sendVerificationSms(userLocale, brandVariation, phone.e164, verificationCode, req.ip);
+        await sendVerificationSms(userLocale, brandVariation, phone.e164, verificationCode, req.ip, req.headers[APP_CHECK_HEADER]);
 
         return res.status(200).send({
             status: 'sent',
@@ -659,6 +737,9 @@ phoneRouter.post('/register/start', phoneAuthStartLimiter, phoneAuthStartValidat
     } catch (err: any) {
         if (isBudgetRefusal(err)) {
             return sendBudgetExhausted(err, res);
+        }
+        if (isAttestationRefusal(err)) {
+            return sendAttestationRequired(err, res);
         }
         if (isRegionRefusal(err)) {
             return handleHttpError({
