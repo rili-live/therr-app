@@ -124,11 +124,13 @@ append new items here rather than only printing them once.
 Full checklist and rationale in `docs/APP_CHECK.md`. The console steps must be done **before** the
 first App Check build reaches users, or every token is rejected and everyone lands in the strict lane.
 
-- [ ] **Firebase console → App Check → Apps:** register `app.therrmobile` and `com.therr.habits` with
+- [x] **Firebase console → App Check → Apps:** register `app.therrmobile` and `com.therr.habits` with
   the **Play Integrity** provider. Leave **enforcement off** for every Firebase product (Auth,
   Firestore, …) — enforcing Firebase Auth would break sign-in on every build that predates App Check.
-- [ ] **Firebase console → Project settings → each Android app:** add the SHA-256 of the **Play app
+  Done for both apps 2026-10-21.
+- [x] **Firebase console → Project settings → each Android app:** add the SHA-256 of the **Play app
   signing key** (Play Console → Test and release → App integrity → App signing).
+  Done for both apps 2026-10-21.
 - [x] **Play Console → App integrity → Play Integrity API** for both apps (Therr already had it; Friends
   with Habits enabled 2026-10-21). If a new build still attests as `unattested`, first confirm both
   are linked to the `therr-app` Cloud project specifically, and that the API is enabled there.
