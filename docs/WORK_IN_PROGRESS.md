@@ -98,6 +98,64 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## SMS country tiers (added 2026-10-21, after the SMS-pumping incident)
+
+- [ ] **Match Twilio's Messaging Geo Permissions to the code tiers** in
+  `therr-public-library/therr-js-utilities/src/sms-destination-policy.ts` — enable exactly
+  `DEFAULT_SMS_ALLOWED_REGIONS` + `DEFAULT_SMS_EXTENDED_REGIONS`, nothing else (in particular not the
+  Global satellite/international-network group, Caribbean or Pacific island nations, or Twilio's
+  "High Risk" countries). A text needs both to allow it; the console is the second lock.
+- [ ] **After deploy, watch for `SMS sender flagged` and `Extended-tier SMS budget exhausted`** in the
+  gateway logs (`_bin/prod-debug/collect-incident.sh`). The first is an attack being absorbed; the
+  second, if it recurs without an attack, means the extended cap (`TWILIO_SMS_EXTENDED_HOURLY_CAP`,
+  default 10/hour) is too tight for real demand.
+- [ ] **Remove the live SMS env overrides once `fix/sms-app-check` is deployed.** On 2026-10-21 the
+  narrowed tiers were applied by hand with `kubectl set env` (`TWILIO_SMS_ALLOWED_REGIONS`,
+  `TWILIO_SMS_EXTENDED_REGIONS=US`, `TWILIO_SMS_EXTENDED_HOURLY_CAP=3`, `TWILIO_SMS_GLOBAL_HOURLY_CAP=20`
+  on the gateway; `TWILIO_SMS_ALLOWED_REGIONS` on users-service). Client-side `kubectl apply` keeps env
+  entries absent from the manifest, so they outlive every deploy and would silently override the next
+  change to the code defaults. Once the code defaults match, drop them:
+  `kubectl set env deployment/api-gateway-service-deployment TWILIO_SMS_ALLOWED_REGIONS- TWILIO_SMS_EXTENDED_REGIONS- TWILIO_SMS_EXTENDED_HOURLY_CAP-`
+  and `kubectl set env deployment/users-service-deployment TWILIO_SMS_ALLOWED_REGIONS-`. Keep
+  `TWILIO_SMS_GLOBAL_HOURLY_CAP=20` only if it is meant to stay — then put it in the manifest instead.
+
+## App Check for verification texts (added 2026-10-21, docs/APP_CHECK.md)
+
+Full checklist and rationale in `docs/APP_CHECK.md`. The console steps must be done **before** the
+first App Check build reaches users, or every token is rejected and everyone lands in the strict lane.
+
+- [ ] **Firebase console → App Check → Apps:** register `app.therrmobile` and `com.therr.habits` with
+  the **Play Integrity** provider. Leave **enforcement off** for every Firebase product (Auth,
+  Firestore, …) — enforcing Firebase Auth would break sign-in on every build that predates App Check.
+- [ ] **Firebase console → Project settings → each Android app:** add the SHA-256 of the **Play app
+  signing key** (Play Console → Test and release → App integrity → App signing).
+- [x] **Play Console → App integrity → Play Integrity API** for both apps (Therr already had it; Friends
+  with Habits enabled 2026-10-21). If a new build still attests as `unattested`, first confirm both
+  are linked to the `therr-app` Cloud project specifically, and that the API is enabled there.
+- [ ] **After the release reaches users,** read the gateway's `Sending verification SMS` spans by
+  `appCheck.attestation`: attested on new builds, unattested only on old ones. A new-build send that is
+  unattested means a console step above is missing. `SMS request with a forged App Check token` should
+  be scripts only.
+- [ ] **Once almost all active Android sign-ups are attested,** set `SMS_APP_CHECK_MODE=enforce` in
+  both k8s manifests (or narrow the strict lane further) and redeploy.
+
+## Twilio API keys (added 2026-10-21, after the SMS-pumping incident)
+
+- [ ] **Create one Twilio API key per service** (Console → Account → API keys & tokens →
+  Standard key) named `api-gateway-prod` and `users-service-prod`. The secret is shown once.
+- [ ] **Create the k8s secrets and restart.** The deployments reference them as optional, so
+  until they exist each service keeps using the Auth Token. For `<svc>` = `api-gateway` and
+  `users-service`, with that service's own key:
+  `kubectl create secret generic twilio-api-key-sid-<svc> --from-literal=TWILIOAPIKEYSID=SK…` and
+  `kubectl create secret generic twilio-api-key-secret-<svc> --from-literal=TWILIOAPIKEYSECRET=…`, then
+  `kubectl rollout restart deployment/api-gateway-service-deployment deployment/users-service-deployment`.
+- [ ] **Confirm the switch:** the gateway and users-service logs say `Twilio client authenticating
+  with api-key` (a warning instead means the pair is incomplete or the SID isn't an `SK…`). The
+  gateway logs it at startup; users-service builds its client lazily, so it logs only on its first
+  SMS send (a connection or pact invite) — no line right after the restart is not a failure.
+- [ ] **Then remove the Auth Token fallback** from both `src/api/twilio.ts`, drop the
+  `TWILIO_AUTH_TOKEN` env entries and delete the `twilio-auth-token` secret.
+
 ## Adjacency marketing (added 2026-10-19, docs/ADJACENCY_MARKETING.md)
 
 - [ ] **After the deploy, confirm the eight trend templates exist in prod.** Migration
@@ -1758,6 +1816,7 @@ backend change needed — it refuses to treat Play's own
 - [x] (2026-10-07, /quality-peer-review) **Confirm `20261005000004_main.users.settingsPreferredEveningReminderTime.js` ran at `stage` and `main`, alongside `20261007000001`.** _(Verified on `main` in prod `knex_migrations` 2026-10-13: batch 93, 2026-10-07 22:07 UTC, with `20261007000001`.)_ `UsersStore.getHabitReminderPreferences` SELECTs the new column unconditionally, and the digest's reminder, weekly-recap, pledge-verdict and open-pact passes all read through it. Until the column exists that read fails on every run: the reminder pass degrades to the fallback zone and default quiet hours for *everyone* (ignoring stored timezones) and counts `errors: 1`, so a non-zero `errors` on the "Habits daily digest completed" span is the tell. `SELECT column_name FROM information_schema.columns WHERE table_schema = 'main' AND table_name = 'users' AND column_name IN ('settingsPreferredEveningReminderTime', 'settingsPushLeaderboardAlerts');` should return both. Additive and nullable, so neither automator is affected. Introduced by 1264b73a6.
 - [ ] (2026-10-12, /quality-peer-review) **After the maps-service deploy, open a `/locations/city/:slug` page in each locale and confirm no "edit | edit source" text is left in its sections.** `20261012000000_main.cityWikiCache.expire_edit_links.js` only expires the cached rows; each one is re-fetched lazily on its next view, so the first visit to a city still serves the old text and the second should be clean. If the text persists after a refresh, Wikivoyage changed its edit-link markup and `stripHtml` in `maps-service/src/utilities/wikiFetcher.ts` no longer matches it. Introduced by 3cc469c86.
 - [ ] (2026-10-19, /push-notification-guard) **After the push-notifications-service deploy, check a Friends with Habits push on a handset and confirm its title leads with an emoji that renders (not a tofu box).** Server-only change — no app release needed — but nothing server-side can see how the device renders the title. Check one display push (e.g. `streakFreezeUsed`, OS-rendered) and one data-only push (e.g. `dailyHabitReminder`, Notifee-rendered) on the oldest Android version still in use, and on iOS. Every emoji in `notificationTitleEmoji.ts` is from Unicode 12 or earlier for that reason.
+- [ ] (2026-10-21, /quality-peer-review) **After the SMS-pumping guards deploy (`a12979d4d`…`c0bf8f311`), set Twilio Messaging Geo Permissions per § SMS country tiers above (core + extended tiers from `therr-js-utilities/src/sms-destination-policy.ts` — no longer the original 13-country list, and no longer pinned in `k8s/prod`) and confirm the spend alert from the 2026-07-25 item exists.** The account-level setting is the backstop for any send site that skips `isSmsDestinationAllowed`. Then watch for the `Global SMS budget exhausted for this hour` error log — it is the only signal that the 60/hour gateway cap (`TWILIO_SMS_GLOBAL_HOURLY_CAP`) is tripping, which locks every real user out of phone sign-in/sign-up for the rest of that hour.
 <!-- skill-followups:end -->
 
 ---

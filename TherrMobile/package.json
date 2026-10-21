@@ -63,6 +63,7 @@
     "@react-native-community/slider": "^5.1.2",
     "@react-native-firebase/analytics": "^21.6.1",
     "@react-native-firebase/app": "^21.6.1",
+    "@react-native-firebase/app-check": "^21.14.0",
     "@react-native-firebase/auth": "^21.6.1",
     "@react-native-firebase/crashlytics": "^21.6.1",
     "@react-native-firebase/messaging": "^21.6.1",

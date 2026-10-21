@@ -12,6 +12,7 @@ import UsersActions from './redux/actions/UsersActions';
 import { socketIO } from './socket-io-middleware';
 import { isNonRefreshableAuthUrl } from './utilities/authRequestPaths';
 import { clearHabitsWidget } from './utilities/habitsWidget';
+import { APP_CHECK_HEADER, getAppCheckToken, needsAppCheckToken } from './utilities/appCheck';
 
 const MAX_LOGOUT_ATTEMPTS = 3;
 const MAX_REFRESH_RETRIES = 2;
@@ -217,6 +218,20 @@ const initInterceptors = (
         }
 
         return modifiedConfig;
+    });
+    // Separate, async interceptor so only the handful of requests that send an SMS wait on a token.
+    axios.interceptors.request.use(async (config) => {
+        if (!needsAppCheckToken(config.url)) {
+            return config;
+        }
+
+        const appCheckToken = await getAppCheckToken();
+
+        if (appCheckToken) {
+            config.headers[APP_CHECK_HEADER] = appCheckToken;
+        }
+
+        return config;
     });
     axios.interceptors.response.use(
         (response) => {

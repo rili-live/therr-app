@@ -364,7 +364,8 @@ The following service directories may contain a local `.env` file:
 - JWT signing secrets (`JWT_SECRET`)
 - OAuth client secrets (`GOOGLE_OAUTH2_*`, `APPLE_*`, `FACEBOOK_*`)
 - Push notification credentials (`PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64*`)
-- Twilio (`TWILIO_*`) — SMS verification
+- Twilio (`TWILIO_*`) — SMS verification. Services prefer an API key (`TWILIO_API_KEY_SID` /
+  `TWILIO_API_KEY_SECRET`, one key per service) and fall back to `TWILIO_AUTH_TOKEN`
 - SendGrid / mail (`SENDGRID_*`)
 - Stripe (`STRIPE_*`) — when monetization ships
 - Honeycomb (`HONEYCOMB_API_KEY`) — observability
