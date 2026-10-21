@@ -110,6 +110,21 @@ append new items here rather than only printing them once.
   second, if it recurs without an attack, means the extended cap (`TWILIO_SMS_EXTENDED_HOURLY_CAP`,
   default 10/hour) is too tight for real demand.
 
+## Twilio API keys (added 2026-10-21, after the SMS-pumping incident)
+
+- [ ] **Create one Twilio API key per service** (Console → Account → API keys & tokens →
+  Standard key) named `api-gateway-prod` and `users-service-prod`. The secret is shown once.
+- [ ] **Create the k8s secrets and restart.** The deployments reference them as optional, so
+  until they exist each service keeps using the Auth Token. For `<svc>` = `api-gateway` and
+  `users-service`, with that service's own key:
+  `kubectl create secret generic twilio-api-key-sid-<svc> --from-literal=TWILIOAPIKEYSID=SK…` and
+  `kubectl create secret generic twilio-api-key-secret-<svc> --from-literal=TWILIOAPIKEYSECRET=…`, then
+  `kubectl rollout restart deployment/api-gateway-service-deployment deployment/users-service-deployment`.
+- [ ] **Confirm the switch:** the gateway and users-service logs say `Twilio client authenticating
+  with api-key` (a warning instead means the pair is incomplete or the SID isn't an `SK…`).
+- [ ] **Then remove the Auth Token fallback** from both `src/api/twilio.ts`, drop the
+  `TWILIO_AUTH_TOKEN` env entries and delete the `twilio-auth-token` secret.
+
 ## Adjacency marketing (added 2026-10-19, docs/ADJACENCY_MARKETING.md)
 
 - [ ] **After the deploy, confirm the eight trend templates exist in prod.** Migration
