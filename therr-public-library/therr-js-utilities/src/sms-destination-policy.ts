@@ -25,9 +25,11 @@ export const DEFAULT_SMS_ALLOWED_REGIONS = [
     'US', 'CA', 'MX', 'PR',
     // Spanish-speaking South America
     'AR', 'BO', 'CL', 'CO', 'EC', 'PE', 'PY', 'UY', 'VE',
-    // EU / EEA, the UK, Switzerland and the French- and English-speaking microstates
+    // EU / EEA, the UK, Switzerland and the French- and English-speaking microstates. Not Slovenia:
+    // ~600 of the 2026-10-20/21 pumped texts went to Slovenian +386 65 numbers (the rest to Belarus
+    // and Egypt), so it stays out until there is a real user there to weigh against that.
     'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT',
-    'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'LI', 'NO', 'GB', 'CH', 'MC', 'AD',
+    'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'ES', 'SE', 'IS', 'LI', 'NO', 'GB', 'CH', 'MC', 'AD',
     // English-speaking Asia-Pacific
     'AU', 'NZ', 'SG',
 ];
@@ -37,7 +39,8 @@ export const DEFAULT_SMS_ALLOWED_REGIONS = [
 // one small shared hourly budget (see the gateway's `chargeExtendedSmsBudget`), so a pumping run
 // aimed here is capped at a few texts an hour instead of the global ceiling.
 //
-// Deliberately absent: Twilio's own "High Risk" countries (NG, PK, BD, LK, DZ, TN, …), small
+// Deliberately absent: the 2026-10 attack's destinations (Belarus, Egypt, Slovenia), Twilio's own
+// "High Risk" countries (NG, PK, BD, LK, DZ, TN, …), small
 // Caribbean and Pacific island nations (the classic artificially-inflated-traffic destinations), and
 // satellite / international-network ranges. Add a region here, not to CORE, to trial it.
 export const DEFAULT_SMS_EXTENDED_REGIONS = [

@@ -84,6 +84,12 @@ describe('sms-destination-policy', () => {
             expect(getSmsDestinationTier('+447911123456')).to.equal(undefined); // Guernsey
         });
 
+        it('refuses the 2026-10 pumping run\'s destinations', () => {
+            expect(getSmsDestinationTier('+375291234567')).to.equal(undefined); // Belarus
+            expect(getSmsDestinationTier('+201001234567')).to.equal(undefined); // Egypt
+            expect(getSmsDestinationTier('+38665123456')).to.equal(undefined); // Slovenia
+        });
+
         it('lets core win when an override lists a region in both tiers', () => {
             expect(getSmsDestinationTier('+254712345678', ['KE'], ['KE'])).to.equal('core');
         });
