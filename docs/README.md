@@ -60,6 +60,7 @@ went unread.
 ### Operations & debugging
 - [DEPLOY_PIPELINE.md](./DEPLOY_PIPELINE.md) — general → stage → main: what `VERSIONS.txt` records, how the deploy decides per service, and the silent-staleness failures it now refuses
 - [PROD_DEBUG_CLAUDE.md](./PROD_DEBUG_CLAUDE.md) — production debugging runbook
+- [APP_CHECK.md](./APP_CHECK.md) — Firebase App Check on the SMS routes: the attested / strict / forged lanes, the Firebase + Play Console setup every Android release needs, and the iOS App Attest revival steps
 - [PUSH_NOTIFICATIONS_DEBUGGING.md](./PUSH_NOTIFICATIONS_DEBUGGING.md) — why a push didn't arrive; the diagnostics endpoints, and why a separate Firebase project per brand is usually the wrong fix
 - [TEST_ACCOUNTS.md](./TEST_ACCOUNTS.md) — store-review / QA accounts: how one is flagged, what stays hidden from real users, the cleanup worker, and the known gaps (#3073)
 - [NOTIFICATION_QUEUE_DESIGN.md](./NOTIFICATION_QUEUE_DESIGN.md) — the deduplicated, schedulable notification queue; what must land before send frequency goes up
