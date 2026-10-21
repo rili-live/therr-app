@@ -76,11 +76,16 @@ export const chargeSmsSendBudget = async (
 export const DEFAULT_SMS_GLOBAL_HOURLY_CAP = 60;
 export const SMS_GLOBAL_BUDGET_KEY = 'sms-global-sends';
 
-export const getSmsGlobalHourlyCap = (rawCap = process.env.TWILIO_SMS_GLOBAL_HOURLY_CAP): number => {
+const parseHourlyCap = (rawCap: string | undefined, fallback: number): number => {
     const cap = Number.parseInt(`${rawCap || ''}`, 10);
 
-    return Number.isFinite(cap) && cap > 0 ? cap : DEFAULT_SMS_GLOBAL_HOURLY_CAP;
+    return Number.isFinite(cap) && cap > 0 ? cap : fallback;
 };
+
+export const getSmsGlobalHourlyCap = (rawCap = process.env.TWILIO_SMS_GLOBAL_HOURLY_CAP): number => parseHourlyCap(
+    rawCap,
+    DEFAULT_SMS_GLOBAL_HOURLY_CAP,
+);
 
 /** Error message a send rejects with once the global hourly budget is spent. */
 export const SMS_GLOBAL_BUDGET_EXHAUSTED = 'Global SMS budget exhausted for this hour';
@@ -90,5 +95,31 @@ export const chargeGlobalSmsBudget = (store: ISmsBudgetStore): Promise<boolean> 
     store,
     SMS_GLOBAL_BUDGET_KEY,
     getSmsGlobalHourlyCap(),
+    60 * 60,
+);
+
+/**
+ * A much smaller hourly budget shared by every extended-tier destination (see
+ * `therr-js-utilities/sms-destination-policy`): markets we want to reach, but where a text costs
+ * many times a US one and pumping is common. Real volume there is a few codes a day, so a pumping
+ * run aimed at them is capped here long before the global ceiling. Charged *before* the global
+ * budget, so a spent extended budget doesn't also drain the core tier's allowance.
+ */
+export const DEFAULT_SMS_EXTENDED_HOURLY_CAP = 10;
+export const SMS_EXTENDED_BUDGET_KEY = 'sms-extended-sends';
+
+export const getSmsExtendedHourlyCap = (rawCap = process.env.TWILIO_SMS_EXTENDED_HOURLY_CAP): number => parseHourlyCap(
+    rawCap,
+    DEFAULT_SMS_EXTENDED_HOURLY_CAP,
+);
+
+/** Error message a send rejects with once the extended tier's hourly budget is spent. */
+export const SMS_EXTENDED_BUDGET_EXHAUSTED = 'Extended-tier SMS budget exhausted for this hour';
+
+/** Charges one SMS against the extended tier's hourly budget, resolving `false` once it is spent. */
+export const chargeExtendedSmsBudget = (store: ISmsBudgetStore): Promise<boolean> => chargeSmsSendBudget(
+    store,
+    SMS_EXTENDED_BUDGET_KEY,
+    getSmsExtendedHourlyCap(),
     60 * 60,
 );
