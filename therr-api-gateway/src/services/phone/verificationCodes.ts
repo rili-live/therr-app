@@ -51,10 +51,44 @@ export interface ISmsBudgetStore {
  * to receive a sign-in code. NX is idempotent, so a later call repairs the missing TTL while
  * still refusing to re-arm a live one.
  */
-export const chargeSmsSendBudget = async (store: ISmsBudgetStore, key: string): Promise<boolean> => {
+export const chargeSmsSendBudget = async (
+    store: ISmsBudgetStore,
+    key: string,
+    maxSends = AUTH_SMS_MAX_SENDS_PER_NUMBER,
+    windowSeconds = AUTH_SMS_SEND_WINDOW_SECONDS,
+): Promise<boolean> => {
     const sends = await store.incr(key);
 
-    await store.expire(key, AUTH_SMS_SEND_WINDOW_SECONDS, 'NX');
+    await store.expire(key, windowSeconds, 'NX');
 
-    return sends <= AUTH_SMS_MAX_SENDS_PER_NUMBER;
+    return sends <= maxSends;
 };
+
+/**
+ * A ceiling on verification texts across the whole gateway, whatever the number or caller.
+ *
+ * The per-IP and per-number limits bound one attacker; they don't bound a botnet. The pumping run
+ * on 2026-10-20/21 came from 151 IPs, so even correctly enforced per-IP limits would still have
+ * allowed well over a thousand texts an hour. Real traffic is a handful of codes a day, so a cap
+ * far above that costs real users nothing and turns an unbounded bill into a bounded one. Read at
+ * call time so `TWILIO_SMS_GLOBAL_HOURLY_CAP` can be raised without a rebuild.
+ */
+export const DEFAULT_SMS_GLOBAL_HOURLY_CAP = 60;
+export const SMS_GLOBAL_BUDGET_KEY = 'sms-global-sends';
+
+export const getSmsGlobalHourlyCap = (rawCap = process.env.TWILIO_SMS_GLOBAL_HOURLY_CAP): number => {
+    const cap = Number.parseInt(`${rawCap || ''}`, 10);
+
+    return Number.isFinite(cap) && cap > 0 ? cap : DEFAULT_SMS_GLOBAL_HOURLY_CAP;
+};
+
+/** Error message a send rejects with once the global hourly budget is spent. */
+export const SMS_GLOBAL_BUDGET_EXHAUSTED = 'Global SMS budget exhausted for this hour';
+
+/** Charges one SMS against the gateway-wide hourly budget, resolving `false` once it is spent. */
+export const chargeGlobalSmsBudget = (store: ISmsBudgetStore): Promise<boolean> => chargeSmsSendBudget(
+    store,
+    SMS_GLOBAL_BUDGET_KEY,
+    getSmsGlobalHourlyCap(),
+    60 * 60,
+);
