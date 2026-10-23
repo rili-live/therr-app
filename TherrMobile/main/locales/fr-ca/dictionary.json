@@ -2069,6 +2069,7 @@
             "checkin": "Enregistrer",
             "checkinError": "Nous n'avons pas pu enregistrer votre suivi. Réessayez dans un instant.",
             "completed": "Complété!",
+            "checkedInToday": "Enregistré aujourd'hui",
             "noHabitsTitle": "Aucune habitude pour le moment",
             "noHabitsSubtitle": "Créez une habitude pour commencer à suivre vos progrès",
             "pendingHabits": "En attente des partenaires",

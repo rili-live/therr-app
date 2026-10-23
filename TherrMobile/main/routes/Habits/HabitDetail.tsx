@@ -1081,7 +1081,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                 onAddDetail={this.handleAddCheckinDetail}
                                 addDetailTitle={this.translate('pages.habits.checkinProof.addDetailButton')}
                                 title={this.translate('pages.habits.checkin')}
-                                completedTitle={this.translate('pages.habits.completed')}
+                                completedTitle={this.translate('pages.habits.checkedInToday')}
                                 themeHabits={this.themeHabits}
                             />
 

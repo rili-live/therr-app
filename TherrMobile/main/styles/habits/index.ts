@@ -39,6 +39,30 @@ const getStreakBarColors = (theme: ITherrTheme, themeName?: IMobileThemeName) =>
         : theme.colors.brand,
 });
 
+/**
+ * Colours for "checked in today", kept off the brand ramp on purpose.
+ *
+ * The completed check-in button used to be `brandingBlueGreen`, which Friends with Habits
+ * overrides to `#6E5C85` — the very purple the *unchecked* button is filled with. The only
+ * difference between "tap to check in" and "already done" was the icon and label, so a list of
+ * habits gave no way to see at a glance which were finished. Done now reads as a status in the
+ * chameleon palette's green: a tinted surface with dark (light theme) or bright (dark theme) ink,
+ * never a filled button that looks tappable.
+ *
+ * Ink against its own tinted fill, measured: light ~6:1, dark ~8:1.
+ */
+const getDoneColors = (theme: ITherrTheme, themeName?: IMobileThemeName) => {
+    const isDark = isDarkTheme(themeName);
+    const ink = isDark
+        ? new Color(theme.colors.accentLime).lighten(0.2).hex()
+        : new Color(theme.colors.accentLime).darken(0.4).hex();
+    return {
+        ink,
+        fill: tint(theme.colors.accentLime, isDark ? 0.18 : 0.14),
+        border: tint(theme.colors.accentLime, isDark ? 0.6 : 0.5),
+    };
+};
+
 // Height of the floating "new pact" action, and the bottom padding a scrolling
 // surface needs so its last row clears both that action and the button menu.
 const NEW_PACT_FAB_HEIGHT = 48;
@@ -65,6 +89,7 @@ const getStreakBadgeStyles = (_theme: ITherrTheme): any => ({
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
     const streakBar = getStreakBarColors(therrTheme, themeName);
+    const done = getDoneColors(therrTheme, themeName);
 
     const styles = StyleSheet.create({
         // Checkin Button
@@ -76,9 +101,19 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             ...getCheckinButtonStyles(therrTheme),
             backgroundColor: therrTheme.colors.primary3,
         },
+        // A status, not an action — see `getDoneColors`. The 1.5dp border keeps the outline
+        // visible on a white card where the 14% tint alone is faint.
         checkinButtonCompleted: {
             ...getCheckinButtonStyles(therrTheme),
-            backgroundColor: therrTheme.colors.brandingBlueGreen,
+            backgroundColor: done.fill,
+            borderWidth: 1.5,
+            borderColor: done.border,
+        },
+        checkinButtonTextCompleted: {
+            color: done.ink,
+        },
+        checkinButtonIconCompleted: {
+            color: done.ink,
         },
         checkinButtonDisabled: {
             ...getCheckinButtonStyles(therrTheme),
@@ -448,7 +483,37 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             padding: space.md,
             marginHorizontal: space.lg,
             marginVertical: space.xs + 2,
+            // Transparent until the habit is done today, so the done outline does not shift
+            // the card's contents by its own width when a check-in lands.
+            borderWidth: 1.5,
+            borderColor: 'transparent',
             ...shadowSm,
+        },
+        habitCardContainerDone: {
+            borderColor: done.border,
+        },
+        // Positions the "done today" badge on the emoji's corner.
+        habitCardEmojiWrap: {
+            marginRight: space.sm,
+        },
+        habitCardEmojiInWrap: {
+            marginRight: 0,
+        },
+        habitCardDoneBadge: {
+            position: 'absolute',
+            right: -4,
+            bottom: -2,
+            width: 18,
+            height: 18,
+            borderRadius: radius.circle,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: done.ink,
+            borderWidth: 1.5,
+            borderColor: therrTheme.colors.surface,
+        },
+        habitCardDoneBadgeIcon: {
+            color: therrTheme.colors.surface,
         },
         habitCardHeader: {
             flexDirection: 'row',
