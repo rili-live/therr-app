@@ -98,7 +98,29 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
-## SMS country tiers (added 2026-10-21, after the SMS-pumping incident)
+## Challenges & founder referral reward (added 2026-10-23, § 2.7 #2988)
+
+- [ ] **Run the users-service migration after the deploy** (`20261023000001`: `habits.challenges`,
+  `habits.challenge_members`, `habits.referral_rewards`). All additive; neither automator reads them.
+  Until it runs, `/c/:token` 404s and the check-in's reward evaluation logs an error and grants
+  nothing (the check-in itself is unaffected).
+- [ ] **Smoke-test a share link once deployed:** create a challenge via `POST /habits/challenges`
+  (no mobile UI yet), open `https://habits.therr.com/c/<token>` signed out, and paste the link into
+  iMessage or Slack. The unfurl should show the standings card, not the generic brand image. If it
+  shows the generic image, the card route is falling back — check the client pod logs for a resvg
+  or font load error.
+- [ ] **Confirm the two new display pushes render on a Habits handset** (`challengeJoined`,
+  `habitsReferralRewardEarned`). No click action, so the tap only opens the app. Both go through the
+  queue, so they need `NOTIFICATION_QUEUE_WORKER_ENABLED=true` like the rest.
+- [ ] **Watch the first referral grants** — `Granted the founder unlock as a referral reward` in the
+  users-service logs, and `SELECT * FROM habits.referral_rewards`. Spot-check `qualifyingUserIds` for
+  obviously fake accounts in the first few. Kill switch: `HABITS_REFERRAL_REWARD_ENABLED=false`;
+  thresholds: `HABITS_REFERRAL_REWARD_FRIEND_COUNT` (3), `HABITS_REFERRAL_REWARD_ACTIVE_DAYS` (3).
+  Set them on users-service; the gateway and web never read them.
+- [ ] **Announce the referral offer somewhere a user will see it.** Nothing tells users it exists
+  until the mobile half lands (§ 2.7 → "Still to build"). Cheapest interim: add a line to the
+  `habitsFounderOffer` push copy and the therr-messaging-automator `introHabits` email.
+
 
 - [ ] **Match Twilio's Messaging Geo Permissions to the code tiers** in
   `therr-public-library/therr-js-utilities/src/sms-destination-policy.ts` — enable exactly
@@ -2724,6 +2746,32 @@ them, and the sense that specific friends are watching would dilute. So:
 
 Split: backend, migration and `therr-react` on `general`. Challenge screens, the join deep
 link and share sheet copy on `niche/HABITS-general`.
+
+**Status (2026-10-23): server and web halves built on `general`; mobile half not started.**
+
+Built:
+- `habits.challenges` / `habits.challenge_members` (habits schema like `pact_join_requests`, not a
+  brand-scoped `main.*` table), `ChallengesStore`, `handlers/challenges.ts`, ranking rules in
+  `utilities/challengeStandings.ts`. Ranks by amount when the goal has an `amountUnit`, else by days.
+  The ranking is computed on read (≤50 members), not frozen through `leaderboardPeriodResults`.
+- Routes: `POST /habits/challenges`, `GET …/mine`, public `GET …/by-token/:token`,
+  `POST …/by-token/:token/join`, `POST …/:id/leave|cancel`. therr-react: `HabitsChallengesService`.
+- `habits.therr.com/c/:token`: scoreboard, join and **check in from the web with no install**, and a
+  generated 1200x630 PNG share card (`/c/:token/card.png`, resvg WASM) as the og:image.
+- `challengeJoined` push to the creator, once per joiner.
+- Decisions taken: joining does NOT count toward `HABITS_SOLO_UNLOCK_INVITE_COUNT` (a public link is
+  not a personal invite), but a joiner whose account is new DOES count toward the founder referral
+  reward. Creating a challenge is free (max 3 running per creator), not premium. No daily standings
+  digest yet.
+
+Still to build (mobile, `niche/HABITS-general`):
+- "Challenge friends" on a habit's detail screen → `create`, then the share sheet with the link.
+- A challenge screen (`getByToken`) and a list in My Habits (`getMine`).
+- Handle `habits.therr.com/c/:token` as an App Link / deep link so an installed app opens the
+  challenge, and make it count as a social start for `PactOnboardingGuard`.
+- Referral progress (`getReferralReward`) on the invite screen and the paywall: "2 of 3 friends
+  active — bring one more and it's free for life".
+- Route taps on `challengeJoined` and `habitsReferralRewardEarned`.
 
 #### 2.7.1 Group thread for pacts and challenges — follow-up to § 2.7, lower priority (#2989)
 
