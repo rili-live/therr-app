@@ -82,6 +82,13 @@ export enum Types {
     // To a user who has checked in 3+ times over their first week and still has no partner.
     habitsFounderOffer = 'habits-founder-offer',
 
+    // HABITS: Growth loops. Display pushes with no click action, like the onboarding set above.
+    //
+    // To a challenge's creator when someone joins it from the share link. Once per joiner.
+    challengeJoined = 'challenge-joined',
+    // To a user whose invited friends just became active enough to earn them the founder unlock.
+    habitsReferralRewardEarned = 'habits-referral-reward-earned',
+
     // HABITS: Partner Activity
     partnerCheckedIn = 'partner-checked-in',
     partnerMissedDay = 'partner-missed-day',
