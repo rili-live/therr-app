@@ -117,9 +117,13 @@ append new items here rather than only printing them once.
   obviously fake accounts in the first few. Kill switch: `HABITS_REFERRAL_REWARD_ENABLED=false`;
   thresholds: `HABITS_REFERRAL_REWARD_FRIEND_COUNT` (3), `HABITS_REFERRAL_REWARD_ACTIVE_DAYS` (3).
   Set them on users-service; the gateway and web never read them.
-- [ ] **Announce the referral offer somewhere a user will see it.** Nothing tells users it exists
-  until the mobile half lands (§ 2.7 → "Still to build"). Cheapest interim: add a line to the
-  `habitsFounderOffer` push copy and the therr-messaging-automator `introHabits` email.
+- [ ] **Release the mobile half to Play** (`niche/HABITS-general` → `-main`, `/niche-android-release`).
+  Until it ships, challenge links open the installed app and land on the dashboard, and nothing in
+  the app mentions the referral offer. After it ships, open a `/c/` link on a handset with the app
+  installed, signed in and signed out, and confirm both land on the challenge.
+- [ ] **Consider announcing the referral offer outside the app** — a line in the `habitsFounderOffer`
+  push copy and the therr-messaging-automator `introHabits` email. In-app it shows on My Habits and
+  the paywall.
 
 
 - [ ] **Match Twilio's Messaging Geo Permissions to the code tiers** in
@@ -2747,7 +2751,7 @@ them, and the sense that specific friends are watching would dilute. So:
 Split: backend, migration and `therr-react` on `general`. Challenge screens, the join deep
 link and share sheet copy on `niche/HABITS-general`.
 
-**Status (2026-10-23): server and web halves built on `general`; mobile half not started.**
+**Status (2026-10-23): server and web halves built for `general`; mobile half built for `niche/HABITS-general`. Neither has merged or shipped yet.**
 
 Built:
 - `habits.challenges` / `habits.challenge_members` (habits schema like `pact_join_requests`, not a
@@ -2764,14 +2768,21 @@ Built:
   reward. Creating a challenge is free (max 3 running per creator), not premium. No daily standings
   digest yet.
 
-Still to build (mobile, `niche/HABITS-general`):
-- "Challenge friends" on a habit's detail screen → `create`, then the share sheet with the link.
-- A challenge screen (`getByToken`) and a list in My Habits (`getMine`).
-- Handle `habits.therr.com/c/:token` as an App Link / deep link so an installed app opens the
-  challenge, and make it count as a social start for `PactOnboardingGuard`.
-- Referral progress (`getReferralReward`) on the invite screen and the paywall: "2 of 3 friends
-  active — bring one more and it's free for life".
-- Route taps on `challengeJoined` and `habitsReferralRewardEarned`.
+Mobile (`niche/HABITS-general`, branch `ccr-b8c0d541-syesje-habits-mobile`):
+- "Challenge friends to this habit" on HabitDetail → `CreateChallenge` → `ChallengeDetail` with the
+  share sheet open. `ChallengeDetail` joins (402 → paywall), opens the habit to check in, leaves, ends.
+- `habits.therr.com/c/<token>` opens `ChallengeDetail`. The app already claimed the whole host as an
+  App Link, so before this those links opened the app and went nowhere. A link opened signed out or
+  on a cold start is stashed (`pendingChallengeToken`) and drained right after the landing reset.
+- "Your challenges" on My Habits; `ReferralRewardCard` on My Habits and the paywall.
+- `challengeJoined` taps open My Habits (the push carries no token); `habitsReferralRewardEarned` taps
+  open the paywall's owned state.
+- Joining creates a tracked habit, which already releases `PactOnboardingGuard` — no guard change.
+
+Still open:
+- A daily standings digest push for members (deliberately not built; see the design notes above).
+- The `challengeJoined` push carries no join token, so its tap cannot open the challenge itself.
+  Adding `joinToken` to the push payload needs a field allowlisted end to end in the push service.
 
 #### 2.7.1 Group thread for pacts and challenges — follow-up to § 2.7, lower priority (#2989)
 
