@@ -1,6 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { param } from 'express-validator';
+import { body, param } from 'express-validator';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import * as globalConfig from '../../../../global-config';
@@ -977,6 +977,47 @@ usersServiceRouter.get('/habits/lifetime', handleServiceRequest({
 usersServiceRouter.post('/habits/lifetime/verify', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
+}));
+
+// HABITS — Join-by-link challenges. Literal paths before `:id` siblings.
+usersServiceRouter.post('/habits/challenges', [
+    body('habitGoalId').isUUID(),
+    body('durationDays').optional().isInt({ min: 1, max: 365 }),
+    body('title').optional({ nullable: true }).isString().isLength({ max: 100 }),
+], validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.get('/habits/challenges/mine', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+// PUBLIC (see config/unauthenticatedPaths.ts): the share link's page, before signup.
+usersServiceRouter.get('/habits/challenges/by-token/:token', authenticateOptional, [
+    param('token').matches(/^[A-Za-z0-9]{12}$/),
+], validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/challenges/by-token/:token/join', [
+    param('token').matches(/^[A-Za-z0-9]{12}$/),
+], validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.post('/habits/challenges/:id/leave', [param('id').isUUID()], validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.post('/habits/challenges/:id/cancel', [param('id').isUUID()], validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+// HABITS — Founder unlock earned by bringing active friends (progress only; granted on check-in)
+usersServiceRouter.get('/habits/referral-reward', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
 }));
 
 // HABITS — Premium subscription ($6.99/month, Google Play Billing)

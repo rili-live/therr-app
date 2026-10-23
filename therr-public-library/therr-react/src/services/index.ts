@@ -43,6 +43,7 @@ import WeeklyRecapService, {
 import UserHabitsService, { ICreateUserHabitBody, ICreateUserHabitGoalBody } from './UserHabitsService';
 import JournalService, { ICreateJournalEntryBody, IUpdateJournalEntryBody } from './JournalService';
 import HabitsLifetimeService, { IVerifyLifetimePurchaseBody } from './HabitsLifetimeService';
+import HabitsChallengesService, { ICreateChallengeBody } from './HabitsChallengesService';
 import HabitsPremiumService, { IVerifyPremiumPurchaseBody } from './HabitsPremiumService';
 
 export {
@@ -96,6 +97,8 @@ export {
     IUpdateJournalEntryBody,
     HabitsLifetimeService,
     IVerifyLifetimePurchaseBody,
+    HabitsChallengesService,
+    ICreateChallengeBody,
     HabitsPremiumService,
     IVerifyPremiumPurchaseBody,
 };

@@ -211,8 +211,9 @@
             <p class="lede">Free to start. Set it up here, then pact up with a friend in the app.</p>
 
             <div class="alert alert--success" id="signup-done" hidden>
-                Account created. Check your email to verify it, then open the Friends with Habits app and sign in.
+                <span id="signup-done-text">Account created. Check your email to verify it, then open the Friends with Habits app and sign in.</span>
                 <div style="margin-top:0.875rem">
+                    <a class="cta" id="challenge-signin-link" href="/login" hidden>I verified it, sign me in</a>
                     <a class="cta" id="store-cta-done" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get it on Google Play</a>
                 </div>
             </div>
@@ -289,6 +290,16 @@
             var prefillEmail = qs.get('email');
             if (prefillEmail) { emailInput.value = prefillEmail; }
             emailInput.focus();
+
+            // Arrived from a challenge link (habits.therr.com/c/:token). Remember it so signing in
+            // after the email verification — maybe days later, maybe in another tab — lands back
+            // on the challenge (habits/login.hbs reads this), and say so in the success message.
+            var pendingChallenge = qs.get('challenge');
+            if (pendingChallenge && /^[A-Za-z0-9]{12}$/.test(pendingChallenge)) {
+                try { localStorage.setItem('habitsPendingChallenge', pendingChallenge); } catch (e) { /* fine */ }
+            } else {
+                pendingChallenge = null;
+            }
 
             function showError(msg) {
                 errorBox.textContent = msg;
@@ -387,6 +398,14 @@
                     // it as a key event in GA4 admin and import it into Ads, or
                     // the campaign has nothing to bid on.
                     track('sign_up', { method: 'habits_web' });
+                    if (pendingChallenge) {
+                        document.getElementById('signup-done-text').textContent =
+                            'Account created. Check your email to verify it, then sign in to join the challenge.';
+                        var challengeLink = document.getElementById('challenge-signin-link');
+                        challengeLink.setAttribute('href', '/login?email=' + encodeURIComponent(email)
+                            + '&returnTo=' + encodeURIComponent('/c/' + pendingChallenge));
+                        challengeLink.hidden = false;
+                    }
                     form.hidden = true;
                     doneBox.hidden = false;
                     doneBox.scrollIntoView({ block: 'center' });

@@ -218,6 +218,14 @@
       "title": "{checkinCount} check-ins. Estás construyendo algo.",
       "body": "Desbloquea hábitos ilimitados de por vida con un solo pago. Sin suscripción."
     },
+    "challengeJoined": {
+      "title": "{userName} se unió a tu reto",
+      "body": "Tu reto de {habitName} acaba de crecer. Registra hoy para mantenerte adelante."
+    },
+    "habitsReferralRewardEarned": {
+      "title": "Desbloqueaste Friends with Habits de por vida",
+      "body": "Tus amigos siguieron constantes, así que todo está desbloqueado. Sin pago ni suscripción. Gracias por traerlos."
+    },
     "dailyHabitReminder": {
       "title": "Hora de registrarte",
       "body": "Registra {habitName} hoy — un solo registro pone tu racha en marcha.",

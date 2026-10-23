@@ -524,6 +524,8 @@ const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.habitsFirstHabitNudge,
     PushNotifications.Types.pactInviteUnclaimed,
     PushNotifications.Types.habitsFounderOffer,
+    PushNotifications.Types.challengeJoined,
+    PushNotifications.Types.habitsReferralRewardEarned,
     PushNotifications.Types.partnerCheckedIn,
     PushNotifications.Types.partnerMissedDay,
     PushNotifications.Types.partnerCelebrated,
@@ -1404,6 +1406,30 @@ const createMessage = (
                 channelId: AndroidChannelId.rewardUpdates,
             });
             return baseMessage;
+        case PushNotifications.Types.challengeJoined:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, 'notifications.challengeJoined.title', {
+                    userName: String(config.fromUserName || ''),
+                }),
+                notificationBody: translate(config.userLocale, 'notifications.challengeJoined.body', {
+                    habitName: String(config.habitName || ''),
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
+            return baseMessage;
+        case PushNotifications.Types.habitsReferralRewardEarned:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, 'notifications.habitsReferralRewardEarned.title'),
+                notificationBody: translate(config.userLocale, 'notifications.habitsReferralRewardEarned.body'),
+                channelId: AndroidChannelId.rewardUpdates,
+            });
+            return baseMessage;
         case PushNotifications.Types.streakBroken:
             baseMessage = createNotificationMessage({
                 data: modifiedData,
@@ -1952,6 +1978,8 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.habitMaintenanceCheckIn,
     PushNotifications.Types.habitsFirstHabitNudge,
     PushNotifications.Types.habitsFounderOffer,
+    PushNotifications.Types.habitsReferralRewardEarned,
+    PushNotifications.Types.challengeJoined,
     PushNotifications.Types.inviteFriendsReminder,
     PushNotifications.Types.latestPostLikesStats,
     PushNotifications.Types.latestPostViewcountStats,

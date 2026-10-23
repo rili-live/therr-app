@@ -29,3 +29,6 @@ export const JOURNAL_ENTRIES_TABLE_NAME = 'habits.journal_entries';
 export const USER_DAILY_STREAKS_TABLE_NAME = 'habits.user_daily_streaks';
 export const DAILY_STREAK_DAYS_TABLE_NAME = 'habits.daily_streak_days';
 export const DAILY_BONUSES_TABLE_NAME = 'habits.daily_bonuses';
+export const CHALLENGES_TABLE_NAME = 'habits.challenges';
+export const CHALLENGE_MEMBERS_TABLE_NAME = 'habits.challenge_members';
+export const REFERRAL_REWARDS_TABLE_NAME = 'habits.referral_rewards';

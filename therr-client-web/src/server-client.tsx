@@ -44,6 +44,14 @@ import {
     matchHabitsBlogPost,
 } from './utilities/habitsBlog';
 import { HabitsLandingResolution, buildHabitsLandingViewContext, resolveHabitsLandingRequest } from './utilities/habitsLanding';
+import {
+    CHALLENGE_CARD_PATH_RE,
+    CHALLENGE_PATH_RE,
+    IPublicChallenge,
+    buildChallengeCardSvg,
+    buildChallengeViewContext,
+    renderSvgToPng,
+} from './utilities/habitsChallenge';
 import { HABITS_HOSTS, resolveAssetLinksFileName } from './utilities/wellKnownAssets';
 
 axios.defaults.baseURL = (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute;
@@ -501,6 +509,82 @@ const renderHabitsInviteView = async (req, res, match: IHabitsInviteRouteMatch) 
     });
 };
 
+// ── Challenges (habits.therr.com/c/:token) ──
+// See utilities/habitsChallenge.ts. The page and its share card read the same public endpoint.
+
+// Resolved like WELL_KNOWN_DIR: webpack compiles `__dirname` to the relative "src", which
+// path.resolve pins against the process cwd (therr-client-web, locally and in the image).
+const HABITS_CARD_FONTS_DIR = path.resolve(__dirname, 'assets/fonts');
+// Standings move with every check-in, so both are cached briefly. A share card is fetched once
+// by each unfurler and then held by that platform anyway.
+const HABITS_CHALLENGE_PAGE_CACHE = 'public, max-age=60, s-maxage=60, stale-while-revalidate=300';
+const HABITS_CHALLENGE_CARD_CACHE = 'public, max-age=300, s-maxage=600, stale-while-revalidate=3600';
+const HABITS_CHALLENGE_LOOKUP_TIMEOUT_MS = 4000;
+
+const fetchPublicChallenge = async (token: string): Promise<IPublicChallenge | null> => {
+    try {
+        // Same brand-scoping trap as resolveHabitsInviter: send the habits header explicitly.
+        const response = await axios.get(
+            `/users-service/habits/challenges/by-token/${encodeURIComponent(token)}`,
+            { timeout: HABITS_CHALLENGE_LOOKUP_TIMEOUT_MS, headers: { 'x-brand-variation': BrandVariations.HABITS } },
+        );
+        return response?.data?.joinToken ? response.data : null;
+    } catch (err) {
+        return null;
+    }
+};
+
+const renderHabitsChallengeView = async (req, res, token: string) => {
+    const challenge = await fetchPublicChallenge(token);
+
+    if (!challenge) {
+        res.setHeader('Cache-Control', HABITS_NO_STORE);
+        return res.status(404).render('habits/invite', {
+            title: 'Challenge not found | Friends with Habits',
+            description: 'This Friends with Habits challenge has ended or no longer exists.',
+            canonicalUrl: `https://habits.therr.com${req.path}`,
+            heading: 'This challenge is not running anymore',
+            body: 'It may have been ended by the person who started it. You can still start your own and invite friends to it.',
+            ctaNote: 'Free to install. Available on Google Play — iOS coming next.',
+            inviteCodeLabel: '',
+            inviteCode: '',
+        });
+    }
+
+    res.setHeader('Cache-Control', HABITS_CHALLENGE_PAGE_CACHE);
+    // Handlebars escapes `{{value}}`; the JSON values go into a <script> via triple-stash, so
+    // they are serialized (which escapes <, > and &) rather than interpolated raw.
+    return res.render('habits/challenge', {
+        ...buildChallengeViewContext(challenge),
+        apiBaseJson: serialize(
+            (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute,
+            { isJSON: true },
+        ),
+        joinTokenJson: serialize(challenge.joinToken, { isJSON: true }),
+        habitGoalIdJson: serialize(challenge.habitGoalId, { isJSON: true }),
+        isJoinableJson: serialize(!challenge.hasEnded && !challenge.isFull, { isJSON: true }),
+    });
+};
+
+const renderHabitsChallengeCard = async (req, res, token: string) => {
+    const challenge = await fetchPublicChallenge(token);
+
+    try {
+        if (!challenge) {
+            throw new Error('challenge not found');
+        }
+        const png = await renderSvgToPng(buildChallengeCardSvg(challenge), HABITS_CARD_FONTS_DIR);
+        res.setHeader('Cache-Control', HABITS_CHALLENGE_CARD_CACHE);
+        res.type('image/png');
+        return res.send(png);
+    } catch (err) {
+        // An unfurler that gets an error caches "no image" for the link. The generic brand
+        // card is a better thing to remember than nothing.
+        res.setHeader('Cache-Control', HABITS_NO_STORE);
+        return res.redirect(302, '/assets/images/habits-og-image.png');
+    }
+};
+
 /**
  * The Friends with Habits landing page, in English ('/'), Spanish ('/es') or French ('/fr').
  *
@@ -642,6 +726,14 @@ app.use(async (req, res, next) => {
             relatedLandingUrl: blogPost.relatedLandingUrl,
             jsonLd: buildHabitsBlogJsonLd(blogPost),
         });
+    }
+    const challengeCardMatch = req.path.match(CHALLENGE_CARD_PATH_RE);
+    if (challengeCardMatch) {
+        return renderHabitsChallengeCard(req, res, challengeCardMatch[1]);
+    }
+    const challengeMatch = req.path.match(CHALLENGE_PATH_RE);
+    if (challengeMatch) {
+        return renderHabitsChallengeView(req, res, challengeMatch[1]);
     }
     const profileMatch = req.path.match(HABITS_PROFILE_PATH_RE);
     if (profileMatch) {
