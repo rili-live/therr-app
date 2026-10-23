@@ -34,6 +34,8 @@ export type PaywallSource =
     | 'create-pact-wizard'
     | 'pact-accept'
     | 'open-pacts'
+    | 'challenge-join'
+    | 'referral-reward'
     | 'settings'
     | 'weekly-recap'
     | 'celebration-milestone';

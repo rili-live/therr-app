@@ -2525,6 +2525,198 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         upgradeNudgeChevron: {
             color: therrTheme.colors.onSurfaceMuted,
         },
+
+        // Join-by-link challenges (routes/Challenges) and the referral reward card. A challenge is a
+        // public scoreboard, so it reads as a card with a ranked list, using the same surface,
+        // divider and brand tokens as the My Habits cards it sits beside.
+        challengeCard: {
+            borderRadius: radius.xl,
+            backgroundColor: therrTheme.colors.surface,
+            padding: space.lg,
+            marginBottom: space.md,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
+            ...shadowSm,
+        },
+        challengeHero: {
+            backgroundColor: therrTheme.colors.brandDark,
+            borderRadius: radius.xl,
+            padding: space.xl,
+            marginBottom: space.lg,
+            gap: space.xs,
+        },
+        challengeEyebrow: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            color: tint(BRAND_WHITE, 0.8),
+        },
+        challengeTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xxl,
+            fontWeight: fontWeights.bold,
+            lineHeight: fontSizes.xxl * lineHeights.tight,
+            color: BRAND_WHITE,
+        },
+        challengeMeta: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: tint(BRAND_WHITE, 0.85),
+        },
+        challengeTimePill: {
+            alignSelf: 'flex-start',
+            marginTop: space.sm,
+            borderRadius: radius.pill,
+            paddingHorizontal: space.md,
+            paddingVertical: space.xs,
+            backgroundColor: tint(BRAND_WHITE, 0.16),
+        },
+        challengeTimePillText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            color: BRAND_WHITE,
+        },
+        challengeSectionTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        challengeHint: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            lineHeight: fontSizes.sm * lineHeights.normal,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        challengeStandingRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.md,
+            minHeight: 44,
+            paddingVertical: space.sm,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: therrTheme.colors.accentDivider,
+        },
+        challengeStandingRowMe: {
+            backgroundColor: tint(therrTheme.colors.brand, 0.08),
+            marginHorizontal: -space.lg,
+            paddingHorizontal: space.lg,
+        },
+        challengeRank: {
+            width: 28,
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.brand,
+        },
+        challengeName: {
+            flex: 1,
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurface,
+        },
+        challengeScore: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        challengeActions: {
+            gap: space.sm,
+            marginBottom: space.lg,
+        },
+        challengeSecondaryButton: {
+            flexDirection: 'row',
+            borderRadius: radius.md,
+            minHeight: 44,
+            paddingHorizontal: space.xl,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+            borderColor: therrTheme.colors.brand,
+        },
+        challengeSecondaryButtonText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.brand,
+        },
+        challengeOptionRow: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: space.sm,
+        },
+        challengeOption: {
+            minHeight: 44,
+            minWidth: 56,
+            paddingHorizontal: space.md,
+            borderRadius: radius.pill,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        challengeOptionSelected: {
+            backgroundColor: therrTheme.colors.brand,
+            borderColor: therrTheme.colors.brand,
+        },
+        challengeOptionText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        challengeOptionTextSelected: {
+            color: therrTheme.colors.onBrand,
+        },
+        challengeInput: {
+            minHeight: 44,
+            borderRadius: radius.md,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
+            paddingHorizontal: space.md,
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            color: therrTheme.colors.onSurface,
+            backgroundColor: therrTheme.colors.surface,
+        },
+        challengeFlex: {
+            flex: 1,
+        },
+        challengeLoader: {
+            marginTop: space.xxl,
+        },
+        challengeEmptyState: {
+            paddingTop: space.xl,
+        },
+        challengeFieldLabel: {
+            marginTop: space.lg,
+            marginBottom: space.sm,
+        },
+        challengeTextCenter: {
+            textAlign: 'center',
+        },
+        challengeFieldNote: {
+            marginTop: space.sm,
+        },
+        referralCta: {
+            marginTop: space.md,
+        },
+        referralProgressTrack: {
+            height: 8,
+            borderRadius: radius.pill,
+            backgroundColor: tint(therrTheme.colors.onSurface, 0.1),
+            overflow: 'hidden',
+            marginVertical: space.sm,
+        },
+        referralProgressFill: {
+            height: '100%',
+            borderRadius: radius.pill,
+            backgroundColor: therrTheme.colors.brand,
+        },
     });
 
     return ({
