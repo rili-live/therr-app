@@ -2069,6 +2069,7 @@
             "checkin": "Registrar",
             "checkinError": "No pudimos guardar tu registro. Inténtalo de nuevo en un momento.",
             "completed": "¡Completado!",
+            "checkedInToday": "Registrado hoy",
             "noHabitsTitle": "Aún no hay hábitos",
             "noHabitsSubtitle": "Crea un hábito para comenzar a seguir tu progreso",
             "pendingHabits": "Esperando a los compañeros",

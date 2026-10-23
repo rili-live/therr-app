@@ -2069,6 +2069,7 @@
             "checkin": "Check In",
             "checkinError": "We couldn't save your check-in. Try again in a moment.",
             "completed": "Completed!",
+            "checkedInToday": "Checked in today",
             "noHabitsTitle": "No habits yet",
             "noHabitsSubtitle": "Create a habit to start tracking your progress",
             "pendingHabits": "Waiting on Partners",
