@@ -1,0 +1,41 @@
+{
+    "_comment": "Where people ask for exactly what Friends with Habits is: someone to keep them accountable. Read by find_threads.py. Patterns are case-insensitive regular expressions matched against a post's title and body.",
+    "subreddits": [
+        "getdisciplined",
+        "accountabilitypartners",
+        "decidingtobebetter",
+        "productivity",
+        "selfimprovement",
+        "GetMotivated",
+        "habits",
+        "NoFap",
+        "loseit",
+        "C25K",
+        "studying",
+        "ADHD",
+        "nosurf",
+        "povertyfinance",
+        "personalfinance"
+    ],
+    "include": [
+        {"pattern": "accountability (partner|buddy|buddies|friend|group)", "weight": 5},
+        {"pattern": "(looking for|need|want|find(ing)?) (an? )?(partner|buddy|someone|people) (to|who|that)?.{0,40}(accountab|check in|keep me|stick)", "weight": 4},
+        {"pattern": "keep (me|each other) accountable", "weight": 4},
+        {"pattern": "(habit|study|gym|workout|running|fitness|reading|sober|no ?spend|savings?) (buddy|buddies|partner)", "weight": 4},
+        {"pattern": "(anyone|who) (wants? to|wanna) (do|join|start).{0,40}(challenge|together|with me)", "weight": 3},
+        {"pattern": "\\b(30|60|90)[- ]day (challenge|streak)", "weight": 2},
+        {"pattern": "(can'?t|cannot|never) stick (to|with)", "weight": 2},
+        {"pattern": "habit (tracker|app) (with|for) friends", "weight": 3},
+        {"pattern": "(i|we) keep (quitting|giving up|failing)", "weight": 1}
+    ],
+    "exclude": [
+        {"pattern": "\\b(i|we) (built|made|created|launched|developed)\\b.{0,30}\\b(app|tool|site|platform)", "reason": "a launch post, not someone asking for help"},
+        {"pattern": "\\[(promo|promotion|ad|hiring)\\]", "reason": "promotional"},
+        {"pattern": "(paid|payment|venmo|paypal|cash ?app)", "reason": "asks for or offers money"},
+        {"pattern": "\\b(suicid|self[- ]harm|kill myself)", "reason": "a crisis post — never reply with a product"}
+    ],
+    "max_age_hours": 26,
+    "max_comments": 25,
+    "min_score": 3,
+    "max_results": 10
+}
