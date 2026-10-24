@@ -166,6 +166,8 @@
     "errorNetwork": "Network error. Try again in a moment."
   },
   "footer": {
+    "challenges": "Challenges",
+    "challengesPath": "/challenges",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "forCoaches": "For coaches",

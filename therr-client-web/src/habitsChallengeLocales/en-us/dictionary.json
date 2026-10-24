@@ -1,0 +1,1000 @@
+{
+  "ui": {
+    "brandSuffix": " | Friends with Habits",
+    "homeLabel": "Friends with Habits",
+    "hubLabel": "Challenges",
+    "dayWord": "day",
+    "sections": {
+      "whatIs": "What it is",
+      "howTo": "How to do it",
+      "dayByDay": "Day by day",
+      "milestones": "Milestones over {days} days",
+      "failures": "Where people quit, and how a partner helps",
+      "tracker": "Your {days}-day tracker",
+      "startInApp": "How to start it in the app",
+      "faq": "Questions",
+      "otherLengths": "Other lengths",
+      "related": "More challenges"
+    },
+    "phaseRange": "Days {from}–{to}",
+    "phaseTitles": {
+      "start": "Set it up",
+      "early": "The novelty wears off",
+      "middle": "The long middle",
+      "finish": "The finish line"
+    },
+    "safetyLabel": "Before you start",
+    "tracker": {
+      "intro": "Print this page, or tick the boxes here. Ticks are saved in this browser only. In the app, you and your partner see each other's check-ins as they happen.",
+      "goalDaily": "One tick a day.",
+      "goalWeekly": "Aim for {count} ticks a week.",
+      "you": "You",
+      "partner": "Your partner",
+      "dayLabel": "Day {n}",
+      "print": "Print tracker",
+      "ariaLabel": "{days}-day tracker for you and your partner"
+    },
+    "schedule": {
+      "daily": "every day",
+      "weekly": "{count} days a week"
+    },
+    "startSteps": {
+      "account": "Create your free account, then install Friends with Habits from Google Play and sign in.",
+      "pick": "Tap New Pact and pick “{inAppName}” under {categoryName}.",
+      "cadenceKeep": "Keep the schedule the template suggests: {schedule}.",
+      "cadenceChange": "The template suggests {templateSchedule}. For this challenge, change it to {schedule}.",
+      "invite": "Invite your friend by link, text or email. Once they accept, you both check in each day and see each other's progress."
+    },
+    "cta": {
+      "eyebrow": "Do it together",
+      "heading": "Start this challenge with a friend",
+      "body": "Free to start. Create your account, pick “{inAppName}” in the app and invite the friend who's doing it with you.",
+      "primary": "Start this challenge with a friend",
+      "secondary": "Get it on Google Play",
+      "note": "Android today, iPhone next. Free to download and use."
+    },
+    "otherLengthLink": "The {days}-day version",
+    "faqShared": {
+      "missDay": {
+        "question": "What happens if one of us misses a day?",
+        "answer": "Your partner sees it, and the app nudges you both. Check in honestly and pick it back up the next day. People who finish a challenge are rarely the ones who never missed; they're the ones who came back the day after."
+      },
+      "bothNeedApp": {
+        "question": "Do we both need the app?",
+        "answer": "Yes. Each of you checks in from your own phone, which is the point: you see when your partner has done it today, and they see you. Friends with Habits is on Android via Google Play today, and an iPhone version is next."
+      },
+      "noFriend": {
+        "question": "What if I don't have a friend doing this challenge?",
+        "answer": "An accountability partner doesn't need to be a close friend or an expert, only someone who'll notice. A coworker, a sibling or someone from a group chat works. Invite one person; most people say yes to a challenge with an end date."
+      },
+      "isFree": {
+        "question": "Is it free?",
+        "answer": "Yes. Friends with Habits is free to download and free to use, with no card. A free account tracks a limited number of active habits at a time, which leaves plenty of room for one challenge."
+      }
+    },
+    "hub": {
+      "title": "Habit Challenges to Do with a Friend: 30, 60 and 90 Days",
+      "description": "Free day-by-day guides and printable trackers for no-spend, reading, step, no-sugar, alcohol-free and other challenges, made to do with an accountability partner.",
+      "eyebrow": "Challenges",
+      "heading": "Pick a challenge. Bring a friend.",
+      "intro": "Each guide covers how the challenge works, a day-by-day plan, where people usually quit, and a tracker you can print or tick off on the page. Every one is a ready-made pact in the app, so you and a friend can start it today.",
+      "lengthsLabel": "Guides:",
+      "lengthLink": "{days} days",
+      "ctaHeading": "Already know which one?",
+      "ctaBody": "Create a free account, pick the challenge in the app and invite a friend. Pacts run 30 days, and you can re-commit when one ends.",
+      "ctaPrimary": "Create a free account"
+    },
+    "footerLink": "Challenges"
+  },
+  "categories": {
+    "fitness": "Movement & Exercise",
+    "health": "Health & Body",
+    "mindfulness": "Mind & Mental Health",
+    "productivity": "Focus & Screen Time",
+    "learning": "Learning & Creativity",
+    "money": "Money & Savings"
+  },
+  "lengths": {
+    "d30": {
+      "appNote": "A pact in the app runs 30 days, so this whole challenge is one pact.",
+      "faq": {
+        "question": "Why 30 days?",
+        "answer": "It's long enough to get through a full month of ordinary life, with its weekends, a busy week and a bad day, and short enough that the end is always in sight. It's also exactly one pact in the app."
+      }
+    },
+    "d60": {
+      "appNote": "A pact in the app runs 30 days. When the first one ends, tap Re-commit for 30 more and your shared streak carries over.",
+      "recommit": {
+        "title": "Day 30: re-commit",
+        "body": "On day 30, re-commit together for another 30 days. Change one thing about how you do it, like the time, the route or the rule that was too strict, and keep everything else the same."
+      },
+      "faq": {
+        "question": "Is 60 days too long for a first challenge?",
+        "answer": "Not if you treat it as two 30-day blocks. Re-commit at day 30 and decide then whether to change anything. If you've never done a challenge like this, starting with 30 is fine too."
+      }
+    },
+    "d90": {
+      "appNote": "A pact in the app runs 30 days. Re-commit when it ends, and again at day 60, and your shared streak carries across all 90 days.",
+      "recommit": {
+        "title": "Days 30 and 60: re-commit",
+        "body": "Re-commit at day 30 and again at day 60. Each time, talk with your partner about what's working and change one thing. A 90-day challenge is three 30-day ones in a row, not one long slog."
+      },
+      "faq": {
+        "question": "Is 90 days too long?",
+        "answer": "It's a real commitment, which is why it's done as three 30-day pacts. Each re-commit is a natural point to check in with your partner. If you're unsure, start with 30 and re-commit if it's going well."
+      }
+    }
+  },
+  "challenges": {
+    "noSpendDay": {
+      "slug": "no-spend",
+      "name": "No-spend challenge",
+      "inAppName": "No-spend day",
+      "title": "{days}-Day No-Spend Challenge with a Friend",
+      "metaDescription": "How to do a {days}-day no-spend challenge with a friend: the rules, a day-by-day plan, where people slip, and a free printable tracker.",
+      "summary": "Buy nothing beyond the essentials, and have someone to confess the takeout to.",
+      "intro": [
+        "A no-spend challenge means buying nothing beyond the essentials for a set number of days. Rent, bills, groceries, medicine and getting to work are allowed. Takeout, clothes, apps, impulse buys and “it was on sale” are not. You decide the exact list before day one, and you write it down.",
+        "It works better with a friend because most no-spend challenges fail in one unplanned moment: a checkout page at 11pm, a group dinner, a bad day. Knowing you'll report back to someone tonight is often enough to close the tab."
+      ],
+      "rules": [
+        "Write your essentials list before you start: what you'll still pay for, and a weekly grocery budget.",
+        "Delete saved cards from the shops you buy from most, and unsubscribe from their emails.",
+        "Check in once a day: yes if you bought nothing outside the list, no if you did. No partial credit.",
+        "Keep a running note of what you wanted to buy and didn't. It's the most useful thing you'll have at the end."
+      ],
+      "phases": {
+        "start": "Agree on the essentials list with your partner, pause anything you'd be tempted to renew, and plan the first weekend: it's where most people break.",
+        "early": "The first urges show up as “small exceptions”. Text your partner before you buy, not after. If it can wait 48 hours, it isn't essential.",
+        "middle": "The savings stop feeling new and the friction starts to feel personal. Swap one thing you'd normally buy for something free each week, and compare notes with your partner on what you've stopped missing.",
+        "finish": "Add up what you didn't spend, together. Decide which rules you'll keep before the challenge ends, or the first day after becomes a spending spree."
+      },
+      "failures": [
+        {
+          "title": "The social invite",
+          "body": "Dinner or drinks with people who aren't doing the challenge. Decide your answer before it happens: suggest a cheaper plan, or set a cap in advance. A partner who's doing it too makes “I'm on a no-spend month” an easy sentence to say."
+        },
+        {
+          "title": "The late-night checkout",
+          "body": "Most impulse buys happen tired, alone, with a phone. A rule that works: anything you want, send it to your partner first and wait until tomorrow. Most of it you'll never mention again."
+        },
+        {
+          "title": "The one slip that ends it",
+          "body": "Buying one thing turns into “I've already failed, so why not”. You haven't failed. Check in honestly, tell your partner and carry on tomorrow. A streak that restarts is worth more than a challenge you quietly abandon."
+        }
+      ],
+      "faq": [
+        {
+          "question": "What counts as an essential on a no-spend challenge?",
+          "answer": "Whatever you agree before you start, written down. The usual list is housing, utilities, groceries up to a set budget, transport to work, medicine and debt payments. Anything not on the list waits until the challenge ends."
+        },
+        {
+          "question": "Can I still buy groceries?",
+          "answer": "Yes. Set a weekly grocery budget and stick to it, and leave snacks, alcohol and takeout off the list unless you've agreed otherwise. The point is to stop unplanned spending, not to stop eating."
+        },
+        {
+          "question": "Do my partner and I need the same rules?",
+          "answer": "No. Your essentials can differ: one of you may have kids, a commute or a car. What matters is that each of you writes your list down and the other one knows what it says."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Thirty days covers a full pay cycle and every bill that comes with it, which is why it's the most common length. It's long enough to see the number change and short enough that the end is always in sight.",
+        "d90": "Ninety days turns a challenge into a new default. Expect the second month to be harder than the first: the novelty is gone and the exceptions get more persuasive. People who go the distance often relax one rule at day 30 on purpose, rather than by accident."
+      },
+      "longForm": {
+        "d90": {
+          "milestones": [
+            {
+              "title": "Day 30: the first audit",
+              "body": "Add up what you didn't spend in month one, and read back your list of things you wanted. Most people find it's shorter than they expected. Decide with your partner whether any rule needs to change, then re-commit."
+            },
+            {
+              "title": "Day 45: the boredom wall",
+              "body": "Halfway is where a long no-spend challenge feels least rewarding: the savings are routine and the restrictions aren't. Plan one free thing with your partner that week, and give the money you're keeping a job, like a debt payment or a trip."
+            },
+            {
+              "title": "Day 90: decide the new normal",
+              "body": "By now some of your rules are habits. Pick the two or three you'll keep for good, write them down and tell your partner. A planned exit beats a spending spree."
+            }
+          ],
+          "faq": {
+            "question": "How do I handle birthdays and holidays in a 90-day no-spend challenge?",
+            "answer": "Plan them in. Before you start, list the gifts and events that fall inside the 90 days and set a budget for each one. Planned spending you both agreed to doesn't break the challenge; unplanned spending does."
+          }
+        }
+      }
+    },
+    "steps10k": {
+      "slug": "10000-steps",
+      "name": "10,000 steps challenge",
+      "inAppName": "Hit 10,000 steps",
+      "title": "{days}-Day 10,000 Steps Challenge with a Friend",
+      "metaDescription": "A {days}-day 10,000 steps a day challenge to do with a friend: how to fit the steps in, a day-by-day plan, where people stall, and a free tracker.",
+      "summary": "Ten thousand steps a day, with someone checking whether you got them.",
+      "intro": [
+        "The challenge is simple to state: reach 10,000 steps every day for {days} days, counted by your phone or a watch. Walks, commutes, stairs and pacing on calls all count. There are no rest days, so the real challenge is the evening you're at 4,000 at 8pm.",
+        "Step challenges were social long before this app, between coworkers and friends with matching watches. Doing it as a pact keeps that part and drops the leaderboard: you and one friend check in each day and see whether the other made it, which pushes harder than being 14th in an office league."
+      ],
+      "rules": [
+        "Pick one device to count your steps and stick with it for the whole challenge.",
+        "Find your baseline first. If you average 5,000, plan two extra walks a day rather than hoping.",
+        "Check in each evening once you've hit the number. No rounding up.",
+        "Plan your bad-weather fallback in advance: a mall, a gym, stairs or walking calls."
+      ],
+      "phases": {
+        "start": "Check your current daily average, agree on a check-in time with your partner and schedule the walks that close the gap. Day one is easy. By day three the plan has to exist.",
+        "early": "Your legs notice. Several short walks beat one long one. Send your partner your count at lunch: being halfway by midday is the best sign you'll finish.",
+        "middle": "The weather turns, a busy week lands, and the evening top-up walk starts to feel like a chore. Walk together on a call, or swap routes. This is where most solo step challenges end.",
+        "finish": "You know your routine now. Use the last days to lock in the walks that worked, so the habit outlasts the challenge."
+      },
+      "failures": [
+        {
+          "title": "The 8pm deficit",
+          "body": "You look at your phone and you're 5,000 short. Without a plan the answer is “tomorrow”. A partner checking in at the same time turns it into a walk you do together, or at least a message that gets you out of the door."
+        },
+        {
+          "title": "The sick day or the travel day",
+          "body": "Some days 10,000 isn't happening. Agree before you start what you'll do: a lower floor for sick days, or an honest miss. Deciding in the moment usually ends in a miss you don't report."
+        },
+        {
+          "title": "The watch that died",
+          "body": "Lost data feels like a lost day. Agree on a backup, like your phone's own count or a timed walk, so a flat battery doesn't become the reason you stop."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Is 10,000 steps a day realistic for a beginner?",
+          "answer": "It depends where you start. If you're under 5,000 a day now, it means about an hour of extra walking, so build it into your routine before day one, or agree with your partner to start with a lower target and raise it each week."
+        },
+        {
+          "question": "Do steps from running or the treadmill count?",
+          "answer": "Yes. Anything your phone or watch counts as steps counts. Cycling and swimming usually don't register, so agree with your partner beforehand whether to count them."
+        },
+        {
+          "question": "What if my partner and I walk at different times?",
+          "answer": "That's normal. Each of you checks in when you hit the number, and the app shows the other one that you have. You don't need to walk together for it to work."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Thirty days is long enough for the steps to stop being an event and become part of your day, through a few bad-weather days and at least one busy week.",
+        "d60": "Sixty days means seasons and schedules change mid-challenge. Plan for that at the start: a winter route, a rainy-day fallback, and a conversation with your partner at day 30."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Day 30: re-check your baseline",
+              "body": "Look at your average for the first month. If 10,000 has become easy, keep the target and add one longer walk a week. If it's been a struggle, look at which days you missed and fix those days, not the target."
+            },
+            {
+              "title": "Day 40: the routine that has to change",
+              "body": "Over two months something will change: daylight, weather, a new schedule. Agree on the new plan with your partner before it costs you a day."
+            },
+            {
+              "title": "Day 60: 600,000 steps",
+              "body": "Sixty days at 10,000 is about 600,000 steps. Compare monthly totals with your partner, and decide which walks are now part of your week for good."
+            }
+          ],
+          "faq": {
+            "question": "How many steps is a 60-day 10,000 steps challenge?",
+            "answer": "At least 600,000 in total, which most phones show as monthly figures. Most people go over on good days; the challenge is the days at the bottom of the range."
+          }
+        }
+      }
+    },
+    "read15": {
+      "slug": "reading",
+      "name": "Reading challenge",
+      "inAppName": "Read 15 minutes",
+      "title": "{days}-Day Reading Challenge with an Accountability Partner",
+      "metaDescription": "Do a {days}-day reading challenge with an accountability partner: 15 minutes a day, a day-by-day plan, where readers stall, and a free tracker.",
+      "summary": "Fifteen minutes of a real book every day, with a reading buddy who notices.",
+      "intro": [
+        "The challenge: read a book, not your phone, for at least 15 minutes every day for {days} days. Paper, e-readers and audiobooks all count if you decide they do; scrolling articles doesn't. Fifteen minutes is roughly 10 to 20 pages, which adds up to several books a month.",
+        "An accountability partner for reading works differently from a book club. You don't need to read the same book. You only need someone who asks, every day, whether you read. That small question is what gets the book back out of the bag on a tired evening."
+      ],
+      "rules": [
+        "Choose your first book before day one, and keep the next one ready so finishing a book never becomes a gap.",
+        "Pick a reading slot: the commute, lunch, or the 15 minutes before bed with your phone in another room.",
+        "Check in when you've done your 15 minutes. Reading the same page twice doesn't count.",
+        "Tell your partner what you're reading. A one-line note about the book is enough."
+      ],
+      "phases": {
+        "start": "Pick the book and the slot, and tell your partner both. Start with something you actually want to read, not the book you think you should.",
+        "early": "The first days are easy because the book is new. Read past 15 minutes when it's going well; it builds goodwill for the days it isn't.",
+        "middle": "A slow chapter or a book you don't like ends more reading challenges than busy weeks do. You're allowed to quit a book. You're not allowed to quit reading. Swap, and tell your partner.",
+        "finish": "Count the books and pages with your partner, and choose the next one. The reading habit is the most likely to survive the challenge if the next book is already picked."
+      },
+      "failures": [
+        {
+          "title": "The book you stopped enjoying",
+          "body": "Readers stall when a book drags, and a stalled book quietly ends the habit. Agree with your partner that dropping a book is fine and missing a day isn't. Having someone to ask “what should I read next?” helps."
+        },
+        {
+          "title": "The phone in bed",
+          "body": "Bedtime reading loses to the phone more than to anything else. Charge it outside the bedroom, and check in with your partner before you put it down."
+        },
+        {
+          "title": "The busy week",
+          "body": "A week of late nights and the habit is gone. Fifteen minutes fits on a commute or a lunch break, and a partner asking at 9pm is the reminder you'd otherwise skip."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Do audiobooks count in a reading challenge?",
+          "answer": "If you both agree they do. Plenty of people count them. What matters is that you decide before you start and hold each other to the same rule."
+        },
+        {
+          "question": "Do we have to read the same book?",
+          "answer": "No. Most reading partners read different books and share a line about them when they check in. Reading the same book is a nice option, but it's harder to keep pace."
+        },
+        {
+          "question": "How many books can I read in {days} days?",
+          "answer": "At 15 minutes a day, most people finish one to three books a month, depending on the book and how often 15 minutes turns into 40."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Thirty days usually means one to three books finished, which is enough to prove to yourself that you're a reader again.",
+        "d90": "Ninety days is long enough to read across genres and through a few books you don't love. Draw up a reading list with your partner at the start, and revisit it at each re-commit."
+      },
+      "longForm": {
+        "d90": {
+          "milestones": [
+            {
+              "title": "Day 30: the first list",
+              "body": "Count the books and pages from the first month with your partner, then plan the next few. Include something lighter: a long challenge needs easy reads as well as ambitious ones."
+            },
+            {
+              "title": "Day 60: the slump",
+              "body": "Reading slumps come in the second and third months, often after a heavy book. Switch genre, try a shorter book, or an audiobook if you both count them, and keep the 15 minutes."
+            },
+            {
+              "title": "Day 90: a reading habit",
+              "body": "Three months of daily reading usually means several books finished. Pick your next book before day 90, so the habit carries on after the challenge without a gap."
+            }
+          ],
+          "faq": {
+            "question": "Should we read the same books for 90 days?",
+            "answer": "You don't have to. Many reading partners read separately and pick one book a month to read together, which gives you something to talk about at each re-commit."
+          }
+        }
+      }
+    },
+    "noAddedSugar": {
+      "slug": "no-sugar",
+      "name": "No-sugar challenge",
+      "inAppName": "No added sugar",
+      "title": "{days}-Day No Sugar Challenge with a Friend",
+      "metaDescription": "Do a {days}-day no added sugar challenge with a friend: what counts, a day-by-day plan, the moments people slip, and a free printable tracker.",
+      "summary": "No sweets, soda or sugary snacks, and a friend to text when a craving hits.",
+      "intro": [
+        "A no-sugar challenge usually means no added sugar: sweets, desserts, soda, sweetened coffee drinks and sugary snacks are out; whole fruit, plain dairy and unprocessed food stay in. Some people cut sweeteners too. Decide your rules before day one and write them down, because labels are full of edge cases.",
+        "Cravings are short and social. They show up with the office cake, the afternoon slump and after dinner. A partner doing the same challenge gives you someone to message instead of opening the cupboard, and someone who understands why you turned down the birthday cake."
+      ],
+      "rules": [
+        "Write your rules: added sugar is out, and decide in advance about juice, honey, sweeteners and sauces.",
+        "Clear the house of the things you'd reach for first, or ask whoever you live with to keep them out of sight.",
+        "Check in each evening. The day counts if you stuck to the rules you wrote.",
+        "Keep a fallback snack ready for the afternoon and after dinner, the two most common craving times."
+      ],
+      "phases": {
+        "start": "Write the rules, clear the cupboard and read the labels on what you eat most. You'll find sugar where you didn't expect it; decide together what to do about it.",
+        "early": "Cravings are often strongest in the first days. Message your partner when one hits and wait ten minutes before deciding. Most of them pass.",
+        "middle": "The cravings fade and social pressure takes over: birthdays, dinners out, someone else's dessert. Agree on your answer in advance, and tell your partner when you've made it through one.",
+        "finish": "Decide with your partner what you'll keep after the challenge, whether that's no soda or dessert only at weekends, before it ends."
+      },
+      "failures": [
+        {
+          "title": "The office treat",
+          "body": "Cake in the break room is the classic first slip. Say no before you look at it. Telling your partner afterwards turns a moment of resistance into a small win you both count."
+        },
+        {
+          "title": "The hidden sugar",
+          "body": "Sauces, cereals, granola and coffee drinks catch out people who thought they were on track. Read labels together for the first few days and agree on what counts, so neither of you fails on a technicality."
+        },
+        {
+          "title": "The bad-day reward",
+          "body": "Sugar is the default reward after a hard day. Pick a different one in advance. A partner checking in at the same time is often what interrupts the habit."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Does fruit count in a no-sugar challenge?",
+          "answer": "Usually not. Most no-added-sugar challenges allow whole fruit and cut juice and dried fruit. Decide with your partner before you start and write it down."
+        },
+        {
+          "question": "Are sweeteners allowed?",
+          "answer": "It's up to you. Some people allow them to make the switch easier; others cut them to reset their taste. Either works if you both know the rule."
+        },
+        {
+          "question": "What if I eat sugar by accident?",
+          "answer": "Check in honestly and keep going. A sauce you didn't check isn't the same as a dessert, and one mistake doesn't end the challenge."
+        }
+      ],
+      "safetyNote": "If you have diabetes or another condition affected by what you eat, talk to your doctor before changing your diet.",
+      "lengthNotes": {
+        "d30": "Thirty days is the most common length because it takes you through a full month of birthdays, weekends and bad days.",
+        "d60": "Sixty days takes you past the point where cravings are the problem and into the part where social habits are. Use the re-commit at day 30 to adjust any rule that was too strict or too loose."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Day 30: review the rules",
+              "body": "After a month you know which rules were too loose and which were too strict. Agree on any change with your partner before you re-commit, and write the new version down."
+            },
+            {
+              "title": "Day 40: the social season",
+              "body": "By now cravings are rarely the problem; invitations are. Plan the next big event, a birthday, a holiday or a dinner out, with your partner before it arrives."
+            },
+            {
+              "title": "Day 60: what stays",
+              "body": "Pick what you'll keep after the challenge, such as no soda or sweets only at weekends, and tell your partner. A rule you chose is easier to keep than one you drifted into."
+            }
+          ],
+          "faq": {
+            "question": "Is 60 days without added sugar harder than 30?",
+            "answer": "Usually not harder, just different. The first weeks are about cravings; the second month is about social habits and staying alert to hidden sugar. A partner helps most in the second half, when it stops feeling like a challenge."
+          }
+        }
+      }
+    },
+    "soberCurious": {
+      "slug": "alcohol-free",
+      "name": "Alcohol-free challenge",
+      "inAppName": "Sober-curious month",
+      "title": "{days}-Day Alcohol-Free Challenge with a Friend",
+      "metaDescription": "A {days}-day alcohol-free challenge to do with a friend: how it works, a day-by-day plan, the social moments to plan for, and a free printable tracker.",
+      "summary": "A stretch of alcohol-free days, with a friend in it alongside you.",
+      "intro": [
+        "An alcohol-free challenge is what it sounds like: no alcohol for {days} days. It's the sober-curious kind, done to see how you feel and how much you were drinking out of habit. It isn't a recovery program. Low- and no-alcohol drinks are fine if you want them.",
+        "The hard part is rarely the drink itself. It's the social script: the round, the toast, the “just one”. Doing it with a friend means someone at the table is on your side, and there's someone to tell when you've made it through a Friday."
+      ],
+      "rules": [
+        "Pick your start date with your partner, and tell the people you usually drink with.",
+        "Stock a drink you actually like that isn't alcohol, for the moments you'd normally open something.",
+        "Check in each evening: alcohol-free today, yes or no.",
+        "Plan your first weekend, birthday or work event in advance, including what you'll say."
+      ],
+      "phases": {
+        "start": "Tell your partner and the people you usually drink with, stock something else to drink and plan the first Friday. For most people the first test comes sooner than they expect.",
+        "early": "This is where the habit shows itself: the drink after work, the glass with dinner. Replace the ritual instead of just removing it, and message your partner at the time you'd usually pour.",
+        "middle": "The novelty is gone and the social pressure is constant. Swap one night out for something else with your partner, and get used to saying it out loud: “I'm doing an alcohol-free challenge.”",
+        "finish": "Talk with your partner about what comes next. Some people extend; some go back to drinking with new rules. Decide before the last day, not on it."
+      },
+      "failures": [
+        {
+          "title": "The first Friday",
+          "body": "The end of the first week is where many alcohol-free challenges stop. Plan it: an evening without a bar, or one with your partner. Knowing you'll check in that night makes “no” easier to say."
+        },
+        {
+          "title": "The “just one” offer",
+          "body": "Friends mean well. A short answer you've rehearsed (“I'm doing a challenge with a friend”) works better than an explanation, and having a real friend in it makes it true."
+        },
+        {
+          "title": "The celebration",
+          "body": "Weddings and birthdays feel like they deserve an exception. If you decide to make one, tell your partner beforehand. Unplanned exceptions are where the challenge ends."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Do alcohol-free beers and wines count?",
+          "answer": "Most people allow them, and many find they make the social part easier. Agree with your partner beforehand, and skip them if they make you want the real thing."
+        },
+        {
+          "question": "Is this a treatment program?",
+          "answer": "No. It's a challenge for people who want to see what a stretch without alcohol is like. If you're worried about your drinking, or you feel unwell when you stop, talk to a doctor."
+        },
+        {
+          "question": "What do I tell people who ask why I'm not drinking?",
+          "answer": "“I'm doing a {days}-day challenge with a friend” is usually enough. It's true, it's short, and it doesn't invite a debate."
+        }
+      ],
+      "safetyNote": "This is a challenge, not medical advice or treatment. If you drink heavily every day, stopping suddenly can be dangerous, so talk to a doctor first. If you need support, contact a local health service.",
+      "lengthNotes": {
+        "d30": "Thirty days is long enough to get through a month of weekends, a payday and at least one celebration, which is where you learn the most.",
+        "d90": "Ninety days is a different challenge from a month: the question shifts from “can I?” to “what do I want my drinking to look like?”. Re-commit with your partner at day 30 and day 60, and talk about why each time."
+      },
+      "longForm": {
+        "d90": {
+          "milestones": [
+            {
+              "title": "Day 30: the honest review",
+              "body": "Talk with your partner about the first month: how you slept, how you felt and which moments were hardest. Decide together whether to carry on as you were or change the plan for the next 30 days."
+            },
+            {
+              "title": "Day 60: the social map",
+              "body": "By now you know which situations are easy and which aren't. Plan the hard ones in the last month together, and keep the short answer that works for you."
+            },
+            {
+              "title": "Day 90: choose what comes next",
+              "body": "Ninety days gives you a clear picture of what alcohol was doing in your week. Decide with your partner, before the last day, what you want next: keep going, set new limits or something else."
+            }
+          ],
+          "faq": {
+            "question": "What if I want to stop a 90-day challenge early?",
+            "answer": "That's your decision, and making it on purpose is different from drifting into it. Talk with your partner first, and end it at one of the 30-day re-commit points if you can. If stopping drinking has been hard for you, talk to a doctor."
+          }
+        }
+      }
+    },
+    "coldShower": {
+      "slug": "cold-shower",
+      "name": "Cold shower challenge",
+      "inAppName": "Cold shower",
+      "title": "{days}-Day Cold Shower Challenge with a Friend",
+      "metaDescription": "Do a {days}-day cold shower challenge with a friend: how to start, a day-by-day plan, where people give up, and a free printable tracker.",
+      "summary": "End every shower with 30 seconds of cold. Dare a friend to do it too.",
+      "intro": [
+        "The challenge: finish every shower with at least 30 seconds of cold water, every day for {days} days. You don't need an ice bath or a fully cold shower. Turning the dial to cold at the end, and staying there, is the whole thing.",
+        "It's a dare, which is why it works between friends. Knowing your friend did theirs this morning makes it much harder to turn the dial back to warm. And it's binary, so the check-in is honest: you either stood there or you didn't."
+      ],
+      "rules": [
+        "Start with 30 seconds of cold at the end of a normal shower. Add time only if you want to.",
+        "Turn it to cold before you can talk yourself out of it. Counting out loud helps.",
+        "Keep the dial on cold for the whole count. Warm again at the end doesn't count.",
+        "Check in right after, while you can still feel it."
+      ],
+      "phases": {
+        "start": "Agree on the minimum with your partner (30 seconds is plenty) and do the first one the same day. The anticipation is worse than the water.",
+        "early": "The first days are a shock every time. Breathe out slowly and count. Send your partner one word when you're done; it's more fun when you're both in it.",
+        "middle": "It stops being a shock and starts being a chore, especially if the weather turns. This is where people quietly go back to warm. Keep it at 30 seconds; don't let it grow into something you dread.",
+        "finish": "Decide with your partner whether you keep it, cut it to weekdays or stop. Many people keep the 30 seconds, because by now it's the quickest win of the day."
+      },
+      "failures": [
+        {
+          "title": "The winter morning",
+          "body": "Tap water gets much colder in winter, and a cold bathroom makes it worse. Keep the time short instead of skipping, and tell your partner it was a hard one. They'll know."
+        },
+        {
+          "title": "The travel shower",
+          "body": "Hotel and gym showers break the routine. Agree in advance that the rule holds anywhere with a dial."
+        },
+        {
+          "title": "The ever-longer shower",
+          "body": "Some people make each day longer until it's miserable, then stop. Thirty seconds every day beats three minutes for a week. A partner keeps the bar where you set it."
+        }
+      ],
+      "faq": [
+        {
+          "question": "How long should the cold part be?",
+          "answer": "Thirty seconds at the end of a normal shower is the usual starting point. Some people build up to two or three minutes. Pick a minimum together and keep it."
+        },
+        {
+          "question": "Does it have to be fully cold?",
+          "answer": "As cold as your shower goes. Water temperature varies by place and season, so the rule is the coldest setting, not a number."
+        },
+        {
+          "question": "Is a cold shower safe for everyone?",
+          "answer": "Not necessarily. If you have a heart condition, high blood pressure or another health concern, check with a doctor before you start."
+        }
+      ],
+      "safetyNote": "Cold water isn't for everyone. If you have a heart condition, high blood pressure or another health concern, ask a doctor before you start, and stop if you feel faint or unwell.",
+      "lengthNotes": {
+        "d30": "Thirty days takes most people from dreading it to doing it without much thought, and usually through at least one cold snap.",
+        "d60": "Sixty days almost always crosses a change of season, which is the real test: the water gets colder and the routine has to survive it. Re-commit together at day 30 and keep the minimum where it was."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Day 30: keep the minimum",
+              "body": "After a month the 30 seconds may feel easy. You can add time, but keep the daily minimum where it is, so a bad morning never turns into a skipped one."
+            },
+            {
+              "title": "Day 40: the season changes",
+              "body": "Tap water gets colder as the weather does. Expect the second month to feel harder than the first even at the same minimum, and tell your partner when it does."
+            },
+            {
+              "title": "Day 60: decide together",
+              "body": "Two months in, decide with your partner whether to keep it daily, keep it on weekdays or stop. Many people keep the 30 seconds, because by now it takes less willpower than skipping it."
+            }
+          ],
+          "faq": {
+            "question": "Should I make the cold part longer during a 60-day challenge?",
+            "answer": "Only if you want to. The challenge is the daily minimum, and people who finish 60 days usually keep it short. Adding time is optional; skipping days is the thing to avoid."
+          }
+        }
+      }
+    },
+    "meditate": {
+      "slug": "meditation",
+      "name": "Meditation challenge",
+      "inAppName": "Meditation",
+      "title": "{days}-Day Meditation Challenge with a Friend",
+      "metaDescription": "A {days}-day meditation challenge to do with a friend: 10 minutes a day, a day-by-day plan, where people drift off, and a free printable tracker.",
+      "summary": "Ten minutes of guided or silent meditation a day, with a friend keeping you honest.",
+      "intro": [
+        "The challenge: meditate for 10 minutes every day for {days} days. A guided recording, a timer and silence, or a breathing exercise all count. The goal is to sit down every day, not to reach any particular state of mind.",
+        "Meditation is easy to drop because nobody sees whether you did it. A partner changes that: a quick check-in after your session is the small social cost that gets you to sit down on the days you'd otherwise skip."
+      ],
+      "rules": [
+        "Pick a time and a place, ideally attached to something you already do every day, like after coffee or before bed.",
+        "Use a timer or a recording so you're not watching the clock.",
+        "Check in after your 10 minutes, even if your mind wandered the whole time.",
+        "Short is fine on hard days. Five honest minutes beats a skipped day."
+      ],
+      "phases": {
+        "start": "Pick the time, the place and the method, and tell your partner. Do the first session the same day, so it's a fact and not a plan.",
+        "early": "Your mind will wander constantly. That isn't failing; noticing it is the practice. Tell your partner how it went in one line.",
+        "middle": "It gets repetitive and 10 minutes start to feel long. Try a different recording or time of day, but keep the daily check-in. This is where most people drift off.",
+        "finish": "Talk with your partner about what you noticed, and decide whether to keep a daily slot. A habit attached to an existing routine is the one most likely to last."
+      },
+      "failures": [
+        {
+          "title": "The “I'll do it later” day",
+          "body": "Meditation is the first thing to go when a day gets busy, because it's quiet and invisible. Attach it to a fixed point in your day, and let the check-in with your partner be the visible part."
+        },
+        {
+          "title": "The session that felt like a failure",
+          "body": "A restless session makes people decide they're bad at it. There's no such thing as a bad session. Check in anyway and tell your partner; you'll find they had one too."
+        },
+        {
+          "title": "The broken routine",
+          "body": "Travel and weekends move the slot, and the habit goes with it. Agree with your partner that the rule is “once a day, anywhere”, not “at 7am”."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Is 10 minutes a day enough?",
+          "answer": "For a challenge, yes. The goal is the habit of sitting down every day. Many people start at 5 minutes and add more later."
+        },
+        {
+          "question": "Do guided meditations count?",
+          "answer": "Yes. Guided, silent, breathing exercises or a body scan all count. Use whatever helps you sit down."
+        },
+        {
+          "question": "What if I fall asleep?",
+          "answer": "It happens, especially at night. If it happens often, move your session earlier in the day, or meditate sitting up."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Thirty days is long enough to get past the novelty and the restless first weeks, and short enough to commit to without overthinking it.",
+        "d60": "Sixty days gives the habit time to survive a change of routine. Use the re-commit at day 30 to adjust the time or the method, not the daily rule."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Day 30: keep the slot, change the method",
+              "body": "If your sessions feel stale, try a different recording, a breathing practice or a silent timer. Keep the time of day and the daily check-in the same."
+            },
+            {
+              "title": "Day 45: the quiet middle",
+              "body": "This is where meditation habits fade without anyone noticing. Tell your partner one thing you've noticed since you started; saying it out loud makes the practice feel real."
+            },
+            {
+              "title": "Day 60: choose your length",
+              "body": "Decide whether to stay at 10 minutes or go longer. Plenty of people keep 10 minutes for good. A habit you keep beats a longer one you drop."
+            }
+          ],
+          "faq": {
+            "question": "Should I meditate for longer in the second month?",
+            "answer": "Only if you want to. Some people move to 15 or 20 minutes after a month, but the daily habit matters more than the length. If longer sessions make you skip, go back to 10."
+          }
+        }
+      }
+    },
+    "workOut": {
+      "slug": "workout",
+      "name": "Workout challenge",
+      "inAppName": "Work out",
+      "title": "{days}-Day Workout Challenge with a Friend",
+      "metaDescription": "A {days}-day workout challenge for two: 20 minutes of movement a day, a day-by-day plan, where people quit, and a free printable tracker.",
+      "summary": "Twenty minutes of movement every day, with a workout buddy on the other end.",
+      "intro": [
+        "The challenge: move for at least 20 minutes every day for {days} days. Gym sessions, runs, home workouts, sport, dancing or a brisk walk all count. Twenty minutes is low enough to fit into your worst day, and that's the whole design.",
+        "Workout buddies are the oldest accountability trick there is, and you don't need to train together for it to work. Each of you checks in when you've moved, and seeing that your friend already has is a better push than any playlist."
+      ],
+      "rules": [
+        "Define what counts before day one: 20 minutes of deliberate movement, your choice of what.",
+        "Plan the week with your partner on Sunday: which days are hard sessions and which are easy ones.",
+        "Check in when you've done your 20 minutes. Stretching or a walk counts on recovery days.",
+        "Easy days are allowed. Zero days aren't."
+      ],
+      "phases": {
+        "start": "Pick what counts and schedule the first week. Start easier than you think you need to: the first goal is to show up every day, not to be sore.",
+        "early": "Soreness and motivation both peak. Alternate hard and easy days so you can keep going daily, and check in with your partner at the same time each day.",
+        "middle": "The excitement fades and life gets in the way. This is where most workout challenges end. On busy days lower the bar to a 20-minute walk, and keep the check-in.",
+        "finish": "Look back at the tracker with your partner and pick the routine you'll keep. A slightly smaller routine you keep beats the challenge version you drop."
+      },
+      "failures": [
+        {
+          "title": "The skipped Monday",
+          "body": "One missed day turns into a missed week when nobody notices. A partner who notices is the point. Agree to message each other after a miss, not to judge, just to say you'll be back tomorrow."
+        },
+        {
+          "title": "Too much, too soon",
+          "body": "Going hard in the first week leads to soreness, injury or burnout by the second. The 20-minute minimum exists so easy days still count. Use them."
+        },
+        {
+          "title": "The schedule collapse",
+          "body": "A busy week wipes out the sessions you planned. Have a fallback that needs no equipment and no travel, like a walk or a short home routine, and tell your partner which one you used."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Do walks count in a workout challenge?",
+          "answer": "Yes, a brisk 20-minute walk counts. The challenge is about moving every day, and walks are what keep easy days from becoming zero days."
+        },
+        {
+          "question": "Do we need to work out together?",
+          "answer": "No. Most partners train at different times and places. Each of you checks in, and the app shows the other one that you have."
+        },
+        {
+          "question": "Can I take rest days?",
+          "answer": "Make them active: stretching, yoga or a walk. If you'd rather have real rest days, set the pact to five or six days a week instead of every day."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Thirty days is the classic length: long enough for the routine to stick, and short enough to keep the effort honest.",
+        "d90": "Ninety days lets you train in blocks. Plan a different focus for each 30-day cycle with your partner, and re-commit at the end of each one so the streak carries on."
+      },
+      "longForm": {
+        "d90": {
+          "milestones": [
+            {
+              "title": "Day 30: block one done",
+              "body": "The first block is about showing up. Look at the tracker with your partner: which days were hardest, and what got you through them? Keep that, and pick a focus for the next 30 days, like strength, distance or a skill."
+            },
+            {
+              "title": "Day 60: block two, and the plateau",
+              "body": "Progress slows in the second month. That's the moment to change the workout, not to stop. Swap one type of session, or set a small, measurable goal you can check at day 90."
+            },
+            {
+              "title": "Day 90: the routine you keep",
+              "body": "Three months of daily movement is a routine, not a challenge. Decide with your partner how many days a week you'll keep after this, and set the pact's schedule to match."
+            }
+          ],
+          "faq": {
+            "question": "Should I work out hard every day for 90 days?",
+            "answer": "Move every day, but don't train hard every day. Most days should be easy: a walk, stretching, an easy ride. Two or three hard sessions a week is plenty, and it's how people reach day 90 without getting hurt."
+          }
+        }
+      }
+    },
+    "dailyJournal": {
+      "slug": "journaling",
+      "name": "Journaling challenge",
+      "inAppName": "Daily journal",
+      "title": "{days}-Day Journaling Challenge with a Friend",
+      "metaDescription": "Do a {days}-day journaling challenge with a friend: three sentences a day, simple prompts, a day-by-day plan, where people stop, and a free tracker.",
+      "summary": "Three sentences a day: what went well, what didn't, what's next.",
+      "intro": [
+        "The challenge: write at least three sentences every day for {days} days: what went well, what didn't, and what's next. A notebook, a notes app or a document all count. Three sentences take two minutes, which is why the habit survives busy days.",
+        "Your partner never reads your journal. They only see that you wrote today, and you see the same about them. That's enough: journaling usually fails because nothing marks the day you skip, and a check-in is that mark."
+      ],
+      "rules": [
+        "Use the same three prompts every day: what went well, what didn't, what's next.",
+        "Keep the journal where you'll see it at your chosen time, on the bedside table or at the top of your notes app.",
+        "Check in after you've written your three sentences. Your partner never sees what you wrote.",
+        "Write more whenever you want to. Never write fewer than three sentences."
+      ],
+      "phases": {
+        "start": "Choose where and when you'll write, and tell your partner. Write the first entry today. It doesn't need to be good.",
+        "early": "It's easy while it's new. Stick to the three prompts even when you want to write pages, so the habit doesn't depend on having something to say.",
+        "middle": "Entries start to repeat and it feels pointless. That's normal. Read back over the first week; you'll usually find something worth noticing. Tell your partner you're still in.",
+        "finish": "Read the whole thing back. Decide with your partner whether you keep three sentences a day or move to a weekly review."
+      },
+      "failures": [
+        {
+          "title": "Nothing to write",
+          "body": "Some days feel empty. The three prompts exist for those days: there's always something that went well, something that didn't and something next, even if it's small."
+        },
+        {
+          "title": "The late-night skip",
+          "body": "Bedtime journaling loses to tiredness. Move it to a time you're awake, like lunch or after work, and let your partner's check-in be the reminder."
+        },
+        {
+          "title": "The privacy worry",
+          "body": "People stop writing honestly when they think someone will read it. Your partner only sees the check-in, never the words. Keep the journal itself somewhere private too."
+        }
+      ],
+      "faq": [
+        {
+          "question": "What should I write in a daily journal?",
+          "answer": "Three sentences: what went well today, what didn't, and what you'll do next. You can write more, but that's the daily minimum."
+        },
+        {
+          "question": "Does my partner see my journal?",
+          "answer": "No. They only see that you checked in for the day. Your entries stay wherever you write them."
+        },
+        {
+          "question": "Is a notes app as good as paper?",
+          "answer": "For this challenge, yes. Use whatever you'll actually open every day."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Thirty days gives you a month of entries to read back, which is when journaling starts to feel worth it."
+      }
+    },
+    "drinkWater": {
+      "slug": "water",
+      "name": "Water challenge",
+      "inAppName": "Drink 64oz water",
+      "title": "{days}-Day Water Challenge with a Friend",
+      "metaDescription": "A {days}-day water challenge for two: hit 64 oz (about 2 litres) a day, a day-by-day plan, where people forget, and a free printable tracker.",
+      "summary": "64 oz of water a day, and a friend asking whether you drank it.",
+      "intro": [
+        "The challenge: drink your daily water target every day for {days} days. The template uses 64 oz, about 2 litres, but the number is yours to agree on. Water, sparkling water and herbal tea count; decide with your partner about coffee and other drinks.",
+        "Drinking enough water is easy to forget rather than hard to do. A partner checking in at the end of the day is a reminder that doesn't come from a notification you've learned to swipe away."
+      ],
+      "rules": [
+        "Pick a bottle and work out how many refills make your target.",
+        "Tie refills to fixed moments: waking up, each meal, the end of work.",
+        "Check in once you've hit your target for the day.",
+        "If you've been told to limit fluids for a medical reason, follow your doctor's advice, not the template."
+      ],
+      "phases": {
+        "start": "Pick the bottle, the target and the refill moments, and tell your partner. Fill the bottle before bed so it's waiting in the morning.",
+        "early": "You may be surprised how little you were drinking. Send your partner a halfway update at lunch; it's much easier to finish when you're halfway by midday.",
+        "middle": "The bottle gets left behind and busy days come up short. Keep one at work and one at home, and agree on a single evening check-in time with your partner.",
+        "finish": "Keep the refill moments that worked. Water is one of the easiest habits to keep after a challenge, as long as the bottle stays where you'll see it."
+      },
+      "failures": [
+        {
+          "title": "The forgotten bottle",
+          "body": "Leaving the bottle at home is the most common reason for a short day. Keep a second one wherever you spend your day."
+        },
+        {
+          "title": "The evening catch-up",
+          "body": "Drinking it all at 9pm is miserable and keeps you up. A midday message from your partner saying they're halfway is the nudge to keep pace."
+        },
+        {
+          "title": "The cold-weather dip",
+          "body": "People drink less when it's cold. Herbal tea counts if you agree it does, so the habit survives the winter."
+        }
+      ],
+      "faq": [
+        {
+          "question": "How much water should I drink a day?",
+          "answer": "The template uses 64 oz (about 2 litres), a common everyday target. What you need depends on your size, activity and climate. If you're unsure, or have a health condition, ask a doctor."
+        },
+        {
+          "question": "Does coffee or tea count?",
+          "answer": "Herbal tea and sparkling water usually do. Coffee and other drinks are up to you and your partner; decide before you start."
+        },
+        {
+          "question": "Can we use a different target?",
+          "answer": "Yes. It's your target. Agree on the number with your partner, and check in when you hit it."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Thirty days is enough for the refills to become automatic, which is the only part of this challenge that's actually hard."
+      }
+    },
+    "screenTimeLimit": {
+      "slug": "screen-time",
+      "name": "Screen time challenge",
+      "inAppName": "Stay under your screen-time limit",
+      "title": "{days}-Day Screen Time Challenge with a Friend",
+      "metaDescription": "Do a {days}-day screen time challenge with a friend: set a daily social media limit, a day-by-day plan, where people slip, and a free tracker.",
+      "summary": "Stay under your daily social media limit, with a friend who asks.",
+      "intro": [
+        "The challenge: pick a daily limit for social media and stay under it every day for {days} days. Your phone's own screen-time settings measure it; the limit is yours to choose. Many people start by cutting their current average roughly in half.",
+        "Screen time is already measured, but nobody looks at the number. A partner makes it something you report. Saying “I was under” to a friend every night works better than a limit you can dismiss with one tap."
+      ],
+      "rules": [
+        "Look up your current daily average in your phone's settings before you start.",
+        "Set a limit you can actually hit, and turn on your phone's own app limits as a backstop.",
+        "Check in each night: under your limit, yes or no.",
+        "Move the apps you're limiting off your home screen."
+      ],
+      "phases": {
+        "start": "Look up your average, set the limit and tell your partner the number. Move the apps off your home screen today.",
+        "early": "You'll notice how often you reach for the phone without deciding to. Each time, put it down and do something else. Tell your partner your number each night.",
+        "middle": "Workarounds appear: the browser version, a different app, “just checking messages”. Agree with your partner on what counts, and be honest about it.",
+        "finish": "Compare your average with where you started. Decide together what limit you'll keep after the challenge, and leave the app limits on."
+      },
+      "failures": [
+        {
+          "title": "The tap-to-ignore limit",
+          "body": "Phone limits are easy to dismiss. That's why the check-in matters: dismissing a limit is private, but telling a friend you went over isn't."
+        },
+        {
+          "title": "The boredom gap",
+          "body": "Cutting screen time leaves empty moments. Plan what fills them, like a book, a walk or a call, or the phone will fill them again."
+        },
+        {
+          "title": "The late-night scroll",
+          "body": "Evenings are when most limits break. Charge the phone outside the bedroom, and check in with your partner before you put it away."
+        }
+      ],
+      "faq": [
+        {
+          "question": "What's a good daily screen time limit?",
+          "answer": "Start from your current average and cut it by about half, or set a limit for social apps only. A limit you can hit beats an ambitious one you break on day two."
+        },
+        {
+          "question": "Does the app read my screen time?",
+          "answer": "No. You check your own number in your phone's settings and check in honestly. Friends with Habits never sees your phone usage."
+        },
+        {
+          "question": "What counts as screen time for the challenge?",
+          "answer": "Whatever you and your partner agree. Most people limit social media and leave messages, maps and work apps out."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Thirty days is enough to break the reflex of reaching for the phone, and to see the average move in your phone's own report."
+      }
+    },
+    "run": {
+      "slug": "running",
+      "name": "Running challenge",
+      "inAppName": "Go for a run",
+      "title": "{days}-Day Running Challenge with a Friend",
+      "metaDescription": "A {days}-day running challenge for two: three runs a week at any pace, a day-by-day plan, where new runners quit, and a free printable tracker.",
+      "summary": "Three runs a week at any distance and pace, with a running buddy.",
+      "intro": [
+        "The challenge: go for a run three times a week for {days} days. Any distance and any pace, and walk breaks are allowed. Three runs a week is enough to build the habit and leaves a recovery day between runs, which matters more than distance when you're starting out.",
+        "A running buddy is the classic way to get out of the door, but you don't have to run together. Each of you checks in after your run, and seeing your partner's check-in on a cold morning is a strong reason to lace up."
+      ],
+      "rules": [
+        "Pick your three run days at the start of each week and tell your partner.",
+        "If you're new, start with run-walk intervals: a minute running, a minute walking.",
+        "Check in after each run. Any run counts, however short.",
+        "Don't run two days in a row for the first weeks. Recovery is part of the plan."
+      ],
+      "phases": {
+        "start": "Pick the days, the route and the time, and get the first run done within three days, however short. Tell your partner how it felt.",
+        "early": "New runners feel it in their legs and lungs. Keep the pace easy enough to talk. If you're out of breath, walk. It still counts.",
+        "middle": "Runs start to feel routine, and the weather and the week start to win. Move a missed run to another day that week instead of dropping it, and tell your partner.",
+        "finish": "Pick the three days you'll keep running after the challenge. Some partners sign up for a local fun run together to give the next month a target."
+      },
+      "failures": [
+        {
+          "title": "The first hard run",
+          "body": "An early run that feels awful convinces people they're not runners. Slow down, add walk breaks and tell your partner. A bad run you finished still counts."
+        },
+        {
+          "title": "Too much, too soon",
+          "body": "Running every day or adding distance fast is how new runners get hurt. Three easy runs a week is the challenge, and your partner keeps you to it."
+        },
+        {
+          "title": "The weather",
+          "body": "Rain, cold and dark mornings cancel more runs than anything else. Agree on a fallback with your partner: a treadmill, a shorter loop or a different time of day."
+        }
+      ],
+      "faq": [
+        {
+          "question": "How far should I run in a {days}-day running challenge?",
+          "answer": "As far as you comfortably can at an easy pace. For a beginner that may be a mile or two with walk breaks. The challenge counts runs, not distance."
+        },
+        {
+          "question": "Can I walk during my runs?",
+          "answer": "Yes. Run-walk intervals are a common way to start, and a run with walking in it still counts."
+        },
+        {
+          "question": "What if I miss a run day?",
+          "answer": "Move it to another day in the same week. The goal is three runs a week, not three fixed days."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Thirty days is about 13 runs, enough to go from “I'm not a runner” to having a route you know.",
+        "d60": "Sixty days is about 26 runs. Use the second 30 days to add a little distance or a fourth run, and decide it together when you re-commit."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Day 30: the first 13 runs",
+              "body": "Look back at the month with your partner. If three runs a week felt manageable, add a few minutes to one run a week. If it was hard, keep the same plan for the second 30 days. Both count as progress."
+            },
+            {
+              "title": "Day 45: one longer run",
+              "body": "Once a week, make one run a little longer than the others, at the same easy pace. It's the simplest way to build distance without adding days."
+            },
+            {
+              "title": "Day 60: about 26 runs",
+              "body": "Two months of three runs a week often takes people from run-walk intervals to running most of the way. Pick a next goal together, like a local 5K, so the habit has somewhere to go."
+            }
+          ],
+          "faq": {
+            "question": "Can a beginner do a 60-day running challenge?",
+            "answer": "Yes. Three easy runs a week with walk breaks is a beginner plan. The extra 30 days give you time to build up gradually instead of rushing."
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1000 @@
+{
+  "ui": {
+    "brandSuffix": " | Friends with Habits",
+    "homeLabel": "Friends with Habits",
+    "hubLabel": "Défis",
+    "dayWord": "jours",
+    "sections": {
+      "whatIs": "En quoi ça consiste",
+      "howTo": "Comment le faire",
+      "dayByDay": "Jour après jour",
+      "milestones": "Les étapes sur {days} jours",
+      "failures": "Où les gens abandonnent, et comment un partenaire aide",
+      "tracker": "Votre suivi de {days} jours",
+      "startInApp": "Comment le lancer dans l'appli",
+      "faq": "Questions",
+      "otherLengths": "Autres durées",
+      "related": "Autres défis"
+    },
+    "phaseRange": "Jours {from} à {to}",
+    "phaseTitles": {
+      "start": "Préparez-le",
+      "early": "La nouveauté s'estompe",
+      "middle": "Le long milieu",
+      "finish": "Le dernier droit"
+    },
+    "safetyLabel": "Avant de commencer",
+    "tracker": {
+      "intro": "Imprimez cette page ou cochez les cases ici. Vos coches sont enregistrées dans ce navigateur seulement. Dans l'appli, vous et votre partenaire voyez les pointages de l'autre en temps réel.",
+      "goalDaily": "Une coche par jour.",
+      "goalWeekly": "Visez {count} coches par semaine.",
+      "you": "Vous",
+      "partner": "Votre partenaire",
+      "dayLabel": "Jour {n}",
+      "print": "Imprimer le suivi",
+      "ariaLabel": "Suivi de {days} jours pour vous et votre partenaire"
+    },
+    "schedule": {
+      "daily": "tous les jours",
+      "weekly": "{count} jours par semaine"
+    },
+    "startSteps": {
+      "account": "Créez votre compte gratuit, puis installez Friends with Habits à partir de Google Play et connectez-vous.",
+      "pick": "Touchez « Nouveau pacte » et choisissez « {inAppName} » dans {categoryName}.",
+      "cadenceKeep": "Gardez la fréquence que propose le modèle : {schedule}.",
+      "cadenceChange": "Le modèle propose {templateSchedule}. Pour ce défi, changez-la pour {schedule}.",
+      "invite": "Invitez votre ami par lien, texto ou courriel. Une fois qu'il accepte, vous pointez chacun chaque jour et voyez la progression de l'autre."
+    },
+    "cta": {
+      "eyebrow": "À deux",
+      "heading": "Commencez ce défi avec un ami",
+      "body": "Gratuit pour commencer. Créez votre compte, choisissez « {inAppName} » dans l'appli et invitez l'ami qui le fait avec vous.",
+      "primary": "Commencez ce défi avec un ami",
+      "secondary": "Obtenir sur Google Play",
+      "note": "Sur Android aujourd'hui, iPhone ensuite. Gratuite à télécharger et à utiliser."
+    },
+    "otherLengthLink": "La version de {days} jours",
+    "faqShared": {
+      "missDay": {
+        "question": "Que se passe-t-il si l'un de nous manque une journée?",
+        "answer": "Votre partenaire le voit, et l'appli vous relance tous les deux. Pointez honnêtement et reprenez le lendemain. Ceux qui terminent un défi ne sont presque jamais ceux qui n'ont rien manqué, mais ceux qui sont revenus le lendemain."
+      },
+      "bothNeedApp": {
+        "question": "Avons-nous besoin de l'appli tous les deux?",
+        "answer": "Oui. Chacun pointe à partir de son propre téléphone, et c'est tout l'intérêt : vous voyez quand votre partenaire l'a fait aujourd'hui, et il vous voit aussi. Friends with Habits est offerte sur Android via Google Play aujourd'hui, et la version iPhone est la prochaine étape."
+      },
+      "noFriend": {
+        "question": "Et si je n'ai pas d'ami qui fait ce défi?",
+        "answer": "Un partenaire de responsabilité n'a pas besoin d'être un ami proche ni un expert, seulement quelqu'un qui remarque. Un collègue, un frère, une sœur ou quelqu'un d'une discussion de groupe fait l'affaire. Invitez une personne : la plupart disent oui à un défi qui a une date de fin."
+      },
+      "isFree": {
+        "question": "Est-ce gratuit?",
+        "answer": "Oui. Friends with Habits est gratuite à télécharger et à utiliser, sans carte. Un compte gratuit suit un nombre limité d'habitudes actives à la fois, ce qui laisse amplement de place pour un défi."
+      }
+    },
+    "hub": {
+      "title": "Défis d'habitudes à faire avec un ami : 30, 60 et 90 jours",
+      "description": "Guides jour après jour et suivis à imprimer gratuits pour des défis sans dépenser, de lecture, de pas, sans sucre, sans alcool et plus, conçus pour un partenaire de responsabilité.",
+      "eyebrow": "Défis",
+      "heading": "Choisissez un défi. Amenez un ami.",
+      "intro": "Chaque guide explique comment fonctionne le défi, propose un plan jour après jour, montre où les gens abandonnent d'habitude et inclut un suivi à imprimer ou à cocher sur la page. Chacun est un pacte prêt à l'emploi dans l'appli, alors vous et un ami pouvez commencer aujourd'hui.",
+      "lengthsLabel": "Guides :",
+      "lengthLink": "{days} jours",
+      "ctaHeading": "Vous savez déjà lequel?",
+      "ctaBody": "Créez un compte gratuit, choisissez le défi dans l'appli et invitez un ami. Les pactes durent 30 jours, et vous pouvez vous réengager quand un pacte se termine.",
+      "ctaPrimary": "Créer un compte gratuit"
+    },
+    "footerLink": "Défis"
+  },
+  "categories": {
+    "fitness": "Mouvement et exercice",
+    "health": "Santé et corps",
+    "mindfulness": "Esprit et santé mentale",
+    "productivity": "Concentration et écrans",
+    "learning": "Apprentissage et créativité",
+    "money": "Argent et épargne"
+  },
+  "lengths": {
+    "d30": {
+      "appNote": "Un pacte dans l'appli dure 30 jours, alors tout ce défi tient en un seul pacte.",
+      "faq": {
+        "question": "Pourquoi 30 jours?",
+        "answer": "C'est assez long pour traverser un mois normal, avec ses fins de semaine, une semaine chargée et une mauvaise journée, et assez court pour toujours voir la fin. C'est aussi exactement un pacte dans l'appli."
+      }
+    },
+    "d60": {
+      "appNote": "Un pacte dans l'appli dure 30 jours. Quand le premier se termine, touchez « Se réengager pour 30 jours de plus » et votre série commune continue.",
+      "recommit": {
+        "title": "Jour 30 : réengagez-vous",
+        "body": "Au jour 30, réengagez-vous ensemble pour 30 autres jours. Changez une seule chose dans votre façon de faire, comme l'heure, le trajet ou la règle trop stricte, et gardez tout le reste pareil."
+      },
+      "faq": {
+        "question": "Est-ce que 60 jours, c'est trop long pour un premier défi?",
+        "answer": "Pas si vous le voyez comme deux blocs de 30 jours. Réengagez-vous au jour 30 et décidez à ce moment-là si vous changez quelque chose. Si vous n'avez jamais fait de défi comme celui-ci, commencer par 30 est aussi très bien."
+      }
+    },
+    "d90": {
+      "appNote": "Un pacte dans l'appli dure 30 jours. Réengagez-vous à la fin, puis encore au jour 60, et votre série commune couvre les 90 jours.",
+      "recommit": {
+        "title": "Jours 30 et 60 : réengagez-vous",
+        "body": "Réengagez-vous au jour 30, puis encore au jour 60. Chaque fois, parlez avec votre partenaire de ce qui fonctionne et changez une chose. Un défi de 90 jours, c'est trois défis de 30 jours de suite, pas une longue corvée."
+      },
+      "faq": {
+        "question": "Est-ce que 90 jours, c'est trop long?",
+        "answer": "C'est un vrai engagement, et c'est pourquoi il se fait en trois pactes de 30 jours. Chaque réengagement est un bon moment pour faire le point avec votre partenaire. Si vous hésitez, commencez par 30 et réengagez-vous si ça va bien."
+      }
+    }
+  },
+  "challenges": {
+    "noSpendDay": {
+      "slug": "sans-depenser",
+      "name": "Défi sans dépenser",
+      "inAppName": "Journée sans dépense",
+      "title": "Défi de {days} jours sans dépenser avec un ami",
+      "metaDescription": "Comment faire un défi de {days} jours sans dépenser avec un ami : les règles, un plan jour après jour, les pièges courants et un suivi gratuit à imprimer.",
+      "summary": "N'achetez rien d'autre que l'essentiel, et ayez quelqu'un à qui avouer la livraison de trop.",
+      "intro": [
+        "Un défi sans dépenser, c'est ne rien acheter d'autre que l'essentiel pendant un nombre de jours fixé. Le loyer, les factures, l'épicerie, les médicaments et le transport pour le travail sont permis. La livraison de repas, les vêtements, les applis, les achats impulsifs et le « c'était en solde », non. Vous fixez la liste exacte avant le premier jour, et vous l'écrivez.",
+        "Ça fonctionne mieux avec un ami parce que la plupart des défis sans dépenser cassent en un seul moment imprévu : une page de paiement à 23 h, un souper de groupe, une mauvaise journée. Savoir que vous allez en rendre compte à quelqu'un ce soir suffit souvent à fermer l'onglet."
+      ],
+      "rules": [
+        "Écrivez votre liste d'essentiels avant de commencer : ce que vous continuez à payer, et un budget d'épicerie par semaine.",
+        "Supprimez les cartes enregistrées dans les boutiques où vous achetez le plus, et désabonnez-vous de leurs courriels.",
+        "Pointez une fois par jour : oui si vous n'avez rien acheté hors de la liste, non sinon. Pas de demi-point.",
+        "Notez au fur et à mesure ce que vous vouliez acheter et n'avez pas acheté. C'est ce qui vous servira le plus à la fin."
+      ],
+      "phases": {
+        "start": "Entendez-vous sur la liste d'essentiels, mettez en pause tout abonnement que vous seriez tenté de renouveler et planifiez la première fin de semaine : c'est là que la plupart des gens craquent.",
+        "early": "Les premières envies se présentent comme de « petites exceptions ». Écrivez à votre partenaire avant d'acheter, pas après. Si ça peut attendre 48 heures, ce n'est pas essentiel.",
+        "middle": "Les économies ne sont plus une nouveauté et la contrainte devient personnelle. Chaque semaine, remplacez un achat habituel par quelque chose de gratuit, et comparez avec votre partenaire ce qui ne vous manque déjà plus.",
+        "finish": "Additionnez ensemble ce que vous n'avez pas dépensé. Décidez quelles règles vous gardez avant la fin du défi, sinon le lendemain devient une journée de magasinage."
+      },
+      "failures": [
+        {
+          "title": "L'invitation",
+          "body": "Un souper ou un verre avec des gens qui ne font pas le défi. Décidez de votre réponse avant que ça arrive : proposez un plan moins cher ou fixez-vous un plafond d'avance. Avec un partenaire qui le fait aussi, dire « je fais un mois sans dépenser » devient facile."
+        },
+        {
+          "title": "L'achat de minuit",
+          "body": "La plupart des achats impulsifs se font fatigué, seul, téléphone en main. Une règle qui marche : tout ce que vous voulez acheter, envoyez-le d'abord à votre partenaire et attendez au lendemain. Vous n'en reparlerez jamais pour la plupart."
+        },
+        {
+          "title": "Le faux pas qui fait tout lâcher",
+          "body": "Acheter une chose devient « j'ai déjà raté, alors pourquoi pas ». Vous n'avez pas raté. Pointez honnêtement, dites-le à votre partenaire et continuez demain. Une série qui recommence vaut mieux qu'un défi abandonné en silence."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Qu'est-ce qui compte comme essentiel dans un défi sans dépenser?",
+          "answer": "Ce que vous avez convenu avant de commencer, par écrit. La liste habituelle : logement, services publics, épicerie jusqu'à un budget fixé, transport pour le travail, médicaments et paiements de dettes. Tout ce qui n'est pas sur la liste attend la fin du défi."
+        },
+        {
+          "question": "Est-ce que je peux encore faire l'épicerie?",
+          "answer": "Oui. Fixez un budget d'épicerie par semaine et respectez-le, et laissez les grignotines, l'alcool et la livraison de côté sauf si vous en avez convenu autrement. Le but est d'arrêter les dépenses imprévues, pas d'arrêter de manger."
+        },
+        {
+          "question": "Est-ce que mon partenaire et moi devons avoir les mêmes règles?",
+          "answer": "Non. Vos essentiels peuvent être différents : l'un de vous peut avoir des enfants, un long trajet ou une auto. Ce qui compte, c'est que chacun écrive sa liste et que l'autre sache ce qu'elle contient."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Trente jours couvrent un cycle de paie complet et toutes ses factures, c'est pourquoi c'est la durée la plus courante. C'est assez long pour voir le chiffre bouger et assez court pour toujours voir la fin.",
+        "d90": "Quatre-vingt-dix jours transforment un défi en nouvelle normalité. Attendez-vous à ce que le deuxième mois soit plus difficile que le premier : la nouveauté est passée et les exceptions deviennent plus convaincantes. Ceux qui vont jusqu'au bout assouplissent souvent une règle au jour 30, volontairement plutôt que par accident."
+      },
+      "longForm": {
+        "d90": {
+          "milestones": [
+            {
+              "title": "Jour 30 : le premier bilan",
+              "body": "Additionnez ce que vous n'avez pas dépensé le premier mois et relisez votre liste de choses que vous vouliez acheter. Elle est presque toujours plus courte que prévu. Décidez avec votre partenaire si une règle doit changer, puis réengagez-vous."
+            },
+            {
+              "title": "Jour 45 : le mur de l'ennui",
+              "body": "La mi-parcours est le moment où un long défi sans dépenser semble le moins gratifiant : les économies sont devenues routinières, pas les contraintes. Planifiez une activité gratuite avec votre partenaire cette semaine-là, et donnez une mission à l'argent économisé, comme un paiement de dette ou un voyage."
+            },
+            {
+              "title": "Jour 90 : choisissez la nouvelle normalité",
+              "body": "À ce stade, certaines de vos règles sont devenues des habitudes. Choisissez les deux ou trois que vous garderez pour de bon, écrivez-les et dites-les à votre partenaire. Une sortie planifiée vaut mieux qu'une journée de magasinage."
+            }
+          ],
+          "faq": {
+            "question": "Comment gérer les anniversaires et les fêtes dans un défi de 90 jours sans dépenser?",
+            "answer": "Prévoyez-les. Avant de commencer, notez les cadeaux et les événements qui tombent pendant les 90 jours et fixez un budget pour chacun. Une dépense planifiée et convenue ne brise pas le défi; une dépense imprévue, oui."
+          }
+        }
+      }
+    },
+    "steps10k": {
+      "slug": "10000-pas",
+      "name": "Défi 10 000 pas",
+      "inAppName": "Atteindre 10 000 pas",
+      "title": "Défi de {days} jours à 10 000 pas avec un ami",
+      "metaDescription": "Un défi de {days} jours à 10 000 pas par jour à faire avec un ami : comment caser les pas, un plan jour après jour, où les gens décrochent et un suivi gratuit.",
+      "summary": "Dix mille pas par jour, avec quelqu'un qui vérifie si vous les avez faits.",
+      "intro": [
+        "Le défi est simple à énoncer : atteindre 10 000 pas chaque jour pendant {days} jours, comptés par votre téléphone ou votre montre. Les marches, les trajets, les escaliers et les allers-retours pendant un appel comptent. Il n'y a pas de jour de repos, alors le vrai défi, c'est le soir où vous êtes à 4 000 pas à 20 h.",
+        "Les défis de pas étaient sociaux bien avant cette appli, entre collègues et amis à la même montre. En faire un pacte garde cet aspect et enlève le classement : vous et un ami pointez chaque jour et voyez si l'autre a réussi, ce qui motive plus qu'une 14e place dans la ligue du bureau."
+      ],
+      "rules": [
+        "Choisissez un seul appareil pour compter vos pas et gardez-le pour tout le défi.",
+        "Mesurez d'abord votre point de départ. Si vous faites 5 000 pas en moyenne, prévoyez deux marches de plus par jour au lieu d'espérer.",
+        "Pointez chaque soir, une fois le chiffre atteint. Pas d'arrondi.",
+        "Prévoyez d'avance votre plan pour le mauvais temps : un centre commercial, un gym, des escaliers ou des appels en marchant."
+      ],
+      "phases": {
+        "start": "Vérifiez votre moyenne quotidienne, convenez d'une heure de pointage avec votre partenaire et planifiez les marches qui comblent l'écart. Le premier jour est facile. Au troisième, le plan doit exister.",
+        "early": "Vos jambes le sentent. Plusieurs courtes marches valent mieux qu'une longue. Envoyez votre compte à votre partenaire le midi : être à mi-chemin à midi est le meilleur signe que vous allez y arriver.",
+        "middle": "La météo change, une semaine chargée arrive, et la marche du soir commence à peser. Marchez ensemble au téléphone, ou changez de trajet. C'est ici que la plupart des défis de pas en solo s'arrêtent.",
+        "finish": "Vous connaissez votre routine maintenant. Profitez des derniers jours pour ancrer les marches qui ont fonctionné, pour que l'habitude dure plus longtemps que le défi."
+      },
+      "failures": [
+        {
+          "title": "Le retard de 20 h",
+          "body": "Vous regardez votre téléphone et il vous manque 5 000 pas. Sans plan, la réponse est « demain ». Un partenaire qui pointe à la même heure en fait une marche à deux, ou au moins un message qui vous fait sortir."
+        },
+        {
+          "title": "La journée malade ou de voyage",
+          "body": "Certains jours, les 10 000 pas n'arriveront pas. Convenez avant de commencer de ce que vous ferez : un seuil plus bas pour les jours de maladie, ou un échec honnête. Décider sur le moment finit presque toujours par un échec que vous ne déclarez pas."
+        },
+        {
+          "title": "La montre à plat",
+          "body": "Perdre les données donne l'impression de perdre la journée. Convenez d'une solution de rechange, comme le compteur du téléphone ou une marche chronométrée, pour qu'une batterie à plat ne devienne pas la raison d'arrêter."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Est-ce que 10 000 pas par jour, c'est réaliste pour un débutant?",
+          "answer": "Ça dépend d'où vous partez. Si vous faites moins de 5 000 pas par jour, c'est environ une heure de marche de plus, alors intégrez-la à votre routine avant le premier jour, ou convenez avec votre partenaire de commencer plus bas et d'augmenter chaque semaine."
+        },
+        {
+          "question": "Est-ce que les pas de course ou de tapis roulant comptent?",
+          "answer": "Oui. Tout ce que votre téléphone ou votre montre compte comme des pas compte. Le vélo et la natation ne s'enregistrent généralement pas, alors convenez d'avance si vous les comptez."
+        },
+        {
+          "question": "Et si mon partenaire et moi marchons à des heures différentes?",
+          "answer": "C'est normal. Chacun pointe quand il atteint le chiffre, et l'appli montre à l'autre que c'est fait. Pas besoin de marcher ensemble pour que ça fonctionne."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Trente jours suffisent pour que les pas cessent d'être un événement et fassent partie de votre journée, en passant par quelques jours de mauvais temps et au moins une semaine chargée.",
+        "d60": "Sur soixante jours, la saison et les horaires changent en cours de défi. Préparez-vous dès le départ : un trajet pour l'hiver, un plan pour la pluie et une discussion avec votre partenaire au jour 30."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Jour 30 : revoyez votre point de départ",
+              "body": "Regardez votre moyenne du premier mois. Si 10 000 pas sont devenus faciles, gardez l'objectif et ajoutez une marche plus longue par semaine. Si c'était difficile, regardez quels jours vous avez manqués et réglez ces jours-là, pas l'objectif."
+            },
+            {
+              "title": "Jour 40 : la routine qui doit changer",
+              "body": "En deux mois, quelque chose va changer : la lumière du jour, la météo, un nouvel horaire. Convenez du nouveau plan avec votre partenaire avant que ça vous coûte une journée."
+            },
+            {
+              "title": "Jour 60 : 600 000 pas",
+              "body": "Soixante jours à 10 000 pas, c'est environ 600 000 pas. Comparez vos totaux mensuels avec votre partenaire et décidez quelles marches font maintenant partie de votre semaine pour de bon."
+            }
+          ],
+          "faq": {
+            "question": "Combien de pas compte un défi de 60 jours à 10 000 pas?",
+            "answer": "Au moins 600 000 au total, que la plupart des téléphones affichent par mois. La plupart des gens dépassent les bons jours; le défi, ce sont les jours tout juste à la limite."
+          }
+        }
+      }
+    },
+    "read15": {
+      "slug": "lecture",
+      "name": "Défi lecture",
+      "inAppName": "Lire 15 minutes",
+      "title": "Défi lecture de {days} jours avec un partenaire de responsabilité",
+      "metaDescription": "Faites un défi lecture de {days} jours avec un partenaire de responsabilité : 15 minutes par jour, un plan jour après jour, les pièges et un suivi gratuit.",
+      "summary": "Quinze minutes d'un vrai livre chaque jour, avec un partenaire de lecture qui le remarque.",
+      "intro": [
+        "Le défi : lire un livre, pas votre téléphone, au moins 15 minutes par jour pendant {days} jours. Le papier, la liseuse et les livres audio comptent si vous décidez qu'ils comptent; faire défiler des articles, non. Quinze minutes, c'est environ 10 à 20 pages, ce qui donne plusieurs livres par mois.",
+        "Un partenaire de responsabilité pour la lecture fonctionne autrement qu'un club de lecture. Vous n'avez pas besoin de lire le même livre. Il vous faut seulement quelqu'un qui vous demande, chaque jour, si vous avez lu. Cette petite question est ce qui ressort le livre du sac un soir de fatigue."
+      ],
+      "rules": [
+        "Choisissez votre premier livre avant le premier jour, et gardez le suivant à portée de main pour que finir un livre ne crée jamais de trou.",
+        "Choisissez un moment pour lire : le trajet, le midi ou les 15 minutes avant de dormir, téléphone dans une autre pièce.",
+        "Pointez quand vos 15 minutes sont faites. Relire deux fois la même page ne compte pas.",
+        "Dites à votre partenaire ce que vous lisez. Une ligne sur le livre suffit."
+      ],
+      "phases": {
+        "start": "Choisissez le livre et le moment, et dites les deux à votre partenaire. Commencez par quelque chose que vous avez vraiment envie de lire, pas par le livre que vous pensez devoir lire.",
+        "early": "Les premiers jours sont faciles parce que le livre est nouveau. Quand ça va bien, lisez plus de 15 minutes : ça vous donne de la marge pour les jours moins bons.",
+        "middle": "Un chapitre lent ou un livre que vous n'aimez pas met fin à plus de défis lecture que les semaines chargées. Vous avez le droit de laisser tomber un livre. Pas la lecture. Changez de livre et dites-le à votre partenaire.",
+        "finish": "Comptez ensemble les livres et les pages, et choisissez le suivant. L'habitude de lire est celle qui survit le mieux au défi quand le prochain livre est déjà choisi."
+      },
+      "failures": [
+        {
+          "title": "Le livre qui ne vous plaît plus",
+          "body": "Les lecteurs bloquent quand un livre traîne, et un livre bloqué met fin à l'habitude sans bruit. Convenez avec votre partenaire que laisser tomber un livre est permis, mais pas sauter une journée. Avoir quelqu'un à qui demander « qu'est-ce que je lis ensuite? » aide."
+        },
+        {
+          "title": "Le téléphone au lit",
+          "body": "La lecture du soir perd contre le téléphone plus que contre n'importe quoi. Rechargez-le hors de la chambre, et pointez avec votre partenaire avant de le poser."
+        },
+        {
+          "title": "La semaine chargée",
+          "body": "Une semaine de soirées tardives, et l'habitude disparaît. Quinze minutes entrent dans un trajet ou une pause du midi, et un partenaire qui demande à 21 h est le rappel que vous auriez sauté autrement."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Est-ce que les livres audio comptent dans un défi lecture?",
+          "answer": "Si vous êtes tous les deux d'accord. Beaucoup de gens les comptent. Ce qui compte, c'est de le décider avant de commencer et de vous tenir à la même règle."
+        },
+        {
+          "question": "Devons-nous lire le même livre?",
+          "answer": "Non. La plupart des partenaires de lecture lisent des livres différents et partagent une ligne sur leur livre en pointant. Lire le même livre est une belle option, mais c'est plus difficile de garder le même rythme."
+        },
+        {
+          "question": "Combien de livres puis-je lire en {days} jours?",
+          "answer": "À 15 minutes par jour, la plupart des gens terminent un à trois livres par mois, selon le livre et le nombre de fois où 15 minutes deviennent 40."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Trente jours permettent généralement de finir un à trois livres, assez pour vous prouver que vous êtes redevenu quelqu'un qui lit.",
+        "d90": "Quatre-vingt-dix jours laissent le temps de lire plusieurs genres et de traverser quelques livres que vous n'aimez pas tant. Dressez une liste de lecture avec votre partenaire au départ, et revoyez-la à chaque réengagement."
+      },
+      "longForm": {
+        "d90": {
+          "milestones": [
+            {
+              "title": "Jour 30 : la première liste",
+              "body": "Comptez avec votre partenaire les livres et les pages du premier mois, puis planifiez les suivants. Incluez quelque chose de léger : un long défi a besoin de lectures faciles autant que de lectures ambitieuses."
+            },
+            {
+              "title": "Jour 60 : le creux",
+              "body": "Les creux de lecture arrivent le deuxième et le troisième mois, souvent après un livre exigeant. Changez de genre, essayez un livre plus court ou un livre audio si vous les comptez tous les deux, et gardez les 15 minutes."
+            },
+            {
+              "title": "Jour 90 : une habitude de lecture",
+              "body": "Trois mois de lecture quotidienne donnent généralement plusieurs livres terminés. Choisissez votre prochain livre avant le jour 90, pour que l'habitude continue après le défi sans trou."
+            }
+          ],
+          "faq": {
+            "question": "Devons-nous lire les mêmes livres pendant 90 jours?",
+            "answer": "Pas besoin. Beaucoup de partenaires de lecture lisent chacun de leur côté et choisissent un livre par mois à lire ensemble, ce qui donne un sujet de discussion à chaque réengagement."
+          }
+        }
+      }
+    },
+    "noAddedSugar": {
+      "slug": "sans-sucre",
+      "name": "Défi sans sucre",
+      "inAppName": "Sans sucre ajouté",
+      "title": "Défi de {days} jours sans sucre avec un ami",
+      "metaDescription": "Faites un défi de {days} jours sans sucre ajouté avec un ami : ce qui compte, un plan jour après jour, les moments où l'on craque et un suivi gratuit à imprimer.",
+      "summary": "Pas de bonbons, de boissons gazeuses ni de collations sucrées, et un ami à texter quand l'envie frappe.",
+      "intro": [
+        "Un défi sans sucre veut généralement dire sans sucre ajouté : bonbons, desserts, boissons gazeuses, cafés sucrés et collations sucrées sont exclus; les fruits entiers, les produits laitiers nature et les aliments non transformés restent. Certaines personnes coupent aussi les édulcorants. Fixez vos règles avant le premier jour et écrivez-les, parce que les étiquettes sont pleines de cas limites.",
+        "Les envies sont courtes et sociales. Elles arrivent avec le gâteau du bureau, le coup de fatigue de l'après-midi et après le souper. Un partenaire qui fait le même défi vous donne quelqu'un à qui écrire au lieu d'ouvrir l'armoire, et quelqu'un qui comprend pourquoi vous avez refusé le gâteau de fête."
+      ],
+      "rules": [
+        "Écrivez vos règles : le sucre ajouté est exclu, et décidez d'avance pour le jus, le miel, les édulcorants et les sauces.",
+        "Sortez de la maison ce que vous prendriez en premier, ou demandez à ceux qui vivent avec vous de le garder hors de vue.",
+        "Pointez chaque soir. La journée compte si vous avez respecté les règles que vous avez écrites.",
+        "Gardez une collation de rechange pour l'après-midi et pour après le souper, les deux moments d'envie les plus courants."
+      ],
+      "phases": {
+        "start": "Écrivez les règles, videz l'armoire et lisez les étiquettes de ce que vous mangez le plus. Vous trouverez du sucre là où vous ne l'attendiez pas; décidez ensemble quoi faire.",
+        "early": "Les envies sont souvent plus fortes les premiers jours. Écrivez à votre partenaire quand une envie arrive et attendez dix minutes avant de décider. La plupart passent.",
+        "middle": "Les envies diminuent et la pression sociale prend le relais : fêtes, soupers au restaurant, le dessert de quelqu'un d'autre. Convenez de votre réponse d'avance, et dites à votre partenaire quand vous en avez traversé un.",
+        "finish": "Décidez avec votre partenaire de ce que vous gardez après le défi, que ce soit plus de boissons gazeuses ou du dessert seulement la fin de semaine, avant la fin."
+      },
+      "failures": [
+        {
+          "title": "La gâterie du bureau",
+          "body": "Le gâteau dans la salle de pause est le premier faux pas classique. Dites non avant de le regarder. Le raconter ensuite à votre partenaire transforme un moment de résistance en petite victoire que vous comptez tous les deux."
+        },
+        {
+          "title": "Le sucre caché",
+          "body": "Les sauces, les céréales, le granola et les cafés surprennent ceux qui croyaient être sur la bonne voie. Lisez les étiquettes ensemble les premiers jours et convenez de ce qui compte, pour que personne n'échoue sur un détail."
+        },
+        {
+          "title": "La récompense après une mauvaise journée",
+          "body": "Le sucre est la récompense par défaut après une journée difficile. Choisissez-en une autre d'avance. Un partenaire qui pointe à la même heure est souvent ce qui interrompt l'habitude."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Est-ce que les fruits comptent dans un défi sans sucre?",
+          "answer": "Généralement non. La plupart des défis sans sucre ajouté permettent les fruits entiers et excluent le jus et les fruits séchés. Décidez-le avec votre partenaire avant de commencer et écrivez-le."
+        },
+        {
+          "question": "Les édulcorants sont-ils permis?",
+          "answer": "C'est à vous de voir. Certains les permettent pour faciliter la transition, d'autres les coupent pour réhabituer leur goût. Les deux fonctionnent si vous connaissez tous les deux la règle."
+        },
+        {
+          "question": "Et si je mange du sucre par accident?",
+          "answer": "Pointez honnêtement et continuez. Une sauce que vous n'aviez pas vérifiée n'est pas un dessert, et une erreur ne met pas fin au défi."
+        }
+      ],
+      "safetyNote": "Si vous avez le diabète ou un autre problème de santé lié à l'alimentation, parlez-en à votre médecin avant de changer votre façon de manger.",
+      "lengthNotes": {
+        "d30": "Trente jours est la durée la plus courante parce qu'elle vous fait traverser un mois complet de fêtes, de fins de semaine et de mauvaises journées.",
+        "d60": "Soixante jours vous mènent au-delà du moment où les envies sont le problème, vers celui où ce sont les habitudes sociales. Profitez du réengagement au jour 30 pour ajuster une règle trop stricte ou trop souple."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Jour 30 : revoyez les règles",
+              "body": "Après un mois, vous savez quelles règles étaient trop souples et lesquelles étaient trop strictes. Convenez de tout changement avec votre partenaire avant de vous réengager, et écrivez la nouvelle version."
+            },
+            {
+              "title": "Jour 40 : la saison sociale",
+              "body": "À ce stade, le problème, ce sont rarement les envies, mais les invitations. Planifiez avec votre partenaire le prochain gros événement, un anniversaire, une fête ou un souper au restaurant, avant qu'il arrive."
+            },
+            {
+              "title": "Jour 60 : ce qui reste",
+              "body": "Choisissez ce que vous garderez après le défi, comme plus de boissons gazeuses ou des sucreries seulement la fin de semaine, et dites-le à votre partenaire. Une règle choisie se garde mieux qu'une règle adoptée par hasard."
+            }
+          ],
+          "faq": {
+            "question": "Est-ce que 60 jours sans sucre ajouté, c'est plus difficile que 30?",
+            "answer": "Généralement pas plus difficile, seulement différent. Les premières semaines, ce sont les envies; le deuxième mois, ce sont les habitudes sociales et la vigilance face au sucre caché. Un partenaire aide surtout dans la deuxième moitié, quand ça ne ressemble plus à un défi."
+          }
+        }
+      }
+    },
+    "soberCurious": {
+      "slug": "sans-alcool",
+      "name": "Défi sans alcool",
+      "inAppName": "Mois sans alcool",
+      "title": "Défi de {days} jours sans alcool avec un ami",
+      "metaDescription": "Un défi de {days} jours sans alcool à faire avec un ami : comment ça marche, un plan jour après jour, les moments sociaux à prévoir et un suivi gratuit à imprimer.",
+      "summary": "Une période de jours sans alcool, avec un ami qui le fait avec vous.",
+      "intro": [
+        "Un défi sans alcool, c'est ce que ça dit : pas d'alcool pendant {days} jours. C'est la version par curiosité, pour voir comment vous vous sentez et combien vous buviez par habitude. Ce n'est pas un programme de rétablissement. Les boissons sans alcool ou faibles en alcool sont correctes si vous en voulez.",
+        "Le plus difficile, c'est rarement le verre lui-même. C'est le scénario social : la tournée, le toast, le « juste un ». Le faire avec un ami veut dire que quelqu'un à la table est de votre côté, et que vous avez quelqu'un à qui dire que vous avez passé un vendredi."
+      ],
+      "rules": [
+        "Choisissez votre date de départ avec votre partenaire, et prévenez les gens avec qui vous buvez d'habitude.",
+        "Gardez une boisson sans alcool que vous aimez vraiment, pour les moments où vous ouvririez normalement quelque chose.",
+        "Pointez chaque soir : sans alcool aujourd'hui, oui ou non.",
+        "Planifiez d'avance votre première fin de semaine, fête ou activité de bureau, y compris ce que vous allez dire."
+      ],
+      "phases": {
+        "start": "Prévenez votre partenaire et les gens avec qui vous buvez d'habitude, prévoyez autre chose à boire et planifiez le premier vendredi. Pour la plupart, le premier test arrive plus tôt que prévu.",
+        "early": "C'est là que l'habitude se montre : le verre après le travail, celui du souper. Remplacez le rituel au lieu de simplement l'enlever, et écrivez à votre partenaire à l'heure où vous vous serviriez d'habitude.",
+        "middle": "La nouveauté est passée et la pression sociale est constante. Remplacez une sortie par autre chose avec votre partenaire, et habituez-vous à le dire à voix haute : « je fais un défi sans alcool ».",
+        "finish": "Parlez avec votre partenaire de la suite. Certains prolongent, d'autres recommencent à boire avec de nouvelles règles. Décidez-le avant le dernier jour, pas ce jour-là."
+      },
+      "failures": [
+        {
+          "title": "Le premier vendredi",
+          "body": "La fin de la première semaine est là où beaucoup de défis sans alcool s'arrêtent. Planifiez-la : une soirée sans bar, ou une soirée avec votre partenaire. Savoir que vous allez pointer ce soir-là rend le « non » plus facile."
+        },
+        {
+          "title": "Le « juste un »",
+          "body": "Les amis sont de bonne foi. Une réponse courte et répétée d'avance (« je fais un défi avec un ami ») marche mieux qu'une explication, et avoir un vrai ami dans le défi la rend vraie."
+        },
+        {
+          "title": "La célébration",
+          "body": "Les mariages et les anniversaires semblent mériter une exception. Si vous décidez d'en faire une, dites-le à votre partenaire avant. Les exceptions imprévues sont là où le défi s'arrête."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Est-ce que les bières et les vins sans alcool comptent?",
+          "answer": "La plupart des gens les permettent, et beaucoup trouvent qu'ils facilitent le côté social. Convenez-en avec votre partenaire d'avance, et évitez-les s'ils vous donnent envie de la vraie chose."
+        },
+        {
+          "question": "Est-ce un traitement?",
+          "answer": "Non. C'est un défi pour ceux qui veulent voir à quoi ressemble une période sans alcool. Si votre consommation vous inquiète, ou si vous vous sentez mal quand vous arrêtez, parlez à un médecin."
+        },
+        {
+          "question": "Que dire aux gens qui demandent pourquoi je ne bois pas?",
+          "answer": "« Je fais un défi de {days} jours avec un ami » suffit généralement. C'est vrai, c'est court et ça n'ouvre pas de débat."
+        }
+      ],
+      "safetyNote": "Ceci est un défi, pas un avis médical ni un traitement. Si vous buvez beaucoup tous les jours, arrêter d'un coup peut être dangereux : parlez d'abord à un médecin. Si vous avez besoin de soutien, communiquez avec un service de santé de votre région.",
+      "lengthNotes": {
+        "d30": "Trente jours suffisent pour traverser un mois de fins de semaine, une paie et au moins une célébration, et c'est là qu'on apprend le plus.",
+        "d90": "Quatre-vingt-dix jours, c'est un autre défi qu'un mois : la question passe de « est-ce que je peux? » à « à quoi je veux que ma consommation ressemble? ». Réengagez-vous avec votre partenaire au jour 30 et au jour 60, et parlez chaque fois de la raison."
+      },
+      "longForm": {
+        "d90": {
+          "milestones": [
+            {
+              "title": "Jour 30 : le bilan honnête",
+              "body": "Parlez du premier mois avec votre partenaire : comment vous avez dormi, comment vous vous êtes senti et quels moments ont été les plus durs. Décidez ensemble de continuer pareil ou de changer le plan pour les 30 jours suivants."
+            },
+            {
+              "title": "Jour 60 : la carte sociale",
+              "body": "Vous savez maintenant quelles situations sont faciles et lesquelles ne le sont pas. Planifiez ensemble les plus difficiles du dernier mois, et gardez la réponse courte qui fonctionne pour vous."
+            },
+            {
+              "title": "Jour 90 : choisissez la suite",
+              "body": "Quatre-vingt-dix jours donnent une idée claire de la place que prenait l'alcool dans votre semaine. Décidez avec votre partenaire, avant le dernier jour, ce que vous voulez ensuite : continuer, fixer de nouvelles limites ou autre chose."
+            }
+          ],
+          "faq": {
+            "question": "Et si je veux arrêter un défi de 90 jours plus tôt?",
+            "answer": "C'est votre décision, et la prendre volontairement n'est pas la même chose que de lâcher prise. Parlez-en d'abord à votre partenaire et, si possible, arrêtez à l'un des points de réengagement de 30 jours. Si arrêter de boire a été difficile pour vous, parlez à un médecin."
+          }
+        }
+      }
+    },
+    "coldShower": {
+      "slug": "douche-froide",
+      "name": "Défi douche froide",
+      "inAppName": "Douche froide",
+      "title": "Défi de {days} jours de douches froides avec un ami",
+      "metaDescription": "Faites un défi de {days} jours de douches froides avec un ami : comment commencer, un plan jour après jour, où les gens lâchent et un suivi gratuit à imprimer.",
+      "summary": "Terminez chaque douche par 30 secondes d'eau froide. Mettez un ami au défi de le faire aussi.",
+      "intro": [
+        "Le défi : terminer chaque douche par au moins 30 secondes d'eau froide, tous les jours pendant {days} jours. Pas besoin de bain de glace ni d'une douche entièrement froide. Tourner le robinet au froid à la fin et rester là, c'est tout.",
+        "C'est un défi d'audace, et c'est pour ça qu'il marche entre amis. Savoir que votre ami a fait la sienne ce matin rend beaucoup plus difficile de remettre l'eau chaude. Et c'est oui ou non, alors le pointage est honnête : vous êtes resté là, ou pas."
+      ],
+      "rules": [
+        "Commencez par 30 secondes d'eau froide à la fin d'une douche normale. Ajoutez du temps seulement si vous le voulez.",
+        "Tournez au froid avant d'avoir le temps de vous convaincre du contraire. Compter à voix haute aide.",
+        "Gardez le robinet au froid pendant tout le compte. Revenir au chaud à la fin ne compte pas.",
+        "Pointez tout de suite après, pendant que vous le sentez encore."
+      ],
+      "phases": {
+        "start": "Convenez du minimum avec votre partenaire (30 secondes, c'est bien assez) et faites la première le jour même. L'attente est pire que l'eau.",
+        "early": "Les premiers jours, c'est un choc chaque fois. Expirez lentement et comptez. Envoyez un seul mot à votre partenaire quand c'est fait; c'est plus drôle quand vous êtes deux.",
+        "middle": "Ce n'est plus un choc, c'est une corvée, surtout si la météo se refroidit. C'est là que les gens reviennent à l'eau chaude sans rien dire. Restez à 30 secondes; ne laissez pas ça devenir quelque chose que vous redoutez.",
+        "finish": "Décidez avec votre partenaire si vous continuez, si vous le gardez pour la semaine seulement ou si vous arrêtez. Beaucoup gardent les 30 secondes, parce qu'à ce stade c'est la victoire la plus rapide de la journée."
+      },
+      "failures": [
+        {
+          "title": "Le matin d'hiver",
+          "body": "L'eau du robinet est beaucoup plus froide en hiver, et une salle de bain froide n'aide pas. Raccourcissez plutôt que de sauter, et dites à votre partenaire que c'était difficile. Il comprendra."
+        },
+        {
+          "title": "La douche en voyage",
+          "body": "Les douches d'hôtel ou de gym brisent la routine. Convenez d'avance que la règle tient partout où il y a un robinet."
+        },
+        {
+          "title": "La douche de plus en plus longue",
+          "body": "Certains allongent chaque jour jusqu'à ce que ce soit pénible, puis arrêtent. Trente secondes tous les jours valent mieux que trois minutes pendant une semaine. Un partenaire garde la barre là où vous l'avez mise."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Combien de temps doit durer la partie froide?",
+          "answer": "Trente secondes à la fin d'une douche normale est le point de départ habituel. Certains montent à deux ou trois minutes. Choisissez un minimum ensemble et respectez-le."
+        },
+        {
+          "question": "Est-ce que l'eau doit être complètement froide?",
+          "answer": "Aussi froide que votre douche le permet. La température de l'eau varie selon l'endroit et la saison, alors la règle est le réglage le plus froid, pas un chiffre."
+        },
+        {
+          "question": "La douche froide est-elle sans danger pour tout le monde?",
+          "answer": "Pas forcément. Si vous avez un problème cardiaque, de l'hypertension ou un autre problème de santé, consultez un médecin avant de commencer."
+        }
+      ],
+      "safetyNote": "L'eau froide n'est pas pour tout le monde. Si vous avez un problème cardiaque, de l'hypertension ou un autre problème de santé, consultez un médecin avant de commencer, et arrêtez si vous vous sentez faible ou mal.",
+      "lengthNotes": {
+        "d30": "En trente jours, la plupart des gens passent de la redouter à la faire sans trop y penser, généralement en traversant au moins une vague de froid.",
+        "d60": "Soixante jours traversent presque toujours un changement de saison, et c'est le vrai test : l'eau devient plus froide et la routine doit tenir. Réengagez-vous ensemble au jour 30 et gardez le minimum où il était."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Jour 30 : gardez le minimum",
+              "body": "Après un mois, les 30 secondes peuvent sembler faciles. Vous pouvez ajouter du temps, mais gardez le minimum quotidien où il est, pour qu'un mauvais matin ne devienne jamais une journée sautée."
+            },
+            {
+              "title": "Jour 40 : la saison change",
+              "body": "L'eau du robinet refroidit avec la météo. Attendez-vous à ce que le deuxième mois paraisse plus dur que le premier, même au même minimum, et dites-le à votre partenaire quand c'est le cas."
+            },
+            {
+              "title": "Jour 60 : décidez ensemble",
+              "body": "Après deux mois, décidez avec votre partenaire de continuer tous les jours, de garder seulement la semaine ou d'arrêter. Beaucoup gardent les 30 secondes, parce qu'à ce stade ça demande moins de volonté que de sauter."
+            }
+          ],
+          "faq": {
+            "question": "Dois-je allonger la partie froide pendant un défi de 60 jours?",
+            "answer": "Seulement si vous le voulez. Le défi, c'est le minimum quotidien, et ceux qui terminent les 60 jours le gardent généralement court. Ajouter du temps est optionnel; ce qu'il faut éviter, c'est de sauter des jours."
+          }
+        }
+      }
+    },
+    "meditate": {
+      "slug": "meditation",
+      "name": "Défi méditation",
+      "inAppName": "Méditation",
+      "title": "Défi méditation de {days} jours avec un ami",
+      "metaDescription": "Un défi méditation de {days} jours à faire avec un ami : 10 minutes par jour, un plan jour après jour, où les gens décrochent et un suivi gratuit à imprimer.",
+      "summary": "Dix minutes de méditation guidée ou silencieuse par jour, avec un ami qui vous garde honnête.",
+      "intro": [
+        "Le défi : méditer 10 minutes chaque jour pendant {days} jours. Un enregistrement guidé, une minuterie en silence ou un exercice de respiration comptent. Le but est de vous asseoir chaque jour, pas d'atteindre un état d'esprit particulier.",
+        "La méditation se laisse tomber facilement parce que personne ne voit si vous l'avez faite. Un partenaire change ça : un pointage rapide après votre séance est le petit coût social qui vous fait vous asseoir les jours où vous l'auriez sautée."
+      ],
+      "rules": [
+        "Choisissez une heure et un endroit, idéalement accrochés à quelque chose que vous faites déjà chaque jour, comme après le café ou avant de dormir.",
+        "Utilisez une minuterie ou un enregistrement pour ne pas surveiller l'heure.",
+        "Pointez après vos 10 minutes, même si votre esprit a vagabondé tout le long.",
+        "Court, c'est correct les jours difficiles. Cinq minutes honnêtes valent mieux qu'une journée sautée."
+      ],
+      "phases": {
+        "start": "Choisissez l'heure, l'endroit et la méthode, et dites-les à votre partenaire. Faites la première séance le jour même, pour que ce soit un fait et non un projet.",
+        "early": "Votre esprit va vagabonder sans arrêt. Ce n'est pas un échec; le remarquer, c'est la pratique. Dites à votre partenaire comment ça s'est passé en une ligne.",
+        "middle": "Ça devient répétitif et les 10 minutes paraissent longues. Essayez un autre enregistrement ou une autre heure, mais gardez le pointage quotidien. C'est ici que la plupart des gens décrochent.",
+        "finish": "Parlez avec votre partenaire de ce que vous avez remarqué, et décidez si vous gardez un moment quotidien. Une habitude accrochée à une routine existante est celle qui a le plus de chances de durer."
+      },
+      "failures": [
+        {
+          "title": "La journée « je le ferai plus tard »",
+          "body": "La méditation est la première chose qui saute quand une journée se remplit, parce qu'elle est silencieuse et invisible. Accrochez-la à un moment fixe de votre journée, et laissez le pointage avec votre partenaire en être la partie visible."
+        },
+        {
+          "title": "La séance qui ressemblait à un échec",
+          "body": "Une séance agitée fait croire aux gens qu'ils ne sont pas doués. Il n'y a pas de mauvaise séance. Pointez quand même et dites-le à votre partenaire; vous verrez qu'il en a eu une aussi."
+        },
+        {
+          "title": "La routine brisée",
+          "body": "Les voyages et les fins de semaine déplacent le moment, et l'habitude part avec. Convenez avec votre partenaire que la règle est « une fois par jour, n'importe où », pas « à 7 h »."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Est-ce que 10 minutes par jour, c'est assez?",
+          "answer": "Pour un défi, oui. Le but est l'habitude de vous asseoir chaque jour. Beaucoup de gens commencent à 5 minutes et en ajoutent ensuite."
+        },
+        {
+          "question": "Les méditations guidées comptent-elles?",
+          "answer": "Oui. Guidée, silencieuse, exercice de respiration ou balayage corporel : tout compte. Utilisez ce qui vous aide à vous asseoir."
+        },
+        {
+          "question": "Et si je m'endors?",
+          "answer": "Ça arrive, surtout le soir. Si ça arrive souvent, faites votre séance plus tôt dans la journée, ou méditez assis."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Trente jours suffisent pour dépasser la nouveauté et les premières semaines agitées, et c'est assez court pour s'engager sans trop y penser.",
+        "d60": "Soixante jours donnent à l'habitude le temps de survivre à un changement de routine. Servez-vous du réengagement au jour 30 pour ajuster l'heure ou la méthode, pas la règle quotidienne."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Jour 30 : gardez le moment, changez la méthode",
+              "body": "Si vos séances semblent usées, essayez un autre enregistrement, un exercice de respiration ou une minuterie en silence. Gardez la même heure et le même pointage quotidien."
+            },
+            {
+              "title": "Jour 45 : le milieu tranquille",
+              "body": "C'est ici que l'habitude de méditer s'éteint sans que personne s'en rende compte. Dites à votre partenaire une chose que vous avez remarquée depuis le début; le dire à voix haute rend la pratique réelle."
+            },
+            {
+              "title": "Jour 60 : choisissez la durée",
+              "body": "Décidez si vous restez à 10 minutes ou si vous allongez. Beaucoup de gens gardent 10 minutes pour de bon. Une habitude que vous gardez vaut mieux qu'une plus longue que vous abandonnez."
+            }
+          ],
+          "faq": {
+            "question": "Dois-je méditer plus longtemps le deuxième mois?",
+            "answer": "Seulement si vous le voulez. Certaines personnes passent à 15 ou 20 minutes après un mois, mais l'habitude quotidienne compte plus que la durée. Si les longues séances vous font sauter des jours, revenez à 10."
+          }
+        }
+      }
+    },
+    "workOut": {
+      "slug": "entrainement",
+      "name": "Défi entraînement",
+      "inAppName": "Faire de l'exercice",
+      "title": "Défi entraînement de {days} jours avec un ami",
+      "metaDescription": "Un défi entraînement de {days} jours à deux : 20 minutes de mouvement par jour, un plan jour après jour, où les gens lâchent et un suivi gratuit à imprimer.",
+      "summary": "Vingt minutes de mouvement chaque jour, avec un partenaire d'entraînement de l'autre côté.",
+      "intro": [
+        "Le défi : bouger au moins 20 minutes chaque jour pendant {days} jours. Le gym, la course, l'entraînement à la maison, le sport, la danse ou une marche rapide comptent. Vingt minutes, c'est assez peu pour entrer dans votre pire journée, et c'est tout le principe.",
+        "Le partenaire d'entraînement est le plus vieux truc de responsabilité qui existe, et vous n'avez pas besoin de vous entraîner ensemble pour que ça marche. Chacun pointe quand il a bougé, et voir que votre ami l'a déjà fait pousse plus que n'importe quelle liste de lecture."
+      ],
+      "rules": [
+        "Définissez ce qui compte avant le premier jour : 20 minutes de mouvement voulu, le type de votre choix.",
+        "Planifiez la semaine avec votre partenaire le dimanche : quels jours sont intenses et lesquels sont légers.",
+        "Pointez quand vos 20 minutes sont faites. Les jours de récupération, des étirements ou une marche comptent.",
+        "Les jours légers sont permis. Les jours à zéro, non."
+      ],
+      "phases": {
+        "start": "Décidez de ce qui compte et planifiez la première semaine. Commencez plus doucement que vous pensez devoir le faire : le premier objectif est de vous présenter chaque jour, pas d'avoir des courbatures.",
+        "early": "Les courbatures et la motivation sont au sommet. Alternez jours intenses et légers pour tenir chaque jour, et pointez avec votre partenaire à la même heure chaque jour.",
+        "middle": "L'enthousiasme baisse et la vie s'en mêle. C'est ici que la plupart des défis d'entraînement s'arrêtent. Les jours chargés, baissez la barre à une marche de 20 minutes et gardez le pointage.",
+        "finish": "Regardez le suivi avec votre partenaire et choisissez la routine que vous allez garder. Une routine un peu plus petite que vous gardez vaut mieux que la version du défi que vous abandonnez."
+      },
+      "failures": [
+        {
+          "title": "Le lundi sauté",
+          "body": "Une journée manquée devient une semaine manquée quand personne ne le remarque. Qu'un partenaire le remarque, c'est le but. Convenez de vous écrire après un oubli, pas pour juger, seulement pour dire que vous revenez demain."
+        },
+        {
+          "title": "Trop, trop vite",
+          "body": "Y aller à fond la première semaine mène aux courbatures, à une blessure ou à l'épuisement la deuxième. Le minimum de 20 minutes existe pour que les jours légers comptent aussi. Servez-vous-en."
+        },
+        {
+          "title": "L'horaire qui s'effondre",
+          "body": "Une semaine chargée efface les séances prévues. Ayez un plan B sans équipement et sans déplacement, comme une marche ou une courte routine à la maison, et dites à votre partenaire lequel vous avez utilisé."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Est-ce que la marche compte dans un défi entraînement?",
+          "answer": "Oui, une marche rapide de 20 minutes compte. Le défi, c'est de bouger chaque jour, et la marche empêche les jours légers de devenir des jours à zéro."
+        },
+        {
+          "question": "Devons-nous nous entraîner ensemble?",
+          "answer": "Non. La plupart des partenaires s'entraînent à des heures et à des endroits différents. Chacun pointe, et l'appli montre à l'autre que c'est fait."
+        },
+        {
+          "question": "Puis-je prendre des jours de repos?",
+          "answer": "Rendez-les actifs : étirements, yoga ou marche. Si vous préférez de vrais jours de repos, réglez le pacte à cinq ou six jours par semaine au lieu de tous les jours."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Trente jours, c'est la durée classique : assez long pour que la routine s'installe, assez court pour garder un effort honnête.",
+        "d90": "Quatre-vingt-dix jours permettent de s'entraîner par blocs. Planifiez un objectif différent pour chaque cycle de 30 jours avec votre partenaire, et réengagez-vous à la fin de chacun pour que la série continue."
+      },
+      "longForm": {
+        "d90": {
+          "milestones": [
+            {
+              "title": "Jour 30 : premier bloc terminé",
+              "body": "Le premier bloc, c'est se présenter. Regardez le suivi avec votre partenaire : quels jours ont été les plus durs, et qu'est-ce qui vous a fait tenir? Gardez ça, et choisissez un objectif pour les 30 jours suivants, comme la force, la distance ou une habileté."
+            },
+            {
+              "title": "Jour 60 : deuxième bloc, et le plateau",
+              "body": "Les progrès ralentissent le deuxième mois. C'est le moment de changer l'entraînement, pas d'arrêter. Remplacez un type de séance, ou fixez-vous un petit objectif mesurable à vérifier au jour 90."
+            },
+            {
+              "title": "Jour 90 : la routine qui reste",
+              "body": "Trois mois de mouvement quotidien, c'est une routine, pas un défi. Décidez avec votre partenaire combien de jours par semaine vous garderez ensuite, et ajustez la fréquence du pacte."
+            }
+          ],
+          "faq": {
+            "question": "Dois-je m'entraîner fort tous les jours pendant 90 jours?",
+            "answer": "Bougez tous les jours, mais ne vous entraînez pas fort tous les jours. La plupart des jours devraient être légers : une marche, des étirements, une sortie à vélo tranquille. Deux ou trois séances intenses par semaine suffisent, et c'est comme ça qu'on arrive au jour 90 sans se blesser."
+          }
+        }
+      }
+    },
+    "dailyJournal": {
+      "slug": "journal",
+      "name": "Défi journal",
+      "inAppName": "Journal quotidien",
+      "title": "Défi journal de {days} jours avec un ami",
+      "metaDescription": "Faites un défi journal de {days} jours avec un ami : trois phrases par jour, des questions simples, un plan jour après jour, les pièges et un suivi gratuit.",
+      "summary": "Trois phrases par jour : ce qui a bien été, ce qui n'a pas marché, et la suite.",
+      "intro": [
+        "Le défi : écrire au moins trois phrases chaque jour pendant {days} jours : ce qui a bien été, ce qui n'a pas marché et ce qui vient ensuite. Un carnet, une appli de notes ou un document comptent. Trois phrases prennent deux minutes, et c'est pour ça que l'habitude survit aux journées chargées.",
+        "Votre partenaire ne lit jamais votre journal. Il voit seulement que vous avez écrit aujourd'hui, et vous voyez la même chose pour lui. Ça suffit : le journal échoue souvent parce que rien ne marque le jour où on le saute, et le pointage est cette marque."
+      ],
+      "rules": [
+        "Utilisez les trois mêmes questions chaque jour : ce qui a bien été, ce qui n'a pas marché, ce qui vient ensuite.",
+        "Laissez le journal là où vous le verrez au moment choisi, sur la table de chevet ou en haut de votre appli de notes.",
+        "Pointez quand vos trois phrases sont écrites. Votre partenaire ne voit jamais ce que vous avez écrit.",
+        "Écrivez plus quand vous voulez. Jamais moins de trois phrases."
+      ],
+      "phases": {
+        "start": "Choisissez où et quand vous allez écrire, et dites-le à votre partenaire. Écrivez la première entrée aujourd'hui. Elle n'a pas besoin d'être bonne.",
+        "early": "C'est facile tant que c'est nouveau. Tenez-vous aux trois questions même quand vous voulez écrire des pages, pour que l'habitude ne dépende pas d'avoir quelque chose à dire.",
+        "middle": "Les entrées se répètent et ça semble inutile. C'est normal. Relisez la première semaine; vous y trouverez presque toujours quelque chose qui vaut la peine. Dites à votre partenaire que vous êtes toujours là.",
+        "finish": "Relisez tout. Décidez avec votre partenaire si vous gardez trois phrases par jour ou si vous passez à un bilan hebdomadaire."
+      },
+      "failures": [
+        {
+          "title": "Rien à écrire",
+          "body": "Certains jours semblent vides. Les trois questions existent pour ces jours-là : il y a toujours quelque chose qui a bien été, quelque chose qui n'a pas marché et une suite, même petite."
+        },
+        {
+          "title": "Le saut de fin de soirée",
+          "body": "Le journal du soir perd contre la fatigue. Déplacez-le à un moment où vous êtes réveillé, comme le midi ou après le travail, et laissez le pointage de votre partenaire servir de rappel."
+        },
+        {
+          "title": "La crainte pour la vie privée",
+          "body": "Les gens cessent d'écrire honnêtement quand ils pensent que quelqu'un va lire. Votre partenaire voit seulement le pointage, jamais les mots. Gardez aussi le journal lui-même dans un endroit privé."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Qu'est-ce que j'écris dans un journal quotidien?",
+          "answer": "Trois phrases : ce qui a bien été aujourd'hui, ce qui n'a pas marché et ce que vous ferez ensuite. Vous pouvez écrire plus, mais c'est le minimum quotidien."
+        },
+        {
+          "question": "Mon partenaire voit-il mon journal?",
+          "answer": "Non. Il voit seulement que vous avez pointé pour la journée. Vos entrées restent là où vous les écrivez."
+        },
+        {
+          "question": "Une appli de notes vaut-elle le papier?",
+          "answer": "Pour ce défi, oui. Utilisez ce que vous allez vraiment ouvrir chaque jour."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Trente jours vous donnent un mois d'entrées à relire, et c'est là que tenir un journal commence à valoir la peine."
+      }
+    },
+    "drinkWater": {
+      "slug": "eau",
+      "name": "Défi eau",
+      "inAppName": "Boire 2 litres d'eau",
+      "title": "Défi de {days} jours pour boire plus d'eau avec un ami",
+      "metaDescription": "Un défi de {days} jours pour boire 2 litres d'eau par jour avec un ami : un plan jour après jour, les oublis courants et un suivi gratuit à imprimer.",
+      "summary": "Deux litres d'eau par jour, et un ami qui demande si vous les avez bus.",
+      "intro": [
+        "Le défi : boire votre objectif d'eau chaque jour pendant {days} jours. Le modèle utilise environ 2 litres, mais le chiffre est à convenir entre vous. L'eau, l'eau pétillante et les tisanes comptent; décidez avec votre partenaire pour le café et les autres boissons.",
+        "Boire assez d'eau est plus facile à oublier que difficile à faire. Un partenaire qui pointe en fin de journée est un rappel qui ne vient pas d'une notification que vous avez appris à balayer."
+      ],
+      "rules": [
+        "Choisissez une bouteille et calculez combien de remplissages font votre objectif.",
+        "Associez chaque remplissage à un moment fixe : le réveil, chaque repas, la fin du travail.",
+        "Pointez quand vous avez atteint votre objectif de la journée.",
+        "Si on vous a demandé de limiter vos liquides pour une raison médicale, suivez l'avis de votre médecin, pas le modèle."
+      ],
+      "phases": {
+        "start": "Choisissez la bouteille, l'objectif et les moments de remplissage, et dites-les à votre partenaire. Remplissez la bouteille avant de dormir pour qu'elle vous attende le matin.",
+        "early": "Vous serez peut-être surpris de voir combien peu vous buviez. Envoyez à votre partenaire un point à mi-chemin le midi; c'est beaucoup plus facile de finir quand vous êtes à la moitié à midi.",
+        "middle": "La bouteille reste oubliée et les journées chargées finissent courtes. Gardez-en une au travail et une à la maison, et convenez d'une seule heure de pointage le soir avec votre partenaire.",
+        "finish": "Gardez les moments de remplissage qui ont fonctionné. L'eau est une des habitudes les plus faciles à garder après un défi, tant que la bouteille reste en vue."
+      },
+      "failures": [
+        {
+          "title": "La bouteille oubliée",
+          "body": "Laisser la bouteille à la maison est la raison la plus courante d'une journée trop courte. Gardez-en une deuxième là où vous passez votre journée."
+        },
+        {
+          "title": "Le rattrapage du soir",
+          "body": "Tout boire à 21 h est désagréable et vous empêche de dormir. Un message de votre partenaire le midi pour dire qu'il est à la moitié est le coup de pouce pour garder le rythme."
+        },
+        {
+          "title": "La baisse de l'hiver",
+          "body": "On boit moins quand il fait froid. La tisane compte si vous en convenez, et l'habitude survit à l'hiver."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Combien d'eau devrais-je boire par jour?",
+          "answer": "Le modèle utilise environ 2 litres, un objectif quotidien courant. Vos besoins dépendent de votre taille, de votre activité et du climat. En cas de doute, ou si vous avez un problème de santé, demandez à un médecin."
+        },
+        {
+          "question": "Le café ou le thé comptent-ils?",
+          "answer": "Les tisanes et l'eau pétillante comptent généralement. Le café et les autres boissons, c'est à vous et à votre partenaire de décider avant de commencer."
+        },
+        {
+          "question": "Pouvons-nous choisir un autre objectif?",
+          "answer": "Oui. C'est votre objectif. Convenez du chiffre avec votre partenaire, et pointez quand vous l'atteignez."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Trente jours suffisent pour que les remplissages deviennent automatiques, la seule partie vraiment difficile de ce défi."
+      }
+    },
+    "screenTimeLimit": {
+      "slug": "temps-d-ecran",
+      "name": "Défi temps d'écran",
+      "inAppName": "Respecter ta limite d'écran",
+      "title": "Défi de {days} jours pour réduire son temps d'écran avec un ami",
+      "metaDescription": "Faites un défi temps d'écran de {days} jours avec un ami : une limite quotidienne de réseaux sociaux, un plan jour après jour, les pièges et un suivi gratuit.",
+      "summary": "Restez sous votre limite quotidienne de réseaux sociaux, avec un ami qui pose la question.",
+      "intro": [
+        "Le défi : fixer une limite quotidienne pour les réseaux sociaux et rester en dessous chaque jour pendant {days} jours. Les réglages de temps d'écran de votre téléphone la mesurent; la limite, c'est vous qui la choisissez. Beaucoup de gens commencent par couper leur moyenne actuelle à peu près de moitié.",
+        "Le temps d'écran est déjà mesuré, mais personne ne regarde le chiffre. Un partenaire en fait quelque chose dont vous rendez compte. Dire chaque soir à un ami « j'étais en dessous » marche mieux qu'une limite qu'on balaie d'un toucher."
+      ],
+      "rules": [
+        "Avant de commencer, regardez votre moyenne quotidienne dans les réglages de votre téléphone.",
+        "Fixez une limite que vous pouvez vraiment respecter, et activez les limites d'applis du téléphone comme filet.",
+        "Pointez chaque soir : sous votre limite, oui ou non.",
+        "Retirez de l'écran d'accueil les applis que vous limitez."
+      ],
+      "phases": {
+        "start": "Regardez votre moyenne, fixez la limite et donnez le chiffre à votre partenaire. Retirez les applis de l'écran d'accueil aujourd'hui.",
+        "early": "Vous allez remarquer combien de fois vous prenez votre téléphone sans l'avoir décidé. Chaque fois, posez-le et faites autre chose. Donnez votre chiffre à votre partenaire chaque soir.",
+        "middle": "Les détours apparaissent : la version navigateur, une autre appli, le « je vérifie juste mes messages ». Convenez avec votre partenaire de ce qui compte, et soyez honnêtes.",
+        "finish": "Comparez votre moyenne à celle du départ. Décidez ensemble quelle limite vous gardez après le défi, et laissez les limites d'applis activées."
+      },
+      "failures": [
+        {
+          "title": "La limite qu'on balaie",
+          "body": "Les limites du téléphone sont faciles à ignorer. C'est pour ça que le pointage compte : ignorer une limite reste privé, dire à un ami que vous l'avez dépassée, non."
+        },
+        {
+          "title": "Le vide de l'ennui",
+          "body": "Réduire le temps d'écran laisse des moments vides. Prévoyez ce qui les remplira, comme un livre, une marche ou un appel, sinon le téléphone les remplira de nouveau."
+        },
+        {
+          "title": "Le défilement de fin de soirée",
+          "body": "Le soir, c'est là que la plupart des limites cèdent. Rechargez le téléphone hors de la chambre, et pointez avec votre partenaire avant de le ranger."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Quelle est une bonne limite quotidienne de temps d'écran?",
+          "answer": "Partez de votre moyenne actuelle et coupez-la à peu près de moitié, ou fixez une limite pour les réseaux sociaux seulement. Une limite que vous pouvez respecter vaut mieux qu'une limite ambitieuse que vous brisez le deuxième jour."
+        },
+        {
+          "question": "L'appli lit-elle mon temps d'écran?",
+          "answer": "Non. Vous vérifiez vous-même votre chiffre dans les réglages du téléphone et vous pointez honnêtement. Friends with Habits ne voit jamais l'utilisation de votre téléphone."
+        },
+        {
+          "question": "Qu'est-ce qui compte comme temps d'écran dans le défi?",
+          "answer": "Ce que vous et votre partenaire décidez. La plupart limitent les réseaux sociaux et laissent de côté les messages, les cartes et les applis de travail."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Trente jours suffisent pour casser le réflexe de prendre le téléphone, et pour voir la moyenne baisser dans le propre rapport du téléphone."
+      }
+    },
+    "run": {
+      "slug": "course-a-pied",
+      "name": "Défi course à pied",
+      "inAppName": "Aller courir",
+      "title": "Défi course à pied de {days} jours avec un ami",
+      "metaDescription": "Un défi course à pied de {days} jours à deux : trois sorties par semaine à n'importe quel rythme, un plan jour après jour, les pièges et un suivi gratuit.",
+      "summary": "Trois sorties de course par semaine, n'importe quelle distance, n'importe quel rythme, avec un partenaire.",
+      "intro": [
+        "Le défi : aller courir trois fois par semaine pendant {days} jours. N'importe quelle distance, n'importe quel rythme, et les pauses de marche sont permises. Trois sorties par semaine suffisent pour créer l'habitude et laissent un jour de récupération entre chacune, ce qui compte plus que la distance quand on commence.",
+        "Un partenaire de course est la façon classique de passer la porte, mais vous n'avez pas besoin de courir ensemble. Chacun pointe après sa sortie, et voir le pointage de votre partenaire un matin froid est une bonne raison de lacer vos souliers."
+      ],
+      "rules": [
+        "Au début de chaque semaine, choisissez vos trois jours de course et dites-les à votre partenaire.",
+        "Si vous débutez, alternez : une minute de course, une minute de marche.",
+        "Pointez après chaque sortie. Toute sortie compte, même courte.",
+        "Les premières semaines, ne courez pas deux jours de suite. La récupération fait partie du plan."
+      ],
+      "phases": {
+        "start": "Choisissez les jours, le trajet et l'heure, et faites la première sortie dans les trois premiers jours, même courte. Dites à votre partenaire comment ça s'est passé.",
+        "early": "Les nouveaux coureurs le sentent dans les jambes et les poumons. Gardez un rythme qui vous permet de parler. Si vous êtes à bout de souffle, marchez. Ça compte quand même.",
+        "middle": "Courir devient routinier, et la météo et la semaine commencent à gagner. Déplacez une sortie manquée à un autre jour de la même semaine au lieu de la perdre, et dites-le à votre partenaire.",
+        "finish": "Choisissez les trois jours où vous continuerez à courir après le défi. Certains partenaires s'inscrivent ensemble à une course locale pour donner un objectif au mois suivant."
+      },
+      "failures": [
+        {
+          "title": "La première sortie difficile",
+          "body": "Une sortie précoce qui semble atroce convainc les gens qu'ils ne sont pas faits pour courir. Ralentissez, ajoutez des pauses de marche et dites-le à votre partenaire. Une mauvaise sortie terminée compte quand même."
+        },
+        {
+          "title": "Trop, trop vite",
+          "body": "Courir tous les jours ou augmenter la distance trop vite, c'est comme ça que les débutants se blessent. Trois sorties faciles par semaine, c'est le défi, et votre partenaire vous y tient."
+        },
+        {
+          "title": "La météo",
+          "body": "La pluie, le froid et les matins sombres annulent plus de sorties que tout le reste. Convenez d'un plan B avec votre partenaire : un tapis roulant, une boucle plus courte ou une autre heure."
+        }
+      ],
+      "faq": [
+        {
+          "question": "Quelle distance courir dans un défi de {days} jours?",
+          "answer": "Ce que vous pouvez faire confortablement à un rythme facile. Pour un débutant, ce peut être un ou deux kilomètres avec des pauses de marche. Le défi compte les sorties, pas la distance."
+        },
+        {
+          "question": "Puis-je marcher pendant mes sorties?",
+          "answer": "Oui. Alterner course et marche est une façon courante de commencer, et une sortie avec de la marche compte quand même."
+        },
+        {
+          "question": "Et si je manque une journée de course?",
+          "answer": "Déplacez-la à un autre jour de la même semaine. L'objectif, c'est trois sorties par semaine, pas trois jours fixes."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Trente jours, c'est environ 13 sorties, assez pour passer de « je ne suis pas un coureur » à avoir un trajet que vous connaissez.",
+        "d60": "Soixante jours, c'est environ 26 sorties. Profitez des 30 jours suivants pour ajouter un peu de distance ou une quatrième sortie, et décidez-le ensemble au réengagement."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Jour 30 : les 13 premières sorties",
+              "body": "Revoyez le mois avec votre partenaire. Si trois sorties par semaine vous ont semblé faisables, ajoutez quelques minutes à une sortie par semaine. Si c'était difficile, gardez le même plan pour les 30 jours suivants. Les deux comptent comme des progrès."
+            },
+            {
+              "title": "Jour 45 : une sortie plus longue",
+              "body": "Une fois par semaine, faites une sortie un peu plus longue que les autres, au même rythme facile. C'est la façon la plus simple d'augmenter la distance sans ajouter de jours."
+            },
+            {
+              "title": "Jour 60 : environ 26 sorties",
+              "body": "Deux mois à trois sorties par semaine font souvent passer de l'alternance course-marche à courir presque tout le trajet. Choisissez ensemble un prochain objectif, comme un 5 km local, pour donner une direction à l'habitude."
+            }
+          ],
+          "faq": {
+            "question": "Un débutant peut-il faire un défi course à pied de 60 jours?",
+            "answer": "Oui. Trois sorties faciles par semaine avec des pauses de marche, c'est un plan pour débutants. Les 30 jours de plus vous laissent le temps de progresser graduellement au lieu de vous presser."
+          }
+        }
+      }
+    }
+  }
+}
