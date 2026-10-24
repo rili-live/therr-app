@@ -105,6 +105,8 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
 import getDeviceTimeZone from '../utilities/deviceTimeZone';
 import { clearHabitsWidget, getWidgetActionRoute } from '../utilities/habitsWidget';
+import { JOIN_TOKEN_RE, parseChallengeUrl } from '../routes/Challenges/challengeFormat';
+import { isHabitCapPaywallAvailable } from '../utilities/habitCapPaywall';
 import refreshHabitsWidgetInBackground, { shouldRefreshWidgetForPush } from '../utilities/habitsWidgetRefresh';
 
 const preLoadImageList = [background1, background2, background3];
@@ -185,6 +187,9 @@ interface ILayoutState {
  * handoff. Long enough that the first screen has settled and the user is looking at their
  * own content rather than at a loading state.
  */
+// A habits.therr.com/c/<token> link opened before the app could show it. See drainPendingChallenge.
+const PENDING_CHALLENGE_TOKEN_KEY = 'pendingChallengeToken';
+
 const APP_REVIEW_PROMPT_COLD_START_DELAY_MS = 8000;
 /** Same idea on a warm return, where there is no splash and no first fetch to wait on. */
 const APP_REVIEW_PROMPT_FOREGROUND_DELAY_MS = 3000;
@@ -247,6 +252,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private translate;
     private unsubscribePushNotifications;
     private urlEventListener;
+    // Set once the habits landing reset has run this session. Before it, a challenge link is
+    // stashed rather than navigated to, because the reset would wipe the navigation.
+    private hasResetToHabitsLanding = false;
     private routeNameRef: any = {};
     // Latest navigation state, mirrored on every state change so it survives the
     // locale-keyed remount of the NavigationContainer (see `render`).
@@ -539,7 +547,28 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             return;
         }
         this.resetToRouteIfNeeded(await getHabitsLandingRouteName());
+        this.hasResetToHabitsLanding = true;
+        this.drainPendingChallenge();
     };
+
+    /**
+     * Open a challenge link (habits.therr.com/c/<token>) that arrived before the app could show it:
+     * signed out, mid-profile, or on a cold start where the landing reset above would wipe a
+     * navigation made any earlier. One-shot: the token is removed before navigating, so a
+     * later launch never re-opens it.
+     */
+    drainPendingChallenge = () => AsyncStorage.getItem(PENDING_CHALLENGE_TOKEN_KEY)
+        .then((joinToken) => {
+            if (!joinToken) return undefined;
+            return AsyncStorage.removeItem(PENDING_CHALLENGE_TOKEN_KEY).then(() => {
+                if (JOIN_TOKEN_RE.test(joinToken)) {
+                    RootNavigation.navigate('ChallengeDetail', { joinToken });
+                }
+            });
+        })
+        .catch((err) => {
+            console.log('CHALLENGE_LINK_DRAIN_ERROR', err?.message);
+        });
 
     /**
      * The navigator now mounts directly on the brand landing screen (see
@@ -1537,6 +1566,17 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     ? { targetRouteView: 'HabitDetail', targetRouteParams: { habitGoalId } }
                     : { targetRouteView: 'MyHabits', targetRouteParams: {} };
 
+            // Growth loops. The join push carries no token, so it opens the list of the user's
+            // challenges; the reward push opens the paywall, which shows the unlock as owned.
+            case PushNotifications.Types.challengeJoined:
+                return { targetRouteView: 'MyHabits', targetRouteParams: {} };
+            case PushNotifications.Types.habitsReferralRewardEarned:
+                // The paywall is only registered with the lifetime offer on; navigating to an
+                // unregistered route is a silent no-op.
+                return isHabitCapPaywallAvailable()
+                    ? { targetRouteView: 'UpgradePaywall', targetRouteParams: { source: 'referral-reward' } }
+                    : { targetRouteView: 'MyHabits', targetRouteParams: {} };
+
             // The weekly recap is about a week, not a habit — so it opens the recap screen even
             // when the payload happens to name a top habit.
             case PushNotifications.Types.weeklyRecap:
@@ -2198,7 +2238,21 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             user
         );
 
-        if (url?.match(claimPactRegex)) {
+        const challengeToken = parseChallengeUrl(url);
+
+        if (challengeToken) {
+            // A join-by-link challenge. This host is an App Link, so an installed app opens every
+            // habits.therr.com/c/ link itself and the web page is never seen. Navigate now only
+            // once the landing reset has run; before that (signed out, unverified, cold start)
+            // stash it for drainPendingChallenge, which runs right after the reset.
+            if (isUserLoggedIn && isEmailVerified && this.hasResetToHabitsLanding) {
+                RootNavigation.navigate('ChallengeDetail', { joinToken: challengeToken });
+            } else {
+                AsyncStorage.setItem(PENDING_CHALLENGE_TOKEN_KEY, challengeToken).catch((err) => {
+                    console.log('CHALLENGE_LINK_STORE_ERROR', err?.message);
+                });
+            }
+        } else if (url?.match(claimPactRegex)) {
             // Cross-app pact invite. The email/SMS sent by users-service points
             // here; on tap we either claim immediately (authed) or stash the
             // token for the post-login drain (unauthed first launch).

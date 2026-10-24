@@ -7,6 +7,7 @@ import HabitCalendar from './HabitCalendar';
 import HabitCard from './HabitCard';
 import HabitNotificationSettings from './HabitNotificationSettings';
 import HabitsListLoader from './HabitsListLoader';
+import MyChallengesSection from './MyChallengesSection';
 import NewPactButton from './NewPactButton';
 import OpenPactCard from './OpenPactCard';
 import PactCard from './PactCard';
@@ -14,6 +15,7 @@ import PactMemberRow from './PactMemberRow';
 import PactOnboardingGuard from './PactOnboardingGuard';
 import PactPreviewOverlay, { HABITS_PRESTAGED_TEMPLATE_ID } from './PactPreviewOverlay';
 import PledgeCard from './PledgeCard';
+import ReferralRewardCard from './ReferralRewardCard';
 import SavingsAmountInput from './SavingsAmountInput';
 import SavingsProgressCard from './SavingsProgressCard';
 import SentInviteCard from './SentInviteCard';
@@ -31,6 +33,7 @@ export {
     HabitCard,
     HabitNotificationSettings,
     HabitsListLoader,
+    MyChallengesSection,
     NewPactButton,
     OpenPactCard,
     PactCard,
@@ -38,6 +41,7 @@ export {
     PactOnboardingGuard,
     PactPreviewOverlay,
     PledgeCard,
+    ReferralRewardCard,
     SavingsAmountInput,
     SavingsProgressCard,
     SentInviteCard,

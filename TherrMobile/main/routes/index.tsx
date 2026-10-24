@@ -66,6 +66,7 @@ import {
 } from './Habits';
 import Journal from './Journal';
 import WeeklyRecap from './WeeklyRecap';
+import { ChallengeDetail, CreateChallenge } from './Challenges';
 import {
     PactDetail, CreatePactInvite, HabitsPushOptIn, AddPactMembers, OpenPacts,
 } from './Pacts';
@@ -683,6 +684,26 @@ const routes: RouteConfig<
         component: OpenPacts,
         options: () => ({
             title: 'Open Pacts',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        // Join-by-link challenges. Also the destination of a habits.therr.com/c/<token> link and
+        // of the `challengeJoined` push, so it is gated on ENABLE_HABITS alone.
+        name: 'ChallengeDetail',
+        component: ChallengeDetail,
+        options: () => ({
+            title: 'Challenge',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'CreateChallenge',
+        component: CreateChallenge,
+        options: () => ({
+            title: 'Start a Challenge',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),
