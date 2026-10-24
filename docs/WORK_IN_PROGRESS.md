@@ -201,6 +201,24 @@ first App Check build reaches users, or every token is rejected and everyone lan
 - [ ] **Play listing (`niche/HABITS-general`, `/aso-listing`):** test the "bring the challenge
   you're already doing" angle in the short description and first screenshot.
 
+## Challenge guides on habits.therr.com (added 2026-10-24, docs/ADJACENCY_MARKETING.md § 4)
+
+- [ ] **After the deploy, resubmit `https://habits.therr.com/sitemap.xml` in Search Console**, then
+  URL-inspect and request indexing for the three hubs (`/challenges`, `/es/retos`, `/fr/defis`)
+  and `/challenges/30-day-no-spend`. The guides are new URLs on a host with almost no inbound links.
+- [ ] **GA4 admin: register `page_slug`, `page_locale`, `template_key` and `duration_days` as
+  event-scoped custom dimensions.** The guides' `register_start`, `store_click`,
+  `challenge_tracker_tick` / `_print` and `/register`'s `sign_up` carry them; until they are
+  registered, reports cannot break those events down by guide.
+- [ ] **4–8 weeks after the deploy, read the Search Console queries** listed in
+  `docs/ADJACENCY_MARKETING.md` → "The guides (play 4)", and the Pages report for duplicate-canonical
+  flags on the 60/90-day guides.
+- [ ] **Decide on the "challenges running now" strip** (proposal in the same doc, § 4): it needs an
+  opt-in `habits.challenges."isListed"` flag, so it's a schema and privacy decision.
+- [ ] **Have a fluent speaker read the Spanish and French guides** (`src/habitsChallengeLocales/es`,
+  `fr-ca`). They were written directly rather than machine-translated, but nobody fluent has
+  reviewed them. Spanish uses Mexican vocabulary (es_MX), and French is Canadian with *vous*.
+
 ## Push open tracking (added 2026-10-16)
 
 - [x] **Run the users-service migration after the deploy** _(Verified applied in prod 2026-10-16: the stage → main deploy (CircleCI 20510, main `09e81f34b`) ran it; `run-migrations.sh --verify-only` reports users-service caught up.)_ (`20261016000001`: `main.notificationQueue."openedAt"` /
@@ -1845,6 +1863,8 @@ backend change needed — it refuses to treat Play's own
 - [ ] (2026-10-12, /quality-peer-review) **After the maps-service deploy, open a `/locations/city/:slug` page in each locale and confirm no "edit | edit source" text is left in its sections.** `20261012000000_main.cityWikiCache.expire_edit_links.js` only expires the cached rows; each one is re-fetched lazily on its next view, so the first visit to a city still serves the old text and the second should be clean. If the text persists after a refresh, Wikivoyage changed its edit-link markup and `stripHtml` in `maps-service/src/utilities/wikiFetcher.ts` no longer matches it. Introduced by 3cc469c86.
 - [ ] (2026-10-19, /push-notification-guard) **After the push-notifications-service deploy, check a Friends with Habits push on a handset and confirm its title leads with an emoji that renders (not a tofu box).** Server-only change — no app release needed — but nothing server-side can see how the device renders the title. Check one display push (e.g. `streakFreezeUsed`, OS-rendered) and one data-only push (e.g. `dailyHabitReminder`, Notifee-rendered) on the oldest Android version still in use, and on iOS. Every emoji in `notificationTitleEmoji.ts` is from Unicode 12 or earlier for that reason.
 - [ ] (2026-10-21, /quality-peer-review) **After the SMS-pumping guards deploy (`a12979d4d`…`c0bf8f311`), set Twilio Messaging Geo Permissions per § SMS country tiers above (core + extended tiers from `therr-js-utilities/src/sms-destination-policy.ts` — no longer the original 13-country list, and no longer pinned in `k8s/prod`) and confirm the spend alert from the 2026-07-25 item exists.** The account-level setting is the backstop for any send site that skips `isSmsDestinationAllowed`. Then watch for the `Global SMS budget exhausted for this hour` error log — it is the only signal that the 60/hour gateway cap (`TWILIO_SMS_GLOBAL_HOURLY_CAP`) is tripping, which locks every real user out of phone sign-in/sign-up for the rest of that hour.
+- [ ] (2026-10-24, /seo-audit) Re-submit sitemap to Google Search Console
+  after the next deploy — added `/challenges`, `/es/retos`, `/fr/defis` and 63 challenge guides under them.
 <!-- skill-followups:end -->
 
 ---
