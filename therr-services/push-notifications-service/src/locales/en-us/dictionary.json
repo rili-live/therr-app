@@ -218,6 +218,14 @@
       "title": "{checkinCount} check-ins. You're building something.",
       "body": "Unlock unlimited habits for life with one payment. No subscription."
     },
+    "challengeJoined": {
+      "title": "{userName} joined your challenge",
+      "body": "Your {habitName} challenge just got bigger. Check in today to stay ahead."
+    },
+    "habitsReferralRewardEarned": {
+      "title": "You unlocked Friends with Habits for life",
+      "body": "Your friends kept showing up, so everything is unlocked. No payment, no subscription. Thank you for bringing them."
+    },
     "dailyHabitReminder": {
       "title": "Time to Check In",
       "body": "Log {habitName} today — one check-in gets your streak going.",

@@ -42,6 +42,13 @@ describe('unauthenticatedPaths', () => {
             expect(isUnauthenticatedPath(`/v1/users-service/users/${USER_ID}/push-diagnostics/send-test`, 'POST')).to.equal(false);
         });
 
+        it('requires auth to join, create or list challenges, even though viewing one is public', () => {
+            expect(isUnauthenticatedPath('/v1/users-service/habits/challenges/by-token/AbCdEf123456/join', 'POST')).to.equal(false);
+            expect(isUnauthenticatedPath('/v1/users-service/habits/challenges/by-token/AbCdEf123456', 'POST')).to.equal(false);
+            expect(isUnauthenticatedPath('/v1/users-service/habits/challenges', 'POST')).to.equal(false);
+            expect(isUnauthenticatedPath('/v1/users-service/habits/challenges/mine', 'GET')).to.equal(false);
+        });
+
         it('requires auth for the push-notifications-service diagnostics', () => {
             expect(isUnauthenticatedPath('/v1/push-notifications-service/notifications/diagnostics', 'GET')).to.equal(false);
             expect(isUnauthenticatedPath('/v1/push-notifications-service/notifications/diagnostics/send-test', 'POST')).to.equal(false);
@@ -59,6 +66,7 @@ describe('unauthenticatedPaths', () => {
             [`/v1/users-service/users/achievements/${USER_ID}/public`, 'GET'],
             [`/v1/users-service/users/invites/${USER_ID}`, 'GET'],
             ['/v1/users-service/users/by-username/zack', 'GET'],
+            ['/v1/users-service/habits/challenges/by-token/AbCdEf123456', 'GET'],
             ['/v1/phone/auth/start', 'POST'],
             ['/v1/user-files/some/image.png', 'GET'],
             ['/v1/maps-service/geocode', 'GET'],
