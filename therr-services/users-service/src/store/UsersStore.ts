@@ -889,9 +889,11 @@ export default class UsersStore {
     // stored token matches the one we know to be invalid. This avoids a race
     // where the mobile client has already rotated the token between the time a
     // send failed and the push service noticed the failure.
+    // Cleared to '' rather than null: the column is NOT NULL DEFAULT '', so a null
+    // write fails the whole update and the dead token is never removed.
     clearDeviceToken(userId: string, invalidToken: string) {
         const queryString = knexBuilder
-            .update({ deviceMobileFirebaseToken: null, updatedAt: new Date() })
+            .update({ deviceMobileFirebaseToken: '', updatedAt: new Date() })
             .into(USERS_TABLE_NAME)
             .where({ id: userId, deviceMobileFirebaseToken: invalidToken })
             .returning(['id'])
