@@ -7,6 +7,7 @@ const path = require('path');
 const baseConfig = require('./base');
 const { SHARED_LIBRARY_MODULES, SHARED_LIBRARY_INTERNAL_REGEX } = require('./shared-library-modules');
 const { MIGRATION_IDEMPOTENCY_CUTOFF } = require('./migration-idempotency-cutoff');
+const { MIGRATION_CONCURRENT_INDEX_CUTOFF } = require('./migration-concurrent-index-cutoff');
 
 // The brand-scoped-table and async-table-builder invariants used to be expressed as
 // `no-restricted-syntax` selectors. Two problems with that, both now fixed by moving them
@@ -81,7 +82,7 @@ module.exports = function createServiceConfig(serviceDir, overrides = {}) {
             // or dropping them — brand-scoping is enforced at runtime via BrandScopedStore, and
             // schema-level DDL is safe by definition. So that rule is off here.
             //
-            // Migrations have their own footguns instead, and both rules below are on only
+            // Migrations have their own footguns instead, and the rules below are on only
             // here, where migrations actually live:
             //
             //   - `no-async-table-builder-callback`: an `async` callback passed to a Knex table
@@ -92,12 +93,17 @@ module.exports = function createServiceConfig(serviceDir, overrides = {}) {
             //     re-runs it from the top and fails on the half it already applied. Applies from
             //     MIGRATION_IDEMPOTENCY_CUTOFF forward — see migration-idempotency-cutoff.js for
             //     why the back catalogue is exempt.
+            //   - `require-concurrent-index`: a plain CREATE/DROP INDEX locks a live production
+            //     table for the length of the build. Requires CONCURRENTLY, plus the
+            //     `transaction: false` opt-out and invalid-index cleanup that CONCURRENTLY needs.
+            //     Applies from MIGRATION_CONCURRENT_INDEX_CUTOFF forward.
             {
                 files: ['src/store/migrations/**/*.js', 'src/store/seeds/**/*.js'],
                 rules: {
                     'therr/no-direct-brand-scoped-table': 'off',
                     'therr/no-async-table-builder-callback': 'error',
                     'therr/require-idempotent-migration': ['error', { since: MIGRATION_IDEMPOTENCY_CUTOFF }],
+                    'therr/require-concurrent-index': ['error', { since: MIGRATION_CONCURRENT_INDEX_CUTOFF }],
                 },
             },
             ...(overrides.overrides || []),
