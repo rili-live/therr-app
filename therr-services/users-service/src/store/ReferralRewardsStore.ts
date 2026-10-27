@@ -53,6 +53,12 @@ export interface IReferredFriendRow {
  * bringing a new person into the app, which is what the reward pays for.
  *
  * Bindings, in order: referrerUserId ×3 for the three branches, plus the brand.
+ *
+ * REFERRERS_OF_FRIEND_SQL runs on every completed check-in, so every branch of both must stay an
+ * index lookup — see migration 20261027000001_main.referralLookupIndexes.js. In the invite
+ * branch that means comparing `lower(email)` to `lower(email)` (expression indexes on both
+ * tables) with no `IS NOT NULL` guard: `=` is never true for a NULL anyway, and the guard made
+ * the planner scan every invite with an email instead of using the index.
  */
 const BROUGHT_BY_REFERRER_SQL = `
     SELECT pm."userId" AS "friendId"
@@ -75,8 +81,7 @@ const BROUGHT_BY_REFERRER_SQL = `
     SELECT fu.id AS "friendId"
     FROM ${INVITES_TABLE_NAME} i
     INNER JOIN ${USERS_TABLE_NAME} fu
-        ON (i.email IS NOT NULL AND lower(fu.email) = lower(i.email))
-        OR (i."phoneNumber" IS NOT NULL AND fu."phoneNumber" = i."phoneNumber")
+        ON lower(fu.email) = lower(i.email) OR fu."phoneNumber" = i."phoneNumber"
     WHERE i."requestingUserId" = :referrerUserId
         AND i."brandVariation" = :brand
         AND fu.id <> :referrerUserId
@@ -105,8 +110,7 @@ const REFERRERS_OF_FRIEND_SQL = `
     SELECT i."requestingUserId" AS "referrerUserId"
     FROM ${INVITES_TABLE_NAME} i
     INNER JOIN ${USERS_TABLE_NAME} fu
-        ON (i.email IS NOT NULL AND lower(fu.email) = lower(i.email))
-        OR (i."phoneNumber" IS NOT NULL AND fu."phoneNumber" = i."phoneNumber")
+        ON lower(fu.email) = lower(i.email) OR fu."phoneNumber" = i."phoneNumber"
     WHERE fu.id = :friendUserId
         AND i."brandVariation" = :brand
         AND i."requestingUserId" <> :friendUserId
@@ -133,19 +137,45 @@ export default class ReferralRewardsStore {
     }
 
     /**
-     * Record the grant. Returns undefined when a row already existed, which is how a second,
-     * racing evaluation learns it must grant and announce nothing.
+     * Record the grant and apply the entitlement in one transaction. Returns undefined when a
+     * row already existed, which is how a second, racing evaluation learns it must grant and
+     * announce nothing.
+     *
+     * One transaction because the row is what every later evaluation reads to stop: a row
+     * committed without its access-level write would answer "already granted" forever, and the
+     * user would never get the unlock. Rolled back together, the next check-in simply retries.
      */
-    createIfAbsent(userId: string, qualifyingUserIds: string[]): Promise<IReferralRewardRow | undefined> {
-        const queryString = knexBuilder.raw(
+    grant(userId: string, qualifyingUserIds: string[], accessLevels: string[]): Promise<IReferralRewardRow | undefined> {
+        const insertQuery = knexBuilder.raw(
             `INSERT INTO ${REFERRAL_REWARDS_TABLE_NAME} ("userId", "qualifyingUserIds")
             VALUES (?, ?::jsonb)
             ON CONFLICT ("userId") DO NOTHING
             RETURNING *`,
             [userId, JSON.stringify(qualifyingUserIds)],
         ).toString();
+        const updateUserQuery = knexBuilder
+            .update({ accessLevels: JSON.stringify(accessLevels), updatedAt: new Date() })
+            .into(USERS_TABLE_NAME)
+            .where({ id: userId })
+            .toString();
 
-        return this.db.write.query(queryString).then((response) => response.rows[0]);
+        return this.db.write.connect().then((client) => client.query('BEGIN')
+            .then(() => client.query(insertQuery))
+            .then((response) => {
+                const grant: IReferralRewardRow | undefined = response.rows[0];
+                if (!grant) {
+                    return client.query('COMMIT').then(() => undefined);
+                }
+                return client.query(updateUserQuery)
+                    .then(() => client.query('COMMIT'))
+                    .then(() => grant);
+            })
+            .catch((err) => client.query('ROLLBACK').then(() => {
+                throw err;
+            }))
+            .finally(() => {
+                client.release();
+            }));
     }
 
     /** Every friend this user brought in, with how many days each has been active. */

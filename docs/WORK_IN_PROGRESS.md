@@ -103,7 +103,9 @@ append new items here rather than only printing them once.
 - [ ] **Run the users-service migration after the deploy** (`20261023000001`: `habits.challenges`,
   `habits.challenge_members`, `habits.referral_rewards`). All additive; neither automator reads them.
   Until it runs, `/c/:token` 404s and the check-in's reward evaluation logs an error and grants
-  nothing (the check-in itself is unaffected).
+  nothing (the check-in itself is unaffected). Same deploy also carries `20261027000001` (three
+  indexes on `main.invites` / `main.users` for the referral lookups that run on every check-in) —
+  plain `CREATE INDEX`, so it briefly blocks writes to `main.users` while it builds.
 - [ ] **Smoke-test a share link once deployed:** create a challenge via `POST /habits/challenges`
   (no mobile UI yet), open `https://habits.therr.com/c/<token>` signed out, and paste the link into
   iMessage or Slack. The unfurl should show the standings card, not the generic brand image. If it
