@@ -122,6 +122,44 @@ describe('handlers/helpers/user', () => {
 
             expect(profile.isNotConnected).to.equal(true);
             expect(profile.isPendingConnection).to.equal(true);
+            expect(profile.hasIncomingConnectionRequest).to.equal(false);
+        });
+
+        it('reports a pending request sent by the profile owner as incoming', async () => {
+            // The viewer opened the requester's profile (e.g. from the connection request
+            // notification), so the client should offer to accept rather than show "pending".
+            const profile = await getProfileFor({
+                requestingUserId: TARGET_USER_ID,
+                acceptingUserId: VIEWER_USER_ID,
+                requestStatus: UserConnectionTypes.PENDING,
+                isConnectionBroken: false,
+            });
+
+            expect(profile.isPendingConnection).to.equal(true);
+            expect(profile.hasIncomingConnectionRequest).to.equal(true);
+        });
+
+        it('reports an incoming request on a private profile', async () => {
+            const profile = await getProfileFor({
+                requestingUserId: TARGET_USER_ID,
+                acceptingUserId: VIEWER_USER_ID,
+                requestStatus: UserConnectionTypes.PENDING,
+                isConnectionBroken: false,
+            }, false);
+
+            expect(profile.isPendingConnection).to.equal(true);
+            expect(profile.hasIncomingConnectionRequest).to.equal(true);
+        });
+
+        it('does not offer to accept a request the viewer already denied', async () => {
+            const profile = await getProfileFor({
+                requestingUserId: TARGET_USER_ID,
+                acceptingUserId: VIEWER_USER_ID,
+                requestStatus: UserConnectionTypes.DENIED,
+                isConnectionBroken: false,
+            });
+
+            expect(profile.hasIncomingConnectionRequest).to.equal(false);
         });
 
         it('reports a might-know edge as not connected', async () => {
