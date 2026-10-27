@@ -70,7 +70,7 @@ axios.defaults.headers['x-brand-variation'] = BrandVariations.THERR;
 /* eslint-disable */
 declare global {
     namespace NodeJS {
-        interface Global {  
+        interface Global {
             window: any;
         }
     }
