@@ -74,8 +74,8 @@ Idempotent migrations turn that entire class into "run it again."
 | `knex.schema.createTable(...)` | `if (!(await knex.schema.withSchema(s).hasTable(t))) { ...createTable... }` |
 | `alterTable(t, (table) => table.string('x'))` | `knex.raw('ALTER TABLE s.t ADD COLUMN IF NOT EXISTS "x" text')` |
 | `alterTable(t, (table) => table.dropColumn('x'))` | `knex.raw('ALTER TABLE s.t DROP COLUMN IF EXISTS "x"')` |
-| `CREATE INDEX idx ...` | `CREATE INDEX IF NOT EXISTS idx ...` |
-| `DROP INDEX s.idx` | `DROP INDEX IF EXISTS s.idx` |
+| `CREATE INDEX idx ...` | `CREATE INDEX CONCURRENTLY IF NOT EXISTS idx ...` (see "Concurrent index builds" below) |
+| `DROP INDEX s.idx` | `DROP INDEX CONCURRENTLY IF EXISTS s.idx` |
 | `ADD CONSTRAINT chk ...` | `DROP CONSTRAINT IF EXISTS chk;` then `ADD CONSTRAINT chk ...` |
 | `CREATE FUNCTION` / `CREATE VIEW` | `CREATE OR REPLACE FUNCTION` / `CREATE OR REPLACE VIEW` |
 
@@ -96,6 +96,33 @@ already and rewriting deployed history buys nothing. See
 `eslint-config/migration-idempotency-cutoff.js`; the cutoff is a one-way ratchet, and
 `eslint-config/plugin/tests/migration-idempotency-cutoff.test.js` fails if it is moved
 forward or if anything in scope stops passing.
+
+### Concurrent index builds (enforced by lint)
+
+**Indexes on existing tables are created and dropped `CONCURRENTLY`.**
+`therr/require-concurrent-index` fails the build on any migration dated at or after
+`MIGRATION_CONCURRENT_INDEX_CUTOFF` (`eslint-config/migration-concurrent-index-cutoff.js`) that
+does otherwise. Migrations run at deploy time against live production tables. A plain
+`CREATE INDEX` holds a SHARE lock for the whole build, blocking every write to the table, and a
+plain `DROP INDEX` takes ACCESS EXCLUSIVE, blocking reads too. Small dev and CI tables never show
+the stall.
+
+`CONCURRENTLY` brings two obligations, and the rule checks both:
+
+- **`exports.config = { transaction: false }`.** Postgres refuses `CONCURRENTLY` inside a
+  transaction block (error 25001), and knex wraps every migration in one. Without the
+  transaction, statements no longer commit as a unit, so each must be idempotent on its own.
+- **Clear an INVALID index before creating it.** A failed concurrent build leaves its index
+  behind marked INVALID. On the retry, `IF NOT EXISTS` matches it and skips the build, so the
+  migration succeeds with an index the planner never uses. Probe `pg_index.indisvalid` and drop
+  only an invalid one, or `DROP INDEX CONCURRENTLY IF EXISTS` first.
+
+Indexes on a table the same migration creates are exempt, because the table is empty. That
+covers `table.index()` / `table.unique()` inside the `createTable` callback, and raw SQL on the
+new table.
+
+Reference: users-service `20261027000001_main.referralLookupIndexes.js`. Template:
+`/db-migration-scaffold` → `add_index`.
 
 ### Creating a New Schema
 
@@ -315,19 +342,18 @@ const getCheckinsWithUser = () => {
 ### Index New Tables Appropriately
 
 ```javascript
-// In migration
+// Inside the createTable callback — the table is new and empty, so no CONCURRENTLY needed
 table.uuid('userId').notNullable().index();  // Common query column
 table.timestamp('createdAt').notNullable().index();  // Time-series queries
+table.index(['userId', 'scheduledDate']);  // Composite indexes for common query patterns
+```
 
-// Composite indexes for common query patterns
-knex.raw(`
-    CREATE INDEX idx_checkins_user_date
-    ON habits.habit_checkins(userId, scheduledDate DESC)
-`);
+On an **existing** table, use raw SQL with `CONCURRENTLY` (see "Concurrent index builds" above):
 
+```javascript
 // Partial indexes for filtered queries
-knex.raw(`
-    CREATE INDEX idx_pacts_active
+await knex.raw(`
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_pacts_active
     ON habits.pacts(status)
     WHERE status = 'active'
 `);
@@ -395,7 +421,7 @@ SELECT * FROM habits.pacts WHERE deletedAt IS NULL AND userId = $1
 
 ```sql
 -- GIN index for containment queries
-CREATE INDEX idx_goals_interests ON habits.habit_goals USING GIN(interestsKeys);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_goals_interests ON habits.habit_goals USING GIN(interestsKeys);
 
 -- Query
 SELECT * FROM habits.habit_goals WHERE interestsKeys @> '["fitness"]'
@@ -418,6 +444,11 @@ A single user signed into multiple apps with the same identity must NOT see data
 // Archetype: Brand-scoped
 // Adds brandVariation discriminator + composite index per
 // docs/NICHE_APP_DATABASE_GUIDELINES.md ("Brand-scoped" archetype).
+//
+// transaction: false because of the CONCURRENTLY index — see "Concurrent index builds".
+// dropInvalidIndex is the indisvalid helper from that section's reference migration.
+exports.config = { transaction: false };
+
 exports.up = async (knex) => {
     // NOT NULL with default — every existing row was created by the original Therr app.
     // Raw SQL rather than alterTable so the column add carries its own IF NOT EXISTS.
@@ -425,14 +456,15 @@ exports.up = async (knex) => {
         ALTER TABLE main."notifications"
         ADD COLUMN IF NOT EXISTS "brandVariation" varchar(50) NOT NULL DEFAULT 'therr'
     `);
+    await dropInvalidIndex(knex, 'main', 'idx_notifications_user_brand_unread');
     await knex.raw(`
-        CREATE INDEX IF NOT EXISTS idx_notifications_user_brand_unread
+        CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_notifications_user_brand_unread
         ON main.notifications ("userId", "brandVariation", "isUnread")
     `);
 };
 
 exports.down = async (knex) => {
-    await knex.raw('DROP INDEX IF EXISTS main.idx_notifications_user_brand_unread');
+    await knex.raw('DROP INDEX CONCURRENTLY IF EXISTS main.idx_notifications_user_brand_unread');
     await knex.raw('ALTER TABLE main."notifications" DROP COLUMN IF EXISTS "brandVariation"');
 };
 ```

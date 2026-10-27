@@ -273,7 +273,47 @@ Two further checks in this sub-step:
 - **Brand-scoped tables.** If the diff adds a table to `eslint-config/brand-scoped-tables.js`, the `therr/no-direct-brand-scoped-table` rule cannot see other repositories. Flag that the entry must also be mirrored into `therr-messaging-automator`'s `src/store/brandScoped.ts`.
 - **Date arithmetic on `main.thoughts`.** `ai-automator` writes rows dated up to ~30h in the future. Any new SQL computing `NOW() - "createdAt"` must tolerate a negative result — flag unclamped `POWER()`/`LOG()` over that expression as a bug, not a suggestion. This exact pattern caused an 8-day feed outage.
 
-For each risk found in 2a or 2b, report file, issue, and recommendation. If no risks are found in a sub-step, note that explicitly.
+### 2c: Blocking index DDL in undeployed migrations
+
+Run this sub-step whenever any migration is not yet on `origin/main`, **even if `MIGRATIONS` is
+not in the general→stage scope**. A migration that has already merged to `stage` has passed this
+checkpoint but has not run in production, and this is the last review that sees it.
+
+Migrations run at deploy time against live production tables. A plain `CREATE INDEX` holds a
+SHARE lock for the whole build, which blocks every write to the table. A plain `DROP INDEX` takes
+ACCESS EXCLUSIVE, which blocks reads too. Small local and CI tables never show the stall.
+`therr/require-concurrent-index` enforces `CONCURRENTLY` in lint, but only from its cutoff, and
+an inline disable silences it. So run the rule here with **no cutoff and inline disables
+ignored**:
+
+```bash
+node -e '
+const { Linter } = require("eslint");
+const fs = require("fs");
+const linter = new Linter();
+linter.defineRule("therr/require-concurrent-index", require("./eslint-config/plugin/rules/require-concurrent-index"));
+process.argv.slice(1).forEach((file) => linter.verify(
+    fs.readFileSync(file, "utf8"),
+    { parserOptions: { ecmaVersion: 2022 }, rules: { "therr/require-concurrent-index": "error" } },
+    { filename: file, allowInlineConfig: false },
+).forEach((m) => console.log(`${file}:${m.line} ${m.message}`)));
+' $(git diff --name-only --diff-filter=AM origin/main -- 'therr-services/*/src/store/migrations/*.js')
+```
+
+Every hit is a **Category A** finding. The rule already exempts indexes on a table that the same
+migration creates. Include the file's status in each finding:
+
+- **Dated at or after the cutoff:** CI lint also fails on it.
+- **Backdated, or carrying a disable comment:** only this review catches it. For a disable,
+  quote the comment's justification and judge whether it holds.
+- **Already on `origin/stage`:** it reaches production on the next stage → main merge.
+
+**Report these. Do not rewrite the migration yourself, even with fixes enabled.** Converting a
+migration to `CONCURRENTLY` changes its transaction semantics: every other statement in the file
+loses atomicity. The author decides. In the finding, cite the template in
+`.claude/skills/db-migration-scaffold/SKILL.md` → `add_index`.
+
+For each risk found in 2a, 2b or 2c, report file, issue, and recommendation. If no risks are found in a sub-step, note that explicitly.
 
 ---
 
@@ -287,6 +327,7 @@ Review the diff and classify findings into these categories. Only flag genuine i
 - Incorrect error handling (swallowing errors, wrong HTTP status codes)
 - Race conditions or missing async/await
 - Migrations that are not safe to re-run, or that pass an `async` callback to a Knex table builder (both are lint-enforced — a hit here means the rule was disabled or the file predates the cutoff)
+- Migrations that build or drop an index on an existing table without `CONCURRENTLY` (lint-enforced from its cutoff; Step 2c also catches backdated files and disables — report only, never auto-fix)
 
 ### Category B: Low-Risk Improvements (implement unless `--dry-run`)
 Apply these without asking:
@@ -555,6 +596,8 @@ Drop clauses from the message that don't apply (no tests added, no bugs fixed). 
   Deployed mobile clients: <"✓ No breaking risks found" or list with resolutions>
   Sibling repos (ai-automator / messaging-automator): <"✓ No coupled identifiers
     changed" / "n/a — no backend or migration changes" or list of contract risks>
+  Index locking (migrations not yet on main): <"✓ All CONCURRENTLY" / "n/a — no
+    undeployed migrations" or list of blocking index DDL, author to fix>
 
 ### Changes Made
   Bugs fixed:

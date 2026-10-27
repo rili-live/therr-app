@@ -291,6 +291,20 @@ over `CREATE INDEX`, raw `ADD COLUMN IF NOT EXISTS` / `DROP COLUMN IF EXISTS` ov
 `alterTable` builder callback, and a `hasTable` probe around `createTable`. Not
 `createTableIfNotExists` — Knex itself warns against it and the rule flags it.
 
+**Indexes on existing tables are always built `CONCURRENTLY`** — enforced by
+`therr/require-concurrent-index` from `MIGRATION_CONCURRENT_INDEX_CUTOFF`
+(`eslint-config/migration-concurrent-index-cutoff.js`, same one-way ratchet). Migrations
+run against live production tables at deploy time. A plain `CREATE INDEX` blocks every write to
+the table for the whole build, and a plain `DROP INDEX` blocks reads too. Write
+`CREATE INDEX CONCURRENTLY IF NOT EXISTS` / `DROP INDEX CONCURRENTLY IF EXISTS`, and also:
+
+- set `exports.config = { transaction: false }`, or the deploy fails with pg error 25001;
+- drop an INVALID index before creating one, because a failed concurrent build leaves an
+  INVALID index that `IF NOT EXISTS` would skip on the retry.
+
+Indexes declared inside a new table's `createTable` callback are exempt. Template:
+`/db-migration-scaffold` → `add_index`.
+
 Only migrations dated at or after `MIGRATION_IDEMPOTENCY_CUTOFF`
 (`eslint-config/migration-idempotency-cutoff.js`) are in scope; the already-deployed back
 catalogue is exempt. That cutoff is a one-way ratchet — `npm run test:lint-rules` fails if it

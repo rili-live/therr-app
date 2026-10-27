@@ -1,6 +1,6 @@
 ---
 name: db-migration-scaffold
-description: Generate Knex migration files in the correct service and schema per docs/NICHE_APP_DATABASE_GUIDELINES.md. Enforces schema isolation (main.* core, habits.* / <niche>.* for niche features), correct naming convention, and up/down symmetry. Prevents the highest-cost mistake class in the backend — putting niche-specific tables on the main schema.
+description: Generate Knex migration files in the correct service and schema per docs/NICHE_APP_DATABASE_GUIDELINES.md. Enforces schema isolation (main.* core, habits.* / <niche>.* for niche features), correct naming convention, up/down symmetry, and non-blocking CREATE INDEX CONCURRENTLY builds on existing tables. Prevents the highest-cost mistake class in the backend — putting niche-specific tables on the main schema.
 user-invocable: true
 allowed-tools: Bash(git status*), Bash(find *), Bash(date*), Bash(ls *), Read, Write, Edit, Grep
 argument-hint: [scaffold --service <svc> --schema <schema> --table <name> [--feature <niche>]] | [lint] | [explain]
@@ -142,7 +142,56 @@ exports.down = function(knex) {
 
 Read the latest migration touching that table for column-naming style, and surface it to the user as the reference.
 
-For **add_index**, use raw SQL both ways — `CREATE INDEX IF NOT EXISTS` / `DROP INDEX IF EXISTS` — rather than `.index([...])` / `.dropIndex([...])`, which compile to unguarded statements.
+For **add_index** on an existing table, use raw SQL both ways, **always `CONCURRENTLY`** — never
+`.index([...])` / `.dropIndex([...])` in an `alterTable` callback, which compile to unguarded,
+blocking statements. See "Indexes are always built CONCURRENTLY" below for why every piece of
+this template is required:
+
+```javascript
+// <Which query this index serves, and why it needs one.>
+//
+// Built CONCURRENTLY so the build does not block writes to <schema>."<table>" while it runs.
+// CONCURRENTLY cannot run inside a transaction block (pg error 25001), and knex wraps every
+// migration in one, so this file opts out — which means every statement below must be
+// idempotent on its own.
+exports.config = {
+    transaction: false,
+};
+
+// A failed concurrent build leaves its index behind marked INVALID, and `IF NOT EXISTS` would
+// then skip it on the retry. Drop an invalid one first — never a healthy one.
+const dropInvalidIndex = async (knex, schema, indexName) => {
+    const { rows } = await knex.raw(
+        `SELECT 1
+           FROM pg_class c
+           JOIN pg_index i ON i.indexrelid = c.oid
+           JOIN pg_namespace n ON n.oid = c.relnamespace
+          WHERE n.nspname = ?
+            AND c.relname = ?
+            AND NOT i.indisvalid`,
+        [schema, indexName],
+    );
+
+    if (rows.length) {
+        await knex.raw(`DROP INDEX CONCURRENTLY IF EXISTS ${schema}.${indexName}`);
+    }
+};
+
+exports.up = async (knex) => {
+    await dropInvalidIndex(knex, '<schema>', '<idx_name>');
+    await knex.raw(`
+        CREATE INDEX CONCURRENTLY IF NOT EXISTS <idx_name>
+        ON <schema>."<table>" ("<column>")
+    `);
+};
+
+exports.down = async (knex) => {
+    await knex.raw('DROP INDEX CONCURRENTLY IF EXISTS <schema>.<idx_name>');
+};
+```
+
+Reference migration (the canonical example in the repo):
+`therr-services/users-service/src/store/migrations/20260727000000_main.userInterests.affinityScore.js`.
 
 ### Idempotency is a lint error, not a preference
 
@@ -155,6 +204,52 @@ Never scaffold `createTableIfNotExists` as the fix for `createTable` — Knex wa
 (it drops the follow-up ALTER statements it generates for some column types). Probe with
 `hasTable` instead, as above. Full table of substitutions:
 `docs/NICHE_APP_DATABASE_GUIDELINES.md` → "Idempotency (enforced by lint)".
+
+### Indexes are always built CONCURRENTLY
+
+**Every raw `CREATE INDEX` and `DROP INDEX` you scaffold uses `CONCURRENTLY`.**
+`therr/require-concurrent-index` enforces this and the three obligations below on any migration
+dated at or after `MIGRATION_CONCURRENT_INDEX_CUTOFF`. Scaffold it right the first time rather
+than leaning on lint. Migrations run at deploy time against live
+production tables: a plain `CREATE INDEX` holds a SHARE lock for the whole build, blocking every
+INSERT/UPDATE/DELETE on the table, and a plain `DROP INDEX` takes ACCESS EXCLUSIVE, blocking
+reads too. Local dev and CI tables are small, so nothing shows the stall until production.
+
+`CONCURRENTLY` brings three obligations. Each fails at deploy time, not at lint time, so check
+all three before handing the file back:
+
+1. **`exports.config = { transaction: false }`.** `CONCURRENTLY` cannot run inside a
+   transaction block (pg error 25001) and knex wraps every migration in one, so without the
+   opt-out the migration fails on deploy. This applies to `down` too: use
+   `DROP INDEX CONCURRENTLY IF EXISTS`, one index per statement.
+2. **Every statement is individually idempotent.** Without the transaction, a failure partway
+   leaves earlier statements applied and the file re-runs from the top. Any `ADD COLUMN`,
+   backfill or constraint in the same file must carry its own guard. Prefer keeping an index
+   migration to indexes only.
+3. **Clear an INVALID index before creating it.** A concurrent build that fails (deadlock,
+   cancelled session, a long transaction it could not wait out) leaves the index behind marked
+   INVALID. On the retry, `IF NOT EXISTS` matches it and skips the build, so the migration
+   "succeeds" with an index the planner never uses. The `dropInvalidIndex` helper in the
+   template above handles this.
+
+Further notes:
+
+- **A brand-new table is the one exception.** Declare its indexes inside the `createTable`
+  callback (`table.index([...])`, `table.unique([...])`). The table is empty and unread until
+  the migration finishes, and Knex cannot emit `CONCURRENTLY` there anyway. If a new table
+  needs an index the builder cannot express (an expression index), write it as raw SQL with
+  `CONCURRENTLY` like any other.
+- **Unique constraint on an existing table:** build `CREATE UNIQUE INDEX CONCURRENTLY IF NOT
+  EXISTS` first, then attach it with `ADD CONSTRAINT <name> UNIQUE USING INDEX <idx>` inside a
+  `DO $$ ... $$` block that checks `pg_constraint`. Do not use the usual
+  `DROP CONSTRAINT IF EXISTS` first: on a re-run it drops the index you just built.
+- A concurrent build waits for in-flight transactions on the table to finish. The migration
+  connection has no statement timeout, so a long-running transaction delays the deploy instead
+  of failing it. Mention this in the report for large, busy tables.
+- **Never rewrite a deployed migration (one on `origin/main`) to add `CONCURRENTLY`.** It has
+  already run, so the rewrite changes nothing. Converting a migration that is not yet on `main`
+  is the author's call: it changes the file's transaction semantics. Keep the file name, so
+  `knex_migrations` still sees the migration as unapplied.
 
 ### Step 4: Cross-reference FKs
 
@@ -191,6 +286,8 @@ Created therr-services/<svc>/src/store/migrations/<timestamp>_<schema>.<table>_<
   Table:       pact_activities
   Change:      create
   FK to users: main.users(id) ✓
+  Indexes:     declared in createTable ✓   (or, on an existing table:
+               CONCURRENTLY + transaction:false + invalid-index cleanup ✓)
 
 Reference migration (style match):
   therr-services/<svc>/src/store/migrations/20260126000009_habits.pact_activities.js
@@ -228,6 +325,7 @@ Scan every `.js` file in the six service migrations dirs. Report violations:
 - **Schema mismatch**: does the filename schema prefix match the `withSchema('...')` or `CREATE SCHEMA` inside the file?
 - **Missing `down`**: does every migration export a non-empty `down` that undoes `up`?
 - **Non-idempotent DDL**: `npx eslint <migration-path>` from the service directory — `therr/require-idempotent-migration` reports unguarded creates and drops. Only migrations dated at or after the cutoff are in scope.
+- **Blocking index DDL**: the same `npx eslint` run — `therr/require-concurrent-index` reports raw `CREATE INDEX` / `DROP INDEX` without `CONCURRENTLY`, builder index ops inside `alterTable`, `CONCURRENTLY` without `exports.config = { transaction: false }`, and concurrent creates with no invalid-index cleanup. Only migrations dated at or after its cutoff are in scope. Report only: never edit an already-deployed migration to fix this.
 - **Niche table on main**: any migration whose filename starts with `main.` but whose `up` references `habits.*` or another niche schema — and vice versa.
 - **Non-main table without schema prefix**: `createTable('pact_activities', ...)` without `.withSchema('habits')` would put it on the default schema; flag it.
 
