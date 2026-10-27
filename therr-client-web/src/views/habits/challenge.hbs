@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link rel="canonical" href="{{canonicalUrl}}">
+    <meta name="description" content="{{description}}">
+    <meta name="author" content="Therr Inc.">
+    <!--
+        Shared links to user-run challenges: unfurled, not indexed. Deliberately NOT disallowed in
+        robots.txt — Twitterbot and Slackbot honour robots.txt, and a disallowed path would stop
+        the share card from ever being fetched. noindex keeps it out of search instead.
+    -->
+    <meta name="robots" content="noindex">
+    <meta property="og:site_name" content="Friends with Habits">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{canonicalUrl}}">
+    <meta property="og:title" content="{{title}}">
+    <meta property="og:description" content="{{description}}">
+    <meta property="og:image" content="{{cardUrl}}">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{title}}">
+    <meta name="twitter:description" content="{{description}}">
+    <meta name="twitter:image" content="{{cardUrl}}">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&display=swap">
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon-habits.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
+    <style>
+        :root {
+            --fwh-plum: #2e2140;
+            --fwh-plum-deep: #1f1630;
+            --fwh-purple: #5b4273;
+            --fwh-purple-soft: #ece6f3;
+            --fwh-gold: #f6c94a;
+            --fwh-gold-dark: #d49617;
+            --fwh-cream: #fbf7f1;
+            --fwh-text: #3a2f4a;
+            --fwh-text-muted: #6f6582;
+            --fwh-border: #e6dfee;
+            --fwh-success: #1f7a4d;
+            --fwh-error: #b3261e;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        /* The action rows are display:flex, which would otherwise beat the hidden attribute. */
+        [hidden] { display: none !important; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Lexend', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--fwh-text);
+            background: var(--fwh-cream);
+            -webkit-font-smoothing: antialiased;
+        }
+        a { color: var(--fwh-purple); }
+        .container { max-width: 720px; margin: 0 auto; padding: 0 1rem; }
+        header.site-header { padding: 1rem 0; background: #fff; border-bottom: 1px solid var(--fwh-border); }
+        header.site-header .container { display: flex; align-items: center; gap: 0.625rem; }
+        header.site-header .brand { font-weight: 800; color: var(--fwh-plum); text-decoration: none; }
+        .hero { background: var(--fwh-plum); color: #fff; padding: 2.5rem 0 2rem; }
+        .eyebrow { color: var(--fwh-gold); font-weight: 600; font-size: 0.8125rem; letter-spacing: 0.12em; text-transform: uppercase; margin: 0 0 0.5rem; }
+        .hero h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.5rem; font-weight: 800; letter-spacing: -0.02em; word-break: break-word; }
+        .hero .meta { color: var(--fwh-purple-soft); margin: 0; }
+        .hero .time-left { display: inline-block; margin-top: 1rem; padding: 0.25rem 0.75rem; border-radius: 999px; background: var(--fwh-plum-deep); color: var(--fwh-gold); font-weight: 600; font-size: 0.875rem; }
+        .actions { padding: 1.5rem 0 0.5rem; }
+        .cta { display: inline-block; border: 0; cursor: pointer; font: inherit; padding: 0.875rem 1.75rem; border-radius: 999px; background: var(--fwh-gold); color: var(--fwh-plum); font-weight: 800; font-size: 1.0625rem; text-decoration: none; }
+        .cta:hover { background: var(--fwh-gold-dark); }
+        .cta[disabled] { opacity: 0.6; cursor: default; }
+        .cta.secondary { background: #fff; border: 2px solid var(--fwh-border); font-weight: 600; font-size: 0.9375rem; padding: 0.625rem 1.25rem; }
+        .action-row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+        .note { color: var(--fwh-text-muted); font-size: 0.875rem; margin: 0.75rem 0 0; }
+        .status { margin: 0.75rem 0 0; font-weight: 600; }
+        .status.ok { color: var(--fwh-success); }
+        .status.err { color: var(--fwh-error); }
+        .board { margin: 1.5rem 0 2rem; background: #fff; border: 1px solid var(--fwh-border); border-radius: 1rem; overflow: hidden; }
+        .board h2 { margin: 0; padding: 1rem 1.25rem 0.25rem; font-size: 1.125rem; color: var(--fwh-plum); }
+        .board .ranked-by { margin: 0; padding: 0 1.25rem 0.75rem; color: var(--fwh-text-muted); font-size: 0.875rem; }
+        .board ol { list-style: none; margin: 0; padding: 0; }
+        .board li { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; border-top: 1px solid var(--fwh-border); }
+        .board li.me { background: #fdf6e3; }
+        .board .rank { flex: 0 0 2rem; font-weight: 800; color: var(--fwh-gold-dark); }
+        .board .who { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .board .who small { color: var(--fwh-text-muted); }
+        .board .score { flex: 0 0 auto; font-weight: 700; color: var(--fwh-plum); }
+        .board .empty { padding: 1rem 1.25rem 1.25rem; color: var(--fwh-text-muted); border-top: 1px solid var(--fwh-border); }
+        .how { padding: 0 0 2.5rem; }
+        .how h2 { font-size: 1.125rem; color: var(--fwh-plum); }
+        .how ol { padding-left: 1.25rem; color: var(--fwh-text-muted); }
+        footer.site-footer {
+            padding: 2rem 0 3rem;
+            border-top: 1px solid var(--fwh-border);
+            background: #fff;
+            text-align: center;
+            color: var(--fwh-text-muted);
+            font-size: 0.875rem;
+        }
+        footer.site-footer .footer-links { margin-bottom: 0.75rem; }
+        footer.site-footer .footer-links a { margin: 0 0.5rem; color: var(--fwh-text-muted); }
+        footer.site-footer .footer-family { margin-top: 0.5rem; }
+        @media (min-width: 640px) {
+            .hero h1 { font-size: 2.5rem; }
+        }
+    </style>
+    {{> habitsAnalytics}}
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <img src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
+            <a class="brand" href="/">Friends with Habits</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <p class="eyebrow">{{durationLabel}} challenge</p>
+                <h1>{{#if goalEmoji}}{{goalEmoji}} {{/if}}{{challengeTitle}}</h1>
+                <p class="meta">Started by {{creatorName}} &middot; {{memberCount}} {{memberLabel}} in</p>
+                <span class="time-left">{{timeLeft}}</span>
+            </div>
+        </section>
+
+        <div class="container">
+            <section class="actions" aria-live="polite">
+                <!--
+                    Rendered for a signed-out visitor; the script below swaps in Join or Check in
+                    once it knows who is looking. Without JS the links still work.
+                -->
+                <div class="action-row" id="signed-out-actions">
+                    {{#if isJoinable}}
+                        <a class="cta" id="join-link" href="/register?challenge={{joinToken}}">Join this challenge</a>
+                        <a class="cta secondary" id="signin-link" href="/login?returnTo=/c/{{joinToken}}">I have an account</a>
+                    {{else}}
+                        {{#if isFull}}<p class="status">This challenge is full.</p>{{/if}}
+                        {{#if hasEnded}}<p class="status">This challenge has ended. Here is how it finished.</p>{{/if}}
+                    {{/if}}
+                </div>
+                <div class="action-row" id="member-actions" hidden>
+                    <button class="cta" id="checkin-btn" type="button">Check in today</button>
+                </div>
+                <div class="action-row" id="join-actions" hidden>
+                    <button class="cta" id="join-btn" type="button">Join this challenge</button>
+                </div>
+                <p class="status" id="action-status" hidden></p>
+                <div class="action-row" style="margin-top:0.75rem">
+                    <button class="cta secondary" id="share-btn" type="button">Share the link</button>
+                    <!-- Friends with Habits applicationId, hardcoded: Handlebars escapes '=' in attributes. -->
+                    <a class="cta secondary" id="store-link" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get the app</a>
+                </div>
+                <p class="note" id="join-note">Free. Join and check in right here, or in the Friends with Habits app. Your username and your progress are visible to anyone with this link.</p>
+            </section>
+
+            <section class="board">
+                <h2>Leaderboard</h2>
+                <p class="ranked-by">{{rankedByLabel}}</p>
+                {{#if hasStandings}}
+                    <ol>
+                        {{#each standings}}
+                            <li data-username="{{userName}}">
+                                <span class="rank">{{rank}}</span>
+                                <span class="who">{{displayName}} <small>@{{userName}}</small></span>
+                                <span class="score">{{score}}</span>
+                            </li>
+                        {{/each}}
+                    </ol>
+                {{else}}
+                    <p class="empty">Nobody is on the board yet.</p>
+                {{/if}}
+            </section>
+
+            <section class="how">
+                <h2>How it works</h2>
+                <ol>
+                    <li>Join with a free account. No install needed to start.</li>
+                    <li>Check in on {{goalName}} each day you do it.</li>
+                    <li>Climb the board. Bring a friend for a partner who notices when you skip.</li>
+                </ol>
+            </section>
+        </div>
+    </main>
+
+    {{> habitsFooter}}
+
+    <script>
+        (function () {
+            var API_BASE = {{{apiBaseJson}}};
+            var TOKEN = {{{joinTokenJson}}};
+            var HABIT_GOAL_ID = {{{habitGoalIdJson}}};
+            var IS_JOINABLE = {{{isJoinableJson}}};
+            var SHARE_URL = 'https://habits.therr.com/c/' + TOKEN;
+
+            var signedOut = document.getElementById('signed-out-actions');
+            var memberActions = document.getElementById('member-actions');
+            var joinActions = document.getElementById('join-actions');
+            var statusBox = document.getElementById('action-status');
+            var checkinBtn = document.getElementById('checkin-btn');
+            var joinBtn = document.getElementById('join-btn');
+            var joinLink = document.getElementById('join-link');
+
+            function track(name, params) {
+                try {
+                    if (typeof window.gtag === 'function') { window.gtag('event', name, params || {}); }
+                } catch (e) { /* analytics must never break the page */ }
+            }
+
+            function showStatus(msg, kind) {
+                statusBox.textContent = msg;
+                statusBox.className = 'status ' + (kind || '');
+                statusBox.hidden = false;
+            }
+
+            // Remember the challenge across register → verify email → sign in, which can span
+            // days and a different tab. habits/login.hbs sends the user back here afterwards.
+            if (joinLink) {
+                joinLink.addEventListener('click', function () {
+                    try { localStorage.setItem('habitsPendingChallenge', TOKEN); } catch (e) { /* fine */ }
+                    track('challenge_join_click', { signed_in: false });
+                });
+            }
+
+            document.getElementById('share-btn').addEventListener('click', function () {
+                track('challenge_share_click', {});
+                if (navigator.share) {
+                    navigator.share({ title: document.title, url: SHARE_URL }).catch(function () { /* dismissed */ });
+                    return;
+                }
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(SHARE_URL).then(function () {
+                        showStatus('Link copied. Send it to a friend.', 'ok');
+                    });
+                    return;
+                }
+                window.prompt('Copy this link', SHARE_URL);
+            });
+
+            // Same flat session layout as habits/login.hbs and verify-phone.hbs.
+            function readStoredUser() {
+                try {
+                    var raw = sessionStorage.getItem('therrUser') || localStorage.getItem('therrUser');
+                    return raw ? JSON.parse(raw) : null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            var storedUser = readStoredUser();
+            if (!storedUser || !storedUser.idToken || !storedUser.id) {
+                return;
+            }
+
+            var timeZone;
+            try { timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { timeZone = undefined; }
+
+            function authHeaders() {
+                return {
+                    'Content-Type': 'application/json',
+                    'authorization': 'Bearer ' + storedUser.idToken,
+                    'x-userid': storedUser.id,
+                    'x-brand-variation': 'habits',
+                    'x-localecode': 'en-us',
+                };
+            }
+
+            function request(method, path, body) {
+                return fetch(API_BASE + path, {
+                    method: method,
+                    headers: authHeaders(),
+                    body: body ? JSON.stringify(body) : undefined,
+                }).then(function (res) {
+                    return res.json().then(function (json) { return { res: res, body: json }; })
+                        .catch(function () { return { res: res, body: {} }; });
+                });
+            }
+
+            request('GET', '/users-service/habits/challenges/by-token/' + TOKEN + (timeZone ? '?timeZone=' + encodeURIComponent(timeZone) : ''))
+                .then(function (out) {
+                    // A stale session reads as signed out; the sign-in link is still on screen.
+                    if (!out.res.ok || !out.body || !out.body.viewer) { return; }
+                    try { localStorage.removeItem('habitsPendingChallenge'); } catch (e) { /* fine */ }
+                    signedOut.hidden = true;
+                    if (out.body.viewer.isMember) {
+                        if (!out.body.hasEnded) { memberActions.hidden = false; }
+                        document.getElementById('join-note').textContent = 'You are in. Check in each day you do it, here or in the app.';
+                        var row = document.querySelector('[data-username="' + (storedUser.userName || '').replace(/"/g, '') + '"]');
+                        if (row) { row.className = 'me'; }
+                    } else if (IS_JOINABLE) {
+                        joinActions.hidden = false;
+                    }
+                })
+                .catch(function () { /* leave the signed-out actions in place */ });
+
+            joinBtn.addEventListener('click', function () {
+                joinBtn.disabled = true;
+                track('challenge_join_click', { signed_in: true });
+                request('POST', '/users-service/habits/challenges/by-token/' + TOKEN + '/join', { timeZone: timeZone })
+                    .then(function (out) {
+                        if (out.res.ok) {
+                            track('challenge_joined', {});
+                            window.location.reload();
+                            return;
+                        }
+                        joinBtn.disabled = false;
+                        // 402: the free tier's habit limit. The app is where a slot is freed or unlocked.
+                        showStatus((out.body && out.body.message) || 'We could not join you just now. Try again.', 'err');
+                    })
+                    .catch(function () {
+                        joinBtn.disabled = false;
+                        showStatus('Network error. Try again in a moment.', 'err');
+                    });
+            });
+
+            checkinBtn.addEventListener('click', function () {
+                checkinBtn.disabled = true;
+                request('POST', '/users-service/habits/checkins', { habitGoalId: HABIT_GOAL_ID, status: 'completed', timeZone: timeZone })
+                    .then(function (out) {
+                        if (out.res.ok) {
+                            track('challenge_checkin', { surface: 'web' });
+                            checkinBtn.textContent = 'Checked in today';
+                            showStatus('Nice. The board updates in a moment.', 'ok');
+                            setTimeout(function () { window.location.reload(); }, 1500);
+                            return;
+                        }
+                        checkinBtn.disabled = false;
+                        showStatus((out.body && out.body.message) || 'That check-in did not go through. Try again.', 'err');
+                    })
+                    .catch(function () {
+                        checkinBtn.disabled = false;
+                        showStatus('Network error. Try again in a moment.', 'err');
+                    });
+            });
+        })();
+    </script>
+</body>
+</html>

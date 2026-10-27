@@ -116,6 +116,7 @@ const MainActionButton = ({
     themeForms,
     themeUser,
     translate,
+    onAcceptConnectionRequest,
     onConnectionRequest,
     onMessageUser,
     userInView,
@@ -129,6 +130,11 @@ const MainActionButton = ({
         buttonTitle = translate('user.profile.actions.connect');
         onPress = () => onConnectionRequest({}, userInView);
         iconName = 'person-add';
+    } else if (userInView.isPendingConnection && userInView.hasIncomingConnectionRequest) {
+        // They sent the request (usually reached from the request notification), so let the viewer answer it here
+        buttonTitle = translate('user.profile.actions.acceptConnection');
+        onPress = () => onAcceptConnectionRequest(userInView);
+        iconName = 'how-to-reg';
     } else if (userInView.isPendingConnection) {
         buttonTitle = translate('user.profile.actions.pendingConnection');
         onPress = () => onConnectionRequest({}, userInView);
@@ -181,6 +187,7 @@ const UserDisplayHeader = ({
     goToConnections,
     navigation,
     isDarkMode,
+    onAcceptConnectionRequest,
     onBlockUser,
     onConnectionRequest,
     onMessageUser,
@@ -376,6 +383,7 @@ const UserDisplayHeader = ({
                         themeForms={themeForms}
                         themeUser={themeUser}
                         translate={translate}
+                        onAcceptConnectionRequest={onAcceptConnectionRequest}
                         onConnectionRequest={onConnectionRequest}
                         onMessageUser={onMessageUser}
                         userInView={userInView}

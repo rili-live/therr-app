@@ -88,6 +88,11 @@ const unauthenticatedPaths: IUnauthenticatedPath[] = [
     // landing pages it exists for. Exposure is limited to whoever holds the
     // unguessable token, and the route is rate limited in services/users/router.ts.
     { url: new RegExp(`/v1/users-service/users/invites/${UUID_RE_SRC}$`, 'i'), methods: ['GET'] },
+    // A Friends with Habits challenge's public page (habits.therr.com/c/:token) and its share
+    // card. Pre-signup by definition — the point of the link is that a stranger can see the
+    // scoreboard before deciding to join. ANCHORED: `/join` beneath it must stay authenticated.
+    // Uses authenticateOptional (services/users/router.ts) so a signed-in viewer is recognised.
+    { url: /\/v1\/users-service\/habits\/challenges\/by-token\/[A-Za-z0-9]{12}$/, methods: ['GET'] },
     { url: /\/v1\/user-files\/.*/, methods: ['GET'] }, // image proxy — whole sub-tree is public
     { url: /\/v1\/maps-service\/place\/*/, methods: ['GET'] }, // Google Maps: Places proxy
     { url: '/v1/maps-service/geocode', methods: ['GET'] }, // Nominatim geocoding proxy

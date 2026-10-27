@@ -98,7 +98,35 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
-## SMS country tiers (added 2026-10-21, after the SMS-pumping incident)
+## Challenges & founder referral reward (added 2026-10-23, § 2.7 #2988)
+
+- [ ] **Run the users-service migration after the deploy** (`20261023000001`: `habits.challenges`,
+  `habits.challenge_members`, `habits.referral_rewards`). All additive; neither automator reads them.
+  Until it runs, `/c/:token` 404s and the check-in's reward evaluation logs an error and grants
+  nothing (the check-in itself is unaffected). Same deploy also carries `20261027000001` (three
+  indexes on `main.invites` / `main.users` for the referral lookups that run on every check-in) —
+  plain `CREATE INDEX`, so it briefly blocks writes to `main.users` while it builds.
+- [ ] **Smoke-test a share link once deployed:** create a challenge via `POST /habits/challenges`
+  (no mobile UI yet), open `https://habits.therr.com/c/<token>` signed out, and paste the link into
+  iMessage or Slack. The unfurl should show the standings card, not the generic brand image. If it
+  shows the generic image, the card route is falling back — check the client pod logs for a resvg
+  or font load error.
+- [ ] **Confirm the two new display pushes render on a Habits handset** (`challengeJoined`,
+  `habitsReferralRewardEarned`). No click action, so the tap only opens the app. Both go through the
+  queue, so they need `NOTIFICATION_QUEUE_WORKER_ENABLED=true` like the rest.
+- [ ] **Watch the first referral grants** — `Granted the founder unlock as a referral reward` in the
+  users-service logs, and `SELECT * FROM habits.referral_rewards`. Spot-check `qualifyingUserIds` for
+  obviously fake accounts in the first few. Kill switch: `HABITS_REFERRAL_REWARD_ENABLED=false`;
+  thresholds: `HABITS_REFERRAL_REWARD_FRIEND_COUNT` (3), `HABITS_REFERRAL_REWARD_ACTIVE_DAYS` (3).
+  Set them on users-service; the gateway and web never read them.
+- [ ] **Release the mobile half to Play** (`niche/HABITS-general` → `-main`, `/niche-android-release`).
+  Until it ships, challenge links open the installed app and land on the dashboard, and nothing in
+  the app mentions the referral offer. After it ships, open a `/c/` link on a handset with the app
+  installed, signed in and signed out, and confirm both land on the challenge.
+- [ ] **Consider announcing the referral offer outside the app** — a line in the `habitsFounderOffer`
+  push copy and the therr-messaging-automator `introHabits` email. In-app it shows on My Habits and
+  the paywall.
+
 
 - [ ] **Match Twilio's Messaging Geo Permissions to the code tiers** in
   `therr-public-library/therr-js-utilities/src/sms-destination-policy.ts` — enable exactly
@@ -174,6 +202,24 @@ first App Check build reaches users, or every token is rejected and everyone lan
   stored English names.
 - [ ] **Play listing (`niche/HABITS-general`, `/aso-listing`):** test the "bring the challenge
   you're already doing" angle in the short description and first screenshot.
+
+## Challenge guides on habits.therr.com (added 2026-10-24, docs/ADJACENCY_MARKETING.md § 4)
+
+- [ ] **After the deploy, resubmit `https://habits.therr.com/sitemap.xml` in Search Console**, then
+  URL-inspect and request indexing for the three hubs (`/challenges`, `/es/retos`, `/fr/defis`)
+  and `/challenges/30-day-no-spend`. The guides are new URLs on a host with almost no inbound links.
+- [ ] **GA4 admin: register `page_slug`, `page_locale`, `template_key` and `duration_days` as
+  event-scoped custom dimensions.** The guides' `register_start`, `store_click`,
+  `challenge_tracker_tick` / `_print` and `/register`'s `sign_up` carry them; until they are
+  registered, reports cannot break those events down by guide.
+- [ ] **4–8 weeks after the deploy, read the Search Console queries** listed in
+  `docs/ADJACENCY_MARKETING.md` → "The guides (play 4)", and the Pages report for duplicate-canonical
+  flags on the 60/90-day guides.
+- [ ] **Decide on the "challenges running now" strip** (proposal in the same doc, § 4): it needs an
+  opt-in `habits.challenges."isListed"` flag, so it's a schema and privacy decision.
+- [ ] **Have a fluent speaker read the Spanish and French guides** (`src/habitsChallengeLocales/es`,
+  `fr-ca`). They were written directly rather than machine-translated, but nobody fluent has
+  reviewed them. Spanish uses Mexican vocabulary (es_MX), and French is Canadian with *vous*.
 
 ## Push open tracking (added 2026-10-16)
 
@@ -1819,6 +1865,8 @@ backend change needed — it refuses to treat Play's own
 - [ ] (2026-10-12, /quality-peer-review) **After the maps-service deploy, open a `/locations/city/:slug` page in each locale and confirm no "edit | edit source" text is left in its sections.** `20261012000000_main.cityWikiCache.expire_edit_links.js` only expires the cached rows; each one is re-fetched lazily on its next view, so the first visit to a city still serves the old text and the second should be clean. If the text persists after a refresh, Wikivoyage changed its edit-link markup and `stripHtml` in `maps-service/src/utilities/wikiFetcher.ts` no longer matches it. Introduced by 3cc469c86.
 - [ ] (2026-10-19, /push-notification-guard) **After the push-notifications-service deploy, check a Friends with Habits push on a handset and confirm its title leads with an emoji that renders (not a tofu box).** Server-only change — no app release needed — but nothing server-side can see how the device renders the title. Check one display push (e.g. `streakFreezeUsed`, OS-rendered) and one data-only push (e.g. `dailyHabitReminder`, Notifee-rendered) on the oldest Android version still in use, and on iOS. Every emoji in `notificationTitleEmoji.ts` is from Unicode 12 or earlier for that reason.
 - [ ] (2026-10-21, /quality-peer-review) **After the SMS-pumping guards deploy (`a12979d4d`…`c0bf8f311`), set Twilio Messaging Geo Permissions per § SMS country tiers above (core + extended tiers from `therr-js-utilities/src/sms-destination-policy.ts` — no longer the original 13-country list, and no longer pinned in `k8s/prod`) and confirm the spend alert from the 2026-07-25 item exists.** The account-level setting is the backstop for any send site that skips `isSmsDestinationAllowed`. Then watch for the `Global SMS budget exhausted for this hour` error log — it is the only signal that the 60/hour gateway cap (`TWILIO_SMS_GLOBAL_HOURLY_CAP`) is tripping, which locks every real user out of phone sign-in/sign-up for the rest of that hour.
+- [ ] (2026-10-24, /seo-audit) Re-submit sitemap to Google Search Console
+  after the next deploy — added `/challenges`, `/es/retos`, `/fr/defis` and 63 challenge guides under them.
 <!-- skill-followups:end -->
 
 ---
@@ -2724,6 +2772,39 @@ them, and the sense that specific friends are watching would dilute. So:
 
 Split: backend, migration and `therr-react` on `general`. Challenge screens, the join deep
 link and share sheet copy on `niche/HABITS-general`.
+
+**Status (2026-10-23): server and web halves built for `general`; mobile half built for `niche/HABITS-general`. Neither has merged or shipped yet.**
+
+Built:
+- `habits.challenges` / `habits.challenge_members` (habits schema like `pact_join_requests`, not a
+  brand-scoped `main.*` table), `ChallengesStore`, `handlers/challenges.ts`, ranking rules in
+  `utilities/challengeStandings.ts`. Ranks by amount when the goal has an `amountUnit`, else by days.
+  The ranking is computed on read (≤50 members), not frozen through `leaderboardPeriodResults`.
+- Routes: `POST /habits/challenges`, `GET …/mine`, public `GET …/by-token/:token`,
+  `POST …/by-token/:token/join`, `POST …/:id/leave|cancel`. therr-react: `HabitsChallengesService`.
+- `habits.therr.com/c/:token`: scoreboard, join and **check in from the web with no install**, and a
+  generated 1200x630 PNG share card (`/c/:token/card.png`, resvg WASM) as the og:image.
+- `challengeJoined` push to the creator, once per joiner.
+- Decisions taken: joining does NOT count toward `HABITS_SOLO_UNLOCK_INVITE_COUNT` (a public link is
+  not a personal invite), but a joiner whose account is new DOES count toward the founder referral
+  reward. Creating a challenge is free (max 3 running per creator), not premium. No daily standings
+  digest yet.
+
+Mobile (`niche/HABITS-general`, branch `ccr-b8c0d541-syesje-habits-mobile`):
+- "Challenge friends to this habit" on HabitDetail → `CreateChallenge` → `ChallengeDetail` with the
+  share sheet open. `ChallengeDetail` joins (402 → paywall), opens the habit to check in, leaves, ends.
+- `habits.therr.com/c/<token>` opens `ChallengeDetail`. The app already claimed the whole host as an
+  App Link, so before this those links opened the app and went nowhere. A link opened signed out or
+  on a cold start is stashed (`pendingChallengeToken`) and drained right after the landing reset.
+- "Your challenges" on My Habits; `ReferralRewardCard` on My Habits and the paywall.
+- `challengeJoined` taps open My Habits (the push carries no token); `habitsReferralRewardEarned` taps
+  open the paywall's owned state.
+- Joining creates a tracked habit, which already releases `PactOnboardingGuard` — no guard change.
+
+Still open:
+- A daily standings digest push for members (deliberately not built; see the design notes above).
+- The `challengeJoined` push carries no join token, so its tap cannot open the challenge itself.
+  Adding `joinToken` to the push payload needs a field allowlisted end to end in the push service.
 
 #### 2.7.1 Group thread for pacts and challenges — follow-up to § 2.7, lower priority (#2989)
 

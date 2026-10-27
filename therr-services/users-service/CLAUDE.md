@@ -72,6 +72,10 @@ Key tables: `users`, `userConnections`, `userGroups`, `notifications`, `userAchi
 - `pact_join_requests` - Requests to join an *open* pact (`pacts.isOpen`). Deliberately not `pact_members` rows,
   so an unanswered stranger counts in no membership query; approval turns one into an ordinary active member
 - `habit_checkins` - Daily completion records
+- `challenges` / `challenge_members` - Join-by-link challenges: a public scoreboard over members' own check-ins on
+  one habit goal. Not pacts — no partner pushes. Ranking rules live in `utilities/challengeStandings.ts`
+- `referral_rewards` - At most one row per user: the founder unlock granted for bringing active friends. The UNIQUE
+  userId is what makes concurrent evaluations grant once; see `handlers/helpers/referralReward.ts`
 - `streaks` - Streak state per user/habit (also the freeze pool the daily streak borrows from)
 - `streak_history` - Event log for analytics
 - `user_daily_streaks` - App-level daily streak, one row per user across all habits

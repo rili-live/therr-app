@@ -40,6 +40,8 @@ import ProofsStore from './ProofsStore';
 import PactActivitiesStore from './PactActivitiesStore';
 import UserHabitsStore from './UserHabitsStore';
 import LifetimePurchasesStore from './LifetimePurchasesStore';
+import ChallengesStore from './ChallengesStore';
+import ReferralRewardsStore from './ReferralRewardsStore';
 import SubscriptionPurchasesStore from './SubscriptionPurchasesStore';
 import JournalEntriesStore from './JournalEntriesStore';
 import UserDailyStreaksStore from './UserDailyStreaksStore';
@@ -131,6 +133,10 @@ class Store {
 
     lifetimePurchases: LifetimePurchasesStore;
 
+    challenges: ChallengesStore;
+
+    referralRewards: ReferralRewardsStore;
+
     subscriptionPurchases: SubscriptionPurchasesStore;
 
     journalEntries: JournalEntriesStore;
@@ -191,6 +197,8 @@ class Store {
         this.pactActivities = new PactActivitiesStore(this.db);
         this.userHabits = new UserHabitsStore(this.db);
         this.lifetimePurchases = new LifetimePurchasesStore(this.db);
+        this.challenges = new ChallengesStore(this.db);
+        this.referralRewards = new ReferralRewardsStore(this.db);
         this.subscriptionPurchases = new SubscriptionPurchasesStore(this.db);
         this.journalEntries = new JournalEntriesStore(this.db);
         this.userDailyStreaks = new UserDailyStreaksStore(this.db);

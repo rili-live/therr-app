@@ -159,6 +159,15 @@ const isCompletedConnection = (connection?: { [key: string]: any }) => !!connect
 const isUserInfoPublic = (user, connection) => connection?.isMe || user.settingsIsProfilePublic
     || isCompletedConnection(connection);
 
+/**
+ * True when the profile owner sent the viewer a connection request that is still awaiting the viewer's answer,
+ * so the client can offer an accept action instead of a dead "Request Pending" label
+ * @returns boolean
+ */
+const isIncomingConnectionRequest = (targetUserId, connection?: { [key: string]: any }) => !!connection
+    && connection.requestStatus === UserConnectionTypes.PENDING
+    && connection.requestingUserId === targetUserId;
+
 const getUserProfileResponse = (userResult, friendship: undefined | { [key: string]: any }, connectionCount: number, socialSyncs) => {
     // Only select specific properties should be returned
     const sanitizedUserResult: any = {
@@ -199,6 +208,7 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
                     || friendship.requestStatus === UserConnectionTypes.PENDING
                     || friendship.requestStatus === UserConnectionTypes.BLOCKED)
                 : false,
+            hasIncomingConnectionRequest: isIncomingConnectionRequest(userResult.id, friendship),
             connectionCount,
             socialSyncs,
             appBrands: deriveAppBrands(userResult.brandVariations),
@@ -230,6 +240,7 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
                 || friendship.requestStatus === UserConnectionTypes.PENDING
                 || friendship.requestStatus === UserConnectionTypes.BLOCKED)
             : false,
+        hasIncomingConnectionRequest: isIncomingConnectionRequest(userResult.id, friendship),
         connectionCount,
         socialSyncs,
     };
