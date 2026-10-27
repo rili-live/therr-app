@@ -68,6 +68,10 @@ export const NOTIFICATION_TITLE_EMOJI: Record<PushNotifications.Types, string> =
     [PushNotifications.Types.habitsFirstHabitNudge]: '🌱',
     [PushNotifications.Types.habitsFounderOffer]: '💎',
 
+    // Habits — growth loops
+    [PushNotifications.Types.challengeJoined]: '🚀',
+    [PushNotifications.Types.habitsReferralRewardEarned]: '🔓',
+
     // Habits — partners
     [PushNotifications.Types.partnerCheckedIn]: '✅',
     [PushNotifications.Types.partnerMissedDay]: '👀',

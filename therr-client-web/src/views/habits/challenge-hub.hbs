@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="{{htmlLang}}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link rel="canonical" href="{{canonicalUrl}}">
+    {{#each hreflangAlternates}}
+    <link rel="alternate" hreflang="{{hreflang}}" href="{{href}}">
+    {{/each}}
+    <meta name="description" content="{{description}}">
+    <meta name="author" content="Therr Inc.">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <meta name="theme-color" content="#2e2140">
+    <meta property="og:site_name" content="Friends with Habits">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="{{ogLocale}}">
+    {{#each ogLocaleAlternates}}
+    <meta property="og:locale:alternate" content="{{this}}">
+    {{/each}}
+    <meta property="og:url" content="{{canonicalUrl}}">
+    <meta property="og:title" content="{{ui.hub.title}}">
+    <meta property="og:description" content="{{description}}">
+    <meta property="og:image" content="https://habits.therr.com/assets/images/habits-og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@therr_app">
+    <meta name="twitter:title" content="{{ui.hub.title}}">
+    <meta name="twitter:description" content="{{description}}">
+    <meta name="twitter:image" content="https://habits.therr.com/assets/images/habits-og-image.png">
+    <meta name="google-play-app" content="app-id=com.therr.habits">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&display=swap">
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon-habits.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
+    {{! Built with serialize-javascript server-side, hence the triple-stash (see challenge-guide.hbs). }}
+    <script type="application/ld+json">{{{jsonLd}}}</script>
+    {{> habitsChallengeStyles}}
+    <style>
+        .container { max-width: 820px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 1.5rem); }
+        .category + .category { margin-top: 2.25rem; }
+        .hub-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.875rem; }
+        .hub-list .card h3 a { color: var(--fwh-plum); text-decoration: none; }
+        .hub-list .card h3 a:hover { text-decoration: underline; }
+        .hub-lengths { margin: 0.5rem 0 0; font-size: 0.9375rem; color: var(--fwh-text-muted); }
+        .hub-lengths a { font-weight: 600; margin-left: 0.375rem; }
+        footer.site-footer {
+            padding: 2rem 0 3rem;
+            border-top: 1px solid var(--fwh-border);
+            background: var(--fwh-white);
+            text-align: center;
+            color: var(--fwh-text-muted);
+            font-size: 0.875rem;
+        }
+        footer.site-footer .footer-links { margin-bottom: 0.75rem; }
+        footer.site-footer .footer-links a { margin: 0 0.5rem; color: var(--fwh-text-muted); }
+        footer.site-footer .footer-family { margin-top: 0.5rem; }
+        footer.site-footer .footer-family a { color: var(--fwh-text-muted); }
+    </style>
+    {{> habitsAnalytics}}
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="{{homePath}}" class="brand">
+                <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
+                Friends with Habits
+            </a>
+            <nav class="lang-links" aria-label="Language">
+                {{#each languageLinks}}
+                <a href="{{href}}" hreflang="{{hreflang}}" lang="{{hreflang}}"{{#if isCurrent}} aria-current="page"{{/if}}>{{label}}</a>
+                {{/each}}
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <p class="breadcrumb"><a href="{{homePath}}">{{ui.homeLabel}}</a> › {{ui.hubLabel}}</p>
+
+            <p class="eyebrow">{{ui.hub.eyebrow}}</p>
+            <h1>{{ui.hub.heading}}</h1>
+            <p class="lede">{{ui.hub.intro}}</p>
+
+            {{#each categories}}
+            <section class="block category" id="category-{{category}}">
+                <h2>{{name}}</h2>
+                <ul class="hub-list">
+                    {{#each items}}
+                    <li class="card">
+                        <h3><a href="{{href}}">{{name}}</a></h3>
+                        <p>{{summary}}</p>
+                        <p class="hub-lengths">{{../../ui.hub.lengthsLabel}}{{#each links}} <a href="{{href}}">{{label}}</a>{{/each}}</p>
+                    </li>
+                    {{/each}}
+                </ul>
+            </section>
+            {{/each}}
+
+            <div class="cta-band">
+                <h2>{{ui.hub.ctaHeading}}</h2>
+                <p>{{ui.hub.ctaBody}}</p>
+                <div class="cta-row">
+                    <a class="cta" href="{{registerHref}}" data-cta="register" data-placement="hub">{{ui.hub.ctaPrimary}}</a>
+                    <a class="cta cta--secondary" href="{{storeUrl}}" rel="noopener" data-cta="store" data-placement="hub">{{ui.cta.secondary}}</a>
+                </div>
+                <p class="cta-note">{{ui.cta.note}}</p>
+            </div>
+        </div>
+    </main>
+
+    {{> habitsFooter}}
+
+    {{! Same CTA events as challenge-guide.hbs, without a template or length. }}
+    <script>
+        (function () {
+            var page = {{#if pageDataJson}}{{{pageDataJson}}}{{else}}{}{{/if}};
+            function track(name, params) {
+                try {
+                    if (typeof window.gtag === 'function') { window.gtag('event', name, params || {}); }
+                } catch (e) { /* analytics must never break the page */ }
+            }
+            Array.prototype.forEach.call(document.querySelectorAll('a[data-cta]'), function (link) {
+                link.addEventListener('click', function () {
+                    var params = { page_slug: page.pagePath, page_locale: page.locale, location: 'challenge_hub' };
+                    if (link.getAttribute('data-cta') === 'store') {
+                        params.link_url = link.href;
+                        track('store_click', params);
+                    } else {
+                        track('register_start', params);
+                    }
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

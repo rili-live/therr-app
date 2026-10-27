@@ -218,6 +218,14 @@
       "title": "{checkinCount} check-ins. Tu bâtis quelque chose.",
       "body": "Débloque des habitudes illimitées à vie en un seul paiement. Sans abonnement."
     },
+    "challengeJoined": {
+      "title": "{userName} a rejoint ton défi",
+      "body": "Ton défi {habitName} vient de grandir. Fais ton suivi aujourd'hui pour garder l'avance."
+    },
+    "habitsReferralRewardEarned": {
+      "title": "Tu as débloqué Friends with Habits à vie",
+      "body": "Tes amis ont été constants, alors tout est débloqué. Sans paiement ni abonnement. Merci de les avoir amenés."
+    },
     "dailyHabitReminder": {
       "title": "C'est l'heure de t'enregistrer",
       "body": "Enregistre {habitName} aujourd'hui — un seul enregistrement lance ta série.",

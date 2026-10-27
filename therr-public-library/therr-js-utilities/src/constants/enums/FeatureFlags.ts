@@ -127,6 +127,20 @@ const DEFAULT_HABITS_LIFETIME_FOUNDER_LIMIT = 5000;
  */
 const DEFAULT_HABITS_SOLO_UNLOCK_INVITE_COUNT = 3;
 
+/**
+ * The founder unlock as a referral reward: bring this many friends who each
+ * become active, and the lifetime entitlement is granted free.
+ *
+ * "Brought" means the friend's account was created around the time this user
+ * invited them (a pact invite, a magic invite link, or joining a challenge they
+ * created) — an existing account being invited is not a new person. "Active"
+ * means completed check-ins on HABITS_REFERRAL_REWARD_ACTIVE_DAYS distinct days,
+ * so the reward pays for friends who actually use the app, not for invites
+ * sent. See `users-service/src/handlers/helpers/referralReward.ts`.
+ */
+const DEFAULT_HABITS_REFERRAL_REWARD_FRIEND_COUNT = 3;
+const DEFAULT_HABITS_REFERRAL_REWARD_ACTIVE_DAYS = 3;
+
 const parseLimit = (raw: unknown, fallback: number): number => {
     const parsed = typeof raw === 'string' ? parseInt(raw, 10) : Number(raw);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
@@ -157,6 +171,16 @@ const HABITS_SOLO_UNLOCK_INVITE_COUNT = parseLimit(
     DEFAULT_HABITS_SOLO_UNLOCK_INVITE_COUNT,
 );
 
+const HABITS_REFERRAL_REWARD_FRIEND_COUNT = parseLimit(
+    typeof process !== 'undefined' ? process?.env?.HABITS_REFERRAL_REWARD_FRIEND_COUNT : undefined,
+    DEFAULT_HABITS_REFERRAL_REWARD_FRIEND_COUNT,
+);
+
+const HABITS_REFERRAL_REWARD_ACTIVE_DAYS = parseLimit(
+    typeof process !== 'undefined' ? process?.env?.HABITS_REFERRAL_REWARD_ACTIVE_DAYS : undefined,
+    DEFAULT_HABITS_REFERRAL_REWARD_ACTIVE_DAYS,
+);
+
 export {
     FeatureFlags,
     HABITS_FREE_HABIT_LIMIT,
@@ -169,4 +193,8 @@ export {
     DEFAULT_HABITS_LIFETIME_FOUNDER_LIMIT,
     HABITS_SOLO_UNLOCK_INVITE_COUNT,
     DEFAULT_HABITS_SOLO_UNLOCK_INVITE_COUNT,
+    HABITS_REFERRAL_REWARD_FRIEND_COUNT,
+    DEFAULT_HABITS_REFERRAL_REWARD_FRIEND_COUNT,
+    HABITS_REFERRAL_REWARD_ACTIVE_DAYS,
+    DEFAULT_HABITS_REFERRAL_REWARD_ACTIVE_DAYS,
 };

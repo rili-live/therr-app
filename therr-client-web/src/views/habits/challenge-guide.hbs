@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="{{htmlLang}}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link rel="canonical" href="{{canonicalUrl}}">
+    {{!
+        The same guide in every language, each pointing at all of them. Google ignores the
+        annotation unless the full set is on every member; x-default is the English guide.
+    }}
+    {{#each hreflangAlternates}}
+    <link rel="alternate" hreflang="{{hreflang}}" href="{{href}}">
+    {{/each}}
+    <meta name="description" content="{{description}}">
+    <meta name="author" content="Therr Inc.">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <meta name="theme-color" content="#2e2140">
+    <meta property="og:site_name" content="Friends with Habits">
+    <meta property="og:type" content="article">
+    <meta property="og:locale" content="{{ogLocale}}">
+    {{#each ogLocaleAlternates}}
+    <meta property="og:locale:alternate" content="{{this}}">
+    {{/each}}
+    <meta property="og:url" content="{{canonicalUrl}}">
+    <meta property="og:title" content="{{heading}}">
+    <meta property="og:description" content="{{description}}">
+    <meta property="og:image" content="https://habits.therr.com/assets/images/habits-og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@therr_app">
+    <meta name="twitter:title" content="{{heading}}">
+    <meta name="twitter:description" content="{{description}}">
+    <meta name="twitter:image" content="https://habits.therr.com/assets/images/habits-og-image.png">
+    <meta name="google-play-app" content="app-id=com.therr.habits">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&display=swap">
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon-habits.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
+    {{!
+        Article, HowTo, FAQPage and BreadcrumbList, built server-side with serialize-javascript,
+        which is why this is a triple-stash: Handlebars' own escaping would turn apostrophes into
+        an entity JSON-LD parsers do not decode, and silently invalidate the block.
+    }}
+    <script type="application/ld+json">{{{jsonLd}}}</script>
+    {{> habitsChallengeStyles}}
+    <style>
+        .container { max-width: 820px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 1.5rem); }
+        footer.site-footer {
+            padding: 2rem 0 3rem;
+            border-top: 1px solid var(--fwh-border);
+            background: var(--fwh-white);
+            text-align: center;
+            color: var(--fwh-text-muted);
+            font-size: 0.875rem;
+        }
+        footer.site-footer .footer-links { margin-bottom: 0.75rem; }
+        footer.site-footer .footer-links a { margin: 0 0.5rem; color: var(--fwh-text-muted); }
+        footer.site-footer .footer-family { margin-top: 0.5rem; }
+        footer.site-footer .footer-family a { color: var(--fwh-text-muted); }
+    </style>
+    {{> habitsAnalytics}}
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="{{homePath}}" class="brand">
+                <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
+                Friends with Habits
+            </a>
+            <nav class="lang-links" aria-label="Language">
+                {{#each languageLinks}}
+                <a href="{{href}}" hreflang="{{hreflang}}" lang="{{hreflang}}"{{#if isCurrent}} aria-current="page"{{/if}}>{{label}}</a>
+                {{/each}}
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <p class="breadcrumb">
+                {{#each breadcrumbs}}<a href="{{href}}">{{label}}</a> › {{/each}}{{heading}}
+            </p>
+
+            <p class="eyebrow">{{categoryName}}</p>
+            <h1>{{heading}}</h1>
+            <p class="lede">{{summary}}</p>
+            <div class="cta-row">
+                <a class="cta" href="{{registerHref}}" data-cta="register" data-placement="hero">{{cta.primary}}</a>
+                <a class="cta cta--secondary" href="{{storeUrl}}" rel="noopener" data-cta="store" data-placement="hero">{{cta.secondary}}</a>
+            </div>
+            <p class="cta-note">{{cta.note}}</p>
+
+            <section class="block" id="what-it-is">
+                <h2>{{sectionTitles.whatIs}}</h2>
+                {{#each intro}}
+                <p>{{this}}</p>
+                {{/each}}
+                {{#if lengthNote}}
+                <p>{{lengthNote}}</p>
+                {{/if}}
+                {{#if safetyNote}}
+                <div class="callout callout--safety" role="note">
+                    <p><strong>{{ui.safetyLabel}}.</strong> {{safetyNote}}</p>
+                </div>
+                {{/if}}
+            </section>
+
+            <section class="block" id="how-to">
+                <h2>{{sectionTitles.howTo}}</h2>
+                <ol class="steps">
+                    {{#each rules}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ol>
+            </section>
+
+            <section class="block" id="day-by-day">
+                <h2>{{sectionTitles.dayByDay}}</h2>
+                <ol class="card-list">
+                    {{#each phases}}
+                    <li class="card">
+                        <p class="phase-range">{{range}}</p>
+                        <h3>{{title}}</h3>
+                        <p>{{body}}</p>
+                    </li>
+                    {{/each}}
+                </ol>
+            </section>
+
+            {{#if milestones.length}}
+            <section class="block" id="milestones">
+                <h2>{{sectionTitles.milestones}}</h2>
+                {{#if recommit}}
+                <div class="callout">
+                    <h3>{{recommit.title}}</h3>
+                    <p>{{recommit.body}}</p>
+                </div>
+                {{/if}}
+                <ol class="card-list">
+                    {{#each milestones}}
+                    <li class="card">
+                        <h3>{{title}}</h3>
+                        <p>{{body}}</p>
+                    </li>
+                    {{/each}}
+                </ol>
+            </section>
+            {{/if}}
+
+            <section class="block" id="where-people-quit">
+                <h2>{{sectionTitles.failures}}</h2>
+                <ul class="card-list">
+                    {{#each failures}}
+                    <li class="card">
+                        <h3>{{title}}</h3>
+                        <p>{{body}}</p>
+                    </li>
+                    {{/each}}
+                </ul>
+            </section>
+
+            <section class="block" id="tracker">
+                <h2>{{sectionTitles.tracker}}</h2>
+                <p>{{tracker.intro}} {{tracker.goal}}</p>
+                <div class="tracker" role="group" aria-label="{{tracker.ariaLabel}}">
+                    {{#each tracker.rows}}
+                    <div class="tracker-row">
+                        <h3>{{label}}</h3>
+                        <div class="tracker-grid">
+                            {{#each cells}}
+                            <label class="tracker-cell" for="{{id}}">
+                                <input type="checkbox" id="{{id}}" aria-label="{{label}}">
+                                <span aria-hidden="true">{{n}}</span>
+                            </label>
+                            {{/each}}
+                        </div>
+                    </div>
+                    {{/each}}
+                    <div class="tracker-actions">
+                        <button type="button" class="print-button" id="tracker-print">{{ui.tracker.print}}</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="block" id="start-in-app">
+                <h2>{{sectionTitles.startInApp}}</h2>
+                <ol class="steps">
+                    {{#each startSteps}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ol>
+            </section>
+
+            <section class="block" id="faq">
+                <h2>{{sectionTitles.faq}}</h2>
+                {{!
+                    Plain, always-visible answers: the FAQPage JSON-LD is built from this same
+                    list, and Google ignores FAQ markup whose answers are hidden or absent.
+                }}
+                {{#each faq}}
+                <div class="faq-item">
+                    <h3>{{question}}</h3>
+                    <p>{{answer}}</p>
+                </div>
+                {{/each}}
+            </section>
+
+            {{#if otherLengths.length}}
+            <section class="block no-print" id="other-lengths">
+                <h2>{{sectionTitles.otherLengths}}</h2>
+                <ul class="link-list">
+                    {{#each otherLengths}}
+                    <li><a href="{{href}}">{{label}}</a></li>
+                    {{/each}}
+                </ul>
+            </section>
+            {{/if}}
+
+            <section class="block no-print" id="related">
+                <h2>{{sectionTitles.related}}</h2>
+                <ul class="link-list">
+                    {{#each related}}
+                    <li><a href="{{href}}">{{label}}</a><span class="summary">{{summary}}</span></li>
+                    {{/each}}
+                    <li><a href="{{hubPath}}">{{ui.hubLabel}} →</a></li>
+                </ul>
+            </section>
+
+            <div class="cta-band">
+                <p class="eyebrow">{{cta.eyebrow}}</p>
+                <h2>{{cta.heading}}</h2>
+                <p>{{cta.body}}</p>
+                <div class="cta-row">
+                    <a class="cta" href="{{registerHref}}" data-cta="register" data-placement="closer">{{cta.primary}}</a>
+                    <a class="cta cta--secondary" href="{{storeUrl}}" rel="noopener" data-cta="store" data-placement="closer">{{cta.secondary}}</a>
+                </div>
+                <p class="cta-note">{{cta.note}}</p>
+            </div>
+        </div>
+    </main>
+
+    {{> habitsFooter}}
+
+    {{!
+        CTA tracking and the tracker's local save.
+
+        The CTAs fire the event names the rest of this host already reports on (register_start,
+        store_click) so the guides land in the same funnel as the landing page, plus the page,
+        locale, template and length as parameters. Register those four as event-scoped custom
+        dimensions in GA4 admin, or the reports cannot break the events down by them.
+
+        Ticks are saved in this browser only, keyed on the page path. Every storage access is
+        guarded: private browsing throws on access, and a tracker that cannot save must still tick.
+    }}
+    <script>
+        (function () {
+            var page = {{#if pageDataJson}}{{{pageDataJson}}}{{else}}{}{{/if}};
+            var base = {
+                page_slug: page.pagePath,
+                page_locale: page.locale,
+                template_key: page.templateKey,
+                duration_days: page.days
+            };
+
+            function track(name, params) {
+                try {
+                    if (typeof window.gtag === 'function') { window.gtag('event', name, params || {}); }
+                } catch (e) { /* analytics must never break the page */ }
+            }
+
+            function withBase(extra) {
+                var out = {};
+                Object.keys(base).forEach(function (key) { out[key] = base[key]; });
+                Object.keys(extra).forEach(function (key) { out[key] = extra[key]; });
+                return out;
+            }
+
+            Array.prototype.forEach.call(document.querySelectorAll('a[data-cta]'), function (link) {
+                link.addEventListener('click', function () {
+                    var location = 'challenge_guide_' + link.getAttribute('data-placement');
+                    if (link.getAttribute('data-cta') === 'store') {
+                        track('store_click', withBase({ link_url: link.href, location: location }));
+                    } else {
+                        track('register_start', withBase({ location: location }));
+                    }
+                });
+            });
+
+            var STORAGE_KEY = 'habitsTracker:' + page.pagePath;
+            var boxes = document.querySelectorAll('.tracker input[type="checkbox"]');
+            var saved = [];
+            try { saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]') || []; } catch (e) { saved = []; }
+            Array.prototype.forEach.call(boxes, function (box) {
+                if (saved.indexOf(box.id) !== -1) { box.checked = true; }
+            });
+
+            var hasTracked = false;
+            var tracker = document.querySelector('.tracker');
+            if (tracker) tracker.addEventListener('change', function (event) {
+                if (!event.target || event.target.type !== 'checkbox') { return; }
+                var checked = [];
+                Array.prototype.forEach.call(boxes, function (box) { if (box.checked) { checked.push(box.id); } });
+                try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(checked)); } catch (e) { /* not saved */ }
+                if (!hasTracked) {
+                    hasTracked = true;
+                    track('challenge_tracker_tick', withBase({}));
+                }
+            });
+
+            var printButton = document.getElementById('tracker-print');
+            if (printButton) {
+                printButton.addEventListener('click', function () {
+                    track('challenge_tracker_print', withBase({}));
+                    window.print();
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
