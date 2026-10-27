@@ -15,6 +15,16 @@
             "duplicatePost": "No se permiten publicaciones duplicadas",
             "duplicateRepost": "Ya republicaste esta publicación"
         },
+        "challenges": {
+            "creatorCannotLeave": "Tú iniciaste este reto, así que no puedes abandonarlo. Puedes terminarlo.",
+            "ended": "Este reto ya terminó",
+            "full": "Este reto está lleno",
+            "invalidDuration": "Un reto puede durar {allowed} días",
+            "notCreator": "Solo quien inició este reto puede hacer eso",
+            "notFound": "No encontramos ese reto",
+            "notTrackingHabit": "Empieza a registrar este hábito antes de retar a tus amigos",
+            "tooManyActive": "Puedes tener {limit} retos activos a la vez. Espera a que termine uno antes de iniciar otro."
+        },
         "pacts": {
             "activityTypeRequired": "Elige qué quieres enviar",
             "cannotDelete": "Solo puedes eliminar un pacto que hayas creado",

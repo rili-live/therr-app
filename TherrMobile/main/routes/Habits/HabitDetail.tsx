@@ -566,6 +566,44 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
     };
 
     /**
+     * "Challenge friends": start a join-by-link challenge on this habit and share the link.
+     *
+     * Only on a habit the user is actively tracking — the server refuses anything else, because a
+     * challenge is "come do what I'm doing" and the creator should be on the board from day one.
+     */
+    renderChallengeLink = (habitGoal?: IHabitGoal, userHabit?: IUserHabit) => {
+        if (!habitGoal || userHabit?.status !== 'active') {
+            return null;
+        }
+
+        const label = this.translate('pages.challenges.challengeFriends');
+
+        return (
+            <Pressable
+                accessibilityRole="link"
+                accessibilityLabel={label}
+                onPress={() => this.props.navigation.navigate('CreateChallenge', {
+                    habitGoalId: habitGoal.id,
+                    habitName: habitGoal.name,
+                })}
+                style={({ pressed }) => [
+                    this.themeHabits.styles.pactLinkRow,
+                    pressed && this.themeHabits.styles.pactPressedSurface,
+                ]}
+            >
+                <Text style={this.themeHabits.styles.pactLinkText}>
+                    {label}
+                </Text>
+                <MaterialIcon
+                    name="chevron-right"
+                    size={24}
+                    color={this.themeHabits.colors.primary3}
+                />
+            </Pressable>
+        );
+    };
+
+    /**
      * The cadence in words, for the stats row. Reads through `cadenceFromGoal` so the label and
      * the schedule the server actually keeps cannot drift — see `routes/Pacts/cadenceOptions`.
      */
@@ -1081,11 +1119,13 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                 onAddDetail={this.handleAddCheckinDetail}
                                 addDetailTitle={this.translate('pages.habits.checkinProof.addDetailButton')}
                                 title={this.translate('pages.habits.checkin')}
-                                completedTitle={this.translate('pages.habits.completed')}
+                                completedTitle={this.translate('pages.habits.checkedInToday')}
                                 themeHabits={this.themeHabits}
                             />
 
                             {this.renderPactLink()}
+
+                            {this.renderChallengeLink(habitGoal, userHabit)}
                         </View>
 
                         {this.renderSavingsCard(userHabit)}

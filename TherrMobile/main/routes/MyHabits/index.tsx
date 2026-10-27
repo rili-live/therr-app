@@ -18,7 +18,7 @@ import spacingStyles from '../../styles/layouts/spacing';
 import translator from '../../utilities/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
-import { HabitsListLoader } from '../../components/Habits';
+import { HabitsListLoader, MyChallengesSection, ReferralRewardCard } from '../../components/Habits';
 import { RefreshControl } from 'react-native-gesture-handler';
 import { hoursDaysOrYearsSince } from '../../utilities/formatDate';
 
@@ -45,6 +45,8 @@ interface IMyHabitsState {
      * loader under the user's finger.
      */
     hasFetched: boolean;
+    /** Bumped on pull-to-refresh so the challenges section refetches with everything else. */
+    refreshKey: number;
 }
 
 const mapStateToProps = (state) => ({
@@ -69,6 +71,7 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
         this.state = {
             isLoading: false,
             hasFetched: false,
+            refreshKey: 0,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -91,6 +94,11 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
         ]).finally(() => {
             this.setState({ isLoading: false, hasFetched: true });
         });
+    };
+
+    handlePullToRefresh = () => {
+        this.setState((prev) => ({ refreshKey: prev.refreshKey + 1 }));
+        this.loadData();
     };
 
     goToPacts = (initialTab = 'outgoing') => {
@@ -211,7 +219,7 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
 
     render() {
         const { habits, navigation, user } = this.props;
-        const { isLoading, hasFetched } = this.state;
+        const { isLoading, hasFetched, refreshKey } = this.state;
 
         const habitGoals = habits.habitGoals || [];
 
@@ -224,7 +232,7 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
                 <ScrollView
                     style={[this.theme.styles.scrollView]}
                     contentContainerStyle={{ paddingBottom: buttonMenuHeight + 16 }}
-                    refreshControl={<RefreshControl refreshing={isLoading} onRefresh={this.loadData} />}
+                    refreshControl={<RefreshControl refreshing={isLoading} onRefresh={this.handlePullToRefresh} />}
                 >
                     <View style={spacingStyles.padMd}>
                         <Text style={[this.theme.styles.sectionTitle, this.themeHabits.styles.myHabitsPageHeader]}>
@@ -251,6 +259,13 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
                             </Text>
                         </Pressable>
 
+                        <MyChallengesSection
+                            navigation={navigation}
+                            themeHabits={this.themeHabits}
+                            translate={this.translate as any}
+                            refreshKey={refreshKey}
+                        />
+
                         {/*
                           * Three states, not two. Before, an empty list on a cold open rendered
                           * nothing at all until the fetch settled — a blank page under the
@@ -269,6 +284,17 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
                                 ? this.renderEmptyState()
                                 : habitGoals.map(this.renderHabitCard)
                         }
+
+                        {/* Bringing friends who stay is the other way to the founder unlock. */}
+                        {hasFetched && (
+                            <ReferralRewardCard
+                                navigation={navigation}
+                                themeHabits={this.themeHabits}
+                                translate={this.translate as any}
+                                source="my-habits"
+                                userId={user.details?.id}
+                            />
+                        )}
 
                         {/* Link to the Pacts screen's "Sent" tab */}
                         {habitGoals.length > 0 && (

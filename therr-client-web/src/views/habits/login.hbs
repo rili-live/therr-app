@@ -279,6 +279,15 @@
                     var returnTo = qs.get('returnTo');
                     if (returnTo && /^\/(?![/\\])/.test(returnTo)) {
                         dest = returnTo;
+                    } else {
+                        // Signed up from a challenge link (see habits/register.hbs) and came back
+                        // through the verification email rather than that page: finish the join.
+                        try {
+                            var pending = localStorage.getItem('habitsPendingChallenge');
+                            if (pending && /^[A-Za-z0-9]{12}$/.test(pending)) {
+                                dest = '/c/' + pending;
+                            }
+                        } catch (e) { /* storage disabled — the profile is a fine landing */ }
                     }
                     window.location.assign(dest);
                 }).catch(function () {

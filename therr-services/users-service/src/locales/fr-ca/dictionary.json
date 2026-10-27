@@ -15,6 +15,16 @@
             "duplicatePost": "Les publications en double ne sont pas autorisées",
             "duplicateRepost": "Tu as déjà republié cette publication"
         },
+        "challenges": {
+            "creatorCannotLeave": "Tu as lancé ce défi, tu ne peux donc pas le quitter. Tu peux plutôt y mettre fin.",
+            "ended": "Ce défi est terminé",
+            "full": "Ce défi est complet",
+            "invalidDuration": "Un défi peut durer {allowed} jours",
+            "notCreator": "Seule la personne qui a lancé ce défi peut faire ça",
+            "notFound": "Nous n'avons pas trouvé ce défi",
+            "notTrackingHabit": "Commence à suivre cette habitude avant de mettre tes amis au défi",
+            "tooManyActive": "Tu peux avoir {limit} défis en cours à la fois. Attends qu'un se termine avant d'en lancer un autre."
+        },
         "pacts": {
             "activityTypeRequired": "Choisis ce que tu veux envoyer",
             "cannotDelete": "Tu ne peux supprimer qu'un pacte que tu as créé",

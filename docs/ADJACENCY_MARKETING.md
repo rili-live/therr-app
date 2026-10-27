@@ -64,6 +64,36 @@ Every owned surface leads with the behaviour people already like, then adds the 
   appear editorially ("Doing a habits-book challenge? Here's how to do it with a friend").
   Search interest in the book and challenge names is large and already there.
 
+### 4. Organic: one guide per challenge people already search for
+
+Paid adjacency rents the attention. The guides own it: long-tail, high-intent queries the
+big trackers don't write for ("30 day no spend challenge with a friend", "accountability
+partner for reading", "reto de 30 días sin gastar", "défi 30 jours sans sucre").
+
+- **Shipped (on `general`):** `habits.therr.com/challenges` (`/es/retos`, `/fr/defis`), a hub plus
+  21 guides per locale, generated from template × length × locale by
+  `therr-client-web/src/utilities/habitsChallengePages.ts`, with the copy as data in
+  `src/habitsChallengeLocales/`. Each guide has what the challenge is, the rules, a phase-by-phase
+  plan, where people quit and how a partner helps, a printable two-person tracker and an FAQ, plus
+  Article, HowTo, FAQPage and BreadcrumbList JSON-LD. The primary CTA goes to `/register?template=`,
+  which names the template to pick in the app; the secondary is the Play listing. Reached from the
+  footer of every habits page, the landing page's "Popular pacts" chips and the sitemap.
+- **Lengths are honest:** 30 days is one pact, 60 and 90 are two or three cycles with the streak
+  carried over on re-commit. 7- and 14-day guides wait for the challenge flow to reach Play.
+- **Adding one:** an entry in `HABITS_CHALLENGE_TEMPLATES`, its copy in all three dictionaries
+  (`npm run locales:check`), and its paths in the pinned list in `habitsChallengePages.test.ts`.
+  Slugs are permanent; the tests fail on a rename. A new length needs its own `longForm` copy,
+  or the duplication test fails.
+
+**Proposed, not built: "challenges running now".** A strip on each guide listing public
+challenges on that template with seats left, linking to `/c/:token`. It's the strongest CTA
+these pages could have. But every challenge today is link-only, and listing one shows its
+title, its creator's display name and its standings to anyone searching. So it needs an
+explicit opt-in from the creator: a `habits.challenges."isListed"` boolean, default false,
+set at creation with a clear "show this on habits.therr.com" switch, and a public endpoint
+that returns only listed, running, not-full challenges by `sourceTemplateKey`, with no member
+names. That's a schema, privacy-copy and mobile change, so it needs a decision first.
+
 ### 2. Advertising: bid next to the trend, not on the category
 
 - **Shipped:** `scripts/google-ads/campaigns/habits-web-adjacent.yaml`, a PAUSED Search
@@ -132,3 +162,29 @@ bounces. That shows up as a partner-wall failure when it was really a copy failu
 | Ad group winner | per-ad-group cost per activated user | One theme clearly wins → lead the Play listing with it | All tie → keep the category positioning |
 
 Record the outcome in the `PAID_ACQUISITION_PLAYBOOK.md` decision log.
+
+### The guides (play 4), 4–8 weeks after the deploy
+
+Search Console → Performance → Search results, property `habits.therr.com`. Filter by page
+(*URL contains* `/challenges/`, then `/es/retos/`, then `/fr/defis/`) and read the Queries tab.
+Expect impressions before clicks. Positions of 20–50 at week 4 are normal for a new subdomain.
+
+| Query to look for | Page it should rank |
+|---|---|
+| `30 day no spend challenge`, `no spend challenge with a friend` | `/challenges/30-day-no-spend` |
+| `30 day reading challenge`, `accountability partner for reading` | `/challenges/30-day-reading` |
+| `30 day no sugar challenge` | `/challenges/30-day-no-sugar` |
+| `30 day alcohol free challenge` | `/challenges/30-day-alcohol-free` |
+| `30 day cold shower challenge` | `/challenges/30-day-cold-shower` |
+| `10000 steps a day challenge` | `/challenges/30-day-10000-steps` |
+| `30 day challenge tracker`, `[habit] challenge tracker printable` | any guide (the tracker) |
+| `reto de 30 días sin gastar`, `reto 30 días sin azúcar` | `/es/retos/30-dias-sin-gastar`, `/es/retos/30-dias-sin-azucar` |
+| `défi 30 jours sans sucre`, `partenaire de responsabilité` | `/fr/defis/30-jours-sans-sucre`, `/fr/defis/30-jours-lecture` |
+| `habit tracker with friends` | `/` (the landing page targets it; the guides link there) |
+
+Then Indexing → Pages. **"Duplicate, Google chose different canonical than user"** on a 60- or
+90-day guide means Google reads it as a copy of the 30-day one: write it more `longForm` copy or
+drop that length. **"Crawled – currently not indexed"** across many guides means the pages read
+as thin; strengthen the best five rather than adding more. Conversions are `register_start`,
+`store_click` and `sign_up` with `location` starting `challenge_guide_`, and signups with a
+`main."userAcquisition"."landingPath"` under one of the three hubs.

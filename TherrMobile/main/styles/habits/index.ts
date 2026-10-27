@@ -39,6 +39,30 @@ const getStreakBarColors = (theme: ITherrTheme, themeName?: IMobileThemeName) =>
         : theme.colors.brand,
 });
 
+/**
+ * Colours for "checked in today", kept off the brand ramp on purpose.
+ *
+ * The completed check-in button used to be `brandingBlueGreen`, which Friends with Habits
+ * overrides to `#6E5C85` — the very purple the *unchecked* button is filled with. The only
+ * difference between "tap to check in" and "already done" was the icon and label, so a list of
+ * habits gave no way to see at a glance which were finished. Done now reads as a status in the
+ * chameleon palette's green: a tinted surface with dark (light theme) or bright (dark theme) ink,
+ * never a filled button that looks tappable.
+ *
+ * Ink against its own tinted fill, measured: light ~6:1, dark ~8:1.
+ */
+const getDoneColors = (theme: ITherrTheme, themeName?: IMobileThemeName) => {
+    const isDark = isDarkTheme(themeName);
+    const ink = isDark
+        ? new Color(theme.colors.accentLime).lighten(0.2).hex()
+        : new Color(theme.colors.accentLime).darken(0.4).hex();
+    return {
+        ink,
+        fill: tint(theme.colors.accentLime, isDark ? 0.18 : 0.14),
+        border: tint(theme.colors.accentLime, isDark ? 0.6 : 0.5),
+    };
+};
+
 // Height of the floating "new pact" action, and the bottom padding a scrolling
 // surface needs so its last row clears both that action and the button menu.
 const NEW_PACT_FAB_HEIGHT = 48;
@@ -65,6 +89,7 @@ const getStreakBadgeStyles = (_theme: ITherrTheme): any => ({
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
     const streakBar = getStreakBarColors(therrTheme, themeName);
+    const done = getDoneColors(therrTheme, themeName);
 
     const styles = StyleSheet.create({
         // Checkin Button
@@ -76,9 +101,19 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             ...getCheckinButtonStyles(therrTheme),
             backgroundColor: therrTheme.colors.primary3,
         },
+        // A status, not an action — see `getDoneColors`. The 1.5dp border keeps the outline
+        // visible on a white card where the 14% tint alone is faint.
         checkinButtonCompleted: {
             ...getCheckinButtonStyles(therrTheme),
-            backgroundColor: therrTheme.colors.brandingBlueGreen,
+            backgroundColor: done.fill,
+            borderWidth: 1.5,
+            borderColor: done.border,
+        },
+        checkinButtonTextCompleted: {
+            color: done.ink,
+        },
+        checkinButtonIconCompleted: {
+            color: done.ink,
         },
         checkinButtonDisabled: {
             ...getCheckinButtonStyles(therrTheme),
@@ -448,7 +483,37 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             padding: space.md,
             marginHorizontal: space.lg,
             marginVertical: space.xs + 2,
+            // Transparent until the habit is done today, so the done outline does not shift
+            // the card's contents by its own width when a check-in lands.
+            borderWidth: 1.5,
+            borderColor: 'transparent',
             ...shadowSm,
+        },
+        habitCardContainerDone: {
+            borderColor: done.border,
+        },
+        // Positions the "done today" badge on the emoji's corner.
+        habitCardEmojiWrap: {
+            marginRight: space.sm,
+        },
+        habitCardEmojiInWrap: {
+            marginRight: 0,
+        },
+        habitCardDoneBadge: {
+            position: 'absolute',
+            right: -4,
+            bottom: -2,
+            width: 18,
+            height: 18,
+            borderRadius: radius.circle,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: done.ink,
+            borderWidth: 1.5,
+            borderColor: therrTheme.colors.surface,
+        },
+        habitCardDoneBadgeIcon: {
+            color: therrTheme.colors.surface,
         },
         habitCardHeader: {
             flexDirection: 'row',
@@ -2459,6 +2524,198 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         upgradeNudgeChevron: {
             color: therrTheme.colors.onSurfaceMuted,
+        },
+
+        // Join-by-link challenges (routes/Challenges) and the referral reward card. A challenge is a
+        // public scoreboard, so it reads as a card with a ranked list, using the same surface,
+        // divider and brand tokens as the My Habits cards it sits beside.
+        challengeCard: {
+            borderRadius: radius.xl,
+            backgroundColor: therrTheme.colors.surface,
+            padding: space.lg,
+            marginBottom: space.md,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
+            ...shadowSm,
+        },
+        challengeHero: {
+            backgroundColor: therrTheme.colors.brandDark,
+            borderRadius: radius.xl,
+            padding: space.xl,
+            marginBottom: space.lg,
+            gap: space.xs,
+        },
+        challengeEyebrow: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            color: tint(BRAND_WHITE, 0.8),
+        },
+        challengeTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xxl,
+            fontWeight: fontWeights.bold,
+            lineHeight: fontSizes.xxl * lineHeights.tight,
+            color: BRAND_WHITE,
+        },
+        challengeMeta: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: tint(BRAND_WHITE, 0.85),
+        },
+        challengeTimePill: {
+            alignSelf: 'flex-start',
+            marginTop: space.sm,
+            borderRadius: radius.pill,
+            paddingHorizontal: space.md,
+            paddingVertical: space.xs,
+            backgroundColor: tint(BRAND_WHITE, 0.16),
+        },
+        challengeTimePillText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            color: BRAND_WHITE,
+        },
+        challengeSectionTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        challengeHint: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            lineHeight: fontSizes.sm * lineHeights.normal,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        challengeStandingRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.md,
+            minHeight: 44,
+            paddingVertical: space.sm,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: therrTheme.colors.accentDivider,
+        },
+        challengeStandingRowMe: {
+            backgroundColor: tint(therrTheme.colors.brand, 0.08),
+            marginHorizontal: -space.lg,
+            paddingHorizontal: space.lg,
+        },
+        challengeRank: {
+            width: 28,
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.brand,
+        },
+        challengeName: {
+            flex: 1,
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurface,
+        },
+        challengeScore: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        challengeActions: {
+            gap: space.sm,
+            marginBottom: space.lg,
+        },
+        challengeSecondaryButton: {
+            flexDirection: 'row',
+            borderRadius: radius.md,
+            minHeight: 44,
+            paddingHorizontal: space.xl,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+            borderColor: therrTheme.colors.brand,
+        },
+        challengeSecondaryButtonText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.brand,
+        },
+        challengeOptionRow: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: space.sm,
+        },
+        challengeOption: {
+            minHeight: 44,
+            minWidth: 56,
+            paddingHorizontal: space.md,
+            borderRadius: radius.pill,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        challengeOptionSelected: {
+            backgroundColor: therrTheme.colors.brand,
+            borderColor: therrTheme.colors.brand,
+        },
+        challengeOptionText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        challengeOptionTextSelected: {
+            color: therrTheme.colors.onBrand,
+        },
+        challengeInput: {
+            minHeight: 44,
+            borderRadius: radius.md,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
+            paddingHorizontal: space.md,
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            color: therrTheme.colors.onSurface,
+            backgroundColor: therrTheme.colors.surface,
+        },
+        challengeFlex: {
+            flex: 1,
+        },
+        challengeLoader: {
+            marginTop: space.xxl,
+        },
+        challengeEmptyState: {
+            paddingTop: space.xl,
+        },
+        challengeFieldLabel: {
+            marginTop: space.lg,
+            marginBottom: space.sm,
+        },
+        challengeTextCenter: {
+            textAlign: 'center',
+        },
+        challengeFieldNote: {
+            marginTop: space.sm,
+        },
+        referralCta: {
+            marginTop: space.md,
+        },
+        referralProgressTrack: {
+            height: 8,
+            borderRadius: radius.pill,
+            backgroundColor: tint(therrTheme.colors.onSurface, 0.1),
+            overflow: 'hidden',
+            marginVertical: space.sm,
+        },
+        referralProgressFill: {
+            height: '100%',
+            borderRadius: radius.pill,
+            backgroundColor: therrTheme.colors.brand,
         },
     });
 

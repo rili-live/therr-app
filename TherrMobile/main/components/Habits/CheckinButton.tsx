@@ -59,6 +59,9 @@ const CheckinButton: React.FC<ICheckinButtonProps> = ({
             style={[themeHabits.styles.checkinButtonContainer, getButtonStyle()]}
             onPress={onPress}
             disabled={isDisabled || isLoading || isCompleted}
+            accessibilityRole="button"
+            accessibilityLabel={isCompleted ? completedTitle : title}
+            accessibilityState={{ disabled: isDisabled || isLoading || isCompleted, busy: isLoading }}
         >
             {isLoading ? (
                 <ActivityIndicator color={themeHabits.colors.brandingWhite} size="small" />
@@ -67,9 +70,15 @@ const CheckinButton: React.FC<ICheckinButtonProps> = ({
                     <MaterialIcon
                         name={getIconName()}
                         size={24}
-                        style={themeHabits.styles.checkinButtonIcon}
+                        style={[
+                            themeHabits.styles.checkinButtonIcon,
+                            isCompleted && themeHabits.styles.checkinButtonIconCompleted,
+                        ]}
                     />
-                    <Text style={themeHabits.styles.checkinButtonText}>
+                    <Text style={[
+                        themeHabits.styles.checkinButtonText,
+                        isCompleted && themeHabits.styles.checkinButtonTextCompleted,
+                    ]}>
                         {isCompleted ? completedTitle : title}
                     </Text>
                 </>

@@ -2,6 +2,7 @@ import React from 'react';
 import {
     View, Text, Pressable, ActivityIndicator,
 } from 'react-native';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import {
     IHabitGoal, IHabitCheckin, IStreak,
 } from 'therr-react/types';
@@ -172,13 +173,35 @@ const HabitCard: React.FC<IHabitCardProps> = ({
 
     return (
         <Pressable
-            style={themeHabits.styles.habitCardContainer}
+            style={[
+                themeHabits.styles.habitCardContainer,
+                isCompleted && themeHabits.styles.habitCardContainerDone,
+            ]}
             onPress={onPress}
         >
             <View style={themeHabits.styles.habitCardHeader}>
-                <Text style={themeHabits.styles.habitCardEmoji}>
-                    {habitGoal.emoji || '\uD83C\uDFAF'}
-                </Text>
+                {/*
+                  * The badge marks a habit done today where the eye lands first when scanning
+                  * the list \u2014 the emoji \u2014 rather than only in the footer button.
+                  */}
+                <View style={themeHabits.styles.habitCardEmojiWrap}>
+                    <Text style={[themeHabits.styles.habitCardEmoji, themeHabits.styles.habitCardEmojiInWrap]}>
+                        {habitGoal.emoji || '\uD83C\uDFAF'}
+                    </Text>
+                    {isCompleted && (
+                        <View
+                            style={themeHabits.styles.habitCardDoneBadge}
+                            accessible
+                            accessibilityLabel={translate('pages.habits.checkedInToday')}
+                        >
+                            <MaterialIcon
+                                name="check"
+                                size={12}
+                                style={themeHabits.styles.habitCardDoneBadgeIcon}
+                            />
+                        </View>
+                    )}
+                </View>
                 <View style={themeHabits.styles.habitCardTitleContainer}>
                     <Text style={themeHabits.styles.habitCardTitle}>
                         {habitGoal.name}
@@ -309,7 +332,7 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                         onAddDetail={onAddCheckinDetail}
                         addDetailTitle={translate('pages.habits.checkinProof.addDetailButton')}
                         title={translate('pages.habits.checkin')}
-                        completedTitle={translate('pages.habits.completed')}
+                        completedTitle={translate('pages.habits.checkedInToday')}
                         themeHabits={themeHabits}
                     />
                 </View>

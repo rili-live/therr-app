@@ -36,6 +36,7 @@ import { copyProofToPublicBucket, deleteSharedCheckinPublicObject } from '../uti
 import { createReactions } from '../api/reactions';
 import { checkIsMediaSafeForWork } from './helpers';
 import recordFunnelMetric from '../utilities/recordFunnelMetric';
+import { evaluateReferralRewardsAfterCheckin } from './helpers/referralReward';
 import { resolvePactPartnerIds } from './helpers/pactPartners';
 import { checkHabitCapacity } from './helpers/habitCapacity';
 import { describeSoloGrace, SOLO_GRACE_DAYS, SOLO_GRACE_KEEP_INVITE_COUNT } from './helpers/soloHabitAccess';
@@ -619,6 +620,11 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     brandVariation: brandVariation || '',
                     streak: String(updatedStreak.currentStreak),
                 });
+
+                // This user may have just become an active friend for whoever brought them in,
+                // which can earn that person the founder unlock. Fire-and-forget: it never throws,
+                // and the check-in response must not wait on someone else's reward.
+                evaluateReferralRewardsAfterCheckin(userId);
 
                 // Record history and check for milestone
                 if (isStreakCredited) {

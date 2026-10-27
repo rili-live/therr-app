@@ -15,6 +15,16 @@
             "duplicatePost": "Duplicate posts are not allowed",
             "duplicateRepost": "You already reposted this"
         },
+        "challenges": {
+            "creatorCannotLeave": "You started this challenge, so you can't leave it. You can end it instead.",
+            "ended": "This challenge has ended",
+            "full": "This challenge is full",
+            "invalidDuration": "A challenge can run for {allowed} days",
+            "notCreator": "Only the person who started this challenge can do that",
+            "notFound": "We couldn't find that challenge",
+            "notTrackingHabit": "Start tracking this habit before you challenge friends to it",
+            "tooManyActive": "You can run {limit} challenges at a time. Wait for one to finish before starting another."
+        },
         "pacts": {
             "activityTypeRequired": "Choose what you want to send",
             "cannotDelete": "You can only delete a pact you created",

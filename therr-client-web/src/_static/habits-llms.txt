@@ -37,6 +37,17 @@ no configuration of the app in which nobody notices that you stopped.
 - Play Store: https://play.google.com/store/apps/details?id=com.therr.habits
 - Accounts are shared with the Therr app — one login works for both.
 
+## Challenge guides
+
+Day-by-day guides, each with a printable two-person tracker and an FAQ, for doing a common
+30-, 60- or 90-day challenge with an accountability partner: no-spend, 10,000 steps, workout,
+running, no added sugar, alcohol-free, cold showers, water, meditation, journaling, reading and
+screen time. Each one is a ready-made pact template in the app.
+
+- English: https://habits.therr.com/challenges
+- Español: https://habits.therr.com/es/retos
+- Français: https://habits.therr.com/fr/defis
+
 ## Definitions
 
 - **Pact** — a daily habit that two people commit to together. It holds the habit,

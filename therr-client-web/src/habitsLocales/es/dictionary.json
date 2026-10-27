@@ -166,6 +166,8 @@
     "errorNetwork": "Error de red. Inténtalo de nuevo en un momento."
   },
   "footer": {
+    "challenges": "Retos",
+    "challengesPath": "/es/retos",
     "privacyPolicy": "Política de privacidad",
     "termsOfService": "Términos del servicio",
     "forCoaches": "Para coaches",

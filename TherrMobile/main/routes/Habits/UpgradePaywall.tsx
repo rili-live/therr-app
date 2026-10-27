@@ -15,6 +15,7 @@ import { HabitActions } from 'therr-react/redux/actions';
 import { IHabitsState, IUserState } from 'therr-react/types';
 import UsersActions from '../../redux/actions/UsersActions';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import ReferralRewardCard from '../../components/Habits/ReferralRewardCard';
 import translator from '../../utilities/translator';
 import { showToast } from '../../utilities/toasts';
 import { logAppEvent } from '../../utilities/analyticsEvents';
@@ -899,6 +900,18 @@ export class UpgradePaywall extends React.Component<IUpgradePaywallProps, IUpgra
                         {!isLoading && !isEntitled && this.renderFounderCard(canPurchase)}
 
                         {!isLoading && !isEntitled && this.renderMonthlyCard(canSubscribe, canPurchase)}
+
+                        {/* The founder unlock can also be earned by bringing friends who stay. The
+                            card hides itself unless that offer applies to this account. */}
+                        {!isLoading && !isEntitled && (
+                            <ReferralRewardCard
+                                navigation={this.props.navigation}
+                                themeHabits={this.themeHabits}
+                                translate={this.translate as any}
+                                source="paywall"
+                                userId={this.props.user.details?.id}
+                            />
+                        )}
 
                         {!isLoading && hasAnyOffer && !isEntitled && (
                             <Pressable

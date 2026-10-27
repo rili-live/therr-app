@@ -133,6 +133,9 @@ const DISPLAY_TYPES = [
     PushNotifications.Types.habitsFirstHabitNudge,
     PushNotifications.Types.pactInviteUnclaimed,
     PushNotifications.Types.habitsFounderOffer,
+    // Growth loops: display, no action button.
+    PushNotifications.Types.challengeJoined,
+    PushNotifications.Types.habitsReferralRewardEarned,
     PushNotifications.Types.pactDeclined,
     PushNotifications.Types.morningMotivation,
     // The one lifecycle message aimed at someone who has stopped opening the

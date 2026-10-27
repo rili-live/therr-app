@@ -1,0 +1,1000 @@
+{
+  "ui": {
+    "brandSuffix": " | Friends with Habits",
+    "homeLabel": "Friends with Habits",
+    "hubLabel": "Retos",
+    "dayWord": "dias",
+    "sections": {
+      "whatIs": "En qué consiste",
+      "howTo": "Cómo hacerlo",
+      "dayByDay": "Día a día",
+      "milestones": "Hitos en {days} días",
+      "failures": "Dónde la gente lo deja, y cómo ayuda tener un compañero",
+      "tracker": "Tu registro de {days} días",
+      "startInApp": "Cómo empezarlo en la app",
+      "faq": "Preguntas",
+      "otherLengths": "Otras duraciones",
+      "related": "Más retos"
+    },
+    "phaseRange": "Días {from}–{to}",
+    "phaseTitles": {
+      "start": "Prepáralo",
+      "early": "Se acaba la novedad",
+      "middle": "La parte larga del medio",
+      "finish": "La recta final"
+    },
+    "safetyLabel": "Antes de empezar",
+    "tracker": {
+      "intro": "Imprime esta página o marca las casillas aquí. Lo que marques se guarda solo en este navegador. En la app, tú y tu compañero ven los registros del otro en el momento.",
+      "goalDaily": "Una marca al día.",
+      "goalWeekly": "La meta: {count} marcas por semana.",
+      "you": "Tú",
+      "partner": "Tu compañero",
+      "dayLabel": "Día {n}",
+      "print": "Imprimir registro",
+      "ariaLabel": "Registro de {days} días para ti y tu compañero"
+    },
+    "schedule": {
+      "daily": "todos los días",
+      "weekly": "{count} días por semana"
+    },
+    "startSteps": {
+      "account": "Crea tu cuenta gratis, instala Friends with Habits desde Google Play e inicia sesión.",
+      "pick": "Toca «Nuevo pacto» y elige «{inAppName}» en {categoryName}.",
+      "cadenceKeep": "Deja la frecuencia que sugiere la plantilla: {schedule}.",
+      "cadenceChange": "La plantilla sugiere {templateSchedule}. Para este reto, cámbiala a {schedule}.",
+      "invite": "Invita a tu amigo por enlace, mensaje o correo. Cuando acepte, los dos registran cada día y ven el progreso del otro."
+    },
+    "cta": {
+      "eyebrow": "Háganlo juntos",
+      "heading": "Empieza este reto con un amigo",
+      "body": "Gratis para empezar. Crea tu cuenta, elige «{inAppName}» en la app e invita al amigo que lo va a hacer contigo.",
+      "primary": "Empieza este reto con un amigo",
+      "secondary": "Descárgala en Google Play",
+      "note": "Hoy en Android; iPhone viene después. Gratis para descargar y usar."
+    },
+    "otherLengthLink": "La versión de {days} días",
+    "faqShared": {
+      "missDay": {
+        "question": "¿Qué pasa si uno de los dos falla un día?",
+        "answer": "Tu compañero lo ve y la app les da un empujón a los dos. Registra con honestidad y retómalo al día siguiente. Quienes terminan un reto casi nunca son los que no fallaron nunca, sino los que volvieron al día siguiente."
+      },
+      "bothNeedApp": {
+        "question": "¿Los dos necesitamos la app?",
+        "answer": "Sí. Cada uno registra desde su propio teléfono, y de eso se trata: ves cuándo tu compañero ya lo hizo hoy, y él te ve a ti. Friends with Habits está hoy en Android a través de Google Play, y la versión para iPhone es lo siguiente."
+      },
+      "noFriend": {
+        "question": "¿Y si no tengo un amigo que haga este reto?",
+        "answer": "Un compañero de responsabilidad no tiene que ser tu mejor amigo ni un experto, solo alguien que se dé cuenta. Sirve un compañero de trabajo, un hermano o alguien de un chat de grupo. Invita a una persona: casi todos dicen que sí a un reto con fecha de fin."
+      },
+      "isFree": {
+        "question": "¿Es gratis?",
+        "answer": "Sí. Friends with Habits es gratis para descargar y gratis para usar, sin tarjeta. Una cuenta gratis puede tener un número limitado de hábitos activos a la vez, y sobra espacio para un reto."
+      }
+    },
+    "hub": {
+      "title": "Retos de hábitos para hacer con un amigo: 30, 60 y 90 días",
+      "description": "Guías día a día y registros imprimibles gratis para retos sin gastar, de lectura, de pasos, sin azúcar, sin alcohol y más, pensados para hacer con un compañero.",
+      "eyebrow": "Retos",
+      "heading": "Elige un reto. Trae a un amigo.",
+      "intro": "Cada guía explica cómo funciona el reto, un plan día a día, dónde suele abandonar la gente y un registro que puedes imprimir o marcar en la página. Todos son pactos listos en la app, así que tú y un amigo pueden empezar hoy.",
+      "lengthsLabel": "Guías:",
+      "lengthLink": "{days} días",
+      "ctaHeading": "¿Ya sabes cuál?",
+      "ctaBody": "Crea una cuenta gratis, elige el reto en la app e invita a un amigo. Los pactos duran 30 días y puedes volver a comprometerte cuando terminan.",
+      "ctaPrimary": "Crea tu cuenta gratis"
+    },
+    "footerLink": "Retos"
+  },
+  "categories": {
+    "fitness": "Movimiento y ejercicio",
+    "health": "Salud y cuerpo",
+    "mindfulness": "Mente y salud mental",
+    "productivity": "Enfoque y pantallas",
+    "learning": "Aprendizaje y creatividad",
+    "money": "Dinero y ahorro"
+  },
+  "lengths": {
+    "d30": {
+      "appNote": "Un pacto en la app dura 30 días, así que todo este reto es un solo pacto.",
+      "faq": {
+        "question": "¿Por qué 30 días?",
+        "answer": "Es lo bastante largo para pasar por un mes normal, con sus fines de semana, una semana pesada y un mal día, y lo bastante corto para ver siempre el final. Además es exactamente un pacto en la app."
+      }
+    },
+    "d60": {
+      "appNote": "Un pacto en la app dura 30 días. Cuando termine el primero, toca «Comprometerse 30 días más» y su racha compartida continúa.",
+      "recommit": {
+        "title": "Día 30: vuelvan a comprometerse",
+        "body": "El día 30, comprométanse juntos otros 30 días. Cambien una sola cosa de cómo lo hacen, como la hora, la ruta o la regla que era demasiado estricta, y dejen todo lo demás igual."
+      },
+      "faq": {
+        "question": "¿60 días es demasiado para un primer reto?",
+        "answer": "No, si lo tomas como dos bloques de 30 días. Vuelvan a comprometerse el día 30 y decidan entonces si cambian algo. Si nunca has hecho un reto así, empezar con 30 también está bien."
+      }
+    },
+    "d90": {
+      "appNote": "Un pacto en la app dura 30 días. Vuelvan a comprometerse cuando termine, y otra vez el día 60, y su racha compartida cubre los 90 días.",
+      "recommit": {
+        "title": "Días 30 y 60: vuelvan a comprometerse",
+        "body": "Vuelvan a comprometerse el día 30 y otra vez el día 60. Cada vez, hablen de lo que está funcionando y cambien una cosa. Un reto de 90 días son tres retos de 30 seguidos, no una sola cuesta larga."
+      },
+      "faq": {
+        "question": "¿90 días es demasiado?",
+        "answer": "Es un compromiso de verdad, por eso se hace como tres pactos de 30 días. Cada vez que se vuelven a comprometer es un buen momento para hablar con tu compañero. Si dudas, empieza con 30 y renueva si va bien."
+      }
+    }
+  },
+  "challenges": {
+    "noSpendDay": {
+      "slug": "sin-gastar",
+      "name": "Reto sin gastar",
+      "inAppName": "Día sin gastos",
+      "title": "Reto de {days} días sin gastar con un amigo",
+      "metaDescription": "Cómo hacer un reto de {days} días sin gastar con un amigo: las reglas, un plan día a día, dónde se cae la gente y un registro imprimible gratis.",
+      "summary": "No compres nada más allá de lo esencial, y ten a quién confesarle el antojo de comida a domicilio.",
+      "intro": [
+        "Un reto sin gastar consiste en no comprar nada más allá de lo esencial durante un número de días. La renta, los recibos, el súper, las medicinas y el transporte al trabajo están permitidos. La comida a domicilio, la ropa, las apps, las compras por impulso y el «estaba en oferta», no. Decides la lista exacta antes del primer día y la escribes.",
+        "Funciona mejor con un amigo porque la mayoría de los retos sin gastar se rompen en un solo momento que no planeaste: una página de pago a las 11 de la noche, una cena en grupo, un mal día. Saber que esta noche le vas a contar a alguien suele bastar para cerrar la pestaña."
+      ],
+      "rules": [
+        "Escribe tu lista de lo esencial antes de empezar: lo que vas a seguir pagando y un presupuesto semanal para el súper.",
+        "Borra las tarjetas guardadas en las tiendas donde más compras y date de baja de sus correos.",
+        "Registra una vez al día: sí, si no compraste nada fuera de la lista; no, si compraste. No hay medio punto.",
+        "Lleva una nota de lo que quisiste comprar y no compraste. Al final es lo más útil que vas a tener."
+      ],
+      "phases": {
+        "start": "Acuerden la lista de lo esencial, pausen cualquier suscripción que les tiente renovar y planeen el primer fin de semana: es donde más gente se rinde.",
+        "early": "Las primeras ganas llegan disfrazadas de «pequeñas excepciones». Escríbele a tu compañero antes de comprar, no después. Si puede esperar 48 horas, no es esencial.",
+        "middle": "El ahorro deja de sentirse nuevo y la incomodidad empieza a sentirse personal. Cada semana cambia algo que comprarías por algo gratis, y comparen lo que ya dejaron de extrañar.",
+        "finish": "Sumen juntos lo que no gastaron. Decidan qué reglas mantienen antes de que termine el reto, o el primer día después se vuelve un día de compras."
+      },
+      "failures": [
+        {
+          "title": "La invitación",
+          "body": "Una cena o unos tragos con gente que no está en el reto. Decide tu respuesta antes de que pase: propón un plan más barato o ponte un tope por adelantado. Con un compañero que también lo hace, decir «estoy en un mes sin gastar» se vuelve fácil."
+        },
+        {
+          "title": "La compra de medianoche",
+          "body": "Casi todas las compras por impulso pasan con cansancio, a solas y con el teléfono en la mano. Una regla que funciona: lo que quieras comprar, mándaselo primero a tu compañero y espera a mañana. De casi todo no vas a volver a acordarte."
+        },
+        {
+          "title": "El tropiezo que lo termina todo",
+          "body": "Comprar una cosa se convierte en «ya fallé, qué más da». No fallaste. Registra con honestidad, cuéntaselo a tu compañero y sigue mañana. Una racha que vuelve a empezar vale más que un reto que abandonas en silencio."
+        }
+      ],
+      "faq": [
+        {
+          "question": "¿Qué cuenta como esencial en un reto sin gastar?",
+          "answer": "Lo que acuerden antes de empezar, por escrito. La lista típica es vivienda, servicios, súper hasta un presupuesto, transporte al trabajo, medicinas y pagos de deudas. Lo que no esté en la lista espera a que termine el reto."
+        },
+        {
+          "question": "¿Puedo seguir comprando comida?",
+          "answer": "Sí. Pon un presupuesto semanal para el súper y respétalo, y deja fuera botanas, alcohol y comida a domicilio salvo que hayan acordado otra cosa. La idea es dejar de gastar sin planear, no dejar de comer."
+        },
+        {
+          "question": "¿Mi compañero y yo necesitamos las mismas reglas?",
+          "answer": "No. Lo esencial puede ser distinto para cada uno: uno puede tener hijos, un trayecto largo o coche. Lo que importa es que cada uno escriba su lista y que el otro sepa qué dice."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Treinta días cubren un ciclo completo de pago con todos sus recibos, por eso es la duración más común. Es lo bastante largo para ver cambiar el número y lo bastante corto para ver siempre el final.",
+        "d90": "Noventa días convierten un reto en tu nueva normalidad. Cuenta con que el segundo mes sea más difícil que el primero: la novedad se fue y las excepciones suenan más convincentes. Quienes llegan al final suelen relajar una regla a propósito el día 30, en vez de por accidente."
+      },
+      "longForm": {
+        "d90": {
+          "milestones": [
+            {
+              "title": "Día 30: el primer balance",
+              "body": "Sumen lo que no gastaron el primer mes y relean la lista de cosas que quisieron comprar. Casi siempre es más corta de lo esperado. Decidan juntos si alguna regla tiene que cambiar y vuelvan a comprometerse."
+            },
+            {
+              "title": "Día 45: el muro del aburrimiento",
+              "body": "La mitad es donde un reto largo sin gastar se siente menos gratificante: el ahorro ya es rutina y las restricciones no. Planeen algo gratis juntos esa semana y denle un destino al dinero que están guardando, como pagar una deuda o un viaje."
+            },
+            {
+              "title": "Día 90: decidan la nueva normalidad",
+              "body": "Para entonces algunas de tus reglas ya son hábitos. Elige las dos o tres que vas a mantener para siempre, escríbelas y díselas a tu compañero. Una salida planeada es mejor que un día de compras."
+            }
+          ],
+          "faq": {
+            "question": "¿Cómo manejo cumpleaños y fiestas en un reto de 90 días sin gastar?",
+            "answer": "Inclúyelos en el plan. Antes de empezar, anota los regalos y eventos que caen dentro de los 90 días y pon un presupuesto para cada uno. El gasto planeado que acordaron no rompe el reto; el que no se planeó, sí."
+          }
+        }
+      }
+    },
+    "steps10k": {
+      "slug": "10000-pasos",
+      "name": "Reto de 10.000 pasos",
+      "inAppName": "Llegar a 10.000 pasos",
+      "title": "Reto de {days} días de 10.000 pasos con un amigo",
+      "metaDescription": "Un reto de {days} días de 10.000 pasos diarios para hacer con un amigo: cómo meter los pasos, un plan día a día, dónde se estanca la gente y un registro gratis.",
+      "summary": "Diez mil pasos al día, con alguien que pregunta si los diste.",
+      "intro": [
+        "El reto es fácil de explicar: llega a 10.000 pasos todos los días durante {days} días, contados por tu teléfono o tu reloj. Caminatas, trayectos, escaleras y dar vueltas mientras hablas por teléfono cuentan. No hay días de descanso, así que el verdadero reto es la noche en que vas en 4.000 a las 8.",
+        "Los retos de pasos eran sociales mucho antes que esta app, entre compañeros de trabajo y amigos con el mismo reloj. Hacerlo como pacto conserva esa parte y quita la tabla de posiciones: tú y un amigo registran cada día y ven si el otro llegó, y eso empuja más que ir en el lugar 14 de la oficina."
+      ],
+      "rules": [
+        "Elige un solo aparato para contar los pasos y úsalo durante todo el reto.",
+        "Primero mide tu punto de partida. Si haces 5.000 de media, planea dos caminatas extra al día en vez de esperar que salgan solos.",
+        "Registra cada noche, cuando llegues a la cifra. Sin redondear.",
+        "Planea por adelantado qué harás si llueve: un centro comercial, un gimnasio, escaleras o llamadas caminando."
+      ],
+      "phases": {
+        "start": "Revisa tu media diaria, acuerda con tu compañero una hora para registrar y agenda las caminatas que te faltan. El primer día es fácil. Para el tercero el plan ya tiene que existir.",
+        "early": "Tus piernas lo notan. Varias caminatas cortas son mejores que una larga. Mándale a tu compañero tus pasos a la hora de comer: ir a la mitad al mediodía es la mejor señal de que vas a terminar.",
+        "middle": "Cambia el clima, llega una semana pesada y la caminata de la noche empieza a pesar. Caminen juntos por llamada o cambien de ruta. Aquí es donde terminan casi todos los retos de pasos en solitario.",
+        "finish": "Ya conoces tu rutina. Usa los últimos días para fijar las caminatas que funcionaron, para que el hábito dure más que el reto."
+      },
+      "failures": [
+        {
+          "title": "El déficit de las 8 de la noche",
+          "body": "Miras el teléfono y te faltan 5.000. Sin un plan, la respuesta es «mañana». Un compañero que registra a la misma hora lo convierte en una caminata juntos, o por lo menos en un mensaje que te saca por la puerta."
+        },
+        {
+          "title": "El día enfermo o de viaje",
+          "body": "Hay días en que los 10.000 no van a pasar. Acuerden antes de empezar qué harán: un mínimo más bajo para días de enfermedad, o un fallo honesto. Decidirlo en el momento casi siempre termina en un fallo que no registras."
+        },
+        {
+          "title": "El reloj sin batería",
+          "body": "Perder los datos se siente como perder el día. Acuerden un respaldo, como el conteo del teléfono o una caminata cronometrada, para que una batería muerta no sea la razón para dejarlo."
+        }
+      ],
+      "faq": [
+        {
+          "question": "¿10.000 pasos al día es realista para un principiante?",
+          "answer": "Depende de dónde empieces. Si hoy haces menos de 5.000, son como una hora más de caminata, así que mételo en tu rutina antes del primer día, o acuerda con tu compañero empezar con una meta más baja y subirla cada semana."
+        },
+        {
+          "question": "¿Cuentan los pasos de correr o de la caminadora?",
+          "answer": "Sí. Todo lo que tu teléfono o reloj cuente como pasos cuenta. La bici y la natación casi nunca se registran, así que acuerden antes si las van a contar."
+        },
+        {
+          "question": "¿Y si mi compañero y yo caminamos a horas distintas?",
+          "answer": "Es lo normal. Cada uno registra cuando llega a la cifra, y la app le muestra al otro que ya lo hiciste. No necesitan caminar juntos para que funcione."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Treinta días bastan para que los pasos dejen de ser un evento y pasen a ser parte de tu día, con algunos días de mal clima y al menos una semana pesada de por medio.",
+        "d60": "En sesenta días cambian la estación y los horarios a mitad del reto. Prepárate desde el principio: una ruta para el frío, un plan para la lluvia y una plática con tu compañero el día 30."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Día 30: revisa tu punto de partida",
+              "body": "Mira tu promedio del primer mes. Si los 10.000 ya son fáciles, mantén la meta y suma una caminata más larga por semana. Si te ha costado, revisa qué días fallaste y arregla esos días, no la meta."
+            },
+            {
+              "title": "Día 40: la rutina que tiene que cambiar",
+              "body": "En dos meses algo va a cambiar: la luz del día, el clima, un horario nuevo. Acuerden el nuevo plan antes de que les cueste un día."
+            },
+            {
+              "title": "Día 60: 600.000 pasos",
+              "body": "Sesenta días a 10.000 son unos 600.000 pasos. Comparen los totales de cada mes y decidan qué caminatas ya son parte de su semana para siempre."
+            }
+          ],
+          "faq": {
+            "question": "¿Cuántos pasos son un reto de 60 días de 10.000 pasos?",
+            "answer": "Al menos 600.000 en total, que casi todos los teléfonos muestran por mes. La mayoría se pasa en los días buenos; el reto son los días que quedan justo en el límite."
+          }
+        }
+      }
+    },
+    "read15": {
+      "slug": "lectura",
+      "name": "Reto de lectura",
+      "inAppName": "Leer 15 minutos",
+      "title": "Reto de lectura de {days} días con un compañero",
+      "metaDescription": "Haz un reto de lectura de {days} días con un compañero de responsabilidad: 15 minutos al día, un plan día a día, dónde se atasca la gente y un registro gratis.",
+      "summary": "Quince minutos de un libro de verdad cada día, con un compañero de lectura que se da cuenta.",
+      "intro": [
+        "El reto: leer un libro, no el teléfono, al menos 15 minutos al día durante {days} días. Papel, lector electrónico y audiolibros cuentan si deciden que cuentan; leer artículos en el teléfono, no. Quince minutos son más o menos de 10 a 20 páginas, y eso suma varios libros al mes.",
+        "Un compañero de responsabilidad para leer funciona distinto a un club de lectura. No tienen que leer el mismo libro. Solo necesitas a alguien que te pregunte, cada día, si leíste. Esa pregunta pequeña es la que saca el libro de la mochila una noche de cansancio."
+      ],
+      "rules": [
+        "Elige tu primer libro antes del primer día y ten listo el siguiente, para que terminar un libro nunca se vuelva un hueco.",
+        "Escoge un momento para leer: el trayecto, la comida o los 15 minutos antes de dormir, con el teléfono en otro cuarto.",
+        "Registra cuando hayas hecho tus 15 minutos. Leer dos veces la misma página no cuenta.",
+        "Dile a tu compañero qué estás leyendo. Una línea sobre el libro basta."
+      ],
+      "phases": {
+        "start": "Elige el libro y el momento, y díselos a tu compañero. Empieza con algo que de verdad quieras leer, no con el libro que crees que deberías.",
+        "early": "Los primeros días son fáciles porque el libro es nuevo. Cuando vaya bien, lee más de 15 minutos: te da margen para los días en que no.",
+        "middle": "Un capítulo lento o un libro que no te gusta acaba con más retos de lectura que las semanas pesadas. Puedes dejar un libro. Lo que no puedes es dejar de leer. Cámbialo y avísale a tu compañero.",
+        "finish": "Cuenten juntos los libros y las páginas, y elijan el siguiente. El hábito de leer es el que más sobrevive al reto si el próximo libro ya está elegido."
+      },
+      "failures": [
+        {
+          "title": "El libro que dejó de gustarte",
+          "body": "La gente se atasca cuando un libro se hace largo, y un libro atascado acaba en silencio con el hábito. Acuerden que dejar un libro está bien y saltarse un día no. Tener a quién preguntarle «¿qué leo ahora?» ayuda."
+        },
+        {
+          "title": "El teléfono en la cama",
+          "body": "La lectura antes de dormir pierde contra el teléfono más que contra cualquier otra cosa. Cárgalo fuera del cuarto y registra con tu compañero antes de dejarlo."
+        },
+        {
+          "title": "La semana pesada",
+          "body": "Una semana de desvelos y el hábito desaparece. Quince minutos caben en un trayecto o en la hora de comer, y un compañero que pregunta a las 9 de la noche es el recordatorio que de otro modo te saltarías."
+        }
+      ],
+      "faq": [
+        {
+          "question": "¿Cuentan los audiolibros en un reto de lectura?",
+          "answer": "Si los dos acuerdan que sí. Mucha gente los cuenta. Lo que importa es decidirlo antes de empezar y exigirse la misma regla."
+        },
+        {
+          "question": "¿Tenemos que leer el mismo libro?",
+          "answer": "No. La mayoría de los compañeros de lectura leen libros distintos y comparten una línea sobre ellos al registrar. Leer el mismo libro es una buena opción, pero cuesta más llevar el mismo ritmo."
+        },
+        {
+          "question": "¿Cuántos libros puedo leer en {days} días?",
+          "answer": "Con 15 minutos al día, la mayoría termina de uno a tres libros al mes, según el libro y cuántas veces los 15 minutos se convierten en 40."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Treinta días suelen dar para terminar de uno a tres libros, suficiente para comprobar que vuelves a ser alguien que lee.",
+        "d90": "Noventa días alcanzan para leer de varios géneros y pasar por algunos libros que no te encanten. Hagan una lista de lectura al empezar y revísenla cada vez que se vuelvan a comprometer."
+      },
+      "longForm": {
+        "d90": {
+          "milestones": [
+            {
+              "title": "Día 30: la primera lista",
+              "body": "Cuenten juntos los libros y las páginas del primer mes y planeen los siguientes. Incluyan algo ligero: un reto largo necesita lecturas fáciles además de las ambiciosas."
+            },
+            {
+              "title": "Día 60: el bache",
+              "body": "Los baches de lectura llegan en el segundo y el tercer mes, muchas veces después de un libro pesado. Cambia de género, prueba un libro más corto o un audiolibro si los dos los cuentan, y mantén los 15 minutos."
+            },
+            {
+              "title": "Día 90: un hábito de lectura",
+              "body": "Tres meses leyendo cada día suelen dar varios libros terminados. Elige tu próximo libro antes del día 90, para que el hábito siga después del reto sin huecos."
+            }
+          ],
+          "faq": {
+            "question": "¿Debemos leer los mismos libros durante 90 días?",
+            "answer": "No hace falta. Muchos compañeros de lectura leen por separado y eligen un libro al mes para leer juntos, y así tienen de qué hablar cada vez que se vuelven a comprometer."
+          }
+        }
+      }
+    },
+    "noAddedSugar": {
+      "slug": "sin-azucar",
+      "name": "Reto sin azúcar",
+      "inAppName": "Sin azúcar añadido",
+      "title": "Reto de {days} días sin azúcar con un amigo",
+      "metaDescription": "Haz un reto de {days} días sin azúcar añadido con un amigo: qué cuenta, un plan día a día, los momentos en que se cae la gente y un registro imprimible gratis.",
+      "summary": "Sin dulces, refrescos ni botanas azucaradas, y con un amigo a quien escribirle cuando llegue el antojo.",
+      "intro": [
+        "Un reto sin azúcar normalmente significa sin azúcar añadido: dulces, postres, refrescos, cafés endulzados y botanas azucaradas quedan fuera; la fruta entera, los lácteos naturales y la comida sin procesar se quedan. Algunas personas también dejan los edulcorantes. Decide tus reglas antes del primer día y escríbelas, porque las etiquetas están llenas de casos raros.",
+        "Los antojos son cortos y sociales. Aparecen con el pastel de la oficina, el bajón de la tarde y después de cenar. Un compañero haciendo el mismo reto te da a alguien a quien escribirle en vez de abrir la alacena, y alguien que entiende por qué dijiste que no al pastel de cumpleaños."
+      ],
+      "rules": [
+        "Escribe tus reglas: el azúcar añadido queda fuera, y decide antes qué pasa con los jugos, la miel, los edulcorantes y las salsas.",
+        "Saca de la casa lo primero que agarrarías, o pide a quien vive contigo que lo guarde fuera de tu vista.",
+        "Registra cada noche. El día cuenta si cumpliste las reglas que escribiste.",
+        "Ten lista una botana de respaldo para la tarde y para después de cenar, las dos horas de más antojo."
+      ],
+      "phases": {
+        "start": "Escriban las reglas, vacíen la alacena y lean las etiquetas de lo que más comen. Van a encontrar azúcar donde no la esperaban; decidan juntos qué hacer con eso.",
+        "early": "Los antojos suelen ser más fuertes los primeros días. Escríbele a tu compañero cuando llegue uno y espera diez minutos antes de decidir. Casi todos se pasan.",
+        "middle": "Los antojos bajan y la presión social toma su lugar: cumpleaños, cenas fuera, el postre de otro. Acuerden su respuesta por adelantado y avísale a tu compañero cuando hayas superado uno.",
+        "finish": "Decidan juntos qué mantienen después del reto, sea dejar el refresco o postre solo el fin de semana, antes de que termine."
+      },
+      "failures": [
+        {
+          "title": "El antojo de la oficina",
+          "body": "El pastel en la cocina de la oficina es el primer tropiezo clásico. Di que no antes de mirarlo. Contárselo después a tu compañero convierte un momento de resistencia en una pequeña victoria que cuentan los dos."
+        },
+        {
+          "title": "El azúcar escondido",
+          "body": "Salsas, cereales, granola y bebidas de café sorprenden a quien creía que iba bien. Lean etiquetas juntos los primeros días y acuerden qué cuenta, para que ninguno falle por un tecnicismo."
+        },
+        {
+          "title": "El premio después de un mal día",
+          "body": "El azúcar es el premio por defecto después de un día difícil. Elige otro por adelantado. Un compañero que registra a la misma hora muchas veces es lo que corta el hábito."
+        }
+      ],
+      "faq": [
+        {
+          "question": "¿La fruta cuenta en un reto sin azúcar?",
+          "answer": "Normalmente no. La mayoría de los retos sin azúcar añadido permiten la fruta entera y dejan fuera los jugos y la fruta deshidratada. Decídanlo antes de empezar y escríbanlo."
+        },
+        {
+          "question": "¿Se permiten los edulcorantes?",
+          "answer": "Depende de ustedes. Hay quien los permite para que el cambio sea más fácil y quien los deja para reiniciar el paladar. Las dos cosas funcionan si los dos conocen la regla."
+        },
+        {
+          "question": "¿Y si como azúcar sin darme cuenta?",
+          "answer": "Registra con honestidad y sigue. Una salsa que no revisaste no es lo mismo que un postre, y un error no termina el reto."
+        }
+      ],
+      "safetyNote": "Si tienes diabetes u otra condición que dependa de lo que comes, habla con tu médico antes de cambiar tu alimentación.",
+      "lengthNotes": {
+        "d30": "Treinta días es la duración más común porque te lleva por un mes completo de cumpleaños, fines de semana y días malos.",
+        "d60": "Sesenta días te llevan más allá del punto en que el problema son los antojos y hacia la parte en que lo son las costumbres sociales. Aprovechen el día 30 para ajustar cualquier regla que fuera demasiado estricta o demasiado suelta."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Día 30: revisen las reglas",
+              "body": "Después de un mes ya saben qué reglas eran demasiado sueltas y cuáles demasiado estrictas. Acuerden cualquier cambio antes de volver a comprometerse y escriban la nueva versión."
+            },
+            {
+              "title": "Día 40: la temporada social",
+              "body": "Para ahora, el problema casi nunca son los antojos sino las invitaciones. Planeen juntos el próximo evento grande, un cumpleaños, una fiesta o una cena fuera, antes de que llegue."
+            },
+            {
+              "title": "Día 60: lo que se queda",
+              "body": "Elige qué vas a mantener después del reto, como no tomar refresco o dulces solo el fin de semana, y díselo a tu compañero. Una regla que elegiste es más fácil de mantener que una a la que llegaste sin darte cuenta."
+            }
+          ],
+          "faq": {
+            "question": "¿60 días sin azúcar añadido es más difícil que 30?",
+            "answer": "Normalmente no es más difícil, solo distinto. Las primeras semanas son de antojos; el segundo mes es de costumbres sociales y de estar atento al azúcar escondido. Un compañero ayuda más en la segunda mitad, cuando deja de sentirse como un reto."
+          }
+        }
+      }
+    },
+    "soberCurious": {
+      "slug": "sin-alcohol",
+      "name": "Reto sin alcohol",
+      "inAppName": "Mes sin alcohol",
+      "title": "Reto de {days} días sin alcohol con un amigo",
+      "metaDescription": "Un reto de {days} días sin alcohol para hacer con un amigo: cómo funciona, un plan día a día, los momentos sociales que conviene planear y un registro gratis.",
+      "summary": "Una temporada de días sin alcohol, con un amigo haciéndolo contigo.",
+      "intro": [
+        "Un reto sin alcohol es lo que parece: nada de alcohol durante {days} días. Es la versión por curiosidad, para ver cómo te sientes y cuánto bebías por costumbre. No es un programa de recuperación. Las bebidas sin alcohol o bajas en alcohol están bien si las quieres.",
+        "Lo difícil casi nunca es la bebida en sí. Es el guion social: la ronda, el brindis, el «solo una». Hacerlo con un amigo significa que alguien en la mesa está de tu lado, y que tienes a quién contarle que superaste un viernes."
+      ],
+      "rules": [
+        "Elijan juntos la fecha de inicio y avísales a las personas con las que sueles tomar.",
+        "Ten a mano una bebida sin alcohol que de verdad te guste, para los momentos en que normalmente abrirías algo.",
+        "Registra cada noche: hoy sin alcohol, sí o no.",
+        "Planea por adelantado tu primer fin de semana, cumpleaños o evento de trabajo, incluido lo que vas a decir."
+      ],
+      "phases": {
+        "start": "Avísale a tu compañero y a la gente con la que sueles tomar, ten otra cosa para beber y planeen el primer viernes. Para casi todos, la primera prueba llega antes de lo que esperan.",
+        "early": "Aquí se nota la costumbre: la copa después del trabajo, el vino con la cena. Reemplaza el ritual en vez de solo quitarlo, y escríbele a tu compañero a la hora en que normalmente te servirías.",
+        "middle": "La novedad se fue y la presión social no para. Cambien una salida por otro plan juntos, y acostúmbrate a decirlo en voz alta: «estoy haciendo un reto sin alcohol».",
+        "finish": "Hablen de lo que viene después. Hay quien lo alarga y hay quien vuelve a tomar con reglas nuevas. Decídanlo antes del último día, no ese día."
+      },
+      "failures": [
+        {
+          "title": "El primer viernes",
+          "body": "El final de la primera semana es donde se detienen muchos retos sin alcohol. Planéalo: una noche sin bar, o una con tu compañero. Saber que vas a registrar esa noche hace más fácil decir que no."
+        },
+        {
+          "title": "El «solo una»",
+          "body": "Los amigos lo dicen con buena intención. Una respuesta corta y ensayada («estoy haciendo un reto con un amigo») funciona mejor que una explicación, y tener a un amigo de verdad en el reto la hace cierta."
+        },
+        {
+          "title": "La celebración",
+          "body": "Las bodas y los cumpleaños parecen merecer una excepción. Si decides hacer una, díselo a tu compañero antes. Las excepciones sin planear son donde el reto se acaba."
+        }
+      ],
+      "faq": [
+        {
+          "question": "¿Cuentan la cerveza y el vino sin alcohol?",
+          "answer": "La mayoría los permite, y a muchos les hacen más fácil la parte social. Acuérdenlo antes, y sáltatelos si te dan ganas de lo de verdad."
+        },
+        {
+          "question": "¿Esto es un tratamiento?",
+          "answer": "No. Es un reto para quien quiere ver cómo es una temporada sin alcohol. Si te preocupa cuánto bebes, o te sientes mal cuando lo dejas, habla con un médico."
+        },
+        {
+          "question": "¿Qué le digo a la gente que pregunta por qué no tomo?",
+          "answer": "«Estoy haciendo un reto de {days} días con un amigo» suele bastar. Es verdad, es corto y no abre un debate."
+        }
+      ],
+      "safetyNote": "Esto es un reto, no un consejo médico ni un tratamiento. Si bebes mucho todos los días, dejarlo de golpe puede ser peligroso: habla antes con un médico. Si necesitas apoyo, acude a un servicio de salud local.",
+      "lengthNotes": {
+        "d30": "Treinta días alcanzan para pasar un mes de fines de semana, una quincena y al menos una celebración, que es donde más se aprende.",
+        "d90": "Noventa días son un reto distinto a un mes: la pregunta pasa de «¿puedo?» a «¿cómo quiero que sea mi relación con el alcohol?». Vuelvan a comprometerse el día 30 y el día 60, y hablen cada vez del porqué."
+      },
+      "longForm": {
+        "d90": {
+          "milestones": [
+            {
+              "title": "Día 30: el balance honesto",
+              "body": "Hablen del primer mes: cómo durmieron, cómo se sintieron y qué momentos fueron los más difíciles. Decidan juntos si siguen igual o cambian el plan para los siguientes 30 días."
+            },
+            {
+              "title": "Día 60: el mapa social",
+              "body": "Para ahora ya sabes qué situaciones son fáciles y cuáles no. Planeen juntos las difíciles del último mes, y quédate con la respuesta corta que te funciona."
+            },
+            {
+              "title": "Día 90: elige lo que sigue",
+              "body": "Noventa días te dan una idea clara de qué papel tenía el alcohol en tu semana. Decide con tu compañero, antes del último día, qué quieres después: seguir, ponerte nuevos límites u otra cosa."
+            }
+          ],
+          "faq": {
+            "question": "¿Y si quiero dejar antes un reto de 90 días?",
+            "answer": "Es tu decisión, y tomarla a propósito no es lo mismo que dejarlo ir. Habla primero con tu compañero y, si puedes, termínalo en uno de los puntos de 30 días. Si dejar de beber te ha costado, habla con un médico."
+          }
+        }
+      }
+    },
+    "coldShower": {
+      "slug": "ducha-fria",
+      "name": "Reto de duchas frías",
+      "inAppName": "Ducha fría",
+      "title": "Reto de {days} días de duchas frías con un amigo",
+      "metaDescription": "Haz un reto de {days} días de duchas frías con un amigo: cómo empezar, un plan día a día, dónde se rinde la gente y un registro imprimible gratis.",
+      "summary": "Termina cada ducha con 30 segundos de agua fría. Rétale a un amigo a hacerlo también.",
+      "intro": [
+        "El reto: terminar cada ducha con al menos 30 segundos de agua fría, todos los días durante {days} días. No necesitas un baño de hielo ni una ducha completamente fría. Girar la llave a frío al final y quedarte ahí es todo.",
+        "Es un reto de valor, y por eso funciona entre amigos. Saber que tu amigo ya hizo la suya esta mañana hace mucho más difícil volver a girar la llave a caliente. Y es de sí o no, así que el registro es honesto: te quedaste ahí o no."
+      ],
+      "rules": [
+        "Empieza con 30 segundos de agua fría al final de una ducha normal. Agrega tiempo solo si quieres.",
+        "Gira la llave a frío antes de que puedas convencerte de no hacerlo. Contar en voz alta ayuda.",
+        "Deja la llave en frío durante toda la cuenta. Volver a caliente al final no cuenta.",
+        "Registra justo después, mientras todavía lo sientes."
+      ],
+      "phases": {
+        "start": "Acuerden el mínimo (30 segundos es suficiente) y hagan la primera ese mismo día. La espera es peor que el agua.",
+        "early": "Los primeros días cada ducha es un golpe. Exhala despacio y cuenta. Mándale a tu compañero una palabra al terminar; es más divertido cuando los dos están en esto.",
+        "middle": "Deja de ser un golpe y empieza a ser una tarea, sobre todo si cambia el clima. Aquí es donde la gente vuelve al agua caliente sin decir nada. Quédate en 30 segundos; no dejes que crezca hasta volverse algo que temes.",
+        "finish": "Decidan juntos si lo mantienen, lo dejan solo entre semana o lo terminan. Mucha gente se queda con los 30 segundos, porque para entonces es la victoria más rápida del día."
+      },
+      "failures": [
+        {
+          "title": "La mañana de invierno",
+          "body": "El agua de la llave sale mucho más fría en invierno, y un baño frío lo empeora. Acorta el tiempo en vez de saltártelo, y dile a tu compañero que fue difícil. Lo va a entender."
+        },
+        {
+          "title": "La ducha de viaje",
+          "body": "Las duchas de hotel o del gimnasio rompen la rutina. Acuerden por adelantado que la regla aplica en cualquier lugar con una llave."
+        },
+        {
+          "title": "La ducha cada vez más larga",
+          "body": "Hay quien alarga cada día hasta que se vuelve un sufrimiento, y entonces lo deja. Treinta segundos todos los días valen más que tres minutos durante una semana. Un compañero mantiene la meta donde la pusieron."
+        }
+      ],
+      "faq": [
+        {
+          "question": "¿Cuánto debe durar la parte fría?",
+          "answer": "Treinta segundos al final de una ducha normal es el punto de partida habitual. Algunas personas llegan a dos o tres minutos. Elijan juntos un mínimo y respétenlo."
+        },
+        {
+          "question": "¿Tiene que estar totalmente fría?",
+          "answer": "Tan fría como salga tu ducha. La temperatura del agua cambia según el lugar y la estación, así que la regla es la posición más fría, no un número."
+        },
+        {
+          "question": "¿La ducha fría es segura para todos?",
+          "answer": "No necesariamente. Si tienes un problema del corazón, presión alta u otra condición de salud, consulta a un médico antes de empezar."
+        }
+      ],
+      "safetyNote": "El agua fría no es para todos. Si tienes un problema del corazón, presión alta u otra condición de salud, consulta a un médico antes de empezar, y detente si te mareas o te sientes mal.",
+      "lengthNotes": {
+        "d30": "En treinta días casi todos pasan de temerla a hacerla sin pensarlo mucho, y normalmente con al menos un día de frío de por medio.",
+        "d60": "Sesenta días casi siempre cruzan un cambio de estación, y esa es la verdadera prueba: el agua se enfría y la rutina tiene que aguantar. Vuelvan a comprometerse el día 30 y dejen el mínimo donde estaba."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Día 30: mantén el mínimo",
+              "body": "Después de un mes, los 30 segundos pueden sentirse fáciles. Puedes sumar tiempo, pero deja el mínimo diario donde está, para que una mala mañana nunca se convierta en un día saltado."
+            },
+            {
+              "title": "Día 40: cambia la estación",
+              "body": "El agua de la llave se enfría con el clima. Espera que el segundo mes se sienta más duro que el primero aunque el mínimo sea el mismo, y díselo a tu compañero cuando pase."
+            },
+            {
+              "title": "Día 60: decidan juntos",
+              "body": "A los dos meses, decidan si lo mantienen a diario, solo entre semana o lo terminan. Mucha gente se queda con los 30 segundos, porque para entonces cuesta menos fuerza de voluntad hacerlo que saltárselo."
+            }
+          ],
+          "faq": {
+            "question": "¿Debo alargar la parte fría durante un reto de 60 días?",
+            "answer": "Solo si quieres. El reto es el mínimo diario, y quienes terminan los 60 días suelen mantenerlo corto. Sumar tiempo es opcional; lo que hay que evitar es saltarse días."
+          }
+        }
+      }
+    },
+    "meditate": {
+      "slug": "meditacion",
+      "name": "Reto de meditación",
+      "inAppName": "Meditación",
+      "title": "Reto de meditación de {days} días con un amigo",
+      "metaDescription": "Un reto de meditación de {days} días para hacer con un amigo: 10 minutos al día, un plan día a día, dónde se distrae la gente y un registro imprimible gratis.",
+      "summary": "Diez minutos de meditación guiada o en silencio al día, con un amigo que te mantiene en ello.",
+      "intro": [
+        "El reto: meditar 10 minutos todos los días durante {days} días. Una grabación guiada, un temporizador en silencio o un ejercicio de respiración cuentan. La meta es sentarte cada día, no llegar a ningún estado mental en particular.",
+        "La meditación es fácil de dejar porque nadie ve si la hiciste. Un compañero cambia eso: un registro rápido después de tu sesión es el pequeño costo social que te hace sentarte los días en que te la saltarías."
+      ],
+      "rules": [
+        "Elige una hora y un lugar, idealmente pegados a algo que ya haces cada día, como después del café o antes de dormir.",
+        "Usa un temporizador o una grabación para no estar mirando el reloj.",
+        "Registra después de tus 10 minutos, aunque tu mente haya divagado todo el tiempo.",
+        "En los días difíciles, corto está bien. Cinco minutos honestos valen más que un día saltado."
+      ],
+      "phases": {
+        "start": "Elige la hora, el lugar y el método, y díselos a tu compañero. Haz la primera sesión ese mismo día, para que sea un hecho y no un plan.",
+        "early": "Tu mente va a divagar todo el tiempo. Eso no es fallar; darte cuenta es la práctica. Cuéntale a tu compañero cómo te fue en una línea.",
+        "middle": "Se vuelve repetitivo y los 10 minutos empiezan a sentirse largos. Prueba otra grabación u otra hora, pero mantén el registro diario. Aquí es donde casi todos lo van dejando.",
+        "finish": "Hablen de lo que notaron y decidan si mantienen un momento diario. Un hábito pegado a una rutina que ya existe es el que más probablemente dure."
+      },
+      "failures": [
+        {
+          "title": "El día de «lo hago más tarde»",
+          "body": "La meditación es lo primero que se cae en un día ocupado, porque es silenciosa e invisible. Pégala a un momento fijo del día, y deja que el registro con tu compañero sea la parte visible."
+        },
+        {
+          "title": "La sesión que se sintió como un fracaso",
+          "body": "Una sesión inquieta hace que la gente decida que no sirve para esto. No existen las sesiones malas. Registra de todos modos y cuéntaselo a tu compañero; vas a ver que él también tuvo una."
+        },
+        {
+          "title": "La rutina rota",
+          "body": "Los viajes y los fines de semana mueven el horario, y el hábito se va con él. Acuerden que la regla es «una vez al día, donde sea», no «a las 7 de la mañana»."
+        }
+      ],
+      "faq": [
+        {
+          "question": "¿Bastan 10 minutos al día?",
+          "answer": "Para un reto, sí. La meta es el hábito de sentarte cada día. Mucha gente empieza con 5 minutos y luego agrega más."
+        },
+        {
+          "question": "¿Cuentan las meditaciones guiadas?",
+          "answer": "Sí. Guiada, en silencio, ejercicios de respiración o un escaneo corporal: todo cuenta. Usa lo que te ayude a sentarte."
+        },
+        {
+          "question": "¿Y si me quedo dormido?",
+          "answer": "Pasa, sobre todo de noche. Si te pasa seguido, adelanta la sesión o medita sentado."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Treinta días bastan para pasar la novedad y las primeras semanas inquietas, y son pocos como para comprometerte sin pensarlo demasiado.",
+        "d60": "Sesenta días le dan tiempo al hábito para sobrevivir a un cambio de rutina. Usen el día 30 para ajustar la hora o el método, no la regla diaria."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Día 30: mantén el horario, cambia el método",
+              "body": "Si las sesiones se sienten gastadas, prueba otra grabación, un ejercicio de respiración o un temporizador en silencio. Deja igual la hora del día y el registro diario."
+            },
+            {
+              "title": "Día 45: el medio silencioso",
+              "body": "Aquí es donde el hábito de meditar se apaga sin que nadie lo note. Cuéntale a tu compañero algo que hayas notado desde que empezaste; decirlo en voz alta hace que la práctica se sienta real."
+            },
+            {
+              "title": "Día 60: elige la duración",
+              "body": "Decide si te quedas en 10 minutos o haces sesiones más largas. Mucha gente se queda en 10 para siempre. Un hábito que mantienes vale más que uno más largo que dejas."
+            }
+          ],
+          "faq": {
+            "question": "¿Debo meditar más tiempo el segundo mes?",
+            "answer": "Solo si quieres. Algunas personas pasan a 15 o 20 minutos después de un mes, pero el hábito diario importa más que la duración. Si las sesiones largas te hacen saltarte días, vuelve a 10."
+          }
+        }
+      }
+    },
+    "workOut": {
+      "slug": "ejercicio",
+      "name": "Reto de ejercicio",
+      "inAppName": "Hacer ejercicio",
+      "title": "Reto de ejercicio de {days} días con un amigo",
+      "metaDescription": "Un reto de ejercicio de {days} días para dos: 20 minutos de movimiento al día, un plan día a día, dónde lo deja la gente y un registro imprimible gratis.",
+      "summary": "Veinte minutos de movimiento cada día, con un compañero de entrenamiento del otro lado.",
+      "intro": [
+        "El reto: moverte al menos 20 minutos todos los días durante {days} días. Gimnasio, correr, rutinas en casa, deporte, bailar o una caminata rápida cuentan. Veinte minutos es tan poco que cabe en tu peor día, y ese es justamente el diseño.",
+        "El compañero de entrenamiento es el truco de responsabilidad más antiguo que hay, y no necesitan entrenar juntos para que funcione. Cada uno registra cuando se movió, y ver que tu amigo ya lo hizo empuja más que cualquier playlist."
+      ],
+      "rules": [
+        "Define antes del primer día qué cuenta: 20 minutos de movimiento a propósito, el que tú elijas.",
+        "Planeen la semana juntos el domingo: qué días son de sesión fuerte y cuáles son suaves.",
+        "Registra cuando hayas hecho tus 20 minutos. En días de recuperación, estirar o caminar cuenta.",
+        "Los días suaves están permitidos. Los días en cero, no."
+      ],
+      "phases": {
+        "start": "Decidan qué cuenta y planeen la primera semana. Empieza más suave de lo que crees: la primera meta es aparecer todos los días, no terminar adolorido.",
+        "early": "El dolor muscular y la motivación están en su punto más alto. Alterna días fuertes y suaves para poder seguir a diario, y registra con tu compañero a la misma hora cada día.",
+        "middle": "La emoción baja y la vida se mete en medio. Aquí terminan casi todos los retos de ejercicio. En los días ocupados, baja la meta a una caminata de 20 minutos y mantén el registro.",
+        "finish": "Revisen juntos el registro y elijan la rutina que van a mantener. Una rutina un poco más pequeña que mantienes vale más que la versión del reto que dejas."
+      },
+      "failures": [
+        {
+          "title": "El lunes que te saltaste",
+          "body": "Un día perdido se vuelve una semana perdida cuando nadie se da cuenta. Que un compañero se dé cuenta es la idea. Acuerden escribirse después de un fallo, no para juzgar, solo para decir que mañana vuelves."
+        },
+        {
+          "title": "Demasiado, demasiado pronto",
+          "body": "Darle con todo la primera semana lleva al dolor, a una lesión o al agotamiento en la segunda. El mínimo de 20 minutos existe para que los días suaves también cuenten. Úsalos."
+        },
+        {
+          "title": "La agenda que se derrumba",
+          "body": "Una semana ocupada se lleva las sesiones que planeaste. Ten un plan B sin equipo y sin traslados, como una caminata o una rutina corta en casa, y dile a tu compañero cuál usaste."
+        }
+      ],
+      "faq": [
+        {
+          "question": "¿Caminar cuenta en un reto de ejercicio?",
+          "answer": "Sí, una caminata rápida de 20 minutos cuenta. El reto es moverte todos los días, y las caminatas son lo que evita que los días suaves se vuelvan días en cero."
+        },
+        {
+          "question": "¿Tenemos que entrenar juntos?",
+          "answer": "No. La mayoría entrena a horas y en lugares distintos. Cada uno registra, y la app le muestra al otro que ya lo hiciste."
+        },
+        {
+          "question": "¿Puedo tomar días de descanso?",
+          "answer": "Hazlos activos: estiramientos, yoga o una caminata. Si prefieres descansar de verdad, configura el pacto para cinco o seis días por semana en vez de todos los días."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Treinta días es la duración clásica: lo bastante largo para que la rutina se quede y lo bastante corto para mantener el esfuerzo honesto.",
+        "d90": "Noventa días permiten entrenar por bloques. Planeen un enfoque distinto para cada ciclo de 30 días, y vuelvan a comprometerse al final de cada uno para que la racha siga."
+      },
+      "longForm": {
+        "d90": {
+          "milestones": [
+            {
+              "title": "Día 30: primer bloque terminado",
+              "body": "El primer bloque se trata de aparecer. Revisen el registro juntos: ¿qué días fueron los más difíciles y qué los sacó adelante? Quédense con eso y elijan un enfoque para los siguientes 30 días, como fuerza, distancia o una habilidad."
+            },
+            {
+              "title": "Día 60: segundo bloque, y la meseta",
+              "body": "El progreso se frena en el segundo mes. Es el momento de cambiar el entrenamiento, no de dejarlo. Cambia un tipo de sesión o ponte una meta pequeña y medible para revisar el día 90."
+            },
+            {
+              "title": "Día 90: la rutina que se queda",
+              "body": "Tres meses de moverte a diario son una rutina, no un reto. Decidan cuántos días por semana van a mantener después y ajusten la frecuencia del pacto."
+            }
+          ],
+          "faq": {
+            "question": "¿Debo entrenar fuerte todos los días durante 90 días?",
+            "answer": "Muévete todos los días, pero no entrenes fuerte todos los días. La mayoría de los días deben ser suaves: una caminata, estiramientos, un paseo en bici tranquilo. Dos o tres sesiones fuertes por semana bastan, y así se llega al día 90 sin lesiones."
+          }
+        }
+      }
+    },
+    "dailyJournal": {
+      "slug": "diario",
+      "name": "Reto de escribir un diario",
+      "inAppName": "Diario",
+      "title": "Reto de {days} días de escribir un diario con un amigo",
+      "metaDescription": "Haz un reto de {days} días de escribir un diario con un amigo: tres frases al día, preguntas sencillas, un plan día a día, dónde se deja y un registro gratis.",
+      "summary": "Tres frases al día: qué salió bien, qué no y qué sigue.",
+      "intro": [
+        "El reto: escribir al menos tres frases todos los días durante {days} días: qué salió bien, qué no y qué sigue. Un cuaderno, una app de notas o un documento cuentan. Tres frases toman dos minutos, y por eso el hábito sobrevive a los días ocupados.",
+        "Tu compañero nunca lee tu diario. Solo ve que hoy escribiste, y tú ves lo mismo de él. Con eso basta: el diario suele fallar porque nada marca el día que te lo saltas, y el registro es esa marca."
+      ],
+      "rules": [
+        "Usa las mismas tres preguntas cada día: qué salió bien, qué no y qué sigue.",
+        "Deja el diario donde lo vayas a ver a tu hora elegida, en la mesa de noche o arriba en tu app de notas.",
+        "Registra cuando hayas escrito tus tres frases. Tu compañero nunca ve lo que escribiste.",
+        "Escribe más cuando quieras. Nunca menos de tres frases."
+      ],
+      "phases": {
+        "start": "Elige dónde y cuándo vas a escribir, y díselo a tu compañero. Escribe la primera entrada hoy. No tiene que ser buena.",
+        "early": "Es fácil mientras es nuevo. Quédate en las tres preguntas aunque quieras escribir páginas, para que el hábito no dependa de tener algo que decir.",
+        "middle": "Las entradas empiezan a repetirse y parece que no sirve. Es normal. Relee la primera semana; casi siempre encuentras algo que vale la pena notar. Dile a tu compañero que sigues.",
+        "finish": "Relee todo. Decidan juntos si siguen con tres frases al día o pasan a un repaso semanal."
+      },
+      "failures": [
+        {
+          "title": "No hay nada que escribir",
+          "body": "Hay días que se sienten vacíos. Las tres preguntas existen para esos días: siempre hay algo que salió bien, algo que no y algo que sigue, aunque sea pequeño."
+        },
+        {
+          "title": "El salto de medianoche",
+          "body": "El diario antes de dormir pierde contra el cansancio. Muévelo a una hora en que estés despierto, como la comida o la salida del trabajo, y deja que el registro de tu compañero sea el recordatorio."
+        },
+        {
+          "title": "La preocupación por la privacidad",
+          "body": "La gente deja de escribir con honestidad cuando cree que alguien lo va a leer. Tu compañero solo ve el registro, nunca las palabras. Guarda también el diario en un lugar privado."
+        }
+      ],
+      "faq": [
+        {
+          "question": "¿Qué escribo en un diario?",
+          "answer": "Tres frases: qué salió bien hoy, qué no y qué vas a hacer después. Puedes escribir más, pero ese es el mínimo diario."
+        },
+        {
+          "question": "¿Mi compañero ve mi diario?",
+          "answer": "No. Solo ve que registraste el día. Tus entradas se quedan donde las escribas."
+        },
+        {
+          "question": "¿Una app de notas vale lo mismo que el papel?",
+          "answer": "Para este reto, sí. Usa lo que de verdad vayas a abrir cada día."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Treinta días te dejan un mes de entradas para releer, que es cuando escribir un diario empieza a sentirse valioso."
+      }
+    },
+    "drinkWater": {
+      "slug": "agua",
+      "name": "Reto de tomar agua",
+      "inAppName": "Beber 2 litros de agua",
+      "title": "Reto de {days} días tomando agua con un amigo",
+      "metaDescription": "Un reto de {days} días para tomar 2 litros de agua al día con un amigo: un plan día a día, dónde se le olvida a la gente y un registro imprimible gratis.",
+      "summary": "Dos litros de agua al día, y un amigo que pregunta si te los tomaste.",
+      "intro": [
+        "El reto: tomar tu meta diaria de agua todos los días durante {days} días. La plantilla usa unos 2 litros, pero la cifra la acuerdan ustedes. El agua, el agua mineral y los tés de hierbas cuentan; decidan juntos qué pasa con el café y otras bebidas.",
+        "Tomar suficiente agua es más fácil de olvidar que difícil de hacer. Un compañero que registra al final del día es un recordatorio que no viene de una notificación que ya aprendiste a ignorar."
+      ],
+      "rules": [
+        "Elige una botella y calcula cuántas veces tienes que llenarla para llegar a tu meta.",
+        "Ata cada recarga a un momento fijo: al despertar, en cada comida, al salir del trabajo.",
+        "Registra cuando llegues a tu meta del día.",
+        "Si te indicaron limitar líquidos por una razón médica, sigue lo que dice tu médico, no la plantilla."
+      ],
+      "phases": {
+        "start": "Elige la botella, la meta y los momentos de recarga, y díselos a tu compañero. Llena la botella antes de dormir para que te espere en la mañana.",
+        "early": "Quizá te sorprenda lo poco que tomabas. Mándale a tu compañero un aviso de mitad de meta a la hora de comer; es mucho más fácil terminar si vas a la mitad al mediodía.",
+        "middle": "La botella se queda olvidada y los días ocupados se quedan cortos. Ten una en el trabajo y otra en casa, y acuerden una sola hora para registrar en la noche.",
+        "finish": "Quédate con los momentos de recarga que funcionaron. El agua es uno de los hábitos más fáciles de mantener después de un reto, siempre que la botella siga a la vista."
+      },
+      "failures": [
+        {
+          "title": "La botella olvidada",
+          "body": "Dejar la botella en casa es la razón más común de un día corto. Ten una segunda donde pases el día."
+        },
+        {
+          "title": "El maratón de la noche",
+          "body": "Tomártela toda a las 9 de la noche es horrible y no te deja dormir. Un mensaje de tu compañero al mediodía diciendo que va a la mitad es el empujón para seguir el ritmo."
+        },
+        {
+          "title": "El bajón del frío",
+          "body": "Cuando hace frío se toma menos. El té de hierbas cuenta si lo acuerdan, y así el hábito aguanta el invierno."
+        }
+      ],
+      "faq": [
+        {
+          "question": "¿Cuánta agua debo tomar al día?",
+          "answer": "La plantilla usa unos 2 litros, una meta diaria común. Lo que necesitas depende de tu tamaño, tu actividad y el clima. Si no estás seguro, o tienes una condición de salud, consulta a un médico."
+        },
+        {
+          "question": "¿Cuenta el café o el té?",
+          "answer": "El té de hierbas y el agua mineral normalmente sí. El café y otras bebidas dependen de ustedes; decídanlo antes de empezar."
+        },
+        {
+          "question": "¿Podemos usar otra meta?",
+          "answer": "Sí. La meta es suya. Acuerden la cifra y registren cuando lleguen a ella."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Treinta días bastan para que las recargas se vuelvan automáticas, que es la única parte de este reto que de verdad cuesta."
+      }
+    },
+    "screenTimeLimit": {
+      "slug": "tiempo-de-pantalla",
+      "name": "Reto de tiempo de pantalla",
+      "inAppName": "Respetar tu límite de pantalla",
+      "title": "Reto de {days} días para reducir el tiempo de pantalla con un amigo",
+      "metaDescription": "Haz un reto de {days} días de tiempo de pantalla con un amigo: un límite diario para redes sociales, un plan día a día, dónde se cae la gente y un registro gratis.",
+      "summary": "Quédate debajo de tu límite diario de redes sociales, con un amigo que pregunta.",
+      "intro": [
+        "El reto: ponerte un límite diario para las redes sociales y quedarte por debajo todos los días durante {days} días. La configuración de tiempo de pantalla de tu teléfono lo mide; el límite lo eliges tú. Mucha gente empieza cortando su promedio actual más o menos a la mitad.",
+        "El tiempo de pantalla ya se mide, pero nadie mira el número. Un compañero lo convierte en algo que reportas. Decirle a un amigo cada noche «me quedé debajo» funciona mejor que un límite que quitas con un toque."
+      ],
+      "rules": [
+        "Antes de empezar, busca tu promedio diario en la configuración de tu teléfono.",
+        "Ponte un límite que de verdad puedas cumplir, y activa los límites de apps del teléfono como respaldo.",
+        "Registra cada noche: debajo de tu límite, sí o no.",
+        "Saca de la pantalla de inicio las apps que estás limitando."
+      ],
+      "phases": {
+        "start": "Busca tu promedio, ponte el límite y dile a tu compañero la cifra. Saca las apps de la pantalla de inicio hoy mismo.",
+        "early": "Vas a notar cuántas veces agarras el teléfono sin decidirlo. Cada vez, déjalo y haz otra cosa. Dile a tu compañero tu número cada noche.",
+        "middle": "Aparecen los atajos: la versión del navegador, otra app, el «solo reviso mensajes». Acuerden qué cuenta y sean honestos.",
+        "finish": "Comparen su promedio con el del inicio. Decidan juntos qué límite mantienen después del reto, y dejen activados los límites de apps."
+      },
+      "failures": [
+        {
+          "title": "El límite que se quita con un toque",
+          "body": "Los límites del teléfono son fáciles de ignorar. Por eso importa el registro: quitar un límite es privado, pero decirle a un amigo que te pasaste no lo es."
+        },
+        {
+          "title": "El hueco del aburrimiento",
+          "body": "Bajar el tiempo de pantalla deja momentos vacíos. Planea con qué los llenas, como un libro, una caminata o una llamada, o el teléfono los vuelve a llenar."
+        },
+        {
+          "title": "El scroll de medianoche",
+          "body": "La noche es cuando se rompen casi todos los límites. Carga el teléfono fuera del cuarto y registra con tu compañero antes de guardarlo."
+        }
+      ],
+      "faq": [
+        {
+          "question": "¿Cuál es un buen límite diario de pantalla?",
+          "answer": "Parte de tu promedio actual y córtalo más o menos a la mitad, o pon un límite solo para redes sociales. Un límite que puedes cumplir vale más que uno ambicioso que rompes el segundo día."
+        },
+        {
+          "question": "¿La app lee mi tiempo de pantalla?",
+          "answer": "No. Tú revisas tu propio número en la configuración del teléfono y registras con honestidad. Friends with Habits nunca ve cómo usas tu teléfono."
+        },
+        {
+          "question": "¿Qué cuenta como tiempo de pantalla en el reto?",
+          "answer": "Lo que tú y tu compañero acuerden. La mayoría limita las redes sociales y deja fuera mensajes, mapas y apps de trabajo."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Treinta días bastan para romper el reflejo de agarrar el teléfono, y para ver bajar el promedio en el propio reporte del teléfono."
+      }
+    },
+    "run": {
+      "slug": "correr",
+      "name": "Reto de correr",
+      "inAppName": "Salir a correr",
+      "title": "Reto de {days} días corriendo con un amigo",
+      "metaDescription": "Un reto de {days} días de correr para dos: tres salidas por semana a cualquier ritmo, un plan día a día, dónde lo dejan los principiantes y un registro gratis.",
+      "summary": "Tres salidas a correr por semana, a cualquier distancia y ritmo, con un compañero.",
+      "intro": [
+        "El reto: salir a correr tres veces por semana durante {days} días. Cualquier distancia y cualquier ritmo, y caminar a ratos está permitido. Tres salidas por semana bastan para crear el hábito y dejan un día de recuperación entre una y otra, que importa más que la distancia cuando vas empezando.",
+        "Un compañero para correr es la forma clásica de salir por la puerta, pero no tienen que correr juntos. Cada uno registra después de su salida, y ver el registro de tu compañero en una mañana fría es una buena razón para amarrarte los tenis."
+      ],
+      "rules": [
+        "Al inicio de cada semana elige tus tres días para correr y díselos a tu compañero.",
+        "Si eres principiante, empieza alternando: un minuto corriendo, un minuto caminando.",
+        "Registra después de cada salida. Cualquier salida cuenta, por corta que sea.",
+        "Las primeras semanas, no corras dos días seguidos. La recuperación es parte del plan."
+      ],
+      "phases": {
+        "start": "Elige los días, la ruta y la hora, y haz la primera salida en los primeros tres días, por corta que sea. Cuéntale a tu compañero cómo te sentiste.",
+        "early": "Quien empieza lo siente en las piernas y en los pulmones. Mantén un ritmo que te deje hablar. Si te quedas sin aire, camina. Sigue contando.",
+        "middle": "Correr empieza a sentirse rutinario, y el clima y la semana empiezan a ganar. Si fallas un día, muévelo a otro de esa misma semana en vez de perderlo, y avísale a tu compañero.",
+        "finish": "Elige los tres días en que vas a seguir corriendo después del reto. Algunos compañeros se inscriben juntos a una carrera local para darle una meta al mes siguiente."
+      },
+      "failures": [
+        {
+          "title": "La primera salida difícil",
+          "body": "Una salida temprana que se siente horrible convence a la gente de que no sirve para correr. Baja el ritmo, agrega pausas caminando y cuéntaselo a tu compañero. Una mala salida que terminaste sigue contando."
+        },
+        {
+          "title": "Demasiado, demasiado pronto",
+          "body": "Correr todos los días o subir la distancia muy rápido es como se lastiman los principiantes. Tres salidas suaves por semana es el reto, y tu compañero te mantiene en eso."
+        },
+        {
+          "title": "El clima",
+          "body": "La lluvia, el frío y las mañanas oscuras cancelan más salidas que cualquier otra cosa. Acuerden un plan B: una caminadora, una vuelta más corta u otra hora del día."
+        }
+      ],
+      "faq": [
+        {
+          "question": "¿Cuánto debo correr en un reto de {days} días?",
+          "answer": "Lo que puedas cómodamente a un ritmo suave. Para un principiante pueden ser uno o dos kilómetros con pausas caminando. El reto cuenta salidas, no distancia."
+        },
+        {
+          "question": "¿Puedo caminar durante mis salidas?",
+          "answer": "Sí. Alternar correr y caminar es una forma común de empezar, y una salida con tramos caminando sigue contando."
+        },
+        {
+          "question": "¿Y si fallo un día de correr?",
+          "answer": "Muévelo a otro día de la misma semana. La meta son tres salidas por semana, no tres días fijos."
+        }
+      ],
+      "lengthNotes": {
+        "d30": "Treinta días son unas 13 salidas, suficientes para pasar de «yo no corro» a tener una ruta que conoces.",
+        "d60": "Sesenta días son unas 26 salidas. Usen los segundos 30 días para sumar un poco de distancia o una cuarta salida, y decídanlo juntos cuando se vuelvan a comprometer."
+      },
+      "longForm": {
+        "d60": {
+          "milestones": [
+            {
+              "title": "Día 30: las primeras 13 salidas",
+              "body": "Revisen el mes juntos. Si tres salidas por semana se sintieron manejables, suma unos minutos a una salida por semana. Si costó, mantén el mismo plan los siguientes 30 días. Las dos cosas cuentan como avance."
+            },
+            {
+              "title": "Día 45: una salida más larga",
+              "body": "Una vez por semana, haz una salida un poco más larga que las otras, al mismo ritmo suave. Es la forma más sencilla de sumar distancia sin sumar días."
+            },
+            {
+              "title": "Día 60: unas 26 salidas",
+              "body": "Dos meses de tres salidas por semana suelen llevar de alternar correr y caminar a correr casi todo el trayecto. Elijan juntos una meta siguiente, como una carrera local de 5 km, para que el hábito tenga a dónde ir."
+            }
+          ],
+          "faq": {
+            "question": "¿Un principiante puede hacer un reto de 60 días corriendo?",
+            "answer": "Sí. Tres salidas suaves por semana con pausas caminando es un plan para principiantes. Los 30 días extra te dan tiempo para avanzar poco a poco en vez de apresurarte."
+          }
+        }
+      }
+    }
+  }
+}
