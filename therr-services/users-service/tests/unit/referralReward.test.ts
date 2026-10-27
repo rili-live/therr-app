@@ -13,6 +13,7 @@ import {
     getReferralRewardProgress,
     maybeGrantReferralReward,
 } from '../../src/handlers/helpers/referralReward';
+import { UNCAPPABLE_TYPES } from '../../src/utilities/notificationQueueWorker';
 
 const REFERRER = 'aaaaaaaa-0000-4000-8000-0000000000r1';
 
@@ -101,6 +102,10 @@ describe('referral reward (founder unlock for active friends)', () => {
             stub();
             process.env.HABITS_REFERRAL_REWARD_ENABLED = 'false';
             expect(await maybeGrantReferralReward(REFERRER)).to.equal('disabled');
+        });
+
+        it('announces through a type the daily cap cannot drop, since its once-ever dedupe key is never re-queued', () => {
+            expect(UNCAPPABLE_TYPES.has(PushNotifications.Types.habitsReferralRewardEarned)).to.equal(true);
         });
     });
 
