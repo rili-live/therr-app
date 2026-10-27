@@ -672,6 +672,9 @@
             font-weight: 600;
             color: var(--fwh-plum);
         }
+        .pact-chips li.pact-chip--link { padding: 0; }
+        .pact-chips li.pact-chip--link a { display: block; padding: 0.5rem 1rem; color: inherit; }
+        .pact-chips li.pact-chip--link:hover { border-color: var(--fwh-purple-mid); }
         .pact-chips__note {
             margin: 1.5rem auto 0;
             text-align: center;
@@ -1338,8 +1341,17 @@
                     <p>{{{t.popular.intro}}}</p>
                 </div>
                 <ul class="pact-chips" aria-label="{{t.popular.pactsAriaLabel}}">
+                    {{!
+                        A chip whose template has a challenge guide links to it: the landing page
+                        is this host's most-linked URL, so these links are most of how the guides
+                        get crawled. popularChallengeLinks is keyed by templateKey, like the chips.
+                    }}
                     {{#each t.popular.pacts}}
+                    {{#with (lookup ../popularChallengeLinks @key) as |guideHref|}}
+                    <li class="pact-chip--link"><a href="{{guideHref}}">{{{../this}}}</a></li>
+                    {{else}}
                     <li>{{{this}}}</li>
+                    {{/with}}
                     {{/each}}
                 </ul>
                 <p class="pact-chips__note">{{{t.popular.note}}}</p>

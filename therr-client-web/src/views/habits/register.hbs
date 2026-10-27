@@ -208,7 +208,7 @@
     <main class="wrap">
         <div class="container">
             <h1>Create your account</h1>
-            <p class="lede">Free to start. Set it up here, then pact up with a friend in the app.</p>
+            <p class="lede" id="signup-lede">Free to start. Set it up here, then pact up with a friend in the app.</p>
 
             <div class="alert alert--success" id="signup-done" hidden>
                 <span id="signup-done-text">Account created. Check your email to verify it, then open the Friends with Habits app and sign in.</span>
@@ -290,6 +290,20 @@
             var prefillEmail = qs.get('email');
             if (prefillEmail) { emailInput.value = prefillEmail; }
             emailInput.focus();
+
+            // Arrived from a challenge guide (/challenges/...), which links here with the template
+            // the guide is about. Only keys the server lists are honoured, and the name is set
+            // with textContent, so the query string can never put markup or arbitrary text here.
+            var TEMPLATE_NAMES = {{#if challengeTemplateNamesJson}}{{{challengeTemplateNamesJson}}}{{else}}{}{{/if}};
+            var templateKey = qs.get('template');
+            var templateName = templateKey && Object.prototype.hasOwnProperty.call(TEMPLATE_NAMES, templateKey)
+                ? TEMPLATE_NAMES[templateKey] : null;
+            if (!templateName) { templateKey = null; }
+            var templateDays = parseInt(qs.get('days') || '', 10) || undefined;
+            if (templateName) {
+                document.getElementById('signup-lede').textContent = 'Free to start. Next, open the app, tap New Pact, pick “'
+                    + templateName + '” and invite the friend who\'s doing it with you.';
+            }
 
             // Arrived from a challenge link (habits.therr.com/c/:token). Remember it so signing in
             // after the email verification — maybe days later, maybe in another tab — lands back
@@ -397,7 +411,9 @@
                     // The conversion the Search campaign optimises toward. Mark
                     // it as a key event in GA4 admin and import it into Ads, or
                     // the campaign has nothing to bid on.
-                    track('sign_up', { method: 'habits_web' });
+                    track('sign_up', templateKey
+                        ? { method: 'habits_web', template_key: templateKey, duration_days: templateDays }
+                        : { method: 'habits_web' });
                     if (pendingChallenge) {
                         document.getElementById('signup-done-text').textContent =
                             'Account created. Check your email to verify it, then sign in to join the challenge.';
@@ -405,6 +421,9 @@
                         challengeLink.setAttribute('href', '/login?email=' + encodeURIComponent(email)
                             + '&returnTo=' + encodeURIComponent('/c/' + pendingChallenge));
                         challengeLink.hidden = false;
+                    } else if (templateName) {
+                        document.getElementById('signup-done-text').textContent = 'Account created. Check your email to verify it, '
+                            + 'then open Friends with Habits, tap New Pact, pick “' + templateName + '” and invite your friend.';
                     }
                     form.hidden = true;
                     doneBox.hidden = false;

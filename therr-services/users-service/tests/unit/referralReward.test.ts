@@ -8,11 +8,13 @@ import {
     PushNotifications,
 } from 'therr-js-utilities/constants';
 import Store from '../../src/store';
+import ReferralRewardsStore from '../../src/store/ReferralRewardsStore';
 import {
     evaluateReferralRewardsAfterCheckin,
     getReferralRewardProgress,
     maybeGrantReferralReward,
 } from '../../src/handlers/helpers/referralReward';
+import { UNCAPPABLE_TYPES } from '../../src/utilities/notificationQueueWorker';
 
 const REFERRER = 'aaaaaaaa-0000-4000-8000-0000000000r1';
 
@@ -26,8 +28,7 @@ const friend = (userName: string, activeDays: number, accessLevels: string[] = [
 const activeFriends = (count: number) => Array.from({ length: count }, (_, i) => friend(`f${i}`, HABITS_REFERRAL_REWARD_ACTIVE_DAYS));
 
 describe('referral reward (founder unlock for active friends)', () => {
-    let updateUser: sinon.SinonStub;
-    let createIfAbsent: sinon.SinonStub;
+    let grant: sinon.SinonStub;
     let enqueue: sinon.SinonStub;
 
     const stub = ({
@@ -41,8 +42,7 @@ describe('referral reward (founder unlock for active friends)', () => {
         sinon.stub(Store.referralRewards, 'getReferredFriends').resolves(friends);
         sinon.stub(Store.users, 'findUser').resolves([{ id: REFERRER, accessLevels }] as any);
         sinon.stub(Store.lifetimePurchases, 'countClaimedFounderSlots').resolves(claimed);
-        createIfAbsent = sinon.stub(Store.referralRewards, 'createIfAbsent').resolves(created as any);
-        updateUser = sinon.stub(Store.users, 'updateUser').resolves({} as any);
+        grant = sinon.stub(Store.referralRewards, 'grant').resolves(created as any);
         enqueue = sinon.stub(Store.notificationQueue, 'enqueue').resolves({ id: 'q' } as any);
     };
 
@@ -57,9 +57,10 @@ describe('referral reward (founder unlock for active friends)', () => {
 
             expect(await maybeGrantReferralReward(REFERRER)).to.equal('granted');
 
-            const [values] = updateUser.firstCall.args;
-            expect(JSON.parse(values.accessLevels)).to.have.members([AccessLevels.EMAIL_VERIFIED, AccessLevels.HABITS_LIFETIME]);
-            expect(createIfAbsent.firstCall.args[1]).to.have.length(HABITS_REFERRAL_REWARD_FRIEND_COUNT);
+            const [userId, qualifyingUserIds, accessLevels] = grant.firstCall.args;
+            expect(userId).to.equal(REFERRER);
+            expect(accessLevels).to.have.members([AccessLevels.EMAIL_VERIFIED, AccessLevels.HABITS_LIFETIME]);
+            expect(qualifyingUserIds).to.have.length(HABITS_REFERRAL_REWARD_FRIEND_COUNT);
             const [, args] = enqueue.firstCall.args;
             expect(args.type).to.equal(PushNotifications.Types.habitsReferralRewardEarned);
             expect(args.dedupeKey).to.equal(`habits-referral-reward:${REFERRER}`);
@@ -68,7 +69,7 @@ describe('referral reward (founder unlock for active friends)', () => {
         it('waits until enough friends are active', async () => {
             stub({ friends: activeFriends(HABITS_REFERRAL_REWARD_FRIEND_COUNT - 1).concat(friend('new', 1)) });
             expect(await maybeGrantReferralReward(REFERRER)).to.equal('not-yet');
-            expect(updateUser.called).to.equal(false);
+            expect(grant.called).to.equal(false);
         });
 
         it('does not count unverified friends', async () => {
@@ -81,26 +82,29 @@ describe('referral reward (founder unlock for active friends)', () => {
         it('gives nothing to an account that already paid', async () => {
             stub({ accessLevels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.HABITS_LIFETIME] });
             expect(await maybeGrantReferralReward(REFERRER)).to.equal('already-entitled');
-            expect(createIfAbsent.called).to.equal(false);
+            expect(grant.called).to.equal(false);
         });
 
         it('grants and announces nothing when a racing evaluation already claimed the row', async () => {
             stub({ created: null });
             expect(await maybeGrantReferralReward(REFERRER)).to.equal('already-granted');
-            expect(updateUser.called).to.equal(false);
             expect(enqueue.called).to.equal(false);
         });
 
         it('ends with the founder offer', async () => {
             stub({ claimed: HABITS_LIFETIME_FOUNDER_LIMIT });
             expect(await maybeGrantReferralReward(REFERRER)).to.equal('sold-out');
-            expect(createIfAbsent.called).to.equal(false);
+            expect(grant.called).to.equal(false);
         });
 
         it('honours the kill switch', async () => {
             stub();
             process.env.HABITS_REFERRAL_REWARD_ENABLED = 'false';
             expect(await maybeGrantReferralReward(REFERRER)).to.equal('disabled');
+        });
+
+        it('announces through a type the daily cap cannot drop, since its once-ever dedupe key is never re-queued', () => {
+            expect(UNCAPPABLE_TYPES.has(PushNotifications.Types.habitsReferralRewardEarned)).to.equal(true);
         });
     });
 
@@ -109,6 +113,14 @@ describe('referral reward (founder unlock for active friends)', () => {
             stub();
             sinon.stub(Store.referralRewards, 'getReferrersOf').resolves([REFERRER]);
             expect(await evaluateReferralRewardsAfterCheckin('friend-id')).to.deep.equal(['granted']);
+        });
+
+        it('announces nothing when the grant fails, so the next check-in can retry it', async () => {
+            stub();
+            grant.rejects(new Error('write failed'));
+            sinon.stub(Store.referralRewards, 'getReferrersOf').resolves([REFERRER]);
+            expect(await evaluateReferralRewardsAfterCheckin('friend-id')).to.deep.equal([]);
+            expect(enqueue.called).to.equal(false);
         });
 
         it('never throws into the check-in', async () => {
@@ -129,6 +141,56 @@ describe('referral reward (founder unlock for active friends)', () => {
                 userName: 'done', activeDays: HABITS_REFERRAL_REWARD_ACTIVE_DAYS, isVerified: true, isQualified: true,
             });
             expect(progress.friends[2]).to.include({ isVerified: false, isQualified: false });
+        });
+    });
+
+    describe('ReferralRewardsStore.grant', () => {
+        // A pg client that answers each statement in order and records what it was sent.
+        const fakeDb = (onQuery: (sql: string) => Promise<any>) => {
+            const sent: string[] = [];
+            const client = {
+                query: (sql: string) => {
+                    sent.push(sql);
+                    return onQuery(sql);
+                },
+                release: sinon.stub(),
+            };
+            const db: any = { write: { connect: () => Promise.resolve(client) }, read: {} };
+            return { db, sent, client };
+        };
+
+        it('rolls back the claimed row when the access-level write fails, so the reward is not lost', async () => {
+            const { db, sent, client } = fakeDb((sql) => {
+                if (sql.startsWith('INSERT')) return Promise.resolve({ rows: [{ id: 'grant-1' }] });
+                if (sql.startsWith('update')) return Promise.reject(new Error('write failed'));
+                return Promise.resolve({ rows: [] });
+            });
+
+            let error: any;
+            await new ReferralRewardsStore(db).grant(REFERRER, ['f1'], [AccessLevels.HABITS_LIFETIME]).catch((err) => { error = err; });
+
+            expect(error?.message).to.equal('write failed');
+            expect(sent[sent.length - 1]).to.equal('ROLLBACK');
+            expect(sent).to.not.include('COMMIT');
+            expect(client.release.calledOnce).to.equal(true);
+        });
+
+        it('commits the row and the access levels together', async () => {
+            const { db, sent } = fakeDb((sql) => Promise.resolve({ rows: sql.startsWith('INSERT') ? [{ id: 'grant-1' }] : [] }));
+
+            const granted = await new ReferralRewardsStore(db).grant(REFERRER, ['f1'], [AccessLevels.HABITS_LIFETIME]);
+
+            expect(granted).to.deep.equal({ id: 'grant-1' });
+            expect(sent[0]).to.equal('BEGIN');
+            expect(sent[2]).to.match(/^update "main"\."users" set "accessLevels" = '\["user\.habits\.lifetime"\]'/);
+            expect(sent[3]).to.equal('COMMIT');
+        });
+
+        it('writes no access levels when a racing evaluation already holds the row', async () => {
+            const { db, sent } = fakeDb(() => Promise.resolve({ rows: [] }));
+
+            expect(await new ReferralRewardsStore(db).grant(REFERRER, ['f1'], [AccessLevels.HABITS_LIFETIME])).to.equal(undefined);
+            expect(sent).to.deep.equal(['BEGIN', sent[1], 'COMMIT']);
         });
     });
 });

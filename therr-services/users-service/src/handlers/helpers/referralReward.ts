@@ -103,8 +103,9 @@ export type ReferralGrantOutcome = 'granted' | 'not-yet' | 'already-granted' | '
 
 /**
  * Grant the reward to one referrer if they have now earned it. Idempotent: the UNIQUE row in
- * habits.referral_rewards is claimed before the access level moves, so two check-ins evaluating
- * the same referrer at once grant and announce once.
+ * habits.referral_rewards is claimed in the same transaction that moves the access level, so two
+ * check-ins evaluating the same referrer at once grant and announce once, and a failed write
+ * leaves nothing behind for the next check-in to mistake for a grant.
  */
 export const maybeGrantReferralReward = async (referrerUserId: string): Promise<ReferralGrantOutcome> => {
     if (!isReferralRewardEnabled()) {
@@ -137,13 +138,14 @@ export const maybeGrantReferralReward = async (referrerUserId: string): Promise<
         return 'sold-out';
     }
 
-    const grant = await Store.referralRewards.createIfAbsent(referrerUserId, qualifying.map((friend) => friend.userId));
+    const grant = await Store.referralRewards.grant(
+        referrerUserId,
+        qualifying.map((friend) => friend.userId),
+        mergeAccessLevels(referrer.accessLevels, [AccessLevels.HABITS_LIFETIME]),
+    );
     if (!grant) {
         return 'already-granted';
     }
-
-    const accessLevels = mergeAccessLevels(referrer.accessLevels, [AccessLevels.HABITS_LIFETIME]);
-    await Store.users.updateUser({ accessLevels: JSON.stringify(accessLevels) }, { id: referrerUserId });
 
     logSpan({
         level: 'info',

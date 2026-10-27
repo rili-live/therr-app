@@ -7,7 +7,7 @@ import expressStaticGzip from 'express-static-gzip';
 import hbs from 'hbs';
 import helmet from 'helmet';
 import * as React from 'react';
-import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
+import * as ReactDOMServer from 'react-dom/server';
 import { matchPath } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
 // ReactGA removed from server — analytics should only run client-side
@@ -52,6 +52,14 @@ import {
     buildChallengeViewContext,
     renderSvgToPng,
 } from './utilities/habitsChallenge';
+import {
+    HABITS_CHALLENGE_TEMPLATE_NAMES,
+    buildHabitsChallengeHubViewContext,
+    buildHabitsChallengePageViewContext,
+    getHabitsChallengeLinksByTemplate,
+    getHabitsChallengeSitemapEntries,
+    matchHabitsChallengePath,
+} from './utilities/habitsChallengePages';
 import { HABITS_HOSTS, resolveAssetLinksFileName } from './utilities/wellKnownAssets';
 
 axios.defaults.baseURL = (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute;
@@ -62,7 +70,7 @@ axios.defaults.headers['x-brand-variation'] = BrandVariations.THERR;
 /* eslint-disable */
 declare global {
     namespace NodeJS {
-        interface Global { // eslint-disable-line
+        interface Global {
             window: any;
         }
     }
@@ -267,6 +275,8 @@ interface IHabitsRendererEntry {
     // Pages that hit the API from inline JS need the gateway base URL injected
     // into the template (Handlebars triple-stash safe-string for raw JSON).
     needsApiBase?: boolean;
+    // Extra, request-independent values for the view.
+    extraContext?: Record<string, unknown>;
 }
 /**
  * Measurement ids for the habits views, as a JSON string for the analytics partial.
@@ -333,6 +343,11 @@ const HABITS_ROUTE_RENDERERS: Record<string, IHabitsRendererEntry> = {
             + 'then pact up with a friend and keep each other on streak.',
         cacheControl: HABITS_NO_STORE,
         needsApiBase: true,
+        // A challenge guide's CTA links here with `?template=<templateKey>`; the page names that
+        // template so the visitor knows what to pick once they are in the app.
+        extraContext: {
+            challengeTemplateNamesJson: serialize(HABITS_CHALLENGE_TEMPLATE_NAMES, { isJSON: true }),
+        },
     },
     '/login': {
         view: 'habits/login',
@@ -617,6 +632,7 @@ const renderHabitsLandingView = (req, res, resolution: HabitsLandingResolution) 
     }
     return res.render('habits/landing', {
         ...buildHabitsLandingViewContext(resolution.locale, { freeHabitLimit: HABITS_FREE_HABIT_LIMIT }),
+        popularChallengeLinks: getHabitsChallengeLinksByTemplate(resolution.locale),
         // The iOS waitlist dialog posts to /subscribers/signup. The value is build-time
         // config, identical for every visitor, so it does not make this page unsafe to
         // serve from the shared cache HABITS_DEFAULT_CACHE puts it in.
@@ -666,7 +682,7 @@ app.use(async (req, res, next) => {
     // path at all beyond the therr.app footer link.
     if (req.path === '/sitemap.xml') {
         const today = new Date().toISOString().split('T')[0];
-        const urls = [
+        const urls: { loc: string; priority: string; changefreq: string; lastmod?: string; alternates?: { hreflang: string; href: string }[] }[] = [
             { loc: 'https://habits.therr.com/', priority: '1.0', changefreq: 'weekly' },
             { loc: 'https://habits.therr.com/es', priority: '1.0', changefreq: 'weekly' },
             { loc: 'https://habits.therr.com/fr', priority: '1.0', changefreq: 'weekly' },
@@ -680,15 +696,22 @@ app.use(async (req, res, next) => {
                 priority: '0.7',
                 changefreq: 'monthly',
             })),
+            // Challenge guides and their hubs, from the same route table that serves them. Each
+            // carries its real content date (not today) and its hreflang siblings.
+            ...getHabitsChallengeSitemapEntries(),
             { loc: 'https://habits.therr.com/privacy-policy', priority: '0.4', changefreq: 'yearly' },
             { loc: 'https://habits.therr.com/terms-of-service', priority: '0.4', changefreq: 'yearly' },
-        ].map(({ loc, priority, changefreq }) => `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>`
+        ];
+        const urlXml = urls.map(({
+            loc, priority, changefreq, lastmod, alternates,
+        }) => `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${lastmod || today}</lastmod>`
+            + `${(alternates || []).map(({ hreflang, href }) => `\n    <xhtml:link rel="alternate" hreflang="${hreflang}" href="${href}"/>`).join('')}`
             + `\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`);
         res.type('application/xml');
         res.setHeader('Cache-Control', 'public, max-age=3600');
         return res.send('<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n'
-            + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-            + `${urls.join('\n')}\n</urlset>`);
+            + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
+            + `${urlXml.join('\n')}\n</urlset>`);
     }
     // The app-wide /llms.txt route is registered *after* this middleware and is
     // therr.com-specific anyway, so on this host it used to hit the hard 404 below.
@@ -726,6 +749,20 @@ app.use(async (req, res, next) => {
             relatedLandingUrl: blogPost.relatedLandingUrl,
             jsonLd: buildHabitsBlogJsonLd(blogPost),
         });
+    }
+    // Challenge guides (/challenges, /es/retos, /fr/defis and the pages under them). See
+    // utilities/habitsChallengePages.ts. Static content, identical for every visitor.
+    const challengeGuideMatch = matchHabitsChallengePath(req.path);
+    if (challengeGuideMatch) {
+        res.setHeader('Cache-Control', HABITS_DEFAULT_CACHE);
+        if (challengeGuideMatch.kind === 'hub') {
+            return res.render('habits/challenge-hub', buildHabitsChallengeHubViewContext(challengeGuideMatch.locale));
+        }
+        return res.render('habits/challenge-guide', buildHabitsChallengePageViewContext(
+            challengeGuideMatch.locale,
+            challengeGuideMatch.template,
+            challengeGuideMatch.days,
+        ));
     }
     const challengeCardMatch = req.path.match(CHALLENGE_CARD_PATH_RE);
     if (challengeCardMatch) {
@@ -813,6 +850,9 @@ app.use(async (req, res, next) => {
         description: renderer.description,
         canonicalUrl: `https://habits.therr.com${req.path === '/' ? '' : req.path}`,
     };
+    if (renderer.extraContext) {
+        Object.assign(renderContext, renderer.extraContext);
+    }
     if (renderer.needsApiBase) {
         // serialize-javascript escapes <, >, &, etc. so it's safe to interpolate
         // into a <script> body via Handlebars triple-stash ({{{apiBaseJson}}}).

@@ -3917,6 +3917,7 @@
                 "block": "Bloquer cet utilisateur?",
                 "connect": "Ajouter une connexion",
                 "message": "Envoyer un message",
+                "acceptConnection": "Accepter la demande",
                 "pendingConnection": "Demande en attente",
                 "report": "Signaler cet utilisateur?",
                 "syncSocials": "Synchroniser les réseaux sociaux",

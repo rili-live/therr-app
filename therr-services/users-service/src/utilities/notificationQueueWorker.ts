@@ -90,6 +90,9 @@ const RATE_WINDOW_MS = 24 * 60 * 60 * 1000;
  * The onboarding nurture pushes qualify too (handlers/helpers/onboardingNurtureDigest.ts): each is
  * keyed once per user or seat ever, and claimed in habits.onboarding_messages before it is queued,
  * so a dropped row is never re-queued.
+ *
+ * `habits-referral-reward-earned` qualifies: keyed once per user ever
+ * (handlers/helpers/referralReward.ts), and the grant it announces happens exactly once.
  */
 export const UNCAPPABLE_TYPES: Set<string> = new Set([
     'pact-ended',
@@ -97,6 +100,7 @@ export const UNCAPPABLE_TYPES: Set<string> = new Set([
     'habits-first-habit-nudge',
     'pact-invite-unclaimed',
     'habits-founder-offer',
+    'habits-referral-reward-earned',
 ]);
 
 /**

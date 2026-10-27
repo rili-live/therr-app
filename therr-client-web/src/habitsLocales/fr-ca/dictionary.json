@@ -166,6 +166,8 @@
     "errorNetwork": "Erreur réseau. Réessayez dans un instant."
   },
   "footer": {
+    "challenges": "Défis",
+    "challengesPath": "/fr/defis",
     "privacyPolicy": "Politique de confidentialité",
     "termsOfService": "Conditions d'utilisation",
     "forCoaches": "Pour les coachs",

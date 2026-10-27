@@ -3917,6 +3917,7 @@
                 "block": "¿Bloquear a este usuario?",
                 "connect": "Agregar conexión",
                 "message": "Enviar mensaje",
+                "acceptConnection": "Aceptar solicitud",
                 "pendingConnection": "Solicitud pendiente",
                 "report": "¿Reportar a este usuario?",
                 "syncSocials": "Sincronizar redes sociales",

@@ -3917,6 +3917,7 @@
                 "block": "Block This User?",
                 "connect": "Add Connection",
                 "message": "Send Message",
+                "acceptConnection": "Accept Request",
                 "pendingConnection": "Request Pending",
                 "report": "Report This User?",
                 "syncSocials": "Sync Socials",

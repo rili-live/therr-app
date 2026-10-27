@@ -30,6 +30,7 @@
 <footer class="site-footer">
     <div class="container">
         <div class="footer-links">
+            <a href="{{#if footerCopy}}{{footerCopy.challengesPath}}{{else}}/challenges{{/if}}">{{#if footerCopy}}{{{footerCopy.challenges}}}{{else}}Challenges{{/if}}</a>
             <a href="/privacy-policy">{{#if footerCopy}}{{{footerCopy.privacyPolicy}}}{{else}}Privacy Policy{{/if}}</a>
             <a href="/terms-of-service">{{#if footerCopy}}{{{footerCopy.termsOfService}}}{{else}}Terms of Service{{/if}}</a>
             <a href="/coaches">{{#if footerCopy}}{{{footerCopy.forCoaches}}}{{else}}For coaches{{/if}}</a>

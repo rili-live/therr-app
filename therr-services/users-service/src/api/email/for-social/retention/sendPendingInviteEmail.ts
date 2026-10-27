@@ -29,10 +29,15 @@ export default (emailParams: ISendPendingInviteEmailConfig, templateParams: ITem
     const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
+    // Prefer the brand's own host, same fallback as `sendContactInviteEmail`. The global host is therr.com,
+    // whose app links open the Therr app, so a Friends with Habits request sent the recipient to the wrong app.
+    const hostFull = contextConfig.emailTemplates.appHostFull
+        || `${globalConfig[process.env.NODE_ENV].hostFull}`;
+
     const htmlConfig = {
         header: translate(locale, 'emails.pendingInvite.header'),
         body1: translate(locale, 'emails.pendingInvite.body1', { fromName: templateParams.fromName, brandName: contextConfig.brandName }),
-        buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}`,
+        buttonHref: hostFull,
         buttonText: `${contextConfig.brandGoLinkText}`,
         fromEmailTitle: `${templateParams.fromName}, ${contextConfig.brandName}`,
         headerImageVariant: 'social' as const,
