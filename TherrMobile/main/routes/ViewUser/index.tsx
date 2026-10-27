@@ -23,7 +23,9 @@ import {
     IUserConnectionsState,
 } from 'therr-react/types';
 import { TabBar } from 'react-native-tab-view';
+import { UserConnectionTypes } from 'therr-js-utilities/constants';
 import { showToast } from '../../utilities/toasts';
+import permissions from '../../utilities/permissionsOrchestrator';
 import getRepostErrorKey from '../../utilities/repostErrors';
 import { ContentActions } from 'therr-react/redux/actions';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -596,6 +598,31 @@ class ViewUser extends React.Component<
         }
     };
 
+    onAcceptConnectionRequest = (selectedUser) => {
+        const { updateUserConnection, updateUserInView, user } = this.props;
+
+        updateUserConnection({
+            connection: {
+                otherUserId: selectedUser.id,
+                requestStatus: UserConnectionTypes.COMPLETE,
+            },
+            user: user.details,
+        });
+        updateUserInView({
+            isNotConnected: false,
+            isPendingConnection: false,
+            hasIncomingConnectionRequest: false,
+        });
+        showToast.success({
+            text1: this.translate('alertTitles.connectionAccepted'),
+        });
+
+        // Same engagement-anchored soft-ask as accepting from the Notifications list
+        permissions.requestIfAppropriate('notifications', {
+            trigger: 'firstConnectionAccepted',
+        });
+    };
+
     onMessageUser = (context, selectedUser) => {
         // TODO: Update DirectMessage to support messaging non-connected users
         const { navigation } = this.props;
@@ -715,6 +742,7 @@ class ViewUser extends React.Component<
                     navigation={navigation}
                     isDarkMode={isDarkTheme(user.settings?.mobileThemeName)}
                     onProfilePicturePress={this.onProfilePicturePress}
+                    onAcceptConnectionRequest={this.onAcceptConnectionRequest}
                     onBlockUser={this.onBlockUser}
                     onConnectionRequest={this.onConnectionRequest}
                     onMessageUser={this.onMessageUser}
