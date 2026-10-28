@@ -2070,6 +2070,11 @@
             "checkinError": "No pudimos guardar tu registro. Inténtalo de nuevo en un momento.",
             "completed": "¡Completado!",
             "checkedInToday": "Registrado hoy",
+            "risk": {
+                "streakAtRisk": "Registra hoy para mantener tu racha de {count} días",
+                "dueToday": "Hoy toca para cumplir tu meta de la semana",
+                "dueSoon": "Te quedan pocos días esta semana"
+            },
             "noHabitsTitle": "Aún no hay hábitos",
             "noHabitsSubtitle": "Crea un hábito para comenzar a seguir tu progreso",
             "pendingHabits": "Esperando a los compañeros",

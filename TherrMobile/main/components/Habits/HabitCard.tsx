@@ -8,6 +8,7 @@ import {
 } from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
 import { fromGoal, IWeekProgress } from '../../routes/Pacts/cadenceOptions';
+import { getHabitRiskTone, HabitRisk } from '../../routes/Habits/habitRisk';
 import CheckinButton from './CheckinButton';
 import StreakWidget from './StreakWidget';
 
@@ -23,6 +24,11 @@ interface IHabitCardProps {
      * unknown: the chip is hidden, never shown as zero.
      */
     weekProgress?: IWeekProgress;
+    /**
+     * How much attention this habit needs today — see `routes/Habits/habitRisk.ts`. Drives the
+     * amber/red outline and the line that says why. Absent renders as before.
+     */
+    risk?: HabitRisk;
     onPress?: () => void;
     onCheckin?: () => void;
     /**
@@ -152,6 +158,7 @@ const HabitCard: React.FC<IHabitCardProps> = ({
     todayCheckin,
     streak,
     weekProgress,
+    risk,
     onPress,
     onCheckin,
     onAddCheckinDetail,
@@ -170,12 +177,20 @@ const HabitCard: React.FC<IHabitCardProps> = ({
     const showSoloOrArchive = isAwaitingPartner && !!onContinueSolo && !!onArchive;
     const displayedWeekProgress = getDisplayedWeekProgress(weekProgress, isCompleted);
     const weekProgressText = getWeekProgressText(displayedWeekProgress, translate);
+    // Done wins: an optimistic check-in lands before the list re-sorts, and the card must stop
+    // warning the moment it does.
+    const riskTone = !isCompleted && risk ? getHabitRiskTone(risk, new Date().getHours()) : null;
+    const riskText = riskTone && risk
+        ? translate(`pages.habits.risk.${risk}`, { count: streak?.currentStreak ?? 0 })
+        : null;
 
     return (
         <Pressable
             style={[
                 themeHabits.styles.habitCardContainer,
                 isCompleted && themeHabits.styles.habitCardContainerDone,
+                riskTone === 'warning' && themeHabits.styles.habitCardContainerWarning,
+                riskTone === 'danger' && themeHabits.styles.habitCardContainerDanger,
             ]}
             onPress={onPress}
         >
@@ -227,6 +242,21 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                     </View>
                 )}
             </View>
+
+            {!!riskText && (
+                <View style={themeHabits.styles.habitCardRiskRow}>
+                    <MaterialIcon
+                        name={riskTone === 'danger' ? 'local-fire-department' : 'schedule'}
+                        size={16}
+                        style={riskTone === 'danger'
+                            ? themeHabits.styles.habitCardRiskIconDanger
+                            : themeHabits.styles.habitCardRiskIconWarning}
+                    />
+                    <Text style={themeHabits.styles.habitCardRiskText}>
+                        {riskText}
+                    </Text>
+                </View>
+            )}
 
             {habitGoal.description && (
                 <View style={themeHabits.styles.habitCardBody}>
