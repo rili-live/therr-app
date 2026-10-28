@@ -18,7 +18,7 @@ import { getWeekStart } from '../utilities/dailyStreak';
 import {
     describeWeekProgress,
     getCadence,
-    isQuotaUnmet,
+    isCheckinPressing,
     isRequiredOn,
     IWeekProgress,
 } from '../utilities/habitCadence';
@@ -1031,8 +1031,11 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     const completionsBeforeToday = pactCadence.kind === 'weeklyQuota' && yesterdayIsThisWeek
                         ? completionsBeforeYesterday + (completedYesterday ? 1 : 0)
                         : 0;
-                    const pactWantsMoreThisWeek = isQuotaUnmet(pactCadence, today, completionsBeforeToday);
-                    if (!completedToday && pactWantsMoreThisWeek) {
+                    // And only once the week is close to slipping (`isCheckinPressing`): a
+                    // 3x/week pact with six days of room on Monday has no streak "at risk", and
+                    // saying so every morning is what teaches people to ignore the warning.
+                    const pactWantsCheckinToday = isCheckinPressing(pactCadence, today, completionsBeforeToday);
+                    if (!completedToday && pactWantsCheckinToday) {
                         // eslint-disable-next-line no-await-in-loop
                         const streak = await Store.streaks.getByUserAndHabit(member.userId, pact.habitGoalId);
                         if (streak && streak.isActive && streak.currentStreak > 0) {

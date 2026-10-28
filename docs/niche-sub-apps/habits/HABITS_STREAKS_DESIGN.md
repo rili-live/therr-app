@@ -731,7 +731,7 @@ skipping could ever endanger it. So anything gated on "is today required" fires 
 user and never for the succeeding one. That is correct for streaks and freezes and wrong for
 three other things, which are gated differently:
 
-- **Reminders** key off `isQuotaUnmet` — keep asking until the four are done, then go quiet.
+- **Reminders** key off `isCheckinPressing` — quiet while the week has more than one spare day, then ask until the four are done, then go quiet.
 - **Perfect weeks** are defined on day statuses (every day upheld or rest, at least one upheld,
   no freezes), not on required days.
 - **Pact day crediting** is ungated: a day the majority showed up is a day the group earned.

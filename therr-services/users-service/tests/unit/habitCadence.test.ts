@@ -6,6 +6,8 @@ import {
     getDaysRemainingInWeek,
     isRequiredOn,
     isQuotaUnmet,
+    getCheckinUrgency,
+    isCheckinPressing,
     isPeriodSatisfied,
     countMissedPeriods,
     countScheduledForRange,
@@ -140,7 +142,7 @@ describe('habitCadence', () => {
         });
     });
 
-    describe('isQuotaUnmet — the reminder gate', () => {
+    describe('isQuotaUnmet', () => {
         const fourPerWeek = getCadence({ frequencyType: 'weekly', frequencyCount: 4 });
 
         it('keeps asking until the quota is met, then goes quiet for the rest of the week', () => {
@@ -160,6 +162,43 @@ describe('habitCadence', () => {
         it('follows the schedule, not a count, for fixed weekdays', () => {
             expect(isQuotaUnmet({ kind: 'weekdays', days: [1, 3, 5] }, WED, 0)).to.equal(true);
             expect(isQuotaUnmet({ kind: 'weekdays', days: [1, 3, 5] }, THU, 0)).to.equal(false);
+        });
+    });
+
+    describe('getCheckinUrgency — how pressing today is', () => {
+        const threePerWeek = { kind: 'weeklyQuota' as const, count: 3 };
+
+        it('leaves a quota with room to spare alone, then presses as the slack runs out', () => {
+            // Nothing done: 7, 6, 5 days left against 3 owed is flexible; Thursday (4 left, 1
+            // spare) is soon; Friday (3 left, 3 owed) is required.
+            expect(getCheckinUrgency(threePerWeek, MON, 0)).to.equal('flexible');
+            expect(getCheckinUrgency(threePerWeek, WED, 0)).to.equal('flexible');
+            expect(getCheckinUrgency(threePerWeek, THU, 0)).to.equal('soon');
+            expect(getCheckinUrgency(threePerWeek, FRI, 0)).to.equal('required');
+        });
+
+        it('counts what is already done against what is owed', () => {
+            expect(getCheckinUrgency(threePerWeek, SAT, 2)).to.equal('soon');
+            expect(getCheckinUrgency(threePerWeek, SUN, 2)).to.equal('required');
+            expect(getCheckinUrgency(threePerWeek, SAT, 3)).to.equal('met');
+        });
+
+        it('treats a daily habit as required every day', () => {
+            expect(getCheckinUrgency({ kind: 'daily' }, MON, 0)).to.equal('required');
+            expect(getCheckinUrgency({ kind: 'daily' }, SUN, 6)).to.equal('required');
+        });
+
+        it('follows a fixed weekday schedule: required on its days, rest otherwise', () => {
+            const monWedFri = { kind: 'weekdays' as const, days: [1, 3, 5] };
+            expect(getCheckinUrgency(monWedFri, WED, 1)).to.equal('required');
+            expect(getCheckinUrgency(monWedFri, THU, 2)).to.equal('rest');
+        });
+
+        it('presses only on required and soon', () => {
+            expect(isCheckinPressing(threePerWeek, MON, 0)).to.equal(false);
+            expect(isCheckinPressing(threePerWeek, THU, 0)).to.equal(true);
+            expect(isCheckinPressing(threePerWeek, FRI, 0)).to.equal(true);
+            expect(isCheckinPressing(threePerWeek, FRI, 3)).to.equal(false);
         });
     });
 
@@ -446,6 +485,7 @@ describe('habitCadence', () => {
                 daysLeft: 5,
                 isRequiredToday: false,
                 isMet: false,
+                urgency: 'flexible',
             });
             expect(describeWeekProgress(cadence, SAT, 2)).to.deep.equal({
                 done: 2,
@@ -453,6 +493,7 @@ describe('habitCadence', () => {
                 daysLeft: 2,
                 isRequiredToday: true,
                 isMet: false,
+                urgency: 'required',
             });
             expect(describeWeekProgress(cadence, FRI, 4)).to.deep.equal({
                 done: 4,
@@ -460,6 +501,7 @@ describe('habitCadence', () => {
                 daysLeft: 3,
                 isRequiredToday: false,
                 isMet: true,
+                urgency: 'met',
             });
         });
     });
