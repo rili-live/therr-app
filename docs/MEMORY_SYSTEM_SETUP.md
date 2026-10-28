@@ -152,6 +152,32 @@ echo '{}' | sh -c 'mkdir -p .memsearch && scripts/memsearch-index.sh >> .memsear
 
 ---
 
+## Step 4b — Session digest hook (structured execution log)
+
+`transcript-capture.js` keeps the opening of each final reply, which is what the daily
+log already says. What a later session can learn from is what that reply leaves out.
+`.claude/hooks/session-digest.js` reads the full JSONL transcript the harness writes
+(`transcript_path` in every hook payload) and writes
+`context/transcripts/digests/<session_id>.json` with:
+
+- failed tool calls, each with a normalized `signature` (so the same failure in two
+  sessions compares equal) and `resolvedBy`, the later call in the same command family
+  that succeeded;
+- permission refusals, kept apart from ordinary errors;
+- user interrupts and corrections (a prompt opening with "no", "wrong", "instead", …);
+- hook errors the harness recorded, skills and subagents used, files edited, and
+  `--no-verify` commits or pushes;
+- the session's cost and duration.
+
+It is registered on `Stop` (async, every turn), `PreCompact` and `SessionEnd`, and
+overwrites one file per session, so a session killed before `SessionEnd` still leaves a
+digest. No model call: it is a pure function of the transcript. Every string is
+redacted (tokens, keys, emails, phone numbers) and capped, and the directory is
+gitignored with the rest of `context/transcripts/`. Command lines and error text do not
+belong in git. `/memory-distill` (below) is the consumer.
+
+---
+
 ## Step 5 — CLAUDE.md memory sections
 
 Read `CLAUDE.md` first. Skip any section that already exists. Add only what is missing.

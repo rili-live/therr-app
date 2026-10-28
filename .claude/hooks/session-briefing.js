@@ -30,6 +30,10 @@ const GENERIC_TOKENS = new Set([
     'feat', 'fix', 'chore', 'docs', 'refactor', 'test', 'tests', 'general', 'niche',
     'stage', 'main', 'claude', 'ccr', 'src', 'lib', 'therr', 'services', 'service',
     'public', 'library', 'client', 'index', 'utils', 'utilities', 'store', 'routes',
+    // Harness and tooling words: they appear in nearly every follow-up's prose, so
+    // matching on them only reorders the list at random.
+    'apply', 'changed', 'check', 'cache', 'hook', 'hooks', 'skill', 'skills', 'json',
+    'readme', 'config', 'package', 'session', 'memory', 'deploy', 'build', 'scripts',
 ]);
 
 const git = (args, cwd) => {
@@ -175,6 +179,11 @@ const oneLine = (text, cap) => {
     return flat.length <= cap ? flat : `${flat.slice(0, cap - 1)}…`;
 };
 
+// Porcelain rows are `XY path`. The git helper trims its output, which eats the
+// leading space of a first row like ` M path`, so strip the status code by pattern
+// rather than by a fixed width.
+const statusPath = (row) => row.replace(/^[ MADRCUT?!]{1,2}\s+/, '');
+
 const buildBriefing = ({ root, now = new Date(), gitFn = git }) => {
     const out = [];
     out.push('# Session briefing');
@@ -234,7 +243,7 @@ const buildBriefing = ({ root, now = new Date(), gitFn = git }) => {
         const untracked = rows.filter((r) => r.startsWith('??')).length;
         out.push('', '## Working tree');
         out.push(rows.length
-            ? `${rows.length - untracked} modified/staged, ${untracked} untracked: ${rows.slice(0, 8).map((r) => r.slice(3)).join(', ')}${rows.length > 8 ? ', …' : ''}`
+            ? `${rows.length - untracked} modified/staged, ${untracked} untracked: ${rows.slice(0, 8).map(statusPath).join(', ')}${rows.length > 8 ? ', …' : ''}`
             : 'clean');
     }
 
@@ -242,7 +251,7 @@ const buildBriefing = ({ root, now = new Date(), gitFn = git }) => {
 };
 
 module.exports = {
-    buildBriefing, classifyBranch, parseFollowUps, rankFollowUps, workKeywords, hasContent,
+    buildBriefing, classifyBranch, parseFollowUps, statusPath, rankFollowUps, workKeywords, hasContent,
 };
 
 if (require.main === module) {

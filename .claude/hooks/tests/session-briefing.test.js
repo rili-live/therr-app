@@ -12,7 +12,7 @@ const os = require('os');
 const path = require('path');
 
 const {
-    buildBriefing, classifyBranch, parseFollowUps, rankFollowUps, workKeywords, hasContent,
+    buildBriefing, classifyBranch, parseFollowUps, statusPath, rankFollowUps, workKeywords, hasContent,
 } = require('../session-briefing');
 
 const HOOK = path.resolve(__dirname, '..', 'session-briefing.js');
@@ -85,7 +85,8 @@ test('workKeywords derives package and file-name words, dropping generic ones', 
     ]);
     assert.ok(words.includes('users-service'));
     assert.ok(words.includes('mobile'));
-    assert.ok(words.includes('check'));
+    assert.ok(words.includes('phone'));
+    assert.ok(!words.includes('check'), 'tooling words are dropped');
     assert.ok(!words.includes('fix'));
 });
 
@@ -100,6 +101,13 @@ test('classifyBranch attributes a feature branch to the integration branch it is
     const cls = classifyBranch('feat/x', '.', (range) => counts[range] || null);
     assert.strictEqual(cls.base, 'general');
     assert.ok(cls.note.includes('40 commit(s) ahead of general'));
+});
+
+test('statusPath keeps the full path even when trimming ate the first row\'s leading space', () => {
+    assert.strictEqual(statusPath('M .claude/settings.json'), '.claude/settings.json');
+    assert.strictEqual(statusPath(' M .claude/settings.json'), '.claude/settings.json');
+    assert.strictEqual(statusPath('?? .claude/hooks/x.js'), '.claude/hooks/x.js');
+    assert.strictEqual(statusPath('MM a.js'), 'a.js');
 });
 
 test('hasContent treats a bare template as empty', () => {
