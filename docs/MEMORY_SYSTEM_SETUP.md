@@ -178,6 +178,27 @@ belong in git. `/memory-distill` (below) is the consumer.
 
 ---
 
+## Step 4c — Distill (logs → memory)
+
+Storing logs doesn't make the next session smarter. Promoting what they teach does.
+`scripts/memory-distill/index.js` aggregates digests and daily logs since the last run
+(`context/memory/.distill-state.json`, git-tracked so the team shares the watermark) into
+one screen. It shows:
+
+- failure signatures repeated across sessions;
+- CI failures logged in the `CI-failure:` shape;
+- permission refusals and hook errors;
+- user corrections;
+- lesson-shaped log lines not yet quoted by any CLAUDE.md, skill or doc.
+
+The `/memory-distill` skill reads that report and proposes promoting each candidate one
+rung up a ladder (MEMORY.md / USER.md → package CLAUDE.md → skill known-failures →
+permission rule → lint rule or test), as diffs the user approves. The session briefing
+nudges when the last run is over seven days old. `scripts/memory-stats.sh` reports the
+loop's health; the number to watch is `repeated_failures` falling over time.
+
+---
+
 ## Step 5 — CLAUDE.md memory sections
 
 Read `CLAUDE.md` first. Skip any section that already exists. Add only what is missing.

@@ -150,6 +150,15 @@ test('buildBriefing falls back to yesterday and caps a long log from the tail', 
     assert.ok(text.length < 12000, `briefing stays in budget (${text.length} chars)`);
 });
 
+test('buildBriefing nudges for /memory-distill only when it is due', () => {
+    const due = fixture({ 'context/memory/.distill-state.json': '{"lastRun":"2026-10-01"}' });
+    const fresh = fixture({ 'context/memory/.distill-state.json': '{"lastRun":"2026-10-26"}' });
+    const now = new Date('2026-10-28T12:00:00Z');
+    assert.ok(buildBriefing({ root: due, now, gitFn: () => null }).includes('Memory distill is due'));
+    assert.ok(!buildBriefing({ root: fresh, now, gitFn: () => null }).includes('Memory distill is due'));
+    assert.ok(buildBriefing({ root: fixture({}), now, gitFn: () => null }).includes('last run: never'));
+});
+
 test('the hook exits 0 and prints a briefing even with no stdin and no context files', () => {
     const root = fixture({});
     const out = execFileSync('node', [HOOK], {

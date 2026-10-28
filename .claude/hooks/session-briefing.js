@@ -25,6 +25,7 @@ const CAPS = {
     followUpLine: 220,
 };
 const FOLLOW_UPS_SHOWN = 3;
+const DISTILL_DUE_DAYS = 7;
 
 const GENERIC_TOKENS = new Set([
     'feat', 'fix', 'chore', 'docs', 'refactor', 'test', 'tests', 'general', 'niche',
@@ -235,6 +236,19 @@ const buildBriefing = ({ root, now = new Date(), gitFn = git }) => {
                 out.push(`- docs/WORK_IN_PROGRESS.md:${it.line} [${oneLine(it.section, 60)}] ${oneLine(it.text, CAPS.followUpLine)}`);
             });
         }
+    }
+
+    // The promotion step of the memory loop only happens if someone runs it.
+    let distillState = null;
+    try {
+        distillState = JSON.parse(readIfExists(path.join(root, 'context', 'memory', '.distill-state.json')) || 'null');
+    } catch (e) {
+        distillState = null;
+    }
+    const lastDistill = distillState && distillState.lastRun;
+    const distillAgeDays = lastDistill ? Math.floor((now.getTime() - Date.parse(lastDistill)) / 86400000) : null;
+    if (distillAgeDays === null || distillAgeDays >= DISTILL_DUE_DAYS) {
+        out.push('', `**Memory distill is due** (last run: ${lastDistill || 'never'}). After this session's main task, offer to run \`/memory-distill\` — don't run it unasked.`);
     }
 
     const status = gitFn(['status', '--porcelain'], root);

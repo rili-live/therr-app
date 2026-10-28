@@ -374,6 +374,13 @@ Log session activity silently to today's daily log (goal, deliverables, decision
 threads). Never announce that you logged something. `/memory-write` handles "remember
 this" / "forget about" requests and enforces the cap.
 
+Each session also leaves a structured digest (`context/transcripts/digests/`, local only:
+failures and their fixes, refusals, corrections). `/memory-distill` turns digests and daily
+logs into promotions (MEMORY.md, a CLAUDE.md gotcha, a skill's known failures, a lint rule),
+each approved by the user. When the briefing says it's due, offer it after the main task.
+After root-causing a CI failure, log it as `- CI-failure: <job> | <error> | <cause> | <fix>`
+so repeats get counted.
+
 For anything older than that — "what did we decide about X", "why is Y written this way",
 "have we hit this before" — use `/memory-recall` rather than reading through
 `context/memory/`. It searches the vector index in a forked context and returns only the
