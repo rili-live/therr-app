@@ -185,6 +185,35 @@ const oneLine = (text, cap) => {
 // rather than by a fixed width.
 const statusPath = (row) => row.replace(/^[ MADRCUT?!]{1,2}\s+/, '');
 
+const listOpenRuns = (commonDir, root) => {
+    if (!commonDir) return [];
+    const dir = path.join(path.resolve(root, commonDir), 'therr-runs');
+    const runs = [];
+    let skills = [];
+    try {
+        skills = fs.readdirSync(dir);
+    } catch (e) {
+        return [];
+    }
+    for (const skill of skills) {
+        let files = [];
+        try {
+            files = fs.readdirSync(path.join(dir, skill)).filter((f) => f.endsWith('.json'));
+        } catch (e) {
+            continue;
+        }
+        for (const f of files) {
+            try {
+                const run = JSON.parse(fs.readFileSync(path.join(dir, skill, f), 'utf8'));
+                if (run && run.status === 'open') runs.push(run);
+            } catch (e) {
+                // a half-written ledger is skipped, not fatal
+            }
+        }
+    }
+    return runs.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
+};
+
 const buildBriefing = ({ root, now = new Date(), gitFn = git }) => {
     const out = [];
     out.push('# Session briefing');
@@ -238,6 +267,18 @@ const buildBriefing = ({ root, now = new Date(), gitFn = git }) => {
         }
     }
 
+    // Interrupted multi-step skill runs (scripts/run-ledger). Surfacing them here is what
+    // turns a restarted session into a resumed one instead of a fresh start.
+    const openRuns = listOpenRuns(gitFn(['rev-parse', '--git-common-dir'], root), root);
+    if (openRuns.length) {
+        out.push('', `## Interrupted skill runs — ${openRuns.length} open`);
+        out.push('Resume these (verify each recorded step first) rather than starting over; `node scripts/run-ledger/index.js show` for detail.');
+        openRuns.slice(0, 5).forEach((r) => {
+            const last = r.steps && r.steps.length ? r.steps[r.steps.length - 1].name : 'no steps yet';
+            out.push(`- /${r.skill} \`${r.key}\` — last step: ${last} (updated ${String(r.updatedAt || '').slice(0, 16).replace('T', ' ')} UTC)`);
+        });
+    }
+
     // The promotion step of the memory loop only happens if someone runs it.
     let distillState = null;
     try {
@@ -248,7 +289,8 @@ const buildBriefing = ({ root, now = new Date(), gitFn = git }) => {
     const lastDistill = distillState && distillState.lastRun;
     const distillAgeDays = lastDistill ? Math.floor((now.getTime() - Date.parse(lastDistill)) / 86400000) : null;
     if (distillAgeDays === null || distillAgeDays >= DISTILL_DUE_DAYS) {
-        out.push('', `**Memory distill is due** (last run: ${lastDistill || 'never'}). After this session's main task, offer to run \`/memory-distill\` — don't run it unasked.`);
+        out.push('', `**Memory distill is due** (last run: ${lastDistill || 'never'}). `
+            + "After this session's main task, offer to run `/memory-distill` — don't run it unasked.");
     }
 
     const status = gitFn(['status', '--porcelain'], root);
@@ -256,16 +298,15 @@ const buildBriefing = ({ root, now = new Date(), gitFn = git }) => {
         const rows = status.split('\n').filter(Boolean);
         const untracked = rows.filter((r) => r.startsWith('??')).length;
         out.push('', '## Working tree');
-        out.push(rows.length
-            ? `${rows.length - untracked} modified/staged, ${untracked} untracked: ${rows.slice(0, 8).map(statusPath).join(', ')}${rows.length > 8 ? ', …' : ''}`
-            : 'clean');
+        const listed = `${rows.slice(0, 8).map(statusPath).join(', ')}${rows.length > 8 ? ', …' : ''}`;
+        out.push(rows.length ? `${rows.length - untracked} modified/staged, ${untracked} untracked: ${listed}` : 'clean');
     }
 
     return `${out.join('\n')}\n`;
 };
 
 module.exports = {
-    buildBriefing, classifyBranch, parseFollowUps, statusPath, rankFollowUps, workKeywords, hasContent,
+    buildBriefing, classifyBranch, parseFollowUps, statusPath, listOpenRuns, rankFollowUps, workKeywords, hasContent,
 };
 
 if (require.main === module) {

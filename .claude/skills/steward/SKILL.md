@@ -82,8 +82,9 @@ Everything else is real. In particular, these looked like infrastructure here on
   on identical content, so after a fix only the failed package and the ones after it
   run. The last failure is in `$(git rev-parse --git-common-dir)/therr-check-cache/last-failure.json`.
   Read it instead of scrolling back. `THERR_CHECK_CACHE=0` forces a full run.
-- For multi-step skills (`/split-branch-prs`, `/niche-android-release`), resume from the run
-  ledger (`node scripts/run-ledger/index.js show <skill>`) rather than starting over.
+- For multi-step skills, resume rather than start over. `/split-branch-prs` keeps a run
+  ledger (`node scripts/run-ledger/index.js show`), and the session briefing lists open runs.
+  `/niche-android-release` re-derives its state from git, CI and EAS: re-run its `check`.
 
 ## 5. Commands the permission classifier blocks
 

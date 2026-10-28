@@ -159,6 +159,24 @@ test('buildBriefing nudges for /memory-distill only when it is due', () => {
     assert.ok(buildBriefing({ root: fixture({}), now, gitFn: () => null }).includes('last run: never'));
 });
 
+test('buildBriefing lists open run-ledger runs and ignores finished ones', () => {
+    const root = fixture({
+        '.git/therr-runs/split-branch-prs/feat%2Fx.json': JSON.stringify({
+            skill: 'split-branch-prs', key: 'feat/x', status: 'open', updatedAt: '2026-10-28T10:00:00Z', steps: [{ name: 'classify' }],
+        }),
+        '.git/therr-runs/split-branch-prs/feat%2Fy.json': JSON.stringify({
+            skill: 'split-branch-prs', key: 'feat/y', status: 'done', updatedAt: '2026-10-28T11:00:00Z', steps: [],
+        }),
+        '.git/therr-runs/split-branch-prs/broken.json': '{half',
+    });
+    const text = buildBriefing({
+        root, now: new Date('2026-10-28T12:00:00Z'), gitFn: stubGit({ 'rev-parse --git-common-dir': '.git' }),
+    });
+    assert.ok(text.includes('Interrupted skill runs — 1 open'));
+    assert.ok(text.includes('/split-branch-prs `feat/x` — last step: classify'));
+    assert.ok(!text.includes('feat/y'));
+});
+
 test('the hook exits 0 and prints a briefing even with no stdin and no context files', () => {
     const root = fixture({});
     const out = execFileSync('node', [HOOK], {
