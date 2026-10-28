@@ -1867,6 +1867,7 @@ backend change needed — it refuses to treat Play's own
 - [ ] (2026-10-21, /quality-peer-review) **After the SMS-pumping guards deploy (`a12979d4d`…`c0bf8f311`), set Twilio Messaging Geo Permissions per § SMS country tiers above (core + extended tiers from `therr-js-utilities/src/sms-destination-policy.ts` — no longer the original 13-country list, and no longer pinned in `k8s/prod`) and confirm the spend alert from the 2026-07-25 item exists.** The account-level setting is the backstop for any send site that skips `isSmsDestinationAllowed`. Then watch for the `Global SMS budget exhausted for this hour` error log — it is the only signal that the 60/hour gateway cap (`TWILIO_SMS_GLOBAL_HOURLY_CAP`) is tripping, which locks every real user out of phone sign-in/sign-up for the rest of that hour.
 - [ ] (2026-10-24, /seo-audit) Re-submit sitemap to Google Search Console
   after the next deploy — added `/challenges`, `/es/retos`, `/fr/defis` and 63 challenge guides under them.
+- [ ] (2026-10-27, /mobile-release-preflight) **Deploy `stage → main` (and run migration `20261023000001`) before promoting Habits 1.25.0 (66) to production.** Its two headline release notes, challenges and the 3-friends referral reward, call `/users-service/habits/challenges*` and `/users-service/habits/referral-reward`, which are on `stage` (`313e9021e`) but not `main`. Until the backend ships, the challenge screens and the referral card hit 404s in production. Fine to sit on the internal track; the constraint is on promotion.
 <!-- skill-followups:end -->
 
 ---
