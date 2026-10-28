@@ -9,6 +9,10 @@
 # where the work becomes visible to CI and to other branches.
 #
 # To bypass for a legitimate exception: git push --no-verify
+#
+# A package that already passed `npm test` on identical content is skipped (see
+# _bin/lib/check-cache.sh), so a push retried after fixing one package replays only
+# that package and the ones after it. THERR_CHECK_CACHE=0 git push forces a full run.
 
 # `npm run test:changed` defaults to diffing against `stage`, which on a feature branch
 # means "everything in general that has not been promoted yet" — usually most of the repo.
@@ -25,7 +29,8 @@ printf '\033[36m→ Running tests for packages changed vs %s...\033[0m\n' "$base
 
 if ! ./_bin/apply-to-changed.sh 'npm test' "$base"; then
   printf '\n\033[31m⛔ Tests failed.\033[0m\n'
-  printf '   Fix them before pushing, or bypass with: git push --no-verify\n\n'
+  printf '   Fix them and push again — packages that already passed are skipped.\n'
+  printf '   Or bypass with: git push --no-verify\n\n'
   exit 1
 fi
 

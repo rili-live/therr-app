@@ -152,11 +152,67 @@ echo '{}' | sh -c 'mkdir -p .memsearch && scripts/memsearch-index.sh >> .memsear
 
 ---
 
+## Step 4b — Session digest hook (structured execution log)
+
+`transcript-capture.js` keeps the opening of each final reply, which is what the daily
+log already says. What a later session can learn from is what that reply leaves out.
+`.claude/hooks/session-digest.js` reads the full JSONL transcript the harness writes
+(`transcript_path` in every hook payload) and writes
+`context/transcripts/digests/<session_id>.json` with:
+
+- failed tool calls, each with a normalized `signature` (so the same failure in two
+  sessions compares equal) and `resolvedBy`, the later call in the same command family
+  that succeeded;
+- permission refusals, kept apart from ordinary errors;
+- user interrupts and corrections (a prompt opening with "no", "wrong", "instead", …);
+- hook errors the harness recorded, skills and subagents used, files edited, and
+  `--no-verify` commits or pushes;
+- the session's cost and duration.
+
+It is registered on `Stop` (async, every turn), `PreCompact` and `SessionEnd`, and
+overwrites one file per session, so a session killed before `SessionEnd` still leaves a
+digest. No model call: it is a pure function of the transcript. Every string is
+redacted (tokens, keys, emails, phone numbers) and capped, and the directory is
+gitignored with the rest of `context/transcripts/`. Command lines and error text do not
+belong in git. `/memory-distill` (below) is the consumer.
+
+---
+
+## Step 4c — Distill (logs → memory)
+
+Storing logs doesn't make the next session smarter. Promoting what they teach does.
+`scripts/memory-distill/index.js` aggregates digests and daily logs since the last run
+(`context/memory/.distill-state.json`, git-tracked so the team shares the watermark) into
+one screen. It shows:
+
+- failure signatures repeated across sessions;
+- CI failures logged in the `CI-failure:` shape;
+- permission refusals and hook errors;
+- user corrections;
+- lesson-shaped log lines not yet quoted by any CLAUDE.md, skill or doc.
+
+The `/memory-distill` skill reads that report and proposes promoting each candidate one
+rung up a ladder (MEMORY.md / USER.md → package CLAUDE.md → skill known-failures →
+permission rule → lint rule or test), as diffs the user approves. The session briefing
+nudges when the last run is over seven days old. `scripts/memory-stats.sh` reports the
+loop's health; the number to watch is `repeated_failures` falling over time.
+
+---
+
 ## Step 5 — CLAUDE.md memory sections
 
 Read `CLAUDE.md` first. Skip any section that already exists. Add only what is missing.
 
 ### Session Startup
+
+> **This repo injects the snapshot with a hook instead.** `.claude/hooks/session-briefing.js`
+> runs on `SessionStart` and prints USER.md, MEMORY.md, today's (or yesterday's) log, the
+> branch and its brief, and the top open Manual Operational Follow-ups. A SessionStart
+> command hook's stdout becomes session context, so the snapshot costs zero tool calls
+> before the first turn instead of three or four reads. Use the prose instructions below
+> only in a project without the hook. Do not use a `type: "prompt"` hook for this: prompt
+> hooks are not supported on SessionStart — this repo had one, and it failed with a
+> non-blocking error at the start of every session while injecting nothing.
 
 ```markdown
 ## Session Startup (silent — do not output anything)
