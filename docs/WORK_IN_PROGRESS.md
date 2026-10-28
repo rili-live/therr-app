@@ -540,7 +540,11 @@ The prod repair itself ran 2026-09-19 14:42 UTC (`repair-space-claims`: 25 consu
 > `scripts/google-ads/therr_ads/ga4.py` (applied to `fetch_app_funnel` by default and
 > recorded in every report's `notes`), plus a **"Real Users"** segment on the GA4
 > Explore funnel. Sanity check when reading either: `first_open` is **70**, not 136,
-> for 6 Aug – 8 Sep. The `surface` custom dimension is registered and reporting
+> for 6 Aug – 8 Sep. **Identified 2026-10-28:** the farm is Google Play's pre-launch report
+> (Firebase Test Lab) — the rows land on each release day, on that release's version. Emulators
+> are now matched by substring (`sdk_gphone*`, after `sdk_gphone16k_arm64` slipped past the
+> exact list), and `TherrMobile/main/utilities/analyticsCollection.ts` turns analytics off when
+> Test Lab's `firebase.test.lab` setting is set. The `surface` custom dimension is registered and reporting
 > (`web` / `habits` / `landing` / `dashboard`), verified 2026-09-03.
 
 - [ ] **Re-submit the habits sitemap to Search Console.** `habits.therr.com/sitemap.xml`
