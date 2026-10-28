@@ -45,7 +45,9 @@ const makeRepo = () => {
 const sh = (dir, snippet, env = {}) => spawnSync('bash', ['-c', `set -e; source ./_bin/lib/colorize.sh; source ./_bin/lib/check-cache.sh; ${snippet}`], {
     cwd: dir,
     encoding: 'utf8',
-    env: { ...process.env, CI: '', THERR_CHECK_CACHE: '', ...env },
+    env: {
+        ...process.env, CI: '', THERR_CHECK_CACHE: '', ...env,
+    },
 });
 
 const key = (dir, cmd = 'npm test', pkg = 'pkg-a') => {
@@ -91,7 +93,7 @@ test('the key changes with the command', () => {
 
 test('a pass is skipped on re-run and replayed after the package changes', () => {
     const { dir, write } = makeRepo();
-    const run = () => sh(dir, `check_cache_run pkg-a 'npm test'`, { PATH: `${path.join(dir, 'bin')}:${process.env.PATH}` });
+    const run = () => sh(dir, 'check_cache_run pkg-a \'npm test\'', { PATH: `${path.join(dir, 'bin')}:${process.env.PATH}` });
     // A fake `npm` that counts its invocations.
     write('bin/npm', '#!/bin/sh\necho ran >> "$(git rev-parse --show-toplevel)/runs.txt"\n');
     fs.chmodSync(path.join(dir, 'bin', 'npm'), 0o755);
@@ -114,7 +116,7 @@ test('a failure is not cached, propagates its exit code and writes last-failure.
     write('bin/npm', '#!/bin/sh\necho "1 failing: users.test.ts"\nexit 3\n');
     fs.chmodSync(path.join(dir, 'bin', 'npm'), 0o755);
     fs.appendFileSync(path.join(dir, '.git', 'info', 'exclude'), 'bin/\n');
-    const r = sh(dir, `check_cache_run pkg-a 'npm test'`, { PATH: `${path.join(dir, 'bin')}:${process.env.PATH}` });
+    const r = sh(dir, 'check_cache_run pkg-a \'npm test\'', { PATH: `${path.join(dir, 'bin')}:${process.env.PATH}` });
     assert.strictEqual(r.status, 3);
     const record = JSON.parse(fs.readFileSync(path.join(dir, '.git', 'therr-check-cache', 'last-failure.json'), 'utf8'));
     assert.strictEqual(record.package, 'pkg-a');
@@ -129,11 +131,11 @@ test('a later pass of the same package clears its failure record', () => {
     fs.appendFileSync(path.join(dir, '.git', 'info', 'exclude'), 'bin/\n');
     write('bin/npm', '#!/bin/sh\nexit 1\n');
     fs.chmodSync(path.join(bin, 'npm'), 0o755);
-    sh(dir, `check_cache_run pkg-a 'npm test'`, { PATH: `${bin}:${process.env.PATH}` });
+    sh(dir, 'check_cache_run pkg-a \'npm test\'', { PATH: `${bin}:${process.env.PATH}` });
     const record = path.join(dir, '.git', 'therr-check-cache', 'last-failure.json');
     assert.ok(fs.existsSync(record));
     write('bin/npm', '#!/bin/sh\nexit 0\n');
-    assert.strictEqual(sh(dir, `check_cache_run pkg-a 'npm test'`, { PATH: `${bin}:${process.env.PATH}` }).status, 0);
+    assert.strictEqual(sh(dir, 'check_cache_run pkg-a \'npm test\'', { PATH: `${bin}:${process.env.PATH}` }).status, 0);
     assert.ok(!fs.existsSync(record));
 });
 
@@ -144,13 +146,13 @@ test('CI, THERR_CHECK_CACHE=0 and non-check commands always run', () => {
     fs.appendFileSync(path.join(dir, '.git', 'info', 'exclude'), 'bin/\nruns.txt\n');
     const PATH = `${path.join(dir, 'bin')}:${process.env.PATH}`;
     const runs = () => fs.readFileSync(path.join(dir, 'runs.txt'), 'utf8').trim().split('\n').length;
-    sh(dir, `check_cache_run pkg-a 'npm test'`, { PATH, CI: 'true' });
-    sh(dir, `check_cache_run pkg-a 'npm test'`, { PATH, CI: 'true' });
+    sh(dir, 'check_cache_run pkg-a \'npm test\'', { PATH, CI: 'true' });
+    sh(dir, 'check_cache_run pkg-a \'npm test\'', { PATH, CI: 'true' });
     assert.strictEqual(runs(), 2, 'CI never skips');
-    sh(dir, `check_cache_run pkg-a 'npm test'`, { PATH, THERR_CHECK_CACHE: '0' });
+    sh(dir, 'check_cache_run pkg-a \'npm test\'', { PATH, THERR_CHECK_CACHE: '0' });
     assert.strictEqual(runs(), 3, 'opt-out never skips');
-    sh(dir, `check_cache_run pkg-a 'npm run build'`, { PATH });
-    sh(dir, `check_cache_run pkg-a 'npm run build'`, { PATH });
+    sh(dir, 'check_cache_run pkg-a \'npm run build\'', { PATH });
+    sh(dir, 'check_cache_run pkg-a \'npm run build\'', { PATH });
     assert.strictEqual(runs(), 5, 'builds are never skipped');
 });
 

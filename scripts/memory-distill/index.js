@@ -149,7 +149,9 @@ const extractFromLogs = (logs, targets) => {
             if (ciMatch) {
                 const [job = '', error = '', cause = '', fix = ''] = ciMatch[1].split('|').map((s) => s.trim());
                 const key = `${job} | ${error.replace(/\d+/g, '<n>').slice(0, 80)}`;
-                const entry = ci.get(key) || { job, error: clip(error, 120), causes: new Set(), fixes: new Set(), dates: new Set() };
+                const entry = ci.get(key) || {
+                    job, error: clip(error, 120), causes: new Set(), fixes: new Set(), dates: new Set(),
+                };
                 if (cause) entry.causes.add(clip(cause, 120));
                 if (fix) entry.fixes.add(clip(fix, 60));
                 entry.dates.add(log.date);
@@ -158,7 +160,9 @@ const extractFromLogs = (logs, targets) => {
             }
             if (LESSON_CUE.test(line) && line.trim().length > 25) {
                 const text = clip(line.replace(/^\s*[-*#]+\s*/, ''));
-                lessons.push({ where: `${log.file}:${i + 1}`, date: log.date, text, promoted: promotedIn(line, targets) });
+                lessons.push({
+                    where: `${log.file}:${i + 1}`, date: log.date, text, promoted: promotedIn(line, targets),
+                });
             }
         });
     }
@@ -192,7 +196,9 @@ const aggregateDigests = (digests) => {
         }
         for (const p of d.permissionDenials || []) {
             const key = `${p.tool}: ${String(p.input || '').split(/\s+/).slice(0, 3).join(' ')}`;
-            const entry = denials.get(key) || { key, count: 0, dates: new Set(), example: p.input };
+            const entry = denials.get(key) || {
+                key, count: 0, dates: new Set(), example: p.input,
+            };
             entry.count += 1;
             entry.dates.add(day);
             denials.set(key, entry);
@@ -210,7 +216,12 @@ const aggregateDigests = (digests) => {
     const repeats = [...bySig.values()]
         .filter((e) => e.sessions.size >= 2)
         .map((e) => ({
-            signature: e.signature, sessions: e.sessions.size, dates: [...e.dates].sort(), example: e.example, error: e.error, resolvedBy: [...e.resolvedBy].slice(0, 3),
+            signature: e.signature,
+            sessions: e.sessions.size,
+            dates: [...e.dates].sort(),
+            example: e.example,
+            error: e.error,
+            resolvedBy: [...e.resolvedBy].slice(0, 3),
         }))
         .sort((a, b) => b.sessions - a.sessions);
     return {
@@ -233,7 +244,9 @@ const memoryHealth = (root) => {
             return 0;
         }
     };
-    return { memoryChars: size('context/MEMORY.md'), memoryCap: 2500, userChars: size('context/USER.md'), userCap: 1375 };
+    return {
+        memoryChars: size('context/MEMORY.md'), memoryCap: 2500, userChars: size('context/USER.md'), userCap: 1375,
+    };
 };
 
 const distill = ({ root = ROOT, since, now = new Date() } = {}) => {
@@ -267,15 +280,28 @@ const renderMarkdown = (r) => {
     out.push(`${r.sessions} session digest(s) (this machine), ${r.logs} daily log(s). Last distill: ${r.lastRun || 'never'}.`);
     out.push(`MEMORY.md ${r.health.memoryChars}/${r.health.memoryCap} chars · USER.md ${r.health.userChars}/${r.health.userCap} chars · `
         + `${r.interrupts} interrupt(s) · ${r.noVerify} --no-verify`);
-    section('Repeated failures (same signature, 2+ sessions) — strongest promotion candidates', r.repeats, (e) => `- **${e.sessions} sessions** (${e.dates.join(', ')}) \`${e.signature}\`\n  e.g. \`${e.example}\` → ${e.error}${e.resolvedBy.length ? `\n  fixed by: ${e.resolvedBy.map((x) => `\`${x}\``).join('; ')}` : '\n  never resolved in-session'}`, LIMITS.repeats);
-    section('CI failures logged by /steward', r.ci, (e) => `- **${e.count}×** ${e.job} — ${e.error} (${e.dates.join(', ')})${e.causes.length ? `\n  cause: ${e.causes.join('; ')}` : ''}`, LIMITS.ci);
-    section('Permission refusals (candidates for an allow/ask rule or steward §5)', r.denials, (e) => `- **${e.count}×** \`${e.key}\` (${e.dates.join(', ')}) e.g. \`${e.example}\``, LIMITS.denials);
+    const repeatRow = (e) => {
+        const fixed = e.resolvedBy.length
+            ? `fixed by: ${e.resolvedBy.map((x) => `\`${x}\``).join('; ')}`
+            : 'never resolved in-session';
+        return `- **${e.sessions} sessions** (${e.dates.join(', ')}) \`${e.signature}\`\n  e.g. \`${e.example}\` → ${e.error}\n  ${fixed}`;
+    };
+    const ciRow = (e) => `- **${e.count}×** ${e.job} — ${e.error} (${e.dates.join(', ')})${e.causes.length ? `\n  cause: ${e.causes.join('; ')}` : ''}`;
+    const denialRow = (e) => `- **${e.count}×** \`${e.key}\` (${e.dates.join(', ')}) e.g. \`${e.example}\``;
+    section('Repeated failures (same signature, 2+ sessions) — strongest promotion candidates', r.repeats, repeatRow, LIMITS.repeats);
+    section('CI failures logged by /steward', r.ci, ciRow, LIMITS.ci);
+    section('Permission refusals (candidates for an allow/ask rule or steward §5)', r.denials, denialRow, LIMITS.denials);
     section('Hook errors', r.hookErrors, (e) => `- **${e.count}×** ${e.hook}: ${e.error}`, LIMITS.denials);
     section('Unresolved errors (most recent)', r.unresolved, (e) => `- ${e.day} \`${e.input}\` → ${e.error}`, LIMITS.unresolved);
     section('User corrections (most recent)', r.corrections, (e) => `- ${e.day} "${e.text}"`, LIMITS.corrections);
     const open = r.lessons.filter((l) => !l.promoted);
     const done = r.lessons.length - open.length;
-    section(`Lessons in daily logs not yet in any CLAUDE.md, skill or doc (${done} others already are)`, open, (l) => `- ${l.where} — ${l.text}`, LIMITS.lessons);
+    section(
+        `Lessons in daily logs not yet in any CLAUDE.md, skill or doc (${done} others already are)`,
+        open,
+        (l) => `- ${l.where} — ${l.text}`,
+        LIMITS.lessons,
+    );
     return `${out.join('\n')}\n`;
 };
 

@@ -77,8 +77,8 @@ test('CI-failure lines in the steward shape are grouped by job and error', () =>
 test('a lesson quoting an identifier that a CLAUDE.md already mentions is marked promoted', () => {
     const targets = [{ file: 'therr-services/users-service/CLAUDE.md', text: 'Use `getSmsSender()` for every send.' }];
     assert.ok(promotedIn('- Gotcha: always go through `getSmsSender()` here', targets));
-    assert.strictEqual(promotedIn('- Gotcha: the `general` branch is shared', [{ file: 'CLAUDE.md', text: 'general' }]), null,
-        'plain words are not distinctive enough');
+    const plain = promotedIn('- Gotcha: the `general` branch is shared', [{ file: 'CLAUDE.md', text: 'general' }]);
+    assert.strictEqual(plain, null, 'plain words are not distinctive enough');
     assert.strictEqual(promotedIn('- Gotcha: no identifiers in this one at all', targets), null);
 });
 

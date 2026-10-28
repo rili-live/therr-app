@@ -52,7 +52,9 @@ const clip = (text, cap) => {
     return flat.length <= cap ? flat : `${flat.slice(0, cap - 1)}…`;
 };
 
-const firstLines = (text, n = 3) => String(text || '').split('\n').map((l) => l.trim()).filter(Boolean).slice(0, n).join(' | ');
+const firstLines = (text, n = 3) => String(text || '').split('\n').map((l) => l.trim()).filter(Boolean)
+    .slice(0, n)
+    .join(' | ');
 
 // A stable fingerprint for "the same failure" across sessions: tool + the first
 // meaningful error line with the volatile parts (numbers, paths, hashes, quoted
@@ -155,7 +157,9 @@ const buildDigest = (lines, { event = null, projectDir = null } = {}) => {
         if (obj.type === 'assistant' && Array.isArray(msg.content)) {
             for (const block of msg.content) {
                 if (!block || block.type !== 'tool_use') continue;
-                const call = { id: block.id, name: block.name, input: block.input || {}, ok: null };
+                const call = {
+                    id: block.id, name: block.name, input: block.input || {}, ok: null,
+                };
                 toolUses.set(block.id, call);
                 calls.push(call);
                 toolCounts[block.name] = (toolCounts[block.name] || 0) + 1;

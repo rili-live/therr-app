@@ -22,14 +22,35 @@ const test = (name, fn) => tests.push({ name, fn });
 
 // Builders for the JSONL envelopes, matching the fields the real transcript carries.
 let n = 0;
-const ts = () => new Date(Date.UTC(2026, 9, 28, 12, 0, n += 1)).toISOString();
+const ts = () => {
+    n += 1;
+    return new Date(Date.UTC(2026, 9, 28, 12, 0, n)).toISOString();
+};
 const base = { sessionId: 's1', gitBranch: 'feat/x', isSidechain: false };
-const userText = (text) => ({ ...base, type: 'user', timestamp: ts(), message: { role: 'user', content: text } });
+const userText = (text) => ({
+    ...base, type: 'user', timestamp: ts(), message: { role: 'user', content: text },
+});
 const toolUse = (id, name, input) => ({
-    ...base, type: 'assistant', timestamp: ts(), message: { role: 'assistant', content: [{ type: 'tool_use', id, name, input }] },
+    ...base,
+    type: 'assistant',
+    timestamp: ts(),
+    message: {
+        role: 'assistant',
+        content: [{
+            type: 'tool_use', id, name, input,
+        }],
+    },
 });
 const toolResult = (id, content, isError = false) => ({
-    ...base, type: 'user', timestamp: ts(), message: { role: 'user', content: [{ type: 'tool_result', tool_use_id: id, is_error: isError, content }] },
+    ...base,
+    type: 'user',
+    timestamp: ts(),
+    message: {
+        role: 'user',
+        content: [{
+            type: 'tool_result', tool_use_id: id, is_error: isError, content,
+        }],
+    },
 });
 const lines = (...objs) => objs.map((o) => JSON.stringify(o));
 
@@ -115,7 +136,11 @@ test('--no-verify counts only on a real git commit or push, not in text that men
 });
 
 test('redaction removes tokens, keys, emails and phone numbers', () => {
-    const text = redact('GITHUB_TOKEN=ghp_abcdefghijklmnopqrstuvwxyz0123 mail a.b@example.com call +44 7700 900123 Bearer abc.def.ghijklmnop sk-ant-abcdefghijklmnopqrstu');
+    const text = redact([
+        'GITHUB_TOKEN=ghp_abcdefghijklmnopqrstuvwxyz0123',
+        'mail a.b@example.com call +44 7700 900123',
+        'Bearer abc.def.ghijklmnop sk-ant-abcdefghijklmnopqrstu',
+    ].join(' '));
     assert.ok(!text.includes('ghp_'));
     assert.ok(!text.includes('example.com'));
     assert.ok(!text.includes('7700'));
