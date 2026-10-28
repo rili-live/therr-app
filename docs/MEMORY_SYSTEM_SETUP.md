@@ -158,6 +158,15 @@ Read `CLAUDE.md` first. Skip any section that already exists. Add only what is m
 
 ### Session Startup
 
+> **This repo injects the snapshot with a hook instead.** `.claude/hooks/session-briefing.js`
+> runs on `SessionStart` and prints USER.md, MEMORY.md, today's (or yesterday's) log, the
+> branch and its brief, and the top open Manual Operational Follow-ups. A SessionStart
+> command hook's stdout becomes session context, so the snapshot costs zero tool calls
+> before the first turn instead of three or four reads. Use the prose instructions below
+> only in a project without the hook. Do not use a `type: "prompt"` hook for this: prompt
+> hooks are not supported on SessionStart — this repo had one, and it failed with a
+> non-blocking error at the start of every session while injecting nothing.
+
 ```markdown
 ## Session Startup (silent — do not output anything)
 

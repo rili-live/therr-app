@@ -4,8 +4,9 @@
       {
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "This is the Therr App monorepo: React Native mobile, React web clients, and Express microservices behind an API gateway. Check the current git branch before making changes — niche/* branches are app-variant specific and never deploy to production; general/stage/main carry shared code. See CLAUDE.md for the full branch rules."
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-briefing.js\"",
+            "timeout": 10
           },
           {
             "type": "command",
