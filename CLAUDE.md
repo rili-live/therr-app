@@ -135,7 +135,8 @@ npm run pr:typecheck:<pkg>       # gateway|users|maps|messages|reactions|push|
 npm run pr:tsc-baseline:mobile   # mobile gates on "no NEW errors" vs TherrMobile/.tsc-baseline
 ```
 
-Or just run `/quality-check`, which groups changed files by package and does both.
+Or just run `/quality-check`, which groups changed files by package and does both. It runs in a
+forked context (as do `/doc-drift` and `/seo-audit`), so only its report lands in the session.
 
 ## Code Quality
 

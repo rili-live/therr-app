@@ -4,9 +4,16 @@ description: Audit SSR routes in therr-client-web for required SEO elements — 
 user-invocable: true
 allowed-tools: Bash(curl*), Bash(git diff*), Bash(git status*), Bash(grep*), Bash(find *), Read, Grep, Glob
 argument-hint: [audit|changed|route <path>] [--host <url>] [--fix]
+context: fork
+agent: general-purpose
+background: false
 ---
 
 # SEO Audit
+
+> Runs in a forked context so the curl and HTML output never reaches the caller's session. Your final
+> message is all the caller sees: make it the Step 5 report, complete enough to act on
+> without re-running anything (file:line for every failure, and what you fixed).
 
 Validate that SSR-rendered routes in `therr-client-web` ship with the SEO metadata the growth strategy depends on. The web client server (`therr-client-web/src/server-client.tsx`) generates meta tags, hreflang links, sitemaps, and JSON-LD per route — any regression here silently kills indexing.
 
