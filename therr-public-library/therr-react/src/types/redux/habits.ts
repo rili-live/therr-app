@@ -92,6 +92,11 @@ export interface IHabitWeekProgress {
     daysLeft: number;
     isRequiredToday: boolean;
     isMet: boolean;
+    /**
+     * How pressing today's check-in is, from users-service `getCheckinUrgency` — the same rule
+     * that decides whether the morning reminder is sent. Absent from a server that predates it.
+     */
+    urgency?: 'required' | 'soon' | 'flexible' | 'rest' | 'met';
 }
 
 // Pact Types
