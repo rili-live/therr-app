@@ -142,6 +142,12 @@ Or just run `/quality-check`, which groups changed files by package and does bot
 CI enforces lint, type-checking, and tests on every branch (`.circleci/config.yml`).
 Run `/quality-check` before finishing a change rather than relying on CI to tell you.
 
+`test:changed`, `lint:changed` and the pre-push hook skip packages that already passed the
+same check on identical content (`_bin/lib/check-cache.sh`), so re-running after a fix
+replays from the failure rather than from the start. The failure itself is recorded in
+`$(git rev-parse --git-common-dir)/therr-check-cache/last-failure.json`.
+`THERR_CHECK_CACHE=0` forces a full run. CI never uses the cache.
+
 Conventions worth knowing because they are **not** the common defaults:
 
 - **4-space indentation** (`eslint-config/base.js`), not 2.
