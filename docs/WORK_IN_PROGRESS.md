@@ -2208,6 +2208,23 @@ depend on these working correctly.
   push notification to each user in the room (excluding sender) — DM
   re-engagement is currently silent
 
+#### 2.1.1 Reminders timed from the user's usual check-in time (#3155)
+
+Design: `docs/niche-sub-apps/habits/HABITS_LEARNED_REMINDER_TIME_DESIGN.md`. Lands on `general`.
+Almost everyone gets the default 08:00 / 19:30 check-in nudge, which arrives after early users
+have checked in and well before night owls do. Learn each user's typical first and last check-in
+time and place the nudges relative to them. Precedence: explicit setting > learned > default.
+Decided: every user keeps a morning nudge (D1), and check-in history never moves quiet hours (D2).
+
+- [ ] Phase 1a — `utilities/checkinTimeProfile.ts` + tests, learned fields in
+      `localReminderSchedule.ts`, digest wiring behind `HABIT_LEARNED_REMINDER_TIME_ENABLED`, counters.
+      The evening half works on the current once-daily digest.
+- [ ] Phase 1b — hourly `slot=morning` digest pass. The once-daily run (14:00 UTC) is past the
+      morning slot in most zones. Cross-repo: `therr-infra-terraform` scheduler +
+      `therr-messaging-automator` caller.
+- [ ] Phase 2 — weekday/weekend profiles; decide per other digest whether to use the learned time.
+- [ ] Phase 3 — show "Automatic — around HH:MM" in Settings → Notifications (mobile, all three locales).
+
 ### 2.2 Pact / habit infrastructure (HABITS-specific)
 
 These TODOs live in shared backend and `therr-react`, so they ship from
