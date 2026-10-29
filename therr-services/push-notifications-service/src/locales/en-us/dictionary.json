@@ -154,6 +154,11 @@
       "title": "{partnerName} Missed a Day",
       "body": "{partnerName} skipped {habitName} yesterday — send some encouragement."
     },
+    "pactMessage": {
+      "title": "{habitName} pact",
+      "body": "{userName}: {messagePreview}",
+      "bodyNoPreview": "{userName} sent a message to your pact."
+    },
     "partnerCelebrated": {
       "title": "{partnerName} Sent a Celebration",
       "body": "{partnerName} just cheered you on — open the app to see what they said."

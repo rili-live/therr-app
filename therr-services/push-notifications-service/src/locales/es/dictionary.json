@@ -154,6 +154,11 @@
       "title": "{partnerName} se perdió un día",
       "body": "{partnerName} no registró {habitName} ayer — envía un poco de aliento."
     },
+    "pactMessage": {
+      "title": "Pacto de {habitName}",
+      "body": "{userName}: {messagePreview}",
+      "bodyNoPreview": "{userName} envió un mensaje a tu pacto."
+    },
     "partnerCelebrated": {
       "title": "{partnerName} envió una felicitación",
       "body": "{partnerName} acaba de animarte — abre la app para ver lo que dijo."

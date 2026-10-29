@@ -98,6 +98,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         charityKey,
         // Which `pactDeclined` story to tell — copy only.
         pactDeclineReason,
+        // Pact chat — the first line of the message being announced. Copy only.
+        messagePreview,
     } = req.body;
 
     return predictAndSendNotification(
@@ -159,6 +161,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             pledgeAmount,
             charityKey,
             pactDeclineReason,
+            messagePreview,
         },
         undefined,
         brandVariation,
@@ -265,6 +268,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         charityKey,
         // Which `pactDeclined` story to tell — copy only.
         pactDeclineReason,
+        // Pact chat — the first line of the message being announced. Copy only.
+        messagePreview,
     } = req.body;
 
     const recipients: any[] = (users || []).filter((user: any) => !user.shouldMuteNotifs);
@@ -328,6 +333,7 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             pledgeAmount,
             charityKey,
             pactDeclineReason,
+            messagePreview,
         },
         undefined,
         brandVariation,
