@@ -61,8 +61,10 @@ that already has history.
 
 The timeline is `pact_messages` ∪ completed `habit_checkins` on the thread's pacts, ordered by
 `completedAt` (or `createdAt`), with one cursor (`before` for scrolling back, `after` for polling).
-A check-in item carries its notes, `hasProof` and the habit's name and emoji. The proof photo is read
-through the existing `GET /habits/checkins/:id/proofs`, which enforces the same membership.
+A check-in item carries its notes, `hasProof` and the habit's name and emoji. The MVP shows a
+"photo proof" marker rather than the photo itself. `GET /habits/checkins/:id/proofs` is owner-only
+(`utilities/checkinProofs.ts` `canReadProofs`), so a partner cannot load it. Letting active pact
+members read the proofs of check-ins on their pact is a follow-up.
 Nothing is written into the check-in path, which is the most sensitive request in the app, and every
 historical check-in shows up in the chat from day one.
 
@@ -186,6 +188,7 @@ At ~25 installs/week this is a directional read and will not reach significance.
 
 ## Deliberately left out
 
-Media upload in chat (beyond what check-ins already carry), editing or deleting messages, typing
+Showing a partner's proof photo inline (needs the proofs endpoint opened to pact members; the
+check-in shows a marker for now), media upload in chat, editing or deleting messages, typing
 indicators and presence, websocket real-time, a chat-only mute, an email fallback for chat pushes,
 chat on pending pacts, @mentions, link previews, search, and a web client.
