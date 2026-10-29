@@ -38,6 +38,7 @@ import StreaksStore from './StreaksStore';
 import HabitPhasesStore from './HabitPhasesStore';
 import ProofsStore from './ProofsStore';
 import PactActivitiesStore from './PactActivitiesStore';
+import PactChatStore from './PactChatStore';
 import UserHabitsStore from './UserHabitsStore';
 import LifetimePurchasesStore from './LifetimePurchasesStore';
 import ChallengesStore from './ChallengesStore';
@@ -129,6 +130,8 @@ class Store {
 
     pactActivities: PactActivitiesStore;
 
+    pactChat: PactChatStore;
+
     userHabits: UserHabitsStore;
 
     lifetimePurchases: LifetimePurchasesStore;
@@ -195,6 +198,7 @@ class Store {
         this.habitPhases = new HabitPhasesStore(this.db);
         this.proofs = new ProofsStore(this.db);
         this.pactActivities = new PactActivitiesStore(this.db);
+        this.pactChat = new PactChatStore(this.db);
         this.userHabits = new UserHabitsStore(this.db);
         this.lifetimePurchases = new LifetimePurchasesStore(this.db);
         this.challenges = new ChallengesStore(this.db);
