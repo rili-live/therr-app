@@ -2070,6 +2070,11 @@
             "checkinError": "We couldn't save your check-in. Try again in a moment.",
             "completed": "Completed!",
             "checkedInToday": "Checked in today",
+            "risk": {
+                "streakAtRisk": "Check in today to keep your {count}-day streak",
+                "dueToday": "Due today to hit this week's goal",
+                "dueSoon": "Running out of days this week"
+            },
             "noHabitsTitle": "No habits yet",
             "noHabitsSubtitle": "Create a habit to start tracking your progress",
             "pendingHabits": "Waiting on Partners",

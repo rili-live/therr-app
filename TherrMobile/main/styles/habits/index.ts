@@ -492,6 +492,35 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         habitCardContainerDone: {
             borderColor: done.border,
         },
+        // At-risk outlines, on the same transparent border the done outline uses so nothing
+        // shifts. Amber: the week or a streak needs this soon. Red: a streak ends tonight.
+        habitCardContainerWarning: {
+            borderColor: tint(therrTheme.colors.alertWarning, 0.75),
+        },
+        habitCardContainerDanger: {
+            borderColor: therrTheme.colors.alertError,
+        },
+        // The words beside the outline, so the state is not carried by colour alone.
+        habitCardRiskRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: space.xs + 2,
+        },
+        habitCardRiskIconWarning: {
+            color: therrTheme.colors.alertWarning,
+            marginRight: space.xs,
+        },
+        habitCardRiskIconDanger: {
+            color: therrTheme.colors.alertError,
+            marginRight: space.xs,
+        },
+        habitCardRiskText: {
+            flex: 1,
+            fontFamily: therrFontFamily,
+            fontSize: 13,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
         // Positions the "done today" badge on the emoji's corner.
         habitCardEmojiWrap: {
             marginRight: space.sm,

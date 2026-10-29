@@ -50,12 +50,18 @@ const progress = (overrides: any = {}) => ({
     ...overrides,
 });
 
-const renderCard = async () => {
+const renderCard = async (variant: 'full' | 'inline' = 'full') => {
     const navigation: any = { navigate: jest.fn() };
     let component: renderer.ReactTestRenderer;
     await act(async () => {
         component = renderer.create(
-            <ReferralRewardCard navigation={navigation} themeHabits={themeHabits} translate={translate} source="paywall" />,
+            <ReferralRewardCard
+                navigation={navigation}
+                themeHabits={themeHabits}
+                translate={translate}
+                source={variant === 'inline' ? 'pact-invite' : 'paywall'}
+                variant={variant}
+            />,
         );
         await flushPromises();
     });
@@ -96,6 +102,25 @@ describe('ReferralRewardCard', () => {
         expect(component.toJSON()).toBeNull();
     });
 
+    it('shows only the offer and the progress inline on the invite step, with no roster or invite button', async () => {
+        // The inline card sits on the screen that *is* the invite, so its own "Invite a friend"
+        // button would navigate the user to where they already are.
+        mockGetReferralReward.mockResolvedValue({ data: progress() });
+        const { component } = await renderCard('inline');
+        const text = allText(component);
+
+        expect(text).toContain('pages.referralReward.title(3)');
+        expect(text).toContain('pages.referralReward.progressRemaining(1,3,2)');
+        expect(text).not.toContain('pages.referralReward.friendDone');
+        expect(text).not.toContain('pages.referralReward.cta');
+    });
+
+    it('renders nothing inline when the offer does not apply', async () => {
+        mockGetReferralReward.mockResolvedValue({ data: progress({ isEntitled: true }) });
+        const { component } = await renderCard('inline');
+        expect(component.toJSON()).toBeNull();
+    });
+
     it('renders nothing when the read fails', async () => {
         mockGetReferralReward.mockRejectedValue(new Error('offline'));
         const { component } = await renderCard();
@@ -104,8 +129,13 @@ describe('ReferralRewardCard', () => {
 });
 
 describe('growth-loop wiring', () => {
+    const createPactInviteSource = fs.readFileSync(path.resolve(__dirname, '../../main/routes/Pacts/CreatePactInvite.tsx'), 'utf8');
     const layoutSource = fs.readFileSync(path.resolve(__dirname, '../../main/components/Layout.tsx'), 'utf8');
     const routesSource = fs.readFileSync(path.resolve(__dirname, '../../main/routes/index.tsx'), 'utf8');
+
+    it('shows the referral offer on the partner step, where the invite is actually sent', () => {
+        expect(createPactInviteSource).toMatch(/<ReferralRewardCard[\s\S]*?source="pact-invite"[\s\S]*?variant="inline"/);
+    });
 
     it('registers the challenge screens the links and pushes navigate to', () => {
         expect(routesSource).toMatch(/name: 'ChallengeDetail'/);
