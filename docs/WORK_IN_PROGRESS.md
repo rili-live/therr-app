@@ -98,6 +98,33 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Metrics data integrity: Test Lab devices, `/invite/null`, retention report (added 2026-10-29)
+
+- [ ] **After the next Friends with Habits release reaches Play, check that pre-launch devices stopped
+  reporting.** GA4 `267810693`, stream "Friends with Habits", release day ±1, dimension `deviceModel`:
+  `OnePlus8Pro` and `sdk_gphone*` should show ~0 `screen_view` / `profile_create_start` on the new
+  version (October baseline: 66 `first_open`s across release days). `first_open` and `session_start`
+  are logged natively before JS runs, so a few may still appear; if they keep arriving at the old
+  rate, the follow-up is to defer collection natively (`firebase.json` →
+  `analytics_auto_collection_enabled: false`, then enable from JS) — but verify on a device first
+  that `first_open` still fires for a real install when collection is enabled late, because it is
+  the key event imported into Google Ads.
+- [ ] **Update the GA4 "Real Users" Explore segment** to exclude `deviceModel` *contains* `sdk_gphone`
+  (not just the exact names), matching `SYNTHETIC_DEVICE_MODEL_SUBSTRINGS` in
+  `scripts/google-ads/therr_ads/ga4.py`. `sdk_gphone16k_arm64` was getting through.
+- [ ] **After the web deploy, open `https://habits.therr.com/invite`, `/invite/` and `/invite/null`**
+  signed out: each should render "You have been invited to Friends with Habits" with the Play button
+  (not plain-text "Not found"). On `www.therr.com/invite` the Join button should go to `/register`
+  with no `invite-code`. Then watch GA4 `549794383` (host `habits.therr.com`) page path
+  `/invite/null` — it should stop growing once the next app release is installed.
+- [ ] **Decide #3033** (returning SSO users with no username get `EMAIL_VERIFIED` and skip the
+  username stage). It is the root cause of `/invite/null`: 47 of 209 habits accounts have no
+  username, 25 of them carry both `user.verified.email.missing.props` and `user.verified.email`.
+  The link is now safe either way; fixing the grant adds a username step to their next sign-in.
+- [ ] **Run `npm run report:retention` weekly** (`scripts/retention-report/README.md`) and paste the
+  output into the session log, so retention changes from the P1 sessions are read against the
+  2026-10-29 baseline rather than recomputed by hand.
+
 ## Challenges & founder referral reward (added 2026-10-23, § 2.7 #2988)
 
 - [ ] **Run the users-service migration after the deploy** (`20261023000001`: `habits.challenges`,
