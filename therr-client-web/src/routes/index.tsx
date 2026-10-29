@@ -216,6 +216,11 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <InviteLanding />,
     },
     {
+        // The app shares a bare /invite when the sharer has no username yet.
+        path: '/invite',
+        element: <InviteLanding />,
+    },
+    {
         path: '/claim-pact/:token',
         element: <ClaimPactLanding />,
     },

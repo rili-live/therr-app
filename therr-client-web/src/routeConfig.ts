@@ -166,6 +166,16 @@ export default [
         view: 'invite',
     },
     {
+        // The app shares a bare /invite when the sharer has no username yet (it used to share
+        // /invite/null). Without this entry the hard load 404s — there is no catch-all route.
+        route: '/invite',
+        head: {
+            title: 'Join Therr App',
+            description: 'You have been invited to Therr, the local community and rewards app. Sign up and start earning coins.',
+        },
+        view: 'invite',
+    },
+    {
         route: '/claim-pact/:token',
         head: {
             title: 'Accept Your Pact | Friends with Habits',
