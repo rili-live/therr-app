@@ -25,6 +25,7 @@ import { resolveUserDisplayName } from '../utilities/notificationNames';
 import { checkHabitCapacity } from './helpers/habitCapacity';
 import { activatePactMembership } from './helpers/pactMembership';
 import { attachMemberStatsToPact, attachPactMemberStats } from './helpers/pactMemberStats';
+import { attachUnreadMessageCounts } from './pactChat';
 import { withAmountProgress, withSavingsProgress } from './helpers/savings';
 import resolveWeekBounds from './helpers/weekBounds';
 import {
@@ -507,7 +508,9 @@ const getPact: RequestHandler = async (req: any, res: any) => {
             const weekBounds = withSavings.savingsProgress || !withSavings.habitGoalAmountUnit
                 ? undefined
                 : await resolveWeekBounds(userId, req.query?.timeZone);
-            return res.status(200).send(await withAmountProgress(withSavings, members, userId, weekBounds));
+            const withAmounts = await withAmountProgress(withSavings, members, userId, weekBounds);
+            const [withUnread] = await attachUnreadMessageCounts([withAmounts], userId);
+            return res.status(200).send(withUnread);
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
@@ -563,6 +566,7 @@ const getUserPacts: RequestHandler = async (req: any, res: any) => {
         includeSuperseded === 'true' || includeSuperseded === true,
     )
         .then(withMembers)
+        .then((pacts) => attachUnreadMessageCounts(pacts, userId))
         .then((pacts) => res.status(200).send(pacts))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
@@ -572,6 +576,7 @@ const getActivePacts: RequestHandler = async (req: any, res: any) => {
 
     return Store.pacts.getActivePactsByUserId(userId)
         .then(withMembers)
+        .then((pacts) => attachUnreadMessageCounts(pacts, userId))
         .then((pacts) => res.status(200).send(pacts))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
@@ -1140,8 +1145,9 @@ const renewPact: RequestHandler = async (req: any, res: any) => {
         }
 
         // Only a finished cycle can be renewed — see isPactRenewable for which
-        // statuses qualify and why `abandoned` is not one of them.
-        if (!isPactRenewable(pact)) {
+        // statuses qualify and why `abandoned` is not one of them — or one inside its
+        // final days, which is what the `pactExpiring` push's Renew button sends.
+        if (!isPactRenewable(pact, { allowEarly: true })) {
             return handleHttpError({
                 res,
                 message: translate(locale, 'errorMessages.pacts.notRenewable'),
@@ -1166,9 +1172,43 @@ const renewPact: RequestHandler = async (req: any, res: any) => {
         // had gone stale. 201-vs-200 is what tells the two apart.
         const existingRenewal = await Store.pacts.getLatestRenewalOf(pact.id);
         if (existingRenewal) {
-            const existingMembers = await Store.pactMembers.getByPactId(existingRenewal.id);
+            let continuing = existingRenewal;
+            let existingMembers = await Store.pactMembers.getByPactId(existingRenewal.id);
+            // The partner's tap. Both members get the Renew button, and whoever taps second
+            // finds the first one's renewal — in which they are a *pending* invitee. Handing
+            // it back unchanged left them pending: they had said "renew" and the cycle still
+            // waited on an invite they would have to find and accept separately, so a pact
+            // both partners renewed could sit `pending` forever. Tapping renew on a cycle you
+            // are invited to is accepting it, so accept it here. No capacity check, for the
+            // reason the create path below has none: this habit is already one they track.
+            const ownSeat = existingMembers.find((member: any) => member.userId === userId);
+            const isOpenCycle = existingRenewal.status === 'pending' || existingRenewal.status === 'active';
+            if (ownSeat && ownSeat.status === 'pending' && ownSeat.role === 'partner' && isOpenCycle) {
+                continuing = await activatePactMembership(existingRenewal, userId);
+                existingMembers = await Store.pactMembers.getByPactId(existingRenewal.id);
+                recordFunnelMetric(MetricNames.FUNNEL_PACT_INVITE_ACCEPTED, userId, {
+                    brandVariation: brandVariation || '',
+                    via: 'renew-tap',
+                });
+                sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
+                    authorization,
+                    fromUser: { id: userId, userName },
+                    locale,
+                    toUserId: existingRenewal.creatorUserId,
+                    type: PushNotifications.Types.pactAccepted,
+                    whiteLabelOrigin,
+                    brandVariation,
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error sending pact accepted notification after a renew tap'],
+                        traceArgs: { 'error.message': err?.message },
+                    });
+                });
+            }
             return res.status(200).send(await attachMemberStatsToPact({
-                ...existingRenewal,
+                ...continuing,
                 members: existingMembers,
             }));
         }

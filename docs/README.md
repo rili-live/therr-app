@@ -92,7 +92,7 @@ went unread.
 - [AR_NAVIGATION_PLAN.md](./AR_NAVIGATION_PLAN.md) — AR "View in AR" marker navigation on ARCore phones and Android XR, incl. Play Store enablement (deprioritized future project)
 
 ### Niche app design docs
-- [niche-sub-apps/habits/](./niche-sub-apps/habits/) — Friends With Habits design docs (9 documents)
+- [niche-sub-apps/habits/](./niche-sub-apps/habits/) — Friends With Habits design docs (10 documents)
 
 ## Cross-repo context
 

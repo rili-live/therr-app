@@ -72,8 +72,28 @@ export const shouldExpirePact = (
  * should start a fresh one deliberately rather than re-run the one they quit,
  * and `pending` never had a cycle to finish in the first place.
  */
+/**
+ * How close to its end an active pact may be renewed early, in days. The same window the digest's
+ * `pactExpiring` warning covers, which is what lets that warning carry a working Renew button:
+ * 0 of 14 expired pacts were ever renewed while the only renew offer arrived after the cycle had
+ * already closed.
+ */
+export const PACT_EARLY_RENEWAL_DAYS = 3;
+
+export interface IPactRenewableOptions {
+    /**
+     * Also accept an `active` pact inside its final `PACT_EARLY_RENEWAL_DAYS`. Renewing early closes
+     * the current cycle and starts the next one now, so the new window runs a full cycle from today
+     * — longer than what was left, never shorter. The streak lives on the habit, not the pact, and
+     * is untouched either way.
+     */
+    allowEarly?: boolean;
+    now?: Date;
+}
+
 export const isPactRenewable = (
     pact: { status: PactStatus | string; endDate?: Date | string | null } | null | undefined,
+    options: IPactRenewableOptions = {},
 ): boolean => {
     if (!pact) {
         return false;
@@ -81,7 +101,17 @@ export const isPactRenewable = (
     if (pact.status === 'completed' || pact.status === 'expired') {
         return true;
     }
-    return pact.status === 'active' && shouldExpirePact(pact.status as PactStatus, pact.endDate ?? null);
+    if (pact.status !== 'active') {
+        return false;
+    }
+    if (shouldExpirePact(pact.status as PactStatus, pact.endDate ?? null)) {
+        return true;
+    }
+    if (!options.allowEarly || !pact.endDate) {
+        return false;
+    }
+    const msRemaining = new Date(pact.endDate).getTime() - (options.now || new Date()).getTime();
+    return msRemaining <= PACT_EARLY_RENEWAL_DAYS * 24 * 60 * 60 * 1000;
 };
 
 /**

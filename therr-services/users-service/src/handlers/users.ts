@@ -1616,24 +1616,43 @@ const clearUserDeviceToken: RequestHandler = (req, res) => {
             statusCode: 400,
         });
     }
-    return Store.users.clearDeviceToken(userId, deviceToken)
-        .then((rows: any[]) => {
-            // Phase 2: also clean up the brand-scoped token table. Token strings are globally
-            // unique to a device install regardless of brand, so deletion by token alone is safe.
-            // Fire-and-forget — failure here must not break legacy cleanup.
-            Store.userDeviceTokens.deleteByToken(deviceToken).catch(() => undefined);
+    // The two writes are independent on purpose. The brand-scoped row is the one push
+    // routing reads (resolveDeviceTokenForBrand); the legacy users column routes nothing.
+    // These used to run in sequence with the brand-scoped delete chained after the legacy
+    // update, so when the legacy update failed — a NOT NULL violation on every call from
+    // April to 2026-10-27 — the row that actually mattered was never deleted, every send
+    // to an uninstalled app 502'd, and that was about half of all habits queue rows.
+    // Token strings are unique to a device install regardless of brand, so deletion by
+    // token alone is safe.
+    return Promise.allSettled([
+        Store.users.clearDeviceToken(userId, deviceToken),
+        Store.userDeviceTokens.deleteByToken(deviceToken),
+    ])
+        .then(([legacyResult, brandScopedResult]) => {
+            const legacyCleared = legacyResult.status === 'fulfilled' && (legacyResult.value as any[])?.length > 0;
+            const brandScopedRowsDeleted = brandScopedResult.status === 'fulfilled' ? brandScopedResult.value : 0;
+            const failure = [legacyResult, brandScopedResult]
+                .find((result): result is PromiseRejectedResult => result.status === 'rejected');
+
             logSpan({
-                level: 'info',
+                level: failure ? 'error' : 'info',
                 messageOrigin: 'API_SERVER',
-                messages: ['Cleared invalid FCM device token'],
+                messages: [failure ? 'Partially cleared invalid FCM device token' : 'Cleared invalid FCM device token'],
                 traceArgs: {
                     'user.id': userId,
-                    'pushNotification.tokenCleared': rows?.length > 0,
+                    'pushNotification.tokenCleared': legacyCleared,
+                    'pushNotification.tokenRowsDeleted': brandScopedRowsDeleted,
+                    'error.message': failure?.reason?.message,
                 },
             });
-            return res.status(200).send({ cleared: rows?.length > 0 });
-        })
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+
+            // Only a failure of the routing table's delete is a failed cleanup: the dead
+            // token would still be resolved for the next send.
+            if (brandScopedResult.status === 'rejected') {
+                return handleHttpError({ err: brandScopedResult.reason, res, message: 'SQL:USER_ROUTES:ERROR' });
+            }
+            return res.status(200).send({ cleared: legacyCleared || brandScopedRowsDeleted > 0 });
+        });
 };
 
 // Diagnostics (SUPER_ADMIN at the gateway): does this user have a device token
