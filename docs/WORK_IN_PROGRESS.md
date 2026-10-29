@@ -98,6 +98,37 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Acquisition plan (added 2026-10-29, docs/niche-sub-apps/habits/HABITS_ACQUISITION_PLAN.md)
+
+Four-week test, 2026-11-02 → 2026-11-29. The recurring weekly steps are the plan's § The weekly
+routine; only the one-off and dated steps are listed here.
+
+- [ ] **Before the first community post, confirm Friends with Habits 1.25.0 (66) is on the Play
+  production track.** It carries the challenge screens and the referral card. A `/c/` link opened
+  in an older build lands on the dashboard.
+- [ ] **Create the November public challenge in the app** (template `noSpendDay`, starts
+  2026-11-02), and write its tagged link once, using the plan's § UTM conventions:
+  `https://habits.therr.com/c/<token>?utm_source=<site>&utm_medium=community&utm_campaign=challenge-2026-11-no-spend&utm_content=<community>`.
+- [ ] **After the users-service deploy carrying the referral catch-up grant, check
+  `SELECT COUNT(*) FROM habits.referral_rewards`.** Two users already qualify. Each gets the grant
+  (and the `habitsReferralRewardEarned` push) the next time their app reads referral progress
+  (My Habits, the paywall, or the partner-pick step after the next mobile release). If either has
+  stopped opening the app, nothing grants it. Decide by hand whether that's acceptable.
+- [ ] **After the web deploy carrying the store-link page-type campaigns, check that they arrive.**
+  Within a week, GA4 property `267810693` → new users by `firstUserCampaignName` should show
+  `web-landing` (and `web-invite` once an invitee installs through the web page), and
+  `main."userAcquisition"."utmCampaign"` should start holding `web-*` values.
+- [ ] **Run `/aso-listing` and start a Play Console store listing experiment** (short description
+  + first screenshot, the adjacency angle). One-off, ~3 h, `niche/HABITS-general`. Leave the
+  current listing as the control.
+- [ ] **Submit the Product Hunt launch on a chosen date.** It's the plan's single biggest one-off.
+  Don't pay for featured placements anywhere.
+- [ ] **GA4 admin: register `page_slug`, `page_locale`, `template_key` and `duration_days`** (the
+  same step as § Challenge guides below; listed again because the plan reads guide traffic by them).
+- [ ] **2026-11-30: read the four-week result against each channel's kill criterion** and append
+  a dated row to the plan's decision log. If there are ≤ 2 referral grants by then, set
+  `HABITS_REFERRAL_REWARD_FRIEND_COUNT=2` on users-service and read it again four weeks later.
+
 ## Pact chat (added 2026-10-29, docs/niche-sub-apps/habits/HABITS_PACT_CHAT_DESIGN.md)
 
 - [ ] **Run the users-service migration after the deploy** (`20261028000001_habits.pact_chat.js`:

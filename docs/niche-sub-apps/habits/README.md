@@ -54,6 +54,7 @@ These documents serve as starting points for future Claude agents to implement c
 ## Related Documentation
 
 - [HABITS_PROJECT_BRIEF.md](../HABITS_PROJECT_BRIEF.md) - Full project brief and roadmap
+- [HABITS_ACQUISITION_PLAN.md](./HABITS_ACQUISITION_PLAN.md) - Near-zero-budget acquisition: ranked channels, weekly routine, kill criteria
 - [PROJECT_BRIEF.md](../PROJECT_BRIEF.md) - Core Therr App context
 - [../../ARCHITECTURE.md](../../ARCHITECTURE.md) - System architecture overview
 
