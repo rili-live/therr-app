@@ -3186,6 +3186,7 @@
             "bonus": {
                 "title": "Le bonus du jour",
                 "titleBoosted": "Un bonus doré",
+                "titleComeback": "Bonus de retour",
                 "hintTap": "Touche pour débloquer ton bonus du jour",
                 "hintKeepGoing": "Encore un peu…",
                 "hintOneMore": "Une dernière fois!",

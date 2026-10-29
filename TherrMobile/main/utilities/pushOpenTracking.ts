@@ -56,10 +56,15 @@ export const reportPushOpen = (
     const notificationQueueId = toStringValue(data.notificationQueueId);
     const action = pressActionId || 'default';
 
+    // `message_variant` tells the habits retention messages (first-checkin, day-two, comeback, …)
+    // apart from an ordinary reminder: they share the `daily-habit-reminder` type so they work on
+    // installs that predate them. Only sent when present, so other pushes log exactly as before.
+    const messageVariant = toStringValue(data.messageVariant).slice(0, 100);
     logEvent(getAnalytics(), 'push_open', {
         notification_type: toStringValue(data.type).slice(0, 100),
         press_action: action.slice(0, 100),
         is_queued: notificationQueueId ? 'true' : 'false',
+        ...(messageVariant ? { message_variant: messageVariant } : {}),
     }).catch((err) => console.log(err));
 
     if (!notificationQueueId) {
