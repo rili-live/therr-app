@@ -2349,6 +2349,43 @@
                 "body": "Tu semana gratis siguiéndolo por tu cuenta terminó. Invita a un amigo para seguir registrando check-ins."
             }
         },
+        "pactChat": {
+            "headerTitle": "Chat de {habitName}",
+            "headerTitleFallback": "Chat del pacto",
+            "openChat": "Chat del pacto",
+            "openChatHint": "Habla con tus compañeros y celebra sus check-ins",
+            "unreadAccessibility": "Chat del pacto, {count} mensajes sin leer",
+            "inputPlaceholder": "Escribe a tu pacto…",
+            "send": "Enviar",
+            "readOnly": "Este pacto terminó, así que el chat es de solo lectura.",
+            "emptyTitle": "Saluda a tu pacto",
+            "emptySubtitle": "Los check-ins también aparecen aquí. Anímense mutuamente.",
+            "checkedIn": "{name} hizo check-in",
+            "withPhoto": "📷 Foto de prueba",
+            "you": "Tú",
+            "partnerFallback": "Tu compañero",
+            "loadError": "No se pudo cargar el chat",
+            "retry": "Reintentar",
+            "sendFailed": "No se envió. Toca para reintentar.",
+            "mute": "Silenciar",
+            "unmute": "Activar",
+            "mutedToast": "Las notificaciones de este pacto están silenciadas",
+            "unmutedToast": "Las notificaciones de este pacto están activas de nuevo",
+            "report": "Reportar",
+            "reportConfirmTitle": "¿Reportar este mensaje?",
+            "reportConfirmBody": "Se ocultará para ti y se marcará para revisión. Para dejar de ver a esta persona, bloquéala desde su perfil.",
+            "reportedToast": "Gracias. El mensaje fue reportado.",
+            "viewProfile": "Perfil",
+            "reactHint": "Mantén presionado un mensaje o check-in para reaccionar",
+            "reactionFailed": "No se guardó esa reacción",
+            "errorTitle": "Algo salió mal",
+            "quickReplies": {
+                "flex": "💪",
+                "nice": "¡Bien!",
+                "letsGo": "¡Vamos!",
+                "proud": "Orgulloso de ti"
+            }
+        },
         "pacts": {
             "headerTitle": "Mis pactos",
             "detailTitle": "Detalles del pacto",

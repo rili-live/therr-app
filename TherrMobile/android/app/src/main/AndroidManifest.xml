@@ -257,6 +257,11 @@
         <action android:name="${notificationActionPrefix}.PARTNER_CELEBRATED" />
         <category android:name="android.intent.category.DEFAULT" />
       </intent-filter>
+      <!-- Pact chat (pactMessage push). Shipped with the PactChat screen. -->
+      <intent-filter>
+        <action android:name="${notificationActionPrefix}.PACT_MESSAGE" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
       <intent-filter>
         <action android:name="${notificationActionPrefix}.STREAK_MILESTONE" />
         <category android:name="android.intent.category.DEFAULT" />

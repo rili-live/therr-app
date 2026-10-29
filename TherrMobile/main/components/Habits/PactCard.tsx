@@ -1,10 +1,29 @@
 import React from 'react';
-import { View, Text, Pressable, ActivityIndicator } from 'react-native';
+import {
+    View, Text, Pressable, ActivityIndicator, StyleSheet,
+} from 'react-native';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { IPact, IPactMember } from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
 import { getCheckedInToday } from './PactMemberRow';
 import { isPactRenewable, isPactSuperseded } from '../../routes/Habits/pactState';
+import { formatUnreadCount } from '../../routes/Pacts/pactChatState';
+import { BRAND_WHITE } from '../../styles/themes/brandConstants';
+
+const localStyles = StyleSheet.create({
+    unreadBadge: {
+        alignSelf: 'flex-start',
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        borderRadius: 11,
+        marginLeft: 8,
+    },
+    unreadBadgeText: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: BRAND_WHITE,
+    },
+});
 
 interface IPactCardProps {
     pact: IPact;
@@ -87,6 +106,7 @@ const PactCard: React.FC<IPactCardProps> = ({
     const showInviteActions = !!onAccept && !!onDecline;
     const showRenewAction = !!onRenew && !showInviteActions && isPactRenewable(pact);
     const cycleNumber = pact.renewalCycleNumber || 1;
+    const unreadLabel = showInviteActions ? null : formatUnreadCount(pact.unreadMessageCount);
 
     // Badge surface, dot and label color move together — a tonal badge is only
     // legible when its foreground matches the tint it sits on.
@@ -258,6 +278,17 @@ const PactCard: React.FC<IPactCardProps> = ({
                         </Text>
                     )}
                 </View>
+                {/* Pact chat: messages from partners the user has not read. Absent on a server
+                    without chat, which reads as none. */}
+                {!!unreadLabel && (
+                    <View
+                        accessible
+                        accessibilityLabel={translate('pages.pactChat.unreadAccessibility', { count: pact.unreadMessageCount })}
+                        style={[localStyles.unreadBadge, { backgroundColor: themeHabits.colors.brand }]}
+                    >
+                        <Text style={localStyles.unreadBadgeText}>{`💬 ${unreadLabel}`}</Text>
+                    </View>
+                )}
             </View>
 
             {renderLineageLink()}

@@ -2349,6 +2349,43 @@
                 "body": "Your free week tracking it alone is up. Invite a friend to keep checking in."
             }
         },
+        "pactChat": {
+            "headerTitle": "{habitName} chat",
+            "headerTitleFallback": "Pact chat",
+            "openChat": "Pact chat",
+            "openChatHint": "Talk with your partners and cheer their check-ins",
+            "unreadAccessibility": "Pact chat, {count} unread messages",
+            "inputPlaceholder": "Message your pact…",
+            "send": "Send",
+            "readOnly": "This pact has ended, so the chat is read-only.",
+            "emptyTitle": "Say hi to your pact",
+            "emptySubtitle": "Check-ins show up here too. Cheer each other on.",
+            "checkedIn": "{name} checked in",
+            "withPhoto": "📷 Photo proof",
+            "you": "You",
+            "partnerFallback": "Your partner",
+            "loadError": "Couldn't load the chat",
+            "retry": "Try again",
+            "sendFailed": "Not sent. Tap to retry.",
+            "mute": "Mute",
+            "unmute": "Unmute",
+            "mutedToast": "This pact's notifications are muted",
+            "unmutedToast": "This pact's notifications are back on",
+            "report": "Report",
+            "reportConfirmTitle": "Report this message?",
+            "reportConfirmBody": "It will be hidden for you and flagged for review. To stop seeing this person, block them from their profile.",
+            "reportedToast": "Thanks. The message was reported.",
+            "viewProfile": "Profile",
+            "reactHint": "Long-press a message or check-in to react",
+            "reactionFailed": "That reaction didn't save",
+            "errorTitle": "Something went wrong",
+            "quickReplies": {
+                "flex": "💪",
+                "nice": "Nice!",
+                "letsGo": "Let's go!",
+                "proud": "Proud of you"
+            }
+        },
         "pacts": {
             "headerTitle": "My Pacts",
             "detailTitle": "Pact Details",
