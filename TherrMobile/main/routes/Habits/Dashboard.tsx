@@ -40,6 +40,7 @@ import {
     canManagePactMembers, countTodayProgress, getNonTerminalPactMemberIds, IHabitWithPactState,
     isPactSuperseded, splitHabitsByPactState,
 } from './pactState';
+import { getHabitRisk, HabitRisk, sortByHabitRisk } from './habitRisk';
 import { getNudgeErrorMessage, getNudgeOutcomeToast } from '../Pacts/nudgeOutcome';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 import getConfig from '../../utilities/getConfig';
@@ -119,7 +120,7 @@ export const didTodayProgressInputsChange = (prevHabits: any, nextHabits: any): 
 
 type IHabitsRow =
     | { key: string; kind: 'sectionTitle'; title: string }
-    | { key: string; kind: 'habit'; entry: IHabitWithPactState; isAwaitingPartner: boolean };
+    | { key: string; kind: 'habit'; entry: IHabitWithPactState; isAwaitingPartner: boolean; risk?: HabitRisk };
 
 interface IHabitsDashboardDispatchProps {
     getUserGoals: Function;
@@ -246,6 +247,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         activePacts: any;
         pacts: any;
         userHabits: any;
+        todayCheckins: any;
+        activeStreaks: any;
         userId?: string;
         split: { live: IHabitWithPactState[]; pending: IHabitWithPactState[] };
         rows: IHabitsRow[];
@@ -1093,6 +1096,10 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         const activePacts = habits.activePacts || EMPTY_LIST;
         const pacts = habits.pacts || EMPTY_LIST;
         const userHabits = habits.userHabits || EMPTY_LIST;
+        // In the key because the live list is ordered by them: a check-in sends its habit to
+        // the bottom, and a streak changes which at-risk habit leads.
+        const todayCheckins = habits.todayCheckins || EMPTY_LIST;
+        const activeStreaks = habits.activeStreaks || EMPTY_LIST;
         const userId = user.details?.id;
         const memo = this.habitsRowsMemo;
 
@@ -1101,6 +1108,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             && memo.activePacts === activePacts
             && memo.pacts === pacts
             && memo.userHabits === userHabits
+            && memo.todayCheckins === todayCheckins
+            && memo.activeStreaks === activeStreaks
             && memo.userId === userId) {
             return memo;
         }
@@ -1112,6 +1121,8 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
             activePacts,
             pacts,
             userHabits,
+            todayCheckins,
+            activeStreaks,
             userId,
             split,
             rows: this.buildHabitsRows(split),
@@ -1179,11 +1190,27 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 kind: 'sectionTitle',
                 title: this.translate('pages.habits.yourHabits'),
             });
-            live.forEach((entry) => rows.push({
+            // Most pressing first, done last — so the top of the list is what still needs a
+            // check-in, and a streak about to end is never below one that is already safe.
+            const ranked = live.map((entry) => {
+                const streak = this.getStreakForHabit(entry.goal.id);
+                const streakCount = streak?.isActive ? Number(streak.currentStreak) || 0 : 0;
+                return {
+                    entry,
+                    streakCount,
+                    risk: getHabitRisk({
+                        isCompletedToday: this.getTodayCheckinForHabit(entry.goal.id)?.status === 'completed',
+                        weekProgress: entry.userHabit?.weekProgress,
+                        streakCount,
+                    }),
+                };
+            });
+            sortByHabitRisk(ranked, (item) => item).forEach(({ entry, risk }) => rows.push({
                 key: `habit-${entry.goal.id}`,
                 kind: 'habit',
                 entry,
                 isAwaitingPartner: false,
+                risk,
             }));
         }
 
@@ -1434,6 +1461,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 todayCheckin={this.getTodayCheckinForHabit(goal.id)}
                 streak={this.getStreakForHabit(goal.id)}
                 weekProgress={userHabit?.weekProgress}
+                risk={item.risk}
                 onPress={() => this.handleHabitPress(goal)}
                 onCheckin={() => this.handleCheckin(goal)}
                 onAddCheckinDetail={() => this.handleAddCheckinDetail(goal)}

@@ -72,6 +72,11 @@ export interface IWeekProgress {
     isRequiredToday: boolean;
     /** Whether the target is already met. */
     isMet: boolean;
+    /**
+     * How pressing today's check-in is — users-service `getCheckinUrgency`, the same rule that
+     * decides whether the morning reminder goes out. Absent from a server that predates it.
+     */
+    urgency?: 'required' | 'soon' | 'flexible' | 'rest' | 'met';
 }
 
 export const clampWeeklyCount = (value: unknown): number => {
