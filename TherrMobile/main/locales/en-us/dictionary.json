@@ -3181,6 +3181,7 @@
             "bonus": {
                 "title": "Today's bonus",
                 "titleBoosted": "A golden bonus",
+                "titleComeback": "Welcome-back bonus",
                 "hintTap": "Tap to unlock your daily bonus",
                 "hintKeepGoing": "A little further…",
                 "hintOneMore": "One more!",

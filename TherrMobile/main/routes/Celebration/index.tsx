@@ -39,6 +39,19 @@ const PLACEMENT_KEYS: Record<number, string> = {
     3: 'pages.celebration.placement.third',
 };
 
+/**
+ * The bonus stage's heading, by the odds table the server rolled. `comeback` is the first
+ * check-in after a lapse — the bonus the comeback push promised — so it is named as such.
+ * Compared as a string: the server can add a tier before this build's types know it, and an
+ * unknown one must fall back to the ordinary heading rather than to nothing.
+ */
+export const getBonusTitleKey = (tier: unknown): string => {
+    if (tier === 'comeback') {
+        return 'pages.celebration.bonus.titleComeback';
+    }
+    return tier === 'boosted' ? 'pages.celebration.bonus.titleBoosted' : 'pages.celebration.bonus.title';
+};
+
 interface ICelebrationProps {
     navigation: any;
     // `any` rather than `{ params: ICelebration }`: a narrower `route` makes the connected
@@ -293,9 +306,7 @@ export const Celebration = ({
         <View style={themeCelebration.styles.stageCentered}>
             <View style={themeCelebration.styles.center}>
                 <Text style={themeCelebration.styles.label}>
-                    {translate(dailyBonus.tier === 'boosted'
-                        ? 'pages.celebration.bonus.titleBoosted'
-                        : 'pages.celebration.bonus.title')}
+                    {translate(getBonusTitleKey(dailyBonus.tier))}
                 </Text>
             </View>
             <View style={themeCelebration.styles.hero}>

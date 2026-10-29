@@ -44,7 +44,7 @@ jest.mock('../../main/utilities/celebrationQueue', () => ({
     default: { onDismissed: jest.fn() },
 }));
 
-import { Celebration } from '../../main/routes/Celebration';
+import { Celebration, getBonusTitleKey } from '../../main/routes/Celebration';
 import { getGemCount } from '../../main/components/Celebrations/ChameleonCatch';
 import { logAppEvent } from '../../main/utilities/analyticsEvents';
 import { triggerGemBurstFeedback, triggerTongueFlickFeedback } from '../../main/utilities/rewardFeedback';
@@ -206,5 +206,17 @@ describe('ChameleonCatch — gem count', () => {
         expect(getGemCount(3)).toBe(5);
         expect(getGemCount(25)).toBe(8);
         expect(getGemCount(50)).toBe(16);
+    });
+});
+
+describe('Celebration — bonus heading', () => {
+    // The comeback tier is what the comeback push promised; it must be named as that bonus, and
+    // a tier this build does not know must fall back to the ordinary heading, never to nothing.
+    it('names the comeback bonus, and falls back for an unknown tier', () => {
+        expect(getBonusTitleKey('comeback')).toBe('pages.celebration.bonus.titleComeback');
+        expect(getBonusTitleKey('boosted')).toBe('pages.celebration.bonus.titleBoosted');
+        expect(getBonusTitleKey('standard')).toBe('pages.celebration.bonus.title');
+        expect(getBonusTitleKey('mythic')).toBe('pages.celebration.bonus.title');
+        expect(getBonusTitleKey(undefined)).toBe('pages.celebration.bonus.title');
     });
 });

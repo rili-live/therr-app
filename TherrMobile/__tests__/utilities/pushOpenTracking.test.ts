@@ -43,6 +43,19 @@ describe('reportPushOpen', () => {
         });
     });
 
+    it('attributes a habits retention message to its variant', () => {
+        reportPushOpen({
+            type: 'daily-habit-reminder', notificationQueueId: QUEUE_ID, messageVariant: 'day-two',
+        }, 'habit-checkin');
+
+        expect(mockedLogEvent).toHaveBeenCalledWith({}, 'push_open', {
+            notification_type: 'daily-habit-reminder',
+            press_action: 'habit-checkin',
+            is_queued: 'true',
+            message_variant: 'day-two',
+        });
+    });
+
     it('reports the same push once however many listeners deliver the tap', () => {
         const data = { type: 'streak-at-risk', notificationQueueId: QUEUE_ID };
 
