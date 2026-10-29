@@ -25,6 +25,7 @@ import { resolveUserDisplayName } from '../utilities/notificationNames';
 import { checkHabitCapacity } from './helpers/habitCapacity';
 import { activatePactMembership } from './helpers/pactMembership';
 import { attachMemberStatsToPact, attachPactMemberStats } from './helpers/pactMemberStats';
+import { attachUnreadMessageCounts } from './pactChat';
 import { withAmountProgress, withSavingsProgress } from './helpers/savings';
 import resolveWeekBounds from './helpers/weekBounds';
 import {
@@ -507,7 +508,9 @@ const getPact: RequestHandler = async (req: any, res: any) => {
             const weekBounds = withSavings.savingsProgress || !withSavings.habitGoalAmountUnit
                 ? undefined
                 : await resolveWeekBounds(userId, req.query?.timeZone);
-            return res.status(200).send(await withAmountProgress(withSavings, members, userId, weekBounds));
+            const withAmounts = await withAmountProgress(withSavings, members, userId, weekBounds);
+            const [withUnread] = await attachUnreadMessageCounts([withAmounts], userId);
+            return res.status(200).send(withUnread);
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
@@ -563,6 +566,7 @@ const getUserPacts: RequestHandler = async (req: any, res: any) => {
         includeSuperseded === 'true' || includeSuperseded === true,
     )
         .then(withMembers)
+        .then((pacts) => attachUnreadMessageCounts(pacts, userId))
         .then((pacts) => res.status(200).send(pacts))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };
@@ -572,6 +576,7 @@ const getActivePacts: RequestHandler = async (req: any, res: any) => {
 
     return Store.pacts.getActivePactsByUserId(userId)
         .then(withMembers)
+        .then((pacts) => attachUnreadMessageCounts(pacts, userId))
         .then((pacts) => res.status(200).send(pacts))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
 };

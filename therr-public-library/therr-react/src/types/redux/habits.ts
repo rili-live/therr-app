@@ -273,10 +273,59 @@ export interface IOpenPact {
     habitGoalCategory?: string | null;
     habitGoalFrequencyType?: string | null;
     habitGoalFrequencyCount?: number | null;
+    /**
+     * Pact chat: messages from other members the viewer has not read yet. Absent on a
+     * users-service that predates chat, or before its migration has run — treat as 0.
+     */
+    unreadMessageCount?: number;
     /** Members in the pact or invited and not yet answered — its occupied seats. */
     memberCount: number;
     /** The viewer already asked and is waiting on an answer. */
     hasPendingJoinRequest: boolean;
+}
+
+/**
+ * One item of a pact's chat timeline (docs/niche-sub-apps/habits/HABITS_PACT_CHAT_DESIGN.md): a
+ * member's message, or one of their completed check-ins shown inline. `id` is the message or
+ * check-in id, and is what a reaction targets.
+ */
+export interface IPactChatItem {
+    id: string;
+    kind: 'message' | 'checkin';
+    pactId: string;
+    userId: string;
+    createdAt: string;
+    text?: string;
+    checkin?: {
+        habitGoalId: string;
+        habitGoalName?: string | null;
+        habitGoalEmoji?: string | null;
+        notes?: string | null;
+        hasProof: boolean;
+    };
+    /** At most one per person. */
+    reactions: { userId: string; emoji: string }[];
+}
+
+export interface IPactChatUser {
+    id: string;
+    userName?: string;
+    firstName?: string;
+    lastName?: string;
+    media?: any;
+}
+
+/** `GET /habits/pacts/:pactId/chat`. Items are newest first. */
+export interface IPactChatPage {
+    pactId: string;
+    items: IPactChatItem[];
+    users: Record<string, IPactChatUser>;
+    hasMore: boolean;
+    /** False once the pact has ended (read-only) or for a member no longer active in it. */
+    canPost: boolean;
+    isMuted: boolean;
+    lastReadAt: string | null;
+    reactionOptions: string[];
 }
 
 /** A request to join an open pact, as its creator sees it. */
