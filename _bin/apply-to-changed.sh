@@ -4,6 +4,7 @@ set -e
 
 source ./_bin/lib/colorize.sh
 source ./_bin/lib/has_diff_changes.sh
+source ./_bin/lib/check-cache.sh
 
 COMMAND=$1
 TARGET_BRANCH=${2:-"stage"}
@@ -24,12 +25,9 @@ fi
 if has_diff_changes $TARGET_BRANCH "therr-public-library/therr-styles"; then
   HAS_ANY_LIBRARY_CHANGES=true
   HAS_STYLES_LIBRARY_CHANGES=true
-  pushd "therr-public-library/therr-styles"
-  if [ -f package.json ]; then
-    printMessageNeutral "Running command '${COMMAND}': therr-public-library/therr-styles"
-    eval $COMMAND
+  if [ -f "therr-public-library/therr-styles/package.json" ]; then
+    check_cache_run "therr-public-library/therr-styles" "$COMMAND"
   fi
-  popd
 else
   printMessageNeutral "Skipping command '${COMMAND}': therr-public-library/therr-styles (No Changes)"
 fi
@@ -38,12 +36,9 @@ fi
 if has_diff_changes $TARGET_BRANCH "therr-public-library/therr-js-utilities"; then
   HAS_ANY_LIBRARY_CHANGES=true
   HAS_UTILITIES_LIBRARY_CHANGES=true
-  pushd "therr-public-library/therr-js-utilities"
-  if [ -f package.json ]; then
-    printMessageNeutral "Running command '${COMMAND}': therr-public-library/therr-js-utilities"
-    eval $COMMAND
+  if [ -f "therr-public-library/therr-js-utilities/package.json" ]; then
+    check_cache_run "therr-public-library/therr-js-utilities" "$COMMAND"
   fi
-  popd
 else
   printMessageNeutral "Skipping command '${COMMAND}': therr-public-library/therr-js-utilities (No Changes)"
 fi
@@ -52,12 +47,9 @@ fi
 if has_diff_changes $TARGET_BRANCH "therr-public-library/therr-react" || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_STYLES_LIBRARY_CHANGES" = "true" ]; then
   HAS_ANY_LIBRARY_CHANGES=true
   HAS_REACT_LIBRARY_CHANGES=true
-  pushd "therr-public-library/therr-react"
-  if [ -f package.json ]; then
-    printMessageNeutral "Running command '${COMMAND}': therr-public-library/therr-react"
-    eval $COMMAND
+  if [ -f "therr-public-library/therr-react/package.json" ]; then
+    check_cache_run "therr-public-library/therr-react" "$COMMAND"
   fi
-  popd
 else
   printMessageNeutral "Skipping command '${COMMAND}': therr-public-library/therr-react (No Changes)"
 fi
@@ -66,12 +58,9 @@ fi
 declare -a arr=("therr-client-web" "therr-client-web-dashboard" "TherrMobile")
 for i in "${arr[@]}"; do
   if has_diff_changes $TARGET_BRANCH ${i} || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILES_CHANGES" = "true" ]; then
-    pushd ${i}
-    if [ -f package.json ]; then
-      printMessageNeutral "Running command '${COMMAND}': ${i}"
-      eval $COMMAND
+    if [ -f "${i}/package.json" ]; then
+      check_cache_run "${i}" "$COMMAND"
     fi
-    popd
   else
     printMessageNeutral "Skipping command '${COMMAND}': ${i} (No Changes)"
   fi
@@ -81,15 +70,16 @@ done
 declare -a arr=("therr-api-gateway" "therr-services/push-notifications-service" "therr-services/maps-service" "therr-services/messages-service" "therr-services/reactions-service" "therr-services/users-service" "therr-services/websocket-service")
 for i in "${arr[@]}"; do
   if has_diff_changes $TARGET_BRANCH ${i} || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILES_CHANGES" = "true" ]; then
-    pushd ${i}
-    if [ -f package.json ]; then
-      printMessageNeutral "Running command '${COMMAND}': ${i}"
-      eval $COMMAND
+    if [ -f "${i}/package.json" ]; then
+      check_cache_run "${i}" "$COMMAND"
     fi
-    popd
   else
     printMessageNeutral "Skipping command '${COMMAND}': ${i} (No Changes)"
   fi
 done
+
+if [ "${CHECK_CACHE_SKIPPED:-0}" -gt 0 ]; then
+  printMessageNeutral "${CHECK_CACHE_SKIPPED} package(s) skipped: already passed '${COMMAND}' on identical content (THERR_CHECK_CACHE=0 to force)"
+fi
 
 printMessageSuccess "'${COMMAND}' command run on all Libraries, services, and frontend apps with changes or changes to respective dependencies!"
