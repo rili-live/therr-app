@@ -20,6 +20,7 @@ These documents serve as starting points for future Claude agents to implement c
 | [HABITS_STREAKS_DESIGN.md](./HABITS_STREAKS_DESIGN.md) | Rewards/Points System | Streak Tracking & Achievements | High |
 | [HABITS_CHECKINS_DESIGN.md](./HABITS_CHECKINS_DESIGN.md) | Moments (Location Check-ins) | Habit Check-ins (No Location) | High |
 | [HABITS_NOTIFICATIONS_DESIGN.md](./HABITS_NOTIFICATIONS_DESIGN.md) | Push Notifications | Habit Reminders & Partner Alerts | High |
+| [HABITS_LEARNED_REMINDER_TIME_DESIGN.md](./HABITS_LEARNED_REMINDER_TIME_DESIGN.md) | Reminder scheduler (`localReminderSchedule.ts`) | Reminders timed from when the user usually checks in | Proposed |
 | [HABITS_REALTIME_DESIGN.md](./HABITS_REALTIME_DESIGN.md) | WebSocket & Activity Feed | Pact Activity Feed | Medium |
 | [HABITS_MEDIA_DESIGN.md](./HABITS_MEDIA_DESIGN.md) | Media Uploads | Proof Uploads (Photo/Video) | Medium |
 | [HABITS_GROUPS_DESIGN.md](./HABITS_GROUPS_DESIGN.md) | Groups | Pact Management | Medium |
@@ -53,6 +54,7 @@ These documents serve as starting points for future Claude agents to implement c
 ## Related Documentation
 
 - [HABITS_PROJECT_BRIEF.md](../HABITS_PROJECT_BRIEF.md) - Full project brief and roadmap
+- [HABITS_ACQUISITION_PLAN.md](./HABITS_ACQUISITION_PLAN.md) - Near-zero-budget acquisition: ranked channels, weekly routine, kill criteria
 - [PROJECT_BRIEF.md](../PROJECT_BRIEF.md) - Core Therr App context
 - [../../ARCHITECTURE.md](../../ARCHITECTURE.md) - System architecture overview
 

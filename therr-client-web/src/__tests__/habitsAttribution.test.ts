@@ -210,6 +210,42 @@ describe('habits attribution capture', () => {
             expect(referrer?.get('utm_content')).toBe('reddit.com');
         });
 
+        it('names the page type an untagged visit landed on as its campaign', () => {
+            // Without this a friend's invite link, a challenge link and a challenge guide all
+            // arrived in the app as the same habits.therr.com / referral.
+            const campaignFor = (landingPath: string) => referrerFor({ surface: 'habits', landingPath })?.get('utm_campaign');
+
+            expect(campaignFor('/invite/some-user')).toBe('web-invite');
+            expect(campaignFor('/invite/link/2b1f6a52-6f8e-4d3c-9a43-5d6c0b8b7e11')).toBe('web-invite');
+            expect(campaignFor('/claim-pact/2b1f6a52-6f8e-4d3c-9a43-5d6c0b8b7e11')).toBe('web-pact-invite');
+            expect(campaignFor('/c/abc123')).toBe('web-challenge');
+            expect(campaignFor('/challenges')).toBe('web-guide');
+            expect(campaignFor('/challenges/30-day-no-spend')).toBe('web-guide');
+            expect(campaignFor('/es/retos/30-dias-sin-gastar')).toBe('web-guide');
+            expect(campaignFor('/fr/defis')).toBe('web-guide');
+            expect(campaignFor('/coaches')).toBe('web-coaches');
+            expect(campaignFor('/blog/why-streaks-work')).toBe('web-blog');
+            expect(campaignFor('/u/someone')).toBe('web-profile');
+            expect(campaignFor('/')).toBe('web-landing');
+            expect(campaignFor('/es')).toBe('web-landing');
+            expect(campaignFor('/fr')).toBe('web-landing');
+            expect(campaignFor('/privacy-policy')).toBe('web-other');
+        });
+
+        it('falls back to the current page when nothing was stored', () => {
+            // jsdom's default location is '/', the landing page.
+            expect(referrerFor(null)?.get('utm_campaign')).toBe('web-landing');
+        });
+
+        it('never replaces a campaign the visit arrived with', () => {
+            const referrer = referrerFor({
+                utmSource: 'reddit', utmMedium: 'community', utmCampaign: 'challenge-nospend-nov', surface: 'habits', landingPath: '/c/abc123',
+            });
+
+            expect(referrer?.get('utm_campaign')).toBe('challenge-nospend-nov');
+            expect(referrer?.get('utm_source')).toBe('reddit');
+        });
+
         it('still decorates when there is no stored record at all', () => {
             expect(referrerFor(null)?.get('utm_source')).toBe('habits.therr.com');
         });

@@ -5,7 +5,7 @@
  * what a habit's `frequencyType` / `frequencyCount` / `targetDaysOfWeek` mean. What remains here
  * is milestones, date formatting, and the reminder gate that reads cadence.
  */
-import { getCadence, isQuotaUnmet } from './habitCadence';
+import { getCadence, isCheckinPressing } from './habitCadence';
 import { isDateString } from './dailyStreak';
 
 // Standard milestone thresholds
@@ -230,16 +230,20 @@ export const isPhoenixMoment = (
  * docs/PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md warns costs DAU rather than
  * lifting it.
  *
- * The rule is simply **the week's quota is not yet discharged**: keep asking
- * until they have done their four, then stay silent for the rest of the week.
- * A fixed weekday schedule has no quota to run down, so there it means "today
- * is one of your days".
+ * The rule is **the week is close to slipping** (`isCheckinPressing`). A fixed weekday schedule
+ * or a daily habit is pressing on every day it asks for. A weekly quota is pressing once it can
+ * no longer skip both today and tomorrow — a 3x/week habit with nothing done is left alone on
+ * Monday, with six days of room, and nudged from Thursday. Once the quota is met it stays silent
+ * for the rest of the week.
  *
- * Deliberately NOT gated on `isRequiredOn`. Under a weekly quota a well-run
- * week has *zero* required days — someone doing 4x/week on Mon–Thu meets the
- * target before skipping could ever endanger it — so a required-days-only
- * reminder would nudge exactly the user who is succeeding, never. `isRequiredOn`
- * is for the streak, and for escalating copy; this is for the reminder.
+ * This used to be "the quota is not yet discharged", which nudged a 3x/week habit every morning
+ * from Monday onward. Each of those pushes was technically true and practically noise: the user
+ * had days to spare, and a reminder they can safely ignore four times teaches them to ignore the
+ * fifth, which is the one that matters.
+ *
+ * Still NOT gated on `isRequiredOn` alone. That is the day skipping already costs the week, and a
+ * reminder that only arrives then is a warning with no room to act on. The evening "last chance"
+ * push is the one that keys off `isRequiredOn`.
  *
  * This replaces the old spacing heuristic, `floor(7 / N)` days since the last
  * completion, which had two failures. It collapsed 4x, 5x, 6x and 7x per week
@@ -267,7 +271,7 @@ export const shouldNudgeToday = (
         return false;
     }
 
-    return isQuotaUnmet(
+    return isCheckinPressing(
         getCadence(habit),
         String(today).slice(0, 10),
         Number(habit.completionsEarlierThisWeek) || 0,

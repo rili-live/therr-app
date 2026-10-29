@@ -59,6 +59,23 @@ export interface IExpiringSeatRow {
     settingsLocale: string | null;
 }
 
+/**
+ * One user's check-in history and email reach, as the retention messages read them
+ * (handlers/helpers/retentionMessaging.ts). Dates are YYYY-MM-DD strings.
+ */
+export interface IRetentionProfileRow {
+    userId: string;
+    lastCheckinDate: string | null;
+    firstCheckinDate: string | null;
+    firstHabitStartedDate: string | null;
+    email: string | null;
+    firstName: string | null;
+    userName: string | null;
+    isUnclaimed: boolean | null;
+    settingsEmailReminders: boolean | null;
+    settingsLocale: string | null;
+}
+
 // The brand entry's firstSeenAt, as a timestamp. Guarded by a shape check so one malformed entry
 // cannot fail the cast for the whole read. `brand` is bound, never interpolated.
 const brandFirstSeenSql = `(SELECT (e->>'firstSeenAt')::timestamptz FROM jsonb_array_elements(u."brandVariations") AS e
@@ -99,6 +116,47 @@ export default class OnboardingMessagesStore {
         ).toString();
 
         return this.db.write.query(queryString).then((response) => response.rows.length > 0);
+    }
+
+    /**
+     * Check-in history for a batch of users, in one read: last and first completed check-in (on
+     * the check-in's own local day where recorded), when their earliest still-active habit began,
+     * and the fields the email fallback needs. Users with no row in main.users are simply absent.
+     *
+     * The digest reads it once per run for everyone it might nudge, so it must stay one query —
+     * the per-user aggregates are correlated subqueries over the (userId, …) indexes, not a scan.
+     */
+    getRetentionProfiles(userIds: string[]): Promise<IRetentionProfileRow[]> {
+        if (!userIds.length) {
+            return Promise.resolve([]);
+        }
+        const checkinDaySql = 'COALESCE(c."localDate", c."scheduledDate")';
+        const queryString = knexBuilder.raw(
+            `SELECT
+                u."id" AS "userId",
+                (SELECT MAX(${checkinDaySql})::text FROM ${HABIT_CHECKINS_TABLE_NAME} AS c
+                    WHERE c."userId" = u."id" AND c."status" = 'completed') AS "lastCheckinDate",
+                (SELECT MIN(${checkinDaySql})::text FROM ${HABIT_CHECKINS_TABLE_NAME} AS c
+                    WHERE c."userId" = u."id" AND c."status" = 'completed') AS "firstCheckinDate",
+                (SELECT MIN(h."startedAt")::date::text FROM ${USER_HABITS_TABLE_NAME} AS h
+                    WHERE h."userId" = u."id" AND h."status" = 'active') AS "firstHabitStartedDate",
+                u."email",
+                u."firstName",
+                u."userName",
+                u."isUnclaimed",
+                u."settingsEmailReminders",
+                u."settingsLocale"
+             FROM ${USERS_TABLE_NAME} AS u
+             WHERE u."id" IN (${userIds.map(() => '?::uuid').join(', ')})`,
+            userIds,
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.map((row: any) => ({
+            ...row,
+            lastCheckinDate: row.lastCheckinDate ? String(row.lastCheckinDate).slice(0, 10) : null,
+            firstCheckinDate: row.firstCheckinDate ? String(row.firstCheckinDate).slice(0, 10) : null,
+            firstHabitStartedDate: row.firstHabitStartedDate ? String(row.firstHabitStartedDate).slice(0, 10) : null,
+        })));
     }
 
     /**

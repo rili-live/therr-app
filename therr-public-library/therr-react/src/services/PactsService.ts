@@ -235,6 +235,53 @@ class PactsService {
         method: 'delete',
         url: `/users-service/habits/pacts/${id}`,
     });
+
+    // Pact chat (docs/niche-sub-apps/habits/HABITS_PACT_CHAT_DESIGN.md). Members only.
+
+    /**
+     * One page of the timeline as `IPactChatPage`, newest first. `before` scrolls back from the
+     * oldest item shown; `after` polls for what arrived since the newest. Pass at most one.
+     */
+    getChat = (id: string, params: { before?: string; after?: string; limit?: number } = {}) => axios({
+        method: 'get',
+        url: `/users-service/habits/pacts/${id}/chat`,
+        params,
+    });
+
+    /**
+     * 201 `{ item }`. `clientMessageId` (a uuid) makes a retry idempotent — the same id returns
+     * the first attempt's message with 200. 403 once the pact has ended.
+     */
+    sendChatMessage = (id: string, body: { text: string; clientMessageId?: string }) => axios({
+        method: 'post',
+        url: `/users-service/habits/pacts/${id}/chat/messages`,
+        data: body,
+    });
+
+    /** Moves the caller's unread watermark to now. */
+    markChatRead = (id: string) => axios({
+        method: 'put',
+        url: `/users-service/habits/pacts/${id}/chat/read`,
+    });
+
+    /** Sets, replaces or (with `emoji: null`) clears the caller's one reaction on an item. */
+    setChatReaction = (id: string, body: { targetId: string; targetKind: 'message' | 'checkin'; emoji: string | null }) => axios({
+        method: 'put',
+        url: `/users-service/habits/pacts/${id}/chat/reactions`,
+        data: body,
+    });
+
+    reportChatMessage = (id: string, messageId: string) => axios({
+        method: 'put',
+        url: `/users-service/habits/pacts/${id}/chat/messages/${messageId}/report`,
+    });
+
+    /** Mutes every notification about this pact for the caller, chat and partner check-ins alike. */
+    setChatMute = (id: string, isMuted: boolean) => axios({
+        method: 'put',
+        url: `/users-service/habits/pacts/${id}/chat/mute`,
+        data: { isMuted },
+    });
 }
 
 export default new PactsService();

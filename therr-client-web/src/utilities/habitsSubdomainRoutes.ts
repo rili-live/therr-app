@@ -16,7 +16,10 @@ export type HabitsInviteRouteKind = 'invite-link' | 'invite-username' | 'claim-p
 
 export interface IHabitsInviteRouteMatch {
     kind: HabitsInviteRouteKind;
-    /** The captured token (invite-link, claim-pact) or userName (invite-username). */
+    /**
+     * The captured token (invite-link, claim-pact) or userName (invite-username). '' when the path
+     * names no user, which renders the generic invite landing without an inviter lookup.
+     */
     value: string;
 }
 
@@ -28,8 +31,19 @@ const TOKEN_SEGMENT = '[A-Za-z0-9-]{8,64}';
 // (with a generic headline) instead of being read as a user named 'link'.
 const INVITE_LINK_PATH_RE = new RegExp(`^/invite/link(?:/(${TOKEN_SEGMENT}))?/?$`);
 const CLAIM_PACT_PATH_RE = new RegExp(`^/claim-pact/(${TOKEN_SEGMENT})/?$`);
-// Usernames only — keep tight to avoid rendering a page for arbitrary paths.
-const INVITE_USERNAME_PATH_RE = /^\/invite\/([A-Za-z0-9._-]{1,64})\/?$/;
+// Usernames only — keep tight to avoid rendering a page for arbitrary paths. The username is
+// optional: the app shares a bare '/invite' when the sharer has no username yet, and older builds
+// shared '/invite/' — both get the generic invite landing rather than the allowlist 404.
+const INVITE_USERNAME_PATH_RE = /^\/invite(?:\/([A-Za-z0-9._-]{1,64}))?\/?$/;
+
+// What a template literal makes of a missing username. Older app builds shared `/invite/null`
+// for accounts without one; it is not anybody's username, so it must not be looked up as one.
+const PLACEHOLDER_USERNAMES = new Set(['null', 'undefined']);
+
+/** The username an /invite/:username path names, or '' when it names nobody. */
+export const normalizeInviteUserName = (value?: string | null): string => (
+    !value || PLACEHOLDER_USERNAMES.has(value.toLowerCase()) ? '' : value
+);
 
 export const UUID_V4_RE = /^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$/;
 
@@ -52,7 +66,7 @@ export const matchHabitsInviteRoute = (pathname: string): IHabitsInviteRouteMatc
 
     const inviteUserNameMatch = pathname.match(INVITE_USERNAME_PATH_RE);
     if (inviteUserNameMatch) {
-        return { kind: 'invite-username', value: inviteUserNameMatch[1] };
+        return { kind: 'invite-username', value: normalizeInviteUserName(inviteUserNameMatch[1]) };
     }
 
     return null;

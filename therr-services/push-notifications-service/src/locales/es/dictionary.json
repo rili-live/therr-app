@@ -154,6 +154,11 @@
       "title": "{partnerName} se perdió un día",
       "body": "{partnerName} no registró {habitName} ayer — envía un poco de aliento."
     },
+    "pactMessage": {
+      "title": "Pacto de {habitName}",
+      "body": "{userName}: {messagePreview}",
+      "bodyNoPreview": "{userName} envió un mensaje a tu pacto."
+    },
     "partnerCelebrated": {
       "title": "{partnerName} envió una felicitación",
       "body": "{partnerName} acaba de animarte — abre la app para ver lo que dijo."
@@ -187,12 +192,14 @@
       "body": "Tú y {partnerName} terminaron su pacto de {habitName} — una victoria para ambos."
     },
     "pactExpiring": {
-      "title": "Tu pacto está por terminar",
-      "body": "Quedan {daysRemaining} día(s) en tu pacto de {habitName} — termina con fuerza."
+      "title": "{habitName}: quedan {daysRemaining} día(s)",
+      "body": "Renueva ahora por otros {durationDays} días con un toque.",
+      "bodyWithStreak": "Llevas una racha de {streakCount} días. Renueva por otros {durationDays} días y mantenla."
     },
     "pactEnded": {
       "title": "Tu pacto de {habitName} ha terminado",
-      "body": "{durationDays} días completados. La mayoría de los hábitos tardan meses, no semanas — empieza un nuevo ciclo y tu racha continúa."
+      "body": "{durationDays} días completados. La mayoría de los hábitos tardan meses, no semanas — empieza un nuevo ciclo y tu racha continúa.",
+      "bodyWithStreak": "Tu racha de {streakCount} días viene contigo. Empieza otros {durationDays} días con un toque."
     },
     "pactJoinRequested": {
       "title": "Nueva solicitud para unirse a tu pacto",
@@ -231,6 +238,33 @@
       "body": "Registra {habitName} hoy — un solo registro pone tu racha en marcha.",
       "bodyMultiple": "{habitCount} hábitos te esperan hoy — {habitNames}. Un solo registro te pone en marcha.",
       "bodyWeekly": "{weekDone} de {weekTarget} en {habitName} esta semana — te queda(n) {daysLeft} día(s) para completarla."
+    },
+    "habitRetention": {
+      "firstCheckin": {
+        "title": "Día 1 de {habitName}",
+        "body": "Un toque y tu racha empieza hoy.",
+        "bodyWithPartner": "{partnerName} ya está dentro. Un toque y tu racha empieza hoy."
+      },
+      "dayTwo": {
+        "title": "Día 2 de {habitName}",
+        "body": "Ayer empezaste. Hoy lo conviertes en racha.",
+        "bodyWithPartner": "{partnerName} cuenta contigo. Hoy lo conviertes en racha."
+      },
+      "comeback": {
+        "title": "{habitName} sigue aquí para ti",
+        "body": "Un registro lo reinicia, y el primero al volver te da un bono de regreso.",
+        "bodyWithPartner": "{partnerName} sigue dentro. Un registro lo reinicia, con bono de regreso."
+      },
+      "comebackNoBonus": {
+        "title": "{habitName} sigue aquí para ti",
+        "body": "Un registro lo reinicia. No hay nada que recuperar.",
+        "bodyWithPartner": "{partnerName} sigue dentro. Un registro lo reinicia."
+      },
+      "freshStart": {
+        "title": "¿Todavía quieres empezar {habitName}?",
+        "body": "El día 1 es un toque. No hay nada que recuperar.",
+        "bodyWithPartner": "{partnerName} está listo cuando tú lo estés. El día 1 es un toque."
+      }
     },
     "morningMotivation": {
       "title": "Buenos días",
