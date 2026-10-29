@@ -764,7 +764,7 @@ export interface IDailyStreakWeekDay {
     isToday: boolean;
 }
 
-export type DailyBonusTier = 'standard' | 'boosted';
+export type DailyBonusTier = 'standard' | 'boosted' | 'comeback';
 export type DailyBonusRarity = 'common' | 'rare' | 'epic' | 'jackpot';
 
 /**
