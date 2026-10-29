@@ -20,11 +20,25 @@ import { withTitleEmoji } from './notificationTitleEmoji';
 const INVALID_TOKEN_ERROR_CODES = new Set([
     'messaging/registration-token-not-registered',
     'messaging/invalid-registration-token',
-    'messaging/invalid-argument', // FCM returns this when the token is malformed
 ]);
 
-const isInvalidTokenError = (error: any): boolean => INVALID_TOKEN_ERROR_CODES.has(error?.code)
-    || INVALID_TOKEN_ERROR_CODES.has(error?.errorInfo?.code);
+// `messaging/invalid-argument` is FCM v1's INVALID_ARGUMENT, which it returns for a
+// malformed token ("The registration token is not a valid FCM registration token") and
+// equally for a malformed *message* — a bad Android colour, an oversize payload. Only the
+// first is about the token. Counting both meant one payload bug in a digest run would
+// delete the token of every recipient it reached; that stayed theoretical only while
+// cleanup itself was broken (users-service rejected every clear until 2026-10-27).
+// users-service's notification queue applies the same rule: utilities/pushSendError.ts.
+const isInvalidTokenArgumentError = (code: string | undefined, message: string | undefined): boolean => (
+    code === 'messaging/invalid-argument' && /registration token/i.test(message || '')
+);
+
+// Exported for unit testing.
+export const isInvalidTokenError = (error: any): boolean => {
+    const code = error?.code || error?.errorInfo?.code;
+    const message = error?.message || error?.errorInfo?.message;
+    return INVALID_TOKEN_ERROR_CODES.has(code) || isInvalidTokenArgumentError(code, message);
+};
 
 // Brand → credential-env-key mapping lives in ./firebaseCredentialEnvKey so it can be
 // imported by unit tests without triggering this module's startup-time validation.

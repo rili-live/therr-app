@@ -98,6 +98,35 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Habits push 502s — dead device tokens (added 2026-10-28)
+
+Cause and evidence: `docs/PUSH_NOTIFICATIONS_DEBUGGING.md` § Dead tokens. Fix lands in two deploys of
+users-service: `e9685447a` (already on `general`) and the queue-worker PR that followed it.
+
+- [ ] **Promote `general → stage → main` so users-service ships both fixes.** Until it does, every
+  NotRegistered clear still fails on the NOT NULL violation and ~23 users keep 502ing daily. Nothing
+  else is needed — no migration, no env var. Dead registrations clear themselves on the first send
+  after deploy.
+- [ ] **24h after the deploy, confirm the 502 share has fallen** (before: ~35/day failed vs ~25/day
+  sent, 2026-10-20 → 10-28):
+  ```sql
+  SELECT date_trunc('day', "updatedAt")::date AS d, status,
+         split_part(coalesce("lastError", ''), ':', 1) AS reason, count(*)
+  FROM main."notificationQueue"
+  WHERE "brandVariation" = 'habits' AND "updatedAt" > now() - interval '7 days'
+    AND status IN ('sent', 'failed', 'skipped')
+  GROUP BY 1, 2, 3 ORDER BY 1, 2, 3;
+  ```
+  Expect a one-day spike of `skipped / device-token-not-registered` (the backlog of dead tokens
+  clearing), then `skipped / no-device-token` for those users, and `failed` near zero. Any `failed`
+  row left now reads `push 502 messaging/<code>: …` — a code other than a token code is a new problem,
+  not this one.
+- [ ] **Check the push-service logs no longer show `Failed to clear invalid FCM device token`:**
+  `gcloud logging read 'resource.labels.container_name="server-push-notifications" "Failed to clear"' --freshness=1d --limit=5`.
+- [ ] **Re-read the reachability number** once it settles: habits users with a habits device token
+  was 86 of 205 on 2026-10-28 and will drop by roughly the ~23 dead installs. That lower number is the
+  true push audience; anything planned on "86 reachable" should use it.
+
 ## Challenges & founder referral reward (added 2026-10-23, § 2.7 #2988)
 
 - [ ] **Run the users-service migration after the deploy** (`20261023000001`: `habits.challenges`,
