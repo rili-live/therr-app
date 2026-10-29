@@ -59,6 +59,7 @@ import { Button } from '../../components/BaseButton';
 import { HABITS_PRESTAGED_TEMPLATE_ID } from '../../components/Habits/PactPreviewOverlay';
 import SavingsAmountInput, { ERROR_KEY_BY_REASON } from '../../components/Habits/SavingsAmountInput';
 import AmountTrackingPicker from '../../components/Habits/AmountTrackingPicker';
+import ReferralRewardCard from '../../components/Habits/ReferralRewardCard';
 import {
     AMOUNT_TRACKING_OFF,
     getAmountTrackingProblem,
@@ -1794,6 +1795,23 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                         </Text>
                     </View>
                 )}
+
+                {/*
+                  * The referral offer, at the moment of inviting. Until now it showed only on My Habits
+                  * and the paywall, so the person picking a partner never saw that bringing three
+                  * friends who stick unlocks the app free. Renders nothing when the offer does not
+                  * apply (already paid or earned, offer off, read failed).
+                  */}
+                <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
+                    <ReferralRewardCard
+                        navigation={this.props.navigation}
+                        themeHabits={this.themeHabits}
+                        translate={this.translate as any}
+                        source="pact-invite"
+                        userId={user.details?.id}
+                        variant="inline"
+                    />
+                </View>
 
                 <Pressable
                     onPress={this.onShareLink}
