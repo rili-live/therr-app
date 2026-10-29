@@ -4,6 +4,7 @@ import Store from '../store';
 import { INotificationQueueRow } from '../store/NotificationQueueStore';
 import sendEmailAndOrPushNotification, { resolveDeviceTokenForBrand } from './sendEmailAndOrPushNotification';
 import evaluateCheckinNudgeFreshness from './checkinNudgeFreshness';
+import { describePushSendError, isDeadDeviceTokenError } from './pushSendError';
 
 /**
  * Drains main.notificationQueue and sends what is due.
@@ -213,6 +214,47 @@ let timer: NodeJS.Timeout | undefined;
 let isTicking = false;
 let lastRetentionSweepAt = 0;
 
+const sendPush = (row: INotificationQueueRow, payload: Record<string, any>, headers: any): Promise<any> => (
+    sendEmailAndOrPushNotification(
+        Store.users.findUser,
+        headers,
+        {
+            // `payload` is spread FIRST so the queue row always wins. It carries
+            // whatever a producer chose to store, and `ISendPushNotification`
+            // itself declares `toUserId`, `type` and `brandVariation` — so a
+            // producer that copies the shape of an existing inline
+            // sendEmailAndOrPushNotification call into `payload` is doing the
+            // natural thing. Spreading it last let those keys override the row:
+            // `toUserId` selects the recipient, and `brandVariation` selects
+            // which brand's device token is resolved, so a stale or copied value
+            // would send the wrong person a push through the wrong Firebase
+            // project — the exact failure the brand scoping on this table exists
+            // to prevent. The row is the authority; the payload is decoration.
+            ...payload,
+            authorization: '',
+            locale: payload.locale || 'en-us',
+            toUserId: row.userId,
+            type: row.type as any,
+            whiteLabelOrigin: payload.whiteLabelOrigin || '',
+            brandVariation: row.brandVariation,
+            // Rides to the device so a tap can be recorded against this row (openedAt).
+            notificationQueueId: row.id,
+        },
+        {
+            // Queue entries are push-only. The retention emails have their own
+            // triggers and their own unsubscribe semantics; routing them through
+            // here too would double-send.
+            shouldSendPushNotification: true,
+            shouldSendEmail: false,
+            // Unlike the inline callers, this one needs to know. Without it the
+            // send failure is logged and swallowed, `markSent` runs anyway, and
+            // the row records a delivery that never happened — which also means
+            // it is never retried.
+            shouldThrowOnError: true,
+        },
+    )
+);
+
 const sendOne = async (row: INotificationQueueRow): Promise<void> => {
     // Relevance first, before the rate-limit budget is even consulted.
     //
@@ -326,44 +368,47 @@ const sendOne = async (row: INotificationQueueRow): Promise<void> => {
         'x-userid': payload.fromUserId || '',
     };
 
-    await sendEmailAndOrPushNotification(
-        Store.users.findUser,
-        headers,
-        {
-            // `payload` is spread FIRST so the queue row always wins. It carries
-            // whatever a producer chose to store, and `ISendPushNotification`
-            // itself declares `toUserId`, `type` and `brandVariation` — so a
-            // producer that copies the shape of an existing inline
-            // sendEmailAndOrPushNotification call into `payload` is doing the
-            // natural thing. Spreading it last let those keys override the row:
-            // `toUserId` selects the recipient, and `brandVariation` selects
-            // which brand's device token is resolved, so a stale or copied value
-            // would send the wrong person a push through the wrong Firebase
-            // project — the exact failure the brand scoping on this table exists
-            // to prevent. The row is the authority; the payload is decoration.
-            ...payload,
-            authorization: '',
-            locale: payload.locale || 'en-us',
-            toUserId: row.userId,
-            type: row.type as any,
-            whiteLabelOrigin: payload.whiteLabelOrigin || '',
-            brandVariation: row.brandVariation,
-            // Rides to the device so a tap can be recorded against this row (openedAt).
-            notificationQueueId: row.id,
-        },
-        {
-            // Queue entries are push-only. The retention emails have their own
-            // triggers and their own unsubscribe semantics; routing them through
-            // here too would double-send.
-            shouldSendPushNotification: true,
-            shouldSendEmail: false,
-            // Unlike the inline callers, this one needs to know. Without it the
-            // send failure is logged and swallowed, `markSent` runs anyway, and
-            // the row records a delivery that never happened — which also means
-            // it is never retried.
-            shouldThrowOnError: true,
-        },
-    );
+    try {
+        await sendPush(row, payload, headers);
+    } catch (err: any) {
+        const sendError = describePushSendError(err);
+        if (!isDeadDeviceTokenError(sendError)) {
+            throw err;
+        }
+
+        // FCM says this install is gone (uninstalled, or the token rotated away).
+        // That answer is final: a retry gets the same answer, so burning the row's
+        // remaining attempts only turns a known outcome into 'failed' noise — which
+        // is how dead tokens came to be roughly half of all habits queue rows in
+        // October 2026 (see docs/PUSH_NOTIFICATIONS_DEBUGGING.md § Dead tokens).
+        //
+        // The registration is removed here rather than left to the push service's
+        // fire-and-forget callback, because that callback is a network hop that
+        // failed on every call for six months without anyone noticing. Deleting by
+        // the exact token sent to means a token the app re-registered in the
+        // meantime is a different string and survives. The worker only ever makes
+        // real sends (never `dryRun`), so a synthetic check cannot reach this.
+        const deletedRows = await Store.userDeviceTokens.deleteByToken(deviceToken).catch(() => 0);
+        await Store.notificationQueue.markSkipped(
+            row.id,
+            `device-token-not-registered: ${sendError.summary}`.slice(0, 500),
+        );
+        logSpan({
+            level: 'info',
+            messageOrigin: 'API_SERVER',
+            messages: ['Notification queue: dead device token removed, row skipped'],
+            traceArgs: {
+                'error.code': sendError.errorCode,
+                'notificationQueue.id': row.id,
+                'notificationQueue.type': row.type,
+                'pushNotification.brandVariation': row.brandVariation,
+                'pushNotification.tokenRowsDeleted': deletedRows,
+                'user.id': row.userId,
+                source: 'users-service',
+            },
+        });
+        return;
+    }
 
     await Store.notificationQueue.markSent(row.id);
 };
@@ -395,9 +440,15 @@ const drainBrand = async (brand: BrandVariations): Promise<number> => {
         } catch (err: any) {
             // claimDue already set status='failed' and incremented attempts, so
             // an exception escaping here leaves the row correct for requeue.
+            //
+            // `lastError` gets the push service's own reason (FCM's errorCode and
+            // message from the 502 body), not the axios wrapper's "Request failed
+            // with status code 502" — which is all this stored until 2026-10-28,
+            // and which made every FCM failure look alike from the table.
+            const sendError = describePushSendError(err);
             // eslint-disable-next-line no-await-in-loop
             await Store.notificationQueue
-                .markFailed(row.id, String(err?.message || err).slice(0, 500))
+                .markFailed(row.id, sendError.summary)
                 .catch(() => undefined);
             logSpan({
                 level: 'error',
@@ -405,6 +456,9 @@ const drainBrand = async (brand: BrandVariations): Promise<number> => {
                 messages: ['Notification queue: send failed'],
                 traceArgs: {
                     'error.message': err?.message,
+                    'error.code': sendError.errorCode,
+                    'error.pushServiceMessage': sendError.errorMessage,
+                    'http.status': sendError.status,
                     'notificationQueue.id': row.id,
                     'notificationQueue.type': row.type,
                     'pushNotification.brandVariation': row.brandVariation,

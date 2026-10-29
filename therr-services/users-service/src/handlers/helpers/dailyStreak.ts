@@ -485,7 +485,13 @@ export const onCheckinCompleted = async ({
     }
     if (isFirstForDay) {
         // Awaited so the check-in response's celebration can reveal it. Never throws.
-        await awardDailyBonus(userId, localDate, state, headers);
+        // `existing.lastUpheldDate` is the streak as it stood before this check-in, which is
+        // what tells a comeback (days since the last upheld day) from an ordinary day. A
+        // backdated check-in that fills yesterday is judged against the same reading.
+        const previousUpheldDate = existing.lastUpheldDate && existing.lastUpheldDate < localDate
+            ? existing.lastUpheldDate
+            : null;
+        await awardDailyBonus(userId, localDate, state, headers, previousUpheldDate);
     }
 
     return state;

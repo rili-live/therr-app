@@ -200,6 +200,10 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     // Pact chat: the first line of the message a `pactMessage` push announces (capped by the
     // producer, handlers/pactChat.ts). Copy only.
     messagePreview?: string;
+    // HABITS retention copy selector on a `dailyHabitReminder` — 'first-checkin', 'day-two',
+    // 'comeback', 'comeback-no-bonus' or 'fresh-start' (users-service utilities/retentionLadder.ts).
+    // Also reaches the device, so a tap can be attributed to the variant in analytics.
+    messageVariant?: string;
     // Set only by the notification queue worker: the row this push is sent from. It reaches
     // the device in the FCM data map and comes back on tap (POST /users/notifications/push-opens),
     // which is what attributes an open to a send. Inline callers leave it unset.
@@ -276,6 +280,7 @@ export default (
         charityKey,
         pactDeclineReason,
         messagePreview,
+        messageVariant,
         notificationQueueId,
     }: ISendPushNotification,
     config: ISendPushNotificationAndOrEmailConfig = {
@@ -426,6 +431,7 @@ export default (
                     charityKey,
                     pactDeclineReason,
                     messagePreview,
+                    messageVariant,
                     notificationQueueId,
                     // achievementsCount,
                     // likeCount,

@@ -12,6 +12,7 @@ import {
     shouldOfferOnePressCheckin,
 } from './checkinNudgeCopy';
 import { selectWeeklyRecapBodyKey, selectWeeklyRecapTitleKey } from './weeklyRecapCopy';
+import { isRetentionMessageVariant, selectPactRenewalBodyKey, selectRetentionCopyKeys } from './retentionCopy';
 import { PactDeclineReason, selectPactDeclinedCopyKey } from './pactDeclinedCopy';
 import { withTitleEmoji } from './notificationTitleEmoji';
 
@@ -20,11 +21,25 @@ import { withTitleEmoji } from './notificationTitleEmoji';
 const INVALID_TOKEN_ERROR_CODES = new Set([
     'messaging/registration-token-not-registered',
     'messaging/invalid-registration-token',
-    'messaging/invalid-argument', // FCM returns this when the token is malformed
 ]);
 
-const isInvalidTokenError = (error: any): boolean => INVALID_TOKEN_ERROR_CODES.has(error?.code)
-    || INVALID_TOKEN_ERROR_CODES.has(error?.errorInfo?.code);
+// `messaging/invalid-argument` is FCM v1's INVALID_ARGUMENT, which it returns for a
+// malformed token ("The registration token is not a valid FCM registration token") and
+// equally for a malformed *message* — a bad Android colour, an oversize payload. Only the
+// first is about the token. Counting both meant one payload bug in a digest run would
+// delete the token of every recipient it reached; that stayed theoretical only while
+// cleanup itself was broken (users-service rejected every clear until 2026-10-27).
+// users-service's notification queue applies the same rule: utilities/pushSendError.ts.
+const isInvalidTokenArgumentError = (code: string | undefined, message: string | undefined): boolean => (
+    code === 'messaging/invalid-argument' && /registration token/i.test(message || '')
+);
+
+// Exported for unit testing.
+export const isInvalidTokenError = (error: any): boolean => {
+    const code = error?.code || error?.errorInfo?.code;
+    const message = error?.message || error?.errorInfo?.message;
+    return INVALID_TOKEN_ERROR_CODES.has(code) || isInvalidTokenArgumentError(code, message);
+};
 
 // Brand → credential-env-key mapping lives in ./firebaseCredentialEnvKey so it can be
 // imported by unit tests without triggering this module's startup-time validation.
@@ -250,6 +265,9 @@ interface ICreateMessageConfig {
     // Pact chat: the first line of the message a `pactMessage` push announces, already trimmed
     // and capped by users-service. Copy only.
     messagePreview?: string;
+    // HABITS retention variant on a `dailyHabitReminder` — selects its copy (see retentionCopy.ts)
+    // and rides the data map so a tap can be attributed to the variant.
+    messageVariant?: string;
 }
 
 interface INotificationMetrics {
@@ -326,14 +344,14 @@ const buildCheckinPressActions = (
 };
 
 /**
- * The action buttons on the "your pact ended" notification.
+ * The action buttons on the "your pact ended" and "your pact ends in N days" notifications.
  *
- * This notification exists because of the fresh-start effect (Dai, Milkman &
- * Riis 2014): the end of a cycle is a temporal landmark, and a landmark is when
- * people will restart. The renew button is the whole reason the push is sent at
- * this moment rather than three days earlier — `isPactRenewable` is false until
- * the pact's window has passed, so the same button on `pactExpiring` would only
- * produce a rejected request.
+ * `pactEnded` exists because of the fresh-start effect (Dai, Milkman & Riis 2014):
+ * the end of a cycle is a temporal landmark, and a landmark is when people will
+ * restart. `pactExpiring` carries the same button since users-service accepts a
+ * renewal inside the pact's final `PACT_EARLY_RENEWAL_DAYS` (`isPactRenewable`'s
+ * early window): 0 of 14 expired pacts were renewed while the only offer arrived
+ * after the cycle had closed and the habit had usually gone quiet.
  *
  * "Start New Cycle" is offered only when the payload names one pact, for the
  * same reason `buildCheckinPressActions` gates its check-in action: the id is
@@ -869,6 +887,9 @@ const createMessage = (
         // open can only be attributed to a type and a time, never to the send it answers,
         // so there is no open rate per type or per local hour to tune the cap against.
         notificationQueueId: config.notificationQueueId,
+        // Analytics, not routing: the device logs it with `push_open` so a first-checkin,
+        // day-two or comeback tap is countable apart from an ordinary reminder.
+        messageVariant: isRetentionMessageVariant(config.messageVariant) ? config.messageVariant : undefined,
     };
     Object.keys(routingIds).forEach((key) => {
         const value = routingIds[key];
@@ -1793,12 +1814,27 @@ const createMessage = (
             baseMessage = createDataOnlyMessage({
                 data: {
                     ...modifiedData,
-                    notificationTitle: translate(config.userLocale, 'notifications.pactExpiring.title'),
-                    notificationBody: translate(config.userLocale, 'notifications.pactExpiring.body', {
-                        daysRemaining: Number(config.daysRemaining || 0),
+                    notificationTitle: translate(config.userLocale, 'notifications.pactExpiring.title', {
                         habitName: String(config.habitName || ''),
+                        daysRemaining: Number(config.daysRemaining || 0),
                     }),
+                    notificationBody: translate(
+                        config.userLocale,
+                        selectPactRenewalBodyKey('pactExpiring', config.streakCount),
+                        {
+                            daysRemaining: Number(config.daysRemaining || 0),
+                            habitName: String(config.habitName || ''),
+                            streakCount: Number(config.streakCount || 0),
+                            durationDays: Number(config.durationDays || 30),
+                        },
+                    ),
                     notificationPressActionId: PushNotifications.PressActionIds.pactView,
+                    // The Renew button, now that renewal is accepted inside the pact's final
+                    // days (users-service isPactRenewable's early window). The mobile press
+                    // handler acts on the `renew-pact` id whatever the type, so this needs no
+                    // native change. Without a pactId there is nothing to renew and only View is
+                    // offered.
+                    notificationLinkPressActions: buildPactEndedPressActions(config.userLocale, config),
                 },
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'PACT_EXPIRING'), brandVariation);
@@ -1820,16 +1856,21 @@ const createMessage = (
                     notificationTitle: translate(config.userLocale, 'notifications.pactEnded.title', {
                         habitName: String(config.habitName || ''),
                     }),
-                    notificationBody: translate(config.userLocale, 'notifications.pactEnded.body', {
-                        durationDays: Number(config.durationDays || 0),
-                    }),
+                    notificationBody: translate(
+                        config.userLocale,
+                        selectPactRenewalBodyKey('pactEnded', config.streakCount),
+                        {
+                            durationDays: Number(config.durationDays || 0),
+                            streakCount: Number(config.streakCount || 0),
+                        },
+                    ),
                     notificationPressActionId: PushNotifications.PressActionIds.pactView,
                     notificationLinkPressActions: buildPactEndedPressActions(config.userLocale, config),
                 },
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'PACT_ENDED'), brandVariation);
             return baseMessage;
-        case PushNotifications.Types.dailyHabitReminder:
+        case PushNotifications.Types.dailyHabitReminder: {
             // Data-only, where this used to be an OS-rendered notification.
             // Action buttons are the reason: Android renders them from Notifee,
             // and Notifee only ever sees a message that arrives as data
@@ -1844,26 +1885,37 @@ const createMessage = (
             // niche/HABITS-general) or an installed app posts this on the
             // DEFAULT-importance "General" channel with no heads-up banner.
             // Ship the mobile release first.
+            //
+            // RETENTION VARIANTS: `messageVariant` (first-checkin, day-two, comeback, …) swaps the
+            // words and nothing else — same type, buttons, channel and tap route. See
+            // retentionCopy.ts for why these are not new types.
+            const retentionCopy = selectRetentionCopyKeys(config.messageVariant, config.partnerName);
+            const reminderParams = {
+                habitName: String(config.habitName || ''),
+                habitCount: Number(config.habitCount || 1),
+                habitNames: formatHabitNames(config.habitNames),
+                weekDone: Number(config.weekDone || 0),
+                weekTarget: Number(config.weekTarget || 0),
+                daysLeft: Number(config.daysLeft || 0),
+                partnerName: String(config.partnerName || ''),
+            };
             baseMessage = createDataOnlyMessage({
                 data: {
                     ...modifiedData,
-                    notificationTitle: translate(config.userLocale, 'notifications.dailyHabitReminder.title'),
+                    notificationTitle: translate(
+                        config.userLocale,
+                        retentionCopy ? retentionCopy.titleKey : 'notifications.dailyHabitReminder.title',
+                        reminderParams,
+                    ),
                     notificationBody: translate(
                         config.userLocale,
-                        selectCheckinNudgeBodyKey(
+                        retentionCopy ? retentionCopy.bodyKey : selectCheckinNudgeBodyKey(
                             type,
                             config.habitCount,
                             'notifications.dailyHabitReminder.body',
                             config.weekTarget,
                         ),
-                        {
-                            habitName: String(config.habitName || ''),
-                            habitCount: Number(config.habitCount || 1),
-                            habitNames: formatHabitNames(config.habitNames),
-                            weekDone: Number(config.weekDone || 0),
-                            weekTarget: Number(config.weekTarget || 0),
-                            daysLeft: Number(config.daysLeft || 0),
-                        },
+                        reminderParams,
                     ),
                     notificationPressActionId: PushNotifications.PressActionIds.checkinView,
                     notificationLinkPressActions: buildCheckinPressActions(config.userLocale, config),
@@ -1871,6 +1923,7 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'DAILY_HABIT_REMINDER'), brandVariation);
             return baseMessage;
+        }
         case PushNotifications.Types.morningMotivation:
             baseMessage = createNotificationMessage({
                 data: modifiedData,

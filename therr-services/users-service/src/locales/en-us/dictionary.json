@@ -296,6 +296,46 @@
             "buttonText": "Open {brandName}",
             "postBody1": "One habit. One check-in. That is all today asks."
         },
+        "habitRetention": {
+            "dearUser": "Hey {toName}!",
+            "buttonText": "Open {brandName}",
+            "postBody1": "One tap. No catching up.",
+            "firstCheckin": {
+                "subject": "Day 1 of {habitName} is one tap away",
+                "header": "Day 1 of {habitName}",
+                "body1": "You picked {habitName}. One check-in today and your streak has started.",
+                "body1WithPartner": "You picked {habitName}, and {partnerName} is in it with you. One check-in today and your streak has started.",
+                "body2": "It does not need to be a big day. Small and done beats perfect and skipped."
+            },
+            "dayTwo": {
+                "subject": "Day 2 of {habitName}",
+                "header": "Day 2 of {habitName}",
+                "body1": "Yesterday you started {habitName}. Today is the check-in that makes it a streak.",
+                "body1WithPartner": "Yesterday you started {habitName}, and {partnerName} is counting on you. Today is the check-in that makes it a streak.",
+                "body2": "Day 2 is where most streaks stop. Yours does not have to."
+            },
+            "comeback": {
+                "subject": "{habitName} is still here for you",
+                "header": "{habitName} is still here for you",
+                "body1": "One check-in starts it again, and your first one back pays a comeback bonus.",
+                "body1WithPartner": "{partnerName} is still in. One check-in starts it again, and your first one back pays a comeback bonus.",
+                "body2": "A few missed days do not undo the days you already put in."
+            },
+            "comebackNoBonus": {
+                "subject": "{habitName} is still here for you",
+                "header": "{habitName} is still here for you",
+                "body1": "One check-in starts it again.",
+                "body1WithPartner": "{partnerName} is still in. One check-in starts it again.",
+                "body2": "A few missed days do not undo the days you already put in."
+            },
+            "freshStart": {
+                "subject": "Still want to start {habitName}?",
+                "header": "Still want to start {habitName}?",
+                "body1": "Day 1 is one tap. There is nothing to catch up on.",
+                "body1WithPartner": "{partnerName} is ready when you are. Day 1 is one tap, with nothing to catch up on.",
+                "body2": "Start small. One check-in is a real start."
+            }
+        },
         "pactSeatReminder": {
             "subject": "{fromName} is still waiting for you",
             "header": "{fromName} is still waiting for you",

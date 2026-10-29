@@ -20,6 +20,12 @@ describe('routeConfig', () => {
             expect(routes).toContain('/invite/link/:token');
         });
 
+        // The app shares a bare /invite when the sharer has no username (it used to share
+        // /invite/null). '/invite/:username' needs a segment, so this needs its own entry.
+        it('registers the username-less invite landing', () => {
+            expect(routes).toContain('/invite');
+        });
+
         it('registers the pact-claim landing', () => {
             expect(routes).toContain('/claim-pact/:token');
         });
