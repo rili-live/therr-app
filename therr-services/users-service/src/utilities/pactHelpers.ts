@@ -61,18 +61,6 @@ export const shouldExpirePact = (
 };
 
 /**
- * Whether a pact's cycle is over and can therefore be renewed.
- *
- * An `active` pact that is merely past its endDate counts as finished: the
- * digest's sweep will have marked it `expired`, but renewal must not depend on
- * that job having run — a user who opens the app before the nightly digest
- * would otherwise be told their finished pact is "still running".
- *
- * `abandoned` is deliberately absent. Someone who walked away from a pact
- * should start a fresh one deliberately rather than re-run the one they quit,
- * and `pending` never had a cycle to finish in the first place.
- */
-/**
  * How close to its end an active pact may be renewed early, in days. The same window the digest's
  * `pactExpiring` warning covers, which is what lets that warning carry a working Renew button:
  * 0 of 14 expired pacts were ever renewed while the only renew offer arrived after the cycle had
@@ -91,6 +79,18 @@ export interface IPactRenewableOptions {
     now?: Date;
 }
 
+/**
+ * Whether a pact's cycle is over and can therefore be renewed.
+ *
+ * An `active` pact that is merely past its endDate counts as finished: the
+ * digest's sweep will have marked it `expired`, but renewal must not depend on
+ * that job having run — a user who opens the app before the nightly digest
+ * would otherwise be told their finished pact is "still running".
+ *
+ * `abandoned` is deliberately absent. Someone who walked away from a pact
+ * should start a fresh one deliberately rather than re-run the one they quit,
+ * and `pending` never had a cycle to finish in the first place.
+ */
 export const isPactRenewable = (
     pact: { status: PactStatus | string; endDate?: Date | string | null } | null | undefined,
     options: IPactRenewableOptions = {},
