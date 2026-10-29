@@ -98,6 +98,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         charityKey,
         // Which `pactDeclined` story to tell — copy only.
         pactDeclineReason,
+        // Pact chat — the first line of the message being announced. Copy only.
+        messagePreview,
         // Which retention story a `dailyHabitReminder` tells (first-checkin, day-two, comeback, …).
         messageVariant,
     } = req.body;
@@ -161,6 +163,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             pledgeAmount,
             charityKey,
             pactDeclineReason,
+            messagePreview,
             messageVariant: typeof messageVariant === 'string' ? messageVariant : undefined,
         },
         undefined,
@@ -268,6 +271,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         charityKey,
         // Which `pactDeclined` story to tell — copy only.
         pactDeclineReason,
+        // Pact chat — the first line of the message being announced. Copy only.
+        messagePreview,
         // Which retention story a `dailyHabitReminder` tells (first-checkin, day-two, comeback, …).
         messageVariant,
     } = req.body;
@@ -333,6 +338,7 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             pledgeAmount,
             charityKey,
             pactDeclineReason,
+            messagePreview,
             messageVariant: typeof messageVariant === 'string' ? messageVariant : undefined,
         },
         undefined,

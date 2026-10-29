@@ -16,6 +16,7 @@ const subscribeLimitReachedMessage = 'Too many requests to subscribe.';
 const unsubscribeLimitReachedMessage = 'Too many requests to unsubscribe.';
 const emailPrecheckLimitReachedMessage = 'Too many email lookup requests, please try again later.';
 const handoffMintLimitReachedMessage = 'Too many app handoff requests, please try again later.';
+const pactMessageLimitReachedMessage = 'Too many messages, please slow down.';
 
 const loginAttemptLimiter = RateLimit({
     store: createRateLimiterRedisStore('login'),
@@ -60,6 +61,9 @@ const unsubscribeAttemptLimiter = buildRateLimiter(unsubscribeLimitReachedMessag
 // Generous enough for typed-then-blurred email behavior, tight enough to make enumeration unattractive.
 const emailPrecheckLimiter = buildRateLimiter(emailPrecheckLimitReachedMessage, 10, 1); // 10/min/IP
 const handoffMintLimiter = buildRateLimiter(handoffMintLimitReachedMessage, 10, 5); // 10 codes per 5 min/IP
+// Pact chat sends. Keyed by method+path+IP like the rest, and the path carries the pact id, so
+// this bounds a runaway client per pact without throttling someone in two conversations.
+const pactMessageLimiter = buildRateLimiter(pactMessageLimitReachedMessage, 30, 1); // 30/min/pact/IP
 
 export {
     loginAttemptLimiter,
@@ -75,4 +79,5 @@ export {
     unsubscribeAttemptLimiter,
     emailPrecheckLimiter,
     handoffMintLimiter,
+    pactMessageLimiter,
 };

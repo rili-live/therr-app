@@ -262,6 +262,9 @@ interface ICreateMessageConfig {
     // pact that carries on without them. One type, so the tap routes and the channel are the
     // ones every installed app already knows; this only picks the copy. Copy only.
     pactDeclineReason?: PactDeclineReason;
+    // Pact chat: the first line of the message a `pactMessage` push announces, already trimmed
+    // and capped by users-service. Copy only.
+    messagePreview?: string;
     // HABITS retention variant on a `dailyHabitReminder` — selects its copy (see retentionCopy.ts)
     // and rides the data map so a tap can be attributed to the variant.
     messageVariant?: string;
@@ -547,6 +550,7 @@ const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.partnerCheckedIn,
     PushNotifications.Types.partnerMissedDay,
     PushNotifications.Types.partnerCelebrated,
+    PushNotifications.Types.pactMessage,
     PushNotifications.Types.streakMilestone,
     PushNotifications.Types.streakAtRisk,
     PushNotifications.Types.streakBroken,
@@ -1686,6 +1690,34 @@ const createMessage = (
             }, getAppBrandingClickAction(brandVariation, 'PARTNER_CELEBRATED'), brandVariation);
             return baseMessage;
         }
+        // Pact chat. Data-only like the `partner*` family, so iOS gets an alert and the tap carries
+        // `pactId`; `pactView` routes through the client's type fallback, which opens the chat on a
+        // build that has it and the pact on one that does not. One push per pact per hour at most —
+        // the batching is the producer's dedupe key, so the body quotes the message that opened the
+        // hour rather than claiming a count it cannot know.
+        case PushNotifications.Types.pactMessage: {
+            const senderName = String(config.fromUserName || config.partnerName || '');
+            const preview = String(config.messagePreview || '');
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.pactMessage.title', {
+                        habitName: String(config.habitName || ''),
+                    }),
+                    notificationBody: preview
+                        ? translate(config.userLocale, 'notifications.pactMessage.body', {
+                            userName: senderName,
+                            messagePreview: preview,
+                        })
+                        : translate(config.userLocale, 'notifications.pactMessage.bodyNoPreview', {
+                            userName: senderName,
+                        }),
+                    notificationPressActionId: PushNotifications.PressActionIds.pactView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'PACT_MESSAGE'), brandVariation);
+            return baseMessage;
+        }
         case PushNotifications.Types.pactInvitation:
             baseMessage = createDataOnlyMessage({
                 data: {
@@ -2066,6 +2098,7 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.partnerCelebrated,
     PushNotifications.Types.partnerCheckedIn,
     PushNotifications.Types.partnerMissedDay,
+    PushNotifications.Types.pactMessage,
     PushNotifications.Types.pledgeMissed,
     PushNotifications.Types.proximityRequiredMoment,
     PushNotifications.Types.proximityRequiredSpace,

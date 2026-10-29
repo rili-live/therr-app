@@ -197,6 +197,9 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     // `pactDeclined` copy selector: 'memberLeft' when an active group member left a pact that
     // carries on without them. Copy only — see push-notifications-service/api/pactDeclinedCopy.ts.
     pactDeclineReason?: 'memberLeft';
+    // Pact chat: the first line of the message a `pactMessage` push announces (capped by the
+    // producer, handlers/pactChat.ts). Copy only.
+    messagePreview?: string;
     // HABITS retention copy selector on a `dailyHabitReminder` — 'first-checkin', 'day-two',
     // 'comeback', 'comeback-no-bonus' or 'fresh-start' (users-service utilities/retentionLadder.ts).
     // Also reaches the device, so a tap can be attributed to the variant in analytics.
@@ -276,6 +279,7 @@ export default (
         pledgeAmount,
         charityKey,
         pactDeclineReason,
+        messagePreview,
         messageVariant,
         notificationQueueId,
     }: ISendPushNotification,
@@ -426,6 +430,7 @@ export default (
                     pledgeAmount,
                     charityKey,
                     pactDeclineReason,
+                    messagePreview,
                     messageVariant,
                     notificationQueueId,
                     // achievementsCount,

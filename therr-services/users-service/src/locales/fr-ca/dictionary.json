@@ -25,6 +25,15 @@
             "notTrackingHabit": "Commence à suivre cette habitude avant de mettre tes amis au défi",
             "tooManyActive": "Tu peux avoir {limit} défis en cours à la fois. Attends qu'un se termine avant d'en lancer un autre."
         },
+        "pactChat": {
+            "cannotReportOwn": "Tu ne peux pas signaler ton propre message",
+            "invalidClientMessageId": "Ce message n'a pas pu être envoyé. Réessaie.",
+            "invalidMute": "Choisis si tu veux mettre ce pacte en sourdine",
+            "invalidReaction": "Choisis une des réactions proposées",
+            "invalidText": "Écris un message d'au plus {max} caractères",
+            "itemNotFound": "Nous n'avons pas trouvé ce message",
+            "notActive": "Ce pacte est terminé, le clavardage est donc en lecture seule"
+        },
         "pacts": {
             "activityTypeRequired": "Choisis ce que tu veux envoyer",
             "cannotDelete": "Tu ne peux supprimer qu'un pacte que tu as créé",

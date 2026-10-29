@@ -98,6 +98,30 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Pact chat (added 2026-10-29, docs/niche-sub-apps/habits/HABITS_PACT_CHAT_DESIGN.md)
+
+- [ ] **Run the users-service migration after the deploy** (`20261028000001_habits.pact_chat.js`:
+  `habits.pact_messages`, `habits.pact_chat_reactions`, `habits.pact_members."chatLastReadAt"`).
+  Additive, and neither automator reads them. Until it runs, the chat endpoints answer 500, and the
+  pact list and detail responses simply have no `unreadMessageCount`. The pact list never fails.
+- [ ] **Release the mobile half to Play** (`niche/HABITS-general` → `-main`, `/niche-android-release`).
+  The release has to ship before chat is visible to anyone. A `pactMessage` push can only follow a
+  message, so no push goes out until a build with the chat screen is installed.
+- [ ] **Handset check, once a build with chat is installed on two phones:** send a message from one
+  phone while the other has the app closed. About 90 s later the other phone should show a heads-up
+  "{habit} pact — {name}: {text}" notification, on the Reminders channel, in Friends with Habits
+  (not Therr). Tapping it should open the chat. Then, with the chat open on the second phone, send
+  another message. It should appear within ~10 s and produce no push. The queue row reads
+  `skipped` / `already-read`:
+  `SELECT status, "lastError", "dedupeKey" FROM main."notificationQueue" WHERE type = 'pact-message' ORDER BY "createdAt" DESC LIMIT 20;`
+- [ ] **Read the result after 6–8 weeks** with `npm run report:retention` (PR #3153) plus the
+  chatted-vs-not cohort query in the design doc's "Reading the result". The baseline before chat:
+  paired users average 3.6 check-in days, and 0 were still checking in after week 4. Also watch the
+  GA4 events `pact_chat_open` and `pact_message_send` (property 267810693).
+- [ ] **Look at reported messages weekly while volume is low:**
+  `SELECT id, "pactId", "userId", "reportedAt", jsonb_array_length("reportedByUserIds") FROM habits.pact_messages WHERE "reportedAt" IS NOT NULL ORDER BY "reportedAt" DESC;`
+  No admin UI exists yet. A reported author also gets the reporter appended to `main.users."wasReportedBy"`.
+
 ## Metrics data integrity: Test Lab devices, `/invite/null`, retention report (added 2026-10-29)
 
 - [ ] **After the next Friends with Habits release reaches Play, check that pre-launch devices stopped
