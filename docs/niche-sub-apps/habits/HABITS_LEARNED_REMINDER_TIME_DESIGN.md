@@ -1,6 +1,7 @@
 # Learned Reminder Time — Design
 
-**Status:** Proposed (2026-10-29). Not implemented.
+**Status:** Proposed (2026-10-29). Not implemented. Tracked in #3155 and
+`docs/WORK_IN_PROGRESS.md` § 2.1.1.
 **Lands on:** `general` (all of Phase 1 is `therr-services/users-service`). Phase 3 is mobile UI and
 may ride a `niche/HABITS-general` PR.
 **Supersedes:** the "Send-time personalization" item (§2) in
@@ -222,11 +223,11 @@ if startSpread > 5h: morning confidence ×= 0.5
 
 ¹ Clamped to the window floor. The early runner's last-chance fires at 16:00 only on a day they
 haven't checked in by mid-afternoon — which, for them, really is a missed day.
-² Clamped to the window ceiling. See open question Q1.
+² Clamped to the window ceiling. They still get a morning nudge (D1, §10).
 ³ Clamped to 23:00. The night owl's 00:20 spill was unwrapped (§4.3) rather than read as an
 early-morning check-in. 23:00 is still subject to `latestUsable`: with default quiet hours starting
 21:30, the slot is pulled back to 21:00 unless the user has set their own quiet hours. That's the
-existing early-sleeper rule working as designed. See Q2.
+existing early-sleeper rule working as designed, and it stays that way (D2, §10).
 
 ## 6. Integration
 
@@ -403,16 +404,21 @@ settings payload and show them in Settings → Notifications, e.g. *"Automatic �
 on when you check in"*, with the existing picker as the override. Needs locale strings in all three
 dictionaries. Showing the inference is also how users notice and correct a bad one.
 
-## 10. Open questions
+## 10. Decisions and open questions
 
-- **Q1. Users whose day starts after the morning window.** The lunch logger and the night owl get a
-  morning nudge clamped to 11:30, still hours before they act. Alternative: when `typicalStart` is
-  past the morning window with high confidence, skip the morning slot and send only the evening one
-  at their usual time. That reduces push volume for these users, but it changes the "everyone gets
-  a morning nudge" rule (`localReminderSchedule.ts` rule 3), so it is a product call, not a tuning
-  one.
-- **Q2. Night owls under default quiet hours.** Default quiet hours start at 21:30, so a learned
-  23:00 last-chance is pulled to 21:00. Should consistent check-ins after 21:30 count as evidence
-  for a later default quiet-hours start for that user? §3 says no for v1. Revisit with Phase 2 data.
+Decided 2026-10-29:
+
+- **D1. Every user keeps a morning nudge, including users whose day starts after the morning
+  window.** The lunch logger and the night owl get a morning nudge clamped to 11:30, which is still
+  hours before they act. We considered skipping the morning slot for them and sending only the
+  evening one, and rejected it. The "everyone gets a morning nudge" rule (`localReminderSchedule.ts`
+  rule 3) stands.
+- **D2. Check-in history never moves quiet hours.** Default quiet hours start at 21:30, so a learned
+  23:00 last-chance is pulled back to 21:00. Regular check-ins after 21:30 do **not** count as
+  evidence for a later quiet-hours start. Only the user's own quiet-hours or reminder-time settings
+  can do that. This is §3 made permanent, not a v1 limitation.
+
+Still open:
+
 - **Q3. Pact partners.** Partner-activity pushes are event-driven and out of scope. A future "your
   partner usually checks in by now" nudge could reuse `typicalFinish` from the partner's profile.
