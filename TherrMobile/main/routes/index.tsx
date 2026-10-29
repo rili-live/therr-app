@@ -68,7 +68,7 @@ import Journal from './Journal';
 import WeeklyRecap from './WeeklyRecap';
 import { ChallengeDetail, CreateChallenge } from './Challenges';
 import {
-    PactDetail, CreatePactInvite, HabitsPushOptIn, AddPactMembers, OpenPacts,
+    PactDetail, PactChat, CreatePactInvite, HabitsPushOptIn, AddPactMembers, OpenPacts,
 } from './Pacts';
 import { AccessPresets } from './access';
 import { editStackOptions, momentStackOptions, viewStackOptions } from './stackOptions';
@@ -657,6 +657,16 @@ const routes: RouteConfig<
         component: PactDetail,
         options: () => ({
             title: 'Pact Details',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        // Pact chat. Also the destination of a `pactMessage` push (Layout routes the tap here).
+        name: 'PactChat',
+        component: PactChat,
+        options: () => ({
+            title: 'Pact Chat',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),

@@ -117,6 +117,30 @@ after merging general` commit.
 
 ## Mode: `split` (default)
 
+### Step 0: Resume, don't restart
+
+A split is five steps, and a session can die between any two of them. The classification and
+the user's confirmation of it (Step 2) are the expensive part, and nothing outside the session
+records them. So this mode keeps a run ledger, keyed by the source branch:
+
+```bash
+node scripts/run-ledger/index.js start split-branch-prs <source-branch> \
+  --meta '{"tag":"<TAG>","base":"origin/general","sourceHead":"<git rev-parse HEAD>"}'
+```
+
+If it prints `"resumed": true`, a previous session got partway. **Verify each recorded step
+against reality before skipping it**, in order, and redo from the first one that fails:
+
+| Step | Reuse it only if |
+|---|---|
+| `classify` | `git rev-parse <source-branch>` still equals `meta.sourceHead`, and `git diff --name-only origin/general` + `git status --short` list exactly `data.shared` ∪ `data.niche` |
+| `shared-pr` | `git ls-remote origin <data.branch>` returns `data.head`, and the PR at `data.pr` is open (or merged) |
+| `niche-merge` | `git merge-base --is-ancestor <data.mergeSha> <data.branch>`. Re-run Mode `verify-brand` anyway, because it's cheap and it's the step that fails silently |
+| `niche-pr` | the branch on origin is at `data.head`, and the PR at `data.pr` is open |
+
+Tell the user which steps you are reusing and why, in one line each. A ledger entry is a
+hint about what happened, not proof that it still holds.
+
 ### Step 1: Determine the target branches
 
 ```bash
@@ -218,6 +242,13 @@ separation is clean.
 Print the classification as a two-column list and **stop for confirmation** if any file is
 ambiguous or if the niche bucket contains something outside the list above.
 
+Once the classification is settled (confirmed by the user if you stopped to ask), record it:
+
+```bash
+node scripts/run-ledger/index.js step split-branch-prs <source-branch> classify \
+  --data '{"shared":[…paths],"niche":[…paths],"confirmedByUser":true|false}'
+```
+
 ### Step 3: Build the shared PR first
 
 Shared goes first so the niche branch can merge it and build on top.
@@ -243,6 +274,11 @@ gh pr create --base general --head <feature>-shared \
   --title "<type>: <shared summary>" --body "<what, why, and that the niche half is PR #N>"
 ```
 
+```bash
+node scripts/run-ledger/index.js step split-branch-prs <source-branch> shared-pr \
+  --data '{"branch":"<feature>-shared","head":"<sha>","pr":"<url>"}'
+```
+
 ### Step 4: Build the niche PR on top
 
 ```bash
@@ -255,6 +291,11 @@ git merge origin/general --no-edit     # or merge the shared branch if it has no
 **Immediately run Mode `verify-brand`.** This merge is the un-branding step, and it will not
 conflict. Fix forward before adding anything else, in its own commit.
 
+```bash
+node scripts/run-ledger/index.js step split-branch-prs <source-branch> niche-merge \
+  --data '{"branch":"<feature>-<tag>","mergeSha":"<sha>","verifyBrand":"pass"}'
+```
+
 Then apply the niche changes, confirm the bucket again with `git diff --cached --name-only`, run
 § Verification, and open the second PR:
 
@@ -266,10 +307,17 @@ gh pr create --base niche/<TAG>-general --head <feature>-<tag> \
 
 Cross-link the two PRs in both bodies, and state the merge order: **shared first, niche second.**
 
+```bash
+node scripts/run-ledger/index.js step split-branch-prs <source-branch> niche-pr \
+  --data '{"branch":"<feature>-<tag>","head":"<sha>","pr":"<url>"}'
+```
+
 ### Step 5: Report
 
 Give the user both PR URLs, the file counts per bucket, the gate results, and an explicit
 statement of merge order. Never merge either PR yourself.
+
+Then close the run: `node scripts/run-ledger/index.js done split-branch-prs <source-branch>`.
 
 ---
 

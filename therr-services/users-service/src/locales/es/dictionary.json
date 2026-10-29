@@ -25,6 +25,15 @@
             "notTrackingHabit": "Empieza a registrar este hábito antes de retar a tus amigos",
             "tooManyActive": "Puedes tener {limit} retos activos a la vez. Espera a que termine uno antes de iniciar otro."
         },
+        "pactChat": {
+            "cannotReportOwn": "No puedes reportar tu propio mensaje",
+            "invalidClientMessageId": "No se pudo enviar ese mensaje. Inténtalo de nuevo.",
+            "invalidMute": "Elige si quieres silenciar este pacto",
+            "invalidReaction": "Elige una de las reacciones disponibles",
+            "invalidText": "Escribe un mensaje de hasta {max} caracteres",
+            "itemNotFound": "No encontramos ese mensaje",
+            "notActive": "Este pacto terminó, así que el chat es de solo lectura"
+        },
         "pacts": {
             "activityTypeRequired": "Elige qué quieres enviar",
             "cannotDelete": "Solo puedes eliminar un pacto que hayas creado",

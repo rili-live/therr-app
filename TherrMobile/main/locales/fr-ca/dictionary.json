@@ -2349,6 +2349,43 @@
                 "body": "Ta semaine gratuite à le suivre seul est terminée. Invite un ami pour continuer tes check-ins."
             }
         },
+        "pactChat": {
+            "headerTitle": "Clavardage {habitName}",
+            "headerTitleFallback": "Clavardage du pacte",
+            "openChat": "Clavardage du pacte",
+            "openChatHint": "Parle avec tes partenaires et encourage leurs suivis",
+            "unreadAccessibility": "Clavardage du pacte, {count} messages non lus",
+            "inputPlaceholder": "Écris à ton pacte…",
+            "send": "Envoyer",
+            "readOnly": "Ce pacte est terminé, le clavardage est donc en lecture seule.",
+            "emptyTitle": "Dis bonjour à ton pacte",
+            "emptySubtitle": "Les suivis apparaissent ici aussi. Encouragez-vous.",
+            "checkedIn": "{name} a fait son suivi",
+            "withPhoto": "📷 Photo comme preuve",
+            "you": "Toi",
+            "partnerFallback": "Ton partenaire",
+            "loadError": "Impossible de charger le clavardage",
+            "retry": "Réessayer",
+            "sendFailed": "Non envoyé. Touche pour réessayer.",
+            "mute": "Sourdine",
+            "unmute": "Réactiver",
+            "mutedToast": "Les notifications de ce pacte sont en sourdine",
+            "unmutedToast": "Les notifications de ce pacte sont réactivées",
+            "report": "Signaler",
+            "reportConfirmTitle": "Signaler ce message?",
+            "reportConfirmBody": "Il sera masqué pour toi et signalé pour vérification. Pour ne plus voir cette personne, bloque-la depuis son profil.",
+            "reportedToast": "Merci. Le message a été signalé.",
+            "viewProfile": "Profil",
+            "reactHint": "Appuie longuement sur un message ou un suivi pour réagir",
+            "reactionFailed": "Cette réaction n'a pas été enregistrée",
+            "errorTitle": "Un problème est survenu",
+            "quickReplies": {
+                "flex": "💪",
+                "nice": "Bravo!",
+                "letsGo": "Allons-y!",
+                "proud": "Fier de toi"
+            }
+        },
         "pacts": {
             "headerTitle": "Mes pactes",
             "detailTitle": "Détails du pacte",

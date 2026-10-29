@@ -25,6 +25,15 @@
             "notTrackingHabit": "Start tracking this habit before you challenge friends to it",
             "tooManyActive": "You can run {limit} challenges at a time. Wait for one to finish before starting another."
         },
+        "pactChat": {
+            "cannotReportOwn": "You can't report your own message",
+            "invalidClientMessageId": "That message couldn't be sent. Try again.",
+            "invalidMute": "Choose whether to mute this pact",
+            "invalidReaction": "Pick one of the reactions shown",
+            "invalidText": "Write a message of up to {max} characters",
+            "itemNotFound": "We couldn't find that message",
+            "notActive": "This pact has ended, so the chat is read-only"
+        },
         "pacts": {
             "activityTypeRequired": "Choose what you want to send",
             "cannotDelete": "You can only delete a pact you created",
