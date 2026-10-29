@@ -187,12 +187,14 @@
       "body": "Toi et {partnerName} avez terminé votre pacte sur {habitName} — une victoire pour vous deux."
     },
     "pactExpiring": {
-      "title": "Ton pacte arrive à sa fin",
-      "body": "Il reste {daysRemaining} jour(s) sur ton pacte {habitName} — termine en force."
+      "title": "{habitName} : il reste {daysRemaining} jour(s)",
+      "body": "Renouvelle maintenant pour {durationDays} jours de plus, en un toucher.",
+      "bodyWithStreak": "Tu es à {streakCount} jours de série. Renouvelle pour {durationDays} jours de plus et continue."
     },
     "pactEnded": {
       "title": "Ton pacte {habitName} est terminé",
-      "body": "{durationDays} jours accomplis. La plupart des habitudes prennent des mois, pas des semaines — lance un nouveau cycle et ta série se poursuit."
+      "body": "{durationDays} jours accomplis. La plupart des habitudes prennent des mois, pas des semaines — lance un nouveau cycle et ta série se poursuit.",
+      "bodyWithStreak": "Ta série de {streakCount} jours te suit. Lance {durationDays} jours de plus en un toucher."
     },
     "pactJoinRequested": {
       "title": "Nouvelle demande pour ton pacte",
@@ -231,6 +233,33 @@
       "body": "Enregistre {habitName} aujourd'hui — un seul enregistrement lance ta série.",
       "bodyMultiple": "{habitCount} habitudes t'attendent aujourd'hui — {habitNames}. Un seul enregistrement te lance.",
       "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName} cette semaine — il reste {daysLeft} jour(s) pour la terminer."
+    },
+    "habitRetention": {
+      "firstCheckin": {
+        "title": "Jour 1 de {habitName}",
+        "body": "Un toucher et ta série commence aujourd’hui.",
+        "bodyWithPartner": "{partnerName} est partant. Un toucher et ta série commence aujourd’hui."
+      },
+      "dayTwo": {
+        "title": "Jour 2 de {habitName}",
+        "body": "Hier, tu as commencé. Aujourd’hui, ça devient une série.",
+        "bodyWithPartner": "{partnerName} compte sur toi. Aujourd’hui, ça devient une série."
+      },
+      "comeback": {
+        "title": "{habitName} t’attend toujours",
+        "body": "Un enregistrement relance tout, et le premier au retour te donne un bonus de retour.",
+        "bodyWithPartner": "{partnerName} est toujours là. Un enregistrement relance tout, avec un bonus de retour."
+      },
+      "comebackNoBonus": {
+        "title": "{habitName} t’attend toujours",
+        "body": "Un enregistrement relance tout. Rien à rattraper.",
+        "bodyWithPartner": "{partnerName} est toujours là. Un enregistrement relance tout."
+      },
+      "freshStart": {
+        "title": "Tu veux toujours commencer {habitName}?",
+        "body": "Le jour 1, c’est un toucher. Rien à rattraper.",
+        "bodyWithPartner": "{partnerName} est prêt quand tu l’es. Le jour 1, c’est un toucher."
+      }
     },
     "morningMotivation": {
       "title": "Bon matin",

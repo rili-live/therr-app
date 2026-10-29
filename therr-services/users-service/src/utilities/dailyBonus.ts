@@ -19,9 +19,16 @@
  *
  * Boosted odds (no commons, more epics and jackpots) are what a streak milestone or a perfect
  * week adds: the bigger bonus for the bigger day.
+ *
+ * Comeback odds are what the first check-in after a lapse earns (a gap of
+ * `HABIT_LAPSE_BACKOFF_DAYS` or more since the last upheld day — the same threshold at which the
+ * digest stops daily nudges and the comeback message promises this bonus). Epic or better,
+ * always, so the reveal is worth the return. It cannot be farmed into an advantage: it needs days
+ * of *not* checking in to earn, and its expected ~31 XP is less than the ~40 XP of daily bonuses
+ * plus 4 check-ins a consistent user earns over the same four days.
  */
 
-export type DailyBonusTier = 'standard' | 'boosted';
+export type DailyBonusTier = 'standard' | 'boosted' | 'comeback';
 export type DailyBonusRarity = 'common' | 'rare' | 'epic' | 'jackpot';
 
 interface IDailyBonusOdds {
@@ -58,14 +65,47 @@ export const DAILY_BONUS_ODDS: Record<DailyBonusTier, IDailyBonusOdds[]> = {
             rarity: 'jackpot', weight: 8, minXp: 50, maxXp: 50,
         },
     ],
+    comeback: [
+        {
+            rarity: 'epic', weight: 75, minXp: 20, maxXp: 30,
+        },
+        {
+            rarity: 'jackpot', weight: 25, minXp: 50, maxXp: 50,
+        },
+    ],
 };
 
 /** Kill switch. On unless explicitly `false`. Older clients simply never show the reveal. */
 export const isDailyBonusEnabled = (): boolean => process.env.HABIT_DAILY_BONUS_ENABLED !== 'false';
 
-export const getDailyBonusTier = ({ isMilestone, isPerfectWeek }: { isMilestone: boolean; isPerfectWeek: boolean }): DailyBonusTier => (
-    isMilestone || isPerfectWeek ? 'boosted' : 'standard'
-);
+export const getDailyBonusTier = ({ isMilestone, isPerfectWeek, isComeback = false }: {
+    isMilestone: boolean;
+    isPerfectWeek: boolean;
+    isComeback?: boolean;
+}): DailyBonusTier => {
+    // A comeback outranks a milestone: it is the one the user was told about in advance.
+    if (isComeback) {
+        return 'comeback';
+    }
+    return isMilestone || isPerfectWeek ? 'boosted' : 'standard';
+};
+
+/**
+ * Whether a check-in on `localDate` is a comeback: there was an upheld day before, and it was
+ * `lapseDays` or more ago. A first-ever check-in is not a comeback — there is nothing to come back
+ * to, and the first check-in has its own celebration.
+ */
+export const isComebackCheckin = (
+    previousUpheldDate: string | null | undefined,
+    localDate: string,
+    lapseDays: number,
+): boolean => {
+    if (!previousUpheldDate) {
+        return false;
+    }
+    const gapMs = Date.parse(`${localDate.slice(0, 10)}T00:00:00.000Z`) - Date.parse(`${String(previousUpheldDate).slice(0, 10)}T00:00:00.000Z`);
+    return Number.isFinite(gapMs) && Math.round(gapMs / (24 * 60 * 60 * 1000)) >= lapseDays;
+};
 
 export interface IDailyBonusRoll {
     tier: DailyBonusTier;

@@ -289,6 +289,123 @@ is not doing its job regardless of what the milestone counters say.
 
 ---
 
+## Retention at the drop-off points (2026-10)
+
+The phase engine above tapers support for people who are *succeeding*. It never addressed the
+people the data says we were losing, and it could not: `lapsed` is only reachable from
+`established` (21+ days at 90%), which almost nobody reaches. The retention messages cover the
+other end. Code: `utilities/retentionLadder.ts` (pure rules) and
+`handlers/helpers/retentionMessaging.ts` (reads and sends), both called from the digest.
+
+### The evidence
+
+Production, 30 days to 2026-10-29, internal accounts (superusers, bots, `test.local`) excluded —
+the same cohort as `npm run report:retention`. Queued pushes sent, by how long the recipient had
+gone without a check-in:
+
+| Days since last check-in | Sent | Opened |
+|---|---|---|
+| 0–1 | 62 | 0 |
+| 2 | 54 | 0 |
+| 3–6 | 166 | 0 |
+| 7–13 | 226 | 0 |
+| 14+ | 285 | 1 |
+| never checked in | 109 | 0 |
+
+Opens are too sparse to draw a line with (1 in 902; tap reporting needs a current build), so the
+case rests on volume and on returns. **677 of the 902 pushes — three in four — went to people
+already three or more days gone.** And people do come back from a gap, rarely: of every gap
+between two check-in days by a real user, 40 closed within 2 days and 14 after 3+ days (7 at 3–6,
+6 at 7–13, 1 at 14+); 35 users never returned. The ladder's rungs sit in the window those 14
+returns came from.
+
+The two cliffs either side of the first check-in: 111 of 125 real accounts older than 35 days
+never completed one; of those who did, 35 checked in on day 0 and 7 on days 1–2. Partners help
+and still don't hold: the 20 users whose partner joined averaged 3.6 check-in days, 6 were still
+checking in after week 1 and none after week 4.
+
+### What the digest does
+
+| Moment | Change | Channel | Once-ever ledger key (`habits.onboarding_messages`) |
+|---|---|---|---|
+| Has a habit, never checked in, habit < N days old | the day's nudge is rewritten as "Day 1 of <habit>" with the one-tap Check In | push, else email | `onboarding:first-checkin` |
+| First-ever check-in was yesterday | the day's nudge is rewritten as "Day 2 of <habit>" — "<partner> is counting on you" when paired | push, else email | `retention:day-two` |
+| No check-in for N+ days (default 3) | daily reminder, streak-at-risk, last-chance and partner-missed-day all stop — to the lapsed user, and *about* them to their partner | — | — |
+| …at day 3, 7 and 14 | one comeback per rung, naming the habit (and partner), promising the comeback bonus; never-checked-in users get a "fresh start" instead | push, else email | `retention:comeback:<lastCheckinDate>:d<rung>` |
+| Past the last rung + 7 days | silence | — | — |
+
+- **Tunables** (users-service env): `HABIT_LAPSE_BACKOFF_DAYS` (3), `HABIT_COMEBACK_LADDER_DAYS`
+  (`3,7,14`; rungs below N are dropped), kill switches `HABIT_LAPSE_BACKOFF_ENABLED` and
+  `HABIT_RETENTION_MESSAGES_ENABLED` (both default on — the first is a volume *cut*).
+- **One rung per run, the highest due.** Each rung stays sendable until the next one (the last
+  for 7 days), so a missed run delays a message instead of dropping it, and a user first found
+  at day 9 gets the day-7 message rather than a burst.
+- **A new lapse restarts the ladder.** The key carries the lapse's anchor (last check-in date),
+  so someone who comes back and lapses again a month later gets day 3/7/14 again.
+- **No contradiction with the engine.** A user the engine sends `habitComeback` this run gets no
+  ladder rung that run (`comebackYieldedToLifecycle`).
+- **Abstinence violation.** No retention copy cites the streak that was lost; a test pins it.
+
+### Why these are `dailyHabitReminder` variants, not new types
+
+The pushes are `dailyHabitReminder` rows with `payload.messageVariant` (`first-checkin`, `day-two`,
+`comeback`, `comeback-no-bonus`, `fresh-start`). push-notifications-service picks the copy from it
+(`api/retentionCopy.ts`). That type is already data-only with the one-press Check In button, is
+already routed by every installed Android build, and already passes the worker's send-time
+freshness gate — so a comeback queued for 08:00 is dropped if the user checks in at 07:30. A new
+type would be inert until a new Android build shipped and would lose all three.
+
+### The comeback bonus
+
+`habits.daily_bonuses.tier = 'comeback'`: the first check-in whose local day is N+ days after the
+previous upheld day rolls epic-or-better odds (75% epic 20–30 XP, 25% jackpot 50; mean ≈31). It
+uses the same N as the back-off, so the comeback copy's promise is true by construction, and the
+copy falls back to `comeback-no-bonus` when `HABIT_DAILY_BONUS_ENABLED=false`. A lapse can't be
+farmed: four consistent days earn more than one comeback.
+
+### Pact renewal at day 30
+
+0 of 14 expired pacts were renewed while the only renew offer arrived after the cycle had
+closed. `pactExpiring` (final 3 days) now carries the Renew button and the user's live streak
+("You're on a 12-day streak. Renew for another 30 days and keep it going."), and the renew
+handler accepts an active pact inside `PACT_EARLY_RENEWAL_DAYS` (early renewal closes the current
+cycle and starts a full new one now). `pactEnded` cites the streak too. And the second partner's
+Renew tap now *accepts* their seat in the first partner's renewal — before, it returned the
+renewal unchanged and left them `pending`, so a pact both partners renewed could wait forever.
+
+### Measuring it
+
+```sql
+-- Retention pushes: sent / opened / acted, by variant (and rung)
+SELECT q."payload"->>'messageVariant' AS variant,
+       q."payload"->>'comebackRung' AS rung,
+       q."status", COUNT(*) AS rows, COUNT(q."openedAt") AS opened,
+       COUNT(*) FILTER (WHERE q."openAction" = 'habit-checkin') AS "checkedInFromTray"
+FROM main."notificationQueue" q
+WHERE q."brandVariation" = 'habits' AND q."payload" ? 'messageVariant'
+GROUP BY 1, 2, 3 ORDER BY 1, 2, 3;
+
+-- Every retention message, push or email, and whether a check-in followed within 48h
+SELECT split_part(o."messageKey", ':', 1) || ':' || split_part(o."messageKey", ':', 2) AS message,
+       o."channel", COUNT(*) AS sent,
+       COUNT(*) FILTER (WHERE EXISTS (
+           SELECT 1 FROM habits.habit_checkins c
+           WHERE c."userId" = o."userId" AND c."status" = 'completed'
+             AND c."completedAt" BETWEEN o."sentAt" AND o."sentAt" + interval '48 hours')) AS "checkedInWithin48h"
+FROM habits.onboarding_messages o
+WHERE o."messageKey" LIKE 'retention:%' OR o."messageKey" = 'onboarding:first-checkin'
+GROUP BY 1, 2 ORDER BY 1, 2;
+
+-- Comeback bonuses paid
+SELECT COUNT(*), AVG("bonusXp") FROM habits.daily_bonuses WHERE "tier" = 'comeback';
+```
+
+Digest response: `retention.{nudgesBackedOff, partnerMissedBackedOff, ladderExhausted,
+firstCheckin, dayTwo, comeback}`. GA4: `push_open` carries `message_variant` (mobile build from
+`niche/HABITS-general`), and `habits_daily_bonus_reveal` already carries `tier` (`comeback`).
+
+---
+
 ## Rollout
 
 1. Deploy. Migration creates `habits.habit_phases`; the flag is off, nothing

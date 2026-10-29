@@ -287,6 +287,46 @@
             "buttonText": "Abrir {brandName}",
             "postBody1": "Un hábito. Un check-in. Es todo lo que pide hoy."
         },
+        "habitRetention": {
+            "dearUser": "¡Hola {toName}!",
+            "buttonText": "Abrir {brandName}",
+            "postBody1": "Un toque. Nada que recuperar.",
+            "firstCheckin": {
+                "subject": "El día 1 de {habitName} está a un toque",
+                "header": "Día 1 de {habitName}",
+                "body1": "Elegiste {habitName}. Un check-in hoy y tu racha ya empezó.",
+                "body1WithPartner": "Elegiste {habitName}, y {partnerName} está contigo. Un check-in hoy y tu racha ya empezó.",
+                "body2": "No tiene que ser un gran día. Pequeño y hecho vale más que perfecto y saltado."
+            },
+            "dayTwo": {
+                "subject": "Día 2 de {habitName}",
+                "header": "Día 2 de {habitName}",
+                "body1": "Ayer empezaste {habitName}. El check-in de hoy es el que lo convierte en racha.",
+                "body1WithPartner": "Ayer empezaste {habitName}, y {partnerName} cuenta contigo. El check-in de hoy es el que lo convierte en racha.",
+                "body2": "El día 2 es donde se detienen la mayoría de las rachas. La tuya no tiene por qué."
+            },
+            "comeback": {
+                "subject": "{habitName} sigue aquí para ti",
+                "header": "{habitName} sigue aquí para ti",
+                "body1": "Un check-in lo reinicia, y el primero al volver te da un bono de regreso.",
+                "body1WithPartner": "{partnerName} sigue dentro. Un check-in lo reinicia, y el primero al volver te da un bono de regreso.",
+                "body2": "Unos días perdidos no borran los días que ya hiciste."
+            },
+            "comebackNoBonus": {
+                "subject": "{habitName} sigue aquí para ti",
+                "header": "{habitName} sigue aquí para ti",
+                "body1": "Un check-in lo reinicia.",
+                "body1WithPartner": "{partnerName} sigue dentro. Un check-in lo reinicia.",
+                "body2": "Unos días perdidos no borran los días que ya hiciste."
+            },
+            "freshStart": {
+                "subject": "¿Todavía quieres empezar {habitName}?",
+                "header": "¿Todavía quieres empezar {habitName}?",
+                "body1": "El día 1 es un toque. No hay nada que recuperar.",
+                "body1WithPartner": "{partnerName} está listo cuando tú lo estés. El día 1 es un toque, sin nada que recuperar.",
+                "body2": "Empieza pequeño. Un check-in es un comienzo real."
+            }
+        },
         "pactSeatReminder": {
             "subject": "{fromName} todavía te está esperando",
             "header": "{fromName} todavía te está esperando",

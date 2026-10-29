@@ -197,6 +197,10 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     // `pactDeclined` copy selector: 'memberLeft' when an active group member left a pact that
     // carries on without them. Copy only — see push-notifications-service/api/pactDeclinedCopy.ts.
     pactDeclineReason?: 'memberLeft';
+    // HABITS retention copy selector on a `dailyHabitReminder` — 'first-checkin', 'day-two',
+    // 'comeback', 'comeback-no-bonus' or 'fresh-start' (users-service utilities/retentionLadder.ts).
+    // Also reaches the device, so a tap can be attributed to the variant in analytics.
+    messageVariant?: string;
     // Set only by the notification queue worker: the row this push is sent from. It reaches
     // the device in the FCM data map and comes back on tap (POST /users/notifications/push-opens),
     // which is what attributes an open to a send. Inline callers leave it unset.
@@ -272,6 +276,7 @@ export default (
         pledgeAmount,
         charityKey,
         pactDeclineReason,
+        messageVariant,
         notificationQueueId,
     }: ISendPushNotification,
     config: ISendPushNotificationAndOrEmailConfig = {
@@ -421,6 +426,7 @@ export default (
                     pledgeAmount,
                     charityKey,
                     pactDeclineReason,
+                    messageVariant,
                     notificationQueueId,
                     // achievementsCount,
                     // likeCount,
