@@ -176,6 +176,35 @@ users-service: `e9685447a` (already on `general`) and the queue-worker PR that f
   and `kubectl set env deployment/users-service-deployment TWILIO_SMS_ALLOWED_REGIONS-`. Keep
   `TWILIO_SMS_GLOBAL_HOURLY_CAP=20` only if it is meant to stay — then put it in the manifest instead.
 
+## Retention messaging at the drop-off points (added 2026-10-29)
+
+- [ ] **Read the first digest response after the deploy** — `retention` in the digest's counters
+  (automator logs, or the users-service `Habits daily digest completed` span). Expect
+  `nudgesBackedOff` around 20–40 (677 pushes, ~22 a day, went to real users 3+ days lapsed in the 30 days to 2026-10-29) and `comeback.queued +
+  comeback.emailed` far smaller. `profileReadFailed: true` means the history read failed and the run
+  fell back to nudging everyone. Kill switches: `HABIT_LAPSE_BACKOFF_ENABLED=false`,
+  `HABIT_RETENTION_MESSAGES_ENABLED=false`; tunables `HABIT_LAPSE_BACKOFF_DAYS` (3),
+  `HABIT_COMEBACK_LADDER_DAYS` (3,7,14).
+- [ ] **Register `message_variant` as a GA4 event-scoped custom dimension** on property 267810693
+  (event `push_open`) once the mobile build carrying it ships, or the parameter is collected but
+  not reportable. `tier` on `habits_daily_bonus_reveal` should already be registered — check that
+  `comeback` shows up.
+- [ ] **Release the mobile half to Play** (`niche/HABITS-general`: comeback bonus title,
+  `message_variant` on `push_open`). The server half works on installed builds without it — the
+  comeback reveal just reads "Bonus" instead of "Welcome-back bonus".
+- [ ] **Handset check:** on a Habits test account, renew a pact from the `pactExpiring` push's
+  "Start New Cycle" button with 1–3 days left (needs a pact near its end — shorten one's `endDate` on
+  a test account), and confirm the toast and that the old pact shows as ended. Then have the partner
+  tap Renew on the same pact and confirm their seat goes active.
+- [ ] **After 2–3 weeks, read the measurement queries** in `docs/HABIT_LIFECYCLE_MESSAGING.md`
+  § Retention at the drop-off points → Measuring it. Day-two and first-checkin conversion
+  (check-in within 48h) is the number that matters; if comeback rungs show 0 check-ins after 30+
+  sends, shorten the ladder (`HABIT_COMEBACK_LADDER_DAYS=3,7`).
+- [ ] **therr-messaging-automator overlap:** its `habits-milestone-emails` job can send a comeback
+  email for an *established* habit that lapsed (`habits.habit_phases`). If both are enabled, an
+  established user who lapses could get the automator's email and this ladder's message in the same
+  week. Rare at today's numbers; check before enabling that job.
+
 ## App Check for verification texts (added 2026-10-21, docs/APP_CHECK.md)
 
 Full checklist and rationale in `docs/APP_CHECK.md`. The console steps must be done **before** the
