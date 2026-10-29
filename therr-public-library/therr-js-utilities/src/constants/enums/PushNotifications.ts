@@ -93,6 +93,11 @@ export enum Types {
     partnerCheckedIn = 'partner-checked-in',
     partnerMissedDay = 'partner-missed-day',
     partnerCelebrated = 'partner-celebrated',
+    // Pact chat (docs/niche-sub-apps/habits/HABITS_PACT_CHAT_DESIGN.md). Queued by users-service,
+    // at most one per pact per recipient per hour (the dedupe key carries the message's UTC hour),
+    // and skipped at send time when the recipient has already read the thread. Data-only, with
+    // the `pactView` press action; the tap opens the pact's chat.
+    pactMessage = 'pact-message',
 
     // HABITS: Streaks
     streakMilestone = 'streak-milestone',
@@ -240,6 +245,7 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'PARTNER_CHECKED_IN'
 | 'PARTNER_MISSED_DAY'
 | 'PARTNER_CELEBRATED'
+| 'PACT_MESSAGE'
 | 'STREAK_MILESTONE'
 | 'STREAK_AT_RISK'
 | 'STREAK_BROKEN'
@@ -339,6 +345,10 @@ enum HabitsAndroidIntentActions {
     PARTNER_CHECKED_IN = 'com.therr.mobile.habits.PARTNER_CHECKED_IN',
     PARTNER_MISSED_DAY = 'com.therr.mobile.habits.PARTNER_MISSED_DAY',
     PARTNER_CELEBRATED = 'com.therr.mobile.habits.PARTNER_CELEBRATED',
+    // Declared in niche/HABITS-general's AndroidManifest.xml in the same change that adds the
+    // PactChat screen. Data-only, so an older build still renders it (Notifee) and routes the
+    // `pactView` press through its type fallback.
+    PACT_MESSAGE = 'com.therr.mobile.habits.PACT_MESSAGE',
     STREAK_MILESTONE = 'com.therr.mobile.habits.STREAK_MILESTONE',
     STREAK_AT_RISK = 'com.therr.mobile.habits.STREAK_AT_RISK',
     STREAK_BROKEN = 'com.therr.mobile.habits.STREAK_BROKEN',
