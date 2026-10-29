@@ -487,7 +487,7 @@ export const PactChat: React.FC<IPactChatProps> = ({
                     onLongPress={toggleSelected}
                     style={[
                         isMine ? messageStyles.messageContainerRight : messageStyles.messageContainerLeft,
-                        pending?.sendState === 'sending' && { opacity: 0.6 },
+                        pending?.sendState === 'sending' && chatStyles.pendingBubble,
                     ]}
                 >
                     <Text style={isMine ? messageStyles.messageTextRight : messageStyles.messageTextLeft}>{item.text}</Text>
@@ -541,7 +541,7 @@ export const PactChat: React.FC<IPactChatProps> = ({
                         <Text style={chatStyles.emptySubtitle}>{translate('pages.pactChat.emptySubtitle')}</Text>
                     </View>
                 )}
-                contentContainerStyle={!items.length ? { flexGrow: 1 } : undefined}
+                contentContainerStyle={!items.length ? chatStyles.emptyListContent : undefined}
             />
         );
     };
@@ -573,7 +573,7 @@ export const PactChat: React.FC<IPactChatProps> = ({
                         </Pressable>
                     </View>
 
-                    <View style={{ flex: 1 }}>{renderBody()}</View>
+                    <View style={chatStyles.listContainer}>{renderBody()}</View>
 
                     {canPost ? (
                         <>

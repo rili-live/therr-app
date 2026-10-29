@@ -203,8 +203,17 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             alignItems: 'center',
             justifyContent: 'center',
             paddingHorizontal: space.xl,
-            // The list is inverted, so its empty component renders upside down unless flipped back.
-            transform: [{ scaleY: -1 }],
+            // No flip here: an inverted VirtualizedList already composes its own inversion
+            // style onto ListEmptyComponent, and a transform set here would replace it.
+        },
+        emptyListContent: {
+            flexGrow: 1,
+        },
+        listContainer: {
+            flex: 1,
+        },
+        pendingBubble: {
+            opacity: 0.6,
         },
         emptyTitle: {
             fontFamily: therrFontFamily,
