@@ -179,6 +179,12 @@ export interface IPact {
      * it), never "nothing recorded"; a measured pact with nothing logged returns zeroes.
      */
     amountProgress?: IAmountProgress;
+    /**
+     * Pact chat: messages from other members the viewer has not read yet, on the pact list and
+     * detail responses. Absent on a users-service that predates chat, or before its migration
+     * has run — treat as 0.
+     */
+    unreadMessageCount?: number;
 }
 
 /** One active member's amounts on a measured habit. */
@@ -273,11 +279,6 @@ export interface IOpenPact {
     habitGoalCategory?: string | null;
     habitGoalFrequencyType?: string | null;
     habitGoalFrequencyCount?: number | null;
-    /**
-     * Pact chat: messages from other members the viewer has not read yet. Absent on a
-     * users-service that predates chat, or before its migration has run — treat as 0.
-     */
-    unreadMessageCount?: number;
     /** Members in the pact or invited and not yet answered — its occupied seats. */
     memberCount: number;
     /** The viewer already asked and is waiting on an answer. */
