@@ -1,5 +1,6 @@
 context/transcripts/
 .memsearch/
+.claude/worktrees/
 
 # Logs
 logs

@@ -183,11 +183,26 @@ describe('Habits digest — cadence gates on the pact loop', () => {
         expect(counters.partnerMissedSent).to.equal(2);
     });
 
-    it('does not carry last week\'s met quota into a Monday', async () => {
+    it('does not carry last week\'s tally into a Monday', async () => {
         // On a Monday "yesterday" is last Sunday, so the week tally fetched for it is last week's.
-        // Mon–Thu met last week's target of 4; carrying that into today read this week as
-        // already discharged and silenced the Monday streak warning for the users who had just
-        // done best.
+        // A 6x/week habit on a Monday has one day of slack, so it is pressing; carrying last
+        // week's four check-ins into today would read it as two owed with plenty of room and
+        // silence the warning.
+        clock.setSystemTime(new Date('2026-09-21T14:00:00.000Z'));
+        stubDigestReads(
+            { frequencyType: 'weekly', frequencyCount: 6 },
+            [MONDAY, TUESDAY, WEDNESDAY, THURSDAY],
+        );
+
+        const counters = await runDigest();
+
+        expect(counters.streakAtRiskSent).to.equal(2);
+    });
+
+    it('does not warn a quota pact that still has days to spare', async () => {
+        // Monday, 4x/week, nothing done yet: six days of slack. "Your streak is on the line" is
+        // false here, and sending it every morning is what teaches people to ignore it on the
+        // day it is true.
         clock.setSystemTime(new Date('2026-09-21T14:00:00.000Z'));
         stubDigestReads(
             { frequencyType: 'weekly', frequencyCount: 4 },
@@ -196,6 +211,6 @@ describe('Habits digest — cadence gates on the pact loop', () => {
 
         const counters = await runDigest();
 
-        expect(counters.streakAtRiskSent).to.equal(2);
+        expect(counters.streakAtRiskSent).to.equal(0);
     });
 });

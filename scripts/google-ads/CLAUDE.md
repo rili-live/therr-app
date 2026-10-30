@@ -116,7 +116,7 @@ verdict into "optimize the ads" — the arithmetic does not care how good the ad
    the only module whose output a human acts on, and it is the only one with
    real test coverage. Keep those two facts connected.
 5. **The product DB is read-only.** `product.py` uses the `DB_*_MAIN_READ` env
-   vars and opens a `SET TRANSACTION READ ONLY` cursor. Do not add a write path.
+   vars and sets `default_transaction_read_only` on its session. Do not add a write path.
 6. **`tracking.utm_campaign` is immutable once a campaign has served.** It is the
    join key into `main."userAcquisition"."utmCampaign"`. Renaming it orphans
    every historical signup from the spend that produced it. Create a new

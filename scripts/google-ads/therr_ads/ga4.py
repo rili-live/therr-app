@@ -198,12 +198,56 @@ APP_FUNNEL_STEPS: tuple[tuple[str, str, bool], ...] = (
 # phone_verify_success and zero reached any habit_* event. So the top of the
 # funnel is inflated and the bottom is clean - which means excluding them makes
 # the drop-off rates larger, not smaller. Removing them is not flattering.
+#
+# UPDATE 2026-10-28 — WHAT THE FARM IS. October's rows land on exactly each
+# release day, on that release's version: it is Google Play's pre-launch report,
+# which runs every new build on Firebase Test Lab (OnePlus8Pro 50, sdk_gphone_arm64
+# 8, sdk_gphone16k_arm64 7, sdk_gphone64_arm64 1 new users, 1-27 Oct). The new
+# `sdk_gphone16k_arm64` (Android's 16 KB-page emulator image) slipped past the
+# exact list, which is why emulators are now matched by substring. The app now
+# also turns analytics off when Test Lab's `firebase.test.lab` setting is set
+# (TherrMobile/main/utilities/analyticsCollection.ts); this exclusion stays for
+# history and for anything that gate misses.
+#
+# Exact model names. Kept exact on purpose: a prefix rule on a real device line
+# ("OnePlus", "Pixel") would eat real users.
 SYNTHETIC_DEVICE_MODELS: tuple[str, ...] = (
     "OnePlus8Pro",
     "sdk_gphone64_arm64",
     "sdk_gphone_arm64",
+    "sdk_gphone16k_arm64",
     "Android SDK built for arm64",
 )
+
+# Substrings that only ever appear in Android emulator model names. Google
+# renames the emulator image every few releases (sdk_gphone_x86, sdk_gphone64_*,
+# sdk_gphone16k_*), so a contains rule is the one that keeps up.
+SYNTHETIC_DEVICE_MODEL_SUBSTRINGS: tuple[str, ...] = (
+    "sdk_gphone",
+    "Android SDK built for",
+)
+
+
+def is_synthetic_device_model(model: str) -> bool:
+    """True when a GA4 deviceModel is the pre-launch farm or an emulator. Pure.
+
+    Mirrors `_app_funnel_filter` (exact list OR case-insensitive substring), so
+    the rule is unit testable without a GA4 client.
+    """
+    if not model:
+        return False
+    if model in SYNTHETIC_DEVICE_MODELS:
+        return True
+    lowered = model.lower()
+    return any(fragment.lower() in lowered for fragment in SYNTHETIC_DEVICE_MODEL_SUBSTRINGS)
+
+
+def synthetic_device_rule_description() -> str:
+    """The exclusion, in words, for report notes and the GA4 Explore segment."""
+    return (
+        "deviceModel in (" + ", ".join(SYNTHETIC_DEVICE_MODELS) + ") or containing ("
+        + ", ".join(SYNTHETIC_DEVICE_MODEL_SUBSTRINGS) + ")"
+    )
 
 # The step the PRODUCT question is really about — "did a cold user do the thing
 # the app is for". Pact creation is the real answer; until it is instrumented,
@@ -384,11 +428,12 @@ def fetch_app_funnel(app_property_id: str, days: int = 14,
     built = build_app_funnel(counts, app_property_id, stream_name, start, end)
     if exclude_synthetic_devices:
         built.notes.append(
-            "Excluded " + str(len(SYNTHETIC_DEVICE_MODELS)) + " synthetic device models ("
-            + ", ".join(SYNTHETIC_DEVICE_MODELS) + "). These were 49% of new users in the month "
+            "Excluded synthetic devices: " + synthetic_device_rule_description() + ". These are "
+            "Google Play's pre-launch report (Firebase Test Lab) and emulators, and were 49% of new "
+            "users in the month "
             "to 8 Sep 2026 and reach profile_create_start but never phone_verify_success, so "
             "excluding them widens the drop-off rates rather than flattering them. To match this "
-            "in the GA4 UI, build an Explore segment excluding the same deviceModel values."
+            "in the GA4 UI, build an Explore segment excluding the same deviceModel rule."
         )
     missing = built.missing_events()
     if missing:
@@ -409,7 +454,7 @@ def _exact_filter(field_name: str, value: str):
 
 
 def _app_funnel_filter(stream_name: str, exclude_synthetic: bool = True):
-    """Stream filter, optionally AND-ed with a NOT-IN on the synthetic devices.
+    """Stream filter, optionally AND-ed with NOT(any synthetic-device match).
 
     The stream half is mandatory (both Therr apps share this property). The
     device half is what removes the farm documented at SYNTHETIC_DEVICE_MODELS.
@@ -420,15 +465,30 @@ def _app_funnel_filter(stream_name: str, exclude_synthetic: bool = True):
     if not exclude_synthetic:
         return stream
 
-    in_list = FilterExpression(
-        filter=Filter(
-            field_name="deviceModel",
-            in_list_filter=Filter.InListFilter(values=list(SYNTHETIC_DEVICE_MODELS)),
+    synthetic = [
+        FilterExpression(
+            filter=Filter(
+                field_name="deviceModel",
+                in_list_filter=Filter.InListFilter(values=list(SYNTHETIC_DEVICE_MODELS)),
+            )
         )
-    )
+    ] + [
+        FilterExpression(
+            filter=Filter(
+                field_name="deviceModel",
+                string_filter=Filter.StringFilter(
+                    match_type=Filter.StringFilter.MatchType.CONTAINS,
+                    value=fragment,
+                    case_sensitive=False,
+                ),
+            )
+        )
+        for fragment in SYNTHETIC_DEVICE_MODEL_SUBSTRINGS
+    ]
+    any_synthetic = FilterExpression(or_group=FilterExpressionList(expressions=synthetic))
     return FilterExpression(
         and_group=FilterExpressionList(
-            expressions=[stream, FilterExpression(not_expression=in_list)]
+            expressions=[stream, FilterExpression(not_expression=any_synthetic)]
         )
     )
 

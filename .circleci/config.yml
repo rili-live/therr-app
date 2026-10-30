@@ -162,6 +162,11 @@ jobs:
       - run:
           name: Unit tests for _bin decision logic
           command: npm run test:bin-scripts
+      - run:
+          # The Claude Code harness: SessionStart briefing, session digest, memory distill.
+          # Same stdlib-only constraint as the tests above.
+          name: Unit tests for the Claude Code harness
+          command: npm run test:harness
   google_ads_tooling_tests:
     # Unit tests for scripts/google-ads (the paid-acquisition tooling). Nothing
     # else in this config runs Python, and these tests guard the budget ceiling

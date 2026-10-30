@@ -239,10 +239,12 @@ def fetch(
 
     with psycopg.connect(dsn, autocommit=True) as connection:
         # Belt and braces: the credentials should already be read-only, but a
-        # read-only transaction makes an accidental write impossible rather than
-        # merely unlikely.
+        # read-only session makes an accidental write impossible rather than
+        # merely unlikely. Session-level, not SET TRANSACTION: under autocommit
+        # each statement is its own transaction, so SET TRANSACTION only ever
+        # applied to itself and the query after it ran read-write.
         with connection.cursor() as cursor:
-            cursor.execute("SET TRANSACTION READ ONLY")
+            cursor.execute("SET default_transaction_read_only = on")
             cursor.execute(FUNNEL_SQL, params)
             for record in cursor.fetchall():
                 (campaign, source, medium, signups, activated, unlocked,

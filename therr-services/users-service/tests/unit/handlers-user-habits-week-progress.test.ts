@@ -70,6 +70,8 @@ describe('getUserHabits — weekProgress', () => {
             // 4 days left against 2 owed — still free to skip today.
             isRequiredToday: false,
             isMet: false,
+            // Two days of slack — not yet pressing, so no reminder and no warning colour.
+            urgency: 'flexible',
         });
     });
 

@@ -76,6 +76,8 @@ const DATA_ONLY_TYPES = [
     PushNotifications.Types.partnerCheckedIn,
     PushNotifications.Types.partnerMissedDay,
     PushNotifications.Types.partnerCelebrated,
+    // Pact chat: data-only like the partner family above; iOS gets an alert and the tap carries pactId.
+    PushNotifications.Types.pactMessage,
     PushNotifications.Types.pactInvitation,
     PushNotifications.Types.pactNudge,
     PushNotifications.Types.pactAccepted,
