@@ -2125,7 +2125,22 @@
                 "xpHint": "XP bonus : +{notePoints} pour une note, +{photoPoints} pour une photo. Les deux pour +{bothPoints}."
             },
             "feed": {
-                "emptyMessage": "Aucun suivi partagé pour l'instant. Partagez l'un des vôtres pour lancer le fil."
+                "emptyMessage": "Aucun suivi partagé pour l'instant. Partagez l'un des vôtres pour lancer le fil.",
+                "openPact": {
+                    "emptyFeedIntro": "Aucun suivi partagé pour l'instant. En attendant, voici des pactes ouverts à de nouveaux partenaires.",
+                    "eyebrow": {
+                        "interests": "Correspond à vos intérêts",
+                        "group": "Pacte de groupe",
+                        "partner": "Cherche un partenaire"
+                    },
+                    "pitch": {
+                        "interests": "Joignez-vous à ce pacte de groupe qui correspond à vos intérêts.",
+                        "group": "Joignez-vous à ce pacte de groupe et gagnez plus de points grâce aux réalisations de pacte.",
+                        "partner": "{name} cherche un partenaire de responsabilité. Joignez-vous et gagnez des points ensemble."
+                    },
+                    "requestedCancel": "Demandé · Annuler la demande",
+                    "seeAll": "Voir tous les pactes ouverts"
+                }
             },
             "dayDetail": {
                 "title": "{weekday} {day} {month}",
