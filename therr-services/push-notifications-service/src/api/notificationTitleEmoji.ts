@@ -76,6 +76,8 @@ export const NOTIFICATION_TITLE_EMOJI: Record<PushNotifications.Types, string> =
     [PushNotifications.Types.partnerCheckedIn]: '✅',
     [PushNotifications.Types.partnerMissedDay]: '👀',
     [PushNotifications.Types.partnerCelebrated]: '🎉',
+    // Pact chat — a group conversation, distinct from the direct-message bubble.
+    [PushNotifications.Types.pactMessage]: '🗨️',
 
     // Habits — streaks
     [PushNotifications.Types.streakMilestone]: '🏅',

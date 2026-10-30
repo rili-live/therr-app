@@ -51,6 +51,23 @@ it made, and these tags record the ones it didn't. `check`, `watch`, `build` and
 treat a tag as "already uploaded". Builds uploaded by hand before this skill existed (≤ 50)
 have no tag. `check` still blocks on them through main's history, but `watch` can't see them.
 
+## Resuming an interrupted release
+
+This skill needs no run ledger: every step's result is recorded outside the session,
+and the script reads it back. After a crash, compaction or restart, **start again at Step 1,
+not where you think you left off**:
+
+- `check` returns `MERGED_PENDING` with the `mergeSha` when the merge already happened, and
+  `ALREADY_RELEASED` when an EAS build or a ledger tag already covers the versionCode.
+- `watch <mergeSha>` re-derives the CI and EAS state from scratch, so it's safe to re-run.
+- If a local `build` finished before the session died, go straight to `submit <mergeSha>`.
+  It re-verifies the AAB on disk (applicationId, versionCode, versionName, upload-key
+  signature) and refuses a stale or wrong one, so a 4–10 minute rebuild isn't needed to
+  find out.
+- A `submit` that died after Play accepted the upload but before the ledger tag was pushed
+  shows up as Play's "version code already used" on the retry. Stop and tell the user,
+  per Step 6. Don't retry or bump.
+
 ---
 
 ## Step 1: Check

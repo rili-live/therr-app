@@ -98,6 +98,117 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Acquisition plan (added 2026-10-29, docs/niche-sub-apps/habits/HABITS_ACQUISITION_PLAN.md)
+
+Four-week test, 2026-11-02 → 2026-11-29. The recurring weekly steps are the plan's § The weekly
+routine; only the one-off and dated steps are listed here.
+
+- [ ] **Before the first community post, confirm Friends with Habits 1.25.0 (66) is on the Play
+  production track.** It carries the challenge screens and the referral card. A `/c/` link opened
+  in an older build lands on the dashboard.
+- [ ] **Create the November public challenge in the app** (template `noSpendDay`, starts
+  2026-11-02), and write its tagged link once, using the plan's § UTM conventions:
+  `https://habits.therr.com/c/<token>?utm_source=<site>&utm_medium=community&utm_campaign=challenge-2026-11-no-spend&utm_content=<community>`.
+- [ ] **After the users-service deploy carrying the referral catch-up grant, check
+  `SELECT COUNT(*) FROM habits.referral_rewards`.** Two users already qualify. Each gets the grant
+  (and the `habitsReferralRewardEarned` push) the next time their app reads referral progress
+  (My Habits, the paywall, or the partner-pick step after the next mobile release). If either has
+  stopped opening the app, nothing grants it. Decide by hand whether that's acceptable.
+- [ ] **After the web deploy carrying the store-link page-type campaigns, check that they arrive.**
+  Within a week, GA4 property `267810693` → new users by `firstUserCampaignName` should show
+  `web-landing` (and `web-invite` once an invitee installs through the web page), and
+  `main."userAcquisition"."utmCampaign"` should start holding `web-*` values.
+- [ ] **Run `/aso-listing` and start a Play Console store listing experiment** (short description
+  + first screenshot, the adjacency angle). One-off, ~3 h, `niche/HABITS-general`. Leave the
+  current listing as the control.
+- [ ] **Submit the Product Hunt launch on a chosen date.** It's the plan's single biggest one-off.
+  Don't pay for featured placements anywhere.
+- [ ] **GA4 admin: register `page_slug`, `page_locale`, `template_key` and `duration_days`** (the
+  same step as § Challenge guides below; listed again because the plan reads guide traffic by them).
+- [ ] **2026-11-30: read the four-week result against each channel's kill criterion** and append
+  a dated row to the plan's decision log. If there are ≤ 2 referral grants by then, set
+  `HABITS_REFERRAL_REWARD_FRIEND_COUNT=2` on users-service and read it again four weeks later.
+
+## Pact chat (added 2026-10-29, docs/niche-sub-apps/habits/HABITS_PACT_CHAT_DESIGN.md)
+
+- [ ] **Run the users-service migration after the deploy** (`20261028000001_habits.pact_chat.js`:
+  `habits.pact_messages`, `habits.pact_chat_reactions`, `habits.pact_members."chatLastReadAt"`).
+  Additive, and neither automator reads them. Until it runs, the chat endpoints answer 500, and the
+  pact list and detail responses simply have no `unreadMessageCount`. The pact list never fails.
+- [ ] **Release the mobile half to Play** (`niche/HABITS-general` → `-main`, `/niche-android-release`).
+  The release has to ship before chat is visible to anyone. A `pactMessage` push can only follow a
+  message, so no push goes out until a build with the chat screen is installed.
+- [ ] **Handset check, once a build with chat is installed on two phones:** send a message from one
+  phone while the other has the app closed. About 90 s later the other phone should show a heads-up
+  "{habit} pact — {name}: {text}" notification, on the Reminders channel, in Friends with Habits
+  (not Therr). Tapping it should open the chat. Then, with the chat open on the second phone, send
+  another message. It should appear within ~10 s and produce no push. The queue row reads
+  `skipped` / `already-read`:
+  `SELECT status, "lastError", "dedupeKey" FROM main."notificationQueue" WHERE type = 'pact-message' ORDER BY "createdAt" DESC LIMIT 20;`
+- [ ] **Read the result after 6–8 weeks** with `npm run report:retention` (PR #3153) plus the
+  chatted-vs-not cohort query in the design doc's "Reading the result". The baseline before chat:
+  paired users average 3.6 check-in days, and 0 were still checking in after week 4. Also watch the
+  GA4 events `pact_chat_open` and `pact_message_send` (property 267810693).
+- [ ] **Look at reported messages weekly while volume is low:**
+  `SELECT id, "pactId", "userId", "reportedAt", jsonb_array_length("reportedByUserIds") FROM habits.pact_messages WHERE "reportedAt" IS NOT NULL ORDER BY "reportedAt" DESC;`
+  No admin UI exists yet. A reported author also gets the reporter appended to `main.users."wasReportedBy"`.
+
+## Metrics data integrity: Test Lab devices, `/invite/null`, retention report (added 2026-10-29)
+
+- [ ] **After the next Friends with Habits release reaches Play, check that pre-launch devices stopped
+  reporting.** GA4 `267810693`, stream "Friends with Habits", release day ±1, dimension `deviceModel`:
+  `OnePlus8Pro` and `sdk_gphone*` should show ~0 `screen_view` / `profile_create_start` on the new
+  version (October baseline: 66 `first_open`s across release days). `first_open` and `session_start`
+  are logged natively before JS runs, so a few may still appear; if they keep arriving at the old
+  rate, the follow-up is to defer collection natively (`firebase.json` →
+  `analytics_auto_collection_enabled: false`, then enable from JS) — but verify on a device first
+  that `first_open` still fires for a real install when collection is enabled late, because it is
+  the key event imported into Google Ads.
+- [ ] **Update the GA4 "Real Users" Explore segment** to exclude `deviceModel` *contains* `sdk_gphone`
+  (not just the exact names), matching `SYNTHETIC_DEVICE_MODEL_SUBSTRINGS` in
+  `scripts/google-ads/therr_ads/ga4.py`. `sdk_gphone16k_arm64` was getting through.
+- [ ] **After the web deploy, open `https://habits.therr.com/invite`, `/invite/` and `/invite/null`**
+  signed out: each should render "You have been invited to Friends with Habits" with the Play button
+  (not plain-text "Not found"). On `www.therr.com/invite` the Join button should go to `/register`
+  with no `invite-code`. Then watch GA4 `549794383` (host `habits.therr.com`) page path
+  `/invite/null` — it should stop growing once the next app release is installed.
+- [ ] **Decide #3033** (returning SSO users with no username get `EMAIL_VERIFIED` and skip the
+  username stage). It is the root cause of `/invite/null`: 47 of 209 habits accounts have no
+  username, 25 of them carry both `user.verified.email.missing.props` and `user.verified.email`.
+  The link is now safe either way; fixing the grant adds a username step to their next sign-in.
+- [ ] **Run `npm run report:retention` weekly** (`scripts/retention-report/README.md`) and paste the
+  output into the session log, so retention changes from the P1 sessions are read against the
+  2026-10-29 baseline rather than recomputed by hand.
+
+## Habits push 502s — dead device tokens (added 2026-10-28)
+
+Cause and evidence: `docs/PUSH_NOTIFICATIONS_DEBUGGING.md` § Dead tokens. Fix lands in two deploys of
+users-service: `e9685447a` (already on `general`) and the queue-worker PR that followed it.
+
+- [ ] **Promote `general → stage → main` so users-service ships both fixes.** Until it does, every
+  NotRegistered clear still fails on the NOT NULL violation and ~23 users keep 502ing daily. Nothing
+  else is needed — no migration, no env var. Dead registrations clear themselves on the first send
+  after deploy.
+- [ ] **24h after the deploy, confirm the 502 share has fallen** (before: ~35/day failed vs ~25/day
+  sent, 2026-10-20 → 10-28):
+  ```sql
+  SELECT date_trunc('day', "updatedAt")::date AS d, status,
+         split_part(coalesce("lastError", ''), ':', 1) AS reason, count(*)
+  FROM main."notificationQueue"
+  WHERE "brandVariation" = 'habits' AND "updatedAt" > now() - interval '7 days'
+    AND status IN ('sent', 'failed', 'skipped')
+  GROUP BY 1, 2, 3 ORDER BY 1, 2, 3;
+  ```
+  Expect a one-day spike of `skipped / device-token-not-registered` (the backlog of dead tokens
+  clearing), then `skipped / no-device-token` for those users, and `failed` near zero. Any `failed`
+  row left now reads `push 502 messaging/<code>: …` — a code other than a token code is a new problem,
+  not this one.
+- [ ] **Check the push-service logs no longer show `Failed to clear invalid FCM device token`:**
+  `gcloud logging read 'resource.labels.container_name="server-push-notifications" "Failed to clear"' --freshness=1d --limit=5`.
+- [ ] **Re-read the reachability number** once it settles: habits users with a habits device token
+  was 86 of 205 on 2026-10-28 and will drop by roughly the ~23 dead installs. That lower number is the
+  true push audience; anything planned on "86 reachable" should use it.
+
 ## Challenges & founder referral reward (added 2026-10-23, § 2.7 #2988)
 
 - [ ] **Run the users-service migration after the deploy** (`20261023000001`: `habits.challenges`,
@@ -146,6 +257,35 @@ append new items here rather than only printing them once.
   `kubectl set env deployment/api-gateway-service-deployment TWILIO_SMS_ALLOWED_REGIONS- TWILIO_SMS_EXTENDED_REGIONS- TWILIO_SMS_EXTENDED_HOURLY_CAP-`
   and `kubectl set env deployment/users-service-deployment TWILIO_SMS_ALLOWED_REGIONS-`. Keep
   `TWILIO_SMS_GLOBAL_HOURLY_CAP=20` only if it is meant to stay — then put it in the manifest instead.
+
+## Retention messaging at the drop-off points (added 2026-10-29)
+
+- [ ] **Read the first digest response after the deploy** — `retention` in the digest's counters
+  (automator logs, or the users-service `Habits daily digest completed` span). Expect
+  `nudgesBackedOff` around 20–40 (677 pushes, ~22 a day, went to real users 3+ days lapsed in the 30 days to 2026-10-29) and `comeback.queued +
+  comeback.emailed` far smaller. `profileReadFailed: true` means the history read failed and the run
+  fell back to nudging everyone. Kill switches: `HABIT_LAPSE_BACKOFF_ENABLED=false`,
+  `HABIT_RETENTION_MESSAGES_ENABLED=false`; tunables `HABIT_LAPSE_BACKOFF_DAYS` (3),
+  `HABIT_COMEBACK_LADDER_DAYS` (3,7,14).
+- [ ] **Register `message_variant` as a GA4 event-scoped custom dimension** on property 267810693
+  (event `push_open`) once the mobile build carrying it ships, or the parameter is collected but
+  not reportable. `tier` on `habits_daily_bonus_reveal` should already be registered — check that
+  `comeback` shows up.
+- [ ] **Release the mobile half to Play** (`niche/HABITS-general`: comeback bonus title,
+  `message_variant` on `push_open`). The server half works on installed builds without it — the
+  comeback reveal just reads "Bonus" instead of "Welcome-back bonus".
+- [ ] **Handset check:** on a Habits test account, renew a pact from the `pactExpiring` push's
+  "Start New Cycle" button with 1–3 days left (needs a pact near its end — shorten one's `endDate` on
+  a test account), and confirm the toast and that the old pact shows as ended. Then have the partner
+  tap Renew on the same pact and confirm their seat goes active.
+- [ ] **After 2–3 weeks, read the measurement queries** in `docs/HABIT_LIFECYCLE_MESSAGING.md`
+  § Retention at the drop-off points → Measuring it. Day-two and first-checkin conversion
+  (check-in within 48h) is the number that matters; if comeback rungs show 0 check-ins after 30+
+  sends, shorten the ladder (`HABIT_COMEBACK_LADDER_DAYS=3,7`).
+- [ ] **therr-messaging-automator overlap:** its `habits-milestone-emails` job can send a comeback
+  email for an *established* habit that lapsed (`habits.habit_phases`). If both are enabled, an
+  established user who lapses could get the automator's email and this ladder's message in the same
+  week. Rare at today's numbers; check before enabling that job.
 
 ## App Check for verification texts (added 2026-10-21, docs/APP_CHECK.md)
 
@@ -540,7 +680,11 @@ The prod repair itself ran 2026-09-19 14:42 UTC (`repair-space-claims`: 25 consu
 > `scripts/google-ads/therr_ads/ga4.py` (applied to `fetch_app_funnel` by default and
 > recorded in every report's `notes`), plus a **"Real Users"** segment on the GA4
 > Explore funnel. Sanity check when reading either: `first_open` is **70**, not 136,
-> for 6 Aug – 8 Sep. The `surface` custom dimension is registered and reporting
+> for 6 Aug – 8 Sep. **Identified 2026-10-28:** the farm is Google Play's pre-launch report
+> (Firebase Test Lab) — the rows land on each release day, on that release's version. Emulators
+> are now matched by substring (`sdk_gphone*`, after `sdk_gphone16k_arm64` slipped past the
+> exact list), and `TherrMobile/main/utilities/analyticsCollection.ts` turns analytics off when
+> Test Lab's `firebase.test.lab` setting is set. The `surface` custom dimension is registered and reporting
 > (`web` / `habits` / `landing` / `dashboard`), verified 2026-09-03.
 
 - [ ] **Re-submit the habits sitemap to Search Console.** `habits.therr.com/sitemap.xml`
@@ -1867,6 +2011,7 @@ backend change needed — it refuses to treat Play's own
 - [ ] (2026-10-21, /quality-peer-review) **After the SMS-pumping guards deploy (`a12979d4d`…`c0bf8f311`), set Twilio Messaging Geo Permissions per § SMS country tiers above (core + extended tiers from `therr-js-utilities/src/sms-destination-policy.ts` — no longer the original 13-country list, and no longer pinned in `k8s/prod`) and confirm the spend alert from the 2026-07-25 item exists.** The account-level setting is the backstop for any send site that skips `isSmsDestinationAllowed`. Then watch for the `Global SMS budget exhausted for this hour` error log — it is the only signal that the 60/hour gateway cap (`TWILIO_SMS_GLOBAL_HOURLY_CAP`) is tripping, which locks every real user out of phone sign-in/sign-up for the rest of that hour.
 - [ ] (2026-10-24, /seo-audit) Re-submit sitemap to Google Search Console
   after the next deploy — added `/challenges`, `/es/retos`, `/fr/defis` and 63 challenge guides under them.
+- [ ] (2026-10-27, /mobile-release-preflight) **Deploy `stage → main` (and run migration `20261023000001`) before promoting Habits 1.25.0 (66) to production.** Its two headline release notes, challenges and the 3-friends referral reward, call `/users-service/habits/challenges*` and `/users-service/habits/referral-reward`, which are on `stage` (`313e9021e`) but not `main`. Until the backend ships, the challenge screens and the referral card hit 404s in production. Fine to sit on the internal track; the constraint is on promotion.
 <!-- skill-followups:end -->
 
 ---
@@ -2207,6 +2352,23 @@ depend on these working correctly.
 - `therr-services/websocket-service/src/handlers/messages.ts:168` — Send a
   push notification to each user in the room (excluding sender) — DM
   re-engagement is currently silent
+
+#### 2.1.1 Reminders timed from the user's usual check-in time (#3155)
+
+Design: `docs/niche-sub-apps/habits/HABITS_LEARNED_REMINDER_TIME_DESIGN.md`. Lands on `general`.
+Almost everyone gets the default 08:00 / 19:30 check-in nudge, which arrives after early users
+have checked in and well before night owls do. Learn each user's typical first and last check-in
+time and place the nudges relative to them. Precedence: explicit setting > learned > default.
+Decided: every user keeps a morning nudge (D1), and check-in history never moves quiet hours (D2).
+
+- [ ] Phase 1a — `utilities/checkinTimeProfile.ts` + tests, learned fields in
+      `localReminderSchedule.ts`, digest wiring behind `HABIT_LEARNED_REMINDER_TIME_ENABLED`, counters.
+      The evening half works on the current once-daily digest.
+- [ ] Phase 1b — hourly `slot=morning` digest pass. The once-daily run (14:00 UTC) is past the
+      morning slot in most zones. Cross-repo: `therr-infra-terraform` scheduler +
+      `therr-messaging-automator` caller.
+- [ ] Phase 2 — weekday/weekend profiles; decide per other digest whether to use the learned time.
+- [ ] Phase 3 — show "Automatic — around HH:MM" in Settings → Notifications (mobile, all three locales).
 
 ### 2.2 Pact / habit infrastructure (HABITS-specific)
 

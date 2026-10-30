@@ -120,6 +120,7 @@ npm run test:changed     # test changed packages
 npm run locales:check    # locale dictionary parity across all packages
 npm run test:lint-rules  # unit tests for the custom ESLint rules
 npm run test:bin-scripts # unit tests for decision logic in _bin gate scripts
+npm run test:harness     # unit tests for the Claude Code hooks and memory scripts
 npm run test:google-ads  # unit tests for the Google Ads tooling (needs PyYAML)
 npm run k8s:check-services # service registry vs k8s/prod manifests
 npm run k8s:check-waves    # rollout wave plan vs k8s/prod manifests
@@ -134,12 +135,19 @@ npm run pr:typecheck:<pkg>       # gateway|users|maps|messages|reactions|push|
 npm run pr:tsc-baseline:mobile   # mobile gates on "no NEW errors" vs TherrMobile/.tsc-baseline
 ```
 
-Or just run `/quality-check`, which groups changed files by package and does both.
+Or just run `/quality-check`, which groups changed files by package and does both. It runs in a
+forked context (as do `/doc-drift` and `/seo-audit`), so only its report lands in the session.
 
 ## Code Quality
 
 CI enforces lint, type-checking, and tests on every branch (`.circleci/config.yml`).
 Run `/quality-check` before finishing a change rather than relying on CI to tell you.
+
+`test:changed`, `lint:changed` and the pre-push hook skip packages that already passed the
+same check on identical content (`_bin/lib/check-cache.sh`), so re-running after a fix
+replays from the failure rather than from the start. The failure itself is recorded in
+`$(git rev-parse --git-common-dir)/therr-check-cache/last-failure.json`.
+`THERR_CHECK_CACHE=0` forces a full run. CI never uses the cache.
 
 Conventions worth knowing because they are **not** the common defaults:
 
@@ -339,9 +347,9 @@ They are joined by a `(#number)` suffix on the backlog heading, with the issue's
 `## Backlog` line naming that section back. Both directions — an unlinked pair gets
 planned twice.
 
-At the start of a non-trivial session, scan § Manual Operational Follow-ups for unchecked
-`- [ ]` items and surface the 1–3 most relevant to the current work. Don't recite the
-whole list.
+At the start of a non-trivial session, surface the 1–3 Manual Operational Follow-ups the
+session briefing ranks as most relevant to the current work. Don't recite the whole list,
+and don't re-scan the 3,000-line file for them.
 
 **Deferring work you find mid-session:** when you hit something real that is out of scope
 for what you are building, don't widen the task and don't leave it in the transcript —
@@ -355,14 +363,24 @@ same commit — and close its issue if the heading carries one.
 
 ## Session Memory
 
-At session start, read `context/USER.md`, `context/MEMORY.md`, and today's
-`context/memory/{YYYY-MM-DD}.md` if it exists. Keep it to that — these are capped at
-1,375 and 2,500 characters respectively, and mid-session writes only take effect next
-session.
+The `SessionStart` hook (`.claude/hooks/session-briefing.js`) injects a **Session
+briefing** before the first turn: branch and its project brief, `context/USER.md`,
+`context/MEMORY.md`, today's (or yesterday's) daily log, the most relevant open Manual
+Operational Follow-ups, and the working-tree state. Don't re-read those files at session
+start. Only if no briefing is in context (the hook failed), read `context/USER.md`,
+`context/MEMORY.md`, and today's `context/memory/{YYYY-MM-DD}.md` by hand. They are capped
+at 1,375 and 2,500 characters, and mid-session writes only take effect next session.
 
 Log session activity silently to today's daily log (goal, deliverables, decisions, open
 threads). Never announce that you logged something. `/memory-write` handles "remember
 this" / "forget about" requests and enforces the cap.
+
+Each session also leaves a structured digest (`context/transcripts/digests/`, local only:
+failures and their fixes, refusals, corrections). `/memory-distill` turns digests and daily
+logs into promotions (MEMORY.md, a CLAUDE.md gotcha, a skill's known failures, a lint rule),
+each approved by the user. When the briefing says it's due, offer it after the main task.
+After root-causing a CI failure, log it as `- CI-failure: <job> | <error> | <cause> | <fix>`
+so repeats get counted.
 
 For anything older than that — "what did we decide about X", "why is Y written this way",
 "have we hit this before" — use `/memory-recall` rather than reading through

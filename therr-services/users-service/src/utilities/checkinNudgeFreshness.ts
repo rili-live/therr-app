@@ -3,6 +3,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
 import { INotificationQueueRow } from '../store/NotificationQueueStore';
 import { getLocalDate, resolveCheckinTimeZone } from './dailyStreak';
+import evaluatePactMessageFreshness, { PACT_MESSAGE_TYPES } from './pactMessageFreshness';
 
 /**
  * "Is this check-in nudge still worth sending?", asked at send time.
@@ -176,8 +177,9 @@ const readHabitGoalIds = (payload: Record<string, any> | null | undefined): stri
 /**
  * Decide whether a claimed queue row should still go out.
  *
- * Only ever consulted for `CHECKIN_NUDGE_TYPES`, `PARTNER_CHECKIN_TYPES` and
- * `PACT_INVITE_TYPES`; every other type returns `shouldSend` without touching
+ * Only ever consulted for `CHECKIN_NUDGE_TYPES`, `PARTNER_CHECKIN_TYPES`,
+ * `PACT_INVITE_TYPES` and `PACT_MESSAGE_TYPES` (utilities/pactMessageFreshness.ts);
+ * every other type returns `shouldSend` without touching
  * the database.
  */
 const evaluateCheckinNudgeFreshness = async (row: INotificationQueueRow): Promise<IFreshnessDecision> => {
@@ -187,6 +189,11 @@ const evaluateCheckinNudgeFreshness = async (row: INotificationQueueRow): Promis
 
     if (PACT_INVITE_TYPES.has(row.type)) {
         return evaluatePactInviteFreshness(row);
+    }
+
+    // Pact chat: skipped once the recipient has read the thread past the message.
+    if (PACT_MESSAGE_TYPES.has(row.type)) {
+        return evaluatePactMessageFreshness(row);
     }
 
     if (!isCheckinNudgeType(row.type)) {

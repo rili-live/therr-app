@@ -199,6 +199,31 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# Section 5b — Learning loop (digests → /memory-distill)
+# ---------------------------------------------------------------------------
+
+echo ""
+echo -e "${BOLD}Learning loop${RESET} ${DIM}(session digests + /memory-distill)${RESET}"
+if command -v node >/dev/null 2>&1 && [[ -f scripts/memory-distill/index.js ]]; then
+  # One line of key=value pairs; see scripts/memory-distill/index.js --stats.
+  STATS="$(node scripts/memory-distill/index.js --stats 2>/dev/null || true)"
+  if [[ -n "$STATS" ]]; then
+    for pair in $STATS; do
+      printf "  %-22s %s\n" "${pair%%=*}" "${pair#*=}"
+    done
+    REPEATS="$(printf '%s\n' "$STATS" | tr ' ' '\n' | sed -n 's/^repeated_failures=//p')"
+    if [[ "${REPEATS:-0}" -gt 0 ]]; then
+      echo -e "  ${YELLOW}${REPEATS} failure signature(s) repeated across sessions — run /memory-distill${RESET}"
+    fi
+    echo -e "  ${DIM}Falling repeated_failures over time is the sign the loop is working.${RESET}"
+  else
+    echo -e "  ${DIM}memory-distill produced no stats${RESET}"
+  fi
+else
+  echo -e "  ${DIM}node or scripts/memory-distill missing — skipped${RESET}"
+fi
+
+# ---------------------------------------------------------------------------
 # Section 6 — Estimated inject cost
 # ---------------------------------------------------------------------------
 

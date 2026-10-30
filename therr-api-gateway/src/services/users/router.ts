@@ -62,6 +62,7 @@ import {
     unsubscribeAttemptLimiter,
     emailPrecheckLimiter,
     handoffMintLimiter,
+    pactMessageLimiter,
 } from './limitation/auth';
 import { createApiKeyValidation, revokeApiKeyValidation } from './validation/apiKeys';
 import { createCheckoutSessionValidation } from './validation/payments';
@@ -830,6 +831,33 @@ usersServiceRouter.get('/habits/pacts/:pactId/activities', handleServiceRequest(
 usersServiceRouter.post('/habits/pacts/:pactId/activities', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
+}));
+
+// HABITS — Pact chat (docs/niche-sub-apps/habits/HABITS_PACT_CHAT_DESIGN.md). Members only;
+// bodies are validated in users-service, which owns the membership check.
+usersServiceRouter.get('/habits/pacts/:pactId/chat', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/habits/pacts/:pactId/chat/messages', pactMessageLimiter, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.put('/habits/pacts/:pactId/chat/read', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.put('/habits/pacts/:pactId/chat/reactions', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.put('/habits/pacts/:pactId/chat/messages/:messageId/report', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.put('/habits/pacts/:pactId/chat/mute', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
 }));
 
 // HABITS — Check-ins
