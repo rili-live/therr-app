@@ -4,9 +4,16 @@ description: Run ESLint and TypeScript type-checking on changed or specified fil
 user-invocable: true
 allowed-tools: Bash(git diff*), Bash(git status*), Bash(npx eslint*), Bash(npx tsc*), Bash(find *)
 argument-hint: [--package <name>] [--fix] [--changed-only]
+context: fork
+agent: general-purpose
+background: false
 ---
 
 # Quality Check
+
+> Runs in a forked context so lint and tsc output never reaches the caller's session. Your final
+> message is all the caller sees: make it the Step 5 report, complete enough to act on
+> without re-running anything (file:line for every failure, and what you fixed).
 
 Run lint and type-checking on modified files in this monorepo. This satisfies the code quality requirements in CLAUDE.md: ESLint must pass and TypeScript must have zero errors before any change is complete.
 

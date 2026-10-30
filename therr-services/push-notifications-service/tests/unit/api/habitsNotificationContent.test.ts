@@ -26,6 +26,79 @@ const parseActions = (message: any): { id: string; title: string }[] => JSON
  *     roll-up carries `habitGoalId`.
  */
 describe('habits notification content', () => {
+    describe('retention variants on dailyHabitReminder', () => {
+        it('turns the reminder into the day-two message naming the habit and the partner', () => {
+            const message: any = createMessage(PushNotifications.Types.dailyHabitReminder, {}, {
+                ...config,
+                habitName: 'Reading',
+                habitGoalId: 'goal-1',
+                habitCount: 1,
+                partnerName: 'Dana',
+                messageVariant: 'day-two',
+            }, BrandVariations.HABITS);
+
+            expect(message.data.notificationTitle).to.contain('Day 2 of Reading');
+            expect(message.data.notificationBody).to.equal('Dana is counting on you. Today makes it a streak.');
+            // Same buttons as any single-habit reminder: one tap checks in.
+            expect(parseActions(message).map((a) => a.id)).to.include(PushNotifications.PressActionIds.habitCheckin);
+            // Reaches the device so the tap can be attributed to the variant.
+            expect(message.data.messageVariant).to.equal('day-two');
+        });
+
+        it('promises the comeback bonus only on the variant that has one', () => {
+            const withBonus: any = createMessage(PushNotifications.Types.dailyHabitReminder, {}, {
+                ...config, habitName: 'Reading', messageVariant: 'comeback',
+            }, BrandVariations.HABITS);
+            const withoutBonus: any = createMessage(PushNotifications.Types.dailyHabitReminder, {}, {
+                ...config, habitName: 'Reading', messageVariant: 'comeback-no-bonus',
+            }, BrandVariations.HABITS);
+
+            expect(withBonus.data.notificationBody).to.contain('comeback bonus');
+            expect(withoutBonus.data.notificationBody).to.not.contain('bonus');
+        });
+
+        it('keeps the ordinary reminder for an unknown variant, and sends no variant to the device', () => {
+            const message: any = createMessage(PushNotifications.Types.dailyHabitReminder, {}, {
+                ...config, habitName: 'Reading', messageVariant: 'not-a-variant',
+            }, BrandVariations.HABITS);
+
+            expect(message.data.notificationTitle).to.contain('Time to Check In');
+            expect(message.data.messageVariant).to.equal(undefined);
+        });
+    });
+
+    describe('pact renewal', () => {
+        it('offers a one-tap renew on the expiring warning, with the streak in the copy', () => {
+            const message: any = createMessage(PushNotifications.Types.pactExpiring, {}, {
+                ...config,
+                pactId: 'pact-1',
+                habitName: 'Reading',
+                daysRemaining: 2,
+                durationDays: 30,
+                streakCount: 12,
+            }, BrandVariations.HABITS);
+
+            expect(message.data.notificationTitle).to.contain('Reading: 2 day(s) left');
+            expect(message.data.notificationBody).to.equal(
+                "You're on a 12-day streak. Renew for another 30 days and keep it going.",
+            );
+            expect(parseActions(message).map((a) => a.id)).to.deep.equal([
+                PushNotifications.PressActionIds.pactRenew,
+                PushNotifications.PressActionIds.pactView,
+            ]);
+            expect(message.data.durationDays).to.equal('30');
+        });
+
+        it('leaves the streak out of the ended copy when there is none to keep', () => {
+            const message: any = createMessage(PushNotifications.Types.pactEnded, {}, {
+                ...config, pactId: 'pact-1', habitName: 'Reading', durationDays: 30, streakCount: 0,
+            }, BrandVariations.HABITS);
+
+            expect(message.data.notificationBody).to.not.contain('0-day');
+            expect(message.data.notificationBody).to.contain('30 days in');
+        });
+    });
+
     describe('partner copy interpolation', () => {
         const partnerTypes = [
             PushNotifications.Types.partnerCheckedIn,

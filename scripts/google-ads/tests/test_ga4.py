@@ -127,6 +127,41 @@ class SyntheticDeviceExclusionTests(unittest.TestCase):
         for model in ("sdk_gphone64_arm64", "sdk_gphone_arm64", "Android SDK built for arm64"):
             self.assertIn(model, SYNTHETIC_DEVICE_MODELS)
 
+    def test_emulators_are_matched_by_substring_including_new_image_names(self):
+        """sdk_gphone16k_arm64 (7 fake new users, Oct 2026) slipped past the exact list."""
+        from therr_ads.ga4 import is_synthetic_device_model
+
+        for model in (
+            "sdk_gphone16k_arm64",
+            "sdk_gphone64_arm64",
+            "sdk_gphone_x86",
+            "SDK_GPHONE64_X86_64",
+            "sdk_gphone_future_image",
+            "Android SDK built for x86",
+            "OnePlus8Pro",
+        ):
+            self.assertTrue(is_synthetic_device_model(model), model)
+
+    def test_substring_rule_spares_real_devices(self):
+        from therr_ads.ga4 import is_synthetic_device_model
+
+        for real in (
+            "Pixel 9 Pro XL", "SM-S921U", "motorola edge 50 fusion", "Infinix X6728",
+            "OnePlus9Pro", "ONEPLUS A6013", "", None,
+        ):
+            self.assertFalse(is_synthetic_device_model(real), real)
+
+    def test_rule_description_names_every_exclusion(self):
+        from therr_ads.ga4 import (
+            SYNTHETIC_DEVICE_MODEL_SUBSTRINGS,
+            SYNTHETIC_DEVICE_MODELS,
+            synthetic_device_rule_description,
+        )
+
+        text = synthetic_device_rule_description()
+        for item in SYNTHETIC_DEVICE_MODELS + SYNTHETIC_DEVICE_MODEL_SUBSTRINGS:
+            self.assertIn(item, text)
+
     def test_no_real_device_is_caught_by_the_list(self):
         """Guard against someone adding a prefix match that eats real Pixels."""
         from therr_ads.ga4 import SYNTHETIC_DEVICE_MODELS

@@ -13,8 +13,14 @@ interface IReferralRewardCardProps {
     themeHabits: any;
     translate: (key: string, params?: any) => string;
     /** Where the card is shown, for the analytics event. */
-    source: 'paywall' | 'my-habits';
+    source: 'paywall' | 'my-habits' | 'pact-invite';
     userId?: string;
+    /**
+     * `inline` is the version shown at the moment of inviting (the pact wizard's partner step):
+     * the offer and the progress only. No friend roster, and no "Invite a friend" button, since
+     * the screen it sits on is already the invite.
+     */
+    variant?: 'full' | 'inline';
 }
 
 /** Friend rows shown before "and N more". The card is a nudge, not a roster. */
@@ -25,7 +31,8 @@ const MAX_FRIENDS_SHOWN = 4;
  *
  * The rule lives on the server (users-service `helpers/referralReward.ts`): friends who joined
  * through this user's pact invite, challenge or invite link, verified, and active on 3 distinct
- * days. The grant happens on the friend's check-in, never here; this card only reads progress.
+ * days. The grant happens on the friend's check-in, or on this card's read when the reward was
+ * earned but never evaluated; either way the server decides, and this card only renders progress.
  *
  * Renders nothing when the offer does not apply — already paid, already earned, offer off or
  * sold out — or when the read fails, so it can never be the thing that breaks a screen.
@@ -36,6 +43,7 @@ const ReferralRewardCard: React.FC<IReferralRewardCardProps> = ({
     translate,
     source,
     userId,
+    variant = 'full',
 }) => {
     const [progress, setProgress] = useState<IReferralRewardProgress | null>(null);
     const isMounted = useRef(true);
@@ -43,7 +51,10 @@ const ReferralRewardCard: React.FC<IReferralRewardCardProps> = ({
 
     useEffect(() => {
         isMounted.current = true;
-        HabitsChallengesService.getReferralReward()
+        // Started inside a promise so a synchronous throw lands in the catch below too: this
+        // card sits on the pact wizard's partner step, and must never be what breaks it.
+        Promise.resolve()
+            .then(() => HabitsChallengesService.getReferralReward())
             .then((response: any) => {
                 if (isMounted.current && isReferralRewardProgress(response?.data)) {
                     setProgress(response.data);
@@ -67,8 +78,9 @@ const ReferralRewardCard: React.FC<IReferralRewardCardProps> = ({
     const required = progress.requiredFriendCount;
     const qualified = Math.min(progress.qualifiedCount, required);
     const remaining = required - qualified;
-    const shownFriends = progress.friends.slice(0, MAX_FRIENDS_SHOWN);
-    const hiddenCount = progress.friends.length - shownFriends.length;
+    const isInline = variant === 'inline';
+    const shownFriends = isInline ? [] : progress.friends.slice(0, MAX_FRIENDS_SHOWN);
+    const hiddenCount = isInline ? 0 : progress.friends.length - shownFriends.length;
 
     return (
         <View style={styles.challengeCard}>
@@ -113,17 +125,19 @@ const ReferralRewardCard: React.FC<IReferralRewardCardProps> = ({
                 <Text style={styles.challengeHint}>{translate('pages.referralReward.moreFriends', { count: hiddenCount })}</Text>
             )}
 
-            <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={translate('pages.referralReward.cta')}
-                onPress={() => {
-                    logAppEvent('habit_referral_reward_cta', { userId, source });
-                    navigation.navigate('CreatePactInvite');
-                }}
-                style={({ pressed }) => [styles.challengeSecondaryButton, styles.referralCta, pressed && styles.pressedOpacity]}
-            >
-                <Text style={styles.challengeSecondaryButtonText}>{translate('pages.referralReward.cta')}</Text>
-            </Pressable>
+            {!isInline && (
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={translate('pages.referralReward.cta')}
+                    onPress={() => {
+                        logAppEvent('habit_referral_reward_cta', { userId, source });
+                        navigation.navigate('CreatePactInvite');
+                    }}
+                    style={({ pressed }) => [styles.challengeSecondaryButton, styles.referralCta, pressed && styles.pressedOpacity]}
+                >
+                    <Text style={styles.challengeSecondaryButtonText}>{translate('pages.referralReward.cta')}</Text>
+                </Pressable>
+            )}
         </View>
     );
 };

@@ -2070,6 +2070,11 @@
             "checkinError": "Nous n'avons pas pu enregistrer votre suivi. Réessayez dans un instant.",
             "completed": "Complété!",
             "checkedInToday": "Enregistré aujourd'hui",
+            "risk": {
+                "streakAtRisk": "Fais ton check-in aujourd'hui pour garder ta série de {count} jours",
+                "dueToday": "À faire aujourd'hui pour atteindre ton objectif de la semaine",
+                "dueSoon": "Il te reste peu de jours cette semaine"
+            },
             "noHabitsTitle": "Aucune habitude pour le moment",
             "noHabitsSubtitle": "Créez une habitude pour commencer à suivre vos progrès",
             "pendingHabits": "En attente des partenaires",

@@ -25,6 +25,15 @@
             "notTrackingHabit": "Commence à suivre cette habitude avant de mettre tes amis au défi",
             "tooManyActive": "Tu peux avoir {limit} défis en cours à la fois. Attends qu'un se termine avant d'en lancer un autre."
         },
+        "pactChat": {
+            "cannotReportOwn": "Tu ne peux pas signaler ton propre message",
+            "invalidClientMessageId": "Ce message n'a pas pu être envoyé. Réessaie.",
+            "invalidMute": "Choisis si tu veux mettre ce pacte en sourdine",
+            "invalidReaction": "Choisis une des réactions proposées",
+            "invalidText": "Écris un message d'au plus {max} caractères",
+            "itemNotFound": "Nous n'avons pas trouvé ce message",
+            "notActive": "Ce pacte est terminé, le clavardage est donc en lecture seule"
+        },
         "pacts": {
             "activityTypeRequired": "Choisis ce que tu veux envoyer",
             "cannotDelete": "Tu ne peux supprimer qu'un pacte que tu as créé",
@@ -286,6 +295,46 @@
             "body2": "Pas besoin d'un partenaire pour commencer. Une fois ta série lancée, invite un ami pour la garder vivante.",
             "buttonText": "Ouvrir {brandName}",
             "postBody1": "Une habitude. Un check-in. C'est tout ce qu'aujourd'hui demande."
+        },
+        "habitRetention": {
+            "dearUser": "Salut {toName}!",
+            "buttonText": "Ouvrir {brandName}",
+            "postBody1": "Un toucher. Rien à rattraper.",
+            "firstCheckin": {
+                "subject": "Le jour 1 de {habitName} est à un toucher",
+                "header": "Jour 1 de {habitName}",
+                "body1": "Tu as choisi {habitName}. Un check-in aujourd’hui et ta série est lancée.",
+                "body1WithPartner": "Tu as choisi {habitName}, et {partnerName} est avec toi. Un check-in aujourd’hui et ta série est lancée.",
+                "body2": "Pas besoin d’une grosse journée. Petit et fait vaut mieux que parfait et sauté."
+            },
+            "dayTwo": {
+                "subject": "Jour 2 de {habitName}",
+                "header": "Jour 2 de {habitName}",
+                "body1": "Hier, tu as commencé {habitName}. Le check-in d’aujourd’hui en fait une série.",
+                "body1WithPartner": "Hier, tu as commencé {habitName}, et {partnerName} compte sur toi. Le check-in d’aujourd’hui en fait une série.",
+                "body2": "Le jour 2, c’est là que la plupart des séries s’arrêtent. Pas forcément la tienne."
+            },
+            "comeback": {
+                "subject": "{habitName} t’attend toujours",
+                "header": "{habitName} t’attend toujours",
+                "body1": "Un check-in relance tout, et ton premier check-in au retour te donne un bonus de retour.",
+                "body1WithPartner": "{partnerName} est toujours là. Un check-in relance tout, et ton premier check-in au retour te donne un bonus de retour.",
+                "body2": "Quelques jours manqués n’effacent pas ceux que tu as déjà faits."
+            },
+            "comebackNoBonus": {
+                "subject": "{habitName} t’attend toujours",
+                "header": "{habitName} t’attend toujours",
+                "body1": "Un check-in relance tout.",
+                "body1WithPartner": "{partnerName} est toujours là. Un check-in relance tout.",
+                "body2": "Quelques jours manqués n’effacent pas ceux que tu as déjà faits."
+            },
+            "freshStart": {
+                "subject": "Tu veux toujours commencer {habitName}?",
+                "header": "Tu veux toujours commencer {habitName}?",
+                "body1": "Le jour 1, c’est un toucher. Rien à rattraper.",
+                "body1WithPartner": "{partnerName} est prêt quand tu l’es. Le jour 1, c’est un toucher, sans rien à rattraper.",
+                "body2": "Commence petit. Un check-in, c’est un vrai début."
+            }
         },
         "pactSeatReminder": {
             "subject": "{fromName} t'attend toujours",

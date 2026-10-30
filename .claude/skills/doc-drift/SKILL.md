@@ -4,9 +4,16 @@ description: Check whether recent commits have made the root CLAUDE.md, docs/REA
 user-invocable: true
 allowed-tools: Bash(git log*), Bash(git diff*), Bash(git status*), Bash(ls*), Bash(wc*), Read, Glob, Grep, Edit
 argument-hint: [check|fix] [--since <ref>]
+context: fork
+agent: general-purpose
+background: false
 ---
 
 # Doc Drift
+
+> Runs in a forked context so the git log and doc reads never reaches the caller's session. Your final
+> message is all the caller sees: make it the Step 4 report, complete enough to act on
+> without re-running anything (file:line for every failure, and what you fixed).
 
 ## Why this is a skill and not a session hook
 

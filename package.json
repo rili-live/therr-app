@@ -50,6 +50,8 @@
         "mirrors:check": "node scripts/mirrored-files/index.js",
         "test:lint-rules": "for f in eslint-config/plugin/tests/*.test.js; do node \"$f\" || exit 1; done",
         "test:bin-scripts": "for f in _bin/lib/tests/*.test.js; do node \"$f\" || exit 1; done",
+        "test:harness": "for f in .claude/hooks/tests/*.test.js scripts/memory-distill/tests/*.test.js scripts/run-ledger/tests/*.test.js scripts/retention-report/tests/*.test.js; do [ -f \"$f\" ] || continue; node \"$f\" || exit 1; done",
+        "report:retention": "node scripts/retention-report/index.js",
         "test:google-ads": "cd scripts/google-ads && ${PWD}/.venv/bin/python -m unittest discover -s tests -t .",
         "test:google-play": "cd scripts/google-play && ${PWD}/.venv/bin/python -m unittest discover -s tests -t .",
         "test:all": "_bin/apply-to-all.sh 'npm test'",

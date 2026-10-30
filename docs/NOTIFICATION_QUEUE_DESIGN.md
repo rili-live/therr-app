@@ -169,6 +169,7 @@ it does not close it.
 | `streakAtRisk` / `dailyHabitReminder` | `checkin-nudge:<YYYY-MM-DD>` | the user's local morning |
 | `eveningCheckIn` (the "last chance" nudge) | `last-chance:<YYYY-MM-DD>` | the user's local evening |
 | `partnerMissedDay` | `partner-missed-day:<pactId>:<missingMemberId>:<YYYY-MM-DD>` | now |
+| `dailyHabitReminder` with `messageVariant` `comeback` / `comeback-no-bonus` / `fresh-start` (lapsed users) | `retention:comeback:<lastCheckinDate>:d<rung>` — the lapse's anchor, not the run's date, so each rung is once per lapse | the user's local morning |
 
 The check-in nudge is one row per **user** per day, whichever of the two types
 it ends up as. Both the pact loop and the reminder pass record into an
@@ -177,6 +178,12 @@ framing (`streakAtRisk` when any habit has a live streak, citing the longest
 one; `dailyHabitReminder` otherwise) can only be chosen after every habit at
 stake for that user is known. A nudge naming exactly one habit carries
 `habitGoalId`, which is what lets the notification offer a one-press check-in.
+
+The first-checkin and day-two messages ride the `checkin-nudge:<YYYY-MM-DD>` row itself
+(`payload.messageVariant`), so they never add a row; their once-ever guarantee comes from
+`habits.onboarding_messages`, not the queue. Users with no check-in for
+`HABIT_LAPSE_BACKOFF_DAYS` get no check-in nudge row at all — see
+`HABIT_LIFECYCLE_MESSAGING.md` § Retention at the drop-off points.
 
 Two things in that table are load-bearing and neither is obvious:
 
