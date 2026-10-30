@@ -39,6 +39,14 @@ export const isShareableUserName = (userName?: string | null): userName is strin
 );
 
 /**
+ * The invite landing that names no inviter. habits.therr.com reads `/invite/link` (no token) as
+ * the generic landing, while a bare `/invite` 404s there until the web route that accepts it
+ * deploys — and a Play release can ship before that, so the app must not depend on it.
+ * www.therr.com would read `/invite/link` as a user named "link", and already serves `/invite`.
+ */
+export const GENERIC_INVITE_PATH = CURRENT_BRAND_VARIATION === BrandVariations.HABITS ? '/invite/link' : '/invite';
+
+/**
  * The link a user shares to invite a friend.
  *
  * An account can be fully admitted with no username yet (47 of 209 Friends with Habits accounts on
@@ -50,7 +58,7 @@ export const isShareableUserName = (userName?: string | null): userName is strin
  */
 export const buildInviteUrl = (locale: string, userName?: string | null) => buildShareUrl(
     locale,
-    isShareableUserName(userName) ? `/invite/${userName}` : '/invite',
+    isShareableUserName(userName) ? `/invite/${userName}` : GENERIC_INVITE_PATH,
 );
 export const buildUserUrl = (locale: string, id: string) => buildShareUrl(locale, `/users/${id}`);
 export const buildGroupUrl = (locale: string, id: string) => buildShareUrl(locale, `/groups/${id}`);
