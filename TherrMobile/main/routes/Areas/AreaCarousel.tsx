@@ -52,6 +52,12 @@ interface IAreaCarouselProps {
     emptyListMessage: any;
     renderHeader: any;
     renderFooter?: any;
+    /**
+     * Renders a list item that is not a post — anything carrying a `feedItemType`, such as the
+     * open-pact cards the habits feed places between posts. Such items need a string `id` that
+     * cannot equal a post id. Omitted, every item is rendered as a post, as before.
+     */
+    renderFeedItem?: (item: any) => React.ReactElement | null;
     renderLoader: any;
     rootStyles: any;
     /**
@@ -217,6 +223,7 @@ const AreaCarousel = ({
     emptyListMessage,
     renderHeader,
     renderFooter,
+    renderFeedItem,
     renderLoader,
     rootStyles,
     stableOrderKey,
@@ -271,6 +278,9 @@ const AreaCarousel = ({
     }, [activeData, stableOrderKey]);
 
     const flatRenderItem = React.useCallback((itemObj) => {
+        if (renderFeedItem && itemObj.item?.feedItemType) {
+            return renderFeedItem(itemObj.item);
+        }
         let updateReaction = (!itemObj.item.areaType && !!updateThoughtReaction)
             ? updateThoughtReaction
             : (itemObj.item.areaType === 'spaces' ? updateSpaceReaction : updateMomentReaction);
@@ -301,7 +311,7 @@ const AreaCarousel = ({
         toggleAreaOptions, toggleThoughtOptions, onRepostPress, translate,
         theme, themeArea, themeThought, themeForms,
         updateEventReaction, updateMomentReaction, updateSpaceReaction, updateThoughtReaction,
-        user, isDarkMode,
+        user, isDarkMode, renderFeedItem,
     ]);
 
     const listEmptyComponent = React.useMemo(

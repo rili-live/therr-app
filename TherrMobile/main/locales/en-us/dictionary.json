@@ -2125,7 +2125,22 @@
                 "xpHint": "Bonus XP: +{notePoints} for a note, +{photoPoints} for a photo. Do both for +{bothPoints}."
             },
             "feed": {
-                "emptyMessage": "No shared check-ins yet. Share one of yours to get the feed started."
+                "emptyMessage": "No shared check-ins yet. Share one of yours to get the feed started.",
+                "openPact": {
+                    "emptyFeedIntro": "No shared check-ins yet. While the feed fills up, here are pacts open to new partners.",
+                    "eyebrow": {
+                        "interests": "Matches your interests",
+                        "group": "Group pact",
+                        "partner": "Looking for a partner"
+                    },
+                    "pitch": {
+                        "interests": "Join this group pact that matches your interests.",
+                        "group": "Join this group pact and earn more points from pact achievements.",
+                        "partner": "{name} wants an accountability partner. Join and earn points together."
+                    },
+                    "requestedCancel": "Requested · Cancel request",
+                    "seeAll": "See all open pacts"
+                }
             },
             "dayDetail": {
                 "title": "{weekday}, {month} {day}",

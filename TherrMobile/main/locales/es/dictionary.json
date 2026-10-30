@@ -2125,7 +2125,22 @@
                 "xpHint": "XP extra: +{notePoints} por una nota, +{photoPoints} por una foto. Haz ambas para +{bothPoints}."
             },
             "feed": {
-                "emptyMessage": "Aún no hay registros compartidos. Comparte uno de los tuyos para empezar el feed."
+                "emptyMessage": "Aún no hay registros compartidos. Comparte uno de los tuyos para empezar el feed.",
+                "openPact": {
+                    "emptyFeedIntro": "Aún no hay registros compartidos. Mientras se llena el feed, aquí tienes pactos abiertos a nuevos compañeros.",
+                    "eyebrow": {
+                        "interests": "Coincide con tus intereses",
+                        "group": "Pacto grupal",
+                        "partner": "Busca compañero"
+                    },
+                    "pitch": {
+                        "interests": "Únete a este pacto grupal que coincide con tus intereses.",
+                        "group": "Únete a este pacto grupal y gana más puntos con los logros de pactos.",
+                        "partner": "{name} busca un compañero de responsabilidad. Únete y ganen puntos juntos."
+                    },
+                    "requestedCancel": "Solicitado · Cancelar solicitud",
+                    "seeAll": "Ver todos los pactos abiertos"
+                }
             },
             "dayDetail": {
                 "title": "{weekday}, {day} de {month}",

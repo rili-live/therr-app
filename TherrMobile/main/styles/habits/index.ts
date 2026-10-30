@@ -1350,6 +1350,27 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         pactPressedSurface: {
             opacity: 0.75,
         },
+        // Open-pact cards between posts in the feed (components/Habits/FeedOpenPactCard).
+        feedPactEyebrow: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            color: therrTheme.colors.primary3,
+            marginBottom: space.xs,
+        },
+        feedPactHeaderRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.md,
+        },
+        feedPactPitch: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurface,
+            marginTop: space.md,
+        },
         pactTimelineRow: {
             flexDirection: 'row',
             alignItems: 'center',
