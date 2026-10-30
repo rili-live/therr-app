@@ -73,6 +73,9 @@ past session times.
 who logs habits in the morning should *not* get an evening reminder. The
 payoff is outsized here.
 
+**Habits design:** [`niche-sub-apps/habits/HABITS_LEARNED_REMINDER_TIME_DESIGN.md`](niche-sub-apps/habits/HABITS_LEARNED_REMINDER_TIME_DESIGN.md)
+learns from check-in times rather than session starts.
+
 ---
 
 ### 3. Content personalization (what, not who)

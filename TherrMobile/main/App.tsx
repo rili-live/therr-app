@@ -35,10 +35,12 @@ import getTourSteps from './getTourSteps';
 import UsersActions from './redux/actions/UsersActions';
 import { getPaperTheme } from './styles/themes';
 import { startNetworkListener } from './utilities/networkService';
+import { isRunningInFirebaseTestLab, shouldCollectAnalytics } from './utilities/analyticsCollection';
 import './components/ActionSheet';
 
-// Disable in development
-setAnalyticsCollectionEnabled(getAnalytics(), !__DEV__);
+// Disable in development and in Firebase Test Lab (Google Play's pre-launch report), whose lab
+// devices otherwise show up in GA4 as new users on every release day.
+setAnalyticsCollectionEnabled(getAnalytics(), shouldCollectAnalytics(__DEV__, isRunningInFirebaseTestLab()));
 
 
 // Reads theme name from Redux and provides the correct Paper theme to children

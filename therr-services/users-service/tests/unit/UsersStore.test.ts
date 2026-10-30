@@ -518,4 +518,24 @@ describe('UsersStore', () => {
             expect(delUser).to.throw('User ID or email is required to call deleteUser');
         });
     });
+
+    // main.users.deviceMobileFirebaseToken is NOT NULL DEFAULT ''. Writing null here
+    // raised a not-null violation on every FCM NotRegistered callback, so dead tokens
+    // were never cleared and kept being sent to.
+    describe('clearDeviceToken', () => {
+        it('clears to an empty string, never null, and only for the matching token', () => {
+            const mockStore = {
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.clearDeviceToken('user-1', 'dead-token');
+
+            const generatedSql = mockStore.write.query.args[0][0];
+            expect(generatedSql).to.contain(`"deviceMobileFirebaseToken" = ''`);
+            expect(generatedSql).to.not.contain('"deviceMobileFirebaseToken" = NULL');
+            expect(generatedSql).to.contain(`"deviceMobileFirebaseToken" = 'dead-token'`);
+        });
+    });
 });

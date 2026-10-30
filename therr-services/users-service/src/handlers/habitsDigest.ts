@@ -18,7 +18,7 @@ import { getWeekStart } from '../utilities/dailyStreak';
 import {
     describeWeekProgress,
     getCadence,
-    isQuotaUnmet,
+    isCheckinPressing,
     isRequiredOn,
     IWeekProgress,
 } from '../utilities/habitCadence';
@@ -29,6 +29,7 @@ import {
 } from '../utilities/checkinNudgeRollup';
 import { resolveReminderSchedule } from '../utilities/localReminderSchedule';
 import { createNameResolvers } from '../utilities/notificationNames';
+import { PACT_EARLY_RENEWAL_DAYS } from '../utilities/pactHelpers';
 import { createHabitNotificationPreferenceResolver } from '../utilities/habitNotificationPreferences';
 import { IUserHabitReminderRow } from '../store/UserHabitsStore';
 import { evaluateAllDailyStreaks } from './helpers/dailyStreak';
@@ -63,6 +64,16 @@ import {
     IPactInviteReminderCounters,
     runPactInviteReminderPass,
 } from './helpers/pactInviteReminderDigest';
+import {
+    decideNudgeRetention,
+    emptyRetentionCounters,
+    IRetentionCounters,
+    isUserBackedOff,
+    loadRetentionContext,
+    loadUsersWithDevice,
+    recordVariantOutcome,
+    runComebackLadderPass,
+} from './helpers/retentionMessaging';
 
 // Upper bound per run so a runaway pact count can't turn the digest into a
 // multi-minute request. Raise (or page the query) when active pacts approach
@@ -74,7 +85,8 @@ export const DIGEST_MAX_PACTS = 500;
 // habit count approaches the cap, rather than letting the run silently cover
 // only the oldest habits.
 export const DIGEST_MAX_HABITS = 2000;
-const PACT_EXPIRING_WARNING_DAYS = 3;
+// The warning window is the early-renewal window: the warning's Renew button only works inside it.
+const PACT_EXPIRING_WARNING_DAYS = PACT_EARLY_RENEWAL_DAYS;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 /**
@@ -262,6 +274,9 @@ interface IDigestCountersWithRecap extends IDigestCounters {
     onboardingNurture: IOnboardingNurtureCounters;
     // Nested for the same reason. See helpers/podiumWithinReachDigest.ts.
     podiumWithinReach: IPodiumWithinReachCounters;
+    // Nested for the same reason. The lapsed-user back-off, the comeback ladder and the
+    // first-checkin / day-two messages — see helpers/retentionMessaging.ts.
+    retention: IRetentionCounters;
 }
 
 /**
@@ -375,6 +390,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         pactInviteReminders: { ...EMPTY_PACT_INVITE_REMINDER_COUNTERS },
         onboardingNurture: emptyOnboardingNurtureCounters(),
         podiumWithinReach: { ...EMPTY_PODIUM_WITHIN_REACH_COUNTERS },
+        retention: emptyRetentionCounters(),
         pactsEvaluated: 0,
         pactsExpired: 0,
         streakAtRiskSent: 0,
@@ -549,6 +565,19 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
          */
         const habitNotificationPrefs = createHabitNotificationPreferenceResolver();
 
+        /**
+         * A member's live streak on a habit, for the pact renewal copy. 0 for none, a broken one,
+         * or a failed read — the copy then simply omits the streak rather than citing a wrong one.
+         */
+        const getLiveStreakCount = async (userId: string, habitGoalId: string): Promise<number> => {
+            try {
+                const streak = await Store.streaks.getByUserAndHabit(userId, habitGoalId);
+                return streak && streak.isActive ? Number(streak.currentStreak) || 0 : 0;
+            } catch {
+                return 0;
+            }
+        };
+
         // Close out pacts whose window has passed, before anything reads the
         // active set.
         //
@@ -635,7 +664,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     })),
                 );
                 // eslint-disable-next-line no-await-in-loop
-                const endedQueued = await Promise.all(endedMembers.map((member: any) => {
+                const endedQueued = await Promise.all(endedMembers.map(async (member: any) => {
                     const prefs = habitNotificationPrefs.peek(member.userId, expiring.habitGoalId);
                     if (!prefs.notifyPactUpdates) {
                         counters.pactUpdatesMutedByHabit += 1;
@@ -649,6 +678,9 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                             pactId: expiring.id,
                             habitName: endedHabitName,
                             durationDays: Number(expiring.durationDays || 0),
+                            // The renewal offer leads with what they keep: the streak lives on
+                            // the habit, not the pact, so it carries into the next cycle.
+                            streakCount: await getLiveStreakCount(member.userId, expiring.habitGoalId),
                         },
                     );
                 }));
@@ -779,6 +811,29 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             : EMPTY_LIFECYCLE_CONTEXT;
         counters.phasesEvaluated = Object.keys(lifecycle.decisions).length;
 
+        // Check-in history for everyone this run might notify, in one read: who has gone quiet
+        // (and so gets the comeback ladder instead of daily nudges), whose first check-in was
+        // yesterday, and who picked a habit but never checked in. A failed read backs nobody
+        // off — see helpers/retentionMessaging.ts for why that is the right way to fail.
+        const retention = await loadRetentionContext(
+            [
+                ...pactRecords.flatMap(({ members }) => members.map((member: any) => member.userId)),
+                ...remindableHabits.map((habit) => habit.userId),
+            ],
+            today,
+            counters.retention,
+        );
+        // Users the lifecycle engine sends its own `habitComeback` this run. The ladder stays out
+        // of their way: one "come back" a day is the most anyone should get.
+        const lifecycleComebackUsers = new Set<string>();
+        const pactMembersById = new Map(pactRecords.map(({ pact, members }) => [pact.id, members]));
+        /** The other active member's display name, for copy that says who is counting on them. */
+        const getPartnerName = async (pactId: string | null | undefined, userId: string): Promise<string | undefined> => {
+            const members = pactId ? pactMembersById.get(pactId) : undefined;
+            const partner = (members || []).find((member: any) => member.userId !== userId);
+            return partner ? getUserDisplayName(partner.userId) : undefined;
+        };
+
         // Tracks which (user, habit) pairs have already had their lifecycle
         // notifications queued and their phase persisted this run. Without it a
         // user in two pacts on the same goal would be processed twice; the
@@ -897,7 +952,10 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     },
                 );
                 if (outcome === 'queued') counters.comebackSent += 1;
-                if (outcome !== 'failed') delivered.comeback = true;
+                if (outcome !== 'failed') {
+                    delivered.comeback = true;
+                    lifecycleComebackUsers.add(userId);
+                }
             }
 
             await persistPhaseDecision(userId, habitGoalId, decision, today, delivered)
@@ -944,12 +1002,16 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                         // different daysRemaining for the same calendar day and
                         // queue a second warning.
                         // eslint-disable-next-line no-await-in-loop
-                        const queued = await Promise.all(members.map((member: any) => {
+                        const queued = await Promise.all(members.map(async (member: any) => {
                             const prefs = habitNotificationPrefs.peek(member.userId, pact.habitGoalId);
                             if (!prefs.notifyPactUpdates) {
                                 counters.pactUpdatesMutedByHabit += 1;
                                 return false;
                             }
+                            // One-tap renewal from the warning itself: `durationDays` names the
+                            // next cycle and selects the Renew button, and the renew handler
+                            // accepts an active pact this close to its end (isPactRenewable's
+                            // early-renewal window). The streak is what they keep by renewing.
                             return queuePush(
                                 member.userId,
                                 PushNotifications.Types.pactExpiring,
@@ -958,6 +1020,8 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                                     pactId: pact.id,
                                     habitName,
                                     daysRemaining,
+                                    durationDays: Number(pact.durationDays || 0),
+                                    streakCount: await getLiveStreakCount(member.userId, pact.habitGoalId),
                                 },
                             );
                         }));
@@ -1031,8 +1095,11 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     const completionsBeforeToday = pactCadence.kind === 'weeklyQuota' && yesterdayIsThisWeek
                         ? completionsBeforeYesterday + (completedYesterday ? 1 : 0)
                         : 0;
-                    const pactWantsMoreThisWeek = isQuotaUnmet(pactCadence, today, completionsBeforeToday);
-                    if (!completedToday && pactWantsMoreThisWeek) {
+                    // And only once the week is close to slipping (`isCheckinPressing`): a
+                    // 3x/week pact with six days of room on Monday has no streak "at risk", and
+                    // saying so every morning is what teaches people to ignore the warning.
+                    const pactWantsCheckinToday = isCheckinPressing(pactCadence, today, completionsBeforeToday);
+                    if (!completedToday && pactWantsCheckinToday) {
                         // eslint-disable-next-line no-await-in-loop
                         const streak = await Store.streaks.getByUserAndHabit(member.userId, pact.habitGoalId);
                         if (streak && streak.isActive && streak.currentStreak > 0) {
@@ -1097,7 +1164,14 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                         yesterday,
                         completionsBeforeYesterday,
                     );
-                    if (!completedYesterday && joinedBeforeYesterday && yesterdayWasRequired) {
+                    // A member who has gone quiet for the back-off window has been reported as
+                    // missing on every one of those days already; another one tells the partner
+                    // nothing new. The ladder speaks to the member who slipped instead.
+                    const missIsNews = !isUserBackedOff(retention, member.userId);
+                    if (!completedYesterday && joinedBeforeYesterday && yesterdayWasRequired && !missIsNews) {
+                        counters.retention.partnerMissedBackedOff += Math.max(0, members.length - 1);
+                    }
+                    if (!completedYesterday && joinedBeforeYesterday && yesterdayWasRequired && missIsNews) {
                         // eslint-disable-next-line no-await-in-loop
                         const partnerName = await getUserDisplayName(member.userId);
                         const otherMembers = members.filter((m: any) => m.userId !== member.userId);
@@ -1116,6 +1190,12 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                             const otherPrefs = habitNotificationPrefs.peek(other.userId, pact.habitGoalId);
                             if (!otherPrefs.notifyPartnerActivity) {
                                 counters.partnerActivityMutedByHabit += 1;
+                                return false;
+                            }
+                            // The recipient is lapsed themselves: "your partner missed a day" is
+                            // the nudge they have stopped opening (0 opens on 677 such pushes to real users, 2026-10).
+                            if (isUserBackedOff(retention, other.userId)) {
+                                counters.retention.partnerMissedBackedOff += 1;
                                 return false;
                             }
                             return queuePush(
@@ -1299,6 +1379,20 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 return {};
             });
 
+        // Device reach for the users who might get a first-checkin or day-two message, which go by
+        // email when there is no device. Only those users: everyone else's row is queued as before
+        // and the worker resolves the token at send time.
+        const variantCandidates = nudgeRows
+            .map((row) => row.userId)
+            .filter((userId) => {
+                const classification = retention.classifications.get(userId);
+                return !!classification && (classification.state === 'never-new' || classification.isDayTwo);
+            });
+        const variantCandidateSet = new Set(variantCandidates);
+        const usersWithDevice = retention.messagesEnabled
+            ? await loadUsersWithDevice(brand, variantCandidates)
+            : null;
+
         // One instant for the whole drain, so two users in the same zone cannot
         // land on different sides of a minute boundary and get slots that
         // disagree by a minute for no reason.
@@ -1328,6 +1422,32 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             // minute every morning is the one people learn to swipe away unread.
             // The dedupe keys below carry the date, not the time, so the drift
             // can never turn into a second row.
+            // Lapsed users stop here — both slots — and get the comeback ladder below instead.
+            // A first check-in or a day-two user gets the day's nudge rewritten as that message
+            // (or sent as an email, when there is no device to push to).
+            //
+            // `partnerName` only when the nudge names one habit backed by one pact: it is the
+            // single-habit case that has a partner to name at all. Looked up only for a user who
+            // could get a variant — nobody else's copy names the partner.
+            const partnerName = variantCandidateSet.has(row.userId)
+                // eslint-disable-next-line no-await-in-loop
+                ? await getPartnerName(row.payload.pactId, row.userId)
+                : undefined;
+            // eslint-disable-next-line no-await-in-loop
+            const retentionDecision = await decideNudgeRetention(
+                row,
+                retention,
+                usersWithDevice,
+                partnerName,
+                { brandVariation: brand, whiteLabelOrigin },
+                counters.retention,
+            );
+            if (retentionDecision.action === 'backed-off' || retentionDecision.action === 'emailed') {
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+            const variant = retentionDecision.action === 'push' ? retentionDecision.variant : undefined;
+
             const schedule = resolveReminderSchedule(preferences, decidedAt, { jitterSeed: row.userId });
             if (schedule.usedFallbackTimeZone) {
                 counters.usersWithoutTimezone += 1;
@@ -1342,19 +1462,31 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
             // `checkinDate` is the user's local date *at delivery*, not the
             // digest's — the notification is about the day it lands on, and
             // that is the day the freshness gate has to check.
+            //
+            // A variant always goes as `dailyHabitReminder`, whatever framing the roll-up chose:
+            // the copy is selected from `messageVariant` on that one type (push-notifications-
+            // service), and it keeps the one-press Check In button and the freshness gate.
             // eslint-disable-next-line no-await-in-loop
-            const queued = await queuePush(
+            const morningOutcome = await queuePushOutcome(
                 row.userId,
-                row.type,
+                variant ? PushNotifications.Types.dailyHabitReminder : row.type,
                 checkinNudgeDedupeKey(today),
-                { ...row.payload, checkinDate: schedule.morningLocalDate },
+                {
+                    ...row.payload,
+                    checkinDate: schedule.morningLocalDate,
+                    ...(variant ? { messageVariant: variant, partnerName } : {}),
+                },
                 schedule.morningAt,
             );
+            if (variant) {
+                recordVariantOutcome(variant, morningOutcome, counters.retention);
+            }
+            const queued = morningOutcome === 'queued';
             if (queued) {
                 // Counted under the type actually queued, so the fields
                 // therr-messaging-automator already logs keep meaning "rows of
                 // this type queued" — they just no longer double-count a user.
-                if (row.type === PushNotifications.Types.streakAtRisk) {
+                if (row.type === PushNotifications.Types.streakAtRisk && !variant) {
                     counters.streakAtRiskSent += 1;
                 } else {
                     counters.dailyRemindersSent += 1;
@@ -1434,6 +1566,28 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 counters.lastChanceSent += 1;
             }
         }
+
+        // ------------------------------------------------------------------
+        // Comeback ladder: what lapsed users get instead of the nudges the drain just dropped.
+        // One message at day 3, 7 and 14 without a check-in (HABIT_COMEBACK_LADDER_DAYS), then
+        // silence. Best-effort: a failure is logged and the digest still answers.
+        await runComebackLadderPass({
+            queuePush: queuePushOutcome,
+            context: retention,
+            habits: remindableHabits,
+            lifecycleComebackUsers,
+            getPartnerName,
+            emailContext: { brandVariation: brand, whiteLabelOrigin },
+            counters: counters.retention,
+            now: new Date(),
+        }).catch((err: any) => {
+            counters.retention.comeback.errors += 1;
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [err?.message, 'Habits digest: the comeback ladder pass failed'],
+            });
+        });
 
         // ------------------------------------------------------------------
         // Weekly recap.
@@ -1548,6 +1702,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 pactInviteReminders: JSON.stringify(counters.pactInviteReminders),
                 onboardingNurture: JSON.stringify(counters.onboardingNurture),
                 podiumWithinReach: JSON.stringify(counters.podiumWithinReach),
+                retention: JSON.stringify(counters.retention),
                 'pushNotification.brandVariation': String(brand),
             },
         });
