@@ -3230,7 +3230,9 @@
             "laterButton": "Later"
         },
         "challenges": {
+            "alreadyRunningTitle": "You're already in a challenge on this habit",
             "challengeFriends": "Challenge friends to this habit",
+            "viewChallenge": "View challenge",
             "createHeaderTitle": "Start a challenge",
             "createHeading": "Start a challenge",
             "createHeadingHabit": "Challenge friends to {habitName}",

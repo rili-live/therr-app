@@ -7,6 +7,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { HabitActions, MapActions } from 'therr-react/redux/actions';
+import { HabitsChallengesService } from 'therr-react/services';
 import {
     IUserState, IHabitsState, IHabitGoal, IHabitCheckin, IHabitCheckinProof, IStreak,
     IPact, IUserHabit, UserHabitNotificationCategory,
@@ -63,6 +64,8 @@ import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/cele
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
 import { DURATION, showToast } from '../../utilities/toasts';
+import getDeviceTimeZone from '../../utilities/deviceTimeZone';
+import { IChallenge, isChallenge } from '../Challenges/challengeFormat';
 
 /** Sunday-first, matching `targetDaysOfWeek` and the `daysOfWeekShort` dictionary. */
 const CADENCE_DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -119,6 +122,11 @@ interface IHabitDetailState {
     /** The amount tracking editor, null while closed. Seeded from the goal on open. */
     draftAmountTracking: IAmountTrackingChoice | null;
     isSavingAmountTracking: boolean;
+    /**
+     * The running challenge on this habit the user is on the board of — theirs or a friend's.
+     * When set, the challenge row opens it instead of starting a second one.
+     */
+    runningChallenge: IChallenge | null;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -155,6 +163,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
      * does not then set state on an unmounted component.
      */
     private isUnmounted = false;
+    private unsubscribeFocus?: () => void;
 
     constructor(props: IHabitDetailProps) {
         super(props);
@@ -177,6 +186,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             isSavingCadence: false,
             draftAmountTracking: null,
             isSavingAmountTracking: false,
+            runningChallenge: null,
         };
 
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
@@ -195,11 +205,36 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
 
         this.handleRefresh();
         this.loadPacts();
+        this.loadRunningChallenge();
+        // Back from starting, joining or ending a challenge should swap the row.
+        this.unsubscribeFocus = this.props.navigation.addListener?.('focus', this.loadRunningChallenge);
     };
 
     componentWillUnmount() {
         this.isUnmounted = true;
+        this.unsubscribeFocus?.();
     }
+
+    /**
+     * One board per habit: find the running challenge on this habit the user is already in.
+     * A failed read keeps whatever is on screen — the server refuses a duplicate anyway and
+     * hands the existing challenge back, so the worst case is one extra tap.
+     */
+    loadRunningChallenge = () => {
+        const { habitGoalId } = this.props.route.params;
+
+        HabitsChallengesService.getMine(getDeviceTimeZone() || undefined)
+            .then((response: any) => {
+                const list = response?.data?.challenges;
+                if (this.isUnmounted || !Array.isArray(list)) return;
+                const running = list.find((challenge: any) => isChallenge(challenge)
+                    && challenge.habitGoalId === habitGoalId
+                    && challenge.status === 'active'
+                    && !challenge.hasEnded);
+                this.setState({ runningChallenge: running || null });
+            })
+            .catch(() => undefined);
+    };
 
     getHabitGoal = (): IHabitGoal | undefined => {
         const { habits, route } = this.props;
@@ -570,22 +605,31 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
      *
      * Only on a habit the user is actively tracking — the server refuses anything else, because a
      * challenge is "come do what I'm doing" and the creator should be on the board from day one.
+     *
+     * Once the user is on a running challenge for this habit (started it, or joined a friend's),
+     * the row opens that one instead: a second board would split the same friends across two
+     * scoreboards counting the same check-ins.
      */
     renderChallengeLink = (habitGoal?: IHabitGoal, userHabit?: IUserHabit) => {
         if (!habitGoal || userHabit?.status !== 'active') {
             return null;
         }
 
-        const label = this.translate('pages.challenges.challengeFriends');
+        const { runningChallenge } = this.state;
+        const label = runningChallenge
+            ? this.translate('pages.challenges.viewChallenge')
+            : this.translate('pages.challenges.challengeFriends');
 
         return (
             <Pressable
                 accessibilityRole="link"
                 accessibilityLabel={label}
-                onPress={() => this.props.navigation.navigate('CreateChallenge', {
-                    habitGoalId: habitGoal.id,
-                    habitName: habitGoal.name,
-                })}
+                onPress={() => (runningChallenge
+                    ? this.props.navigation.navigate('ChallengeDetail', { joinToken: runningChallenge.joinToken })
+                    : this.props.navigation.navigate('CreateChallenge', {
+                        habitGoalId: habitGoal.id,
+                        habitName: habitGoal.name,
+                    }))}
                 style={({ pressed }) => [
                     this.themeHabits.styles.pactLinkRow,
                     pressed && this.themeHabits.styles.pactPressedSurface,
