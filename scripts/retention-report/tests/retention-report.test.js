@@ -98,8 +98,12 @@ test('lets aggregates through', () => {
 
 test('turns pg numeric strings back into numbers and leaves labels alone', () => {
     assert.deepStrictEqual(
-        normalizeRow({ users: '35', rate: '0.063', bucket: 'day 1-2', median: null }),
-        { users: 35, rate: 0.063, bucket: 'day 1-2', median: null },
+        normalizeRow({
+            users: '35', rate: '0.063', bucket: 'day 1-2', median: null,
+        }),
+        {
+            users: 35, rate: 0.063, bucket: 'day 1-2', median: null,
+        },
     );
 });
 
