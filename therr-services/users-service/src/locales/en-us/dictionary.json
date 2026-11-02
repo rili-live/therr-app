@@ -16,6 +16,7 @@
             "duplicateRepost": "You already reposted this"
         },
         "challenges": {
+            "alreadyRunning": "You're already in a challenge on this habit. Share that one instead.",
             "creatorCannotLeave": "You started this challenge, so you can't leave it. You can end it instead.",
             "ended": "This challenge has ended",
             "full": "This challenge is full",

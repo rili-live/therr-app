@@ -142,6 +142,18 @@ const createChallenge: RequestHandler = async (req: any, res: any) => {
         const bounds = await resolveWeekBounds(userId, timeZone);
         const startDate = bounds?.today || utcToday();
 
+        // Already on a running board for this habit (theirs or a friend's): hand that one back
+        // rather than starting a rival. Checked before the cap so the answer is "here's your
+        // challenge", not "too many". A double-tap or an older app build lands here too.
+        const running = await Store.challenges.getRunningForMemberAndGoal(userId, habitGoalId, startDate);
+        if (running) {
+            return res.status(409).send({
+                error: 'challenge-already-running',
+                message: translate(locale, 'errorMessages.challenges.alreadyRunning'),
+                challenge: await serializeChallenge(running, startDate, userId),
+            });
+        }
+
         const activeCount = await Store.challenges.countActiveCreatedBy(userId, startDate);
         if (activeCount >= MAX_ACTIVE_CHALLENGES_PER_CREATOR) {
             return handleHttpError({
