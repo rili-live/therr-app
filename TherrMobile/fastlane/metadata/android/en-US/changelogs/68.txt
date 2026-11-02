@@ -1,0 +1,3 @@
+What's new:
+• Your feed now suggests open pacts you can ask to join, marked when they match your habits
+• Already in a challenge on a habit? "View challenge" takes you straight to its scoreboard

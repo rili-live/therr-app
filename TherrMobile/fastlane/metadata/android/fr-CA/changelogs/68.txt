@@ -1,0 +1,3 @@
+Nouveautés :
+• Votre fil suggère maintenant des pactes ouverts que vous pouvez demander à rejoindre, signalés s'ils correspondent à vos habitudes
+• Déjà dans un défi sur une habitude? « Voir le défi » vous mène directement à son tableau
