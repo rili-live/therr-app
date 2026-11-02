@@ -3230,7 +3230,9 @@
             "laterButton": "Plus tard"
         },
         "challenges": {
+            "alreadyRunningTitle": "Tu participes déjà à un défi sur cette habitude",
             "challengeFriends": "Lancer un défi à tes amis sur cette habitude",
+            "viewChallenge": "Voir le défi",
             "createHeaderTitle": "Lancer un défi",
             "createHeading": "Lancer un défi",
             "createHeadingHabit": "Défie tes amis : {habitName}",

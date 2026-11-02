@@ -18,7 +18,7 @@ import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 import spacingStyles from '../../styles/layouts/spacing';
 import translator from '../../utilities/translator';
-import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
+import { getApiErrorMessage, readApiError } from '../../utilities/apiErrorMessage';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import getDeviceTimeZone from '../../utilities/deviceTimeZone';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -91,6 +91,19 @@ export const CreateChallenge: React.FC<ICreateChallengeProps> = ({ user, navigat
                 navigation.replace('ChallengeDetail', { joinToken: response.data.joinToken, justCreated: true });
             })
             .catch((error: any) => {
+                // Already on a running challenge for this habit (a double-tap, or HabitDetail had
+                // not caught up): the server hands that one back, so open it rather than erroring.
+                const { body } = readApiError(error);
+                if (body?.error === 'challenge-already-running' && isChallenge(body?.challenge)) {
+                    Toast.show({
+                        type: 'info',
+                        text1: translate('pages.challenges.alreadyRunningTitle'),
+                        text2: getApiErrorMessage(error) || undefined,
+                        visibilityTime: 3500,
+                    });
+                    navigation.replace('ChallengeDetail', { joinToken: body.challenge.joinToken });
+                    return;
+                }
                 Toast.show({
                     type: 'error',
                     text1: translate('pages.challenges.errorTitle'),
