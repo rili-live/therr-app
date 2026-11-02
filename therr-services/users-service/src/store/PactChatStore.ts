@@ -72,6 +72,10 @@ const applyWindow = (query: Knex.QueryBuilder, column: string, window: ITimeline
         next = next.andWhere(column, '<', window.before.toISOString());
     }
     if (window.after) {
+        // The cursor is an item's ISO createdAt (ms) while the column holds µs, so the cursor item
+        // itself sorts after its own truncated time and comes back on every poll; the client
+        // de-dupes by id. Deliberate: comparing at ms instead would also drop a different item
+        // written in the same millisecond, and a duplicate is recoverable where a gap is not.
         next = next.andWhere(column, '>', window.after.toISOString());
     }
     // Polling reads forwards (oldest new item first, so a burst larger than `limit` is not

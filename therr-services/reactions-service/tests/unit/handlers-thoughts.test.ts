@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import * as internalRest from 'therr-js-utilities/internal-rest-request';
 import Store from '../../src/store';
-import { searchActiveThoughts } from '../../src/handlers/thoughts';
+import { MAX_STREAM_SCAN_PASSES, searchActiveThoughts } from '../../src/handlers/thoughts';
 
 /**
  * `searchActiveThoughts` serves two different surfaces off one handler:
@@ -102,5 +102,91 @@ describe('searchActiveThoughts', () => {
 
         await searchActiveThoughts(buildReq({ lastContentCreatedAt, authorId: 'author-1' }), buildRes());
         expect(requestStub.args[1][1].data.lastContentCreatedAt).to.eq(lastContentCreatedAt);
+    });
+
+    /**
+     * Reaction rows carry no brand, so a habits viewer with a Therr history gets reaction pages
+     * the users-service lookup filters down to nothing. The stream has to read past them rather
+     * than answer "empty, but not the last page" — which the habits feed rendered as empty.
+     */
+    describe('reading past thoughts the brand cannot see', () => {
+        const reactionPage = (prefix: string, count: number) => Array.from({ length: count }, (_, i) => ({
+            thoughtId: `${prefix}-${i}`,
+            userId: 'user-1',
+        }));
+
+        it('reads the next reaction page when the lookup filtered this one out', async () => {
+            reactionsGetStub.reset();
+            reactionsGetStub.onCall(0).resolves(reactionPage('therr', 4));
+            reactionsGetStub.onCall(1).resolves(reactionPage('habits', 4));
+            requestStub.reset();
+            requestStub.onCall(0).resolves({ data: { thoughts: [], isLastPage: true } });
+            requestStub.onCall(1).resolves({
+                data: {
+                    thoughts: [
+                        { id: 'habits-1', fromUserId: 'author-1' },
+                        { id: 'habits-0', fromUserId: 'author-1' },
+                    ],
+                    isLastPage: true,
+                },
+            });
+            const res = buildRes();
+
+            await searchActiveThoughts(buildReq({ limit: 4, offset: 8 }), res);
+
+            expect(reactionsGetStub.args[1][2].offset).to.eq(12);
+            expect(res.body.thoughts.map((t: any) => t.id)).to.deep.equal(['habits-0', 'habits-1']);
+            // Every reaction row read is consumed, so the next request starts after both pages.
+            expect(res.body.pagination).to.deep.equal({ itemsPerPage: 8, offset: 8, isLastPage: false });
+        });
+
+        it('stops after a bounded number of passes', async () => {
+            reactionsGetStub.reset();
+            reactionsGetStub.resolves(reactionPage('therr', 4));
+            requestStub.reset();
+            requestStub.resolves({ data: { thoughts: [], isLastPage: true } });
+            const res = buildRes();
+
+            await searchActiveThoughts(buildReq({ limit: 4, offset: 0 }), res);
+
+            expect(reactionsGetStub.callCount).to.eq(MAX_STREAM_SCAN_PASSES);
+            expect(res.body.thoughts).to.deep.equal([]);
+            expect(res.body.pagination).to.deep.equal({
+                itemsPerPage: 4 * MAX_STREAM_SCAN_PASSES,
+                offset: 0,
+                isLastPage: false,
+            });
+        });
+
+        it('reports the last page once the reactions run out', async () => {
+            reactionsGetStub.reset();
+            reactionsGetStub.onCall(0).resolves(reactionPage('therr', 4));
+            reactionsGetStub.onCall(1).resolves(reactionPage('therr-tail', 1));
+            requestStub.reset();
+            requestStub.resolves({ data: { thoughts: [], isLastPage: true } });
+            const res = buildRes();
+
+            await searchActiveThoughts(buildReq({ limit: 4, offset: 0 }), res);
+
+            expect(reactionsGetStub.callCount).to.eq(2);
+            expect(res.body.pagination.isLastPage).to.eq(true);
+        });
+
+        it('does not scan an author profile, whose lookup ignores the reaction ids', async () => {
+            reactionsGetStub.reset();
+            reactionsGetStub.resolves([]);
+            requestStub.reset();
+            requestStub.resolves({
+                data: { thoughts: [{ id: 'own-1', fromUserId: 'user-1' }], isLastPage: true },
+            });
+            const res = buildRes();
+
+            await searchActiveThoughts(buildReq({ authorId: 'user-1' }), res);
+
+            expect(reactionsGetStub.callCount).to.eq(1);
+            // An own or friend profile has thoughts to show without any reaction rows.
+            expect(res.body.thoughts.map((t: any) => t.id)).to.deep.equal(['own-1']);
+            expect(res.body.pagination.itemsPerPage).to.eq(21);
+        });
     });
 });

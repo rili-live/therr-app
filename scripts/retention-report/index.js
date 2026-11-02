@@ -438,7 +438,7 @@ const runSections = async (client, { days, includeInternal }) => {
         // Sequential on purpose: one transaction, one snapshot-consistent read per section.
         for (const section of SECTIONS) {
             const params = sectionParams(section, { days, includeInternal });
-            const { rows } = await client.query(section.sql, params);
+            const { rows } = await client.query(section.sql, params); // eslint-disable-line no-await-in-loop
             results.push({
                 key: section.key,
                 title: section.title,
@@ -472,8 +472,9 @@ const main = async () => {
         process.stderr.write('note: using DB_*_MAIN_WRITE credentials; the session is forced read-only.\n');
     }
 
-    // Resolved from the repo root's node_modules, like the other scripts here.
-    const { Client } = require('pg');
+    // Resolved from the repo root's node_modules, like the other scripts here. Required lazily:
+    // the CI job that runs `test:harness` has no `npm ci`, and the tests load this module.
+    const { Client } = require('pg'); // eslint-disable-line global-require
     const client = new Client(config);
     await client.connect();
     try {

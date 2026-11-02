@@ -1,0 +1,3 @@
+Novedades:
+• Tu feed ahora sugiere pactos abiertos a los que puedes pedir unirte, marcados si coinciden con tus hábitos
+• ¿Ya estás en un reto de un hábito? "Ver reto" te lleva directo a su marcador
