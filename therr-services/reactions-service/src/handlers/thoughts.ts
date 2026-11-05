@@ -114,7 +114,11 @@ const searchActiveThoughts = async (req: any, res: any) => {
         let media: any;
         let isLookupLastPage: boolean | undefined;
         let lastBatchSize = 0;
-        let scanOffset = offset || 0;
+        // The gateway only checks that `offset` exists, not its type, and `scanOffset += n` on a
+        // string would concatenate ("21" + 21 = "2121") and send the next page to a row far past
+        // the end. Coerce once here and use the number everywhere below.
+        const startOffset = Number(offset) || 0;
+        let scanOffset = startOffset;
 
         for (let pass = 0; pass < maxPasses; pass += 1) {
             // Sequential by design: whether to read the next page depends on this one.
@@ -187,8 +191,8 @@ const searchActiveThoughts = async (req: any, res: any) => {
             pagination: {
                 // Reaction rows consumed, not thoughts returned — see the scan above. Equal to
                 // `limit` for every full page that needed no scan, as it always was.
-                itemsPerPage: isRelevanceRanked ? Math.max(scanOffset - (offset || 0), limit || 0) : limit,
-                offset,
+                itemsPerPage: isRelevanceRanked ? Math.max(scanOffset - startOffset, Number(limit) || 0) : limit,
+                offset: startOffset,
                 isLastPage: lastBatchSize < limit && !!isLookupLastPage,
             },
         });
