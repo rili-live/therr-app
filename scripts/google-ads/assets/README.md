@@ -69,7 +69,8 @@ coach or friends". Like the images above, neither is uploaded by
 `campaign apply`; attach them in the Google Ads UI.
 
 Character reference stills for video generation live in [`references/`](references/)
-(e.g. [`references/caveman/`](references/caveman/) for the "Evolve your life" promo).
+([`references/caveman/`](references/caveman/) and [`references/chameleon/`](references/chameleon/)
+for the "Evolve your life" promo).
 They are inputs to Runway, not ad assets — never upload them to an ad account.
 
 Still outstanding, though it is a Play requirement rather than an Ads one: the
