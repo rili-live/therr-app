@@ -6,6 +6,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import { getHostContext } from '../constants/hostContext';
 import Store from '../store';
 import { ICreateSubscriberParams } from '../store/SubscribersStore';
+import { IAttributionFields, sanitizeAttribution } from '../store/UserAcquisitionStore';
 import sendUserFeedbackEmail from '../api/email/admin/sendUserFeedbackEmail';
 import sendSubscriberVerificationEmail from '../api/email/sendSubscriberVerificationEmail';
 import sendCoachesWaitlistAdminEmail from '../api/email/admin/sendCoachesWaitlistAdminEmail';
@@ -128,6 +129,17 @@ export const sanitizeCoachesWaitlistDetails = (raw: unknown): Record<string, str
 };
 
 /**
+ * The session's first-touch attribution, sanitized and with empty fields dropped, or undefined
+ * when nothing usable arrived. Waitlist signups are not registrations, so without this a paid
+ * click that ends on a waitlist cannot be tied back to its campaign at all.
+ */
+export const toSubscriberAcquisition = (raw: unknown): IAttributionFields | undefined => {
+    const sanitized = sanitizeAttribution(raw);
+    const kept = Object.fromEntries(Object.entries(sanitized).filter(([, value]) => value !== undefined));
+    return Object.keys(kept).length ? kept as IAttributionFields : undefined;
+};
+
+/**
  * What a signup answers with. The endpoint is unauthenticated and keyed on an email address the
  * caller types, so it must not echo the stored row: for an existing address that would hand
  * anyone who knows it which lists it is on and a coach's waitlist answers. No client reads more
@@ -162,6 +174,7 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
     const coachesWaitlistDetails = isSubscribedToCoachesWaitlist
         ? sanitizeCoachesWaitlistDetails(req.body.coachesWaitlistDetails)
         : {};
+    const acquisition = toSubscriberAcquisition(req.body.userAcquisition);
     const resolvedBrand = brandVariation || BrandVariations.THERR;
     const contextConfig = getHostContext(whiteLabelOrigin, resolvedBrand);
 
@@ -173,6 +186,7 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
     }, {
         email,
         details: coachesWaitlistDetails,
+        acquisition,
     }).catch((error) => {
         logSpan({
             level: 'error',
@@ -203,6 +217,13 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
                 if (isSubscribedToCoachesWaitlist) {
                     // A coach who submits again has probably changed an answer; keep the latest.
                     upgrade.coachesWaitlistDetails = JSON.stringify(coachesWaitlistDetails);
+                }
+                // Attribution records what brought the address onto its latest list, so a new
+                // list membership overwrites it; a resubmission only fills it when it is empty.
+                // Never on its own: a plain duplicate subscribe must still reach the 400 below.
+                const joinsList = !!(upgrade.isSubscribedToIosWaitlist || upgrade.isSubscribedToCoachesWaitlist);
+                if (acquisition && Object.keys(upgrade).length && (joinsList || !existing.acquisition)) {
+                    upgrade.acquisition = JSON.stringify(acquisition);
                 }
 
                 if (Object.keys(upgrade).length) {
@@ -238,6 +259,7 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
                     isSubscribedToCoachesWaitlist: true,
                     coachesWaitlistDetails: JSON.stringify(coachesWaitlistDetails),
                 } : {}),
+                ...(acquisition ? { acquisition: JSON.stringify(acquisition) } : {}),
             }).then(() => {
                 sendSubscriberVerificationEmail({
                     subject: `[${contextConfig.brandName}] Subscribed to General Updates`,

@@ -16,4 +16,7 @@ export const subscribersSignupValidation = [
     // which drops an unknown value rather than failing the signup, so only the shape is checked here.
     body('isSubscribedToCoachesWaitlist').optional().isBoolean(),
     body('coachesWaitlistDetails').optional().isObject(),
+    // The session's first-touch attribution (same shape as registration's userAcquisition).
+    // Sanitized field by field in the users-service; only the shape is checked here.
+    body('userAcquisition').optional().isObject(),
 ];
