@@ -1957,6 +1957,15 @@
                 return form.getAttribute(attr) || '';
             }
 
+            // The session's first-touch attribution, written by habitsAttribution.hbs on the first
+            // page of the visit. Sent so a waitlist row can be tied to the campaign that brought it
+            // (a signup here is not a registration, so main."userAcquisition" never sees it).
+            function storedAttribution() {
+                try {
+                    var parsed = JSON.parse(window.sessionStorage.getItem('therrUserAcquisition') || 'null');
+                    return parsed && typeof parsed === 'object' ? parsed : undefined;
+                } catch (e) { return undefined; }
+            }
             function showError(msg) {
                 errorBox.textContent = msg;
                 errorBox.hidden = false;
@@ -2033,6 +2042,7 @@
                     body: JSON.stringify({
                         email: email,
                         isSubscribedToIosWaitlist: true,
+                        userAcquisition: storedAttribution(),
                     }),
                 }).then(function (res) {
                     return res.json().then(function (body) { return { res: res, body: body }; })
