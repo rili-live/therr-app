@@ -808,6 +808,106 @@
         .compare-list .tick svg { width: 1rem; height: 1rem; }
         .compare-list strong { color: var(--fwh-plum); font-weight: 700; display: block; margin-bottom: 0.125rem; }
 
+        /* Named comparison table. Four columns do not fit a phone column: below 640px each
+           row becomes a card whose cells carry their app's name (data-label), so the two
+           competitor columns are not hidden off to the right behind a scroll nobody finds. */
+        .section-head--table { margin-top: 4rem; }
+        .compare-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--fwh-border);
+            border-radius: 1rem;
+            background: var(--fwh-white);
+        }
+        .compare-table {
+            width: 100%;
+            min-width: 38rem;
+            border-collapse: collapse;
+            font-size: 0.9375rem;
+            text-align: left;
+        }
+        .compare-table caption,
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+        }
+        .compare-table th,
+        .compare-table td {
+            padding: 0.875rem 1rem;
+            vertical-align: top;
+            border-bottom: 1px solid var(--fwh-border);
+            color: var(--fwh-text-muted);
+        }
+        .compare-table tbody tr:last-child th,
+        .compare-table tbody tr:last-child td { border-bottom: none; }
+        .compare-table thead th { color: var(--fwh-plum); font-weight: 700; white-space: nowrap; }
+        .compare-table tbody th {
+            position: sticky;
+            left: 0;
+            background: var(--fwh-white);
+            color: var(--fwh-plum);
+            font-weight: 700;
+            width: 8.5rem;
+        }
+        .compare-table .is-us { background: var(--fwh-purple-tint); color: var(--fwh-text); }
+        .compare-table thead .is-us { color: var(--fwh-purple); }
+        .compare-table__note { margin-top: 1rem; }
+        @media (max-width: 639px) {
+            .compare-table-wrap { border: none; background: transparent; }
+            .compare-table { min-width: 0; }
+            .compare-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+            .compare-table tbody { display: grid; gap: 0.875rem; }
+            .compare-table tr {
+                display: block;
+                background: var(--fwh-white);
+                border: 1px solid var(--fwh-border);
+                border-radius: 1rem;
+                overflow: hidden;
+            }
+            .compare-table tbody th,
+            .compare-table td { display: block; width: auto; position: static; border-bottom: 1px solid var(--fwh-border); }
+            .compare-table tbody tr th { border-bottom: 1px solid var(--fwh-border); }
+            /* The desktop rule drops the last row's bottom border; as a card, that row
+               still needs its inner dividers. */
+            .compare-table tbody tr:last-child th,
+            .compare-table tbody tr:last-child td { border-bottom: 1px solid var(--fwh-border); }
+            .compare-table tbody tr td:last-child { border-bottom: none; }
+            .compare-table td::before {
+                content: attr(data-label);
+                display: block;
+                font-size: 0.75rem;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                color: var(--fwh-plum);
+                margin-bottom: 0.125rem;
+            }
+            .compare-table td.is-us::before { color: var(--fwh-purple); }
+        }
+
+        /* "No friend yet?" callout under the three steps. */
+        .no-friend {
+            margin: 2rem auto 0;
+            max-width: 760px;
+            padding: 1.75rem 1.5rem;
+            border-radius: var(--fwh-radius);
+            background: var(--fwh-purple-tint);
+            border: 1px dashed var(--fwh-purple-mid);
+        }
+        .no-friend h3 {
+            margin: 0 0 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--fwh-plum);
+            line-height: 1.25;
+        }
+        .no-friend p:not(.eyebrow) { margin: 0 0 0.75rem; font-size: 0.9375rem; }
+        .no-friend__link { font-weight: 700; }
+
         /* Founder offer. Rendered as a bordered card rather than a plain section so the
            limited-availability offer reads as a distinct object on the page — it is the
            one block here with a price and a deadline attached. */
@@ -1397,6 +1497,21 @@
                         </div>
                     </li>
                 </ol>
+                <!--
+                    The "no friend yet?" path. Step 2 reads as a gate to a visitor whose friends
+                    are not on the app, and that visitor used to leave here. Every claim below is
+                    server behaviour, so check FEATURES.md before changing it: the first solo
+                    habit's grace (SOLO_GRACE_DAYS, 7), keeping it after one invite *sent*
+                    (SOLO_GRACE_KEEP_INVITE_COUNT, 1), and join-by-link challenges that a
+                    signed-out visitor can join and check in to from the web.
+                -->
+                <aside class="no-friend" aria-labelledby="no-friend-heading">
+                    <p class="eyebrow">{{{t.noFriend.eyebrow}}}</p>
+                    <h3 id="no-friend-heading">{{{t.noFriend.heading}}}</h3>
+                    <p>{{{t.noFriend.bodyHtml}}}</p>
+                    <p>{{{t.noFriend.challengeHtml}}}</p>
+                    <a class="no-friend__link" id="no-friend-challenges-cta" href="{{t.footer.challengesPath}}">{{{t.noFriend.challengesCta}}} &rarr;</a>
+                </aside>
             </div>
         </section>
 
@@ -1420,9 +1535,13 @@
                     </div>
                 </div>
                 <!--
-                    Cited rather than asserted: these two figures are the top and bottom
-                    rungs of the ASTD commitment ladder, and an uncited "95%" is both a
-                    trust signal AI answer engines penalise and a Play-listing claim risk.
+                    Framed as "often quoted", not as a finding. The 95% / 10% pair is the top and
+                    bottom of the "ASTD commitment ladder", which circulates everywhere but has
+                    never been traced to a published study. Presenting it as measured was a claim
+                    risk on the page and in the Play listing, and AI answer engines discount
+                    unsourced statistics. The source note says so plainly and points at
+                    published work (Matthews, 2015) for the direction of the effect. Do not
+                    reword the cards back into a measured claim.
                 -->
                 <p class="source-note">{{{t.why.sourceNoteHtml}}}</p>
             </div>
@@ -1441,6 +1560,44 @@
                     <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div>{{{t.compare.freeHtml}}}</div></li>
                     <li><span class="tick"><svg aria-hidden="true"><use href="#fwh-check"/></svg></span><div>{{{t.compare.noSubscriptionHtml}}}</div></li>
                 </ul>
+            </div>
+            <!--
+                Named comparison. These are the two social habit apps a searcher weighing this one
+                actually lands on, and "X vs Y" is a query AI answer engines answer from a table.
+                Keep every cell to something the competitor's own public listing supports, keep
+                the footnote's date current when the cells are re-checked, and never use their
+                logos: names only, as nominative use.
+            -->
+            <div class="container" id="compare-apps">
+                <div class="section-head section-head--table">
+                    <p class="eyebrow">{{{t.compareTable.eyebrow}}}</p>
+                    <h2>{{{t.compareTable.heading}}}</h2>
+                    <p>{{{t.compareTable.intro}}}</p>
+                </div>
+                <div class="compare-table-wrap" role="region" aria-label="{{t.compareTable.caption}}" tabindex="0">
+                    <table class="compare-table">
+                        <caption>{{{t.compareTable.caption}}}</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col"><span class="visually-hidden">{{{t.compareTable.columns.feature}}}</span></th>
+                                <th scope="col" class="is-us">{{{t.compareTable.columns.fwh}}}</th>
+                                <th scope="col">{{{t.compareTable.columns.habitshare}}}</th>
+                                <th scope="col">{{{t.compareTable.columns.habitica}}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#each t.compareTable.rows}}
+                            <tr>
+                                <th scope="row">{{{label}}}</th>
+                                <td class="is-us" data-label="{{../t.compareTable.columns.fwh}}">{{{fwh}}}</td>
+                                <td data-label="{{../t.compareTable.columns.habitshare}}">{{{habitshare}}}</td>
+                                <td data-label="{{../t.compareTable.columns.habitica}}">{{{habitica}}}</td>
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="source-note compare-table__note">{{{t.compareTable.footnote}}}</p>
             </div>
         </section>
 
@@ -1724,6 +1881,14 @@
             bindStore('closer-store-cta', 'closer');
             bindRegister('hero-register-cta', 'hero');
             bindRegister('closer-register-cta', 'closer');
+            // How many visitors take the "no friend yet?" way in, which says whether the
+            // partner requirement is what was costing the page its cold visitors.
+            var noFriendLink = document.getElementById('no-friend-challenges-cta');
+            if (noFriendLink) {
+                noFriendLink.addEventListener('click', function () {
+                    track('no_friend_path_click', { link_url: noFriendLink.href, location: 'how_it_works' });
+                });
+            }
 
             // The language switcher opens without script; this only closes it on an outside
             // click or Escape, and records which language visitors switch to.
