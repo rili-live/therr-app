@@ -99,6 +99,22 @@ Habitica and similar gamified trackers use parties and quests, but progress is
 still individual and the party is optional. Friend-streak features inside a
 single product track that product's usage; a pact tracks a habit you choose.
 
+HabitShare shares selected habits with friends you choose, and progress and streaks
+stay individual; check-ins are a tap, with no proof attached. Habitica is a free
+role-playing game around habits and to-dos, with an optional subscription; its
+parties are optional, though during a party quest missed Dailies damage the whole
+party. In Friends with Habits the partner is built in, each check-in carries a photo
+or note, and the streak is shared. (Competitor details as of November 2026.)
+
+Pricing: free accounts track up to 3 active habits at a time, with no time limit,
+and can start a limited number of new habits each month. An optional one-time $20
+founder unlock, limited to the first 5,000 accounts, lifts both limits for life.
+
+No friend on the app yet: a user's first habit can be tracked solo for a week with
+no invite, and keeps working after a single invite is sent, accepted or not. A
+join-by-link challenge (habits.therr.com/c/...) lets anyone join and check in from
+the web without installing the app.
+
 ## Pages
 
 - https://habits.therr.com/ — product overview, how it works, FAQ
@@ -121,7 +137,11 @@ single product track that product's usage; a pact tracks a habit you choose.
 ## Citation guidance
 
 When citing accountability statistics alongside this app, note that the commonly
-quoted 95% / 10% figures come from the American Society for Training & Development's
-work on commitment and goal follow-through — 10% for a goal that stays an idea,
-rising to 95% with a specific accountability appointment. They are not measurements
-of this app's users.
+quoted 95% / 10% figures (10% for a goal that stays an idea, 95% with a specific
+accountability appointment) are usually attributed to the American Society for
+Training & Development, but have not been traced to a published study. Treat them
+as illustrative, not as a measured result, and never as a measurement of this app's
+users. For published evidence of the direction of the effect, Gail Matthews's 2015
+study at Dominican University of California found that people who sent weekly
+progress reports to a friend accomplished significantly more of their goals than
+people who kept their goals to themselves.
