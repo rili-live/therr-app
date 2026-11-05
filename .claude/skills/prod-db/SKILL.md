@@ -52,7 +52,7 @@ to route around. **Never** connect any other way, and never print the `.env` val
 |---|---|
 | Signups, brand enrollment, last login | `main.users` (`"brandVariations"` jsonb, `"createdAt"`, `"lastLoginAt"`) |
 | Which campaign/UTM brought a registered user | `main."userAcquisition"` (`utmSource/Medium/Campaign/Content/Term`, `referrer`, `landingPath`, `surface`) — written at **registration only** |
-| Email lists, iOS waitlist, coach waitlist | `main."emailMarketingSubscribers"` (`"isSubscribedToIosWaitlist"`, `"isSubscribedToCoachesWaitlist"`, `"coachesWaitlistDetails"` jsonb) — **carries no attribution** |
+| Email lists, iOS waitlist, coach waitlist | `main."emailMarketingSubscribers"` (`"isSubscribedToIosWaitlist"`, `"isSubscribedToCoachesWaitlist"`, `"coachesWaitlistDetails"` jsonb, `"acquisition"` jsonb — the utm*/referrer/landingPath that brought the address onto its latest list; habits waitlist forms only, rows before the 2026-11-05 deploy are NULL). Read a campaign with `"acquisition"->>'utmCampaign'` |
 | Pacts, check-ins, partners, referrals, purchases | `habits.*` (`\dt habits.*` equivalent via information_schema) |
 | Push sends / dedup | `main."notificationQueue"` |
 | Spaces, claims | `--db maps`, `main.spaces` |
