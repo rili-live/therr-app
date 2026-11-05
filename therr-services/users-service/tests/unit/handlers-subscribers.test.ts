@@ -234,6 +234,98 @@ describe('Subscribers Handler', () => {
         });
     });
 
+    /**
+     * Waitlist attribution. A waitlist signup is not a registration, so this column is the only
+     * place a paid click that ends on a waitlist can be tied back to its campaign.
+     */
+    describe('createSubscriber (attribution)', () => {
+        const leapd = {
+            utmSource: 'facebook',
+            utmMedium: 'paid_social',
+            utmCampaign: 'leapd-coaches-2026-11',
+            landingPath: '/coaches?token=secret',
+            surface: 'habits',
+            userId: 'injected',
+            somethingElse: 'DROP TABLE',
+        };
+        const stored = JSON.stringify({
+            utmSource: 'facebook',
+            utmMedium: 'paid_social',
+            utmCampaign: 'leapd-coaches-2026-11',
+            landingPath: '/coaches',
+            surface: 'habits',
+        });
+
+        it('stores sanitized attribution on a new row: known fields only, no query string', async () => {
+            sinon.stub(Store.subscribers, 'findSubscriber').resolves([]);
+            const createStub = sinon.stub(Store.subscribers, 'createSubscriber').resolves([{ id: 'sub-1' }]);
+
+            await createSubscriber(buildReq({
+                email: 'coach@example.com',
+                isSubscribedToCoachesWaitlist: true,
+                userAcquisition: leapd,
+            }, 'habits') as any, buildRes(), (() => {}) as any);
+
+            expect(createStub.args[0][0].acquisition).to.eq(stored);
+        });
+
+        it('leaves the column out when no usable attribution arrives', async () => {
+            sinon.stub(Store.subscribers, 'findSubscriber').resolves([]);
+            const createStub = sinon.stub(Store.subscribers, 'createSubscriber').resolves([{ id: 'sub-1' }]);
+
+            await createSubscriber(buildReq({
+                email: 'coach@example.com',
+                isSubscribedToIosWaitlist: true,
+                userAcquisition: { utmSource: '   ', bogus: 'x' },
+            }) as any, buildRes(), (() => {}) as any);
+
+            expect(createStub.args[0][0]).to.not.have.property('acquisition');
+        });
+
+        it('overwrites attribution when an existing address joins a new list', async () => {
+            sinon.stub(Store.subscribers, 'findSubscriber').resolves([{
+                id: 'sub-1', email: 'coach@example.com', isSubscribedToCoachesWaitlist: false, acquisition: { utmSource: 'google' },
+            }]);
+            const updateStub = sinon.stub(Store.subscribers, 'updateSubscriber').resolves([{ id: 'sub-1' }]);
+
+            await createSubscriber(buildReq({
+                email: 'coach@example.com',
+                isSubscribedToCoachesWaitlist: true,
+                userAcquisition: leapd,
+            }) as any, buildRes(), (() => {}) as any);
+
+            expect(updateStub.args[0][0].acquisition).to.eq(stored);
+        });
+
+        it('keeps existing attribution when a coach only resubmits answers', async () => {
+            sinon.stub(Store.subscribers, 'findSubscriber').resolves([{
+                id: 'sub-1', email: 'coach@example.com', isSubscribedToCoachesWaitlist: true, acquisition: { utmSource: 'google' },
+            }]);
+            const updateStub = sinon.stub(Store.subscribers, 'updateSubscriber').resolves([{ id: 'sub-1' }]);
+
+            await createSubscriber(buildReq({
+                email: 'coach@example.com',
+                isSubscribedToCoachesWaitlist: true,
+                coachesWaitlistDetails: { clientCount: '1-5' },
+                userAcquisition: leapd,
+            }) as any, buildRes(), (() => {}) as any);
+
+            expect(updateStub.args[0][0]).to.not.have.property('acquisition');
+        });
+
+        it('never turns a plain duplicate subscribe into a success just because attribution arrived', async () => {
+            sinon.stub(Store.subscribers, 'findSubscriber')
+                .resolves([{ id: 'sub-1', email: 'a@example.com', isSubscribedToIosWaitlist: false }]);
+            const updateStub = sinon.stub(Store.subscribers, 'updateSubscriber').resolves([]);
+
+            const res = buildRes();
+            await createSubscriber(buildReq({ email: 'a@example.com', userAcquisition: leapd }) as any, res, (() => {}) as any);
+
+            expect(res.statusCode).to.eq(400);
+            expect(updateStub.called).to.eq(false);
+        });
+    });
+
     describe('sanitizeCoachesWaitlistDetails', () => {
         it('returns an empty object for anything that is not an object', () => {
             expect(sanitizeCoachesWaitlistDetails(undefined)).to.deep.equal({});
