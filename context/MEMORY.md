@@ -2,10 +2,11 @@
 # Working Memory
 
 ## Active Threads
+- (2026-11-05) PR #3173 (habits landing positioning): verify HabitShare/Habitica table cells before merge;
+  Play listing + Ads copy still say "no waitlist"/"limited number" — run /aso-listing, /ad-creative.
 
 ## Environment Notes
 
 ## Pending Decisions
-- (2026-10-28) FwH, after the market-fit read: whether to file the `/invite/null` bug (buildInviteUrl with
-  null userName) and the GA exclusion of `sdk_gphone16k_arm64`; whether to run the wk-4 retention query on
-  pacts with an accepted partner; proposed ~4-wk release freeze to read one cohort. Awaiting user.
+- (2026-10-28) FwH: whether to run the wk-4 retention query on pacts with an accepted partner, and the
+  proposed ~4-wk release freeze to read one cohort. Awaiting user. (/invite/null + Test Lab GA fixed in #3153.)
