@@ -16,6 +16,7 @@
             "duplicateRepost": "Tu as déjà republié cette publication"
         },
         "challenges": {
+            "alreadyRunning": "Tu participes déjà à un défi sur cette habitude. Partage plutôt celui-là.",
             "creatorCannotLeave": "Tu as lancé ce défi, tu ne peux donc pas le quitter. Tu peux plutôt y mettre fin.",
             "ended": "Ce défi est terminé",
             "full": "Ce défi est complet",

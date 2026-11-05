@@ -154,6 +154,32 @@ export default class ChallengesStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    /**
+     * The running challenge on this habit that the user is already on the board of, created by
+     * them or joined from someone's link. Guards *starting* a challenge only: a second board the
+     * user starts would split the same friends across two scoreboards counting the same check-ins.
+     * Joining from a link is deliberately not guarded (it is the growth action), so a user can
+     * still sit on more than one running board for a habit by joining a friend's (#3171).
+     */
+    getRunningForMemberAndGoal(userId: string, habitGoalId: string, today: string): Promise<IChallengeDetailRow | undefined> {
+        const queryString = knexBuilder
+            .select(DETAIL_COLUMNS)
+            .from(`${CHALLENGES_TABLE_NAME} as c`)
+            .innerJoin(`${HABIT_GOALS_TABLE_NAME} as g`, 'g.id', 'c.habitGoalId')
+            .innerJoin(`${USERS_TABLE_NAME} as u`, 'u.id', 'c.creatorUserId')
+            .innerJoin(`${CHALLENGE_MEMBERS_TABLE_NAME} as me`, 'me.challengeId', 'c.id')
+            .where('me.userId', userId)
+            .andWhere('me.status', 'active')
+            .andWhere('c.habitGoalId', habitGoalId)
+            .andWhere('c.status', 'active')
+            .andWhere('c.endDate', '>=', today)
+            .orderBy('c.startDate', 'desc')
+            .limit(1)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows[0]);
+    }
+
     /** Running challenges this user created — the anti-spam cap reads it. */
     countActiveCreatedBy(creatorUserId: string, today: string): Promise<number> {
         const queryString = knexBuilder

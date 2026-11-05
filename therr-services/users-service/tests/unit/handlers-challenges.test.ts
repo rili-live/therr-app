@@ -94,6 +94,7 @@ describe('challenges — endpoints', () => {
 
         it('caps running challenges per creator', async () => {
             sinon.stub(Store.userHabits, 'getByUserAndHabit').resolves({ id: 'uh', status: 'active' } as any);
+            sinon.stub(Store.challenges, 'getRunningForMemberAndGoal').resolves(undefined);
             sinon.stub(Store.challenges, 'countActiveCreatedBy').resolves(MAX_ACTIVE_CHALLENGES_PER_CREATOR);
             const create = sinon.stub(Store.challenges, 'create');
 
@@ -103,8 +104,27 @@ describe('challenges — endpoints', () => {
             expect(create.called).to.equal(false);
         });
 
+        it('hands back the running challenge on this habit instead of starting a second one', async () => {
+            sinon.stub(Store.userHabits, 'getByUserAndHabit').resolves({ id: 'uh', status: 'active' } as any);
+            // A friend's challenge the creator joined counts too: one board per habit.
+            sinon.stub(Store.challenges, 'getRunningForMemberAndGoal').resolves(detail({ creatorUserId: JOINER }) as any);
+            const count = sinon.stub(Store.challenges, 'countActiveCreatedBy');
+            const create = sinon.stub(Store.challenges, 'create');
+
+            const out = await call(createChallenge, { userId: CREATOR, body: { habitGoalId: GOAL_ID } });
+
+            expect(out.statusCode).to.equal(409);
+            expect(out.body.error).to.equal('challenge-already-running');
+            expect(out.body.challenge.joinToken).to.equal(TOKEN);
+            expect(out.body.challenge.viewer.isCreator).to.equal(false);
+            expect(create.called).to.equal(false);
+            // Checked before the cap, so the answer is the existing link, not "too many".
+            expect(count.called).to.equal(false);
+        });
+
         it('creates a 30-day challenge by default and puts the creator on the board', async () => {
             sinon.stub(Store.userHabits, 'getByUserAndHabit').resolves({ id: 'uh', status: 'active' } as any);
+            sinon.stub(Store.challenges, 'getRunningForMemberAndGoal').resolves(undefined);
             sinon.stub(Store.challenges, 'countActiveCreatedBy').resolves(0);
             const create = sinon.stub(Store.challenges, 'create').resolves({ id: CHALLENGE_ID });
             const addMember = sinon.stub(Store.challenges, 'upsertActiveMember').resolves({ member: {} as any, wasJustJoined: true });

@@ -26,8 +26,8 @@
     "googlePlayCta": "Disponible sur Google Play",
     "registerCta": "Créer votre compte",
     "iosCta": "iPhone? Liste d'attente",
-    "ctaNoteHtml": "Gratuit &mdash; maintenant offert à tous sur Google Play. iOS bientôt.",
-    "founderNoteHtml": "<strong>Offre membre fondateur :</strong> les 5 000 premiers comptes obtiennent toutes les fonctions payantes gratuitement à vie pour un paiement unique de 20 $ US.",
+    "ctaNoteHtml": "Gratuit sur Google Play, jusqu'à {freeHabitLimit} habitudes actives à la fois. iPhone bientôt.",
+    "founderNoteHtml": "<strong>Déblocage fondateur facultatif :</strong> besoin de plus de {freeHabitLimit}? Les 5 000 premiers comptes peuvent lever la limite à vie pour un paiement unique de 20 $ US.",
     "highlightsAriaLabel": "Points forts",
     "chipNoSubscription": "Aucun abonnement",
     "chipInstall": "S'installe en quelques secondes",
@@ -71,19 +71,26 @@
     "createTitle": "Créez un pacte",
     "createBody": "Choisissez une habitude — entraînement, lecture, méditation, tout ce qui se fait chaque jour. Fixez l'heure où vous serez tous les deux au rendez-vous.",
     "inviteTitle": "Invitez un ami",
-    "inviteBody": "Impossible de le faire seul. Votre ami se joint à vous et devient votre partenaire de responsabilisation.",
+    "inviteBody": "Envoyez-lui un lien. Votre ami se joint à vous et devient votre partenaire de responsabilisation &mdash; la personne qui remarque si vous arrêtez.",
     "checkInTitle": "Faites un check-in chaque jour",
     "checkInBody": "Ajoutez une photo ou une courte note comme preuve. Regardez votre série grandir ensemble."
   },
+  "noFriend": {
+    "eyebrow": "Pas encore de partenaire?",
+    "heading": "Aucun de vos amis n'utilise l'appli? Commencez quand même.",
+    "bodyHtml": "Votre première habitude peut se suivre en solo pendant une semaine, sans aucune invitation. Envoyez une invitation quand vous êtes prêt &mdash; par texto, à qui vous voulez &mdash; et vous pourrez continuer vos check-ins qu'elle soit acceptée ou non. Le pacte commence le jour où votre ami se joint à vous.",
+    "challengeHtml": "Ou faites-en un défi : partagez un lien, et n'importe qui peut rejoindre le tableau et faire ses check-ins sur le Web, sans installer l'appli.",
+    "challengesCta": "Voir les plans de défis de 30 jours"
+  },
   "why": {
     "eyebrow": "Pourquoi ça marche",
-    "heading": "Pourquoi la responsabilisation change tout",
-    "intro": "Le même objectif, la même personne, le même mois. La seule différence : quelqu'un d'autre compte sur vous ou non.",
+    "heading": "Pourquoi un partenaire fait toute la différence",
+    "intro": "S'engager à voix haute, auprès d'une personne, à une heure précise, est l'un des plus vieux trucs pour passer à l'action. Les deux chiffres ci-dessous sont ceux qu'on voit cités partout; voyez-y l'ampleur de l'écart, pas une mesure.",
     "withPartnerStat": "95 %",
-    "withPartnerHtml": "<strong>Avec un partenaire.</strong> La fréquence à laquelle les gens atteignent un objectif lorsqu'ils ont un rendez-vous fixe pour en rendre compte à quelqu'un d'autre.",
+    "withPartnerHtml": "<strong>Avec un rendez-vous de suivi.</strong> Le taux de réussite souvent cité pour un objectif quand vous avez une heure fixe pour en rendre compte à la personne envers qui vous vous êtes engagé.",
     "onYourOwnStat": "10 %",
-    "onYourOwnHtml": "<strong>Seul.</strong> La fréquence à laquelle ce même objectif est atteint quand il reste une idée à laquelle vous ne vous êtes engagé auprès de personne. Les applis en solo ne comblent pas cet écart. Chez nous, la responsabilisation est la norme.",
-    "sourceNoteHtml": "Chiffres tirés de l'étude de l'American Society for Training &amp; Development sur l'engagement et l'atteinte des objectifs, qui a relevé un taux de réussite de 10 % pour un objectif qui n'est qu'une idée, et de 95 % lorsque vous avez un rendez-vous précis pour en rendre compte à la personne envers qui vous vous êtes engagé."
+    "onYourOwnHtml": "<strong>À l'état d'idée.</strong> Le taux souvent cité pour ce même objectif quand il reste une idée à laquelle vous ne vous êtes engagé auprès de personne. Les applis en solo vous laissent de ce côté-ci de l'écart; chez nous, l'autre côté est la norme.",
+    "sourceNoteHtml": "Ces chiffres sont souvent attribués à l'American Society for Training &amp; Development (aujourd'hui ATD), mais nous n'avons pas pu les retracer jusqu'à une étude publiée : considérez-les comme illustratifs. Ce ne sont pas des mesures des utilisateurs de cette appli. Des travaux publiés plus modestes vont dans le même sens : dans une étude de 2015 menée par Gail Matthews à la Dominican University of California, les personnes qui envoyaient un bilan hebdomadaire à un ami ont atteint nettement plus de leurs objectifs que celles qui les gardaient pour elles."
   },
   "compare": {
     "eyebrow": "La différence",
@@ -91,14 +98,59 @@
     "partnerRequiredHtml": "<strong>Un partenaire est obligatoire, pas facultatif.</strong> Streaks, Habitify, Done et la plupart des autres applis d'habitudes sont conçues pour une seule personne. Ici, un pacte se fait à deux : il n'existe aucune version de l'appli où personne ne remarque que vous avez arrêté.",
     "proofHtml": "<strong>Chaque check-in comporte une preuve.</strong> Chaque check-in quotidien inclut une photo ou une note, alors une série est une preuve plutôt qu'un simple toucher.",
     "sharedStreakHtml": "<strong>La série est partagée.</strong> Votre partenaire et vous avez la même série, donc une journée manquée vous coûte à tous les deux — c'est inconfortable, et c'est justement pour ça que ça marche.",
-    "freeHtml": "<strong>C'est gratuit pour commencer.</strong> Aucune liste d'attente, aucun code d'invitation, aucune carte. Installez-la et créez votre premier pacte.",
-    "noSubscriptionHtml": "<strong>Aucun abonnement à souscrire.</strong> Les comptes gratuits suivent un nombre limité d'habitudes actives. Les 5 000 premiers comptes peuvent lever cette limite pour de bon avec un déblocage fondateur unique de 20 $ US plutôt qu'une facture mensuelle."
+    "freeHtml": "<strong>C'est gratuit pour commencer.</strong> Aucun code d'invitation, aucune carte. Installez-la sur Android et créez votre premier pacte.",
+    "noSubscriptionHtml": "<strong>Aucun abonnement à souscrire.</strong> Les comptes gratuits suivent jusqu'à {freeHabitLimit} habitudes actives à la fois, gratuitement, aussi longtemps que vous l'utilisez. Si vous en voulez plus, les 5 000 premiers comptes peuvent lever cette limite pour de bon avec un déblocage fondateur unique de 20 $ US plutôt qu'une facture mensuelle."
+  },
+  "compareTable": {
+    "eyebrow": "Côte à côte",
+    "heading": "Friends with Habits c. HabitShare et Habitica",
+    "intro": "Les trois sont sociales. La différence : l'autre personne est-elle facultative?",
+    "caption": "Comparaison de Friends with Habits avec HabitShare et Habitica",
+    "columns": {
+      "feature": "Fonction",
+      "fwh": "Friends with Habits",
+      "habitshare": "HabitShare",
+      "habitica": "Habitica"
+    },
+    "rows": {
+      "partner": {
+        "label": "Partenaire",
+        "fwh": "Intégré : chaque pacte se fait à deux (votre première habitude peut commencer en solo pendant une semaine)",
+        "habitshare": "Facultatif : vous choisissez les habitudes à partager",
+        "habitica": "Facultatif : rejoignez un groupe si vous le voulez"
+      },
+      "proof": {
+        "label": "Preuve du check-in",
+        "fwh": "Une photo ou une note à chaque check-in",
+        "habitshare": "Cocher la case",
+        "habitica": "Cocher la case"
+      },
+      "streak": {
+        "label": "Série",
+        "fwh": "Partagée : une journée manquée la remet à zéro pour vous deux",
+        "habitshare": "La vôtre",
+        "habitica": "La vôtre; pendant une quête de groupe, les Quotidiennes manquées blessent tout le groupe"
+      },
+      "price": {
+        "label": "Prix",
+        "fwh": "Gratuit jusqu'à {freeHabitLimit} habitudes actives; déblocage fondateur facultatif de 20 $ US, une seule fois",
+        "habitshare": "Gratuit",
+        "habitica": "Gratuit, avec abonnement facultatif"
+      },
+      "platforms": {
+        "label": "Plateformes",
+        "fwh": "Android aujourd'hui; liste d'attente iPhone ouverte",
+        "habitshare": "iPhone et Android",
+        "habitica": "iPhone, Android et Web"
+      }
+    },
+    "footnote": "Selon l'information publique de chaque appli en novembre 2026. Les fonctions évoluent, alors vérifiez avant de choisir. HabitShare et Habitica sont des marques de leurs propriétaires respectifs; Friends with Habits n'est affiliée à aucune des deux."
   },
   "founder": {
     "badge": "Offre membre fondateur",
-    "headingHtml": "<span>20 $ US, une fois.</span> Gratuit à vie.",
-    "lede": "Les 5 000 premiers comptes peuvent tout débloquer pour de bon avec un seul paiement de 20 $ US. Aucun abonnement, aucun renouvellement, rien à annuler.",
-    "noCapHtml": "Aucune limite d'habitudes actives &mdash; les comptes gratuits en suivent {freeHabitLimit} à la fois",
+    "headingHtml": "<span>20 $ US, une fois.</span> Sans limites, à vie.",
+    "lede": "La version gratuite reste gratuite, avec {freeHabitLimit} habitudes actives à la fois. Si vous en voulez plus, les 5 000 premiers comptes peuvent tout débloquer pour de bon avec un seul paiement de 20 $ US. Aucun abonnement, aucun renouvellement, rien à annuler.",
+    "noCapHtml": "Aucune limite d'habitudes actives ni de nouvelles habitudes &mdash; les comptes gratuits en suivent jusqu'à {freeHabitLimit} à la fois",
     "futureFeatures": "Toutes les fonctions premium que nous lancerons plus tard, incluses",
     "forLife": "À vous pour la vie, sur chaque appareil où vous vous connectez",
     "note": "Offert dans l'appli via Google Play. Quand 5 000 personnes l'auront réclamée, l'offre disparaîtra."
@@ -112,11 +164,11 @@
     },
     "isFree": {
       "question": "Friends with Habits est-elle gratuite?",
-      "answer": "Oui. Friends with Habits est gratuite à télécharger et à utiliser, sans liste d'attente, sans code d'invitation et sans carte. Un compte gratuit suit un nombre limité d'habitudes actives à la fois, et archiver une habitude terminée libère une place."
+      "answer": "Oui. Friends with Habits est gratuite à télécharger et à utiliser, sans code d'invitation et sans carte. Un compte gratuit suit jusqu'à {freeHabitLimit} habitudes actives à la fois, sans date d'expiration, et archiver une habitude terminée libère sa place. Les comptes gratuits peuvent aussi commencer un nombre limité de nouvelles habitudes chaque mois. Le déblocage fondateur facultatif de 20 $ US lève ces deux limites."
     },
     "founderUnlock": {
-      "question": "Qu'est-ce que le déblocage fondateur gratuit à vie?",
-      "answer": "Les 5 000 premiers comptes peuvent payer 20 $ US une seule fois et ne plus jamais payer. Le déblocage fondateur retire la limite d'habitudes actives de la version gratuite et inclut à vie toutes les fonctions premium que nous ajouterons. Aucun abonnement n'y est rattaché et il n'y a rien à annuler. Vous l'achetez dans l'appli via Google Play, et une fois que 5 000 personnes l'auront réclamé, l'offre disparaîtra pour de bon."
+      "question": "Qu'est-ce que le déblocage fondateur de 20 $, et en ai-je besoin?",
+      "answer": "Vous n'en avez pas besoin : la version gratuite reste gratuite aussi longtemps que vous l'utilisez, avec jusqu'à {freeHabitLimit} habitudes actives à la fois. Le déblocage fondateur s'adresse à ceux qui en veulent plus. Les 5 000 premiers comptes peuvent payer 20 $ US une seule fois et ne plus jamais payer; il retire les limites de la version gratuite et inclut à vie toutes les fonctions premium que nous ajouterons. Aucun abonnement n'y est rattaché et il n'y a rien à annuler. Vous l'achetez dans l'appli via Google Play, et une fois que 5 000 personnes l'auront réclamé, l'offre disparaîtra pour de bon."
     },
     "whatIsPact": {
       "question": "Qu'est-ce qu'un pacte?",
@@ -124,7 +176,7 @@
     },
     "needFriend": {
       "question": "Ai-je besoin d'un ami pour utiliser l'appli?",
-      "answer": "Oui, et c'est voulu. Un pacte se fait à deux, alors vous invitez un ami quand vous en créez un. Les applis d'habitudes en solo vous laissent abandonner en privé, et c'est exactement ce que cette appli existe pour éviter. Si votre ami n'a pas encore installé l'appli, votre lien d'invitation le guide pas à pas."
+      "answer": "Pas pour commencer. Votre première habitude peut se suivre en solo pendant une semaine sans inviter personne, et ensuite vous continuez vos check-ins dès que vous avez envoyé une seule invitation, que votre ami l'ait acceptée ou non. Les pactes restent l'essentiel : un pacte se fait à deux, parce que les applis d'habitudes en solo vous laissent abandonner en privé, et c'est exactement ce que cette appli existe pour éviter. Si votre ami n'a pas encore installé l'appli, votre lien d'invitation le guide pas à pas."
     },
     "checkIns": {
       "question": "Comment fonctionnent les check-ins quotidiens?",
@@ -189,7 +241,7 @@
       "feed": "Fil d'activité de votre partenaire"
     },
     "freeOfferName": "Gratuit",
-    "freeOfferDescription": "Gratuit à installer et à utiliser, avec un nombre limité d'habitudes actives à la fois.",
+    "freeOfferDescription": "Gratuit à installer et à utiliser, jusqu'à {freeHabitLimit} habitudes actives à la fois.",
     "founderOfferName": "Déblocage fondateur gratuit à vie",
     "founderOfferDescription": "Un achat unique de 20 $ US, limité aux 5 000 premiers comptes, qui retire la limite d'habitudes et inclut toutes les fonctions premium à vie. Vendu dans l'appli via Google Play Billing.",
     "accountsUnit": "comptes"

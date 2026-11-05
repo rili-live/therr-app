@@ -16,6 +16,7 @@
             "duplicateRepost": "Ya republicaste esta publicación"
         },
         "challenges": {
+            "alreadyRunning": "Ya estás en un reto de este hábito. Comparte ese en su lugar.",
             "creatorCannotLeave": "Tú iniciaste este reto, así que no puedes abandonarlo. Puedes terminarlo.",
             "ended": "Este reto ya terminó",
             "full": "Este reto está lleno",
