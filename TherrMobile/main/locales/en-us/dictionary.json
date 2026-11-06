@@ -2362,7 +2362,10 @@
             "soloGraceEnded": {
                 "title": "Keep {habitName} going",
                 "body": "Your free week tracking it alone is up. Invite a friend to keep checking in."
-            }
+            },
+            "overallStreak": "Overall Streak",
+            "overallStreakAccessibility": "Overall streak: {count} days",
+            "overallStreakHint": "Opens your streak calendar and streak freezes"
         },
         "pacts": {
             "headerTitle": "My Pacts",
@@ -3298,6 +3301,45 @@
             "friendUnverified": "Needs to verify their account",
             "moreFriends": "and {count} more",
             "cta": "Invite a friend"
+        },
+        "dailyStreak": {
+            "headerTitle": "Streak",
+            "loading": "Loading your streak",
+            "loadFailed": "We couldn't load your streak. Pull down to try again.",
+            "empty": "Check in on any habit to start your streak.",
+            "currentAccessibility": "{count} day streak",
+            "dayStreak": "day streak!",
+            "daysStreak": "day streak!",
+            "longest": "Longest streak: {count} days",
+            "freezes": {
+                "haveOne": "You have 1 Streak Freeze",
+                "haveMany": "You have {count} Streak Freezes",
+                "outOf": "You're out of Streak Freezes!",
+                "none": "No Streak Freezes yet",
+                "coverRule": "Miss a day your habits ask for and one covers your streak automatically.",
+                "earnRule": "Earn one each time a habit reaches a streak milestone (7, 14, 30 days and on), up to 3 per habit.",
+                "unknownHabit": "Archived habit"
+            },
+            "calendarTitle": "Streak Calendar",
+            "previousMonth": "Previous month",
+            "nextMonth": "Next month",
+            "legend": {
+                "upheld": "Checked in",
+                "frozen": "Frozen",
+                "missed": "Missed",
+                "rest": "Rest day"
+            },
+            "freezesUsedOne": "1 Streak Freeze used this month",
+            "freezesUsedMany": "{count} Streak Freezes used this month",
+            "dayStatus": {
+                "upheld": "{date}: checked in",
+                "frozen": "{date}: covered by a Streak Freeze",
+                "missed": "{date}: missed",
+                "rest": "{date}: rest day",
+                "pending": "{date}: today, not checked in yet",
+                "future": "{date}",
+                "none": "{date}: no streak yet"
+            }
         }
     },
     "modals": {

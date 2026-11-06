@@ -1337,6 +1337,56 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
         );
     };
 
+    goToDailyStreak = () => {
+        logAppEvent('daily_streak_detail_open', {
+            userId: this.props.user?.details?.id,
+            source: 'habitsDashboard',
+        });
+        this.props.navigation.navigate('DailyStreak');
+    };
+
+    /**
+     * The app-level daily streak — one streak across every habit, the number freezes protect —
+     * as a stat beside today's progress, and the entry to its detail screen (calendar and
+     * freezes). Deliberately the same size as its neighbours, marked only by a chevron: the
+     * habit list is what this screen is for, and the streak is a glance, not a destination
+     * competing with it. Before the summary has loaded it reads 0 rather than hiding, so the
+     * card's layout does not jump when it arrives.
+     */
+    renderOverallStreakStat = () => {
+        const currentStreak = this.props.habits?.dailyStreak?.currentStreak || 0;
+        const label = this.translate('pages.habits.overallStreak');
+
+        return (
+            <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={this.translate('pages.habits.overallStreakAccessibility', { count: currentStreak })}
+                accessibilityHint={this.translate('pages.habits.overallStreakHint')}
+                onPress={this.goToDailyStreak}
+                hitSlop={8}
+                style={({ pressed }) => [
+                    this.themeHabits.styles.pactComparisonItem,
+                    pressed && this.themeHabits.styles.pactComparisonItemPressed,
+                ]}
+            >
+                <View style={this.themeHabits.styles.overallStreakValueRow}>
+                    <Text style={this.themeHabits.styles.pactComparisonValue}>
+                        {currentStreak}
+                    </Text>
+                    <Text style={this.themeHabits.styles.overallStreakGlyph}>{'🔥'}</Text>{/* fire */}
+                </View>
+                <View style={this.themeHabits.styles.overallStreakValueRow}>
+                    <Text style={this.themeHabits.styles.pactComparisonLabel}>{label}</Text>
+                    <TherrIcon
+                        name="chevron-right"
+                        size={10}
+                        style={this.themeHabits.styles.overallStreakChevron}
+                    />
+                </View>
+            </Pressable>
+        );
+    };
+
     renderOverallProgress = (liveHabits: IHabitWithPactState[]) => {
         const { habits } = this.props;
         const { activeStreaks } = habits;
@@ -1363,6 +1413,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                             {this.translate('pages.habits.todayProgress')}
                         </Text>
                     </View>
+                    {this.renderOverallStreakStat()}
                     <View style={this.themeHabits.styles.pactComparisonItem}>
                         <Text style={this.themeHabits.styles.pactComparisonValue}>
                             {longestStreak}

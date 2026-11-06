@@ -220,7 +220,7 @@ class HabitsButtonMenu extends ButtonMenu {
         const { isJournalEnabled, isFeedEnabled, buttonWidth } = getTabLayout();
         const activeRoute = this.getActiveRoute();
         const isHabitsActive = [
-            'HabitsDashboard', 'HabitDetail', 'PactDetail', 'CreatePact', 'CreatePactInvite',
+            'HabitsDashboard', 'HabitDetail', 'PactDetail', 'CreatePact', 'CreatePactInvite', 'DailyStreak',
         ].includes(activeRoute);
         const isJournalActive = activeRoute === 'Journal';
         const isFeedActive = activeRoute === 'HabitsFeed';

@@ -2362,7 +2362,10 @@
             "soloGraceEnded": {
                 "title": "Garde {habitName} en marche",
                 "body": "Ta semaine gratuite à le suivre seul est terminée. Invite un ami pour continuer tes check-ins."
-            }
+            },
+            "overallStreak": "Série globale",
+            "overallStreakAccessibility": "Série globale : {count} jours",
+            "overallStreakHint": "Ouvre ton calendrier de série et tes gels de série"
         },
         "pacts": {
             "headerTitle": "Mes pactes",
@@ -3298,6 +3301,45 @@
             "friendUnverified": "Doit vérifier son compte",
             "moreFriends": "et {count} autres",
             "cta": "Inviter un ami"
+        },
+        "dailyStreak": {
+            "headerTitle": "Série",
+            "loading": "Chargement de ta série",
+            "loadFailed": "Impossible de charger ta série. Glisse vers le bas pour réessayer.",
+            "empty": "Fais un suivi sur n’importe quelle habitude pour commencer ta série.",
+            "currentAccessibility": "Série de {count} jours",
+            "dayStreak": "jour de série",
+            "daysStreak": "jours de série",
+            "longest": "Plus longue série : {count} jours",
+            "freezes": {
+                "haveOne": "Tu as 1 gel de série",
+                "haveMany": "Tu as {count} gels de série",
+                "outOf": "Tu n'as plus de gels de série!",
+                "none": "Pas encore de gel de série",
+                "coverRule": "Si tu manques un jour demandé par tes habitudes, un gel protège ta série automatiquement.",
+                "earnRule": "Gagnes-en un chaque fois qu’une habitude atteint un palier de série (7, 14, 30 jours et plus), jusqu’à 3 par habitude.",
+                "unknownHabit": "Habitude archivée"
+            },
+            "calendarTitle": "Calendrier de série",
+            "previousMonth": "Mois précédent",
+            "nextMonth": "Mois suivant",
+            "legend": {
+                "upheld": "Suivi fait",
+                "frozen": "Gelé",
+                "missed": "Manqué",
+                "rest": "Jour de repos"
+            },
+            "freezesUsedOne": "1 gel de série utilisé ce mois-ci",
+            "freezesUsedMany": "{count} gels de série utilisés ce mois-ci",
+            "dayStatus": {
+                "upheld": "{date} : suivi fait",
+                "frozen": "{date} : protégé par un gel de série",
+                "missed": "{date} : manqué",
+                "rest": "{date} : jour de repos",
+                "pending": "{date} : aujourd'hui, pas encore de suivi",
+                "future": "{date}",
+                "none": "{date} : pas encore de série"
+            }
         }
     },
     "modals": {

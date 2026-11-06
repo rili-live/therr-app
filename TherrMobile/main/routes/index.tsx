@@ -66,6 +66,7 @@ import {
 } from './Habits';
 import Journal from './Journal';
 import WeeklyRecap from './WeeklyRecap';
+import DailyStreak from './DailyStreak';
 import { ChallengeDetail, CreateChallenge } from './Challenges';
 import {
     PactDetail, CreatePactInvite, HabitsPushOptIn, AddPactMembers, OpenPacts,
@@ -639,6 +640,18 @@ const routes: RouteConfig<
         component: WeeklyRecap,
         options: () => ({
             title: 'Weekly Recap',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        // The app-level daily streak in detail — calendar and freezes. Opened from the "Overall
+        // streak" stat on the habits dashboard. Gated like WeeklyRecap: it reads only the
+        // daily-streak ledger and the freeze pool, which every habits user has.
+        name: 'DailyStreak',
+        component: DailyStreak,
+        options: () => ({
+            title: 'Streak',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),
