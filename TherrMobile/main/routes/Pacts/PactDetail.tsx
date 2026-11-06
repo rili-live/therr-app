@@ -84,8 +84,11 @@ interface IPactDetailState {
     joinRequests: IPactJoinRequest[];
     isOpenSaving: boolean;
     answeringRequestId: string | null;
-    /** Set once the chat is opened from here, which hides the now-stale unread badge. */
-    hasOpenedChat: boolean;
+    /**
+     * When the chat was last opened from here (ms). Hides the unread badge the pact still carries
+     * until a refresh started after that moment brings back a count that knows what was read.
+     */
+    chatOpenedAt: number | null;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -130,7 +133,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
             joinRequests: [],
             isOpenSaving: false,
             answeringRequestId: null,
-            hasOpenedChat: false,
+            chatOpenedAt: null,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -175,6 +178,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         const { getPactDetails, getUserGoals, route } = this.props;
         const pactId = overridePactId || route.params.pactId;
 
+        const startedAt = Date.now();
         this.setState({ isRefreshing: true });
 
         // Goals are fetched alongside the pact so the "view habit" link can be
@@ -183,7 +187,12 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         Promise.all([
             getPactDetails(pactId),
             getUserGoals(),
-        ]).then(([pact]) => this.fetchJoinRequests(pact))
+        ]).then(([pact]) => {
+            // A refetch begun after the chat was opened carries a fresh unread count, so the
+            // badge can come back; one already in flight when the chat opened cannot.
+            this.setState((prev) => (prev.chatOpenedAt && startedAt > prev.chatOpenedAt ? { chatOpenedAt: null } : null));
+            return this.fetchJoinRequests(pact);
+        })
             .catch(() => undefined)
             .finally(() => {
                 this.setState({ isRefreshing: false });
@@ -318,7 +327,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
      * reverse instead of returning to the list the user came from.
      */
     goToPactDetail = (pactId: string) => {
-        this.setState({ hasOpenedChat: false });
+        this.setState({ chatOpenedAt: null });
         this.props.navigation.setParams({ pactId });
         this.handleRefresh(pactId);
     };
@@ -326,7 +335,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
     goToChat = (pact: IPact) => {
         // The badge is read off the pact, which is only refetched on the next refresh; hide it
         // here so returning from the thread does not show messages the user just read as unread.
-        this.setState({ hasOpenedChat: true });
+        this.setState({ chatOpenedAt: Date.now() });
         this.props.navigation.navigate('PactChat', { pactId: pact.id, source: 'pact_detail' });
     };
 
@@ -340,7 +349,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         if (isInvitedUser || pact.status === 'pending' || !otherMembers.length) {
             return null;
         }
-        const unread = this.state.hasOpenedChat ? null : formatUnreadCount(pact.unreadMessageCount);
+        const unread = this.state.chatOpenedAt ? null : formatUnreadCount(pact.unreadMessageCount);
 
         return (
             <Pressable

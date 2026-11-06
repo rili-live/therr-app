@@ -207,8 +207,11 @@ export const PactChat: React.FC<IPactChatProps> = ({
             .then((response: any) => {
                 if (!isMounted.current) return;
                 const data = response?.data;
-                if (!Array.isArray(data?.items) || !data.items.length) return;
+                if (!Array.isArray(data?.items)) return;
+                // Applied even when nothing new arrived: a pact that ended while the thread was
+                // open turns `canPost` off, and the composer should go with it.
                 applyPage(data);
+                if (!data.items.length) return;
                 setItems((prev) => mergeChatItems(prev, data.items));
                 if (!query.after) setHasMore(!!data.hasMore);
                 if (data.items.some((item: IPactChatItem) => item.userId !== viewerUserId)) {
