@@ -146,7 +146,8 @@ assets:
         # 15s 9:16 Short (Runway, 2026-11-06), "Evolve your life": a caveman fails at
         # fire until a chameleon sparks a new habit. End card from
         # assets/build_end_card.py; character refs in assets/references/.
-        # Normalised from the /shorts/ share link.
+        # Normalised from the /shorts/ share link. Uploaded AFTER this campaign ended
+        # (2026-10-19), so it has never served here -- it is listed for the next App run.
         - "https://www.youtube.com/watch?v=YIVY-pkCfLs"
 
 tracking:
