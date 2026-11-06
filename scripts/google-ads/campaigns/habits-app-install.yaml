@@ -143,6 +143,11 @@ assets:
         # yet. Re-upload the fixed cut as a new video and replace this URL.
         # Normalised from the /shorts/ share link to the watch?v= form used above.
         - "https://www.youtube.com/watch?v=_1vXPuQiVHk"
+        # 15s 9:16 Short (Runway, 2026-11-06), "Evolve your life": a caveman fails at
+        # fire until a chameleon sparks a new habit. End card from
+        # assets/build_end_card.py; character refs in assets/references/.
+        # Normalised from the /shorts/ share link.
+        - "https://www.youtube.com/watch?v=YIVY-pkCfLs"
 
 tracking:
     # Recorded for documentation and for the reporting join only. An App
