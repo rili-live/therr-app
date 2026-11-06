@@ -66,6 +66,23 @@ export const getNewestConfirmedAt = (items: IChatListItem[]): string | undefined
     items.find((item) => !isPendingItem(item))?.createdAt
 );
 
+/** How many new items one poll asks for when it has a cursor to read from. */
+export const PACT_CHAT_POLL_LIMIT = 50;
+
+/**
+ * The query one poll sends. With a confirmed item on screen it reads everything after it. With
+ * none — a thread that was empty when it opened, or holds only the viewer's unconfirmed sends —
+ * there is no cursor, so it rereads the newest page instead. Without that a partner's first
+ * message would never appear in an open, empty chat.
+ */
+export const getPollQuery = (
+    items: IChatListItem[],
+    pageSize: number,
+): { after?: string; limit: number } => {
+    const after = getNewestConfirmedAt(items);
+    return after ? { after, limit: PACT_CHAT_POLL_LIMIT } : { limit: pageSize };
+};
+
 /** The oldest confirmed item's timestamp: the `before` cursor for scrolling back. */
 export const getOldestConfirmedAt = (items: IChatListItem[]): string | undefined => {
     const confirmed = items.filter((item) => !isPendingItem(item));

@@ -48,9 +48,9 @@ import {
     generateClientMessageId,
     getAuthorName,
     getMyReaction,
-    getNewestConfirmedAt,
     getNextReaction,
     getOldestConfirmedAt,
+    getPollQuery,
     isFirstOfRun,
     isPendingItem,
     mergeChatItems,
@@ -140,6 +140,7 @@ export const PactChat: React.FC<IPactChatProps> = ({
     const isMounted = useRef(true);
     const itemsRef = useRef<IChatListItem[]>([]);
     const isPolling = useRef(false);
+    const hasLoaded = useRef(false);
 
     useEffect(() => {
         itemsRef.current = items;
@@ -185,6 +186,7 @@ export const PactChat: React.FC<IPactChatProps> = ({
                 setItems((prev) => mergeChatItems(prev.filter(isPendingItem), data.items));
                 setHasMore(!!data.hasMore);
                 setLoadError(false);
+                hasLoaded.current = true;
                 markRead();
             })
             .catch(() => {
@@ -196,16 +198,19 @@ export const PactChat: React.FC<IPactChatProps> = ({
     }, [pactId, applyPage, markRead]);
 
     const pollNew = useCallback(() => {
-        const after = getNewestConfirmedAt(itemsRef.current);
-        if (!pactId || !after || isPolling.current) return;
+        // Not before the first page has landed: until then there is nothing to poll on top of,
+        // and a failed first load is retried by the user, not by the interval.
+        if (!pactId || !hasLoaded.current || isPolling.current) return;
+        const query = getPollQuery(itemsRef.current, PAGE_SIZE);
         isPolling.current = true;
-        PactsService.getChat(pactId, { after, limit: 50 })
+        PactsService.getChat(pactId, query)
             .then((response: any) => {
                 if (!isMounted.current) return;
                 const data = response?.data;
                 if (!Array.isArray(data?.items) || !data.items.length) return;
                 applyPage(data);
                 setItems((prev) => mergeChatItems(prev, data.items));
+                if (!query.after) setHasMore(!!data.hasMore);
                 if (data.items.some((item: IPactChatItem) => item.userId !== viewerUserId)) {
                     markRead();
                 }

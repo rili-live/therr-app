@@ -8,6 +8,7 @@ import {
     getNewestConfirmedAt,
     getNextReaction,
     getOldestConfirmedAt,
+    getPollQuery,
     IChatListItem,
     IPendingChatItem,
     isFirstOfRun,
@@ -71,6 +72,21 @@ describe('pact chat state', () => {
             expect(getNewestConfirmedAt(items)).toBe('2026-10-29T11:00:00.000Z');
             expect(getOldestConfirmedAt(items)).toBe('2026-10-29T10:00:00.000Z');
             expect(getNewestConfirmedAt([])).toBeUndefined();
+        });
+    });
+
+    describe('getPollQuery', () => {
+        it('reads after the newest confirmed item, skipping an unconfirmed send', () => {
+            const items = mergeChatItems([], [
+                pending('c-1', '2026-11-06T10:05:00.000Z'),
+                message('m-1', '2026-11-06T10:00:00.000Z'),
+            ]);
+            expect(getPollQuery(items, 30)).toEqual({ after: '2026-11-06T10:00:00.000Z', limit: 50 });
+        });
+
+        it('still polls an empty thread, so a partner\'s first message shows up while it is open', () => {
+            expect(getPollQuery([], 30)).toEqual({ limit: 30 });
+            expect(getPollQuery([pending('c-1', '2026-11-06T10:05:00.000Z', 'failed')], 30)).toEqual({ limit: 30 });
         });
     });
 
