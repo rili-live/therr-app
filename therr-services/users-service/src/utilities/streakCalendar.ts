@@ -78,13 +78,6 @@ export const getMonthBounds = (month: string): { start: string; end: string } =>
     return { start, end: addDays(start, getDaysInMonth(month) - 1) };
 };
 
-export const getPreviousMonth = (month: string): string => {
-    const [year, monthNumber] = month.split('-').map(Number);
-    return monthNumber === 1
-        ? `${year - 1}-12`
-        : `${year}-${String(monthNumber - 1).padStart(2, '0')}`;
-};
-
 export const buildMonthDays = (month: string, today: string, rows: IStreakCalendarRow[]): IStreakCalendarDay[] => {
     const byDate = new Map<string, DailyStreakDayStatus>();
     rows.forEach((row) => byDate.set(row.localDate, row.status));

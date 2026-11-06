@@ -4,7 +4,6 @@ import {
     countFrozenDays,
     getDaysInMonth,
     getMonthBounds,
-    getPreviousMonth,
     resolveRequestedMonth,
     summarizeFreezes,
 } from '../../src/utilities/streakCalendar';
@@ -43,11 +42,6 @@ describe('Streak calendar', () => {
 
         it('returns inclusive bounds', () => {
             expect(getMonthBounds('2026-11')).to.deep.equal({ start: '2026-11-01', end: '2026-11-30' });
-        });
-
-        it('steps back across a year boundary', () => {
-            expect(getPreviousMonth('2026-11')).to.equal('2026-10');
-            expect(getPreviousMonth('2027-01')).to.equal('2026-12');
         });
     });
 
