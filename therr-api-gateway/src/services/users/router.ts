@@ -915,6 +915,10 @@ usersServiceRouter.get('/habits/daily-streak/me', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
+usersServiceRouter.get('/habits/daily-streak/me/calendar', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
 usersServiceRouter.post('/habits/daily-streak/me/celebrated', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',

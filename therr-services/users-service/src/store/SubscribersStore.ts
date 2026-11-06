@@ -27,6 +27,11 @@ export interface ICreateSubscriberParams {
      * jsonb, rather than depending on how the query builder serialises an object.
      */
     coachesWaitlistDetails?: string;
+    /**
+     * JSON-encoded attribution (utm*, referrer, landingPath, surface) from the signup page's
+     * session, already sanitized by the handler. Same string-for-jsonb reasoning as above.
+     */
+    acquisition?: string;
 }
 
 export default class SubscribersStore {
