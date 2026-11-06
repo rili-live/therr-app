@@ -1255,6 +1255,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 // dashboard is the honest destination.
                 targetRouteView = intentPactId ? 'PactDetail' : 'HabitsDashboard';
                 targetRouteParams = intentPactId ? { pactId: intentPactId } : {};
+            } else if (data.action === brandIntent('PACT_MESSAGE')) {
+                // Pact chat: the thread, when the intent extras name the pact.
+                targetRouteView = intentPactId ? 'PactChat' : 'HabitsDashboard';
+                targetRouteParams = intentPactId ? { pactId: intentPactId, source: 'push' } : {};
             } else if (data.action === brandIntent('STREAK_AT_RISK')
                 || data.action === brandIntent('DAILY_HABIT_REMINDER')
                 || data.action === brandIntent('MORNING_MOTIVATION')
@@ -1534,6 +1538,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             case PushNotifications.Types.partnerMissedDay:
             case PushNotifications.Types.partnerCelebrated:
                 return buildPactRoute();
+
+            // Pact chat: open the thread the message is in. Without a pact id there is no thread
+            // to name, so the dashboard is the honest destination.
+            case PushNotifications.Types.pactMessage:
+                return pactId
+                    ? { targetRouteView: 'PactChat', targetRouteParams: { pactId, source: 'push' } }
+                    : { targetRouteView: 'HabitsDashboard', targetRouteParams: {} };
 
             // "Your invite went unanswered" — the open pacts on that habit. Without a goal id there
             // is nothing to match on, so the unanswered pact itself is the next best place.

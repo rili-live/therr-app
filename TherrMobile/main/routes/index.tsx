@@ -66,9 +66,10 @@ import {
 } from './Habits';
 import Journal from './Journal';
 import WeeklyRecap from './WeeklyRecap';
+import DailyStreak from './DailyStreak';
 import { ChallengeDetail, CreateChallenge } from './Challenges';
 import {
-    PactDetail, CreatePactInvite, HabitsPushOptIn, AddPactMembers, OpenPacts,
+    PactDetail, PactChat, CreatePactInvite, HabitsPushOptIn, AddPactMembers, OpenPacts,
 } from './Pacts';
 import { AccessPresets } from './access';
 import { editStackOptions, momentStackOptions, viewStackOptions } from './stackOptions';
@@ -644,6 +645,18 @@ const routes: RouteConfig<
         }),
     },
     {
+        // The app-level daily streak in detail — calendar and freezes. Opened from the "Overall
+        // streak" stat on the habits dashboard. Gated like WeeklyRecap: it reads only the
+        // daily-streak ledger and the freeze pool, which every habits user has.
+        name: 'DailyStreak',
+        component: DailyStreak,
+        options: () => ({
+            title: 'Streak',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
         name: 'UpgradePaywall',
         component: UpgradePaywall,
         options: () => ({
@@ -657,6 +670,16 @@ const routes: RouteConfig<
         component: PactDetail,
         options: () => ({
             title: 'Pact Details',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        // Pact chat. Also the destination of a `pactMessage` push (Layout routes the tap here).
+        name: 'PactChat',
+        component: PactChat,
+        options: () => ({
+            title: 'Pact Chat',
             requiredFeatures: [FeatureFlags.ENABLE_HABITS],
             access: AccessPresets.EMAIL_VERIFIED,
         }),

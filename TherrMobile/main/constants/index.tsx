@@ -168,6 +168,9 @@ const REMINDER_ACTION_KEYS = new Set<string>([
     'DAILY_HABIT_REMINDER',
     'MORNING_MOTIVATION',
     'EVENING_CHECK_IN',
+    // Pact chat: a partner wrote to you. Heads-up, like NEW_DIRECT_MESSAGE above. Data-only, so
+    // the channel comes from this set; the server already holds it to one per pact per hour.
+    'PACT_MESSAGE',
 ]);
 
 const REWARD_ACTION_KEYS = new Set<string>([

@@ -31,6 +31,10 @@ import DailyStreakService, {
     IDailyStreakPendingCelebration,
     IDailyStreakPendingPlacement,
     DailyStreakDayStatus,
+    DailyStreakCalendarDayStatus,
+    IDailyStreakCalendar,
+    IDailyStreakCalendarDay,
+    IDailyStreakCalendarFreezes,
 } from './DailyStreakService';
 import WeeklyRecapService, {
     IWeeklyRecap,
@@ -82,6 +86,10 @@ export {
     IDailyStreakPendingCelebration,
     IDailyStreakPendingPlacement,
     DailyStreakDayStatus,
+    DailyStreakCalendarDayStatus,
+    IDailyStreakCalendar,
+    IDailyStreakCalendarDay,
+    IDailyStreakCalendarFreezes,
     WeeklyRecapService,
     IWeeklyRecap,
     IWeeklyRecapDay,

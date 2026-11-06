@@ -45,16 +45,19 @@ const truncate = (value: any, max: number): string | undefined => {
  * is where password-reset and email-verification tokens live, and an analytics
  * table is the last place those should be durably stored.
  */
-export const sanitizeUserAcquisition = (
-    raw: any,
-    context: { userId: string; brandVariation?: string },
-): IUserAcquisitionParams => {
+export type IAttributionFields = Omit<IUserAcquisitionParams, 'userId' | 'brandVariation'>;
+
+/**
+ * The client-supplied half of an attribution record, sanitized. Shared by registration (below)
+ * and the email-list signup, which stores the same record on main."emailMarketingSubscribers"
+ * so a waitlist signup can be joined to the campaign that brought it.
+ */
+export const sanitizeAttribution = (raw: any): IAttributionFields => {
     const source = (raw && typeof raw === 'object') ? raw : {};
 
     const landingPath = truncate(source.landingPath, MAX_PATH_LENGTH);
 
     return {
-        userId: context.userId,
         utmSource: truncate(source.utmSource, MAX_UTM_LENGTH),
         utmMedium: truncate(source.utmMedium, MAX_UTM_LENGTH),
         utmCampaign: truncate(source.utmCampaign, MAX_UTM_LENGTH),
@@ -63,9 +66,17 @@ export const sanitizeUserAcquisition = (
         referrer: truncate(source.referrer, MAX_REFERRER_LENGTH),
         landingPath: landingPath ? landingPath.split(/[?#]/)[0] : undefined,
         surface: truncate(source.surface, MAX_SURFACE_LENGTH),
-        brandVariation: truncate(context.brandVariation, MAX_SURFACE_LENGTH),
     };
 };
+
+export const sanitizeUserAcquisition = (
+    raw: any,
+    context: { userId: string; brandVariation?: string },
+): IUserAcquisitionParams => ({
+    userId: context.userId,
+    ...sanitizeAttribution(raw),
+    brandVariation: truncate(context.brandVariation, MAX_SURFACE_LENGTH),
+});
 
 export default class UserAcquisitionStore {
     db: IConnection;

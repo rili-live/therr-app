@@ -172,6 +172,23 @@ describe('searchActiveThoughts', () => {
             expect(res.body.pagination.isLastPage).to.eq(true);
         });
 
+        it('adds to a string offset numerically rather than concatenating it', async () => {
+            reactionsGetStub.reset();
+            reactionsGetStub.onCall(0).resolves(reactionPage('therr', 4));
+            reactionsGetStub.onCall(1).resolves(reactionPage('habits', 4));
+            requestStub.reset();
+            requestStub.onCall(0).resolves({ data: { thoughts: [], isLastPage: true } });
+            requestStub.onCall(1).resolves({
+                data: { thoughts: [{ id: 'habits-0', fromUserId: 'author-1' }, { id: 'habits-1', fromUserId: 'author-1' }], isLastPage: true },
+            });
+            const res = buildRes();
+
+            await searchActiveThoughts(buildReq({ limit: 4, offset: '8' }), res);
+
+            expect(reactionsGetStub.args[1][2].offset).to.eq(12);
+            expect(res.body.pagination).to.deep.equal({ itemsPerPage: 8, offset: 8, isLastPage: false });
+        });
+
         it('does not scan an author profile, whose lookup ignores the reaction ids', async () => {
             reactionsGetStub.reset();
             reactionsGetStub.resolves([]);
