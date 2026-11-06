@@ -61,6 +61,43 @@ export interface IDailyStreakSummary {
 }
 
 /**
+ * A day on the month calendar. Beyond the week strip's statuses: `rest` (nothing was required
+ * that day — neither upheld nor broken) and `none` (a past day before the first check-in, or one
+ * not evaluated yet — never a miss).
+ */
+export type DailyStreakCalendarDayStatus = 'upheld' | 'frozen' | 'missed' | 'rest' | 'pending' | 'future' | 'none';
+
+export interface IDailyStreakCalendarDay {
+    date: string;
+    status: DailyStreakCalendarDayStatus;
+    isToday: boolean;
+}
+
+export interface IDailyStreakCalendarFreezes {
+    /** Freezes the daily streak can still spend, summed across every active habit. */
+    remaining: number;
+    /** Freezes ever earned across every active habit (spent + remaining). */
+    total: number;
+    /** Only habits that have earned at least one freeze. */
+    habits: Array<{ habitGoalId: string; remaining: number; total: number }>;
+}
+
+export interface IDailyStreakCalendar {
+    /** YYYY-MM actually returned — junk or a future month resolves to the current one. */
+    month: string;
+    today: string;
+    timeZone: string;
+    currentStreak: number;
+    longestStreak: number;
+    days: IDailyStreakCalendarDay[];
+    freezesUsedThisMonth: number;
+    /** The live pool, not as of `month`. */
+    freezes: IDailyStreakCalendarFreezes;
+    /** Whether any streak history predates `month`. */
+    hasPreviousMonth: boolean;
+}
+
+/**
  * The app-level daily streak — one streak per user across every habit, in the user's own
  * timezone. Distinct from StreaksService, which is the per-habit streak.
  *
@@ -81,6 +118,22 @@ class DailyStreakService {
         return axios({
             method: 'get',
             url: `/users-service/habits/daily-streak/me${queryString}`,
+        });
+    };
+
+    /**
+     * One month of the daily streak ledger plus the live freeze pool, for the streak detail
+     * screen. `month` is YYYY-MM; omitted, it is the user's current local month.
+     */
+    getCalendar = (month?: string, timeZone?: string) => {
+        const params = new URLSearchParams();
+        if (month) params.append('month', month);
+        if (timeZone) params.append('timeZone', timeZone);
+        const queryString = params.toString() ? `?${params.toString()}` : '';
+
+        return axios({
+            method: 'get',
+            url: `/users-service/habits/daily-streak/me/calendar${queryString}`,
         });
     };
 
