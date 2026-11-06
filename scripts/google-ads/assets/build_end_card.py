@@ -26,6 +26,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import html
 import shutil
 import subprocess
 import sys
@@ -98,7 +99,7 @@ def build_html(variant: str, logo_uri: str, badge_uri: str, tagline: str) -> str
   <div class="safe">
     <img class="logo" src="{logo_uri}" alt="">
     <h1>Friends with<br>Habits</h1>
-    <p class="tagline">{tagline}</p>
+    <p class="tagline">{html.escape(tagline)}</p>
     <img class="badge" src="{badge_uri}" alt="Get it on Google Play">
   </div>
 </body></html>"""
@@ -130,6 +131,7 @@ def main() -> int:
         print(f"Chrome not found at {CHROME}. Install it, or edit CHROME.", file=sys.stderr)
         return 1
 
+    args.out = args.out.resolve()
     args.out.mkdir(parents=True, exist_ok=True)
     logo_uri = data_uri(logo_png(), "image/png")
     badge_uri = data_uri(BADGE_PATH.read_bytes(), "image/png")
@@ -139,7 +141,10 @@ def main() -> int:
         for variant in ("solid", "overlay"):
             out = args.out / f"endcard-{WIDTH}x{HEIGHT}-{variant}.png"
             shoot(build_html(variant, logo_uri, badge_uri, args.tagline), out, workdir)
-            print(f"  wrote {out.relative_to(REPO_ROOT)}")
+            # --out may point outside the repo; relative_to would raise after the first
+            # variant was written and skip the second.
+            shown = out.relative_to(REPO_ROOT) if out.is_relative_to(REPO_ROOT) else out
+            print(f"  wrote {shown}")
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
     return 0
