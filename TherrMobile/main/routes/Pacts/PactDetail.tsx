@@ -39,6 +39,8 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import { buildStyles as buildModalStyles } from '../../styles/modal/confirmModal';
+import { buildStyles as buildChatStyles } from '../../styles/habits/pactChat';
+import { formatUnreadCount } from './pactChatState';
 import { formatCalendarDate } from '../../utilities/formatCalendarDate';
 
 interface IPactDetailDispatchProps {
@@ -82,6 +84,8 @@ interface IPactDetailState {
     joinRequests: IPactJoinRequest[];
     isOpenSaving: boolean;
     answeringRequestId: string | null;
+    /** Set once the chat is opened from here, which hides the now-stale unread badge. */
+    hasOpenedChat: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -111,6 +115,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
     private themeHabits = buildHabitStyles();
     private themeMenu = buildMenuStyles();
     private themeModal = buildModalStyles();
+    private themeChat = buildChatStyles();
 
     constructor(props: IPactDetailProps) {
         super(props);
@@ -125,6 +130,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
             joinRequests: [],
             isOpenSaving: false,
             answeringRequestId: null,
+            hasOpenedChat: false,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -132,6 +138,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         this.themeHabits = buildHabitStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
+        this.themeChat = buildChatStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params?: any) =>
             translator(props.user.settings?.locale || 'en-us', key, params);
     }
@@ -311,8 +318,61 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
      * reverse instead of returning to the list the user came from.
      */
     goToPactDetail = (pactId: string) => {
+        this.setState({ hasOpenedChat: false });
         this.props.navigation.setParams({ pactId });
         this.handleRefresh(pactId);
+    };
+
+    goToChat = (pact: IPact) => {
+        // The badge is read off the pact, which is only refetched on the next refresh; hide it
+        // here so returning from the thread does not show messages the user just read as unread.
+        this.setState({ hasOpenedChat: true });
+        this.props.navigation.navigate('PactChat', { pactId: pact.id, source: 'pact_detail' });
+    };
+
+    /**
+     * The way into the pact's chat. Shown once anyone else is in the pact — a pending pact has
+     * nobody to talk to — and kept on an ended pact, whose thread stays readable.
+     */
+    renderChatCard = (pact: IPact, isInvitedUser: boolean) => {
+        const otherMembers = (pact.members || []).filter((m) => m.userId !== this.props.user.details?.id
+            && (m.status === 'active' || m.status === 'completed'));
+        if (isInvitedUser || pact.status === 'pending' || !otherMembers.length) {
+            return null;
+        }
+        const unread = this.state.hasOpenedChat ? null : formatUnreadCount(pact.unreadMessageCount);
+
+        return (
+            <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={unread
+                    ? this.translate('pages.pactChat.unreadAccessibility', { count: pact.unreadMessageCount })
+                    : this.translate('pages.pactChat.openChat')}
+                onPress={() => this.goToChat(pact)}
+                style={({ pressed }) => [
+                    this.themeHabits.styles.streakWidgetContainer,
+                    pressed && this.themeHabits.styles.pactPressedSurface,
+                ]}
+            >
+                <View style={this.themeChat.styles.entryRow}>
+                    <MaterialIcon name="forum" size={24} color={this.themeHabits.colors.primary3} />
+                    <View style={this.themeChat.styles.entryTextContainer}>
+                        <Text style={this.themeHabits.styles.streakWidgetTitle}>
+                            {this.translate('pages.pactChat.openChat')}
+                        </Text>
+                        <Text style={this.themeChat.styles.entrySubtitle}>
+                            {this.translate('pages.pactChat.openChatHint')}
+                        </Text>
+                    </View>
+                    {!!unread && (
+                        <View style={this.themeChat.styles.unreadBadge}>
+                            <Text style={this.themeChat.styles.unreadBadgeText}>{unread}</Text>
+                        </View>
+                    )}
+                    <MaterialIcon name="chevron-right" size={24} color={this.themeHabits.colors.primary3} />
+                </View>
+            </Pressable>
+        );
     };
 
     goToUserProfile = (userId: string) => {
@@ -1039,6 +1099,8 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                                 'pages.pacts.renew.extendedFrom',
                             )}
                         </View>
+
+                        {this.renderChatCard(pact, isInvitedUser)}
 
                         {/* Above the members card: on a savings pact the money is what the
                             group opened this screen to see, and the per-member breakdown
