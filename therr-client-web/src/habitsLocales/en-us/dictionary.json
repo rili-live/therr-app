@@ -26,8 +26,8 @@
     "googlePlayCta": "Get it on Google Play",
     "registerCta": "Create your account",
     "iosCta": "iPhone? Join the waitlist",
-    "ctaNoteHtml": "Free to install &mdash; now available to everyone on Google Play. iOS coming next.",
-    "founderNoteHtml": "<strong>Founding member offer:</strong> the first 5,000 accounts get every paid feature free for life for a one-time $20.",
+    "ctaNoteHtml": "Free on Google Play, with up to {freeHabitLimit} active habits at a time. iPhone coming next.",
+    "founderNoteHtml": "<strong>Optional founder unlock:</strong> need more than {freeHabitLimit}? The first 5,000 accounts can lift the limit for life with a one-time $20.",
     "highlightsAriaLabel": "Highlights",
     "chipNoSubscription": "No subscription",
     "chipInstall": "Install in seconds",
@@ -71,19 +71,26 @@
     "createTitle": "Create a pact",
     "createBody": "Pick a habit — workout, reading, meditation, anything daily. Set the time you'll both show up.",
     "inviteTitle": "Invite a friend",
-    "inviteBody": "You can't do this alone. Your friend joins and becomes your accountability partner.",
+    "inviteBody": "Send them a link. Your friend joins and becomes your accountability partner &mdash; the person who notices if you stop.",
     "checkInTitle": "Check in daily",
     "checkInBody": "Add a photo or quick note as proof. Watch the streak grow together."
   },
+  "noFriend": {
+    "eyebrow": "No partner yet?",
+    "heading": "None of your friends on the app yet? Start anyway.",
+    "bodyHtml": "Your first habit can run solo for a week with no invite at all. Send one invite whenever you are ready &mdash; by text, to anyone &mdash; and you can keep checking in whether or not they have accepted yet. The pact starts the day they join.",
+    "challengeHtml": "Or turn it into a challenge: share one link, and anyone can join the board and check in from the web without installing the app.",
+    "challengesCta": "Browse 30-day challenge plans"
+  },
   "why": {
     "eyebrow": "Why it works",
-    "heading": "Why accountability changes everything",
-    "intro": "The same goal, the same person, the same month. The only difference is whether someone else is expecting you.",
+    "heading": "Why a partner makes the difference",
+    "intro": "Committing out loud, to a person, by a set time, is one of the oldest tricks for following through. The two figures below are the ones you will see quoted everywhere; read them as the shape of the gap, not as a measurement.",
     "withPartnerStat": "95%",
-    "withPartnerHtml": "<strong>With a partner.</strong> How often people follow through on a goal when they have a standing accountability appointment with someone else.",
+    "withPartnerHtml": "<strong>With an accountability appointment.</strong> The often-quoted follow-through rate for a goal when you have a set time to report back to the person you committed to.",
     "onYourOwnStat": "10%",
-    "onYourOwnHtml": "<strong>On your own.</strong> How often the same goal gets done when it stays an idea you never commit to anyone. Solo apps can't bridge that gap. We make accountability the default.",
-    "sourceNoteHtml": "Figures from the American Society for Training &amp; Development's study on commitment and goal follow-through, which found a 10% follow-through rate for a goal you only have an idea about, rising to 95% when you have a specific accountability appointment with the person you committed to."
+    "onYourOwnHtml": "<strong>As an idea.</strong> The often-quoted rate for the same goal when it stays an idea you never commit to anyone. Solo apps leave you on this side of the gap; we make the other side the default.",
+    "sourceNoteHtml": "These figures are widely attributed to the American Society for Training &amp; Development (now ATD), but we have not been able to trace them to a published study, so treat them as illustrative. They are not measurements of this app's users. Smaller published work points the same way: in a 2015 study by Gail Matthews at Dominican University of California, people who sent weekly progress reports to a friend accomplished significantly more of their goals than people who kept their goals to themselves."
   },
   "compare": {
     "eyebrow": "The difference",
@@ -91,14 +98,59 @@
     "partnerRequiredHtml": "<strong>A partner is required, not optional.</strong> Streaks, Habitify, Done and most other habit apps are built for one person. Here a pact needs two, so there is no version of the app where nobody notices you stopped.",
     "proofHtml": "<strong>Check-ins carry proof.</strong> Every daily check-in takes a photo or a note, so a streak is evidence rather than a tap.",
     "sharedStreakHtml": "<strong>The streak is shared.</strong> You and your partner are on the same streak, so a missed day costs both of you — the reason it is uncomfortable is the reason it works.",
-    "freeHtml": "<strong>It is free to start.</strong> No waitlist, no invite code, no card. Install it and make your first pact.",
-    "noSubscriptionHtml": "<strong>No subscription to sign up for.</strong> Free accounts track a limited number of active habits. The first 5,000 accounts can lift that limit permanently with a one-time $20 founder unlock instead of a monthly bill."
+    "freeHtml": "<strong>It is free to start.</strong> No invite code, no card. Install it on Android and make your first pact.",
+    "noSubscriptionHtml": "<strong>No subscription to sign up for.</strong> Free accounts track up to {freeHabitLimit} active habits at a time, free for as long as you use it. If you want more, the first 5,000 accounts can lift that limit permanently with a one-time $20 founder unlock instead of a monthly bill."
+  },
+  "compareTable": {
+    "eyebrow": "Side by side",
+    "heading": "Friends with Habits vs. HabitShare and Habitica",
+    "intro": "All three are social. The difference is whether the other person is optional.",
+    "caption": "How Friends with Habits compares with HabitShare and Habitica",
+    "columns": {
+      "feature": "Feature",
+      "fwh": "Friends with Habits",
+      "habitshare": "HabitShare",
+      "habitica": "Habitica"
+    },
+    "rows": {
+      "partner": {
+        "label": "Partner",
+        "fwh": "Built in: every pact has two people (your first habit can start solo for a week)",
+        "habitshare": "Optional: you choose which habits to share",
+        "habitica": "Optional: join a party if you want one"
+      },
+      "proof": {
+        "label": "Check-in proof",
+        "fwh": "A photo or note on every check-in",
+        "habitshare": "Tick it off",
+        "habitica": "Tick it off"
+      },
+      "streak": {
+        "label": "Streak",
+        "fwh": "Shared: a missed day resets it for both of you",
+        "habitshare": "Your own",
+        "habitica": "Your own; during a party quest, missed Dailies damage the whole party"
+      },
+      "price": {
+        "label": "Price",
+        "fwh": "Free with up to {freeHabitLimit} active habits; optional one-time $20 founder unlock",
+        "habitshare": "Free",
+        "habitica": "Free, with an optional subscription"
+      },
+      "platforms": {
+        "label": "Platforms",
+        "fwh": "Android today; iPhone waitlist open",
+        "habitshare": "iPhone and Android",
+        "habitica": "iPhone, Android and web"
+      }
+    },
+    "footnote": "Based on each app's public information as of November 2026. Features change, so check before you choose. HabitShare and Habitica are trademarks of their respective owners; Friends with Habits is not affiliated with either."
   },
   "founder": {
     "badge": "Founding member offer",
-    "headingHtml": "<span>$20 once.</span> Free for life.",
-    "lede": "The first 5,000 accounts can unlock everything permanently for a single $20 payment. No subscription, no renewal, nothing to cancel.",
-    "noCapHtml": "No cap on active habits &mdash; free accounts track {freeHabitLimit} at a time",
+    "headingHtml": "<span>$20 once.</span> No limits, for life.",
+    "lede": "The free tier stays free, with {freeHabitLimit} active habits at a time. If you want more, the first 5,000 accounts can unlock everything permanently for a single $20 payment. No subscription, no renewal, nothing to cancel.",
+    "noCapHtml": "No cap on active habits or new starts &mdash; free accounts track up to {freeHabitLimit} at a time",
     "futureFeatures": "Every premium feature we ship later, included",
     "forLife": "Yours for life, on every device you sign in on",
     "note": "Available inside the app through Google Play. When 5,000 people have claimed it, the offer is gone."
@@ -112,11 +164,11 @@
     },
     "isFree": {
       "question": "Is Friends with Habits free?",
-      "answer": "Yes. Friends with Habits is free to download and free to use, with no waitlist, no invite code and no card. A free account tracks a limited number of active habits at a time, and archiving a habit you have finished with frees a slot back up."
+      "answer": "Yes. Friends with Habits is free to download and free to use, with no invite code and no card. A free account tracks up to {freeHabitLimit} active habits at a time, with no expiry, and archiving a habit you have finished with frees its slot. Free accounts can also start a limited number of new habits each month. The optional $20 founder unlock lifts both limits."
     },
     "founderUnlock": {
-      "question": "What is the founder free-for-life unlock?",
-      "answer": "The first 5,000 accounts can pay $20 once and never pay again. The founder unlock removes the free tier's active-habit limit and includes every premium feature we add later, for life. There is no subscription attached to it and nothing to cancel. You buy it inside the app through Google Play, and once 5,000 people have claimed it the offer is gone for good."
+      "question": "What is the $20 founder unlock, and do I need it?",
+      "answer": "You do not need it: the free tier is free for as long as you use it, with up to {freeHabitLimit} active habits at a time. The founder unlock is for people who want more. The first 5,000 accounts can pay $20 once and never pay again; it removes the free tier's habit limits and includes every premium feature we add later, for life. There is no subscription attached to it and nothing to cancel. You buy it inside the app through Google Play, and once 5,000 people have claimed it the offer is gone for good."
     },
     "whatIsPact": {
       "question": "What is a pact?",
@@ -124,7 +176,7 @@
     },
     "needFriend": {
       "question": "Do I need a friend to use the app?",
-      "answer": "Yes, and that is deliberate. A pact needs two people, so you invite a friend when you create one. Solo habit trackers let you quit in private, which is the failure mode this app exists to remove. If your friend has not installed the app yet, your invite link walks them through it."
+      "answer": "Not to get started. Your first habit can run solo for a week without inviting anyone, and after that you keep checking in as soon as you have sent a single invite, whether or not your friend has accepted yet. Pacts are still the point: a pact needs two people, because solo habit trackers let you quit in private, which is the failure mode this app exists to remove. If your friend has not installed the app yet, your invite link walks them through it."
     },
     "checkIns": {
       "question": "How do daily check-ins work?",
@@ -189,7 +241,7 @@
       "feed": "Partner activity feed"
     },
     "freeOfferName": "Free",
-    "freeOfferDescription": "Free to install and use, with a limited number of active habits at a time.",
+    "freeOfferDescription": "Free to install and use, with up to {freeHabitLimit} active habits at a time.",
     "founderOfferName": "Founder free-for-life unlock",
     "founderOfferDescription": "A one-time $20 purchase, limited to the first 5,000 accounts, that removes the habit limit and includes every premium feature for life. Sold in the app through Google Play Billing.",
     "accountsUnit": "accounts"

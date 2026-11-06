@@ -2362,7 +2362,10 @@
             "soloGraceEnded": {
                 "title": "Mantén {habitName} en marcha",
                 "body": "Tu semana gratis siguiéndolo por tu cuenta terminó. Invita a un amigo para seguir registrando check-ins."
-            }
+            },
+            "overallStreak": "Racha general",
+            "overallStreakAccessibility": "Racha general: {count} días",
+            "overallStreakHint": "Abre tu calendario de racha y tus protectores de racha"
         },
         "pacts": {
             "headerTitle": "Mis pactos",
@@ -3298,6 +3301,45 @@
             "friendUnverified": "Debe verificar su cuenta",
             "moreFriends": "y {count} más",
             "cta": "Invitar a un amigo"
+        },
+        "dailyStreak": {
+            "headerTitle": "Racha",
+            "loading": "Cargando tu racha",
+            "loadFailed": "No pudimos cargar tu racha. Desliza hacia abajo para intentarlo de nuevo.",
+            "empty": "Registra cualquier hábito para empezar tu racha.",
+            "currentAccessibility": "Racha de {count} días",
+            "dayStreak": "día de racha",
+            "daysStreak": "días de racha",
+            "longest": "Racha más larga: {count} días",
+            "freezes": {
+                "haveOne": "Tienes 1 protector de racha",
+                "haveMany": "Tienes {count} protectores de racha",
+                "outOf": "¡Te quedaste sin protectores de racha!",
+                "none": "Aún no tienes protectores de racha",
+                "coverRule": "Si fallas un día que tus hábitos piden, uno protege tu racha automáticamente.",
+                "earnRule": "Gana uno cada vez que un hábito alcanza un hito de racha (7, 14, 30 días y más), hasta 3 por hábito.",
+                "unknownHabit": "Hábito archivado"
+            },
+            "calendarTitle": "Calendario de racha",
+            "previousMonth": "Mes anterior",
+            "nextMonth": "Mes siguiente",
+            "legend": {
+                "upheld": "Registrado",
+                "frozen": "Protegido",
+                "missed": "Fallado",
+                "rest": "Día de descanso"
+            },
+            "freezesUsedOne": "1 protector de racha usado este mes",
+            "freezesUsedMany": "{count} protectores de racha usados este mes",
+            "dayStatus": {
+                "upheld": "{date}: registrado",
+                "frozen": "{date}: cubierto por un protector de racha",
+                "missed": "{date}: fallado",
+                "rest": "{date}: día de descanso",
+                "pending": "{date}: hoy, aún sin registrar",
+                "future": "{date}",
+                "none": "{date}: sin racha todavía"
+            }
         }
     },
     "modals": {

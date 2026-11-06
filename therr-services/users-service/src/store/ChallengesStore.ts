@@ -156,8 +156,10 @@ export default class ChallengesStore {
 
     /**
      * The running challenge on this habit that the user is already on the board of, created by
-     * them or joined from someone's link. One habit gets one board: a second challenge would split
-     * the same friends across two scoreboards counting the same check-ins.
+     * them or joined from someone's link. Guards *starting* a challenge only: a second board the
+     * user starts would split the same friends across two scoreboards counting the same check-ins.
+     * Joining from a link is deliberately not guarded (it is the growth action), so a user can
+     * still sit on more than one running board for a habit by joining a friend's (#3171).
      */
     getRunningForMemberAndGoal(userId: string, habitGoalId: string, today: string): Promise<IChallengeDetailRow | undefined> {
         const queryString = knexBuilder

@@ -93,6 +93,7 @@ describe('habits landing iOS waitlist', () => {
         gtagMock = jest.fn();
         (window as any).fetch = fetchMock;
         (window as any).gtag = gtagMock;
+        window.sessionStorage.clear();
     });
 
     describe('the demand signal', () => {
@@ -158,6 +159,20 @@ describe('habits landing iOS waitlist', () => {
                 isSubscribedToIosWaitlist: true,
             });
             expect(options.headers['x-brand-variation']).toBe('habits');
+        });
+
+        it('carries the session attribution, so a paid click that ends here is attributable', async () => {
+            const attribution = {
+                utmSource: 'facebook', utmCampaign: 'leapd-test', landingPath: '/', surface: 'habits',
+            };
+            window.sessionStorage.setItem('therrUserAcquisition', JSON.stringify(attribution));
+            mountAndRun();
+            click('hero-ios-cta');
+            setEmail('streakqueen@example.com');
+            submit();
+            await flushPromises();
+
+            expect(JSON.parse(fetchMock.mock.calls[0][1].body).userAcquisition).toEqual(attribution);
         });
 
         it('trims the address before sending it', async () => {
