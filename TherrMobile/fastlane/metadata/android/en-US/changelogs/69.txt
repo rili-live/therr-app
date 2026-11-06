@@ -1,0 +1,4 @@
+What's new:
+• Pact chat: message your partners, react to each other's check-ins and send quick cheers, with a mute switch per pact
+• Tap Overall streak on your dashboard to see your streak calendar and the Streak Freezes protecting it
+• Coming back after a break? Your first check-in now earns a Welcome-back bonus
