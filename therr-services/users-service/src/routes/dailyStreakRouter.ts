@@ -1,6 +1,7 @@
 import * as express from 'express';
 import {
     getMyDailyStreak,
+    getMyDailyStreakCalendar,
     markDailyStreakCelebrated,
     evaluateAllDailyStreaksHandler,
 } from '../handlers/dailyStreak';
@@ -14,6 +15,7 @@ router.post('/evaluate-all', evaluateAllDailyStreaksHandler);
 
 // READ
 router.get('/me', getMyDailyStreak);
+router.get('/me/calendar', getMyDailyStreakCalendar);
 
 // UPDATE
 router.post('/me/celebrated', markDailyStreakCelebrated);

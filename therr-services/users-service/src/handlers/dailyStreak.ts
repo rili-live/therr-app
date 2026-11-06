@@ -5,7 +5,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import { clampCelebratedDate, isDateString } from '../utilities/dailyStreak';
-import { evaluateAllDailyStreaks, getDailyStreakSummary } from './helpers/dailyStreak';
+import { evaluateAllDailyStreaks, getDailyStreakCalendar, getDailyStreakSummary } from './helpers/dailyStreak';
 import { closeElapsedLeaderboardPeriods } from './helpers/leaderboardPeriods';
 
 /**
@@ -38,6 +38,34 @@ const getMyDailyStreak: RequestHandler = async (req: any, res: any) => {
             brand: brandVariation,
         });
         return res.status(200).send(summary);
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:DAILY_STREAK_ROUTES:ERROR' });
+    }
+};
+
+/**
+ * GET /habits/daily-streak/me/calendar?month=<YYYY-MM>&timeZone=<IANA>
+ *
+ * One month of the user's daily streak ledger plus the live freeze pool, for the streak detail
+ * screen. `month` defaults to (and clamps a future month to) the user's local current month;
+ * junk resolves to it too rather than answering 400. Days before the first check-in come back
+ * as `none`, never `missed`.
+ */
+const getMyDailyStreakCalendar: RequestHandler = async (req: any, res: any) => {
+    const { userId } = parseHeaders(req.headers);
+
+    if (!userId) {
+        return handleHttpError({ res, message: 'Unauthorized', statusCode: 401 });
+    }
+
+    try {
+        const [user] = await Store.users.getUserById(userId, ['id', 'settingsTimezone']);
+        const calendar = await getDailyStreakCalendar(userId, req.headers, {
+            settingsTimezone: user?.settingsTimezone,
+            deviceTimezone: req.query?.timeZone,
+            month: req.query?.month,
+        });
+        return res.status(200).send(calendar);
     } catch (err: any) {
         return handleHttpError({ err, res, message: 'SQL:DAILY_STREAK_ROUTES:ERROR' });
     }
@@ -116,6 +144,7 @@ const evaluateAllDailyStreaksHandler: RequestHandler = async (req: any, res: any
 
 export {
     getMyDailyStreak,
+    getMyDailyStreakCalendar,
     markDailyStreakCelebrated,
     evaluateAllDailyStreaksHandler,
 };
