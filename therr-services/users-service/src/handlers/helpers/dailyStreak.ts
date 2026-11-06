@@ -28,6 +28,15 @@ import {
     getCadence,
     getCadenceEffectiveFrom,
 } from '../../utilities/habitCadence';
+import {
+    buildMonthDays,
+    countFrozenDays,
+    getMonthBounds,
+    IStreakCalendarDay,
+    IStreakCalendarFreezes,
+    resolveRequestedMonth,
+    summarizeFreezes,
+} from '../../utilities/streakCalendar';
 import { IUserHabitCadence } from '../../store/UserHabitsStore';
 import { createOrUpdateAchievement } from './achievements';
 import { awardLeaderboardPoints } from './leaderboards';
@@ -485,7 +494,13 @@ export const onCheckinCompleted = async ({
     }
     if (isFirstForDay) {
         // Awaited so the check-in response's celebration can reveal it. Never throws.
-        await awardDailyBonus(userId, localDate, state, headers);
+        // `existing.lastUpheldDate` is the streak as it stood before this check-in, which is
+        // what tells a comeback (days since the last upheld day) from an ordinary day. A
+        // backdated check-in that fills yesterday is judged against the same reading.
+        const previousUpheldDate = existing.lastUpheldDate && existing.lastUpheldDate < localDate
+            ? existing.lastUpheldDate
+            : null;
+        await awardDailyBonus(userId, localDate, state, headers, previousUpheldDate);
     }
 
     return state;
@@ -663,6 +678,59 @@ export const getDailyStreakSummary = async (
 
     return {
         ...view, timeZone, pendingPlacements, isAtStakeToday,
+    };
+};
+
+export interface IDailyStreakCalendar {
+    /** YYYY-MM — the month actually returned (junk or a future month resolves to today's). */
+    month: string;
+    today: string;
+    timeZone: string;
+    currentStreak: number;
+    longestStreak: number;
+    days: IStreakCalendarDay[];
+    /** Ledger days in this month a freeze covered. */
+    freezesUsedThisMonth: number;
+    /** The live freeze pool — not as of `month`; the pool has no history. */
+    freezes: IStreakCalendarFreezes;
+    /** Whether any ledger row predates this month, i.e. whether "previous month" has anything to show. */
+    hasPreviousMonth: boolean;
+}
+
+/**
+ * One month of the daily streak ledger, for the streak detail screen. Syncs first (exactly as
+ * the summary does) so today and the current numbers are right for a user the scheduled pass
+ * has not reached yet.
+ */
+export const getDailyStreakCalendar = async (
+    userId: string,
+    headers: InternalConfigHeaders,
+    { settingsTimezone, deviceTimezone, month: requestedMonth }: { settingsTimezone: unknown; deviceTimezone?: unknown; month?: unknown },
+    now: Date = new Date(),
+): Promise<IDailyStreakCalendar> => {
+    const timeZone = resolveCheckinTimeZone(settingsTimezone, deviceTimezone);
+    const today = getLocalDate(timeZone, now);
+    const month = resolveRequestedMonth(requestedMonth, today);
+    const { start, end } = getMonthBounds(month);
+
+    const state = await syncDailyStreak(userId, today, headers);
+    const [rows, earlier, streaks] = await Promise.all([
+        Store.dailyStreakDays.getRange(userId, start, end < today ? end : today),
+        Store.dailyStreakDays.getLatestBefore(userId, start),
+        Store.streaks.getByUserId(userId),
+    ]);
+    const days = buildMonthDays(month, today, rows);
+
+    return {
+        month,
+        today,
+        timeZone,
+        currentStreak: state.currentStreak,
+        longestStreak: state.longestStreak,
+        days,
+        freezesUsedThisMonth: countFrozenDays(days),
+        freezes: summarizeFreezes(streaks || []),
+        hasPreviousMonth: !!earlier,
     };
 };
 

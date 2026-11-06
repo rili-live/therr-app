@@ -23,7 +23,43 @@ export const buildShareUrl = (locale: string, path: string): string =>
 export const buildSpaceUrl = (locale: string, id: string) => buildShareUrl(locale, `/spaces/${id}`);
 export const buildMomentUrl = (locale: string, id: string) => buildShareUrl(locale, `/moments/${id}`);
 export const buildEventUrl = (locale: string, id: string) => buildShareUrl(locale, `/events/${id}`);
-export const buildInviteUrl = (locale: string, userName: string) => buildShareUrl(locale, `/invite/${userName}`);
+// The same segment the web invite landings accept (therr-client-web habitsSubdomainRoutes.ts), and a
+// superset of what sanitizeUserName produces.
+const INVITE_USERNAME_RE = /^[A-Za-z0-9._-]{1,64}$/;
+
+/**
+ * Whether a username can go into an /invite/:username link. `null` and `undefined` are rejected as
+ * strings too: a template literal turns a missing value into exactly those words.
+ */
+export const isShareableUserName = (userName?: string | null): userName is string => (
+    typeof userName === 'string'
+    && userName !== 'null'
+    && userName !== 'undefined'
+    && INVITE_USERNAME_RE.test(userName)
+);
+
+/**
+ * The invite landing that names no inviter. habits.therr.com reads `/invite/link` (no token) as
+ * the generic landing, while a bare `/invite` 404s there until the web route that accepts it
+ * deploys — and a Play release can ship before that, so the app must not depend on it.
+ * www.therr.com would read `/invite/link` as a user named "link", and already serves `/invite`.
+ */
+export const GENERIC_INVITE_PATH = CURRENT_BRAND_VARIATION === BrandVariations.HABITS ? '/invite/link' : '/invite';
+
+/**
+ * The link a user shares to invite a friend.
+ *
+ * An account can be fully admitted with no username yet (47 of 209 Friends with Habits accounts on
+ * 2026-10-28, nine of them pact creators), and every share site passed `user.details.userName`
+ * straight in — so their invites went out as `/invite/null`, or `/invite/` where a caller had
+ * coalesced to '', which habits.therr.com answered with a bare 404. Without a usable username the
+ * link is the generic invite landing instead, which still carries the install CTA. The share
+ * message does not name the username, so nothing else in it breaks.
+ */
+export const buildInviteUrl = (locale: string, userName?: string | null) => buildShareUrl(
+    locale,
+    isShareableUserName(userName) ? `/invite/${userName}` : GENERIC_INVITE_PATH,
+);
 export const buildUserUrl = (locale: string, id: string) => buildShareUrl(locale, `/users/${id}`);
 export const buildGroupUrl = (locale: string, id: string) => buildShareUrl(locale, `/groups/${id}`);
 export const buildPublicListUrl = (locale: string, ownerUserId: string, listSlug: string) =>

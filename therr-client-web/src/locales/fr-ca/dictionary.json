@@ -979,6 +979,7 @@
     },
     "inviteLanding": {
       "title": "{username} vous a invité sur Therr!",
+      "titleGeneric": "Vous avez été invité sur Therr!",
       "description": "Rejoignez l'application de communauté locale et de récompenses. Inscrivez-vous avec leur code d'invitation et vous gagnez tous les deux des pièces!",
       "joinButton": "Rejoindre et gagner 5 pièces",
       "appStoreText": "Aussi disponible sur mobile",

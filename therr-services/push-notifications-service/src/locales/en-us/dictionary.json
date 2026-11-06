@@ -192,12 +192,14 @@
       "body": "You and {partnerName} finished your {habitName} pact — that's a win for both of you."
     },
     "pactExpiring": {
-      "title": "Pact Wrapping Up Soon",
-      "body": "{daysRemaining} day(s) left on your {habitName} pact — finish strong."
+      "title": "{habitName}: {daysRemaining} day(s) left",
+      "body": "Renew now for another {durationDays} days in one tap.",
+      "bodyWithStreak": "You're on a {streakCount}-day streak. Renew for another {durationDays} days and keep it going."
     },
     "pactEnded": {
       "title": "Your {habitName} Pact Wrapped Up",
-      "body": "{durationDays} days in. Most habits take months, not weeks — start a new cycle and your streak carries over."
+      "body": "{durationDays} days in. Most habits take months, not weeks — start a new cycle and your streak carries over.",
+      "bodyWithStreak": "Your {streakCount}-day streak comes with you. Start another {durationDays} days in one tap."
     },
     "pactJoinRequested": {
       "title": "New request to join your pact",
@@ -236,6 +238,33 @@
       "body": "Log {habitName} today — one check-in gets your streak going.",
       "bodyMultiple": "{habitCount} habits are waiting today — {habitNames}. One check-in gets you started.",
       "bodyWeekly": "{weekDone} of {weekTarget} on {habitName} this week — {daysLeft} day(s) left to finish it."
+    },
+    "habitRetention": {
+      "firstCheckin": {
+        "title": "Day 1 of {habitName}",
+        "body": "One tap and your streak starts today.",
+        "bodyWithPartner": "{partnerName} is in. One tap and your streak starts today."
+      },
+      "dayTwo": {
+        "title": "Day 2 of {habitName}",
+        "body": "Yesterday you started. Today makes it a streak.",
+        "bodyWithPartner": "{partnerName} is counting on you. Today makes it a streak."
+      },
+      "comeback": {
+        "title": "{habitName} is still here for you",
+        "body": "One check-in starts it again, and your first one back pays a comeback bonus.",
+        "bodyWithPartner": "{partnerName} is still in. One check-in starts it again, with a comeback bonus."
+      },
+      "comebackNoBonus": {
+        "title": "{habitName} is still here for you",
+        "body": "One check-in starts it again. No catching up needed.",
+        "bodyWithPartner": "{partnerName} is still in. One check-in starts it again."
+      },
+      "freshStart": {
+        "title": "Still want to start {habitName}?",
+        "body": "Day 1 is one tap. Nothing to catch up on.",
+        "bodyWithPartner": "{partnerName} is ready when you are. Day 1 is one tap."
+      }
     },
     "morningMotivation": {
       "title": "Good Morning",

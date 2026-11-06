@@ -979,6 +979,7 @@
     },
     "inviteLanding": {
       "title": "¡{username} te invitó a Therr!",
+      "titleGeneric": "¡Te invitaron a Therr!",
       "description": "Únete a la app de comunidad local y recompensas. ¡Regístrate con su código de invitación y ambos ganarán monedas!",
       "joinButton": "Únete ahora y gana 5 monedas",
       "appStoreText": "También disponible en móvil",

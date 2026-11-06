@@ -40,6 +40,7 @@ const HABIT_GOAL_ID = 'habit-goal-1';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const yesterday = () => new Date(Date.now() - DAY_MS);
 const tomorrow = () => new Date(Date.now() + DAY_MS);
+const inDays = (days: number) => new Date(Date.now() + days * DAY_MS);
 
 describe('Pact renewal — eligibility', () => {
     it('allows renewing a completed or expired pact', () => {
@@ -55,6 +56,18 @@ describe('Pact renewal — eligibility', () => {
 
     it('refuses to renew a pact that is still running', () => {
         expect(isPactRenewable({ status: 'active', endDate: tomorrow() })).to.equal(false);
+    });
+
+    // The `pactExpiring` push's Renew button. 0 of 14 expired pacts were renewed while the only
+    // offer arrived after the cycle had closed; the warning three days earlier is when the habit
+    // is still live. Only the renew handler opts in.
+    it('allows an early renewal inside the final days, and only when asked for', () => {
+        expect(isPactRenewable({ status: 'active', endDate: inDays(2) }, { allowEarly: true })).to.equal(true);
+        expect(isPactRenewable({ status: 'active', endDate: inDays(2.9) }, { allowEarly: true })).to.equal(true);
+        expect(isPactRenewable({ status: 'active', endDate: inDays(10) }, { allowEarly: true })).to.equal(false);
+        expect(isPactRenewable({ status: 'active', endDate: null }, { allowEarly: true })).to.equal(false);
+        expect(isPactRenewable({ status: 'pending', endDate: inDays(1) }, { allowEarly: true })).to.equal(false);
+        expect(isPactRenewable({ status: 'active', endDate: inDays(2) })).to.equal(false);
     });
 
     it('refuses to renew a pending or abandoned pact', () => {
@@ -340,7 +353,7 @@ describe('Pact renewal — handler', () => {
 
     it('refuses to renew a pact that is still running', async () => {
         stubStores({
-            pact: endedPact({ status: 'active', endDate: tomorrow() }),
+            pact: endedPact({ status: 'active', endDate: inDays(10) }),
             members: [{ userId: RENEWER, status: 'active', role: 'creator' }],
         });
 
@@ -348,6 +361,19 @@ describe('Pact renewal — handler', () => {
 
         expect(statusCode).to.equal(409);
         expect(createdPact).to.equal(undefined);
+    });
+
+    it('renews early from the expiring warning, closing the current cycle', async () => {
+        stubStores({
+            pact: endedPact({ status: 'active', endDate: inDays(2) }),
+            members: [{ userId: RENEWER, status: 'active', role: 'creator' }],
+        });
+
+        const { statusCode } = await run();
+
+        expect(statusCode).to.equal(201);
+        expect(createdPact.renewedFromPactId).to.equal(PACT_ID);
+        expect((Store.pacts.expire as any).calledWith(PACT_ID)).to.equal(true);
     });
 
     it('refuses a renewal from someone who was never in the pact', async () => {
@@ -568,6 +594,57 @@ describe('Pact renewal — a second tap does not make a second pact', () => {
         expect(body.id).to.equal('pact-2');
         expect((Store.pacts.create as any).called).to.equal(false);
         expect(created).to.equal(undefined);
+    });
+
+    // Both partners get the Renew button. Whoever taps second is a pending invitee of the first
+    // one's renewal, and handing it back unchanged left them pending — the pair had both said
+    // "renew" and the cycle still sat waiting for an invite to be accepted somewhere else.
+    it('accepts the seat when the second partner taps renew', async () => {
+        const pendingRenewal = {
+            id: 'pact-2',
+            status: 'pending',
+            creatorUserId: PARTNER,
+            habitGoalId: HABIT_GOAL_ID,
+            renewedFromPactId: PACT_ID,
+        };
+        sinon.stub(Store.pacts, 'getLatestRenewalOf').resolves(pendingRenewal as any);
+        sinon.stub(Store.pacts, 'getUnfinishedByUserAndHabitGoal').resolves([] as any);
+        (Store.pactMembers.getByPactId as sinon.SinonStub).callsFake((pactId: string) => Promise.resolve(pactId === 'pact-2'
+            ? [
+                { userId: PARTNER, status: 'active', role: 'creator' },
+                { userId: RENEWER, status: 'pending', role: 'partner' },
+            ]
+            : [
+                { userId: RENEWER, status: 'active', role: 'creator' },
+                { userId: PARTNER, status: 'active', role: 'partner' },
+            ]) as any);
+        (Store.pacts.activate as sinon.SinonStub).resolves({ ...pendingRenewal, status: 'active' } as any);
+        const memberActivate = sinon.stub(Store.pactMembers, 'activate').resolves({} as any);
+        sinon.stub(Store.streaks, 'getOrCreate').resolves({} as any);
+        sinon.stub(Store.userHabits, 'reviveArchivedByHabit').resolves({} as any);
+        sinon.stub(Store.userConnections, 'getUserConnections').resolves([] as any);
+        sinon.stub(Store.userConnections, 'createUserConnection').resolves([] as any);
+
+        const { statusCode, body } = await run();
+
+        expect(statusCode).to.equal(200);
+        expect(body.status).to.equal('active');
+        expect(memberActivate.calledWith('pact-2', RENEWER)).to.equal(true);
+        expect(created).to.equal(undefined);
+    });
+
+    it('hands back an existing renewal untouched when the tapper already holds a seat in it', async () => {
+        const activeRenewal = {
+            id: 'pact-2', status: 'active', creatorUserId: RENEWER, habitGoalId: HABIT_GOAL_ID, renewedFromPactId: PACT_ID,
+        };
+        sinon.stub(Store.pacts, 'getLatestRenewalOf').resolves(activeRenewal as any);
+        sinon.stub(Store.pacts, 'getUnfinishedByUserAndHabitGoal').resolves([] as any);
+        const memberActivate = sinon.stub(Store.pactMembers, 'activate').resolves({} as any);
+
+        const { statusCode } = await run();
+
+        expect(statusCode).to.equal(200);
+        expect(memberActivate.called).to.equal(false);
     });
 
     // The second line of defence, for the case the successor lookup cannot see: another

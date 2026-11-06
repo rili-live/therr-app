@@ -10,6 +10,8 @@ export interface ISendCoachesWaitlistAdminEmailConfig {
 export interface ICoachesWaitlistAdminTemplateParams {
     email: string;
     details: Record<string, string>;
+    /** Where the coach came from, so a paid test's signups are visible as they arrive. */
+    acquisition?: { utmSource?: string; utmMedium?: string; utmCampaign?: string; referrer?: string };
 }
 
 /**
@@ -30,12 +32,19 @@ export default (emailParams: ISendCoachesWaitlistAdminEmailConfig, templateParam
     }
 
     const { coachingType, clientCount, monthlyBudget } = templateParams.details;
+    const {
+        utmSource, utmMedium, utmCampaign, referrer,
+    } = templateParams.acquisition || {};
+    const source = utmSource || utmCampaign
+        ? [utmSource, utmMedium, utmCampaign].filter(Boolean).join(' / ')
+        : (referrer || 'direct or untagged');
     const htmlConfig = {
         header: `${contextConfig.brandName}: New coach on the waitlist`,
         dearUser: `${templateParams.email} joined the coaches waitlist.`,
         body1: `Coaching: ${coachingType || 'not answered'}. `
             + `Clients: ${clientCount || 'not answered'}. `
-            + `Would pay per month: ${monthlyBudget || 'not answered'}.`,
+            + `Would pay per month: ${monthlyBudget || 'not answered'}. `
+            + `Source: ${source}.`,
     };
 
     return sendEmail({

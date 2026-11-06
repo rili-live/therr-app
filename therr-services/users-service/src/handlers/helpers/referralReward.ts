@@ -198,3 +198,42 @@ export const evaluateReferralRewardsAfterCheckin = async (friendUserId: string):
         return [];
     }
 };
+
+/**
+ * Progress for the referrer's own screen, granting the reward first when it is already earned.
+ *
+ * The check-in hook above only fires when a *friend* checks in, so a referrer whose friends
+ * qualified before that hook was deployed, or who all went quiet the day after qualifying, was
+ * never evaluated at all. On 2026-10-28 two real users were in exactly that state (three verified
+ * friends with 3+ check-in days each, no grant), and `habits.referral_rewards` was empty.
+ *
+ * Granting here is safe because nothing the client sends decides it: the rule is evaluated by
+ * `maybeGrantReferralReward` against server data, and the UNIQUE row makes a repeat a no-op. It
+ * runs only when the progress already shows the reward earned and not yet given, so the ordinary
+ * read costs nothing extra. A failed grant is logged and the progress is still returned — the
+ * screen must not break over the reward, and the next read retries it.
+ */
+export const getReferralRewardProgressWithCatchUp = async (userId: string): Promise<IReferralRewardProgress> => {
+    const progress = await getReferralRewardProgress(userId);
+    const isEarnedButNotGiven = !progress.isGranted
+        && !progress.isEntitled
+        && progress.isAvailable
+        && progress.qualifiedCount >= progress.requiredFriendCount;
+
+    if (!isEarnedButNotGiven) {
+        return progress;
+    }
+
+    try {
+        const outcome = await maybeGrantReferralReward(userId);
+        return outcome === 'granted' ? await getReferralRewardProgress(userId) : progress;
+    } catch (err: any) {
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: ['Referral reward catch-up grant failed'],
+            traceArgs: { 'error.message': err?.message, 'user.id': userId },
+        });
+        return progress;
+    }
+};

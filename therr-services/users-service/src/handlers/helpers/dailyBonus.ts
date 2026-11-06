@@ -17,9 +17,11 @@ import {
     DailyBonusRarity,
     DailyBonusTier,
     getDailyBonusTier,
+    isComebackCheckin,
     isDailyBonusEnabled,
     rollDailyBonus,
 } from '../../utilities/dailyBonus';
+import { getLapseBackoffDays } from '../../utilities/retentionLadder';
 import { awardLeaderboardPoints } from './leaderboards';
 
 /** What the celebration reveals. Already paid by the time anyone sees it. */
@@ -50,6 +52,9 @@ export const awardDailyBonus = async (
     localDate: string,
     state: IDBUserDailyStreak,
     headers: InternalConfigHeaders,
+    // The last upheld day *before* this check-in, read before the streak moved. Its gap to
+    // `localDate` decides the comeback tier; absent means "not a comeback".
+    previousUpheldDate: string | null = null,
 ): Promise<IDailyBonusView | null> => {
     const { brandVariation } = getBrandContext(headers as Record<string, any>);
     if (!isDailyBonusEnabled() || brandVariation !== BrandVariations.HABITS) {
@@ -66,7 +71,8 @@ export const awardDailyBonus = async (
             const rows = await Store.dailyStreakDays.getRange(userId, getWeekStart(localDate), getWeekEnd(localDate));
             isPerfectWeek = isWeekPerfectThrough(localDate, new Map(rows.map((row) => [row.localDate, row.status])));
         }
-        const roll = rollDailyBonus(getDailyBonusTier({ isMilestone, isPerfectWeek }), randomInt);
+        const isComeback = isComebackCheckin(previousUpheldDate, localDate, getLapseBackoffDays());
+        const roll = rollDailyBonus(getDailyBonusTier({ isMilestone, isPerfectWeek, isComeback }), randomInt);
 
         const claimed = await Store.dailyBonuses.claim({
             userId,

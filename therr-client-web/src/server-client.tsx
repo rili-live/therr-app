@@ -412,7 +412,9 @@ const resolveHabitsInviter = async (match: IHabitsInviteRouteMatch): Promise<{
     const habitsHeaders = { 'x-brand-variation': BrandVariations.HABITS };
 
     try {
-        if (match.kind === 'invite-username') {
+        // No username (a bare '/invite', or '/invite/null' from an older app build): nobody to
+        // look up, so skip the round-trip and render the generic headline.
+        if (match.kind === 'invite-username' && match.value) {
             const response = await axios.get(
                 `/users-service/users/by-username/${encodeURIComponent(match.value)}`,
                 { timeout: HABITS_INVITER_LOOKUP_TIMEOUT_MS, headers: habitsHeaders },
@@ -3073,7 +3075,7 @@ const publicRoutePatterns = [
     /^\/moments\/[^/]+$/,
     /^\/thoughts\/[^/]+$/,
     /^\/users\/[^/]+$/,
-    /^\/invite\/[^/]+$/,
+    /^\/invite(\/[^/]+)?$/,
     /^\/lists\/[^/]+\/[a-z0-9-]+$/,
     /^\/child-safety$/,
     /^\/api-access$/,

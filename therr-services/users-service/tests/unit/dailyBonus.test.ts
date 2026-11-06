@@ -5,6 +5,7 @@ import { awardDailyBonus, getDailyBonusForDay } from '../../src/handlers/helpers
 import {
     getExpectedBonusXp,
     getDailyBonusTier,
+    isComebackCheckin,
     DAILY_BONUS_ODDS,
     rollDailyBonus,
 } from '../../src/utilities/dailyBonus';
@@ -53,6 +54,22 @@ describe('Daily bonus — odds and roll', () => {
         expect(getDailyBonusTier({ isMilestone: false, isPerfectWeek: false })).to.equal('standard');
         expect(getDailyBonusTier({ isMilestone: true, isPerfectWeek: false })).to.equal('boosted');
         expect(getDailyBonusTier({ isMilestone: false, isPerfectWeek: true })).to.equal('boosted');
+    });
+
+    it('pays a visible comeback bonus — epic or better — that still cannot outrank consistency', () => {
+        expect(DAILY_BONUS_ODDS.comeback.every((entry) => entry.rarity === 'epic' || entry.rarity === 'jackpot')).to.equal(true);
+        // Earning one takes days of not checking in. Four consistent days earn ~40 XP of daily
+        // bonuses on top of their check-ins; one comeback must stay under that.
+        expect(getExpectedBonusXp('comeback')).to.be.within(20, 40);
+        expect(getDailyBonusTier({ isMilestone: true, isPerfectWeek: false, isComeback: true })).to.equal('comeback');
+    });
+
+    it('calls a check-in a comeback only after a real gap, and never the first one ever', () => {
+        expect(isComebackCheckin(null, '2026-10-08', 3)).to.equal(false);
+        expect(isComebackCheckin('2026-10-07', '2026-10-08', 3)).to.equal(false);
+        expect(isComebackCheckin('2026-10-06', '2026-10-08', 3)).to.equal(false);
+        expect(isComebackCheckin('2026-10-05', '2026-10-08', 3)).to.equal(true);
+        expect(isComebackCheckin('2026-09-01', '2026-10-08', 3)).to.equal(true);
     });
 });
 
@@ -113,6 +130,21 @@ describe('Daily bonus — awardDailyBonus (paid at check-in, no tapping required
         sinon.stub(Store.dailyStreakDays, 'getRange').resolves(week as any);
         await awardDailyBonus(userId, sunday, { ...state, lastUpheldDate: sunday }, habitsHeaders);
         expect(claim.firstCall.args[0].tier).to.equal('boosted');
+    });
+
+    it('uses comeback odds on the first check-in after a lapse', async () => {
+        await awardDailyBonus(userId, localDate, { ...state, currentStreak: 1 }, habitsHeaders, '2026-10-01');
+        expect(claim.firstCall.args[0].tier).to.equal('comeback');
+    });
+
+    it('honours HABIT_LAPSE_BACKOFF_DAYS, so the comeback message and the bonus agree', async () => {
+        process.env.HABIT_LAPSE_BACKOFF_DAYS = '10';
+        try {
+            await awardDailyBonus(userId, localDate, { ...state, currentStreak: 1 }, habitsHeaders, '2026-10-01');
+            expect(claim.firstCall.args[0].tier).to.equal('standard');
+        } finally {
+            delete process.env.HABIT_LAPSE_BACKOFF_DAYS;
+        }
     });
 
     it('pays nothing when the day already has a bonus', async () => {

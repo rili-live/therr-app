@@ -100,6 +100,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         pactDeclineReason,
         // Pact chat — the first line of the message being announced. Copy only.
         messagePreview,
+        // Which retention story a `dailyHabitReminder` tells (first-checkin, day-two, comeback, …).
+        messageVariant,
     } = req.body;
 
     return predictAndSendNotification(
@@ -162,6 +164,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             charityKey,
             pactDeclineReason,
             messagePreview,
+            messageVariant: typeof messageVariant === 'string' ? messageVariant : undefined,
         },
         undefined,
         brandVariation,
@@ -270,6 +273,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         pactDeclineReason,
         // Pact chat — the first line of the message being announced. Copy only.
         messagePreview,
+        // Which retention story a `dailyHabitReminder` tells (first-checkin, day-two, comeback, …).
+        messageVariant,
     } = req.body;
 
     const recipients: any[] = (users || []).filter((user: any) => !user.shouldMuteNotifs);
@@ -334,6 +339,7 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             charityKey,
             pactDeclineReason,
             messagePreview,
+            messageVariant: typeof messageVariant === 'string' ? messageVariant : undefined,
         },
         undefined,
         brandVariation,

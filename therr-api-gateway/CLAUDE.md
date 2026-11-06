@@ -73,6 +73,11 @@ Uses `express-validator` for input validation:
 - Handles response streaming
 - Error normalization
 
+### Refusal status codes
+The mobile interceptor (`TherrMobile/main/interceptors.ts`) treats a 401 as an expired token (refresh, then
+logout if it repeats) and logs the user out on any 403 whose URL contains `/auth`. A policy refusal on a
+signed-in route (attestation required, budget spent, build too old) returns 400 or 429, never 401/403.
+
 ## Adding New Endpoints
 
 1. Add route in `src/services/{service}/router.ts`

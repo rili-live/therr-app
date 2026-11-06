@@ -1350,6 +1350,27 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         pactPressedSurface: {
             opacity: 0.75,
         },
+        // Open-pact cards between posts in the feed (components/Habits/FeedOpenPactCard).
+        feedPactEyebrow: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            color: therrTheme.colors.primary3,
+            marginBottom: space.xs,
+        },
+        feedPactHeaderRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.md,
+        },
+        feedPactPitch: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurface,
+            marginTop: space.md,
+        },
         pactTimelineRow: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -2142,6 +2163,214 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: fontSizes.xs,
             fontWeight: fontWeights.semibold,
             color: therrTheme.colors.brand,
+        },
+
+        // ------------------------------------------------------------------
+        // Daily streak detail (routes/DailyStreak) and its month calendar.
+        // Reuses the per-habit calendar's grid metrics (`calendarDay*`) so the
+        // two calendars line up; only the status fills and the run band are
+        // new. Frozen days take the same brand tint as an available freeze pip,
+        // so "a freeze" looks the same wherever the app draws one.
+        // ------------------------------------------------------------------
+        dailyStreakHero: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginHorizontal: space.lg,
+            marginTop: space.lg,
+            marginBottom: space.md,
+            padding: space.lg,
+            borderRadius: radius.xl,
+            backgroundColor: tint(therrTheme.colors.brand, isDarkTheme(themeName) ? 0.24 : 0.1),
+        },
+        dailyStreakHeroText: {
+            flex: 1,
+        },
+        dailyStreakHeroNumber: {
+            fontFamily: therrFontFamily,
+            fontSize: 64,
+            lineHeight: 72,
+            fontWeight: fontWeights.bold,
+            color: streakBar.fill,
+        },
+        dailyStreakHeroLabel: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xl,
+            fontWeight: fontWeights.bold,
+            color: streakBar.fill,
+        },
+        dailyStreakHeroSubtext: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.textGray,
+            marginTop: space.xs,
+        },
+        dailyStreakHeroGlyph: {
+            fontSize: 72,
+            marginLeft: space.md,
+        },
+        dailyStreakCard: {
+            borderRadius: radius.xl,
+            backgroundColor: therrTheme.colors.surface,
+            padding: space.lg,
+            marginHorizontal: space.lg,
+            marginBottom: space.md,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.accentDivider,
+            ...shadowSm,
+        },
+        dailyStreakSectionTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.lg,
+            fontWeight: fontWeights.bold,
+            color: therrTheme.colors.onSurface,
+            marginHorizontal: space.lg,
+            marginTop: space.sm,
+            marginBottom: space.sm,
+        },
+        dailyStreakFreezeHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.md,
+        },
+        dailyStreakFreezeGlyph: {
+            fontSize: 36,
+        },
+        dailyStreakFreezeHeaderText: {
+            flex: 1,
+        },
+        dailyStreakFreezeTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        dailyStreakFreezeBody: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.textGray,
+            marginTop: space.xs,
+        },
+        dailyStreakFreezeHabitRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.sm,
+            paddingTop: space.sm,
+            marginTop: space.sm,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: therrTheme.colors.accentDivider,
+        },
+        dailyStreakFreezeHabitName: {
+            flex: 1,
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurface,
+        },
+        // Behind the day circles, same height, so consecutive kept days read as
+        // one capsule. Each cell draws only its own halves (see calendarGrid.ts).
+        dailyStreakBand: {
+            position: 'absolute',
+            top: '50%',
+            marginTop: -18,
+            height: 36,
+            backgroundColor: tint(therrTheme.colors.brand, isDarkTheme(themeName) ? 0.3 : 0.14),
+        },
+        dailyStreakBandLeft: {
+            left: 0,
+            right: '50%',
+        },
+        dailyStreakBandRight: {
+            left: '50%',
+            right: 0,
+        },
+        dailyStreakDayUpheld: {
+            backgroundColor: therrTheme.colors.brand,
+        },
+        dailyStreakDayFrozen: {
+            backgroundColor: tint(therrTheme.colors.brand, 0.16),
+            borderWidth: 1,
+            borderColor: therrTheme.colors.brand,
+        },
+        dailyStreakDayTodayRing: {
+            borderWidth: 2,
+            borderColor: therrTheme.colors.primary3,
+        },
+        dailyStreakDayTextUpheld: {
+            color: therrTheme.colors.onBrand,
+            fontWeight: fontWeights.semibold,
+        },
+        dailyStreakDayTextFrozen: {
+            color: therrTheme.colors.onSurface,
+            fontWeight: fontWeights.semibold,
+        },
+        dailyStreakDayTextMissed: {
+            color: therrTheme.colors.accentRed,
+            fontWeight: fontWeights.semibold,
+        },
+        dailyStreakDayTextMuted: {
+            color: therrTheme.colors.textGray,
+        },
+        dailyStreakDayTextFuture: {
+            color: therrTheme.colors.textGray,
+            opacity: 0.5,
+        },
+        dailyStreakDayFreezeBadge: {
+            position: 'absolute',
+            top: -6,
+            right: -6,
+            fontSize: 12,
+        },
+        dailyStreakLegend: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            gap: space.md,
+            marginTop: space.md,
+        },
+        dailyStreakLegendItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.xs,
+        },
+        dailyStreakLegendSwatch: {
+            width: 12,
+            height: 12,
+            borderRadius: radius.pill,
+        },
+        dailyStreakLegendSwatchMissed: {
+            borderWidth: 2,
+            borderColor: therrTheme.colors.accentRed,
+        },
+        dailyStreakLegendSwatchRest: {
+            borderWidth: 1,
+            borderColor: therrTheme.colors.textGray,
+        },
+        dailyStreakLegendText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.textGray,
+        },
+        dailyStreakMonthSummary: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.textGray,
+            textAlign: 'center',
+            marginTop: space.sm,
+        },
+        // The dashboard's "Overall streak" stat: the same stat cell as its
+        // neighbours, pressable, with a chevron as the only extra chrome so it
+        // stays low-profile.
+        overallStreakValueRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.xs,
+        },
+        overallStreakGlyph: {
+            fontSize: fontSizes.md,
+        },
+        overallStreakChevron: {
+            color: therrTheme.colors.textGray,
+            marginTop: 4,
         },
 
         // Upgrade paywall

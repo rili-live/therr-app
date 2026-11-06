@@ -1,0 +1,4 @@
+Nouveautés :
+• Les habitudes qui demandent encore un suivi aujourd'hui apparaissent en haut, encadrées, avec la raison
+• Voyez l'offre « gratuit à vie » pour 3 amis au moment même d'inviter un partenaire
+• Les liens d'invitation fonctionnent maintenant même sans nom d'utilisateur choisi

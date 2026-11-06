@@ -1,4 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+    useCallback, useEffect, useRef, useState,
+} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { ContentActions } from 'therr-react/redux/actions';
@@ -486,13 +488,18 @@ const ExploreThoughts: React.FC = () => {
     const user = useSelector((state: any) => state.user);
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
+    // Reaction offset each page starts at, by page index. A stream page can consume more
+    // reaction rows than it has items (the server reads past thoughts this brand cannot see and
+    // reports the rows consumed as `itemsPerPage`), so `(page - 1) * ITEMS_PER_PAGE` would
+    // re-read rows an earlier page already showed.
+    const pageStartOffsets = useRef<number[]>([0]);
     // The thought the repost composer is open for (null when closed).
     const [repostTarget, setRepostTarget] = useState<any>(null);
     const [isReposting, setIsReposting] = useState(false);
     const [repostError, setRepostError] = useState('');
 
     const fetchThoughts = useCallback((page = 1) => {
-        const offset = (page - 1) * ITEMS_PER_PAGE;
+        const offset = pageStartOffsets.current[page - 1] ?? (page - 1) * ITEMS_PER_PAGE;
         const params = {
             withMedia: true,
             withUser: true,
@@ -507,6 +514,10 @@ const ExploreThoughts: React.FC = () => {
 
         setIsLoading(true);
         return dispatch(ContentActions.updateActiveThoughtsStream(params, ITEMS_PER_PAGE) as any)
+            .then((data: any) => {
+                const consumed = Number(data?.pagination?.itemsPerPage) || ITEMS_PER_PAGE;
+                pageStartOffsets.current[page] = offset + consumed;
+            })
             .catch((err) => console.log(err))
             .finally(() => setIsLoading(false));
     }, [dispatch, content.activeAreasFilters, user.details.blockedUsers, user.details.shouldHideMatureContent]);

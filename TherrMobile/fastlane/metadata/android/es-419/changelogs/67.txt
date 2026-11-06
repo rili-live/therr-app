@@ -1,0 +1,4 @@
+Novedades:
+• Los hábitos que aún necesitan un registro hoy ahora aparecen arriba, resaltados y con el motivo
+• Mira la oferta de por vida gratis por traer a 3 amigos justo al invitar a un compañero
+• Los enlaces de invitación ahora funcionan aunque todavía no hayas elegido un nombre de usuario

@@ -351,6 +351,63 @@ locked at first creation and only the user can raise it afterwards), and
 aggressive OEM battery optimization on Samsung/Xiaomi/OnePlus, which can delay
 or drop FCM for a backgrounded app.
 
+## Dead tokens: the October 2026 502s
+
+**Symptom.** In the 30 days to 2026-10-28, 712 Friends with Habits queue rows failed with
+`Request failed with status code 502` — in the last 14 days 436 failed against 447 sent, and the
+weekly count kept rising (93, 142, 149, 229). The table could not say why: the worker stored the
+axios message, and the push service's answer (FCM's `errorCode`, in the 502 body) was dropped.
+
+**Cause.** Uninstalled apps whose device tokens were never removed, so every send to them failed,
+three attempts a row, every day, forever. The evidence:
+
+- push-notifications-service logs, one day (2026-10-27/28): 124 × `Invalid FCM device token —
+  scheduling cleanup` with FCM message `NotRegistered`, and **124 × `Failed to clear invalid FCM
+  device token`** (users-service answered 500). Not one other FCM error code.
+- users-service logs, same window: every clear call failed on `null value in column
+  "deviceMobileFirebaseToken" of relation "users" violates not-null constraint`.
+  `UsersStore.clearDeviceToken` wrote `null` to a `NOT NULL DEFAULT ''` column, and the handler only
+  deleted the brand-scoped `main.userDeviceTokens` row — the one routing reads — *after* that update
+  succeeded. So no dead token had ever been removed since cleanup was added in April 2026. Until
+  2026-10-13 the cleanup call did not even happen for system pushes (it was keyed on the sender,
+  which is empty for reminders); fixing that just moved the failure one hop.
+- `main.notificationQueue`, last 14 days: 22 recipients failing. Each one succeeds until a date and
+  fails on every row after it (16 of the 22 received nothing at all in the window), all with a
+  `habits` token row that is weeks old, none shared with another brand. That shape is an uninstall;
+  a credential or payload problem would fail everyone, or fail by type, and neither is the case.
+  Not a credential problem: the same types to the other ~20 users send fine through the same
+  Firebase app.
+
+**Fix.**
+
+1. `e9685447a` — `clearDeviceToken` writes `''`, not `null`.
+2. The clear handler deletes the brand-scoped row independently of the legacy column update
+   (`Promise.allSettled`), so a legacy failure can never again keep a dead token routable.
+3. The queue worker stores the push service's reason in `lastError` —
+   `push 502 messaging/<code>: <message>` (`utilities/pushSendError.ts`).
+4. On a dead-token answer the worker deletes the registration itself (by the exact token it sent
+   to) and marks the row `skipped` with `device-token-not-registered: …` instead of burning its
+   retries. Belt and braces with the push service's callback, which was the link that failed.
+5. `messaging/invalid-argument` now counts as a dead token **only** when FCM's message names the
+   registration token, in both services. INVALID_ARGUMENT also means "malformed message", and with
+   cleanup now working, one payload bug in a digest run would otherwise delete every recipient's
+   token.
+
+**Reading it now.** Group failed rows by the code instead of the message:
+
+```sql
+SELECT split_part("lastError", ':', 1) AS reason, count(*), count(DISTINCT "userId") AS users
+FROM main."notificationQueue"
+WHERE "brandVariation" = 'habits' AND status IN ('failed', 'skipped')
+  AND "updatedAt" > now() - interval '7 days'
+GROUP BY 1 ORDER BY 2 DESC;
+```
+
+`device-token-not-registered` is an uninstall, cleared and self-healing on the user's next app
+open. `push 502 messaging/mismatched-credential` or `third-party-auth-error` is a credentials problem
+for every user and the thing to page on. A bare `Request failed with status code 502` no longer
+appears for an FCM failure; if it does, the push service answered without a body.
+
 ## Known sharp edges
 
 - **A green `push-debug.sh` run does not mean production is delivering.** The

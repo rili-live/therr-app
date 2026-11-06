@@ -55,9 +55,21 @@ describe('habitsSubdomainRoutes', () => {
             expect(matchHabitsInviteRoute('/invite/link/')).toEqual({ kind: 'invite-link', value: '' });
         });
 
+        // Regression: accounts without a username shared /invite/null (5 sessions on
+        // habits.therr.com), and callers that coalesced to '' shared /invite/, which hit the
+        // allowlist 404. All of them are an invite from nobody in particular.
+        it('reads a username-less invite as the generic invite, with no user to look up', () => {
+            ['/invite', '/invite/', '/invite/null', '/invite/undefined', '/invite/NULL'].forEach((path) => {
+                expect(matchHabitsInviteRoute(path)).toEqual({ kind: 'invite-username', value: '' });
+            });
+        });
+
+        it('keeps a real username that merely contains "null"', () => {
+            expect(matchHabitsInviteRoute('/invite/nullable')).toEqual({ kind: 'invite-username', value: 'nullable' });
+        });
+
         it('returns null for malformed invite paths', () => {
-            expect(matchHabitsInviteRoute('/invite')).toBeNull();
-            expect(matchHabitsInviteRoute('/invite/')).toBeNull();
+            expect(matchHabitsInviteRoute('/invites')).toBeNull();
             expect(matchHabitsInviteRoute('/invite/user/extra/segments')).toBeNull();
             expect(matchHabitsInviteRoute('/claim-pact/short')).toBeNull();
         });

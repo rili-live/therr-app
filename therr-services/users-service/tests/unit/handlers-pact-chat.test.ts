@@ -111,6 +111,21 @@ describe('pact chat', () => {
             expect(later).to.equal(first);
             expect(nextHour).to.not.equal(first);
         });
+
+        it('opens a new key once the recipient has read, so leaving the chat does not mute the rest of the hour', () => {
+            // 14:01 message, read in the thread (its push skips as already-read and keeps the
+            // key); the partner leaves, and a 14:20 message arrives. It must not dedupe into the
+            // skipped row.
+            const beforeRead = buildPactMessageDedupeKey(PACT_ID, '2026-10-29T14:01:00.000Z', null);
+            const afterRead = buildPactMessageDedupeKey(PACT_ID, '2026-10-29T14:20:00.000Z', '2026-10-29T14:01:30.000Z');
+            const stillUnread = buildPactMessageDedupeKey(PACT_ID, '2026-10-29T14:40:00.000Z', new Date('2026-10-29T14:01:30.000Z'));
+
+            expect(afterRead).to.not.equal(beforeRead);
+            expect(afterRead).to.equal(`pact-message:${PACT_ID}:2026-10-29T14:read-2026-10-29T14:01:30.000Z`);
+            // Nothing read since: the burst still shares one key, and one push.
+            expect(stillUnread).to.equal(afterRead);
+            expect(buildPactMessageDedupeKey(PACT_ID, '2026-10-29T14:01:00.000Z', 'not-a-date')).to.equal(beforeRead);
+        });
     });
 
     describe('buildMessagePreview', () => {
@@ -227,6 +242,14 @@ describe('pact chat', () => {
                 pactId: PACT_ID,
                 messageCreatedAt: '2026-10-29T14:05:00.000Z',
             });
+        });
+
+        it("keys each recipient's push on their own read watermark", async () => {
+            stub({ members: [member(SENDER), member(PARTNER, { chatLastReadAt: new Date('2026-10-29T14:02:00.000Z') })] });
+            await call(createPactMessage, { body: { text: 'back again' } });
+
+            expect(enqueue.callCount).to.equal(1);
+            expect(enqueue.firstCall.args[1].dedupeKey).to.equal(`pact-message:${PACT_ID}:2026-10-29T14:read-2026-10-29T14:02:00.000Z`);
         });
 
         it('a retried send (same clientMessageId) answers 200 and queues nothing new', async () => {

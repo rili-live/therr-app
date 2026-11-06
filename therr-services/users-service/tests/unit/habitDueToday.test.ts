@@ -21,6 +21,7 @@ import { shouldNudgeToday } from '../../src/utilities/streakHelpers';
 // 2026-08-24 is that week's Monday, so Wednesday has 5 days left in the week.
 const WEDNESDAY = '2026-08-26';
 const MONDAY = '2026-08-24';
+const THURSDAY = '2026-08-27';
 const SATURDAY = '2026-08-29';
 
 describe('shouldNudgeToday', () => {
@@ -42,12 +43,24 @@ describe('shouldNudgeToday', () => {
         expect(shouldNudgeToday({ targetDaysOfWeek: [2] }, WEDNESDAY)).to.equal(false);
     });
 
-    it('keeps asking a flexible habit until its weekly target is met', () => {
+    it('leaves a flexible habit alone while the week has room to spare', () => {
+        // The point of a 3x/week habit is that most days are optional. Nudging it every morning
+        // from Monday is a reminder the user can safely ignore four times — which teaches them
+        // to ignore the fifth, the one that matters.
         const threePerWeek = { frequencyType: 'weekly', frequencyCount: 3 };
 
-        expect(shouldNudgeToday({ ...threePerWeek, completionsEarlierThisWeek: 0 }, MONDAY)).to.equal(true);
-        expect(shouldNudgeToday({ ...threePerWeek, completionsEarlierThisWeek: 1 }, WEDNESDAY)).to.equal(true);
-        expect(shouldNudgeToday({ ...threePerWeek, completionsEarlierThisWeek: 2 }, WEDNESDAY)).to.equal(true);
+        expect(shouldNudgeToday({ ...threePerWeek, completionsEarlierThisWeek: 0 }, MONDAY)).to.equal(false);
+        expect(shouldNudgeToday({ ...threePerWeek, completionsEarlierThisWeek: 1 }, WEDNESDAY)).to.equal(false);
+        expect(shouldNudgeToday({ ...threePerWeek, completionsEarlierThisWeek: 2 }, WEDNESDAY)).to.equal(false);
+    });
+
+    it('starts nudging once skipping today and tomorrow would cost the week', () => {
+        const threePerWeek = { frequencyType: 'weekly', frequencyCount: 3 };
+
+        // Thursday, nothing done: 4 days left against 3 owed — one spare day.
+        expect(shouldNudgeToday({ ...threePerWeek, completionsEarlierThisWeek: 0 }, THURSDAY)).to.equal(true);
+        // Saturday, 2 done: 2 days left against 1 owed — one spare day.
+        expect(shouldNudgeToday({ ...threePerWeek, completionsEarlierThisWeek: 2 }, SATURDAY)).to.equal(true);
     });
 
     it('goes quiet for the rest of the week once the target is met', () => {
@@ -67,10 +80,11 @@ describe('shouldNudgeToday', () => {
         expect(shouldNudgeToday({ ...fourPerWeek, completionsEarlierThisWeek: 4 }, SATURDAY)).to.equal(false);
     });
 
-    it('nudges a habit that has never been completed', () => {
-        // Deliberately the permissive branch: a habit someone set up and never started is
-        // exactly who a reminder is for.
-        expect(shouldNudgeToday({ frequencyType: 'weekly', frequencyCount: 2 }, WEDNESDAY)).to.equal(true);
+    it('nudges a habit that has never been completed once its week starts to slip', () => {
+        // A habit someone set up and never started is who a reminder is for — but on the day it
+        // matters, not every day before it.
+        expect(shouldNudgeToday({ frequencyType: 'weekly', frequencyCount: 2 }, WEDNESDAY)).to.equal(false);
+        expect(shouldNudgeToday({ frequencyType: 'weekly', frequencyCount: 2 }, SATURDAY)).to.equal(true);
     });
 
     it('degrades a malformed frequencyCount to once a week rather than dividing by zero', () => {
@@ -80,7 +94,7 @@ describe('shouldNudgeToday', () => {
         )).to.equal(false);
         expect(shouldNudgeToday(
             { frequencyType: 'weekly', frequencyCount: 0, completionsEarlierThisWeek: 0 },
-            WEDNESDAY,
+            SATURDAY,
         )).to.equal(true);
     });
 

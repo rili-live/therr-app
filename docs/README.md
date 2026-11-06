@@ -73,6 +73,7 @@ went unread.
 - [TARGET_MARKETS.md](./TARGET_MARKETS.md) — consumer and business target markets
 - [PAID_ACQUISITION_PLAYBOOK.md](./PAID_ACQUISITION_PLAYBOOK.md) — Google Ads strategy, thresholds and decision log for Friends with Habits (tooling: `scripts/google-ads/`)
 - [ADJACENCY_MARKETING.md](./ADJACENCY_MARKETING.md) — "advertise next to what is already cool": trend-adjacent positioning, the adjacency Search campaign and the trend templates for Friends with Habits
+- [niche-sub-apps/habits/HABITS_ACQUISITION_PLAN.md](./niche-sub-apps/habits/HABITS_ACQUISITION_PLAN.md) — the near-zero-budget acquisition plan for Friends with Habits: channels ranked by installs per founder-hour, UTM conventions, the founder's weekly routine and four-week kill criteria
 - [QR_CODE_MAIL_CAMPAIGN.md](./QR_CODE_MAIL_CAMPAIGN.md) — direct mail campaign
 - [PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md](./PUSH_NOTIFICATIONS_ENGAGEMENT_ROADMAP.md) — push engagement plan
 - [CONTENT_CREATION_FLYWHEEL.md](./CONTENT_CREATION_FLYWHEEL.md) — raising moment supply as input to the B2B funnel
@@ -91,7 +92,7 @@ went unread.
 - [AR_NAVIGATION_PLAN.md](./AR_NAVIGATION_PLAN.md) — AR "View in AR" marker navigation on ARCore phones and Android XR, incl. Play Store enablement (deprioritized future project)
 
 ### Niche app design docs
-- [niche-sub-apps/habits/](./niche-sub-apps/habits/) — Friends With Habits design docs (9 documents)
+- [niche-sub-apps/habits/](./niche-sub-apps/habits/) — Friends With Habits design docs (10 documents)
 
 ## Cross-repo context
 

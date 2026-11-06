@@ -108,7 +108,10 @@
     referrer. An untagged visit is marked habits.therr.com / referral, with the
     external referring host in utm_content when there is one, so a web-driven
     install stays distinguishable from Play's own placeholder, which the app
-    deliberately discards.
+    deliberately discards. A visit with no campaign of its own also gets the
+    page type it landed on as utm_campaign (web-invite, web-challenge,
+    web-guide, web-landing and so on), so friend invites and the challenge
+    guides can be read apart.
 
     A separate script block from the capture above on purpose: the capture
     test runs that block with document shadowed down to document.referrer, and
@@ -142,7 +145,29 @@
             }
             if (!params.get('utm_source')) { params.set('utm_source', 'habits.therr.com'); }
             if (!params.get('utm_medium')) { params.set('utm_medium', 'referral'); }
+            if (!params.get('utm_campaign')) {
+                params.set('utm_campaign', surfaceCampaign(stored.landingPath || window.location.pathname));
+            }
             return params.toString();
+        }
+
+        // An untagged visit's install still says which page brought it: an invite
+        // link a friend sent, a challenge link, a challenge guide, the landing page.
+        // Without this every one of them read as the same habits.therr.com /
+        // referral, so the invite loop and the guides could not be told apart in
+        // GA4 (firstUserCampaignName) or main."userAcquisition"."utmCampaign".
+        // A tagged visit keeps its own campaign: this only fills a blank.
+        function surfaceCampaign(path) {
+            var p = String(path || '/');
+            if (/^\/invite\//.test(p)) { return 'web-invite'; }
+            if (/^\/claim-pact\//.test(p)) { return 'web-pact-invite'; }
+            if (/^\/c\//.test(p)) { return 'web-challenge'; }
+            if (/^\/(challenges|es\/retos|fr\/defis)(\/|$)/.test(p)) { return 'web-guide'; }
+            if (/^\/coaches(\/|$)/.test(p)) { return 'web-coaches'; }
+            if (/^\/blog(\/|$)/.test(p)) { return 'web-blog'; }
+            if (/^\/u\//.test(p)) { return 'web-profile'; }
+            if (/^\/(es|fr)?\/?$/.test(p)) { return 'web-landing'; }
+            return 'web-other';
         }
 
         function decorate(anchor) {

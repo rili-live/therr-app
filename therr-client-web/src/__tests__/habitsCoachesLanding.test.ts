@@ -86,6 +86,7 @@ describe('habits coaches landing', () => {
         gtagMock = jest.fn();
         (window as any).fetch = fetchMock;
         (window as any).gtag = gtagMock;
+        window.sessionStorage.clear();
     });
 
     it.each(Object.keys(EXPECTED_OPTIONS))('offers exactly the whitelisted values in #%s', (id) => {
@@ -114,6 +115,29 @@ describe('habits coaches landing', () => {
             isSubscribedToCoachesWaitlist: true,
             coachesWaitlistDetails: { coachingType: 'nutrition', monthlyBudget: '20-40' },
         });
+    });
+
+    it('sends the session attribution so the row can be tied to the ad that brought it', async () => {
+        const attribution = {
+            utmSource: 'facebook', utmCampaign: 'leapd-coaches-2026-11', landingPath: '/coaches', surface: 'habits',
+        };
+        window.sessionStorage.setItem('therrUserAcquisition', JSON.stringify(attribution));
+        mountAndRun();
+        setValue('coach-email', 'coach@example.com');
+        submit();
+        await flushPromises();
+
+        expect(JSON.parse(fetchMock.mock.calls[0][1].body).userAcquisition).toEqual(attribution);
+    });
+
+    it('still signs the coach up when the stored attribution is unreadable', async () => {
+        window.sessionStorage.setItem('therrUserAcquisition', '{not json');
+        mountAndRun();
+        setValue('coach-email', 'coach@example.com');
+        submit();
+        await flushPromises();
+
+        expect(JSON.parse(fetchMock.mock.calls[0][1].body)).not.toHaveProperty('userAcquisition');
     });
 
     it('counts the signup with its answers and shows the confirmation', async () => {

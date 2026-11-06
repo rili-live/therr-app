@@ -12,6 +12,7 @@ import ReferralRewardsStore from '../../src/store/ReferralRewardsStore';
 import {
     evaluateReferralRewardsAfterCheckin,
     getReferralRewardProgress,
+    getReferralRewardProgressWithCatchUp,
     maybeGrantReferralReward,
 } from '../../src/handlers/helpers/referralReward';
 import { UNCAPPABLE_TYPES } from '../../src/utilities/notificationQueueWorker';
@@ -141,6 +142,62 @@ describe('referral reward (founder unlock for active friends)', () => {
                 userName: 'done', activeDays: HABITS_REFERRAL_REWARD_ACTIVE_DAYS, isVerified: true, isQualified: true,
             });
             expect(progress.friends[2]).to.include({ isVerified: false, isQualified: false });
+        });
+    });
+
+    describe('getReferralRewardProgressWithCatchUp', () => {
+        // Regression: the grant only ran on a friend's check-in, so referrers whose friends had
+        // already qualified (and then went quiet) were never evaluated. On 2026-10-28 two real
+        // users had three active friends each and habits.referral_rewards was empty.
+        it('grants a reward that was earned but never evaluated, and reports it as granted', async () => {
+            stub();
+            (Store.referralRewards.getByUserId as sinon.SinonStub)
+                .onFirstCall().resolves(undefined) // progress read
+                .onSecondCall().resolves(undefined) // maybeGrant's own check
+                .onThirdCall()
+                .resolves({ grantedAt: new Date('2026-10-28T00:00:00Z') }); // re-read
+
+            const progress = await getReferralRewardProgressWithCatchUp(REFERRER);
+
+            expect(grant.calledOnce).to.equal(true);
+            expect(enqueue.calledOnce).to.equal(true);
+            expect(progress.isGranted).to.equal(true);
+        });
+
+        it('does not try to grant while the reward is not yet earned', async () => {
+            stub({ friends: activeFriends(HABITS_REFERRAL_REWARD_FRIEND_COUNT - 1) });
+
+            const progress = await getReferralRewardProgressWithCatchUp(REFERRER);
+
+            expect(grant.called).to.equal(false);
+            expect(progress.isGranted).to.equal(false);
+        });
+
+        it('does not try to grant once it has been given', async () => {
+            stub({ existingGrant: { grantedAt: new Date() } });
+
+            await getReferralRewardProgressWithCatchUp(REFERRER);
+
+            expect(grant.called).to.equal(false);
+        });
+
+        it('does not try to grant to an account that already paid', async () => {
+            stub({ accessLevels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.HABITS_LIFETIME] });
+
+            await getReferralRewardProgressWithCatchUp(REFERRER);
+
+            expect(grant.called).to.equal(false);
+        });
+
+        it('still returns progress when the grant fails, so the screen does not break', async () => {
+            stub();
+            grant.rejects(new Error('write failed'));
+
+            const progress = await getReferralRewardProgressWithCatchUp(REFERRER);
+
+            expect(progress.isGranted).to.equal(false);
+            expect(progress.qualifiedCount).to.equal(HABITS_REFERRAL_REWARD_FRIEND_COUNT);
+            expect(enqueue.called).to.equal(false);
         });
     });
 

@@ -42,10 +42,22 @@ const READABLE_MEMBER_STATUSES = ['active', 'completed'];
  * The dedupe key for one recipient's chat push: the pact plus the UTC hour the message was
  * written in, from the stored row — never the clock. The queue's UNIQUE (brand, user, key)
  * then holds each recipient to one chat push per pact per hour however many messages arrive.
+ *
+ * The recipient's read watermark is part of the key. A row the freshness gate skips as
+ * `already-read` still occupies its key, so without the watermark a partner who read the
+ * hour's first message in the thread and then left the app was not notified of anything else
+ * that hour. Reading moves the watermark, which opens a new key for the next message; while
+ * they have read nothing new, a burst still shares one key and one push.
  */
-export const buildPactMessageDedupeKey = (pactId: string, messageCreatedAt: Date | string): string => (
-    `pact-message:${pactId}:${new Date(messageCreatedAt).toISOString().slice(0, 13)}`
-);
+export const buildPactMessageDedupeKey = (
+    pactId: string,
+    messageCreatedAt: Date | string,
+    recipientLastReadAt?: Date | string | null,
+): string => {
+    const key = `pact-message:${pactId}:${new Date(messageCreatedAt).toISOString().slice(0, 13)}`;
+    const readAt = recipientLastReadAt ? new Date(recipientLastReadAt) : undefined;
+    return readAt && !Number.isNaN(readAt.getTime()) ? `${key}:read-${readAt.toISOString()}` : key;
+};
 
 export const buildMessagePreview = (text: string): string => {
     const firstLine = String(text || '').split('\n').map((line) => line.trim()).find(Boolean) || '';
@@ -300,7 +312,6 @@ export const enqueuePactMessagePushes = async ({
             resolveUserDisplayName(senderUserId),
             pact.habitGoalId ? resolveHabitDisplayName(pact.habitGoalId) : Promise.resolve(''),
         ]);
-        const dedupeKey = buildPactMessageDedupeKey(pact.id, message.createdAt);
         const scheduledFor = new Date(new Date(message.createdAt).getTime() + PACT_MESSAGE_PUSH_DELAY_MS);
 
         const outcomes = await Promise.all(recipients.map((member: any) => enqueueNotification({
@@ -309,7 +320,7 @@ export const enqueuePactMessagePushes = async ({
             brandVariation: BrandVariations.HABITS,
             toUserId: member.userId,
             type: PushNotifications.Types.pactMessage,
-            dedupeKey,
+            dedupeKey: buildPactMessageDedupeKey(pact.id, message.createdAt, member.chatLastReadAt),
             scheduledFor,
             payload: {
                 locale,

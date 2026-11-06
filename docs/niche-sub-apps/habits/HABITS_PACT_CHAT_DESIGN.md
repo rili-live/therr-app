@@ -96,9 +96,13 @@ The reserved `SocketServerActionTypes.PACT_ACTIVITY` and the `PACT:<id>` room na
 A message enqueues a `pact-message` push for every other active member who has not muted the pact and
 has not blocked the sender:
 
-- `dedupeKey = pact-message:<pactId>:<UTC hour of the message's createdAt>`. The queue's UNIQUE
-  `(brandVariation, userId, dedupeKey)` limits each recipient to one chat push per pact per hour,
-  however many messages arrive. The key comes from the stored row's timestamp, not from `Date.now()`.
+- `dedupeKey = pact-message:<pactId>:<UTC hour of the message's createdAt>`, plus
+  `:read-<recipient's chatLastReadAt>` once that recipient has read the thread. The queue's UNIQUE
+  `(brandVariation, userId, dedupeKey)` limits each recipient to one chat push per pact per hour
+  while they have read nothing new, however many messages arrive. The watermark is in the key because
+  a row skipped as `already-read` (below) still holds its key: without it, a partner who read the
+  hour's first message in the app and then left was not told about anything else that hour. The key
+  comes from stored timestamps, never from `Date.now()`.
 - `scheduledFor = now + 90 s`. At send time a freshness check (`utilities/pactMessageFreshness.ts`)
   skips the row as `already-read` when the recipient's `chatLastReadAt` has passed the message, and also
   when they have muted the pact or are no longer an active member. A partner who is in the chat

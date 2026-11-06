@@ -155,7 +155,7 @@ export const getCadenceEffectiveFrom = (goal?: ICadenceSource | null): string | 
  * For `weeklyQuota` this is intentionally false for most of a well-run week. A 4x/week user who
  * trains Mon–Thu has *zero* required days: the quota is met before skipping could ever endanger
  * it. That is correct for streaks and freezes, and it is why the reminder pass keys off
- * `isQuotaUnmet` instead — gating reminders on this would nudge that user never.
+ * `isCheckinPressing` instead, which presses a day earlier than this does.
  */
 export const isRequiredOn = (
     cadence: Cadence,
@@ -182,11 +182,12 @@ export const isRequiredOn = (
 };
 
 /**
- * Does the habit still owe check-ins this week? The reminder gate.
+ * Does the habit still owe check-ins this week?
  *
  * Unlike `isRequiredOn` this stays true across the whole early part of the week and goes false
- * the moment the quota is met, which is exactly the shape a reminder wants: keep asking until
- * they have done their four, then stay quiet for the rest of the week.
+ * the moment the quota is met. It used to be the reminder gate on its own, which nudged a 3x/week
+ * habit every morning from Monday; `isCheckinPressing` now narrows it to the days the week is
+ * close to slipping.
  */
 export const isQuotaUnmet = (cadence: Cadence, localDate: string, completionsThisWeek = 0): boolean => {
     if (!isDateString(localDate)) {
@@ -199,6 +200,69 @@ export const isQuotaUnmet = (cadence: Cadence, localDate: string, completionsThi
     }
 
     return Math.max(0, completionsThisWeek) < getWeeklyTarget(cadence);
+};
+
+/**
+ * Days a weekly quota can still afford to skip, today included, before the target goes out of
+ * reach. A quota *reminder* fires only once this is at or below this many days.
+ *
+ * One, not zero: zero is `isRequiredOn`, and a reminder that only arrives on the day skipping
+ * already costs the week is a warning, not a reminder. One means "today, or tomorrow becomes a
+ * must" — a 3x/week habit with nothing done hears about it on Thursday, not on Monday with six
+ * days of room left.
+ */
+export const QUOTA_REMINDER_SLACK_DAYS = 1;
+
+/**
+ * How pressing today's check-in is, given the week so far. Ordered from most to least pressing.
+ *
+ *   - `required`  skipping today costs the week (daily, a scheduled weekday, or a quota with no
+ *                 slack left) — the same rule as `isRequiredOn`.
+ *   - `soon`      a quota that can skip today, but not today *and* tomorrow.
+ *   - `flexible`  a quota with more room than that.
+ *   - `rest`      a fixed-weekday habit on one of its off days.
+ *   - `met`       a quota already discharged this week.
+ *
+ * It says nothing about whether today's check-in is already done; callers own that, because
+ * `completionsEarlierThisWeek` excludes today by convention.
+ */
+export type CheckinUrgency = 'required' | 'soon' | 'flexible' | 'rest' | 'met';
+
+export const getCheckinUrgency = (
+    cadence: Cadence,
+    localDate: string,
+    completionsEarlierThisWeek = 0,
+): CheckinUrgency => {
+    if (cadence.kind === 'weekdays' && isDateString(localDate)
+        && !cadence.days.includes(getDayOfWeekSundayFirst(localDate))) {
+        return 'rest';
+    }
+    if (cadence.kind === 'weeklyQuota' && !isQuotaUnmet(cadence, localDate, completionsEarlierThisWeek)) {
+        return 'met';
+    }
+    if (isRequiredOn(cadence, localDate, completionsEarlierThisWeek)) {
+        return 'required';
+    }
+    if (cadence.kind !== 'weeklyQuota' || !isDateString(localDate)) {
+        return 'rest';
+    }
+
+    const remaining = cadence.count - Math.max(0, completionsEarlierThisWeek);
+    const slack = getDaysRemainingInWeek(localDate) - remaining;
+    return slack <= QUOTA_REMINDER_SLACK_DAYS ? 'soon' : 'flexible';
+};
+
+/**
+ * The reminder gate: only nudge when the week is close to slipping. A quota with room to spare is
+ * left alone — the user asked for N days a week, not to be asked every day until they comply.
+ */
+export const isCheckinPressing = (
+    cadence: Cadence,
+    localDate: string,
+    completionsEarlierThisWeek = 0,
+): boolean => {
+    const urgency = getCheckinUrgency(cadence, localDate, completionsEarlierThisWeek);
+    return urgency === 'required' || urgency === 'soon';
 };
 
 /** Every date in the Monday–Sunday week containing `dateString`, in order. */
@@ -459,6 +523,8 @@ export interface IWeekProgress {
     isRequiredToday: boolean;
     /** Whether the week's obligation is already discharged. */
     isMet: boolean;
+    /** How pressing the date's check-in is — what the client ranks and colours habits by. */
+    urgency: CheckinUrgency;
 }
 
 /**
@@ -479,5 +545,6 @@ export const describeWeekProgress = (
         daysLeft: isDateString(localDate) ? getDaysRemainingInWeek(localDate) : 0,
         isRequiredToday: isRequiredOn(cadence, localDate, done),
         isMet: done >= target,
+        urgency: getCheckinUrgency(cadence, localDate, done),
     };
 };

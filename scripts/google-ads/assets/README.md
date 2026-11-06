@@ -68,5 +68,18 @@ made in Runway (unlisted), and a 9:16 YouTube Short pitching support "from a
 coach or friends". Like the images above, neither is uploaded by
 `campaign apply`; attach them in the Google Ads UI.
 
+The one video piece that *is* a file here is the **end card** — the last ~2s of a
+9:16 video ad — in [`video/`](video/), built by
+[`build_end_card.py`](build_end_card.py) from the same logo, palette and font as
+the frames above (`python3 scripts/google-ads/assets/build_end_card.py`). Two
+variants: `solid` stands alone; `overlay` is a transparent PNG with its own scrim,
+laid over a blurred freeze of the video's last frame. The Play badge is Google's
+official one, used unmodified — never redraw or crop it.
+
+Character reference stills for video generation live in [`references/`](references/)
+([`references/caveman/`](references/caveman/) and [`references/chameleon/`](references/chameleon/)
+for the "Evolve your life" promo).
+They are inputs to Runway, not ad assets — never upload them to an ad account.
+
 Still outstanding, though it is a Play requirement rather than an Ads one: the
 1024×500 feature graphic, in `docs/niche-sub-apps/HABITS_PLAY_LISTING.md`.

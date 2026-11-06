@@ -2,27 +2,41 @@ import * as React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Stack, Button } from '@mantine/core';
 import useTranslation from '../hooks/useTranslation';
+import { normalizeInviteUserName } from '../utilities/habitsSubdomainRoutes';
 
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=app.therrmobile';
 const APP_STORE_URL = 'https://apps.apple.com/us/app/therr/id1569988763?platform=iphone';
 
+/**
+ * Where "Join" sends the visitor. With no inviter (a bare /invite, or /invite/null from an app
+ * build that shared a missing username) it is plain sign-up — `?invite-code=null` would hand
+ * Register a code that belongs to nobody.
+ */
+export const getInviteJoinPath = (username: string) => (
+    username ? `/register?invite-code=${encodeURIComponent(username)}` : '/register'
+);
+
 const InviteLanding: React.FC = () => {
     const { t: translate } = useTranslation();
-    const { username } = useParams<{ username: string }>();
+    const params = useParams<{ username: string }>();
+    const username = normalizeInviteUserName(params.username);
     const navigate = useNavigate();
     const [isMobile, setIsMobile] = React.useState(false);
+    const heading = username
+        ? translate('pages.inviteLanding.title', { username })
+        : translate('pages.inviteLanding.titleGeneric');
 
     React.useEffect(() => {
-        document.title = `Therr | ${translate('pages.inviteLanding.title', { username: username || '' })}`;
+        document.title = `Therr | ${heading}`;
 
         if (typeof window !== 'undefined' && window.navigator) {
             const ua = window.navigator.userAgent.toLowerCase();
             setIsMobile(ua.indexOf('android') > -1 || ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1);
         }
-    }, [username]);
+    }, [heading]);
 
     const handleJoinClick = () => {
-        navigate(`/register?invite-code=${username}`);
+        navigate(getInviteJoinPath(username));
     };
 
     return (
@@ -31,7 +45,7 @@ const InviteLanding: React.FC = () => {
                 <div className="flex fill max-wide-30">
                     <Stack gap="lg" align="center">
                         <h1 className="text-center">
-                            {translate('pages.inviteLanding.title', { username: username || '' })}
+                            {heading}
                         </h1>
 
                         <p className="text-center">
