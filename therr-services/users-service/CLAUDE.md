@@ -82,6 +82,9 @@ Key tables: `users`, `userConnections`, `userGroups`, `notifications`, `userAchi
 - `daily_streak_days` - Per-(user, local day) ledger behind it; see `utilities/dailyStreak.ts` for the rules.
   Four statuses: `upheld`, `frozen`, `missed`, and `rest` — a day no tracked habit *required*, which neither
   breaks the streak nor spends a freeze. Which days those are comes from `utilities/habitCadence.ts`
+- `habit_pauses` - One row per pause of a tracked habit. Days in [pausedOn, resumedOn) are excused for that
+  habit — no miss, no freeze, not required for the daily streak. Kept as history, not a column on `user_habits`,
+  because the daily streak re-walks finalized days. Rules: `utilities/habitPause.ts`
 - `daily_bonuses` - Ledger of the random XP bonus paid at the first check-in of a local day. UNIQUE
   (userId, source, sourceKey) is the only thing stopping a retry or second device paying twice; see
   `utilities/dailyBonus.ts` for the odds

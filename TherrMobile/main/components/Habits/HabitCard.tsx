@@ -29,6 +29,11 @@ interface IHabitCardProps {
      * amber/red outline and the line that says why. Absent renders as before.
      */
     risk?: HabitRisk;
+    /**
+     * Set while the habit is paused: the streak the pause is holding (0 for none). The card then
+     * says it is paused in place of a risk line, and checking in still works — it resumes the habit.
+     */
+    pausedStreakCount?: number;
     onPress?: () => void;
     onCheckin?: () => void;
     /**
@@ -159,6 +164,7 @@ const HabitCard: React.FC<IHabitCardProps> = ({
     streak,
     weekProgress,
     risk,
+    pausedStreakCount,
     onPress,
     onCheckin,
     onAddCheckinDetail,
@@ -174,6 +180,7 @@ const HabitCard: React.FC<IHabitCardProps> = ({
     translate,
 }) => {
     const isCompleted = todayCheckin?.status === 'completed';
+    const isPaused = pausedStreakCount !== undefined && pausedStreakCount !== null && !isCompleted;
     const showSoloOrArchive = isAwaitingPartner && !!onContinueSolo && !!onArchive;
     const displayedWeekProgress = getDisplayedWeekProgress(weekProgress, isCompleted);
     const weekProgressText = getWeekProgressText(displayedWeekProgress, translate);
@@ -191,6 +198,7 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                 isCompleted && themeHabits.styles.habitCardContainerDone,
                 riskTone === 'warning' && themeHabits.styles.habitCardContainerWarning,
                 riskTone === 'danger' && themeHabits.styles.habitCardContainerDanger,
+                isPaused && themeHabits.styles.habitCardContainerPaused,
             ]}
             onPress={onPress}
         >
@@ -242,6 +250,21 @@ const HabitCard: React.FC<IHabitCardProps> = ({
                     </View>
                 )}
             </View>
+
+            {isPaused && (
+                <View style={themeHabits.styles.habitCardPausedRow}>
+                    <MaterialIcon
+                        name="pause-circle-outline"
+                        size={16}
+                        style={themeHabits.styles.habitCardPausedIcon}
+                    />
+                    <Text style={themeHabits.styles.habitCardPausedText}>
+                        {(pausedStreakCount || 0) > 0
+                            ? translate('pages.habits.pause.cardStreakSaved', { count: pausedStreakCount })
+                            : translate('pages.habits.pause.cardNoStreak')}
+                    </Text>
+                </View>
+            )}
 
             {!!riskText && (
                 <View style={themeHabits.styles.habitCardRiskRow}>

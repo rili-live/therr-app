@@ -312,6 +312,134 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginTop: 2,
         },
 
+        // Pausing a habit (routes/Habits/habitPause.ts). The banner sits inside the habit card,
+        // above the check-in button, on a brand tint rather than a warning colour: a paused habit
+        // is a choice the user made, not something going wrong.
+        habitPauseBanner: {
+            marginTop: space.md,
+            padding: space.md,
+            borderRadius: radius.md,
+            backgroundColor: tint(therrTheme.colors.brand, 0.12),
+        },
+        habitPauseBannerHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
+        habitPauseBannerTitleRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            flexShrink: 1,
+        },
+        habitPauseBannerIcon: {
+            color: therrTheme.colors.brand,
+            marginRight: space.xs,
+        },
+        habitPauseBannerTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        habitPauseBannerBody: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            lineHeight: 20,
+            color: therrTheme.colors.onSurface,
+            marginTop: space.xs,
+        },
+        habitPauseBannerNote: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: space.xs,
+        },
+        habitPauseResumeButton: {
+            paddingVertical: space.xs + 2,
+            paddingHorizontal: space.md,
+            borderRadius: radius.sm,
+            backgroundColor: therrTheme.colors.brand,
+        },
+        habitPauseResumeButtonText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: BRAND_WHITE,
+        },
+        habitPauseSection: {
+            marginHorizontal: space.lg,
+            marginTop: space.md,
+            alignItems: 'center',
+        },
+        habitPauseSectionTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        habitPauseAction: {
+            marginTop: space.xs,
+            paddingVertical: space.sm,
+            paddingHorizontal: space.lg,
+            borderRadius: radius.md,
+            borderWidth: 1,
+            borderColor: tint(therrTheme.colors.brand, 0.5),
+        },
+        // The same button inside the at-risk prompt on the habit card, left-aligned under its text.
+        habitPauseActionInline: {
+            alignSelf: 'flex-start',
+            marginTop: space.sm,
+        },
+        habitPauseActionText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.md,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.brand,
+        },
+        habitPauseExplainerIntro: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            lineHeight: 20,
+            color: therrTheme.colors.onSurface,
+            marginBottom: space.sm,
+        },
+        habitPauseExplainerRow: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            marginTop: space.sm,
+        },
+        habitPauseExplainerIcon: {
+            color: therrTheme.colors.brand,
+            marginRight: space.sm,
+            marginTop: 1,
+        },
+        habitPauseExplainerText: {
+            flex: 1,
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            lineHeight: 20,
+            color: therrTheme.colors.onSurface,
+        },
+        // The dashboard card's "Paused" line, in place of the risk line a paused habit never has.
+        habitCardPausedRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: space.xs + 2,
+        },
+        habitCardPausedIcon: {
+            color: therrTheme.colors.onSurfaceMuted,
+            marginRight: space.xs,
+        },
+        habitCardPausedText: {
+            flex: 1,
+            fontFamily: therrFontFamily,
+            fontSize: 13,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        habitCardContainerPaused: {
+            opacity: 0.85,
+        },
+
         // Streak freezes
         // A count in a sentence ("2 streak freezes left") makes the reader parse prose to learn
         // how much cover they have. One pip per freeze the habit was allotted, spent ones struck
