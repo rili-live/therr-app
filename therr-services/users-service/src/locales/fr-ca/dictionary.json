@@ -291,6 +291,16 @@
             "buttonText": "Ouvrir {brandName}",
             "postBody1": "Ton invitation originale reste ouverte : tes amis peuvent encore l'accepter."
         },
+        "pactJoinRequest": {
+            "subjectOne": "{requesterName} a demandé à rejoindre ton pacte {habitName}",
+            "subjectMany": "{count} personnes ont demandé à rejoindre tes pactes",
+            "dearUser": "Salut {toName}!",
+            "body1One": "{requesterName} a trouvé ton pacte ouvert pour {habitName} et a demandé à le rejoindre. Cette personne attend toujours ta réponse.",
+            "body1Many": "Ces personnes ont trouvé tes pactes ouverts et ont demandé à les rejoindre : {requestList}. Elles attendent toujours ta réponse.",
+            "body2": "Ouvre {brandName} et va dans le pacte pour accepter ou refuser. Les personnes que tu acceptes deviennent partenaires tout de suite.",
+            "buttonText": "Ouvrir {brandName}",
+            "postBody1": "On ne t'envoie qu'un seul courriel par demande."
+        },
         "firstHabitNudge": {
             "subject": "Ta première habitude prend dix secondes",
             "header": "Le jour 1 est à un toucher",

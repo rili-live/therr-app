@@ -488,6 +488,21 @@ and `fix(push): clear dead device tokens for the recipient, not the sender`.
 - [ ] **On a Habits handset, confirm the three new display pushes render** (`habitsFirstHabitNudge`, `pactInviteUnclaimed`, `habitsFounderOffer`). They have no click action, so the tap only opens the app. Nothing server-side can see a push that fails to render.
 - [ ] **therr-messaging-automator: rewrite `introHabits` to lead with the first habit.** It is the welcome email #3011 asked for, and it already reaches every opted-in Habits user, but its copy asks for a friend first ("Pick a habit… invite a friend or two"). The change is in the sibling repo, `src/locales/*.ts`.
 
+## Join-request email (added 2026-11-07, docs/FEATURES.md → Open pacts)
+
+- [ ] **Run the users-service migrations after the deploy** (`20261107000002`: adds
+  `habits.pact_join_requests."emailReminderSentAt"`). Confirm with
+  `SELECT column_name FROM information_schema.columns WHERE table_schema = 'habits' AND table_name = 'pact_join_requests' AND column_name = 'emailReminderSentAt'`.
+  Until it has, the pass fails every run (`joinRequestEmails.emailErrors = 1`) and sends nothing; the rest
+  of the digest is unaffected. Additive; neither automator reads this table.
+- [ ] **Watch `joinRequestEmails` in the first digest runs.** It is logged as a JSON string on the "Habits
+  daily digest completed" span. The first run emails about every request 1–7 days old, so expect a small
+  one-off bump, then roughly one email per unanswered request. `emailErrors > 0` with nothing emailed
+  means the pass is failing. Kill switch: `HABIT_JOIN_REQUEST_EMAILS_ENABLED=false`.
+- [ ] **Read one join-request email in a real inbox** (single-request and multi-request copy, light and
+  dark): open a pact on a test account, ask to join from another, then wait for (or trigger) the next
+  digest after 24h.
+
 ## Open pacts (added 2026-10-05)
 
 - [x] **Run the users-service migrations after the deploy** _(Verified applied in prod `knex_migrations` 2026-10-13: batch 92, 2026-10-05 17:17 UTC.)_ (`20261005000001`–`03`: `pacts.isOpen` /

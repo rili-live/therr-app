@@ -291,6 +291,16 @@
             "buttonText": "Open {brandName}",
             "postBody1": "Your original invite stays open, so your friends can still accept it."
         },
+        "pactJoinRequest": {
+            "subjectOne": "{requesterName} asked to join your {habitName} pact",
+            "subjectMany": "{count} people asked to join your pacts",
+            "dearUser": "Hey {toName}!",
+            "body1One": "{requesterName} found your open pact for {habitName} and asked to join. They're still waiting on your answer.",
+            "body1Many": "These people found your open pacts and asked to join: {requestList}. They're still waiting on your answer.",
+            "body2": "Open {brandName} and go to the pact to approve or decline. Anyone you approve joins as a partner straight away.",
+            "buttonText": "Open {brandName}",
+            "postBody1": "We only email you once about each request."
+        },
         "firstHabitNudge": {
             "subject": "Your first habit takes ten seconds",
             "header": "Day 1 is one tap away",
