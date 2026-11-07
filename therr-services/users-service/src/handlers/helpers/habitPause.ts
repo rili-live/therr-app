@@ -3,7 +3,11 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../../store';
 import enqueueNotification, { EnqueueOutcome } from '../../utilities/enqueueNotification';
 import { expandExcusedDates } from '../../utilities/habitCadence';
+import { addDays } from '../../utilities/dailyStreak';
+import { ICheckinNudgeRow } from '../../utilities/checkinNudgeRollup';
 import {
+    PAUSE_COOLDOWN_DAYS,
+    shouldOfferPauseOnNudge,
     getPauseReminderDedupeKey,
     getPauseReminderSchedule,
     groupExcusedRangesByHabit,
@@ -100,6 +104,47 @@ export const endPauseOnCheckin = async (userId: string, habitGoalId: string, tod
             traceArgs: { 'error.message': err?.message, 'user.id': userId, habitGoalId },
         });
         return null;
+    }
+};
+
+/**
+ * Flag the nudges that should offer "Pause": single-habit, live streak, no freezes left
+ * (`shouldOfferPauseOnNudge`), on a habit that is pausable right now. Mutates the rows' payloads.
+ *
+ * One read for the whole run. Fails closed — a read failure offers no Pause button anywhere —
+ * because the button is an extra, and a button the server then refuses (already paused, or in
+ * the re-pause cooldown) is worse than none. `today` is the digest's day; the cooldown check can
+ * be a day off for a user far from it, and the pause endpoint, which judges in the user's own
+ * zone, is the authority either way.
+ */
+export const markPauseOffers = async (rows: ICheckinNudgeRow[], today: string): Promise<number> => {
+    const candidates = rows.filter((row) => shouldOfferPauseOnNudge(row.payload));
+    if (!candidates.length) {
+        return 0;
+    }
+
+    try {
+        const unpausable = await Store.habitPauses.getUnpausablePairKeys(
+            candidates.map((row) => ({ userId: row.userId, habitGoalId: row.payload.habitGoalId as string })),
+            addDays(today, -PAUSE_COOLDOWN_DAYS),
+        );
+        let offered = 0;
+        candidates.forEach((row) => {
+            if (!unpausable.has(`${row.userId}:${row.payload.habitGoalId}`)) {
+                // eslint-disable-next-line no-param-reassign
+                row.payload.offerPause = true;
+                offered += 1;
+            }
+        });
+        return offered;
+    } catch (err: any) {
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'API_SERVER',
+            messages: ['Habit pause: could not read pause eligibility for nudges; offering none'],
+            traceArgs: { 'error.message': err?.message, 'habitPause.candidates': candidates.length },
+        });
+        return 0;
     }
 };
 

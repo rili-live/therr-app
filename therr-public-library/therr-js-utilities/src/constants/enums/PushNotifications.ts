@@ -199,6 +199,12 @@ export enum PressActionIds {
     // that rolls several habits together has nothing to check into and must
     // offer `checkinView` instead.
     habitCheckin = 'habit-checkin',
+    // Opens one habit with its pause dialog up — the way out offered on a check-in nudge whose
+    // streak ends tonight with no freezes left. Navigation, not a mutation: pausing changes what
+    // the user's streaks promise, so it is confirmed in the app, never fired from the tray. The
+    // payload must carry an unambiguous `habitGoalId`. An older build that does not know this id
+    // falls through to the type route, which opens the same habit without the dialog.
+    habitPause = 'habit-pause',
     // Completes a check-in on a *savings* habit and records an amount with it, from a
     // text field on the notification itself (Android RemoteInput / iOS
     // UNTextInputNotificationAction).

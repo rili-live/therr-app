@@ -99,6 +99,12 @@ export interface ICheckinNudgeRow {
         habitGoalId?: string;
         pactId?: string;
         /**
+         * Set by the digest after the roll-up (`markPauseOffers`) on a single-habit nudge whose
+         * streak has no freezes left and whose habit can be paused: the push then offers "Pause"
+         * beside "Check In". Absent everywhere else.
+         */
+        offerPause?: boolean;
+        /**
          * Set only on a single-habit nudge for a savings goal — the two conditions
          * behind an amount field on the notification.
          *
