@@ -81,7 +81,7 @@ describe('HabitCompanionCard', () => {
         const final = COMPANION_STAGES[COMPANION_STAGES.length - 1];
         const tree = render(final.minAchievements, final.minAccountAgeDays + 1);
         const text = allText(tree);
-        expect(text).toContain('Rainbow Legend');
+        expect(text).toContain('Change Champion');
         expect(text).toContain(translate('components.habitCompanion.fullyGrown'));
         expect(text.some((t) => t.startsWith('Next:'))).toBe(false);
         act(() => tree.unmount());

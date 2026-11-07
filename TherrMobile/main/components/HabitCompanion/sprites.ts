@@ -126,7 +126,7 @@ export const COMPANION_SPRITES: Record<CompanionStageId, ReadonlyArray<string>> 
         'bbbbbbbbbbbbbbbbbbbbbbbb',
         '........................',
     ],
-    legend: [
+    champion: [
         '........................',
         '........................',
         '.....C........K.K.K..C..',
@@ -227,7 +227,7 @@ export const getCompanionPalette = (colors: ICompanionThemeColors, skinIndex: nu
         S: '#F6EED8', // eggshell
         s: '#D9C8A0', // eggshell shade
         P: mix(colors.brand, colors.brandingWhite, 0.3), // eggshell spots — a hint of what is inside
-        O: colors.accent, // legend bands
+        O: colors.accent, // champion bands
         T: colors.accentTeal,
         U: colors.accentLime,
         C: colors.accent, // crown / sparkles

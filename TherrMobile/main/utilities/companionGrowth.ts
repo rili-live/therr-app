@@ -19,7 +19,7 @@ import { isAchievementClassEnabledForBrand } from 'therr-js-utilities/config';
  * name/caption to the three locale dictionaries under `components.habitCompanion.stages`.
  */
 
-export type CompanionStageId = 'egg' | 'hatchling' | 'juvenile' | 'adult' | 'legend';
+export type CompanionStageId = 'egg' | 'hatchling' | 'juvenile' | 'adult' | 'champion';
 
 export interface ICompanionStage {
     id: CompanionStageId;
@@ -32,7 +32,7 @@ export const COMPANION_STAGES: ReadonlyArray<ICompanionStage> = [
     { id: 'hatchling', minAchievements: 1, minAccountAgeDays: 0 },
     { id: 'juvenile', minAchievements: 4, minAccountAgeDays: 7 },
     { id: 'adult', minAchievements: 12, minAccountAgeDays: 30 },
-    { id: 'legend', minAchievements: 25, minAccountAgeDays: 90 },
+    { id: 'champion', minAchievements: 25, minAccountAgeDays: 90 },
 ];
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;

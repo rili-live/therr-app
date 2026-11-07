@@ -468,8 +468,8 @@
           "name": "Chameleon",
           "caption": "Steady, sure-footed and full of color, just like your routine."
         },
-        "legend": {
-          "name": "Rainbow Legend",
+        "champion": {
+          "name": "Change Champion",
           "caption": "Crowned in every color. You've built habits that last."
         }
       }

@@ -468,8 +468,8 @@
           "name": "Caméléon",
           "caption": "Stable, sûr de lui et plein de couleurs, comme votre routine."
         },
-        "legend": {
-          "name": "Légende arc-en-ciel",
+        "champion": {
+          "name": "Champion du changement",
           "caption": "Couronné de toutes les couleurs. Vous avez bâti des habitudes durables."
         }
       }
