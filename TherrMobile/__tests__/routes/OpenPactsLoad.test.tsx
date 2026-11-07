@@ -11,6 +11,8 @@ import {
  *    `{ data: {}, isOfflineFallback: true }`, not a rejection.
  * 2. "n of 6 spots" came from a hard-coded copy of the server's seat ceiling. It now comes from the
  *    response, and a server that predates the field gets a line with no ceiling rather than a guess.
+ *    The card turns that ceiling into words (utilities/openPactListing, tested on its own); here
+ *    it is enough that the screen hands each card the ceiling it was sent.
  */
 
 jest.mock('react-native-toast-message', () => ({
@@ -69,6 +71,11 @@ const flattenElements = (node: any, collected: any[] = []): any[] => {
     flattenElements(node.props?.children, collected);
     return collected;
 };
+
+/** The open-pact cards the screen renders, by their props. */
+const renderedCards = (instance: any): any[] => flattenElements(instance.render())
+    .filter((el) => el.props?.pact && 'maxMembers' in el.props)
+    .map((el) => el.props);
 
 const renderedText = (instance: any): string => flattenElements(instance.render())
     .map((el) => el.props?.children)
@@ -131,7 +138,8 @@ describe('OpenPacts list loading', () => {
         await flushPromises();
 
         expect(instance.state.pacts).toEqual([OPEN_PACT]);
-        expect(renderedText(instance)).toContain('Read');
+        expect(renderedCards(instance).map((card) => card.pact)).toEqual([OPEN_PACT]);
+        expect(renderedText(instance)).not.toContain("We couldn't load open pacts");
     });
 
     it('shows the empty state for a successful empty answer', async () => {
@@ -152,7 +160,7 @@ describe('OpenPacts list loading', () => {
         instance.handleRefresh();
         await flushPromises();
 
-        expect(renderedText(instance)).toContain('By sam · 2 of 8 spots · 30 days');
+        expect(renderedCards(instance).map((card) => card.maxMembers)).toEqual([8]);
     });
 
     it('leaves the ceiling out for a server that does not send one', async () => {
@@ -162,8 +170,6 @@ describe('OpenPacts list loading', () => {
         instance.handleRefresh();
         await flushPromises();
 
-        const text = renderedText(instance);
-        expect(text).toContain('By sam · 2 members · 30 days');
-        expect(text).not.toContain('spots');
+        expect(renderedCards(instance).map((card) => card.maxMembers)).toEqual([null]);
     });
 });

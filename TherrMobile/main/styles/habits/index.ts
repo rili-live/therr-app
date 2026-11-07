@@ -1350,26 +1350,182 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         pactPressedSurface: {
             opacity: 0.75,
         },
-        // Open-pact cards between posts in the feed (components/Habits/FeedOpenPactCard).
-        feedPactEyebrow: {
+        // Open-pact cards (components/Habits/OpenPactListingCard), on the OpenPacts screen and
+        // between posts in the feed. They sit on `pactCardContainer` so a pact someone could join
+        // reads as the same object as the pacts on the user's own list.
+        //
+        // The feed's reason-to-join label is a tonal pill rather than letter-spaced caps: caps in
+        // brand purple on a bare surface read as a section heading, which made the card look like
+        // the start of a new section of the feed instead of one item in it.
+        openPactEyebrow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            alignSelf: 'flex-start',
+            paddingVertical: space.xs,
+            paddingHorizontal: space.md,
+            borderRadius: radius.pill,
+            backgroundColor: tint(therrTheme.colors.brand, isDarkTheme(themeName) ? 0.28 : 0.10),
+            marginBottom: space.md,
+        },
+        // Brand ink that stays legible in both themes (the streak fill: the brand colour, lightened
+        // on dark). Plain `brand` on the dark surface measures well under 3:1.
+        openPactEyebrowText: {
             fontFamily: therrFontFamily,
             fontSize: fontSizes.xs,
             fontWeight: fontWeights.semibold,
-            letterSpacing: 1.2,
-            textTransform: 'uppercase',
-            color: therrTheme.colors.primary3,
-            marginBottom: space.xs,
+            letterSpacing: 0.3,
+            color: streakBar.fill,
+            marginLeft: 6,
         },
-        feedPactHeaderRow: {
+        openPactHeader: {
             flexDirection: 'row',
             alignItems: 'center',
-            gap: space.md,
         },
-        feedPactPitch: {
+        openPactPitch: {
             fontFamily: therrFontFamily,
             fontSize: fontSizes.sm,
+            lineHeight: fontSizes.sm * lineHeights.normal,
             color: therrTheme.colors.onSurface,
             marginTop: space.md,
+        },
+        // Facts the eye compares across cards — length and whether it has started — as chips,
+        // so they wrap whole instead of breaking mid-phrase ("30 / days") at the end of a line.
+        openPactFactsRow: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: space.sm,
+            marginTop: space.md,
+        },
+        openPactChip: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: space.xs,
+            paddingHorizontal: space.sm,
+            borderRadius: radius.pill,
+            backgroundColor: therrTheme.colors.backgroundNeutral,
+        },
+        openPactChipActive: {
+            backgroundColor: tint(therrTheme.colors.alertSuccess, 0.14),
+        },
+        openPactChipText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.medium,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginLeft: space.xs,
+        },
+        openPactChipTextActive: {
+            color: therrTheme.colors.alertSuccess,
+        },
+        // One dot per seat: how big the group is and how much room is left, read at a glance.
+        openPactSeatsRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: space.md,
+        },
+        openPactSeatDots: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: space.xs,
+            marginRight: space.sm,
+        },
+        openPactSeatDot: {
+            width: 10,
+            height: 10,
+            borderRadius: radius.circle,
+            backgroundColor: streakBar.track,
+        },
+        openPactSeatDotFilled: {
+            backgroundColor: streakBar.fill,
+        },
+        openPactSeatsText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurface,
+        },
+        openPactSeatsTextMuted: {
+            fontWeight: fontWeights.regular,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        // The one action on the card. A full-width filled button, because "Ask to join" as a bare
+        // text link at the end of a row read as a label, not a thing to tap.
+        openPactAskButton: {
+            alignSelf: 'stretch',
+            // pactCardInviteButtonPrimary carries a right margin for its side-by-side pairing.
+            marginRight: 0,
+            marginTop: space.lg,
+        },
+        openPactButtonDisabled: {
+            opacity: 0.6,
+        },
+        // Asked and waiting: a status the creator now owns, with a quiet way to take it back.
+        openPactRequestedRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            minHeight: 44,
+            marginTop: space.lg,
+        },
+        openPactRequestedPill: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            flexShrink: 1,
+            paddingVertical: space.sm,
+            paddingHorizontal: space.md,
+            borderRadius: radius.pill,
+            backgroundColor: done.fill,
+        },
+        openPactRequestedText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: done.ink,
+            marginLeft: 6,
+            flexShrink: 1,
+        },
+        openPactCancelAction: {
+            minHeight: 44,
+            justifyContent: 'center',
+            paddingHorizontal: space.sm,
+            marginLeft: space.sm,
+        },
+        openPactCancelActionText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        openPactSpinner: {
+            marginLeft: space.sm,
+        },
+        // "See all open pacts" under the feed card: a link out, so it sits below a hairline and
+        // stays quieter than the card's own action.
+        openPactFooterLink: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            minHeight: 44,
+            marginTop: space.md,
+            paddingTop: space.sm,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: therrTheme.colors.accentDivider,
+        },
+        openPactFooterLinkText: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.semibold,
+            color: streakBar.fill,
+        },
+        openPactsIntro: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.sm,
+            lineHeight: fontSizes.sm * lineHeights.normal,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginHorizontal: space.lg + space.xs,
+            marginTop: space.lg,
+            marginBottom: space.xs,
         },
         pactTimelineRow: {
             flexDirection: 'row',

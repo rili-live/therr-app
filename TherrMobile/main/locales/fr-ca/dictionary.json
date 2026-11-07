@@ -2138,7 +2138,6 @@
                         "group": "Joignez-vous à ce pacte de groupe et gagnez plus de points grâce aux réalisations de pacte.",
                         "partner": "{name} cherche un partenaire de responsabilité. Joignez-vous et gagnez des points ensemble."
                     },
-                    "requestedCancel": "Demandé · Annuler la demande",
                     "seeAll": "Voir tous les pactes ouverts"
                 }
             },
@@ -2912,22 +2911,28 @@
                 "listTitle": "Pactes ouverts",
                 "listSubtitle": "Des pactes ouverts à de nouveaux partenaires. Demande à t'y joindre et la personne qui l'a créé décide.",
                 "listSubtitleHabit": "Pactes ouverts pour {habitName}. Demande à t'y joindre et la personne qui l'a créé décide.",
-                "rowDetail": "Par {name} · {count} places sur {seats} · {days} jours",
-                "rowDetailNoSeats": "Par {name} · {count} membres · {days} jours",
                 "loadErrorTitle": "Impossible de charger les pactes ouverts",
                 "loadErrorHint": "Vérifie ta connexion et réessaie.",
                 "retry": "Réessayer",
                 "rowRunning": "Déjà en cours",
                 "rowStarting": "Commence dès que quelqu'un se joint",
                 "askToJoin": "Demander à me joindre",
-                "requested": "Demandé",
                 "askToJoinFor": "Demander à te joindre au pacte de {name}",
                 "cancelRequestFor": "Annuler ta demande à {name}",
                 "requestSentTitle": "Demande envoyée",
                 "requestSentMessage": "On te fera signe quand {name} répondra.",
                 "requestError": "On n'a pas pu envoyer cette demande. Réessaie.",
                 "emptyTitle": "Aucun pacte ouvert pour cette habitude pour l'instant",
-                "emptyHint": "Ouvre ton propre pacte pour que d'autres le trouvent, ou reviens plus tard."
+                "emptyHint": "Ouvre ton propre pacte pour que d'autres le trouvent, ou reviens plus tard.",
+                "startedBy": "Lancé par {name}",
+                "durationChip": "{days} jours",
+                "spotsLeft": "{count} places restantes",
+                "spotsLeftOne": "1 place restante",
+                "spotsFilled": "{count} sur {total} prises",
+                "memberCount": "{count} membres",
+                "memberCountOne": "1 membre",
+                "requestedStatus": "Demande envoyée",
+                "cancelRequest": "Annuler la demande"
             }
         },
         "pushOptIn": {
