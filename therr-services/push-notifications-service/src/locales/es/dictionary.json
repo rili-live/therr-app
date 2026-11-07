@@ -2,7 +2,7 @@
   "notifications": {
     "achievementCompleted": {
       "title": "¡Ganaste una recompensa!",
-      "body": "¡Buen trabajo! Acabas de completar un logro. Toca para reclamar tus monedas."
+      "body": "¡Buen trabajo! Acabas de completar un logro. Toca para reclamar tus monedas antes de que expiren."
     },
     "leaderboardRankMilestone": {
       "title": "¡Hito en la tabla de clasificación!",

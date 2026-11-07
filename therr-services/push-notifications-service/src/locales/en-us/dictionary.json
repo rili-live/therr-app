@@ -2,7 +2,7 @@
   "notifications": {
     "achievementCompleted": {
       "title": "You Earned a Reward!",
-      "body": "Nice work! You just completed an achievement. Tap to claim your coins."
+      "body": "Nice work! You just completed an achievement. Tap to claim your coins before they expire."
     },
     "leaderboardRankMilestone": {
       "title": "Leaderboard Milestone!",

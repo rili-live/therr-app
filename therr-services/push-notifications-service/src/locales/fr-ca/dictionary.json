@@ -2,7 +2,7 @@
   "notifications": {
     "achievementCompleted": {
       "title": "Tu as gagné une récompense!",
-      "body": "Beau travail! Tu viens de compléter une réalisation. Appuie pour réclamer tes pièces."
+      "body": "Beau travail! Tu viens de compléter une réalisation. Appuie pour réclamer tes pièces avant qu'elles expirent."
     },
     "leaderboardRankMilestone": {
       "title": "Jalon du classement!",
