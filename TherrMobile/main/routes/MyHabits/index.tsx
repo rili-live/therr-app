@@ -229,8 +229,9 @@ class MyHabits extends React.Component<IMyHabitsProps, IMyHabitsState> {
                 style={[this.theme.styles.safeAreaView, this.themeHabits.styles.dashboardContainer]}
             >
                 <BaseStatusBar themeName={user.settings?.mobileThemeName} />
+                {/* No `theme.styles.scrollView` margin: the content padding clears the fixed menu,
+                    so the scroll area runs down to it instead of stopping a menu-height short. */}
                 <ScrollView
-                    style={[this.theme.styles.scrollView]}
                     contentContainerStyle={{ paddingBottom: buttonMenuHeight + 16 }}
                     refreshControl={<RefreshControl refreshing={isLoading} onRefresh={this.handlePullToRefresh} />}
                 >

@@ -305,8 +305,10 @@ const DailyStreak: React.FC<IDailyStreakProps> = ({ navigation }) => {
     return (
         <SafeAreaView edges={[]} style={[theme.styles.safeAreaView, styles.weeklyRecapContainer]}>
             <BaseStatusBar therrThemeName={themeName} />
+            {/* No `theme.styles.scrollView` here: its `marginBottom: buttonMenuHeight` stops the
+                scroll area a full menu-height above the (absolutely positioned) MainButtonMenu,
+                leaving a gray band. The content padding below already clears the menu. */}
             <ScrollView
-                style={[theme.styles.scrollView]}
                 contentContainerStyle={{ paddingBottom: buttonMenuHeight + 16 }}
                 refreshControl={<RefreshControl refreshing={isLoading && hasFetched} onRefresh={onRefresh} />}
             >
