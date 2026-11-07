@@ -8,7 +8,7 @@ import { isHabitsOnlyType, isTypeAllowedForBrand } from '../../../src/api/fireba
  * `brandVariation` is what selects the recipient's device token
  * (`resolveDeviceTokenForBrand`, users-service), and a user holding two branded apps has
  * a separate token per install. So a `streakAtRisk` sent under THERR is addressed to
- * that user's *Therr* install and renders there — "Don't Break Your Streak" under Therr's
+ * that user's *Therr* install and renders there — "Keep Your Streak Going" under Therr's
  * name and icon, on an app with no habits surface — while the Habits app gets nothing.
  *
  * This used to only log a warning and send anyway, on the reasoning that the copy was

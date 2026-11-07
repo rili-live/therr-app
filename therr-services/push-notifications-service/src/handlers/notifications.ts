@@ -79,6 +79,9 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         weekDone,
         weekTarget,
         daysLeft,
+        // A check-in nudge for one habit whose streak has no freezes left and which can be
+        // paused: adds the "Pause" button and the body that names it (users-service markPauseOffers).
+        offerPause,
         // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md)
         dayCount,
         consistencyPercent,
@@ -150,6 +153,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             weekDone,
             weekTarget,
             daysLeft,
+            offerPause,
             dayCount,
             consistencyPercent,
             bestStreakCount,
@@ -252,6 +256,9 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         weekDone,
         weekTarget,
         daysLeft,
+        // A check-in nudge for one habit whose streak has no freezes left and which can be
+        // paused: adds the "Pause" button and the body that names it (users-service markPauseOffers).
+        offerPause,
         // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md)
         dayCount,
         consistencyPercent,
@@ -325,6 +332,7 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             weekDone,
             weekTarget,
             daysLeft,
+            offerPause,
             dayCount,
             consistencyPercent,
             bestStreakCount,

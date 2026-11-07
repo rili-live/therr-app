@@ -83,6 +83,26 @@ class UserHabitsService {
         url: `/users-service/habits/user-habits/${id}/continue-solo`,
     });
 
+    /**
+     * Pause a habit: its streak holds, it spends no freezes, it cannot break the overall daily
+     * streak, and its reminders stop until the user resumes or checks in. A 409 carries `error`:
+     * `habit-already-paused`, `habit-pause-cooldown` (with `pauseAvailableOn`) or `habit-archived`.
+     *
+     * `timeZone` is the device zone, used only when the account has no saved one.
+     */
+    pause = (id: string, data: { timeZone?: string } = {}) => axios({
+        method: 'put',
+        url: `/users-service/habits/user-habits/${id}/pause`,
+        data,
+    });
+
+    /** Resume a paused habit. From today it counts again; the paused days stay excused. */
+    resume = (id: string, data: { timeZone?: string } = {}) => axios({
+        method: 'put',
+        url: `/users-service/habits/user-habits/${id}/resume`,
+        data,
+    });
+
     updateNotificationPreferences = (id: string, data: IUserHabitNotificationPreferencesBody) => axios({
         method: 'put',
         url: `/users-service/habits/user-habits/${id}/notification-preferences`,
