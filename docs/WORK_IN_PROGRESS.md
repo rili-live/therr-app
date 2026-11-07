@@ -114,8 +114,10 @@ append new items here rather than only printing them once.
 ## Habit pause (added 2026-11-07, docs/FEATURES.md → Pausing a habit)
 
 - [ ] **After the users-service deploy carrying `habits.habit_pauses`, confirm the migration ran:**
-  `SELECT to_regclass('habits.habit_pauses')`. Until it has, pause/resume answer 500 and the daily
-  streak evaluation fails for everyone (the cadence read joins the table).
+  `SELECT to_regclass('habits.habit_pauses')`. Until it has, pause/resume answer 500, the daily
+  streak evaluation fails for everyone (the cadence read joins the table), and every check-in after
+  a missed day answers 500 too (`loadExcusedDatesForHabit` deliberately does not catch — seen locally
+  by /quality-peer-review on 2026-11-07 against a DB without the migration).
 - [ ] **Handset check of `habitPauseReminder` on Friends with Habits** once a build with the pause UI
   ships: pause a habit on a test account, then `UPDATE main."notificationQueue" SET "scheduledFor" = now()`
   for its `habit-pause-reminder:<pauseId>:7` row. Confirm it lands in the Habits app (not Therr) and that a
