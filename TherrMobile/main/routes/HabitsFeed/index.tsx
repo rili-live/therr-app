@@ -11,7 +11,6 @@ import {
     IUserState, IContentState, IHabitsState, IOpenPact,
 } from 'therr-react/types';
 import { buildStyles } from '../../styles';
-import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
@@ -103,7 +102,6 @@ export class HabitsFeed extends React.Component<IHabitsFeedProps, IHabitsFeedSta
 
     private themeMenu = buildMenuStyles();
 
-    private themeButtons = buildButtonStyles();
 
     private themeHabits = buildHabitStyles();
 
@@ -133,7 +131,6 @@ export class HabitsFeed extends React.Component<IHabitsFeedProps, IHabitsFeedSta
         this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
-        this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
         this.themeHabits = buildHabitStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any = {}) => translator(props.user.settings?.locale || 'en-us', key, params);
     }
@@ -272,7 +269,6 @@ export class HabitsFeed extends React.Component<IHabitsFeedProps, IHabitsFeedSta
                 onSeeAll={this.goToOpenPacts}
                 translate={this.translate}
                 themeHabits={this.themeHabits}
-                themeButtons={this.themeButtons}
             />
         );
     };

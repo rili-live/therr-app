@@ -1,7 +1,8 @@
 import React from 'react';
 import {
-    ActivityIndicator, ScrollView, Text, View,
+    ActivityIndicator, Pressable, ScrollView, Text, View,
 } from 'react-native';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { RefreshControl } from 'react-native-gesture-handler';
@@ -12,9 +13,8 @@ import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
 import translator from '../../utilities/translator';
-import { Button } from '../../components/BaseButton';
+import OpenPactListingCard from '../../components/Habits/OpenPactListingCard';
 import { buildStyles } from '../../styles';
-import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildHabitStyles } from '../../styles/habits';
 import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -60,7 +60,6 @@ const mapStateToProps = (state: any) => ({
 export class OpenPacts extends React.Component<IOpenPactsProps, IOpenPactsState> {
     private translate: (key: string, params?: any) => string;
     private theme = buildStyles();
-    private themeButtons = buildButtonStyles();
     private themeHabits = buildHabitStyles();
 
     constructor(props: IOpenPactsProps) {
@@ -76,7 +75,6 @@ export class OpenPacts extends React.Component<IOpenPactsProps, IOpenPactsState>
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
         this.themeHabits = buildHabitStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params?: any) => translator(props.user.settings?.locale || 'en-us', key, params);
     }
@@ -186,62 +184,21 @@ export class OpenPacts extends React.Component<IOpenPactsProps, IOpenPactsState>
             });
     };
 
-    renderPactRow = (pact: IOpenPact, index: number) => {
+    renderPactCard = (pact: IOpenPact) => {
         const { pendingPactId, maxMembers } = this.state;
-        const isPending = pendingPactId === pact.id;
-        const creatorName = pact.creatorUserName || this.translate('pages.pacts.partnerFallback');
 
         return (
-            <View
+            <OpenPactListingCard
                 key={pact.id}
-                style={[
-                    this.themeHabits.styles.habitNotificationPrefsRow,
-                    index > 0 && this.themeHabits.styles.pactMemberRowDivided,
-                    { paddingHorizontal: 16 },
-                ]}
-            >
-                <Text style={[this.themeHabits.styles.habitCardEmoji, { marginRight: 12 }]}>
-                    {pact.habitGoalEmoji || '🤝'}
-                </Text>
-                <View style={this.themeHabits.styles.habitNotificationPrefsLabelContainer}>
-                    <Text style={this.themeHabits.styles.habitNotificationPrefsLabel}>
-                        {pact.habitGoalName}
-                    </Text>
-                    <Text style={this.themeHabits.styles.habitNotificationPrefsHint}>
-                        {this.translate(maxMembers
-                            ? 'pages.pacts.openPact.rowDetail'
-                            : 'pages.pacts.openPact.rowDetailNoSeats', {
-                            name: creatorName,
-                            count: pact.memberCount,
-                            seats: maxMembers,
-                            days: pact.durationDays,
-                        })}
-                    </Text>
-                    <Text style={this.themeHabits.styles.habitNotificationPrefsHint}>
-                        {this.translate(pact.status === 'active'
-                            ? 'pages.pacts.openPact.rowRunning'
-                            : 'pages.pacts.openPact.rowStarting')}
-                    </Text>
-                </View>
-                {isPending ? (
-                    <ActivityIndicator color={this.themeHabits.colors.primary3} />
-                ) : (
-                    <Button
-                        buttonStyle={this.themeButtons.styles.btnClear}
-                        titleStyle={this.themeButtons.styles.btnTitleBlack}
-                        title={this.translate(pact.hasPendingJoinRequest
-                            ? 'pages.pacts.openPact.requested'
-                            : 'pages.pacts.openPact.askToJoin')}
-                        accessibilityLabel={this.translate(pact.hasPendingJoinRequest
-                            ? 'pages.pacts.openPact.cancelRequestFor'
-                            : 'pages.pacts.openPact.askToJoinFor', { name: creatorName })}
-                        onPress={() => (pact.hasPendingJoinRequest
-                            ? this.handleCancelRequest(pact)
-                            : this.handleAskToJoin(pact))}
-                        disabled={!!pendingPactId}
-                    />
-                )}
-            </View>
+                pact={pact}
+                maxMembers={maxMembers}
+                isBusy={!!pendingPactId}
+                isPending={pendingPactId === pact.id}
+                onAskToJoin={this.handleAskToJoin}
+                onCancelRequest={this.handleCancelRequest}
+                translate={this.translate}
+                themeHabits={this.themeHabits}
+            />
         );
     };
 
@@ -268,7 +225,7 @@ export class OpenPacts extends React.Component<IOpenPactsProps, IOpenPactsState>
                             />
                         )}
                     >
-                        <Text style={[this.themeHabits.styles.dashboardSubtitle, { paddingHorizontal: 20, marginTop: 12 }]}>
+                        <Text style={this.themeHabits.styles.openPactsIntro}>
                             {habitName
                                 ? this.translate('pages.pacts.openPact.listSubtitleHabit', { habitName })
                                 : this.translate('pages.pacts.openPact.listSubtitle')}
@@ -283,36 +240,48 @@ export class OpenPacts extends React.Component<IOpenPactsProps, IOpenPactsState>
                         )}
 
                         {hasLoaded && pacts.length > 0 && (
-                            <View style={{ marginTop: 8 }}>
-                                {pacts.map((p, i) => this.renderPactRow(p, i))}
+                            <View>
+                                {pacts.map(this.renderPactCard)}
                             </View>
                         )}
 
                         {hasLoaded && loadError && !pacts.length && (
-                            <View style={[this.themeHabits.styles.emptyStateContainer, { paddingTop: 24 }]}>
+                            <View style={this.themeHabits.styles.emptyStateContainer}>
+                                <View style={this.themeHabits.styles.emptyStateIconCircle}>
+                                    <MaterialIcon name="wifi-off" size={32} color={this.themeHabits.colors.brand} />
+                                </View>
                                 <Text style={this.themeHabits.styles.emptyStateTitle}>
                                     {this.translate('pages.pacts.openPact.loadErrorTitle')}
                                 </Text>
-                                <Text style={[this.themeHabits.styles.habitNotificationPrefsHint, { textAlign: 'center', paddingHorizontal: 24 }]}>
+                                <Text style={this.themeHabits.styles.emptyStateSubtitle}>
                                     {this.translate('pages.pacts.openPact.loadErrorHint')}
                                 </Text>
-                                <Button
-                                    buttonStyle={this.themeButtons.styles.btnClear}
-                                    titleStyle={this.themeButtons.styles.btnTitleBlack}
-                                    title={this.translate('pages.pacts.openPact.retry')}
+                                <Pressable
+                                    accessibilityRole="button"
+                                    accessibilityState={{ disabled: isLoading }}
                                     onPress={this.handleRefresh}
                                     disabled={isLoading}
-                                />
+                                    style={({ pressed }) => [
+                                        this.themeHabits.styles.emptyStateActionButton,
+                                        pressed && this.themeHabits.styles.pactCardInviteButtonPressed,
+                                    ]}
+                                >
+                                    <Text style={this.themeHabits.styles.emptyStateActionLabel}>
+                                        {this.translate('pages.pacts.openPact.retry')}
+                                    </Text>
+                                </Pressable>
                             </View>
                         )}
 
                         {hasLoaded && !loadError && !pacts.length && (
-                            <View style={[this.themeHabits.styles.emptyStateContainer, { paddingTop: 24 }]}>
-                                <Text style={this.themeHabits.styles.emptyStateEmoji}>{'🤝'}</Text>
+                            <View style={this.themeHabits.styles.emptyStateContainer}>
+                                <View style={this.themeHabits.styles.emptyStateIconCircle}>
+                                    <Text style={this.themeHabits.styles.emptyStateEmoji}>{'🤝'}</Text>
+                                </View>
                                 <Text style={this.themeHabits.styles.emptyStateTitle}>
                                     {this.translate('pages.pacts.openPact.emptyTitle')}
                                 </Text>
-                                <Text style={[this.themeHabits.styles.habitNotificationPrefsHint, { textAlign: 'center', paddingHorizontal: 24 }]}>
+                                <Text style={this.themeHabits.styles.emptyStateSubtitle}>
                                     {this.translate('pages.pacts.openPact.emptyHint')}
                                 </Text>
                             </View>

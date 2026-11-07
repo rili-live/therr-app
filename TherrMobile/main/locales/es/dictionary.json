@@ -2175,7 +2175,6 @@
                         "group": "Únete a este pacto grupal y gana más puntos con los logros de pactos.",
                         "partner": "{name} busca un compañero de responsabilidad. Únete y ganen puntos juntos."
                     },
-                    "requestedCancel": "Solicitado · Cancelar solicitud",
                     "seeAll": "Ver todos los pactos abiertos"
                 }
             },
@@ -2949,22 +2948,28 @@
                 "listTitle": "Pactos abiertos",
                 "listSubtitle": "Pactos abiertos a nuevos compañeros. Pide unirte y su creador decide.",
                 "listSubtitleHabit": "Pactos abiertos de {habitName}. Pide unirte y su creador decide.",
-                "rowDetail": "De {name} · {count} de {seats} lugares · {days} días",
-                "rowDetailNoSeats": "De {name} · {count} miembros · {days} días",
                 "loadErrorTitle": "No pudimos cargar los pactos abiertos",
                 "loadErrorHint": "Revisa tu conexión e inténtalo de nuevo.",
                 "retry": "Reintentar",
                 "rowRunning": "Ya en curso",
                 "rowStarting": "Empieza cuando alguien se una",
                 "askToJoin": "Pedir unirme",
-                "requested": "Solicitado",
                 "askToJoinFor": "Pedir unirme al pacto de {name}",
                 "cancelRequestFor": "Cancelar tu solicitud a {name}",
                 "requestSentTitle": "Solicitud enviada",
                 "requestSentMessage": "Te avisaremos cuando {name} responda.",
                 "requestError": "No pudimos enviar esa solicitud. Inténtalo de nuevo.",
                 "emptyTitle": "Todavía no hay pactos abiertos para este hábito",
-                "emptyHint": "Abre tu propio pacto para que otros lo encuentren, o vuelve más tarde."
+                "emptyHint": "Abre tu propio pacto para que otros lo encuentren, o vuelve más tarde.",
+                "startedBy": "Creado por {name}",
+                "durationChip": "{days} días",
+                "spotsLeft": "Quedan {count} lugares",
+                "spotsLeftOne": "Queda 1 lugar",
+                "spotsFilled": "{count} de {total} ocupados",
+                "memberCount": "{count} miembros",
+                "memberCountOne": "1 miembro",
+                "requestedStatus": "Solicitud enviada",
+                "cancelRequest": "Cancelar solicitud"
             }
         },
         "pushOptIn": {
