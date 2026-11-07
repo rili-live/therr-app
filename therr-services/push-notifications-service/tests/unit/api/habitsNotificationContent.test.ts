@@ -38,7 +38,7 @@ describe('habits notification content', () => {
             }, BrandVariations.HABITS);
 
             expect(message.data.notificationTitle).to.contain('Day 2 of Reading');
-            expect(message.data.notificationBody).to.equal('Dana is counting on you. Today makes it a streak.');
+            expect(message.data.notificationBody).to.equal('Dana is in it with you. Today makes it a streak.');
             // Same buttons as any single-habit reminder: one tap checks in.
             expect(parseActions(message).map((a) => a.id)).to.include(PushNotifications.PressActionIds.habitCheckin);
             // Reaches the device so the tap can be attributed to the variant.
