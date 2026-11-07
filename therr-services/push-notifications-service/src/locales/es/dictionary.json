@@ -123,7 +123,8 @@
       "body": "Tu racha de {streakCount} días en {habitName} te espera hoy. Un registro antes de que termine el día la extiende.",
       "bodyWithFreeze": "Tu racha de {streakCount} días en {habitName} te espera hoy. Un congelamiento de racha te respalda si fallas (te quedan {freezesRemaining}) — y si registras, lo guardas para después.",
       "bodyMultiple": "{habitCount} rachas te esperan hoy — {habitNames}. Registra antes de que termine el día para extenderlas.",
-      "bodyWeekly": "{weekDone} de {weekTarget} en {habitName} esta semana, y te queda(n) {daysLeft} día(s). Mantén tus {streakCount} seguidos."
+      "bodyWeekly": "{weekDone} de {weekTarget} en {habitName} esta semana, y te queda(n) {daysLeft} día(s). Mantén tus {streakCount} seguidos.",
+      "bodyOfferPause": "Tu racha de {streakCount} días en {habitName} te espera hoy y no te quedan congelamientos. Regístralo antes de que termine el día para extenderla, o pausa el hábito si necesitas un descanso."
     },
     "streakFreezeUsed": {
       "title": "Tu racha sobrevivió",
@@ -275,7 +276,8 @@
       "body": "Extiende tu racha de {streakCount} días en {habitName} antes de que termine la noche. Un solo registro basta.",
       "bodyWithFreeze": "Extiende tu racha de {streakCount} días en {habitName} antes de que termine la noche. Un congelamiento de racha te respalda (te quedan {freezesRemaining}) — y si registras ahora, lo guardas para después.",
       "bodyMultiple": "Aún hay tiempo esta noche para extender {habitCount} rachas — {habitNames}.",
-      "bodyWeekly": "{weekDone} de {weekTarget} en {habitName}, con {daysLeft} día(s) restantes. Un registro esta noche mantiene tu semana en marcha."
+      "bodyWeekly": "{weekDone} de {weekTarget} en {habitName}, con {daysLeft} día(s) restantes. Un registro esta noche mantiene tu semana en marcha.",
+      "bodyOfferPause": "Extiende tu racha de {streakCount} días en {habitName} antes de que termine la noche, o, sin congelamientos restantes, pausa el hábito para protegerla mientras descansas."
     },
     "weeklyRecap": {
       "title": "Tu semana en resumen",
@@ -304,11 +306,29 @@
       "title": "¿Quieres retomar {habitName}?",
       "body": "Una vez lo mantuviste {bestStreakCount} días — eso no se borra. ¿Empezamos una racha nueva?"
     },
+    "habitPauseReminder": {
+      "week": {
+        "title": "¿Listo para retomar {habitName}?",
+        "body": "Ha pasado una semana desde que lo pausaste. Retómalo cuando quieras: un solo registro lo pone en marcha de nuevo.",
+        "bodyWithStreak": "Ha pasado una semana desde que lo pausaste. Tu racha de {streakCount} días sigue donde la dejaste: un solo registro la retoma."
+      },
+      "twoWeeks": {
+        "title": "¿Sigues en pausa con {habitName}?",
+        "body": "Dos semanas en pausa. Un pequeño registro hoy es todo lo que hace falta para volver a empezar.",
+        "bodyWithStreak": "Dos semanas en pausa y tu racha de {streakCount} días sigue a salvo. Un pequeño registro hoy la pone en marcha otra vez."
+      },
+      "final": {
+        "title": "Último recordatorio sobre {habitName}",
+        "body": "Un mes en pausa. Es la última vez que te lo preguntamos: retómalo cuando estés listo o archívalo si ya cumplió su ciclo.",
+        "bodyWithStreak": "Un mes en pausa. Tu racha de {streakCount} días sigue guardada y es la última vez que te lo preguntamos: retómalo cuando estés listo o archívalo si ya cumplió su ciclo."
+      }
+    },
     "shared": {
       "pressActionCheckIn": "Registrarse",
       "pressActionLogAmount": "Registrar monto",
       "pressActionRenew": "Nuevo ciclo",
-      "pressActionView": "Ver"
+      "pressActionView": "Ver",
+      "pressActionPause": "Pausar"
     }
   },
   "validation": "No se proporcionaron los parámetros requeridos."

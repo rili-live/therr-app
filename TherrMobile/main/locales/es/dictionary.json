@@ -441,6 +441,42 @@
       "title": "Termina tu perfil",
       "stepsLeft": "Quedan {count} pasos",
       "stepLeft": "Queda 1 paso"
+    },
+    "habitCompanion": {
+      "overline": "Tu compañero de hábitos",
+      "stageOf": "Etapa {stage} de {total}",
+      "tapHint": "Toca para cambiar su color",
+      "a11yLabel": "Tu compañero de hábitos: {stageName}. Etapa {stage} de {total}.",
+      "nextStage": "Siguiente: {stageName}",
+      "achievementsProgress": "Logros: {count} / {total}",
+      "daysProgress": "Días juntos: {count} / {total}",
+      "fullyGrown": "¡Completamente crecido! Mantén tus rachas para que siga brillando.",
+      "stages": {
+        "egg": {
+          "name": "Huevo",
+          "caption": "Algo se mueve adentro. Consigue tu primer logro para que eclosione."
+        },
+        "hatchling": {
+          "name": "Cría",
+          "caption": "Recién salido del cascarón y atento a ti. Sigue registrando tus hábitos."
+        },
+        "juvenile": {
+          "name": "Pequeño escalador",
+          "caption": "Crece rápido y se agarra firme. Tus hábitos están echando raíces."
+        },
+        "adult": {
+          "name": "Camaleón",
+          "caption": "Firme, seguro y lleno de color, igual que tu rutina."
+        },
+        "champion": {
+          "name": "Campeón del cambio",
+          "caption": "Coronado con todos los colores. Has creado hábitos que perduran."
+        }
+      },
+      "celebration": {
+        "title": "¡Tu compañero de hábitos creció!",
+        "titleHatched": "¡Tu huevo eclosionó!"
+      }
     }
   },
   "forms": {

@@ -502,6 +502,39 @@ export interface IStreakHistory {
  * should read it rather than inferring it from pact lists, which go stale
  * independently of this one.
  */
+/**
+ * A paused habit. From `pausedOn` until the user resumes (or checks in, which resumes it), the
+ * habit asks nothing of them: its streak holds at `streakAtPause`, no freezes are spent, it cannot
+ * break the overall daily streak, and its reminders stop. Three "ready to come back?" pushes go out
+ * at 7, 14 and 30 days; `upcomingReminderDays` is which of those are still to come.
+ */
+export interface IUserHabitPause {
+    id: string;
+    /** The user's local day the pause began (YYYY-MM-DD). */
+    pausedOn: string;
+    daysPaused: number;
+    streakAtPause: number;
+    upcomingReminderDays: number[];
+}
+
+/** What pausing a habit answers with. `reminders` is when the resume pushes will land. */
+export interface IPauseUserHabitResponse {
+    habit: IUserHabit;
+    reminders: { dayCount: number; localDate: string }[];
+    pauseCooldownDays: number;
+}
+
+/**
+ * What resuming answers with. `resumeResult` is `'undone'` when the pause began today — it
+ * covered nothing and starts no cooldown — `'closed'` for an ordinary resume, and null when the
+ * habit was not paused.
+ */
+export interface IResumeUserHabitResponse {
+    habit: IUserHabit;
+    resumeResult: 'closed' | 'undone' | null;
+    pauseCooldownDays: number;
+}
+
 export interface IUserHabit {
     id: string;
     userId: string;
@@ -547,6 +580,16 @@ export interface IUserHabit {
      * that predates it; treat `undefined` like `null`.
      */
     pendingPactId?: string | null;
+    /**
+     * Set while the habit is paused (see `IUserHabitPause`). Null or absent means it is not.
+     */
+    pause?: IUserHabitPause | null;
+    /**
+     * Set only while the re-pause cooldown runs after a pause ended: the local day (YYYY-MM-DD)
+     * the habit can be paused again. Null or absent means it can be paused now (unless `pause`
+     * is set, in which case it already is).
+     */
+    pauseAvailableOn?: string | null;
     /**
      * The habit's savings target, mirrored from its goal so the habit list can render a
      * progress bar without fetching each goal. Null/absent on every habit that is not a
@@ -945,6 +988,8 @@ export enum HabitsActionTypes {
     ARCHIVE_USER_HABIT = 'ARCHIVE_USER_HABIT',
     RESTORE_USER_HABIT = 'RESTORE_USER_HABIT',
     CONTINUE_SOLO_USER_HABIT = 'CONTINUE_SOLO_USER_HABIT',
+    PAUSE_USER_HABIT = 'PAUSE_USER_HABIT',
+    RESUME_USER_HABIT = 'RESUME_USER_HABIT',
     UPDATE_USER_HABIT_NOTIFICATION_PREFERENCES = 'UPDATE_USER_HABIT_NOTIFICATION_PREFERENCES',
 
     // Journal

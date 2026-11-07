@@ -3,6 +3,7 @@ import { BrandVariations, HabitGoalTypes, PushNotifications } from 'therr-js-uti
 import { parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
+import { markPauseOffers } from './helpers/habitPause';
 import enqueueNotification, { EnqueueOutcome } from '../utilities/enqueueNotification';
 import handleHttpError from '../utilities/handleHttpError';
 import {
@@ -211,6 +212,8 @@ interface IDigestCounters {
     // gone — `streakAtRiskSent + dailyRemindersSent` now counts *users*
     // notified, and this counts the extra pushes they are no longer getting.
     checkinNudgesRolledUp: number;
+    // Single-habit nudges for a streak with no freezes left that offered "Pause" (additive).
+    pauseOffered: number;
 
     // ---- Evening "last chance" reminders + per-user local scheduling --------
     // Rows queued for the evening slot. The one number that says the feature is
@@ -411,6 +414,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         comebackSent: 0,
         nudgesTapered: 0,
         checkinNudgesRolledUp: 0,
+        pauseOffered: 0,
         lastChanceSent: 0,
         lastChanceNotScheduled: 0,
         lastChanceSkippedNoStreak: 0,
@@ -805,6 +809,16 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                     habitGoalId: habit.habitGoalId,
                 });
             });
+        }
+        // A paused habit has no lifecycle while it is paused: no milestone, no maintenance
+        // check-in, and above all no "want to restart?" comeback — the user already told us
+        // they stepped away, and the pause's own 7/14/30-day reminders cover coming back.
+        // Fails open (a read failure evaluates everyone), like every other gate in this run.
+        if (uniquePairs.size) {
+            const pausedPairs = await Store.habitPauses
+                .getOpenPairKeys([...uniquePairs.values()].map((pair) => pair.userId))
+                .catch(() => new Set<string>());
+            pausedPairs.forEach((key) => uniquePairs.delete(key));
         }
         const lifecycle = engineEnabled
             ? await buildHabitLifecycleContext([...uniquePairs.values()], today)
@@ -1358,6 +1372,10 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         // run now inserts one row where it used to insert several.
         const nudgeRows = checkinNudges.drain();
         counters.checkinNudgesRolledUp = checkinNudges.candidateCount() - nudgeRows.length;
+
+        // A streak that ends tonight with no freezes left gets one more way out: "Pause". The
+        // evening "last chance" row is built from the same payload, so it carries the offer too.
+        counters.pauseOffered = await markPauseOffers(nudgeRows, today);
 
         // Reminder settings for everyone this run is about to notify, in one
         // read — the same reason `buildHabitLifecycleContext` batches: a

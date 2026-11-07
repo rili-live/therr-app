@@ -123,7 +123,8 @@
       "body": "Ta série de {streakCount} jours sur {habitName} t'attend aujourd'hui. Un suivi avant la fin de la journée la prolonge.",
       "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} t'attend aujourd'hui. Un gel de série te couvre si tu manques ({freezesRemaining} restant(s)) — et t'enregistrer te le garde en réserve.",
       "bodyMultiple": "{habitCount} séries t'attendent aujourd'hui — {habitNames}. Enregistre-toi avant la fin de la journée pour les prolonger.",
-      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName} cette semaine, et il reste {daysLeft} jour(s). Garde tes {streakCount} d'affilée."
+      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName} cette semaine, et il reste {daysLeft} jour(s). Garde tes {streakCount} d'affilée.",
+      "bodyOfferPause": "Ta série de {streakCount} jours sur {habitName} t'attend aujourd'hui et tu n'as plus de gels de série. Fais ton suivi avant la fin de la journée pour la prolonger — ou mets-la en pause si tu as besoin d'un répit."
     },
     "streakFreezeUsed": {
       "title": "Ta série a tenu",
@@ -275,7 +276,8 @@
       "body": "Prolonge ta série de {streakCount} jours sur {habitName} avant la fin de la soirée. Un seul suivi suffit.",
       "bodyWithFreeze": "Prolonge ta série de {streakCount} jours sur {habitName} avant la fin de la soirée. Un gel de série te couvre ({freezesRemaining} restant(s)) — et t'enregistrer maintenant te le garde en réserve.",
       "bodyMultiple": "Il reste du temps ce soir pour prolonger {habitCount} séries — {habitNames}.",
-      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName}, avec {daysLeft} jour(s) restants. Un suivi ce soir garde ta semaine sur la bonne voie."
+      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName}, avec {daysLeft} jour(s) restants. Un suivi ce soir garde ta semaine sur la bonne voie.",
+      "bodyOfferPause": "Prolonge ta série de {streakCount} jours sur {habitName} avant la fin de la soirée — ou, sans gel restant, mets-la en pause pour la protéger pendant ton répit."
     },
     "weeklyRecap": {
       "title": "Ta semaine en revue",
@@ -304,11 +306,29 @@
       "title": "Envie de relancer {habitName}?",
       "body": "Tu l'as déjà tenue {bestStreakCount} jours — ça ne s'efface pas. Prêt à repartir sur une nouvelle série?"
     },
+    "habitPauseReminder": {
+      "week": {
+        "title": "Prêt à reprendre {habitName}?",
+        "body": "Ça fait une semaine que tu as mis en pause. Reprends quand tu veux : un seul suivi relance tout.",
+        "bodyWithStreak": "Ça fait une semaine que tu as mis en pause. Ta série de {streakCount} jours est là où tu l'as laissée : un seul suivi la relance."
+      },
+      "twoWeeks": {
+        "title": "Toujours en pause pour {habitName}?",
+        "body": "Deux semaines en pause. Un petit suivi aujourd'hui, c'est tout ce qu'il faut pour repartir.",
+        "bodyWithStreak": "Deux semaines en pause, et ta série de {streakCount} jours est toujours protégée. Un petit suivi aujourd'hui la relance."
+      },
+      "final": {
+        "title": "Dernier rappel pour {habitName}",
+        "body": "Un mois en pause. C'est la dernière fois qu'on te le demande : reprends quand tu es prêt, ou archive-le s'il a fait son temps.",
+        "bodyWithStreak": "Un mois en pause. Ta série de {streakCount} jours reste sauvegardée, et c'est la dernière fois qu'on te le demande : reprends quand tu es prêt, ou archive-le s'il a fait son temps."
+      }
+    },
     "shared": {
       "pressActionCheckIn": "S'enregistrer",
       "pressActionLogAmount": "Inscrire le montant",
       "pressActionRenew": "Nouveau cycle",
-      "pressActionView": "Voir"
+      "pressActionView": "Voir",
+      "pressActionPause": "Pause"
     }
   },
   "validation": "Les paramètres requis n'ont pas été fournis."
