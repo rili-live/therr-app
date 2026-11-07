@@ -182,20 +182,20 @@ export interface ICompanionThemeColors {
 const mix = (from: string, to: string, share: number) => new Color(from).mix(new Color(to), share).hex();
 
 /**
- * The skins a tap walks through: brand → teal → lime → gold. The same walk, from the same
- * theme tokens, as the daily-bonus chameleon reveal, so the companion is recognisably the
- * same animal as the brand mascot (purple with a gold stripe in Friends with Habits) and
- * nothing here hardcodes a brand color.
+ * The skins a tap walks through: green (the resting color) → teal → gold → brand. The same
+ * four theme tokens as the daily-bonus chameleon reveal, starting from green because a
+ * chameleon at rest reads as green — the brand purple is one tap away. Nothing here hardcodes
+ * a color, so the skins follow the brand and the light/dark theme.
  */
 export const getCompanionSkins = (colors: ICompanionThemeColors): string[] => [
-    colors.brand,
-    colors.accentTeal,
     colors.accentLime,
+    colors.accentTeal,
     colors.accent,
+    colors.brand,
 ];
 
 export const COMPANION_SKIN_COUNT = 4;
-const GOLD_SKIN_INDEX = 3;
+const GOLD_SKIN_INDEX = 2;
 
 /**
  * Resolves every sprite key to a color for the given theme and skin. Shading is mixed from
@@ -226,10 +226,11 @@ export const getCompanionPalette = (colors: ICompanionThemeColors, skinIndex: nu
         b: mix(bark, colors.brandingBlack, 0.3), // branch underside
         S: '#F6EED8', // eggshell
         s: '#D9C8A0', // eggshell shade
-        P: mix(colors.brand, colors.brandingWhite, 0.3), // eggshell spots — a hint of what is inside
+        P: mix(colors.accentLime, colors.brandingWhite, 0.3), // eggshell spots — a hint of what is inside
         O: colors.accent, // champion bands
         T: colors.accentTeal,
-        U: colors.accentLime,
+        // The brand color, not lime: a lime band would vanish on the resting green body.
+        U: colors.brand,
         C: colors.accent, // crown / sparkles
         c: mix(colors.accent, colors.brandingBlack, 0.3), // crown shade
     };

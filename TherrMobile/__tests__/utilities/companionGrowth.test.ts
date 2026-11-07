@@ -193,19 +193,19 @@ describe('companion sprites', () => {
         expect(BRANCH_ROWS).toHaveLength(SPRITE_SIZE);
     });
 
-    it('walks the same brand → teal → lime → gold skins as the daily-bonus chameleon', () => {
-        expect(getCompanionSkins(colors)).toEqual([colors.brand, colors.accentTeal, colors.accentLime, colors.accent]);
+    it('rests on green and walks green → teal → gold → brand on taps', () => {
+        expect(getCompanionSkins(colors)).toEqual([colors.accentLime, colors.accentTeal, colors.accent, colors.brand]);
         expect(COMPANION_SKIN_COUNT).toBe(getCompanionSkins(colors).length);
         getCompanionSkins(colors).forEach((skin, index) => {
             expect(getCompanionPalette(colors, index).G).toBe(skin);
         });
         // Wraps rather than reading past the end.
-        expect(getCompanionPalette(colors, COMPANION_SKIN_COUNT).G).toBe(colors.brand);
+        expect(getCompanionPalette(colors, COMPANION_SKIN_COUNT).G).toBe(colors.accentLime);
     });
 
     it('lightens the gold stripe once the skin itself turns gold', () => {
         expect(getCompanionPalette(colors, 0).Y).toBe(colors.accent);
-        expect(getCompanionPalette(colors, 3).Y).not.toBe(colors.accent);
+        expect(getCompanionPalette(colors, 2).Y).not.toBe(colors.accent);
     });
 
     it('merges pixels into one path per color, one rectangle per horizontal run', () => {
