@@ -304,6 +304,23 @@
       "title": "Envie de relancer {habitName}?",
       "body": "Tu l'as déjà tenue {bestStreakCount} jours — ça ne s'efface pas. Prêt à repartir sur une nouvelle série?"
     },
+    "habitPauseReminder": {
+      "week": {
+        "title": "Prêt à reprendre {habitName}?",
+        "body": "Ça fait une semaine que tu as mis en pause. Reprends quand tu veux : un seul suivi relance tout.",
+        "bodyWithStreak": "Ça fait une semaine que tu as mis en pause. Ta série de {streakCount} jours est là où tu l'as laissée : un seul suivi la relance."
+      },
+      "twoWeeks": {
+        "title": "Toujours en pause pour {habitName}?",
+        "body": "Deux semaines en pause. Un petit suivi aujourd'hui, c'est tout ce qu'il faut pour repartir.",
+        "bodyWithStreak": "Deux semaines en pause, et ta série de {streakCount} jours est toujours protégée. Un petit suivi aujourd'hui la relance."
+      },
+      "final": {
+        "title": "Dernier rappel pour {habitName}",
+        "body": "Un mois en pause. C'est la dernière fois qu'on te le demande : reprends quand tu es prêt, ou archive-le s'il a fait son temps.",
+        "bodyWithStreak": "Un mois en pause. Ta série de {streakCount} jours reste sauvegardée, et c'est la dernière fois qu'on te le demande : reprends quand tu es prêt, ou archive-le s'il a fait son temps."
+      }
+    },
     "shared": {
       "pressActionCheckIn": "S'enregistrer",
       "pressActionLogAmount": "Inscrire le montant",

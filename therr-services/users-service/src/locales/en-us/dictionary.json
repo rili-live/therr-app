@@ -97,7 +97,10 @@
             "premiumPurchaseNotFound": "That subscription could not be found",
             "premiumVerificationFailed": "We could not verify that subscription right now. Please try again shortly.",
             "soloLocked": "Invite {remaining} more friend(s) to unlock habits you track on your own — {required} invites total.",
-            "soloGraceEnded": "Your {days} free days tracking this alone are up. Invite {required} friend to keep it going — your streak is waiting."
+            "soloGraceEnded": "Your {days} free days tracking this alone are up. Invite {required} friend to keep it going — your streak is waiting.",
+            "pauseAlreadyPaused": "This habit is already paused.",
+            "pauseCooldown": "You resumed this habit recently. You can pause it again on {date}.",
+            "pauseArchivedHabit": "Archived habits can't be paused. Restore it first."
         },
         "user": {
             "invalidUserNamePassword": "User/password combination is incorrect",

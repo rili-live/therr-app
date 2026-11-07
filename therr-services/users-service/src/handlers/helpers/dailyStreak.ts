@@ -169,6 +169,9 @@ const loadRequiredDates = async (userId: string, fromDate: string, upTo: string)
             cadence: getCadence(habit),
             startedOn: habit.startedAt ? new Date(habit.startedAt).toISOString().slice(0, 10) : null,
             effectiveFrom: getCadenceEffectiveFrom(habit),
+            // A paused day is not required by this habit, so a day only paused habits would
+            // have required is a rest day: no break, no freeze (utilities/habitPause.ts).
+            pausedRanges: Array.isArray(habit.pausedRanges) ? habit.pausedRanges : [],
         })),
     });
 };

@@ -14,6 +14,7 @@ import {
 import { selectWeeklyRecapBodyKey, selectWeeklyRecapTitleKey } from './weeklyRecapCopy';
 import { isRetentionMessageVariant, selectPactRenewalBodyKey, selectRetentionCopyKeys } from './retentionCopy';
 import { PactDeclineReason, selectPactDeclinedCopyKey } from './pactDeclinedCopy';
+import { selectPauseReminderCopyKeys } from './pauseReminderCopy';
 import { withTitleEmoji } from './notificationTitleEmoji';
 
 // FCM error codes for tokens that should be removed from the database.
@@ -564,6 +565,7 @@ const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.habitAutomaticity,
     PushNotifications.Types.habitMaintenanceCheckIn,
     PushNotifications.Types.habitComeback,
+    PushNotifications.Types.habitPauseReminder,
     PushNotifications.Types.weeklyRecap,
 ]);
 
@@ -1612,6 +1614,27 @@ const createMessage = (
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'STREAK_BROKEN');
             return baseMessage;
+        case PushNotifications.Types.habitPauseReminder: {
+            // Display, like `habitComeback`: it is aimed at someone who deliberately stepped
+            // away, so it has to render whether or not the app wakes. It borrows the
+            // STREAK_BROKEN click action because that action already opens the habit named by
+            // `habitGoalId` on every installed build — no manifest change, nothing to ship first.
+            const { titleKey, bodyKey } = selectPauseReminderCopyKeys(config.dayCount, config.streakCount);
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, titleKey, {
+                    habitName: String(config.habitName || ''),
+                }),
+                notificationBody: translate(config.userLocale, bodyKey, {
+                    streakCount: Number(config.streakCount || 0),
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
+            baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'STREAK_BROKEN');
+            return baseMessage;
+        }
         case PushNotifications.Types.newPersonalRecord:
             baseMessage = createDataOnlyMessage({
                 data: {
@@ -2061,6 +2084,7 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.habitComeback,
     PushNotifications.Types.habitEstablished,
     PushNotifications.Types.habitMaintenanceCheckIn,
+    PushNotifications.Types.habitPauseReminder,
     PushNotifications.Types.habitsFirstHabitNudge,
     PushNotifications.Types.habitsFounderOffer,
     PushNotifications.Types.habitsReferralRewardEarned,
