@@ -123,7 +123,8 @@
       "body": "Your {streakCount}-day {habitName} streak is on the line — check in before midnight to keep it alive.",
       "bodyWithFreeze": "Your {streakCount}-day {habitName} streak is on the line. A streak freeze will cover tonight if you miss ({freezesRemaining} left) — but checking in keeps it in your pocket.",
       "bodyMultiple": "{habitCount} streaks are on the line — {habitNames}. Check in before midnight to keep them alive.",
-      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName} this week, and {daysLeft} day(s) left. Keep your {streakCount} in a row going."
+      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName} this week, and {daysLeft} day(s) left. Keep your {streakCount} in a row going.",
+      "bodyOfferPause": "Your {streakCount}-day {habitName} streak is on the line and you're out of streak freezes. Check in before midnight — or pause it if you need a break."
     },
     "streakFreezeUsed": {
       "title": "Your Streak Survived",
@@ -275,7 +276,8 @@
       "body": "Your {streakCount}-day {habitName} streak ends at midnight. One check-in keeps it alive.",
       "bodyWithFreeze": "Your {streakCount}-day {habitName} streak ends at midnight. A streak freeze will cover you ({freezesRemaining} left) — but checking in now keeps it in your pocket.",
       "bodyMultiple": "Last call on {habitCount} streaks — {habitNames}. Check in before midnight to keep them alive.",
-      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName}, with {daysLeft} day(s) left — you need every one of them. Check in tonight."
+      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName}, with {daysLeft} day(s) left — you need every one of them. Check in tonight.",
+      "bodyOfferPause": "Your {streakCount}-day {habitName} streak ends at midnight and there are no freezes left. Check in now — or pause it to keep it safe while you take a break."
     },
     "weeklyRecap": {
       "title": "Last Week In Review",
@@ -304,11 +306,29 @@
       "title": "Want to Restart {habitName}?",
       "body": "You held this {bestStreakCount} days once — that doesn't go away. Ready to start a fresh streak?"
     },
+    "habitPauseReminder": {
+      "week": {
+        "title": "Ready to Pick Up {habitName}?",
+        "body": "It's been a week since you paused. Resume whenever you're ready — one check-in starts it back up.",
+        "bodyWithStreak": "It's been a week since you paused. Your {streakCount}-day streak is right where you left it — one check-in picks it back up."
+      },
+      "twoWeeks": {
+        "title": "Still on a Break From {habitName}?",
+        "body": "Two weeks paused. A small check-in today is all a restart takes.",
+        "bodyWithStreak": "Two weeks paused, and your {streakCount}-day streak is still safe. A small check-in today gets it moving again."
+      },
+      "final": {
+        "title": "Last Reminder About {habitName}",
+        "body": "A month paused. This is the last time we'll ask — resume it when you're ready, or archive it if it's run its course.",
+        "bodyWithStreak": "A month paused. Your {streakCount}-day streak stays saved, and this is the last time we'll ask — resume it when you're ready, or archive it if it's run its course."
+      }
+    },
     "shared": {
       "pressActionCheckIn": "Check In",
       "pressActionLogAmount": "Log Amount",
       "pressActionRenew": "Start New Cycle",
-      "pressActionView": "View"
+      "pressActionView": "View",
+      "pressActionPause": "Pause"
     }
   },
   "validation": "The required parameters were not provided."

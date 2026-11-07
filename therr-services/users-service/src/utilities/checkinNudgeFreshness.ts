@@ -129,6 +129,55 @@ const evaluatePartnerCheckinFreshness = async (row: INotificationQueueRow): Prom
 };
 
 /**
+ * The 7/14/30-day "ready to come back?" pushes queued when a habit is paused
+ * (handlers/helpers/habitPause.ts). This gate is how they are cancelled: resuming, checking in
+ * (which resumes) and archiving never touch the queue, they just end the pause, and every reminder
+ * still waiting finds that here and is skipped. A pause resumed on the day it began is deleted,
+ * not closed, so a missing row is a skip too.
+ *
+ * Fails open like the other gates. A row with no `pauseId` sends.
+ */
+export const HABIT_PAUSE_REMINDER_TYPES: Set<string> = new Set([
+    String(PushNotifications.Types.habitPauseReminder),
+]);
+
+const evaluatePauseReminderFreshness = async (row: INotificationQueueRow): Promise<IFreshnessDecision> => {
+    const pauseId = row.payload?.pauseId;
+    if (typeof pauseId !== 'string' || !pauseId) {
+        return SEND;
+    }
+
+    try {
+        const pause = await Store.habitPauses.getById(pauseId);
+        if (!pause) {
+            return { shouldSend: false, reason: 'pause-undone' };
+        }
+        if (pause.resumedOn) {
+            return { shouldSend: false, reason: `pause-ended (resumed ${pause.resumedOn})` };
+        }
+        const tracking = await Store.userHabits.getByUserAndHabit(row.userId, pause.habitGoalId);
+        if (!tracking || tracking.status !== 'active') {
+            return { shouldSend: false, reason: 'habit-not-active' };
+        }
+        return SEND;
+    } catch (err: any) {
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'API_SERVER',
+            messages: ['Notification queue: pause reminder freshness read failed; sending anyway'],
+            traceArgs: {
+                'error.message': err?.message,
+                'notificationQueue.id': row.id,
+                'notificationQueue.type': row.type,
+                'user.id': row.userId,
+                source: 'users-service',
+            },
+        });
+        return SEND;
+    }
+};
+
+/**
  * The queued `pactInvitation` is the invite reminder (handlers/helpers/pactInviteReminderDigest.ts);
  * the original invite is sent inline and never touches the queue. It is queued for the invitee's
  * morning, and an invite accepted, declined or ended before then must not be pushed with an Accept
@@ -178,7 +227,7 @@ const readHabitGoalIds = (payload: Record<string, any> | null | undefined): stri
  * Decide whether a claimed queue row should still go out.
  *
  * Only ever consulted for `CHECKIN_NUDGE_TYPES`, `PARTNER_CHECKIN_TYPES`,
- * `PACT_INVITE_TYPES` and `PACT_MESSAGE_TYPES` (utilities/pactMessageFreshness.ts);
+ * `PACT_INVITE_TYPES`, `HABIT_PAUSE_REMINDER_TYPES` and `PACT_MESSAGE_TYPES` (utilities/pactMessageFreshness.ts);
  * every other type returns `shouldSend` without touching
  * the database.
  */
@@ -189,6 +238,10 @@ const evaluateCheckinNudgeFreshness = async (row: INotificationQueueRow): Promis
 
     if (PACT_INVITE_TYPES.has(row.type)) {
         return evaluatePactInviteFreshness(row);
+    }
+
+    if (HABIT_PAUSE_REMINDER_TYPES.has(row.type)) {
+        return evaluatePauseReminderFreshness(row);
     }
 
     // Pact chat: skipped once the recipient has read the thread past the message.

@@ -481,6 +481,30 @@ const Habits = {
         }),
 
     /**
+     * Pause / resume a habit. Both answer with `{ habit, ... }` (the full detail under `habit`),
+     * which the reducer merges in; the rest of the body — the reminder dates, or whether a resume
+     * was an undo — is returned for the screen to describe. A 409 rejects with the axios error so
+     * the caller can read `error` / `pauseAvailableOn`.
+     */
+    pauseUserHabit: (id: string, data: { timeZone?: string } = {}) => (dispatch: any) => UserHabitsService.pause(id, data)
+        .then((response: any) => {
+            dispatch({
+                type: HabitsActionTypes.PAUSE_USER_HABIT,
+                data: response.data?.habit,
+            });
+            return response.data;
+        }),
+
+    resumeUserHabit: (id: string, data: { timeZone?: string } = {}) => (dispatch: any) => UserHabitsService.resume(id, data)
+        .then((response: any) => {
+            dispatch({
+                type: HabitsActionTypes.RESUME_USER_HABIT,
+                data: response.data?.habit,
+            });
+            return response.data;
+        }),
+
+    /**
      * Flip one or more of a habit's notification categories.
      *
      * Send only what changed. The endpoint writes a partial, so a screen that

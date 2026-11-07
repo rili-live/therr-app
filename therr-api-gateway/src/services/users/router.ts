@@ -996,6 +996,20 @@ usersServiceRouter.put('/habits/user-habits/:id/continue-solo', handleServiceReq
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
+// Pause / resume. `timeZone` is the device zone, used only when the user has no saved one, to
+// decide which local day the pause starts or ends on.
+usersServiceRouter.put('/habits/user-habits/:id/pause', [
+    body('timeZone').optional({ nullable: true }).isString().isLength({ max: 64 }),
+], validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+usersServiceRouter.put('/habits/user-habits/:id/resume', [
+    body('timeZone').optional({ nullable: true }).isString().isLength({ max: 64 }),
+], validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
 usersServiceRouter.put('/habits/user-habits/:id/notification-preferences', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',

@@ -98,6 +98,7 @@ export const NOTIFICATION_TITLE_EMOJI: Record<PushNotifications.Types, string> =
     [PushNotifications.Types.habitAutomaticity]: '🧠',
     [PushNotifications.Types.habitMaintenanceCheckIn]: '📋',
     [PushNotifications.Types.habitComeback]: '💪',
+    [PushNotifications.Types.habitPauseReminder]: '⏸️',
 };
 
 // Friends with Habits only, for now. Therr's titles are unchanged; add a brand
