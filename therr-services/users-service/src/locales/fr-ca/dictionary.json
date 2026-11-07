@@ -315,7 +315,7 @@
                 "subject": "Jour 2 de {habitName}",
                 "header": "Jour 2 de {habitName}",
                 "body1": "Hier, tu as commencé {habitName}. Le check-in d’aujourd’hui en fait une série.",
-                "body1WithPartner": "Hier, tu as commencé {habitName}, et {partnerName} compte sur toi. Le check-in d’aujourd’hui en fait une série.",
+                "body1WithPartner": "Hier, tu as commencé {habitName}, et {partnerName} est avec toi là-dedans. Le check-in d’aujourd’hui en fait une série.",
                 "body2": "Le jour 2, c’est là que la plupart des séries s’arrêtent. Pas forcément la tienne."
             },
             "comeback": {

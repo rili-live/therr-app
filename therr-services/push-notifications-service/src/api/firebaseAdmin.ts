@@ -1276,12 +1276,15 @@ const createMessage = (
             return baseMessage;
 
         // HABITS — Streak framing & pact lifecycle.
-        // These notifications are HABITS' core retention loop. Loss-aversion
-        // copy ("Don't break your N-day streak") and partner-anchored copy
-        // ("Sam just hit Day N — don't let them lap you") consistently
-        // out-perform generic reminders for habit apps.
+        // These notifications are HABITS' core retention loop. Streak-framed
+        // copy ("Keep your N-day streak going") and partner-anchored copy
+        // ("Sam just hit Day N — check in and keep pace together") consistently
+        // out-perform generic reminders for habit apps. Keep the tone inviting
+        // ("extend your streak") rather than threatening ("last chance",
+        // "don't break it"): gentler framing reads as encouragement and earns
+        // more engagement than alarm does.
         case PushNotifications.Types.streakAtRisk: {
-            // Loss aversion, but stated inside the rule the app actually plays
+            // A streak reminder, stated inside the rule the app actually plays
             // by. Warning that a streak is on the line while quietly holding a
             // freeze that covers tonight teaches the user the threat is
             // overstated; naming the freeze is what makes "build in the miss" a
@@ -1685,7 +1688,7 @@ const createMessage = (
                         habitName: String(config.habitName || ''),
                     }),
                     notificationPressActionId: PushNotifications.PressActionIds.pactView,
-                    // "don't let them lap you" is a call to check in, so the
+                    // "check in and keep pace together" is a call to check in, so the
                     // notification should let the user do exactly that. The
                     // action only renders when the payload named one habit goal.
                     notificationLinkPressActions: buildCheckinPressActions(config.userLocale, config),

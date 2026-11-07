@@ -315,7 +315,7 @@
                 "subject": "Day 2 of {habitName}",
                 "header": "Day 2 of {habitName}",
                 "body1": "Yesterday you started {habitName}. Today is the check-in that makes it a streak.",
-                "body1WithPartner": "Yesterday you started {habitName}, and {partnerName} is counting on you. Today is the check-in that makes it a streak.",
+                "body1WithPartner": "Yesterday you started {habitName}, and {partnerName} is in it with you. Today is the check-in that makes it a streak.",
                 "body2": "Day 2 is where most streaks stop. Yours does not have to."
             },
             "comeback": {
