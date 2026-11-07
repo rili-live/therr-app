@@ -1562,6 +1562,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             case PushNotifications.Types.eveningCheckIn:
             case PushNotifications.Types.habitMaintenanceCheckIn:
             case PushNotifications.Types.habitComeback:
+            // "Ready to come back?" for a paused habit: the habit itself, where Resume is.
+            case PushNotifications.Types.habitPauseReminder:
                 return buildHabitRoute('habits');
 
             // Celebrations and lifecycle milestones
