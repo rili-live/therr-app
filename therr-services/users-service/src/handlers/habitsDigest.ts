@@ -806,6 +806,16 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 });
             });
         }
+        // A paused habit has no lifecycle while it is paused: no milestone, no maintenance
+        // check-in, and above all no "want to restart?" comeback — the user already told us
+        // they stepped away, and the pause's own 7/14/30-day reminders cover coming back.
+        // Fails open (a read failure evaluates everyone), like every other gate in this run.
+        if (uniquePairs.size) {
+            const pausedPairs = await Store.habitPauses
+                .getOpenPairKeys([...uniquePairs.values()].map((pair) => pair.userId))
+                .catch(() => new Set<string>());
+            pausedPairs.forEach((key) => uniquePairs.delete(key));
+        }
         const lifecycle = engineEnabled
             ? await buildHabitLifecycleContext([...uniquePairs.values()], today)
             : EMPTY_LIFECYCLE_CONTEXT;

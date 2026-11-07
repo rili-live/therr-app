@@ -63,6 +63,49 @@ export interface ICadenceSource {
     cadenceEffectiveFrom?: string | Date | null;
 }
 
+/**
+ * A run of local days a habit asked nothing of the user, because they paused it
+ * (`habits.habit_pauses`). `from` is excused, `until` is not — the day a user resumes counts —
+ * and `until: null` means the pause is still open.
+ */
+export interface IExcusedRange {
+    from: string;
+    until: string | null;
+}
+
+/** Is `localDate` inside any of the ranges? */
+export const isDateExcused = (localDate: string, ranges?: IExcusedRange[] | null): boolean => {
+    if (!ranges || !ranges.length || !isDateString(localDate)) {
+        return false;
+    }
+    return ranges.some((range) => isDateString(range.from)
+        && localDate >= range.from
+        && (!range.until || localDate < range.until));
+};
+
+/**
+ * Every excused day in [fromDate, upTo], for the callers that work in sets of dates. Bounded by
+ * the window, so an open-ended pause expands only as far as the caller looks.
+ */
+export const expandExcusedDates = (
+    ranges: IExcusedRange[] | null | undefined,
+    fromDate: string,
+    upTo: string,
+): Set<string> => {
+    const dates = new Set<string>();
+    if (!ranges || !ranges.length || !isDateString(fromDate) || !isDateString(upTo)) {
+        return dates;
+    }
+    const totalDays = daysBetween(fromDate, upTo);
+    for (let offset = 0; offset <= totalDays; offset += 1) {
+        const day = addDays(fromDate, offset);
+        if (isDateExcused(day, ranges)) {
+            dates.add(day);
+        }
+    }
+    return dates;
+};
+
 /** 0 = Sunday … 6 = Saturday, matching `targetDaysOfWeek`. */
 export const getDayOfWeekSundayFirst = (dateString: string): number => (getDayOfWeekMondayFirst(dateString) + 1) % 7;
 
@@ -306,6 +349,12 @@ export interface ICountMissedArgs {
     completedDates?: Set<string> | string[];
     /** `cadenceEffectiveFrom` — the walk never starts before this. */
     effectiveFrom?: string | null;
+    /**
+     * Days the user had this habit paused. Never a miss: a day-unit cadence skips them, and a
+     * quota week that contains any of them is not judged at all — a week the user was only
+     * partly holding themselves to cannot fairly be failed against the whole week's target.
+     */
+    excusedDates?: Set<string>;
 }
 
 /**
@@ -355,7 +404,9 @@ export const countMissedPeriods = (cadence: Cadence, args: ICountMissedArgs): nu
 
         // The week of the last completion is only judged if it closed before `throughDate`.
         while (weekStart < currentWeekStart) {
-            if (!isPeriodSatisfied(cadence, weekStart, completed)) {
+            const weekHasExcusedDay = !!args.excusedDates?.size
+                && getWeekDates(weekStart).some((day) => args.excusedDates?.has(day));
+            if (!weekHasExcusedDay && !isPeriodSatisfied(cadence, weekStart, completed)) {
                 missed += 1;
             }
             weekStart = addDays(weekStart, DAYS_PER_WEEK);
@@ -369,18 +420,30 @@ export const countMissedPeriods = (cadence: Cadence, args: ICountMissedArgs): nu
         return 0;
     }
 
+    const isExcused = (day: string): boolean => !!args.excusedDates?.has(day);
+
     if (cadence.kind === 'weekdays') {
         let missed = 0;
         for (let i = 1; i < daysDiff; i += 1) {
-            if (cadence.days.includes(getDayOfWeekSundayFirst(addDays(from, i)))) {
+            const day = addDays(from, i);
+            if (cadence.days.includes(getDayOfWeekSundayFirst(day)) && !isExcused(day)) {
                 missed += 1;
             }
         }
         return missed;
     }
 
-    // Daily: every uncompleted day strictly inside the gap is a miss.
-    return daysDiff - 1;
+    // Daily: every uncompleted day strictly inside the gap is a miss, unless it was paused.
+    if (!args.excusedDates?.size) {
+        return daysDiff - 1;
+    }
+    let missed = 0;
+    for (let i = 1; i < daysDiff; i += 1) {
+        if (!isExcused(addDays(from, i))) {
+            missed += 1;
+        }
+    }
+    return missed;
 };
 
 /**
@@ -433,6 +496,8 @@ export interface IRequiredDaysHabit {
     startedOn?: string | null;
     /** `cadenceEffectiveFrom`; days before it are judged by no cadence at all. */
     effectiveFrom?: string | null;
+    /** Pauses on this habit. A paused day is never required by it. */
+    pausedRanges?: IExcusedRange[];
 }
 
 /**
@@ -484,6 +549,11 @@ export const computeRequiredDates = ({
                 // The cadence on the row did not govern this day. Treat the day as not required
                 // rather than guessing at a cadence we no longer hold — the alternative is
                 // retroactively holding the user to rules that were not in force.
+                return false;
+            }
+            if (isDateExcused(localDate, habit.pausedRanges)) {
+                // Paused: the user told us in advance not to expect this one. If every habit that
+                // would have required the day is paused, the daily streak sees a rest day.
                 return false;
             }
 
