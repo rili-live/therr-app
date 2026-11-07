@@ -66,6 +66,15 @@ import { toLocalDateKey } from '../../utilities/localDateKey';
 import { DURATION, showToast } from '../../utilities/toasts';
 import getDeviceTimeZone from '../../utilities/deviceTimeZone';
 import { IChallenge, isChallenge } from '../Challenges/challengeFormat';
+import { formatCalendarDate } from '../../utilities/formatCalendarDate';
+import {
+    getFirstPauseReminderDate,
+    getNextPauseReminderDate,
+    getPauseAvailability,
+    getPauseOffer,
+    localDayToDate,
+    PAUSE_COOLDOWN_DAYS,
+} from './habitPause';
 
 /** Sunday-first, matching `targetDaysOfWeek` and the `daysOfWeekShort` dictionary. */
 const CADENCE_DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -79,6 +88,8 @@ interface IHabitDetailDispatchProps {
     getUserHabits: Function;
     getUserPacts: Function;
     archiveUserHabit: Function;
+    pauseUserHabit: Function;
+    resumeUserHabit: Function;
     updateHabitNotificationPreferences: Function;
     updateGoal: Function;
 }
@@ -112,6 +123,10 @@ interface IHabitDetailState {
     /** True while the archive confirmation modal is up. */
     isConfirmingArchive: boolean;
     isArchiving: boolean;
+    /** True while the "what pausing does" explainer is up. */
+    isConfirmingPause: boolean;
+    /** A pause or resume request is in flight. */
+    isPauseUpdating: boolean;
     /**
      * The cadence editor. `draftCadence` is null while the sheet is closed — it is seeded from
      * the goal on open rather than kept in sync, so a refresh landing mid-edit cannot overwrite
@@ -147,6 +162,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getUserHabits: HabitActions.getUserHabits,
     getUserPacts: HabitActions.getUserPacts,
     archiveUserHabit: HabitActions.archiveUserHabit,
+    pauseUserHabit: HabitActions.pauseUserHabit,
+    resumeUserHabit: HabitActions.resumeUserHabit,
     updateHabitNotificationPreferences: HabitActions.updateHabitNotificationPreferences,
     updateGoal: HabitActions.updateGoal,
 }, dispatch);
@@ -182,6 +199,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             hasDayProofError: false,
             isConfirmingArchive: false,
             isArchiving: false,
+            isConfirmingPause: false,
+            isPauseUpdating: false,
             draftCadence: null,
             isSavingCadence: false,
             draftAmountTracking: null,
@@ -208,12 +227,59 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         this.loadRunningChallenge();
         // Back from starting, joining or ending a challenge should swap the row.
         this.unsubscribeFocus = this.props.navigation.addListener?.('focus', this.loadRunningChallenge);
+        this.handlePauseOfferParam();
     };
+
+    componentDidUpdate(prevProps: IHabitDetailProps) {
+        // The tracking row may arrive after mount (a cold open from the notification), and the
+        // param may change while this screen is already on the stack (a second push tapped).
+        if (prevProps.habits.userHabits !== this.props.habits.userHabits
+            || getPauseOffer(prevProps.route.params) !== getPauseOffer(this.props.route.params)) {
+            this.handlePauseOfferParam();
+        }
+    }
 
     componentWillUnmount() {
         this.isUnmounted = true;
         this.unsubscribeFocus?.();
     }
+
+    /**
+     * Arrived from a streak nudge's "Pause" button: open the pause dialog, so the one thing to do
+     * next is in front of the user with its consequences spelled out and a single confirm button.
+     * Waits for the tracking row, because pausing addresses it. If the habit cannot be paused right
+     * now — already paused, or inside the re-pause cooldown — say why instead of opening a dialog
+     * whose confirm would be refused.
+     */
+    handlePauseOfferParam = () => {
+        const { navigation, route } = this.props;
+        if (getPauseOffer(route.params) !== 'open') {
+            return;
+        }
+        const userHabit = this.getUserHabit();
+        if (!userHabit) {
+            return;
+        }
+
+        navigation.setParams?.({ pauseOffer: 'suggest' });
+        const availability = getPauseAvailability(userHabit);
+
+        if (availability?.kind === 'available') {
+            this.setState({ isConfirmingPause: true });
+            return;
+        }
+        if (availability?.kind === 'paused') {
+            showToast.info({ text1: this.translate('pages.habits.pause.alreadyPaused') });
+            return;
+        }
+        if (availability?.kind === 'cooldown') {
+            showToast.info({
+                text1: this.translate('pages.habits.pause.cooldownHint', {
+                    date: formatCalendarDate(availability.availableOn, this.translate),
+                }),
+            });
+        }
+    };
 
     /**
      * One board per habit: find the running challenge on this habit the user is already in.
@@ -791,6 +857,334 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
             });
     };
 
+    handlePausePress = () => {
+        this.setState({ isConfirmingPause: true });
+    };
+
+    handleCancelPause = () => {
+        this.setState({ isConfirmingPause: false });
+    };
+
+    /**
+     * Pause, after the explainer. The success toast names the day of the first "ready to come
+     * back?" reminder, so the promise the explainer made has a date on it. A 409 (already paused,
+     * or inside the re-pause cooldown) carries its own message, which is shown as-is; the refresh
+     * then brings the screen in line with whatever state the server holds.
+     */
+    handleConfirmPause = () => {
+        const { pauseUserHabit } = this.props;
+        const userHabit = this.getUserHabit();
+
+        if (!userHabit) {
+            this.setState({ isConfirmingPause: false });
+            return;
+        }
+
+        this.setState({ isConfirmingPause: false, isPauseUpdating: true });
+
+        pauseUserHabit(userHabit.id, { timeZone: getDeviceTimeZone() || undefined })
+            .then((response: any) => {
+                logAppEvent('habit_paused', {
+                    userId: this.props.user?.details?.id,
+                    streak: userHabit.currentStreak || 0,
+                });
+                const firstReminder = getFirstPauseReminderDate(response?.reminders);
+                showToast.success({
+                    text1: this.translate('pages.habits.pause.successTitle'),
+                    text2: firstReminder
+                        ? this.translate('pages.habits.pause.successMessage', {
+                            date: formatCalendarDate(firstReminder, this.translate),
+                        })
+                        : undefined,
+                    duration: DURATION.LONG,
+                });
+            })
+            .catch((err: any) => {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    text2: getApiErrorMessage(err) || this.translate('pages.habits.pause.errorMessage'),
+                });
+                this.props.getUserHabits();
+            })
+            .finally(() => {
+                if (!this.isUnmounted) {
+                    this.setState({ isPauseUpdating: false });
+                }
+            });
+    };
+
+    /**
+     * Resume. A pause resumed on the day it began was an undo on the server and is described as
+     * one — "welcome back" would be odd thirty seconds after pausing.
+     */
+    handleResumePress = () => {
+        const { resumeUserHabit } = this.props;
+        const userHabit = this.getUserHabit();
+
+        if (!userHabit) {
+            return;
+        }
+
+        this.setState({ isPauseUpdating: true });
+
+        resumeUserHabit(userHabit.id, { timeZone: getDeviceTimeZone() || undefined })
+            .then((response: any) => {
+                logAppEvent('habit_resumed', {
+                    userId: this.props.user?.details?.id,
+                    source: 'habitDetail',
+                    resumeResult: response?.resumeResult || 'none',
+                });
+                const isUndo = response?.resumeResult === 'undone';
+                showToast.success({
+                    text1: isUndo
+                        ? this.translate('pages.habits.pause.resumeUndoneMessage')
+                        : this.translate('pages.habits.pause.resumeSuccessTitle'),
+                    text2: isUndo
+                        ? undefined
+                        : this.translate('pages.habits.pause.resumeSuccessMessage', {
+                            habitName: this.getHabitGoal()?.name || '',
+                        }),
+                });
+            })
+            .catch((err: any) => {
+                showToast.error({
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    text2: getApiErrorMessage(err) || this.translate('pages.habits.pause.resumeErrorMessage'),
+                });
+            })
+            .finally(() => {
+                if (!this.isUnmounted) {
+                    this.setState({ isPauseUpdating: false });
+                }
+            });
+    };
+
+    /**
+     * The paused banner, inside the habit card above the check-in button: what is paused, what it
+     * is holding, when we will next get in touch, and that a check-in ends it. Resume sits on the
+     * banner itself, because a user looking at a paused habit is most likely here to un-pause it.
+     */
+    renderPauseBanner = (userHabit?: IUserHabit) => {
+        const availability = getPauseAvailability(userHabit);
+        if (availability?.kind !== 'paused') {
+            return null;
+        }
+
+        const { pause } = availability;
+        const { isPauseUpdating } = this.state;
+        const pausedSince = formatCalendarDate(localDayToDate(pause.pausedOn), this.translate);
+        const nextReminder = getNextPauseReminderDate(pause);
+
+        return (
+            <View style={this.themeHabits.styles.habitPauseBanner} accessibilityRole="summary">
+                <View style={this.themeHabits.styles.habitPauseBannerHeader}>
+                    <View style={this.themeHabits.styles.habitPauseBannerTitleRow}>
+                        <MaterialIcon
+                            name="pause-circle-outline"
+                            size={20}
+                            style={this.themeHabits.styles.habitPauseBannerIcon}
+                        />
+                        <Text style={this.themeHabits.styles.habitPauseBannerTitle}>
+                            {this.translate('pages.habits.pause.bannerTitle')}
+                        </Text>
+                    </View>
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={this.translate('pages.habits.pause.resumeButton')}
+                        disabled={isPauseUpdating}
+                        onPress={this.handleResumePress}
+                        style={({ pressed }) => [
+                            this.themeHabits.styles.habitPauseResumeButton,
+                            (pressed || isPauseUpdating) && this.themeHabits.styles.pressedOpacity,
+                        ]}
+                    >
+                        <Text style={this.themeHabits.styles.habitPauseResumeButtonText}>
+                            {this.translate('pages.habits.pause.resumeButton')}
+                        </Text>
+                    </Pressable>
+                </View>
+                <Text style={this.themeHabits.styles.habitPauseBannerBody}>
+                    {pause.streakAtPause > 0
+                        ? this.translate('pages.habits.pause.bannerBody', {
+                            date: pausedSince,
+                            count: pause.streakAtPause,
+                        })
+                        : this.translate('pages.habits.pause.bannerBodyNoStreak', { date: pausedSince })}
+                </Text>
+                <Text style={this.themeHabits.styles.habitPauseBannerNote}>
+                    {nextReminder
+                        ? this.translate('pages.habits.pause.bannerNextReminder', {
+                            date: formatCalendarDate(nextReminder, this.translate),
+                        })
+                        : this.translate('pages.habits.pause.bannerNoMoreReminders')}
+                </Text>
+            </View>
+        );
+    };
+
+    /**
+     * The pause prompt beside the check-in, shown only when the user arrived from a streak nudge
+     * that offered "Pause" and today is still open. It puts the two answers the notification named
+     * — check in, or pause — side by side, and the button opens the same dialog as everywhere else.
+     */
+    renderPauseOffer = (userHabit: IUserHabit | undefined, isCompletedToday: boolean) => {
+        const streakCount = Number(userHabit?.currentStreak) || 0;
+        if (!getPauseOffer(this.props.route.params) || isCompletedToday || streakCount <= 0
+            || getPauseAvailability(userHabit)?.kind !== 'available') {
+            return null;
+        }
+
+        return (
+            <View style={this.themeHabits.styles.habitPauseBanner}>
+                <Text style={this.themeHabits.styles.habitPauseBannerBody}>
+                    {this.translate('pages.habits.pause.offerCallout', { count: streakCount })}
+                </Text>
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={this.translate('pages.habits.pause.button')}
+                    disabled={this.state.isPauseUpdating}
+                    onPress={this.handlePausePress}
+                    style={({ pressed }) => [
+                        this.themeHabits.styles.habitPauseAction,
+                        this.themeHabits.styles.habitPauseActionInline,
+                        (pressed || this.state.isPauseUpdating) && this.themeHabits.styles.pressedOpacity,
+                    ]}
+                >
+                    <Text style={this.themeHabits.styles.habitPauseActionText}>
+                        {this.translate('pages.habits.pause.button')}
+                    </Text>
+                </Pressable>
+            </View>
+        );
+    };
+
+    /**
+     * "Taking a break?" — offered above archive because it is the gentler answer to the same
+     * moment: someone who is stepping away, not someone who is done. During the re-pause cooldown
+     * it says when pausing comes back instead of offering a button the server would refuse.
+     */
+    renderPauseSection = (userHabit?: IUserHabit) => {
+        const availability = getPauseAvailability(userHabit);
+        if (!availability || availability.kind === 'paused') {
+            return null;
+        }
+
+        const { isPauseUpdating } = this.state;
+
+        if (availability.kind === 'cooldown') {
+            return (
+                <View style={this.themeHabits.styles.habitPauseSection}>
+                    <Text style={this.themeHabits.styles.habitArchiveHint}>
+                        {this.translate('pages.habits.pause.cooldownHint', {
+                            date: formatCalendarDate(availability.availableOn, this.translate),
+                        })}
+                    </Text>
+                </View>
+            );
+        }
+
+        return (
+            <View style={this.themeHabits.styles.habitPauseSection}>
+                <Text style={this.themeHabits.styles.habitPauseSectionTitle}>
+                    {this.translate('pages.habits.pause.sectionTitle')}
+                </Text>
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={this.translate('pages.habits.pause.button')}
+                    disabled={isPauseUpdating}
+                    onPress={this.handlePausePress}
+                    style={({ pressed }) => [
+                        this.themeHabits.styles.habitPauseAction,
+                        (pressed || isPauseUpdating) && this.themeHabits.styles.pressedOpacity,
+                    ]}
+                >
+                    <Text style={this.themeHabits.styles.habitPauseActionText}>
+                        {this.translate('pages.habits.pause.button')}
+                    </Text>
+                </Pressable>
+                <Text style={this.themeHabits.styles.habitArchiveHint}>
+                    {this.translate('pages.habits.pause.hint')}
+                </Text>
+            </View>
+        );
+    };
+
+    /**
+     * What pausing does, said before the user commits. Every line is a promise the server keeps:
+     * the streak and freezes are held, the overall streak is not touched, the reminders stop and
+     * three check-ins come at 7, 14 and 30 days, and a check-in ends it. The pact line appears only
+     * when a partner is involved, because that is the one thing a pause does *not* protect.
+     */
+    renderPauseExplainer = (userHabit?: IUserHabit) => {
+        const habitGoal = this.getHabitGoal();
+        const streakCount = Number(userHabit?.currentStreak) || 0;
+        const hasActivePact = (Number(userHabit?.activePactCount) || 0) > 0;
+        const rows: { icon: string; text: string }[] = [
+            {
+                icon: 'local-fire-department',
+                text: streakCount > 0
+                    ? this.translate('pages.habits.pause.explainerStreak', { count: streakCount })
+                    : this.translate('pages.habits.pause.explainerStreakNone'),
+            },
+            { icon: 'calendar-today', text: this.translate('pages.habits.pause.explainerOverall') },
+            { icon: 'notifications-paused', text: this.translate('pages.habits.pause.explainerReminders') },
+            { icon: 'play-circle-outline', text: this.translate('pages.habits.pause.explainerResume') },
+        ];
+        if (hasActivePact) {
+            rows.push({ icon: 'people-outline', text: this.translate('pages.habits.pause.explainerPact') });
+        }
+        rows.push({
+            icon: 'schedule',
+            text: this.translate('pages.habits.pause.explainerCooldown', { days: PAUSE_COOLDOWN_DAYS }),
+        });
+
+        return (
+            <BaseModal
+                isVisible={this.state.isConfirmingPause}
+                onDismiss={this.handleCancelPause}
+                headerText={this.translate('pages.habits.pause.explainerTitle', {
+                    habitName: habitGoal?.name || '',
+                })}
+                actions={(
+                    <>
+                        <ModalButton
+                            title={this.translate('pages.habits.pause.cancelButton')}
+                            iconName="close"
+                            iconRight={false}
+                            onPress={this.handleCancelPause}
+                            themeButtons={this.themeButtons}
+                        />
+                        <ModalButton
+                            title={this.translate('pages.habits.pause.confirmButton')}
+                            iconName="pause"
+                            iconRight={false}
+                            onPress={this.handleConfirmPause}
+                            themeButtons={this.themeButtons}
+                        />
+                    </>
+                )}
+            >
+                <Text style={this.themeHabits.styles.habitPauseExplainerIntro}>
+                    {/* Arrived from a streak nudge with no freezes left: say first why pausing is
+                        on the table today, then what it does. */}
+                    {getPauseOffer(this.props.route.params) && streakCount > 0
+                        ? this.translate('pages.habits.pause.explainerIntroAtRisk', { count: streakCount })
+                        : this.translate('pages.habits.pause.explainerIntro')}
+                </Text>
+                {rows.map((row) => (
+                    <View key={row.icon} style={this.themeHabits.styles.habitPauseExplainerRow}>
+                        <MaterialIcon
+                            name={row.icon}
+                            size={18}
+                            style={this.themeHabits.styles.habitPauseExplainerIcon}
+                        />
+                        <Text style={this.themeHabits.styles.habitPauseExplainerText}>{row.text}</Text>
+                    </View>
+                ))}
+            </BaseModal>
+        );
+    };
+
     /**
      * One category at a time, and only that category in the body — the endpoint
      * writes a partial, so sending the whole set would let this screen reset a
@@ -895,6 +1289,21 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                 // utilities/celebrationQueue.
                 celebrationQueue.block();
                 const freezeConsumed = getFreezeConsumed(checkin);
+                // The check-in ended a pause. Said first, because it is the thing that changed
+                // that the user did not explicitly ask for.
+                if (checkin?.endedPause) {
+                    showToast.success({
+                        text1: this.translate('pages.habits.pause.endedByCheckin', {
+                            habitName: this.getHabitGoal()?.name || '',
+                        }),
+                        text2: this.translate('pages.habits.checkinToast.addDetailAction'),
+                        duration: DURATION.LONG,
+                        onPress: this.handleAddCheckinDetail,
+                        onHide: () => celebrationQueue.unblock(),
+                    });
+                    enqueueStreakCelebration(checkin?.dailyStreak);
+                    return;
+                }
                 showToast.success({
                     text1: freezeConsumed
                         ? this.translate('pages.habits.checkinToast.freezeUsedTitle', {
@@ -1156,6 +1565,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                 </View>
                             </View>
 
+                            {this.renderPauseBanner(userHabit)}
+
                             <CheckinButton
                                 isCompleted={isCompletedToday}
                                 isLoading={isCheckinLoading}
@@ -1166,6 +1577,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                 completedTitle={this.translate('pages.habits.checkedInToday')}
                                 themeHabits={this.themeHabits}
                             />
+
+                            {this.renderPauseOffer(userHabit, isCompletedToday)}
 
                             {this.renderPactLink()}
 
@@ -1332,6 +1745,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                           * action lives here, under everything else, with the hint that
                           * it keeps the history.
                           */}
+                        {this.renderPauseSection(userHabit)}
+
                         {!!userHabit && userHabit.status === 'active' && (
                             <View style={this.themeHabits.styles.habitDangerZone}>
                                 <Pressable
@@ -1468,6 +1883,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                         />
                     )}
                 </BaseModal>
+
+                {this.renderPauseExplainer(userHabit)}
 
                 <ConfirmModal
                     isVisible={isConfirmingArchive}

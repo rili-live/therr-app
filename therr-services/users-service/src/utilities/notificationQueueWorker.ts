@@ -94,6 +94,10 @@ const RATE_WINDOW_MS = 24 * 60 * 60 * 1000;
  *
  * `habits-referral-reward-earned` qualifies: keyed once per user ever
  * (handlers/helpers/referralReward.ts), and the grant it announces happens exactly once.
+ *
+ * `habit-pause-reminder` qualifies: keyed on the pause and the reminder's offset
+ * (`habit-pause-reminder:<pauseId>:<7|14|30>`), queued once at pause time, and the user was told
+ * at pause time to expect it — a dropped one is a promise broken, not a nudge skipped.
  */
 export const UNCAPPABLE_TYPES: Set<string> = new Set([
     'pact-ended',
@@ -102,6 +106,7 @@ export const UNCAPPABLE_TYPES: Set<string> = new Set([
     'pact-invite-unclaimed',
     'habits-founder-offer',
     'habits-referral-reward-earned',
+    'habit-pause-reminder',
 ]);
 
 /**

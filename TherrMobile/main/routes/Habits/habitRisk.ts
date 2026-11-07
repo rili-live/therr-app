@@ -11,6 +11,9 @@ import { IWeekProgress } from '../Pacts/cadenceOptions';
  *   - `onTrack`      room to spare, or a daily habit with no streak to lose.
  *   - `restDay`      a fixed-weekday habit on one of its off days.
  *   - `done`         checked in today, or the week's quota is already met.
+ *   - `paused`       the user paused it. Nothing is owed and nothing is at risk, so it sorts last
+ *                    and is never outlined — a warning on a habit someone deliberately put down
+ *                    would be the app arguing with their decision.
  *
  * Whether a day is required is the server's call (`weekProgress.isRequiredToday` / `urgency`,
  * from users-service `habitCadence.ts`), never re-derived here. With no `weekProgress` at all the
@@ -19,7 +22,7 @@ import { IWeekProgress } from '../Pacts/cadenceOptions';
  *
  * Kept free of react-native imports so it is unit-testable without the native module graph.
  */
-export type HabitRisk = 'streakAtRisk' | 'dueToday' | 'dueSoon' | 'onTrack' | 'restDay' | 'done';
+export type HabitRisk = 'streakAtRisk' | 'dueToday' | 'dueSoon' | 'onTrack' | 'restDay' | 'done' | 'paused';
 
 const RISK_RANK: Record<HabitRisk, number> = {
     streakAtRisk: 0,
@@ -28,6 +31,7 @@ const RISK_RANK: Record<HabitRisk, number> = {
     onTrack: 3,
     restDay: 4,
     done: 5,
+    paused: 6,
 };
 
 export interface IHabitRiskInput {
@@ -35,9 +39,16 @@ export interface IHabitRiskInput {
     weekProgress?: IWeekProgress;
     /** The habit's live streak, 0 when it has none or the streak is inactive. */
     streakCount: number;
+    /** The user paused this habit (`userHabit.pause`). */
+    isPaused?: boolean;
 }
 
-export const getHabitRisk = ({ isCompletedToday, weekProgress, streakCount }: IHabitRiskInput): HabitRisk => {
+export const getHabitRisk = ({
+    isCompletedToday, weekProgress, streakCount, isPaused,
+}: IHabitRiskInput): HabitRisk => {
+    if (isPaused && !isCompletedToday) {
+        return 'paused';
+    }
     if (isCompletedToday) {
         return 'done';
     }

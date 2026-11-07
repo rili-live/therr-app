@@ -41,6 +41,7 @@ import {
     isPactSuperseded, splitHabitsByPactState,
 } from './pactState';
 import { getHabitRisk, HabitRisk, sortByHabitRisk } from './habitRisk';
+import { getOpenPause } from './habitPause';
 import { getNudgeErrorMessage, getNudgeOutcomeToast } from '../Pacts/nudgeOutcome';
 import { getSoloUnlockProgress } from '../../utilities/soloHabitUnlock';
 import getConfig from '../../utilities/getConfig';
@@ -1202,6 +1203,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                         isCompletedToday: this.getTodayCheckinForHabit(entry.goal.id)?.status === 'completed',
                         weekProgress: entry.userHabit?.weekProgress,
                         streakCount,
+                        isPaused: !!getOpenPause(entry.userHabit),
                     }),
                 };
             });
@@ -1513,6 +1515,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                 streak={this.getStreakForHabit(goal.id)}
                 weekProgress={userHabit?.weekProgress}
                 risk={item.risk}
+                pausedStreakCount={getOpenPause(userHabit)?.streakAtPause}
                 onPress={() => this.handleHabitPress(goal)}
                 onCheckin={() => this.handleCheckin(goal)}
                 onAddCheckinDetail={() => this.handleAddCheckinDetail(goal)}

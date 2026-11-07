@@ -98,6 +98,17 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Habit pause (added 2026-11-07, docs/FEATURES.md → Pausing a habit)
+
+- [ ] **After the users-service deploy carrying `habits.habit_pauses`, confirm the migration ran:**
+  `SELECT to_regclass('habits.habit_pauses')`. Until it has, pause/resume answer 500 and the daily
+  streak evaluation fails for everyone (the cadence read joins the table).
+- [ ] **Handset check of `habitPauseReminder` on Friends with Habits** once a build with the pause UI
+  ships: pause a habit on a test account, then `UPDATE main."notificationQueue" SET "scheduledFor" = now()`
+  for its `habit-pause-reminder:<pauseId>:7` row. Confirm it lands in the Habits app (not Therr) and that a
+  tap opens that habit. Then resume and confirm the `:14` row is skipped with `pause-ended`. Needs
+  `NOTIFICATION_QUEUE_WORKER_ENABLED=true`.
+
 ## Acquisition plan (added 2026-10-29, docs/niche-sub-apps/habits/HABITS_ACQUISITION_PLAN.md)
 
 Four-week test, 2026-11-02 → 2026-11-29. The recurring weekly steps are the plan's § The weekly

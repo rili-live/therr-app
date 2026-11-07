@@ -10,10 +10,12 @@ import {
     formatHabitNames,
     selectCheckinNudgeBodyKey,
     shouldOfferOnePressCheckin,
+    shouldOfferPauseAction,
 } from './checkinNudgeCopy';
 import { selectWeeklyRecapBodyKey, selectWeeklyRecapTitleKey } from './weeklyRecapCopy';
 import { isRetentionMessageVariant, selectPactRenewalBodyKey, selectRetentionCopyKeys } from './retentionCopy';
 import { PactDeclineReason, selectPactDeclinedCopyKey } from './pactDeclinedCopy';
+import { selectPauseReminderCopyKeys } from './pauseReminderCopy';
 import { withTitleEmoji } from './notificationTitleEmoji';
 
 // FCM error codes for tokens that should be removed from the database.
@@ -230,6 +232,9 @@ interface ICreateMessageConfig {
     weekDone?: number;
     weekTarget?: number;
     daysLeft?: number;
+    // Offer "Pause" on a single-habit check-in nudge whose streak has no freezes left. Decided by
+    // the producer, which alone knows whether the habit can be paused right now.
+    offerPause?: boolean;
     // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md). Mirrors the
     // fields users-service puts on the queue row in
     // `sendEmailAndOrPushNotification.ts` — age of the habit in days,
@@ -333,6 +338,16 @@ const buildCheckinPressActions = (
                 id: PushNotifications.PressActionIds.habitCheckin,
                 title: translate(userLocale, 'notifications.shared.pressActionCheckIn'),
             });
+    }
+
+    // The way out for a streak that ends tonight with no freezes left. Second, beside Check In,
+    // because they are the two real answers to "your streak ends at midnight". It needs a single
+    // habit for the same reason the check-in does: the press opens that habit's pause dialog.
+    if (shouldOfferPauseAction(config)) {
+        actions.push({
+            id: PushNotifications.PressActionIds.habitPause,
+            title: translate(userLocale, 'notifications.shared.pressActionPause'),
+        });
     }
 
     actions.push({
@@ -564,6 +579,7 @@ const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.habitAutomaticity,
     PushNotifications.Types.habitMaintenanceCheckIn,
     PushNotifications.Types.habitComeback,
+    PushNotifications.Types.habitPauseReminder,
     PushNotifications.Types.weeklyRecap,
 ]);
 
@@ -1284,7 +1300,9 @@ const createMessage = (
                         selectCheckinNudgeBodyKey(
                             type,
                             config.habitCount,
-                            selectStreakAtRiskBodyKey(atRiskFreezesRemaining),
+                            shouldOfferPauseAction(config)
+                                ? 'notifications.streakAtRisk.bodyOfferPause'
+                                : selectStreakAtRiskBodyKey(atRiskFreezesRemaining),
                             config.weekTarget,
                         ),
                         {
@@ -1612,6 +1630,27 @@ const createMessage = (
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'STREAK_BROKEN');
             return baseMessage;
+        case PushNotifications.Types.habitPauseReminder: {
+            // Display, like `habitComeback`: it is aimed at someone who deliberately stepped
+            // away, so it has to render whether or not the app wakes. It borrows the
+            // STREAK_BROKEN click action because that action already opens the habit named by
+            // `habitGoalId` on every installed build — no manifest change, nothing to ship first.
+            const { titleKey, bodyKey } = selectPauseReminderCopyKeys(config.dayCount, config.streakCount);
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, titleKey, {
+                    habitName: String(config.habitName || ''),
+                }),
+                notificationBody: translate(config.userLocale, bodyKey, {
+                    streakCount: Number(config.streakCount || 0),
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
+            baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'STREAK_BROKEN');
+            return baseMessage;
+        }
         case PushNotifications.Types.newPersonalRecord:
             baseMessage = createDataOnlyMessage({
                 data: {
@@ -1967,7 +2006,9 @@ const createMessage = (
                         selectCheckinNudgeBodyKey(
                             type,
                             config.habitCount,
-                            selectFreezeAwareBodyKey('notifications.eveningCheckIn', eveningFreezesRemaining),
+                            shouldOfferPauseAction(config)
+                                ? 'notifications.eveningCheckIn.bodyOfferPause'
+                                : selectFreezeAwareBodyKey('notifications.eveningCheckIn', eveningFreezesRemaining),
                             config.weekTarget,
                         ),
                         {
@@ -2061,6 +2102,7 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.habitComeback,
     PushNotifications.Types.habitEstablished,
     PushNotifications.Types.habitMaintenanceCheckIn,
+    PushNotifications.Types.habitPauseReminder,
     PushNotifications.Types.habitsFirstHabitNudge,
     PushNotifications.Types.habitsFounderOffer,
     PushNotifications.Types.habitsReferralRewardEarned,

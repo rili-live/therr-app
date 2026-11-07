@@ -97,7 +97,10 @@
             "premiumPurchaseNotFound": "No se encontró esa suscripción",
             "premiumVerificationFailed": "No pudimos verificar esa suscripción en este momento. Inténtalo de nuevo en unos instantes.",
             "soloLocked": "Invita a {remaining} amigo(s) más para desbloquear los hábitos que sigues por tu cuenta: {required} invitaciones en total.",
-            "soloGraceEnded": "Tus {days} días gratis siguiendo esto por tu cuenta terminaron. Invita a {required} amigo para continuar: tu racha te espera."
+            "soloGraceEnded": "Tus {days} días gratis siguiendo esto por tu cuenta terminaron. Invita a {required} amigo para continuar: tu racha te espera.",
+            "pauseAlreadyPaused": "Este hábito ya está en pausa.",
+            "pauseCooldown": "Retomaste este hábito hace poco. Podrás pausarlo de nuevo el {date}.",
+            "pauseArchivedHabit": "Los hábitos archivados no se pueden pausar. Restáuralo primero."
         },
         "user": {
             "invalidUserNamePassword": "La combinación de usuario/contraseña es incorrecta",

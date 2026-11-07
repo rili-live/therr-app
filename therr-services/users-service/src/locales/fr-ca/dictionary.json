@@ -97,7 +97,10 @@
             "premiumPurchaseNotFound": "Cet abonnement est introuvable",
             "premiumVerificationFailed": "Nous n'avons pas pu vérifier cet abonnement pour le moment. Réessaie dans un instant.",
             "soloLocked": "Invite {remaining} ami(s) de plus pour débloquer les habitudes que tu suis seul — {required} invitations en tout.",
-            "soloGraceEnded": "Tes {days} jours gratuits à suivre ceci seul sont terminés. Invite {required} ami pour continuer — ta série t'attend."
+            "soloGraceEnded": "Tes {days} jours gratuits à suivre ceci seul sont terminés. Invite {required} ami pour continuer — ta série t'attend.",
+            "pauseAlreadyPaused": "Cette habitude est déjà en pause.",
+            "pauseCooldown": "Tu as repris cette habitude récemment. Tu pourras la remettre en pause le {date}.",
+            "pauseArchivedHabit": "Une habitude archivée ne peut pas être mise en pause. Restaure-la d'abord."
         },
         "user": {
             "invalidUserNamePassword": "La combinaison utilisateur/mot de passe est incorrecte",

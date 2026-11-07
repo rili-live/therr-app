@@ -342,6 +342,8 @@ const habits = produce((draft: IHabitsState, action: any) => {
         case HabitsActionTypes.ARCHIVE_USER_HABIT:
         case HabitsActionTypes.RESTORE_USER_HABIT:
         case HabitsActionTypes.UPDATE_USER_HABIT_NOTIFICATION_PREFERENCES:
+        case HabitsActionTypes.PAUSE_USER_HABIT:
+        case HabitsActionTypes.RESUME_USER_HABIT:
         case HabitsActionTypes.CONTINUE_SOLO_USER_HABIT: {
             const habitIdx = draft.userHabits.findIndex((h) => h.id === action.data?.id);
             if (habitIdx > -1) {
