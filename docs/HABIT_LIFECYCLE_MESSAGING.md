@@ -329,7 +329,7 @@ checking in after week 1 and none after week 4.
 | Moment | Change | Channel | Once-ever ledger key (`habits.onboarding_messages`) |
 |---|---|---|---|
 | Has a habit, never checked in, habit < N days old | the day's nudge is rewritten as "Day 1 of <habit>" with the one-tap Check In | push, else email | `onboarding:first-checkin` |
-| First-ever check-in was yesterday | the day's nudge is rewritten as "Day 2 of <habit>" — "<partner> is counting on you" when paired | push, else email | `retention:day-two` |
+| First-ever check-in was yesterday | the day's nudge is rewritten as "Day 2 of <habit>" — "<partner> is in it with you" when paired | push, else email | `retention:day-two` |
 | No check-in for N+ days (default 3) | daily reminder, streak-at-risk, last-chance and partner-missed-day all stop — to the lapsed user, and *about* them to their partner | — | — |
 | …at day 3, 7 and 14 | one comeback per rung, naming the habit (and partner), promising the comeback bonus; never-checked-in users get a "fresh start" instead | push, else email | `retention:comeback:<lastCheckinDate>:d<rung>` |
 | Past the last rung + 7 days | silence | — | — |
