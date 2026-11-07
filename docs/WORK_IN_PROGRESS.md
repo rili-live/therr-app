@@ -104,7 +104,7 @@ append new items here rather than only printing them once.
   build carrying it ships: Achievements screen, top card. Confirm the pixel art is crisp (no hairline
   seams between pixels — it is snapped to whole device pixels because react-native-svg has no
   `crispEdges`), the idle bob/egg wobble runs and stops with *Remove animations* on, and a tap hops
-  it through purple → teal → lime → gold.
+  it through green → teal → gold → purple.
 - [ ] **Handset check of the stage-up celebration** once #3185 (niche) ships: on a test account still at
   the egg, earn a first achievement (create a pact), then foreground the app or open Achievements. Expect
   one "Your egg hatched!" screen after any streak/placement screen; Continue, foreground again, and it must
