@@ -2135,7 +2135,10 @@
                 "endedByCheckin": "Bon retour — {habitName} n'est plus en pause.",
                 "cardChip": "En pause",
                 "cardStreakSaved": "En pause · série de {count} jours sauvegardée",
-                "cardNoStreak": "En pause · rien ne compte contre toi"
+                "cardNoStreak": "En pause · rien ne compte contre toi",
+                "explainerIntroAtRisk": "Tu n'as plus de gels de série, alors manquer aujourd'hui mettrait fin à ta série de {count} jours. Mets en pause maintenant et elle reste à l'abri jusqu'à ton retour. Voici à quoi t'attendre :",
+                "offerCallout": "Plus de gels de série et pas possible aujourd'hui? Mets cette habitude en pause pour garder ta série de {count} jours à l'abri.",
+                "alreadyPaused": "Cette habitude est déjà en pause — ta série est à l'abri."
             },
             "habitNotFound": "Habitude introuvable",
             "checkinProof": {

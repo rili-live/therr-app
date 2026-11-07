@@ -71,6 +71,7 @@ import {
     getFirstPauseReminderDate,
     getNextPauseReminderDate,
     getPauseAvailability,
+    getPauseOffer,
     localDayToDate,
     PAUSE_COOLDOWN_DAYS,
 } from './habitPause';
@@ -226,12 +227,59 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
         this.loadRunningChallenge();
         // Back from starting, joining or ending a challenge should swap the row.
         this.unsubscribeFocus = this.props.navigation.addListener?.('focus', this.loadRunningChallenge);
+        this.handlePauseOfferParam();
     };
+
+    componentDidUpdate(prevProps: IHabitDetailProps) {
+        // The tracking row may arrive after mount (a cold open from the notification), and the
+        // param may change while this screen is already on the stack (a second push tapped).
+        if (prevProps.habits.userHabits !== this.props.habits.userHabits
+            || getPauseOffer(prevProps.route.params) !== getPauseOffer(this.props.route.params)) {
+            this.handlePauseOfferParam();
+        }
+    }
 
     componentWillUnmount() {
         this.isUnmounted = true;
         this.unsubscribeFocus?.();
     }
+
+    /**
+     * Arrived from a streak nudge's "Pause" button: open the pause dialog, so the one thing to do
+     * next is in front of the user with its consequences spelled out and a single confirm button.
+     * Waits for the tracking row, because pausing addresses it. If the habit cannot be paused right
+     * now — already paused, or inside the re-pause cooldown — say why instead of opening a dialog
+     * whose confirm would be refused.
+     */
+    handlePauseOfferParam = () => {
+        const { navigation, route } = this.props;
+        if (getPauseOffer(route.params) !== 'open') {
+            return;
+        }
+        const userHabit = this.getUserHabit();
+        if (!userHabit) {
+            return;
+        }
+
+        navigation.setParams?.({ pauseOffer: 'suggest' });
+        const availability = getPauseAvailability(userHabit);
+
+        if (availability?.kind === 'available') {
+            this.setState({ isConfirmingPause: true });
+            return;
+        }
+        if (availability?.kind === 'paused') {
+            showToast.info({ text1: this.translate('pages.habits.pause.alreadyPaused') });
+            return;
+        }
+        if (availability?.kind === 'cooldown') {
+            showToast.info({
+                text1: this.translate('pages.habits.pause.cooldownHint', {
+                    date: formatCalendarDate(availability.availableOn, this.translate),
+                }),
+            });
+        }
+    };
 
     /**
      * One board per habit: find the running challenge on this habit the user is already in.
@@ -975,6 +1023,42 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
     };
 
     /**
+     * The pause prompt beside the check-in, shown only when the user arrived from a streak nudge
+     * that offered "Pause" and today is still open. It puts the two answers the notification named
+     * — check in, or pause — side by side, and the button opens the same dialog as everywhere else.
+     */
+    renderPauseOffer = (userHabit: IUserHabit | undefined, isCompletedToday: boolean) => {
+        const streakCount = Number(userHabit?.currentStreak) || 0;
+        if (!getPauseOffer(this.props.route.params) || isCompletedToday || streakCount <= 0
+            || getPauseAvailability(userHabit)?.kind !== 'available') {
+            return null;
+        }
+
+        return (
+            <View style={this.themeHabits.styles.habitPauseBanner}>
+                <Text style={this.themeHabits.styles.habitPauseBannerBody}>
+                    {this.translate('pages.habits.pause.offerCallout', { count: streakCount })}
+                </Text>
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={this.translate('pages.habits.pause.button')}
+                    disabled={this.state.isPauseUpdating}
+                    onPress={this.handlePausePress}
+                    style={({ pressed }) => [
+                        this.themeHabits.styles.habitPauseAction,
+                        this.themeHabits.styles.habitPauseActionInline,
+                        (pressed || this.state.isPauseUpdating) && this.themeHabits.styles.pressedOpacity,
+                    ]}
+                >
+                    <Text style={this.themeHabits.styles.habitPauseActionText}>
+                        {this.translate('pages.habits.pause.button')}
+                    </Text>
+                </Pressable>
+            </View>
+        );
+    };
+
+    /**
      * "Taking a break?" — offered above archive because it is the gentler answer to the same
      * moment: someone who is stepping away, not someone who is done. During the re-pause cooldown
      * it says when pausing comes back instead of offering a button the server would refuse.
@@ -1081,7 +1165,11 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                 )}
             >
                 <Text style={this.themeHabits.styles.habitPauseExplainerIntro}>
-                    {this.translate('pages.habits.pause.explainerIntro')}
+                    {/* Arrived from a streak nudge with no freezes left: say first why pausing is
+                        on the table today, then what it does. */}
+                    {getPauseOffer(this.props.route.params) && streakCount > 0
+                        ? this.translate('pages.habits.pause.explainerIntroAtRisk', { count: streakCount })
+                        : this.translate('pages.habits.pause.explainerIntro')}
                 </Text>
                 {rows.map((row) => (
                     <View key={row.icon} style={this.themeHabits.styles.habitPauseExplainerRow}>
@@ -1489,6 +1577,8 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                 completedTitle={this.translate('pages.habits.checkedInToday')}
                                 themeHabits={this.themeHabits}
                             />
+
+                            {this.renderPauseOffer(userHabit, isCompletedToday)}
 
                             {this.renderPactLink()}
 

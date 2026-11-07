@@ -94,3 +94,22 @@ export const getPauseAvailability = (
     }
     return { kind: 'available' };
 };
+
+/**
+ * Set when a streak nudge offered "Pause" (its streak has no freezes left). `open` comes from the
+ * notification's Pause button and opens the pause dialog on arrival; `suggest` comes from a tap on
+ * the notification body and shows a pause prompt beside the check-in. After the dialog opens once,
+ * `open` is rewritten to `suggest` so it does not reopen on every update, and the prompt stays if
+ * the user backs out.
+ *
+ * Read through `getPauseOffer` rather than declared on HabitDetail's `route.params`: the screen's
+ * props type is part of a known TS2322 signature in TherrMobile/.tsc-baseline (routes/index.tsx),
+ * and widening the params would change that signature without changing the error. Anything other
+ * than the two values reads as absent.
+ */
+export type PauseOffer = 'open' | 'suggest';
+
+export const getPauseOffer = (params: unknown): PauseOffer | undefined => {
+    const value = (params as { pauseOffer?: unknown } | undefined)?.pauseOffer;
+    return value === 'open' || value === 'suggest' ? value : undefined;
+};

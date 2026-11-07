@@ -384,6 +384,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderWidth: 1,
             borderColor: tint(therrTheme.colors.brand, 0.5),
         },
+        // The same button inside the at-risk prompt on the habit card, left-aligned under its text.
+        habitPauseActionInline: {
+            alignSelf: 'flex-start',
+            marginTop: space.sm,
+        },
         habitPauseActionText: {
             fontFamily: therrFontFamily,
             fontSize: fontSizes.md,

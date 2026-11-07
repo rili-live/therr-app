@@ -1385,6 +1385,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const weekStartDate = typeof data?.weekStartDate === 'string' && data.weekStartDate
             ? data.weekStartDate
             : undefined;
+        // Set on a single-habit streak nudge whose streak has no freezes left and whose habit can
+        // be paused (users-service `markPauseOffers`). FCM data is string->string, so "true".
+        const offersPause = data?.offerPause === 'true' || data?.offerPause === true;
 
         // Falls back to the dashboard rather than to the in-app Notifications
         // list. That list has no habits rows at all — `Notifications.Types`
@@ -1556,10 +1559,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             // Anything asking the user to check in opens the habit itself, with
             // the dashboard's habits segment when it cannot name one — that is
             // the segment listing the habits the user can check in on.
+            // A streak nudge that offered "Pause" opens the habit with the pause prompt beside the
+            // check-in, so a body tap — the only tap iOS has, with no action buttons — still
+            // reaches both answers the copy names.
             case PushNotifications.Types.streakAtRisk:
+            case PushNotifications.Types.eveningCheckIn:
+                return offersPause && habitGoalId
+                    ? { targetRouteView: 'HabitDetail', targetRouteParams: { habitGoalId, pauseOffer: 'suggest' } }
+                    : buildHabitRoute('habits');
             case PushNotifications.Types.dailyHabitReminder:
             case PushNotifications.Types.morningMotivation:
-            case PushNotifications.Types.eveningCheckIn:
             case PushNotifications.Types.habitMaintenanceCheckIn:
             case PushNotifications.Types.habitComeback:
             // "Ready to come back?" for a paused habit: the habit itself, where Resume is.
@@ -1923,6 +1932,26 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             // since they shipped, and every one of them fell through to the
             // type fallback below, which sent the user to the in-app
             // Notifications list — a screen with no habits rows in it.
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.habitPause) {
+                // "Pause" on a streak nudge with no freezes left. Navigation only: pausing changes
+                // what the user's streaks promise, so it is confirmed on the habit's own screen,
+                // where the pause dialog opens on arrival and says exactly what will happen.
+                const pauseHabitGoalId = typeof notification?.data?.habitGoalId === 'string'
+                    && notification.data.habitGoalId
+                    ? notification.data.habitGoalId
+                    : undefined;
+                const pauseRoute = pauseHabitGoalId
+                    ? { targetRouteView: 'HabitDetail', targetRouteParams: { habitGoalId: pauseHabitGoalId, pauseOffer: 'open' } }
+                    : { targetRouteView: 'HabitsDashboard', targetRouteParams: { initialTab: 'habits' } };
+
+                if (!isUserAuthorized) {
+                    this.setState(pauseRoute);
+                    return Promise.resolve();
+                }
+                RootNavigation.navigate(pauseRoute.targetRouteView, pauseRoute.targetRouteParams);
+                return Promise.resolve();
+            }
+
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.habitCheckin) {
                 // The killed-app case is handled by notifee.onBackgroundEvent in
                 // TherrMobile/index.js, which completes the check-in without

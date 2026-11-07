@@ -1,6 +1,9 @@
 import { it, describe, expect } from '@jest/globals';
+import fs from 'fs';
+import path from 'path';
 import {
     getFirstPauseReminderDate,
+    getPauseOffer,
     getNextPauseReminderDate,
     getPauseAvailability,
     localDayToDate,
@@ -97,5 +100,35 @@ describe('paused habits in the list', () => {
             (item) => item,
         );
         expect(sorted.map((item) => item.id)).toEqual(['atRisk', 'done', 'paused']);
+    });
+});
+
+describe('pause offer from a streak nudge', () => {
+    it('reads only the two offer values from route params', () => {
+        expect(getPauseOffer({ habitGoalId: 'g', pauseOffer: 'open' })).toBe('open');
+        expect(getPauseOffer({ habitGoalId: 'g', pauseOffer: 'suggest' })).toBe('suggest');
+        expect(getPauseOffer({ habitGoalId: 'g', pauseOffer: 'true' })).toBeUndefined();
+        expect(getPauseOffer({ habitGoalId: 'g' })).toBeUndefined();
+        expect(getPauseOffer(undefined)).toBeUndefined();
+    });
+
+    /**
+     * Layout is a large connected component, so — like HabitsNotificationTabRouting — the routing
+     * literals are read from source. These pin the two halves the user experiences: the Pause
+     * button opens the habit with the dialog up, and a body tap on a pause-offering nudge opens it
+     * with the prompt beside the check-in.
+     */
+    const layoutSource = fs.readFileSync(path.resolve(__dirname, '../../main/components/Layout.tsx'), 'utf8');
+
+    it('routes the Pause button to the habit with the dialog open', () => {
+        const branchStart = layoutSource.indexOf('pressAction?.id === PushNotifications.PressActionIds.habitPause');
+        expect(branchStart).toBeGreaterThan(-1);
+        const branch = layoutSource.slice(branchStart, branchStart + 1500);
+        expect(branch).toContain("targetRouteView: 'HabitDetail'");
+        expect(branch).toContain("pauseOffer: 'open'");
+    });
+
+    it('routes a body tap on a pause-offering streak nudge to the habit with the prompt', () => {
+        expect(layoutSource).toMatch(/offersPause && habitGoalId[\s\S]{0,200}pauseOffer: 'suggest'/);
     });
 });

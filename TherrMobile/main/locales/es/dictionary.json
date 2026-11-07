@@ -2135,7 +2135,10 @@
                 "endedByCheckin": "Bienvenido de vuelta: {habitName} ya no está en pausa.",
                 "cardChip": "En pausa",
                 "cardStreakSaved": "En pausa · racha de {count} días guardada",
-                "cardNoStreak": "En pausa · nada cuenta en tu contra"
+                "cardNoStreak": "En pausa · nada cuenta en tu contra",
+                "explainerIntroAtRisk": "No te quedan congelamientos de racha, así que fallar hoy terminaría tu racha de {count} días. Pausa ahora y quedará a salvo hasta que vuelvas. Esto es lo que puedes esperar:",
+                "offerCallout": "¿Sin congelamientos y no puedes hoy? Pausa este hábito para mantener a salvo tu racha de {count} días.",
+                "alreadyPaused": "Este hábito ya está en pausa: tu racha está a salvo."
             },
             "habitNotFound": "Hábito no encontrado",
             "checkinProof": {

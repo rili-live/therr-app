@@ -2135,7 +2135,10 @@
                 "endedByCheckin": "Welcome back — {habitName} isn't paused anymore.",
                 "cardChip": "Paused",
                 "cardStreakSaved": "Paused · {count}-day streak saved",
-                "cardNoStreak": "Paused · nothing counts against you"
+                "cardNoStreak": "Paused · nothing counts against you",
+                "explainerIntroAtRisk": "You're out of streak freezes, so missing today would end your {count}-day streak. Pause now and it stays safe until you're back. Here's what to expect:",
+                "offerCallout": "Out of streak freezes and can't make it today? Pause this habit to keep your {count}-day streak safe.",
+                "alreadyPaused": "This habit is already paused — your streak is safe."
             },
             "habitNotFound": "Habit not found",
             "checkinProof": {
