@@ -463,6 +463,42 @@
             "title": "Finish your profile",
             "stepsLeft": "{count} steps left",
             "stepLeft": "1 step left"
+        },
+        "habitCompanion": {
+            "overline": "Your habit buddy",
+            "stageOf": "Stage {stage} of {total}",
+            "tapHint": "Tap to change its color",
+            "a11yLabel": "Your habit buddy: {stageName}. Stage {stage} of {total}.",
+            "nextStage": "Next: {stageName}",
+            "achievementsProgress": "Achievements: {count} / {total}",
+            "daysProgress": "Days together: {count} / {total}",
+            "fullyGrown": "Fully grown! Keep your streaks alive to keep it shining.",
+            "stages": {
+                "egg": {
+                    "name": "Egg",
+                    "caption": "Something is stirring inside. Earn your first achievement to hatch it."
+                },
+                "hatchling": {
+                    "name": "Hatchling",
+                    "caption": "Fresh out of the shell and watching you closely. Keep checking in."
+                },
+                "juvenile": {
+                    "name": "Little Climber",
+                    "caption": "Growing fast and getting a grip. Your habits are taking hold."
+                },
+                "adult": {
+                    "name": "Chameleon",
+                    "caption": "Steady, sure-footed and full of color, just like your routine."
+                },
+                "champion": {
+                    "name": "Change Champion",
+                    "caption": "Crowned in every color. You've built habits that last."
+                }
+            },
+            "celebration": {
+                "title": "Your habit buddy grew!",
+                "titleHatched": "Your egg hatched!"
+            }
         }
     },
     "forms": {

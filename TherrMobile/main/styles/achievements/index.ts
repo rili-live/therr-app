@@ -48,6 +48,51 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         leaderboardLinkPressed: {
             opacity: 0.85,
         },
+
+        // Habit companion — the growing pixel chameleon. A surface card like the
+        // achievement tiles, with the sprite in a tinted well so the pixel art has
+        // a consistent backdrop in light and dark themes.
+        companionCard: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginHorizontal: space.lg,
+            marginTop: space.lg,
+            padding: space.lg,
+            borderRadius: radius.xl,
+            backgroundColor: therrTheme.colors.surface,
+            ...shadowSm,
+        },
+        companionSpriteWell: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: space.sm,
+            borderRadius: radius.lg,
+            backgroundColor: tint(therrTheme.colors.brand, 0.10),
+            marginRight: space.lg,
+        },
+        companionTextContainer: {
+            flex: 1,
+        },
+        companionStageOf: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: 2,
+        },
+        companionRequirement: {
+            fontFamily: therrFontFamily,
+            fontSize: fontSizes.xs,
+            color: therrTheme.colors.onSurfaceMuted,
+            marginTop: 2,
+        },
+        companionRequirementMet: {
+            color: therrTheme.colors.alertSuccess,
+            fontWeight: fontWeights.semibold,
+        },
+        companionProgressRow: {
+            marginTop: space.sm,
+            marginBottom: 2,
+        },
         leaderboardLinkContent: {
             flexDirection: 'row',
             alignItems: 'center',
