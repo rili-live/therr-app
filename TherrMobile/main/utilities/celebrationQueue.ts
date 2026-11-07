@@ -5,11 +5,16 @@ import {
     IDailyStreakWeekDay,
 } from 'therr-react/types';
 import { navigationRef, RootNavigation } from '../components/RootNavigation';
+import { ICompanionStageUp } from './companionCelebration';
 
 /**
- * What a celebration screen renders. Every field is decided server-side — the client never
- * infers that a celebration is owed (see `pendingCelebration` on GET /habits/daily-streak/me),
+ * What a celebration screen renders. Streaks and placements are decided server-side — the
+ * client never infers that one is owed (see `pendingCelebration` on GET /habits/daily-streak/me),
  * so two devices cannot both celebrate the same day.
+ *
+ * The companion stage-up is the exception, because the companion's stage is itself derived on
+ * the device (utilities/companionGrowth.ts): utilities/companionCelebration.ts remembers the last
+ * stage shown per user, so it is owed once per device rather than once per account.
  */
 export type ICelebration =
     | {
@@ -34,7 +39,12 @@ export type ICelebration =
         score: number;
         /** Reserved for leagues; always null today. */
         leagueTo: string | null;
-    };
+    }
+    | ({
+        type: 'companion';
+        /** Whose stage-up this is — recorded as seen against this user on dismiss. */
+        userId: string;
+    } & ICompanionStageUp);
 
 /**
  * Celebrations are queued rather than navigated to directly, for two reasons.
@@ -142,8 +152,14 @@ class CelebrationQueue {
         return this.blockers === 0 && !this.isPresenting && this.queue.length === 0;
     }
 
+    /**
+     * Placement, then streak, then companion. The companion growing is usually a consequence of
+     * the day the streak screen celebrates, so it reads best as the encore.
+     */
     private static priority(celebration: ICelebration): number {
-        return celebration.type === 'placement' ? 0 : 1;
+        if (celebration.type === 'placement') return 0;
+        if (celebration.type === 'streak') return 1;
+        return 2;
     }
 
     private static isSame(a: ICelebration, b: ICelebration): boolean {
@@ -155,6 +171,9 @@ class CelebrationQueue {
         }
         if (a.type === 'streak' && b.type === 'streak') {
             return a.date === b.date;
+        }
+        if (a.type === 'companion' && b.type === 'companion') {
+            return a.userId === b.userId && a.stageIndex === b.stageIndex;
         }
         return false;
     }
@@ -218,6 +237,14 @@ export const enqueuePlacementCelebrations = (placements?: IDailyStreakPendingPla
 export const enqueueCelebrationsFromSummary = (dailyStreak?: IDailyStreak | null) => {
     enqueuePlacementCelebrations(dailyStreak?.pendingPlacements);
     enqueueStreakCelebration(dailyStreak);
+};
+
+/** Queue the companion stage-up celebration, if one is owed. */
+export const enqueueCompanionCelebration = (userId: string, stageUp?: ICompanionStageUp | null) => {
+    if (!userId || !stageUp) {
+        return;
+    }
+    celebrationQueue.enqueue({ type: 'companion', userId, ...stageUp });
 };
 
 export default celebrationQueue;

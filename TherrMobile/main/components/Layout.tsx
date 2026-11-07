@@ -86,7 +86,8 @@ import { openSupportEmail } from '../utilities/supportContact';
 import { reportPushOpen } from '../utilities/pushOpenTracking';
 import { getIntentNavigation } from '../utilities/intentNavigation';
 import { navigationRef, RootNavigation } from './RootNavigation';
-import celebrationQueue, { enqueueCelebrationsFromSummary } from '../utilities/celebrationQueue';
+import celebrationQueue, { enqueueCelebrationsFromSummary, enqueueCompanionCelebration } from '../utilities/celebrationQueue';
+import { checkCompanionStageUp } from '../utilities/companionCelebration';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
 import SplashLogoSpinner from './SplashLogoSpinner';
@@ -273,6 +274,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private fcmRegistrationStarted = false;
     private appStateListener: NativeEventSubscription | null = null;
     private lastBackgroundedAt: number | null = null;
+
+    /**
+     * Set once this session's achievements fetch lands. The companion stage-up check waits for
+     * it: the persisted `user` slice can hold a stale or empty achievement list at launch, and
+     * a stage computed from that would be recorded as the baseline — turning the real list's
+     * arrival into a false multi-stage "your chameleon grew".
+     */
+    private hasLoadedAchievementsThisSession = false;
     private appReviewPromptTimeout: ReturnType<typeof setTimeout> | null = null;
     private lastAppUpdateCheckAt = 0;
     private appUpdateRecommendedVersion: string | null = null;
@@ -393,6 +402,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             this.reloadTheme(true);
         }
 
+        // New achievements (the Achievements screen refreshing, a foreground refetch) may have
+        // grown the habit companion.
+        if (prevProps.user?.achievements !== user?.achievements) {
+            this.checkCompanionCelebration();
+        }
+
         if (user?.isAuthenticated !== prevProps.user?.isAuthenticated) {
             if (user.isAuthenticated) { // Happens after login
                 // One-shot drain: if the user opened a /claim-pact/<token> link
@@ -501,6 +516,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 // Anything still queued belongs to the account that just left; the next
                 // sign-in fetches its own.
                 celebrationQueue.reset();
+                this.hasLoadedAchievementsThisSession = false;
             }
         }
     }
@@ -623,6 +639,43 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     enqueueCelebrationsFromSummary(summary);
                 }
             })
+            .catch(() => {});
+
+        // The companion can grow while the app is away — an achievement earned through a
+        // partner's action, or simply the account getting old enough for the next stage. Until
+        // the launch prefetch has landed there is nothing to refresh; it runs the check itself.
+        if (this.hasLoadedAchievementsThisSession) {
+            this.props.getMyAchievements()
+                .then(() => this.checkCompanionCelebration())
+                .catch(() => {});
+        }
+    };
+
+    /**
+     * Queue the habit companion's stage-up celebration if it has grown since this device last
+     * showed it. Decided on the device (utilities/companionCelebration.ts), unlike the streak
+     * and placement celebrations, because the companion's stage is derived here. Silent on
+     * failure for the same reason as the fetch above.
+     */
+    checkCompanionCelebration = () => {
+        if (!this.hasLoadedAchievementsThisSession
+            || !this.isUserAuthenticated()
+            || CURRENT_BRAND_VARIATION !== BrandVariations.HABITS) {
+            return;
+        }
+        const { user } = this.props;
+        const userId = user?.details?.id ? String(user.details.id) : '';
+        if (!userId) {
+            return;
+        }
+
+        checkCompanionStageUp({
+            userId,
+            achievements: user.achievements,
+            accountCreatedAt: user.details?.createdAt,
+            brandVariation: CURRENT_BRAND_VARIATION,
+        })
+            .then((stageUp) => enqueueCompanionCelebration(userId, stageUp))
             .catch(() => {});
     };
 
@@ -941,7 +994,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 beginPrefetchRequest({
                     isLoadingAchievements: true,
                 });
-                getMyAchievements().catch((err) => {
+                getMyAchievements().then(() => {
+                    this.hasLoadedAchievementsThisSession = true;
+                    this.checkCompanionCelebration();
+                }).catch((err) => {
                     console.log(err);
                 }).finally(() => {
                     completePrefetchRequest({
