@@ -72,6 +72,8 @@ export const getFirstPauseReminderDate = (reminders?: { dayCount: number; localD
  *   - `paused`   the habit is paused — show the banner and Resume.
  *   - `cooldown` a pause ended recently — explain when it can be paused again.
  *   - `available` show the Pause button.
+ *
+ * Null when there is nothing to offer: no habit, an archived one, or a server that predates pausing.
  */
 export type PauseAvailability =
     | { kind: 'paused'; pause: IUserHabitPause }
@@ -82,6 +84,13 @@ export const getPauseAvailability = (
     userHabit?: Pick<IUserHabit, 'pause' | 'pauseAvailableOn' | 'status'> | null,
 ): PauseAvailability | null => {
     if (!userHabit || userHabit.status !== 'active') {
+        return null;
+    }
+    // A server that supports pausing always sends `pause` (null when not paused) on every habit
+    // response, and the reducer merges partial responses into the cached habit, so the key is
+    // never missing once that server is live. Missing means the production backend predates
+    // pausing — offering Pause then would only fail on tap, so offer nothing.
+    if (userHabit.pause === undefined) {
         return null;
     }
     const pause = getOpenPause(userHabit);

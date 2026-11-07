@@ -102,7 +102,6 @@ export class HabitsFeed extends React.Component<IHabitsFeedProps, IHabitsFeedSta
 
     private themeMenu = buildMenuStyles();
 
-
     private themeHabits = buildHabitStyles();
 
     private loaderId: ILottieId = 'earth';

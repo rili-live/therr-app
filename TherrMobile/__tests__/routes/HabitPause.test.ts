@@ -66,8 +66,11 @@ describe('habit pause', () => {
         expect(getPauseAvailability(undefined)).toBeNull();
     });
 
-    it('treats a server that predates pausing as "available"', () => {
-        expect(getPauseAvailability({ status: 'active' } as any)).toEqual({ kind: 'available' });
+    it('offers no Pause button when the server predates pausing (no `pause` key)', () => {
+        // The Play build can ship before the backend that serves /pause does; a button there
+        // would only fail on tap.
+        expect(getPauseAvailability({ status: 'active' } as any)).toBeNull();
+        expect(getPauseAvailability({ status: 'active', pauseAvailableOn: null } as any)).toBeNull();
     });
 });
 
