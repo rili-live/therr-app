@@ -123,7 +123,8 @@
       "body": "Your {streakCount}-day {habitName} streak is on the line — check in before midnight to keep it alive.",
       "bodyWithFreeze": "Your {streakCount}-day {habitName} streak is on the line. A streak freeze will cover tonight if you miss ({freezesRemaining} left) — but checking in keeps it in your pocket.",
       "bodyMultiple": "{habitCount} streaks are on the line — {habitNames}. Check in before midnight to keep them alive.",
-      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName} this week, and {daysLeft} day(s) left. Keep your {streakCount} in a row going."
+      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName} this week, and {daysLeft} day(s) left. Keep your {streakCount} in a row going.",
+      "bodyOfferPause": "Your {streakCount}-day {habitName} streak is on the line and you're out of streak freezes. Check in before midnight — or pause it if you need a break."
     },
     "streakFreezeUsed": {
       "title": "Your Streak Survived",
@@ -275,7 +276,8 @@
       "body": "Your {streakCount}-day {habitName} streak ends at midnight. One check-in keeps it alive.",
       "bodyWithFreeze": "Your {streakCount}-day {habitName} streak ends at midnight. A streak freeze will cover you ({freezesRemaining} left) — but checking in now keeps it in your pocket.",
       "bodyMultiple": "Last call on {habitCount} streaks — {habitNames}. Check in before midnight to keep them alive.",
-      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName}, with {daysLeft} day(s) left — you need every one of them. Check in tonight."
+      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName}, with {daysLeft} day(s) left — you need every one of them. Check in tonight.",
+      "bodyOfferPause": "Your {streakCount}-day {habitName} streak ends at midnight and there are no freezes left. Check in now — or pause it to keep it safe while you take a break."
     },
     "weeklyRecap": {
       "title": "Last Week In Review",
@@ -325,7 +327,8 @@
       "pressActionCheckIn": "Check In",
       "pressActionLogAmount": "Log Amount",
       "pressActionRenew": "Start New Cycle",
-      "pressActionView": "View"
+      "pressActionView": "View",
+      "pressActionPause": "Pause"
     }
   },
   "validation": "The required parameters were not provided."

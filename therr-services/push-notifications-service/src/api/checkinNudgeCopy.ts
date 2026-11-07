@@ -99,6 +99,18 @@ export const hasWeeklyTargetCopy = (weekTarget: unknown): boolean => {
  *   3. Otherwise a non-daily habit gets the weekly-progress body.
  *   4. Otherwise the daily singular body, exactly as before.
  */
+/**
+ * Whether a check-in nudge offers "Pause". The producer decides (`offerPause` — only it knows
+ * whether the habit can be paused now); this only refuses the cases where the button could not
+ * work: no single habit to pause.
+ */
+export const shouldOfferPauseAction = (config: { offerPause?: unknown; habitGoalId?: unknown; habitCount?: unknown }): boolean => (
+    (config.offerPause === true || config.offerPause === 'true')
+    && typeof config.habitGoalId === 'string'
+    && !!config.habitGoalId
+    && Number(config.habitCount || 1) <= 1
+);
+
 export const selectCheckinNudgeBodyKey = (
     type: PushNotifications.Types,
     habitCount: unknown,
@@ -111,7 +123,9 @@ export const selectCheckinNudgeBodyKey = (
         return `${getCheckinNudgeCopyNamespace(type)}.bodyMultiple`;
     }
 
-    if (!singularKey.endsWith('.bodyWithFreeze') && hasWeeklyTargetCopy(weekTarget)) {
+    if (!singularKey.endsWith('.bodyWithFreeze')
+        && !singularKey.endsWith('.bodyOfferPause')
+        && hasWeeklyTargetCopy(weekTarget)) {
         return `${getCheckinNudgeCopyNamespace(type)}.bodyWeekly`;
     }
 

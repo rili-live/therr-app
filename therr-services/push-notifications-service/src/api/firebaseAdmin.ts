@@ -10,6 +10,7 @@ import {
     formatHabitNames,
     selectCheckinNudgeBodyKey,
     shouldOfferOnePressCheckin,
+    shouldOfferPauseAction,
 } from './checkinNudgeCopy';
 import { selectWeeklyRecapBodyKey, selectWeeklyRecapTitleKey } from './weeklyRecapCopy';
 import { isRetentionMessageVariant, selectPactRenewalBodyKey, selectRetentionCopyKeys } from './retentionCopy';
@@ -231,6 +232,9 @@ interface ICreateMessageConfig {
     weekDone?: number;
     weekTarget?: number;
     daysLeft?: number;
+    // Offer "Pause" on a single-habit check-in nudge whose streak has no freezes left. Decided by
+    // the producer, which alone knows whether the habit can be paused right now.
+    offerPause?: boolean;
     // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md). Mirrors the
     // fields users-service puts on the queue row in
     // `sendEmailAndOrPushNotification.ts` — age of the habit in days,
@@ -334,6 +338,16 @@ const buildCheckinPressActions = (
                 id: PushNotifications.PressActionIds.habitCheckin,
                 title: translate(userLocale, 'notifications.shared.pressActionCheckIn'),
             });
+    }
+
+    // The way out for a streak that ends tonight with no freezes left. Second, beside Check In,
+    // because they are the two real answers to "your streak ends at midnight". It needs a single
+    // habit for the same reason the check-in does: the press opens that habit's pause dialog.
+    if (shouldOfferPauseAction(config)) {
+        actions.push({
+            id: PushNotifications.PressActionIds.habitPause,
+            title: translate(userLocale, 'notifications.shared.pressActionPause'),
+        });
     }
 
     actions.push({
@@ -1286,7 +1300,9 @@ const createMessage = (
                         selectCheckinNudgeBodyKey(
                             type,
                             config.habitCount,
-                            selectStreakAtRiskBodyKey(atRiskFreezesRemaining),
+                            shouldOfferPauseAction(config)
+                                ? 'notifications.streakAtRisk.bodyOfferPause'
+                                : selectStreakAtRiskBodyKey(atRiskFreezesRemaining),
                             config.weekTarget,
                         ),
                         {
@@ -1990,7 +2006,9 @@ const createMessage = (
                         selectCheckinNudgeBodyKey(
                             type,
                             config.habitCount,
-                            selectFreezeAwareBodyKey('notifications.eveningCheckIn', eveningFreezesRemaining),
+                            shouldOfferPauseAction(config)
+                                ? 'notifications.eveningCheckIn.bodyOfferPause'
+                                : selectFreezeAwareBodyKey('notifications.eveningCheckIn', eveningFreezesRemaining),
                             config.weekTarget,
                         ),
                         {

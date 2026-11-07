@@ -123,7 +123,8 @@
       "body": "Ta série de {streakCount} jours sur {habitName} est en jeu — enregistre-toi avant minuit pour la garder.",
       "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} est en jeu. Un gel de série couvrira ce soir si tu manques ({freezesRemaining} restant(s)) — mais t'enregistrer te le garde en réserve.",
       "bodyMultiple": "{habitCount} séries sont en jeu — {habitNames}. Enregistre-toi avant minuit pour les garder.",
-      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName} cette semaine, et il reste {daysLeft} jour(s). Garde tes {streakCount} d'affilée."
+      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName} cette semaine, et il reste {daysLeft} jour(s). Garde tes {streakCount} d'affilée.",
+      "bodyOfferPause": "Ta série de {streakCount} jours pour {habitName} est en jeu et tu n'as plus de gels de série. Fais ton suivi avant minuit — ou mets-la en pause si tu as besoin d'un répit."
     },
     "streakFreezeUsed": {
       "title": "Ta série a tenu",
@@ -275,7 +276,8 @@
       "body": "Ta série de {streakCount} jours sur {habitName} se termine à minuit. Un seul suivi la garde en vie.",
       "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} se termine à minuit. Un gel de série te couvrira ({freezesRemaining} restant(s)) — mais t'enregistrer maintenant te le garde en réserve.",
       "bodyMultiple": "Dernier appel pour {habitCount} séries — {habitNames}. Enregistre-toi avant minuit pour les garder.",
-      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName}, avec {daysLeft} jour(s) restants — il te les faut tous. Enregistre-toi ce soir."
+      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName}, avec {daysLeft} jour(s) restants — il te les faut tous. Enregistre-toi ce soir.",
+      "bodyOfferPause": "Ta série de {streakCount} jours pour {habitName} se termine à minuit et il ne reste plus de gels. Fais ton suivi maintenant — ou mets-la en pause pour la protéger pendant ton répit."
     },
     "weeklyRecap": {
       "title": "Ta semaine en revue",
@@ -325,7 +327,8 @@
       "pressActionCheckIn": "S'enregistrer",
       "pressActionLogAmount": "Inscrire le montant",
       "pressActionRenew": "Nouveau cycle",
-      "pressActionView": "Voir"
+      "pressActionView": "Voir",
+      "pressActionPause": "Pause"
     }
   },
   "validation": "Les paramètres requis n'ont pas été fournis."
