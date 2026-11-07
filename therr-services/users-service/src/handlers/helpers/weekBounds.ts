@@ -12,11 +12,12 @@ import { getLocalDate, getWeekStart, resolveCheckinTimeZone } from '../../utilit
  *
  * Fails soft: a failed user read is treated as "no saved zone", so the week falls back to the
  * device zone and then the service default rather than failing the habits read.
+ * Always resolves to a day — callers can rely on `today` being the user's, never a UTC stand-in.
  */
 const resolveWeekBounds = async (
     userId: string,
     deviceTimezone?: unknown,
-): Promise<{ weekStart: string; today: string } | undefined> => {
+): Promise<{ weekStart: string; today: string }> => {
     const [user] = await Store.users
         .getUserById(userId, ['id', 'settingsTimezone'])
         .catch(() => [] as any[]);

@@ -71,13 +71,15 @@ import {
  * Both are always present, as null when they do not apply, so a client that merges a habit
  * into its cached copy (as the therr-react reducer does) clears them on resume instead of
  * keeping a stale pause. An older server sends neither; treat `undefined` like `null`.
+ *
+ * `today` is the user's local day (`resolveWeekBounds`). It is required, not defaulted: a UTC
+ * stand-in would put "days paused" and the cooldown date a day off for users far from UTC.
  */
-const withPauseState = <T extends IUserHabitDetail>(habit: T, today?: string) => {
-    const resolvedToday = today || new Date().toISOString().slice(0, 10);
+const withPauseState = <T extends IUserHabitDetail>(habit: T, today: string) => {
     const result: any = { ...habit, pause: null, pauseAvailableOn: null };
 
     if (habit.pauseId && habit.pausedOn) {
-        const daysPaused = getDaysPaused(habit.pausedOn, resolvedToday);
+        const daysPaused = getDaysPaused(habit.pausedOn, today);
         result.pause = {
             id: habit.pauseId,
             pausedOn: habit.pausedOn,
@@ -90,7 +92,7 @@ const withPauseState = <T extends IUserHabitDetail>(habit: T, today?: string) =>
 
     const eligibility = getPauseEligibility({
         lastClosedPause: habit.lastResumedOn ? { resumedOn: habit.lastResumedOn } : null,
-        today: resolvedToday,
+        today,
     });
     if (!eligibility.canPause && eligibility.reason === 'cooldown') {
         result.pauseAvailableOn = eligibility.availableOn;
@@ -108,9 +110,9 @@ const withPauseState = <T extends IUserHabitDetail>(habit: T, today?: string) =>
  * Omitted entirely when the tally is NULL (no resolvable week). A client must read its absence
  * as "unknown", never as zero.
  */
-const withWeekProgress = (userHabits: IUserHabitDetail[], today?: string) => userHabits.map((habit) => {
+const withWeekProgress = (userHabits: IUserHabitDetail[], today: string) => userHabits.map((habit) => {
     const withPause = withPauseState(habit, today);
-    if (!today || habit.completionsEarlierThisWeek === null || habit.completionsEarlierThisWeek === undefined) {
+    if (habit.completionsEarlierThisWeek === null || habit.completionsEarlierThisWeek === undefined) {
         return withPause;
     }
 
@@ -157,7 +159,7 @@ const getUserHabits: RequestHandler = async (req: any, res: any) => {
     return Store.userHabits.getDetailByUser(userId, status, weekBounds)
         .then(attachAmountTotals)
         .then((userHabits) => res.status(200).send({
-            userHabits: withWeekProgress(userHabits, weekBounds?.today),
+            userHabits: withWeekProgress(userHabits, weekBounds.today),
         }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_HABITS_ROUTES:ERROR' }));
 };
@@ -287,7 +289,7 @@ const createUserHabit: RequestHandler = async (req: any, res: any) => {
         const [detail] = await Store.userHabits.getDetailByUser(userId, 'active', weekBounds)
             .then((rows) => withWeekProgress(
                 rows.filter((row) => row.habitGoalId === resolvedGoalId),
-                weekBounds?.today,
+                weekBounds.today,
             ));
 
         return res.status(201).send(detail || userHabit);
@@ -386,7 +388,7 @@ const readDetail = async (userId: string, habitGoalId: string, deviceTimezone?: 
     const [detail] = await Store.userHabits.getDetailByUser(userId, undefined, weekBounds)
         .then((rows) => withWeekProgress(
             rows.filter((row) => row.habitGoalId === habitGoalId),
-            weekBounds?.today,
+            weekBounds.today,
         ));
     return detail;
 };
@@ -618,7 +620,7 @@ const continueSoloHabit: RequestHandler = async (req: any, res: any) => {
         const [detail] = await Store.userHabits.getDetailByUser(userId, 'active', weekBounds)
             .then((rows) => withWeekProgress(
                 rows.filter((row) => row.habitGoalId === existing.habitGoalId),
-                weekBounds?.today,
+                weekBounds.today,
             ));
 
         return res.status(200).send(detail || { ...existing, status: 'active' });
