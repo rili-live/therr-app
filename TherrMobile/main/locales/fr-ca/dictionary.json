@@ -441,6 +441,38 @@
       "title": "Complétez votre profil",
       "stepsLeft": "Il reste {count} étapes",
       "stepLeft": "Il reste 1 étape"
+    },
+    "habitCompanion": {
+      "overline": "Votre compagnon d'habitudes",
+      "stageOf": "Étape {stage} sur {total}",
+      "tapHint": "Touchez pour changer sa couleur",
+      "a11yLabel": "Votre compagnon d'habitudes : {stageName}. Étape {stage} sur {total}.",
+      "nextStage": "Prochaine étape : {stageName}",
+      "achievementsProgress": "Réalisations : {count} / {total}",
+      "daysProgress": "Jours ensemble : {count} / {total}",
+      "fullyGrown": "Entièrement grandi! Gardez vos séries en vie pour qu'il continue de briller.",
+      "stages": {
+        "egg": {
+          "name": "Œuf",
+          "caption": "Quelque chose bouge à l'intérieur. Obtenez votre première réalisation pour le faire éclore."
+        },
+        "hatchling": {
+          "name": "Bébé",
+          "caption": "Tout juste sorti de sa coquille, il vous observe. Continuez vos suivis."
+        },
+        "juvenile": {
+          "name": "Petit grimpeur",
+          "caption": "Il grandit vite et s'agrippe bien. Vos habitudes prennent racine."
+        },
+        "adult": {
+          "name": "Caméléon",
+          "caption": "Stable, sûr de lui et plein de couleurs, comme votre routine."
+        },
+        "legend": {
+          "name": "Légende arc-en-ciel",
+          "caption": "Couronné de toutes les couleurs. Vous avez bâti des habitudes durables."
+        }
+      }
     }
   },
   "forms": {
