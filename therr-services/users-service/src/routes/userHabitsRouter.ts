@@ -6,6 +6,8 @@ import {
     archiveUserHabit,
     restoreUserHabit,
     continueSoloHabit,
+    pauseUserHabit,
+    resumeUserHabit,
     updateUserHabitNotificationPreferences,
 } from '../handlers/userHabits';
 
@@ -26,6 +28,10 @@ router.put('/:id/restore', restoreUserHabit);
 // "Stop waiting on the invite — keep this habit alone." Distinct from restore:
 // it also abandons the outstanding pact and enforces the solo-unlock gate.
 router.put('/:id/continue-solo', continueSoloHabit);
+// Pause / resume. A paused habit asks nothing of the user — no streak loss, no freezes, no
+// reminders — until they resume or check in. See utilities/habitPause.ts.
+router.put('/:id/pause', pauseUserHabit);
+router.put('/:id/resume', resumeUserHabit);
 // Per-habit notification switches. A partial body — only the categories present
 // are written.
 router.put('/:id/notification-preferences', updateUserHabitNotificationPreferences);

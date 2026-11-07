@@ -3,6 +3,7 @@ import { IConnection } from './connection';
 import {
     HABIT_CHECKINS_TABLE_NAME,
     HABIT_GOALS_TABLE_NAME,
+    HABIT_PAUSES_TABLE_NAME,
     PACTS_TABLE_NAME,
     PACT_MEMBERS_TABLE_NAME,
     STREAKS_TABLE_NAME,
@@ -132,6 +133,15 @@ export interface IUserHabitDetail extends IUserHabitRow {
      * measured habits only.
      */
     amountThisWeek: string | null;
+    /**
+     * The open pause on this habit, or null when it is not paused. `pausedOn` is the user's local
+     * day it began; `streakAtPause` is the streak it is holding. See utilities/habitPause.ts.
+     */
+    pauseId: string | null;
+    pausedOn: string | null;
+    streakAtPause: number | null;
+    /** The day this habit's most recent finished pause ended — what the re-pause cooldown reads. */
+    lastResumedOn: string | null;
 }
 
 /**
@@ -176,7 +186,36 @@ export interface IUserHabitCadence {
     frequencyCount: number | null;
     targetDaysOfWeek: number[] | null;
     cadenceEffectiveFrom: string | null;
+    /**
+     * Every pause on this habit, as `{ from, until }` local days (`until` exclusive, null while
+     * open). A paused day is not required by the habit. Absent on rows from a stub or an older
+     * caller, which reads as "never paused".
+     */
+    pausedRanges?: { from: string; until: string | null }[];
 }
+
+/**
+ * The per-habit notification switches as they apply *right now*: a paused habit reads as muted
+ * for everything but pact updates. Pausing is the user saying "stop asking me about this", so the
+ * reminders, the streak alarms and the "your partner just checked in — your turn" nudges stop with
+ * it. Pact updates stay on: they are facts about a shared commitment (it ended, it is expiring)
+ * that a pause does not make any less true.
+ *
+ * The 7/14/30-day resume reminders are a different type and are not gated by these switches.
+ */
+// Both fragments read the tracking row as `uh`, the alias every query in this store uses for it.
+const OPEN_PAUSE_EXISTS = `EXISTS (
+                    SELECT 1 FROM ${HABIT_PAUSES_TABLE_NAME} hp
+                    WHERE hp."userId" = uh."userId"
+                        AND hp."habitGoalId" = uh."habitGoalId"
+                        AND hp."resumedOn" IS NULL
+                )`;
+
+const EFFECTIVE_PREFERENCE_COLUMNS = `
+                (uh."notifyReminders" AND NOT ${OPEN_PAUSE_EXISTS}) AS "notifyReminders",
+                (uh."notifyStreakAlerts" AND NOT ${OPEN_PAUSE_EXISTS}) AS "notifyStreakAlerts",
+                (uh."notifyPartnerActivity" AND NOT ${OPEN_PAUSE_EXISTS}) AS "notifyPartnerActivity",
+                uh."notifyPactUpdates" AS "notifyPactUpdates"`;
 
 export default class UserHabitsStore {
     db: IConnection;
@@ -310,7 +349,18 @@ export default class UserHabitsStore {
                 g."frequencyType" AS "frequencyType",
                 g."frequencyCount" AS "frequencyCount",
                 g."targetDaysOfWeek" AS "targetDaysOfWeek",
-                g."cadenceEffectiveFrom"::text AS "cadenceEffectiveFrom"
+                g."cadenceEffectiveFrom"::text AS "cadenceEffectiveFrom",
+                -- Every pause on the habit, carried here rather than read separately so the
+                -- daily streak walk keeps one cadence read with one failure mode: a failed read
+                -- fails the evaluation instead of quietly treating paused days as required.
+                COALESCE((
+                    SELECT json_agg(json_build_object(
+                        'from', hp."pausedOn"::text,
+                        'until', hp."resumedOn"::text
+                    ) ORDER BY hp."pausedOn")
+                    FROM ${HABIT_PAUSES_TABLE_NAME} hp
+                    WHERE hp."userId" = uh."userId" AND hp."habitGoalId" = uh."habitGoalId"
+                ), '[]'::json) AS "pausedRanges"
             FROM ${USER_HABITS_TABLE_NAME} uh
             INNER JOIN ${HABIT_GOALS_TABLE_NAME} g ON g."id" = uh."habitGoalId"
             WHERE uh."userId" = ?::uuid
@@ -425,7 +475,17 @@ export default class UserHabitsStore {
                         AND p."status" = 'pending'
                     ORDER BY p."createdAt" ASC
                     LIMIT 1
-                ) AS "pendingPactId"
+                ) AS "pendingPactId",
+                open_pause."id" AS "pauseId",
+                open_pause."pausedOn"::text AS "pausedOn",
+                open_pause."streakAtPause" AS "streakAtPause",
+                (
+                    SELECT MAX(hp2."resumedOn")::text
+                    FROM ${HABIT_PAUSES_TABLE_NAME} hp2
+                    WHERE hp2."userId" = uh."userId"
+                        AND hp2."habitGoalId" = uh."habitGoalId"
+                        AND hp2."resumedOn" IS NOT NULL
+                ) AS "lastResumedOn"
             FROM ${USER_HABITS_TABLE_NAME} uh
             INNER JOIN ${HABIT_GOALS_TABLE_NAME} g ON g."id" = uh."habitGoalId"
             LEFT JOIN ${STREAKS_TABLE_NAME} s
@@ -439,6 +499,10 @@ export default class UserHabitsStore {
                     AND p."habitGoalId" = uh."habitGoalId"
                     AND p."status" = 'active'
             ) pact_counts ON true
+            LEFT JOIN ${HABIT_PAUSES_TABLE_NAME} open_pause
+                ON open_pause."userId" = uh."userId"
+                AND open_pause."habitGoalId" = uh."habitGoalId"
+                AND open_pause."resumedOn" IS NULL
             WHERE uh."userId" = ?::uuid ${statusPredicate}
             ORDER BY uh."status" ASC, uh."startedAt" DESC`,
             bindings,
@@ -533,6 +597,10 @@ export default class UserHabitsStore {
             LEFT JOIN ${STREAKS_TABLE_NAME} s
                 ON s."userId" = uh."userId" AND s."habitGoalId" = uh."habitGoalId"
             WHERE uh."status" = 'active'
+                -- A paused habit is out of the reminder universe entirely: no daily reminder,
+                -- no streak-at-risk, no evening nudge. Its resume reminders are queued at pause
+                -- time instead (handlers/helpers/habitPause.ts).
+                AND NOT ${OPEN_PAUSE_EXISTS}
             ORDER BY uh."startedAt" ASC, uh."id" ASC
             LIMIT ?`,
             [today, weekStart, today, limit],
@@ -693,18 +761,17 @@ export default class UserHabitsStore {
         }
 
         const tuples = Array.from(unique.values());
-        const queryString = knexBuilder
-            .from(USER_HABITS_TABLE_NAME)
-            .select(
-                'userId',
-                'habitGoalId',
-                ...USER_HABIT_NOTIFICATION_PREFERENCE_KEYS,
-            )
-            .whereIn(
-                ['userId', 'habitGoalId'],
-                tuples.map((pair) => [pair.userId, pair.habitGoalId]),
-            )
-            .toString();
+        // Effective switches, not stored ones: a paused habit reads as muted. See
+        // `EFFECTIVE_PREFERENCE_COLUMNS`. Every per-habit gate in the digest and the check-in
+        // fan-out goes through this read, which is what makes it the one place to apply it.
+        const tupleSql = tuples.map(() => '(?::uuid, ?::uuid)').join(', ');
+        const queryString = knexBuilder.raw(
+            `SELECT uh."userId", uh."habitGoalId",
+                ${EFFECTIVE_PREFERENCE_COLUMNS}
+            FROM ${USER_HABITS_TABLE_NAME} uh
+            WHERE (uh."userId", uh."habitGoalId") IN (${tupleSql})`,
+            tuples.reduce((acc: string[], pair) => acc.concat([pair.userId, pair.habitGoalId]), []),
+        ).toString();
 
         return this.db.read.query(queryString).then((response) => response.rows.reduce((acc, row) => {
             acc[`${row.userId}:${row.habitGoalId}`] = {

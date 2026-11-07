@@ -295,6 +295,19 @@ enum PushNotifications {
 
 ## Notification Message Templates
 
+### Copy tone (2026-11-07)
+
+Streak and reminder copy invites rather than threatens. Frame the action as a
+chance to *extend* a streak ("Extend your 12-day streak before the night ends",
+"Keep Your Streak Going"), not as an impending loss ("Last Chance Tonight",
+"Don't Break Your Streak", "your streak is on the line", "you need every one of
+them"). Partner copy is companionship ("Dana is in it with you", "keep pace
+together"), not guilt or rivalry ("counting on you", "don't let them lap you").
+Gentler framing reads as encouragement and is expected
+to earn more engagement than alarm. The live strings are in
+`therr-services/push-notifications-service/src/locales/*/dictionary.json`; the
+templates below are the original proposal.
+
 ### Add to Locales
 
 ```typescript

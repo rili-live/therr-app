@@ -108,7 +108,7 @@
     },
     "unclaimedAchievementsReminder": {
       "title": "Rewards Waiting for You",
-      "body": "You have {achievementsCount} unclaimed reward(s) — don't let them go to waste!"
+      "body": "You have {achievementsCount} unclaimed reward(s) waiting — tap to collect them."
     },
     "unreadNotificationsReminder": {
       "title": "You've Got Updates",
@@ -119,11 +119,12 @@
       "body": "Share your invite link and you'll both earn rewards when your friends join!"
     },
     "streakAtRisk": {
-      "title": "Don't Break Your Streak",
-      "body": "Your {streakCount}-day {habitName} streak is on the line — check in before midnight to keep it alive.",
-      "bodyWithFreeze": "Your {streakCount}-day {habitName} streak is on the line. A streak freeze will cover tonight if you miss ({freezesRemaining} left) — but checking in keeps it in your pocket.",
-      "bodyMultiple": "{habitCount} streaks are on the line — {habitNames}. Check in before midnight to keep them alive.",
-      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName} this week, and {daysLeft} day(s) left. Keep your {streakCount} in a row going."
+      "title": "Keep Your Streak Going",
+      "body": "Your {streakCount}-day {habitName} streak is ready for today. One check-in before the day ends extends it.",
+      "bodyWithFreeze": "Your {streakCount}-day {habitName} streak is ready for today. A streak freeze has your back if you miss ({freezesRemaining} left) — and checking in keeps it in your pocket.",
+      "bodyMultiple": "{habitCount} streaks are ready for today — {habitNames}. Check in before the day ends to extend them.",
+      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName} this week, and {daysLeft} day(s) left. Keep your {streakCount} in a row going.",
+      "bodyOfferPause": "Your {streakCount}-day {habitName} streak is ready for today, and you're out of streak freezes. Check in before the day ends to extend it — or pause it if you need a break."
     },
     "streakFreezeUsed": {
       "title": "Your Streak Survived",
@@ -148,7 +149,7 @@
     },
     "partnerCheckedIn": {
       "title": "{partnerName} Just Checked In",
-      "body": "{partnerName} hit Day {streakCount} on {habitName} — don't let them lap you."
+      "body": "{partnerName} hit Day {streakCount} on {habitName} — check in and keep pace together."
     },
     "partnerMissedDay": {
       "title": "{partnerName} Missed a Day",
@@ -248,7 +249,7 @@
       "dayTwo": {
         "title": "Day 2 of {habitName}",
         "body": "Yesterday you started. Today makes it a streak.",
-        "bodyWithPartner": "{partnerName} is counting on you. Today makes it a streak."
+        "bodyWithPartner": "{partnerName} is in it with you. Today makes it a streak."
       },
       "comeback": {
         "title": "{habitName} is still here for you",
@@ -271,11 +272,12 @@
       "body": "Today is a fresh chance to build the habit you committed to. Let's go."
     },
     "eveningCheckIn": {
-      "title": "Last Chance Tonight",
-      "body": "Your {streakCount}-day {habitName} streak ends at midnight. One check-in keeps it alive.",
-      "bodyWithFreeze": "Your {streakCount}-day {habitName} streak ends at midnight. A streak freeze will cover you ({freezesRemaining} left) — but checking in now keeps it in your pocket.",
-      "bodyMultiple": "Last call on {habitCount} streaks — {habitNames}. Check in before midnight to keep them alive.",
-      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName}, with {daysLeft} day(s) left — you need every one of them. Check in tonight."
+      "title": "Your Chance to Extend Your Streak",
+      "body": "Extend your {streakCount}-day {habitName} streak before the night ends. One check-in does it.",
+      "bodyWithFreeze": "Extend your {streakCount}-day {habitName} streak before the night ends. A streak freeze has your back ({freezesRemaining} left) — and checking in keeps it in your pocket.",
+      "bodyMultiple": "There's still time tonight to extend {habitCount} streaks — {habitNames}.",
+      "bodyWeekly": "{weekDone} of {weekTarget} on {habitName}, with {daysLeft} day(s) left. A check-in tonight keeps your week on track.",
+      "bodyOfferPause": "Extend your {streakCount}-day {habitName} streak before the night ends — or, with no freezes left, pause it to keep it safe while you take a break."
     },
     "weeklyRecap": {
       "title": "Last Week In Review",
@@ -304,11 +306,29 @@
       "title": "Want to Restart {habitName}?",
       "body": "You held this {bestStreakCount} days once — that doesn't go away. Ready to start a fresh streak?"
     },
+    "habitPauseReminder": {
+      "week": {
+        "title": "Ready to Pick Up {habitName}?",
+        "body": "It's been a week since you paused. Resume whenever you're ready — one check-in starts it back up.",
+        "bodyWithStreak": "It's been a week since you paused. Your {streakCount}-day streak is right where you left it — one check-in picks it back up."
+      },
+      "twoWeeks": {
+        "title": "Still on a Break From {habitName}?",
+        "body": "Two weeks paused. A small check-in today is all a restart takes.",
+        "bodyWithStreak": "Two weeks paused, and your {streakCount}-day streak is still safe. A small check-in today gets it moving again."
+      },
+      "final": {
+        "title": "Last Reminder About {habitName}",
+        "body": "A month paused. This is the last time we'll ask — resume it when you're ready, or archive it if it's run its course.",
+        "bodyWithStreak": "A month paused. Your {streakCount}-day streak stays saved, and this is the last time we'll ask — resume it when you're ready, or archive it if it's run its course."
+      }
+    },
     "shared": {
       "pressActionCheckIn": "Check In",
       "pressActionLogAmount": "Log Amount",
       "pressActionRenew": "Start New Cycle",
-      "pressActionView": "View"
+      "pressActionView": "View",
+      "pressActionPause": "Pause"
     }
   },
   "validation": "The required parameters were not provided."
