@@ -97,7 +97,10 @@
             "premiumPurchaseNotFound": "That subscription could not be found",
             "premiumVerificationFailed": "We could not verify that subscription right now. Please try again shortly.",
             "soloLocked": "Invite {remaining} more friend(s) to unlock habits you track on your own — {required} invites total.",
-            "soloGraceEnded": "Your {days} free days tracking this alone are up. Invite {required} friend to keep it going — your streak is waiting."
+            "soloGraceEnded": "Your {days} free days tracking this alone are up. Invite {required} friend to keep it going — your streak is waiting.",
+            "pauseAlreadyPaused": "This habit is already paused.",
+            "pauseCooldown": "You resumed this habit recently. You can pause it again on {date}.",
+            "pauseArchivedHabit": "Archived habits can't be paused. Restore it first."
         },
         "user": {
             "invalidUserNamePassword": "User/password combination is incorrect",
@@ -288,6 +291,16 @@
             "buttonText": "Open {brandName}",
             "postBody1": "Your original invite stays open, so your friends can still accept it."
         },
+        "pactJoinRequest": {
+            "subjectOne": "{requesterName} asked to join your {habitName} pact",
+            "subjectMany": "{count} people asked to join your pacts",
+            "dearUser": "Hey {toName}!",
+            "body1One": "{requesterName} found your open pact for {habitName} and asked to join. They're still waiting on your answer.",
+            "body1Many": "These people found your open pacts and asked to join: {requestList}. They're still waiting on your answer.",
+            "body2": "Open {brandName} and go to the pact to approve or decline. Anyone you approve joins as a partner straight away.",
+            "buttonText": "Open {brandName}",
+            "postBody1": "We only email you once about each request."
+        },
         "firstHabitNudge": {
             "subject": "Your first habit takes ten seconds",
             "header": "Day 1 is one tap away",
@@ -312,7 +325,7 @@
                 "subject": "Day 2 of {habitName}",
                 "header": "Day 2 of {habitName}",
                 "body1": "Yesterday you started {habitName}. Today is the check-in that makes it a streak.",
-                "body1WithPartner": "Yesterday you started {habitName}, and {partnerName} is counting on you. Today is the check-in that makes it a streak.",
+                "body1WithPartner": "Yesterday you started {habitName}, and {partnerName} is in it with you. Today is the check-in that makes it a streak.",
                 "body2": "Day 2 is where most streaks stop. Yours does not have to."
             },
             "comeback": {

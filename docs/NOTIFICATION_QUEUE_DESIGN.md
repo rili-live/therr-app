@@ -282,7 +282,7 @@ done. Ordering matters — a row that no longer needs sending must not spend one
 of the user's five daily sends.
 
 `partnerCheckedIn` goes through the same gate. It is a fact *and* a nudge —
-"{partner} hit Day 5 — don't let them lap you", with a Check In button — and it
+"{partner} hit Day 5 — check in and keep pace together", with a Check In button — and it
 used to reach partners who had already checked in on that habit, so whoever
 checked in first was told to check in by everyone who followed. The worker now
 skips it (`already-checked-in`) when the recipient has a completed check-in on

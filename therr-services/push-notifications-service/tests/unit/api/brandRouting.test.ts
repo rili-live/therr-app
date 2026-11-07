@@ -143,6 +143,8 @@ const DISPLAY_TYPES = [
     // The one lifecycle message aimed at someone who has stopped opening the
     // app, so it has to render even when the app never wakes to handle it.
     PushNotifications.Types.habitComeback,
+    // Same reasoning: aimed at someone who stepped away on purpose.
+    PushNotifications.Types.habitPauseReminder,
 ];
 
 describe('firebaseAdmin brand routing', () => {

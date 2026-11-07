@@ -463,6 +463,42 @@
             "title": "Finish your profile",
             "stepsLeft": "{count} steps left",
             "stepLeft": "1 step left"
+        },
+        "habitCompanion": {
+            "overline": "Your habit buddy",
+            "stageOf": "Stage {stage} of {total}",
+            "tapHint": "Tap to change its color",
+            "a11yLabel": "Your habit buddy: {stageName}. Stage {stage} of {total}.",
+            "nextStage": "Next: {stageName}",
+            "achievementsProgress": "Achievements: {count} / {total}",
+            "daysProgress": "Days together: {count} / {total}",
+            "fullyGrown": "Fully grown! Keep your streaks alive to keep it shining.",
+            "stages": {
+                "egg": {
+                    "name": "Egg",
+                    "caption": "Something is stirring inside. Earn your first achievement to hatch it."
+                },
+                "hatchling": {
+                    "name": "Hatchling",
+                    "caption": "Fresh out of the shell and watching you closely. Keep checking in."
+                },
+                "juvenile": {
+                    "name": "Little Climber",
+                    "caption": "Growing fast and getting a grip. Your habits are taking hold."
+                },
+                "adult": {
+                    "name": "Chameleon",
+                    "caption": "Steady, sure-footed and full of color, just like your routine."
+                },
+                "champion": {
+                    "name": "Change Champion",
+                    "caption": "Crowned in every color. You've built habits that last."
+                }
+            },
+            "celebration": {
+                "title": "Your habit buddy grew!",
+                "titleHatched": "Your egg hatched!"
+            }
         }
     },
     "forms": {
@@ -2103,6 +2139,43 @@
                 "successMessageAwaitingPartner": "We'll stop the reminders. It'll return if a partner joins.",
                 "hint": "Keeps your check-ins and streak history. Frees a habit slot."
             },
+            "pause": {
+                "sectionTitle": "Taking a break?",
+                "button": "Pause habit",
+                "hint": "Keeps your streak safe while you step away. Paused days never count against you.",
+                "cooldownHint": "You resumed this habit recently. You can pause it again on {date}.",
+                "explainerTitle": "Pause {habitName}?",
+                "explainerIntro": "Life happens. Pausing protects what you've built while you step away. Here's what to expect:",
+                "explainerStreak": "Your {count}-day streak is saved. Paused days won't break it or use a streak freeze.",
+                "explainerStreakNone": "Paused days won't count as misses or use a streak freeze.",
+                "explainerOverall": "Paused days won't count against your overall streak either.",
+                "explainerReminders": "Your daily reminders for this habit stop. We'll check in after 7 days, 14 days and 1 month — then we'll stop asking.",
+                "explainerResume": "Tap Resume or check in any time to pick it back up. The day you come back counts as a normal day.",
+                "explainerPact": "Your pact keeps running. Pausing protects your own streaks, not the pact's shared one — let your partner know.",
+                "explainerCooldown": "Once you resume, you can pause this habit again after {days} days.",
+                "confirmButton": "Pause habit",
+                "cancelButton": "Not now",
+                "successTitle": "Habit paused",
+                "successMessage": "Your streak is safe. We'll check in on {date}.",
+                "errorMessage": "We couldn't pause this habit. Please try again.",
+                "bannerTitle": "Paused",
+                "bannerBody": "Paused since {date}. Your {count}-day streak is waiting for you.",
+                "bannerBodyNoStreak": "Paused since {date}. Nothing counts against you while you're away.",
+                "bannerNextReminder": "We'll check in on {date}. Checking in resumes this habit.",
+                "bannerNoMoreReminders": "We won't send more reminders — resume whenever you're ready. Checking in resumes this habit.",
+                "resumeButton": "Resume",
+                "resumeSuccessTitle": "Welcome back!",
+                "resumeSuccessMessage": "{habitName} is active again. Today counts.",
+                "resumeUndoneMessage": "Pause cancelled — nothing changed.",
+                "resumeErrorMessage": "We couldn't resume this habit. Please try again.",
+                "endedByCheckin": "Welcome back — {habitName} isn't paused anymore.",
+                "cardChip": "Paused",
+                "cardStreakSaved": "Paused · {count}-day streak saved",
+                "cardNoStreak": "Paused · nothing counts against you",
+                "explainerIntroAtRisk": "You're out of streak freezes, so missing today would end your {count}-day streak. Pause now and it stays safe until you're back. Here's what to expect:",
+                "offerCallout": "Out of streak freezes and can't make it today? Pause this habit to keep your {count}-day streak safe.",
+                "alreadyPaused": "This habit is already paused — your streak is safe."
+            },
             "habitNotFound": "Habit not found",
             "checkinProof": {
                 "notePlaceholder": "How did it go? Any wins to share?",
@@ -2138,7 +2211,6 @@
                         "group": "Join this group pact and earn more points from pact achievements.",
                         "partner": "{name} wants an accountability partner. Join and earn points together."
                     },
-                    "requestedCancel": "Requested · Cancel request",
                     "seeAll": "See all open pacts"
                 }
             },
@@ -2912,22 +2984,28 @@
                 "listTitle": "Open Pacts",
                 "listSubtitle": "Pacts that are open to new partners. Ask to join and the creator decides.",
                 "listSubtitleHabit": "Open pacts for {habitName}. Ask to join and the creator decides.",
-                "rowDetail": "By {name} · {count} of {seats} spots · {days} days",
-                "rowDetailNoSeats": "By {name} · {count} members · {days} days",
                 "loadErrorTitle": "We couldn't load open pacts",
                 "loadErrorHint": "Check your connection and try again.",
                 "retry": "Try again",
                 "rowRunning": "Already running",
                 "rowStarting": "Starting once someone joins",
                 "askToJoin": "Ask to join",
-                "requested": "Requested",
                 "askToJoinFor": "Ask to join {name}'s pact",
                 "cancelRequestFor": "Cancel your request to {name}",
                 "requestSentTitle": "Request sent",
                 "requestSentMessage": "We'll let you know when {name} answers.",
                 "requestError": "We couldn't send that request. Try again.",
                 "emptyTitle": "No open pacts for this habit yet",
-                "emptyHint": "Open your own pact so others can find it, or check back later."
+                "emptyHint": "Open your own pact so others can find it, or check back later.",
+                "startedBy": "Started by {name}",
+                "durationChip": "{days} days",
+                "spotsLeft": "{count} spots left",
+                "spotsLeftOne": "1 spot left",
+                "spotsFilled": "{count} of {total} taken",
+                "memberCount": "{count} members",
+                "memberCountOne": "1 member",
+                "requestedStatus": "Request sent",
+                "cancelRequest": "Cancel request"
             }
         },
         "pushOptIn": {

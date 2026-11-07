@@ -49,8 +49,10 @@ import {
     headersForOtherUser,
 } from './helpers/awardHabitAchievements';
 import { awardLeaderboardPoints } from './helpers/leaderboards';
+import { endPauseOnCheckin, loadExcusedDatesForHabit } from './helpers/habitPause';
 import { checkinProofXp, LeaderboardXpValues, weeklyQuotaBonus } from '../utilities/leaderboardHelpers';
 import {
+    daysBetween,
     getLocalDate,
     getWeekStart,
     resolveCheckinHabitDate,
@@ -358,9 +360,18 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
             // celebration without a second round trip. Null when nothing about the daily
             // streak could have moved (a pending/skipped check-in).
             let dailyStreak: IDailyStreakView | null = null;
+            // Set when this check-in ended a pause on the habit, so the client can say so.
+            let endedPause = false;
 
             // If completed, update streak
             if (checkin.status === 'completed') {
+                // A check-in today on a paused habit means the user is back: end the pause before
+                // anything below reads it (the notification switches read a paused habit as muted).
+                // The pause's own days stay excused; today, the day they came back, counts.
+                if (checkinDate === todayLocal) {
+                    endedPause = !!(await endPauseOnCheckin(userId, habitGoalId, todayLocal));
+                }
+
                 // This habit's notification switches, for the sends below. One
                 // resolver for the request, so the streak notifications and the
                 // partner fan-out share a single read per (user, habit) pair.
@@ -486,6 +497,25 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                 if (lastCompletedStr && streak.currentStreak > 0 && !isBeforeLastCompletion) {
                     const pactIds = pacts.map((p: any) => p.id);
 
+                    // Days the user had this habit paused are never misses — the whole promise of
+                    // pausing. Read only when there is something to judge, so an ordinary
+                    // consecutive check-in pays nothing for it: a day-unit cadence judges only the
+                    // days strictly inside the gap, a quota only weeks that closed in it. A quota
+                    // judges the whole week of the last completion, so its window starts on that
+                    // week's Monday — a pause earlier in that week still excuses it.
+                    const isQuota = cadence.kind === 'weeklyQuota';
+                    const hasGapToJudge = isQuota
+                        ? getWeekStart(lastCompletedStr) < getWeekStart(checkinDate)
+                        : daysBetween(lastCompletedStr, checkinDate) > 1;
+                    const excusedDates = hasGapToJudge
+                        ? await loadExcusedDatesForHabit(
+                            userId,
+                            habitGoalId,
+                            isQuota ? getWeekStart(lastCompletedStr) : lastCompletedStr,
+                            checkinDate,
+                        )
+                        : new Set<string>();
+
                     // Majority-day protection: a day the user's pact carried (a majority of its
                     // active members checked in) is not held against the user's personal streak.
                     // The group won that day; the rules should not reset a member for a day they
@@ -523,6 +553,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                             throughDate: checkinDate,
                             completedDates: completedDatesInGap,
                             effectiveFrom: cadenceEffectiveFrom,
+                            excusedDates,
                         });
                     } else {
                         // Day-unit cadences (daily, fixed weekdays) are decided from the gap's
@@ -533,6 +564,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                             lastCompletedDate: lastCompletedStr,
                             throughDate: checkinDate,
                             effectiveFrom: cadenceEffectiveFrom,
+                            excusedDates,
                         });
                         const coveredDays = pactIds.length
                             ? await Store.pactStreakDays.countCoveredDatesForPacts(
@@ -968,6 +1000,8 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                 graceDaysConsumed,
                 streakSavedByFreeze,
                 dailyStreak,
+                // True only when this check-in ended a pause on the habit.
+                ...(endedPause ? { endedPause } : {}),
                 // Absent on a non-savings check-in. See ISavingsProgress — a savings
                 // habit with nothing saved yet returns zeroed totals, not absence.
                 ...(savings ? {

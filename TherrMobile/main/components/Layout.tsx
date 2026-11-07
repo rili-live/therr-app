@@ -86,7 +86,8 @@ import { openSupportEmail } from '../utilities/supportContact';
 import { reportPushOpen } from '../utilities/pushOpenTracking';
 import { getIntentNavigation } from '../utilities/intentNavigation';
 import { navigationRef, RootNavigation } from './RootNavigation';
-import celebrationQueue, { enqueueCelebrationsFromSummary } from '../utilities/celebrationQueue';
+import celebrationQueue, { enqueueCelebrationsFromSummary, enqueueCompanionCelebration } from '../utilities/celebrationQueue';
+import { checkCompanionStageUp } from '../utilities/companionCelebration';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
 import SplashLogoSpinner from './SplashLogoSpinner';
@@ -273,6 +274,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private fcmRegistrationStarted = false;
     private appStateListener: NativeEventSubscription | null = null;
     private lastBackgroundedAt: number | null = null;
+
+    /**
+     * Set once this session's achievements fetch lands. The companion stage-up check waits for
+     * it: the persisted `user` slice can hold a stale or empty achievement list at launch, and
+     * a stage computed from that would be recorded as the baseline — turning the real list's
+     * arrival into a false multi-stage "your chameleon grew".
+     */
+    private hasLoadedAchievementsThisSession = false;
     private appReviewPromptTimeout: ReturnType<typeof setTimeout> | null = null;
     private lastAppUpdateCheckAt = 0;
     private appUpdateRecommendedVersion: string | null = null;
@@ -393,6 +402,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             this.reloadTheme(true);
         }
 
+        // New achievements (the Achievements screen refreshing, a foreground refetch) may have
+        // grown the habit companion.
+        if (prevProps.user?.achievements !== user?.achievements) {
+            this.checkCompanionCelebration();
+        }
+
         if (user?.isAuthenticated !== prevProps.user?.isAuthenticated) {
             if (user.isAuthenticated) { // Happens after login
                 // One-shot drain: if the user opened a /claim-pact/<token> link
@@ -501,6 +516,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 // Anything still queued belongs to the account that just left; the next
                 // sign-in fetches its own.
                 celebrationQueue.reset();
+                this.hasLoadedAchievementsThisSession = false;
             }
         }
     }
@@ -623,6 +639,43 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     enqueueCelebrationsFromSummary(summary);
                 }
             })
+            .catch(() => {});
+
+        // The companion can grow while the app is away — an achievement earned through a
+        // partner's action, or simply the account getting old enough for the next stage. Until
+        // the launch prefetch has landed there is nothing to refresh; it runs the check itself.
+        if (this.hasLoadedAchievementsThisSession) {
+            this.props.getMyAchievements()
+                .then(() => this.checkCompanionCelebration())
+                .catch(() => {});
+        }
+    };
+
+    /**
+     * Queue the habit companion's stage-up celebration if it has grown since this device last
+     * showed it. Decided on the device (utilities/companionCelebration.ts), unlike the streak
+     * and placement celebrations, because the companion's stage is derived here. Silent on
+     * failure for the same reason as the fetch above.
+     */
+    checkCompanionCelebration = () => {
+        if (!this.hasLoadedAchievementsThisSession
+            || !this.isUserAuthenticated()
+            || CURRENT_BRAND_VARIATION !== BrandVariations.HABITS) {
+            return;
+        }
+        const { user } = this.props;
+        const userId = user?.details?.id ? String(user.details.id) : '';
+        if (!userId) {
+            return;
+        }
+
+        checkCompanionStageUp({
+            userId,
+            achievements: user.achievements,
+            accountCreatedAt: user.details?.createdAt,
+            brandVariation: CURRENT_BRAND_VARIATION,
+        })
+            .then((stageUp) => enqueueCompanionCelebration(userId, stageUp))
             .catch(() => {});
     };
 
@@ -941,7 +994,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 beginPrefetchRequest({
                     isLoadingAchievements: true,
                 });
-                getMyAchievements().catch((err) => {
+                getMyAchievements().then(() => {
+                    this.hasLoadedAchievementsThisSession = true;
+                    this.checkCompanionCelebration();
+                }).catch((err) => {
                     console.log(err);
                 }).finally(() => {
                     completePrefetchRequest({
@@ -1385,6 +1441,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const weekStartDate = typeof data?.weekStartDate === 'string' && data.weekStartDate
             ? data.weekStartDate
             : undefined;
+        // Set on a single-habit streak nudge whose streak has no freezes left and whose habit can
+        // be paused (users-service `markPauseOffers`). FCM data is string->string, so "true".
+        const offersPause = data?.offerPause === 'true' || data?.offerPause === true;
 
         // Falls back to the dashboard rather than to the in-app Notifications
         // list. That list has no habits rows at all — `Notifications.Types`
@@ -1556,12 +1615,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             // Anything asking the user to check in opens the habit itself, with
             // the dashboard's habits segment when it cannot name one — that is
             // the segment listing the habits the user can check in on.
+            // A streak nudge that offered "Pause" opens the habit with the pause prompt beside the
+            // check-in, so a body tap — the only tap iOS has, with no action buttons — still
+            // reaches both answers the copy names.
             case PushNotifications.Types.streakAtRisk:
+            case PushNotifications.Types.eveningCheckIn:
+                return offersPause && habitGoalId
+                    ? { targetRouteView: 'HabitDetail', targetRouteParams: { habitGoalId, pauseOffer: 'suggest' } }
+                    : buildHabitRoute('habits');
             case PushNotifications.Types.dailyHabitReminder:
             case PushNotifications.Types.morningMotivation:
-            case PushNotifications.Types.eveningCheckIn:
             case PushNotifications.Types.habitMaintenanceCheckIn:
             case PushNotifications.Types.habitComeback:
+            // "Ready to come back?" for a paused habit: the habit itself, where Resume is.
+            case PushNotifications.Types.habitPauseReminder:
                 return buildHabitRoute('habits');
 
             // Celebrations and lifecycle milestones
@@ -1921,6 +1988,26 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             // since they shipped, and every one of them fell through to the
             // type fallback below, which sent the user to the in-app
             // Notifications list — a screen with no habits rows in it.
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.habitPause) {
+                // "Pause" on a streak nudge with no freezes left. Navigation only: pausing changes
+                // what the user's streaks promise, so it is confirmed on the habit's own screen,
+                // where the pause dialog opens on arrival and says exactly what will happen.
+                const pauseHabitGoalId = typeof notification?.data?.habitGoalId === 'string'
+                    && notification.data.habitGoalId
+                    ? notification.data.habitGoalId
+                    : undefined;
+                const pauseRoute = pauseHabitGoalId
+                    ? { targetRouteView: 'HabitDetail', targetRouteParams: { habitGoalId: pauseHabitGoalId, pauseOffer: 'open' } }
+                    : { targetRouteView: 'HabitsDashboard', targetRouteParams: { initialTab: 'habits' } };
+
+                if (!isUserAuthorized) {
+                    this.setState(pauseRoute);
+                    return Promise.resolve();
+                }
+                RootNavigation.navigate(pauseRoute.targetRouteView, pauseRoute.targetRouteParams);
+                return Promise.resolve();
+            }
+
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.habitCheckin) {
                 // The killed-app case is handled by notifee.onBackgroundEvent in
                 // TherrMobile/index.js, which completes the check-in without

@@ -108,7 +108,7 @@
     },
     "unclaimedAchievementsReminder": {
       "title": "Des récompenses t'attendent",
-      "body": "Tu as {achievementsCount} récompense(s) non réclamée(s) — ne les laisse pas passer!"
+      "body": "Tu as {achievementsCount} récompense(s) qui t'attendent — appuie pour les récupérer."
     },
     "unreadNotificationsReminder": {
       "title": "Tu as des nouveautés",
@@ -119,11 +119,12 @@
       "body": "Partage ton lien d'invitation et vous gagnerez tous les deux des récompenses quand tes amis s'inscriront!"
     },
     "streakAtRisk": {
-      "title": "Ne brise pas ta série",
-      "body": "Ta série de {streakCount} jours sur {habitName} est en jeu — enregistre-toi avant minuit pour la garder.",
-      "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} est en jeu. Un gel de série couvrira ce soir si tu manques ({freezesRemaining} restant(s)) — mais t'enregistrer te le garde en réserve.",
-      "bodyMultiple": "{habitCount} séries sont en jeu — {habitNames}. Enregistre-toi avant minuit pour les garder.",
-      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName} cette semaine, et il reste {daysLeft} jour(s). Garde tes {streakCount} d'affilée."
+      "title": "Continue ta série",
+      "body": "Ta série de {streakCount} jours sur {habitName} t'attend aujourd'hui. Un suivi avant la fin de la journée la prolonge.",
+      "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} t'attend aujourd'hui. Un gel de série te couvre si tu manques ({freezesRemaining} restant(s)) — et t'enregistrer te le garde en réserve.",
+      "bodyMultiple": "{habitCount} séries t'attendent aujourd'hui — {habitNames}. Enregistre-toi avant la fin de la journée pour les prolonger.",
+      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName} cette semaine, et il reste {daysLeft} jour(s). Garde tes {streakCount} d'affilée.",
+      "bodyOfferPause": "Ta série de {streakCount} jours sur {habitName} t'attend aujourd'hui et tu n'as plus de gels de série. Fais ton suivi avant la fin de la journée pour la prolonger — ou mets-la en pause si tu as besoin d'un répit."
     },
     "streakFreezeUsed": {
       "title": "Ta série a tenu",
@@ -148,7 +149,7 @@
     },
     "partnerCheckedIn": {
       "title": "{partnerName} vient de s'enregistrer",
-      "body": "{partnerName} a atteint le jour {streakCount} sur {habitName} — ne te laisse pas distancer."
+      "body": "{partnerName} a atteint le jour {streakCount} sur {habitName} — enregistre-toi et gardez le rythme ensemble."
     },
     "partnerMissedDay": {
       "title": "{partnerName} a manqué un jour",
@@ -248,7 +249,7 @@
       "dayTwo": {
         "title": "Jour 2 de {habitName}",
         "body": "Hier, tu as commencé. Aujourd’hui, ça devient une série.",
-        "bodyWithPartner": "{partnerName} compte sur toi. Aujourd’hui, ça devient une série."
+        "bodyWithPartner": "{partnerName} est avec toi là-dedans. Aujourd’hui, ça devient une série."
       },
       "comeback": {
         "title": "{habitName} t’attend toujours",
@@ -271,11 +272,12 @@
       "body": "Aujourd'hui est une nouvelle chance de bâtir l'habitude à laquelle tu t'es engagé. Allons-y."
     },
     "eveningCheckIn": {
-      "title": "Dernière chance ce soir",
-      "body": "Ta série de {streakCount} jours sur {habitName} se termine à minuit. Un seul suivi la garde en vie.",
-      "bodyWithFreeze": "Ta série de {streakCount} jours sur {habitName} se termine à minuit. Un gel de série te couvrira ({freezesRemaining} restant(s)) — mais t'enregistrer maintenant te le garde en réserve.",
-      "bodyMultiple": "Dernier appel pour {habitCount} séries — {habitNames}. Enregistre-toi avant minuit pour les garder.",
-      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName}, avec {daysLeft} jour(s) restants — il te les faut tous. Enregistre-toi ce soir."
+      "title": "Ta chance de prolonger ta série",
+      "body": "Prolonge ta série de {streakCount} jours sur {habitName} avant la fin de la soirée. Un seul suivi suffit.",
+      "bodyWithFreeze": "Prolonge ta série de {streakCount} jours sur {habitName} avant la fin de la soirée. Un gel de série te couvre ({freezesRemaining} restant(s)) — et t'enregistrer maintenant te le garde en réserve.",
+      "bodyMultiple": "Il reste du temps ce soir pour prolonger {habitCount} séries — {habitNames}.",
+      "bodyWeekly": "{weekDone} sur {weekTarget} pour {habitName}, avec {daysLeft} jour(s) restants. Un suivi ce soir garde ta semaine sur la bonne voie.",
+      "bodyOfferPause": "Prolonge ta série de {streakCount} jours sur {habitName} avant la fin de la soirée — ou, sans gel restant, mets-la en pause pour la protéger pendant ton répit."
     },
     "weeklyRecap": {
       "title": "Ta semaine en revue",
@@ -304,11 +306,29 @@
       "title": "Envie de relancer {habitName}?",
       "body": "Tu l'as déjà tenue {bestStreakCount} jours — ça ne s'efface pas. Prêt à repartir sur une nouvelle série?"
     },
+    "habitPauseReminder": {
+      "week": {
+        "title": "Prêt à reprendre {habitName}?",
+        "body": "Ça fait une semaine que tu as mis en pause. Reprends quand tu veux : un seul suivi relance tout.",
+        "bodyWithStreak": "Ça fait une semaine que tu as mis en pause. Ta série de {streakCount} jours est là où tu l'as laissée : un seul suivi la relance."
+      },
+      "twoWeeks": {
+        "title": "Toujours en pause pour {habitName}?",
+        "body": "Deux semaines en pause. Un petit suivi aujourd'hui, c'est tout ce qu'il faut pour repartir.",
+        "bodyWithStreak": "Deux semaines en pause, et ta série de {streakCount} jours est toujours protégée. Un petit suivi aujourd'hui la relance."
+      },
+      "final": {
+        "title": "Dernier rappel pour {habitName}",
+        "body": "Un mois en pause. C'est la dernière fois qu'on te le demande : reprends quand tu es prêt, ou archive-le s'il a fait son temps.",
+        "bodyWithStreak": "Un mois en pause. Ta série de {streakCount} jours reste sauvegardée, et c'est la dernière fois qu'on te le demande : reprends quand tu es prêt, ou archive-le s'il a fait son temps."
+      }
+    },
     "shared": {
       "pressActionCheckIn": "S'enregistrer",
       "pressActionLogAmount": "Inscrire le montant",
       "pressActionRenew": "Nouveau cycle",
-      "pressActionView": "Voir"
+      "pressActionView": "Voir",
+      "pressActionPause": "Pause"
     }
   },
   "validation": "Les paramètres requis n'ont pas été fournis."

@@ -36,6 +36,7 @@ jest.mock('../../main/components/RootNavigation', () => ({
 
 import celebrationQueue, {
     enqueueCelebrationsFromSummary,
+    enqueueCompanionCelebration,
     enqueuePlacementCelebrations,
     enqueueStreakCelebration,
     ICelebration,
@@ -302,5 +303,46 @@ describe('celebrationQueue — building from a daily-streak summary', () => {
         expect(navigatedTypes()).toEqual(['placement']);
         celebrationQueue.onDismissed();
         expect(navigatedTypes()).toEqual(['placement', 'streak']);
+    });
+});
+
+describe('celebrationQueue — companion stage-up', () => {
+    const stageUp = {
+        stageId: 'juvenile' as const, stageIndex: 2, fromStageId: 'hatchling' as const, fromStageIndex: 1,
+    };
+
+    beforeEach(() => {
+        navigate.mockClear();
+        celebrationQueue.reset();
+    });
+
+    it('comes after the placement and the streak — it is the encore', () => {
+        celebrationQueue.block();
+        enqueueCompanionCelebration('user-1', stageUp);
+        celebrationQueue.enqueue(streak());
+        celebrationQueue.enqueue(placement());
+        celebrationQueue.unblock();
+        celebrationQueue.onDismissed();
+        celebrationQueue.onDismissed();
+
+        expect(navigatedTypes()).toEqual(['placement', 'streak', 'companion']);
+        expect(navigate.mock.calls[2][1]).toMatchObject({ type: 'companion', userId: 'user-1', stageId: 'juvenile' });
+    });
+
+    it('drops a repeat of the same stage-up, but not a different stage', () => {
+        celebrationQueue.block();
+        enqueueCompanionCelebration('user-1', stageUp);
+        enqueueCompanionCelebration('user-1', stageUp);
+        enqueueCompanionCelebration('user-1', { ...stageUp, stageId: 'adult', stageIndex: 3 });
+
+        expect(celebrationQueue.size).toBe(2);
+    });
+
+    it('queues nothing when no stage-up is owed', () => {
+        enqueueCompanionCelebration('user-1', null);
+        enqueueCompanionCelebration('', stageUp);
+
+        expect(celebrationQueue.size).toBe(0);
+        expect(navigate).not.toHaveBeenCalled();
     });
 });

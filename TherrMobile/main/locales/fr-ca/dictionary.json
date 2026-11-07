@@ -463,6 +463,42 @@
             "title": "Complétez votre profil",
             "stepsLeft": "Il reste {count} étapes",
             "stepLeft": "Il reste 1 étape"
+        },
+        "habitCompanion": {
+            "overline": "Votre compagnon d'habitudes",
+            "stageOf": "Étape {stage} sur {total}",
+            "tapHint": "Touchez pour changer sa couleur",
+            "a11yLabel": "Votre compagnon d'habitudes : {stageName}. Étape {stage} sur {total}.",
+            "nextStage": "Prochaine étape : {stageName}",
+            "achievementsProgress": "Réalisations : {count} / {total}",
+            "daysProgress": "Jours ensemble : {count} / {total}",
+            "fullyGrown": "Entièrement grandi! Gardez vos séries en vie pour qu'il continue de briller.",
+            "stages": {
+                "egg": {
+                    "name": "Œuf",
+                    "caption": "Quelque chose bouge à l'intérieur. Obtenez votre première réalisation pour le faire éclore."
+                },
+                "hatchling": {
+                    "name": "Bébé",
+                    "caption": "Tout juste sorti de sa coquille, il vous observe. Continuez vos suivis."
+                },
+                "juvenile": {
+                    "name": "Petit grimpeur",
+                    "caption": "Il grandit vite et s'agrippe bien. Vos habitudes prennent racine."
+                },
+                "adult": {
+                    "name": "Caméléon",
+                    "caption": "Stable, sûr de lui et plein de couleurs, comme votre routine."
+                },
+                "champion": {
+                    "name": "Champion du changement",
+                    "caption": "Couronné de toutes les couleurs. Vous avez bâti des habitudes durables."
+                }
+            },
+            "celebration": {
+                "title": "Votre compagnon d'habitudes a grandi!",
+                "titleHatched": "Votre œuf a éclos!"
+            }
         }
     },
     "forms": {
@@ -2103,6 +2139,43 @@
                 "successMessageAwaitingPartner": "Nous arrêtons les rappels. Elle reviendra si un partenaire se joint.",
                 "hint": "Conserve vos pointages et votre historique de séries. Libère une place d’habitude."
             },
+            "pause": {
+                "sectionTitle": "Besoin d'une pause?",
+                "button": "Mettre en pause",
+                "hint": "Garde ta série à l'abri pendant que tu prends du recul. Les jours en pause ne comptent jamais contre toi.",
+                "cooldownHint": "Tu as repris cette habitude récemment. Tu pourras la remettre en pause le {date}.",
+                "explainerTitle": "Mettre {habitName} en pause?",
+                "explainerIntro": "Ça arrive. La pause protège ce que tu as bâti pendant que tu prends du recul. Voici à quoi t'attendre :",
+                "explainerStreak": "Ta série de {count} jours est sauvegardée. Les jours en pause ne la brisent pas et n'utilisent pas de gel de série.",
+                "explainerStreakNone": "Les jours en pause ne comptent pas comme des oublis et n'utilisent pas de gel de série.",
+                "explainerOverall": "Les jours en pause ne comptent pas non plus contre ta série globale.",
+                "explainerReminders": "Tes rappels quotidiens pour cette habitude s'arrêtent. On te fera signe après 7 jours, 14 jours et 1 mois — puis on arrêtera de demander.",
+                "explainerResume": "Touche Reprendre ou fais un suivi quand tu veux pour recommencer. Le jour où tu reviens compte comme un jour normal.",
+                "explainerPact": "Ton pacte continue. La pause protège tes propres séries, pas la série partagée du pacte — préviens ton partenaire.",
+                "explainerCooldown": "Une fois reprise, tu pourras remettre cette habitude en pause après {days} jours.",
+                "confirmButton": "Mettre en pause",
+                "cancelButton": "Pas maintenant",
+                "successTitle": "Habitude en pause",
+                "successMessage": "Ta série est à l'abri. On te fera signe le {date}.",
+                "errorMessage": "Impossible de mettre cette habitude en pause. Réessaie.",
+                "bannerTitle": "En pause",
+                "bannerBody": "En pause depuis le {date}. Ta série de {count} jours t'attend.",
+                "bannerBodyNoStreak": "En pause depuis le {date}. Rien ne compte contre toi pendant ton absence.",
+                "bannerNextReminder": "On te fera signe le {date}. Faire un suivi reprend cette habitude.",
+                "bannerNoMoreReminders": "On n'enverra plus de rappels — reprends quand tu es prêt. Faire un suivi reprend cette habitude.",
+                "resumeButton": "Reprendre",
+                "resumeSuccessTitle": "Bon retour!",
+                "resumeSuccessMessage": "{habitName} est de nouveau active. Aujourd'hui compte.",
+                "resumeUndoneMessage": "Pause annulée — rien n'a changé.",
+                "resumeErrorMessage": "Impossible de reprendre cette habitude. Réessaie.",
+                "endedByCheckin": "Bon retour — {habitName} n'est plus en pause.",
+                "cardChip": "En pause",
+                "cardStreakSaved": "En pause · série de {count} jours sauvegardée",
+                "cardNoStreak": "En pause · rien ne compte contre toi",
+                "explainerIntroAtRisk": "Tu n'as plus de gels de série, alors manquer aujourd'hui mettrait fin à ta série de {count} jours. Mets en pause maintenant et elle reste à l'abri jusqu'à ton retour. Voici à quoi t'attendre :",
+                "offerCallout": "Plus de gels de série et pas possible aujourd'hui? Mets cette habitude en pause pour garder ta série de {count} jours à l'abri.",
+                "alreadyPaused": "Cette habitude est déjà en pause — ta série est à l'abri."
+            },
             "habitNotFound": "Habitude introuvable",
             "checkinProof": {
                 "notePlaceholder": "Comment ça s'est passé? Une réussite à partager?",
@@ -2138,7 +2211,6 @@
                         "group": "Joignez-vous à ce pacte de groupe et gagnez plus de points grâce aux réalisations de pacte.",
                         "partner": "{name} cherche un partenaire de responsabilité. Joignez-vous et gagnez des points ensemble."
                     },
-                    "requestedCancel": "Demandé · Annuler la demande",
                     "seeAll": "Voir tous les pactes ouverts"
                 }
             },
@@ -2912,22 +2984,28 @@
                 "listTitle": "Pactes ouverts",
                 "listSubtitle": "Des pactes ouverts à de nouveaux partenaires. Demande à t'y joindre et la personne qui l'a créé décide.",
                 "listSubtitleHabit": "Pactes ouverts pour {habitName}. Demande à t'y joindre et la personne qui l'a créé décide.",
-                "rowDetail": "Par {name} · {count} places sur {seats} · {days} jours",
-                "rowDetailNoSeats": "Par {name} · {count} membres · {days} jours",
                 "loadErrorTitle": "Impossible de charger les pactes ouverts",
                 "loadErrorHint": "Vérifie ta connexion et réessaie.",
                 "retry": "Réessayer",
                 "rowRunning": "Déjà en cours",
                 "rowStarting": "Commence dès que quelqu'un se joint",
                 "askToJoin": "Demander à me joindre",
-                "requested": "Demandé",
                 "askToJoinFor": "Demander à te joindre au pacte de {name}",
                 "cancelRequestFor": "Annuler ta demande à {name}",
                 "requestSentTitle": "Demande envoyée",
                 "requestSentMessage": "On te fera signe quand {name} répondra.",
                 "requestError": "On n'a pas pu envoyer cette demande. Réessaie.",
                 "emptyTitle": "Aucun pacte ouvert pour cette habitude pour l'instant",
-                "emptyHint": "Ouvre ton propre pacte pour que d'autres le trouvent, ou reviens plus tard."
+                "emptyHint": "Ouvre ton propre pacte pour que d'autres le trouvent, ou reviens plus tard.",
+                "startedBy": "Lancé par {name}",
+                "durationChip": "{days} jours",
+                "spotsLeft": "{count} places restantes",
+                "spotsLeftOne": "1 place restante",
+                "spotsFilled": "{count} sur {total} prises",
+                "memberCount": "{count} membres",
+                "memberCountOne": "1 membre",
+                "requestedStatus": "Demande envoyée",
+                "cancelRequest": "Annuler la demande"
             }
         },
         "pushOptIn": {

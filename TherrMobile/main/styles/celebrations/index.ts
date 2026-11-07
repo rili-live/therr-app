@@ -44,6 +44,15 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             letterSpacing: -2,
             color: therrTheme.colors.textWhite,
         },
+        // The companion's new stage name ("Change Champion") — a word, not a number, so it gets
+        // a heading size rather than bigNumber's 88.
+        companionStageName: {
+            fontSize: 34,
+            lineHeight: 40,
+            fontWeight: '800',
+            textAlign: 'center',
+            color: therrTheme.colors.textWhite,
+        },
         label: {
             fontSize: 24,
             fontWeight: '700',

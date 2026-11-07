@@ -7,6 +7,7 @@ import { IUserState } from 'therr-react/types';
 import { showToast } from '../../utilities/toasts';
 import { RefreshControl } from 'react-native-gesture-handler';
 import { getAchievementsForBrand } from 'therr-js-utilities/config';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -23,6 +24,11 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import { buildStyles as buildAchievementStyles } from '../../styles/achievements';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import AchievementTile from './AchievementTile';
+import HabitCompanionCard from '../../components/HabitCompanion/HabitCompanionCard';
+
+// The growing chameleon companion is a Friends with Habits feature: its stages are tuned to
+// the habits achievement ladder, which no other brand earns.
+const isHabitCompanionEnabled = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
 
 interface IAchievementsDispatchProps {
     claimMyAchievement: Function;
@@ -167,6 +173,21 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
 
         navigation.navigate('Leaderboard');
     };
+
+    renderListHeader = () => (
+        <>
+            {isHabitCompanionEnabled && (
+                <HabitCompanionCard
+                    achievements={this.props.user.achievements}
+                    accountCreatedAt={this.props.user.details?.createdAt}
+                    brandVariation={CURRENT_BRAND_VARIATION}
+                    themeAchievements={this.themeAchievements}
+                    translate={this.translate as (key: string, params?: any) => string}
+                />
+            )}
+            {this.renderLeaderboardLink()}
+        </>
+    );
 
     renderLeaderboardLink = () => (
         <Pressable
@@ -340,7 +361,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
                                 userAchievement={item}
                             />}
                             renderSectionHeader={this.renderSectionHeader}
-                            ListHeaderComponent={this.renderLeaderboardLink()}
+                            ListHeaderComponent={this.renderListHeader()}
                             contentContainerStyle={this.themeAchievements.styles.listContentContainer}
                             refreshControl={<RefreshControl
                                 refreshing={isRefreshing}

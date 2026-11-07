@@ -19,6 +19,16 @@ import {
 import { describeWeekProgress, getCadence } from '../utilities/habitCadence';
 import { attachAmountTotals } from './helpers/savings';
 import resolveWeekBounds from './helpers/weekBounds';
+import { queuePauseReminders } from './helpers/habitPause';
+import { getLocalDate, resolveCheckinTimeZone } from '../utilities/dailyStreak';
+import {
+    formatLocalDateForLocale,
+    getDaysPaused,
+    getPauseEligibility,
+    getPauseReminderSchedule,
+    PAUSE_COOLDOWN_DAYS,
+    PAUSE_REMINDER_DAYS,
+} from '../utilities/habitPause';
 
 /**
  * Personal ("solo") habits — habits tracked without an accountability partner.
@@ -51,6 +61,46 @@ import resolveWeekBounds from './helpers/weekBounds';
  */
 
 /**
+ * Attach the habit's pause state in the shape the client renders, so the client never has to
+ * re-derive a rule from utilities/habitPause.ts:
+ *
+ *   - `pause` — set only while paused: when it began, how long it has run, the streak it is
+ *     holding, and which of the 7/14/30-day resume reminders are still to come.
+ *   - `pauseAvailableOn` — set only while the re-pause cooldown is running.
+ *
+ * Both are always present, as null when they do not apply, so a client that merges a habit
+ * into its cached copy (as the therr-react reducer does) clears them on resume instead of
+ * keeping a stale pause. An older server sends neither; treat `undefined` like `null`.
+ *
+ * `today` is the user's local day (`resolveWeekBounds`). It is required, not defaulted: a UTC
+ * stand-in would put "days paused" and the cooldown date a day off for users far from UTC.
+ */
+const withPauseState = <T extends IUserHabitDetail>(habit: T, today: string) => {
+    const result: any = { ...habit, pause: null, pauseAvailableOn: null };
+
+    if (habit.pauseId && habit.pausedOn) {
+        const daysPaused = getDaysPaused(habit.pausedOn, today);
+        result.pause = {
+            id: habit.pauseId,
+            pausedOn: habit.pausedOn,
+            daysPaused,
+            streakAtPause: Number(habit.streakAtPause) || 0,
+            upcomingReminderDays: PAUSE_REMINDER_DAYS.filter((day) => day > daysPaused),
+        };
+        return result;
+    }
+
+    const eligibility = getPauseEligibility({
+        lastClosedPause: habit.lastResumedOn ? { resumedOn: habit.lastResumedOn } : null,
+        today,
+    });
+    if (!eligibility.canPause && eligibility.reason === 'cooldown') {
+        result.pauseAvailableOn = eligibility.availableOn;
+    }
+    return result;
+};
+
+/**
  * Attach "where you stand in your week" to each habit.
  *
  * Derived server-side rather than by the client, because deciding what a cadence asks for is
@@ -60,13 +110,14 @@ import resolveWeekBounds from './helpers/weekBounds';
  * Omitted entirely when the tally is NULL (no resolvable week). A client must read its absence
  * as "unknown", never as zero.
  */
-const withWeekProgress = (userHabits: IUserHabitDetail[], today?: string) => userHabits.map((habit) => {
-    if (!today || habit.completionsEarlierThisWeek === null || habit.completionsEarlierThisWeek === undefined) {
-        return habit;
+const withWeekProgress = (userHabits: IUserHabitDetail[], today: string) => userHabits.map((habit) => {
+    const withPause = withPauseState(habit, today);
+    if (habit.completionsEarlierThisWeek === null || habit.completionsEarlierThisWeek === undefined) {
+        return withPause;
     }
 
     return {
-        ...habit,
+        ...withPause,
         weekProgress: describeWeekProgress(
             getCadence(habit),
             today,
@@ -108,7 +159,7 @@ const getUserHabits: RequestHandler = async (req: any, res: any) => {
     return Store.userHabits.getDetailByUser(userId, status, weekBounds)
         .then(attachAmountTotals)
         .then((userHabits) => res.status(200).send({
-            userHabits: withWeekProgress(userHabits, weekBounds?.today),
+            userHabits: withWeekProgress(userHabits, weekBounds.today),
         }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_HABITS_ROUTES:ERROR' }));
 };
@@ -238,13 +289,21 @@ const createUserHabit: RequestHandler = async (req: any, res: any) => {
         const [detail] = await Store.userHabits.getDetailByUser(userId, 'active', weekBounds)
             .then((rows) => withWeekProgress(
                 rows.filter((row) => row.habitGoalId === resolvedGoalId),
-                weekBounds?.today,
+                weekBounds.today,
             ));
 
         return res.status(201).send(detail || userHabit);
     } catch (err: any) {
         return handleHttpError({ err, res, message: 'SQL:USER_HABITS_ROUTES:ERROR' });
     }
+};
+
+/** The user's zone, resolved the way every habits read resolves it. Fails soft to the fallback. */
+const resolveUserTimeZone = async (userId: string, deviceTimezone?: unknown): Promise<string> => {
+    const [user] = await Store.users
+        .getUserById(userId, ['id', 'settingsTimezone'])
+        .catch(() => [] as any[]);
+    return resolveCheckinTimeZone(user?.settingsTimezone, deviceTimezone);
 };
 
 // UPDATE
@@ -260,6 +319,13 @@ const archiveUserHabit: RequestHandler = async (req: any, res: any) => {
     return Store.userHabits.setStatus(id, userId, 'archived')
         .then(async (updated) => {
             if (updated) {
+                // Archiving ends a pause: the habit has left the list, so there is nothing to
+                // come back to, and a restored habit should not reappear as paused. The pending
+                // resume reminders are dropped at send time because the habit is archived.
+                // Best-effort — a pause left open on an archived habit excuses nothing, because
+                // archived habits are already outside every streak read.
+                const timeZone = await resolveUserTimeZone(userId, req.body?.timeZone);
+                await Store.habitPauses.close(userId, updated.habitGoalId, getLocalDate(timeZone)).catch(() => undefined);
                 return res.status(200).send(updated);
             }
 
@@ -314,6 +380,144 @@ const restoreUserHabit: RequestHandler = async (req: any, res: any) => {
     return Store.userHabits.setStatus(id, userId, 'active')
         .then((updated) => res.status(200).send(updated || existing))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_HABITS_ROUTES:ERROR' }));
+};
+
+/** The habit's detail row after a pause or resume, in the same shape the list endpoint returns. */
+const readDetail = async (userId: string, habitGoalId: string, deviceTimezone?: unknown) => {
+    const weekBounds = await resolveWeekBounds(userId, deviceTimezone);
+    const [detail] = await Store.userHabits.getDetailByUser(userId, undefined, weekBounds)
+        .then((rows) => withWeekProgress(
+            rows.filter((row) => row.habitGoalId === habitGoalId),
+            weekBounds.today,
+        ));
+    return detail;
+};
+
+/**
+ * Pause a habit — see utilities/habitPause.ts for exactly what that protects and what it does not.
+ *
+ * From today, the habit asks nothing of the user: its streak holds where it is, it costs no
+ * freezes, and it cannot break the overall daily streak. Its reminders stop, and three "ready to
+ * come back?" pushes are queued for 7, 14 and 30 days out. The response carries the reminder
+ * dates so the client can tell the user exactly when to expect them.
+ *
+ * Refused (409) for a habit already paused, for one inside the re-pause cooldown, and for an
+ * archived one. A lost race against a concurrent pause is answered like a successful one: the
+ * habit is paused either way.
+ */
+const pauseUserHabit: RequestHandler = async (req: any, res: any) => {
+    const { locale, userId } = parseHeaders(req.headers);
+    const { id } = req.params;
+
+    try {
+        const existing = await Store.userHabits.getById(id);
+
+        if (!existing || existing.userId !== userId) {
+            return handleHttpError({ res, message: `Habit not found with id ${id}`, statusCode: 404 });
+        }
+
+        if (existing.status !== 'active') {
+            return res.status(409).send({
+                error: 'habit-archived',
+                message: translate(locale, 'errorMessages.habits.pauseArchivedHabit'),
+            });
+        }
+
+        const timeZone = await resolveUserTimeZone(userId, req.body?.timeZone);
+        const today = getLocalDate(timeZone);
+        const { habitGoalId } = existing;
+
+        const [openPause, lastClosedPause] = await Promise.all([
+            Store.habitPauses.getOpen(userId, habitGoalId),
+            Store.habitPauses.getLastClosed(userId, habitGoalId),
+        ]);
+        const eligibility = getPauseEligibility({ openPause, lastClosedPause, today });
+
+        if (!eligibility.canPause && eligibility.reason === 'already-paused') {
+            return res.status(409).send({
+                error: 'habit-already-paused',
+                message: translate(locale, 'errorMessages.habits.pauseAlreadyPaused'),
+                habit: await readDetail(userId, habitGoalId, req.body?.timeZone),
+            });
+        }
+
+        if (!eligibility.canPause && eligibility.reason === 'cooldown') {
+            return res.status(409).send({
+                error: 'habit-pause-cooldown',
+                message: translate(locale, 'errorMessages.habits.pauseCooldown', {
+                    date: formatLocalDateForLocale(eligibility.availableOn, locale, today),
+                }),
+                pauseAvailableOn: eligibility.availableOn,
+                pauseCooldownDays: PAUSE_COOLDOWN_DAYS,
+            });
+        }
+
+        const [streak, goal] = await Promise.all([
+            Store.streaks.getByUserAndHabit(userId, habitGoalId),
+            Store.habitGoals.getById(habitGoalId),
+        ]);
+
+        const pause = await Store.habitPauses.create({
+            userId,
+            habitGoalId,
+            pausedOn: today,
+            streakAtPause: Number(streak?.currentStreak) || 0,
+        });
+
+        // Only the request that actually opened the pause queues its reminders. A double-tap
+        // finds the row the first tap wrote and simply reports it.
+        const reminders = pause
+            ? await queuePauseReminders({
+                pause,
+                timeZone,
+                locale: locale || 'en-us',
+                habitName: goal?.name || '',
+            })
+            : getPauseReminderSchedule({ pausedOn: today, timeZone, pausedAt: new Date() });
+
+        return res.status(200).send({
+            habit: await readDetail(userId, habitGoalId, req.body?.timeZone),
+            reminders: reminders.map((reminder) => ({
+                dayCount: reminder.dayCount,
+                localDate: reminder.localDate,
+            })),
+            pauseCooldownDays: PAUSE_COOLDOWN_DAYS,
+        });
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:USER_HABITS_ROUTES:ERROR' });
+    }
+};
+
+/**
+ * Resume a paused habit. From today it is an ordinary habit again — today counts — and the
+ * paused days stay excused for good. Resuming on the day the pause began is an undo: the pause
+ * covered nothing, so it leaves no trace and starts no cooldown (`resumeResult: 'undone'`).
+ *
+ * Idempotent: resuming a habit that is not paused is a 200 with `resumeResult: null`.
+ */
+const resumeUserHabit: RequestHandler = async (req: any, res: any) => {
+    const { userId } = parseHeaders(req.headers);
+    const { id } = req.params;
+
+    try {
+        const existing = await Store.userHabits.getById(id);
+
+        if (!existing || existing.userId !== userId) {
+            return handleHttpError({ res, message: `Habit not found with id ${id}`, statusCode: 404 });
+        }
+
+        const timeZone = await resolveUserTimeZone(userId, req.body?.timeZone);
+        const today = getLocalDate(timeZone);
+        const result = await Store.habitPauses.close(userId, existing.habitGoalId, today);
+
+        return res.status(200).send({
+            habit: await readDetail(userId, existing.habitGoalId, req.body?.timeZone),
+            resumeResult: result?.action || null,
+            pauseCooldownDays: PAUSE_COOLDOWN_DAYS,
+        });
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:USER_HABITS_ROUTES:ERROR' });
+    }
 };
 
 /**
@@ -416,7 +620,7 @@ const continueSoloHabit: RequestHandler = async (req: any, res: any) => {
         const [detail] = await Store.userHabits.getDetailByUser(userId, 'active', weekBounds)
             .then((rows) => withWeekProgress(
                 rows.filter((row) => row.habitGoalId === existing.habitGoalId),
-                weekBounds?.today,
+                weekBounds.today,
             ));
 
         return res.status(200).send(detail || { ...existing, status: 'active' });
@@ -538,5 +742,7 @@ export {
     archiveUserHabit,
     restoreUserHabit,
     continueSoloHabit,
+    pauseUserHabit,
+    resumeUserHabit,
     updateUserHabitNotificationPreferences,
 };

@@ -97,7 +97,10 @@
             "premiumPurchaseNotFound": "Cet abonnement est introuvable",
             "premiumVerificationFailed": "Nous n'avons pas pu vérifier cet abonnement pour le moment. Réessaie dans un instant.",
             "soloLocked": "Invite {remaining} ami(s) de plus pour débloquer les habitudes que tu suis seul — {required} invitations en tout.",
-            "soloGraceEnded": "Tes {days} jours gratuits à suivre ceci seul sont terminés. Invite {required} ami pour continuer — ta série t'attend."
+            "soloGraceEnded": "Tes {days} jours gratuits à suivre ceci seul sont terminés. Invite {required} ami pour continuer — ta série t'attend.",
+            "pauseAlreadyPaused": "Cette habitude est déjà en pause.",
+            "pauseCooldown": "Tu as repris cette habitude récemment. Tu pourras la remettre en pause le {date}.",
+            "pauseArchivedHabit": "Une habitude archivée ne peut pas être mise en pause. Restaure-la d'abord."
         },
         "user": {
             "invalidUserNamePassword": "La combinaison utilisateur/mot de passe est incorrecte",
@@ -288,6 +291,16 @@
             "buttonText": "Ouvrir {brandName}",
             "postBody1": "Ton invitation originale reste ouverte : tes amis peuvent encore l'accepter."
         },
+        "pactJoinRequest": {
+            "subjectOne": "{requesterName} a demandé à rejoindre ton pacte {habitName}",
+            "subjectMany": "{count} personnes ont demandé à rejoindre tes pactes",
+            "dearUser": "Salut {toName}!",
+            "body1One": "{requesterName} a trouvé ton pacte ouvert pour {habitName} et a demandé à le rejoindre. Cette personne attend toujours ta réponse.",
+            "body1Many": "Ces personnes ont trouvé tes pactes ouverts et ont demandé à les rejoindre : {requestList}. Elles attendent toujours ta réponse.",
+            "body2": "Ouvre {brandName} et va dans le pacte pour accepter ou refuser. Les personnes que tu acceptes deviennent partenaires tout de suite.",
+            "buttonText": "Ouvrir {brandName}",
+            "postBody1": "On ne t'envoie qu'un seul courriel par demande."
+        },
         "firstHabitNudge": {
             "subject": "Ta première habitude prend dix secondes",
             "header": "Le jour 1 est à un toucher",
@@ -312,7 +325,7 @@
                 "subject": "Jour 2 de {habitName}",
                 "header": "Jour 2 de {habitName}",
                 "body1": "Hier, tu as commencé {habitName}. Le check-in d’aujourd’hui en fait une série.",
-                "body1WithPartner": "Hier, tu as commencé {habitName}, et {partnerName} compte sur toi. Le check-in d’aujourd’hui en fait une série.",
+                "body1WithPartner": "Hier, tu as commencé {habitName}, et {partnerName} est avec toi là-dedans. Le check-in d’aujourd’hui en fait une série.",
                 "body2": "Le jour 2, c’est là que la plupart des séries s’arrêtent. Pas forcément la tienne."
             },
             "comeback": {
