@@ -98,6 +98,14 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Habit companion chameleon (added 2026-11-07, docs/FEATURES.md → Habit companion)
+
+- [ ] **On-device look at the companion card on Friends with Habits**, light and dark theme, once a
+  build carrying it ships: Achievements screen, top card. Confirm the pixel art is crisp (no hairline
+  seams between pixels — it is snapped to whole device pixels because react-native-svg has no
+  `crispEdges`), the idle bob/egg wobble runs and stops with *Remove animations* on, and a tap hops
+  it through purple → teal → lime → gold.
+
 ## Habit pause (added 2026-11-07, docs/FEATURES.md → Pausing a habit)
 
 - [ ] **After the users-service deploy carrying `habits.habit_pauses`, confirm the migration ran:**
