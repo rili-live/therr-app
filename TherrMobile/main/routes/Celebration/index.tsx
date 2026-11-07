@@ -25,6 +25,9 @@ import WeekStrip from '../../components/Celebrations/WeekStrip';
 import { PlacementHero, StreakHero } from '../../components/Celebrations/CelebrationHero';
 import ChameleonCatch, { isBigBonus } from '../../components/Celebrations/ChameleonCatch';
 import celebrationQueue, { ICelebration } from '../../utilities/celebrationQueue';
+import CompanionStageUpHero from '../../components/HabitCompanion/CompanionStageUpHero';
+import { COMPANION_STAGES } from '../../utilities/companionGrowth';
+import { markStageSeen } from '../../utilities/companionCelebration';
 import { triggerRewardCelebration } from '../../utilities/rewardFeedback';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
@@ -79,8 +82,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 /**
- * The full-screen celebration: a streak day, a streak milestone, or an end-of-period
- * leaderboard placement.
+ * The full-screen celebration: a streak day, a streak milestone, an end-of-period
+ * leaderboard placement, or the habit companion reaching a new growth stage.
  *
  * It is only ever reached through `celebrationQueue`, never navigated to directly — the queue
  * is what keeps it from pre-empting the check-in toast and the note/photo screen, and what
@@ -102,6 +105,7 @@ export const Celebration = ({
     const dailyBonus = celebration.type === 'streak' ? celebration.dailyBonus || null : null;
     const [stage, setStage] = useState<'celebration' | 'bonus'>('celebration');
     const [isBonusRevealed, setIsBonusRevealed] = useState(false);
+    const [isCompanionRevealed, setIsCompanionRevealed] = useState(false);
     const [isReduceMotionEnabled, setIsReduceMotionEnabled] = useState(false);
     // The dismiss path is reachable from two buttons and the hardware back button; a ref rather
     // than state because the guard has to hold within a single tick, before a re-render. It
@@ -147,6 +151,18 @@ export const Celebration = ({
             logAppEvent('habits_upgrade_nudge_view', { source: 'celebration-milestone' });
         }
     }, [showFounderOffer]);
+
+    // Once per mount, so the funnel can see how often the companion actually grows.
+    useEffect(() => {
+        if (celebration.type === 'companion') {
+            logAppEvent('habits_companion_stage_up', {
+                stage: celebration.stageId,
+                stage_index: celebration.stageIndex,
+                from_stage: celebration.fromStageId,
+            });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         let isMounted = true;
@@ -231,7 +247,11 @@ export const Celebration = ({
         if (!hasAcknowledgedRef.current) {
             hasAcknowledgedRef.current = true;
             try {
-                if (celebration.type === 'streak') {
+                if (celebration.type === 'companion') {
+                    // Remembered on the device, not the server — the companion's stage is
+                    // derived there (see utilities/companionCelebration.ts).
+                    markStageSeen(celebration.userId, celebration.stageIndex).catch(() => {});
+                } else if (celebration.type === 'streak') {
                     // The device zone rides along, as it does on the fetch: the server clamps
                     // `date` to the user's local today and needs the zone to know which day that
                     // is when the account has none saved.
@@ -415,7 +435,82 @@ export const Celebration = ({
         );
     };
 
+    const renderCompanionBody = () => {
+        if (celebration.type !== 'companion') {
+            return null;
+        }
+
+        const nextStage = COMPANION_STAGES[celebration.stageIndex + 1];
+        const stageName = translate(`components.habitCompanion.stages.${celebration.stageId}.name`);
+
+        return (
+            <>
+                <Text style={themeCelebration.styles.label}>
+                    {translate(celebration.fromStageId === 'egg'
+                        ? 'components.habitCompanion.celebration.titleHatched'
+                        : 'components.habitCompanion.celebration.title')}
+                </Text>
+                <Text style={themeCelebration.styles.companionStageName}>{stageName}</Text>
+                <Text style={themeCelebration.styles.copy}>
+                    {translate('components.habitCompanion.stageOf', {
+                        stage: celebration.stageIndex + 1,
+                        total: COMPANION_STAGES.length,
+                    })}
+                </Text>
+                <Text style={themeCelebration.styles.copy}>
+                    {translate(`components.habitCompanion.stages.${celebration.stageId}.caption`)}
+                </Text>
+                <Text style={themeCelebration.styles.copyStrong}>
+                    {nextStage
+                        ? translate('components.habitCompanion.nextStage', {
+                            stageName: translate(`components.habitCompanion.stages.${nextStage.id}.name`),
+                        })
+                        : translate('components.habitCompanion.fullyGrown')}
+                </Text>
+            </>
+        );
+    };
+
+    const renderCelebrationHero = () => {
+        if (celebration.type === 'streak') {
+            return (
+                <StreakHero
+                    size={isMilestone ? 220 : 160}
+                    burst={isMilestone}
+                    colors={theme.colors}
+                />
+            );
+        }
+        if (celebration.type === 'companion') {
+            const stageName = translate(`components.habitCompanion.stages.${celebration.stageId}.name`);
+            return (
+                <CompanionStageUpHero
+                    fromStageId={celebration.fromStageId}
+                    stageId={celebration.stageId}
+                    themeColors={theme.colors}
+                    size={192}
+                    isReduceMotionEnabled={isReduceMotionEnabled}
+                    accessibilityLabel={translate('components.habitCompanion.a11yLabel', {
+                        stageName,
+                        stage: celebration.stageIndex + 1,
+                        total: COMPANION_STAGES.length,
+                    })}
+                    accessibilityHint={translate('components.habitCompanion.tapHint')}
+                    onRevealed={() => setIsCompanionRevealed(true)}
+                />
+            );
+        }
+        return <PlacementHero tier={celebration.placement} colors={theme.colors} />;
+    };
+
+    const renderCelebrationBody = () => {
+        if (celebration.type === 'streak') return renderStreakBody();
+        if (celebration.type === 'companion') return renderCompanionBody();
+        return renderPlacementBody();
+    };
+
     const isPlacement = celebration.type === 'placement';
+    const isCompanion = celebration.type === 'companion';
 
     return (
         <>
@@ -423,7 +518,7 @@ export const Celebration = ({
             <SafeAreaView style={[theme.styles.safeAreaView, { backgroundColor: theme.colors.backgroundGray }]}>
                 <View style={themeCelebration.styles.root}>
                     {stage === 'bonus' ? renderBonusStage() : null}
-                    {((stage === 'celebration' && isMilestone)
+                    {((stage === 'celebration' && (isMilestone || (isCompanion && isCompanionRevealed)))
                         || (stage === 'bonus' && isBonusRevealed && isBigBonus(dailyBonus?.rarity)))
                         && !isReduceMotionEnabled ? (
                         // Wrapped rather than given `pointerEvents` directly: LottieView does
@@ -444,18 +539,10 @@ export const Celebration = ({
                             <Animated.View
                                 style={[themeCelebration.styles.hero, { transform: [{ scale: scaleAnim }] }]}
                             >
-                                {celebration.type === 'streak' ? (
-                                    <StreakHero
-                                        size={isMilestone ? 220 : 160}
-                                        burst={isMilestone}
-                                        colors={theme.colors}
-                                    />
-                                ) : (
-                                    <PlacementHero tier={celebration.placement} colors={theme.colors} />
-                                )}
+                                {renderCelebrationHero()}
                             </Animated.View>
                             <Animated.View style={[themeCelebration.styles.center, { opacity: fadeAnim }]}>
-                                {celebration.type === 'streak' ? renderStreakBody() : renderPlacementBody()}
+                                {renderCelebrationBody()}
                             </Animated.View>
                         </>
                     ) : null}
