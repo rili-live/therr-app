@@ -75,7 +75,9 @@ describe('open pacts — the join request email pass', () => {
         stub({
             rows: [
                 request(),
-                request({ requestId: 'req-2', pactId: 'pact-2', requesterUserName: 'alex', habitGoalName: 'Run' }),
+                request({
+                    requestId: 'req-2', pactId: 'pact-2', requesterUserName: 'alex', habitGoalName: 'Run',
+                }),
             ],
         });
         const counters = await runJoinRequestEmailPass(context, NOW);
