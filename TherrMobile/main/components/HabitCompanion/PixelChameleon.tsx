@@ -1,11 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AccessibilityInfo, Animated, Easing, PixelRatio, Pressable, StyleSheet, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 import { CompanionStageId } from '../../utilities/companionGrowth';
 import { triggerCompanionTapFeedback } from '../../utilities/rewardFeedback';
+import SpriteLayer, { getSnappedPixelSize } from './SpriteLayer';
 import {
     BRANCH_ROWS,
-    buildSpritePaths,
     COMPANION_SKIN_COUNT,
     COMPANION_SPRITES,
     getCompanionPalette,
@@ -29,9 +28,7 @@ const styles = StyleSheet.create({
 interface IPixelChameleonProps {
     stageId: CompanionStageId;
     themeColors: ICompanionThemeColors;
-    // Rendered edge length in dp, rounded down so every sprite pixel covers a whole number of
-    // device pixels. react-native-svg has no `shapeRendering="crispEdges"`, so this snapping is
-    // what keeps the art sharp and free of anti-aliased seams between neighbouring pixels.
+    // Rendered edge length in dp; snapped down to whole device pixels per sprite pixel.
     size: number;
     accessibilityLabel: string;
     accessibilityHint?: string;
@@ -54,23 +51,13 @@ const PixelChameleon = ({
     const idle = useRef(new Animated.Value(0)).current;
     const hop = useRef(new Animated.Value(0)).current;
 
-    const deviceScale = PixelRatio.get() || 1;
-    const devicePixelsPerSpritePixel = Math.max(1, Math.floor((size * deviceScale) / SPRITE_SIZE));
-    const pixelSize = devicePixelsPerSpritePixel / deviceScale;
+    const pixelSize = getSnappedPixelSize(size);
     const renderSize = pixelSize * SPRITE_SIZE;
     const isEgg = stageId === 'egg';
 
-    const paths = useMemo(
-        () => buildSpritePaths(
-            getCreatureRows(COMPANION_SPRITES[stageId] || COMPANION_SPRITES.egg),
-            getCompanionPalette(themeColors, skinIndex),
-        ),
-        [stageId, skinIndex, themeColors],
-    );
-    const branchPaths = useMemo(
-        () => buildSpritePaths(BRANCH_ROWS, getCompanionPalette(themeColors)),
-        [themeColors],
-    );
+    const creatureRows = useMemo(() => getCreatureRows(COMPANION_SPRITES[stageId] || COMPANION_SPRITES.egg), [stageId]);
+    const creaturePalette = useMemo(() => getCompanionPalette(themeColors, skinIndex), [themeColors, skinIndex]);
+    const branchPalette = useMemo(() => getCompanionPalette(themeColors), [themeColors]);
 
     useEffect(() => {
         let isMounted = true;
@@ -143,14 +130,7 @@ const PixelChameleon = ({
             hitSlop={8}
         >
             <View style={{ width: renderSize, height: renderSize }}>
-                <Svg
-                    width={renderSize}
-                    height={renderSize}
-                    viewBox={`0 0 ${SPRITE_SIZE} ${SPRITE_SIZE}`}
-                    style={styles.branchLayer}
-                >
-                    {branchPaths.map(({ color, d }) => <Path key={color} d={d} fill={color} />)}
-                </Svg>
+                <SpriteLayer rows={BRANCH_ROWS} palette={branchPalette} renderSize={renderSize} style={styles.branchLayer} />
                 <Animated.View
                     style={{
                         width: renderSize,
@@ -159,13 +139,7 @@ const PixelChameleon = ({
                         ...(isEgg ? { transformOrigin: EGG_PIVOT } : {}),
                     }}
                 >
-                    <Svg
-                        width={renderSize}
-                        height={renderSize}
-                        viewBox={`0 0 ${SPRITE_SIZE} ${SPRITE_SIZE}`}
-                    >
-                        {paths.map(({ color, d }) => <Path key={color} d={d} fill={color} />)}
-                    </Svg>
+                    <SpriteLayer rows={creatureRows} palette={creaturePalette} renderSize={renderSize} />
                 </Animated.View>
             </View>
         </Pressable>

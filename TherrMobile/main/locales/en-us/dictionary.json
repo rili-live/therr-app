@@ -472,6 +472,10 @@
           "name": "Change Champion",
           "caption": "Crowned in every color. You've built habits that last."
         }
+      },
+      "celebration": {
+        "title": "Your habit buddy grew!",
+        "titleHatched": "Your egg hatched!"
       }
     }
   },

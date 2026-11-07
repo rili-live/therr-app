@@ -472,6 +472,10 @@
           "name": "Champion du changement",
           "caption": "Couronné de toutes les couleurs. Vous avez bâti des habitudes durables."
         }
+      },
+      "celebration": {
+        "title": "Votre compagnon d'habitudes a grandi!",
+        "titleHatched": "Votre œuf a éclos!"
       }
     }
   },

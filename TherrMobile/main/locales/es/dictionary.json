@@ -472,6 +472,10 @@
           "name": "Campeón del cambio",
           "caption": "Coronado con todos los colores. Has creado hábitos que perduran."
         }
+      },
+      "celebration": {
+        "title": "¡Tu compañero de hábitos creció!",
+        "titleHatched": "¡Tu huevo eclosionó!"
       }
     }
   },
