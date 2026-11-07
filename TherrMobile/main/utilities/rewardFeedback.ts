@@ -331,6 +331,11 @@ export const triggerClaimPressFeedback = () => {
     triggerHaptic(HapticFeedbackTypes.impactLight);
 };
 
+/** A light tick when the habit companion chameleon is tapped and changes color. */
+export const triggerCompanionTapFeedback = () => {
+    triggerHaptic(HapticFeedbackTypes.selection);
+};
+
 /** Coin "ka-ching" plus a success tap the instant the claim is granted. */
 export const triggerClaimSuccessFeedback = () => {
     triggerHaptic(HapticFeedbackTypes.notificationSuccess);
