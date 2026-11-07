@@ -22,6 +22,7 @@ import resolveWeekBounds from './helpers/weekBounds';
 import { queuePauseReminders } from './helpers/habitPause';
 import { getLocalDate, resolveCheckinTimeZone } from '../utilities/dailyStreak';
 import {
+    formatLocalDateForLocale,
     getDaysPaused,
     getPauseEligibility,
     getPauseReminderSchedule,
@@ -441,7 +442,9 @@ const pauseUserHabit: RequestHandler = async (req: any, res: any) => {
         if (!eligibility.canPause && eligibility.reason === 'cooldown') {
             return res.status(409).send({
                 error: 'habit-pause-cooldown',
-                message: translate(locale, 'errorMessages.habits.pauseCooldown', { date: eligibility.availableOn }),
+                message: translate(locale, 'errorMessages.habits.pauseCooldown', {
+                    date: formatLocalDateForLocale(eligibility.availableOn, locale, today),
+                }),
                 pauseAvailableOn: eligibility.availableOn,
                 pauseCooldownDays: PAUSE_COOLDOWN_DAYS,
             });

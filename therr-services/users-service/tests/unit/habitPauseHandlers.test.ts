@@ -126,6 +126,9 @@ describe('Habit pause handlers', () => {
             expect(captured.statusCode).to.equal(409);
             expect(captured.body.error).to.equal('habit-pause-cooldown');
             expect(captured.body.pauseAvailableOn).to.equal('2999-01-08');
+            // The sentence carries a readable date, never the raw 'YYYY-MM-DD'.
+            expect(captured.body.message).to.include('January 8, 2999');
+            expect(captured.body.message).to.not.include('2999-01-08');
         });
 
         it('queues nothing when a concurrent tap already opened the pause', async () => {

@@ -132,6 +132,41 @@ export const getPauseEligibility = ({
     return { canPause: true };
 };
 
+/** The app's locale codes as BCP 47 tags for Intl. Anything else reads as English. */
+const INTL_LOCALES: Record<string, string> = {
+    'en-us': 'en-US',
+    es: 'es',
+    'fr-ca': 'fr-CA',
+};
+
+/**
+ * A local day ('YYYY-MM-DD') as the user would write it — "November 14", "14 de noviembre",
+ * "14 novembre" — for sentences like "you can pause it again on {date}". The year is shown only
+ * when it is not `today`'s, so a cooldown that crosses New Year's still names the right one.
+ *
+ * Formatted in UTC from the date's own parts: the input is already a calendar day in the user's
+ * zone, and formatting it in the server's zone could move it back a day. A value it cannot
+ * read is returned unchanged rather than dropped from the sentence.
+ */
+export const formatLocalDateForLocale = (localDate: string, locale?: string | null, today?: string): string => {
+    if (!isDateString(localDate)) {
+        return localDate;
+    }
+    const [year, month, day] = localDate.split('-').map((part) => parseInt(part, 10));
+    const showYear = !isDateString(today || '') || (today as string).slice(0, 4) !== localDate.slice(0, 4);
+    const intlLocale = INTL_LOCALES[String(locale || '').toLowerCase()] || INTL_LOCALES['en-us'];
+    try {
+        return new Intl.DateTimeFormat(intlLocale, {
+            month: 'long',
+            day: 'numeric',
+            ...(showYear ? { year: 'numeric' as const } : {}),
+            timeZone: 'UTC',
+        }).format(new Date(Date.UTC(year, month - 1, day)));
+    } catch {
+        return localDate;
+    }
+};
+
 /** How many days a pause has been running as of `today` (0 on the day it started). */
 export const getDaysPaused = (pausedOn: string | Date, today: string): number => {
     const from = toDateString(pausedOn);
