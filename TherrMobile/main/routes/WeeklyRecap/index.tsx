@@ -382,8 +382,9 @@ class WeeklyRecap extends React.Component<IWeeklyRecapProps, IWeeklyRecapState> 
                 style={[this.theme.styles.safeAreaView, styles.weeklyRecapContainer]}
             >
                 <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
+                {/* No `theme.styles.scrollView` margin: the content padding clears the fixed menu,
+                    so the scroll area runs down to it instead of stopping a menu-height short. */}
                 <ScrollView
-                    style={[this.theme.styles.scrollView]}
                     contentContainerStyle={{ paddingBottom: buttonMenuHeight + 16 }}
                     refreshControl={<RefreshControl refreshing={isLoading && hasFetched} onRefresh={this.onRefresh} />}
                 >
