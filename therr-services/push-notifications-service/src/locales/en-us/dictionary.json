@@ -304,6 +304,23 @@
       "title": "Want to Restart {habitName}?",
       "body": "You held this {bestStreakCount} days once — that doesn't go away. Ready to start a fresh streak?"
     },
+    "habitPauseReminder": {
+      "week": {
+        "title": "Ready to Pick Up {habitName}?",
+        "body": "It's been a week since you paused. Resume whenever you're ready — one check-in starts it back up.",
+        "bodyWithStreak": "It's been a week since you paused. Your {streakCount}-day streak is right where you left it — one check-in picks it back up."
+      },
+      "twoWeeks": {
+        "title": "Still on a Break From {habitName}?",
+        "body": "Two weeks paused. A small check-in today is all a restart takes.",
+        "bodyWithStreak": "Two weeks paused, and your {streakCount}-day streak is still safe. A small check-in today gets it moving again."
+      },
+      "final": {
+        "title": "Last Reminder About {habitName}",
+        "body": "A month paused. This is the last time we'll ask — resume it when you're ready, or archive it if it's run its course.",
+        "bodyWithStreak": "A month paused. Your {streakCount}-day streak stays saved, and this is the last time we'll ask — resume it when you're ready, or archive it if it's run its course."
+      }
+    },
     "shared": {
       "pressActionCheckIn": "Check In",
       "pressActionLogAmount": "Log Amount",
