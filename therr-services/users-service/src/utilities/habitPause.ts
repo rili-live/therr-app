@@ -174,5 +174,27 @@ export const getPauseReminderSchedule = ({
     };
 });
 
+/**
+ * Whether a check-in nudge should offer "Pause" as a way out — the last-resort option for a streak
+ * that will end tonight. All four must hold:
+ *
+ *   - it names exactly one habit (`habitGoalId`): the action pauses one habit, and a roll-up has
+ *     no unambiguous one;
+ *   - that habit has a live streak: with nothing at stake, pausing protects nothing;
+ *   - its freezes are known to be spent (`freezesRemaining === 0`, not merely absent): while a
+ *     freeze would cover tonight, the nudge already says so and pausing is not the answer;
+ *   - the habit can actually be paused right now — decided by the caller from the pause history,
+ *     because offering a button the server will refuse is worse than no button.
+ */
+export const shouldOfferPauseOnNudge = (payload: {
+    habitGoalId?: string;
+    streakCount?: number;
+    freezesRemaining?: number;
+}): boolean => !!payload.habitGoalId
+    && Number(payload.streakCount) > 0
+    && payload.freezesRemaining !== undefined
+    && payload.freezesRemaining !== null
+    && Number(payload.freezesRemaining) === 0;
+
 /** Dedup key for one reminder of one pause. Keyed on the pause row — never on a clock value. */
 export const getPauseReminderDedupeKey = (pauseId: string, dayCount: number): string => `habit-pause-reminder:${pauseId}:${dayCount}`;

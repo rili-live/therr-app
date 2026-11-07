@@ -168,16 +168,17 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     freezesRemaining?: number;
     /**
      * The check-in nudge's single-habit extras, set by the digest roll-up (checkinNudgeRollup):
-     * where the habit stands in its week (selects the weekly body), and whether it is a savings
-     * goal and in what currency (selects the "Log Amount" button). They ride the queue row's
-     * payload, and until they were listed here and below they were dropped before the push
-     * service saw them.
+     * where the habit stands in its week (selects the weekly body), whether it is a savings goal
+     * and in what currency (selects the "Log Amount" button), and whether to offer "Pause" (a
+     * streak with no freezes left on a pausable habit). They ride the queue row's payload, and
+     * until they were listed here and below they were dropped before the push service saw them.
      */
     weekDone?: number;
     weekTarget?: number;
     daysLeft?: number;
     isSavingsGoal?: boolean;
     currencyCode?: string;
+    offerPause?: boolean;
     freezeDaysUsed?: number;
     // HABITS lifecycle payload (docs/HABIT_LIFECYCLE_MESSAGING.md). Age of the
     // habit in days, trailing-window consistency as a whole percent, and the
@@ -283,6 +284,7 @@ export default (
         daysLeft,
         isSavingsGoal,
         currencyCode,
+        offerPause,
         dayCount,
         consistencyPercent,
         bestStreakCount,
@@ -439,6 +441,7 @@ export default (
                     daysLeft,
                     isSavingsGoal,
                     currencyCode,
+                    offerPause,
                     dayCount,
                     consistencyPercent,
                     bestStreakCount,

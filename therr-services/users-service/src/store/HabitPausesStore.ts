@@ -114,6 +114,27 @@ export default class HabitPausesStore {
     }
 
     /**
+     * `${userId}:${habitGoalId}` for every pair that cannot be paused right now: an open pause, or one
+     * that ended after `cooldownStart` (the re-pause cooldown — see `getPauseEligibility`, which this
+     * mirrors in SQL so a whole digest run is one read).
+     */
+    getUnpausablePairKeys(pairs: { userId: string; habitGoalId: string }[], cooldownStart: string): Promise<Set<string>> {
+        if (!pairs.length) {
+            return Promise.resolve(new Set());
+        }
+        const tuples = pairs.map(() => '(?::uuid, ?::uuid)').join(', ');
+        const bindings = pairs.reduce((acc: string[], pair) => acc.concat([pair.userId, pair.habitGoalId]), []);
+        const queryString = knexBuilder.raw(
+            `SELECT DISTINCT "userId", "habitGoalId" FROM ${HABIT_PAUSES_TABLE_NAME}
+             WHERE ("userId", "habitGoalId") IN (${tuples})
+                AND ("resumedOn" IS NULL OR "resumedOn" > ?::date)`,
+            [...bindings, cooldownStart],
+        ).toString();
+        return this.db.read.query(queryString)
+            .then((response) => new Set<string>(response.rows.map((row: any) => `${row.userId}:${row.habitGoalId}`)));
+    }
+
+    /**
      * Open a pause. Returns undefined when one is already open — the partial unique index refuses
      * the second row, which is how a double-tap stays a single pause.
      */
