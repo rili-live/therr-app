@@ -56,6 +56,11 @@ import {
     runOpenPactSuggestionPass,
 } from './helpers/openPactSuggestionDigest';
 import {
+    EMPTY_JOIN_REQUEST_EMAIL_COUNTERS,
+    IJoinRequestEmailCounters,
+    runJoinRequestEmailPass,
+} from './helpers/joinRequestEmailDigest';
+import {
     emptyOnboardingNurtureCounters,
     IOnboardingNurtureCounters,
     runOnboardingNurturePass,
@@ -272,6 +277,8 @@ interface IDigestCountersWithRecap extends IDigestCounters {
     pledgeVerdicts: IPledgeVerdictCounters;
     // Nested for the same reason. See helpers/openPactSuggestionDigest.ts.
     openPactSuggestions: IOpenPactSuggestionCounters;
+    // Nested for the same reason. See helpers/joinRequestEmailDigest.ts.
+    joinRequestEmails: IJoinRequestEmailCounters;
     pactInviteReminders: IPactInviteReminderCounters;
     // Nested for the same reason. See helpers/onboardingNurtureDigest.ts.
     onboardingNurture: IOnboardingNurtureCounters;
@@ -390,6 +397,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         weeklyRecap: { ...EMPTY_WEEKLY_RECAP_COUNTERS },
         pledgeVerdicts: { ...EMPTY_PLEDGE_VERDICT_COUNTERS },
         openPactSuggestions: { ...EMPTY_OPEN_PACT_SUGGESTION_COUNTERS },
+        joinRequestEmails: { ...EMPTY_JOIN_REQUEST_EMAIL_COUNTERS },
         pactInviteReminders: { ...EMPTY_PACT_INVITE_REMINDER_COUNTERS },
         onboardingNurture: emptyOnboardingNurtureCounters(),
         podiumWithinReach: { ...EMPTY_PODIUM_WITHIN_REACH_COUNTERS },
@@ -1658,6 +1666,22 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 return { ...EMPTY_OPEN_PACT_SUGGESTION_COUNTERS, suggestionErrors: 1 };
             });
 
+        // Best-effort, like the passes above. A failure sends nothing, and the requests it did not
+        // reach stay unclaimed for the next run — the claim on `emailReminderSentAt` is what keeps a
+        // re-run, or a retry after a partial failure, from emailing anyone twice about one request.
+        counters.joinRequestEmails = await runJoinRequestEmailPass({
+            brandVariation: brand,
+            whiteLabelOrigin,
+        }, new Date())
+            .catch((err: any) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: the join request email pass failed'],
+                });
+                return { ...EMPTY_JOIN_REQUEST_EMAIL_COUNTERS, emailErrors: 1 };
+            });
+
         // Best-effort, like the passes above. The dedupe key is the invite itself, so a re-run, or a
         // retry after a partial failure, reminds nobody twice.
         counters.pactInviteReminders = await runPactInviteReminderPass(queuePushOutcome, brand, new Date())
@@ -1717,6 +1741,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 weeklyRecap: JSON.stringify(counters.weeklyRecap),
                 pledgeVerdicts: JSON.stringify(counters.pledgeVerdicts),
                 openPactSuggestions: JSON.stringify(counters.openPactSuggestions),
+                joinRequestEmails: JSON.stringify(counters.joinRequestEmails),
                 pactInviteReminders: JSON.stringify(counters.pactInviteReminders),
                 onboardingNurture: JSON.stringify(counters.onboardingNurture),
                 podiumWithinReach: JSON.stringify(counters.podiumWithinReach),

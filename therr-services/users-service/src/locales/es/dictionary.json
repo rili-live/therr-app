@@ -291,6 +291,16 @@
             "buttonText": "Abrir {brandName}",
             "postBody1": "Tu invitación original sigue abierta, así que tus amigos todavía pueden aceptarla."
         },
+        "pactJoinRequest": {
+            "subjectOne": "{requesterName} pidió unirse a tu pacto de {habitName}",
+            "subjectMany": "{count} personas pidieron unirse a tus pactos",
+            "dearUser": "¡Hola, {toName}!",
+            "body1One": "{requesterName} encontró tu pacto abierto de {habitName} y pidió unirse. Todavía espera tu respuesta.",
+            "body1Many": "Estas personas encontraron tus pactos abiertos y pidieron unirse: {requestList}. Todavía esperan tu respuesta.",
+            "body2": "Abre {brandName} y ve al pacto para aprobar o rechazar. Quien apruebes se une como compañero de inmediato.",
+            "buttonText": "Abrir {brandName}",
+            "postBody1": "Solo te enviamos un correo por cada solicitud."
+        },
         "firstHabitNudge": {
             "subject": "Tu primer hábito toma diez segundos",
             "header": "El día 1 está a un toque",
@@ -315,7 +325,7 @@
                 "subject": "Día 2 de {habitName}",
                 "header": "Día 2 de {habitName}",
                 "body1": "Ayer empezaste {habitName}. El check-in de hoy es el que lo convierte en racha.",
-                "body1WithPartner": "Ayer empezaste {habitName}, y {partnerName} cuenta contigo. El check-in de hoy es el que lo convierte en racha.",
+                "body1WithPartner": "Ayer empezaste {habitName}, y {partnerName} está contigo en esto. El check-in de hoy es el que lo convierte en racha.",
                 "body2": "El día 2 es donde se detienen la mayoría de las rachas. La tuya no tiene por qué."
             },
             "comeback": {

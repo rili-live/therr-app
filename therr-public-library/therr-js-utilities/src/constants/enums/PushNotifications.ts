@@ -154,7 +154,7 @@ export enum Types {
     //
     // Queued when a user pauses a habit, at 7, 14 and 30 days out, and dropped at send time
     // once the pause has ended (utilities/checkinNudgeFreshness.ts). The day it is sent for
-    // rides in the payload as `pauseDay` and picks the copy; the last one says it is the last.
+    // rides in the payload as `dayCount` and picks the copy; the last one says it is the last.
     // Keyed on the pause, never on a date, so it is in the worker's UNCAPPABLE_TYPES.
     habitPauseReminder = 'habit-pause-reminder',
 }

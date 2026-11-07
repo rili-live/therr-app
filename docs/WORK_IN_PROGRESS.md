@@ -114,8 +114,10 @@ append new items here rather than only printing them once.
 ## Habit pause (added 2026-11-07, docs/FEATURES.md → Pausing a habit)
 
 - [ ] **After the users-service deploy carrying `habits.habit_pauses`, confirm the migration ran:**
-  `SELECT to_regclass('habits.habit_pauses')`. Until it has, pause/resume answer 500 and the daily
-  streak evaluation fails for everyone (the cadence read joins the table).
+  `SELECT to_regclass('habits.habit_pauses')`. Until it has, pause/resume answer 500, the daily
+  streak evaluation fails for everyone (the cadence read joins the table), and every check-in after
+  a missed day answers 500 too (`loadExcusedDatesForHabit` deliberately does not catch — seen locally
+  by /quality-peer-review on 2026-11-07 against a DB without the migration).
 - [ ] **Handset check of `habitPauseReminder` on Friends with Habits** once a build with the pause UI
   ships: pause a habit on a test account, then `UPDATE main."notificationQueue" SET "scheduledFor" = now()`
   for its `habit-pause-reminder:<pauseId>:7` row. Confirm it lands in the Habits app (not Therr) and that a
@@ -500,6 +502,21 @@ and `fix(push): clear dead device tokens for the recipient, not the sender`.
 - [ ] **Watch `onboardingNurture` in the first digest runs.** It is logged as a JSON string on the "Habits daily digest completed" span, with one counter set per message. On 2026-10-08 the reads matched 8 no-habit accounts, 8 unanswered seats for the inviter prompt, 0 emailed seats, and 6 founder candidates before the entitlement filter. `errors > 0` with nothing queued or emailed means a message is failing. Kill switch: `HABIT_ONBOARDING_NURTURE_ENABLED=false`.
 - [ ] **On a Habits handset, confirm the three new display pushes render** (`habitsFirstHabitNudge`, `pactInviteUnclaimed`, `habitsFounderOffer`). They have no click action, so the tap only opens the app. Nothing server-side can see a push that fails to render.
 - [ ] **therr-messaging-automator: rewrite `introHabits` to lead with the first habit.** It is the welcome email #3011 asked for, and it already reaches every opted-in Habits user, but its copy asks for a friend first ("Pick a habit… invite a friend or two"). The change is in the sibling repo, `src/locales/*.ts`.
+
+## Join-request email (added 2026-11-07, docs/FEATURES.md → Open pacts)
+
+- [ ] **Run the users-service migrations after the deploy** (`20261107000002`: adds
+  `habits.pact_join_requests."emailReminderSentAt"`). Confirm with
+  `SELECT column_name FROM information_schema.columns WHERE table_schema = 'habits' AND table_name = 'pact_join_requests' AND column_name = 'emailReminderSentAt'`.
+  Until it has, the pass fails every run (`joinRequestEmails.emailErrors = 1`) and sends nothing; the rest
+  of the digest is unaffected. Additive; neither automator reads this table.
+- [ ] **Watch `joinRequestEmails` in the first digest runs.** It is logged as a JSON string on the "Habits
+  daily digest completed" span. The first run emails about every request 1–7 days old, so expect a small
+  one-off bump, then roughly one email per unanswered request. `emailErrors > 0` with nothing emailed
+  means the pass is failing. Kill switch: `HABIT_JOIN_REQUEST_EMAILS_ENABLED=false`.
+- [ ] **Read one join-request email in a real inbox** (single-request and multi-request copy, light and
+  dark): open a pact on a test account, ask to join from another, then wait for (or trigger) the next
+  digest after 24h.
 
 ## Open pacts (added 2026-10-05)
 

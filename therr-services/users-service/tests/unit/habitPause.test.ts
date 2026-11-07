@@ -8,6 +8,7 @@ import {
 } from '../../src/utilities/habitCadence';
 import { walkDailyStreakDays } from '../../src/utilities/dailyStreak';
 import {
+    formatLocalDateForLocale,
     getDaysPaused,
     getPauseEligibility,
     getPauseReminderDedupeKey,
@@ -201,6 +202,27 @@ describe('Habit pause', () => {
         it('keys each reminder on the pause, never on a clock value', () => {
             expect(getPauseReminderDedupeKey('pause-1', 7)).to.equal('habit-pause-reminder:pause-1:7');
             expect(getPauseReminderDedupeKey('pause-1', 7)).to.equal(getPauseReminderDedupeKey('pause-1', 7));
+        });
+    });
+    describe('formatLocalDateForLocale', () => {
+        it('writes the day the way each locale reads it, not as YYYY-MM-DD', () => {
+            expect(formatLocalDateForLocale('2026-11-14', 'en-us', '2026-11-07')).to.equal('November 14');
+            expect(formatLocalDateForLocale('2026-11-14', 'es', '2026-11-07')).to.equal('14 de noviembre');
+            expect(formatLocalDateForLocale('2026-11-14', 'fr-ca', '2026-11-07')).to.equal('14 novembre');
+        });
+
+        it('names the year only when the date falls in a different one', () => {
+            expect(formatLocalDateForLocale('2027-01-03', 'en-us', '2026-12-29')).to.equal('January 3, 2027');
+        });
+
+        it('keeps the calendar day, whatever zone the server runs in', () => {
+            expect(formatLocalDateForLocale('2026-03-01', 'en-us', '2026-02-25')).to.equal('March 1');
+        });
+
+        it('falls back to English for an unknown locale and returns unreadable input unchanged', () => {
+            expect(formatLocalDateForLocale('2026-11-14', 'de-de', '2026-11-07')).to.equal('November 14');
+            expect(formatLocalDateForLocale('2026-11-14', undefined, '2026-11-07')).to.equal('November 14');
+            expect(formatLocalDateForLocale('not-a-date', 'es', '2026-11-07')).to.equal('not-a-date');
         });
     });
 });
