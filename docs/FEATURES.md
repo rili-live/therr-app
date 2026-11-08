@@ -158,14 +158,21 @@
   with hreflang alternates and a header language switcher. `/` redirects a visitor to
   `/es` or `/fr` from their remembered switcher choice (`habits-locale` cookie) or browser
   Accept-Language, keeping gclid/utm params. Copy lives in `therr-client-web/src/habitsLocales/`;
-  only the landing page is localized — `/register`, `/login` and the legal pages are English
+  only the landing page is localized — `/register`, `/login` and the legal pages are English.
+  The founder-offer block compares Free and the $20 unlock side by side and names both free-tier
+  limits (active habits, and starts per window), interpolated from the therr-js-utilities
+  constants by `buildHabitsLandingViewContext`. The "Why it works" section carries no
+  percentages: the untraceable ASTD 95% / 10% pair is gone and a test keeps it out
 - **Coach waitlist (habits.therr.com/coaches)** — landing page testing whether habit-based
   coaches would pay for a client-accountability tier before any of it is built. Its form asks
   coaching type, client count and willingness to pay; addresses land in
   `main."emailMarketingSubscribers"` flagged `isSubscribedToCoachesWaitlist` with the answers
   in `coachesWaitlistDetails`, and each new coach emails the admin inboxes. Fires
   `coach_waitlist_cta_click` and `coach_waitlist_submit`. Paid traffic comes from
-  `scripts/google-ads/campaigns/habits-coaches-web.yaml`
+  `scripts/google-ads/campaigns/habits-coaches-web.yaml` and a Leapd-run Meta ad. Also names
+  join-by-link challenges as the coach path that works today (clients join from a browser,
+  iPhone included); its one Play link, in the FAQ, fires `store_click` with
+  `location: coaches_faq`
 - **Explore hub** — central discovery page with moments, spaces, thoughts, and people tabs
 - **Space management** — list and manage all user-created spaces
 - **Discovered feed** — recently shared community content

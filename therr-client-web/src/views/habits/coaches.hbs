@@ -148,6 +148,9 @@
             gap: 1.25rem;
             grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
         }
+        /* Five cards: three live, two planned. Wider minimum so they break 3 + 2 (live on
+           the first row) rather than 4 + 1 at full width. */
+        .grid--five { grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
         .card {
             background: var(--fwh-white);
             border: 1px solid var(--fwh-border);
@@ -300,7 +303,7 @@
                     Some of this is in the app today. Some of it is what the waitlist decides we build
                     next, and we'd rather tell you which is which up front.
                 </p>
-                <div class="grid">
+                <div class="grid grid--five">
                     <div class="card">
                         <span class="status status--live">In the app today</span>
                         <h3>Check-ins with photo proof</h3>
@@ -310,6 +313,17 @@
                         <span class="status status--live">In the app today</span>
                         <h3>Streaks, reminders and nudges</h3>
                         <p>Daily, a few times a week, or set days. Clients get reminders, and a partner can nudge someone who hasn't checked in.</p>
+                    </div>
+                    {{!
+                        Join-by-link challenges (FEATURES.md). The one coach path that works today
+                        without every client installing the app: a challenge's link can be joined
+                        and checked in to from any browser. Starting one still needs the app, and
+                        the board ranks days checked in, so do not promise more than that here.
+                    }}
+                    <div class="card">
+                        <span class="status status--live">In the app today</span>
+                        <h3>Challenges clients join from a link</h3>
+                        <p>Start a challenge on a habit and share one link. Clients join and check in from any browser, iPhone included, with nothing to install, and the board shows who's showing up.</p>
                     </div>
                     <div class="card">
                         <span class="status status--building">Next, if coaches want it</span>
@@ -394,11 +408,16 @@
                 <details>
                     <summary>Can I use it with clients today?</summary>
                     <p>
-                        Partly. Any client can install Friends with Habits and make a pact with you, and
-                        you'll see their check-ins as their partner. A free account keeps only a few
-                        habits active at a time, so that works for a handful of clients, not a full
-                        roster. What doesn't exist yet is a coach view across all your clients. That's
-                        what this waitlist is for.
+                        Partly, in two ways. Start a challenge in the app and share its link: clients
+                        join and check in from their browser without installing anything, and you see
+                        who's checking in on one board. Or a client can install Friends with Habits and
+                        make a pact with you, and you'll see their check-ins as their partner. A free
+                        account keeps only a few habits active at a time, so pacts work for a handful
+                        of clients, not a full roster. What doesn't exist yet is a coach view across
+                        all your clients. That's what this waitlist is for.
+                    </p>
+                    <p>
+                        <a id="faq-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get Friends with Habits on Google Play</a>
                     </p>
                 </details>
                 <details>
@@ -412,8 +431,9 @@
                     <summary>Does it work on iPhone?</summary>
                     <p>
                         Friends with Habits is on Google Play today. The iPhone version is in the works.
-                        If most of your clients are on iPhone, say so when we email you. It changes what
-                        we build first.
+                        Clients on iPhone can still join a challenge you share and check in from their
+                        browser. If most of your clients are on iPhone, say so when we email you. It
+                        changes what we build first.
                     </p>
                 </details>
                 <details>
@@ -489,6 +509,16 @@
             }
             bindCta('header-waitlist-cta', 'header');
             bindCta('hero-waitlist-cta', 'hero');
+
+            // The page's only store link. Same event the landing page and challenge guides fire,
+            // so a coach who installs to try a challenge today shows up in the store_click funnel
+            // rather than as a bounce off the waitlist.
+            var storeLink = document.getElementById('faq-store-cta');
+            if (storeLink) {
+                storeLink.addEventListener('click', function () {
+                    track('store_click', { app: 'habits', link_url: storeLink.href, location: 'coaches_faq' });
+                });
+            }
 
             function done() {
                 form.hidden = true;

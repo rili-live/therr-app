@@ -26,11 +26,11 @@
     "googlePlayCta": "Get it on Google Play",
     "registerCta": "Create your account",
     "iosCta": "iPhone? Join the waitlist",
-    "ctaNoteHtml": "Free on Google Play, with up to {freeHabitLimit} active habits at a time. iPhone coming next.",
+    "ctaNoteHtml": "Free on Google Play, with up to {freeHabitLimit} active habits at a time and no card. iPhone coming next.",
     "founderNoteHtml": "<strong>Optional founder unlock:</strong> need more than {freeHabitLimit}? The first 5,000 accounts can lift the limit for life with a one-time $20.",
     "highlightsAriaLabel": "Highlights",
     "chipNoSubscription": "No subscription",
-    "chipInstall": "Install in seconds",
+    "chipSoloStart": "Start solo, invite later",
     "chipPhotoProof": "Photo-proof check-ins"
   },
   "demo": {
@@ -85,12 +85,12 @@
   "why": {
     "eyebrow": "Why it works",
     "heading": "Why a partner makes the difference",
-    "intro": "Committing out loud, to a person, by a set time, is one of the oldest tricks for following through. The two figures below are the ones you will see quoted everywhere; read them as the shape of the gap, not as a measurement.",
-    "withPartnerStat": "95%",
-    "withPartnerHtml": "<strong>With an accountability appointment.</strong> The often-quoted follow-through rate for a goal when you have a set time to report back to the person you committed to.",
-    "onYourOwnStat": "10%",
-    "onYourOwnHtml": "<strong>As an idea.</strong> The often-quoted rate for the same goal when it stays an idea you never commit to anyone. Solo apps leave you on this side of the gap; we make the other side the default.",
-    "sourceNoteHtml": "These figures are widely attributed to the American Society for Training &amp; Development (now ATD), but we have not been able to trace them to a published study, so treat them as illustrative. They are not measurements of this app's users. Smaller published work points the same way: in a 2015 study by Gail Matthews at Dominican University of California, people who sent weekly progress reports to a friend accomplished significantly more of their goals than people who kept their goals to themselves."
+    "intro": "Intentions are easier to keep when someone else can see whether you showed up. Committing out loud, to a person, by a set time, is one of the oldest tricks for following through, and it is the whole design of the app.",
+    "withPartnerTitle": "Someone sees it",
+    "withPartnerHtml": "<strong>With a partner.</strong> A missed day shows up on your friend's screen, and it costs them the streak too. Skipping stops being private, so it stops being easy.",
+    "onYourOwnTitle": "Nobody notices",
+    "onYourOwnHtml": "<strong>On your own.</strong> A solo tracker lets a habit fade without anyone asking where you went. Most habits don't end with a decision to quit. They end with a quiet week nobody noticed.",
+    "sourceNoteHtml": "Published research points the same way: in a 2015 study by Gail Matthews at Dominican University of California, people who sent weekly progress reports to a friend accomplished significantly more of their goals than people who kept their goals to themselves."
   },
   "compare": {
     "eyebrow": "The difference",
@@ -149,8 +149,19 @@
   "founder": {
     "badge": "Founding member offer",
     "headingHtml": "<span>$20 once.</span> No limits, for life.",
-    "lede": "The free tier stays free, with {freeHabitLimit} active habits at a time. If you want more, the first 5,000 accounts can unlock everything permanently for a single $20 payment. No subscription, no renewal, nothing to cancel.",
-    "noCapHtml": "No cap on active habits or new starts &mdash; free accounts track up to {freeHabitLimit} at a time",
+    "lede": "The free tier stays free. If you want more than {freeHabitLimit} active habits, the first 5,000 accounts can unlock everything permanently for a single $20 payment. No subscription, no renewal, nothing to cancel.",
+    "plansAriaLabel": "The free plan and the founder unlock, side by side",
+    "freeName": "Free",
+    "freePrice": "$0",
+    "freePriceNote": "No card. No expiry.",
+    "freeActiveHtml": "Up to <strong>{freeHabitLimit} active habits</strong> at a time",
+    "freeStartsHtml": "Up to {freeHabitStarts} new habit starts in any {freeHabitStartWindowDays} days",
+    "freeArchive": "Archive a finished habit to free its slot",
+    "freeEverything": "Pacts, photo-proof check-ins, shared streaks and challenges",
+    "founderName": "Founder unlock",
+    "founderPrice": "$20 once",
+    "founderPriceNote": "No subscription. No renewal.",
+    "noCapHtml": "No cap on active habits or new starts",
     "futureFeatures": "Every premium feature we ship later, included",
     "forLife": "Yours for life, on every device you sign in on",
     "note": "Available inside the app through Google Play. When 5,000 people have claimed it, the offer is gone."
@@ -164,7 +175,7 @@
     },
     "isFree": {
       "question": "Is Friends with Habits free?",
-      "answer": "Yes. Friends with Habits is free to download and free to use, with no invite code and no card. A free account tracks up to {freeHabitLimit} active habits at a time, with no expiry, and archiving a habit you have finished with frees its slot. Free accounts can also start a limited number of new habits each month. The optional $20 founder unlock lifts both limits."
+      "answer": "Yes. Friends with Habits is free to download and free to use, with no invite code and no card. A free account tracks up to {freeHabitLimit} active habits at a time, with no expiry, and archiving a habit you have finished with frees its slot. Free accounts can also start up to {freeHabitStarts} new habits in any {freeHabitStartWindowDays} days. The optional $20 founder unlock lifts both limits."
     },
     "founderUnlock": {
       "question": "What is the $20 founder unlock, and do I need it?",
@@ -205,6 +216,7 @@
     "closeAriaLabel": "Close",
     "title": "Friends with Habits for iPhone is on the way",
     "bodyHtml": "There is no iPhone app yet &mdash; we are on Android via Google Play today. Every tap of that button tells us how many people are waiting on iOS, so thanks for the nudge.",
+    "webFallbackHtml": "Meanwhile, if a friend sends you a challenge link, you can join and check in from your iPhone's browser without installing anything.",
     "emailLabel": "Want an email the day it lands on the App Store? (Optional)",
     "emailPlaceholder": "you@example.com",
     "honeypotLabel": "Leave this field empty",

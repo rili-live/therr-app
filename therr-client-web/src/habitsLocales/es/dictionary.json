@@ -26,11 +26,11 @@
     "googlePlayCta": "Disponible en Google Play",
     "registerCta": "Crea tu cuenta",
     "iosCta": "¿iPhone? Únete a la lista de espera",
-    "ctaNoteHtml": "Gratis en Google Play, con hasta {freeHabitLimit} hábitos activos a la vez. iPhone muy pronto.",
+    "ctaNoteHtml": "Gratis en Google Play, con hasta {freeHabitLimit} hábitos activos a la vez y sin tarjeta. iPhone muy pronto.",
     "founderNoteHtml": "<strong>Desbloqueo de fundador opcional:</strong> ¿necesitas más de {freeHabitLimit}? Las primeras 5,000 cuentas pueden quitar el límite de por vida con un solo pago de $20 USD.",
     "highlightsAriaLabel": "Lo más destacado",
     "chipNoSubscription": "Sin suscripción",
-    "chipInstall": "Se instala en segundos",
+    "chipSoloStart": "Empieza por tu cuenta, invita después",
     "chipPhotoProof": "Check-ins con foto como prueba"
   },
   "demo": {
@@ -85,12 +85,12 @@
   "why": {
     "eyebrow": "Por qué funciona",
     "heading": "Por qué un compañero marca la diferencia",
-    "intro": "Comprometerte en voz alta, con una persona y con una hora fija, es uno de los trucos más antiguos para cumplir. Las dos cifras de abajo son las que verás citadas en todas partes; tómalas como la forma de la brecha, no como una medición.",
-    "withPartnerStat": "95%",
-    "withPartnerHtml": "<strong>Con una cita para rendir cuentas.</strong> La tasa de cumplimiento que suele citarse para una meta cuando tienes una hora fija para reportarle a la persona con quien te comprometiste.",
-    "onYourOwnStat": "10%",
-    "onYourOwnHtml": "<strong>Como simple idea.</strong> La tasa que suele citarse para esa misma meta cuando se queda en una idea que nunca le prometiste a nadie. Las apps para una sola persona te dejan de este lado de la brecha; nosotros hacemos que el otro lado sea lo normal.",
-    "sourceNoteHtml": "Estas cifras suelen atribuirse a la American Society for Training &amp; Development (hoy ATD), pero no hemos podido rastrearlas hasta un estudio publicado, así que tómalas como ilustrativas. No son mediciones de los usuarios de esta app. Trabajos publicados más pequeños apuntan en la misma dirección: en un estudio de 2015 de Gail Matthews en la Dominican University of California, las personas que enviaban reportes semanales de avance a un amigo lograron bastante más de sus metas que quienes se las guardaron para sí."
+    "intro": "Es más fácil cumplir lo que te propones cuando alguien más puede ver si cumpliste. Comprometerte en voz alta, con una persona y con una hora fija, es uno de los trucos más antiguos para cumplir, y es todo el diseño de la app.",
+    "withPartnerTitle": "Alguien lo ve",
+    "withPartnerHtml": "<strong>Con un compañero.</strong> Un día perdido aparece en la pantalla de tu amigo, y también le cuesta la racha. Saltarte un día deja de ser algo privado, así que deja de ser fácil.",
+    "onYourOwnTitle": "Nadie se da cuenta",
+    "onYourOwnHtml": "<strong>Por tu cuenta.</strong> Una app para una sola persona deja que un hábito se apague sin que nadie pregunte dónde estás. La mayoría de los hábitos no terminan con la decisión de rendirse. Terminan con una semana callada que nadie notó.",
+    "sourceNoteHtml": "La investigación publicada apunta en la misma dirección: en un estudio de 2015 de Gail Matthews en la Dominican University of California, las personas que enviaban reportes semanales de avance a un amigo lograron bastante más de sus metas que quienes se las guardaron para sí."
   },
   "compare": {
     "eyebrow": "La diferencia",
@@ -149,8 +149,19 @@
   "founder": {
     "badge": "Oferta para miembros fundadores",
     "headingHtml": "<span>$20 USD, una vez.</span> Sin límites, de por vida.",
-    "lede": "La versión gratis sigue siendo gratis, con {freeHabitLimit} hábitos activos a la vez. Si quieres más, las primeras 5,000 cuentas pueden desbloquear todo para siempre con un solo pago de $20 USD. Sin suscripción, sin renovación, nada que cancelar.",
-    "noCapHtml": "Sin límite de hábitos activos ni de hábitos nuevos &mdash; las cuentas gratis tienen hasta {freeHabitLimit} a la vez",
+    "lede": "La versión gratis sigue siendo gratis. Si quieres más de {freeHabitLimit} hábitos activos, las primeras 5,000 cuentas pueden desbloquear todo para siempre con un solo pago de $20 USD. Sin suscripción, sin renovación, nada que cancelar.",
+    "plansAriaLabel": "El plan gratis y el desbloqueo de fundador, lado a lado",
+    "freeName": "Gratis",
+    "freePrice": "$0",
+    "freePriceNote": "Sin tarjeta. Sin vencimiento.",
+    "freeActiveHtml": "Hasta <strong>{freeHabitLimit} hábitos activos</strong> a la vez",
+    "freeStartsHtml": "Hasta {freeHabitStarts} hábitos nuevos en cualquier periodo de {freeHabitStartWindowDays} días",
+    "freeArchive": "Archiva un hábito terminado para liberar su espacio",
+    "freeEverything": "Pactos, check-ins con foto, rachas compartidas y retos",
+    "founderName": "Desbloqueo de fundador",
+    "founderPrice": "$20 USD, una vez",
+    "founderPriceNote": "Sin suscripción. Sin renovación.",
+    "noCapHtml": "Sin límite de hábitos activos ni de hábitos nuevos",
     "futureFeatures": "Todas las funciones premium que lancemos después, incluidas",
     "forLife": "Tuyo de por vida, en cada dispositivo donde inicies sesión",
     "note": "Disponible dentro de la app a través de Google Play. Cuando 5,000 personas la hayan reclamado, la oferta se acaba."
@@ -164,7 +175,7 @@
     },
     "isFree": {
       "question": "¿Friends with Habits es gratis?",
-      "answer": "Sí. Friends with Habits es gratis para descargar y gratis para usar, sin código de invitación y sin tarjeta. Una cuenta gratis puede tener hasta {freeHabitLimit} hábitos activos a la vez, sin fecha de vencimiento, y al archivar un hábito que ya terminaste liberas ese espacio. Las cuentas gratis también pueden empezar un número limitado de hábitos nuevos cada mes. El desbloqueo de fundador opcional de $20 USD quita ambos límites."
+      "answer": "Sí. Friends with Habits es gratis para descargar y gratis para usar, sin código de invitación y sin tarjeta. Una cuenta gratis puede tener hasta {freeHabitLimit} hábitos activos a la vez, sin fecha de vencimiento, y al archivar un hábito que ya terminaste liberas ese espacio. Las cuentas gratis también pueden empezar hasta {freeHabitStarts} hábitos nuevos en cualquier periodo de {freeHabitStartWindowDays} días. El desbloqueo de fundador opcional de $20 USD quita ambos límites."
     },
     "founderUnlock": {
       "question": "¿Qué es el desbloqueo de fundador de $20 y lo necesito?",
@@ -205,6 +216,7 @@
     "closeAriaLabel": "Cerrar",
     "title": "Friends with Habits para iPhone ya viene en camino",
     "bodyHtml": "Todavía no hay app para iPhone &mdash; hoy estamos en Android a través de Google Play. Cada vez que alguien toca ese botón sabemos cuántas personas esperan la versión de iOS, así que gracias por el empujón.",
+    "webFallbackHtml": "Mientras tanto, si un amigo te manda el enlace de un reto, puedes unirte y hacer check-in desde el navegador de tu iPhone, sin instalar nada.",
     "emailLabel": "¿Quieres que te avisemos por correo el día que llegue al App Store? (Opcional)",
     "emailPlaceholder": "tu@ejemplo.com",
     "honeypotLabel": "Deja este campo vacío",

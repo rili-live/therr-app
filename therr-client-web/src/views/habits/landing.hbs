@@ -732,7 +732,8 @@
             font-size: 0.9375rem;
         }
 
-        /* Why: two stat cards with a bar that makes the gap visible. */
+        /* Why: two contrast cards, with a partner vs on your own. Words, not percentages:
+           see the comment beside the markup. */
         .stat-grid {
             display: grid;
             gap: 1.25rem;
@@ -741,33 +742,21 @@
         .stat-card {
             background: var(--fwh-white);
             border: 1px solid var(--fwh-border);
+            border-top: 4px solid var(--fwh-purple);
             border-radius: var(--fwh-radius);
             padding: 1.75rem 1.5rem;
             box-shadow: var(--fwh-shadow);
         }
+        .stat-card--dim { border-top-color: #b9b0c6; }
         .stat-card .stat {
-            font-size: 3.25rem;
+            font-size: clamp(1.625rem, 3vw, 2rem);
             font-weight: 800;
-            line-height: 1;
-            letter-spacing: -0.03em;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
             color: var(--fwh-purple);
             margin: 0 0 0.75rem;
         }
         .stat-card--dim .stat { color: var(--fwh-text-muted); }
-        .stat-bar {
-            height: 0.625rem;
-            border-radius: 999px;
-            background: var(--fwh-purple-soft);
-            overflow: hidden;
-            margin-bottom: 1rem;
-        }
-        .stat-bar i {
-            display: block;
-            height: 100%;
-            border-radius: 999px;
-            background: linear-gradient(90deg, var(--fwh-purple-mid), var(--fwh-purple));
-        }
-        .stat-card--dim .stat-bar i { background: #b9b0c6; }
         .stat-card p { margin: 0; color: var(--fwh-text-muted); font-size: 0.9375rem; }
         .stat-card p strong { color: var(--fwh-plum); }
         .source-note {
@@ -973,6 +962,45 @@
             -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='10' fill='black'/%3E%3Cpath d='M6 10.5l2.6 2.6L14 7.7' stroke='white' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
             mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='10' fill='black'/%3E%3Cpath d='M6 10.5l2.6 2.6L14 7.7' stroke='white' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
         }
+        .plan-grid {
+            display: grid;
+            gap: 1rem;
+            margin: 0 auto 1.5rem;
+            text-align: left;
+        }
+        .plan {
+            border: 1px solid var(--fwh-border);
+            border-radius: 1rem;
+            padding: 1.25rem 1.25rem 1.375rem;
+            background: var(--fwh-white);
+        }
+        .plan--founder {
+            border: 2px solid var(--fwh-gold);
+            background: #fffaf0;
+        }
+        section.founder .plan-name {
+            margin: 0 0 0.25rem;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--fwh-text-muted);
+        }
+        .plan-price {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 800;
+            line-height: 1.15;
+            color: var(--fwh-plum);
+        }
+        .plan--founder .plan-price { color: var(--fwh-gold-deep); }
+        .plan-price-note {
+            margin: 0.25rem 0 1rem;
+            font-size: 0.875rem;
+            color: var(--fwh-text-muted);
+        }
+        .plan-list { margin: 0; max-width: none; }
+        .plan--free .plan-list li::before { background: var(--fwh-purple-mid); }
         .founder-note {
             font-size: 0.8125rem;
             color: var(--fwh-text-muted);
@@ -1170,6 +1198,7 @@
             .hero p.lede { font-size: 1.25rem; }
             .step-list { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
             .stat-grid { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+            .plan-grid { grid-template-columns: 1fr 1fr; }
             .faq-grid { grid-template-columns: 1fr 1fr; }
             .closer-card { padding: 4rem 3rem; }
             .founder-card { padding: 3rem 2.5rem 2.75rem; }
@@ -1351,10 +1380,10 @@
                     <!-- role="list" so the aria-label is announced; a bare div's label is ignored. -->
                     <div class="chip-row" role="list" aria-label="{{t.hero.highlightsAriaLabel}}">
                         <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> {{{t.hero.chipNoSubscription}}}</span>
-                        <!-- Was "No waitlist", which now contradicts the iPhone waitlist button above it.
-                             The claim it was making — you can install right now, nothing to wait for — is
-                             about Android, so it is said that way instead. -->
-                        <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> {{{t.hero.chipInstall}}}</span>
+                        <!-- Answers "who do I invite?" before the visitor has to ask it: a required
+                             partner reads as a gate above the fold, and the solo on-ramp (first habit
+                             runs solo for SOLO_GRACE_DAYS) was only said further down, in .no-friend. -->
+                        <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> {{{t.hero.chipSoloStart}}}</span>
                         <span role="listitem"><svg aria-hidden="true"><use href="#fwh-check"/></svg> {{{t.hero.chipPhotoProof}}}</span>
                     </div>
                 </div>
@@ -1524,25 +1553,23 @@
                 </div>
                 <div class="stat-grid">
                     <div class="stat-card">
-                        <div class="stat">{{{t.why.withPartnerStat}}}</div>
-                        <div class="stat-bar" aria-hidden="true"><i style="width: 95%"></i></div>
+                        <h3 class="stat">{{{t.why.withPartnerTitle}}}</h3>
                         <p>{{{t.why.withPartnerHtml}}}</p>
                     </div>
                     <div class="stat-card stat-card--dim">
-                        <div class="stat">{{{t.why.onYourOwnStat}}}</div>
-                        <div class="stat-bar" aria-hidden="true"><i style="width: 10%"></i></div>
+                        <h3 class="stat">{{{t.why.onYourOwnTitle}}}</h3>
                         <p>{{{t.why.onYourOwnHtml}}}</p>
                     </div>
                 </div>
-                <!--
-                    Framed as "often quoted", not as a finding. The 95% / 10% pair is the top and
-                    bottom of the "ASTD commitment ladder", which circulates everywhere but has
-                    never been traced to a published study. Presenting it as measured was a claim
-                    risk on the page and in the Play listing, and AI answer engines discount
-                    unsourced statistics. The source note says so plainly and points at
-                    published work (Matthews, 2015) for the direction of the effect. Do not
-                    reword the cards back into a measured claim.
-                -->
+                {{!--
+                    No percentages here, on purpose. These cards used to show the 95% / 10% pair
+                    from the "ASTD commitment ladder", with a source note admitting it was untraceable.
+                    A caveat in small print does not undo a 3rem number with a bar under it: the
+                    visitor reads the number, and a skeptical one discredits it with one search.
+                    It was already removed from the Play listing for the same reason. Do not add
+                    a figure back unless it names its study, population and date right beside
+                    it, or is our own data (e.g. how many pacts completed their first 7 days).
+                --}}
                 <p class="source-note">{{{t.why.sourceNoteHtml}}}</p>
             </div>
         </section>
@@ -1614,11 +1641,36 @@
                     <div class="founder-badge">{{{t.founder.badge}}}</div>
                     <h2>{{{t.founder.headingHtml}}}</h2>
                     <p class="founder-lede">{{{t.founder.lede}}}</p>
-                    <ul class="founder-list">
-                        <li>{{{t.founder.noCapHtml}}}</li>
-                        <li>{{{t.founder.futureFeatures}}}</li>
-                        <li>{{{t.founder.forLife}}}</li>
-                    </ul>
+                    <!--
+                        Free and founder side by side, with every free-tier limit named. "Free"
+                        said on its own collides with a $20 offer two sections later and with the
+                        starts window a visitor only meets at the paywall; naming both caps here,
+                        next to the price, is what keeps the free claim honest. Both numbers are
+                        interpolated from the users-service constants, never typed in.
+                    -->
+                    <div class="plan-grid" role="group" aria-label="{{t.founder.plansAriaLabel}}">
+                        <div class="plan plan--free">
+                            <h3 class="plan-name">{{{t.founder.freeName}}}</h3>
+                            <p class="plan-price">{{{t.founder.freePrice}}}</p>
+                            <p class="plan-price-note">{{{t.founder.freePriceNote}}}</p>
+                            <ul class="founder-list plan-list">
+                                <li>{{{t.founder.freeActiveHtml}}}</li>
+                                <li>{{{t.founder.freeStartsHtml}}}</li>
+                                <li>{{{t.founder.freeArchive}}}</li>
+                                <li>{{{t.founder.freeEverything}}}</li>
+                            </ul>
+                        </div>
+                        <div class="plan plan--founder">
+                            <h3 class="plan-name">{{{t.founder.founderName}}}</h3>
+                            <p class="plan-price">{{{t.founder.founderPrice}}}</p>
+                            <p class="plan-price-note">{{{t.founder.founderPriceNote}}}</p>
+                            <ul class="founder-list plan-list">
+                                <li>{{{t.founder.noCapHtml}}}</li>
+                                <li>{{{t.founder.futureFeatures}}}</li>
+                                <li>{{{t.founder.forLife}}}</li>
+                            </ul>
+                        </div>
+                    </div>
                     <p class="founder-note">{{{t.founder.note}}}</p>
                 </div>
             </div>
@@ -1730,6 +1782,12 @@
             <button type="button" class="modal-close" id="ios-modal-close" aria-label="{{t.iosModal.closeAriaLabel}}">&times;</button>
             <h2 id="ios-modal-title">{{{t.iosModal.title}}}</h2>
             <p>{{{t.iosModal.bodyHtml}}}</p>
+            {{!
+                Not a dead end: join-by-link challenges run in any browser (FEATURES.md →
+                Join-by-link challenges), so an iPhone visitor with a friend on Android can
+                still take part today. Do not widen this to pacts; a pact still needs the app.
+            }}
+            <p>{{{t.iosModal.webFallbackHtml}}}</p>
             {{!
                 The script below is locale-agnostic: every message it shows is read from
                 these data attributes, which the double-stash escapes correctly for an attribute.

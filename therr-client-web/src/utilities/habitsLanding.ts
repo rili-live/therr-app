@@ -22,6 +22,7 @@
  * Express listener.
  */
 import serialize from 'serialize-javascript';
+import { HABITS_FREE_HABIT_START_WINDOW_DAYS, HABITS_FREE_HABIT_STARTS_PER_WINDOW } from 'therr-js-utilities/constants';
 import enUsDictionary from '../habitsLocales/en-us/dictionary.json';
 import esDictionary from '../habitsLocales/es/dictionary.json';
 import frCaDictionary from '../habitsLocales/fr-ca/dictionary.json';
@@ -358,12 +359,22 @@ export const buildHabitsLandingJsonLd = (locale: HabitsLandingLocale, copy: Habi
  */
 export const buildHabitsLandingViewContext = (
     locale: HabitsLandingLocale,
-    // Marketing copy quotes the free-tier cap; passing the constant keeps it from drifting when
-    // the default changes. An env override must be set on this deployment too, not only users-service.
-    { freeHabitLimit }: { freeHabitLimit: number | string },
+    // Marketing copy quotes the free-tier caps; passing the constants keeps them from drifting when
+    // a default changes. An env override must be set on this deployment too, not only users-service.
+    // The starts window is quoted beside the active cap on purpose: a "free" claim that names one
+    // limit and hides the other is what makes a visitor feel baited at the paywall.
+    {
+        freeHabitLimit,
+        freeHabitStarts = HABITS_FREE_HABIT_STARTS_PER_WINDOW,
+        freeHabitStartWindowDays = HABITS_FREE_HABIT_START_WINDOW_DAYS,
+    }: {
+        freeHabitLimit: number | string,
+        freeHabitStarts?: number | string,
+        freeHabitStartWindowDays?: number | string,
+    },
 ) => {
     const config = getLocaleConfig(locale);
-    const copy = interpolate(config.copy, { freeHabitLimit });
+    const copy = interpolate(config.copy, { freeHabitLimit, freeHabitStarts, freeHabitStartWindowDays });
 
     return {
         t: copy,

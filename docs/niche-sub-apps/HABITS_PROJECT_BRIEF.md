@@ -72,8 +72,10 @@ Unlike traditional habit trackers, where partners are an afterthought, 'Therr: F
 - 48% increase in adult engagement over past year
 
 ### The Accountability Gap
-- **95% success rate** with accountability partner
-- **10% success rate** without accountability partner
+- Intentions are easier to keep when someone else can see whether you showed up. Published
+  support: Matthews (2015, Dominican University of California), weekly progress reports to a
+  friend beat keeping goals private. Do **not** cite the "ASTD 95% / 10%" pair — it has no
+  traceable source and was removed from the landing page and the Play listing.
 - Current habit trackers are primarily solo experiences
 - No dominant player in mandatory-social habit tracking
 

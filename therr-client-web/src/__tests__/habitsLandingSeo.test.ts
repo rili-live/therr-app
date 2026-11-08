@@ -167,9 +167,19 @@ describe.each(LOCALES)('habits landing page SEO markup (%s)', (locale) => {
         const body = (html.match(/<main>[\s\S]*<\/main>/) as RegExpMatchArray)[0];
         expect(stripTags(body)).not.toMatch(/\{[a-zA-Z]+\}/);
         expect(body).not.toMatch(/<(h1|h2|h3|p|li|span|div)[^>]*>\s*<\/\1>/);
-        // The free-tier cap is interpolated from HABITS_FREE_HABIT_LIMIT, not hardcoded.
-        const founderList = (body.match(/<ul class="founder-list">[\s\S]*?<\/ul>/) as RegExpMatchArray)[0];
-        expect(stripTags(founderList)).toMatch(/\b3\b/);
+        // The free-tier caps are interpolated from HABITS_FREE_HABIT_LIMIT and the starts-window
+        // constants, not hardcoded, and both are named in the free plan's column.
+        const freePlan = (body.match(/<div class="plan plan--free">[\s\S]*?<\/ul>/) as RegExpMatchArray)[0];
+        expect(stripTags(freePlan)).toMatch(/\b3\b/);
+        expect(stripTags(freePlan)).toMatch(/\b5\b[\s\S]*\b30\b/);
+    });
+
+    it('does not bring back the untraceable 95% / 10% accountability statistic', () => {
+        // Removed from the page and the Play listing because it has no traceable source; a
+        // caveat in small print did not stop it reading as a measured claim.
+        const why = (html.match(/<section class="why"[\s\S]*?<\/section>/) as RegExpMatchArray)[0];
+        expect(stripTags(why)).not.toMatch(/\d\s?%/);
+        expect(html).not.toMatch(/ASTD|American Society for Training/);
     });
 
     it('allows every third-party image host it embeds through the CSP', () => {
