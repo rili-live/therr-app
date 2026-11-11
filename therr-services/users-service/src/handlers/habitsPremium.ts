@@ -164,8 +164,11 @@ const getPremiumOffer: RequestHandler = async (req: any, res: any) => {
  */
 const verifyPremiumPurchase: RequestHandler = async (req: any, res: any) => {
     const { locale, userId, brandVariation } = parseHeaders(req.headers);
+    // `orderId` in the body is deliberately not read. See habitsLifetime.ts:
+    // a promo redemption has no Play order id, and the client then reports the
+    // purchase token in its place.
     const {
-        platform, productId, purchaseToken, orderId,
+        platform, productId, purchaseToken,
     } = req.body;
 
     if (!purchaseToken || typeof purchaseToken !== 'string') {
@@ -279,7 +282,8 @@ const verifyPremiumPurchase: RequestHandler = async (req: any, res: any) => {
             productId: expectedProductId,
             purchaseToken,
             linkedPurchaseToken: playSub.linkedPurchaseToken || null,
-            orderId: orderId || playSub.latestOrderId || null,
+            // From Play, never the client — see `verifyLifetimePurchase`.
+            orderId: playSub.latestOrderId || null,
             status: 'active',
             subscriptionState: playSub.subscriptionState || null,
             autoRenewing: lineItem.autoRenewingPlan?.autoRenewEnabled ?? null,

@@ -138,8 +138,10 @@ const getLifetimeOffer: RequestHandler = async (req: any, res: any) => {
  */
 const verifyLifetimePurchase: RequestHandler = async (req: any, res: any) => {
     const { locale, userId, brandVariation } = parseHeaders(req.headers);
+    // `orderId` in the body is deliberately not read. See the note at the
+    // insert below.
     const {
-        platform, productId, purchaseToken, orderId,
+        platform, productId, purchaseToken,
     } = req.body;
 
     if (!purchaseToken || typeof purchaseToken !== 'string') {
@@ -244,7 +246,14 @@ const verifyLifetimePurchase: RequestHandler = async (req: any, res: any) => {
             platform: platform || 'android',
             productId: expectedProductId,
             purchaseToken,
-            orderId: orderId || playPurchase.orderId || null,
+            // Taken from Play, never from the client. A promo-code redemption has
+            // no Play order id, and react-native-iap then reports the purchase
+            // TOKEN as the purchase's id/transactionId — which the app sends as
+            // `orderId`. Preferring that value wrote a ~150+ character token into
+            // a varchar(120) column, failed the insert, and left every promo
+            // redemption unrecorded and unacknowledged (auto-refunded by Play
+            // after three days). NULL is the honest value when Play has no order.
+            orderId: playPurchase.orderId || null,
             priceAmountMicros: playPurchase.priceAmountMicros ?? null,
             priceCurrencyCode: playPurchase.priceCurrencyCode ?? null,
             purchasedAt: playPurchase.purchaseTimeMillis
