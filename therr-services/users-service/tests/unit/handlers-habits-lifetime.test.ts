@@ -226,6 +226,37 @@ describe('HABITS lifetime purchase verification', () => {
         expect(createWithSlotStub.firstCall.args[2]).to.equal(true);
     });
 
+    it('records a promo redemption, which has no Play order id', async () => {
+        // Regression: Play omits orderId for a promo-code redemption, and
+        // react-native-iap then reports the purchase TOKEN as the purchase's
+        // id/transactionId, which the app sends as `orderId`. Storing that
+        // overflowed the varchar(120) column, failed the insert with a 500 and
+        // left the redemption unrecorded and unacknowledged.
+        getProductPurchaseStub.resolves({
+            ...purchasedPlayResponse,
+            orderId: undefined,
+            purchaseType: googlePlay.PURCHASE_TYPE_PROMO,
+        } as any);
+
+        const longToken = 'x'.repeat(200);
+        const res = makeRes();
+        await verifyLifetimePurchase(makeReq({
+            body: { purchaseToken: longToken, orderId: longToken },
+        }) as any, res, (() => {}) as any);
+
+        expect(res.statusCode).to.equal(201);
+        expect(createWithSlotStub.firstCall.args[0].orderId).to.equal(null);
+    });
+
+    it('takes the order id from Play, not from the client', async () => {
+        const res = makeRes();
+        await verifyLifetimePurchase(makeReq({
+            body: { orderId: 'client-supplied' },
+        }) as any, res, (() => {}) as any);
+
+        expect(createWithSlotStub.firstCall.args[0].orderId).to.equal('GPA.1234');
+    });
+
     it('never returns the purchase token or the raw Play payload', async () => {
         // `purchaseToken` is a bearer credential for the purchase and
         // `verificationPayload` is kept for disputes; neither is in the shape
