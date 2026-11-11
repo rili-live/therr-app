@@ -96,6 +96,18 @@ describe('HABITS premium subscription verification', () => {
         delete process.env.HABITS_PREMIUM_PRODUCT_ID;
     });
 
+    it('takes the order id from Play, not from the client', async () => {
+        // The client can report the purchase token in place of an order id (see
+        // the promo-code case in handlers-habits-lifetime.test.ts), which does
+        // not fit the varchar(120) column.
+        const res = makeRes();
+        await verifyPremiumPurchase(makeReq({
+            body: { orderId: 'x'.repeat(200) },
+        }) as any, res, (() => {}) as any);
+
+        expect(upsertStub.firstCall.args[0].orderId).to.equal('GPA.5678');
+    });
+
     it('grants the premium access level on a verified active subscription', async () => {
         const res = makeRes();
         await verifyPremiumPurchase(makeReq() as any, res, (() => {}) as any);
