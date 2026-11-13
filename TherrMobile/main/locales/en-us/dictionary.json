@@ -3001,6 +3001,8 @@
                 "durationChip": "{days} days",
                 "spotsLeft": "{count} spots left",
                 "spotsLeftOne": "1 spot left",
+                "noSpotsLeft": "No spots left",
+                "fullStatus": "Full — check back if a spot opens",
                 "spotsFilled": "{count} of {total} taken",
                 "memberCount": "{count} members",
                 "memberCountOne": "1 member",

@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import translator from '../../main/utilities/translator';
 import {
-    getOpenPactSeats, getOpenPactSeatsLabel, MAX_SEAT_DOTS,
+    getOpenPactSeats, getOpenPactSeatsLabel, MAX_SEAT_DOTS, sortFullOpenPactsLast,
 } from '../../main/utilities/openPactListing';
 
 /**
@@ -51,6 +51,10 @@ describe('getOpenPactSeatsLabel', () => {
         expect(labelFor(5, 6)).toBe('1 spot left');
     });
 
+    it('says there is no spot left on a full pact, not "0 spots left"', () => {
+        expect(labelFor(6, 6)).toBe('No spots left');
+    });
+
     it('counts members when the ceiling is unknown', () => {
         expect(labelFor(4, null)).toBe('4 members');
         expect(labelFor(1, null)).toBe('1 member');
@@ -60,6 +64,20 @@ describe('getOpenPactSeatsLabel', () => {
         ['en-us', 'es', 'fr-ca'].forEach((locale) => {
             expect(labelFor(4, 6, locale)).not.toMatch(/pages\.|\{/);
             expect(labelFor(1, null, locale)).not.toMatch(/pages\.|\{/);
+            expect(labelFor(6, 6, locale)).not.toMatch(/pages\.|\{/);
+            expect(translator(locale, 'pages.pacts.openPact.fullStatus')).not.toMatch(/pages\.|\{/);
         });
+    });
+});
+
+describe('sortFullOpenPactsLast', () => {
+    it('moves full pacts after every pact with room, keeping each group in order', () => {
+        const pacts = [
+            { id: 'full-a', isFull: true },
+            { id: 'room-a', isFull: false },
+            { id: 'full-b', isFull: true },
+            { id: 'room-b' },
+        ];
+        expect(sortFullOpenPactsLast(pacts).map((p) => p.id)).toEqual(['room-a', 'room-b', 'full-a', 'full-b']);
     });
 });

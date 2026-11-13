@@ -29,7 +29,8 @@ export const getOpenPactSeats = (memberCount: number | null | undefined, maxMemb
         };
     }
 
-    // The list never includes a full pact, but a stale count can briefly exceed the ceiling.
+    // A full pact reaches the OpenPacts screen (`includeFull`), and a stale count can briefly exceed
+    // the ceiling — either way `left` bottoms out at zero.
     const total = Math.max(maxMembers, filled);
 
     return {
@@ -52,8 +53,22 @@ export const getOpenPactSeatsLabel = (seats: IOpenPactSeats): { key: string; par
         };
     }
 
+    if (seats.left === 0) {
+        return { key: 'pages.pacts.openPact.noSpotsLeft', params: {} };
+    }
+
     return {
         key: seats.left === 1 ? 'pages.pacts.openPact.spotsLeftOne' : 'pages.pacts.openPact.spotsLeft',
         params: { count: seats.left, filled: seats.filled, total: seats.total || 0 },
     };
 };
+
+/**
+ * Full pacts after every pact with room, keeping each group's order. The server already orders them
+ * this way; this holds it on screen after a local change (a cancelled request) and against an older
+ * server that sends no `isFull` at all, where it changes nothing.
+ */
+export const sortFullOpenPactsLast = <T extends { isFull?: boolean }>(pacts: T[]): T[] => [
+    ...pacts.filter((pact) => !pact.isFull),
+    ...pacts.filter((pact) => pact.isFull),
+];
