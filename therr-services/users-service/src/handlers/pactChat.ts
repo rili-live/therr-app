@@ -8,6 +8,8 @@ import translate from '../utilities/translator';
 import enqueueNotification from '../utilities/enqueueNotification';
 import { resolveHabitDisplayName, resolveUserDisplayName } from '../utilities/notificationNames';
 import { isUserInPact } from '../utilities/pactHelpers';
+import { isOpenPactBonusEligible, LeaderboardXpValues } from '../utilities/leaderboardHelpers';
+import { awardLeaderboardPoints } from './helpers/leaderboards';
 import {
     IPactChatCheckinRow,
     IPactChatReactionRow,
@@ -355,6 +357,30 @@ export const enqueuePactMessagePushes = async ({
 };
 
 // CREATE
+/**
+ * The first message a member posts in an open pact's chat each UTC day earns
+ * `LeaderboardXpValues.openPactDailyMessage`. Counted after the insert, so "first" means the count
+ * is exactly one — a burst of messages pays once, and two racing first messages at worst pay none.
+ * Fire and forget: the message is already posted, and an XP hiccup must not fail it.
+ */
+const awardOpenPactDailyMessageXp = (headers: any, pact: any, userId: string): void => {
+    if (!isOpenPactBonusEligible(pact)) {
+        return;
+    }
+    const startOfUtcDay = new Date();
+    startOfUtcDay.setUTCHours(0, 0, 0, 0);
+
+    Store.pactChat.countMessagesByUserSince(pact.id, userId, startOfUtcDay)
+        .then((count) => {
+            if (count === 1) {
+                const utcDate = startOfUtcDay.toISOString().split('T')[0];
+                return awardLeaderboardPoints(headers, LeaderboardXpValues.openPactDailyMessage, `open-pact-message:${pact.id}:${utcDate}`);
+            }
+            return null;
+        })
+        .catch(() => null);
+};
+
 const createPactMessage: RequestHandler = async (req: any, res: any) => {
     const {
         locale, userId, whiteLabelOrigin,
@@ -392,6 +418,7 @@ const createPactMessage: RequestHandler = async (req: any, res: any) => {
             await enqueuePactMessagePushes({
                 pact: access.pact, message, senderUserId: userId, locale, whiteLabelOrigin,
             });
+            awardOpenPactDailyMessageXp(req.headers, access.pact, userId);
         }
 
         return res.status(isNew ? 201 : 200).send({ item: messageToItem(message) });

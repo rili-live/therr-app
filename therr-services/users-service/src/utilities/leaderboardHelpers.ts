@@ -64,7 +64,40 @@ export const LeaderboardXpValues = {
     // Per app open, up to `APP_OPEN_XP_DAILY_LIMIT` a day. Deliberately tiny: it is there to
     // keep returning users on the board, never to outrank a single day of actual effort.
     appOpen: 1,
+    // Open pacts (habits.pacts.isOpen). A pact strangers can join is how a user with no friends on
+    // the app finds a partner, so taking part in one pays more than doing the same thing alone.
+    // Once per pact, on its first opening — the `firstOpenedAt` claim stops a close/re-open loop.
+    openPactOpened: 10,
+    // On top of `habitCheckin`, per first completed check-in of a day that counts toward an open
+    // pact someone else has joined. See `isOpenPactBonusEligible`.
+    openPactCheckinBonus: 5,
+    // Once per approved join request: to the person who joined, and to the creator who let them in.
+    openPactJoined: 25,
+    openPactMemberWelcomed: 15,
+    // The first message a member posts in an open pact's chat each UTC day. Once a day, not per
+    // message, so it rewards turning up and never a flood of "hi".
+    openPactDailyMessage: 3,
 };
+
+/**
+ * Whether a check-in counts toward an open pact for the bonus: the pact is open, running, and has
+ * someone in it besides one person — `active` with `isSolo` unset means a partner accepted. A pact
+ * its creator opened and nobody joined earns nothing extra, or opening a pact would be a free bonus
+ * with no partner to show for it.
+ */
+export const isOpenPactBonusEligible = (pact: {
+    isOpen?: boolean | null;
+    status?: string | null;
+    isSolo?: boolean | null;
+} | null | undefined): boolean => !!pact
+    && pact.isOpen === true
+    && pact.status === 'active'
+    && !pact.isSolo;
+
+/** XP a first completion for a day earns on top of the base, for the pacts it counts toward. */
+export const openPactCheckinBonusXp = (pacts: Parameters<typeof isOpenPactBonusEligible>[0][]): number => (
+    (pacts || []).some(isOpenPactBonusEligible) ? LeaderboardXpValues.openPactCheckinBonus : 0
+);
 
 // App opens that earn `LeaderboardXpValues.appOpen` per UTC day. The rest earn nothing.
 export const APP_OPEN_XP_DAILY_LIMIT = 3;
