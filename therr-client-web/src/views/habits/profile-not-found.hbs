@@ -12,14 +12,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&display=swap">
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon-habits.ico">
     <style>
-        :root {
-            --habits-navy: #102a43;
-            --habits-coral-dark: #e0521e;
-            --habits-cream: #fff8f3;
-            --habits-text: #243b53;
-            --habits-text-muted: #627d98;
-            --habits-border: #d9e2ec;
-        }
+        {{> habitsTokens}}
         *, *::before, *::after { box-sizing: border-box; }
         html, body {
             margin: 0;
@@ -27,11 +20,11 @@
             font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 16px;
             line-height: 1.6;
-            color: var(--habits-text);
-            background: var(--habits-cream);
+            color: var(--fwh-text);
+            background: var(--fwh-cream);
             min-height: 100vh;
         }
-        a { color: var(--habits-coral-dark); }
+        a { color: var(--fwh-purple); }
         .wrap {
             max-width: 540px;
             margin: 0 auto;
@@ -41,14 +34,14 @@
         h1 {
             font-size: 1.75rem;
             font-weight: 800;
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
             margin: 0 0 0.75rem;
         }
-        p { color: var(--habits-text-muted); margin: 0 0 1.25rem; }
+        p { color: var(--fwh-text-muted); margin: 0 0 1.25rem; }
         a.home {
             display: inline-block;
             margin-top: 0.5rem;
-            color: var(--habits-coral-dark);
+            color: var(--fwh-purple);
             font-weight: 600;
         }
         .container {
@@ -58,10 +51,10 @@
         }
         footer.site-footer {
             padding: 2rem 0 3rem;
-            border-top: 1px solid var(--habits-border);
+            border-top: 1px solid var(--fwh-border);
             background: #fff;
             text-align: center;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
             font-size: 0.875rem;
         }
         footer.site-footer .footer-links {
@@ -69,7 +62,7 @@
         }
         footer.site-footer .footer-links a {
             margin: 0 0.5rem;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
         }
         footer.site-footer .footer-family {
             margin-top: 0.5rem;

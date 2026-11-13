@@ -14,14 +14,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
     <style>
-        :root {
-            --habits-navy: #102a43;
-            --habits-coral-dark: #e0521e;
-            --habits-cream: #fff8f3;
-            --habits-text: #243b53;
-            --habits-text-muted: #627d98;
-            --habits-border: #d9e2ec;
-        }
+        {{> habitsTokens}}
         *, *::before, *::after { box-sizing: border-box; }
         html, body {
             margin: 0;
@@ -29,15 +22,15 @@
             font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 16px;
             line-height: 1.65;
-            color: var(--habits-text);
-            background: var(--habits-cream);
+            color: var(--fwh-text);
+            background: var(--fwh-cream);
             -webkit-font-smoothing: antialiased;
         }
-        a { color: var(--habits-coral-dark); }
+        a { color: var(--fwh-purple); }
         .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
         header.site-header {
             padding: 1.25rem 0;
-            border-bottom: 1px solid var(--habits-border);
+            border-bottom: 1px solid var(--fwh-border);
             background: #fff;
         }
         header.site-header .container {
@@ -53,22 +46,22 @@
         header.site-header .brand {
             font-weight: 800;
             font-size: 1.125rem;
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
         }
-        header.site-header a { color: var(--habits-navy); text-decoration: none; }
+        header.site-header a { color: var(--fwh-plum); text-decoration: none; }
         main { padding: 2.5rem 0 4rem; }
-        h1 { font-size: 2rem; font-weight: 800; color: var(--habits-navy); margin: 0 0 0.5rem; letter-spacing: -0.02em; }
-        .updated { color: var(--habits-text-muted); font-size: 0.9375rem; margin: 0 0 2rem; }
-        h2 { font-size: 1.25rem; font-weight: 700; color: var(--habits-navy); margin: 2.5rem 0 0.75rem; }
+        h1 { font-size: 2rem; font-weight: 800; color: var(--fwh-plum); margin: 0 0 0.5rem; letter-spacing: -0.02em; }
+        .updated { color: var(--fwh-text-muted); font-size: 0.9375rem; margin: 0 0 2rem; }
+        h2 { font-size: 1.25rem; font-weight: 700; color: var(--fwh-plum); margin: 2.5rem 0 0.75rem; }
         p, li { font-size: 1rem; }
         ul { padding-left: 1.25rem; }
         ul li { margin-bottom: 0.4rem; }
         footer.site-footer {
             padding: 2rem 0 3rem;
-            border-top: 1px solid var(--habits-border);
+            border-top: 1px solid var(--fwh-border);
             background: #fff;
             text-align: center;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
             font-size: 0.875rem;
         }
         footer.site-footer .footer-links {
@@ -76,7 +69,7 @@
         }
         footer.site-footer .footer-links a {
             margin: 0 0.5rem;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
         }
         footer.site-footer .footer-family {
             margin-top: 0.5rem;
@@ -168,7 +161,7 @@
             <h2>Contact</h2>
             <p>Questions about these terms: <a href="mailto:info@therr.com">info@therr.com</a></p>
 
-            <p style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--habits-border); color: var(--habits-text-muted); font-size: 0.875rem;">
+            <p style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--fwh-border); color: var(--fwh-text-muted); font-size: 0.875rem;">
                 Friends with Habits is a product of Therr Inc. Your account is shared with the Therr family of apps; use of other Therr-family apps is governed by their respective terms, available at <a href="https://www.therr.com">www.therr.com</a>.
             </p>
         </div>

@@ -31,23 +31,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon-habits.png">
     <style>
         /* Same palette as landing.hbs, which documents where it comes from. */
-        :root {
-            --fwh-plum: #2e2140;
-            --fwh-purple: #5b4273;
-            --fwh-purple-soft: #ece6f3;
-            --fwh-purple-tint: #f6f2fa;
-            --fwh-gold: #f6c94a;
-            --fwh-gold-dark: #d49617;
-            --fwh-gold-deep: #a86f05;
-            --fwh-cream: #fbf7f1;
-            --fwh-white: #ffffff;
-            --fwh-text: #3a2f4a;
-            --fwh-text-muted: #6f6582;
-            --fwh-border: #e6dfee;
-            --fwh-error: #b42318;
-            --fwh-shadow: 0 18px 40px -20px rgba(46, 33, 64, 0.35);
-            --fwh-radius: 1.25rem;
-        }
+        {{> habitsTokens}}
         *, *::before, *::after { box-sizing: border-box; }
         html { scroll-behavior: smooth; }
         html, body {
@@ -128,7 +112,7 @@
             transition: background 0.15s ease;
         }
         .cta:hover { background: var(--fwh-purple); }
-        .cta:disabled { background: var(--fwh-text-muted); cursor: not-allowed; }
+        .cta:disabled { background: var(--fwh-border); color: var(--fwh-text-muted); cursor: not-allowed; }
         .cta--small { padding: 0.5rem 1.125rem; font-size: 0.875rem; }
 
         /* ---------- Hero ---------- */
