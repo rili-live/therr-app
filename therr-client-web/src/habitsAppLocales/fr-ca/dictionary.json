@@ -1,0 +1,117 @@
+{
+    "meta": {
+        "title": "Mes habitudes — Friends with Habits",
+        "description": "Faites vos check-ins, suivez votre série et rejoignez des pactes ouverts dans n'importe quel navigateur."
+    },
+    "nav": {
+        "ariaLabel": "Sections",
+        "today": "Aujourd'hui",
+        "discover": "Découvrir",
+        "signOut": "Se déconnecter",
+        "homeAriaLabel": "Mes habitudes",
+        "back": "Retour à aujourd'hui"
+    },
+    "common": {
+        "loading": "Chargement…",
+        "retry": "Réessayer",
+        "networkError": "Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.",
+        "genericError": "Une erreur s'est produite. Réessayez dans un instant.",
+        "noscript": "L'appli Web a besoin de JavaScript. Activez-le ou utilisez l'appli Android."
+    },
+    "today": {
+        "greetingMorning": "Bon matin, {name}",
+        "greetingAfternoon": "Bon après-midi, {name}",
+        "greetingEvening": "Bonsoir, {name}",
+        "greetingFallbackName": "l'ami",
+        "progress": "{done} sur {total} faites aujourd'hui",
+        "progressAllDone": "Les {total} sont faites aujourd'hui. Beau travail.",
+        "streakLabel": "jours de série",
+        "streakAtStake": "Faites un check-in aujourd'hui pour la garder en vie.",
+        "weekAriaLabel": "Cette semaine",
+        "weekdayInitials": "L,M,M,J,V,S,D",
+        "habitsHeading": "Vos habitudes",
+        "invitesHeading": "Invitations à des pactes"
+    },
+    "habit": {
+        "checkIn": "Faire un check-in",
+        "checkInAria": "Faire un check-in pour {habit}",
+        "checkedIn": "Fait aujourd'hui",
+        "checkingIn": "Enregistrement…",
+        "checkedInToast": "Check-in fait pour {habit}.",
+        "freezeUsedToast": "Check-in fait. Un gel de série a couvert la journée manquée.",
+        "streak": "Série de {count} jours",
+        "streakNone": "Pas encore de série",
+        "longestStreak": "Plus longue série",
+        "currentStreak": "Série en cours",
+        "weekProgress": "{done} sur {target} cette semaine",
+        "solo": "En solo",
+        "paused": "En pause",
+        "awaitingPartner": "Invitation envoyée. En attente de l'acceptation de votre partenaire.",
+        "withPartners": "Avec {names}",
+        "partnerDone": "{name} a fait son check-in aujourd'hui",
+        "partnerNotYet": "{name} n'a pas encore fait son check-in",
+        "andOthers": "{name} et {count} de plus",
+        "viewDetails": "Ouvrir {habit}",
+        "cadenceDaily": "Tous les jours",
+        "cadenceWeekly": "{count} fois par semaine",
+        "cadenceCustom": "Certains jours",
+        "noteLabel": "Ajouter une note pour aujourd'hui (facultatif)",
+        "notePlaceholder": "Qu'avez-vous fait?",
+        "noteSave": "Enregistrer la note",
+        "noteSaved": "Note enregistrée.",
+        "calendarHeading": "Cinq dernières semaines",
+        "partnersHeading": "Votre pacte",
+        "memberStreak": "Série de {count} jours",
+        "memberRate": "{percent} % des jours",
+        "memberPending": "Invité",
+        "pactDays": "Pacte de {days} jours",
+        "notFound": "Nous n'avons pas trouvé cette habitude dans votre compte.",
+        "appOnlyNote": "Les photos comme preuve, le clavardage du pacte et les rappels se trouvent dans l'appli Android. Tout ce que vous faites ici y apparaît aussi."
+    },
+    "invites": {
+        "from": "{name} vous a invité",
+        "fromUnknown": "Vous avez été invité",
+        "detail": "{habit} · {days} jours",
+        "accept": "Accepter",
+        "decline": "Refuser",
+        "accepted": "Vous y êtes. Le pacte a commencé.",
+        "declined": "Invitation refusée."
+    },
+    "discover": {
+        "heading": "Pactes ouverts",
+        "intro": "Ces pactes acceptent de nouvelles personnes. Demandez à en rejoindre un, et la personne qui l'a lancé décide.",
+        "empty": "Aucun pacte ouvert pour le moment. Lancez une habitude ci-dessous et invitez un ami depuis l'appli.",
+        "startedBy": "Lancé par @{userName}",
+        "spots": "{count} places prises sur {max}",
+        "days": "{days} jours",
+        "askToJoin": "Demander à rejoindre",
+        "requested": "Demande envoyée",
+        "cancelRequest": "Retirer",
+        "requestSentToast": "Demande envoyée. Vous serez ajouté une fois qu'elle sera approuvée.",
+        "requestCancelledToast": "Demande retirée.",
+        "templatesHeading": "Lancer une habitude",
+        "templatesIntro": "Choisissez-en une pour commencer aujourd'hui. Votre première habitude peut tenir une semaine en solo avant d'avoir besoin d'un partenaire.",
+        "start": "Commencer",
+        "startedToast": "{habit} ajoutée. Faites votre check-in quand vous voulez.",
+        "alreadyTracking": "En cours"
+    },
+    "empty": {
+        "title": "Aucune habitude pour l'instant",
+        "body": "Rejoignez un pacte ouvert ou lancez une habitude : votre premier check-in sera à un toucher.",
+        "cta": "Trouver une habitude à lancer"
+    },
+    "share": {
+        "heading": "Les habitudes tiennent mieux à deux",
+        "body": "Envoyez votre lien d'invitation. Quand votre ami s'inscrit, faites un pacte et gardez votre série ensemble.",
+        "cta": "Partager votre lien d'invitation",
+        "copied": "Lien copié. Envoyez-le à un ami.",
+        "shareTitle": "Rejoignez-moi sur Friends with Habits",
+        "shareText": "Faites un pacte avec moi sur Friends with Habits et gardons notre série ensemble."
+    },
+    "getApp": {
+        "heading": "Encore plus dans l'appli",
+        "body": "Créez des pactes avec vos amis, ajoutez des photos comme preuve, clavardez avec votre partenaire et recevez des rappels.",
+        "cta": "Disponible sur Google Play",
+        "iosBody": "L'appli iPhone s'en vient. D'ici là, tout ce qui se trouve sur cette page fonctionne ici même, dans votre navigateur."
+    }
+}

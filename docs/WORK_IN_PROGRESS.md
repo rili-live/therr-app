@@ -98,6 +98,13 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Friends with Habits web app (added 2026-11-13, docs/FEATURES.md → Web app)
+
+- [ ] After the client-web deploy carrying `/app`, sign in at `https://habits.therr.com/login` on a real iPhone (Safari) with a test account that has at least one active habit: confirm it lands on `/app`, the habit list loads, and one check-in tap turns the row green and shows up in the Android app. Then accept a pact invitation and withdraw an open-pact request, which are the first `PUT` and `DELETE` calls made from this origin (`https://habits.therr.com` is already in the gateway's `URI_WHITELIST`, and the `cors` defaults allow both methods, so this is a confirmation, not an expected failure).
+- [ ] Same deploy: load `https://habits.therr.com/habits/app.js` and confirm it answers 200 with JavaScript (it is copied from `src/_static` by the app webpack build). A 404 there leaves `/app` as an empty shell with no error on screen.
+- [ ] In GA4, mark `habit_checkin_complete` with `surface = web_app` as distinguishable from the mobile event (register `surface` as an event-scoped custom dimension if it is not one already), so web check-ins can be read separately when judging whether this reduced onboarding friction.
+- [ ] The Play listing, Google Ads copy and `habits-llms.txt` still describe the product as Android-only. Decide whether to mention the web app there (`/aso-listing`, `/ad-creative`).
+
 ## Habit companion chameleon (added 2026-11-07, docs/FEATURES.md → Habit companion)
 
 - [ ] **On-device look at the companion card on Friends with Habits**, light and dark theme, once a

@@ -1,0 +1,117 @@
+{
+    "meta": {
+        "title": "My habits — Friends with Habits",
+        "description": "Check in on your habits, see your streak and join open pacts from any browser."
+    },
+    "nav": {
+        "ariaLabel": "Sections",
+        "today": "Today",
+        "discover": "Discover",
+        "signOut": "Sign out",
+        "homeAriaLabel": "My habits",
+        "back": "Back to today"
+    },
+    "common": {
+        "loading": "Loading…",
+        "retry": "Try again",
+        "networkError": "We could not reach the server. Check your connection and try again.",
+        "genericError": "Something went wrong. Try again in a moment.",
+        "noscript": "The web app needs JavaScript. Turn it on, or use the Android app."
+    },
+    "today": {
+        "greetingMorning": "Good morning, {name}",
+        "greetingAfternoon": "Good afternoon, {name}",
+        "greetingEvening": "Good evening, {name}",
+        "greetingFallbackName": "friend",
+        "progress": "{done} of {total} done today",
+        "progressAllDone": "All {total} done today. Nice work.",
+        "streakLabel": "day streak",
+        "streakAtStake": "Check in today to keep it alive.",
+        "weekAriaLabel": "This week",
+        "weekdayInitials": "M,T,W,T,F,S,S",
+        "habitsHeading": "Your habits",
+        "invitesHeading": "Pact invitations"
+    },
+    "habit": {
+        "checkIn": "Check in",
+        "checkInAria": "Check in on {habit}",
+        "checkedIn": "Done today",
+        "checkingIn": "Saving…",
+        "checkedInToast": "Checked in on {habit}.",
+        "freezeUsedToast": "Checked in. A streak freeze covered the day you missed.",
+        "streak": "{count}-day streak",
+        "streakNone": "No streak yet",
+        "longestStreak": "Longest streak",
+        "currentStreak": "Current streak",
+        "weekProgress": "{done} of {target} this week",
+        "solo": "On your own",
+        "paused": "Paused",
+        "awaitingPartner": "Invite sent. Waiting for your partner to accept.",
+        "withPartners": "With {names}",
+        "partnerDone": "{name} checked in today",
+        "partnerNotYet": "{name} has not checked in yet",
+        "andOthers": "{name} and {count} more",
+        "viewDetails": "Open {habit}",
+        "cadenceDaily": "Every day",
+        "cadenceWeekly": "{count} times a week",
+        "cadenceCustom": "On set days",
+        "noteLabel": "Add a note for today (optional)",
+        "notePlaceholder": "What did you do?",
+        "noteSave": "Save note",
+        "noteSaved": "Note saved.",
+        "calendarHeading": "Last five weeks",
+        "partnersHeading": "Your pact",
+        "memberStreak": "{count}-day streak",
+        "memberRate": "{percent}% of days",
+        "memberPending": "Invited",
+        "pactDays": "{days}-day pact",
+        "notFound": "We could not find that habit on your account.",
+        "appOnlyNote": "Photo proof, pact chat and reminders are in the Android app. Everything you do here shows up there too."
+    },
+    "invites": {
+        "from": "{name} invited you",
+        "fromUnknown": "You have been invited",
+        "detail": "{habit} · {days} days",
+        "accept": "Accept",
+        "decline": "Decline",
+        "accepted": "You are in. The pact has started.",
+        "declined": "Invitation declined."
+    },
+    "discover": {
+        "heading": "Open pacts",
+        "intro": "These pacts are open to new people. Ask to join and the person who started it decides.",
+        "empty": "No open pacts right now. Start a habit below and invite a friend to it from the app.",
+        "startedBy": "Started by @{userName}",
+        "spots": "{count} of {max} spots taken",
+        "days": "{days} days",
+        "askToJoin": "Ask to join",
+        "requested": "Request sent",
+        "cancelRequest": "Withdraw",
+        "requestSentToast": "Request sent. You will be added when it is approved.",
+        "requestCancelledToast": "Request withdrawn.",
+        "templatesHeading": "Start a habit",
+        "templatesIntro": "Pick one to start tracking today. Your first habit can run on its own for a week before it needs a partner.",
+        "start": "Start",
+        "startedToast": "{habit} added. Check in whenever you are ready.",
+        "alreadyTracking": "Tracking"
+    },
+    "empty": {
+        "title": "No habits yet",
+        "body": "Join an open pact or start a habit, and your first check-in is one tap away.",
+        "cta": "Find a habit to start"
+    },
+    "share": {
+        "heading": "Habits stick with a friend",
+        "body": "Send your invite link. When they join, you can pact up and keep each other on streak.",
+        "cta": "Share your invite link",
+        "copied": "Link copied. Send it to a friend.",
+        "shareTitle": "Join me on Friends with Habits",
+        "shareText": "Pact up with me on Friends with Habits and let's keep each other on streak."
+    },
+    "getApp": {
+        "heading": "Get more in the app",
+        "body": "Create pacts with friends, add photo proof, chat with your partner and get reminders.",
+        "cta": "Get it on Google Play",
+        "iosBody": "The iPhone app is on the way. Until then, everything on this page works right here in your browser."
+    }
+}

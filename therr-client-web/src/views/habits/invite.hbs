@@ -24,15 +24,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
     <style>
-        :root {
-            --habits-navy: #102a43;
-            --habits-coral: #ff6b35;
-            --habits-coral-dark: #e0521e;
-            --habits-cream: #fff8f3;
-            --habits-text: #243b53;
-            --habits-text-muted: #627d98;
-            --habits-border: #d9e2ec;
-        }
+        {{> habitsTokens}}
         *, *::before, *::after { box-sizing: border-box; }
         html, body {
             margin: 0;
@@ -40,17 +32,17 @@
             font-family: 'Lexend', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             font-size: 16px;
             line-height: 1.6;
-            color: var(--habits-text);
-            background: var(--habits-cream);
+            color: var(--fwh-text);
+            background: var(--fwh-cream);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
-        a { color: var(--habits-coral-dark); text-decoration: none; }
+        a { color: var(--fwh-purple); text-decoration: none; }
         a:hover { text-decoration: underline; }
         .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
         header.site-header {
             padding: 1.25rem 0;
-            border-bottom: 1px solid var(--habits-border);
+            border-bottom: 1px solid var(--fwh-border);
             background: #fff;
         }
         header.site-header .container {
@@ -66,7 +58,7 @@
         header.site-header .brand {
             font-weight: 800;
             font-size: 1.125rem;
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
             letter-spacing: -0.01em;
         }
         .invite {
@@ -80,9 +72,9 @@
             border-radius: 50%;
             object-fit: cover;
             margin: 0 auto 1.25rem;
-            background: var(--habits-border);
+            background: var(--fwh-border);
             border: 4px solid #fff;
-            box-shadow: 0 4px 16px rgba(16, 42, 67, 0.08);
+            box-shadow: 0 4px 16px rgba(46, 33, 64, 0.08);
         }
         .invite .avatar-placeholder {
             display: inline-flex;
@@ -91,25 +83,25 @@
             width: 112px;
             height: 112px;
             border-radius: 50%;
-            background: var(--habits-coral);
-            color: #fff;
+            background: var(--fwh-gold);
+            color: var(--fwh-plum);
             font-weight: 800;
             font-size: 2.5rem;
             margin: 0 auto 1.25rem;
             border: 4px solid #fff;
-            box-shadow: 0 4px 16px rgba(16, 42, 67, 0.08);
+            box-shadow: 0 4px 16px rgba(46, 33, 64, 0.08);
         }
         .invite h1 {
             font-size: 1.875rem;
             font-weight: 800;
             line-height: 1.2;
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
             margin: 0 0 0.75rem;
             letter-spacing: -0.02em;
             word-break: break-word;
         }
         .invite .lede {
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
             font-size: 1.125rem;
             margin: 0 auto 2rem;
             max-width: 480px;
@@ -117,22 +109,22 @@
         .cta {
             display: inline-block;
             padding: 0.9375rem 2.25rem;
-            background: var(--habits-coral);
-            color: #fff;
+            background: var(--fwh-gold);
+            color: var(--fwh-plum);
             font-weight: 600;
             font-size: 1.0625rem;
             border-radius: 999px;
             transition: background 0.15s ease, transform 0.15s ease;
         }
         .cta:hover {
-            background: var(--habits-coral-dark);
+            background: var(--fwh-gold-hover);
             text-decoration: none;
             transform: translateY(-1px);
         }
         .cta-note {
             margin: 1rem auto 0;
             font-size: 0.875rem;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
             max-width: 420px;
         }
         .invite-code {
@@ -140,26 +132,38 @@
             margin-top: 1.5rem;
             padding: 0.625rem 1rem;
             background: #fff;
-            border: 1px solid var(--habits-border);
+            border: 1px solid var(--fwh-border);
             border-radius: 0.5rem;
             font-size: 0.875rem;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
             word-break: break-all;
         }
         .invite-code strong {
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
             font-weight: 600;
         }
         section.steps {
             padding: 2.5rem 0 3rem;
-            border-top: 1px solid var(--habits-border);
+            border-top: 1px solid var(--fwh-border);
         }
         section.steps h2 {
             font-size: 1.25rem;
             font-weight: 800;
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
             margin: 0 0 1.5rem;
             text-align: center;
+        }
+        .web-option { margin-top: 1rem; font-size: 0.9375rem; color: var(--fwh-text-muted); }
+        .web-option__link { font-weight: 700; color: var(--fwh-purple); text-decoration: underline; }
+        /* The note under the button is about the Play Store, so it goes too. */
+        .is-ios .cta--store, .is-ios .web-option__label, .is-ios .cta-note { display: none; }
+        .is-ios .web-option__link {
+            display: inline-block;
+            padding: 0.875rem 1.75rem;
+            border-radius: 999px;
+            background: var(--fwh-gold);
+            color: var(--fwh-plum);
+            text-decoration: none;
         }
         .step-list {
             list-style: none;
@@ -181,18 +185,18 @@
             width: 28px;
             height: 28px;
             border-radius: 50%;
-            background: var(--habits-navy);
+            background: var(--fwh-plum);
             color: #fff;
             font-size: 0.875rem;
             font-weight: 700;
         }
-        .step-list p { margin: 0; color: var(--habits-text-muted); }
+        .step-list p { margin: 0; color: var(--fwh-text-muted); }
         footer.site-footer {
             padding: 2rem 0 3rem;
-            border-top: 1px solid var(--habits-border);
+            border-top: 1px solid var(--fwh-border);
             background: #fff;
             text-align: center;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
             font-size: 0.875rem;
         }
         footer.site-footer .footer-links {
@@ -200,7 +204,7 @@
         }
         footer.site-footer .footer-links a {
             margin: 0 0.5rem;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
         }
         footer.site-footer .footer-family {
             margin-top: 0.5rem;
@@ -214,10 +218,22 @@
     {{> habitsAnalytics}}
 </head>
 <body>
+    <script>
+        // Before first paint, so an iPhone never sees a Play Store button it cannot use.
+        // iPadOS reports itself as a Mac, hence the touch-point check.
+        (function () {
+            try {
+                var ua = navigator.userAgent || '';
+                if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) {
+                    document.documentElement.className += ' is-ios';
+                }
+            } catch (e) { /* keep the default layout */ }
+        })();
+    </script>
     <header class="site-header">
         <div class="container">
             <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
-            <a class="brand" href="/" style="color: var(--habits-navy);">Friends with Habits</a>
+            <a class="brand" href="/" style="color: var(--fwh-plum);">Friends with Habits</a>
         </div>
     </header>
 
@@ -239,7 +255,16 @@
                     invite or claim the pact. Hardcoded rather than interpolated because
                     Handlebars escapes '=' in an attribute to &#x3D;.
                 -->
-                <a class="cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get Friends with Habits</a>
+                <a class="cta cta--store" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">Get Friends with Habits</a>
+                <!--
+                    The way in for an invitee without an Android phone. An invite that ends on a
+                    Play Store button is a dead end on an iPhone, and the person who sent it never
+                    learns why their friend did not show up. On iOS this becomes the main button.
+                -->
+                <div class="web-option">
+                    <span class="web-option__label">No Android phone?</span>
+                    <a class="web-option__link" href="/register">Join on the web instead</a>
+                </div>
                 <div class="cta-note">{{ctaNote}}</div>
                 {{#if inviteCodeLabel}}
                     <div class="invite-code"><strong>{{inviteCodeLabel}}:</strong> {{inviteCode}}</div>
@@ -253,7 +278,7 @@
                 <ol class="step-list">
                     <li>
                         <span class="step-num">1</span>
-                        <p>Install the app and create your account.</p>
+                        <p>Create your account, in the Android app or right here on the web.</p>
                     </li>
                     <li>
                         <span class="step-num">2</span>
