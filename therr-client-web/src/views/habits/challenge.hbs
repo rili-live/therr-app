@@ -33,20 +33,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
     <style>
-        :root {
-            --fwh-plum: #2e2140;
-            --fwh-plum-deep: #1f1630;
-            --fwh-purple: #5b4273;
-            --fwh-purple-soft: #ece6f3;
-            --fwh-gold: #f6c94a;
-            --fwh-gold-dark: #d49617;
-            --fwh-cream: #fbf7f1;
-            --fwh-text: #3a2f4a;
-            --fwh-text-muted: #6f6582;
-            --fwh-border: #e6dfee;
-            --fwh-success: #1f7a4d;
-            --fwh-error: #b3261e;
-        }
+        {{> habitsTokens}}
         *, *::before, *::after { box-sizing: border-box; }
         /* The action rows are display:flex, which would otherwise beat the hidden attribute. */
         [hidden] { display: none !important; }
