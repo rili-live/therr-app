@@ -292,6 +292,12 @@ describe('habits profile page sign-out link', () => {
         expect(rendered).toMatch(/<a class="session-link" id="session-logout" href="\/logout" hidden>/);
     });
 
+    it('ships the web app link hidden too, for the same reason', () => {
+        const rendered = hbs.handlebars.compile(fs.readFileSync(PROFILE_PATH, 'utf8'))({ userName: 'streakqueen' });
+
+        expect(rendered).toMatch(/<a class="session-link" id="session-app" href="\/app" hidden>/);
+    });
+
     it('stays hidden for a signed-out visitor', () => {
         mountProfile();
 

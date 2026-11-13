@@ -17,7 +17,8 @@
     "faq": "FAQ",
     "blog": "Blogue",
     "signIn": "Se connecter",
-    "getTheApp": "Obtenir l'appli"
+    "getTheApp": "Obtenir l'appli",
+    "myHabits": "Mes habitudes"
   },
   "hero": {
     "motto": "Les vrais amis ne laissent pas leurs amis abandonner.",
@@ -26,7 +27,7 @@
     "googlePlayCta": "Disponible sur Google Play",
     "registerCta": "Créer votre compte",
     "iosCta": "iPhone? Liste d'attente",
-    "ctaNoteHtml": "Gratuit sur Google Play, jusqu'à {freeHabitLimit} habitudes actives à la fois. iPhone bientôt.",
+    "ctaNoteHtml": "Gratuit sur Google Play et dans n'importe quel navigateur, jusqu'à {freeHabitLimit} habitudes actives à la fois. Sur iPhone? Inscrivez-vous et faites vos check-ins sur le Web dès aujourd'hui.",
     "founderNoteHtml": "<strong>Déblocage fondateur facultatif :</strong> besoin de plus de {freeHabitLimit}? Les 5 000 premiers comptes peuvent lever la limite à vie pour un paiement unique de 20 $ US.",
     "highlightsAriaLabel": "Points forts",
     "chipNoSubscription": "Aucun abonnement",
@@ -45,7 +46,7 @@
   },
   "definition": {
     "eyebrow": "Ce que c'est",
-    "madeByHtml": "C'est gratuit, conçu par <a href=\"https://www.therr.app/\" rel=\"noopener\">Therr, Inc.</a>, et déjà offert sur Android via Google Play pendant que nous préparons une version iOS."
+    "madeByHtml": "C'est gratuit, conçu par <a href=\"https://www.therr.app/\" rel=\"noopener\">Therr, Inc.</a>, et déjà offert sur Android via Google Play et sur le Web dans n'importe quel navigateur, pendant que nous préparons une appli iOS."
   },
   "popular": {
     "eyebrow": "Pactes populaires",
@@ -98,7 +99,7 @@
     "partnerRequiredHtml": "<strong>Un partenaire est obligatoire, pas facultatif.</strong> Streaks, Habitify, Done et la plupart des autres applis d'habitudes sont conçues pour une seule personne. Ici, un pacte se fait à deux : il n'existe aucune version de l'appli où personne ne remarque que vous avez arrêté.",
     "proofHtml": "<strong>Chaque check-in comporte une preuve.</strong> Chaque check-in quotidien inclut une photo ou une note, alors une série est une preuve plutôt qu'un simple toucher.",
     "sharedStreakHtml": "<strong>La série est partagée.</strong> Votre partenaire et vous avez la même série, donc une journée manquée vous coûte à tous les deux — c'est inconfortable, et c'est justement pour ça que ça marche.",
-    "freeHtml": "<strong>C'est gratuit pour commencer.</strong> Aucun code d'invitation, aucune carte. Installez-la sur Android et créez votre premier pacte.",
+    "freeHtml": "<strong>C'est gratuit pour commencer.</strong> Aucun code d'invitation, aucune carte. Installez-la sur Android, ou connectez-vous dans n'importe quel navigateur pour faire vos check-ins.",
     "noSubscriptionHtml": "<strong>Aucun abonnement à souscrire.</strong> Les comptes gratuits suivent jusqu'à {freeHabitLimit} habitudes actives à la fois, gratuitement, aussi longtemps que vous l'utilisez. Si vous en voulez plus, les 5 000 premiers comptes peuvent lever cette limite pour de bon avec un déblocage fondateur unique de 20 $ US plutôt qu'une facture mensuelle."
   },
   "compareTable": {
@@ -139,7 +140,7 @@
       },
       "platforms": {
         "label": "Plateformes",
-        "fwh": "Android aujourd'hui; liste d'attente iPhone ouverte",
+        "fwh": "Appli Android; check-ins Web dans tout navigateur, iPhone compris",
         "habitshare": "iPhone et Android",
         "habitica": "iPhone, Android et Web"
       }
@@ -184,7 +185,7 @@
     },
     "iphone": {
       "question": "Friends with Habits est-elle offerte sur iPhone?",
-      "answer": "Pas encore. Friends with Habits est offerte sur Android via Google Play aujourd'hui, et une version iOS est la prochaine étape. Votre compte fonctionne dans toutes les applis Therr, alors un compte créé sur Android vous suivra.",
+      "answer": "Il n'y a pas encore d'appli iPhone, mais vous n'en avez pas besoin pour participer. Créez un compte et connectez-vous à habits.therr.com sur votre iPhone pour voir vos habitudes, faire votre check-in chaque jour et demander à rejoindre des pactes ouverts, le tout dans le navigateur. L'appli Android est sur Google Play, une appli iOS est la prochaine étape, et le même compte fonctionne partout.",
       "cta": "Dites-nous que vous la voulez sur iPhone"
     },
     "whoMakes": {
