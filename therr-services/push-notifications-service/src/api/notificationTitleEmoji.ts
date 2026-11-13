@@ -62,6 +62,7 @@ export const NOTIFICATION_TITLE_EMOJI: Record<PushNotifications.Types, string> =
     [PushNotifications.Types.pactJoinRequested]: '🙋',
     [PushNotifications.Types.pactJoinApproved]: '🎊',
     [PushNotifications.Types.openPactSuggestion]: '🔎',
+    [PushNotifications.Types.openPactAvailable]: '📣',
     [PushNotifications.Types.pactInviteUnclaimed]: '📨',
 
     // Habits — onboarding

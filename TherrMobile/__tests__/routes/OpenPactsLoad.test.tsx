@@ -163,6 +163,22 @@ describe('OpenPacts list loading', () => {
         expect(renderedCards(instance).map((card) => card.maxMembers)).toEqual([8]);
     });
 
+    it('asks for full pacts too, and lists them after the pacts with room', async () => {
+        mockGetOpenPacts.mockResolvedValue({
+            data: {
+                pacts: [{ ...OPEN_PACT, id: 'full-1', isFull: true, memberCount: 6 }, OPEN_PACT],
+                maxMembers: 6,
+            },
+        });
+        const instance = buildInstance();
+
+        instance.handleRefresh();
+        await flushPromises();
+
+        expect(mockGetOpenPacts).toHaveBeenCalledWith('goal-1', { includeFull: true });
+        expect(renderedCards(instance).map((card) => card.pact.id)).toEqual(['pact-1', 'full-1']);
+    });
+
     it('leaves the ceiling out for a server that does not send one', async () => {
         mockGetOpenPacts.mockResolvedValue({ data: { pacts: [OPEN_PACT] } });
         const instance = buildInstance();

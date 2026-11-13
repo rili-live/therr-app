@@ -70,6 +70,10 @@ export enum Types {
     // Queued by the daily habits digest, once per pact ever, to a creator whose invitees never
     // answered — when someone else's open pact on the same habit could take them instead.
     openPactSuggestion = 'open-pact-suggestion',
+    // To people tracking the same habit with no pact on it, the first time a pact is opened.
+    // Queued, once per pact and at most one per recipient per day (users-service
+    // handlers/helpers/openPactAnnouncement.ts).
+    openPactAvailable = 'open-pact-available',
 
     // HABITS: Onboarding nurture (#3011), queued by the daily habits digest, once per user (or per
     // invite) ever. Display pushes with no click action, like the open-pact set above, so they

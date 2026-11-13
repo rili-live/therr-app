@@ -50,7 +50,12 @@ import {
 } from './helpers/awardHabitAchievements';
 import { awardLeaderboardPoints } from './helpers/leaderboards';
 import { endPauseOnCheckin, loadExcusedDatesForHabit } from './helpers/habitPause';
-import { checkinProofXp, LeaderboardXpValues, weeklyQuotaBonus } from '../utilities/leaderboardHelpers';
+import {
+    checkinProofXp,
+    LeaderboardXpValues,
+    openPactCheckinBonusXp,
+    weeklyQuotaBonus,
+} from '../utilities/leaderboardHelpers';
 import {
     daysBetween,
     getLocalDate,
@@ -449,6 +454,13 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     // XP on top when they progress (bonus stacking is intentional, and their
                     // milestone-rung gating means they don't fire on every check-in).
                     awardLeaderboardPoints(req.headers, LeaderboardXpValues.habitCheckin, 'habit-checkin');
+
+                    // More for showing up in an open pact someone else has joined — once per day's
+                    // first completion however many open pacts it counts toward.
+                    const openPactBonus = openPactCheckinBonusXp(pacts);
+                    if (openPactBonus > 0) {
+                        awardLeaderboardPoints(req.headers, openPactBonus, `open-pact-checkin:${checkin.id}`);
+                    }
 
                     // The check-in that discharges a week's quota earns the cadence bonus, which
                     // exists so a fully-honoured 4x/week commitment can place against a daily

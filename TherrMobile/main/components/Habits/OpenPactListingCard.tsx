@@ -107,6 +107,21 @@ const OpenPactListingCard = ({
             );
         }
 
+        // Every seat is taken, so a request would be refused. Said plainly, in place of the button,
+        // rather than a disabled button that reads as broken.
+        if (pact.isFull) {
+            return (
+                <View style={styles.openPactRequestedRow}>
+                    <View style={styles.openPactChip} accessibilityRole="text">
+                        <MaterialIcon name="lock-outline" size={14} color={colors.onSurfaceMuted} />
+                        <Text style={styles.openPactChipText} numberOfLines={1}>
+                            {translate('pages.pacts.openPact.fullStatus')}
+                        </Text>
+                    </View>
+                </View>
+            );
+        }
+
         return (
             <Pressable
                 accessibilityRole="button"
