@@ -72,3 +72,20 @@ export const OPEN_SUGGESTION_MAX_AGE_DAYS = 21;
 
 /** Once per pact, ever: the claim on `openSuggestionSentAt` enforces it, and the key mirrors it. */
 export const openPactSuggestionDedupeKey = (pactId: string): string => `open-pact-suggestion:${pactId}`;
+
+/**
+ * The open-pact announcement (handlers/helpers/openPactAnnouncement.ts): when a pact is first
+ * opened, people tracking the same habit with no pact on it are told it exists.
+ *
+ * Bounded at the source: once per pact (the `firstOpenedAt` claim), at most this many recipients
+ * per pact, and at most one such push per recipient per UTC day however many pacts open — the
+ * dedupe key carries the day and not the pact, so a busy habit cannot stack them.
+ */
+export const OPEN_PACT_ANNOUNCEMENT_MAX_RECIPIENTS = 20;
+
+/** Read more candidates than are sent to, because some have no Habits device to push to. */
+export const OPEN_PACT_ANNOUNCEMENT_CANDIDATE_POOL = 60;
+
+export const openPactAnnouncementDedupeKey = (date: Date = new Date()): string => (
+    `open-pact-available:${date.toISOString().split('T')[0]}`
+);

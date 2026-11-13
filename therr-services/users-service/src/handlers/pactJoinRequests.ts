@@ -20,6 +20,9 @@ import {
 } from '../utilities/openPacts';
 import { checkHabitCapacity } from './helpers/habitCapacity';
 import { activatePactMembership } from './helpers/pactMembership';
+import { announceOpenedPact } from './helpers/openPactAnnouncement';
+import { awardLeaderboardPoints } from './helpers/leaderboards';
+import { LeaderboardXpValues } from '../utilities/leaderboardHelpers';
 
 /**
  * Open pacts: a creator may let people outside their contacts ask to join a pact, and answers each
@@ -40,9 +43,13 @@ const isPactRunning = (pact: any, now = new Date()) => JOINABLE_PACT_STATUSES.in
 
 // READ — open pacts the caller could ask to join. With `habitGoalId`, only those on the same habit
 // as that goal (the "your invite went unanswered" path); without it, any open pact.
+//
+// With `includeFull=true`, pacts with no seat left are listed too, flagged `isFull` and ordered after
+// every pact that has room. Opt-in so a build that predates `isFull` keeps its old, all-joinable list.
 const getOpenPacts: RequestHandler = async (req: any, res: any) => {
     const { locale, userId } = parseHeaders(req.headers);
     const { habitGoalId } = req.query || {};
+    const includeFull = String(req.query?.includeFull) === 'true';
 
     try {
         let matchKey;
@@ -63,7 +70,7 @@ const getOpenPacts: RequestHandler = async (req: any, res: any) => {
             matchKey = getHabitMatchKey(goal);
         }
 
-        const pacts = await Store.pacts.getOpenPacts(userId, matchKey, undefined, isTestAccount(req.headers));
+        const pacts = await Store.pacts.getOpenPacts(userId, matchKey, undefined, isTestAccount(req.headers), { includeFull });
         // `maxMembers` lets a client show "n of N spots" without hard-coding the server's ceiling.
         return res.status(200).send({ pacts, maxMembers: MAX_OPEN_PACT_MEMBERS });
     } catch (err: any) {
@@ -110,6 +117,10 @@ const setPactOpen: RequestHandler = async (req: any, res: any) => {
         }
 
         const updated = await Store.pacts.setOpen(id, isOpen);
+        if (isOpen) {
+            // First opening only — the helper's claim makes a re-open a no-op. Never throws.
+            announceOpenedPact(req.headers, { ...pact, ...(updated || {}), isOpen: true });
+        }
         return res.status(200).send(updated);
     } catch (err: any) {
         return handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' });
@@ -403,6 +414,16 @@ const approveJoinRequest: RequestHandler = async (req: any, res: any) => {
             await Store.pactJoinRequests.revertApproval(request.id).catch(() => undefined);
             throw err;
         }
+
+        // Joining through an open pact pays both sides: the newcomer for taking the step, and the
+        // creator for letting a stranger in. Once each, because the request was claimed exactly once
+        // above. Neither throws.
+        awardLeaderboardPoints(
+            { ...req.headers, 'x-userid': requesterUserId },
+            LeaderboardXpValues.openPactJoined,
+            `open-pact-joined:${request.id}`,
+        );
+        awardLeaderboardPoints(req.headers, LeaderboardXpValues.openPactMemberWelcomed, `open-pact-welcomed:${request.id}`);
 
         const habitGoal = await Store.habitGoals.getById(pact.habitGoalId).catch(() => undefined);
         sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {

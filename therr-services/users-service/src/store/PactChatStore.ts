@@ -219,6 +219,19 @@ export default class PactChatStore {
         return { message: existing.rows[0], isNew: false };
     }
 
+    /** Messages one user has posted to one pact since `since`. For the open-pact daily XP. */
+    countMessagesByUserSince(pactId: string, userId: string, since: Date): Promise<number> {
+        const queryString = knexBuilder
+            .count('* as count')
+            .from(PACT_MESSAGES_TABLE_NAME)
+            .where({ pactId, userId })
+            .andWhere('createdAt', '>=', since)
+            .toString();
+
+        return this.db.write.query(queryString)
+            .then((response) => parseInt(response.rows[0]?.count ?? '0', 10));
+    }
+
     getMessageById(id: string): Promise<IPactMessageRow | undefined> {
         return this.db.read.query(knexBuilder.from(PACT_MESSAGES_TABLE_NAME).where({ id }).limit(1).toString())
             .then((response) => response.rows[0]);
