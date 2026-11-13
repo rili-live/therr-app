@@ -29,6 +29,7 @@ const TYPES = [
     PushNotifications.Types.pactJoinRequested,
     PushNotifications.Types.pactJoinApproved,
     PushNotifications.Types.openPactSuggestion,
+    PushNotifications.Types.openPactAvailable,
 ];
 
 describe('open pact push copy', () => {
@@ -49,6 +50,13 @@ describe('open pact push copy', () => {
     it('names the habit on the suggestion', () => {
         const message = build(PushNotifications.Types.openPactSuggestion);
 
+        expect(message.notification.body).to.contain('Morning run');
+    });
+
+    it('names the habit on the open-pact announcement', () => {
+        const message = build(PushNotifications.Types.openPactAvailable);
+
+        expect(message.notification.title).to.contain('Morning run');
         expect(message.notification.body).to.contain('Morning run');
     });
 

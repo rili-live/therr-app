@@ -214,6 +214,10 @@
       "title": "¿Sigues esperando a un compañero?",
       "body": "Nadie ha respondido a tu invitación de {habitName}. Otras personas lo hacen en pactos abiertos: pide unirte a uno."
     },
+    "openPactAvailable": {
+      "title": "Hay un nuevo pacto abierto de {habitName}",
+      "body": "Alguien acaba de abrir un pacto de {habitName} con lugares libres. Pide unirte: los check-ins en pactos abiertos dan XP extra."
+    },
     "habitsFirstHabitNudge": {
       "title": "El día 1 toma diez segundos",
       "body": "Elige un hábito y registra un check-in. Así empieza tu racha."
