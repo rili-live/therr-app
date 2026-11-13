@@ -45,7 +45,6 @@
         "currentStreak": "Racha actual",
         "weekProgress": "{done} de {target} esta semana",
         "solo": "Por tu cuenta",
-        "paused": "En pausa",
         "awaitingPartner": "Invitación enviada. Esperando a que tu compañero acepte.",
         "withPartners": "Con {names}",
         "partnerDone": "{name} ya hizo check-in hoy",
@@ -66,7 +65,9 @@
         "memberPending": "Invitado",
         "pactDays": "Pacto de {days} días",
         "notFound": "No encontramos ese hábito en tu cuenta.",
-        "appOnlyNote": "Las fotos como prueba, el chat del pacto y los recordatorios están en la app de Android. Todo lo que hagas aquí también aparece allá."
+        "appOnlyNote": "Las fotos como prueba, el chat del pacto y los recordatorios están en la app de Android. Todo lo que hagas aquí también aparece allá.",
+        "pausedHint": "En pausa. Hacer check-in la reanuda.",
+        "checkInPausedAria": "Hacer check-in en {habit} y reanudarlo"
     },
     "invites": {
         "from": "{name} te invitó",

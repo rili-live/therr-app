@@ -109,6 +109,9 @@ describe('habits web app: helpers', () => {
         expect(helpers.isSafeReturnPath('//evil.example')).toBe(false);
         expect(helpers.isSafeReturnPath('/\\evil.example')).toBe(false);
         expect(helpers.isSafeReturnPath('https://evil.example')).toBe(false);
+        // Browsers strip these before parsing, turning '/\t/host' into '//host'.
+        expect(helpers.isSafeReturnPath('/\t/evil.example')).toBe(false);
+        expect(helpers.isSafeReturnPath('/\n/evil.example')).toBe(false);
     });
 
     it('detects iPhone and iPadOS, which reports itself as a Mac', () => {
@@ -333,5 +336,60 @@ describe('habits web app: in the browser', () => {
         expect((document.getElementById('app-view') as HTMLElement).textContent).toContain('Morning run');
         expect(JSON.parse(window.localStorage.getItem('therrUser') as string).idToken).toBe('fresh');
         expect(window.localStorage.getItem('therrRefreshToken')).toBe('refresh-2');
+    });
+    // Regression: any failed refresh (offline, 429, 5xx) used to wipe the stored session.
+    it('keeps the session when a token refresh cannot be made, and offers a retry', async () => {
+        window.localStorage.setItem('therrUser', JSON.stringify({ id: 'me', idToken: 'stale', userName: 'maya' }));
+        window.localStorage.setItem('therrRefreshToken', 'refresh-1');
+        fetchMock.mockImplementation((url: string) => (url.endsWith('/auth/token/refresh')
+            ? respond(503, {})
+            : respond(401, {})));
+
+        boot();
+        await flush();
+
+        expect(window.localStorage.getItem('therrUser')).not.toBeNull();
+        expect(window.localStorage.getItem('therrRefreshToken')).toBe('refresh-1');
+        const view = document.getElementById('app-view') as HTMLElement;
+        expect(view.textContent).toContain(enUs.common.networkError);
+        expect(view.querySelector('button')?.textContent).toBe(enUs.common.retry);
+    });
+
+    // Regression: each card repainted from the snapshot it was drawn with, so the second of
+    // two quick check-ins un-ticked the first, and re-enabled a button still in flight.
+    it('keeps both habits ticked after two quick check-ins', async () => {
+        window.localStorage.setItem('therrUser', JSON.stringify({ id: 'me', idToken: 'token', userName: 'maya' }));
+        const resolvers: Array<() => void> = [];
+        const inner = fetchMock.getMockImplementation() as (url: string, options?: any) => any;
+        fetchMock.mockImplementation((url: string, options: any = {}) => {
+            if (options.method === 'POST' && url.endsWith('/habits/checkins')) {
+                const sent = JSON.parse(options.body);
+                posted.push(sent);
+                return new Promise((resolve) => {
+                    resolvers.push(() => resolve(respond(201, { id: `c-${sent.habitGoalId}`, habitGoalId: sent.habitGoalId, status: 'completed' })));
+                });
+            }
+            return inner(url, options);
+        });
+
+        boot();
+        await flush();
+        const view = document.getElementById('app-view') as HTMLElement;
+        const buttons = view.querySelectorAll('button.checkin-btn');
+        (buttons[0] as HTMLButtonElement).click();
+        (buttons[1] as HTMLButtonElement).click();
+
+        resolvers[0]();
+        await flush();
+        // The other habit's request is still in flight: its repainted button must stay busy.
+        const stillPending = view.querySelector('button.checkin-btn') as HTMLButtonElement;
+        expect(stillPending.disabled).toBe(true);
+        stillPending.click();
+        expect(posted).toHaveLength(2);
+
+        resolvers[1]();
+        await flush();
+        expect(view.textContent).toContain('All 2 done today.');
+        expect(view.querySelectorAll('button.checkin-btn')).toHaveLength(0);
     });
 });

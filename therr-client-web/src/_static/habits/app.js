@@ -70,8 +70,15 @@
         return { name: 'today' };
     };
 
-    /** Same-origin relative paths only; rejects '//host' and 'https://host'. */
-    const isSafeReturnPath = (value) => typeof value === 'string' && /^\/(?![/\\])/.test(value);
+    /**
+     * Same-origin paths only. Control characters and backslashes are refused outright:
+     * browsers strip tab, CR and LF from a URL, so '/\t/host' would otherwise pass a
+     * pattern check and then be followed as '//host'.
+     */
+    const isSafeReturnPath = (value) => typeof value === 'string'
+        && /^\/(?!\/)/.test(value)
+        // eslint-disable-next-line no-control-regex -- matching control characters is the point
+        && !/[\u0000-\u0020\\]/.test(value);
 
     const greetingKey = (hour) => {
         if (hour < 12) {
@@ -296,8 +303,12 @@
         body: body ? JSON.stringify(body) : undefined,
     }).then((res) => res.json().catch(() => ({})).then((json) => ({ ok: res.ok, status: res.status, body: json })));
 
-    // One refresh at a time: the today view fires five requests together, and each 401
-    // spending the (rotating, single-use) refresh token would sign the user out.
+    // One refresh at a time: the today view fires five requests together, and five
+    // concurrent refreshes would each rotate the token out from under the others.
+    //
+    // Resolves 'ok', 'invalid' (the server refused the refresh token: the session is over)
+    // or 'unavailable' (offline, rate-limited, or a server error: the session may be fine,
+    // so it must not be thrown away).
     let refreshInFlight = null;
     const refreshSession = () => {
         if (refreshInFlight) {
@@ -305,7 +316,7 @@
         }
         const refreshToken = readStored('therrRefreshToken');
         if (!refreshToken) {
-            return Promise.resolve(false);
+            return Promise.resolve('invalid');
         }
         refreshInFlight = root.fetch(`${apiBase}/users-service/auth/token/refresh`, {
             method: 'POST',
@@ -313,8 +324,11 @@
             body: JSON.stringify({ refreshToken }),
         })
             .then((res) => res.json().catch(() => ({})).then((json) => {
-                if (!res.ok || !json.idToken) {
-                    return false;
+                if (!res.ok) {
+                    return res.status === 400 || res.status === 401 || res.status === 403 ? 'invalid' : 'unavailable';
+                }
+                if (!json.idToken) {
+                    return 'unavailable';
                 }
                 user = { ...user, idToken: json.idToken };
                 if (json.refreshToken) {
@@ -322,29 +336,34 @@
                     writeStored('therrRefreshToken', json.refreshToken);
                 }
                 writeStored('therrUser', JSON.stringify(user));
-                return true;
+                return 'ok';
             }))
-            .catch(() => false)
-            .then((didRefresh) => {
+            .catch(() => 'unavailable')
+            .then((outcome) => {
                 refreshInFlight = null;
-                return didRefresh;
+                return outcome;
             });
         return refreshInFlight;
     };
 
     /**
      * Resolves `{ ok, status, body }` for any HTTP answer and rejects only on a network
-     * failure. A 401 is retried once behind a token refresh; if that fails the session is
-     * over and the user is sent to sign in, returning to the page they were on.
+     * failure. A 401 is retried once behind a token refresh. Only a refresh the server
+     * refuses ends the session (the user is sent to sign in, returning to this page); a
+     * refresh that could not be made at all answers like a network error, so the view
+     * offers a retry and the stored session survives.
      */
     const request = (method, path, body) => rawRequest(method, path, body).then((out) => {
         if (out.status !== 401) {
             return out;
         }
-        return refreshSession().then((didRefresh) => {
-            if (!didRefresh) {
+        return refreshSession().then((outcome) => {
+            if (outcome === 'invalid') {
                 goToLogin();
                 return new Promise(noop); // navigating away; leave the caller pending
+            }
+            if (outcome === 'unavailable') {
+                return { ok: false, status: 0, body: { message: t('common.networkError') } };
             }
             return rawRequest(method, path, body);
         });
@@ -489,8 +508,13 @@
      * Posts today's check-in for one habit. Resolves with the created check-in, or null
      * after telling the user why not (free-tier cap, solo grace ended, network).
      */
+    // The user's day as the server reckons it: the account's saved zone wins over the
+    // browser's, so a traveller's browser can be a day off. Learned from the daily-streak
+    // read; the browser's day is only the fallback until then.
+    const currentDayKey = () => views.serverToday || toLocalDateKey(new Date());
+
     const submitCheckin = (habit, notes) => {
-        const today = toLocalDateKey(new Date());
+        const today = currentDayKey();
         return request('POST', '/users-service/habits/checkins', {
             habitGoalId: habit.habitGoalId,
             scheduledDate: today,
@@ -514,7 +538,12 @@
         });
     };
 
-    const checkinButton = (habit, isDone, onDone) => {
+    // Habits with a check-in in flight. A repaint (another habit's check-in finishing) builds
+    // new buttons, and without this one would come back enabled mid-request and could be
+    // submitted twice.
+    const pendingCheckins = {};
+
+    const checkinButton = (habit, isDone, onDone, onFail) => {
         if (isDone) {
             return h(
                 'span',
@@ -522,18 +551,27 @@
                 icon(ICON_CHECK),
             );
         }
+        const isPending = !!pendingCheckins[habit.habitGoalId];
         const button = h('button', {
-            class: 'checkin-btn',
+            class: `checkin-btn${isPending ? ' is-busy' : ''}`,
             type: 'button',
-            'aria-label': t('habit.checkInAria', { habit: habit.goalName }),
+            disabled: isPending,
+            'aria-label': t(habit.pause ? 'habit.checkInPausedAria' : 'habit.checkInAria', { habit: habit.goalName }),
             onclick: (event) => {
                 event.preventDefault();
                 event.stopPropagation();
+                if (pendingCheckins[habit.habitGoalId]) {
+                    return;
+                }
+                pendingCheckins[habit.habitGoalId] = true;
                 button.disabled = true;
                 button.classList.add('is-busy');
                 submitCheckin(habit).then((checkin) => {
+                    delete pendingCheckins[habit.habitGoalId];
                     if (checkin) {
                         onDone(checkin);
+                    } else if (onFail) {
+                        onFail();
                     } else {
                         button.disabled = false;
                         button.classList.remove('is-busy');
@@ -608,10 +646,15 @@
                 invites: invitesOut.ok && Array.isArray(invitesOut.body) ? invitesOut.body : [],
                 streak: streakOut.ok ? streakOut.body : null,
             };
+            if (state.streak && /^\d{4}-\d{2}-\d{2}$/.test(state.streak.today || '')) {
+                views.serverToday = state.streak.today;
+            }
             track('web_app_view', { view: 'today', habit_count: state.habits.length });
             views.paintToday(state);
         }).catch(() => renderError(t('common.networkError'), renderToday));
     };
+
+    const inviterNames = {};
 
     const inviteCard = (invite, state) => {
         const actions = h('div', { class: 'invite__actions' });
@@ -642,15 +685,20 @@
             class: 'btn btn--quiet btn--small', type: 'button', onclick: () => answer('decline', 'invites.declined'),
         }, t('invites.decline')));
 
-        const title = h('p', { class: 'invite__title' }, t('invites.fromUnknown'));
-        // The invite list carries no member rows, so the inviter's name is one cheap read
-        // away. Best-effort: the card is complete without it.
-        request('GET', `/users-service/habits/pacts/${invite.id}`).then((out) => {
-            const creator = out.ok && (out.body.members || []).find((member) => member.userId === out.body.creatorUserId);
-            if (memberName(creator)) {
-                title.textContent = t('invites.from', { name: memberName(creator) });
-            }
-        }).catch(noop);
+        const knownName = inviterNames[invite.id];
+        const title = h('p', { class: 'invite__title' }, knownName ? t('invites.from', { name: knownName }) : t('invites.fromUnknown'));
+        // The invite list carries no member rows, so the inviter's name is one read away.
+        // Best-effort, and once per invite: the list repaints after every check-in.
+        if (knownName === undefined) {
+            inviterNames[invite.id] = '';
+            request('GET', `/users-service/habits/pacts/${invite.id}`).then((out) => {
+                const creator = out.ok && (out.body.members || []).find((member) => member.userId === out.body.creatorUserId);
+                if (memberName(creator)) {
+                    inviterNames[invite.id] = memberName(creator);
+                    title.textContent = t('invites.from', { name: inviterNames[invite.id] });
+                }
+            }).catch(noop);
+        }
 
         return h(
             'li',
@@ -675,7 +723,8 @@
         const isAwaiting = !!habit.pendingPactId && !partners.some((partner) => !partner.isPending);
         let partnerLine = describePartners(dictionary, partners);
         if (habit.pause) {
-            partnerLine = t('habit.paused');
+            // Checking in ends the pause (the server resumes the habit), so say so up front.
+            partnerLine = t('habit.pausedHint');
         } else if (!partnerLine) {
             partnerLine = isAwaiting ? t('habit.awaitingPartner') : t('habit.solo');
         }
@@ -708,16 +757,23 @@
                 ),
             ),
             checkinButton(habit, isDone, (checkin) => {
-                // Repaint from state first so the tap feels instant, then let the server have
-                // the last word on the streak: whether a check-in extends it depends on the
-                // habit's cadence and on freezes, which only the server knows.
+                // Repaint first so the tap feels instant, then let the server have the last
+                // word on the streak: whether a check-in extends it depends on the habit's
+                // cadence and on freezes, which only the server knows.
+                //
+                // From what is on screen now, not from `state`: that is the snapshot this card
+                // was drawn from, and another check-in may have repainted the list since.
+                const current = views.latestTodayState || state;
                 const nextState = {
-                    ...state,
-                    checkins: state.checkins.concat([checkin]),
+                    ...current,
+                    checkins: current.checkins.concat([checkin]),
                     streak: checkin.dailyStreak && typeof checkin.dailyStreak.currentStreak === 'number'
-                        ? { ...(state.streak || {}), ...checkin.dailyStreak, isAtStakeToday: false }
-                        : state.streak,
+                        ? { ...(current.streak || {}), ...checkin.dailyStreak, isAtStakeToday: false }
+                        : current.streak,
                 };
+                if (parseRoute(root.location.pathname).name !== 'today') {
+                    return;
+                }
                 views.paintToday(nextState);
                 request('GET', withTimeZone('/users-service/habits/user-habits?status=active')).then((out) => {
                     // Only if the user is still looking at this list.
@@ -725,6 +781,11 @@
                         views.paintToday({ ...views.latestTodayState, habits: out.body.userHabits });
                     }
                 }).catch(noop);
+            }, () => {
+                // Failed: repaint so the button this card now shows comes back enabled.
+                if (parseRoute(root.location.pathname).name === 'today' && views.latestTodayState) {
+                    views.paintToday(views.latestTodayState);
+                }
             }),
         );
     };
@@ -816,16 +877,24 @@
     const renderHabit = (habitGoalId) => {
         setActiveTab('today');
         renderLoading();
-        const todayKey = toLocalDateKey(new Date());
-        const [year, month, day] = todayKey.split('-').map(Number);
+        // The range runs a day past the browser's today so a check-in the server filed under
+        // a later day (account zone ahead of the browser) is still in the result.
+        const localKey = toLocalDateKey(new Date());
+        const [year, month, day] = localKey.split('-').map(Number);
         const rangeStart = toLocalDateKey(new Date(year, month - 1, day - CALENDAR_WEEKS * 7));
+        const rangeEnd = toLocalDateKey(new Date(year, month - 1, day + 1));
 
         Promise.all([
             request('GET', withTimeZone('/users-service/habits/user-habits?status=active')),
-            request('GET', `/users-service/habits/checkins/range?startDate=${rangeStart}&endDate=${todayKey}`
+            request('GET', `/users-service/habits/checkins/range?startDate=${rangeStart}&endDate=${rangeEnd}`
                 + `&habitGoalId=${encodeURIComponent(habitGoalId)}`),
             request('GET', '/users-service/habits/pacts/active'),
-        ]).then(([habitsOut, checkinsOut, pactsOut]) => {
+            views.serverToday ? Promise.resolve(null) : request('GET', withTimeZone('/users-service/habits/daily-streak/me')),
+        ]).then(([habitsOut, checkinsOut, pactsOut, streakOut]) => {
+            if (streakOut && streakOut.ok && /^\d{4}-\d{2}-\d{2}$/.test(streakOut.body.today || '')) {
+                views.serverToday = streakOut.body.today;
+            }
+            const todayKey = currentDayKey();
             if (!habitsOut.ok) {
                 renderError(errorMessage(habitsOut), () => renderHabit(habitGoalId));
                 return;

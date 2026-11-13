@@ -263,7 +263,7 @@
                 -->
                 <div class="web-option">
                     <span class="web-option__label">No Android phone?</span>
-                    <a class="web-option__link" href="/register">Join on the web instead</a>
+                    <a class="web-option__link" href="{{#if webCtaHref}}{{webCtaHref}}{{else}}/register{{/if}}">{{#if webCtaLabel}}{{webCtaLabel}}{{else}}Join on the web instead{{/if}}</a>
                 </div>
                 <div class="cta-note">{{ctaNote}}</div>
                 {{#if inviteCodeLabel}}
@@ -278,7 +278,7 @@
                 <ol class="step-list">
                     <li>
                         <span class="step-num">1</span>
-                        <p>Create your account, in the Android app or right here on the web.</p>
+                        <p>{{#if stepOne}}{{stepOne}}{{else}}Create your account, in the Android app or right here on the web.{{/if}}</p>
                     </li>
                     <li>
                         <span class="step-num">2</span>

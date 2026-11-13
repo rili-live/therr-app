@@ -45,7 +45,6 @@
         "currentStreak": "Current streak",
         "weekProgress": "{done} of {target} this week",
         "solo": "On your own",
-        "paused": "Paused",
         "awaitingPartner": "Invite sent. Waiting for your partner to accept.",
         "withPartners": "With {names}",
         "partnerDone": "{name} checked in today",
@@ -66,7 +65,9 @@
         "memberPending": "Invited",
         "pactDays": "{days}-day pact",
         "notFound": "We could not find that habit on your account.",
-        "appOnlyNote": "Photo proof, pact chat and reminders are in the Android app. Everything you do here shows up there too."
+        "appOnlyNote": "Photo proof, pact chat and reminders are in the Android app. Everything you do here shows up there too.",
+        "pausedHint": "Paused. Checking in resumes it.",
+        "checkInPausedAria": "Check in on {habit} and resume it"
     },
     "invites": {
         "from": "{name} invited you",

@@ -498,7 +498,7 @@ const renderHabitsInviteView = async (req, res, match: IHabitsInviteRouteMatch) 
             ? `${inviterName} wants to make a pact with you`
             : 'You have a pact invitation';
         title = 'Your pact invitation | Friends with Habits';
-        body = 'A pact is a daily habit you and a friend commit to together. Install Friends with Habits to accept it and start your streak.';
+        body = 'A pact is a daily habit you and a friend commit to together. Accept it in the Friends with Habits app or on the web, and start your streak.';
         description = 'Accept your pact invitation on Friends with Habits and start building a daily habit with a friend.';
     } else {
         heading = inviterName
@@ -523,6 +523,18 @@ const renderHabitsInviteView = async (req, res, match: IHabitsInviteRouteMatch) 
         heading,
         body,
         ctaNote: 'Free to install. Available on Google Play — iOS coming next.',
+        // The path for an invitee with no Android phone. A pact invitation only goes to someone
+        // who already has an account, and it is waiting in the web app's invitation list, so it
+        // signs them in; everyone else needs an account first.
+        ...(match.kind === 'claim-pact' ? {
+            webCtaHref: '/login?returnTo=%2Fapp',
+            webCtaLabel: 'Accept it on the web',
+            stepOne: 'Sign in, in the Android app or right here on the web.',
+        } : {
+            webCtaHref: '/register',
+            webCtaLabel: 'Join on the web instead',
+            stepOne: 'Create your account, in the Android app or right here on the web.',
+        }),
         inviterName,
         avatarUri,
         hasAvatar: !!avatarUri,
@@ -682,7 +694,8 @@ app.use(async (req, res, next) => {
             'Disallow: /login',
             'Disallow: /logout',
             // The signed-in web app. Nothing to index: every view is the visitor's own data.
-            'Disallow: /app',
+            'Disallow: /app$',
+            'Disallow: /app/',
             'Disallow: /emails/',
             // /register is deliberately NOT disallowed despite being noindex.
             // It is a paid-campaign destination, and Google Ads' own crawler

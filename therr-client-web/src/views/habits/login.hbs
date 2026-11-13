@@ -226,18 +226,32 @@
                 emailInput.focus();
             }
 
-            // The same same-origin rule the post-sign-in redirect applies below.
+            // `returnTo` as a same-origin path, or null. Resolved by the URL parser rather than
+            // matched by pattern: browsers strip tab, CR and LF from a URL before reading it, so
+            // a pattern check passes '/\t/evil.com' and the browser then follows '//evil.com'.
             function safeReturnTo() {
                 var value = qs.get('returnTo');
-                return value && /^\/(?![/\\])/.test(value) ? value : null;
+                if (!value || value.charAt(0) !== '/' || /[\u0000-\u0020\\]/.test(value)) {
+                    return null;
+                }
+                try {
+                    var url = new URL(value, window.location.origin);
+                    return url.origin === window.location.origin ? url.pathname + url.search + url.hash : null;
+                } catch (e) {
+                    return null;
+                }
             }
 
-            // Already signed in and not here to use an emailed one-time password: skip the
-            // form. If the stored token turns out to be dead, the app clears it before
-            // sending the user back here, so this cannot loop.
+            // Already signed in: skip the form, but only on the way into the web app. The app
+            // refreshes a stale token itself and clears a dead one before sending the user back
+            // here, so this cannot loop. Other pages (a challenge, /verify-phone) send people
+            // here precisely because their stored token no longer works, and skipping the form
+            // for them would bounce them straight back, signed out, with no way to sign in.
             try {
-                if (!prefillEmail && (sessionStorage.getItem('therrUser') || localStorage.getItem('therrUser'))) {
-                    window.location.replace(safeReturnTo() || '/app');
+                var skipTo = safeReturnTo() || '/app';
+                var isAppDestination = skipTo === '/app' || skipTo.indexOf('/app/') === 0 || skipTo.indexOf('/app?') === 0;
+                if (!prefillEmail && isAppDestination && (sessionStorage.getItem('therrUser') || localStorage.getItem('therrUser'))) {
+                    window.location.replace(skipTo);
                     return;
                 }
             } catch (e) { /* storage disabled: show the form */ }
@@ -331,9 +345,7 @@
                     // with nothing to do on it.
                     var dest = '/app';
                     // Pages that need a session (e.g. /verify-phone) send the user here with
-                    // ?returnTo=. Only same-origin relative paths are honored: a lone leading
-                    // '/' with no second '/' or '\', which rejects '//evil.com' and
-                    // 'https://evil.com' rather than turning this into an open redirect.
+                    // ?returnTo=. Only same-origin paths are honoured; see safeReturnTo.
                     var returnTo = safeReturnTo();
                     if (returnTo) {
                         dest = returnTo;

@@ -45,7 +45,6 @@
         "currentStreak": "Série en cours",
         "weekProgress": "{done} sur {target} cette semaine",
         "solo": "En solo",
-        "paused": "En pause",
         "awaitingPartner": "Invitation envoyée. En attente de l'acceptation de votre partenaire.",
         "withPartners": "Avec {names}",
         "partnerDone": "{name} a fait son check-in aujourd'hui",
@@ -66,7 +65,9 @@
         "memberPending": "Invité",
         "pactDays": "Pacte de {days} jours",
         "notFound": "Nous n'avons pas trouvé cette habitude dans votre compte.",
-        "appOnlyNote": "Les photos comme preuve, le clavardage du pacte et les rappels se trouvent dans l'appli Android. Tout ce que vous faites ici y apparaît aussi."
+        "appOnlyNote": "Les photos comme preuve, le clavardage du pacte et les rappels se trouvent dans l'appli Android. Tout ce que vous faites ici y apparaît aussi.",
+        "pausedHint": "En pause. Un check-in la relance.",
+        "checkInPausedAria": "Faire un check-in pour {habit} et la relancer"
     },
     "invites": {
         "from": "{name} vous a invité",
