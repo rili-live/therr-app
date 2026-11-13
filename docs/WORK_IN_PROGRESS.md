@@ -118,6 +118,25 @@ append new items here rather than only printing them once.
   not repeat. An account that already had achievements before the update must NOT get a celebration on
   first launch (that launch records the baseline).
 
+## Open-pact announcement & XP (added 2026-11-13, docs/FEATURES.md → Open pacts)
+
+- [ ] **After the users-service deploy, confirm the migration ran:**
+  `SELECT column_name FROM information_schema.columns WHERE table_schema = 'habits' AND table_name = 'pacts' AND column_name = 'firstOpenedAt'`.
+  Until it has, opening a pact still works but announces nothing and pays no opening XP (the claim
+  fails and is logged as `Failed to announce an opened pact`).
+- [ ] **Handset check of `openPactAvailable` on Friends with Habits:** on a test account tracking a
+  habit with no pact, have a second test account create an open pact on the same habit. Confirm a
+  queued `open-pact-available:<date>` row for the first account, then that the push lands in the Habits
+  app (not Therr) with the habit named in title and body. Needs `NOTIFICATION_QUEUE_WORKER_ENABLED=true`.
+- [ ] **Mobile half (niche/HABITS-general): render full open pacts.** The OpenPacts screen should call
+  `PactsService.getOpenPacts(habitGoalId, { includeFull: true })` and, on a card with `isFull`, replace
+  "Ask to join" with a disabled "Full" state (`OpenPactListingCard`). Leave the feed's sprinkle without
+  `includeFull`. Until this ships, the server keeps full pacts out of every list, as before.
+- [ ] **Read the effect after two weeks:** open-pact creations, join requests and approvals per week
+  before vs after, and the `Open pact announced` log's queued/candidates ratio (prod-db +
+  `main."notificationQueue"` rows of type `open-pact-available`). If announcements drive no requests,
+  turn them off with `HABIT_OPEN_PACT_ANNOUNCEMENTS_ENABLED=false`.
+
 ## Habit pause (added 2026-11-07, docs/FEATURES.md → Pausing a habit)
 
 - [ ] **After the users-service deploy carrying `habits.habit_pauses`, confirm the migration ran:**
