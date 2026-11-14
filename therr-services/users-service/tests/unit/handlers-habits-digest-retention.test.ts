@@ -70,6 +70,8 @@ interface IScenario {
     /** Ledger keys already claimed (an earlier run). */
     claimed?: string[];
     pact?: boolean;
+    /** Active habit cadences (`getActiveCadencesForUsers`). None by default: lapses count in calendar days. */
+    cadences?: Record<string, any>[];
 }
 
 const calls: IEnqueueCall[] = [];
@@ -87,6 +89,7 @@ const stubDigest = (scenario: IScenario = {}) => {
         withDevice = [USER, PARTNER],
         claimed = [],
         pact = false,
+        cadences = [],
     } = scenario;
 
     const inserted = new Set<string>();
@@ -120,6 +123,7 @@ const stubDigest = (scenario: IScenario = {}) => {
     sinon.stub(Store.userHabits, 'getActiveForReminders').resolves(habits as any);
     sinon.stub(Store.userHabits, 'getNotificationPreferencesForPairs').resolves({} as any);
 
+    sinon.stub(Store.userHabits, 'getActiveCadencesForUsers').resolves(cadences as any);
     const profileStub = sinon.stub(Store.onboardingMessages, 'getRetentionProfiles');
     if (profiles instanceof Error) {
         profileStub.rejects(profiles);
@@ -201,6 +205,47 @@ describe('Habits digest — retention messaging', () => {
             expect(comeback[0].payload.habitGoalIds).to.deep.equal([GOAL]);
             expect(comeback[0].payload.checkinDate).to.match(/^\d{4}-\d{2}-\d{2}$/);
             expect(counters.retention.comeback.queued).to.equal(1);
+        });
+
+        it('does not call a fixed-weekday user lapsed over the rest days between sessions', async () => {
+            // A schedule of "three days ago" and "today", nothing between: e.g. Friday then Monday for
+            // a Mon/Wed/Fri habit. Three calendar days, zero sessions missed.
+            const dayOfWeek = (date: string) => new Date(`${date}T00:00:00.000Z`).getUTCDay();
+            const lastCheckin = addDays(TODAY, -3);
+            const targetDaysOfWeek = [dayOfWeek(lastCheckin), dayOfWeek(TODAY)];
+            stubDigest({
+                habits: [habitRow({ frequencyType: 'weekly', targetDaysOfWeek })],
+                cadences: [{
+                    userId: USER,
+                    habitGoalId: GOAL,
+                    startedAt: new Date(`${addDays(TODAY, -30)}T12:00:00.000Z`),
+                    frequencyType: 'weekly',
+                    frequencyCount: null,
+                    targetDaysOfWeek,
+                    cadenceEffectiveFrom: null,
+                    pausedRanges: [],
+                }],
+                profiles: [profile({ lastCheckinDate: lastCheckin, firstCheckinDate: addDays(TODAY, -20) })],
+            });
+
+            const counters = await runDigest();
+
+            expect(nudges()).to.have.length(1);
+            expect(nudges()[0].payload.messageVariant).to.equal(undefined);
+            expect(calls.filter((call) => call.dedupeKey.startsWith('retention:comeback:'))).to.have.length(0);
+            expect(counters.retention.nudgesBackedOff).to.equal(0);
+        });
+
+        it('counts in calendar days when the cadence read fails, as before', async () => {
+            const lastCheckin = addDays(TODAY, -3);
+            stubDigest({ profiles: [profile({ lastCheckinDate: lastCheckin, firstCheckinDate: addDays(TODAY, -20) })] });
+            (Store.userHabits.getActiveCadencesForUsers as sinon.SinonStub).rejects(new Error('read failed'));
+
+            const counters = await runDigest();
+
+            expect(nudges()).to.have.length(0);
+            expect(counters.retention.nudgesBackedOff).to.equal(1);
+            expect(calls.filter((call) => call.dedupeKey === `retention:comeback:${lastCheckin}:d3`)).to.have.length(1);
         });
 
         it('drops the bonus promise when the daily bonus is switched off', async () => {

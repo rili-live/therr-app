@@ -181,8 +181,8 @@ stake for that user is known. A nudge naming exactly one habit carries
 
 The first-checkin and day-two messages ride the `checkin-nudge:<YYYY-MM-DD>` row itself
 (`payload.messageVariant`), so they never add a row; their once-ever guarantee comes from
-`habits.onboarding_messages`, not the queue. Users with no check-in for
-`HABIT_LAPSE_BACKOFF_DAYS` get no check-in nudge row at all — see
+`habits.onboarding_messages`, not the queue. Users `HABIT_LAPSE_BACKOFF_DAYS` into a lapse
+(counted from the first scheduled day missed) get no check-in nudge row at all — see
 `HABIT_LIFECYCLE_MESSAGING.md` § Retention at the drop-off points.
 
 Two things in that table are load-bearing and neither is obvious:
