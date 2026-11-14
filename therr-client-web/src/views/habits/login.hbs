@@ -289,6 +289,26 @@
                 });
             });
 
+            // A challenge the visitor tapped Join on while signed out (habits/challenge.hbs,
+            // habits/register.hbs), so that signing in after verifying their email, perhaps days
+            // later, finishes the join. Read once and removed: it is a one-time detour, not where
+            // every later sign-in goes. Only honoured for a few days, and the old unstamped form
+            // is dropped, because a forgotten one used to send every sign-in to that challenge
+            // instead of to the user's habits.
+            var PENDING_CHALLENGE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+            function takePendingChallenge() {
+                try {
+                    var raw = localStorage.getItem('habitsPendingChallenge');
+                    localStorage.removeItem('habitsPendingChallenge');
+                    var parsed = raw && raw.charAt(0) === '{' ? JSON.parse(raw) : null;
+                    if (parsed && typeof parsed.token === 'string' && /^[A-Za-z0-9]{12}$/.test(parsed.token)
+                        && typeof parsed.at === 'number' && Date.now() - parsed.at < PENDING_CHALLENGE_MAX_AGE_MS) {
+                        return parsed.token;
+                    }
+                } catch (e) { /* storage disabled or unparseable: no detour */ }
+                return null;
+            }
+
             function showError(msg) {
                 errorBox.textContent = msg;
                 errorBox.hidden = false;
@@ -350,14 +370,10 @@
                     if (returnTo) {
                         dest = returnTo;
                     } else {
-                        // Signed up from a challenge link (see habits/register.hbs) and came back
-                        // through the verification email rather than that page: finish the join.
-                        try {
-                            var pending = localStorage.getItem('habitsPendingChallenge');
-                            if (pending && /^[A-Za-z0-9]{12}$/.test(pending)) {
-                                dest = '/c/' + pending;
-                            }
-                        } catch (e) { /* storage disabled — the profile is a fine landing */ }
+                        var pendingChallenge = takePendingChallenge();
+                        if (pendingChallenge) {
+                            dest = '/c/' + pendingChallenge;
+                        }
                     }
                     window.location.assign(dest);
                 }).catch(function () {
