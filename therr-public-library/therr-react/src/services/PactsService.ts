@@ -182,11 +182,22 @@ class PactsService {
      * Open pacts the caller could ask to join, answered as `{ pacts: IOpenPact[] }`. With
      * `habitGoalId`, only those on the same habit as that goal — matched on the template it came
      * from, or its name — which is what an unanswered invite offers instead.
+     *
+     * With `includeFull`, pacts with no seat left are listed too, flagged `isFull` and ordered after
+     * every pact with room. Only pass it from a screen that renders `isFull` — a full pact refuses
+     * the join request.
      */
-    getOpenPacts = (habitGoalId?: string) => axios({
-        method: 'get',
-        url: `/users-service/habits/pacts/open${habitGoalId ? `?habitGoalId=${encodeURIComponent(habitGoalId)}` : ''}`,
-    });
+    getOpenPacts = (habitGoalId?: string, { includeFull = false }: { includeFull?: boolean } = {}) => {
+        // Built by hand: React Native's URLSearchParams polyfill does not implement `set`.
+        const query = [
+            habitGoalId ? `habitGoalId=${encodeURIComponent(habitGoalId)}` : '',
+            includeFull ? 'includeFull=true' : '',
+        ].filter(Boolean).join('&');
+        return axios({
+            method: 'get',
+            url: `/users-service/habits/pacts/open${query ? `?${query}` : ''}`,
+        });
+    };
 
     /** Creator only. Opening needs a pending or running pact; closing is always allowed. */
     setOpen = (id: string, isOpen: boolean) => axios({

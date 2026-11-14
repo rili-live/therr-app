@@ -557,6 +557,7 @@ const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.pactJoinRequested,
     PushNotifications.Types.pactJoinApproved,
     PushNotifications.Types.openPactSuggestion,
+    PushNotifications.Types.openPactAvailable,
     PushNotifications.Types.habitsFirstHabitNudge,
     PushNotifications.Types.pactInviteUnclaimed,
     PushNotifications.Types.habitsFounderOffer,
@@ -1414,6 +1415,20 @@ const createMessage = (
                 channelId: AndroidChannelId.reminders,
             });
             return baseMessage;
+        case PushNotifications.Types.openPactAvailable:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                brandVariation,
+                notificationTitle: translate(config.userLocale, 'notifications.openPactAvailable.title', {
+                    habitName: String(config.habitName || ''),
+                }),
+                notificationBody: translate(config.userLocale, 'notifications.openPactAvailable.body', {
+                    habitName: String(config.habitName || ''),
+                }),
+                channelId: AndroidChannelId.reminders,
+            });
+            return baseMessage;
         // Onboarding nurture (#3011). Display pushes with no click action, for the reason the
         // open-pact set above is: they render on installed builds and the tap opens the app.
         case PushNotifications.Types.habitsFirstHabitNudge:
@@ -2140,6 +2155,7 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.pactJoinRequested,
     PushNotifications.Types.pactNudge,
     PushNotifications.Types.openPactSuggestion,
+    PushNotifications.Types.openPactAvailable,
     PushNotifications.Types.partnerCelebrated,
     PushNotifications.Types.partnerCheckedIn,
     PushNotifications.Types.partnerMissedDay,

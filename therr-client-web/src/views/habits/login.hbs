@@ -14,16 +14,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
     <style>
-        :root {
-            --habits-navy: #102a43;
-            --habits-coral: #ff6b35;
-            --habits-coral-dark: #e0521e;
-            --habits-cream: #fff8f3;
-            --habits-text: #243b53;
-            --habits-text-muted: #627d98;
-            --habits-border: #d9e2ec;
-            --habits-error: #c53030;
-        }
+        {{> habitsTokens}}
         *, *::before, *::after { box-sizing: border-box; }
         html, body {
             margin: 0;
@@ -31,14 +22,14 @@
             font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 16px;
             line-height: 1.6;
-            color: var(--habits-text);
-            background: var(--habits-cream);
+            color: var(--fwh-text);
+            background: var(--fwh-cream);
             min-height: 100vh;
         }
-        a { color: var(--habits-coral-dark); }
+        a { color: var(--fwh-purple); }
         header.site-header {
             padding: 1.25rem 0;
-            border-bottom: 1px solid var(--habits-border);
+            border-bottom: 1px solid var(--fwh-border);
             background: #fff;
         }
         .container {
@@ -59,7 +50,7 @@
         header.site-header .brand {
             font-weight: 800;
             font-size: 1.125rem;
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
             letter-spacing: -0.01em;
         }
         main.wrap {
@@ -68,34 +59,34 @@
         h1 {
             font-size: 1.75rem;
             font-weight: 800;
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
             margin: 0 0 0.5rem;
             letter-spacing: -0.02em;
             text-align: center;
         }
         p.lede {
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
             margin: 0 0 1.75rem;
             text-align: center;
         }
         form.login-form {
             background: #fff;
-            border: 1px solid var(--habits-border);
+            border: 1px solid var(--fwh-border);
             border-radius: 0.75rem;
             padding: 1.5rem;
-            box-shadow: 0 1px 2px rgba(16, 42, 67, 0.04);
+            box-shadow: 0 1px 2px rgba(46, 33, 64, 0.04);
         }
         label {
             display: block;
             font-size: 0.875rem;
             font-weight: 600;
             margin: 0 0 0.375rem;
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
         }
         input[type="email"], input[type="password"] {
             width: 100%;
             padding: 0.75rem 0.875rem;
-            border: 1px solid var(--habits-border);
+            border: 1px solid var(--fwh-border);
             border-radius: 0.5rem;
             font-size: 1rem;
             font-family: inherit;
@@ -103,15 +94,15 @@
             background: #fff;
         }
         input[type="email"]:focus, input[type="password"]:focus {
-            outline: 2px solid var(--habits-coral);
+            outline: 2px solid var(--fwh-purple);
             outline-offset: 1px;
         }
         .cta {
             display: inline-block;
             width: 100%;
             padding: 0.875rem 1.75rem;
-            background: var(--habits-coral);
-            color: #fff;
+            background: var(--fwh-gold);
+            color: var(--fwh-plum);
             font-weight: 600;
             font-size: 1rem;
             border-radius: 999px;
@@ -121,8 +112,8 @@
             text-decoration: none;
             text-align: center;
         }
-        .cta:hover { background: var(--habits-coral-dark); }
-        .cta:disabled { background: var(--habits-text-muted); cursor: not-allowed; }
+        .cta:hover { background: var(--fwh-gold-hover); }
+        .cta:disabled { background: var(--fwh-border); color: var(--fwh-text-muted); cursor: not-allowed; }
         .alert {
             padding: 0.75rem 0.875rem;
             border-radius: 0.5rem;
@@ -130,20 +121,20 @@
             font-size: 0.9375rem;
             border: 1px solid;
         }
-        .alert--error { background: #fff5f5; color: var(--habits-error); border-color: #fed7d7; }
-        .alert--success { background: #f0fff4; color: #2f855a; border-color: #c6f6d5; }
+        .alert--error { background: var(--fwh-error-tint); color: var(--fwh-error); border-color: #f3c9c5; }
+        .alert--success { background: var(--fwh-success-tint); color: var(--fwh-success); border-color: #c5e4d3; }
         .helper {
             text-align: center;
             margin-top: 1rem;
             font-size: 0.875rem;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
         }
         footer.site-footer {
             padding: 2rem 0 3rem;
-            border-top: 1px solid var(--habits-border);
+            border-top: 1px solid var(--fwh-border);
             background: #fff;
             text-align: center;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
             font-size: 0.875rem;
         }
         footer.site-footer .footer-links {
@@ -151,11 +142,23 @@
         }
         footer.site-footer .footer-links a {
             margin: 0 0.5rem;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
         }
         footer.site-footer .footer-family {
             margin-top: 0.5rem;
         }
+        /* A button that reads as a link: it sends an email rather than navigating. */
+        .link-button {
+            background: none;
+            border: 0;
+            padding: 0;
+            font-size: inherit;
+            color: var(--fwh-purple);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .link-button:disabled { color: var(--fwh-text-muted); cursor: default; }
+        header.site-header a.brand-link { display: flex; align-items: center; gap: 0.625rem; text-decoration: none; }
         [hidden] { display: none !important; }
     </style>
     {{> habitsAnalytics}}
@@ -163,15 +166,17 @@
 <body>
     <header class="site-header">
         <div class="container">
-            <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
-            <span class="brand">Friends with Habits</span>
+            <a class="brand-link" href="/">
+                <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
+                <span class="brand">Friends with Habits</span>
+            </a>
         </div>
     </header>
 
     <main class="wrap">
         <div class="container">
             <h1>Sign in</h1>
-            <p class="lede">Welcome back. Sign in to view your profile.</p>
+            <p class="lede">Welcome back. Sign in to check in on your habits.</p>
 
             <div class="alert alert--success" id="prefill-note" hidden>Use the one-time password we just emailed you.</div>
 
@@ -187,7 +192,10 @@
                 <button class="cta" type="submit" id="login-submit">Sign in</button>
 
                 <div class="helper">
-                    Forgot your password? Open the Friends with Habits app and tap &ldquo;Forgot password&rdquo;.
+                    <button class="link-button" type="button" id="forgot-password">Forgot your password? Email me a one-time one</button>
+                </div>
+                <div class="helper">
+                    New here? <a href="/register">Create your account</a>.
                 </div>
             </form>
         </div>
@@ -217,6 +225,69 @@
             } else {
                 emailInput.focus();
             }
+
+            // `returnTo` as a same-origin path, or null. Resolved by the URL parser rather than
+            // matched by pattern: browsers strip tab, CR and LF from a URL before reading it, so
+            // a pattern check passes '/\t/evil.com' and the browser then follows '//evil.com'.
+            function safeReturnTo() {
+                var value = qs.get('returnTo');
+                if (!value || value.charAt(0) !== '/' || /[\u0000-\u0020\\]/.test(value)) {
+                    return null;
+                }
+                try {
+                    var url = new URL(value, window.location.origin);
+                    return url.origin === window.location.origin ? url.pathname + url.search + url.hash : null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            // Already signed in: skip the form, but only on the way into the web app. The app
+            // refreshes a stale token itself and clears a dead one before sending the user back
+            // here, so this cannot loop. Other pages (a challenge, /verify-phone) send people
+            // here precisely because their stored token no longer works, and skipping the form
+            // for them would bounce them straight back, signed out, with no way to sign in.
+            try {
+                var skipTo = safeReturnTo() || '/app';
+                var isAppDestination = skipTo === '/app' || skipTo.indexOf('/app/') === 0 || skipTo.indexOf('/app?') === 0;
+                if (!prefillEmail && isAppDestination && (sessionStorage.getItem('therrUser') || localStorage.getItem('therrUser'))) {
+                    window.location.replace(skipTo);
+                    return;
+                }
+            } catch (e) { /* storage disabled: show the form */ }
+
+            // Emails a one-time password, which signs in through this same form. The answer
+            // shown is the same whether or not the address has an account.
+            var forgotBtn = document.getElementById('forgot-password');
+            forgotBtn.addEventListener('click', function () {
+                clearError();
+                var email = emailInput.value.trim();
+                if (!/^\S+@\S+\.\S+$/.test(email)) {
+                    showError('Enter your email above first, then tap this again.');
+                    emailInput.focus();
+                    return;
+                }
+                forgotBtn.disabled = true;
+                var done = function () {
+                    prefillNote.textContent = 'If that email has an account, a one-time password is on its way. Enter it below to sign in.';
+                    prefillNote.hidden = false;
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                };
+                fetch(API_BASE + '/users-service/users/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-brand-variation': 'habits' },
+                    body: JSON.stringify({ email: email }),
+                }).then(function (res) {
+                    // 404 means no such account; saying so would let anyone test addresses.
+                    if (res.ok || res.status === 404) { done(); return; }
+                    showError('We could not send that just now. Try again in a moment.');
+                    forgotBtn.disabled = false;
+                }).catch(function () {
+                    showError('Network error. Try again in a moment.');
+                    forgotBtn.disabled = false;
+                });
+            });
 
             function showError(msg) {
                 errorBox.textContent = msg;
@@ -270,14 +341,13 @@
                         return;
                     }
                     persistSession(out.body);
-                    var userName = out.body && out.body.userName;
-                    var dest = userName ? '/u/' + encodeURIComponent(userName) : '/';
+                    // The web app, not the public profile: signing in used to end on a page
+                    // with nothing to do on it.
+                    var dest = '/app';
                     // Pages that need a session (e.g. /verify-phone) send the user here with
-                    // ?returnTo=. Only same-origin relative paths are honored: a lone leading
-                    // '/' with no second '/' or '\', which rejects '//evil.com' and
-                    // 'https://evil.com' rather than turning this into an open redirect.
-                    var returnTo = qs.get('returnTo');
-                    if (returnTo && /^\/(?![/\\])/.test(returnTo)) {
+                    // ?returnTo=. Only same-origin paths are honoured; see safeReturnTo.
+                    var returnTo = safeReturnTo();
+                    if (returnTo) {
                         dest = returnTo;
                     } else {
                         // Signed up from a challenge link (see habits/register.hbs) and came back

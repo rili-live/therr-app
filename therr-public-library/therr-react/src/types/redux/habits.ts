@@ -286,6 +286,11 @@ export interface IOpenPact {
     habitGoalFrequencyCount?: number | null;
     /** Members in the pact or invited and not yet answered — its occupied seats. */
     memberCount: number;
+    /**
+     * Every seat is taken, so asking to join is refused. Only present, and only ever true, when the
+     * list was requested with `includeFull` — full pacts are then listed after every pact with room.
+     */
+    isFull?: boolean;
     /** The viewer already asked and is waiting on an answer. */
     hasPendingJoinRequest: boolean;
 }

@@ -14,17 +14,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
     <style>
-        :root {
-            --habits-navy: #102a43;
-            --habits-coral: #ff6b35;
-            --habits-coral-dark: #e0521e;
-            --habits-cream: #fff8f3;
-            --habits-text: #243b53;
-            --habits-text-muted: #627d98;
-            --habits-border: #d9e2ec;
-            --habits-success: #2f855a;
-            --habits-error: #c53030;
-        }
+        {{> habitsTokens}}
         *, *::before, *::after { box-sizing: border-box; }
         html, body {
             margin: 0;
@@ -32,14 +22,14 @@
             font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 16px;
             line-height: 1.6;
-            color: var(--habits-text);
-            background: var(--habits-cream);
+            color: var(--fwh-text);
+            background: var(--fwh-cream);
             min-height: 100vh;
         }
-        a { color: var(--habits-coral-dark); }
+        a { color: var(--fwh-purple); }
         header.site-header {
             padding: 1.25rem 0;
-            border-bottom: 1px solid var(--habits-border);
+            border-bottom: 1px solid var(--fwh-border);
             background: #fff;
         }
         .container {
@@ -60,7 +50,7 @@
         header.site-header .brand {
             font-weight: 800;
             font-size: 1.125rem;
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
             letter-spacing: -0.01em;
         }
         main.wrap {
@@ -70,11 +60,11 @@
         h1 {
             font-size: 1.75rem;
             font-weight: 800;
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
             margin: 0 0 0.75rem;
             letter-spacing: -0.02em;
         }
-        p.lede { color: var(--habits-text-muted); margin: 0 0 1.5rem; }
+        p.lede { color: var(--fwh-text-muted); margin: 0 0 1.5rem; }
         .alert {
             padding: 0.875rem 1rem;
             border-radius: 0.5rem;
@@ -83,14 +73,14 @@
             font-size: 0.9375rem;
             border: 1px solid;
         }
-        .alert--success { background: #f0fff4; color: var(--habits-success); border-color: #c6f6d5; }
+        .alert--success { background: var(--fwh-success-tint); color: var(--fwh-success); border-color: #c5e4d3; }
         .alert--info { background: #ebf8ff; color: #2b6cb0; border-color: #bee3f8; }
-        .alert--error { background: #fff5f5; color: var(--habits-error); border-color: #fed7d7; }
+        .alert--error { background: var(--fwh-error-tint); color: var(--fwh-error); border-color: #f3c9c5; }
         .cta {
             display: inline-block;
             padding: 0.875rem 1.75rem;
-            background: var(--habits-coral);
-            color: #fff;
+            background: var(--fwh-gold);
+            color: var(--fwh-plum);
             font-weight: 600;
             font-size: 1rem;
             border-radius: 999px;
@@ -99,8 +89,8 @@
             transition: background 0.15s ease;
             text-decoration: none;
         }
-        .cta:hover { background: var(--habits-coral-dark); text-decoration: none; }
-        .cta:disabled { background: var(--habits-text-muted); cursor: not-allowed; }
+        .cta:hover { background: var(--fwh-gold-hover); text-decoration: none; }
+        .cta:disabled { background: var(--fwh-border); color: var(--fwh-text-muted); cursor: not-allowed; }
         form.resend {
             margin-top: 1rem;
             text-align: left;
@@ -110,12 +100,12 @@
             font-size: 0.875rem;
             font-weight: 600;
             margin: 0 0 0.375rem;
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
         }
         form.resend input[type="email"] {
             width: 100%;
             padding: 0.75rem 0.875rem;
-            border: 1px solid var(--habits-border);
+            border: 1px solid var(--fwh-border);
             border-radius: 0.5rem;
             font-size: 1rem;
             font-family: inherit;
@@ -123,7 +113,7 @@
             background: #fff;
         }
         form.resend input[type="email"]:focus {
-            outline: 2px solid var(--habits-coral);
+            outline: 2px solid var(--fwh-purple);
             outline-offset: 1px;
         }
         .stack { display: flex; flex-direction: column; gap: 0.75rem; align-items: stretch; }
@@ -131,8 +121,8 @@
             display: inline-block;
             width: 1.25rem;
             height: 1.25rem;
-            border: 2px solid var(--habits-border);
-            border-top-color: var(--habits-coral);
+            border: 2px solid var(--fwh-border);
+            border-top-color: var(--fwh-gold-dark);
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
             vertical-align: middle;
@@ -141,10 +131,10 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         footer.site-footer {
             padding: 2rem 0 3rem;
-            border-top: 1px solid var(--habits-border);
+            border-top: 1px solid var(--fwh-border);
             background: #fff;
             text-align: center;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
             font-size: 0.875rem;
         }
         footer.site-footer .footer-links {
@@ -152,7 +142,7 @@
         }
         footer.site-footer .footer-links a {
             margin: 0 0.5rem;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
         }
         footer.site-footer .footer-family {
             margin-top: 0.5rem;

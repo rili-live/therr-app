@@ -45,6 +45,12 @@ import {
 } from './utilities/habitsBlog';
 import { HabitsLandingResolution, buildHabitsLandingViewContext, resolveHabitsLandingRequest } from './utilities/habitsLanding';
 import {
+    buildHabitsAppViewContext,
+    computeHabitsAppAssetVersion,
+    isHabitsAppPath,
+    resolveHabitsAppLocale,
+} from './utilities/habitsApp';
+import {
     CHALLENGE_CARD_PATH_RE,
     CHALLENGE_PATH_RE,
     IPublicChallenge,
@@ -297,6 +303,12 @@ const HABITS_GA_MEASUREMENT_IDS_JSON = serialize(
         .map(({ trackingId }) => trackingId),
     { isJSON: true },
 );
+// The web app shell varies by the visitor's language, so only the browser may keep it,
+// and it revalidates each time: the shell is what carries the app script's version.
+const HABITS_APP_SHELL_CACHE = 'private, no-cache';
+// Hashed once at boot; the script cannot change while the process runs. path.resolve for the
+// same reason as WELL_KNOWN_DIR above: webpack compiles __dirname to a relative string.
+const HABITS_APP_ASSET_VERSION = computeHabitsAppAssetVersion(path.resolve(__dirname, '../build/static/habits/app.js'));
 const HABITS_DEFAULT_CACHE = 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400';
 const HABITS_NO_STORE = 'no-store';
 // The landing root varies by visitor (see renderHabitsLandingView), so only the browser caches it.
@@ -486,7 +498,7 @@ const renderHabitsInviteView = async (req, res, match: IHabitsInviteRouteMatch) 
             ? `${inviterName} wants to make a pact with you`
             : 'You have a pact invitation';
         title = 'Your pact invitation | Friends with Habits';
-        body = 'A pact is a daily habit you and a friend commit to together. Install Friends with Habits to accept it and start your streak.';
+        body = 'A pact is a daily habit you and a friend commit to together. Accept it in the Friends with Habits app or on the web, and start your streak.';
         description = 'Accept your pact invitation on Friends with Habits and start building a daily habit with a friend.';
     } else {
         heading = inviterName
@@ -511,6 +523,18 @@ const renderHabitsInviteView = async (req, res, match: IHabitsInviteRouteMatch) 
         heading,
         body,
         ctaNote: 'Free to install. Available on Google Play — iOS coming next.',
+        // The path for an invitee with no Android phone. A pact invitation only goes to someone
+        // who already has an account, and it is waiting in the web app's invitation list, so it
+        // signs them in; everyone else needs an account first.
+        ...(match.kind === 'claim-pact' ? {
+            webCtaHref: '/login?returnTo=%2Fapp',
+            webCtaLabel: 'Accept it on the web',
+            stepOne: 'Sign in, in the Android app or right here on the web.',
+        } : {
+            webCtaHref: '/register',
+            webCtaLabel: 'Join on the web instead',
+            stepOne: 'Create your account, in the Android app or right here on the web.',
+        }),
         inviterName,
         avatarUri,
         hasAvatar: !!avatarUri,
@@ -669,6 +693,9 @@ app.use(async (req, res, next) => {
             'Disallow: /verify-account',
             'Disallow: /login',
             'Disallow: /logout',
+            // The signed-in web app. Nothing to index: every view is the visitor's own data.
+            'Disallow: /app$',
+            'Disallow: /app/',
             'Disallow: /emails/',
             // /register is deliberately NOT disallowed despite being noindex.
             // It is a paid-campaign destination, and Google Ads' own crawler
@@ -832,6 +859,24 @@ app.use(async (req, res, next) => {
     const inviteMatch = matchHabitsInviteRoute(req.path);
     if (inviteMatch) {
         return renderHabitsInviteView(req, res, inviteMatch);
+    }
+    // The signed-in web app (utilities/habitsApp.ts). The shell carries no user data, only
+    // the dictionary for the visitor's language, but that language comes from their cookie
+    // and Accept-Language, so it must not be shared-cached under one URL.
+    if (isHabitsAppPath(req.path)) {
+        res.setHeader('Cache-Control', HABITS_APP_SHELL_CACHE);
+        res.setHeader('Vary', 'Accept-Language, Cookie');
+        return res.render('habits/app', buildHabitsAppViewContext(
+            resolveHabitsAppLocale({
+                cookieHeader: req.headers.cookie,
+                acceptLanguage: req.headers['accept-language'],
+            }),
+            {
+                apiBase: (globalConfig[process.env.NODE_ENV] || globalConfig.production).baseApiGatewayRoute,
+                assetVersion: HABITS_APP_ASSET_VERSION,
+                pathname: req.path,
+            },
+        ));
     }
     const landingResolution = resolveHabitsLandingRequest({
         pathname: req.path,

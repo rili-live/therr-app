@@ -214,6 +214,10 @@
       "title": "Still waiting on a partner?",
       "body": "Nobody has answered your {habitName} invite yet. Others are doing it in open pacts — ask to join one."
     },
+    "openPactAvailable": {
+      "title": "A new {habitName} pact is open",
+      "body": "Someone just opened a {habitName} pact and has room. Ask to join — open-pact check-ins earn bonus XP."
+    },
     "habitsFirstHabitNudge": {
       "title": "Day 1 takes ten seconds",
       "body": "Pick one habit and check in once. That is your streak started."
