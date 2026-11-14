@@ -156,7 +156,7 @@ const seatCountSql = () => `(SELECT COUNT(*) FROM ${PACT_MEMBERS_TABLE_NAME} AS 
     + ` WHERE seat."pactId" = ${PACTS_TABLE_NAME}."id" AND seat."status" IN ('pending', 'active'))`;
 
 // Must stay the SQL twin of `normalizeHabitName` in utilities/openPacts.ts.
-const normalizedGoalNameSql = () => `LOWER(REGEXP_REPLACE(TRIM(${HABIT_GOALS_TABLE_NAME}."name"), '\\s+', ' ', 'g'))`;
+const normalizedGoalNameSql = (table: string = HABIT_GOALS_TABLE_NAME) => `LOWER(REGEXP_REPLACE(TRIM(${table}."name"), '\\s+', ' ', 'g'))`;
 
 export default class PactsStore {
     db: IConnection;
@@ -782,7 +782,10 @@ export default class PactsStore {
     /**
      * People who may want to join a newly opened pact on the habit `matchKey` describes: they
      * actively track the same habit (see `getHabitMatchKey`), and are in no pending or active pact
-     * on it — someone who already has partners for this habit is not looking for more. Never the
+     * on it — someone who already has partners for this habit is not looking for more. "On it"
+     * means any pact whose goal matches the same key, not only one on the very goal row the match
+     * came through: a user tracking their own "Morning run" while in a pact on the template one
+     * is already partnered for that habit. Never the
      * pact's own members, never a soft-deleted account, never someone who muted habit reminders.
      *
      * Test accounts and real users are kept apart exactly as `getOpenPacts` keeps them, so a store
@@ -801,6 +804,18 @@ export default class PactsStore {
         const { templateKey, normalizedName } = matchKey;
         if (!templateKey && !normalizedName) {
             return Promise.resolve([]);
+        }
+
+        // The same habit match, applied to the goal behind each pact the user is already in.
+        const busyGoalMatch: string[] = [`busyPact."habitGoalId" = ${USER_HABITS_TABLE_NAME}."habitGoalId"`];
+        const busyGoalBindings: string[] = [];
+        if (templateKey) {
+            busyGoalMatch.push('busyGoal."templateKey" = ?', 'busyGoal."sourceTemplateKey" = ?');
+            busyGoalBindings.push(templateKey, templateKey);
+        }
+        if (normalizedName) {
+            busyGoalMatch.push(`${normalizedGoalNameSql('busyGoal')} = ?`);
+            busyGoalBindings.push(normalizedName);
         }
 
         const queryString = knexBuilder
@@ -843,10 +858,12 @@ export default class PactsStore {
             .andWhereRaw(
                 `NOT EXISTS (SELECT 1 FROM ${PACT_MEMBERS_TABLE_NAME} AS busy`
                 + ` INNER JOIN ${PACTS_TABLE_NAME} AS busyPact ON busyPact."id" = busy."pactId"`
+                + ` INNER JOIN ${HABIT_GOALS_TABLE_NAME} AS busyGoal ON busyGoal."id" = busyPact."habitGoalId"`
                 + ` WHERE busy."userId" = ${USER_HABITS_TABLE_NAME}."userId"`
-                + ` AND busyPact."habitGoalId" = ${USER_HABITS_TABLE_NAME}."habitGoalId"`
+                + ` AND (${busyGoalMatch.join(' OR ')})`
                 + ' AND busy."status" IN (\'pending\', \'active\')'
                 + ' AND busyPact."status" IN (\'pending\', \'active\'))',
+                busyGoalBindings,
             )
             .andWhereRaw(
                 `(COALESCE(${USERS_TABLE_NAME}."accessLevels", '[]'::jsonb) @> '["${AccessLevels.TEST_ACCOUNT}"]'::jsonb) = ?`,
