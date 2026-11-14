@@ -63,6 +63,20 @@ const getDoneColors = (theme: ITherrTheme, themeName?: IMobileThemeName) => {
     };
 };
 
+/**
+ * Outlined, lightly filled button colours for a cautionary action: warning (pause) and
+ * danger (archive). The ink is shifted toward the background's opposite so the label holds
+ * contrast on a light page — raw alertWarning amber is under 4.5:1 on white.
+ */
+const getActionToneColors = (base: string, themeName?: IMobileThemeName) => {
+    const isDark = isDarkTheme(themeName);
+    return {
+        ink: isDark ? new Color(base).lighten(0.1).hex() : new Color(base).darken(0.25).hex(),
+        fill: tint(base, isDark ? 0.16 : 0.1),
+        border: tint(base, isDark ? 0.7 : 0.55),
+    };
+};
+
 // Height of the floating "new pact" action, and the bottom padding a scrolling
 // surface needs so its last row clears both that action and the button menu.
 const NEW_PACT_FAB_HEIGHT = 48;
@@ -90,6 +104,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
     const streakBar = getStreakBarColors(therrTheme, themeName);
     const done = getDoneColors(therrTheme, themeName);
+    const warningTone = getActionToneColors(therrTheme.colors.alertWarning, themeName);
+    const dangerTone = getActionToneColors(therrTheme.colors.alertError, themeName);
 
     const styles = StyleSheet.create({
         // Checkin Button
@@ -294,15 +310,30 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginBottom: space.lg,
             alignItems: 'center',
         },
+        // Archive is the heaviest action on the screen, so it reads as destructive (error red),
+        // one step louder than pause's warning amber above it.
         habitArchiveAction: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minWidth: 200,
+            marginTop: space.xs,
             paddingVertical: space.sm + 2,
             paddingHorizontal: space.lg,
+            borderRadius: radius.md,
+            borderWidth: 1,
+            borderColor: dangerTone.border,
+            backgroundColor: dangerTone.fill,
         },
         habitArchiveActionText: {
             fontFamily: therrFontFamily,
             fontSize: fontSizes.md,
             fontWeight: fontWeights.semibold,
-            color: therrTheme.colors.textGray,
+            color: dangerTone.ink,
+        },
+        habitArchiveActionIcon: {
+            color: dangerTone.ink,
+            marginRight: space.xs,
         },
         habitArchiveHint: {
             fontFamily: therrFontFamily,
@@ -376,13 +407,20 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: fontSizes.sm,
             color: therrTheme.colors.onSurfaceMuted,
         },
+        // Warning amber: pausing is reversible, but it does stop reminders and leaves a partner
+        // checking in alone, so it should not look like a routine action.
         habitPauseAction: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minWidth: 200,
             marginTop: space.xs,
-            paddingVertical: space.sm,
+            paddingVertical: space.sm + 2,
             paddingHorizontal: space.lg,
             borderRadius: radius.md,
             borderWidth: 1,
-            borderColor: tint(therrTheme.colors.brand, 0.5),
+            borderColor: warningTone.border,
+            backgroundColor: warningTone.fill,
         },
         // The same button inside the at-risk prompt on the habit card, left-aligned under its text.
         habitPauseActionInline: {
@@ -393,7 +431,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             fontSize: fontSizes.md,
             fontWeight: fontWeights.semibold,
-            color: therrTheme.colors.brand,
+            color: warningTone.ink,
+        },
+        habitPauseActionIcon: {
+            color: warningTone.ink,
+            marginRight: space.xs,
         },
         habitPauseExplainerIntro: {
             fontFamily: therrFontFamily,

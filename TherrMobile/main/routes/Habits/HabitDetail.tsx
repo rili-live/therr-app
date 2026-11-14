@@ -1050,6 +1050,11 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                         (pressed || this.state.isPauseUpdating) && this.themeHabits.styles.pressedOpacity,
                     ]}
                 >
+                    <MaterialIcon
+                        name="pause-circle-outline"
+                        size={20}
+                        style={this.themeHabits.styles.habitPauseActionIcon}
+                    />
                     <Text style={this.themeHabits.styles.habitPauseActionText}>
                         {this.translate('pages.habits.pause.button')}
                     </Text>
@@ -1098,6 +1103,11 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                         (pressed || isPauseUpdating) && this.themeHabits.styles.pressedOpacity,
                     ]}
                 >
+                    <MaterialIcon
+                        name="pause-circle-outline"
+                        size={20}
+                        style={this.themeHabits.styles.habitPauseActionIcon}
+                    />
                     <Text style={this.themeHabits.styles.habitPauseActionText}>
                         {this.translate('pages.habits.pause.button')}
                     </Text>
@@ -1759,6 +1769,11 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                                     ]}
                                     onPress={this.handleArchivePress}
                                 >
+                                    <MaterialIcon
+                                        name="archive"
+                                        size={20}
+                                        style={this.themeHabits.styles.habitArchiveActionIcon}
+                                    />
                                     <Text style={this.themeHabits.styles.habitArchiveActionText}>
                                         {this.translate('pages.habits.archiveHabit')}
                                     </Text>
