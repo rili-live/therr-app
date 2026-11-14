@@ -1,0 +1,4 @@
+What's new:
+• Get a heads-up when someone opens a pact on a habit you're building, so you can ask to join
+• Earn extra XP for joining open pacts and checking in with your group
+• Full open pacts now say so, listed after the ones with room

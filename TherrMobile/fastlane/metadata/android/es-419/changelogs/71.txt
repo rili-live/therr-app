@@ -1,0 +1,4 @@
+Novedades:
+• Recibe un aviso cuando alguien abre un pacto en un hábito que estás construyendo, para que pidas unirte
+• Gana XP extra al unirte a pactos abiertos y registrarte con tu grupo
+• Los pactos abiertos llenos ahora lo indican y aparecen después de los que tienen lugar
