@@ -60,23 +60,8 @@
             one palette across the icon, the app and this site is what makes the
             chameleon read as a brand rather than a mascot.
         */
+        {{> habitsTokens}}
         :root {
-            --fwh-plum: #2e2140;
-            --fwh-plum-deep: #1f1630;
-            --fwh-purple: #5b4273;
-            --fwh-purple-mid: #6e5c85;
-            --fwh-purple-soft: #ece6f3;
-            --fwh-purple-tint: #f6f2fa;
-            --fwh-gold: #f6c94a;
-            --fwh-gold-dark: #d49617;
-            --fwh-gold-deep: #a86f05;
-            --fwh-cream: #fbf7f1;
-            --fwh-white: #ffffff;
-            --fwh-text: #3a2f4a;
-            --fwh-text-muted: #6f6582;
-            --fwh-border: #e6dfee;
-            --fwh-shadow: 0 18px 40px -20px rgba(46, 33, 64, 0.35);
-            --fwh-radius: 1.25rem;
             /* The climbing rig is sized from the viewport and the content column makes
                room for it: --fwh-rig-inset is how much of the rig would land on the
                centred 1080px column, and .container adds exactly that to its right
@@ -243,9 +228,10 @@
         .lang-switcher li a strong { width: 1.5rem; color: var(--fwh-text-muted); }
         .lang-switcher li a:hover { background: rgba(46, 33, 64, 0.06); text-decoration: none; }
         .lang-switcher li a[aria-current] { background: rgba(46, 33, 64, 0.06); font-weight: 700; }
+        /* Always shown. It used to appear only from 900px, so a returning user on a phone,
+           which is where the web app is used, had no way to sign in from this page. */
         .header-actions .sign-in {
             white-space: nowrap;
-            display: none;
             font-weight: 600;
             font-size: 0.9375rem;
             color: var(--fwh-purple);
@@ -297,6 +283,17 @@
             color: #fff;
             box-shadow: none;
         }
+        /* iPhone and iPad visitors cannot use a Play Store button. The script at the foot of the
+           page marks them, the store buttons step aside, and signing up for the web app becomes
+           the primary action instead of a dead end. */
+        .is-ios .cta--store { display: none; }
+        .is-ios .cta--web {
+            background: var(--fwh-gold);
+            color: var(--fwh-plum);
+            border-color: transparent;
+            box-shadow: 0 8px 20px -8px rgba(212, 150, 23, 0.8);
+        }
+        .is-ios .cta--web:hover { background: var(--fwh-gold-hover); color: var(--fwh-plum); }
         .cta-row {
             display: flex;
             flex-wrap: wrap;
@@ -638,7 +635,9 @@
         }
         .section-head { max-width: 640px; margin: 0 auto 2.75rem; text-align: center; }
         .section-head h2 { margin-bottom: 0.75rem; }
-        .section-head p { margin: 0; color: var(--fwh-text-muted); font-size: 1.0625rem; }
+        /* :not(.eyebrow): the eyebrow is a <p> too, and this rule used to outrank .eyebrow and
+           turn every centred section's eyebrow grey while the left-aligned ones stayed gold. */
+        .section-head p:not(.eyebrow) { margin: 0; color: var(--fwh-text-muted); font-size: 1.0625rem; }
 
         /* Definitional answer block — the paragraph most likely to be lifted verbatim
            by an AI answer engine, so it leads the page body and names the entity. */
@@ -969,9 +968,9 @@
             width: 1.25rem;
             height: 1.25rem;
             border-radius: 50%;
-            background: var(--fwh-gold);
-            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='10' fill='black'/%3E%3Cpath d='M6 10.5l2.6 2.6L14 7.7' stroke='white' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
-            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='10' fill='black'/%3E%3Cpath d='M6 10.5l2.6 2.6L14 7.7' stroke='white' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+            /* A background image, not a mask: the old mask was an opaque circle with an opaque
+               tick on top, so alpha masking kept the whole disc and the tick never showed. */
+            background: var(--fwh-gold) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 10.5l2.6 2.6L14 7.7' fill='none' stroke='%232e2140' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
         }
         .founder-note {
             font-size: 0.8125rem;
@@ -980,7 +979,7 @@
             max-width: 460px;
         }
 
-        .faq-grid { display: grid; gap: 1rem; }
+        .faq-grid { display: grid; gap: 1rem; max-width: 980px; margin: 0 auto; }
         .faq-item {
             margin: 0;
             background: var(--fwh-white);
@@ -1170,14 +1169,16 @@
             .hero p.lede { font-size: 1.25rem; }
             .step-list { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
             .stat-grid { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-            .faq-grid { grid-template-columns: 1fr 1fr; }
+            /* Columns, not a row grid: answers differ a lot in length, and a grid stretched the
+               short cards to match their neighbour and left the seventh orphaned on its own row. */
+            .faq-grid { display: block; columns: 2; column-gap: 1rem; }
+            .faq-item { break-inside: avoid; margin-bottom: 1rem; }
             .closer-card { padding: 4rem 3rem; }
             .founder-card { padding: 3rem 2.5rem 2.75rem; }
         }
         @media (min-width: 900px) {
             header.site-header { padding: 0.875rem 0; }
             .header-actions { gap: 1.25rem; }
-            .header-actions .sign-in { display: inline; }
             .hero { padding: 5.5rem 0 6.5rem; }
             .hero .container {
                 grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
@@ -1227,6 +1228,18 @@
     {{> habitsAnalytics}}
 </head>
 <body>
+    <script>
+        // Runs before first paint so the hero never flashes a Play Store button at an iPhone.
+        // iPadOS reports itself as a Mac, hence the touch-point check.
+        (function () {
+            try {
+                var ua = navigator.userAgent || '';
+                if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) {
+                    document.documentElement.className += ' is-ios';
+                }
+            } catch (e) { /* leave the default, Android-first layout */ }
+        })();
+    </script>
     <!--
         Shared vector defs. The chameleon face is the logo's own geometry
         (habits-logo.svg minus its white tile) so the mascot on this page and the
@@ -1307,8 +1320,8 @@
                         {{/each}}
                     </ul>
                 </details>
-                <a class="sign-in" href="/login">{{{t.header.signIn}}}</a>
-                <a class="cta cta--small" id="header-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">
+                <a class="sign-in" id="header-sign-in" href="/login" data-signed-in-label="{{t.header.myHabits}}">{{{t.header.signIn}}}</a>
+                <a class="cta cta--small cta--store" id="header-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">
                     <svg aria-hidden="true"><use href="#fwh-play"/></svg>
                     {{{t.header.getTheApp}}}
                 </a>
@@ -1330,11 +1343,11 @@
                         because Handlebars escapes '=' in an attribute to &#x3D;.
                     -->
                     <div class="cta-row">
-                        <a class="cta" id="hero-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">
+                        <a class="cta cta--store" id="hero-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">
                             <svg aria-hidden="true"><use href="#fwh-play"/></svg>
                             {{{t.hero.googlePlayCta}}}
                         </a>
-                        <a class="cta cta--secondary" id="hero-register-cta" href="/register">{{{t.hero.registerCta}}}</a>
+                        <a class="cta cta--secondary cta--web" id="hero-register-cta" href="/register">{{{t.hero.registerCta}}}</a>
                         <!--
                             No iOS build exists yet, so this deliberately does not link to the
                             App Store. It is a <button> because it opens a dialog rather than
@@ -1671,11 +1684,11 @@
                     <h2>{{{t.closer.heading}}}</h2>
                     <p>{{{t.closer.body}}}</p>
                     <div class="cta-row">
-                        <a class="cta" id="closer-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">
+                        <a class="cta cta--store" id="closer-store-cta" href="https://play.google.com/store/apps/details?id=com.therr.habits" rel="noopener">
                             <svg aria-hidden="true"><use href="#fwh-play"/></svg>
                             {{{t.hero.googlePlayCta}}}
                         </a>
-                        <a class="cta cta--secondary" id="closer-register-cta" href="/register">{{{t.hero.registerCta}}}</a>
+                        <a class="cta cta--secondary cta--web" id="closer-register-cta" href="/register">{{{t.hero.registerCta}}}</a>
                         <button type="button" class="cta cta--ghost" id="closer-ios-cta" aria-haspopup="dialog">
                             <svg aria-hidden="true"><use href="#fwh-apple"/></svg>
                             {{{t.hero.iosCta}}}
@@ -1994,6 +2007,18 @@
                     el.addEventListener('click', function () { openModal(location); });
                 }
             }
+
+            // A visitor who already has a session goes straight to their habits, not to a
+            // sign-in form. Done here rather than server-side: this page is shared-cached.
+            try {
+                if (window.sessionStorage.getItem('therrUser') || window.localStorage.getItem('therrUser')) {
+                    var signInLink = document.getElementById('header-sign-in');
+                    if (signInLink) {
+                        signInLink.href = '/app';
+                        signInLink.textContent = signInLink.getAttribute('data-signed-in-label') || signInLink.textContent;
+                    }
+                }
+            } catch (e) { /* storage disabled: the sign-in link is still correct */ }
 
             bindOpen('hero-ios-cta', 'hero');
             bindOpen('closer-ios-cta', 'closer');

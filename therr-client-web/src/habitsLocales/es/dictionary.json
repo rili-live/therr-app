@@ -17,7 +17,8 @@
     "faq": "Preguntas",
     "blog": "Blog",
     "signIn": "Entrar",
-    "getTheApp": "Descargar"
+    "getTheApp": "Descargar",
+    "myHabits": "Mis hábitos"
   },
   "hero": {
     "motto": "Los amigos no dejan que sus amigos se rindan.",
@@ -26,7 +27,7 @@
     "googlePlayCta": "Disponible en Google Play",
     "registerCta": "Crea tu cuenta",
     "iosCta": "¿iPhone? Únete a la lista de espera",
-    "ctaNoteHtml": "Gratis en Google Play, con hasta {freeHabitLimit} hábitos activos a la vez. iPhone muy pronto.",
+    "ctaNoteHtml": "Gratis en Google Play y en cualquier navegador, con hasta {freeHabitLimit} hábitos activos a la vez. ¿Tienes iPhone? Regístrate y haz check-in desde la web hoy mismo.",
     "founderNoteHtml": "<strong>Desbloqueo de fundador opcional:</strong> ¿necesitas más de {freeHabitLimit}? Las primeras 5,000 cuentas pueden quitar el límite de por vida con un solo pago de $20 USD.",
     "highlightsAriaLabel": "Lo más destacado",
     "chipNoSubscription": "Sin suscripción",
@@ -45,7 +46,7 @@
   },
   "definition": {
     "eyebrow": "Qué es",
-    "madeByHtml": "Es gratis, lo hace <a href=\"https://www.therr.app/\" rel=\"noopener\">Therr, Inc.</a> y ya está disponible en Android a través de Google Play, mientras preparamos la versión para iOS."
+    "madeByHtml": "Es gratis, lo hace <a href=\"https://www.therr.app/\" rel=\"noopener\">Therr, Inc.</a> y ya está disponible en Android a través de Google Play y en la web desde cualquier navegador, mientras preparamos la app para iOS."
   },
   "popular": {
     "eyebrow": "Pactos populares",
@@ -98,7 +99,7 @@
     "partnerRequiredHtml": "<strong>El compañero es obligatorio, no opcional.</strong> Streaks, Habitify, Done y la mayoría de las apps de hábitos están hechas para una sola persona. Aquí un pacto necesita dos, así que no existe una versión de la app en la que nadie note que lo dejaste.",
     "proofHtml": "<strong>Cada check-in lleva prueba.</strong> Todos los check-ins diarios llevan una foto o una nota, así que una racha es evidencia, no un simple toque.",
     "sharedStreakHtml": "<strong>La racha es compartida.</strong> Tú y tu compañero tienen la misma racha, así que un día perdido les cuesta a los dos. Justo por eso es incómodo, y justo por eso funciona.",
-    "freeHtml": "<strong>Empezar es gratis.</strong> Sin código de invitación, sin tarjeta. Instálala en Android y haz tu primer pacto.",
+    "freeHtml": "<strong>Empezar es gratis.</strong> Sin código de invitación, sin tarjeta. Instálala en Android o entra desde cualquier navegador para hacer check-in.",
     "noSubscriptionHtml": "<strong>Sin suscripciones.</strong> Las cuentas gratis tienen hasta {freeHabitLimit} hábitos activos a la vez, gratis mientras uses la app. Si quieres más, las primeras 5,000 cuentas pueden quitar ese límite para siempre con un pago único de $20 USD como fundadores, en lugar de una mensualidad."
   },
   "compareTable": {
@@ -139,7 +140,7 @@
       },
       "platforms": {
         "label": "Plataformas",
-        "fwh": "Android hoy; lista de espera para iPhone abierta",
+        "fwh": "App de Android; check-ins web en cualquier navegador, también en iPhone",
         "habitshare": "iPhone y Android",
         "habitica": "iPhone, Android y web"
       }
@@ -184,7 +185,7 @@
     },
     "iphone": {
       "question": "¿Friends with Habits está disponible para iPhone?",
-      "answer": "Todavía no. Hoy Friends with Habits está en Android a través de Google Play, y la versión para iOS es lo siguiente en nuestros planes. Tu cuenta funciona en todas las apps de Therr, así que la cuenta que crees en Android se mantiene.",
+      "answer": "Todavía no hay app para iPhone, pero no la necesitas para participar. Crea una cuenta y entra en habits.therr.com desde tu iPhone para ver tus hábitos, hacer check-in cada día y pedir unirte a pactos abiertos, todo desde el navegador. La app de Android está en Google Play, la app para iOS es lo siguiente en nuestros planes y la misma cuenta funciona en todas.",
       "cta": "Dinos que la quieres para iPhone"
     },
     "whoMakes": {

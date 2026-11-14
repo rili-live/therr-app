@@ -33,20 +33,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
     <style>
-        :root {
-            --fwh-plum: #2e2140;
-            --fwh-plum-deep: #1f1630;
-            --fwh-purple: #5b4273;
-            --fwh-purple-soft: #ece6f3;
-            --fwh-gold: #f6c94a;
-            --fwh-gold-dark: #d49617;
-            --fwh-cream: #fbf7f1;
-            --fwh-text: #3a2f4a;
-            --fwh-text-muted: #6f6582;
-            --fwh-border: #e6dfee;
-            --fwh-success: #1f7a4d;
-            --fwh-error: #b3261e;
-        }
+        {{> habitsTokens}}
         *, *::before, *::after { box-sizing: border-box; }
         /* The action rows are display:flex, which would otherwise beat the hidden attribute. */
         [hidden] { display: none !important; }
@@ -86,7 +73,7 @@
         .board ol { list-style: none; margin: 0; padding: 0; }
         .board li { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; border-top: 1px solid var(--fwh-border); }
         .board li.me { background: #fdf6e3; }
-        .board .rank { flex: 0 0 2rem; font-weight: 800; color: var(--fwh-gold-dark); }
+        .board .rank { flex: 0 0 2rem; font-weight: 800; color: var(--fwh-gold-deep); }
         .board .who { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .board .who small { color: var(--fwh-text-muted); }
         .board .score { flex: 0 0 auto; font-weight: 700; color: var(--fwh-plum); }

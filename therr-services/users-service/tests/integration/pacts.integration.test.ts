@@ -19,6 +19,7 @@ import UsersStore, { ICreateUserParams } from '../../src/store/UsersStore';
 import PactsStore from '../../src/store/PactsStore';
 import PactMembersStore from '../../src/store/PactMembersStore';
 import HabitGoalsStore from '../../src/store/HabitGoalsStore';
+import UserHabitsStore from '../../src/store/UserHabitsStore';
 import {
     getTestConnection,
     closeTestConnection,
@@ -34,6 +35,7 @@ describe('Integration Tests - Pact resolution from a habit goal', () => {
     let pactsStore: PactsStore;
     let pactMembersStore: PactMembersStore;
     let habitGoalsStore: HabitGoalsStore;
+    let userHabitsStore: UserHabitsStore;
     let skipTests = false;
 
     let createdUserIds: string[] = [];
@@ -53,6 +55,7 @@ describe('Integration Tests - Pact resolution from a habit goal', () => {
         pactsStore = new PactsStore(connection);
         pactMembersStore = new PactMembersStore(connection);
         habitGoalsStore = new HabitGoalsStore(connection);
+        userHabitsStore = new UserHabitsStore(connection);
     });
 
     afterEach(async () => {
@@ -60,7 +63,10 @@ describe('Integration Tests - Pact resolution from a habit goal', () => {
 
         const connection = getTestConnection();
 
-        // pact_members -> pacts -> habit_goals -> users (FK order)
+        // user_habits, pact_members -> pacts -> habit_goals -> users (FK order)
+        await Promise.all(createdUserIds.map((userId) => connection.write
+            .query('DELETE FROM "habits"."user_habits" WHERE "userId" = $1', [userId])
+            .catch(() => null)));
         await Promise.all(createdPactIds.map((pactId) => connection.write
             .query('DELETE FROM "habits"."pact_members" WHERE "pactId" = $1', [pactId])
             .catch(() => null)));
@@ -105,9 +111,9 @@ describe('Integration Tests - Pact resolution from a habit goal', () => {
         return createdUsers[0];
     };
 
-    const createGoal = async (creatorUserId: string) => {
+    const createGoal = async (creatorUserId: string, name = 'Pact resolution test goal') => {
         const goal = await habitGoalsStore.create({
-            name: 'Pact resolution test goal',
+            name,
             frequencyType: 'daily',
             createdByUserId: creatorUserId,
         });
@@ -365,5 +371,54 @@ describe('Integration Tests - Pact resolution from a habit goal', () => {
         const resolved = await pactsStore.getActiveByUserAndHabitGoal(creator.id, goal.id);
 
         expect(resolved.map((p: any) => p.id)).to.deep.equal([older.id, newer.id]);
+    });
+    // The open-pact announcement goes to people on the same habit who have no pact on it. That
+    // check used to look only at pacts on the exact goal row the habit matched through, so someone
+    // tracking their own "Morning run" while already partnered on another "Morning run" goal was
+    // still pushed a stranger's pact.
+    it('does not announce an open pact to someone already partnered on the same habit through another goal', async () => {
+        if (skipTests) return;
+
+        // Unique per run so rows left in a shared dev database cannot match.
+        const habitName = `Open pact announce ${Date.now()}`;
+        const creator = await createTestUser('o1');
+        const looking = await createTestUser('o2');
+        const partnered = await createTestUser('o3');
+        const partner = await createTestUser('o4');
+
+        const openGoal = await createGoal(creator.id, habitName);
+        const openPact = await pactsStore.create({ creatorUserId: creator.id, habitGoalId: openGoal.id, durationDays: 30 });
+        createdPactIds.push(openPact.id);
+        await pactMembersStore.create({
+            pactId: openPact.id, userId: creator.id, role: 'creator', status: 'active',
+        });
+
+        // Both track the habit through their own goal, named the same up to case and spacing.
+        const lookingGoal = await createGoal(looking.id, `  ${habitName.toUpperCase()} `);
+        await userHabitsStore.getOrCreate(looking.id, lookingGoal.id);
+        const partneredGoal = await createGoal(partnered.id, habitName.toLowerCase());
+        await userHabitsStore.getOrCreate(partnered.id, partneredGoal.id);
+
+        // ...but one of them is already in a running pact on a third goal for the same habit.
+        const otherGoal = await createGoal(partner.id, habitName);
+        const otherPact = await createActivePact(partner.id, partnered.id, otherGoal.id);
+        await pactMembersStore.create({
+            pactId: otherPact.id, userId: partner.id, role: 'creator', status: 'active',
+        });
+        await pactMembersStore.create({
+            pactId: otherPact.id, userId: partnered.id, role: 'partner', status: 'active',
+        });
+
+        const prospects = await pactsStore.getInterestedUsersForOpenPact(
+            openPact.id,
+            { templateKey: null, normalizedName: habitName.toLowerCase() },
+            false,
+            50,
+        );
+        const ids = prospects.map((row) => row.userId);
+
+        expect(ids).to.include(looking.id);
+        expect(ids).to.not.include(partnered.id);
+        expect(ids).to.not.include(creator.id);
     });
 });
