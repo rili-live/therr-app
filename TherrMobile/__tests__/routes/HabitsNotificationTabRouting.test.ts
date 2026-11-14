@@ -90,4 +90,17 @@ describe('habits notification tab routing', () => {
         expect(habitsCaseBlock.length).toBeGreaterThan(0);
         expect(habitsCaseBlock).not.toContain("targetRouteView: 'Notifications'");
     });
+
+    it('opens the open pacts on that habit when an open-pact announcement is tapped', () => {
+        // Without a case the type falls to `default: return null`, so a tap opens the app on
+        // whatever screen it was last on — the announcement names a pact the user never sees.
+        const resolver = layoutSource.slice(layoutSource.indexOf('getRouteFromNotificationType'));
+        const caseStart = resolver.indexOf('case PushNotifications.Types.openPactAvailable:');
+        expect(caseStart).toBeGreaterThan(-1);
+
+        const caseBody = resolver.slice(caseStart, resolver.indexOf('case PushNotifications.Types.', caseStart + 1));
+        expect(caseBody).toContain("targetRouteView: 'OpenPacts'");
+        // The recipient is not a member of the announced pact, so PactDetail is never the fallback.
+        expect(caseBody).not.toContain('buildPactRoute');
+    });
 });

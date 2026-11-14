@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import { RefreshControl } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import { PactsService } from 'therr-react/services';
+import { sortFullOpenPactsLast } from '../../utilities/openPactListing';
 import { IOpenPact, IUserState } from 'therr-react/types';
 import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 import { logAppEvent } from '../../utilities/analyticsEvents';
@@ -95,7 +96,9 @@ export class OpenPacts extends React.Component<IOpenPactsProps, IOpenPactsState>
 
         this.setState({ isLoading: true });
 
-        PactsService.getOpenPacts(habitGoalId)
+        // Full pacts too: the server lists them after every pact with room, flagged `isFull`, and the
+        // card shows them as full instead of offering a request the server would refuse.
+        PactsService.getOpenPacts(habitGoalId, { includeFull: true })
             .then((response: any) => {
                 // The interceptor answers a transient GET failure with `{ data: {}, isOfflineFallback }`,
                 // which must not read as "nobody has an open pact". Whatever is on screen stays.
@@ -106,7 +109,7 @@ export class OpenPacts extends React.Component<IOpenPactsProps, IOpenPactsState>
                 }
                 const maxMembers = response.data.maxMembers;
                 this.setState({
-                    pacts,
+                    pacts: sortFullOpenPactsLast(pacts),
                     loadError: false,
                     maxMembers: typeof maxMembers === 'number' && maxMembers > 0 ? maxMembers : null,
                 });

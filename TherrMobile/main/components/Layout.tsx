@@ -1612,6 +1612,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     ? { targetRouteView: 'OpenPacts', targetRouteParams: { habitGoalId } }
                     : buildPactRoute();
 
+            // "Someone just opened a pact on a habit you share" — the open pacts on that habit, where
+            // the announced pact is listed. `habitGoalId` is the creator's goal; the listing reads only
+            // its habit match key from it. Not the pact itself as a fallback: the recipient is not a
+            // member of it, so PactDetail would refuse them.
+            case PushNotifications.Types.openPactAvailable:
+                return habitGoalId
+                    ? { targetRouteView: 'OpenPacts', targetRouteParams: { habitGoalId } }
+                    : { targetRouteView: 'HabitsDashboard', targetRouteParams: {} };
+
             // Anything asking the user to check in opens the habit itself, with
             // the dashboard's habits segment when it cannot name one — that is
             // the segment listing the habits the user can check in on.

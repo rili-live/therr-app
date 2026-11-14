@@ -11,6 +11,7 @@ import {
 } from '../../src/handlers/pactJoinRequests';
 import { createPact } from '../../src/handlers/pacts';
 import { MAX_OPEN_PACT_MEMBERS, MAX_PENDING_JOIN_REQUESTS_PER_USER } from '../../src/utilities/openPacts';
+import { LeaderboardXpValues } from '../../src/utilities/leaderboardHelpers';
 
 /**
  * Open pacts — the endpoints. The matching and joinability rules are pinned in openPacts.test.ts;
@@ -183,11 +184,16 @@ describe('open pacts — endpoints', () => {
         it('lets the creator open a running pact', async () => {
             sinon.stub(Store.pacts, 'getById').resolves(openPact({ isOpen: false, status: 'pending', endDate: null }));
             const setOpen = sinon.stub(Store.pacts, 'setOpen').resolves({ id: PACT_ID, isOpen: true });
+            sinon.stub(Store.pacts, 'countSeats').resolves(1);
+            const claim = sinon.stub(Store.pacts, 'claimFirstOpen').resolves(false);
 
             const result = await call(setPactOpen, { userId: CREATOR, body: { isOpen: true } });
 
             expect(result.statusCode).to.equal(200);
             expect(setOpen.firstCall.args).to.deep.equal([PACT_ID, true]);
+            // The first-open announcement is attempted; its claim decides whether anything is sent.
+            await new Promise((resolve) => { setImmediate(resolve); });
+            expect(claim.calledOnceWith(PACT_ID)).to.equal(true);
         });
 
         it('refuses anyone but the creator', async () => {
@@ -231,6 +237,7 @@ describe('open pacts — endpoints', () => {
                 { templateKey: 'read', normalizedName: 'leer más' },
                 undefined,
                 false,
+                { includeFull: false },
             ]);
         });
 
@@ -239,7 +246,17 @@ describe('open pacts — endpoints', () => {
 
             await call(getOpenPacts);
 
-            expect(getOpenPactsStub.firstCall.args).to.deep.equal([REQUESTER, undefined, undefined, false]);
+            expect(getOpenPactsStub.firstCall.args).to.deep.equal([REQUESTER, undefined, undefined, false, { includeFull: false }]);
+        });
+
+        it('lists full pacts too only when the client asks for them', async () => {
+            const full = { id: 'full-1', isFull: true };
+            const getOpenPactsStub = sinon.stub(Store.pacts, 'getOpenPacts').resolves([full] as any);
+
+            const result = await call(getOpenPacts, { query: { includeFull: 'true' } });
+
+            expect(getOpenPactsStub.firstCall.args[4]).to.deep.equal({ includeFull: true });
+            expect(result.body.pacts).to.deep.equal([full]);
         });
 
         it('keeps a store-review / QA account to other test accounts\' open pacts', async () => {
@@ -309,6 +326,18 @@ describe('open pacts — endpoints', () => {
             expect(activatePact.calledOnceWith(PACT_ID)).to.equal(true);
             const activatedUsers = activateMember.getCalls().map((c) => c.args[1]);
             expect(activatedUsers).to.have.members([REQUESTER, CREATOR]);
+        });
+
+        it('pays XP to both the newcomer and the creator who let them in', async () => {
+            stub();
+            const incrementPoints = sinon.stub(Store.userLeaderboardScores, 'incrementPoints').resolves([] as any);
+            await call(approveJoinRequest, { userId: CREATOR, params });
+
+            const paid = incrementPoints.getCalls().map((c) => [c.args[1], c.args[3]]);
+            expect(paid).to.deep.include.members([
+                [REQUESTER, LeaderboardXpValues.openPactJoined],
+                [CREATOR, LeaderboardXpValues.openPactMemberWelcomed],
+            ]);
         });
 
         it('refuses anyone but the creator', async () => {

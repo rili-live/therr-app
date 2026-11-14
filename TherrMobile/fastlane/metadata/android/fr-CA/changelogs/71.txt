@@ -1,0 +1,4 @@
+Nouveautés :
+• Recevez un avis quand quelqu'un ouvre un pacte sur une habitude que vous bâtissez, pour demander à le rejoindre
+• Gagnez des XP en prime en rejoignant des pactes ouverts et en faisant vos suivis avec votre groupe
+• Les pactes ouverts complets l'indiquent maintenant et s'affichent après ceux qui ont de la place
