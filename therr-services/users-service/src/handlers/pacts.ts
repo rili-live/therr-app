@@ -28,6 +28,7 @@ import { attachMemberStatsToPact, attachPactMemberStats } from './helpers/pactMe
 import { attachUnreadMessageCounts } from './pactChat';
 import { withAmountProgress, withSavingsProgress } from './helpers/savings';
 import resolveWeekBounds from './helpers/weekBounds';
+import { announceOpenedPact } from './helpers/openPactAnnouncement';
 import {
     validatePactParams,
     isUserInPact,
@@ -270,6 +271,11 @@ const createPact: RequestHandler = async (req: any, res: any) => {
                 Store.habitGoals.incrementUsageCount(habitGoalId).catch((e) => e);
             }
 
+            // An open pact is announced to people on the same habit, once (fire and forget; never throws).
+            if (pact.isOpen === true) {
+                announceOpenedPact(req.headers, pact);
+            }
+
             return res.status(201).send(pact);
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PACTS_ROUTES:ERROR' }));
@@ -453,6 +459,11 @@ const bulkInvitePact: RequestHandler = async (req: any, res: any) => {
             });
 
             Store.habitGoals.incrementUsageCount(habitGoalId).catch((e) => e);
+
+            // See createPact. Skipped by the helper when the invitees already fill every seat.
+            if (pact.isOpen === true) {
+                announceOpenedPact(req.headers, pact);
+            }
 
             const members = await Store.pactMembers.getByPactId(pact.id);
             return res.status(201).send(await attachMemberStatsToPact({ ...pact, members }));

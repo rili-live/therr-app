@@ -131,6 +131,7 @@ const DISPLAY_TYPES = [
     PushNotifications.Types.pactJoinRequested,
     PushNotifications.Types.pactJoinApproved,
     PushNotifications.Types.openPactSuggestion,
+    PushNotifications.Types.openPactAvailable,
     // Onboarding nurture (#3011): display, no action button, renders on installed builds.
     PushNotifications.Types.habitsFirstHabitNudge,
     PushNotifications.Types.pactInviteUnclaimed,
