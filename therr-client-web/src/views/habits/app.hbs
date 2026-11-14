@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="{{htmlLang}}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>{{title}}</title>
+    <link rel="canonical" href="{{canonicalUrl}}">
+    <meta name="description" content="{{description}}">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#2e2140">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&display=swap">
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon-habits.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon-habits.png">
+    {{!
+        The signed-in web app. This file is only the shell: the header, the two tabs and an
+        empty view that src/_static/habits/app.js fills in. All copy comes from
+        src/habitsAppLocales through the dictionary serialized below.
+
+        What the page is for decides the layout. Someone opens it once a day, on a phone,
+        to do one thing: check in. So the first screen is today's habits with a check-in
+        control on each row, the partner's status is on the row rather than behind a tap,
+        and the tabs sit at the thumb on a phone.
+    }}
+    <style>
+        {{> habitsTokens}}
+        *, *::before, *::after { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Lexend', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--fwh-text);
+            background: var(--fwh-cream);
+            -webkit-font-smoothing: antialiased;
+            -webkit-text-size-adjust: 100%;
+        }
+        body { min-height: 100vh; min-height: 100dvh; }
+        a { color: var(--fwh-purple); }
+        :focus-visible { outline: 3px solid var(--fwh-purple); outline-offset: 2px; }
+        h1, h2, p { margin: 0; }
+        ul, ol { margin: 0; padding: 0; list-style: none; }
+
+        .container { max-width: 640px; margin: 0 auto; padding: 0 1rem; }
+
+        /* ---------- Header and tabs ---------- */
+        header.app-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: var(--fwh-plum);
+            color: #fff;
+        }
+        header.app-header .container {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            min-height: 3.5rem;
+        }
+        .app-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #fff;
+            font-weight: 800;
+            font-size: 1rem;
+            letter-spacing: -0.01em;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .app-brand img { width: 2rem; height: 2rem; display: block; border-radius: 0.5rem; background: #fff; }
+        .app-signout {
+            margin-left: auto;
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 0.5rem 0;
+        }
+        .app-signout:hover { color: #fff; text-decoration: underline; }
+        nav.app-tabs {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 20;
+            display: flex;
+            background: var(--fwh-white);
+            border-top: 1px solid var(--fwh-border);
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+        nav.app-tabs a {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.125rem;
+            padding: 0.5rem 0 0.5625rem;
+            color: var(--fwh-text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        nav.app-tabs a svg { width: 1.5rem; height: 1.5rem; }
+        nav.app-tabs a[aria-current] { color: var(--fwh-plum); }
+        nav.app-tabs a[aria-current] svg { color: var(--fwh-gold-dark); }
+
+        main.app-main { padding: 1.25rem 0 2.5rem; min-height: 70vh; }
+        #app-view > * + * { margin-top: 1.25rem; }
+
+        /* ---------- Type ---------- */
+        .app-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            color: var(--fwh-plum);
+        }
+        .app-title--detail { font-size: 1.375rem; }
+        .section__title {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--fwh-gold-deep);
+            margin-bottom: 0.625rem;
+        }
+        .section > .muted { margin-bottom: 0.75rem; }
+        .muted { color: var(--fwh-text-muted); font-size: 0.9375rem; }
+        .app-note { font-size: 0.8125rem; }
+
+        /* ---------- Buttons ---------- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 2.75rem;
+            padding: 0.625rem 1.25rem;
+            border: 1px solid transparent;
+            border-radius: 999px;
+            font-size: 0.9375rem;
+            font-weight: 700;
+            line-height: 1.2;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .btn--primary { background: var(--fwh-gold); color: var(--fwh-plum); }
+        .btn--primary:hover { background: var(--fwh-gold-hover); }
+        .btn--secondary { background: var(--fwh-white); color: var(--fwh-plum); border-color: var(--fwh-purple-mid); }
+        .btn--secondary:hover { background: var(--fwh-purple-tint); }
+        .btn--quiet { background: transparent; color: var(--fwh-text-muted); border-color: var(--fwh-border); }
+        .btn--quiet:hover { background: var(--fwh-purple-tint); color: var(--fwh-plum); }
+        .btn--small { min-height: 2.25rem; padding: 0.375rem 0.875rem; font-size: 0.875rem; }
+        .btn--block { width: 100%; min-height: 3.25rem; font-size: 1.0625rem; }
+        .btn:disabled { background: var(--fwh-border); border-color: var(--fwh-border); color: var(--fwh-text-muted); cursor: default; }
+
+        /* ---------- Surfaces ---------- */
+        .card {
+            background: var(--fwh-white);
+            border: 1px solid var(--fwh-border);
+            border-radius: var(--fwh-radius);
+            padding: 1.125rem;
+        }
+        .card--tint { background: var(--fwh-purple-tint); border-color: var(--fwh-purple-soft); }
+        .card--done { border-color: #c5e4d3; background: var(--fwh-success-tint); }
+        .card__title { font-size: 1.0625rem; font-weight: 700; color: var(--fwh-plum); margin-bottom: 0.25rem; }
+        .card__body { color: var(--fwh-text-muted); font-size: 0.9375rem; margin-bottom: 0.875rem; }
+        .growth { display: grid; gap: 0.75rem; }
+        .list { display: grid; gap: 0.625rem; }
+        .list--tight { gap: 0.5rem; }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.1875rem 0.5625rem;
+            border-radius: 999px;
+            background: var(--fwh-purple-tint);
+            border: 1px solid var(--fwh-purple-soft);
+            color: var(--fwh-text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .pill--streak { color: var(--fwh-purple); }
+        .pill--done { background: var(--fwh-success-tint); border-color: #c5e4d3; color: var(--fwh-success); }
+        .pill__icon { width: 0.8125rem; height: 0.8125rem; color: var(--fwh-gold-dark); fill: var(--fwh-gold-dark); stroke: none; }
+
+        /* ---------- Streak card: the one dark surface, so it reads first ---------- */
+        .streak-card {
+            background: linear-gradient(150deg, var(--fwh-plum) 0%, var(--fwh-plum-deep) 100%);
+            color: #fff;
+            border-radius: var(--fwh-radius);
+            padding: 1.125rem 1.125rem 1rem;
+            box-shadow: var(--fwh-shadow);
+        }
+        .streak-card__count { display: flex; align-items: baseline; gap: 0.4375rem; }
+        .streak-card__flame { width: 1.5rem; height: 1.5rem; align-self: center; color: var(--fwh-gold); fill: var(--fwh-gold); stroke: none; }
+        .streak-card__number { font-size: 2.25rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+        .streak-card__label { font-size: 0.9375rem; font-weight: 600; color: rgba(255, 255, 255, 0.78); }
+        .streak-card__progress { margin-top: 0.375rem; font-size: 0.9375rem; color: rgba(255, 255, 255, 0.86); }
+        .streak-card__warn { margin-top: 0.25rem; font-size: 0.875rem; font-weight: 600; color: var(--fwh-gold); }
+        .week { display: flex; justify-content: space-between; margin-top: 1rem; }
+        .week__day { display: flex; flex-direction: column; align-items: center; gap: 0.3125rem; flex: 1; }
+        .week__dot {
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.28);
+            color: var(--fwh-plum);
+        }
+        .week__dot svg { width: 0.9375rem; height: 0.9375rem; }
+        .week__day--upheld .week__dot { background: var(--fwh-gold); border-color: var(--fwh-gold); }
+        .week__day--frozen .week__dot { background: rgba(255, 255, 255, 0.3); border-color: transparent; }
+        .week__day--missed .week__dot { border-style: dashed; }
+        .week__day.is-today .week__dot { box-shadow: 0 0 0 3px rgba(246, 201, 74, 0.35); }
+        .week__initial { font-size: 0.6875rem; font-weight: 600; color: rgba(255, 255, 255, 0.66); }
+        .week__day.is-today .week__initial { color: #fff; }
+
+        /* ---------- Habit rows ---------- */
+        .habit, .invite, .open-pact, .template, .member {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--fwh-white);
+            border: 1px solid var(--fwh-border);
+            border-radius: 1rem;
+            padding: 0.75rem 0.875rem;
+        }
+        .invite, .open-pact { align-items: flex-start; }
+        .invite { border-color: var(--fwh-gold-dark); background: #fffbef; }
+        .habit--done { background: var(--fwh-purple-tint); border-color: var(--fwh-purple-soft); }
+        .habit__main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: inherit;
+            text-decoration: none;
+        }
+        .habit__emoji {
+            flex: none;
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 0.875rem;
+            background: var(--fwh-purple-tint);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.375rem;
+        }
+        .habit--done .habit__emoji { background: var(--fwh-white); }
+        .habit__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.125rem; }
+        .habit__name { font-weight: 700; color: var(--fwh-plum); line-height: 1.3; overflow-wrap: anywhere; }
+        .habit__partner { font-size: 0.8125rem; color: var(--fwh-text-muted); }
+        .habit__meta { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-top: 0.25rem; }
+        /* 48px: the one control on this page that gets pressed every day, with a thumb. */
+        .checkin-btn {
+            flex: none;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            border: 2px solid var(--fwh-purple-mid);
+            background: var(--fwh-white);
+            color: var(--fwh-purple-mid);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+        }
+        .checkin-btn svg { width: 1.5rem; height: 1.5rem; }
+        button.checkin-btn:hover { background: var(--fwh-gold); border-color: var(--fwh-gold); color: var(--fwh-plum); }
+        button.checkin-btn:active { transform: scale(0.94); }
+        .checkin-btn.is-busy { opacity: 0.55; cursor: progress; }
+        .checkin-btn--done { background: var(--fwh-success); border-color: var(--fwh-success); color: #fff; cursor: default; }
+
+        .invite__text, .open-pact__text { flex: 1; min-width: 0; }
+        .invite__title { font-weight: 700; color: var(--fwh-plum); }
+        .invite__detail { font-size: 0.875rem; color: var(--fwh-text-muted); }
+        .invite__actions, .open-pact__action { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.625rem; }
+        .template__name { flex: 1; min-width: 0; font-weight: 600; color: var(--fwh-plum); overflow-wrap: anywhere; }
+        .template .habit__emoji { width: 2.25rem; height: 2.25rem; font-size: 1.125rem; border-radius: 0.75rem; }
+
+        /* ---------- Habit detail ---------- */
+        .back-link { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem; font-weight: 600; text-decoration: none; }
+        .back-link__icon { width: 1rem; height: 1rem; }
+        .detail-head { display: flex; align-items: center; gap: 0.875rem; }
+        .detail-head__emoji {
+            flex: none;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 1.125rem;
+            background: var(--fwh-white);
+            border: 1px solid var(--fwh-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+        }
+        .detail-head__sub { color: var(--fwh-text-muted); font-size: 0.9375rem; }
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; margin: 0; }
+        .stats__item { background: var(--fwh-white); border: 1px solid var(--fwh-border); border-radius: 1rem; padding: 0.75rem 0.875rem; }
+        .stats dt { font-size: 0.75rem; font-weight: 600; color: var(--fwh-text-muted); }
+        .stats dd { margin: 0; font-size: 1.75rem; font-weight: 800; line-height: 1.15; color: var(--fwh-plum); letter-spacing: -0.02em; }
+        .done-line { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--fwh-success); margin-bottom: 0.75rem; }
+        .done-line__icon { width: 1.25rem; height: 1.25rem; }
+        .note-form { display: grid; gap: 0.5rem; justify-items: start; }
+        .field-label { font-size: 0.8125rem; font-weight: 600; color: var(--fwh-text); }
+        .field {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            border: 1px solid var(--fwh-border);
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            color: var(--fwh-text);
+            background: var(--fwh-white);
+            resize: vertical;
+        }
+        .member__avatar {
+            flex: none;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--fwh-purple-mid), var(--fwh-purple));
+            color: #fff;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .member__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .member__name { font-weight: 700; color: var(--fwh-plum); overflow-wrap: anywhere; }
+        .member__meta { font-size: 0.8125rem; color: var(--fwh-text-muted); }
+        .calendar { background: var(--fwh-white); border: 1px solid var(--fwh-border); border-radius: 1rem; padding: 0.75rem; display: grid; gap: 0.375rem; }
+        .calendar__row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.375rem; justify-items: center; }
+        .calendar__row--head span { font-size: 0.6875rem; font-weight: 600; color: var(--fwh-text-muted); }
+        .calendar__cell {
+            width: 2.125rem;
+            height: 2.125rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--fwh-text-muted);
+            background: var(--fwh-purple-tint);
+        }
+        .calendar__cell.is-done { background: var(--fwh-purple); color: #fff; }
+        .calendar__cell.is-today { box-shadow: 0 0 0 2px var(--fwh-gold-dark); }
+        .calendar__cell.is-future { background: transparent; color: var(--fwh-border); }
+
+        /* ---------- States ---------- */
+        .app-state {
+            text-align: center;
+            background: var(--fwh-white);
+            border: 1px dashed var(--fwh-purple-mid);
+            border-radius: var(--fwh-radius);
+            padding: 2rem 1.25rem;
+        }
+        .app-state__title { font-size: 1.125rem; font-weight: 800; color: var(--fwh-plum); margin-bottom: 0.375rem; }
+        .app-state__body { color: var(--fwh-text-muted); margin-bottom: 1.125rem; }
+        .app-skeleton { display: grid; gap: 0.75rem; }
+        .app-skeleton__block {
+            height: 4.5rem;
+            border-radius: 1rem;
+            background: linear-gradient(90deg, var(--fwh-purple-soft) 25%, var(--fwh-purple-tint) 50%, var(--fwh-purple-soft) 75%);
+            background-size: 200% 100%;
+            animation: app-shimmer 1.4s ease-in-out infinite;
+        }
+        .app-skeleton__block--tall { height: 8.5rem; }
+        @keyframes app-shimmer {
+            from { background-position: 200% 0; }
+            to { background-position: -200% 0; }
+        }
+        .app-toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+            transform: translateX(-50%);
+            z-index: 30;
+            width: max-content;
+            max-width: calc(100vw - 2rem);
+            padding: 0.75rem 1.125rem;
+            border-radius: 0.875rem;
+            background: var(--fwh-plum);
+            color: #fff;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            box-shadow: 0 12px 30px -10px rgba(31, 22, 48, 0.6);
+        }
+        .app-toast--error { background: var(--fwh-error); }
+        noscript p { padding: 2rem 1rem; text-align: center; }
+
+        /* The shared footer. Extra bottom padding on a phone clears the fixed tab bar. */
+        footer.site-footer {
+            padding: 1.75rem 0 6.5rem;
+            border-top: 1px solid var(--fwh-border);
+            background: var(--fwh-white);
+            text-align: center;
+            color: var(--fwh-text-muted);
+            font-size: 0.8125rem;
+        }
+        footer.site-footer .footer-links { margin-bottom: 0.625rem; }
+        footer.site-footer .footer-links a { display: inline-block; margin: 0.125rem 0.5rem; color: var(--fwh-text-muted); }
+        footer.site-footer .footer-family { margin-top: 0.5rem; }
+        footer.site-footer .footer-family a { color: var(--fwh-text-muted); }
+
+        @media (min-width: 720px) {
+            /* With room to spare the tabs move up beside the brand; a bottom bar on a
+               desktop window is a long way from everything else. */
+            header.app-header .container { max-width: 640px; }
+            nav.app-tabs {
+                position: sticky;
+                top: 3.5rem;
+                bottom: auto;
+                border-top: none;
+                border-bottom: 1px solid var(--fwh-border);
+                justify-content: center;
+                gap: 2rem;
+                padding-bottom: 0;
+            }
+            nav.app-tabs a { flex: none; flex-direction: row; gap: 0.5rem; padding: 0.75rem 0.25rem; font-size: 0.9375rem; border-bottom: 3px solid transparent; }
+            nav.app-tabs a svg { width: 1.25rem; height: 1.25rem; }
+            nav.app-tabs a[aria-current] { border-bottom-color: var(--fwh-gold-dark); }
+            main.app-main { padding: 1.75rem 0 4rem; }
+            footer.site-footer { padding-bottom: 2.5rem; }
+            .app-title { font-size: 1.75rem; }
+            .growth { grid-template-columns: 1fr 1fr; }
+            .app-toast { bottom: 1.5rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .app-skeleton__block { animation: none; }
+            .btn, .checkin-btn { transition: none; }
+        }
+    </style>
+    {{> habitsAnalytics}}
+</head>
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a class="app-brand" href="/app" data-tab="brand" aria-label="{{t.nav.homeAriaLabel}}">
+                <img src="/assets/images/habits-logo.svg" width="32" height="32" alt="">
+                <span>Friends with Habits</span>
+            </a>
+            <a class="app-signout" href="/logout">{{t.nav.signOut}}</a>
+        </div>
+    </header>
+
+    <nav class="app-tabs" aria-label="{{t.nav.ariaLabel}}">
+        <a href="/app" data-tab="today">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.75 2.75L16 9.5"/></svg>
+            {{t.nav.today}}
+        </a>
+        <a href="/app/discover" data-tab="discover">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.25"/><path d="M3 19.5a6 6 0 0 1 12 0"/><path d="M18 8v6M15 11h6"/></svg>
+            {{t.nav.discover}}
+        </a>
+    </nav>
+
+    <main class="app-main">
+        <div class="container">
+            <noscript><p>{{t.common.noscript}}</p></noscript>
+            <div id="app-view" aria-live="polite"></div>
+        </div>
+    </main>
+
+    {{> habitsFooter}}
+
+    <div class="app-toast" id="app-toast" role="status" hidden></div>
+
+    <script>
+        window.HABITS_APP = {{{bootJson}}};
+    </script>
+    <script src="/habits/app.js?v={{assetVersion}}"></script>
+</body>
+</html>

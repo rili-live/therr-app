@@ -6,6 +6,7 @@ import {
     HABIT_GOALS_TABLE_NAME,
     PACT_JOIN_REQUESTS_TABLE_NAME,
     PACT_MEMBERS_TABLE_NAME,
+    USER_HABITS_TABLE_NAME,
     USERS_TABLE_NAME,
 } from './tableNames';
 import {
@@ -103,7 +104,31 @@ export interface IOpenPactRow {
     habitGoalFrequencyType: string | null;
     habitGoalFrequencyCount: number | null;
     memberCount: number;
+    /** Every seat is taken. Only ever true when the listing was asked to `includeFull`. */
+    isFull: boolean;
     hasPendingJoinRequest: boolean;
+}
+
+export interface IGetOpenPactsOptions {
+    /**
+     * List pacts with no seat left too, after every pact with one. Opt-in, because an installed
+     * build that predates `isFull` would offer "Ask to join" on a full pact and meet a 400.
+     */
+    includeFull?: boolean;
+}
+
+/**
+ * Someone who may want to join a newly opened pact: they track the same habit, are in no pact on
+ * it, and can be pushed to. See `getInterestedUsersForOpenPact`.
+ */
+export interface IOpenPactProspectRow {
+    userId: string;
+    settingsLocale: string | null;
+    settingsTimezone: string | null;
+    settingsQuietHoursStart: string | null;
+    settingsQuietHoursEnd: string | null;
+    settingsPreferredReminderTime: string | null;
+    settingsPreferredEveningReminderTime: string | null;
 }
 
 /**
@@ -560,12 +585,17 @@ export default class PactsStore {
      * Store-review / QA accounts (AccessLevels.TEST_ACCOUNT) and real users are kept apart in both
      * directions: a reviewer's open pact is never offered to a real user, and a reviewer is only
      * offered other test accounts' pacts, so their join request can never land on a stranger.
+     *
+     * With `includeFull`, a pact with no seat left is listed too (`isFull`), but always after every
+     * pact that still has one — it is there so the list does not silently lose a pact someone was
+     * looking at, not to compete with the ones they can actually ask to join.
      */
     getOpenPacts(
         viewerUserId: string,
         matchKey?: IHabitMatchKey,
         limit = OPEN_PACTS_LIST_LIMIT,
         viewerIsTestAccount = false,
+        { includeFull = false }: IGetOpenPactsOptions = {},
     ): Promise<IOpenPactRow[]> {
         let queryString = knexBuilder
             .select([
@@ -584,6 +614,7 @@ export default class PactsStore {
                 `${HABIT_GOALS_TABLE_NAME}.frequencyType as habitGoalFrequencyType`,
                 `${HABIT_GOALS_TABLE_NAME}.frequencyCount as habitGoalFrequencyCount`,
                 knexBuilder.raw(`${seatCountSql()} as "memberCount"`),
+                knexBuilder.raw(`(${seatCountSql()} >= ?) as "isFull"`, [MAX_OPEN_PACT_MEMBERS]),
                 knexBuilder.raw(
                     `EXISTS (SELECT 1 FROM ${PACT_JOIN_REQUESTS_TABLE_NAME} AS jr`
                     + ` WHERE jr."pactId" = ${PACTS_TABLE_NAME}."id" AND jr."requesterUserId" = ? AND jr."status" = 'pending')`
@@ -610,7 +641,6 @@ export default class PactsStore {
                 + ` WHERE mine."pactId" = ${PACTS_TABLE_NAME}."id" AND mine."userId" = ? AND mine."status" IN ('pending', 'active'))`,
                 [viewerUserId],
             )
-            .andWhereRaw(`${seatCountSql()} < ?`, [MAX_OPEN_PACT_MEMBERS])
             .andWhereRaw(
                 `(COALESCE(${USERS_TABLE_NAME}."accessLevels", '[]'::jsonb) @> '["${AccessLevels.TEST_ACCOUNT}"]'::jsonb) = ?`,
                 [viewerIsTestAccount],
@@ -632,6 +662,14 @@ export default class PactsStore {
             });
         }
 
+        if (includeFull) {
+            // Full pacts last. Ordered here rather than after the fact so the limit keeps the pacts
+            // with room, and a page of twenty full pacts can never crowd out one that is joinable.
+            queryString = queryString.orderByRaw(`(${seatCountSql()} >= ?) ASC`, [MAX_OPEN_PACT_MEMBERS]);
+        } else {
+            queryString = queryString.andWhereRaw(`${seatCountSql()} < ?`, [MAX_OPEN_PACT_MEMBERS]);
+        }
+
         queryString = queryString
             .orderBy(`${PACTS_TABLE_NAME}.updatedAt`, 'desc')
             .limit(Math.max(1, Math.min(limit, OPEN_PACTS_LIST_LIMIT)));
@@ -640,6 +678,7 @@ export default class PactsStore {
             .then((response) => response.rows.map((row: any) => ({
                 ...row,
                 memberCount: parseInt(row.memberCount ?? '0', 10),
+                isFull: !!row.isFull,
                 hasPendingJoinRequest: !!row.hasPendingJoinRequest,
             })));
     }
@@ -721,6 +760,112 @@ export default class PactsStore {
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows.length > 0);
+    }
+
+    /**
+     * Claims a pact's first opening (see migration 20261113000001). Conditional on it being
+     * unclaimed, so a pact toggled closed and open again — or two racing requests — claims once;
+     * the loser gets false. Whatever is paid for opening a pact is paid only on a true.
+     */
+    claimFirstOpen(id: string): Promise<boolean> {
+        const queryString = knexBuilder
+            .where({ id, isOpen: true })
+            .whereNull('firstOpenedAt')
+            .update({ firstOpenedAt: new Date() })
+            .into(PACTS_TABLE_NAME)
+            .returning('id')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows.length > 0);
+    }
+
+    /**
+     * People who may want to join a newly opened pact on the habit `matchKey` describes: they
+     * actively track the same habit (see `getHabitMatchKey`), and are in no pending or active pact
+     * on it — someone who already has partners for this habit is not looking for more. Never the
+     * pact's own members, never a soft-deleted account, never someone who muted habit reminders.
+     *
+     * Test accounts and real users are kept apart exactly as `getOpenPacts` keeps them, so a store
+     * reviewer's pact is never announced to a real user and a real user's never to a reviewer.
+     *
+     * Most recently started tracking first: the freshest intent is the likeliest to act. Whether
+     * they have the Habits app to receive the push is decided by the caller, from the brand-scoped
+     * device-token store, which this table may not reference directly.
+     */
+    getInterestedUsersForOpenPact(
+        pactId: string,
+        matchKey: IHabitMatchKey,
+        isTestAccountPact: boolean,
+        limit: number,
+    ): Promise<IOpenPactProspectRow[]> {
+        const { templateKey, normalizedName } = matchKey;
+        if (!templateKey && !normalizedName) {
+            return Promise.resolve([]);
+        }
+
+        const queryString = knexBuilder
+            .select([
+                `${USER_HABITS_TABLE_NAME}.userId`,
+                knexBuilder.raw(`MAX(${USER_HABITS_TABLE_NAME}."startedAt") as "lastStartedAt"`),
+                `${USERS_TABLE_NAME}.settingsLocale`,
+                `${USERS_TABLE_NAME}.settingsTimezone`,
+                `${USERS_TABLE_NAME}.settingsQuietHoursStart`,
+                `${USERS_TABLE_NAME}.settingsQuietHoursEnd`,
+                `${USERS_TABLE_NAME}.settingsPreferredReminderTime`,
+                `${USERS_TABLE_NAME}.settingsPreferredEveningReminderTime`,
+            ])
+            .from(USER_HABITS_TABLE_NAME)
+            .innerJoin(HABIT_GOALS_TABLE_NAME, `${USER_HABITS_TABLE_NAME}.habitGoalId`, `${HABIT_GOALS_TABLE_NAME}.id`)
+            .innerJoin(USERS_TABLE_NAME, `${USER_HABITS_TABLE_NAME}.userId`, `${USERS_TABLE_NAME}.id`)
+            .where(`${USER_HABITS_TABLE_NAME}.status`, 'active')
+            .andWhere((builder) => {
+                if (templateKey) {
+                    builder.where(`${HABIT_GOALS_TABLE_NAME}.templateKey`, templateKey)
+                        .orWhere(`${HABIT_GOALS_TABLE_NAME}.sourceTemplateKey`, templateKey);
+                }
+                if (normalizedName) {
+                    builder.orWhereRaw(`${normalizedGoalNameSql()} = ?`, [normalizedName]);
+                }
+            })
+            .andWhere((builder) => {
+                builder.where(`${USERS_TABLE_NAME}.settingsIsAccountSoftDeleted`, false)
+                    .orWhereNull(`${USERS_TABLE_NAME}.settingsIsAccountSoftDeleted`);
+            })
+            .andWhere((builder) => {
+                builder.where(`${USERS_TABLE_NAME}.settingsPushHabitReminders`, true)
+                    .orWhereNull(`${USERS_TABLE_NAME}.settingsPushHabitReminders`);
+            })
+            .andWhereRaw(
+                `NOT EXISTS (SELECT 1 FROM ${PACT_MEMBERS_TABLE_NAME} AS own`
+                + ` WHERE own."pactId" = ? AND own."userId" = ${USER_HABITS_TABLE_NAME}."userId")`,
+                [pactId],
+            )
+            .andWhereRaw(
+                `NOT EXISTS (SELECT 1 FROM ${PACT_MEMBERS_TABLE_NAME} AS busy`
+                + ` INNER JOIN ${PACTS_TABLE_NAME} AS busyPact ON busyPact."id" = busy."pactId"`
+                + ` WHERE busy."userId" = ${USER_HABITS_TABLE_NAME}."userId"`
+                + ` AND busyPact."habitGoalId" = ${USER_HABITS_TABLE_NAME}."habitGoalId"`
+                + ' AND busy."status" IN (\'pending\', \'active\')'
+                + ' AND busyPact."status" IN (\'pending\', \'active\'))',
+            )
+            .andWhereRaw(
+                `(COALESCE(${USERS_TABLE_NAME}."accessLevels", '[]'::jsonb) @> '["${AccessLevels.TEST_ACCOUNT}"]'::jsonb) = ?`,
+                [isTestAccountPact],
+            )
+            .groupBy([
+                `${USER_HABITS_TABLE_NAME}.userId`,
+                `${USERS_TABLE_NAME}.settingsLocale`,
+                `${USERS_TABLE_NAME}.settingsTimezone`,
+                `${USERS_TABLE_NAME}.settingsQuietHoursStart`,
+                `${USERS_TABLE_NAME}.settingsQuietHoursEnd`,
+                `${USERS_TABLE_NAME}.settingsPreferredReminderTime`,
+                `${USERS_TABLE_NAME}.settingsPreferredEveningReminderTime`,
+            ])
+            .orderBy('lastStartedAt', 'desc')
+            .limit(Math.max(1, limit))
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
     }
 
     delete(id: string, userId: string) {

@@ -14,15 +14,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-habits-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-habits-16x16.png">
     <style>
-        :root {
-            --habits-navy: #102a43;
-            --habits-coral: #ff6b35;
-            --habits-coral-dark: #e0521e;
-            --habits-cream: #fff8f3;
-            --habits-text: #243b53;
-            --habits-text-muted: #627d98;
-            --habits-border: #d9e2ec;
-        }
+        {{> habitsTokens}}
         *, *::before, *::after { box-sizing: border-box; }
         html, body {
             margin: 0;
@@ -30,14 +22,14 @@
             font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 16px;
             line-height: 1.6;
-            color: var(--habits-text);
-            background: var(--habits-cream);
+            color: var(--fwh-text);
+            background: var(--fwh-cream);
             min-height: 100vh;
         }
-        a { color: var(--habits-coral-dark); }
+        a { color: var(--fwh-purple); }
         header.site-header {
             padding: 1.25rem 0;
-            border-bottom: 1px solid var(--habits-border);
+            border-bottom: 1px solid var(--fwh-border);
             background: #fff;
         }
         .container {
@@ -58,7 +50,7 @@
         header.site-header .brand {
             font-weight: 800;
             font-size: 1.125rem;
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
             letter-spacing: -0.01em;
         }
         main.wrap {
@@ -68,12 +60,12 @@
         h1 {
             font-size: 1.75rem;
             font-weight: 800;
-            color: var(--habits-navy);
+            color: var(--fwh-plum);
             margin: 0 0 0.5rem;
             letter-spacing: -0.02em;
         }
         p.lede {
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
             margin: 0 0 1.75rem;
         }
         .alert {
@@ -84,13 +76,13 @@
             border: 1px solid;
             text-align: left;
         }
-        .alert--success { background: #f0fff4; color: #2f855a; border-color: #c6f6d5; }
+        .alert--success { background: var(--fwh-success-tint); color: var(--fwh-success); border-color: #c5e4d3; }
         .cta {
             display: inline-block;
             width: 100%;
             padding: 0.875rem 1.75rem;
-            background: var(--habits-coral);
-            color: #fff;
+            background: var(--fwh-gold);
+            color: var(--fwh-plum);
             font-weight: 600;
             font-size: 1rem;
             border-radius: 999px;
@@ -100,11 +92,11 @@
             text-decoration: none;
             text-align: center;
         }
-        .cta:hover { background: var(--habits-coral-dark); }
+        .cta:hover { background: var(--fwh-gold-hover); }
         .helper {
             margin-top: 1rem;
             font-size: 0.875rem;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
         }
         /* Matches the pending affordance on verify-account.hbs. */
         .pending {
@@ -112,8 +104,8 @@
             width: 0.875rem;
             height: 0.875rem;
             margin-right: 0.5rem;
-            border: 2px solid var(--habits-border);
-            border-top-color: var(--habits-coral);
+            border: 2px solid var(--fwh-border);
+            border-top-color: var(--fwh-gold-dark);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             vertical-align: -2px;
@@ -124,10 +116,10 @@
         }
         footer.site-footer {
             padding: 2rem 0 3rem;
-            border-top: 1px solid var(--habits-border);
+            border-top: 1px solid var(--fwh-border);
             background: #fff;
             text-align: center;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
             font-size: 0.875rem;
         }
         footer.site-footer .footer-links {
@@ -135,7 +127,7 @@
         }
         footer.site-footer .footer-links a {
             margin: 0 0.5rem;
-            color: var(--habits-text-muted);
+            color: var(--fwh-text-muted);
         }
         footer.site-footer .footer-family {
             margin-top: 0.5rem;
@@ -148,7 +140,7 @@
     <header class="site-header">
         <div class="container">
             <img class="brand-mark" src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
-            <a class="brand" href="/" style="color: var(--habits-navy); text-decoration: none;">Friends with Habits</a>
+            <a class="brand" href="/" style="color: var(--fwh-plum); text-decoration: none;">Friends with Habits</a>
         </div>
     </header>
 

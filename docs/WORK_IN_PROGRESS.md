@@ -98,6 +98,13 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Friends with Habits web app (added 2026-11-13, docs/FEATURES.md → Web app)
+
+- [ ] After the client-web deploy carrying `/app`, sign in at `https://habits.therr.com/login` on a real iPhone (Safari) with a test account that has at least one active habit: confirm it lands on `/app`, the habit list loads, and one check-in tap turns the row green and shows up in the Android app. Then accept a pact invitation and withdraw an open-pact request, which are the first `PUT` and `DELETE` calls made from this origin (`https://habits.therr.com` is already in the gateway's `URI_WHITELIST`, and the `cors` defaults allow both methods, so this is a confirmation, not an expected failure).
+- [ ] Same deploy: load `https://habits.therr.com/habits/app.js` and confirm it answers 200 with JavaScript (it is copied from `src/_static` by the app webpack build). A 404 there leaves `/app` as an empty shell with no error on screen.
+- [ ] In GA4, mark `habit_checkin_complete` with `surface = web_app` as distinguishable from the mobile event (register `surface` as an event-scoped custom dimension if it is not one already), so web check-ins can be read separately when judging whether this reduced onboarding friction.
+- [ ] The Play listing, Google Ads copy and `habits-llms.txt` still describe the product as Android-only. Decide whether to mention the web app there (`/aso-listing`, `/ad-creative`).
+
 ## Habit companion chameleon (added 2026-11-07, docs/FEATURES.md → Habit companion)
 
 - [ ] **On-device look at the companion card on Friends with Habits**, light and dark theme, once a
@@ -110,6 +117,25 @@ append new items here rather than only printing them once.
   one "Your egg hatched!" screen after any streak/placement screen; Continue, foreground again, and it must
   not repeat. An account that already had achievements before the update must NOT get a celebration on
   first launch (that launch records the baseline).
+
+## Open-pact announcement & XP (added 2026-11-13, docs/FEATURES.md → Open pacts)
+
+- [ ] **After the users-service deploy, confirm the migration ran:**
+  `SELECT column_name FROM information_schema.columns WHERE table_schema = 'habits' AND table_name = 'pacts' AND column_name = 'firstOpenedAt'`.
+  Until it has, opening a pact still works but announces nothing and pays no opening XP (the claim
+  fails and is logged as `Failed to announce an opened pact`).
+- [ ] **Handset check of `openPactAvailable` on Friends with Habits:** on a test account tracking a
+  habit with no pact, have a second test account create an open pact on the same habit. Confirm a
+  queued `open-pact-available:<date>` row for the first account, then that the push lands in the Habits
+  app (not Therr) with the habit named in title and body. Needs `NOTIFICATION_QUEUE_WORKER_ENABLED=true`.
+- [ ] **Mobile half (niche/HABITS-general): render full open pacts.** The OpenPacts screen should call
+  `PactsService.getOpenPacts(habitGoalId, { includeFull: true })` and, on a card with `isFull`, replace
+  "Ask to join" with a disabled "Full" state (`OpenPactListingCard`). Leave the feed's sprinkle without
+  `includeFull`. Until this ships, the server keeps full pacts out of every list, as before.
+- [ ] **Read the effect after two weeks:** open-pact creations, join requests and approvals per week
+  before vs after, and the `Open pact announced` log's queued/candidates ratio (prod-db +
+  `main."notificationQueue"` rows of type `open-pact-available`). If announcements drive no requests,
+  turn them off with `HABIT_OPEN_PACT_ANNOUNCEMENTS_ENABLED=false`.
 
 ## Habit pause (added 2026-11-07, docs/FEATURES.md → Pausing a habit)
 

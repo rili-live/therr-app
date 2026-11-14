@@ -17,7 +17,8 @@
     "faq": "FAQ",
     "blog": "Blog",
     "signIn": "Sign in",
-    "getTheApp": "Get the app"
+    "getTheApp": "Get the app",
+    "myHabits": "My habits"
   },
   "hero": {
     "motto": "Friends don't let friends give up on change.",
@@ -26,7 +27,7 @@
     "googlePlayCta": "Get it on Google Play",
     "registerCta": "Create your account",
     "iosCta": "iPhone? Join the waitlist",
-    "ctaNoteHtml": "Free on Google Play, with up to {freeHabitLimit} active habits at a time. iPhone coming next.",
+    "ctaNoteHtml": "Free on Google Play and in any browser, with up to {freeHabitLimit} active habits at a time. On iPhone? Sign up and check in on the web today.",
     "founderNoteHtml": "<strong>Optional founder unlock:</strong> need more than {freeHabitLimit}? The first 5,000 accounts can lift the limit for life with a one-time $20.",
     "highlightsAriaLabel": "Highlights",
     "chipNoSubscription": "No subscription",
@@ -45,7 +46,7 @@
   },
   "definition": {
     "eyebrow": "What it is",
-    "madeByHtml": "It is free, made by <a href=\"https://www.therr.app/\" rel=\"noopener\">Therr, Inc.</a>, and out now on Android through Google Play while an iOS version is in the works."
+    "madeByHtml": "It is free, made by <a href=\"https://www.therr.app/\" rel=\"noopener\">Therr, Inc.</a>, and out now on Android through Google Play and on the web in any browser, while an iOS app is in the works."
   },
   "popular": {
     "eyebrow": "Popular pacts",
@@ -98,7 +99,7 @@
     "partnerRequiredHtml": "<strong>A partner is required, not optional.</strong> Streaks, Habitify, Done and most other habit apps are built for one person. Here a pact needs two, so there is no version of the app where nobody notices you stopped.",
     "proofHtml": "<strong>Check-ins carry proof.</strong> Every daily check-in takes a photo or a note, so a streak is evidence rather than a tap.",
     "sharedStreakHtml": "<strong>The streak is shared.</strong> You and your partner are on the same streak, so a missed day costs both of you — the reason it is uncomfortable is the reason it works.",
-    "freeHtml": "<strong>It is free to start.</strong> No invite code, no card. Install it on Android and make your first pact.",
+    "freeHtml": "<strong>It is free to start.</strong> No invite code, no card. Install it on Android, or sign in from any browser to check in.",
     "noSubscriptionHtml": "<strong>No subscription to sign up for.</strong> Free accounts track up to {freeHabitLimit} active habits at a time, free for as long as you use it. If you want more, the first 5,000 accounts can lift that limit permanently with a one-time $20 founder unlock instead of a monthly bill."
   },
   "compareTable": {
@@ -139,7 +140,7 @@
       },
       "platforms": {
         "label": "Platforms",
-        "fwh": "Android today; iPhone waitlist open",
+        "fwh": "Android app; web check-ins in any browser, iPhone included",
         "habitshare": "iPhone and Android",
         "habitica": "iPhone, Android and web"
       }
@@ -184,7 +185,7 @@
     },
     "iphone": {
       "question": "Is Friends with Habits available on iPhone?",
-      "answer": "Not yet. Friends with Habits is on Android via Google Play today, and an iOS version is next on the roadmap. Your account works across every Therr app, so an account you create on Android will carry over.",
+      "answer": "There is no iPhone app yet, but you do not need one to take part. Create an account and sign in at habits.therr.com on your iPhone to see your habits, check in each day and ask to join open pacts, all from the browser. The Android app is on Google Play, an iOS app is next on the roadmap, and the same account works on all of them.",
       "cta": "Tell us you want it on iPhone"
     },
     "whoMakes": {

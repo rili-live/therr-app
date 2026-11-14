@@ -1,0 +1,42 @@
+{{!
+    The one palette for every Friends with Habits page: the chameleon's plum body and gold
+    forehead stripe from habits-logo.svg, the same source the mobile theme samples.
+
+    CSS declarations only, no style tag: include it as the first line inside a view's own
+    style block. It exists because the palette forked once already. The landing page moved
+    to plum and gold while sign-in, register, invites and every utility page kept an older
+    navy and coral set, so the brand changed colour on the exact click that mattered.
+
+    Contrast notes, so nobody "fixes" these: gold is a fill, never a text colour on a light
+    surface (use gold-deep there, 5.1:1 or better on every light surface here), and a gold button always carries plum text, never white.
+    Input focus rings are purple because gold on white is close to invisible.
+
+    Same two constraints as the other habits partials: no partial call inside this comment,
+    and no long-form comment delimiter written as prose.
+}}
+:root {
+    --fwh-plum: #2e2140;
+    --fwh-plum-deep: #1f1630;
+    --fwh-purple: #5b4273;
+    --fwh-purple-mid: #6e5c85;
+    --fwh-purple-soft: #ece6f3;
+    --fwh-purple-tint: #f6f2fa;
+    --fwh-gold: #f6c94a;
+    --fwh-gold-hover: #ffd45c;
+    --fwh-gold-dark: #d49617;
+    --fwh-gold-deep: #8c5c03;
+    --fwh-cream: #fbf7f1;
+    --fwh-white: #ffffff;
+    --fwh-text: #3a2f4a;
+    --fwh-text-muted: #6f6582;
+    --fwh-border: #e6dfee;
+    --fwh-success: #2f7d57;
+    --fwh-success-tint: #edf7f1;
+    --fwh-error: #b3261e;
+    --fwh-error-tint: #fdf1f0;
+    --fwh-shadow: 0 18px 40px -20px rgba(46, 33, 64, 0.35);
+    --fwh-radius: 1.25rem;
+}
+/* Form controls do not inherit the page font by default, which is how the buttons on these
+   pages ended up in the system face next to Lexend headings. */
+button, input, select, textarea { font-family: inherit; }

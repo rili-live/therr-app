@@ -214,6 +214,10 @@
       "title": "Toujours en attente d'un partenaire?",
       "body": "Personne n'a encore répondu à ton invitation {habitName}. D'autres le font dans des pactes ouverts — demande à t'y joindre."
     },
+    "openPactAvailable": {
+      "title": "Un nouveau pacte {habitName} est ouvert",
+      "body": "Quelqu'un vient d'ouvrir un pacte {habitName} avec des places libres. Demande à t'y joindre — les check-ins en pacte ouvert rapportent de l'XP en bonus."
+    },
     "habitsFirstHabitNudge": {
       "title": "Le jour 1 prend dix secondes",
       "body": "Choisis une habitude et fais un check-in. C'est ta série qui commence."
