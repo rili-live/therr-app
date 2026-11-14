@@ -392,4 +392,30 @@ describe('habits web app: in the browser', () => {
         expect(view.textContent).toContain('All 2 done today.');
         expect(view.querySelectorAll('button.checkin-btn')).toHaveLength(0);
     });
+
+    // Regression: a render painted whenever its requests answered, so a slow today load that
+    // finished after the user had switched tabs drew the today list under the Discover tab.
+    it('does not let a slow load paint over the view the user moved to', async () => {
+        window.localStorage.setItem('therrUser', JSON.stringify({ id: 'me', idToken: 'token', userName: 'maya' }));
+        let releaseToday: () => void = () => undefined;
+        const todayHeld = new Promise<void>((resolve) => { releaseToday = resolve; });
+        const inner = fetchMock.getMockImplementation() as (url: string, options?: any) => any;
+        fetchMock.mockImplementation((url: string, options: any = {}) => (url.includes('/habits/checkins/today')
+            ? todayHeld.then(() => inner(url, options))
+            : inner(url, options)));
+
+        boot();
+        await flush();
+        (document.querySelector('[data-tab="discover"]') as HTMLAnchorElement).click();
+        await flush();
+
+        const view = document.getElementById('app-view') as HTMLElement;
+        expect(view.textContent).toContain(enUs.discover.heading);
+
+        releaseToday();
+        await flush();
+        expect(window.location.pathname).toBe('/app/discover');
+        expect(view.textContent).toContain(enUs.discover.heading);
+        expect(view.textContent).not.toContain('Morning run');
+    });
 });

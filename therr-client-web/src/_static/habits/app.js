@@ -234,6 +234,16 @@
     // button), so they live on one object instead of depending on declaration order.
     const views = { latestTodayState: null };
 
+    // Each view render is numbered, and a response paints only if no render has started since.
+    // Without it a slow load could land after the user had moved on and paint over the view
+    // they navigated to — the Today list appearing under the Discover tab and URL.
+    let renderSeq = 0;
+    const beginRender = () => {
+        renderSeq += 1;
+        return renderSeq;
+    };
+    const isCurrentRender = (seq) => seq === renderSeq;
+
     const viewEl = document.getElementById('app-view');
     const toastEl = document.getElementById('app-toast');
 
@@ -625,6 +635,7 @@
     const renderToday = () => {
         setActiveTab('today');
         renderLoading();
+        const seq = beginRender();
 
         Promise.all([
             request('GET', withTimeZone('/users-service/habits/user-habits?status=active')),
@@ -633,6 +644,9 @@
             request('GET', '/users-service/habits/pacts/invites'),
             request('GET', withTimeZone('/users-service/habits/daily-streak/me')),
         ]).then(([habitsOut, checkinsOut, pactsOut, invitesOut, streakOut]) => {
+            if (!isCurrentRender(seq)) {
+                return;
+            }
             if (!habitsOut.ok) {
                 renderError(errorMessage(habitsOut), renderToday);
                 return;
@@ -651,7 +665,7 @@
             }
             track('web_app_view', { view: 'today', habit_count: state.habits.length });
             views.paintToday(state);
-        }).catch(() => renderError(t('common.networkError'), renderToday));
+        }).catch(() => isCurrentRender(seq) && renderError(t('common.networkError'), renderToday));
     };
 
     const inviterNames = {};
@@ -877,6 +891,7 @@
     const renderHabit = (habitGoalId) => {
         setActiveTab('today');
         renderLoading();
+        const seq = beginRender();
         // The range runs a day past the browser's today so a check-in the server filed under
         // a later day (account zone ahead of the browser) is still in the result.
         const localKey = toLocalDateKey(new Date());
@@ -891,6 +906,9 @@
             request('GET', '/users-service/habits/pacts/active'),
             views.serverToday ? Promise.resolve(null) : request('GET', withTimeZone('/users-service/habits/daily-streak/me')),
         ]).then(([habitsOut, checkinsOut, pactsOut, streakOut]) => {
+            if (!isCurrentRender(seq)) {
+                return;
+            }
             if (streakOut && streakOut.ok && /^\d{4}-\d{2}-\d{2}$/.test(streakOut.body.today || '')) {
                 views.serverToday = streakOut.body.today;
             }
@@ -917,7 +935,7 @@
                 checkins: checkinsOut.ok && Array.isArray(checkinsOut.body) ? checkinsOut.body : [],
                 pacts: pactsOut.ok && Array.isArray(pactsOut.body) ? pactsOut.body : [],
             });
-        }).catch(() => renderError(t('common.networkError'), () => renderHabit(habitGoalId)));
+        }).catch(() => isCurrentRender(seq) && renderError(t('common.networkError'), () => renderHabit(habitGoalId)));
     };
 
     const noteForm = (todayCheckin) => {
@@ -1076,12 +1094,16 @@
     const renderDiscover = () => {
         setActiveTab('discover');
         renderLoading();
+        const seq = beginRender();
 
         Promise.all([
             request('GET', '/users-service/habits/pacts/open'),
             request('GET', `/users-service/habits/goals/templates?limit=${TEMPLATE_LIMIT}`),
             request('GET', withTimeZone('/users-service/habits/user-habits?status=active')),
         ]).then(([openOut, templatesOut, habitsOut]) => {
+            if (!isCurrentRender(seq)) {
+                return;
+            }
             if (!openOut.ok && !templatesOut.ok) {
                 renderError(errorMessage(openOut), renderDiscover);
                 return;
@@ -1093,7 +1115,7 @@
                 templates: templatesOut.ok && Array.isArray(templatesOut.body) ? templatesOut.body : [],
                 trackedGoalIds: ((habitsOut.ok && habitsOut.body.userHabits) || []).map((habit) => habit.habitGoalId),
             });
-        }).catch(() => renderError(t('common.networkError'), renderDiscover));
+        }).catch(() => isCurrentRender(seq) && renderError(t('common.networkError'), renderDiscover));
     };
 
     const openPactCard = (pact, state) => {
