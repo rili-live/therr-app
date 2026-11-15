@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import AchievementBadgeCell from './AchievementBadgeCell';
 import { BADGE_ASPECT } from '../../components/Achievements/HabitsAchievementBadge';
-import { IAchievementBadge } from '../../utilities/achievementCollection';
+import { getAchievementCopy, IAchievementBadge } from '../../utilities/achievementCollection';
 
 /**
  * A cell in the grid: a badge, or the control at the end of a ladder that shows the
@@ -55,6 +55,7 @@ const AchievementBadgeRow = ({
                         <AchievementBadgeCell
                             key={cell.key}
                             badge={badge}
+                            title={getAchievementCopy(badge, translate).title}
                             cardWidth={cardWidth}
                             onPress={onPressBadge}
                             stateLabel={translate(`pages.achievements.states.${badge.state}`)}

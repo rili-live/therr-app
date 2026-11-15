@@ -1350,7 +1350,8 @@
                 "earnedOn": "Obtenido el {date}",
                 "remaining": "Faltan {count}",
                 "lockedHint": "Sigue avanzando en los niveles anteriores y este se desbloqueará.",
-                "moreLocked": "Ver {count} insignias bloqueadas más"
+                "moreLocked": "Ver {count} insignias bloqueadas más",
+                "unavailable": "Este logro no está disponible en esta versión de la aplicación. Actualiza {appName} para verlo."
             },
             "sections": {
                 "unclaimed": "Listas para reclamar",
@@ -4131,6 +4132,126 @@
             "weeklyChampion_1_3_1": {
                 "title": "Campeón en serie",
                 "description": "Alcanza el puesto #1 de la tabla semanal cinco veces más"
+            },
+            "dailyStreak_1_1": {
+                "title": "Primera semana",
+                "description": "Registra cualquier hábito 7 días seguidos"
+            },
+            "dailyStreak_1_1_1": {
+                "title": "Treinta días",
+                "description": "Alcanza una racha diaria de 30 días"
+            },
+            "dailyStreak_1_1_2": {
+                "title": "Cincuenta",
+                "description": "Alcanza una racha diaria de 50 días"
+            },
+            "dailyStreak_1_1_3": {
+                "title": "Centenario",
+                "description": "Alcanza una racha diaria de 100 días"
+            },
+            "dailyStreak_1_1_4": {
+                "title": "Doble centenario",
+                "description": "Alcanza una racha diaria de 200 días"
+            },
+            "dailyStreak_1_1_5": {
+                "title": "Año completo",
+                "description": "Alcanza una racha diaria de 365 días"
+            },
+            "dailyStreak_1_1_6": {
+                "title": "Quinientos",
+                "description": "Alcanza una racha diaria de 500 días"
+            },
+            "dailyStreak_1_1_7": {
+                "title": "Dos años",
+                "description": "Alcanza una racha diaria de 730 días"
+            },
+            "dailyStreak_1_1_8": {
+                "title": "Mil",
+                "description": "Alcanza una racha diaria de 1000 días"
+            },
+            "dailyStreak_1_2": {
+                "title": "Semana perfecta",
+                "description": "Registra tus hábitos todos los días de una semana calendario, sin usar congelaciones"
+            },
+            "dailyStreak_1_2_1": {
+                "title": "Cinco semanas perfectas",
+                "description": "Completa cinco semanas perfectas"
+            },
+            "dailyStreak_1_3": {
+                "title": "Mes perfecto",
+                "description": "Completa cuatro semanas perfectas seguidas"
+            },
+            "dailyStreak_1_4": {
+                "title": "De vuelta al ruedo",
+                "description": "Construye una nueva racha de 7 días después de perder una de 30 días o más"
+            },
+            "dailyStreak_1_5": {
+                "title": "Congelación salvadora",
+                "description": "Deja que una congelación de racha proteja tu racha diaria"
+            },
+            "socialite_1_1": {
+                "title": "Amigable",
+                "description": "Invita a 3 amigos"
+            },
+            "socialite_1_1_1": {
+                "title": "Sé sociable",
+                "description": "Invita a 10 amigos"
+            },
+            "socialite_1_1_2": {
+                "title": "Iniciador",
+                "description": "Invita a 25 amigos"
+            },
+            "socialite_1_1_3": {
+                "title": "Construyendo una red",
+                "description": "Invita a 50 amigos"
+            },
+            "socialite_1_1_4": {
+                "title": "Amplía tus fronteras",
+                "description": "Invita a 100 amigos"
+            },
+            "socialite_1_1_5": {
+                "title": "Con todo",
+                "description": "Invita a 500 amigos"
+            },
+            "socialite_1_1_6": {
+                "title": "Cuéntaselo al mundo",
+                "description": "Invita a 1000 amigos"
+            },
+            "socialite_1_2": {
+                "title": "Rompe el hielo",
+                "description": "Haz tu primera conexión"
+            },
+            "socialite_1_2_1": {
+                "title": "Nuevos amigos",
+                "description": "Haz 3 conexiones"
+            },
+            "socialite_1_2_2": {
+                "title": "Círculo social",
+                "description": "Haz 10 conexiones"
+            },
+            "socialite_1_2_3": {
+                "title": "Ganando popularidad",
+                "description": "Haz 50 conexiones"
+            },
+            "socialite_1_2_4": {
+                "title": "La unión hace la fuerza",
+                "description": "Haz 100 conexiones"
+            },
+            "socialite_1_2_5": {
+                "title": "Diversifica",
+                "description": "Haz 250 conexiones"
+            },
+            "socialite_1_2_6": {
+                "title": "Mariposa social",
+                "description": "Haz 1000 conexiones"
+            },
+            "socialite_1_2_7": {
+                "title": "Casi famoso",
+                "description": "Haz 5000 conexiones"
+            },
+            "socialite_1_2_8": {
+                "title": "Famoso de verdad",
+                "description": "Haz 10000 conexiones"
             }
         },
         "profile": {

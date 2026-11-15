@@ -11,9 +11,12 @@ import {
     chunkBadges,
     condenseBadges,
     getAchievementClassName,
+    getAchievementCopy,
     IAchievementBadge,
     IAchievementClassGroup,
 } from '../../utilities/achievementCollection';
+
+const keyOfItem = (item: { key: string }) => item.key;
 
 /** How many in-progress achievements get a full row. The rest are still in the grid below. */
 export const UP_NEXT_LIMIT = 3;
@@ -164,7 +167,7 @@ const AchievementCollection = ({
         return result;
     }, [collection, collapsedClasses, expandedClasses, columns, translate]);
 
-    const renderSectionHeader = ({ section }: { section: ICollectionSection }) => {
+    const renderSectionHeader = useCallback(({ section }: { section: ICollectionSection }) => {
         if (section.kind === 'collection') {
             const ratio = collection.totalCount > 0 ? collection.earnedCount / collection.totalCount : 0;
 
@@ -243,17 +246,20 @@ const AchievementCollection = ({
                 )}
             </View>
         );
-    };
+    }, [collection.earnedCount, collection.totalCount, colors, styles, toggleClass, translate]);
 
-    const renderItem = ({ item }: { item: ICollectionItem }) => {
+    const renderItem = useCallback(({ item }: { item: ICollectionItem }) => {
         if (item.kind === 'tile') {
             const { badge } = item;
             const rowId = badge.userAchievement?.id;
+            const copy = getAchievementCopy(badge, translate);
 
             return (
                 <AchievementTile
                     badge={badge}
                     classLabel={getAchievementClassName(badge.achievementClass, translate)}
+                    title={copy.title}
+                    description={copy.description}
                     claimText={translate('pages.achievements.info.claim')}
                     completedText={translate('pages.achievements.info.completed')}
                     handleClaim={() => onClaim(badge)}
@@ -278,12 +284,12 @@ const AchievementCollection = ({
                 />
             </View>
         );
-    };
+    }, [cardWidth, claimingIds, columns, onClaim, onPressBadge, styles, themeAchievements, toggleExpanded, translate]);
 
     return (
         <SectionList
             sections={sections}
-            keyExtractor={(item: ICollectionItem) => item.key}
+            keyExtractor={keyOfItem}
             renderItem={renderItem}
             renderSectionHeader={renderSectionHeader as any}
             ListHeaderComponent={ListHeaderComponent}

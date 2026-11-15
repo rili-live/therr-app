@@ -76,10 +76,6 @@ import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
 
 const { width: viewportWidth } = Dimensions.get('window');
-// The achievements tab is a badge grid; its columns follow the screen the same way the
-// Achievements screen's do.
-const ACHIEVEMENT_GRID_COLUMNS = getBadgeGridColumns(viewportWidth);
-const ACHIEVEMENT_GRID_CARD_WIDTH = getBadgeGridCardWidth(viewportWidth, ACHIEVEMENT_GRID_COLUMNS);
 const HABITS_TAB_LIST_CONTENT_STYLE = { paddingBottom: 120, paddingTop: 8 };
 // Device-pixel size for the full-screen profile picture, capped so very dense screens don't request an oversized original.
 const fullSizeImagePx = Math.min(PixelRatio.getPixelSizeForLayoutSize(viewportWidth), 1440);
@@ -972,7 +968,7 @@ class ViewUser extends React.Component<
                 {isMe && (
                     <Pressable
                         accessibilityRole="button"
-                        onPress={() => this.props.navigation.navigate('Achievements')}
+                        onPress={this.goToAchievements}
                         style={this.themeHabits.styles.emptyStateActionButton}
                     >
                         <Text style={this.themeHabits.styles.emptyStateActionLabel}>
@@ -1012,17 +1008,35 @@ class ViewUser extends React.Component<
         });
     };
 
-    renderAchievementItem = ({ item }: { item: IShowcaseItem }) => (
-        <AchievementShowcaseItem
-            item={item}
-            columns={ACHIEVEMENT_GRID_COLUMNS}
-            cardWidth={ACHIEVEMENT_GRID_CARD_WIDTH}
-            onPressBadge={this.onPressProfileBadge}
-            onPressCollection={() => this.props.navigation.navigate('Achievements')}
-            themeAchievements={this.themeAchievements}
-            translate={this.translate as (key: string, params?: any) => string}
-        />
-    );
+    goToAchievements = () => {
+        this.props.navigation.navigate('Achievements');
+    };
+
+    // The achievements tab is a badge grid whose columns follow the screen, the same way
+    // the Achievements screen's do. Read when the tab renders rather than once at import,
+    // so a fold, a rotation or split-screen is picked up on the next render.
+    getAchievementGrid = () => {
+        const { width } = Dimensions.get('window');
+        const columns = getBadgeGridColumns(width);
+
+        return { columns, cardWidth: getBadgeGridCardWidth(width, columns) };
+    };
+
+    renderAchievementItem = ({ item }: { item: IShowcaseItem }) => {
+        const { columns, cardWidth } = this.getAchievementGrid();
+
+        return (
+            <AchievementShowcaseItem
+                item={item}
+                columns={columns}
+                cardWidth={cardWidth}
+                onPressBadge={this.onPressProfileBadge}
+                onPressCollection={this.goToAchievements}
+                themeAchievements={this.themeAchievements}
+                translate={this.translate as (key: string, params?: any) => string}
+            />
+        );
+    };
 
     renderHabitsPactsScene = (collapsible?: ICollapsibleSceneProps) => {
         const { habits } = this.props;
@@ -1067,7 +1081,7 @@ class ViewUser extends React.Component<
         // A grid drawn as rows, so the tab's scroll component can stay a plain list.
         const items = buildShowcaseItems({
             userAchievements: achievements,
-            columns: ACHIEVEMENT_GRID_COLUMNS,
+            columns: this.getAchievementGrid().columns,
             translate: this.translate as (key: string, params?: any) => string,
             showCollectionLink: isMe,
         });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { InteractionManager, Pressable, StyleSheet } from 'react-native';
+import { InteractionManager, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -19,6 +19,7 @@ import { recordPositiveSignal } from '../../utilities/appReviewPrompt';
 import { buildAchievementsShareUrl } from '../../utilities/shareUrls';
 import {
     getAchievementBadgeKey,
+    getAchievementCopy,
     getBadgeTrack,
     IAchievementBadge,
     toAchievementBadge,
@@ -84,6 +85,9 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
     private themeAchievements = buildAchievementStyles();
     private interactionHandle: { cancel: () => void } | null = null;
     private cancelCelebration: (() => void) | null = null;
+    // A claim can resolve after the user has backed out. Nothing may start a celebration
+    // (queued haptic taps, the share prompt) for a screen that is no longer there.
+    private isUnmounted = false;
 
     constructor(props) {
         super(props);
@@ -148,6 +152,8 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
     };
 
     componentWillUnmount() {
+        this.isUnmounted = true;
+
         if (this.interactionHandle) {
             this.interactionHandle.cancel();
         }
@@ -211,7 +217,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
 
         return rows.map((row: any) => {
             const key = getAchievementBadgeKey(row?.achievementClass, row?.achievementId);
-            if (!claimedKeys[key]) {
+            if (!row || !claimedKeys[key]) {
                 return row;
             }
             return {
@@ -275,6 +281,10 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                 }),
             });
 
+            if (this.isUnmounted) {
+                return;
+            }
+
             if (this.cancelCelebration) {
                 this.cancelCelebration();
             }
@@ -292,7 +302,9 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                 text2: this.translate('alertMessages.backendErrorMessage'),
             });
         }).finally(() => {
-            this.setState({ isClaimRequestPending: false });
+            if (!this.isUnmounted) {
+                this.setState({ isClaimRequestPending: false });
+            }
         });
     };
 
@@ -311,8 +323,11 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
         const shareUrl = buildAchievementsShareUrl(user.settings?.locale || 'en-us');
         const celebratedBadge = selection?.track.find((candidate) => candidate.key === celebratingKey);
         // Names the badge that was earned ("Habit Formed"), not the ladder it is on.
+        const sharedBadge = celebratedBadge || selection?.badge;
         const shareMessage = this.translate('modals.sharePrompt.achievementEarned.shareMessage', {
-            achievementClass: celebratedBadge?.config.title || selection?.badge.config.title || '',
+            achievementClass: sharedBadge
+                ? getAchievementCopy(sharedBadge, this.translate as (key: string, params?: any) => string).title
+                : '',
             url: shareUrl,
         });
 
@@ -324,6 +339,14 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                         style={[this.theme.styles.body]}
                         contentContainerStyle={localStyles.scrollContent}
                     >
+                        {!selection && (
+                            // Opened with no achievement, or one this build has no config for.
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionDescriptionCentered}>
+                                    {this.translate('pages.achievements.info.unavailable')}
+                                </Text>
+                            </View>
+                        )}
                         {selection && (
                             <AchievementDetail
                                 badge={selection.badge}

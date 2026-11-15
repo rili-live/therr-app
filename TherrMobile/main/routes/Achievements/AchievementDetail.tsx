@@ -7,6 +7,7 @@ import { BADGE_ASPECT } from '../../components/Achievements/HabitsAchievementBad
 import { getBadgeStateColors, getBadgeTone } from '../../styles/achievements/badgePalette';
 import {
     getAchievementClassName,
+    getAchievementCopy,
     IAchievementBadge,
     toRomanNumeral,
 } from '../../utilities/achievementCollection';
@@ -68,6 +69,7 @@ const AchievementDetail = ({
     const isClaimable = badge.state === 'claimable';
     const isDone = isClaimable || badge.state === 'earned';
     const className = getAchievementClassName(badge.achievementClass, translate);
+    const copy = getAchievementCopy(badge, translate);
     const hasLadder = badge.trackLength > 1;
     const overline = hasLadder
         ? `${className} · ${translate('pages.achievements.info.level', { level: toRomanNumeral(badge.level) })}`
@@ -126,8 +128,8 @@ const AchievementDetail = ({
             </View>
 
             <Text style={styles.detailOverline}>{overline}</Text>
-            <Text style={styles.detailTitle} accessibilityRole="header">{config.title}</Text>
-            <Text style={styles.detailDescription}>{config.description}</Text>
+            <Text style={styles.detailTitle} accessibilityRole="header">{copy.title}</Text>
+            <Text style={styles.detailDescription}>{copy.description}</Text>
 
             {isCelebrating && (
                 <Text style={styles.detailNote}>{translate('pages.achievements.info.congratulations')}</Text>
@@ -265,7 +267,7 @@ const AchievementDetail = ({
                                         accessibilityRole="button"
                                         accessibilityState={{ selected: isSelected }}
                                         accessibilityLabel={`${translate('pages.achievements.info.level', { level: step.level })}. `
-                                            + `${step.config.title}. ${translate(`pages.achievements.states.${step.state}`)}`}
+                                            + `${getAchievementCopy(step, translate).title}. ${translate(`pages.achievements.states.${step.state}`)}`}
                                         onPress={() => onSelectBadge(step)}
                                         hitSlop={8}
                                         style={[

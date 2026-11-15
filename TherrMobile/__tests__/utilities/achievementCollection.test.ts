@@ -9,6 +9,7 @@ import {
     chunkBadges,
     condenseBadges,
     getAchievementClassName,
+    getAchievementCopy,
     getBadgeTrack,
     getClassLadder,
     toAchievementBadge,
@@ -351,5 +352,61 @@ describe('a badge opened without a backend row', () => {
 
         expect(badge.state).toBe('locked');
         expect(badge.userAchievement).toBeUndefined();
+    });
+});
+
+describe('getAchievementCopy', () => {
+    const translateIn = (locale: string) => (key: string, params?: any) => translator(locale, key, params);
+    const habitsBadges = buildAchievementCollection({ userAchievements: {}, brandVariation: HABITS })
+        .classes.flatMap((group) => group.badges);
+
+    it.each(['en-us', 'es', 'fr-ca'])('has a title and description in %s for every badge the Habits brand can earn', (locale) => {
+        const translate = translateIn(locale);
+
+        habitsBadges.forEach((badge) => {
+            // Read straight from the dictionary: the helper's fallback would hide a gap.
+            const titleKey = `user.achievements.${badge.achievementId}.title`;
+            const descriptionKey = `user.achievements.${badge.achievementId}.description`;
+
+            expect({ id: badge.achievementId, hasTitle: translate(titleKey) !== titleKey })
+                .toEqual({ id: badge.achievementId, hasTitle: true });
+            expect({ id: badge.achievementId, hasDescription: translate(descriptionKey) !== descriptionKey })
+                .toEqual({ id: badge.achievementId, hasDescription: true });
+        });
+    });
+
+    it('gives the badge in the user\'s language, not the config\'s English', () => {
+        const badge = toAchievementBadge(row('habitBuilder', 'habitBuilder_1_1_3'))!;
+
+        expect(getAchievementCopy(badge, translateIn('en-us'))).toEqual({
+            title: 'Habit Formed',
+            description: 'Reach a 30-day streak on a habit',
+        });
+        expect(getAchievementCopy(badge, translateIn('es')).title).toBe('Hábito formado');
+        expect(getAchievementCopy(badge, translateIn('fr-ca')).title).not.toBe('Habit Formed');
+    });
+
+    it('keeps the number in every translated milestone description', () => {
+        // A streak badge whose translation dropped or mistyped its target would be a lie.
+        ['es', 'fr-ca'].forEach((locale) => {
+            const translate = translateIn(locale);
+
+            habitsBadges.forEach((badge) => {
+                const numbersIn = (text: string) => (text.match(/\d+/g) || []).join(',');
+                const english = getAchievementCopy(badge, translateIn('en-us')).description;
+
+                expect({ id: badge.achievementId, numbers: numbersIn(getAchievementCopy(badge, translate).description) })
+                    .toEqual({ id: badge.achievementId, numbers: numbersIn(english) });
+            });
+        });
+    });
+
+    it('falls back to the config for an achievement the dictionary has not caught up with', () => {
+        const badge = toAchievementBadge(row('habitBuilder', 'habitBuilder_1_1'))!;
+
+        expect(getAchievementCopy(badge, (key) => key)).toEqual({
+            title: badge.config.title,
+            description: badge.config.description,
+        });
     });
 });

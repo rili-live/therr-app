@@ -409,6 +409,27 @@ export const toRomanNumeral = (value: number): string => {
 };
 
 /**
+ * An achievement's title and description in the user's language.
+ *
+ * The dictionaries have carried these under `user.achievements.<id>` for a long time, and
+ * nothing read them: every screen took the English strings straight from the shared config,
+ * so a Spanish or French user saw translated chrome around English badges. The config's
+ * copy is the fallback, for an achievement the dictionary has not caught up with.
+ */
+export const getAchievementCopy = (
+    badge: Pick<IAchievementBadge, 'achievementId' | 'config'>,
+    translate: (key: string, params?: any) => string,
+): { title: string; description: string } => {
+    const lookup = (field: 'title' | 'description') => {
+        const key = `user.achievements.${badge.achievementId}.${field}`;
+        const translated = translate(key);
+        return translated && translated !== key ? translated : badge.config[field];
+    };
+
+    return { title: lookup('title'), description: lookup('description') };
+};
+
+/**
  * Class name for display. Class ids are camelCase config keys; a class the dictionary has
  * no name for yet is split into words rather than shown raw.
  */

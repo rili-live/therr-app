@@ -31,6 +31,8 @@ export const getBadgeGridCardWidth = (windowWidth: number, columns: number) => {
 
 interface IAchievementBadgeCellProps {
     badge: IAchievementBadge;
+    /** Localized title. Falls back to the config's English. */
+    title?: string;
     cardWidth: number;
     onPress?: (badge: IAchievementBadge) => void;
     /** Short status read out with the title: "Earned", "In progress", "Locked", "Reward ready". */
@@ -47,6 +49,7 @@ interface IAchievementBadgeCellProps {
  */
 const AchievementBadgeCell = ({
     badge,
+    title: titleProp,
     cardWidth,
     onPress,
     stateLabel,
@@ -58,7 +61,8 @@ const AchievementBadgeCell = ({
     const isLocked = badge.state === 'locked';
     const isInProgress = badge.state === 'inProgress';
     const isClaimable = badge.state === 'claimable';
-    const a11yLabel = [badge.config.title, stateLabel, isInProgress ? progressLabel : '']
+    const title = titleProp || badge.config.title;
+    const a11yLabel = [title, stateLabel, isInProgress ? progressLabel : '']
         .filter(Boolean)
         .join('. ');
 
@@ -89,9 +93,10 @@ const AchievementBadgeCell = ({
             </View>
             <Text
                 style={[styles.badgeCellTitle, isLocked && styles.badgeCellTitleLocked]}
-                numberOfLines={2}
+                // Two lines in English; a few Spanish and French titles need the third.
+                numberOfLines={3}
             >
-                {badge.config.title}
+                {title}
             </Text>
             {isInProgress && (
                 <View style={[styles.badgeCellProgress, { width: cardWidth }]}>

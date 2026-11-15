@@ -14,6 +14,9 @@ interface IAchievementTileProps {
     userAchievement?: any;
     /** Localized class name. Falls back to the class id split into words. */
     classLabel?: string;
+    /** Localized title and description. Fall back to the config's English. */
+    title?: string;
+    description?: string;
     claimText: string;
     completedText: string;
     handleClaim: () => void;
@@ -33,6 +36,8 @@ const AchievementTile = ({
     badge: badgeProp,
     userAchievement,
     classLabel,
+    title: titleProp,
+    description: descriptionProp,
     claimText,
     completedText,
     handleClaim,
@@ -56,11 +61,13 @@ const AchievementTile = ({
     const progressLabel = progressText({ count: badge.progressCount, total: config.countToComplete });
     const reward = formatRewardAmount(isClaimable ? badge.userAchievement?.unclaimedRewardPts : config.pointReward);
     const overline = classLabel || badge.achievementClass.replace(/([A-Z])/g, ' $1');
+    const title = titleProp || config.title;
+    const description = descriptionProp || config.description;
 
     return (
         <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`${config.title}. ${isComplete ? completedText : progressLabel}`}
+            accessibilityLabel={`${title}. ${isComplete ? completedText : progressLabel}`}
             style={({ pressed }) => [
                 styles.achievementTile,
                 isClaimable && styles.achievementTileClaimable,
@@ -90,10 +97,10 @@ const AchievementTile = ({
                     )}
                 </View>
                 <Text style={styles.tileTitle} numberOfLines={2}>
-                    {config.title}
+                    {title}
                 </Text>
                 <Text style={styles.achievementDescription} numberOfLines={2}>
-                    {config.description}
+                    {description}
                 </Text>
                 {!isComplete && (
                     <View style={styles.progressRow}>
