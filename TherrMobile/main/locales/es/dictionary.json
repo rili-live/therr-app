@@ -1314,11 +1314,20 @@
             "headerTitle": "Logros",
             "pageHeader": "Logros",
             "buttons": {
-                "viewLeaderboard": "Ver tabla de clasificación"
+                "viewLeaderboard": "Ver tabla de clasificación",
+                "back": "Atrás",
+                "viewCollection": "Colección completa",
+                "showLocked": "Ver todos",
+                "showLess": "Ver menos"
             },
             "labels": {
                 "coinValue": "Valor en monedas",
-                "xpValue": "Valor de experiencia"
+                "xpValue": "Valor de experiencia",
+                "rewards": "Recompensas",
+                "rewardsEarned": "Ganaste",
+                "rewardsClaimed": "Recompensas reclamadas",
+                "coins": "Monedas",
+                "xp": "XP"
             },
             "info": {
                 "claimRewards": "Reclamar recompensas",
@@ -1333,11 +1342,41 @@
                 "alreadyClaimed": "Ya has reclamado las recompensas de este logro",
                 "unClaimed": "¡Este logro está completo! Regresa y presiona 'reclamar recompensas' para continuar.",
                 "inProgressDescription": "¡Ya casi llegas! ¡Sigue adelante!",
-                "progressOf": "{count} de {total}"
+                "progressOf": "{count} de {total}",
+                "claim": "Reclamar",
+                "earnedOfTotal": "{count} de {total} obtenidos",
+                "level": "Nivel {level}",
+                "levelOf": "Nivel {level} de {total}",
+                "earnedOn": "Obtenido el {date}",
+                "remaining": "Faltan {count}",
+                "lockedHint": "Sigue avanzando en los niveles anteriores y este se desbloqueará.",
+                "moreLocked": "Ver {count} insignias bloqueadas más"
             },
             "sections": {
-                "unclaimed": "Reclama tus recompensas",
-                "inProgress": "En progreso"
+                "unclaimed": "Listas para reclamar",
+                "inProgress": "En progreso",
+                "upNext": "A continuación",
+                "collection": "Tu colección",
+                "earned": "Obtenidos"
+            },
+            "states": {
+                "claimable": "Recompensa lista",
+                "earned": "Obtenido",
+                "inProgress": "En progreso",
+                "locked": "Bloqueado"
+            },
+            "classes": {
+                "accountability": "Compromiso",
+                "cleanBreak": "Corte limpio",
+                "consistency": "Constancia",
+                "dailyStreak": "Racha diaria",
+                "habitBuilder": "Constructor de hábitos",
+                "pactPioneer": "Pionero de pactos",
+                "resilience": "Resiliencia",
+                "socialEnergizer": "Energía social",
+                "socialite": "Sociable",
+                "treasureBuilder": "Constructor de tesoros",
+                "weeklyChampion": "Campeón semanal"
             }
         },
         "activeConnections": {

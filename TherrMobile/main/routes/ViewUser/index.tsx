@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Dimensions,
     PixelRatio,
+    Pressable,
     Text,
     View} from 'react-native';
 import { FAB } from 'react-native-paper';
@@ -58,7 +59,9 @@ import TabViewLoadingOverlay from '../../components/TabViewLoadingOverlay';
 import CollapsibleHeaderTabView, { ICollapsibleSceneProps } from '../../components/CollapsibleHeaderTabView';
 import AreaCarousel from '../Areas/AreaCarousel';
 import { PactCard } from '../../components/Habits';
-import AchievementTile from '../Achievements/AchievementTile';
+import AchievementShowcaseItem, { buildShowcaseItems, IShowcaseItem } from '../Achievements/AchievementShowcase';
+import { getBadgeGridCardWidth, getBadgeGridColumns } from '../Achievements/AchievementBadgeCell';
+import { IAchievementBadge } from '../../utilities/achievementCollection';
 import { getUserImageUri, isMyContent } from '../../utilities/content';
 import { SheetManager } from 'react-native-actions-sheet';
 import { IContentSelectionType } from '../../components/ActionSheet/ContentOptionsSheet';
@@ -73,6 +76,10 @@ import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
 
 const { width: viewportWidth } = Dimensions.get('window');
+// The achievements tab is a badge grid; its columns follow the screen the same way the
+// Achievements screen's do.
+const ACHIEVEMENT_GRID_COLUMNS = getBadgeGridColumns(viewportWidth);
+const ACHIEVEMENT_GRID_CARD_WIDTH = getBadgeGridCardWidth(viewportWidth, ACHIEVEMENT_GRID_COLUMNS);
 const HABITS_TAB_LIST_CONTENT_STYLE = { paddingBottom: 120, paddingTop: 8 };
 // Device-pixel size for the full-screen profile picture, capped so very dense screens don't request an oversized original.
 const fullSizeImagePx = Math.min(PixelRatio.getPixelSizeForLayoutSize(viewportWidth), 1440);
@@ -961,6 +968,18 @@ class ViewUser extends React.Component<
                 <Text style={this.themeHabits.styles.emptyStateSubtitle}>
                     {this.translate(messageKey)}
                 </Text>
+                {/* "Keep building habits to unlock rewards" names no reward; the collection shows all of them. */}
+                {isMe && (
+                    <Pressable
+                        accessibilityRole="button"
+                        onPress={() => this.props.navigation.navigate('Achievements')}
+                        style={this.themeHabits.styles.emptyStateActionButton}
+                    >
+                        <Text style={this.themeHabits.styles.emptyStateActionLabel}>
+                            {this.translate('pages.achievements.buttons.viewCollection')}
+                        </Text>
+                    </Pressable>
+                )}
             </View>
         );
     };
@@ -979,27 +998,31 @@ class ViewUser extends React.Component<
         );
     };
 
-    renderAchievementItem = ({ item }: { item: any }) => {
+    // Opens the badge's detail screen. For self it reads the Redux achievements and can
+    // claim; for another user the rows the public endpoint returned travel with the route
+    // (`ownerAchievements`), which is also what marks the screen read-only.
+    onPressProfileBadge = (badge: IAchievementBadge) => {
         const { navigation, user } = this.props;
         const isMe = user.userInView?.id === user.details.id;
-        // For self: tile press routes to the dedicated Achievements screen which owns the full
-        // claim flow. For other users the public endpoint already strips unclaimedRewardPts so
-        // the claim button never renders, and tile press is a no-op (no public detail screen).
-        const noop = () => {};
-        const onPress = isMe ? () => navigation.navigate('Achievements') : noop;
-        return (
-            <AchievementTile
-                userAchievement={item}
-                claimText={this.translate('pages.achievements.info.claimRewards')}
-                completedText={this.translate('pages.achievements.info.completed')}
-                handleClaim={onPress}
-                isClaiming={false}
-                onPressAchievement={onPress}
-                progressText={(params) => this.translate('pages.achievements.info.progressOf', params)}
-                themeAchievements={this.themeAchievements}
-            />
-        );
+
+        navigation.navigate('AchievementClaim', {
+            userAchievement: badge.userAchievement,
+            isClaiming: false,
+            ...(isMe ? {} : { ownerAchievements: this.state.userInViewsAchievements }),
+        });
     };
+
+    renderAchievementItem = ({ item }: { item: IShowcaseItem }) => (
+        <AchievementShowcaseItem
+            item={item}
+            columns={ACHIEVEMENT_GRID_COLUMNS}
+            cardWidth={ACHIEVEMENT_GRID_CARD_WIDTH}
+            onPressBadge={this.onPressProfileBadge}
+            onPressCollection={() => this.props.navigation.navigate('Achievements')}
+            themeAchievements={this.themeAchievements}
+            translate={this.translate as (key: string, params?: any) => string}
+        />
+    );
 
     renderHabitsPactsScene = (collapsible?: ICollapsibleSceneProps) => {
         const { habits } = this.props;
@@ -1041,11 +1064,18 @@ class ViewUser extends React.Component<
         const achievements = isMe
             ? Object.values(user.achievements || {})
             : userInViewsAchievements;
+        // A grid drawn as rows, so the tab's scroll component can stay a plain list.
+        const items = buildShowcaseItems({
+            userAchievements: achievements,
+            columns: ACHIEVEMENT_GRID_COLUMNS,
+            translate: this.translate as (key: string, params?: any) => string,
+            showCollectionLink: isMe,
+        });
         const ListComponent: any = collapsible?.ScrollComponent || FlatList;
         return (
             <ListComponent
-                data={achievements}
-                keyExtractor={(item: any) => item.id}
+                data={items}
+                keyExtractor={(item: IShowcaseItem) => item.key}
                 renderItem={this.renderAchievementItem}
                 refreshControl={
                     <RefreshControl

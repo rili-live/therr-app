@@ -1314,11 +1314,20 @@
             "headerTitle": "Réalisations",
             "pageHeader": "Réalisations",
             "buttons": {
-                "viewLeaderboard": "Voir le classement"
+                "viewLeaderboard": "Voir le classement",
+                "back": "Retour",
+                "viewCollection": "Collection complète",
+                "showLocked": "Tout afficher",
+                "showLess": "Afficher moins"
             },
             "labels": {
                 "coinValue": "Valeur en pièces",
-                "xpValue": "Valeur d'expérience"
+                "xpValue": "Valeur d'expérience",
+                "rewards": "Récompenses",
+                "rewardsEarned": "Vous avez gagné",
+                "rewardsClaimed": "Récompenses réclamées",
+                "coins": "Pièces",
+                "xp": "XP"
             },
             "info": {
                 "claimRewards": "Réclamer les récompenses",
@@ -1333,11 +1342,41 @@
                 "alreadyClaimed": "Vous avez déjà réclamé les récompenses pour cette réalisation",
                 "unClaimed": "Cette réalisation est terminée! Retournez en arrière et appuyez sur « réclamer les récompenses » pour continuer.",
                 "inProgressDescription": "Vous y êtes presque! Continuez sur cette lancée!",
-                "progressOf": "{count} sur {total}"
+                "progressOf": "{count} sur {total}",
+                "claim": "Réclamer",
+                "earnedOfTotal": "{count} sur {total} obtenus",
+                "level": "Niveau {level}",
+                "levelOf": "Niveau {level} sur {total}",
+                "earnedOn": "Obtenu le {date}",
+                "remaining": "Encore {count}",
+                "lockedHint": "Continuez à franchir les niveaux précédents et celui-ci se débloquera.",
+                "moreLocked": "Afficher {count} autres badges verrouillés"
             },
             "sections": {
-                "unclaimed": "Réclamez vos récompenses",
-                "inProgress": "En cours"
+                "unclaimed": "Prêtes à réclamer",
+                "inProgress": "En cours",
+                "upNext": "À venir",
+                "collection": "Votre collection",
+                "earned": "Obtenus"
+            },
+            "states": {
+                "claimable": "Récompense prête",
+                "earned": "Obtenu",
+                "inProgress": "En cours",
+                "locked": "Verrouillé"
+            },
+            "classes": {
+                "accountability": "Responsabilité",
+                "cleanBreak": "Nouveau départ",
+                "consistency": "Constance",
+                "dailyStreak": "Série quotidienne",
+                "habitBuilder": "Bâtisseur d'habitudes",
+                "pactPioneer": "Pionnier des pactes",
+                "resilience": "Résilience",
+                "socialEnergizer": "Énergie sociale",
+                "socialite": "Sociable",
+                "treasureBuilder": "Bâtisseur de trésors",
+                "weeklyChampion": "Champion de la semaine"
             }
         },
         "activeConnections": {

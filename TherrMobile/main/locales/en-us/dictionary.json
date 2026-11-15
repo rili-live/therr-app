@@ -1314,11 +1314,20 @@
             "headerTitle": "Achievements",
             "pageHeader": "Achievements",
             "buttons": {
-                "viewLeaderboard": "View Leaderboard"
+                "viewLeaderboard": "View Leaderboard",
+                "back": "Back",
+                "viewCollection": "Full collection",
+                "showLocked": "Show all",
+                "showLess": "Show less"
             },
             "labels": {
                 "coinValue": "Coin Value",
-                "xpValue": "Experience Value"
+                "xpValue": "Experience Value",
+                "rewards": "Rewards",
+                "rewardsEarned": "You earned",
+                "rewardsClaimed": "Rewards claimed",
+                "coins": "Coins",
+                "xp": "XP"
             },
             "info": {
                 "claimRewards": "Claim Rewards",
@@ -1333,11 +1342,41 @@
                 "alreadyClaimed": "You have already claimed rewards for this achievement",
                 "unClaimed": "This achievement is complete! Go back and press 'claim rewards' to continue.",
                 "inProgressDescription": "You're almost there! Keep on keepin' on!",
-                "progressOf": "{count} of {total}"
+                "progressOf": "{count} of {total}",
+                "claim": "Claim",
+                "earnedOfTotal": "{count} of {total} earned",
+                "level": "Level {level}",
+                "levelOf": "Level {level} of {total}",
+                "earnedOn": "Earned {date}",
+                "remaining": "{count} to go",
+                "lockedHint": "Keep working through the earlier levels and this one opens up.",
+                "moreLocked": "Show {count} more locked badges"
             },
             "sections": {
-                "unclaimed": "Claim Your Rewards",
-                "inProgress": "In Progress"
+                "unclaimed": "Ready to Claim",
+                "inProgress": "In Progress",
+                "upNext": "Up Next",
+                "collection": "Your Collection",
+                "earned": "Earned"
+            },
+            "states": {
+                "claimable": "Reward ready",
+                "earned": "Earned",
+                "inProgress": "In progress",
+                "locked": "Locked"
+            },
+            "classes": {
+                "accountability": "Accountability",
+                "cleanBreak": "Clean Break",
+                "consistency": "Consistency",
+                "dailyStreak": "Daily Streak",
+                "habitBuilder": "Habit Builder",
+                "pactPioneer": "Pact Pioneer",
+                "resilience": "Resilience",
+                "socialEnergizer": "Social Energizer",
+                "socialite": "Socialite",
+                "treasureBuilder": "Treasure Builder",
+                "weeklyChampion": "Weekly Champion"
             }
         },
         "activeConnections": {
