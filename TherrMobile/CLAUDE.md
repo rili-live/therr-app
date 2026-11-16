@@ -215,6 +215,7 @@ Android targets API 36, which enforces edge-to-edge — system bars are always t
 - **Android emulator can't reach API**: Run `adb reverse tcp:7770 tcp:7770` (or use `npm run android:device`).
 - **Deprecated prop types warning**: The `resolver/react-native/` proxy handles this. If a new library triggers it, the proxy may need updating.
 - **Pod install fails**: `npm run ios:clean` nukes everything and reinstalls.
+- **Pixel-art SVG renders blurry**: react-native-svg has no `shapeRendering="crispEdges"`. Snap each sprite pixel to whole device pixels (`PixelRatio`) and draw run-length paths, as `components/HabitCompanion/` does.
 
 ## Code Quality
 
