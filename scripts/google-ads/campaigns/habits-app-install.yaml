@@ -146,9 +146,11 @@ assets:
         # 15s 9:16 Short (Runway, 2026-11-06), "Evolve your life": a caveman fails at
         # fire until a chameleon sparks a new habit. End card from
         # assets/build_end_card.py; character refs in assets/references/.
+        # Re-cut uploaded 2026-11-16 as "He tried the same thing 1,000 times. Then a
+        # friend showed up."; it replaces the first upload (YIVY-pkCfLs, since removed).
         # Normalised from the /shorts/ share link. Uploaded AFTER this campaign ended
         # (2026-10-19), so it has never served here -- it is listed for the next App run.
-        - "https://www.youtube.com/watch?v=YIVY-pkCfLs"
+        - "https://www.youtube.com/watch?v=JpadSvoOXUs"
 
 tracking:
     # Recorded for documentation and for the reporting join only. An App
