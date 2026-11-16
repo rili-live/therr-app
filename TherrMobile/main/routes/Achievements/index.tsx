@@ -32,6 +32,7 @@ const isHabitCompanionEnabled = CURRENT_BRAND_VARIATION === BrandVariations.HABI
 
 interface IAchievementsDispatchProps {
     claimMyAchievement: Function;
+    getMe: Function;
     getMyAchievements: Function;
     updateUser: Function;
 }
@@ -57,6 +58,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     claimMyAchievement: UsersActions.claimMyAchievement,
+    getMe: UsersActions.getMe,
     getMyAchievements: UsersActions.getMyAchievements,
     updateUser: UsersActions.update,
 }, dispatch);
@@ -95,6 +97,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
         });
 
         this.handleRefresh();
+        this.backfillAccountCreatedAt();
     };
 
     componentWillUnmount() {
@@ -102,6 +105,16 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
             this.unsubscribeNavigationListener();
         }
     }
+
+    // The companion's "days together" gate reads user.details.createdAt. Sessions that signed in
+    // before therr-react's extractUserData kept that field never had it, and only a fresh login
+    // or a getMe() fills it — so fetch once here instead of leaving the companion stuck at 0 days.
+    backfillAccountCreatedAt = () => {
+        if (!isHabitCompanionEnabled || this.props.user.details?.createdAt) {
+            return;
+        }
+        this.props.getMe().catch((err) => console.log(`Failed to fetch me: ${err?.message}`));
+    };
 
     handleRefresh = () => {
         this.props.getMyAchievements().finally(() => {

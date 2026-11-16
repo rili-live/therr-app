@@ -52,6 +52,7 @@
         header.site-header { padding: 1rem 0; background: #fff; border-bottom: 1px solid var(--fwh-border); }
         header.site-header .container { display: flex; align-items: center; gap: 0.625rem; }
         header.site-header .brand { font-weight: 800; color: var(--fwh-plum); text-decoration: none; }
+        header.site-header .my-habits { margin-left: auto; font-size: 0.9375rem; font-weight: 700; color: var(--fwh-purple); white-space: nowrap; }
         .hero { background: var(--fwh-plum); color: #fff; padding: 2.5rem 0 2rem; }
         .eyebrow { color: var(--fwh-gold); font-weight: 600; font-size: 0.8125rem; letter-spacing: 0.12em; text-transform: uppercase; margin: 0 0 0.5rem; }
         .hero h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.5rem; font-weight: 800; letter-spacing: -0.02em; word-break: break-word; }
@@ -103,6 +104,9 @@
         <div class="container">
             <img src="/assets/images/habits-logo.svg" width="32" height="32" alt="" aria-hidden="true">
             <a class="brand" href="/">Friends with Habits</a>
+            <!-- Shown by the script once the visitor's session works: a signed-in visitor who
+                 lands here (from sign-in or a shared link) needs a way to the rest of their habits. -->
+            <a class="my-habits" id="my-habits-link" href="/app" hidden>My habits</a>
         </div>
     </header>
 
@@ -209,7 +213,8 @@
             // days and a different tab. habits/login.hbs sends the user back here afterwards.
             if (joinLink) {
                 joinLink.addEventListener('click', function () {
-                    try { localStorage.setItem('habitsPendingChallenge', TOKEN); } catch (e) { /* fine */ }
+                    // Stamped so sign-in only honours it for a few days; see habits/login.hbs.
+                    try { localStorage.setItem('habitsPendingChallenge', JSON.stringify({ token: TOKEN, at: Date.now() })); } catch (e) { /* fine */ }
                     track('challenge_join_click', { signed_in: false });
                 });
             }
@@ -274,6 +279,7 @@
                     if (!out.res.ok || !out.body || !out.body.viewer) { return; }
                     try { localStorage.removeItem('habitsPendingChallenge'); } catch (e) { /* fine */ }
                     signedOut.hidden = true;
+                    document.getElementById('my-habits-link').hidden = false;
                     if (out.body.viewer.isMember) {
                         if (!out.body.hasEnded) { memberActions.hidden = false; }
                         document.getElementById('join-note').textContent = 'You are in. Check in each day you do it, here or in the app.';

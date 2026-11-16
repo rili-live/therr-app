@@ -4,10 +4,13 @@ import {
     comebackMessageKey,
     getComebackLadderDays,
     getDueComebackRung,
+    getDaysIntoLapse,
     getLapseBackoffDays,
     isBackedOff,
     isLadderExhausted,
 } from '../../src/utilities/retentionLadder';
+import { getCadence, IRequiredDaysHabit } from '../../src/utilities/habitCadence';
+import { addDays, daysBetween } from '../../src/utilities/dailyStreak';
 
 /**
  * The lapsed-user back-off and comeback ladder, as pure rules.
@@ -75,6 +78,98 @@ describe('retentionLadder', () => {
                 process.env.HABIT_LAPSE_BACKOFF_DAYS = value;
                 expect(getLapseBackoffDays(), value).to.equal(3);
             });
+        });
+    });
+
+    describe('cadence-aware lapses', () => {
+        // 2026-11-13 is a Friday; 2026-11-16 the Monday after.
+        const habit = (source: Record<string, any>, overrides: Partial<IRequiredDaysHabit> = {}): IRequiredDaysHabit => ({
+            habitGoalId: 'goal-1',
+            cadence: getCadence(source),
+            startedOn: '2026-01-01',
+            ...overrides,
+        });
+        const monWedFri = habit({ frequencyType: 'weekly', targetDaysOfWeek: [1, 3, 5] });
+
+        it('does not treat a Mon/Wed/Fri habit\'s weekend as a lapse', () => {
+            const monday = classifyRetention(history({ lastCheckinDate: '2026-11-13' }), '2026-11-16', 3, [monWedFri]);
+            expect(monday.state).to.equal('active');
+            expect(isBackedOff(monday)).to.equal(false);
+            expect(getDueComebackRung(monday.daysSince, [3, 7, 14])).to.equal(null);
+            // The calendar count this replaces called the same user lapsed.
+            expect(classifyRetention(history({ lastCheckinDate: '2026-11-13' }), '2026-11-16').state).to.equal('lapsed');
+        });
+
+        it('starts the lapse at the first scheduled day missed, not at the last check-in', () => {
+            // Monday the 16th skipped. Tuesday is day 2 of the lapse; Wednesday, the next session, day 3.
+            const tuesday = classifyRetention(history({ lastCheckinDate: '2026-11-13' }), '2026-11-17', 3, [monWedFri]);
+            expect(tuesday.state).to.equal('active');
+            expect(tuesday.daysSince).to.equal(2);
+            const wednesday = classifyRetention(history({ lastCheckinDate: '2026-11-13' }), '2026-11-18', 3, [monWedFri]);
+            expect(wednesday.state).to.equal('lapsed');
+            expect(wednesday.daysSince).to.equal(3);
+            // Still keyed on the check-in, so the ledger key is stable for the whole lapse.
+            expect(wednesday.anchorDate).to.equal('2026-11-13');
+        });
+
+        it('leaves a once-a-week habit alone between sessions that were all done', () => {
+            const saturdays = habit({ frequencyType: 'weekly', targetDaysOfWeek: [6] });
+            // Checked in Saturday the 14th; next due Saturday the 21st.
+            expect(getDaysIntoLapse('2026-11-14', '2026-11-20', [saturdays])).to.equal(0);
+            expect(getDaysIntoLapse('2026-11-14', '2026-11-21', [saturdays])).to.equal(0);
+            // The 21st skipped: the lapse runs from it.
+            expect(getDaysIntoLapse('2026-11-14', '2026-11-22', [saturdays])).to.equal(2);
+            expect(getDaysIntoLapse('2026-11-14', '2026-11-23', [saturdays])).to.equal(3);
+        });
+
+        it('counts exactly what the calendar did for a daily habit', () => {
+            const daily = habit({ frequencyType: 'daily' });
+            for (let gap = 2; gap <= 30; gap += 1) {
+                const today = addDays('2026-11-01', gap);
+                expect(getDaysIntoLapse('2026-11-01', today, [daily]), `gap ${gap}`).to.equal(gap);
+                expect(classifyRetention(history({ lastCheckinDate: '2026-11-01' }), today, 3, [daily]).state, `gap ${gap}`)
+                    .to.equal(classifyRetention(history({ lastCheckinDate: '2026-11-01' }), today).state);
+            }
+        });
+
+        it('lets a weekly quota count what was already done that week', () => {
+            const threePerWeek = habit({ frequencyType: 'weekly', frequencyCount: 3 });
+            // Mon 16 and Wed 18 done; one more owed, so only Sunday the 22nd became required.
+            const done = [
+                { habitGoalId: 'goal-1', localDate: '2026-11-16' },
+                { habitGoalId: 'goal-1', localDate: '2026-11-18' },
+            ];
+            expect(getDaysIntoLapse('2026-11-18', '2026-11-23', [threePerWeek], done)).to.equal(2);
+            // Without that week's tally, Friday the 20th would already have looked required.
+            expect(getDaysIntoLapse('2026-11-18', '2026-11-23', [threePerWeek], [])).to.equal(4);
+        });
+
+        it('does not count paused days toward a lapse', () => {
+            const paused = habit({ frequencyType: 'daily' }, { pausedRanges: [{ from: '2026-11-02', until: null }] });
+            expect(classifyRetention(history({ lastCheckinDate: '2026-11-01' }), '2026-11-20', 3, [paused]).state).to.equal('active');
+        });
+
+        it('applies the same rule to someone who has not checked in yet', () => {
+            const fridayStart = classifyRetention(history({ firstHabitStartedDate: '2026-11-13' }), '2026-11-16', 3, [monWedFri]);
+            expect(fridayStart.state).to.equal('never-new');
+        });
+
+        it('falls back to calendar days when there are no cadences to go on', () => {
+            expect(getDaysIntoLapse('2026-11-13', '2026-11-16', [])).to.equal(3);
+            expect(getDaysIntoLapse('2026-11-13', '2026-11-16', null)).to.equal(3);
+        });
+
+        it('never starts a lapse before the calendar would, so the comeback bonus promise holds', () => {
+            // The comeback copy promises a bonus that `isComebackCheckin` pays on a calendar gap of
+            // `lapseDays` or more. Every weekday schedule, every gap: days into the lapse <= calendar days.
+            for (let mask = 1; mask < 128; mask += 1) {
+                const days = [0, 1, 2, 3, 4, 5, 6].filter((day) => mask & (1 << day)); // eslint-disable-line no-bitwise
+                const schedule = habit({ frequencyType: 'weekly', targetDaysOfWeek: days });
+                for (let gap = 0; gap <= 21; gap += 1) {
+                    const today = addDays('2026-11-13', gap);
+                    expect(getDaysIntoLapse('2026-11-13', today, [schedule])).to.be.at.most(daysBetween('2026-11-13', today));
+                }
+            }
         });
     });
 

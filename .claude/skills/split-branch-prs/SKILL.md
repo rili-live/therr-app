@@ -343,6 +343,13 @@ A correctly split pair has an identical mobile tsc baseline count and an identic
 count on **both** branches. If the two branches disagree, something brand-coupled leaked — most
 often a test that reads the ambient brand instead of mocking it.
 
+## Known failure modes
+
+- **Every shared locale key conflicts on `git merge general` into a niche branch.** Niche locale
+  dictionaries (e.g. `TherrMobile/main/locales/*/dictionary.json` on `niche/HABITS-general`) are
+  4-space JSON; `general`'s are 2-space, so the whole file diffs. Resolve by keeping the niche
+  file and inserting the new block in 4-space form — never take `general`'s side wholesale.
+
 ## Rules
 
 - **Two PRs, never one.** A single PR spanning both buckets cannot be landed correctly.
