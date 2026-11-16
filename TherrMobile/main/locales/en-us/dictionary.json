@@ -1314,11 +1314,20 @@
             "headerTitle": "Achievements",
             "pageHeader": "Achievements",
             "buttons": {
-                "viewLeaderboard": "View Leaderboard"
+                "viewLeaderboard": "View Leaderboard",
+                "back": "Back",
+                "viewCollection": "Full collection",
+                "showLocked": "Show all",
+                "showLess": "Show less"
             },
             "labels": {
                 "coinValue": "Coin Value",
-                "xpValue": "Experience Value"
+                "xpValue": "Experience Value",
+                "rewards": "Rewards",
+                "rewardsEarned": "You earned",
+                "rewardsClaimed": "Rewards claimed",
+                "coins": "Coins",
+                "xp": "XP"
             },
             "info": {
                 "claimRewards": "Claim Rewards",
@@ -1333,11 +1342,42 @@
                 "alreadyClaimed": "You have already claimed rewards for this achievement",
                 "unClaimed": "This achievement is complete! Go back and press 'claim rewards' to continue.",
                 "inProgressDescription": "You're almost there! Keep on keepin' on!",
-                "progressOf": "{count} of {total}"
+                "progressOf": "{count} of {total}",
+                "claim": "Claim",
+                "earnedOfTotal": "{count} of {total} earned",
+                "level": "Level {level}",
+                "levelOf": "Level {level} of {total}",
+                "earnedOn": "Earned {date}",
+                "remaining": "{count} to go",
+                "lockedHint": "Keep working through the earlier levels and this one opens up.",
+                "moreLocked": "Show {count} more locked badges",
+                "unavailable": "This achievement isn't available in this version of the app. Update {appName} to see it."
             },
             "sections": {
-                "unclaimed": "Claim Your Rewards",
-                "inProgress": "In Progress"
+                "unclaimed": "Ready to Claim",
+                "inProgress": "In Progress",
+                "upNext": "Up Next",
+                "collection": "Your Collection",
+                "earned": "Earned"
+            },
+            "states": {
+                "claimable": "Reward ready",
+                "earned": "Earned",
+                "inProgress": "In progress",
+                "locked": "Locked"
+            },
+            "classes": {
+                "accountability": "Accountability",
+                "cleanBreak": "Clean Break",
+                "consistency": "Consistency",
+                "dailyStreak": "Daily Streak",
+                "habitBuilder": "Habit Builder",
+                "pactPioneer": "Pact Pioneer",
+                "resilience": "Resilience",
+                "socialEnergizer": "Social Energizer",
+                "socialite": "Socialite",
+                "treasureBuilder": "Treasure Builder",
+                "weeklyChampion": "Weekly Champion"
             }
         },
         "activeConnections": {
@@ -4092,6 +4132,126 @@
             "weeklyChampion_1_3_1": {
                 "title": "Serial Champion",
                 "description": "Reach #1 on the weekly leaderboard five more times"
+            },
+            "dailyStreak_1_1": {
+                "title": "Week One",
+                "description": "Check in on any habit 7 days in a row"
+            },
+            "dailyStreak_1_1_1": {
+                "title": "Thirty Days",
+                "description": "Reach a 30-day daily streak"
+            },
+            "dailyStreak_1_1_2": {
+                "title": "Fifty Up",
+                "description": "Reach a 50-day daily streak"
+            },
+            "dailyStreak_1_1_3": {
+                "title": "Century",
+                "description": "Reach a 100-day daily streak"
+            },
+            "dailyStreak_1_1_4": {
+                "title": "Double Century",
+                "description": "Reach a 200-day daily streak"
+            },
+            "dailyStreak_1_1_5": {
+                "title": "Full Year",
+                "description": "Reach a 365-day daily streak"
+            },
+            "dailyStreak_1_1_6": {
+                "title": "Five Hundred",
+                "description": "Reach a 500-day daily streak"
+            },
+            "dailyStreak_1_1_7": {
+                "title": "Two Years",
+                "description": "Reach a 730-day daily streak"
+            },
+            "dailyStreak_1_1_8": {
+                "title": "One Thousand",
+                "description": "Reach a 1000-day daily streak"
+            },
+            "dailyStreak_1_2": {
+                "title": "Perfect Week",
+                "description": "Check in every day of a calendar week, with no freezes"
+            },
+            "dailyStreak_1_2_1": {
+                "title": "Five Perfect Weeks",
+                "description": "Complete five perfect weeks"
+            },
+            "dailyStreak_1_3": {
+                "title": "Perfect Month",
+                "description": "Complete four perfect weeks in a row"
+            },
+            "dailyStreak_1_4": {
+                "title": "Right Back At It",
+                "description": "Build a new 7-day streak after losing one of 30 days or more"
+            },
+            "dailyStreak_1_5": {
+                "title": "Saved By A Freeze",
+                "description": "Have a streak freeze protect your daily streak"
+            },
+            "socialite_1_1": {
+                "title": "Friendly",
+                "description": "Invite 3 friends"
+            },
+            "socialite_1_1_1": {
+                "title": "Be Social",
+                "description": "Invite 10 friends"
+            },
+            "socialite_1_1_2": {
+                "title": "Initiator",
+                "description": "Invite 25 friends"
+            },
+            "socialite_1_1_3": {
+                "title": "Building a Network",
+                "description": "Invite 50 friends"
+            },
+            "socialite_1_1_4": {
+                "title": "Extend Your Borders",
+                "description": "Invite 100 friends"
+            },
+            "socialite_1_1_5": {
+                "title": "All In",
+                "description": "Invite 500 friends"
+            },
+            "socialite_1_1_6": {
+                "title": "Tell the World",
+                "description": "Invite 1000 friends"
+            },
+            "socialite_1_2": {
+                "title": "Break the Ice",
+                "description": "Make your first connection"
+            },
+            "socialite_1_2_1": {
+                "title": "New Friends",
+                "description": "Make 3 connections"
+            },
+            "socialite_1_2_2": {
+                "title": "Social Circle",
+                "description": "Make 10 connections"
+            },
+            "socialite_1_2_3": {
+                "title": "Getting Popular",
+                "description": "Make 50 connections"
+            },
+            "socialite_1_2_4": {
+                "title": "Strength In Numbers",
+                "description": "Make 100 connections"
+            },
+            "socialite_1_2_5": {
+                "title": "Diversify",
+                "description": "Make 250 connections"
+            },
+            "socialite_1_2_6": {
+                "title": "Social Butterfly",
+                "description": "Make 1000 connections"
+            },
+            "socialite_1_2_7": {
+                "title": "Almost Famous",
+                "description": "Make 5000 connections"
+            },
+            "socialite_1_2_8": {
+                "title": "Definitely Famous",
+                "description": "Make 10000 connections"
             }
         },
         "profile": {
