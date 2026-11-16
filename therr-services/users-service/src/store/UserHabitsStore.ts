@@ -343,8 +343,20 @@ export default class UserHabitsStore {
      * started on Thursday cannot have required Monday.
      */
     getActiveCadencesByUser(userId: string): Promise<IUserHabitCadence[]> {
+        return this.getActiveCadencesForUsers([userId]);
+    }
+
+    /**
+     * `getActiveCadencesByUser` for many users in one read, each row carrying its `userId`. The
+     * habits digest uses it to tell a lapse from a rest day (`utilities/retentionLadder.ts`).
+     */
+    getActiveCadencesForUsers(userIds: string[]): Promise<(IUserHabitCadence & { userId: string })[]> {
+        if (!userIds.length) {
+            return Promise.resolve([]);
+        }
         const queryString = knexBuilder.raw(
-            `SELECT uh."habitGoalId" AS "habitGoalId",
+            `SELECT uh."userId" AS "userId",
+                uh."habitGoalId" AS "habitGoalId",
                 uh."startedAt" AS "startedAt",
                 g."frequencyType" AS "frequencyType",
                 g."frequencyCount" AS "frequencyCount",
@@ -363,12 +375,12 @@ export default class UserHabitsStore {
                 ), '[]'::json) AS "pausedRanges"
             FROM ${USER_HABITS_TABLE_NAME} uh
             INNER JOIN ${HABIT_GOALS_TABLE_NAME} g ON g."id" = uh."habitGoalId"
-            WHERE uh."userId" = ?::uuid
+            WHERE uh."userId" IN (${userIds.map(() => '?::uuid').join(', ')})
                 AND uh."status" = 'active'`,
-            [userId],
+            userIds,
         ).toString();
 
-        return this.db.read.query(queryString).then((response) => response.rows as IUserHabitCadence[]);
+        return this.db.read.query(queryString).then((response) => response.rows as (IUserHabitCadence & { userId: string })[]);
     }
 
     /**

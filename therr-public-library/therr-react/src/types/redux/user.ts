@@ -25,6 +25,7 @@ export interface IBrandMembership {
 
 export interface IUser {
   accessLevels: IAccessLevel;
+  createdAt?: string;
   id: string;
   idToken: string;
   email: string;

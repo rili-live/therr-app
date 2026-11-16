@@ -1,7 +1,7 @@
 /**
  * Retention messaging at the measured drop-off points — the pure half.
  *
- * Decides, from a user's check-in history alone, which of four moments they are at and therefore
+ * Decides, from a user's check-in history and their habits' cadences, which of four moments they are at and therefore
  * what the habits digest may say to them today. No database, no clock of its own: the digest
  * passes `today` in. `handlers/helpers/retentionMessaging.ts` does the reads and the sending.
  *
@@ -26,13 +26,16 @@
  * (`HABIT_LAPSE_BACKOFF_DAYS`) the daily reminder, streak-at-risk, last-chance and
  * partner-missed-day pushes stop, and a short comeback ladder (day 3, 7, 14 —
  * `HABIT_COMEBACK_LADDER_DAYS`) takes their place, aimed at the window those 14 returns came in.
- * After the last rung: silence.
+ * After the last rung: silence. "Day 3" is counted from the first *scheduled* day missed, not
+ * from the last check-in, so a non-daily habit's rest days never start a lapse
+ * (`getDaysIntoLapse`).
  *
  * The other two moments are the cliffs either side of the first check-in: 111 of 125 real
  * accounts older than 35 days never completed one, and of those who did, 35 checked in on day 0
  * and 7 on days 1–2. Each gets one message, once ever: `first-checkin` and `day-two`.
  */
 import { addDays, daysBetween } from './dailyStreak';
+import { computeRequiredDates, IRequiredDaysHabit } from './habitCadence';
 
 /** The copy variants the digest stamps on a `dailyHabitReminder` row (`payload.messageVariant`). */
 export type RetentionMessageVariant = 'first-checkin' | 'day-two' | 'comeback' | 'comeback-no-bonus' | 'fresh-start';
@@ -54,11 +57,21 @@ export interface IRetentionHistory {
     firstCheckinDate: string | null;
     /** When they started their earliest still-active habit — the anchor for someone who never checked in. */
     firstHabitStartedDate: string | null;
+    /**
+     * Completed (habit, local day) pairs in the Monday–Sunday week of `lastCheckinDate`, up to and
+     * including it. Only a weekly quota reads it: whether the rest of that week required anything
+     * depends on how much of the quota was already done.
+     */
+    lastCheckinWeekCompletions?: { habitGoalId: string; localDate: string }[] | null;
 }
 
 export interface IRetentionClassification {
     state: RetentionState;
-    /** Days since the last check-in, or since the first habit was started for someone who never checked in. */
+    /**
+     * Days into the lapse: counted from the first *required* day missed after the last check-in
+     * (or after the first habit was started, for someone who never checked in), through today.
+     * For a daily habit that is plain calendar days since the anchor. See `getDaysIntoLapse`.
+     */
     daysSince: number | null;
     /**
      * The date this lapse is measured from. Part of every comeback key, so a user who comes back
@@ -116,14 +129,76 @@ export const getComebackLadderDays = (lapseDays: number = getLapseBackoffDays())
     return unique.length ? unique : [lapseDays];
 };
 
+/**
+ * How far into a lapse `today` is, counted from the anchor (the last check-in, or the day the
+ * first habit was started).
+ *
+ * ## Why not just calendar days since the anchor
+ *
+ * Calendar days treat every day as one the user owed. For a Monday/Wednesday/Friday habit,
+ * Friday → Monday is three days, so a user who never missed a session read as lapsed every
+ * Monday: their ordinary reminder was dropped, the day-3 comeback ("we miss you") went out in its
+ * place, and their partner's misses stopped being reported to them. A once-a-week habit read as
+ * lapsed between every two check-ins it was doing exactly as asked.
+ *
+ * ## The rule
+ *
+ * The lapse starts on the first day after the anchor that one of the user's habits *required*
+ * (`computeRequiredDates`: a scheduled weekday, every day of a daily habit, or a quota day with no
+ * slack left), and only once that day is over — today is never counted as missed. Days into the
+ * lapse = days from that first missed day through today, inclusive.
+ *
+ * For a daily habit the first missed day is always the day after the anchor, so this is exactly
+ * the calendar count it replaces; that equivalence is tested. A sparser cadence only ever starts
+ * its lapse later, never earlier, so every lapsed user still has a calendar gap of at least
+ * `lapseDays` — which keeps the comeback copy's bonus promise (`isComebackCheckin` in
+ * `dailyBonus.ts`, measured in calendar days) true by construction.
+ *
+ * Cadences are judged by what they are now, not by `cadenceEffectiveFrom`: this decides which
+ * reminder to send today, and today's reminder follows today's cadence.
+ *
+ * With no habit cadences to go on (the read failed, or every habit is gone) this falls back to
+ * calendar days: the behaviour before this rule existed, and the direction that backs off.
+ */
+export const getDaysIntoLapse = (
+    anchorDate: string,
+    today: string,
+    habits?: IRequiredDaysHabit[] | null,
+    anchorWeekCompletions?: { habitGoalId: string; localDate: string }[] | null,
+): number => {
+    if (!habits || !habits.length) {
+        return Math.max(0, daysBetween(anchorDate, today));
+    }
+
+    const firstCandidate = addDays(anchorDate, 1);
+    const yesterday = addDays(today, -1);
+    if (daysBetween(firstCandidate, yesterday) < 0) {
+        return 0;
+    }
+
+    const required = computeRequiredDates({
+        habits,
+        fromDate: firstCandidate,
+        upTo: yesterday,
+        completions: anchorWeekCompletions || [],
+    });
+    if (!required.size) {
+        return 0;
+    }
+    const firstMissed = Array.from(required).sort()[0];
+    return daysBetween(firstMissed, today) + 1;
+};
+
 export const classifyRetention = (
     history: IRetentionHistory,
     today: string,
     lapseDays: number = getLapseBackoffDays(),
+    /** The user's active habits' cadences. Absent → calendar days (see `getDaysIntoLapse`). */
+    habits: IRequiredDaysHabit[] | null = null,
 ): IRetentionClassification => {
     const yesterday = addDays(today, -1);
     if (history.lastCheckinDate) {
-        const daysSince = Math.max(0, daysBetween(history.lastCheckinDate, today));
+        const daysSince = getDaysIntoLapse(history.lastCheckinDate, today, habits, history.lastCheckinWeekCompletions);
         return {
             state: daysSince >= lapseDays ? 'lapsed' : 'active',
             daysSince,
@@ -132,7 +207,7 @@ export const classifyRetention = (
         };
     }
     if (history.firstHabitStartedDate) {
-        const daysSince = Math.max(0, daysBetween(history.firstHabitStartedDate, today));
+        const daysSince = getDaysIntoLapse(history.firstHabitStartedDate, today, habits);
         return {
             state: daysSince >= lapseDays ? 'never-lapsed' : 'never-new',
             daysSince,

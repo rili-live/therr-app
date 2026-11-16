@@ -68,6 +68,8 @@ export interface IRetentionProfileRow {
     lastCheckinDate: string | null;
     firstCheckinDate: string | null;
     firstHabitStartedDate: string | null;
+    /** Completed (habit, local day) pairs in the Monday–Sunday week of `lastCheckinDate`, through it. */
+    lastCheckinWeekCompletions: { habitGoalId: string; localDate: string }[];
     email: string | null;
     firstName: string | null;
     userName: string | null;
@@ -134,12 +136,23 @@ export default class OnboardingMessagesStore {
         const queryString = knexBuilder.raw(
             `SELECT
                 u."id" AS "userId",
-                (SELECT MAX(${checkinDaySql})::text FROM ${HABIT_CHECKINS_TABLE_NAME} AS c
-                    WHERE c."userId" = u."id" AND c."status" = 'completed') AS "lastCheckinDate",
-                (SELECT MIN(${checkinDaySql})::text FROM ${HABIT_CHECKINS_TABLE_NAME} AS c
-                    WHERE c."userId" = u."id" AND c."status" = 'completed') AS "firstCheckinDate",
+                hist."lastCheckinDate"::text AS "lastCheckinDate",
+                hist."firstCheckinDate"::text AS "firstCheckinDate",
                 (SELECT MIN(h."startedAt")::date::text FROM ${USER_HABITS_TABLE_NAME} AS h
                     WHERE h."userId" = u."id" AND h."status" = 'active') AS "firstHabitStartedDate",
+                -- What was done in the Monday-Sunday week of the last check-in, through it: a
+                -- weekly quota needs it to know whether the rest of that week required anything.
+                -- date_trunc('week') is Monday-based, matching getWeekStart.
+                COALESCE((
+                    SELECT jsonb_agg(DISTINCT jsonb_build_object(
+                        'habitGoalId', c."habitGoalId",
+                        'localDate', (${checkinDaySql})::date::text
+                    ))
+                    FROM ${HABIT_CHECKINS_TABLE_NAME} AS c
+                    WHERE c."userId" = u."id" AND c."status" = 'completed'
+                        AND (${checkinDaySql})::date >= date_trunc('week', hist."lastCheckinDate")::date
+                        AND (${checkinDaySql})::date <= hist."lastCheckinDate"::date
+                ), '[]'::jsonb) AS "lastCheckinWeekCompletions",
                 u."email",
                 u."firstName",
                 u."userName",
@@ -147,12 +160,19 @@ export default class OnboardingMessagesStore {
                 u."settingsEmailReminders",
                 u."settingsLocale"
              FROM ${USERS_TABLE_NAME} AS u
+             LEFT JOIN LATERAL (
+                SELECT MAX(${checkinDaySql}) AS "lastCheckinDate", MIN(${checkinDaySql}) AS "firstCheckinDate"
+                FROM ${HABIT_CHECKINS_TABLE_NAME} AS c
+                WHERE c."userId" = u."id" AND c."status" = 'completed'
+             ) AS hist ON TRUE
              WHERE u."id" IN (${userIds.map(() => '?::uuid').join(', ')})`,
             userIds,
         ).toString();
 
         return this.db.read.query(queryString).then((response) => response.rows.map((row: any) => ({
             ...row,
+            lastCheckinWeekCompletions: (Array.isArray(row.lastCheckinWeekCompletions) ? row.lastCheckinWeekCompletions : [])
+                .map((entry: any) => ({ habitGoalId: String(entry.habitGoalId), localDate: String(entry.localDate).slice(0, 10) })),
             lastCheckinDate: row.lastCheckinDate ? String(row.lastCheckinDate).slice(0, 10) : null,
             firstCheckinDate: row.firstCheckinDate ? String(row.firstCheckinDate).slice(0, 10) : null,
             firstHabitStartedDate: row.firstHabitStartedDate ? String(row.firstHabitStartedDate).slice(0, 10) : null,

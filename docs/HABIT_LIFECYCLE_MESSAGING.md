@@ -330,13 +330,22 @@ checking in after week 1 and none after week 4.
 |---|---|---|---|
 | Has a habit, never checked in, habit < N days old | the day's nudge is rewritten as "Day 1 of <habit>" with the one-tap Check In | push, else email | `onboarding:first-checkin` |
 | First-ever check-in was yesterday | the day's nudge is rewritten as "Day 2 of <habit>" — "<partner> is in it with you" when paired | push, else email | `retention:day-two` |
-| No check-in for N+ days (default 3) | daily reminder, streak-at-risk, last-chance and partner-missed-day all stop — to the lapsed user, and *about* them to their partner | — | — |
+| N+ days into a lapse (default 3; see *Lapse days* below) | daily reminder, streak-at-risk, last-chance and partner-missed-day all stop — to the lapsed user, and *about* them to their partner | — | — |
 | …at day 3, 7 and 14 | one comeback per rung, naming the habit (and partner), promising the comeback bonus; never-checked-in users get a "fresh start" instead | push, else email | `retention:comeback:<lastCheckinDate>:d<rung>` |
 | Past the last rung + 7 days | silence | — | — |
 
 - **Tunables** (users-service env): `HABIT_LAPSE_BACKOFF_DAYS` (3), `HABIT_COMEBACK_LADDER_DAYS`
   (`3,7,14`; rungs below N are dropped), kill switches `HABIT_LAPSE_BACKOFF_ENABLED` and
   `HABIT_RETENTION_MESSAGES_ENABLED` (both default on — the first is a volume *cut*).
+- **Lapse days count from the first scheduled day missed**, not from the last check-in
+  (`getDaysIntoLapse`). A day only counts once one of the user's active habits *required* it
+  (`computeRequiredDates` in `habitCadence.ts`: every day of a daily habit, a scheduled weekday,
+  a quota day with no slack left; paused days never). For a daily habit this is the same number
+  as calendar days. Before it, a Mon/Wed/Fri user read as lapsed every Monday (Friday → Monday is
+  three days) and got the day-3 comeback in place of their ordinary reminder, and a once-a-week
+  habit read as lapsed between every two sessions it did on time. A sparser cadence only ever
+  starts a lapse later, so the comeback bonus (paid on a calendar gap of N+) is still owed to
+  everyone the copy promises it to. A failed cadence read falls back to calendar days.
 - **One rung per run, the highest due.** Each rung stays sendable until the next one (the last
   for 7 days), so a missed run delays a message instead of dropping it, and a user first found
   at day 9 gets the day-7 message rather than a burst.

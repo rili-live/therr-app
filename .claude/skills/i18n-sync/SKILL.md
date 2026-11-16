@@ -128,6 +128,14 @@ When run with `--fix-stubs`, additionally scan for values that still start with 
 
 ---
 
+## Known failure modes
+
+- **A fake key in a test or comment fails `locales:check`.** Its phase 2 matches `translate('a.b')`
+  by regex (`scripts/locale-check/index.js`) across the package's `.ts` sources, test helpers and
+  comments included. Alias the function in tests (`const t = translate`) rather than adding the key.
+
+---
+
 ## Rules
 
 - **Never translate values yourself.** You do not know the target languages well enough to produce production translations. Always stub with a clearly-marked prefix and defer to a human or translation service.

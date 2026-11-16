@@ -7,8 +7,12 @@
  *   |--------------------------------|-------------------------------------------------------|------------------|------------------------------------------|
  *   | Has a habit, never checked in  | the day's nudge becomes "Day 1 of <habit>", once      | push, else email | onboarding:first-checkin                 |
  *   | First check-in was yesterday   | the day's nudge becomes "Day 2 of <habit>", once      | push, else email | retention:day-two                        |
- *   | No check-in for 3+ days        | daily nudges + partner-missed-day stop                | —                | —                                        |
+ *   | 3+ days into a lapse (*)       | daily nudges + partner-missed-day stop                | —                | —                                        |
  *   | …at day 3, 7 and 14            | one comeback message per rung, then silence           | push, else email | retention:comeback:<lastCheckinDate>:d<N> |
+ *
+ * (*) Counted from the first *scheduled* day missed after the last check-in, not from the check-in
+ * itself, so a Mon/Wed/Fri habit's weekend is not a lapse (`getDaysIntoLapse` in retentionLadder).
+ * For a daily habit the two are the same number.
  *
  * Every message is claimed in `habits.onboarding_messages` before it is sent — the same once-ever
  * ledger the onboarding nurture sequence uses, so `onboarding:first-checkin` is the next step of
@@ -30,6 +34,7 @@ import { IUserHabitReminderRow } from '../../store/UserHabitsStore';
 import sendHabitRetentionEmail from '../../api/email/for-social/sendHabitRetentionEmail';
 import { ICheckinNudgeRow } from '../../utilities/checkinNudgeRollup';
 import { isDailyBonusEnabled } from '../../utilities/dailyBonus';
+import { getCadence, IRequiredDaysHabit } from '../../utilities/habitCadence';
 import { EnqueueOutcome } from '../../utilities/enqueueNotification';
 import { resolveReminderSchedule } from '../../utilities/localReminderSchedule';
 import {
@@ -130,6 +135,36 @@ const logFailure = (message: string, err: any, traceArgs: Record<string, any> = 
 });
 
 /**
+ * Each user's active habits as `computeRequiredDates` wants them, so a rest day of a non-daily
+ * habit is not counted toward a lapse (`getDaysIntoLapse`). The same mapping as the daily
+ * streak's `loadRequiredDates`, minus `cadenceEffectiveFrom` — see `getDaysIntoLapse` for why.
+ *
+ * Returns null on a failed read, and the classification then falls back to calendar days: the
+ * behaviour before cadences were consulted. That is the backing-off direction, and the history
+ * read still decides, so one failed read does not cost the whole retention pass.
+ */
+const loadRequiredDaysHabits = async (userIds: string[]): Promise<Map<string, IRequiredDaysHabit[]> | null> => {
+    try {
+        const rows = await Store.userHabits.getActiveCadencesForUsers(userIds);
+        const byUser = new Map<string, IRequiredDaysHabit[]>();
+        (rows || []).forEach((row) => {
+            const list = byUser.get(row.userId) || [];
+            list.push({
+                habitGoalId: row.habitGoalId,
+                cadence: getCadence(row),
+                startedOn: row.startedAt ? new Date(row.startedAt).toISOString().slice(0, 10) : null,
+                pausedRanges: Array.isArray(row.pausedRanges) ? row.pausedRanges : [],
+            });
+            byUser.set(row.userId, list);
+        });
+        return byUser;
+    } catch (err: any) {
+        logFailure('failed to read habit cadences; lapses counted in calendar days this run', err);
+        return null;
+    }
+};
+
+/**
  * One read of check-in history for everyone the run might notify. Never throws: a failure is
  * counted and yields a context that backs nobody off and sends no variant.
  */
@@ -147,13 +182,16 @@ export const loadRetentionContext = async (
     }
 
     try {
-        const rows = await Store.onboardingMessages.getRetentionProfiles(unique);
+        const [rows, habitsByUser] = await Promise.all([
+            Store.onboardingMessages.getRetentionProfiles(unique),
+            loadRequiredDaysHabits(unique),
+        ]);
         const lapseDays = getLapseBackoffDays();
         const profiles = new Map<string, IRetentionProfileRow>();
         const classifications = new Map<string, IRetentionClassification>();
         (rows || []).forEach((row) => {
             profiles.set(row.userId, row);
-            classifications.set(row.userId, classifyRetention(row, today, lapseDays));
+            classifications.set(row.userId, classifyRetention(row, today, lapseDays, habitsByUser?.get(row.userId)));
         });
         counters.profilesLoaded = profiles.size; // eslint-disable-line no-param-reassign
         return {

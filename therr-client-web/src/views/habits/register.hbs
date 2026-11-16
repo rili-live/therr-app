@@ -304,7 +304,8 @@
             // on the challenge (habits/login.hbs reads this), and say so in the success message.
             var pendingChallenge = qs.get('challenge');
             if (pendingChallenge && /^[A-Za-z0-9]{12}$/.test(pendingChallenge)) {
-                try { localStorage.setItem('habitsPendingChallenge', pendingChallenge); } catch (e) { /* fine */ }
+                // Stamped so sign-in only honours it for a few days; see habits/login.hbs.
+                try { localStorage.setItem('habitsPendingChallenge', JSON.stringify({ token: pendingChallenge, at: Date.now() })); } catch (e) { /* fine */ }
             } else {
                 pendingChallenge = null;
             }
