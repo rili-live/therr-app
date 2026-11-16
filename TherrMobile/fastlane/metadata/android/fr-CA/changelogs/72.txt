@@ -1,0 +1,5 @@
+Nouveautés :
+• Les réalisations deviennent une collection de badges : voyez tous ceux à gagner, la suite de chaque palier, et réclamez vos récompenses depuis le badge
+• Votre profil met en valeur les badges que vous avez gagnés
+• Votre compagnon d'habitudes compte maintenant vos jours ensemble et grandit comme prévu
+• Mettre en pause et Archiver une habitude se distinguent mieux, avec des couleurs et des icônes plus claires

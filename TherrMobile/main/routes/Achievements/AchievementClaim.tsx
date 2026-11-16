@@ -1,48 +1,42 @@
-/* eslint-disable max-len */
 import React from 'react';
-import { InteractionManager, Pressable, StyleSheet, View, Text } from 'react-native';
+import { InteractionManager, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import LottieView from 'lottie-react-native';
 import { IUserState } from 'therr-react/types';
-import { achievementsByClass } from 'therr-js-utilities/config';
-import { BrandVariations } from 'therr-js-utilities/constants';
-import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
-import HabitsAchievementBadge from '../../components/Achievements/HabitsAchievementBadge';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import SharePromptModal from '../../components/Modals/SharePromptModal';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../utilities/translator';
-import { triggerRewardCelebration } from '../../utilities/rewardFeedback';
+import { showToast } from '../../utilities/toasts';
+import {
+    triggerClaimErrorFeedback,
+    triggerClaimPressFeedback,
+    triggerClaimSuccessFeedback,
+    triggerRewardCelebration,
+} from '../../utilities/rewardFeedback';
+import { recordPositiveSignal } from '../../utilities/appReviewPrompt';
 import { buildAchievementsShareUrl } from '../../utilities/shareUrls';
+import {
+    getAchievementBadgeKey,
+    getAchievementCopy,
+    getBadgeTrack,
+    IAchievementBadge,
+    toAchievementBadge,
+} from '../../utilities/achievementCollection';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildAchievementStyles } from '../../styles/achievements';
-import textStyles from '../../styles/text';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { ScrollView } from 'react-native-gesture-handler';
 import TherrIcon from '../../components/TherrIcon';
-
-const achievementConfetti = require('../../assets/achievement-confetti-2.json');
-// Therr's card art, keyed like AchievementTile's. A Habits class has no entry here
-// and never did — on Friends with Habits the card is HabitsAchievementBadge.
-const cardImagesLottie = {
-    explorer: require('../../assets/explorer-card.json'),
-    influencer: require('../../assets/influencer-card.json'),
-    socialite: require('../../assets/socialite-card.json'),
-    communityLeader: require('../../assets/socialite-card.json'),
-    thinker: require('../../assets/thinker-card.json'),
-    weeklyChampion: require('../../assets/influencer-card.json'),
-};
-const IS_HABITS = CURRENT_BRAND_VARIATION === BrandVariations.HABITS;
-/** Glyph size on the claim card, which is 212dp tall against the tile's 92. */
-const CLAIM_CARD_ICON_SIZE = 72;
+import AchievementDetail from './AchievementDetail';
 
 interface IAchievementClaimDispatchProps {
     claimMyAchievement: Function;
+    getMyAchievements: Function;
     updateUser: Function;
 }
 
@@ -57,8 +51,18 @@ export interface IAchievementClaimProps extends IStoreProps {
 }
 
 interface IAchievementClaimState {
+    // Keys of badges whose reward was claimed while this screen was open (or on the way
+    // into it). The Redux row can lag the claim by a refetch; this keeps the screen from
+    // offering the button again in the meantime.
+    claimedKeys: { [key: string]: boolean };
+    // The badge whose claim is being celebrated, if any.
+    celebratingKey: string | null;
     hasTransitioned: boolean;
+    isClaimRequestPending: boolean;
     isSharePromptVisible: boolean;
+    // Which badge is on screen. Starts as the one navigated to; tapping a level on the
+    // ladder changes it in place.
+    selectedKey: string;
 }
 
 const mapStateToProps = (state) => ({
@@ -67,6 +71,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     claimMyAchievement: UsersActions.claimMyAchievement,
+    getMyAchievements: UsersActions.getMyAchievements,
     updateUser: UsersActions.update,
 }, dispatch);
 
@@ -80,13 +85,23 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
     private themeAchievements = buildAchievementStyles();
     private interactionHandle: { cancel: () => void } | null = null;
     private cancelCelebration: (() => void) | null = null;
+    // A claim can resolve after the user has backed out. Nothing may start a celebration
+    // (queued haptic taps, the share prompt) for a screen that is no longer there.
+    private isUnmounted = false;
 
     constructor(props) {
         super(props);
 
+        const { userAchievement, isClaiming } = props.route?.params || {};
+        const routeKey = getAchievementBadgeKey(userAchievement?.achievementClass, userAchievement?.achievementId);
+
         this.state = {
+            claimedKeys: isClaiming ? { [routeKey]: true } : {},
+            celebratingKey: isClaiming ? routeKey : null,
             hasTransitioned: false,
+            isClaimRequestPending: false,
             isSharePromptVisible: false,
+            selectedKey: routeKey,
         };
 
         this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
@@ -99,13 +114,16 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
 
     componentDidMount = () => {
         const { route } = this.props;
-        const { isClaiming } = route.params;
+        const { isClaiming } = route?.params || {};
 
         this.props.navigation.setOptions({
             title: this.translate('pages.achievements.headerTitle'),
             headerLeft: () => (
                 <Pressable
-                    onPress={() => this.props.navigation.navigate('Achievements')}
+                    accessibilityRole="button"
+                    accessibilityLabel={this.translate('pages.achievements.buttons.back')}
+                    onPress={this.handleBack}
+                    hitSlop={8}
                     style={localStyles.headerBackButton}
                 >
                     <TherrIcon name="go-back" size={24} />
@@ -131,10 +149,11 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
             }
         });
 
-        this.handleRefresh();
     };
 
     componentWillUnmount() {
+        this.isUnmounted = true;
+
         if (this.interactionHandle) {
             this.interactionHandle.cancel();
         }
@@ -146,129 +165,169 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
         }
     }
 
+    /**
+     * Back to wherever the badge was opened from. This used to always go to the
+     * Achievements screen, which was the only way in; a badge can now be opened from a
+     * profile too, and leaving it should return there.
+     */
+    handleBack = () => {
+        const { navigation } = this.props;
+
+        if (navigation.canGoBack?.()) {
+            navigation.goBack();
+            return;
+        }
+        navigation.navigate('Achievements');
+    };
+
     handleRefresh = () => {
-        console.log('refresh');
+        if (this.isReadOnly()) {
+            return;
+        }
+        this.props.getMyAchievements().catch((err) => console.log('GET_ACHIEVEMENTS_ERROR', err));
     };
 
     onDismissSharePrompt = () => {
         this.setState({ isSharePromptVisible: false });
     };
 
-    renderDescription = (userAchievement) => {
-        const { route } = this.props;
-        const { isClaiming } = route.params;
+    /** A badge opened from someone else's profile: their rows arrive with the route. */
+    isReadOnly = () => Array.isArray(this.props.route?.params?.ownerAchievements);
 
-        if (userAchievement.completedAt) {
-            if (parseFloat(userAchievement.unclaimedRewardPts || '0') !== 0) {
-                if (isClaiming) {
-                    if (userAchievement.achievementClass === 'influencer') {
-                        return (
-                            <Text style={[this.theme.styles.sectionDescriptionCentered]}>
-                                {this.translate('pages.achievements.info.congratulationsInfluencer', { achievementTitle: userAchievement.achievementClass })}
-                            </Text>
-                        );
-                    }
-                    return (
-                        <Text style={[this.theme.styles.sectionDescriptionCentered]}>
-                            {this.translate('pages.achievements.info.congratulations', { achievementTitle: userAchievement.achievementClass })}
-                        </Text>
-                    );
-                }
+    /**
+     * The rows the screen draws from: the profile owner's when read-only, otherwise the
+     * signed-in user's, plus the row that was navigated with in case the store has not
+     * loaded it. Anything claimed from here is shown as claimed whatever the store says.
+     */
+    getRows = (): any[] => {
+        const { route, user } = this.props;
+        const { claimedKeys } = this.state;
+        const { ownerAchievements, userAchievement } = route?.params || {};
 
-                return (
-                    <Text style={[this.theme.styles.sectionDescriptionCentered]}>
-                        {this.translate('pages.achievements.info.unClaimed', { achievementTitle: userAchievement.achievementClass })}
-                    </Text>
-                );
-            }
-
-            return (
-                <Text style={[this.theme.styles.sectionDescriptionCentered]}>
-                    {this.translate('pages.achievements.info.alreadyClaimed', { achievementTitle: userAchievement.achievementClass })}
-                </Text>
-            );
+        if (Array.isArray(ownerAchievements)) {
+            return ownerAchievements;
         }
 
-        return (
-            <Text style={[this.theme.styles.sectionDescriptionCentered]}>
-                {this.translate('pages.achievements.info.inProgressDescription', { achievementTitle: userAchievement.achievementClass })}
-            </Text>
-        );
+        const rows: any[] = Object.values(user.achievements || {});
+        const routeKey = getAchievementBadgeKey(userAchievement?.achievementClass, userAchievement?.achievementId);
+        const hasRouteRow = rows.some((row: any) => getAchievementBadgeKey(row?.achievementClass, row?.achievementId) === routeKey);
+        if (!hasRouteRow && userAchievement?.id) {
+            rows.push(userAchievement);
+        }
+
+        return rows.map((row: any) => {
+            const key = getAchievementBadgeKey(row?.achievementClass, row?.achievementId);
+            if (!row || !claimedKeys[key]) {
+                return row;
+            }
+            return {
+                ...row,
+                unclaimedRewardPts: 0,
+                completedAt: row.completedAt || new Date().toISOString(),
+            };
+        });
     };
 
-    renderTitle = (userAchievement) => {
+    /** The badge on screen and the ladder it sits on, or `null` for an achievement this build does not know. */
+    getSelection = (): { badge: IAchievementBadge; track: IAchievementBadge[] } | null => {
         const { route } = this.props;
-        const { isClaiming } = route.params;
-        const achievement = achievementsByClass[userAchievement.achievementClass][userAchievement.achievementId];
+        const { selectedKey } = this.state;
+        const { userAchievement } = route?.params || {};
+        const routeBadge = toAchievementBadge(userAchievement);
 
-        if (userAchievement.completedAt) {
-            if (parseFloat(userAchievement.unclaimedRewardPts || '0') !== 0) {
-                if (isClaiming) {
-                    return (
-                        <Text style={[this.theme.styles.sectionTitleCenter, textStyles.capitalize]}>
-                            {this.translate('pages.achievements.info.claimTitle', {
-                                achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, ' $1'),
-                                achievementTitle: achievement.title,
-                            })}
-                        </Text>
-                    );
-                }
-                return (
-                    <Text style={[this.theme.styles.sectionTitleCenter, textStyles.capitalize]}>
-                        {this.translate('pages.achievements.info.claimTitleInProgress', {
-                            achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, ' $1'),
-                            achievementTitle: achievement.title,
-                        })}
-                    </Text>
-                );
-            }
+        if (!routeBadge) {
+            return null;
         }
 
-        return (
-            <Text style={[this.theme.styles.sectionTitleCenter, textStyles.capitalize]}>
-                {this.translate('pages.achievements.info.claimTitleInProgress', {
-                    achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, ' $1'),
-                    achievementTitle: achievement.title,
-                })}
-            </Text>
-        );
+        const rows = this.getRows();
+        // The selected badge is always on the same ladder as the one navigated to, so one
+        // ladder holds every badge this screen can show.
+        const track = getBadgeTrack(routeBadge, rows);
+        const badge = track.find((candidate) => candidate.key === selectedKey)
+            || track.find((candidate) => candidate.key === routeBadge.key)
+            || routeBadge;
+
+        return { badge, track };
     };
 
-    renderDetails = (userAchievement) => {
-        const achievement = achievementsByClass[userAchievement.achievementClass][userAchievement.achievementId];
+    handleSelectBadge = (badge: IAchievementBadge) => {
+        this.setState({ selectedKey: badge.key });
+    };
 
-        if (userAchievement.completedAt) {
-            if (parseFloat(userAchievement.unclaimedRewardPts || '0') === 0) {
-                return (
-                    null
-                );
-            }
+    handleClaim = () => {
+        const selection = this.getSelection();
+        const row = selection?.badge.userAchievement;
+
+        if (!selection || !row?.id || this.state.isClaimRequestPending || selection.badge.state !== 'claimable') {
+            return;
         }
 
-        return (
-            <>
-                <Text style={[this.theme.styles.sectionDescriptionCentered]}>
-                    {`${this.translate('pages.achievements.labels.coinValue')}:`} <Text style={localStyles.fontWeightSemiBold}>{this.translate('pages.achievements.info.numberOfCoins', { pointReward: achievement.pointReward })}</Text>
-                </Text>
-                <Text style={[this.theme.styles.sectionDescriptionCentered]}>
-                    {`${this.translate('pages.achievements.labels.xpValue')}:`} <Text style={localStyles.fontWeightSemiBold}>{this.translate('pages.achievements.info.numberOfXp', { pointReward: achievement.xp })}</Text>
-                </Text>
-            </>
-        );
+        const { badge } = selection;
+
+        // Tactile acknowledgement fires before the request so the button feels
+        // instant even when the network is slow.
+        triggerClaimPressFeedback();
+        this.setState({ isClaimRequestPending: true });
+
+        this.props.claimMyAchievement(row.id, row.unclaimedRewardPts).then(() => {
+            triggerClaimSuccessFeedback();
+            // Counts toward the app-review prompt. Fire-and-forget: a storage failure must
+            // not affect the claim that just succeeded.
+            recordPositiveSignal('achievementClaimed').catch((err) => console.log('APP_REVIEW_SIGNAL_ERROR', err));
+            showToast.success({
+                text1: this.translate('alertTitles.coinsReceived'),
+                text2: this.translate('alertMessages.coinsReceived', {
+                    total: row.unclaimedRewardPts,
+                }),
+            });
+
+            if (this.isUnmounted) {
+                return;
+            }
+
+            if (this.cancelCelebration) {
+                this.cancelCelebration();
+            }
+            this.cancelCelebration = triggerRewardCelebration();
+            this.setState((prev) => ({
+                claimedKeys: { ...prev.claimedKeys, [badge.key]: true },
+                celebratingKey: badge.key,
+                isSharePromptVisible: true,
+            }));
+            this.handleRefresh();
+        }).catch(() => {
+            triggerClaimErrorFeedback();
+            showToast.error({
+                text1: this.translate('alertTitles.backendErrorMessage'),
+                text2: this.translate('alertMessages.backendErrorMessage'),
+            });
+        }).finally(() => {
+            if (!this.isUnmounted) {
+                this.setState({ isClaimRequestPending: false });
+            }
+        });
     };
 
     render() {
-        const { navigation, route, user } = this.props;
-        const { hasTransitioned, isSharePromptVisible } = this.state;
-        // const pageHeaderAchievements = this.translate('pages.achievements.pageHeader');
-        const { userAchievement } = route.params;
-        // const achievement = achievementsByClass[userAchievement.achievementClass][userAchievement.achievementId];
+        const { navigation, user } = this.props;
+        const {
+            celebratingKey,
+            hasTransitioned,
+            isClaimRequestPending,
+            isSharePromptVisible,
+        } = this.state;
+        const selection = this.getSelection();
         // The share copy used to name Therr and link therr.com verbatim, which on the
         // Friends with Habits app advertised the wrong product. `{appName}` resolves per
         // brand in the translator; the URL follows the brand in shareUrls.
         const shareUrl = buildAchievementsShareUrl(user.settings?.locale || 'en-us');
+        const celebratedBadge = selection?.track.find((candidate) => candidate.key === celebratingKey);
+        // Names the badge that was earned ("Habit Formed"), not the ladder it is on.
+        const sharedBadge = celebratedBadge || selection?.badge;
         const shareMessage = this.translate('modals.sharePrompt.achievementEarned.shareMessage', {
-            achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, ' $1').toLowerCase(),
+            achievementClass: sharedBadge
+                ? getAchievementCopy(sharedBadge, this.translate as (key: string, params?: any) => string).title
+                : '',
             url: shareUrl,
         });
 
@@ -278,57 +337,30 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                 <SafeAreaView edges={[]}  style={[this.theme.styles.safeAreaView]}>
                     <ScrollView
                         style={[this.theme.styles.body]}
-                        contentContainerStyle={[this.theme.styles.bodyScroll]}
+                        contentContainerStyle={localStyles.scrollContent}
                     >
-                        {/* <View style={this.theme.styles.sectionContainer}>
-                            <Text style={this.theme.styles.sectionTitle}>
-                                {pageHeaderAchievements}
-                            </Text>
-                        </View> */}
-                        <View style={localStyles.cardContainer}>
-                            {hasTransitioned && (
-                                <LottieView
-                                    source={achievementConfetti}
-                                    resizeMode="cover"
-                                    speed={1}
-                                    autoPlay
-                                    loop
-                                    style={localStyles.absoluteFill}
-                                />
-                            )}
-                            <View style={this.themeAchievements.styles.cardImageContainerLarge}>
-                                <View style={[this.themeAchievements.styles.cardImageLarge, IS_HABITS && localStyles.badgeCard]}>
-                                    {IS_HABITS ? (
-                                        <HabitsAchievementBadge
-                                            achievementClass={userAchievement.achievementClass}
-                                            isComplete={!!userAchievement.completedAt}
-                                            iconSize={CLAIM_CARD_ICON_SIZE}
-                                            theme={this.themeAchievements}
-                                        />
-                                    ) : hasTransitioned && (
-                                        <LottieView
-                                            source={cardImagesLottie[userAchievement.achievementClass] || cardImagesLottie.explorer}
-                                            resizeMode="cover"
-                                            speed={2.4}
-                                            autoPlay
-                                            loop={false}
-                                            style={localStyles.absoluteFill}
-                                        />
-                                    )}
-                                </View>
+                        {!selection && (
+                            // Opened with no achievement, or one this build has no config for.
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionDescriptionCentered}>
+                                    {this.translate('pages.achievements.info.unavailable')}
+                                </Text>
                             </View>
-                        </View>
-                        <View style={this.theme.styles.sectionContainer}>
-                            {
-                                this.renderTitle(userAchievement)
-                            }
-                            {
-                                this.renderDescription(userAchievement)
-                            }
-                            {
-                                this.renderDetails(userAchievement)
-                            }
-                        </View>
+                        )}
+                        {selection && (
+                            <AchievementDetail
+                                badge={selection.badge}
+                                track={selection.track}
+                                isCelebrating={celebratingKey === selection.badge.key}
+                                isClaiming={isClaimRequestPending}
+                                isReadOnly={this.isReadOnly()}
+                                showAnimation={hasTransitioned}
+                                onClaim={this.handleClaim}
+                                onSelectBadge={this.handleSelectBadge}
+                                themeAchievements={this.themeAchievements}
+                                translate={this.translate as (key: string, params?: any) => string}
+                            />
+                        )}
                     </ScrollView>
                 </SafeAreaView>
                 <MainButtonMenu
@@ -359,26 +391,8 @@ const localStyles = StyleSheet.create({
     headerBackButton: {
         marginLeft: 12,
     },
-    fontWeightSemiBold: {
-        fontWeight: '600',
-    },
-    cardContainer: {
-        display: 'flex',
-        height: 420,
-        width: '100%',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    absoluteFill: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-    },
-    // The Lottie cards carry their own rounded frame; the badge fills its box edge to
-    // edge, so the box supplies the corners.
-    badgeCard: {
-        borderRadius: 16,
-        overflow: 'hidden',
+    scrollContent: {
+        flexGrow: 1,
     },
 });
 
