@@ -179,8 +179,11 @@ describe('challenge page', () => {
         // jsdom cannot navigate; stop the link after the page's own handler has run.
         joinLink.addEventListener('click', (event) => event.preventDefault());
         joinLink.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-        expect(localStorage.getItem('habitsPendingChallenge')).toBe(TOKEN);
+        const pending = JSON.parse(localStorage.getItem('habitsPendingChallenge') as string);
+        expect(pending.token).toBe(TOKEN);
+        expect(typeof pending.at).toBe('number');
         expect(fetchMock).not.toHaveBeenCalled();
+        expect((document.getElementById('my-habits-link') as HTMLAnchorElement).hidden).toBe(true);
     });
 
     it('keeps the hidden attribute stronger than the action rows\' display:flex', () => {
@@ -205,6 +208,9 @@ describe('challenge page', () => {
         expect((document.getElementById('member-actions') as HTMLElement).hidden).toBe(false);
         expect((document.getElementById('signed-out-actions') as HTMLElement).hidden).toBe(true);
         expect(document.querySelector('[data-username="sam"]')?.className).toBe('me');
+        // A signed-in visitor can always get from here to the rest of their habits.
+        expect((document.getElementById('my-habits-link') as HTMLAnchorElement).hidden).toBe(false);
+        expect((document.getElementById('my-habits-link') as HTMLAnchorElement).getAttribute('href')).toBe('/app');
 
         (document.getElementById('checkin-btn') as HTMLButtonElement).click();
         await flushPromises();
