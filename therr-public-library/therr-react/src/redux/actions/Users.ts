@@ -45,6 +45,7 @@ class UsersActions {
     extractUserData = (userResponseData): { userData: IUser, userSettingsData: IUserSettings } => {
         const {
             accessLevels,
+            createdAt,
             id,
             idToken,
             email,
@@ -95,6 +96,9 @@ class UsersActions {
         } = userResponseData;
         const mutableUserData: any = {
             accessLevels,
+            // Account age — read by the habits companion (TherrMobile utilities/companionGrowth.ts) for its
+            // "days together" gate. Dropping it here left every account at 0 days and the companion stuck.
+            createdAt,
             id,
             email,
             firstName,
