@@ -5,6 +5,7 @@ import {
     EYE_SOCKET_RADIUS,
     EYE_WHITE_RADIUS,
     FACE_VIEW_BOX,
+    getOutlinedFaceBox,
     HEAD_PATH,
     HIGHLIGHT_OFFSET,
     HIGHLIGHT_RADIUS,
@@ -35,6 +36,9 @@ export interface IChameleonFaceProps {
     /**
      * A sticker outline drawn behind the head, for placing the face on a coloured
      * ground that may be close to its own skin. Omit for none.
+     *
+     * With an outline the drawing's box grows to hold it (`getOutlinedFaceBox`), so a
+     * caller that wants the face itself at a given size must grow its frame to match.
      */
     outline?: string;
     /** Logo-unit width of that outline. */
@@ -56,7 +60,12 @@ const ChameleonFace = ({
     const skinColor = skin || colors.brand;
 
     return (
-        <Svg width="100%" height="100%" viewBox={FACE_VIEW_BOX} testID={testID}>
+        <Svg
+            width="100%"
+            height="100%"
+            viewBox={outline ? getOutlinedFaceBox(outlineWidth).viewBox : FACE_VIEW_BOX}
+            testID={testID}
+        >
             {outline ? (
                 <>
                     <Path d={HEAD_PATH} fill={outline} stroke={outline} strokeWidth={outlineWidth} strokeLinejoin="round" />

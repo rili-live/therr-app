@@ -16,6 +16,28 @@ export const FACE_VIEW_BOX = '112 200 800 580';
 /** height / width of the cropped face. */
 export const FACE_ASPECT = 580 / 800;
 
+const FACE_BOX = { x: 112, y: 200, width: 800, height: 580 };
+
+/**
+ * The face's box grown to hold a sticker outline of `outlineWidth` logo units.
+ *
+ * The outline is a stroke centred on the head's edge, so half of it lies outside the ink —
+ * and the eye turrets already touch both sides of `FACE_VIEW_BOX`. Drawn in the bare box,
+ * the outline was sliced flat where it rounded each eye, which on a badge read as the
+ * chameleon's eyes being cropped. `bleed` is how far the box grows on every side, as a
+ * fraction of the face's own width and height, for a caller that sizes the frame: grow the
+ * frame by the same amount and the face itself stays exactly the size it was.
+ */
+export const getOutlinedFaceBox = (outlineWidth: number) => {
+    const pad = Math.max(0, outlineWidth) / 2;
+
+    return {
+        viewBox: `${FACE_BOX.x - pad} ${FACE_BOX.y - pad} ${FACE_BOX.width + pad * 2} ${FACE_BOX.height + pad * 2}`,
+        bleedX: pad / FACE_BOX.width,
+        bleedY: pad / FACE_BOX.height,
+    };
+};
+
 export const HEAD_PATH = 'M 437 335 Q 512 205 587 335 Q 722 482 757 629 Q 832 759 682 759 Q 512 779 342 759 Q 192 759 267 629 Q 302 482 437 335 Z';
 export const STRIPE_PATH = 'M 494 325 Q 494 305 512 305 Q 530 305 530 325 L 525 477 Q 525 493 512 493 Q 499 493 499 477 Z';
 export const SMILE_PATH = 'M 418 718 Q 512 762 606 718';

@@ -1314,11 +1314,20 @@
             "headerTitle": "Réalisations",
             "pageHeader": "Réalisations",
             "buttons": {
-                "viewLeaderboard": "Voir le classement"
+                "viewLeaderboard": "Voir le classement",
+                "back": "Retour",
+                "viewCollection": "Collection complète",
+                "showLocked": "Tout afficher",
+                "showLess": "Afficher moins"
             },
             "labels": {
                 "coinValue": "Valeur en pièces",
-                "xpValue": "Valeur d'expérience"
+                "xpValue": "Valeur d'expérience",
+                "rewards": "Récompenses",
+                "rewardsEarned": "Vous avez gagné",
+                "rewardsClaimed": "Récompenses réclamées",
+                "coins": "Pièces",
+                "xp": "XP"
             },
             "info": {
                 "claimRewards": "Réclamer les récompenses",
@@ -1333,11 +1342,42 @@
                 "alreadyClaimed": "Vous avez déjà réclamé les récompenses pour cette réalisation",
                 "unClaimed": "Cette réalisation est terminée! Retournez en arrière et appuyez sur « réclamer les récompenses » pour continuer.",
                 "inProgressDescription": "Vous y êtes presque! Continuez sur cette lancée!",
-                "progressOf": "{count} sur {total}"
+                "progressOf": "{count} sur {total}",
+                "claim": "Réclamer",
+                "earnedOfTotal": "{count} sur {total} obtenus",
+                "level": "Niveau {level}",
+                "levelOf": "Niveau {level} sur {total}",
+                "earnedOn": "Obtenu le {date}",
+                "remaining": "Encore {count}",
+                "lockedHint": "Continuez à franchir les niveaux précédents et celui-ci se débloquera.",
+                "moreLocked": "Afficher {count} autres badges verrouillés",
+                "unavailable": "Cette réalisation n'est pas offerte dans cette version de l'application. Mettez {appName} à jour pour la voir."
             },
             "sections": {
-                "unclaimed": "Réclamez vos récompenses",
-                "inProgress": "En cours"
+                "unclaimed": "Prêtes à réclamer",
+                "inProgress": "En cours",
+                "upNext": "À venir",
+                "collection": "Votre collection",
+                "earned": "Obtenus"
+            },
+            "states": {
+                "claimable": "Récompense prête",
+                "earned": "Obtenu",
+                "inProgress": "En cours",
+                "locked": "Verrouillé"
+            },
+            "classes": {
+                "accountability": "Responsabilité",
+                "cleanBreak": "Nouveau départ",
+                "consistency": "Constance",
+                "dailyStreak": "Série quotidienne",
+                "habitBuilder": "Bâtisseur d'habitudes",
+                "pactPioneer": "Pionnier des pactes",
+                "resilience": "Résilience",
+                "socialEnergizer": "Énergie sociale",
+                "socialite": "Sociable",
+                "treasureBuilder": "Bâtisseur de trésors",
+                "weeklyChampion": "Champion de la semaine"
             }
         },
         "activeConnections": {
@@ -4092,6 +4132,126 @@
             "weeklyChampion_1_3_1": {
                 "title": "Champion en série",
                 "description": "Atteins le rang #1 du classement hebdomadaire cinq fois de plus"
+            },
+            "dailyStreak_1_1": {
+                "title": "Première semaine",
+                "description": "Faites un check-in sur n'importe quelle habitude 7 jours de suite"
+            },
+            "dailyStreak_1_1_1": {
+                "title": "Trente jours",
+                "description": "Atteignez une série quotidienne de 30 jours"
+            },
+            "dailyStreak_1_1_2": {
+                "title": "Cap des cinquante",
+                "description": "Atteignez une série quotidienne de 50 jours"
+            },
+            "dailyStreak_1_1_3": {
+                "title": "Centenaire",
+                "description": "Atteignez une série quotidienne de 100 jours"
+            },
+            "dailyStreak_1_1_4": {
+                "title": "Double centenaire",
+                "description": "Atteignez une série quotidienne de 200 jours"
+            },
+            "dailyStreak_1_1_5": {
+                "title": "Année complète",
+                "description": "Atteignez une série quotidienne de 365 jours"
+            },
+            "dailyStreak_1_1_6": {
+                "title": "Cinq cents",
+                "description": "Atteignez une série quotidienne de 500 jours"
+            },
+            "dailyStreak_1_1_7": {
+                "title": "Deux ans",
+                "description": "Atteignez une série quotidienne de 730 jours"
+            },
+            "dailyStreak_1_1_8": {
+                "title": "Mille",
+                "description": "Atteignez une série quotidienne de 1000 jours"
+            },
+            "dailyStreak_1_2": {
+                "title": "Semaine parfaite",
+                "description": "Faites un check-in chaque jour d'une semaine civile, sans utiliser de gel"
+            },
+            "dailyStreak_1_2_1": {
+                "title": "Cinq semaines parfaites",
+                "description": "Complétez cinq semaines parfaites"
+            },
+            "dailyStreak_1_3": {
+                "title": "Mois parfait",
+                "description": "Complétez quatre semaines parfaites de suite"
+            },
+            "dailyStreak_1_4": {
+                "title": "De retour en selle",
+                "description": "Bâtissez une nouvelle série de 7 jours après en avoir perdu une de 30 jours ou plus"
+            },
+            "dailyStreak_1_5": {
+                "title": "Sauvé par un gel",
+                "description": "Laissez un gel de série protéger votre série quotidienne"
+            },
+            "socialite_1_1": {
+                "title": "Amical",
+                "description": "Invitez 3 amis"
+            },
+            "socialite_1_1_1": {
+                "title": "Soyez sociable",
+                "description": "Invitez 10 amis"
+            },
+            "socialite_1_1_2": {
+                "title": "Initiateur",
+                "description": "Invitez 25 amis"
+            },
+            "socialite_1_1_3": {
+                "title": "Bâtir un réseau",
+                "description": "Invitez 50 amis"
+            },
+            "socialite_1_1_4": {
+                "title": "Repoussez vos frontières",
+                "description": "Invitez 100 amis"
+            },
+            "socialite_1_1_5": {
+                "title": "À fond",
+                "description": "Invitez 500 amis"
+            },
+            "socialite_1_1_6": {
+                "title": "Dites-le au monde",
+                "description": "Invitez 1000 amis"
+            },
+            "socialite_1_2": {
+                "title": "Brisez la glace",
+                "description": "Établissez votre première connexion"
+            },
+            "socialite_1_2_1": {
+                "title": "Nouveaux amis",
+                "description": "Établissez 3 connexions"
+            },
+            "socialite_1_2_2": {
+                "title": "Cercle social",
+                "description": "Établissez 10 connexions"
+            },
+            "socialite_1_2_3": {
+                "title": "Popularité en hausse",
+                "description": "Établissez 50 connexions"
+            },
+            "socialite_1_2_4": {
+                "title": "L'union fait la force",
+                "description": "Établissez 100 connexions"
+            },
+            "socialite_1_2_5": {
+                "title": "Diversifiez",
+                "description": "Établissez 250 connexions"
+            },
+            "socialite_1_2_6": {
+                "title": "Papillon social",
+                "description": "Établissez 1000 connexions"
+            },
+            "socialite_1_2_7": {
+                "title": "Presque célèbre",
+                "description": "Établissez 5000 connexions"
+            },
+            "socialite_1_2_8": {
+                "title": "Vraiment célèbre",
+                "description": "Établissez 10000 connexions"
             }
         },
         "profile": {

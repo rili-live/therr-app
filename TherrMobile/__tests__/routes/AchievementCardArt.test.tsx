@@ -8,6 +8,7 @@ import renderer, { act } from 'react-test-renderer';
 import { it, describe, expect, jest } from '@jest/globals';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import { achievementClassesByBrand, achievementsByClass } from 'therr-js-utilities/config';
+import { Stop } from 'react-native-svg';
 
 /**
  * Brand-relative, like `brandSurfaceConsistency`: on Friends with Habits every
@@ -86,17 +87,43 @@ describe('AchievementTile card art', () => {
         const unearned = renderTile(buildUserAchievement(achievementClass));
 
         if (isHabits) {
-            const opacityOf = (tree: renderer.ReactTestRenderer) => {
-                const style = tree.root.findByProps({ testID: `habits-achievement-badge-${achievementClass}` }).props.style;
-                return Object.assign({}, ...(Array.isArray(style) ? style : [style])).opacity;
-            };
+            // An earned badge is painted in its class colour; one in progress is not.
+            const groundOf = (tree: renderer.ReactTestRenderer) => tree.root.findAllByType(Stop)[0].props.stopColor;
 
-            expect(opacityOf(earned)).toBe(1);
-            expect(opacityOf(unearned)).toBeLessThan(1);
+            expect(groundOf(earned)).not.toBe(groundOf(unearned));
         } else {
             // Therr's Lottie card renders the same frame either way.
             expect(countLotties(earned)).toBe(1);
             expect(countLotties(unearned)).toBe(1);
         }
+    });
+
+    it('draws nothing, rather than throwing, for an achievement this build has no config for', () => {
+        const tree = renderTile({
+            id: 'ua-future',
+            achievementClass: brandClasses[0],
+            achievementId: 'notInThisBuild_9_9',
+            progressCount: 1,
+            completedAt: null,
+        });
+
+        expect(tree.toJSON()).toBeNull();
+    });
+
+    it('offers the claim button only while a reward is waiting', () => {
+        const [achievementClass] = brandClasses;
+        const claimButtons = (tree: renderer.ReactTestRenderer) => tree.root.findAll(
+            (node) => typeof node.type !== 'string' && node.props.accessibilityLabel === 'Claim',
+        ).length;
+
+        const claimable = renderTile(buildUserAchievement(achievementClass, {
+            completedAt: '2026-09-01T00:00:00.000Z',
+            unclaimedRewardPts: '0.50',
+        }));
+        const claimed = renderTile(buildUserAchievement(achievementClass, { completedAt: '2026-09-01T00:00:00.000Z' }));
+
+        expect(claimButtons(claimable)).toBeGreaterThan(0);
+        expect(claimButtons(claimed)).toBe(0);
+        expect(claimButtons(renderTile(buildUserAchievement(achievementClass)))).toBe(0);
     });
 });
