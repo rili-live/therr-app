@@ -33,7 +33,10 @@ import translator from '../../main/utilities/translator';
 
 const themeAchievements = buildAchievementStyles('light');
 const translate = (key: string, params?: any) => translator('en-us', key, params);
-const daysAgo = (days: number) => new Date(Date.UTC(2026, 10, 15) - days * 86400000).toISOString();
+// Noon UTC, not midnight: the detail screen prints the *local* calendar date, so a midnight-UTC
+// fixture reads as the day before anywhere west of Greenwich and the "Earned on" assertion
+// failed on every US machine while passing in CI (UTC).
+const daysAgo = (days: number) => new Date(Date.UTC(2026, 10, 15, 12) - days * 86400000).toISOString();
 
 let nextId = 0;
 const row = (achievementClass: string, achievementId: string, overrides: any = {}) => {
