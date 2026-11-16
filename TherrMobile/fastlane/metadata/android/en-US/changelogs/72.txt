@@ -1,0 +1,3 @@
+What's new:
+• Your habit companion now counts your days together and grows as it should
+• Pause and Archive on a habit are easier to tell apart, with clearer colors and icons
