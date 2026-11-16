@@ -1,3 +1,5 @@
 What's new:
+• Achievements are now a badge collection: see every badge you can earn, what's next on each ladder, and claim rewards right from a badge
+• Your profile shows off the badges you've earned
 • Your habit companion now counts your days together and grows as it should
 • Pause and Archive on a habit are easier to tell apart, with clearer colors and icons

@@ -1,3 +1,5 @@
 Novedades:
+• Los logros ahora son una colección de insignias: ve todas las que puedes ganar, lo que sigue en cada nivel y reclama recompensas desde la insignia
+• Tu perfil muestra las insignias que has ganado
 • Tu compañero de hábitos ahora cuenta sus días juntos y crece como debe
 • Pausar y Archivar en un hábito se distinguen mejor, con colores e íconos más claros
