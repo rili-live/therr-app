@@ -307,8 +307,10 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         setTimeout(() => {
                             const createdForum = result?.forum || result;
                             if (!groupId && createdForum?.id) {
-                                // Navigate to the new group chat so the creator can send a welcome message
-                                this.props.navigation.navigate('ViewGroup', {
+                                // Navigate to the new group chat so the creator can send a welcome message.
+                                // Replace rather than push, so going back from the new group does not
+                                // land on the already-submitted create form.
+                                this.props.navigation.replace('ViewGroup', {
                                     id: createdForum.id,
                                     title: createdForum.title || title,
                                     subtitle: createdForum.subtitle || subtitle || title,

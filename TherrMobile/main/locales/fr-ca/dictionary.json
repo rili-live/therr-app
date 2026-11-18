@@ -1141,6 +1141,7 @@
       "search": "Recherche",
       "social": "Social",
       "events": "Événements à venir",
+      "groupEvents": "Événements",
       "invite": "+",
       "media": "Médias",
       "news": "Nouvelles",
@@ -1460,12 +1461,13 @@
       "headerTitle": "Groupes",
       "pageTitle": "Groupes",
       "categories": {
-        "title": "Catégories"
+        "title": "Catégories",
+        "clear": "Effacer"
       },
       "labels": {
         "description": "Description :",
-        "subtitle": "Titre accrocheur :",
-        "memberCount": "{count} membres"
+        "memberCount": "{count} membres",
+        "memberCountOne": "1 membre"
       },
       "noMyGroupsFound": "Vous n'avez rejoint aucun groupe. Découvrez et rejoignez des groupes pour les voir ici.",
       "discoverGroups": "Découvrir des groupes"
@@ -1527,11 +1529,11 @@
       "previewHeader": "Aperçu :"
     },
     "viewGroup": {
-      "noChatsFound": "Aucun message trouvé",
+      "noChatsFound": "Aucun message pour l'instant. Soyez le premier à dire bonjour!",
       "welcomeDialogTitle": "Bienvenue dans votre nouveau groupe!",
       "welcomeDialogMessage": "Écrivez un message de bienvenue pour lancer la conversation et informer les membres de l'objet de ce groupe.",
       "welcomeDialogDismiss": "Peut-être plus tard",
-      "noEventsFound": "Aucun événement en cours ou à venir trouvé. Ce groupe n'a pas publié d'événements. Demandez à un modérateur de vous nommer hôte d'événements.",
+      "noEventsFound": "Aucun événement à venir pour l'instant. Créez-en un pour rassembler le groupe.",
       "noMembersFound": "Aucun membre de groupe trouvé",
       "membershipStatuses": {
         "pending": "(Invitation en attente)"
@@ -1543,7 +1545,8 @@
         "eventHost": "Hôte d'événements"
       },
       "buttons": {
-        "createEvent": "Créer un événement"
+        "createEvent": "Créer un événement",
+        "back": "Retour"
       }
     },
     "viewSpace": {

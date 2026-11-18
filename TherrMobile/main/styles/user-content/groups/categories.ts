@@ -70,6 +70,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         listToggleButton: {
             padding: 4,
         },
+        clearButtonTitle: {
+            fontSize: 14,
+            fontWeight: '600',
+            paddingVertical: 0,
+            paddingHorizontal: 4,
+        },
         listContainer: {
             display: 'flex',
             flexDirection: 'row',

@@ -88,7 +88,7 @@ const GroupTile = ({
                 {
                     group.city &&
                     <ListItem.Subtitle
-                        style={{ fontWeight: '400', fontSize: 12, color: '#888', marginBottom: 2 }}
+                        style={{ fontWeight: '400', fontSize: 12, color: theme.colors.textGray, marginBottom: 2 }}
                         numberOfLines={1}
                     >
                         {[group.city, group.region].filter(Boolean).join(', ')}
@@ -98,9 +98,9 @@ const GroupTile = ({
                     group.memberCount > 0 &&
                     <ListItem.Subtitle
                         style={[{ fontWeight: '300', fontSize: 13 }, spacingStyles.marginBotSm]}
-                        numberOfLines={2}>{translate('pages.groups.labels.memberCount', {
-                            count: group.memberCount,
-                        })}
+                        numberOfLines={2}>{group.memberCount === 1
+                            ? translate('pages.groups.labels.memberCountOne')
+                            : translate('pages.groups.labels.memberCount', { count: group.memberCount })}
                     </ListItem.Subtitle>
                 }
                 <ListItem.Subtitle numberOfLines={3}>{group.description}</ListItem.Subtitle>

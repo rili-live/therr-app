@@ -12,7 +12,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
-import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import { buildStyles as buildMenuStyles, buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildTileStyles } from '../../styles/user-content/groups/chat-tiles';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
 import spacingStyles from '../../styles/layouts/spacing';
@@ -32,6 +32,10 @@ import GroupCategories from '../Groups/GroupCategories';
 
 const { width: viewportWidth } = Dimensions.get('window');
 export const DEFAULT_PAGE_SIZE = 50;
+// The bottom tab bar is absolutely positioned and the "Create" FAB floats 20dp above it
+// (buttonFloatBottomRightContainer), so both overlay the list. Pad past the FAB (56dp tall)
+// so the last row's Join button and description can be scrolled clear of them.
+const listContentContainerStyle = { paddingBottom: buttonMenuHeight + 20 + 56 + 16 };
 const tabMap = {
     0: GROUPS_CAROUSEL_TABS.DISCOVER,
     1: GROUPS_CAROUSEL_TABS.GROUPS,
@@ -459,7 +463,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                         flex: 1,
                         flexDirection: 'row',
                         alignItems: 'center',
-                        backgroundColor: this.theme.colorVariations.primaryFadeMore || '#f0f0f0',
+                        backgroundColor: this.theme.colorVariations.primaryFadeMore || this.theme.colors.backgroundGray,
                         borderRadius: 20,
                         paddingHorizontal: 10,
                         height: 38,
@@ -484,7 +488,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                         flex: 1,
                         flexDirection: 'row',
                         alignItems: 'center',
-                        backgroundColor: this.theme.colorVariations.primaryFadeMore || '#f0f0f0',
+                        backgroundColor: this.theme.colorVariations.primaryFadeMore || this.theme.colors.backgroundGray,
                         borderRadius: 20,
                         paddingHorizontal: 10,
                         height: 38,
@@ -514,6 +518,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                     translate={this.translate}
                     onCategoryTogglePress={this.handleCategoryTogglePress}
                     toggleChevronName={toggleChevronName}
+                    clearLabel={this.translate('pages.groups.categories.clear')}
                     theme={this.theme}
                     themeButtons={this.themeButtons}
                     themeCategory={this.themeCategory}
@@ -556,6 +561,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                             </View>
                         }
                         stickyHeaderIndices={[]}
+                        contentContainerStyle={listContentContainerStyle}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshing}
                             onRefresh={this.handleRefreshDiscoverSearch}
@@ -609,6 +615,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                             </View>
                         }
                         stickyHeaderIndices={[]}
+                        contentContainerStyle={listContentContainerStyle}
                         refreshControl={<RefreshControl
                             refreshing={isMyGroupsRefreshing}
                             onRefresh={this.handleRefreshMyGroupsSearch}

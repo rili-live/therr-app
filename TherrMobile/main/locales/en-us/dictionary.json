@@ -1141,6 +1141,7 @@
       "search": "Search",
       "social": "Social",
       "events": "Upcoming Events",
+      "groupEvents": "Events",
       "invite": "+",
       "media": "Media",
       "news": "News",
@@ -1460,12 +1461,13 @@
       "headerTitle": "Groups",
       "pageTitle": "Groups",
       "categories": {
-        "title": "Categories"
+        "title": "Categories",
+        "clear": "Clear"
       },
       "labels": {
         "description": "Description:",
-        "subtitle": "Headline:",
-        "memberCount": "{count} members"
+        "memberCount": "{count} members",
+        "memberCountOne": "1 member"
       },
       "noMyGroupsFound": "You haven't joined any groups yet. Discover and join groups to see them here.",
       "discoverGroups": "Discover Groups"
@@ -1527,11 +1529,11 @@
       "previewHeader": "Preview:"
     },
     "viewGroup": {
-      "noChatsFound": "No messages found",
+      "noChatsFound": "No messages yet. Be the first to say hi!",
       "welcomeDialogTitle": "Welcome to Your New Group!",
       "welcomeDialogMessage": "Write a welcome message to get the conversation started and let members know what this group is about.",
       "welcomeDialogDismiss": "Maybe Later",
-      "noEventsFound": "No current or upcoming events found. This group has not posted any events. Ask a moderator to nominate you as an event host.",
+      "noEventsFound": "No upcoming events yet. Create one to get the group together.",
       "noMembersFound": "No group members found",
       "membershipStatuses": {
         "pending": "(Invite Pending)"
@@ -1543,7 +1545,8 @@
         "eventHost": "Event Host"
       },
       "buttons": {
-        "createEvent": "Create Event"
+        "createEvent": "Create Event",
+        "back": "Back"
       }
     },
     "viewSpace": {
