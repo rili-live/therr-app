@@ -10,6 +10,7 @@ import {
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Avatar } from '../../components/BaseAvatar';
 import { Button } from '../../components/BaseButton';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { TabBar, TabView } from 'react-native-tab-view';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -58,6 +59,9 @@ const localStyles = StyleSheet.create({
     },
     sceneContent: {
         paddingHorizontal: SCENE_HORIZONTAL_PADDING,
+    },
+    buttonIcon: {
+        marginRight: 6,
     },
 });
 const tabMap = {
@@ -626,14 +630,14 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                         }}
                         ListHeaderComponent={
                             <View style={[spacingStyles.marginHorizLg, spacingStyles.padVertMd]}>
-                                <PaperButton
-                                    mode="contained"
-                                    icon="calendar-plus"
+                                <Button
                                     onPress={this.goToCreateEvent}
-                                    style={{ borderRadius: 20 }}
-                                >
-                                    {this.translate('pages.viewGroup.buttons.createEvent')}
-                                </PaperButton>
+                                    variant="primary"
+                                    size="lg"
+                                    shape="pill"
+                                    icon={<MaterialIcon name="event" size={18} color={this.theme.colors.onBrand} style={localStyles.buttonIcon} />}
+                                    title={this.translate('pages.viewGroup.buttons.createEvent')}
+                                />
                             </View>
                         }
                         ListEmptyComponent={<View style={spacingStyles.marginHorizLg}>

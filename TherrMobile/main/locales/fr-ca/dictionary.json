@@ -1462,12 +1462,24 @@
       "pageTitle": "Groupes",
       "categories": {
         "title": "Catégories",
-        "clear": "Effacer"
+        "clear": "Effacer",
+        "names": {
+          "business": "Affaires",
+          "food": "Nourriture",
+          "general": "Général",
+          "movies": "Films",
+          "music": "Musique",
+          "science": "Science",
+          "sports": "Sports",
+          "tech": "Techno"
+        }
       },
       "labels": {
         "description": "Description :",
         "memberCount": "{count} membres",
-        "memberCountOne": "1 membre"
+        "memberCountOne": "1 membre",
+        "joined": "Membre",
+        "joinGroup": "Rejoindre {title}"
       },
       "noMyGroupsFound": "Vous n'avez rejoint aucun groupe. Découvrez et rejoignez des groupes pour les voir ici.",
       "discoverGroups": "Découvrir des groupes"

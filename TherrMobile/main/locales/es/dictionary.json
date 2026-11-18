@@ -1462,12 +1462,24 @@
       "pageTitle": "Grupos",
       "categories": {
         "title": "Categorías",
-        "clear": "Borrar"
+        "clear": "Borrar",
+        "names": {
+          "business": "Negocios",
+          "food": "Comida",
+          "general": "General",
+          "movies": "Películas",
+          "music": "Música",
+          "science": "Ciencia",
+          "sports": "Deportes",
+          "tech": "Tecnología"
+        }
       },
       "labels": {
         "description": "Descripción:",
         "memberCount": "{count} miembros",
-        "memberCountOne": "1 miembro"
+        "memberCountOne": "1 miembro",
+        "joined": "Unido",
+        "joinGroup": "Unirse a {title}"
       },
       "noMyGroupsFound": "Aún no te has unido a ningún grupo. Descubre y únete a grupos para verlos aquí.",
       "discoverGroups": "Descubrir Grupos"

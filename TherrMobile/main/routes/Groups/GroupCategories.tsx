@@ -6,6 +6,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import therrIconConfig from '../../assets/therr-font-config.json';
 import spacingStyles from '../../styles/layouts/spacing';
+import { getCategoryLabel } from './groupUtils';
 
 const TherrIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -40,7 +41,7 @@ const renderCategoryIcon = (category, theme, themeButtons, themeCategory) => {
     return (<MaterialIcon {...props} />);
 };
 
-const renderCategoryButton = (onCategoryPress, theme, themeButtons, themeCategory) => {
+const renderCategoryButton = (onCategoryPress, theme, themeButtons, themeCategory, translate) => {
     return ({
         item: category,
     }) => {
@@ -51,11 +52,10 @@ const renderCategoryButton = (onCategoryPress, theme, themeButtons, themeCategor
         const titleStyle = category.isActive
             ? [themeButtons.styles.quickFiltersButtonTitleActive, themeCategory.styles.categoryButtonTitleActive]
             : themeButtons.styles.quickFiltersButtonTitle;
-        const titleCapped = category.name.charAt(0).toUpperCase() + category.name.slice(1);
 
         return (
             <Button
-                title={titleCapped}
+                title={getCategoryLabel(translate, category)}
                 icon={renderCategoryIcon(category, theme, themeButtons, themeCategory)}
                 iconContainerStyle={{
                     marginRight: 0,
@@ -127,7 +127,7 @@ export default ({
                     horizontal={true}
                     keyExtractor={keyExtractor}
                     data={categories}
-                    renderItem={renderCategoryButton(onCategoryPress, theme, themeButtons, themeCategory)}
+                    renderItem={renderCategoryButton(onCategoryPress, theme, themeButtons, themeCategory, translate)}
                     contentContainerStyle={themeCategory.styles.listContainer}
                     showsHorizontalScrollIndicator={false}
                 />

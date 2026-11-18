@@ -1462,12 +1462,24 @@
       "pageTitle": "Groups",
       "categories": {
         "title": "Categories",
-        "clear": "Clear"
+        "clear": "Clear",
+        "names": {
+          "business": "Business",
+          "food": "Food",
+          "general": "General",
+          "movies": "Movies",
+          "music": "Music",
+          "science": "Science",
+          "sports": "Sports",
+          "tech": "Tech"
+        }
       },
       "labels": {
         "description": "Description:",
         "memberCount": "{count} members",
-        "memberCountOne": "1 member"
+        "memberCountOne": "1 member",
+        "joined": "Joined",
+        "joinGroup": "Join {title}"
       },
       "noMyGroupsFound": "You haven't joined any groups yet. Discover and join groups to see them here.",
       "discoverGroups": "Discover Groups"
