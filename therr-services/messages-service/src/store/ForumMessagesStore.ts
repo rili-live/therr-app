@@ -5,6 +5,7 @@ import { getDbCountQueryString } from 'therr-js-utilities/db';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import BrandScopedStore, { BrandValue } from './BrandScopedStore';
 import { IConnection } from './connection';
+import { FORUM_READ_STATES_TABLE_NAME } from './ForumReadStatesStore';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -75,6 +76,82 @@ export default class ForumMessagesStore extends BrandScopedStore {
             const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
             return configuredResponse;
         });
+    }
+
+    /**
+     * The newest non-announcement message in each of these forums, for the "Your Groups" inbox.
+     * DISTINCT ON over (forumId, createdAt DESC) is served by
+     * idx_forum_messages_forum_brand_created, so this is one index probe per forum.
+     */
+    getLatestByForums(brand: BrandValue, forumIds: string[]): Promise<any[]> {
+        this.assertBrand(brand);
+        if (!forumIds.length) {
+            return Promise.resolve([]);
+        }
+
+        const queryString = knexBuilder
+            .select([
+                `${FORUM_MESSAGES_TABLE_NAME}.forumId`,
+                `${FORUM_MESSAGES_TABLE_NAME}.id`,
+                `${FORUM_MESSAGES_TABLE_NAME}.message`,
+                `${FORUM_MESSAGES_TABLE_NAME}.fromUserId`,
+                `${FORUM_MESSAGES_TABLE_NAME}.createdAt`,
+            ])
+            .distinctOn(`${FORUM_MESSAGES_TABLE_NAME}.forumId`)
+            .from(FORUM_MESSAGES_TABLE_NAME)
+            .whereIn(`${FORUM_MESSAGES_TABLE_NAME}.forumId`, forumIds)
+            .andWhere(`${FORUM_MESSAGES_TABLE_NAME}.brandVariation`, '=', brand)
+            .andWhere(`${FORUM_MESSAGES_TABLE_NAME}.isAnnouncement`, false)
+            .orderBy([
+                { column: `${FORUM_MESSAGES_TABLE_NAME}.forumId` },
+                { column: `${FORUM_MESSAGES_TABLE_NAME}.createdAt`, order: 'desc' },
+            ])
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
+    /**
+     * Unread messages per forum for one viewer: messages by someone else, newer than the viewer's
+     * watermark on that forum. A viewer with no read-state row for a forum is measured from
+     * `fallbackWatermark` instead (FORUM_READ_TRACKING_STARTED_AT), so the day read tracking ships
+     * does not count a group's whole history as unread. One grouped query for a page of forums.
+     */
+    countUnreadByForum(
+        brand: BrandValue,
+        forumIds: string[],
+        viewerUserId: string,
+        fallbackWatermark: Date,
+    ): Promise<Record<string, number>> {
+        this.assertBrand(brand);
+        if (!forumIds.length || !viewerUserId) {
+            return Promise.resolve({});
+        }
+
+        const queryString = knexBuilder
+            .select(`${FORUM_MESSAGES_TABLE_NAME}.forumId`)
+            .count(`${FORUM_MESSAGES_TABLE_NAME}.id as count`)
+            .from(FORUM_MESSAGES_TABLE_NAME)
+            .leftJoin(FORUM_READ_STATES_TABLE_NAME, function joinViewerReadState() {
+                this.on(`${FORUM_READ_STATES_TABLE_NAME}.forumId`, '=', `${FORUM_MESSAGES_TABLE_NAME}.forumId`)
+                    .andOn(`${FORUM_READ_STATES_TABLE_NAME}.userId`, '=', knexBuilder.raw('?', [viewerUserId]));
+            })
+            .whereIn(`${FORUM_MESSAGES_TABLE_NAME}.forumId`, forumIds)
+            .andWhere(`${FORUM_MESSAGES_TABLE_NAME}.brandVariation`, '=', brand)
+            .andWhere(`${FORUM_MESSAGES_TABLE_NAME}.isAnnouncement`, false)
+            .andWhere(`${FORUM_MESSAGES_TABLE_NAME}.fromUserId`, '<>', viewerUserId)
+            .andWhereRaw('?? > COALESCE(??, ?::timestamptz)', [
+                `${FORUM_MESSAGES_TABLE_NAME}.createdAt`,
+                `${FORUM_READ_STATES_TABLE_NAME}.lastReadAt`,
+                fallbackWatermark.toISOString(),
+            ])
+            .groupBy(`${FORUM_MESSAGES_TABLE_NAME}.forumId`)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.reduce((acc: Record<string, number>, row: any) => {
+            acc[row.forumId] = parseInt(row.count, 10) || 0;
+            return acc;
+        }, {}));
     }
 
     createForumMessage(brand: BrandValue, params: ICreateForumMessageParams) {

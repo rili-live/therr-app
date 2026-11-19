@@ -7,7 +7,17 @@
         "edit": "Edit Group",
         "join": "Join Group",
         "leave": "Leave Group",
+        "report": "Report Group",
         "share": "Share Link"
+      },
+      "report": {
+        "title": "Report this group?",
+        "message": "Reported groups are reviewed and hidden from Discover. The group creator is not told who reported it.",
+        "spam": "Spam or scam",
+        "offensive": "Offensive",
+        "cancel": "Cancel",
+        "success": "Thanks. We'll review this group.",
+        "error": "Couldn't send your report. Please try again."
       }
     },
     "user": {
@@ -1479,7 +1489,11 @@
         "memberCount": "{count} members",
         "memberCountOne": "1 member",
         "joined": "Joined",
-        "joinGroup": "Join {title}"
+        "joinGroup": "Join {title}",
+        "lastMessageYou": "You: {text}",
+        "lastMessageFrom": "{name}: {text}",
+        "noMessagesYet": "No messages yet",
+        "unreadCount": "{count} unread"
       },
       "noMyGroupsFound": "You haven't joined any groups yet. Discover and join groups to see them here.",
       "discoverGroups": "Discover Groups"

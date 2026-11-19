@@ -2,15 +2,17 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Button } from '../../components/BaseButton';
 import { Avatar } from '../../components/BaseAvatar';
-import { Badge } from 'react-native-paper';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { GroupRequestStatuses } from 'therr-js-utilities/constants';
 import therrIconConfig from '../../assets/therr-font-config.json';
 import { getUserContentUri } from '../../utilities/content';
+import { hoursDaysOrYearsSince } from '../../utilities/formatDate';
 import { GROUP_AVATAR_SIZE } from '../../styles/user-content/groups/chat-tiles';
-import { getCategoryLabel, getDisplayTitle, getFallbackAvatarColor, getTitleInitial } from './groupUtils';
+import {
+    formatUnreadCount, getCategoryLabel, getDisplayTitle, getFallbackAvatarColor, getLastMessagePreview, getTitleInitial,
+} from './groupUtils';
 
 const TherrIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -78,6 +80,7 @@ const GroupTile = ({
     group,
     handleJoinGroup,
     isJoinedLabelShown = false,
+    isInboxRow = false,
     user,
 }: any) => {
     const [isJoining, setIsJoining] = React.useState(false);
@@ -86,7 +89,6 @@ const GroupTile = ({
         setIsJoining(true);
         handleJoinGroup(group);
     };
-    const unreadMsgCount = 0;
     const isUserInGroup = membershipStatus === GroupRequestStatuses.APPROVED;
     const isJoinShown = !isUserInGroup && membershipStatus !== GroupRequestStatuses.REMOVED;
     const title = getDisplayTitle(group.title);
@@ -101,6 +103,70 @@ const GroupTile = ({
     const location = [group.city, group.region].filter(Boolean).join(', ');
     if (location) {
         metaParts.push(location);
+    }
+
+    if (isInboxRow) {
+        const unreadCount = Number(group.unreadCount) || 0;
+        const isUnread = unreadCount > 0;
+        const lastMessage = group.lastMessage;
+        const preview = getLastMessagePreview(translate, lastMessage, user?.details?.id);
+        const timeLabel = lastMessage?.createdAt
+            ? hoursDaysOrYearsSince(new Date(lastMessage.createdAt), translate)
+            : '';
+        const a11yParts = [title, preview];
+        if (isUnread) {
+            a11yParts.push(translate('pages.groups.labels.unreadCount', { count: unreadCount }));
+        }
+
+        return (
+            <Pressable
+                onPress={() => onChatTilePress(group)}
+                style={({ pressed }) => [themeChatTile.styles.row, pressed && themeChatTile.styles.rowPressed]}
+                accessibilityRole="button"
+                accessibilityLabel={a11yParts.join(', ')}
+            >
+                <GroupAvatar group={group} theme={theme} themeChatTile={themeChatTile} />
+                <View style={themeChatTile.styles.rowContent}>
+                    <View style={themeChatTile.styles.inboxTitleRow}>
+                        <Text
+                            style={[
+                                themeChatTile.styles.rowTitle,
+                                themeChatTile.styles.inboxTitle,
+                                isUnread && themeChatTile.styles.rowTitleUnread,
+                            ]}
+                            numberOfLines={1}
+                        >
+                            {title}
+                        </Text>
+                        {
+                            !!timeLabel &&
+                            <Text style={[themeChatTile.styles.rowTime, isUnread && themeChatTile.styles.rowTimeUnread]}>
+                                {timeLabel}
+                            </Text>
+                        }
+                    </View>
+                    <View style={themeChatTile.styles.inboxPreviewRow}>
+                        <Text
+                            style={[
+                                themeChatTile.styles.rowPreview,
+                                isUnread && themeChatTile.styles.rowPreviewUnread,
+                                !lastMessage && themeChatTile.styles.rowPreviewEmpty,
+                            ]}
+                            numberOfLines={2}
+                        >
+                            {preview}
+                        </Text>
+                        {
+                            isUnread &&
+                            <View style={themeChatTile.styles.unreadBadge}>
+                                <Text style={themeChatTile.styles.unreadBadgeText}>{formatUnreadCount(unreadCount)}</Text>
+                            </View>
+                        }
+                    </View>
+                </View>
+                <View style={themeChatTile.styles.rowDivider} pointerEvents="none" />
+            </Pressable>
+        );
     }
 
     const categories: any[] = group.categories || [];
@@ -147,14 +213,6 @@ const GroupTile = ({
                 }
             </View>
             {
-                isUserInGroup && unreadMsgCount > 0 &&
-                    <Badge
-                        style={{ backgroundColor: theme.colors.brandingRed }}
-                    >
-                        {unreadMsgCount}
-                    </Badge>
-            }
-            {
                 isJoinShown &&
                 <View style={themeChatTile.styles.rowAction}>
                     <Button
@@ -198,6 +256,9 @@ export default React.memo(GroupTile, (prev, next) => (
     && prev.group?.media?.featuredImage === next.group?.media?.featuredImage
     && prev.group?.categories === next.group?.categories
     && prev.isJoinedLabelShown === next.isJoinedLabelShown
+    && prev.isInboxRow === next.isInboxRow
+    && prev.group?.unreadCount === next.group?.unreadCount
+    && prev.group?.lastMessage?.id === next.group?.lastMessage?.id
     && prev.user?.myUserGroups?.[prev.group?.id]?.status === next.user?.myUserGroups?.[next.group?.id]?.status
     && prev.theme === next.theme
     && prev.themeChatTile === next.themeChatTile

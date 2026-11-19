@@ -1,5 +1,5 @@
 import { ForumActionTypes } from '../../types/redux/forums';
-import ForumsService, { ICreateForumBody, ISearchForumsArgs } from '../../services/ForumsService';
+import ForumsService, { ICreateForumBody, IReportForumBody, ISearchForumsArgs } from '../../services/ForumsService';
 
 const Forums = {
     getForumDetails: (forumId: string) => (dispatch: any) => ForumsService.getForum(forumId).then((response: any) => {
@@ -59,6 +59,26 @@ const Forums = {
                 type: ForumActionTypes.SEARCH_FORUMS,
                 data: response.data,
             });
+        }),
+    // Clears the group's unread badge right away; the request moves the server-side watermark.
+    // A failed request is swallowed: the badge comes back on the next list refresh, which is the
+    // right outcome when the server did not record the read.
+    markForumRead: (forumId: string) => (dispatch: any) => {
+        dispatch({
+            type: ForumActionTypes.MARK_FORUM_READ,
+            data: { forumId },
+        });
+
+        return ForumsService.markForumRead(forumId).catch(() => undefined);
+    },
+    reportForum: (forumId: string, data: IReportForumBody = {}) => (dispatch: any) => ForumsService.reportForum(forumId, data)
+        .then((response: any) => {
+            dispatch({
+                type: ForumActionTypes.REPORT_FORUM,
+                data: { forumId },
+            });
+
+            return response?.data;
         }),
     searchMyForums: (query: any, args: ISearchForumsArgs = {}) => (dispatch: any) => ForumsService.searchForums(query, args)
         .then((response: any) => {

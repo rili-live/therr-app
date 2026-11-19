@@ -118,4 +118,46 @@ describe('GroupTile', () => {
         const yourGroups = await render({ user });
         expect(allText(yourGroups)).not.toContain('pages.groups.labels.joined');
     });
+
+    describe('inbox row (Your Groups)', () => {
+        const member = { details: { id: 'me' }, myUserGroups: { 'group-1': { status: 'approved' } } };
+
+        it('previews the last message with its sender and shows the unread count', async () => {
+            const component = await render({
+                isInboxRow: true,
+                user: member,
+                group: {
+                    ...baseGroup,
+                    unreadCount: 3,
+                    lastMessage: { id: 'm1', text: 'See you Friday', fromUserId: 'a', fromUserName: 'alex', createdAt: new Date().toISOString() },
+                },
+            });
+            const text = allText(component);
+
+            expect(text).toContain('pages.groups.labels.lastMessageFrom:{"name":"alex","text":"See you Friday"}');
+            expect(text).toContain('3');
+            // An inbox row is not a Discover card: no description, chips or Join.
+            expect(text).not.toContain('Connect with other foodies.');
+            expect(text).not.toContain('Food');
+            expect(text).not.toContain('menus.connections.buttons.join');
+        });
+
+        it('caps a large unread count', async () => {
+            const component = await render({
+                isInboxRow: true,
+                user: member,
+                group: { ...baseGroup, unreadCount: 250, lastMessage: { id: 'm1', text: 'x', fromUserId: 'a', createdAt: new Date().toISOString() } },
+            });
+
+            expect(allText(component)).toContain('99+');
+        });
+
+        it('shows no badge and a placeholder for a group with no messages', async () => {
+            const component = await render({ isInboxRow: true, user: member, group: { ...baseGroup, unreadCount: 0, lastMessage: null } });
+            const text = allText(component);
+
+            expect(text).toContain('pages.groups.labels.noMessagesYet');
+            expect(text).not.toContain('0');
+        });
+    });
 });
