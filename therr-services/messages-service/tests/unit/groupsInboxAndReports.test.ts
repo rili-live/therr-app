@@ -80,18 +80,20 @@ describe('Groups: read state, reports and Discover ranking', () => {
             const ids = await store.getHiddenFromDiscoverIds(VIEWER_ID);
 
             const sql = mockDb.read.query.args[0][0];
-            expect(sql).to.contain(`having COUNT(*) >= ${FORUM_REPORT_HIDE_THRESHOLD}`);
-            expect(sql).to.contain('union');
-            expect(sql).to.contain(`"reportedByUserId" = '${VIEWER_ID}'`);
+            expect(sql).to.equal(`select "forumId" from "main"."forumReports" group by "forumId" having COUNT(*) >= ${FORUM_REPORT_HIDE_THRESHOLD} OR BOOL_OR("reportedByUserId" = '${VIEWER_ID}')`);
             expect(ids).to.deep.equal([FORUM_ID]);
         });
 
-        it('applies only the threshold for an anonymous viewer', async () => {
+        // Regression: an earlier UNION form let knex attach the HAVING to the viewer branch only,
+        // so the first branch returned every group with any report and one report hid a group for all.
+        it('applies the threshold to every group, never a bare list of reported groups', async () => {
             const mockDb = buildMockDb();
             const store = new ForumReportsStore(mockDb as any);
             await store.getHiddenFromDiscoverIds();
 
-            expect(mockDb.read.query.args[0][0]).to.not.contain('union');
+            const sql = mockDb.read.query.args[0][0];
+            expect(sql).to.equal(`select "forumId" from "main"."forumReports" group by "forumId" having COUNT(*) >= ${FORUM_REPORT_HIDE_THRESHOLD}`);
+            expect(sql).to.not.contain('union');
         });
     });
 

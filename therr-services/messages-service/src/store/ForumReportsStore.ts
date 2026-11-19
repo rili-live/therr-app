@@ -63,18 +63,17 @@ export default class ForumReportsStore {
      * once), plus those enough different people reported (gone for everyone, pending review).
      */
     getHiddenFromDiscoverIds(viewerUserId?: string): Promise<string[]> {
-        let query = knexBuilder
+        // One grouped pass rather than a UNION: knex attaches a trailing groupBy/having to the last
+        // branch of a union, which would have hidden a group from everyone after a single report.
+        const query = knexBuilder
             .select('forumId')
             .from(FORUM_REPORTS_TABLE_NAME)
-            .groupBy('forumId')
-            .havingRaw('COUNT(*) >= ?', [FORUM_REPORT_HIDE_THRESHOLD]);
+            .groupBy('forumId');
 
         if (viewerUserId) {
-            query = query.union((qb) => {
-                qb.select('forumId')
-                    .from(FORUM_REPORTS_TABLE_NAME)
-                    .where({ reportedByUserId: viewerUserId });
-            });
+            query.havingRaw('COUNT(*) >= ? OR BOOL_OR(?? = ?)', [FORUM_REPORT_HIDE_THRESHOLD, 'reportedByUserId', viewerUserId]);
+        } else {
+            query.havingRaw('COUNT(*) >= ?', [FORUM_REPORT_HIDE_THRESHOLD]);
         }
 
         return this.db.read.query(query.toString()).then((response) => response.rows.map((row) => row.forumId));
