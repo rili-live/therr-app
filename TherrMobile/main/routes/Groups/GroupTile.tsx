@@ -194,6 +194,7 @@ export default React.memo(GroupTile, (prev, next) => (
     && prev.group?.description === next.group?.description
     && prev.group?.memberCount === next.group?.memberCount
     && prev.group?.city === next.group?.city
+    && prev.group?.region === next.group?.region
     && prev.group?.media?.featuredImage === next.group?.media?.featuredImage
     && prev.group?.categories === next.group?.categories
     && prev.isJoinedLabelShown === next.isJoinedLabelShown
