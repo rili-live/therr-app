@@ -16,7 +16,7 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Dialog, Portal, Button as PaperButton, Text as PaperText } from 'react-native-paper';
-import { ContentActions, MessageActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
+import { ContentActions, ForumActions, MessageActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { IContentState, IForumsState, IMessageState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { ForumsService, UsersService } from 'therr-react/services';
 import { Content, GroupMemberRoles, GroupRequestStatuses } from 'therr-js-utilities/constants';
@@ -89,6 +89,7 @@ interface IViewGroupDispatchProps {
     createUserConnection: Function;
     joinForum: Function;
     logout: Function;
+    markForumRead: Function;
     searchForumMessages: Function;
     sendForumMessage: Function;
     searchUserConnections: Function;
@@ -136,6 +137,7 @@ const mapDispatchToProps = (dispatch: any) =>
             createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
             createUserConnection: UserConnectionsActions.create,
             joinForum: SocketActions.joinForum,
+            markForumRead: ForumActions.markForumRead,
             searchForumMessages: MessageActions.searchForumMessages,
             sendForumMessage: SocketActions.sendForumMessage,
             searchUserConnections: UserConnectionsActions.search,
@@ -236,6 +238,8 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
             });
         });
 
+        this.markReadIfMember();
+
         // TODO: Add logic to update this when user navigates away then returns
         this.searchForumMsgsByPage(1);
         this.searchGroupMembers();
@@ -245,7 +249,23 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         if (this.unsubscribeFocusListener) {
             this.unsubscribeFocusListener();
         }
+        // Again on the way out, so messages that arrived while the chat was open are not counted
+        // as unread in Your Groups.
+        this.markReadIfMember();
     }
+
+    /**
+     * Moves the viewer's unread watermark for this group to now. Members only: a passer-by
+     * reading a public group has no Your Groups row to clear, and need not leave a read-state row.
+     */
+    markReadIfMember = () => {
+        const { markForumRead, route, user } = this.props;
+        const forumId = route?.params?.id;
+
+        if (forumId && user?.myUserGroups?.[forumId]?.status === GroupRequestStatuses.APPROVED) {
+            markForumRead(forumId);
+        }
+    };
 
     searchForumMsgsByPage = (pageNumber: number) => {
         const { searchForumMessages, user, route } = this.props;

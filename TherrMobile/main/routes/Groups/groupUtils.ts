@@ -54,3 +54,52 @@ export const getTitleInitial = (title: any): string => {
 
     return first ? first.toUpperCase() : '?';
 };
+
+/** Unread badge text: the count, capped so a busy group does not widen the row. */
+export const formatUnreadCount = (count: number): string => (count > 99 ? '99+' : String(Math.max(0, count)));
+
+/**
+ * The "Your Groups" preview line for a group's latest message: "You: …", "alex: …", or a
+ * placeholder when the group has no messages yet. Whitespace (including line breaks) is collapsed
+ * so a multi-line message previews as one run of text.
+ */
+export const getLastMessagePreview = (
+    translate: (key: string, params?: any) => string,
+    lastMessage: any,
+    viewerUserId?: string,
+): string => {
+    const text = String(lastMessage?.text || '').replace(/\s+/g, ' ').trim();
+    if (!lastMessage || !text) {
+        return translate('pages.groups.labels.noMessagesYet');
+    }
+
+    if (viewerUserId && lastMessage.fromUserId === viewerUserId) {
+        return translate('pages.groups.labels.lastMessageYou', { text });
+    }
+
+    if (lastMessage.fromUserName) {
+        return translate('pages.groups.labels.lastMessageFrom', { name: lastMessage.fromUserName, text });
+    }
+
+    return text;
+};
+
+/**
+ * A chat sender's name color, picked from `palette` by their user id (or name, for a message that
+ * carries no id). Same person, same color on every launch and device — unlike the random color the
+ * chat used before, which was cached only in memory and reshuffled on every app start.
+ */
+export const getSenderColor = (senderKey: any, palette: string[]): string => getFallbackAvatarColor(senderKey, palette);
+
+/**
+ * Whether a chat message is the viewer's own. Live messages echoed back by the websocket service
+ * carry `fromUserName: 'you'` and no sender id; stored ones carry `fromUserId`. Compared exactly:
+ * a substring match on "you" also claimed messages from anyone named, say, "Youssef".
+ */
+export const isOwnForumMessage = (item: any, viewerUserId?: string): boolean => {
+    if (viewerUserId && item?.fromUserId) {
+        return item.fromUserId === viewerUserId;
+    }
+
+    return String(item?.fromUserName || '').toLowerCase() === 'you';
+};

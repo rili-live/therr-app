@@ -109,6 +109,25 @@ const GroupSheet = (props: SheetProps<'group-sheet'>) => {
                     />
                 }
                 {
+                    payload?.canReportGroup &&
+                    <List.Item
+                        title={payload?.translate('actionSheets.group.buttons.report')}
+                        titleStyle={{ color: iconColor }}
+                        left={(listProps) => (
+                            <FontAwesome5Icon
+                                name="flag"
+                                size={20}
+                                color={iconColor}
+                                style={listProps.style}
+                            />
+                        )}
+                        onPress={() => {
+                            SheetManager.hide('group-sheet');
+                            payload?.onPressReportGroup(payload?.group);
+                        }}
+                    />
+                }
+                {
                     payload?.hasGroupArchiveAccess &&
                     <List.Item
                         title={payload?.translate('actionSheets.group.buttons.archive')}
