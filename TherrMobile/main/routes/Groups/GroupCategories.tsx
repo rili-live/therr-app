@@ -6,6 +6,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import therrIconConfig from '../../assets/therr-font-config.json';
 import spacingStyles from '../../styles/layouts/spacing';
+import { getCategoryLabel } from './groupUtils';
 
 const TherrIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -40,7 +41,7 @@ const renderCategoryIcon = (category, theme, themeButtons, themeCategory) => {
     return (<MaterialIcon {...props} />);
 };
 
-const renderCategoryButton = (onCategoryPress, theme, themeButtons, themeCategory) => {
+const renderCategoryButton = (onCategoryPress, theme, themeButtons, themeCategory, translate) => {
     return ({
         item: category,
     }) => {
@@ -51,11 +52,10 @@ const renderCategoryButton = (onCategoryPress, theme, themeButtons, themeCategor
         const titleStyle = category.isActive
             ? [themeButtons.styles.quickFiltersButtonTitleActive, themeCategory.styles.categoryButtonTitleActive]
             : themeButtons.styles.quickFiltersButtonTitle;
-        const titleCapped = category.name.charAt(0).toUpperCase() + category.name.slice(1);
 
         return (
             <Button
-                title={titleCapped}
+                title={getCategoryLabel(translate, category)}
                 icon={renderCategoryIcon(category, theme, themeButtons, themeCategory)}
                 iconContainerStyle={{
                     marginRight: 0,
@@ -75,6 +75,7 @@ const renderCategoryButton = (onCategoryPress, theme, themeButtons, themeCategor
 export default ({
     backgroundColor,
     categories,
+    clearLabel,
     onCategoryPress,
     onCategoryTogglePress,
     style,
@@ -83,29 +84,50 @@ export default ({
     theme,
     themeCategory,
     themeButtons,
-}) => {
+}: any) => {
+    // With `clearLabel`, the corner button resets the filters, so it reads as a text "Clear" and only
+    // shows while a filter is active. Without it (EditGroup), it is the chevron expand/collapse toggle.
+    const isClearMode = !!clearLabel;
+    const hasActiveFilter = (categories || []).some((c) => c.isActive);
+
     return (
         <View style={[themeCategory.styles.outerContainer, style]}>
             <View style={themeCategory.styles.innerContainer}>
                 <Text style={[themeCategory.styles.header, { backgroundColor }]}>{translate('pages.groups.categories.title')}</Text>
-                <Button
-                    containerStyle={[themeCategory.styles.listToggleButtonContainer, { backgroundColor }]}
-                    buttonStyle={themeCategory.styles.listToggleButton}
-                    icon={
-                        <TherrIcon
-                            name={toggleChevronName}
-                            size={18}
-                            color={theme.colors.primary3}
-                        />
-                    }
-                    onPress={onCategoryTogglePress}
-                    type="clear"
-                />
+                {
+                    isClearMode
+                        ? hasActiveFilter && (
+                            <Button
+                                containerStyle={[themeCategory.styles.listToggleButtonContainer, { backgroundColor }]}
+                                buttonStyle={themeCategory.styles.listToggleButton}
+                                title={clearLabel}
+                                titleStyle={[themeCategory.styles.clearButtonTitle, { color: theme.colors.primary3 }]}
+                                accessibilityLabel={clearLabel}
+                                onPress={onCategoryTogglePress}
+                                type="clear"
+                            />
+                        )
+                        : (
+                            <Button
+                                containerStyle={[themeCategory.styles.listToggleButtonContainer, { backgroundColor }]}
+                                buttonStyle={themeCategory.styles.listToggleButton}
+                                icon={
+                                    <TherrIcon
+                                        name={toggleChevronName}
+                                        size={18}
+                                        color={theme.colors.primary3}
+                                    />
+                                }
+                                onPress={onCategoryTogglePress}
+                                type="clear"
+                            />
+                        )
+                }
                 <FlatList
                     horizontal={true}
                     keyExtractor={keyExtractor}
                     data={categories}
-                    renderItem={renderCategoryButton(onCategoryPress, theme, themeButtons, themeCategory)}
+                    renderItem={renderCategoryButton(onCategoryPress, theme, themeButtons, themeCategory, translate)}
                     contentContainerStyle={themeCategory.styles.listContainer}
                     showsHorizontalScrollIndicator={false}
                 />
