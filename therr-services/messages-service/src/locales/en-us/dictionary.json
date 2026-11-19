@@ -3,7 +3,8 @@
     "accessDenied": "Access to this resource is denied",
     "forums": {
         "duplicatePost": "Duplicate posts are not allowed",
-        "forumNotFound": "Group not found for given ID"
+        "forumNotFound": "Group not found for given ID",
+        "cannotReportOwn": "You cannot report a group you created"
     }
   },
   "validation": "The required parameters were not provided.",
