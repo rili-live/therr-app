@@ -1,17 +1,16 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { Button } from '../../components/BaseButton';
 import { Avatar } from '../../components/BaseAvatar';
-import { ListItem } from '../../components/BaseListItem';
 import { Badge } from 'react-native-paper';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { GroupRequestStatuses } from 'therr-js-utilities/constants';
 import therrIconConfig from '../../assets/therr-font-config.json';
-import { getUserContentUri, getUserImageUri } from '../../utilities/content';
-import spacingStyles from '../../styles/layouts/spacing';
-import { getDisplayTitle } from './groupUtils';
+import { getUserContentUri } from '../../utilities/content';
+import { GROUP_AVATAR_SIZE } from '../../styles/user-content/groups/chat-tiles';
+import { getCategoryLabel, getDisplayTitle, getFallbackAvatarColor, getTitleInitial } from './groupUtils';
 
 const TherrIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -19,41 +18,68 @@ const TherrIcon = createIconSetFromIcoMoon(
     'TherrFont.ttf'
 );
 
-const renderChatIcon = (item, style = {}) => {
+// Chips beyond this collapse into a "+N" chip, so a group tagged with every category
+// does not grow a second row of chips.
+const MAX_VISIBLE_CATEGORIES = 2;
+
+const renderCategoryIcon = (category, color: string) => {
     const props = {
-        color: item.iconColor,
-        name: item.iconId,
-        size: 14,
-        style: [{
-            elevation: 1,
-            textShadowColor: '#00000026',
-            textShadowOffset: { width: 1, height: 1 },
-            textShadowRadius: 1,
-            padding: 4,
-        }, style],
+        color,
+        name: category.iconId,
+        size: 11,
     };
 
-    if (item.iconGroup === 'font-awesome-5') {
-        return (<FontAwesome5Icon key={item.tag} {...props} />);
+    if (category.iconGroup === 'font-awesome-5') {
+        return (<FontAwesome5Icon {...props} />);
     }
 
-    if (item.iconGroup === 'therr') {
-        return (<TherrIcon key={item.tag} {...props} />);
+    if (category.iconGroup === 'therr') {
+        return (<TherrIcon {...props} />);
     }
 
-    return (<MaterialIcon key={item.tag} {...props} />);
+    return (<MaterialIcon {...props} />);
+};
+
+/**
+ * A group's own image, or a lettered circle when it has none.
+ *
+ * This deliberately never falls back to the author's profile photo: that made the list read as a
+ * list of people (and repeated the app logo for authors with no photo) rather than of communities.
+ */
+const GroupAvatar = ({ group, theme, themeChatTile }) => {
+    if (group.media?.featuredImage) {
+        return (
+            <Avatar
+                title={getTitleInitial(group.title)}
+                source={{ uri: getUserContentUri(group.media.featuredImage, 150, 150) }}
+                size={GROUP_AVATAR_SIZE}
+            />
+        );
+    }
+
+    const backgroundColor = getFallbackAvatarColor(group.id, [
+        theme.colors.brand,
+        theme.colors.accentBlue,
+        theme.colors.brandingOrange,
+    ]);
+
+    return (
+        <View style={[themeChatTile.styles.avatarFallback, { backgroundColor }]}>
+            <Text style={themeChatTile.styles.avatarFallbackText}>{getTitleInitial(group.title)}</Text>
+        </View>
+    );
 };
 
 const GroupTile = ({
     onChatTilePress,
     theme,
-    themeButtons,
     themeChatTile,
     translate,
     group,
     handleJoinGroup,
+    isJoinedLabelShown = false,
     user,
-}) => {
+}: any) => {
     const [isJoining, setIsJoining] = React.useState(false);
     const membershipStatus = user?.myUserGroups?.[group.id]?.status || '';
     const onPressJoinGroup = () => {
@@ -62,55 +88,63 @@ const GroupTile = ({
     };
     const unreadMsgCount = 0;
     const isUserInGroup = membershipStatus === GroupRequestStatuses.APPROVED;
+    const isJoinShown = !isUserInGroup && membershipStatus !== GroupRequestStatuses.REMOVED;
+    const title = getDisplayTitle(group.title);
+
+    const memberCount = Number(group.memberCount) || 0;
+    const metaParts: string[] = [];
+    if (memberCount > 0) {
+        metaParts.push(memberCount === 1
+            ? translate('pages.groups.labels.memberCountOne')
+            : translate('pages.groups.labels.memberCount', { count: memberCount }));
+    }
+    const location = [group.city, group.region].filter(Boolean).join(', ');
+    if (location) {
+        metaParts.push(location);
+    }
+
+    const categories: any[] = group.categories || [];
+    const visibleCategories = categories.slice(0, MAX_VISIBLE_CATEGORIES);
+    const hiddenCategoryCount = categories.length - visibleCategories.length;
+    const chipIconColor = theme.colors.onSurfaceMuted;
 
     return (
-        <ListItem
+        <Pressable
             onPress={() => onChatTilePress(group)}
-            bottomDivider
-            containerStyle={theme.styles.listItemCard}
+            style={({ pressed }) => [themeChatTile.styles.row, pressed && themeChatTile.styles.rowPressed]}
+            accessibilityRole="button"
+            accessibilityLabel={[title, ...metaParts].join(', ')}
         >
-            <Pressable
-                onPress={() => onChatTilePress(group)}
-            >
-                <Avatar
-                    title={`${getDisplayTitle(group.title)?.substring(0, 1)}`}
-                    rounded
-                    source={{
-                        uri: group.media?.featuredImage
-                            ? getUserContentUri(group.media.featuredImage, 150, 150)
-                            : getUserImageUri({ details: { id: group.authorId, media: group.author?.media } }, 150),
-                    }}
-                    size="medium"
-                />
-            </Pressable>
-            <View style={spacingStyles.flexOne}>
-                <ListItem.Title style={{ fontWeight: '500' }} numberOfLines={2}>{getDisplayTitle(group.title)}</ListItem.Title>
+            <GroupAvatar group={group} theme={theme} themeChatTile={themeChatTile} />
+            <View style={themeChatTile.styles.rowContent}>
+                <Text style={themeChatTile.styles.rowTitle} numberOfLines={2}>{title}</Text>
                 {
-                    group.city &&
-                    <ListItem.Subtitle
-                        style={{ fontWeight: '400', fontSize: 12, color: '#888', marginBottom: 2 }}
-                        numberOfLines={1}
-                    >
-                        {[group.city, group.region].filter(Boolean).join(', ')}
-                    </ListItem.Subtitle>
+                    metaParts.length > 0 &&
+                    <Text style={themeChatTile.styles.rowMeta} numberOfLines={1}>{metaParts.join(' · ')}</Text>
                 }
                 {
-                    group.memberCount > 0 &&
-                    <ListItem.Subtitle
-                        style={[{ fontWeight: '300', fontSize: 13 }, spacingStyles.marginBotSm]}
-                        numberOfLines={2}>{translate('pages.groups.labels.memberCount', {
-                            count: group.memberCount,
-                        })}
-                    </ListItem.Subtitle>
+                    !!group.description &&
+                    <Text style={themeChatTile.styles.rowDescription} numberOfLines={2}>{group.description}</Text>
                 }
-                <ListItem.Subtitle numberOfLines={3}>{group.description}</ListItem.Subtitle>
-                <View style={themeChatTile.styles.footer}>
-                    <View style={themeChatTile.styles.footerIconsContainer}>
+                {
+                    categories.length > 0 &&
+                    <View style={themeChatTile.styles.chipsRow}>
                         {
-                            group.categories && group.categories.map((cat) => renderChatIcon(cat))
+                            visibleCategories.map((category) => (
+                                <View key={category.tag} style={themeChatTile.styles.chip}>
+                                    {!!category.iconId && renderCategoryIcon(category, chipIconColor)}
+                                    <Text style={themeChatTile.styles.chipText}>{getCategoryLabel(translate, category)}</Text>
+                                </View>
+                            ))
+                        }
+                        {
+                            hiddenCategoryCount > 0 &&
+                            <View style={themeChatTile.styles.chip}>
+                                <Text style={themeChatTile.styles.chipText}>{`+${hiddenCategoryCount}`}</Text>
+                            </View>
                         }
                     </View>
-                </View>
+                }
             </View>
             {
                 isUserInGroup && unreadMsgCount > 0 &&
@@ -120,25 +154,35 @@ const GroupTile = ({
                         {unreadMsgCount}
                     </Badge>
             }
-            <View>
-                {
-                    !isUserInGroup && membershipStatus !== GroupRequestStatuses.REMOVED &&
-                        <Button
-                            onPress={onPressJoinGroup}
-                            containerStyle={themeButtons.styles.buttonPillContainerSquare}
-                            buttonStyle={themeButtons.styles.buttonPill}
-                            titleStyle={themeButtons.styles.buttonPillTitle}
-                            title={
-                                translate(membershipStatus === GroupRequestStatuses.PENDING
-                                    ? 'menus.connections.buttons.accept'
-                                    : 'menus.connections.buttons.join')
-                            }
-                            loading={isJoining}
-                            disabled={isJoining}
-                        />
-                }
-            </View>
-        </ListItem>
+            {
+                isJoinShown &&
+                <View style={themeChatTile.styles.rowAction}>
+                    <Button
+                        onPress={onPressJoinGroup}
+                        type="outline"
+                        variant="primary"
+                        size="sm"
+                        shape="pill"
+                        title={
+                            translate(membershipStatus === GroupRequestStatuses.PENDING
+                                ? 'menus.connections.buttons.accept'
+                                : 'menus.connections.buttons.join')
+                        }
+                        accessibilityLabel={translate('pages.groups.labels.joinGroup', { title })}
+                        loading={isJoining}
+                        disabled={isJoining}
+                    />
+                </View>
+            }
+            {
+                isUserInGroup && isJoinedLabelShown &&
+                <View style={themeChatTile.styles.joinedBadge}>
+                    <MaterialIcon name="check" size={16} color={theme.colors.brand} />
+                    <Text style={themeChatTile.styles.joinedText}>{translate('pages.groups.labels.joined')}</Text>
+                </View>
+            }
+            <View style={themeChatTile.styles.rowDivider} pointerEvents="none" />
+        </Pressable>
     );
 };
 
@@ -147,10 +191,14 @@ const GroupTile = ({
 export default React.memo(GroupTile, (prev, next) => (
     prev.group?.id === next.group?.id
     && prev.group?.title === next.group?.title
-    && prev.group?.iconId === next.group?.iconId
-    && prev.group?.iconColor === next.group?.iconColor
+    && prev.group?.description === next.group?.description
+    && prev.group?.memberCount === next.group?.memberCount
+    && prev.group?.city === next.group?.city
+    && prev.group?.region === next.group?.region
+    && prev.group?.media?.featuredImage === next.group?.media?.featuredImage
+    && prev.group?.categories === next.group?.categories
+    && prev.isJoinedLabelShown === next.isJoinedLabelShown
     && prev.user?.myUserGroups?.[prev.group?.id]?.status === next.user?.myUserGroups?.[next.group?.id]?.status
     && prev.theme === next.theme
-    && prev.themeButtons === next.themeButtons
     && prev.themeChatTile === next.themeChatTile
 ));
