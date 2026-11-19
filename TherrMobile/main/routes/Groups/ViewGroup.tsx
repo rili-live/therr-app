@@ -4,11 +4,13 @@ import {
     Dimensions,
     FlatList,
     Pressable,
+    StyleSheet,
     Text,
     View} from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Avatar } from '../../components/BaseAvatar';
 import { Button } from '../../components/BaseButton';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { TabBar, TabView } from 'react-native-tab-view';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -47,6 +49,25 @@ import { getDisplayTitle } from './groupUtils';
 const { width: viewportWidth } = Dimensions.get('window');
 
 const ITEMS_PER_PAGE = 50;
+// The tab container used to carry 20dp of horizontal padding, which inset the tab bar from the
+// screen edges (unlike the Groups list). The padding now lives on each scene's content instead,
+// so the tab bar spans the full width while list content keeps its old margins.
+const SCENE_HORIZONTAL_PADDING = 20;
+const localStyles = StyleSheet.create({
+    tabContainer: {
+        paddingHorizontal: 0,
+    },
+    sceneContent: {
+        paddingHorizontal: SCENE_HORIZONTAL_PADDING,
+    },
+    buttonIcon: {
+        marginRight: 6,
+    },
+    createEventHeader: {
+        paddingTop: 20,
+        paddingBottom: 10,
+    },
+});
 const tabMap = {
     0: GROUP_CAROUSEL_TABS.CHAT,
     1: GROUP_CAROUSEL_TABS.EVENTS,
@@ -168,7 +189,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
             pageNumber: 1,
             tabRoutes: [
                 { key: GROUP_CAROUSEL_TABS.CHAT, title: this.translate('menus.headerTabs.chat') },
-                { key: GROUP_CAROUSEL_TABS.EVENTS, title: this.translate('menus.headerTabs.events') },
+                { key: GROUP_CAROUSEL_TABS.EVENTS, title: this.translate('menus.headerTabs.groupEvents') },
                 { key: GROUP_CAROUSEL_TABS.MEMBERS, title: this.translate('menus.headerTabs.members') },
             ],
         };
@@ -492,6 +513,20 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         }
     };
 
+    goBack = () => {
+        const { navigation } = this.props;
+
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+            return;
+        }
+
+        // Opened directly (push notification, deep link): there is nothing to go back to.
+        navigation.navigate('Groups', {
+            activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+        });
+    };
+
     handleWelcomeDialogDismiss = () => {
         this.setState({ isWelcomeDialogVisible: false });
     };
@@ -528,6 +563,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                     )}
                     ref={(component) => (this.chatListRef = component)}
                     style={this.theme.styles.stretch}
+                    contentContainerStyle={localStyles.sceneContent}
                     ListEmptyComponent={
                         <View style={spacingStyles.marginHorizLg}>
                             <ListEmpty iconName="chat" theme={this.theme} text={this.getEmptyListMessage(GROUP_CAROUSEL_TABS.CHAT)} />
@@ -597,21 +633,22 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             );
                         }}
                         ListHeaderComponent={
-                            <View style={[spacingStyles.marginHorizLg, spacingStyles.padVertMd]}>
-                                <PaperButton
-                                    mode="contained"
-                                    icon="calendar-plus"
+                            <View style={[spacingStyles.marginHorizLg, localStyles.createEventHeader]}>
+                                <Button
                                     onPress={this.goToCreateEvent}
-                                    style={{ borderRadius: 20 }}
-                                >
-                                    {this.translate('pages.viewGroup.buttons.createEvent')}
-                                </PaperButton>
+                                    variant="primary"
+                                    size="lg"
+                                    shape="pill"
+                                    icon={<MaterialIcon name="event" size={18} color={this.theme.colors.onBrand} style={localStyles.buttonIcon} />}
+                                    title={this.translate('pages.viewGroup.buttons.createEvent')}
+                                />
                             </View>
                         }
                         ListEmptyComponent={<View style={spacingStyles.marginHorizLg}>
                             <ListEmpty iconName="calendar" theme={this.theme} text={this.getEmptyListMessage(GROUP_CAROUSEL_TABS.EVENTS)} />
                         </View>}
                         stickyHeaderIndices={[]}
+                        contentContainerStyle={localStyles.sceneContent}
                         // refreshControl={<RefreshControl
                         //     refreshing={isRefreshingUserSearch}
                         //     onRefresh={this.handleRefreshUsersSearch}
@@ -648,6 +685,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             <ListEmpty iconName="group" theme={this.theme} text={this.getEmptyListMessage(GROUP_CAROUSEL_TABS.MEMBERS)} />
                         </View>}
                         stickyHeaderIndices={[]}
+                        contentContainerStyle={localStyles.sceneContent}
                         // refreshControl={<RefreshControl
                         //     refreshing={isRefreshingUserSearch}
                         //     onRefresh={this.handleRefreshUsersSearch}
@@ -689,6 +727,9 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         const group = forums?.searchResults?.find((g) => g.id === forumId)
             || forums?.myForumsSearchResults?.find((g) => g.id === forumId)
             || route.params;
+        // The screen title already shows the group name; a headline that only repeats it is noise.
+        const normalize = (text?: string) => (text || '').trim().toLowerCase();
+        const isHeadlineShown = !!subtitle && normalize(subtitle) !== normalize(getDisplayTitle(group.title || route.params?.title));
 
         return (
             <>
@@ -707,10 +748,11 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             (this.hashtags?.length > 0 ? {} : spacingStyles.padBotMd),
                         ]}>
                             <Pressable
-                                onPress={() => this.props.navigation.navigate('Groups', {
-                                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
-                                })}
+                                onPress={this.goBack}
                                 style={{ marginRight: 8, justifyContent: 'center' }}
+                                hitSlop={12}
+                                accessibilityRole="button"
+                                accessibilityLabel={this.translate('pages.viewGroup.buttons.back')}
                             >
                                 <TherrIcon name="go-back" size={24} color={this.theme.colors.textWhite} />
                             </Pressable>
@@ -728,9 +770,9 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             }
                             <View style={spacingStyles.marginLtMd}>
                                 {
-                                    subtitle &&
-                                    <Text style={{ color: this.theme.colors.textWhite }}>
-                                        <Text style={{ fontWeight: 'bold' }}>{this.translate('pages.groups.labels.subtitle')}</Text> {subtitle}
+                                    isHeadlineShown &&
+                                    <Text style={[spacingStyles.marginBotSm, { color: this.theme.colors.textWhite, fontWeight: '600' }]}>
+                                        {subtitle}
                                     </Text>
                                 }
                                 <Text style={[spacingStyles.marginBotSm, { color: this.theme.colors.textWhite }]} numberOfLines={7}>
@@ -746,7 +788,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             </View>
                         </View>
                         <View
-                            style={[this.themeAccentLayout.styles.container, this.themeChat.styles.container]}
+                            style={[this.themeAccentLayout.styles.container, this.themeChat.styles.container, localStyles.tabContainer]}
                             onLayout={this.handleTabContainerLayout}
                         >
                             <TabView
@@ -759,7 +801,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                 renderTabBar={this.renderTabBar}
                                 renderScene={this.renderSceneMap}
                                 renderLazyPlaceholder={() => (
-                                    <View style={this.theme.styles.sectionContainer}>
+                                    <View style={[this.theme.styles.sectionContainer, { marginHorizontal: SCENE_HORIZONTAL_PADDING }]}>
                                         <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
                                         <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />
                                         <LazyPlaceholder animation="fade" lines={[80, undefined, undefined, 30]} />

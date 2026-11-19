@@ -62,11 +62,12 @@ burned into the image, so a frame that supplies a headline ends up with two.
 ## Video
 
 App campaign video assets must be **YouTube-hosted**, so the deliverable is a
-URL, not a file, and nothing video-shaped belongs in this directory. Two are
+URL, not a file, and nothing video-shaped belongs in this directory. Three are
 listed under `assets.videos` in `campaigns/habits-app-install.yaml`: a 14s clip
-made in Runway (unlisted), and a 9:16 YouTube Short pitching support "from a
-coach or friends". Like the images above, neither is uploaded by
-`campaign apply`; attach them in the Google Ads UI.
+made in Runway (unlisted), a 9:16 YouTube Short pitching support "from a
+coach or friends", and the 15s "Evolve your life" promo Short
+([`JpadSvoOXUs`](https://www.youtube.com/shorts/JpadSvoOXUs)). Like the images
+above, none is uploaded by `campaign apply`; attach them in the Google Ads UI.
 
 The one video piece that *is* a file here is the **end card** — the last ~2s of a
 9:16 video ad — in [`video/`](video/), built by

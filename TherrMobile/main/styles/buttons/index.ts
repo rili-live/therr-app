@@ -7,6 +7,14 @@ import { getTheme, ITherrTheme } from '../themes';
 
 const collapseOffset = 20;
 
+// Geometry of the bottom-right floating action button (buttonFloatBottomRightContainer). It floats
+// this far above the absolutely positioned bottom tab bar, and react-native-paper's FAB is 56dp tall.
+const FLOAT_BUTTON_BOTTOM_OFFSET = 20;
+const FLOAT_BUTTON_HEIGHT = 56;
+// Distance from the bottom of the screen to the top of the FAB. Scrollable content that sits under
+// the FAB pads by at least this much, so its last item can scroll clear of it.
+export const floatButtonBottomClearance = buttonMenuHeight + FLOAT_BUTTON_BOTTOM_OFFSET + FLOAT_BUTTON_HEIGHT;
+
 const btnStyles: any = {
     borderRadius: 100,
     padding: 1,
@@ -167,7 +175,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         buttonFloatBottomRightContainer: {
             position: 'absolute',
             right: 20,
-            bottom: buttonMenuHeight + 20,
+            bottom: buttonMenuHeight + FLOAT_BUTTON_BOTTOM_OFFSET,
             borderRadius: 100,
         },
         leftBtnGroupButtonContainer: {

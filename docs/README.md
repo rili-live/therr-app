@@ -46,6 +46,7 @@ went unread.
 - [NICHE_APP_DATABASE_GUIDELINES.md](./NICHE_APP_DATABASE_GUIDELINES.md) — schema isolation, migration patterns
 - [NICHE_APP_SETUP_STEPS.md](./NICHE_APP_SETUP_STEPS.md) — creating a new brand variation
 - [OFFLINE_FIRST_PLAN.md](./OFFLINE_FIRST_PLAN.md) — offline-first architecture and phased roadmap
+- [IOS_BUILDOUT_PLAN.md](./IOS_BUILDOUT_PLAN.md) — getting iOS building again after the RN 0.86.3 upgrade: Therr first, then Friends with Habits, then the App Store. Covers the audit, the 20 tickets (#3209), the build log and the open decisions
 - [ALGORITHM_AUDIT.md](./ALGORITHM_AUDIT.md) — content ranking and feed algorithm review
 
 ### Working here
