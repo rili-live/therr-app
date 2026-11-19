@@ -11,9 +11,9 @@ import { TabBar, TabView } from 'react-native-tab-view';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { Button } from '../../components/BaseButton';
 import { buildStyles } from '../../styles';
-import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
+import { buildStyles as buildButtonsStyles, floatButtonBottomClearance } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
-import { buildStyles as buildMenuStyles, buttonMenuHeight } from '../../styles/navigation/buttonMenu';
+import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildTileStyles } from '../../styles/user-content/groups/chat-tiles';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
 import spacingStyles from '../../styles/layouts/spacing';
@@ -33,10 +33,9 @@ import GroupCategories from '../Groups/GroupCategories';
 
 const { width: viewportWidth } = Dimensions.get('window');
 export const DEFAULT_PAGE_SIZE = 50;
-// The bottom tab bar is absolutely positioned and the "Create" FAB floats 20dp above it
-// (buttonFloatBottomRightContainer), so both overlay the list. Pad past the FAB (56dp tall)
-// so the last row's Join button and description can be scrolled clear of them.
-const listContentContainerStyle = { paddingBottom: buttonMenuHeight + 20 + 56 + 16 };
+// The bottom tab bar and the "Create" FAB above it both overlay the list. Pad past the FAB, plus
+// a little breathing room, so the last row's Join button and description can scroll clear of them.
+const listContentContainerStyle = { paddingBottom: floatButtonBottomClearance + 16 };
 const localStyles = StyleSheet.create({
     emptyStateCta: {
         marginTop: 16,
