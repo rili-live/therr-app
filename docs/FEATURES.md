@@ -37,7 +37,10 @@
 - **User connections** — friend requests with 5 types (blocked, removed, pending, accepted, friend)
 - **Direct messaging** — real-time 1-on-1 chat via WebSocket (Socket.IO)
 - **Groups/Forums** — create/join public or private communities with admin/moderator roles
-- **Group chat** — real-time forum messaging within groups
+- **Group Discover ranking** — public groups are ordered by distinct recent posters, then recent message count (`DISCOVER_ACTIVITY_WINDOW_DAYS`, 30), then last edit; groups the viewer already belongs to move to the end. Announcement rows ("… joined the room") count toward none of it
+- **Group reports** — members report a group (spam, scam, offensive, other) from its action sheet; one row per reporter in `main.forumReports`. The group leaves the reporter's Discover at once and everyone's once `FORUM_REPORT_HIDE_THRESHOLD` (3) different people report it; members and direct links still reach it. Restore by deleting its report rows, remove by archiving the forum
+- **Your Groups inbox** — each joined group shows its latest message, the time of it and an unread count, newest activity first. Unread is measured against a per-member watermark in `main.forumReadStates`, moved forward (never back) when the group's chat is opened and left; a member with no row yet is measured from `FORUM_READ_TRACKING_STARTED_AT`
+- **Group chat** — real-time forum messaging within groups, rendered as bubbles (own messages right-aligned in the brand color; senders' name colors derived from their user id)
 - **Group events** — events associated with a group
 - **Invite friends** — referral system with TherrCoin rewards
 - **Magic invite links** — per-invite tokenized links (`/invite/link/:token`) that pre-fill the invitee's known email/phone, trust the invited channel (emailed token → email verified, SMS token → phone verified), auto-accept the invite, and auto-connect the two users on signup
