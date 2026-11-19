@@ -8,6 +8,8 @@ import {
     searchForums,
     updateForum,
     archiveForum,
+    markForumRead,
+    reportForum,
 } from '../handlers/forums';
 
 const router = express.Router();
@@ -23,6 +25,8 @@ router.get('/categories', searchCategories);
 router.get('/:forumId', getForum);
 
 // UPDATE
+router.put('/:forumId/read', markForumRead);
+router.post('/:forumId/report', reportForum);
 router.put('/:forumId', updateForum);
 router.delete('/:forumId', archiveForum);
 

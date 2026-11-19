@@ -6,9 +6,9 @@ import { SUPER_ADMIN_ID } from '../constants';
 /**
  * When a user is deleted, this endpoint is requested to delete all user related data.
  *
- * Direct messages and the user's own forum messages are removed outright. Forums they
- * created are reassigned to the super admin instead, so the other members' conversations
- * survive — the same trade-off maps-service makes for spaces.
+ * Direct messages, the user's own forum messages, their group read state and the group reports
+ * they filed are removed outright. Forums they created are reassigned to the super admin instead,
+ * so the other members' conversations survive — the same trade-off maps-service makes for spaces.
  *
  * Forum messages are deleted before the forums are reassigned so that a failure part-way
  * leaves orphaned ownership rather than orphaned message content; a retry is safe either
@@ -24,11 +24,16 @@ const deleteUserData = (req, res) => {
     return Store.directMessages.deleteByUserId(userId)
         .then((directMessages) => Store.forumMessages.deleteByUserId(userId)
             .then((forumMessages) => Store.forums.reassignByAuthorId(userId, SUPER_ADMIN_ID)
-                .then((forums) => res.status(202).send({
+                .then((forums) => Promise.all([
+                    Store.forumReadStates.deleteByUserId(userId),
+                    Store.forumReports.deleteByUserId(userId),
+                ]).then(([forumReadStates, forumReports]) => res.status(202).send({
                     directMessages,
                     forumMessages,
                     forums,
-                }))))
+                    forumReadStates,
+                    forumReports,
+                })))))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MESSAGES_ROUTES:ERROR' }));
 };
 

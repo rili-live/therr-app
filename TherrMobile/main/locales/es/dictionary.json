@@ -7,7 +7,17 @@
         "edit": "Editar grupo",
         "join": "Unirse al grupo",
         "leave": "Salir del grupo",
+        "report": "Reportar grupo",
         "share": "Compartir enlace"
+      },
+      "report": {
+        "title": "¿Reportar este grupo?",
+        "message": "Los grupos reportados se revisan y se ocultan de Descubrir. No se le dice al creador del grupo quién lo reportó.",
+        "spam": "Spam o estafa",
+        "offensive": "Ofensivo",
+        "cancel": "Cancelar",
+        "success": "Gracias. Revisaremos este grupo.",
+        "error": "No se pudo enviar tu reporte. Inténtalo de nuevo."
       }
     },
     "user": {
@@ -1479,7 +1489,11 @@
         "memberCount": "{count} miembros",
         "memberCountOne": "1 miembro",
         "joined": "Unido",
-        "joinGroup": "Unirse a {title}"
+        "joinGroup": "Unirse a {title}",
+        "lastMessageYou": "Tú: {text}",
+        "lastMessageFrom": "{name}: {text}",
+        "noMessagesYet": "Aún no hay mensajes",
+        "unreadCount": "{count} sin leer"
       },
       "noMyGroupsFound": "Aún no te has unido a ningún grupo. Descubre y únete a grupos para verlos aquí.",
       "discoverGroups": "Descubrir Grupos"

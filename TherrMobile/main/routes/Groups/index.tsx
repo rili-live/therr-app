@@ -591,6 +591,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                                 themeChatTile={this.themeTile}
                                 translate={this.translate}
                                 handleJoinGroup={this.onJoinGroup}
+                                isInboxRow
                                 user={user}
                             />
                         )}

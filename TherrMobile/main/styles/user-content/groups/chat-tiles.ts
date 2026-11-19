@@ -87,6 +87,61 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             lineHeight: 16,
             color: therrTheme.colors.onSurfaceMuted,
         },
+        // --- "Your Groups" inbox row ---
+        inboxTitleRow: {
+            flexDirection: 'row',
+            alignItems: 'baseline',
+            gap: 8,
+        },
+        inboxTitle: {
+            flex: 1,
+        },
+        rowTitleUnread: {
+            fontWeight: '700',
+        },
+        rowTime: {
+            fontSize: 12,
+            lineHeight: 16,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        rowTimeUnread: {
+            color: therrTheme.colors.brand,
+            fontWeight: '600',
+        },
+        inboxPreviewRow: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: 8,
+            marginTop: 4,
+        },
+        rowPreview: {
+            flex: 1,
+            fontSize: 14,
+            lineHeight: 20,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        rowPreviewUnread: {
+            color: therrTheme.colors.onSurface,
+        },
+        rowPreviewEmpty: {
+            fontStyle: 'italic',
+        },
+        unreadBadge: {
+            minWidth: 20,
+            height: 20,
+            paddingHorizontal: 6,
+            borderRadius: 10,
+            marginTop: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: therrTheme.colors.brand,
+        },
+        unreadBadgeText: {
+            fontSize: 12,
+            lineHeight: 16,
+            fontWeight: '700',
+            color: therrTheme.colors.onBrand,
+        },
         rowAction: {
             alignSelf: 'flex-start',
             marginTop: 2,

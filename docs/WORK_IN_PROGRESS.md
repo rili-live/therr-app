@@ -98,6 +98,13 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Groups: Discover ranking, reports, inbox (added 2026-11-19, docs/FEATURES.md → Group reports, #3230)
+
+- [ ] After the messages-service deploy, confirm migrations `20261119000001_main.forumReadStates_forumReports.js` and `20261119000002_main.forumReports.countsTowardHide.js` ran (both tables exist in the messages database, and `main."forumReports"` has `countsTowardHide`). Until it does, Discover is unfiltered by reports and Your Groups has no previews or unread counts — by design, not an outage.
+- [ ] Decide who reviews group reports and how often. There is no dashboard view yet: reports surface as warn-level `Forums: group reported` log entries (with `forum.reporterCount`, `forum.countingReporterCount` and `forum.isHiddenFromDiscover`) and as rows in `main.forumReports`. The moment a group is hidden from everyone also logs `Forums: group hidden from Discover by reports` — create a log-based alert on that message so a hide (wrongful or not) is seen the same day. To restore a wrongly hidden group, delete its rows there; to remove a bad one, archive the forum.
+- [ ] Report the known scam listing ("Big Daddy Games — Earn 10000rs per day") from three real accounts at least 7 days old (newer accounts' reports do not count toward hiding), or archive it, once this ships. Ranking alone pushes it down but does not remove it.
+- [ ] On a device, check the Your Groups inbox and chat bubbles in light, dark and retro themes, including a long message, a long group name next to the time, and a 99+ badge.
+
 ## Friends with Habits web app (added 2026-11-13, docs/FEATURES.md → Web app)
 
 - [ ] After the client-web deploy carrying `/app`, sign in at `https://habits.therr.com/login` on a real iPhone (Safari) with a test account that has at least one active habit: confirm it lands on `/app`, the habit list loads, and one check-in tap turns the row green and shows up in the Android app. Then accept a pact invitation and withdraw an open-pact request, which are the first `PUT` and `DELETE` calls made from this origin (`https://habits.therr.com` is already in the gateway's `URI_WHITELIST`, and the `cors` defaults allow both methods, so this is a confirmation, not an expected failure).
