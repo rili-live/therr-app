@@ -97,7 +97,6 @@ interface IGroupsState {
     searchFilters: any;
     searchText: string;
     tabRoutes: { key: string; title: string }[];
-    toggleChevronName: 'refresh';
 }
 
 const mapStateToProps = (state) => ({
@@ -165,7 +164,6 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                 { key: GROUPS_CAROUSEL_TABS.DISCOVER, title: this.translate('menus.headerTabs.groupsDiscover') },
                 { key: GROUPS_CAROUSEL_TABS.GROUPS, title: this.translate('menus.headerTabs.groupsJoined') },
             ],
-            toggleChevronName: 'refresh',
             searchText: '',
             searchFilters: {
                 itemsPerPage: DEFAULT_PAGE_SIZE,
@@ -455,7 +453,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
     };
 
     renderSearchHeader = () => {
-        const { categories, searchText, citySearchText, toggleChevronName } = this.state;
+        const { categories, searchText, citySearchText } = this.state;
 
         return (
             <View>
@@ -518,17 +516,15 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                     </View>
                 </View>
                 <GroupCategories
-                    style={{}}
-                    backgroundColor={this.theme.colors.primary}
                     categories={categories}
-                    onCategoryPress={this.handleCategoryPress}
-                    translate={this.translate}
-                    onCategoryTogglePress={this.handleCategoryTogglePress}
-                    toggleChevronName={toggleChevronName}
                     clearLabel={this.translate('pages.groups.categories.clear')}
+                    horizontalInset={10}
+                    layout="scroll"
+                    onCategoryPress={this.handleCategoryPress}
+                    onClearPress={this.handleCategoryTogglePress}
                     theme={this.theme}
-                    themeButtons={this.themeButtons}
                     themeCategory={this.themeCategory}
+                    translate={this.translate}
                 />
             </View>
         );

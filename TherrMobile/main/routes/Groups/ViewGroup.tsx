@@ -63,6 +63,10 @@ const localStyles = StyleSheet.create({
     buttonIcon: {
         marginRight: 6,
     },
+    createEventHeader: {
+        paddingTop: 20,
+        paddingBottom: 10,
+    },
 });
 const tabMap = {
     0: GROUP_CAROUSEL_TABS.CHAT,
@@ -629,7 +633,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             );
                         }}
                         ListHeaderComponent={
-                            <View style={[spacingStyles.marginHorizLg, spacingStyles.padVertMd]}>
+                            <View style={[spacingStyles.marginHorizLg, localStyles.createEventHeader]}>
                                 <Button
                                     onPress={this.goToCreateEvent}
                                     variant="primary"

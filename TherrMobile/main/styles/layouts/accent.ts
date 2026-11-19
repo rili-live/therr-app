@@ -49,10 +49,6 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingVertical: 4,
             flex: 1,
         },
-        categoriesContainer: {
-            marginTop: 20,
-            marginBottom: -10,
-        },
         bodyEdit: {
             backgroundColor: therrTheme.colors.accent1,
             padding: 0,

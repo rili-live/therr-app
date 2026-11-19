@@ -1,124 +1,94 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
-import { EDGE_PADDING } from '.';
 import { getTheme } from '../../themes';
+import { space } from '../../layouts/spacing';
 
-const headerTop = -12;
-const buttonPadding = 4;
-
-const categoryButtonContainerStyle = {
-    marginTop: 0,
-    marginBottom: 0,
-};
-
-const getCategoryButtonTitleStyle = (theme) => ({
-    color: theme.colors.brandingBlack,
-});
-
-const categoryButtonStyle: any = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-};
-
-const categoryIconStyle = {
-    marginRight: 4,
-    elevation: 1,
-    textShadowColor: '#00000026',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
-    padding: 4,
-};
+export const CATEGORY_CHIP_HEIGHT = 34;
 
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
+    const { colors } = therrTheme;
+    // In retro the screen surface is itself teal, so a `brand` fill would vanish into it.
+    // Its `brandDark` is the complementary dark blue, which still reads as "selected".
+    const selectedFill = themeName === 'retro' ? colors.brandDark : colors.brand;
+
+    const chipBase: any = {
+        flexDirection: 'row',
+        alignItems: 'center',
+        height: CATEGORY_CHIP_HEIGHT,
+        paddingLeft: 10,
+        paddingRight: 14,
+        borderRadius: CATEGORY_CHIP_HEIGHT / 2,
+        borderWidth: StyleSheet.hairlineWidth,
+    };
+
     const styles = StyleSheet.create({
-        outerContainer: {
-            position: 'relative',
-            margin: 0,
-            padding: 0,
-            marginTop: (0 - headerTop) + 4,
+        container: {
+            paddingVertical: space.sm,
         },
-        innerContainer: {
-            borderTopWidth: 1,
-            borderTopColor: therrTheme.colors.primary,
-            borderBottomWidth: 1,
-            borderBottomColor: therrTheme.colors.primary,
-            display: 'flex',
-            justifyContent: 'center',
-            paddingHorizontal: EDGE_PADDING * 2,
-            marginTop: 5,
-            paddingTop: 2,
-            paddingBottom: 2,
+        headerRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            minHeight: 28,
+            marginBottom: space.xs,
         },
         header: {
-            position: 'absolute',
-            top: headerTop,
-            left: 10,
-            backgroundColor: therrTheme.colors.primary2,
-            color: therrTheme.colors.primary3,
-            paddingHorizontal: 4,
+            fontSize: 13,
+            fontWeight: '600',
+            letterSpacing: 0.2,
+            color: colors.onSurfaceMuted,
         },
-        listToggleButtonContainer: {
-            position: 'absolute',
-            backgroundColor: therrTheme.colors.primary2,
-            top: headerTop - (buttonPadding / 2) - 2,
-            right: 10,
-            zIndex: 10,
-            margin: 0,
-        },
-        listToggleButton: {
-            padding: 4,
+        clearButton: {
+            paddingVertical: space.xs,
+            paddingHorizontal: space.xs,
         },
         clearButtonTitle: {
             fontSize: 14,
             fontWeight: '600',
-            paddingVertical: 0,
-            paddingHorizontal: 4,
+            color: selectedFill,
         },
-        listContainer: {
-            display: 'flex',
+        scrollList: {
+            gap: space.sm,
+        },
+        wrapList: {
             flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: 50,
+            flexWrap: 'wrap',
+            gap: space.sm,
         },
-        categoryButtonContainer: {
-            ...categoryButtonContainerStyle,
+        chip: {
+            ...chipBase,
+            backgroundColor: colors.surfaceAlt,
+            // A hairline keeps the chip defined where the screen itself is surfaceAlt-colored
+            // (EditGroup's accent1 background in the dark theme).
+            borderColor: colors.border,
         },
-        categoryButtonContainerActive: {
-            ...categoryButtonContainerStyle,
-            elevation: 0,
+        chipActive: {
+            ...chipBase,
+            backgroundColor: selectedFill,
+            borderColor: selectedFill,
         },
-        categoryButtonTitle: {
-            ...getCategoryButtonTitleStyle(therrTheme),
+        chipPressed: {
+            opacity: 0.7,
         },
-        categoryButtonTitleActive: {
-            color: therrTheme.colors.brandingWhite,
+        chipIcon: {
+            marginRight: 6,
         },
-        categoryButton: {
-            ...categoryButtonStyle,
-            backgroundColor: therrTheme.colors.backgroundWhite,
-            borderWidth: 1,
-            borderColor: therrTheme.colors.primary3,
+        chipLabel: {
+            fontSize: 14,
+            fontWeight: '500',
+            color: colors.onSurface,
         },
-        categoryButtonActive: {
-            ...categoryButtonStyle,
-            backgroundColor: therrTheme.colors.primary3,
-            borderWidth: 1,
-            borderColor: therrTheme.colors.primary3,
-        },
-        categoryIcon: {
-            ...categoryIconStyle,
-        },
-        categoryIconActive: {
-            ...categoryIconStyle,
-            color: therrTheme.colors.brandingWhite,
+        chipLabelActive: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: colors.onBrand,
         },
     });
 
     return ({
         ...therrTheme,
+        selectedFill,
         styles,
     });
 };

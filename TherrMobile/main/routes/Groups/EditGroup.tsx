@@ -65,7 +65,6 @@ interface IEditChatState {
     categories: any[];
     errorMsg: string;
     successMsg: string;
-    toggleChevronName: string;
     hashtags: string[];
     imagePreviewPath: string;
     inputs: any;
@@ -120,7 +119,6 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             categories: (categories || []).map(c => ({ ...c, isActive: false })),
             errorMsg: '',
             successMsg: '',
-            toggleChevronName: 'chevron-down',
             hashtags: group?.hashTags ? group?.hashTags?.split(',') : [],
             inputs: {
                 isPublic: group?.isPublic == null ? true : group?.isPublic,
@@ -437,14 +435,6 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         });
     };
 
-    handleCategoryTogglePress = () => {
-        const  { toggleChevronName } = this.state;
-
-        this.setState({
-            toggleChevronName: toggleChevronName === 'chevron-down' ? 'chevron-up' : 'chevron-down',
-        });
-    };
-
     handleCategoryPress = (category) => {
         const { categories } = this.state;
         const modifiedCategories: any = [ ...categories ];
@@ -479,7 +469,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
 
     render() {
         const { navigation } = this.props;
-        const { categories, hashtags, imagePreviewPath, inputs, toggleChevronName } = this.state;
+        const { categories, hashtags, imagePreviewPath, inputs } = this.state;
 
         return (
             <>
@@ -493,16 +483,14 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         // contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyEditScroll]}
                     >
                         <GroupCategories
-                            style={this.themeAccentLayout.styles.categoriesContainer}
-                            backgroundColor={this.theme.colors.accent1}
+                            style={spacingStyles.marginTopMd}
                             categories={categories}
+                            layout="wrap"
+                            horizontalInset={20}
                             onCategoryPress={this.handleCategoryPress}
-                            translate={this.translate}
-                            onCategoryTogglePress={this.handleCategoryTogglePress}
-                            toggleChevronName={toggleChevronName}
                             theme={this.theme}
-                            themeButtons={this.themeButtons}
                             themeCategory={this.themeCategory}
+                            translate={this.translate}
                         />
                         <View style={[this.themeAccentLayout.styles.container, {
                             position: 'relative',

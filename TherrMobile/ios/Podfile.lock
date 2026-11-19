@@ -19,6 +19,9 @@ PODS:
     - Firebase/Core (= 11.11.0)
   - Firebase/Analytics (11.11.0):
     - Firebase/Core
+  - Firebase/AppCheck (11.11.0):
+    - Firebase/CoreOnly
+    - FirebaseAppCheck (~> 11.11.0)
   - Firebase/Auth (11.11.0):
     - Firebase/CoreOnly
     - FirebaseAuth (~> 11.11.0)
@@ -51,6 +54,12 @@ PODS:
     - GoogleUtilities/Network (~> 8.0)
     - "GoogleUtilities/NSData+zlib (~> 8.0)"
     - nanopb (~> 3.30910.0)
+  - FirebaseAppCheck (11.11.0):
+    - AppCheckCore (~> 11.0)
+    - FirebaseAppCheckInterop (~> 11.0)
+    - FirebaseCore (~> 11.11.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
   - FirebaseAppCheckInterop (11.15.0)
   - FirebaseAuth (11.11.0):
     - FirebaseAppCheckInterop (~> 11.0)
@@ -2696,6 +2705,10 @@ PODS:
   - RNFBApp (21.14.0):
     - Firebase/CoreOnly (= 11.11.0)
     - React-Core
+  - RNFBAppCheck (21.14.0):
+    - Firebase/AppCheck (= 11.11.0)
+    - React-Core
+    - RNFBApp
   - RNFBAuth (21.14.0):
     - Firebase/Auth (= 11.11.0)
     - React-Core
@@ -3310,6 +3323,7 @@ DEPENDENCIES:
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
+  - "RNFBAppCheck (from `../node_modules/@react-native-firebase/app-check`)"
   - "RNFBAuth (from `../node_modules/@react-native-firebase/auth`)"
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
   - "RNFBMessaging (from `../node_modules/@react-native-firebase/messaging`)"
@@ -3335,6 +3349,7 @@ SPEC REPOS:
     - CocoaLumberjack
     - Firebase
     - FirebaseAnalytics
+    - FirebaseAppCheck
     - FirebaseAppCheckInterop
     - FirebaseAuth
     - FirebaseAuthInterop
@@ -3569,6 +3584,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/analytics"
   RNFBApp:
     :path: "../node_modules/@react-native-firebase/app"
+  RNFBAppCheck:
+    :path: "../node_modules/@react-native-firebase/app-check"
   RNFBAuth:
     :path: "../node_modules/@react-native-firebase/auth"
   RNFBCrashlytics:
@@ -3612,6 +3629,7 @@ SPEC CHECKSUMS:
   FBLazyVector: 2138c6c2ab66c31bf5754dc18097fbc498a49c7f
   Firebase: 6a8f201c61eda24e98f1ce2b44b1b9c2caf525cc
   FirebaseAnalytics: acfa848bf81e1a4dbf60ef1f0eddd7328fe6673e
+  FirebaseAppCheck: cd8a337021ec2779e6b73eed8d8ba8247be6082c
   FirebaseAppCheckInterop: 06fe5a3799278ae4667e6c432edd86b1030fa3df
   FirebaseAuth: 783fa4cc0420b0f6eed580721b12d4f0a5306746
   FirebaseAuthInterop: 7087d7a4ee4bc4de019b2d0c240974ed5d89e2fd
@@ -3737,6 +3755,7 @@ SPEC CHECKSUMS:
   RNDeviceInfo: 59344c19152c4b2b32283005f9737c5c64b42fba
   RNFBAnalytics: caec446c723d33cfdcf75aab53fa1287e499b2d0
   RNFBApp: fda4a8b08fe31bea8492808106aa638d1bb595b7
+  RNFBAppCheck: 5ef3c750e583d7d5d4286e6835984c5229caefe6
   RNFBAuth: 35ace098dada86a3f77f48ee0168ee1a3b246e2a
   RNFBCrashlytics: 02234987b4cffb39119af52253bf3d70acec0818
   RNFBMessaging: 099972ab397d61815f32610514b0573d1db2b1e1
