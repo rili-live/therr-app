@@ -49,3 +49,12 @@ export const updateForumValidation = [
     body('doesExpire').optional().isBoolean(),
     body('isPublic').optional().isBoolean(),
 ];
+
+export const markForumReadValidation = [
+    param('forumId').exists().isUUID(),
+];
+
+export const reportForumValidation = [
+    param('forumId').exists().isUUID(),
+    body('reason').optional().isIn(['spam', 'scam', 'offensive', 'other']),
+];

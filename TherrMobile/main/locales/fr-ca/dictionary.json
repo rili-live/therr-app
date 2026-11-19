@@ -7,7 +7,17 @@
         "edit": "Modifier le groupe",
         "join": "Rejoindre le groupe",
         "leave": "Quitter le groupe",
+        "report": "Signaler le groupe",
         "share": "Partager le lien"
+      },
+      "report": {
+        "title": "Signaler ce groupe?",
+        "message": "Les groupes signalés sont examinés et retirés de Découvrir. Le créateur du groupe ne sait pas qui l'a signalé.",
+        "spam": "Pourriel ou arnaque",
+        "offensive": "Offensant",
+        "cancel": "Annuler",
+        "success": "Merci. Nous examinerons ce groupe.",
+        "error": "Impossible d'envoyer votre signalement. Veuillez réessayer."
       }
     },
     "user": {
@@ -1479,7 +1489,11 @@
         "memberCount": "{count} membres",
         "memberCountOne": "1 membre",
         "joined": "Membre",
-        "joinGroup": "Rejoindre {title}"
+        "joinGroup": "Rejoindre {title}",
+        "lastMessageYou": "Vous : {text}",
+        "lastMessageFrom": "{name} : {text}",
+        "noMessagesYet": "Aucun message pour le moment",
+        "unreadCount": "{count} non lus"
       },
       "noMyGroupsFound": "Vous n'avez rejoint aucun groupe. Découvrez et rejoignez des groupes pour les voir ici.",
       "discoverGroups": "Découvrir des groupes"

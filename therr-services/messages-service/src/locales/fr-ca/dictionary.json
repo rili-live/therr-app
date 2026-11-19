@@ -3,7 +3,8 @@
     "accessDenied": "L'accès à cette ressource est refusé",
     "forums": {
         "duplicatePost": "Les publications en double ne sont pas autorisées",
-        "forumNotFound": "Aucun groupe trouvé pour l'identifiant fourni"
+        "forumNotFound": "Aucun groupe trouvé pour l'identifiant fourni",
+        "cannotReportOwn": "Vous ne pouvez pas signaler un groupe que vous avez créé"
     }
   },
   "validation": "Les paramètres requis n'ont pas été fournis.",

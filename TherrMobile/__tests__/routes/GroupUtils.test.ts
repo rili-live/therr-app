@@ -1,8 +1,12 @@
 import { describe, it, expect } from '@jest/globals';
 import {
+    formatUnreadCount,
     getCategoryLabel,
     getFallbackAvatarColor,
+    getLastMessagePreview,
+    getSenderColor,
     getTitleInitial,
+    isOwnForumMessage,
 } from '../../main/routes/Groups/groupUtils';
 
 // Mirrors the shared translator's contract: a missing key comes back as the key itself.
@@ -68,5 +72,57 @@ describe('getTitleInitial', () => {
 
     it('falls back to "?" for an empty title', () => {
         expect(getTitleInitial('')).toBe('?');
+    });
+});
+
+describe('formatUnreadCount', () => {
+    it('shows small counts as-is and caps large ones', () => {
+        expect(formatUnreadCount(3)).toBe('3');
+        expect(formatUnreadCount(99)).toBe('99');
+        expect(formatUnreadCount(100)).toBe('99+');
+    });
+});
+
+describe('getLastMessagePreview', () => {
+    const t = (key: string, params?: any) => (params ? `${key}|${JSON.stringify(params)}` : key);
+
+    it('prefixes the viewer\'s own message with "You"', () => {
+        expect(getLastMessagePreview(t, { text: 'hi', fromUserId: 'me' }, 'me'))
+            .toBe('pages.groups.labels.lastMessageYou|{"text":"hi"}');
+    });
+
+    it('prefixes someone else\'s message with their name, collapsing line breaks', () => {
+        expect(getLastMessagePreview(t, { text: 'see\n\n you   there', fromUserId: 'a', fromUserName: 'alex' }, 'me'))
+            .toBe('pages.groups.labels.lastMessageFrom|{"name":"alex","text":"see you there"}');
+    });
+
+    it('falls back to the bare text when the sender name is unknown', () => {
+        expect(getLastMessagePreview(t, { text: 'hello', fromUserId: 'a' }, 'me')).toBe('hello');
+    });
+
+    it('says there are no messages yet for an empty group', () => {
+        expect(getLastMessagePreview(t, null, 'me')).toBe('pages.groups.labels.noMessagesYet');
+    });
+});
+
+describe('getSenderColor', () => {
+    it('gives the same sender the same color every time', () => {
+        const palette = ['a', 'b', 'c', 'd', 'e'];
+        expect(getSenderColor('user-42', palette)).toBe(getSenderColor('user-42', palette));
+    });
+});
+
+describe('isOwnForumMessage', () => {
+    it('compares sender ids when the message has one', () => {
+        expect(isOwnForumMessage({ fromUserId: 'me', fromUserName: 'alex' }, 'me')).toBe(true);
+        expect(isOwnForumMessage({ fromUserId: 'other', fromUserName: 'you' }, 'me')).toBe(false);
+    });
+
+    it('recognizes the websocket echo of the viewer\'s own message', () => {
+        expect(isOwnForumMessage({ fromUserName: 'you' }, 'me')).toBe(true);
+    });
+
+    it('does not claim messages from people whose name merely contains "you"', () => {
+        expect(isOwnForumMessage({ fromUserName: 'Youssef' }, 'me')).toBe(false);
     });
 });

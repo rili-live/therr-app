@@ -13,41 +13,70 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         sendBtnContainer: {
             marginHorizontal: 4,
         },
-        messageContainer: {
-            display: 'flex',
-            flexDirection: 'row',
-            marginVertical: 3,
-            backgroundColor: therrTheme.colors.backgroundWhite,
-            paddingHorizontal: 4,
-            paddingVertical: 10,
-            borderRadius: 4,
-            elevation: 3,
-            paddingLeft: 10,
-            borderWidth: 1,
-        },
-        messageContentContainer: {
-            flex: 1,
-        },
-        messageHeader: {
-            display: 'flex',
+        // --- Chat rows (routes/Groups/ForumMessage.tsx) ---
+        messageRow: {
             flexDirection: 'row',
             alignItems: 'flex-end',
-            paddingBottom: 3,
+            gap: 8,
+            marginVertical: 4,
+            paddingRight: 48,
         },
-        senderTitleText: {
-            color: therrTheme.colors.textWhite,
-            fontSize: 15,
-            fontWeight: 'bold',
-            paddingRight: 4,
+        messageRowOwn: {
+            justifyContent: 'flex-end',
+            paddingRight: 0,
+            paddingLeft: 48,
         },
-        messageTime: {
-            fontSize: 12,
-            color: therrTheme.colors.textGray,
+        senderAvatar: {
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+        },
+        bubble: {
+            flexShrink: 1,
+            paddingHorizontal: 12,
+            paddingTop: 8,
+            paddingBottom: 6,
+            borderRadius: 18,
+        },
+        bubbleOther: {
+            backgroundColor: therrTheme.colors.surfaceAlt,
+            borderBottomLeftRadius: 4,
+        },
+        bubbleOwn: {
+            backgroundColor: therrTheme.colors.brand,
+            borderBottomRightRadius: 4,
+        },
+        senderName: {
+            fontSize: 13,
+            fontWeight: '700',
+            marginBottom: 2,
         },
         messageText: {
-            color: therrTheme.colors.textWhite,
+            color: therrTheme.colors.onSurface,
             fontSize: 15,
-            flex: 1,
+            lineHeight: 21,
+        },
+        messageTextOwn: {
+            color: therrTheme.colors.onBrand,
+        },
+        messageTime: {
+            alignSelf: 'flex-end',
+            marginTop: 2,
+            fontSize: 11,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        messageTimeOwn: {
+            color: therrTheme.colors.onBrand,
+            opacity: 0.8,
+        },
+        announcementRow: {
+            alignItems: 'center',
+            marginVertical: 6,
+        },
+        announcementText: {
+            fontSize: 12,
+            color: therrTheme.colors.onSurfaceMuted,
+            textAlign: 'center',
         },
         footer: {
             flexDirection: 'row',

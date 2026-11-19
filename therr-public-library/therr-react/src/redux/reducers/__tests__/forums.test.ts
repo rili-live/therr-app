@@ -118,6 +118,45 @@ describe('forums reducer', () => {
         expect(Array.from(result.myForumsSearchResults)).toEqual([]);
     });
 
+    it('handles MARK_FORUM_READ by clearing that group\'s unread count only', () => {
+        const populated = reducer(initialState, {
+            type: ForumActionTypes.SEARCH_MY_FORUMS,
+            data: {
+                results: [{ id: 'f1', unreadCount: 4 }, { id: 'f2', unreadCount: 2 }],
+                pagination: {},
+            },
+        });
+        const result = reducer(populated, {
+            type: ForumActionTypes.MARK_FORUM_READ,
+            data: { forumId: 'f1' },
+        });
+        expect(result.myForumsSearchResults[0].unreadCount).toBe(0);
+        expect(result.myForumsSearchResults[1].unreadCount).toBe(2);
+    });
+
+    it('handles MARK_FORUM_READ for a group not in the list without throwing', () => {
+        const result = reducer(initialState, {
+            type: ForumActionTypes.MARK_FORUM_READ,
+            data: { forumId: 'missing' },
+        });
+        expect(Array.from(result.myForumsSearchResults)).toEqual([]);
+    });
+
+    it('handles REPORT_FORUM by removing the group from Discover results', () => {
+        const populated = reducer(initialState, {
+            type: ForumActionTypes.SEARCH_FORUMS,
+            data: {
+                results: [{ id: 'f1' }, { id: 'spam' }, { id: 'f3' }],
+                pagination: {},
+            },
+        });
+        const result = reducer(populated, {
+            type: ForumActionTypes.REPORT_FORUM,
+            data: { forumId: 'spam' },
+        });
+        expect(result.searchResults.map((group: any) => group.id)).toEqual(['f1', 'f3']);
+    });
+
     it('returns state unchanged for unknown action', () => {
         const result = reducer(initialState, { type: 'UNKNOWN_ACTION' });
         expect(result).toBe(initialState);
