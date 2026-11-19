@@ -18,12 +18,13 @@ import {
     createUserForum,
     createUserForums,
     findUsers,
+    getMe,
     getUserForums,
 } from '../api/usersService';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import translate from '../utilities/translator';
 import { FORUM_READ_TRACKING_STARTED_AT } from '../store/ForumReadStatesStore';
-import { FORUM_REPORT_HIDE_THRESHOLD, FORUM_REPORT_REASONS } from '../store/ForumReportsStore';
+import { FORUM_REPORT_HIDE_THRESHOLD, FORUM_REPORT_REASONS, isAccountOldEnoughToHide } from '../store/ForumReportsStore';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -587,10 +588,33 @@ const markForumRead: RequestHandler = (req: any, res: any) => {
 };
 
 /**
+ * Whether the caller's report should count toward hiding a group from everyone, decided by their
+ * account age (ForumReportsStore.FORUM_REPORT_MIN_ACCOUNT_AGE_DAYS). Fails closed: if users-service
+ * cannot say how old the account is, the report is still recorded but does not count, so an outage
+ * there can never make hiding a group easier.
+ */
+const doesReportCountTowardHide = (headers: any, userId: string): Promise<boolean> => getMe(headers)
+    .then((response: any) => isAccountOldEnoughToHide(response?.data?.createdAt))
+    .catch((err) => {
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'API_SERVER',
+            messages: ['Forums: reporter account age unavailable; report will not count toward hiding'],
+            traceArgs: {
+                'error.message': err?.message,
+                'user.id': userId,
+                source: 'messages-service',
+            },
+        });
+        return false;
+    });
+
+/**
  * POST /forums/:forumId/report — a member reports a group (spam, scam, offensive, other).
- * The group leaves the reporter's Discover at once, and everyone's once enough different people
- * have reported it (ForumReportsStore.FORUM_REPORT_HIDE_THRESHOLD). Logged at warn so reports show
- * up where moderation already looks.
+ * The group leaves the reporter's Discover at once, and everyone's once enough different
+ * established reporters have reported it (ForumReportsStore.FORUM_REPORT_HIDE_THRESHOLD and
+ * FORUM_REPORT_MIN_ACCOUNT_AGE_DAYS). Logged at warn so reports show up where moderation already
+ * looks, with a separate entry at the moment a group is hidden from everyone, for alerting.
  */
 const reportForum: RequestHandler = (req: any, res: any) => {
     const { locale, userId } = parseHeaders(req.headers);
@@ -621,23 +645,41 @@ const reportForum: RequestHandler = (req: any, res: any) => {
                 });
             }
 
-            const isNewReport = await Store.forumReports.create(forumId, userId, reason);
-            const reporterCount = await Store.forumReports.countReporters(forumId);
+            const countsTowardHide = await doesReportCountTowardHide(req.headers, userId);
+            const isNewReport = await Store.forumReports.create(forumId, userId, reason, countsTowardHide);
+            const reporterCounts = await Store.forumReports.countReporters(forumId);
+            const isHiddenFromDiscover = reporterCounts.counting >= FORUM_REPORT_HIDE_THRESHOLD;
 
             if (isNewReport) {
+                const traceArgs = {
+                    'forum.id': forumId,
+                    'forum.title': forum.title,
+                    'forum.reason': reason || 'unspecified',
+                    'forum.reporterCount': reporterCounts.total,
+                    'forum.countingReporterCount': reporterCounts.counting,
+                    'forum.reportCountsTowardHide': countsTowardHide,
+                    'forum.isHiddenFromDiscover': isHiddenFromDiscover,
+                    'user.id': userId,
+                    source: 'messages-service',
+                };
+
                 logSpan({
                     level: 'warn',
                     messageOrigin: 'API_SERVER',
                     messages: ['Forums: group reported'],
-                    traceArgs: {
-                        'forum.id': forumId,
-                        'forum.reason': reason || 'unspecified',
-                        'forum.reporterCount': reporterCount,
-                        'forum.isHiddenFromDiscover': reporterCount >= FORUM_REPORT_HIDE_THRESHOLD,
-                        'user.id': userId,
-                        source: 'messages-service',
-                    },
+                    traceArgs,
                 });
+
+                // The report that tipped the group over. A stable message, so a log-based alert can
+                // match it: this is the moment a group disappears from everyone's Discover.
+                if (countsTowardHide && reporterCounts.counting === FORUM_REPORT_HIDE_THRESHOLD) {
+                    logSpan({
+                        level: 'warn',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Forums: group hidden from Discover by reports'],
+                        traceArgs,
+                    });
+                }
             }
 
             return res.status(200).send({ forumId, isReported: true });

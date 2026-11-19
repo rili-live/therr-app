@@ -1,11 +1,16 @@
 /* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
+import * as logSpanModule from 'therr-js-utilities/log-or-update-span';
 import Store from '../../src/store';
 import ForumsStore from '../../src/store/ForumsStore';
 import ForumMessagesStore from '../../src/store/ForumMessagesStore';
 import ForumReadStatesStore, { FORUM_READ_TRACKING_STARTED_AT } from '../../src/store/ForumReadStatesStore';
-import ForumReportsStore, { FORUM_REPORT_HIDE_THRESHOLD } from '../../src/store/ForumReportsStore';
+import ForumReportsStore, {
+    FORUM_REPORT_HIDE_THRESHOLD,
+    FORUM_REPORT_MIN_ACCOUNT_AGE_DAYS,
+    isAccountOldEnoughToHide,
+} from '../../src/store/ForumReportsStore';
 import * as usersService from '../../src/api/usersService';
 import { markForumRead, reportForum, searchForums } from '../../src/handlers/forums';
 
@@ -33,6 +38,9 @@ const authedHeaders = {
 };
 
 // Handlers return the promise chain, so awaiting the call is enough to observe the response.
+const DAY_MS = 24 * 60 * 60 * 1000;
+const daysAgo = (days: number) => new Date(Date.now() - (days * DAY_MS)).toISOString();
+
 const run = (handler: any, req: any) => {
     const res = buildMockRes();
     return Promise.resolve(handler(req, res, () => {})).then(() => res);
@@ -74,13 +82,33 @@ describe('Groups: read state, reports and Discover ranking', () => {
             expect(isNew).to.equal(false);
         });
 
-        it('hides groups with enough distinct reporters, plus those the viewer reported', async () => {
+        it('records whether the report counts toward hiding, defaulting to not', async () => {
+            const mockDb = buildMockDb([], 1);
+            const store = new ForumReportsStore(mockDb as any);
+            await store.create(FORUM_ID, VIEWER_ID, 'spam', true);
+            await store.create(FORUM_ID, AUTHOR_ID, 'spam');
+
+            // knex orders insert columns alphabetically, so countsTowardHide is the first value.
+            expect(mockDb.write.query.args[0][0]).to.contain('("countsTowardHide", "forumId", "reason", "reportedByUserId") values (true, ');
+            expect(mockDb.write.query.args[1][0]).to.contain('("countsTowardHide", "forumId", "reason", "reportedByUserId") values (false, ');
+        });
+
+        it('counts all reporters and the counting ones separately', async () => {
+            const mockDb = buildMockDb([{ total: '5', counting: '2' }]);
+            const store = new ForumReportsStore(mockDb as any);
+            const counts = await store.countReporters(FORUM_ID);
+
+            expect(mockDb.read.query.args[0][0]).to.contain('COUNT(*) FILTER (WHERE "countsTowardHide") AS "counting"');
+            expect(counts).to.deep.equal({ total: 5, counting: 2 });
+        });
+
+        it('hides groups with enough counting reporters, plus those the viewer reported', async () => {
             const mockDb = buildMockDb([{ forumId: FORUM_ID }]);
             const store = new ForumReportsStore(mockDb as any);
             const ids = await store.getHiddenFromDiscoverIds(VIEWER_ID);
 
             const sql = mockDb.read.query.args[0][0];
-            expect(sql).to.equal(`select "forumId" from "main"."forumReports" group by "forumId" having COUNT(*) >= ${FORUM_REPORT_HIDE_THRESHOLD} OR BOOL_OR("reportedByUserId" = '${VIEWER_ID}')`);
+            expect(sql).to.equal(`select "forumId" from "main"."forumReports" group by "forumId" having COUNT(*) FILTER (WHERE "countsTowardHide") >= ${FORUM_REPORT_HIDE_THRESHOLD} OR BOOL_OR("reportedByUserId" = '${VIEWER_ID}')`);
             expect(ids).to.deep.equal([FORUM_ID]);
         });
 
@@ -92,7 +120,7 @@ describe('Groups: read state, reports and Discover ranking', () => {
             await store.getHiddenFromDiscoverIds();
 
             const sql = mockDb.read.query.args[0][0];
-            expect(sql).to.equal(`select "forumId" from "main"."forumReports" group by "forumId" having COUNT(*) >= ${FORUM_REPORT_HIDE_THRESHOLD}`);
+            expect(sql).to.equal(`select "forumId" from "main"."forumReports" group by "forumId" having COUNT(*) FILTER (WHERE "countsTowardHide") >= ${FORUM_REPORT_HIDE_THRESHOLD}`);
             expect(sql).to.not.contain('union');
         });
     });
@@ -159,6 +187,26 @@ describe('Groups: read state, reports and Discover ranking', () => {
         });
     });
 
+    describe('isAccountOldEnoughToHide', () => {
+        const now = new Date('2026-11-20T00:00:00.000Z');
+
+        it('counts an account at or past the minimum age', () => {
+            expect(isAccountOldEnoughToHide(new Date(now.getTime() - (FORUM_REPORT_MIN_ACCOUNT_AGE_DAYS * DAY_MS)), now)).to.equal(true);
+            expect(isAccountOldEnoughToHide('2025-01-01T00:00:00.000Z', now)).to.equal(true);
+        });
+
+        it('does not count a newer account', () => {
+            expect(isAccountOldEnoughToHide(new Date(now.getTime() - (FORUM_REPORT_MIN_ACCOUNT_AGE_DAYS * DAY_MS) + 1), now)).to.equal(false);
+            expect(isAccountOldEnoughToHide('2026-11-19T12:00:00.000Z', now)).to.equal(false);
+        });
+
+        it('fails closed on a missing or unparseable date', () => {
+            expect(isAccountOldEnoughToHide(undefined, now)).to.equal(false);
+            expect(isAccountOldEnoughToHide(null, now)).to.equal(false);
+            expect(isAccountOldEnoughToHide('not a date', now)).to.equal(false);
+        });
+    });
+
     describe('reportForum handler', () => {
         it('rejects an id that is not a UUID without touching the database', async () => {
             const getForumStub = sinon.stub(Store.forums, 'getForum');
@@ -179,22 +227,68 @@ describe('Groups: read state, reports and Discover ranking', () => {
 
         it('records the report, dropping an unknown reason', async () => {
             sinon.stub(Store.forums, 'getForum').resolves([{ id: FORUM_ID, authorId: AUTHOR_ID }]);
+            sinon.stub(usersService, 'getMe').resolves({ data: { id: VIEWER_ID, createdAt: daysAgo(30) } } as any);
             const createStub = sinon.stub(Store.forumReports, 'create').resolves(true);
-            sinon.stub(Store.forumReports, 'countReporters').resolves(1);
+            sinon.stub(Store.forumReports, 'countReporters').resolves({ total: 1, counting: 1 });
             const res = await run(reportForum, { headers: authedHeaders, params: { forumId: FORUM_ID }, body: { reason: 'free-text' } });
 
-            expect(createStub.calledOnceWith(FORUM_ID, VIEWER_ID, undefined)).to.equal(true);
+            expect(createStub.calledOnceWithExactly(FORUM_ID, VIEWER_ID, undefined, true)).to.equal(true);
             expect(res.status.args[0][0]).to.equal(200);
             expect(res.send.args[0][0]).to.deep.equal({ forumId: FORUM_ID, isReported: true });
         });
 
         it('passes a known reason through', async () => {
             sinon.stub(Store.forums, 'getForum').resolves([{ id: FORUM_ID, authorId: AUTHOR_ID }]);
+            sinon.stub(usersService, 'getMe').resolves({ data: { id: VIEWER_ID, createdAt: daysAgo(30) } } as any);
             const createStub = sinon.stub(Store.forumReports, 'create').resolves(true);
-            sinon.stub(Store.forumReports, 'countReporters').resolves(3);
+            sinon.stub(Store.forumReports, 'countReporters').resolves({ total: 3, counting: 3 });
             await run(reportForum, { headers: authedHeaders, params: { forumId: FORUM_ID }, body: { reason: 'scam' } });
 
             expect(createStub.calledOnceWith(FORUM_ID, VIEWER_ID, 'scam')).to.equal(true);
+        });
+
+        it('records a report from a new account without letting it count toward hiding', async () => {
+            sinon.stub(Store.forums, 'getForum').resolves([{ id: FORUM_ID, authorId: AUTHOR_ID }]);
+            sinon.stub(usersService, 'getMe').resolves({ data: { id: VIEWER_ID, createdAt: daysAgo(1) } } as any);
+            const createStub = sinon.stub(Store.forumReports, 'create').resolves(true);
+            sinon.stub(Store.forumReports, 'countReporters').resolves({ total: 3, counting: 2 });
+            const logStub = sinon.stub(logSpanModule, 'default');
+            const res = await run(reportForum, { headers: authedHeaders, params: { forumId: FORUM_ID }, body: { reason: 'spam' } });
+
+            expect(createStub.calledOnceWithExactly(FORUM_ID, VIEWER_ID, 'spam', false)).to.equal(true);
+            expect(res.status.args[0][0]).to.equal(200);
+            const reported = logStub.getCalls().find((call) => call.args[0].messages?.[0] === 'Forums: group reported');
+            expect(reported?.args[0].traceArgs?.['forum.isHiddenFromDiscover']).to.equal(false);
+        });
+
+        it('fails closed when the reporter\'s account age cannot be read', async () => {
+            sinon.stub(Store.forums, 'getForum').resolves([{ id: FORUM_ID, authorId: AUTHOR_ID }]);
+            sinon.stub(usersService, 'getMe').rejects(new Error('users-service unavailable'));
+            const createStub = sinon.stub(Store.forumReports, 'create').resolves(true);
+            sinon.stub(Store.forumReports, 'countReporters').resolves({ total: 1, counting: 0 });
+            sinon.stub(logSpanModule, 'default');
+            const res = await run(reportForum, { headers: authedHeaders, params: { forumId: FORUM_ID }, body: { reason: 'spam' } });
+
+            expect(createStub.calledOnceWithExactly(FORUM_ID, VIEWER_ID, 'spam', false)).to.equal(true);
+            expect(res.status.args[0][0]).to.equal(200);
+        });
+
+        it('logs a separate entry only for the report that hides the group from everyone', async () => {
+            sinon.stub(Store.forums, 'getForum').resolves([{ id: FORUM_ID, authorId: AUTHOR_ID, title: 'Big Daddy Games' }]);
+            sinon.stub(usersService, 'getMe').resolves({ data: { id: VIEWER_ID, createdAt: daysAgo(30) } } as any);
+            sinon.stub(Store.forumReports, 'create').resolves(true);
+            const countStub = sinon.stub(Store.forumReports, 'countReporters').resolves({ total: 4, counting: FORUM_REPORT_HIDE_THRESHOLD });
+            const logStub = sinon.stub(logSpanModule, 'default');
+            const hiddenMessages = () => logStub.getCalls()
+                .filter((call) => call.args[0].messages?.[0] === 'Forums: group hidden from Discover by reports');
+
+            await run(reportForum, { headers: authedHeaders, params: { forumId: FORUM_ID }, body: { reason: 'scam' } });
+            expect(hiddenMessages()).to.have.length(1);
+            expect(hiddenMessages()[0].args[0].traceArgs?.['forum.title']).to.equal('Big Daddy Games');
+
+            countStub.resolves({ total: 5, counting: FORUM_REPORT_HIDE_THRESHOLD + 1 });
+            await run(reportForum, { headers: authedHeaders, params: { forumId: FORUM_ID }, body: { reason: 'scam' } });
+            expect(hiddenMessages()).to.have.length(1);
         });
     });
 
