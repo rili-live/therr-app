@@ -51,6 +51,22 @@ const forums = produce((draft: IForumsState, action: any) => {
             draft.myForumsSearchResults = action.data.results;
             draft.myForumsPagination = action.data.pagination;
             break;
+        case ForumActionTypes.MARK_FORUM_READ: {
+            const readGroup = draft.myForumsSearchResults?.find?.((group) => group.id === action.data?.forumId);
+            if (readGroup) {
+                readGroup.unreadCount = 0;
+            }
+            break;
+        }
+        case ForumActionTypes.REPORT_FORUM: {
+            // The server hides a group from its reporter's Discover; do the same locally now
+            // rather than leaving it in the list until the next search.
+            const reportedIdx = draft.searchResults?.findIndex?.((group) => group.id === action.data?.forumId);
+            if (reportedIdx > -1) {
+                draft.searchResults.splice(reportedIdx, 1);
+            }
+            break;
+        }
         case ForumActionTypes.SEARCH_FORUM_CATEGORIES:
             draft.forumCategories = action.data.results;
             break;
