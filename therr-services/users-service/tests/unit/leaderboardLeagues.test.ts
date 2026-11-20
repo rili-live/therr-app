@@ -121,7 +121,7 @@ describe('computeLeagueResults', () => {
         expect(results.filter((result) => result.leagueFrom === 'sapling' && result.leagueTo === 'bloom')).to.have.length(2);
     });
 
-    it('resolves ties at both lines in the users\' favour', () => {
+    it('spares a tie that straddles the relegation line', () => {
         const results = computeLeagueResults(HABITS, [
             { userId: 'a', points: 90, league: 'sapling' },
             { userId: 'b', points: 80, league: 'sapling' },
@@ -139,15 +139,35 @@ describe('computeLeagueResults', () => {
         expect(byUser.f).to.include({ placement: 5, leagueTo: 'sapling' });
     });
 
-    it('promotes a whole tie that straddles the promotion line', () => {
+    it('promotes whoever reached a tied score first when the tie straddles the promotion line', () => {
         const results = computeLeagueResults(HABITS, [
-            { userId: 'a', points: 50, league: null },
-            { userId: 'b', points: 50, league: null },
+            {
+                userId: 'a', points: 50, league: null, reachedAt: '2026-09-10T12:00:00.000Z',
+            },
+            {
+                userId: 'b', points: 50, league: null, reachedAt: '2026-09-09T12:00:00.000Z',
+            },
             ...participants(4, null, 20),
         ]);
+        const byUser = Object.fromEntries(results.map((result) => [result.userId, result]));
 
-        expect(results.filter((result) => result.leagueTo === 'sprout').map((result) => result.userId))
-            .to.have.members(['a', 'b']);
+        // 6 people promote 1. Both share #1; b got to 50 a day earlier.
+        expect(byUser.b).to.include({ placement: 1, leagueTo: 'sprout' });
+        expect(byUser.a).to.include({ placement: 1, leagueTo: 'seedling' });
+    });
+
+    it('promotes exactly a fifth of a league that tied all the way down, not all of it', () => {
+        const results = computeLeagueResults(HABITS, Array.from({ length: 30 }, (_, index) => ({
+            userId: `u-${String(index).padStart(2, '0')}`,
+            points: 10,
+            league: 'sapling',
+            reachedAt: new Date(Date.UTC(2026, 8, 8, index)).toISOString(),
+        })));
+        const promoted = results.filter((result) => result.leagueTo === 'bloom').map((result) => result.userId);
+
+        expect(promoted).to.deep.equal(['u-00', 'u-01', 'u-02', 'u-03', 'u-04', 'u-05']);
+        // A tie spanning the relegation line spares everyone in it.
+        expect(results.filter((result) => result.leagueTo === 'sprout')).to.have.length(0);
     });
 
     it('reads an unknown stored league as the lowest one', () => {
@@ -241,6 +261,21 @@ describe('closeElapsedLeaderboardPeriod — leagues', () => {
         expect(await areLeaguesActiveForBrand(BrandVariations.THERR, now)).to.equal(false);
     });
 
+    it('reads a user\'s league once per week, not on every XP award', async () => {
+        getParticipants.resolves(participants(10, null));
+        sinon.stub(Store.leaderboardPeriodResults, 'wasClosedWithLeagues').resolves(true);
+        const getLeagueForUser = sinon.stub(Store.userLeaderboardLeagues, 'getLeagueForUser').resolves('oak');
+
+        expect(await getActiveLeagueForUser(HABITS, 'user-1', now)).to.equal('oak');
+        expect(await getActiveLeagueForUser(HABITS, 'user-1', now)).to.equal('oak');
+        expect(getLeagueForUser.calledOnce).to.equal(true);
+
+        // The next week's close may have moved them: read again.
+        getLeagueForUser.resolves('evergreen');
+        expect(await getActiveLeagueForUser(HABITS, 'user-1', new Date('2026-09-23T12:00:00.000Z'))).to.equal('evergreen');
+        expect(getLeagueForUser.calledTwice).to.equal(true);
+    });
+
     it('falls back to the brand-wide board when the lookup fails', async () => {
         hasResults.rejects(new Error('db down'));
 
@@ -274,6 +309,18 @@ describe('leaderboard league SQL', () => {
         expect(sql).to.contain('"main"."userLeaderboardLeagues"."brandVariation" = "main"."userLeaderboardScores"."brandVariation"');
     });
 
+    it('orders weekly ties by who reached the score first, the order the close promotes in', async () => {
+        const { read, scores } = buildStores();
+
+        await scores.getTopScores(HABITS, { periodStart: '2026-09-14', league: 'seedling' });
+        await scores.getEligibleParticipantsForPeriod(HABITS, '2026-09-07');
+
+        expect(read.firstCall.args[0]).to.contain(
+            'order by "main"."userLeaderboardScores"."points" desc, "main"."userLeaderboardScores"."updatedAt" asc',
+        );
+        expect(read.secondCall.args[0]).to.contain('"main"."userLeaderboardScores"."updatedAt" as "reachedAt"');
+    });
+
     it('matches a higher league exactly', async () => {
         const { read, scores } = buildStores();
 
@@ -304,17 +351,54 @@ describe('leaderboard league SQL', () => {
         expect(sql).to.not.match(/main\.userLeaderboardLeagues\b/);
     });
 
-    it('writes league results first-writer-wins, in chunks', async () => {
-        const { write, results } = buildStores();
-        const rows = Array.from({ length: 501 }, (_, index) => ({
-            userId: `u-${index}`, placement: index + 1, score: 1, participants: 501, leagueFrom: 'seedling', leagueTo: 'seedling',
-        }));
+    const buildTransactionalStore = (failOnInsert?: number) => {
+        let inserts = 0;
+        const clientQuery = sinon.stub().callsFake((sql: string) => {
+            if (sql.startsWith('insert')) {
+                inserts += 1;
+                if (inserts === failOnInsert) {
+                    return Promise.reject(new Error('chunk failed'));
+                }
+                return Promise.resolve({ rows: [], rowCount: 500 });
+            }
+            return Promise.resolve({ rows: [] });
+        });
+        const release = sinon.stub();
+        const connection = {
+            read: { query: sinon.stub() },
+            write: { query: sinon.stub(), connect: sinon.stub().resolves({ query: clientQuery, release }) },
+        } as any;
+        return { clientQuery, release, results: new LeaderboardPeriodResultsStore(connection) };
+    };
+    const leagueRows = (count: number) => Array.from({ length: count }, (_, index) => ({
+        userId: `u-${index}`, placement: index + 1, score: 1, participants: count, leagueFrom: 'seedling', leagueTo: 'seedling',
+    }));
 
-        await results.insertLeagueResults(HABITS, '2026-09-07', rows);
+    it('writes league results first-writer-wins, in chunks, in one transaction', async () => {
+        const { clientQuery, release, results } = buildTransactionalStore();
 
-        expect(write.callCount).to.equal(2);
-        expect(write.firstCall.args[0]).to.contain('on conflict ("brandVariation", "periodStart", "userId") do nothing');
-        expect(write.firstCall.args[0]).to.contain('\'habits\'');
+        await results.insertLeagueResults(HABITS, '2026-09-07', leagueRows(501));
+
+        const statements: string[] = clientQuery.getCalls().map((call) => call.args[0]);
+        expect(statements[0]).to.equal('BEGIN');
+        expect(statements.filter((sql) => sql.startsWith('insert'))).to.have.length(2);
+        expect(statements[statements.length - 1]).to.equal('COMMIT');
+        expect(statements[1]).to.contain('on conflict ("brandVariation", "periodStart", "userId") do nothing');
+        expect(statements[1]).to.contain('\'habits\'');
+        expect(release.calledOnce).to.equal(true);
+    });
+
+    it('leaves no partial close behind when a later chunk fails', async () => {
+        const { clientQuery, release, results } = buildTransactionalStore(2);
+
+        let thrown: Error | undefined;
+        await results.insertLeagueResults(HABITS, '2026-09-07', leagueRows(501)).catch((err) => { thrown = err; });
+
+        const statements: string[] = clientQuery.getCalls().map((call) => call.args[0]);
+        expect(thrown?.message).to.equal('chunk failed');
+        expect(statements).to.include('ROLLBACK');
+        expect(statements).to.not.include('COMMIT');
+        expect(release.calledOnce).to.equal(true);
     });
 });
 

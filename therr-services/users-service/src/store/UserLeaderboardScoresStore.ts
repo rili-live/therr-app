@@ -133,11 +133,13 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
         userId: string,
         points: number,
         league: string | null,
+        reachedAt: Date | null,
     }[]> {
         let queryBuilder = this.scopedQuery(brand)
             .select([
                 `${this.tableName}.userId`,
                 `${this.tableName}.points`,
+                `${this.tableName}.updatedAt as reachedAt`,
                 `${USER_LEADERBOARD_LEAGUES_TABLE_NAME}.league`,
             ])
             .andWhere(`${this.tableName}.periodStart`, periodStart);
@@ -148,6 +150,7 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
                 userId: row.userId,
                 points: Number(row.points) || 0,
                 league: row.league || null,
+                reachedAt: row.reachedAt || null,
             })));
     }
 
@@ -202,7 +205,10 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
             queryBuilder = queryBuilder
                 .select(`${this.tableName}.points`)
                 .andWhere(`${this.tableName}.periodStart`, periodStart)
-                .orderBy(`${this.tableName}.points`, 'desc');
+                .orderBy(`${this.tableName}.points`, 'desc')
+                // Within a tie, whoever reached the score first — the order the weekly league close
+                // promotes in (utilities/leaderboardLeagues.ts `compareLeagueParticipants`).
+                .orderBy(`${this.tableName}.updatedAt`, 'asc');
         } else {
             queryBuilder = queryBuilder
                 .sum(`${this.tableName}.points as points`)
