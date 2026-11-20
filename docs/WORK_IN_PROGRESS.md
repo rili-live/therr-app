@@ -98,6 +98,15 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Leaderboard leagues (added 2026-11-20, docs/FEATURES.md → Leaderboard leagues, #3055)
+
+- [ ] After the users-service deploy, confirm migration `20261120000001_main.userLeaderboardLeagues.js` ran (`main."userLeaderboardLeagues"` exists). New table, read by neither automator.
+- [ ] Leagues ship **off**. Turn them on per brand with `LEADERBOARD_LEAGUES_BRANDS` on users-service (`k8s/prod/users-service-deployment.yaml`) only once that brand's mobile build renders them: Therr with the next general release, Friends with Habits once the niche/HABITS-general build with the league UI is on Play. Older builds keep working (they ask for the global board), but their rank pushes would already be league-relative.
+- [ ] Before flipping it, pick the activation threshold from real numbers: count last week's eligible participants per brand (`/prod-db`, `main."userLeaderboardScores"` for the previous Monday's `periodStart`, excluding opted-out, deleted and test accounts). The default `LEADERBOARD_LEAGUES_MIN_PARTICIPANTS=30` keeps a smaller brand on the single board; lower it only knowingly.
+- [ ] The first Monday after flipping, read the `Leaderboard period closed with leagues` log (`leaderboard.participants`, `.promoted`, `.demoted`) or `... without leagues: below the activation threshold`, and check `main."userLeaderboardLeagues"` gained one row per participant.
+- [ ] Mirror `main.userLeaderboardLeagues` into therr-messaging-automator's `src/store/brandScoped.ts` (CLAUDE.md § Sibling Repos rule 2), even though it does not read the table today.
+- [ ] On a device, check the league header, ladder and arrows in light, dark and retro themes for both brands — the tier colours are fixed per tier and need to read on every theme.
+
 ## Groups: Discover ranking, reports, inbox (added 2026-11-19, docs/FEATURES.md → Group reports, #3230)
 
 - [ ] After the messages-service deploy, confirm migrations `20261119000001_main.forumReadStates_forumReports.js` and `20261119000002_main.forumReports.countsTowardHide.js` ran (both tables exist in the messages database, and `main."forumReports"` has `countsTowardHide`). Until it does, Discover is unfiltered by reports and Your Groups has no previews or unread counts — by design, not an outage.
