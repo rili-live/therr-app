@@ -38,14 +38,22 @@ export const getNeighbourLeague = (brand: string, leagueIndex: number, offset: 1
 
 /**
  * Whether a row on the league board currently sits in the promotion or relegation zone. Mirrors the
- * server's rule (utilities/leaderboardLeagues.ts `computeLeagueResults`): competition ranks, ties
- * resolved in the user's favour, promotion checked first.
+ * server's rule (utilities/leaderboardLeagues.ts `computeLeagueResults`), promotion checked first:
+ *
+ *   - promotion goes by `position`, the row's 1-based place in the board's order. Exactly
+ *     `promoteCount` move up, and the server orders a tie by who reached the score first — the
+ *     order the close promotes in — so two rows sharing a rank can land on either side of the line.
+ *   - relegation goes by the shared competition `rank`, so a tie straddling the line is spared.
  */
-export const getLeagueZone = (rank: number, status: ILeaderboardLeagueStatus | null | undefined): LeagueZone => {
-    if (!status || rank < 1) {
+export const getLeagueZone = (
+    rank: number,
+    position: number,
+    status: ILeaderboardLeagueStatus | null | undefined,
+): LeagueZone => {
+    if (!status || rank < 1 || position < 1) {
         return null;
     }
-    if (status.promoteCount > 0 && rank <= status.promoteCount) {
+    if (status.promoteCount > 0 && position <= status.promoteCount) {
         return 'promote';
     }
     if (status.demoteCount > 0 && rank > status.size - status.demoteCount) {
