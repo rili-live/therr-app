@@ -6,6 +6,12 @@ import { buttonMenuHeight } from '../navigation/buttonMenu';
 // Medal accents are branding-stable (same in every theme) like colors.branding*
 const MEDAL_COLORS = ['#D6AF36', '#A7A7AD', '#A77044'];
 
+// League move-zone accents (promotion up, relegation down), branding-stable like the medals.
+const LEAGUE_ZONE_COLORS = {
+    promote: '#2E7D32',
+    demote: '#C62828',
+};
+
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
 
@@ -100,6 +106,82 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '600',
             color: therrTheme.colors.textWhite,
         },
+        // Leagues: the requester's league, its ladder and the move lines. The accent colour is
+        // per league (therr-js-utilities/config LEADERBOARD_LEAGUES_BY_BRAND), so it is applied
+        // inline on top of these.
+        leagueHeader: {
+            marginHorizontal: 10,
+            marginTop: 10,
+            paddingVertical: 12,
+            paddingHorizontal: 14,
+            borderRadius: 12,
+            borderLeftWidth: 4,
+            backgroundColor: therrTheme.colors.backgroundWhite,
+        },
+        leagueHeaderTitleRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        leagueHeaderEmoji: {
+            fontSize: 28,
+            marginRight: 10,
+        },
+        leagueHeaderTitleContainer: {
+            flex: 1,
+        },
+        leagueHeaderTitle: {
+            fontSize: 17,
+            fontWeight: '700',
+            color: therrTheme.colors.textWhite,
+        },
+        leagueHeaderSubtitle: {
+            fontSize: 12,
+            marginTop: 2,
+            color: therrTheme.colors.textGray,
+        },
+        leagueLadder: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginTop: 10,
+        },
+        leagueLadderStep: {
+            flex: 1,
+            alignItems: 'center',
+            paddingVertical: 4,
+            marginHorizontal: 2,
+            borderRadius: 8,
+            opacity: 0.45,
+        },
+        leagueLadderStepCurrent: {
+            opacity: 1,
+            backgroundColor: therrTheme.colors.backgroundNeutral,
+        },
+        leagueLadderStepPassed: {
+            opacity: 0.8,
+        },
+        leagueLadderEmoji: {
+            fontSize: 18,
+        },
+        leagueZoneLine: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: 8,
+        },
+        leagueZoneText: {
+            flex: 1,
+            marginLeft: 8,
+            fontSize: 12,
+            color: therrTheme.colors.textWhite,
+        },
+        leagueZoneIndicator: {
+            width: 18,
+            alignItems: 'center',
+            marginLeft: 8,
+        },
+        leagueBadge: {
+            fontSize: 14,
+            marginLeft: 8,
+        },
         emptyContainer: {
             padding: 24,
         },
@@ -117,5 +199,6 @@ const buildStyles = (themeName?: IMobileThemeName) => {
 
 export {
     buildStyles,
+    LEAGUE_ZONE_COLORS,
     MEDAL_COLORS,
 };
