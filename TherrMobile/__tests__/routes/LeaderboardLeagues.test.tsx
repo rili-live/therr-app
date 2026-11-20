@@ -8,17 +8,17 @@ import renderer, { act } from 'react-test-renderer';
 import { it, describe, expect } from '@jest/globals';
 
 import LeagueHeader from '../../main/routes/Leaderboard/LeagueHeader';
-import { getLeagueZone, getTier, getTierNameKey, ILeaderboardLeague } from '../../main/routes/Leaderboard/leagues';
+import { getLeagueNameKey, getLeagueZone, ILeaderboardLeagueStatus, resolveLeague } from '../../main/routes/Leaderboard/leagues';
 import { buildStyles as buildLeaderboardStyles } from '../../main/styles/leaderboard';
 import translator from '../../main/utilities/translator';
 
 const themeLeaderboard = buildLeaderboardStyles('light');
 const translate = (key: string, params?: any) => (params ? `${key}:${JSON.stringify(params)}` : key);
 
-const league = (overrides: Partial<ILeaderboardLeague> = {}): ILeaderboardLeague => ({
+const league = (overrides: Partial<ILeaderboardLeagueStatus> = {}): ILeaderboardLeagueStatus => ({
     id: 'sapling',
-    tierIndex: 2,
-    tierCount: 6,
+    leagueIndex: 2,
+    leagueCount: 6,
     size: 10,
     promoteCount: 2,
     demoteCount: 2,
@@ -43,21 +43,21 @@ describe('leaderboard leagues — helpers', () => {
         expect([1, 2, 3, 8, 9, 10].map((rank) => getLeagueZone(rank, current)))
             .toEqual(['promote', 'promote', null, null, 'demote', 'demote']);
         expect(getLeagueZone(1, null)).toBeNull();
-        expect(getLeagueZone(10, league({ tierIndex: 0, demoteCount: 0 }))).toBeNull();
+        expect(getLeagueZone(10, league({ leagueIndex: 0, demoteCount: 0 }))).toBeNull();
     });
 
-    it('reads an unknown or missing tier as the lowest one on the brand ladder', () => {
-        expect(getTier('habits', null)?.id).toBe('seedling');
-        expect(getTier('therr', 'not-a-tier')?.id).toBe('wanderer');
+    it('reads an unknown or missing league as the lowest one on the brand ladder', () => {
+        expect(resolveLeague('habits', null)?.id).toBe('seedling');
+        expect(resolveLeague('therr', 'not-a-league')?.id).toBe('wanderer');
     });
 
-    it('names every tier of every brand in all three locales', () => {
+    it('names every league of every brand in all three locales', () => {
         ['habits', 'therr'].forEach((brand) => {
             ['seedling', 'sprout', 'sapling', 'bloom', 'oak', 'evergreen', 'wanderer', 'scout', 'pathfinder', 'trailblazer', 'cartographer', 'legend']
-                .filter((tierId) => getTier(brand, tierId)?.id === tierId)
-                .forEach((tierId) => {
+                .filter((leagueId) => resolveLeague(brand, leagueId)?.id === leagueId)
+                .forEach((leagueId) => {
                     ['en-us', 'es', 'fr-ca'].forEach((locale) => {
-                        const key = getTierNameKey(brand, tierId);
+                        const key = getLeagueNameKey(brand, leagueId);
                         expect(translator(locale, key)).not.toBe(key);
                     });
                 });
@@ -66,24 +66,24 @@ describe('leaderboard leagues — helpers', () => {
 });
 
 describe('LeagueHeader', () => {
-    it('shows the branded tier and both move lines with the neighbouring tiers', async () => {
+    it('shows the branded league and both move lines with the neighbouring leagues', async () => {
         const text = await renderText({ brand: 'habits', league: league() });
 
         expect(text).toContain('🪴');
         expect(text).toContain('pages.leaderboard.leagues.title');
         expect(text).toContain('pages.leaderboard.leagues.promotionZone');
-        expect(text).toContain('🌸 pages.leaderboard.leagues.tiers.habits.bloom');
-        expect(text).toContain('🌿 pages.leaderboard.leagues.tiers.habits.sprout');
-        expect(text).not.toContain('pages.leaderboard.leagues.topTier');
+        expect(text).toContain('🌸 pages.leaderboard.leagues.names.habits.bloom');
+        expect(text).toContain('🌿 pages.leaderboard.leagues.names.habits.sprout');
+        expect(text).not.toContain('pages.leaderboard.leagues.topLeague');
     });
 
-    it('has nothing to drop to from the lowest tier and nothing to climb from the top one', async () => {
-        const lowest = await renderText({ brand: 'therr', league: league({ id: 'wanderer', tierIndex: 0, demoteCount: 0 }) });
+    it('has nothing to drop to from the lowest league and nothing to climb from the top one', async () => {
+        const lowest = await renderText({ brand: 'therr', league: league({ id: 'wanderer', leagueIndex: 0, demoteCount: 0 }) });
         expect(lowest).toContain('🥾');
         expect(lowest).not.toContain('pages.leaderboard.leagues.demotionZone');
 
-        const top = await renderText({ brand: 'therr', league: league({ id: 'legend', tierIndex: 5, promoteCount: 0 }) });
-        expect(top).toContain('pages.leaderboard.leagues.topTier');
+        const top = await renderText({ brand: 'therr', league: league({ id: 'legend', leagueIndex: 5, promoteCount: 0 }) });
+        expect(top).toContain('pages.leaderboard.leagues.topLeague');
         expect(top).not.toContain('pages.leaderboard.leagues.promotionZone');
     });
 
@@ -96,7 +96,7 @@ describe('LeagueHeader', () => {
         expect(text).toContain('pages.leaderboard.leagues.tooSmall');
     });
 
-    it('renders nothing for a brand without tiers', async () => {
+    it('renders nothing for a brand without leagues', async () => {
         const text = await renderText({ brand: 'teem', league: league() });
 
         expect(text).toBe('null');

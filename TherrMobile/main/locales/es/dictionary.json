@@ -1521,15 +1521,15 @@
         "noFriendScores": "Ninguna de tus conexiones ha ganado XP todavía. ¡Invita a tus amigos a unirse a la competencia!"
       },
       "leagues": {
-        "title": "Liga {tier}",
-        "tierOf": "Nivel {tier} de {count}",
-        "promotionZone": "Los {count} primeros suben a {tier}",
-        "demotionZone": "Los {count} últimos bajan a {tier}",
+        "title": "Liga {league}",
+        "positionOf": "Liga {position} de {count}",
+        "promotionZone": "Los {count} primeros suben a {league}",
+        "demotionZone": "Los {count} últimos bajan a {league}",
         "promotionZoneAccessibility": "En la zona de ascenso",
         "demotionZoneAccessibility": "En la zona de descenso",
-        "topTier": "Estás en el nivel más alto. ¡Mantén tu lugar!",
+        "topLeague": "Estás en la liga más alta. ¡Mantén tu lugar!",
         "tooSmall": "Los ascensos y descensos empiezan cuando 5 personas compiten en esta liga.",
-        "tiers": {
+        "names": {
           "habits": {
             "seedling": "Plántula",
             "sprout": "Brote",

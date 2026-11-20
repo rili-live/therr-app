@@ -17,12 +17,12 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import { buildStyles as buildLeaderboardStyles, LEAGUE_ZONE_COLORS, MEDAL_COLORS } from '../../styles/leaderboard';
 import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import LeagueHeader from './LeagueHeader';
-import { ILeaderboardLeague, getLeagueZone, getTier, getTierNameKey } from './leagues';
+import { ILeaderboardLeagueStatus, getLeagueNameKey, getLeagueZone, resolveLeague } from './leagues';
 
 const PAGE_SIZE = 50;
 
 type ILeaderboardPeriod = 'week' | 'allTime';
-// 'league' ranks the requester's own tier; the server answers it with the global board (and says
+// 'league' ranks the requester's own league; the server answers it with the global board (and says
 // so in the response's `scope`) whenever leagues are not running for the brand.
 type ILeaderboardScope = 'global' | 'connections' | 'league';
 
@@ -35,7 +35,7 @@ interface ILeaderboardEntry {
     points: number;
     rank: number;
     isRequestingUser: boolean;
-    /** Stored tier id; null means the lowest tier. Absent on servers that predate leagues. */
+    /** Stored league id; null means the lowest league. Absent on servers that predate leagues. */
     league?: string | null;
 }
 
@@ -62,7 +62,7 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
     const [periodEnd, setPeriodEnd] = useState<string | null>(null);
     const [period, setPeriod] = useState<ILeaderboardPeriod>('week');
     const [scope, setScope] = useState<ILeaderboardScope>('global');
-    const [league, setLeague] = useState<ILeaderboardLeague | null>(null);
+    const [league, setLeague] = useState<ILeaderboardLeagueStatus | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
     const isMountedRef = useRef(true);
@@ -104,7 +104,7 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
             setEntries(response.data.entries);
             setCurrentUser(response.data.currentUser || null);
             setPeriodEnd(response.data.periodEnd || null);
-            const nextLeague: ILeaderboardLeague | null = response.data.league || null;
+            const nextLeague: ILeaderboardLeagueStatus | null = response.data.league || null;
             setLeague(nextLeague);
             if (!hasPickedInitialScopeRef.current) {
                 hasPickedInitialScopeRef.current = true;
@@ -172,24 +172,24 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
         );
     };
 
-    // On the mixed boards (everyone, friends), each row wears its tier so the ladder is visible
-    // across leagues. On the league board everyone shares one tier, so the badge would be noise.
-    const renderTierBadge = (item: ILeaderboardEntry) => {
+    // On the mixed boards (everyone, friends), each row wears its league so the ladder is visible
+    // across leagues. On the league board everyone shares one league, so the badge would be noise.
+    const renderLeagueBadge = (item: ILeaderboardEntry) => {
         if (!league || scope === 'league' || item.league === undefined) {
             return null;
         }
-        const tier = getTier(CURRENT_BRAND_VARIATION, item.league);
-        if (!tier) {
+        const itemLeague = resolveLeague(CURRENT_BRAND_VARIATION, item.league);
+        if (!itemLeague) {
             return null;
         }
         return (
             <Text
-                style={themeLeaderboard.styles.tierBadge}
+                style={themeLeaderboard.styles.leagueBadge}
                 accessibilityLabel={translate('pages.leaderboard.leagues.title', {
-                    tier: translate(getTierNameKey(CURRENT_BRAND_VARIATION, tier.id)),
+                    league: translate(getLeagueNameKey(CURRENT_BRAND_VARIATION, itemLeague.id)),
                 })}
             >
-                {tier.emoji}
+                {itemLeague.emoji}
             </Text>
         );
     };
@@ -238,7 +238,7 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
             <Text style={themeLeaderboard.styles.userNameText} numberOfLines={1}>
                 {item.isRequestingUser ? translate('pages.leaderboard.labels.you') : item.userName}
             </Text>
-            {renderTierBadge(item)}
+            {renderLeagueBadge(item)}
             <Text style={themeLeaderboard.styles.pointsText}>
                 {translate('pages.leaderboard.labels.xpPoints', { points: item.points })}
             </Text>

@@ -1521,15 +1521,15 @@
         "noFriendScores": "Aucune de vos connexions n'a encore gagné de XP. Invitez vos ami(e)s à se joindre à la compétition!"
       },
       "leagues": {
-        "title": "Ligue {tier}",
-        "tierOf": "Niveau {tier} sur {count}",
-        "promotionZone": "Les {count} premiers montent en {tier}",
-        "demotionZone": "Les {count} derniers descendent en {tier}",
+        "title": "Ligue {league}",
+        "positionOf": "Ligue {position} sur {count}",
+        "promotionZone": "Les {count} premiers montent en {league}",
+        "demotionZone": "Les {count} derniers descendent en {league}",
         "promotionZoneAccessibility": "Dans la zone de promotion",
         "demotionZoneAccessibility": "Dans la zone de relégation",
-        "topTier": "Tu es au niveau le plus haut. Garde ta place!",
+        "topLeague": "Tu es dans la ligue la plus haute. Garde ta place!",
         "tooSmall": "Les montées et descentes commencent dès que 5 personnes compétitionnent dans cette ligue.",
-        "tiers": {
+        "names": {
           "habits": {
             "seedling": "Semis",
             "sprout": "Pousse",

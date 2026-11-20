@@ -106,8 +106,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '600',
             color: therrTheme.colors.textWhite,
         },
-        // Leagues: the requester's tier, its ladder and the move lines. The tier accent colour is
-        // per tier (therr-js-utilities/config LEADERBOARD_TIERS_BY_BRAND), so it is applied
+        // Leagues: the requester's league, its ladder and the move lines. The accent colour is
+        // per league (therr-js-utilities/config LEADERBOARD_LEAGUES_BY_BRAND), so it is applied
         // inline on top of these.
         leagueHeader: {
             marginHorizontal: 10,
@@ -178,7 +178,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             alignItems: 'center',
             marginLeft: 8,
         },
-        tierBadge: {
+        leagueBadge: {
             fontSize: 14,
             marginLeft: 8,
         },

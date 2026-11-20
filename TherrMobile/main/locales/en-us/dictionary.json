@@ -1521,15 +1521,15 @@
         "noFriendScores": "None of your connections have earned XP yet. Invite friends to join the competition!"
       },
       "leagues": {
-        "title": "{tier} League",
-        "tierOf": "Tier {tier} of {count}",
-        "promotionZone": "Top {count} move up to {tier}",
-        "demotionZone": "Bottom {count} drop to {tier}",
+        "title": "{league} League",
+        "positionOf": "League {position} of {count}",
+        "promotionZone": "Top {count} move up to {league}",
+        "demotionZone": "Bottom {count} drop to {league}",
         "promotionZoneAccessibility": "In the promotion zone",
         "demotionZoneAccessibility": "In the relegation zone",
-        "topTier": "You're in the top tier. Hold your ground!",
+        "topLeague": "You're in the top league. Hold your ground!",
         "tooSmall": "Moves up and down start once 5 people are competing in this league.",
-        "tiers": {
+        "names": {
           "habits": {
             "seedling": "Seedling",
             "sprout": "Sprout",
