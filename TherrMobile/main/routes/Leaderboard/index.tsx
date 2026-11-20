@@ -98,6 +98,12 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
         const requestId = latestRequestIdRef.current + 1;
         latestRequestIdRef.current = requestId;
         const isInitialProbe = !hasPickedInitialScopeRef.current && nextScope === 'global' && nextPeriod === 'week';
+        if (!isInitialProbe) {
+            // The user chose a board before the probe answered (its late response is discarded as
+            // stale), so the initial pick is settled: a later tap on Everyone must not be turned
+            // into a league request and land them back on My League.
+            hasPickedInitialScopeRef.current = true;
+        }
         return UsersService.getLeaderboard({
             period: nextPeriod,
             scope: isInitialProbe ? 'league' : nextScope,

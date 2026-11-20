@@ -7,7 +7,6 @@ import {
     ILeaderboardLeagueStatus,
     getLeagueNameKey,
     getNeighbourLeague,
-    resolveLeague,
 } from './leagues';
 
 interface ILeagueHeaderProps {
@@ -29,14 +28,17 @@ const LeagueHeader = ({
     themeLeaderboard,
     translate,
 }: ILeagueHeaderProps) => {
-    const current = resolveLeague(brand, league.id);
     const ladder = getLeaderboardLeagues(brand);
-    if (!current || !ladder.length) {
+    // Looked up by exact id, not `resolveLeague`, which reads an unknown id as the lowest league:
+    // that would draw the lowest league's emoji against a newer server's position on its ladder.
+    const leagueIndex = ladder.findIndex((ladderLeague) => ladderLeague.id === league.id);
+    const current = ladder[leagueIndex];
+    if (!current) {
         return null;
     }
     const leagueName = translate(getLeagueNameKey(brand, current.id));
-    const nextLeague = getNeighbourLeague(brand, league.leagueIndex, 1);
-    const previousLeague = getNeighbourLeague(brand, league.leagueIndex, -1);
+    const nextLeague = getNeighbourLeague(brand, leagueIndex, 1);
+    const previousLeague = getNeighbourLeague(brand, leagueIndex, -1);
     const isFrozen = league.promoteCount === 0 && league.demoteCount === 0 && (!!nextLeague || !!previousLeague);
     const { styles } = themeLeaderboard;
 
@@ -53,8 +55,8 @@ const LeagueHeader = ({
                     </Text>
                     <Text style={styles.leagueHeaderSubtitle}>
                         {translate('pages.leaderboard.leagues.positionOf', {
-                            position: league.leagueIndex + 1,
-                            count: league.leagueCount,
+                            position: leagueIndex + 1,
+                            count: ladder.length,
                         })}
                     </Text>
                 </View>
@@ -65,8 +67,8 @@ const LeagueHeader = ({
                         key={ladderLeague.id}
                         style={[
                             styles.leagueLadderStep,
-                            index < league.leagueIndex ? styles.leagueLadderStepPassed : null,
-                            index === league.leagueIndex ? styles.leagueLadderStepCurrent : null,
+                            index < leagueIndex ? styles.leagueLadderStepPassed : null,
+                            index === leagueIndex ? styles.leagueLadderStepCurrent : null,
                         ]}
                     >
                         <Text style={styles.leagueLadderEmoji}>{ladderLeague.emoji}</Text>

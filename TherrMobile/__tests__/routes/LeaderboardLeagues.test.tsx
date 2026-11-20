@@ -8,6 +8,8 @@ import renderer, { act } from 'react-test-renderer';
 import { it, describe, expect } from '@jest/globals';
 
 import { UsersService } from 'therr-react/services';
+import { getLeaderboardLeagues } from 'therr-js-utilities/config';
+import { CURRENT_BRAND_VARIATION } from '../../main/config/brandConfig';
 import { Leaderboard } from '../../main/routes/Leaderboard';
 import LeagueHeader from '../../main/routes/Leaderboard/LeagueHeader';
 import { getLeagueNameKey, getLeagueZone, ILeaderboardLeagueStatus, resolveLeague } from '../../main/routes/Leaderboard/leagues';
@@ -115,6 +117,12 @@ describe('LeagueHeader', () => {
         expect(text).toContain('pages.leaderboard.leagues.tooSmall');
     });
 
+    it('renders nothing for a league id this build does not know, rather than the lowest league', async () => {
+        const text = await renderText({ brand: 'habits', league: league({ id: 'redwood', leagueIndex: 6, leagueCount: 7 }) });
+
+        expect(text).toBe('null');
+    });
+
     it('renders nothing for a brand without leagues', async () => {
         const text = await renderText({ brand: 'teem', league: league() });
 
@@ -126,6 +134,8 @@ describe('Leaderboard screen — first load', () => {
     const getLeaderboard = UsersService.getLeaderboard as unknown as jest.Mock<any>;
     const navigation = { setOptions: jest.fn(), navigate: jest.fn() };
     const user = { details: { id: 'user-1' }, settings: { locale: 'en-us', mobileThemeName: 'light' } };
+    // The screen draws leagues on the build's own ladder, so its fixture league must be on that ladder.
+    const brandLeague = () => league({ id: getLeaderboardLeagues(CURRENT_BRAND_VARIATION)[2].id });
     const board = (overrides: any = {}) => ({
         data: {
             entries: [{ userId: 'user-2', userName: 'two', points: 40, rank: 1, isRequestingUser: false }],
@@ -155,13 +165,36 @@ describe('Leaderboard screen — first load', () => {
     });
 
     it('asks for the league board once and opens on it when a league is running', async () => {
-        getLeaderboard.mockResolvedValue(board({ scope: 'league', league: league() }));
+        getLeaderboard.mockResolvedValue(board({ scope: 'league', league: brandLeague() }));
 
         const component = await renderScreen();
 
         expect(getLeaderboard).toHaveBeenCalledTimes(1);
         expect(getLeaderboard.mock.calls[0][0]).toMatchObject({ scope: 'league', period: 'week' });
         expect(textOf(component)).toContain('League 3 of 6');
+        await act(async () => { component.unmount(); });
+    });
+
+    it('keeps Everyone once the user picked a tab before the league probe answered', async () => {
+        let resolveProbe: (value: any) => void = () => {};
+        getLeaderboard
+            .mockImplementationOnce(() => new Promise((resolve) => { resolveProbe = resolve; }))
+            // Friends comes back as the interceptor's offline fallback, so no response ever settles the pick.
+            .mockResolvedValueOnce({ data: {}, isOfflineFallback: true })
+            .mockResolvedValue(board({ scope: 'global', league: brandLeague() }));
+
+        const component = await renderScreen();
+        const tab = (label: string) => component.root.findAll((node) => node.props.onPress
+            && node.findAllByType(Text).some((textNode) => [].concat(textNode.props.children).join('') === label))[0];
+
+        // Friends while the probe is still in flight, then the probe lands late (and is discarded as stale).
+        await act(async () => { tab('Friends').props.onPress(); });
+        await act(async () => { resolveProbe(board({ scope: 'league', league: brandLeague() })); await Promise.resolve(); });
+        await act(async () => { tab('Everyone').props.onPress(); await Promise.resolve(); });
+
+        const scopes = getLeaderboard.mock.calls.map((call: any) => call[0].scope);
+        expect(scopes).toEqual(['league', 'connections', 'global']);
+        expect(textOf(component)).not.toContain('League 3 of 6');
         await act(async () => { component.unmount(); });
     });
 
