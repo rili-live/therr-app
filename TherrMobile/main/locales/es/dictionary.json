@@ -1507,7 +1507,8 @@
         "thisWeek": "Esta semana",
         "allTime": "Histórico",
         "everyone": "Todos",
-        "friends": "Amigos"
+        "friends": "Amigos",
+        "myLeague": "Mi liga"
       },
       "labels": {
         "you": "Tú",
@@ -1518,6 +1519,34 @@
       "info": {
         "noScores": "Aún no hay puntuaciones esta semana. ¡Usa la aplicación para ganar XP y reclamar tu lugar!",
         "noFriendScores": "Ninguna de tus conexiones ha ganado XP todavía. ¡Invita a tus amigos a unirse a la competencia!"
+      },
+      "leagues": {
+        "title": "Liga {league}",
+        "positionOf": "Liga {position} de {count}",
+        "promotionZone": "Los {count} primeros suben a {league}",
+        "demotionZone": "Los {count} últimos bajan a {league}",
+        "promotionZoneAccessibility": "En la zona de ascenso",
+        "demotionZoneAccessibility": "En la zona de descenso",
+        "topLeague": "Estás en la liga más alta. ¡Mantén tu lugar!",
+        "tooSmall": "Los ascensos y descensos empiezan cuando 5 personas compiten en esta liga.",
+        "names": {
+          "habits": {
+            "seedling": "Plántula",
+            "sprout": "Brote",
+            "sapling": "Arbolito",
+            "bloom": "Floración",
+            "oak": "Roble",
+            "evergreen": "Perenne"
+          },
+          "therr": {
+            "wanderer": "Trotamundos",
+            "scout": "Explorador",
+            "pathfinder": "Guía",
+            "trailblazer": "Pionero",
+            "cartographer": "Cartógrafo",
+            "legend": "Leyenda"
+          }
+        }
       }
     },
     "manageNotifications": {

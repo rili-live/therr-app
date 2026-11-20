@@ -14,12 +14,17 @@ import { showToast } from '../../utilities/toasts';
 import { getUserImageUri } from '../../utilities/content';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
-import { buildStyles as buildLeaderboardStyles, MEDAL_COLORS } from '../../styles/leaderboard';
+import { buildStyles as buildLeaderboardStyles, LEAGUE_ZONE_COLORS, MEDAL_COLORS } from '../../styles/leaderboard';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
+import LeagueHeader from './LeagueHeader';
+import { ILeaderboardLeagueStatus, getLeagueNameKey, getLeagueZone, resolveLeague } from './leagues';
 
 const PAGE_SIZE = 50;
 
 type ILeaderboardPeriod = 'week' | 'allTime';
-type ILeaderboardScope = 'global' | 'connections';
+// 'league' ranks the requester's own league; the server answers it with the global board (and says
+// so in the response's `scope`) whenever leagues are not running for the brand.
+type ILeaderboardScope = 'global' | 'connections' | 'league';
 
 interface ILeaderboardEntry {
     userId: string;
@@ -30,6 +35,8 @@ interface ILeaderboardEntry {
     points: number;
     rank: number;
     isRequestingUser: boolean;
+    /** Stored league id; null means the lowest league. Absent on servers that predate leagues. */
+    league?: string | null;
 }
 
 interface ILeaderboardProps {
@@ -55,9 +62,13 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
     const [periodEnd, setPeriodEnd] = useState<string | null>(null);
     const [period, setPeriod] = useState<ILeaderboardPeriod>('week');
     const [scope, setScope] = useState<ILeaderboardScope>('global');
+    const [league, setLeague] = useState<ILeaderboardLeagueStatus | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
     const isMountedRef = useRef(true);
+    // Leagues open on the user's own league the first time the server says one is running, once
+    // per visit — after that the tabs are the user's to choose.
+    const hasPickedInitialScopeRef = useRef(false);
 
     useEffect(() => () => {
         isMountedRef.current = false;
@@ -93,6 +104,21 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
             setEntries(response.data.entries);
             setCurrentUser(response.data.currentUser || null);
             setPeriodEnd(response.data.periodEnd || null);
+            const nextLeague: ILeaderboardLeagueStatus | null = response.data.league || null;
+            setLeague(nextLeague);
+            if (!hasPickedInitialScopeRef.current) {
+                hasPickedInitialScopeRef.current = true;
+                if (nextLeague && nextScope === 'global') {
+                    setPeriod('week');
+                    setScope('league');
+                    return;
+                }
+            }
+            // Asked for a league that is not running (it ended, or this brand never had one): the
+            // server served the global board, so the tabs should say so too.
+            if (nextScope === 'league' && response.data.scope && response.data.scope !== 'league') {
+                setScope(response.data.scope);
+            }
         }).catch(() => {
             // Non-transient server errors (transient ones resolve via the interceptor
             // fallback above). Keep the previous board and let the user know.
@@ -146,6 +172,50 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
         );
     };
 
+    // On the mixed boards (everyone, friends), each row wears its league so the ladder is visible
+    // across leagues. On the league board everyone shares one league, so the badge would be noise.
+    const renderLeagueBadge = (item: ILeaderboardEntry) => {
+        if (!league || scope === 'league' || item.league === undefined) {
+            return null;
+        }
+        const itemLeague = resolveLeague(CURRENT_BRAND_VARIATION, item.league);
+        if (!itemLeague) {
+            return null;
+        }
+        return (
+            <Text
+                style={themeLeaderboard.styles.leagueBadge}
+                accessibilityLabel={translate('pages.leaderboard.leagues.title', {
+                    league: translate(getLeagueNameKey(CURRENT_BRAND_VARIATION, itemLeague.id)),
+                })}
+            >
+                {itemLeague.emoji}
+            </Text>
+        );
+    };
+
+    const renderZoneIndicator = (rank: number) => {
+        if (scope !== 'league') {
+            return null;
+        }
+        const zone = getLeagueZone(rank, league);
+        return (
+            <View style={themeLeaderboard.styles.leagueZoneIndicator}>
+                {
+                    zone
+                    && <FontAwesome5Icon
+                        name={zone === 'promote' ? 'arrow-up' : 'arrow-down'}
+                        size={12}
+                        color={LEAGUE_ZONE_COLORS[zone]}
+                        accessibilityLabel={translate(zone === 'promote'
+                            ? 'pages.leaderboard.leagues.promotionZoneAccessibility'
+                            : 'pages.leaderboard.leagues.demotionZoneAccessibility')}
+                    />
+                }
+            </View>
+        );
+    };
+
     const renderItem = ({ item }: { item: ILeaderboardEntry }) => (
         <Pressable
             onPress={() => goToViewUser(item.userId)}
@@ -168,9 +238,11 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
             <Text style={themeLeaderboard.styles.userNameText} numberOfLines={1}>
                 {item.isRequestingUser ? translate('pages.leaderboard.labels.you') : item.userName}
             </Text>
+            {renderLeagueBadge(item)}
             <Text style={themeLeaderboard.styles.pointsText}>
                 {translate('pages.leaderboard.labels.xpPoints', { points: item.points })}
             </Text>
+            {renderZoneIndicator(item.rank)}
         </Pressable>
     );
 
@@ -197,6 +269,26 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
         </Pressable>
     );
 
+    // The league board is weekly only, so its header takes the place of the period tabs.
+    const renderLeagueHeaderOrPeriodTabs = () => {
+        if (scope === 'league' && league) {
+            return (
+                <LeagueHeader
+                    brand={CURRENT_BRAND_VARIATION}
+                    league={league}
+                    themeLeaderboard={themeLeaderboard}
+                    translate={translate}
+                />
+            );
+        }
+        return (
+            <View style={themeLeaderboard.styles.tabsContainer}>
+                {renderTab('pages.leaderboard.tabs.thisWeek', period === 'week', () => setPeriod('week'))}
+                {renderTab('pages.leaderboard.tabs.allTime', period === 'allTime', () => setPeriod('allTime'))}
+            </View>
+        );
+    };
+
     const isCurrentUserVisible = entries.some((entry) => entry.isRequestingUser);
     const isRankBarVisible = !isCurrentUserVisible && !!currentUser;
 
@@ -205,17 +297,22 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
             <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
             <SafeAreaView edges={[]} style={[theme.styles.safeAreaView, { backgroundColor: theme.colors.backgroundGray }]}>
                 {/* flex: 1 bounds the body to the screen so the FlatList, not the body, absorbs the height of
-                    the tabs and reset countdown above it. Without it the list's last rows
+                    the tabs, league header and reset countdown above it. Without it the list's last rows
                     overflow off-screen and can never be scrolled into view. */}
                 <View style={[theme.styles.body, themeLeaderboard.styles.body, { backgroundColor: theme.colors.backgroundGray }]}>
                     <View style={themeLeaderboard.styles.tabsContainer}>
-                        {renderTab('pages.leaderboard.tabs.thisWeek', period === 'week', () => setPeriod('week'))}
-                        {renderTab('pages.leaderboard.tabs.allTime', period === 'allTime', () => setPeriod('allTime'))}
-                    </View>
-                    <View style={themeLeaderboard.styles.tabsContainer}>
+                        {
+                            !!league
+                            && renderTab('pages.leaderboard.tabs.myLeague', scope === 'league', () => {
+                                // A league is a weekly competition: it has no all-time board.
+                                setPeriod('week');
+                                setScope('league');
+                            })
+                        }
                         {renderTab('pages.leaderboard.tabs.everyone', scope === 'global', () => setScope('global'))}
                         {renderTab('pages.leaderboard.tabs.friends', scope === 'connections', () => setScope('connections'))}
                     </View>
+                    {renderLeagueHeaderOrPeriodTabs()}
                     {
                         period === 'week' && !!periodEnd
                         && <Text style={themeLeaderboard.styles.resetCountdownText}>

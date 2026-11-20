@@ -1,9 +1,16 @@
 import { BrandVariations } from 'therr-js-utilities/constants';
+import { getLeaderboardLeagueIndex, resolveLeaderboardLeague } from 'therr-js-utilities/config';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../../store';
 import { BrandValue } from '../../store/BrandScopedStore';
 import { IDBLeaderboardPeriodResult } from '../../store/LeaderboardPeriodResultsStore';
 import { getLeaderboardPeriodEnd, getLeaderboardPeriodStart } from '../../utilities/leaderboardHelpers';
+import {
+    areLeaguesEnabledForBrand,
+    computeLeagueResults,
+    getLeagueActivationThreshold,
+    ILeagueResult,
+} from '../../utilities/leaderboardLeagues';
 
 /**
  * How many closed periods a user is shown placements for before older ones are auto-
@@ -36,14 +43,79 @@ export const getPreviousPeriodStart = (now: Date = new Date()): string => {
  */
 const closedPeriodByBrand = new Map<string, string>();
 
+/**
+ * Whether each brand's most recently elapsed period was closed with leagues, per process. Keyed by
+ * that periodStart, so it re-evaluates on its own when the week rolls over.
+ */
+const leagueModeByBrand = new Map<string, { periodStart: string, isActive: boolean }>();
+
 /** Test affordance: forget which periods this process has already closed. */
-export const resetClosedPeriodMemo = () => closedPeriodByBrand.clear();
+export const resetClosedPeriodMemo = () => {
+    closedPeriodByBrand.clear();
+    leagueModeByBrand.clear();
+};
+
+/** How many results moved up (direction 1) or down (-1) a league. */
+const countMoves = (brand: string, results: ILeagueResult[], direction: 1 | -1): number => results
+    .filter((result) => Math.sign(getLeaderboardLeagueIndex(brand, result.leagueTo) - getLeaderboardLeagueIndex(brand, result.leagueFrom)) === direction)
+    .length;
+
+/**
+ * Rank one elapsed period and write its results. With leagues on for the brand and the week at or
+ * above the activation threshold, every participant is ranked within their own league and the top
+ * and bottom of each league move (utilities/leaderboardLeagues.ts); otherwise it is the one
+ * brand-wide ranking with the league columns NULL, exactly as before leagues existed.
+ */
+const writePeriodResults = async (brand: BrandValue, periodStart: string): Promise<number> => {
+    if (!areLeaguesEnabledForBrand(String(brand))) {
+        return Store.leaderboardPeriodResults.closePeriod(brand, periodStart);
+    }
+
+    const participants = await Store.userLeaderboardScores.getEligibleParticipantsForPeriod(brand, periodStart);
+    const threshold = getLeagueActivationThreshold();
+    if (participants.length < threshold) {
+        logSpan({
+            level: 'info',
+            messageOrigin: 'API_SERVER',
+            messages: ['Leaderboard period closed without leagues: below the activation threshold'],
+            traceArgs: {
+                'pushNotification.brandVariation': String(brand),
+                'leaderboard.periodStart': periodStart,
+                'leaderboard.participants': participants.length,
+                'leaderboard.leagueThreshold': threshold,
+            },
+        });
+        return Store.leaderboardPeriodResults.closePeriod(brand, periodStart);
+    }
+
+    const results = computeLeagueResults(String(brand), participants);
+    const written = await Store.leaderboardPeriodResults.insertLeagueResults(brand, periodStart, results);
+    logSpan({
+        level: 'info',
+        messageOrigin: 'API_SERVER',
+        messages: ['Leaderboard period closed with leagues'],
+        traceArgs: {
+            'pushNotification.brandVariation': String(brand),
+            'leaderboard.periodStart': periodStart,
+            'leaderboard.participants': participants.length,
+            'leaderboard.promoted': countMoves(String(brand), results, 1),
+            'leaderboard.demoted': countMoves(String(brand), results, -1),
+            'leaderboard.rowsWritten': written,
+        },
+    });
+    return written;
+};
 
 /**
  * Close the most recently elapsed period for a brand if it has not been closed yet: rank every
- * participant and write `main.leaderboardPeriodResults` (ties share a placement; league columns
- * NULL). Idempotent — the store's INSERT ... ON CONFLICT DO NOTHING means a scheduled close and a
- * lazy close from a client read cannot both write. Returns the number of rows written.
+ * participant and write `main.leaderboardPeriodResults` (ties share a placement). Idempotent — the
+ * store's INSERT ... ON CONFLICT DO NOTHING means a scheduled close and a lazy close from a client
+ * read cannot both write. Returns the number of rows written.
+ *
+ * With leagues on for the brand, the league moves the close froze are then applied to
+ * `main.userLeaderboardLeagues` — on every first close attempt of the period in this process,
+ * including when the results were already there, so a crash between the two writes heals on the
+ * next read. The apply only ever moves a user forward in time, so repeating it changes nothing.
  *
  * Only the immediately previous period is closed. Older periods are not retroactively ranked:
  * a placement announced weeks late is noise, and the scores themselves stay on the all-time
@@ -55,7 +127,10 @@ export const closeElapsedLeaderboardPeriod = async (brand: BrandValue, now: Date
         return 0;
     }
     const alreadyClosed = await Store.leaderboardPeriodResults.hasResultsForPeriod(brand, periodStart);
-    const written = alreadyClosed ? 0 : await Store.leaderboardPeriodResults.closePeriod(brand, periodStart);
+    const written = alreadyClosed ? 0 : await writePeriodResults(brand, periodStart);
+    if (areLeaguesEnabledForBrand(String(brand))) {
+        await Store.leaderboardPeriodResults.applyLeagueMoves(brand, periodStart);
+    }
     // Remembered only once the close has actually happened — a throw above leaves the next
     // read to try again.
     closedPeriodByBrand.set(String(brand), periodStart);
@@ -91,7 +166,11 @@ export interface IPendingPlacement {
     placement: number;
     participants: number;
     score: number;
-    /** Reserved for leagues; always null today. */
+    /**
+     * The league the user competed in and the league the close moved them to (equal when they stayed).
+     * Both null when the period closed without leagues; `placement` / `participants` are then
+     * brand-wide rather than league-relative.
+     */
     leagueFrom: string | null;
     leagueTo: string | null;
 }
@@ -130,4 +209,54 @@ export const getPendingPlacementsForUser = async (brand: BrandValue, userId: str
     }
 
     return surfaced.map(toPendingPlacement);
+};
+
+/**
+ * Whether leagues are running for a brand this week: the rollout switch is on for the brand AND
+ * the most recently elapsed period was closed with leagues (it met the activation threshold).
+ * Closes that period first if nothing has yet, so Monday's first read decides the week.
+ *
+ * A failed lookup answers false — the brand-wide board is always a safe fallback.
+ */
+export const areLeaguesActiveForBrand = async (brand: BrandValue, now: Date = new Date()): Promise<boolean> => {
+    if (!areLeaguesEnabledForBrand(String(brand))) {
+        return false;
+    }
+    const periodStart = getPreviousPeriodStart(now);
+    const memo = leagueModeByBrand.get(String(brand));
+    if (memo && memo.periodStart === periodStart) {
+        return memo.isActive;
+    }
+
+    try {
+        await closeElapsedLeaderboardPeriod(brand, now);
+        const isActive = await Store.leaderboardPeriodResults.wasClosedWithLeagues(brand, periodStart);
+        leagueModeByBrand.set(String(brand), { periodStart, isActive });
+        return isActive;
+    } catch (err: any) {
+        logSpan({
+            level: 'warn',
+            messageOrigin: 'API_SERVER',
+            messages: ['Leaderboard league mode lookup failed; using the brand-wide board'],
+            traceArgs: { 'error.message': err?.message, 'pushNotification.brandVariation': String(brand) },
+        });
+        return false;
+    }
+};
+
+/**
+ * The league a user's weekly rank is measured in, or undefined while leagues are not active for
+ * the brand (rank against the whole brand board, as before). The id is always a real league — a user
+ * with no stored row is in the lowest one.
+ */
+export const getActiveLeagueForUser = async (
+    brand: BrandValue,
+    userId: string,
+    now: Date = new Date(),
+): Promise<string | undefined> => {
+    if (!(await areLeaguesActiveForBrand(brand, now))) {
+        return undefined;
+    }
+    const stored = await Store.userLeaderboardLeagues.getLeagueForUser(brand, userId);
+    return resolveLeaderboardLeague(String(brand), stored)?.id;
 };

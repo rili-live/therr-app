@@ -8,6 +8,7 @@
 //   Phase 5: main.userAchievements
 //   Leaderboards (2026-07): main.userLeaderboardScores (brand-scoped from birth)
 //   Notification queue (2026-08): main.notificationQueue (brand-scoped from birth)
+//   Leaderboard leagues (2026-11): main.userLeaderboardLeagues (brand-scoped from birth)
 //
 // (The original Phase 4 set — main.moments / spaces / events / *Reactions — was reclassified
 // Identity-shared after a niche-app audit confirmed Habits and Teem don't read or write those
@@ -25,6 +26,7 @@ const BRAND_SCOPED_TABLES = [
     'main.userLeaderboardScores',
     'main.notificationQueue',
     'main.leaderboardPeriodResults',
+    'main.userLeaderboardLeagues',
 ];
 
 module.exports = {

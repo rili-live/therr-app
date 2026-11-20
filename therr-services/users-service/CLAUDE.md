@@ -63,7 +63,7 @@ Email sending is in `src/api/email/`:
 
 ### main schema
 Key tables: `users`, `userConnections`, `userGroups`, `notifications`, `userAchievements`, `subscribers`, `campaigns`,
-`userLeaderboardScores`, `leaderboardPeriodResults` (brand-scoped — read only through their `*Store.ts`)
+`userLeaderboardScores`, `leaderboardPeriodResults`, `userLeaderboardLeagues` (brand-scoped — read only through their `*Store.ts`)
 
 ### habits schema (HABITS app)
 - `habit_goals` - Habit templates and user-created goals
