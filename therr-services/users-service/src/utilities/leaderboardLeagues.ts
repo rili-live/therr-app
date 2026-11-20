@@ -84,7 +84,26 @@ export interface ILeagueParticipant {
     points: number;
     /** The stored league id; null (never moved) or an unknown id is the lowest league. */
     league: string | null;
+    /**
+     * When the user reached their score: the score row's `updatedAt`, bumped on every award. Breaks
+     * ties at the promotion line — whoever got there first moves up. Missing sorts last.
+     */
+    reachedAt?: Date | string | null;
 }
+
+const toTime = (value?: Date | string | null): number => {
+    const time = value ? new Date(value).getTime() : NaN;
+    return Number.isFinite(time) ? time : Number.MAX_SAFE_INTEGER;
+};
+
+/**
+ * League order: points, then who reached that score first, then userId so the order is total.
+ * The weekly board (UserLeaderboardScoresStore.getTopScores) orders ties the same way, so the row
+ * a client marks as promoted is the row the close promotes.
+ */
+export const compareLeagueParticipants = (a: ILeagueParticipant, b: ILeagueParticipant): number => (b.points - a.points)
+    || (toTime(a.reachedAt) - toTime(b.reachedAt))
+    || a.userId.localeCompare(b.userId);
 
 export interface ILeagueResult {
     userId: string;
@@ -100,10 +119,14 @@ export interface ILeagueResult {
 /**
  * Rank every participant within their league and decide who moves.
  *
- * Ties are resolved in the users' favour at both edges: a tie straddling the promotion line
- * promotes everyone in it (they share the better placement), and a tie straddling the relegation
- * line spares everyone in it. A league can therefore promote or relegate slightly more or fewer
- * than `getLeagueMovementCounts` says, never someone who scored the same as a person who stayed.
+ * Placements are competition ranks (ties share: 1, 1, 3), but the two lines treat ties differently:
+ *
+ *   - Promotion moves exactly `promoteCount` people, in league order — a tie straddling the line
+ *     goes to whoever reached the score first (`compareLeagueParticipants`). Promoting the whole
+ *     tie instead let coarse XP (many users on one check-in's worth) promote most of a league, and
+ *     a league where everyone tied promoted everyone.
+ *   - Relegation spares a tie straddling its line, so it moves at most `demoteCount` and never
+ *     someone who scored the same as a person who stayed.
  */
 export const computeLeagueResults = (brand: string, participants: ILeagueParticipant[]): ILeagueResult[] => {
     const ladder = getLeaderboardLeagues(brand);
@@ -121,7 +144,7 @@ export const computeLeagueResults = (brand: string, participants: ILeaguePartici
 
     const results: ILeagueResult[] = [];
     membersByLeagueIndex.forEach((members, leagueIndex) => {
-        const sorted = [...members].sort((a, b) => (b.points - a.points) || a.userId.localeCompare(b.userId));
+        const sorted = [...members].sort(compareLeagueParticipants);
         const size = sorted.length;
         const { promoteCount, demoteCount } = getLeagueMovementCounts(size, leagueIndex, ladder.length);
 
@@ -133,7 +156,7 @@ export const computeLeagueResults = (brand: string, participants: ILeaguePartici
             previousPlacement = placement;
 
             let toIndex = leagueIndex;
-            if (promoteCount > 0 && placement <= promoteCount) {
+            if (index < promoteCount) {
                 toIndex = leagueIndex + 1;
             } else if (demoteCount > 0 && placement > size - demoteCount) {
                 toIndex = leagueIndex - 1;

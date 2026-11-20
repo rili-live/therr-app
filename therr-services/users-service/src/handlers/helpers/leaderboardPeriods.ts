@@ -49,10 +49,21 @@ const closedPeriodByBrand = new Map<string, string>();
  */
 const leagueModeByBrand = new Map<string, { periodStart: string, isActive: boolean }>();
 
+/**
+ * Each user's resolved league for the week, per process, keyed `brand:userId`. A league only
+ * changes at the weekly close, and `areLeaguesActiveForBrand` has applied that close's moves in
+ * this process before anything reads here, so an entry is good until `periodStart` rolls over.
+ * Spares the rank-milestone check a league read on every XP award. Bounded: cleared wholesale at
+ * the cap rather than evicted one by one — a miss is a single indexed read.
+ */
+const leagueByUser = new Map<string, { periodStart: string, league: string | undefined }>();
+const LEAGUE_BY_USER_MAX_ENTRIES = 10000;
+
 /** Test affordance: forget which periods this process has already closed. */
 export const resetClosedPeriodMemo = () => {
     closedPeriodByBrand.clear();
     leagueModeByBrand.clear();
+    leagueByUser.clear();
 };
 
 /** How many results moved up (direction 1) or down (-1) a league. */
@@ -257,6 +268,18 @@ export const getActiveLeagueForUser = async (
     if (!(await areLeaguesActiveForBrand(brand, now))) {
         return undefined;
     }
+    const periodStart = getPreviousPeriodStart(now);
+    const cacheKey = `${String(brand)}:${userId}`;
+    const cached = leagueByUser.get(cacheKey);
+    if (cached && cached.periodStart === periodStart) {
+        return cached.league;
+    }
+
     const stored = await Store.userLeaderboardLeagues.getLeagueForUser(brand, userId);
-    return resolveLeaderboardLeague(String(brand), stored)?.id;
+    const league = resolveLeaderboardLeague(String(brand), stored)?.id;
+    if (leagueByUser.size >= LEAGUE_BY_USER_MAX_ENTRIES) {
+        leagueByUser.clear();
+    }
+    leagueByUser.set(cacheKey, { periodStart, league });
+    return league;
 };
