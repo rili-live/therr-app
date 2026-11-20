@@ -115,6 +115,12 @@ describe('LeagueHeader', () => {
         expect(text).toContain('pages.leaderboard.leagues.tooSmall');
     });
 
+    it('renders nothing for a league id this build does not know, rather than the lowest league', async () => {
+        const text = await renderText({ brand: 'habits', league: league({ id: 'redwood', leagueIndex: 6, leagueCount: 7 }) });
+
+        expect(text).toBe('null');
+    });
+
     it('renders nothing for a brand without leagues', async () => {
         const text = await renderText({ brand: 'teem', league: league() });
 
@@ -125,6 +131,8 @@ describe('LeagueHeader', () => {
 describe('Leaderboard screen — first load', () => {
     const getLeaderboard = UsersService.getLeaderboard as unknown as jest.Mock<any>;
     const navigation = { setOptions: jest.fn(), navigate: jest.fn() };
+    // The unconnected screen: the placement props mapStateToProps/mapDispatchToProps would supply.
+    const placementProps = { pendingPlacements: [], acknowledgePlacement: jest.fn() };
     const user = { details: { id: 'user-1' }, settings: { locale: 'en-us', mobileThemeName: 'light' } };
     const board = (overrides: any = {}) => ({
         data: {
@@ -140,7 +148,7 @@ describe('Leaderboard screen — first load', () => {
     const renderScreen = async () => {
         let component: renderer.ReactTestRenderer;
         await act(async () => {
-            component = renderer.create(<Leaderboard navigation={navigation} user={user as any} />);
+            component = renderer.create(<Leaderboard navigation={navigation} user={user as any} {...placementProps} />);
             await Promise.resolve();
         });
         await act(async () => { await Promise.resolve(); });
@@ -163,6 +171,50 @@ describe('Leaderboard screen — first load', () => {
         expect(getLeaderboard.mock.calls[0][0]).toMatchObject({ scope: 'league', period: 'week' });
         expect(textOf(component)).toContain('League 3 of 6');
         await act(async () => { component.unmount(); });
+    });
+
+    it('keeps Everyone once the user picked a tab before the league probe answered', async () => {
+        let resolveProbe: (value: any) => void = () => {};
+        getLeaderboard
+            .mockImplementationOnce(() => new Promise((resolve) => { resolveProbe = resolve; }))
+            // Friends comes back as the interceptor's offline fallback, so no response ever settles the pick.
+            .mockResolvedValueOnce({ data: {}, isOfflineFallback: true })
+            .mockResolvedValue(board({ scope: 'global', league: league() }));
+
+        const component = await renderScreen();
+        const tab = (label: string) => component.root.findAll((node) => node.props.onPress
+            && node.findAllByType(Text).some((textNode) => [].concat(textNode.props.children).join('') === label))[0];
+
+        // Friends while the probe is still in flight, then the probe lands late (and is discarded as stale).
+        await act(async () => { tab('Friends').props.onPress(); });
+        await act(async () => { resolveProbe(board({ scope: 'league', league: league() })); await Promise.resolve(); });
+        await act(async () => { tab('Everyone').props.onPress(); await Promise.resolve(); });
+
+        const scopes = getLeaderboard.mock.calls.map((call: any) => call[0].scope);
+        expect(scopes).toEqual(['league', 'connections', 'global']);
+        expect(textOf(component)).not.toContain('League 3 of 6');
+        await act(async () => { component.unmount(); });
+    });
+
+    it('opens on the board the home-screen widget asked for, without the league probe', async () => {
+        getLeaderboard.mockResolvedValue(board({ scope: 'global', league: league() }));
+
+        let component: renderer.ReactTestRenderer;
+        await act(async () => {
+            component = renderer.create(
+                <Leaderboard
+                    navigation={navigation}
+                    route={{ params: { initialScope: 'global' } } as any}
+                    user={user as any}
+                    {...placementProps}
+                />
+            );
+            await Promise.resolve();
+        });
+
+        expect(getLeaderboard).toHaveBeenCalledTimes(1);
+        expect(getLeaderboard.mock.calls[0][0]).toMatchObject({ scope: 'global' });
+        await act(async () => { component!.unmount(); });
     });
 
     it('shows the global board from that same request when no league is running', async () => {
