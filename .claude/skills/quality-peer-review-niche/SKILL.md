@@ -92,29 +92,51 @@ If the current branch does not start with `niche/`, warn the user:
 ```
 Stop and ask the user to confirm before proceeding. Save the branch name as `<NICHE_BRANCH>` for use throughout the rest of the skill.
 
-### 1b: Pull origin/<NICHE_BRANCH> with autostash
+### 1b: Finish any in-progress merge, then pull origin/<NICHE_BRANCH> with autostash
 
-Use `--autostash` so any uncommitted local changes are stashed before the pull and re-applied after, keeping them in scope for the review:
+First check for a merge already in progress (typically `general` being merged down):
+
+```bash
+git rev-parse -q --verify MERGE_HEAD && git log -1 --oneline MERGE_HEAD
+git diff --name-only --diff-filter=U
+```
+
+If one is in progress, **resolve it yourself** (see 1b-i), commit it with `git commit --no-edit`,
+and continue. Then pull, using `--autostash` so any uncommitted local changes are stashed before
+the pull and re-applied after, keeping them in scope for the review:
 
 ```bash
 git pull --autostash origin <NICHE_BRANCH> 2>&1
 ```
 
-**If the pull results in merge conflicts** (output contains "CONFLICT" or exit code is non-zero):
-```
-⛔ Merge conflicts after pulling origin/<NICHE_BRANCH>.
-   Resolve the conflicts below before re-running /quality-peer-review-niche:
-   <list conflicting files from git status>
-```
-Stop immediately. Do not attempt to auto-resolve conflicts.
+If the pull (or the autostash re-apply) reports `CONFLICT`, resolve those the same way.
 
-**If the autostash re-apply has conflicts** (output contains "CONFLICT" after "Applying stash"):
-```
-⛔ Stash re-apply conflicts after pulling origin/<NICHE_BRANCH>.
-   Your local changes could not be cleanly re-applied.
-   Resolve stash conflicts manually, then re-run /quality-peer-review-niche.
-```
-Stop immediately.
+#### 1b-i: Resolving conflicts
+
+Resolve by file class. Read both sides of every hunk before choosing — never take a side wholesale
+for a code file, and never leave a marker behind (`grep -c '^<<<<<<<\|^>>>>>>>' <file>` must be 0).
+
+| File | Resolution |
+|---|---|
+| `TherrMobile/android/app/build.gradle` (`versionCode`, `versionName`, `applicationId`) | **Niche side, always.** The niche app has its own Play version sequence; taking `general`'s numbers strands every future niche release |
+| Brand identity (`brandConfig.ts`, `app.json`, `eas.json`, launcher/splash assets, `strings.xml`, `colors.xml`) | Niche side |
+| `VERSIONS.txt` | The side that came from `stage`/`general` — never hand-edit it |
+| `context/memory/*.md` (daily logs) | Keep both blocks; drop a heading that ends up duplicated, merging its bullets |
+| `docs/*.md` | Combine: for a bullet both sides edited, take the newer wording and re-add anything only the niche side had (niche-only paragraphs and bullets stay) |
+| Locale `dictionary.json` | 3-way JSON merge (union of keys, newer value wins), 4-space indent; then `npm run locales:check` |
+| Source code / tests | Merge semantically: keep the intent of **both** sides (e.g. a niche-only route param *and* `general`'s new refs). Rewrite any comment the merged code made stale |
+
+Afterwards:
+
+1. `git add` the resolved files and `git commit --no-edit`.
+2. If the merge brought `general` down, run `/split-branch-prs verify-brand` — a clean-looking merge
+   can still un-brand the app.
+3. Run the tests of every package a conflicted file belongs to. A merged test file can break
+   without any conflict (e.g. `general`'s test renders a screen without a niche-only prop, or uses
+   a fixture valid only for the Therr brand); fix the test, not the niche code.
+
+Stop and ask the user only when a hunk's two sides make incompatible product decisions you cannot
+reconcile from the code, commit messages and docs — report the file, both sides and the choice.
 
 ### 1c: Fetch origin/general for comparison
 
@@ -795,6 +817,7 @@ Never file for something this run already fixed. The commit is the record.
 - **Mixed commits are reported only** — never auto-split them.
 - **Never run destructive git commands** without explicit user confirmation.
 - **Never skip the infrastructure check** — if Step 0 fails, stop completely.
+- **Resolve merge conflicts, don't stop on them** (Step 1b-i) — stop only for an irreconcilable product decision.
 - **Scope niche-side changes to the diff** — do not refactor code that wasn't touched.
 - **Do not implement Category C suggestions** — report them only.
 - **If a niche-side fix would require changing a must-be-on-general path**, do not make the change here — report it as a Category C item directing the user to make the fix on `general`.
