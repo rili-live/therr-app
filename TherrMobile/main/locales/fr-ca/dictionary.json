@@ -7,7 +7,17 @@
                 "edit": "Modifier le groupe",
                 "join": "Rejoindre le groupe",
                 "leave": "Quitter le groupe",
-                "share": "Partager le lien"
+                "share": "Partager le lien",
+                "report": "Signaler le groupe"
+            },
+            "report": {
+                "title": "Signaler ce groupe?",
+                "message": "Les groupes signalés sont examinés et retirés de Découvrir. Le créateur du groupe ne sait pas qui l'a signalé.",
+                "spam": "Pourriel ou arnaque",
+                "offensive": "Offensant",
+                "cancel": "Annuler",
+                "success": "Merci. Nous examinerons ce groupe.",
+                "error": "Impossible d'envoyer votre signalement. Veuillez réessayer."
             }
         },
         "user": {
@@ -1176,7 +1186,8 @@
             "goals": "Objectifs",
             "pacts": "Pactes",
             "achievements": "Réalisations",
-            "groupsDiscover": "Découvrir"
+            "groupsDiscover": "Découvrir",
+            "groupEvents": "Événements"
         },
         "mapActions": {
             "create": "Créer",
@@ -1549,12 +1560,29 @@
             "headerTitle": "Groupes",
             "pageTitle": "Groupes",
             "categories": {
-                "title": "Catégories"
+                "title": "Catégories",
+                "clear": "Effacer",
+                "names": {
+                    "business": "Affaires",
+                    "food": "Nourriture",
+                    "general": "Général",
+                    "movies": "Films",
+                    "music": "Musique",
+                    "science": "Science",
+                    "sports": "Sports",
+                    "tech": "Techno"
+                }
             },
             "labels": {
                 "description": "Description :",
-                "subtitle": "Titre accrocheur :",
-                "memberCount": "{count} membres"
+                "memberCount": "{count} membres",
+                "memberCountOne": "1 membre",
+                "joined": "Membre",
+                "joinGroup": "Rejoindre {title}",
+                "lastMessageYou": "Vous : {text}",
+                "lastMessageFrom": "{name} : {text}",
+                "noMessagesYet": "Aucun message pour le moment",
+                "unreadCount": "{count} non lus"
             },
             "noMyGroupsFound": "Vous n'avez rejoint aucun groupe. Découvrez et rejoignez des groupes pour les voir ici.",
             "discoverGroups": "Découvrir des groupes"
@@ -1568,7 +1596,8 @@
                 "thisWeek": "Cette semaine",
                 "allTime": "Historique",
                 "everyone": "Tout le monde",
-                "friends": "Ami(e)s"
+                "friends": "Ami(e)s",
+                "myLeague": "Ma ligue"
             },
             "labels": {
                 "you": "Vous",
@@ -1590,6 +1619,34 @@
                     "two": "{n}e",
                     "few": "{n}e",
                     "other": "{n}e"
+                }
+            },
+            "leagues": {
+                "title": "Ligue {league}",
+                "positionOf": "Ligue {position} sur {count}",
+                "promotionZone": "Les {count} premiers montent en {league}",
+                "demotionZone": "Les {count} derniers descendent en {league}",
+                "promotionZoneAccessibility": "Dans la zone de promotion",
+                "demotionZoneAccessibility": "Dans la zone de relégation",
+                "topLeague": "Tu es dans la ligue la plus haute. Garde ta place!",
+                "tooSmall": "Les montées et descentes commencent dès que 5 personnes compétitionnent dans cette ligue.",
+                "names": {
+                    "habits": {
+                        "seedling": "Semis",
+                        "sprout": "Pousse",
+                        "sapling": "Arbrisseau",
+                        "bloom": "Floraison",
+                        "oak": "Chêne",
+                        "evergreen": "Sapin"
+                    },
+                    "therr": {
+                        "wanderer": "Vagabond",
+                        "scout": "Éclaireur",
+                        "pathfinder": "Pisteur",
+                        "trailblazer": "Pionnier",
+                        "cartographer": "Cartographe",
+                        "legend": "Légende"
+                    }
                 }
             }
         },
@@ -1638,11 +1695,11 @@
             "previewHeader": "Aperçu :"
         },
         "viewGroup": {
-            "noChatsFound": "Aucun message trouvé",
+            "noChatsFound": "Aucun message pour l'instant. Soyez le premier à dire bonjour!",
             "welcomeDialogTitle": "Bienvenue dans votre nouveau groupe!",
             "welcomeDialogMessage": "Écrivez un message de bienvenue pour lancer la conversation et informer les membres de l'objet de ce groupe.",
             "welcomeDialogDismiss": "Peut-être plus tard",
-            "noEventsFound": "Aucun événement en cours ou à venir trouvé. Ce groupe n'a pas publié d'événements. Demandez à un modérateur de vous nommer hôte d'événements.",
+            "noEventsFound": "Aucun événement à venir pour l'instant. Créez-en un pour rassembler le groupe.",
             "noMembersFound": "Aucun membre de groupe trouvé",
             "membershipStatuses": {
                 "pending": "(Invitation en attente)"
@@ -1654,7 +1711,8 @@
                 "eventHost": "Hôte d'événements"
             },
             "buttons": {
-                "createEvent": "Créer un événement"
+                "createEvent": "Créer un événement",
+                "back": "Retour"
             }
         },
         "viewSpace": {

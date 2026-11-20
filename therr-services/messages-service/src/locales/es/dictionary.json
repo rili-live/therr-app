@@ -3,7 +3,8 @@
     "accessDenied": "El acceso a este recurso está denegado",
     "forums": {
         "duplicatePost": "No se permiten publicaciones duplicadas",
-        "forumNotFound": "No se encontró el grupo para el ID proporcionado"
+        "forumNotFound": "No se encontró el grupo para el ID proporcionado",
+        "cannotReportOwn": "No puedes reportar un grupo que creaste"
     }
   },
   "validation": "No se proporcionaron los parámetros requeridos.",

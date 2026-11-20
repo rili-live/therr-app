@@ -17,14 +17,18 @@ const CHALLENGE_ID = 'challenge-1';
 const GOAL_ID = 'aaaaaaaa-0000-4000-8000-0000000000a1';
 const TOKEN = 'AbCdEf123456';
 
+// Relative to the real clock: a hardcoded window expires and turns "joinable" tests into
+// "challenge ended" 400s the day after its endDate.
+const isoDaysFromToday = (days: number) => new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
+
 const detail = (overrides: any = {}) => ({
     id: CHALLENGE_ID,
     creatorUserId: CREATOR,
     habitGoalId: GOAL_ID,
     title: null,
     joinToken: TOKEN,
-    startDate: '2026-10-20',
-    endDate: '2026-11-18',
+    startDate: isoDaysFromToday(-10),
+    endDate: isoDaysFromToday(19),
     maxMembers: 50,
     status: 'active',
     createdAt: new Date(),

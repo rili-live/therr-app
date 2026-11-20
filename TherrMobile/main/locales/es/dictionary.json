@@ -7,7 +7,17 @@
                 "edit": "Editar grupo",
                 "join": "Unirse al grupo",
                 "leave": "Salir del grupo",
-                "share": "Compartir enlace"
+                "share": "Compartir enlace",
+                "report": "Reportar grupo"
+            },
+            "report": {
+                "title": "¿Reportar este grupo?",
+                "message": "Los grupos reportados se revisan y se ocultan de Descubrir. No se le dice al creador del grupo quién lo reportó.",
+                "spam": "Spam o estafa",
+                "offensive": "Ofensivo",
+                "cancel": "Cancelar",
+                "success": "Gracias. Revisaremos este grupo.",
+                "error": "No se pudo enviar tu reporte. Inténtalo de nuevo."
             }
         },
         "user": {
@@ -1176,7 +1186,8 @@
             "goals": "Metas",
             "pacts": "Pactos",
             "achievements": "Logros",
-            "groupsDiscover": "Descubrir"
+            "groupsDiscover": "Descubrir",
+            "groupEvents": "Eventos"
         },
         "mapActions": {
             "create": "Crear",
@@ -1549,12 +1560,29 @@
             "headerTitle": "Grupos",
             "pageTitle": "Grupos",
             "categories": {
-                "title": "Categorías"
+                "title": "Categorías",
+                "clear": "Borrar",
+                "names": {
+                    "business": "Negocios",
+                    "food": "Comida",
+                    "general": "General",
+                    "movies": "Películas",
+                    "music": "Música",
+                    "science": "Ciencia",
+                    "sports": "Deportes",
+                    "tech": "Tecnología"
+                }
             },
             "labels": {
                 "description": "Descripción:",
-                "subtitle": "Titular:",
-                "memberCount": "{count} miembros"
+                "memberCount": "{count} miembros",
+                "memberCountOne": "1 miembro",
+                "joined": "Unido",
+                "joinGroup": "Unirse a {title}",
+                "lastMessageYou": "Tú: {text}",
+                "lastMessageFrom": "{name}: {text}",
+                "noMessagesYet": "Aún no hay mensajes",
+                "unreadCount": "{count} sin leer"
             },
             "noMyGroupsFound": "Aún no te has unido a ningún grupo. Descubre y únete a grupos para verlos aquí.",
             "discoverGroups": "Descubrir Grupos"
@@ -1568,7 +1596,8 @@
                 "thisWeek": "Esta semana",
                 "allTime": "Histórico",
                 "everyone": "Todos",
-                "friends": "Amigos"
+                "friends": "Amigos",
+                "myLeague": "Mi liga"
             },
             "labels": {
                 "you": "Tú",
@@ -1590,6 +1619,34 @@
                     "two": "{n}.º",
                     "few": "{n}.º",
                     "other": "{n}.º"
+                }
+            },
+            "leagues": {
+                "title": "Liga {league}",
+                "positionOf": "Liga {position} de {count}",
+                "promotionZone": "Los {count} primeros suben a {league}",
+                "demotionZone": "Los {count} últimos bajan a {league}",
+                "promotionZoneAccessibility": "En la zona de ascenso",
+                "demotionZoneAccessibility": "En la zona de descenso",
+                "topLeague": "Estás en la liga más alta. ¡Mantén tu lugar!",
+                "tooSmall": "Los ascensos y descensos empiezan cuando 5 personas compiten en esta liga.",
+                "names": {
+                    "habits": {
+                        "seedling": "Plántula",
+                        "sprout": "Brote",
+                        "sapling": "Arbolito",
+                        "bloom": "Floración",
+                        "oak": "Roble",
+                        "evergreen": "Perenne"
+                    },
+                    "therr": {
+                        "wanderer": "Trotamundos",
+                        "scout": "Explorador",
+                        "pathfinder": "Guía",
+                        "trailblazer": "Pionero",
+                        "cartographer": "Cartógrafo",
+                        "legend": "Leyenda"
+                    }
                 }
             }
         },
@@ -1638,11 +1695,11 @@
             "previewHeader": "Vista previa:"
         },
         "viewGroup": {
-            "noChatsFound": "No se encontraron mensajes",
+            "noChatsFound": "Aún no hay mensajes. ¡Sé el primero en saludar!",
             "welcomeDialogTitle": "¡Bienvenido a tu nuevo grupo!",
             "welcomeDialogMessage": "Escribe un mensaje de bienvenida para iniciar la conversación y deja que los miembros sepan de qué trata este grupo.",
             "welcomeDialogDismiss": "Quizás después",
-            "noEventsFound": "No se encontraron eventos actuales o próximos. Este grupo no ha publicado ningún evento. Pide a un moderador que te nomine como anfitrión de eventos.",
+            "noEventsFound": "Aún no hay próximos eventos. Crea uno para reunir al grupo.",
             "noMembersFound": "No se encontraron miembros del grupo",
             "membershipStatuses": {
                 "pending": "(Invitación pendiente)"
@@ -1654,7 +1711,8 @@
                 "eventHost": "Anfitrión de eventos"
             },
             "buttons": {
-                "createEvent": "Crear Evento"
+                "createEvent": "Crear Evento",
+                "back": "Atrás"
             }
         },
         "viewSpace": {

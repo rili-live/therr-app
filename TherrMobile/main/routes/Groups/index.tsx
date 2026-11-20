@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { Dimensions, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -9,8 +9,9 @@ import { IForumsState, IUserState } from 'therr-react/types';
 import { GroupRequestStatuses } from 'therr-js-utilities/constants';
 import { TabBar, TabView } from 'react-native-tab-view';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { Button } from '../../components/BaseButton';
 import { buildStyles } from '../../styles';
-import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
+import { buildStyles as buildButtonsStyles, floatButtonBottomClearance } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildTileStyles } from '../../styles/user-content/groups/chat-tiles';
@@ -32,6 +33,16 @@ import GroupCategories from '../Groups/GroupCategories';
 
 const { width: viewportWidth } = Dimensions.get('window');
 export const DEFAULT_PAGE_SIZE = 50;
+// The bottom tab bar and the "Create" FAB above it both overlay the list. Pad past the FAB, plus
+// a little breathing room, so the last row's Join button and description can scroll clear of them.
+const listContentContainerStyle = { paddingBottom: floatButtonBottomClearance + 16 };
+const localStyles = StyleSheet.create({
+    emptyStateCta: {
+        marginTop: 16,
+        alignSelf: 'center',
+        minWidth: 200,
+    },
+});
 const tabMap = {
     0: GROUPS_CAROUSEL_TABS.DISCOVER,
     1: GROUPS_CAROUSEL_TABS.GROUPS,
@@ -86,7 +97,6 @@ interface IGroupsState {
     searchFilters: any;
     searchText: string;
     tabRoutes: { key: string; title: string }[];
-    toggleChevronName: 'refresh';
 }
 
 const mapStateToProps = (state) => ({
@@ -154,7 +164,6 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                 { key: GROUPS_CAROUSEL_TABS.DISCOVER, title: this.translate('menus.headerTabs.groupsDiscover') },
                 { key: GROUPS_CAROUSEL_TABS.GROUPS, title: this.translate('menus.headerTabs.groupsJoined') },
             ],
-            toggleChevronName: 'refresh',
             searchText: '',
             searchFilters: {
                 itemsPerPage: DEFAULT_PAGE_SIZE,
@@ -444,7 +453,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
     };
 
     renderSearchHeader = () => {
-        const { categories, searchText, citySearchText, toggleChevronName } = this.state;
+        const { categories, searchText, citySearchText } = this.state;
 
         return (
             <View>
@@ -459,7 +468,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                         flex: 1,
                         flexDirection: 'row',
                         alignItems: 'center',
-                        backgroundColor: this.theme.colorVariations.primaryFadeMore || '#f0f0f0',
+                        backgroundColor: this.theme.colorVariations.primaryFadeMore || this.theme.colors.backgroundGray,
                         borderRadius: 20,
                         paddingHorizontal: 10,
                         height: 38,
@@ -484,7 +493,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                         flex: 1,
                         flexDirection: 'row',
                         alignItems: 'center',
-                        backgroundColor: this.theme.colorVariations.primaryFadeMore || '#f0f0f0',
+                        backgroundColor: this.theme.colorVariations.primaryFadeMore || this.theme.colors.backgroundGray,
                         borderRadius: 20,
                         paddingHorizontal: 10,
                         height: 38,
@@ -507,16 +516,15 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                     </View>
                 </View>
                 <GroupCategories
-                    style={{}}
-                    backgroundColor={this.theme.colors.primary}
                     categories={categories}
+                    clearLabel={this.translate('pages.groups.categories.clear')}
+                    horizontalInset={10}
+                    layout="scroll"
                     onCategoryPress={this.handleCategoryPress}
-                    translate={this.translate}
-                    onCategoryTogglePress={this.handleCategoryTogglePress}
-                    toggleChevronName={toggleChevronName}
+                    onClearPress={this.handleCategoryTogglePress}
                     theme={this.theme}
-                    themeButtons={this.themeButtons}
                     themeCategory={this.themeCategory}
+                    translate={this.translate}
                 />
             </View>
         );
@@ -541,10 +549,10 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                                 group={group}
                                 onChatTilePress={this.handleChatTilePress}
                                 theme={this.theme}
-                                themeButtons={this.themeButtons}
                                 themeChatTile={this.themeTile}
                                 translate={this.translate}
                                 handleJoinGroup={this.onJoinGroup}
+                                isJoinedLabelShown
                                 user={user}
                             />
                         )}
@@ -556,6 +564,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                             </View>
                         }
                         stickyHeaderIndices={[]}
+                        contentContainerStyle={listContentContainerStyle}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshing}
                             onRefresh={this.handleRefreshDiscoverSearch}
@@ -579,10 +588,10 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                                 group={group}
                                 onChatTilePress={this.handleChatTilePress}
                                 theme={this.theme}
-                                themeButtons={this.themeButtons}
                                 themeChatTile={this.themeTile}
                                 translate={this.translate}
                                 handleJoinGroup={this.onJoinGroup}
+                                isInboxRow
                                 user={user}
                             />
                         )}
@@ -591,24 +600,18 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                                 <ListEmpty iconName="group" theme={this.theme} text={this.translate(
                                     'pages.groups.noMyGroupsFound'
                                 )} />
-                                <Pressable
+                                <Button
                                     onPress={() => this.onTabSelect(0)}
-                                    style={{
-                                        marginTop: 16,
-                                        marginHorizontal: 40,
-                                        backgroundColor: this.theme.colors.primary3,
-                                        borderRadius: 8,
-                                        paddingVertical: 10,
-                                        alignItems: 'center',
-                                    }}
-                                >
-                                    <Text style={{ color: this.theme.colors.brandingWhite, fontSize: 16, fontWeight: '600' }}>
-                                        {this.translate('pages.groups.discoverGroups')}
-                                    </Text>
-                                </Pressable>
+                                    variant="primary"
+                                    size="lg"
+                                    shape="pill"
+                                    containerStyle={localStyles.emptyStateCta}
+                                    title={this.translate('pages.groups.discoverGroups')}
+                                />
                             </View>
                         }
                         stickyHeaderIndices={[]}
+                        contentContainerStyle={listContentContainerStyle}
                         refreshControl={<RefreshControl
                             refreshing={isMyGroupsRefreshing}
                             onRefresh={this.handleRefreshMyGroupsSearch}
