@@ -12,6 +12,7 @@ import {
     NativeEventSubscription,
 } from 'react-native';
 import { Switch } from 'react-native-paper';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView, SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView, KeyboardStickyView, useKeyboardState } from 'react-native-keyboard-controller';
 import { connect } from 'react-redux';
@@ -102,6 +103,7 @@ interface IDispatchProps {
     getTemplates: Function;
     createGoal: Function;
     bulkInvitePact: Function;
+    createPact: Function;
     startUserHabit: Function;
     getUserHabitEligibility: Function;
     searchUsers: Function;
@@ -172,8 +174,10 @@ interface ICreatePactInviteState {
     selectedPartnerIds: string[];
     selectedPartnerDetailsById: { [id: string]: IConnectionDetails };
     /**
-     * Open pacts: let people outside the invite list ask to join. Off by default and offered only
-     * on the review step of a pact with partners — an optional extra, never part of the core flow.
+     * Open pacts: let people outside the invite list ask to join. Off by default. Set from the
+     * partner step's "post an open pact" entry (the route for someone with nobody to invite), or
+     * from the switch on the review step. With nobody selected it is what makes the final action
+     * create a pact rather than a solo habit — see `getFinalAction`.
      */
     isOpenPact: boolean;
     /** The open-pact switch is offered only once the server is known to honor it. */
@@ -196,6 +200,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getTemplates: HabitActions.getTemplates,
     createGoal: HabitActions.createGoal,
     bulkInvitePact: HabitActions.bulkInvitePact,
+    createPact: HabitActions.createPact,
     startUserHabit: HabitActions.startUserHabit,
     getUserHabitEligibility: HabitActions.getUserHabitEligibility,
     searchUsers: UsersActions.search,
@@ -395,7 +400,13 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
      * it is a personal habit, whether they arrived via solo mode or simply
      * moved past the partner step without picking anyone.
      */
-    isSoloReview = (): boolean => isSoloReview(this.state.selectedPartnerIds.length);
+    isSoloReview = (): boolean => isSoloReview(this.state.selectedPartnerIds.length, this.isOpenPactChosen());
+
+    /** The open-pact choice, counted only once the server is known to honor it. */
+    isOpenPactChosen = (): boolean => this.state.isOpenPact && this.state.isOpenPactSupported;
+
+    /** Nobody invited, posted for strangers on the same habit to ask to join. */
+    isOpenOnlyReview = (): boolean => getFinalAction(this.state.selectedPartnerIds.length, this.isOpenPactChosen()) === 'postOpen';
 
     getStepTitle = (step: Step): string => {
         switch (step) {
@@ -612,6 +623,7 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             this.state.selectedPartnerIds.length,
             this.getSoloProgress().isUnlocked,
             !!this.getExistingHabit(),
+            this.isOpenPactChosen(),
         )) {
             // Locked: choosing someone is the only way on. The toast says how
             // many invites unlock the solo path so the requirement reads as
@@ -670,7 +682,23 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
             return;
         }
 
+        // Leaving an open-only review undoes the choice that led to it. The partner step's
+        // "post an open pact" row is the way back in; left on, a later Next with nobody
+        // selected would land on a review the user did not choose.
+        if (this.state.step === 'review' && !this.state.selectedPartnerIds.length && this.state.isOpenPact) {
+            this.setState({ isOpenPact: false });
+        }
+
         this.setStep(target);
+    };
+
+    /**
+     * The partner step's "nobody to invite" route: straight to the review of an open pact. Skips
+     * the solo unlock on purpose — that unlock is earned by inviting friends, and this is the path
+     * for the user who has none on the app yet.
+     */
+    choosePostOpenPact = () => {
+        this.setState({ isOpenPact: true }, () => this.setStep('review'));
     };
 
     onShareLink = () => {
@@ -1093,8 +1121,8 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
 
     handleSend = async () => {
         const { bulkInvitePact, navigation } = this.props;
-        const { selectedPartnerIds, isOpenPactSupported } = this.state;
-        const isOpenPact = this.state.isOpenPact && isOpenPactSupported;
+        const { selectedPartnerIds } = this.state;
+        const isOpenPact = this.isOpenPactChosen();
 
         this.setState({ isSending: true });
 
@@ -1160,6 +1188,66 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 Toast.show({
                     type: 'error',
                     text1: this.translate('pages.pacts.wizard.sendingError'),
+                });
+            }
+        } finally {
+            this.setState({ isSending: false });
+        }
+    };
+
+    /**
+     * An open pact with nobody invited: `POST /habits/pacts` with no partner and `isOpen`, which
+     * the server lists for people on the same habit to ask to join. Navigates to the new pact,
+     * where its join requests are answered.
+     */
+    handlePostOpenPact = async () => {
+        const { createPact, navigation } = this.props;
+
+        this.setState({ isSending: true });
+
+        try {
+            if (!(await this.confirmHabitCapacity())) {
+                return;
+            }
+
+            const habitGoalId = await this.resolveHabitGoalId();
+
+            if (!habitGoalId) throw new Error('missing habitGoalId');
+
+            const pact = await createPact({
+                habitGoalId,
+                pactType: 'accountability',
+                durationDays: DEFAULT_PACT_DURATION_DAYS,
+                isOpen: true,
+            });
+
+            // Same activation event as an invited pact (see handleSend), told apart by
+            // partnerCount 0 and isOpen.
+            logAppEvent('habit_pact_create', {
+                userId: this.props.user?.details?.id,
+                partnerCount: 0,
+                pactType: 'accountability',
+                isOpen: true,
+            });
+
+            Toast.show({
+                type: 'success',
+                text1: this.translate('pages.pacts.openPact.postedToast'),
+                text2: this.translate('pages.pacts.openPact.postedToastHint'),
+            });
+
+            permissions.requestIfAppropriate('notifications', { trigger: 'pactCreate' });
+
+            if (pact?.id) {
+                navigation.replace('PactDetail', { pactId: pact.id });
+            } else {
+                navigation.navigate('HabitsDashboard');
+            }
+        } catch (err: any) {
+            if (!this.handlePossiblePaywall(err)) {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.openPact.postError'),
                 });
             }
         } finally {
@@ -1698,6 +1786,45 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         );
     };
 
+    /**
+     * The open-pact route on the partner step, near the top so it is seen before the list: for
+     * someone with nobody to invite, it is the way to find a partner at all.
+     */
+    renderPostOpenPactOption = () => {
+        if (!this.state.isOpenPactSupported) {
+            return null;
+        }
+
+        return (
+            <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={this.translate('pages.pacts.openPact.wizardOptionTitle')}
+                accessibilityHint={this.translate('pages.pacts.openPact.wizardOptionHint')}
+                onPress={this.choosePostOpenPact}
+                style={({ pressed }) => [
+                    this.themeHabits.styles.habitCardContainer,
+                    { flexDirection: 'row', alignItems: 'center' },
+                    pressed && this.themeHabits.styles.pactPressedSurface,
+                ]}
+            >
+                <Text style={{ fontSize: 24 }}>{'🌍'}</Text>
+                <View style={{ flex: 1, marginLeft: 12, marginRight: 8 }}>
+                    <Text style={this.themeHabits.styles.pactPartnerName}>
+                        {this.translate('pages.pacts.openPact.wizardOptionTitle')}
+                    </Text>
+                    <Text style={this.themeHabits.styles.habitCardSubtitle}>
+                        {this.translate('pages.pacts.openPact.wizardOptionHint')}
+                    </Text>
+                </View>
+                <MaterialIcon
+                    name="chevron-right"
+                    size={24}
+                    color={this.themeHabits.colors.primary3}
+                />
+            </Pressable>
+        );
+    };
+
     renderStep2 = () => {
         const { user, userConnections } = this.props;
         const {
@@ -1738,6 +1865,8 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 <Text style={[this.themeHabits.styles.streakMilestoneText, { paddingHorizontal: 20, marginTop: 8 }]}>
                     {this.translate('pages.pacts.wizard.multiSelectCounter', { count: selectedPartnerIds.length })}
                 </Text>
+
+                {this.renderPostOpenPactOption()}
 
                 <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
                     <TextInput
@@ -1855,13 +1984,27 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         const { habitName, habitEmoji } = this.getSelectedHabitDisplay();
         const partnerCount = selectedPartnerIds.length;
         const isSolo = this.isSoloReview();
+        const isOpenOnly = this.isOpenOnlyReview();
+        let subtitleKey = 'pages.pacts.wizard.step3Subtitle';
+        let membersKey = 'pages.pacts.wizard.multiSelectCounter';
+        if (isOpenOnly) {
+            subtitleKey = 'pages.pacts.openPact.reviewSubtitle';
+            membersKey = 'pages.pacts.openPact.reviewMembers';
+        } else if (isSolo) {
+            subtitleKey = 'pages.pacts.wizard.soloReviewSubtitle';
+            membersKey = 'pages.pacts.wizard.soloJustYou';
+        }
+        // The switch, wherever turning it off leaves a way forward: with partners (the invites
+        // still go) or with the solo unlock (it becomes a solo habit). A locked user who reached
+        // this review from "post an open pact" has no third option, so it stays on and Back is
+        // how they change their mind.
+        const showOpenPactSwitch = this.state.isOpenPactSupported
+            && (partnerCount > 0 || (this.getSoloProgress().isUnlocked && !this.getExistingHabit()));
 
         return (
             <View>
                 <Text style={[this.themeHabits.styles.dashboardSubtitle, { paddingHorizontal: 20 }]}>
-                    {isSolo
-                        ? this.translate('pages.pacts.wizard.soloReviewSubtitle')
-                        : this.translate('pages.pacts.wizard.step3Subtitle')}
+                    {this.translate(subtitleKey)}
                 </Text>
                 {this.renderHabitLimitNotice()}
                 <View style={this.themeHabits.styles.habitCardContainer}>
@@ -1870,13 +2013,34 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                         <View style={this.themeHabits.styles.habitCardTitleContainer}>
                             <Text style={this.themeHabits.styles.habitCardTitle}>{habitName}</Text>
                             <Text style={this.themeHabits.styles.habitCardSubtitle}>
-                                {isSolo
-                                    ? this.translate('pages.pacts.wizard.soloJustYou')
-                                    : this.translate('pages.pacts.wizard.multiSelectCounter', { count: partnerCount })}
+                                {this.translate(membersKey, { count: partnerCount })}
                             </Text>
                         </View>
                     </View>
                 </View>
+                {/*
+                  * Open pacts. Directly under the pact it changes rather than below the fine print,
+                  * where it used to sit unseen. Off by default: it only widens who may *ask* to
+                  * join — the creator still answers each request.
+                  */}
+                {showOpenPactSwitch && (
+                    <View style={[this.themeHabits.styles.habitNotificationPrefsRow, { paddingHorizontal: 20, marginTop: 12 }]}>
+                        <View style={this.themeHabits.styles.habitNotificationPrefsLabelContainer}>
+                            <Text style={this.themeHabits.styles.habitNotificationPrefsLabel}>
+                                {this.translate('pages.pacts.openPact.toggleLabel')}
+                            </Text>
+                            <Text style={this.themeHabits.styles.habitNotificationPrefsHint}>
+                                {this.translate('pages.pacts.openPact.toggleHint')}
+                            </Text>
+                        </View>
+                        <Switch
+                            accessibilityLabel={this.translate('pages.pacts.openPact.toggleLabel')}
+                            color={this.themeHabits.colors.primary3}
+                            value={this.state.isOpenPact}
+                            onValueChange={(isOpenPact) => this.setState({ isOpenPact })}
+                        />
+                    </View>
+                )}
                 {/*
                   * The cadence, restated on the last screen before the habit exists. It is the
                   * other half of the agreement the freeze rule below describes — a rule about
@@ -1908,28 +2072,6 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
                 <Text style={[this.themeHabits.styles.streakMilestoneText, { paddingHorizontal: 20, marginTop: 12 }]}>
                     {this.translate('pages.pacts.wizard.freezeRule', streakFreezeRuleParams)}
                 </Text>
-                {/*
-                  * Open pacts. Last and off by default: the invite is the point of this screen, and
-                  * this only widens who may *ask* to join — the creator still answers each request.
-                  */}
-                {!isSolo && this.state.isOpenPactSupported && (
-                    <View style={[this.themeHabits.styles.habitNotificationPrefsRow, { paddingHorizontal: 20, marginTop: 12 }]}>
-                        <View style={this.themeHabits.styles.habitNotificationPrefsLabelContainer}>
-                            <Text style={this.themeHabits.styles.habitNotificationPrefsLabel}>
-                                {this.translate('pages.pacts.openPact.toggleLabel')}
-                            </Text>
-                            <Text style={this.themeHabits.styles.habitNotificationPrefsHint}>
-                                {this.translate('pages.pacts.openPact.toggleHint')}
-                            </Text>
-                        </View>
-                        <Switch
-                            accessibilityLabel={this.translate('pages.pacts.openPact.toggleLabel')}
-                            color={this.themeHabits.colors.primary3}
-                            value={this.state.isOpenPact}
-                            onValueChange={(isOpenPact) => this.setState({ isOpenPact })}
-                        />
-                    </View>
-                )}
             </View>
         );
     };
@@ -1950,22 +2092,25 @@ export class CreatePactInvite extends React.Component<ICreatePactInviteProps, IC
         // With nobody selected the final action starts a personal habit rather
         // than sending invites, so the label and the handler move together —
         // a "Send invite" button that sends none reads as a broken button.
-        const isSolo = getFinalAction(selectedPartnerIds.length) === 'startSolo';
+        const finalAction = getFinalAction(selectedPartnerIds.length, this.isOpenPactChosen());
         const sendKey = selectedPartnerIds.length > 1
             ? 'pages.pacts.wizard.sendMultiple'
             : 'pages.pacts.wizard.send';
         let primaryTitle = this.translate('pages.pacts.wizard.next');
-        if (isFinalStep) {
-            primaryTitle = isSolo
-                ? this.translate('pages.pacts.wizard.soloCta')
-                : this.translate(sendKey, { count: selectedPartnerIds.length });
-        }
-        const isBusy = isSending || isStartingSolo;
-
         let onPrimaryPress = this.handleNext;
         if (isFinalStep) {
-            onPrimaryPress = isSolo ? this.handleStartSolo : this.handleSend;
+            if (finalAction === 'startSolo') {
+                primaryTitle = this.translate('pages.pacts.wizard.soloCta');
+                onPrimaryPress = this.handleStartSolo;
+            } else if (finalAction === 'postOpen') {
+                primaryTitle = this.translate('pages.pacts.openPact.postCta');
+                onPrimaryPress = this.handlePostOpenPact;
+            } else {
+                primaryTitle = this.translate(sendKey, { count: selectedPartnerIds.length });
+                onPrimaryPress = this.handleSend;
+            }
         }
+        const isBusy = isSending || isStartingSolo;
 
         return (
             <SafeAreaInsetsContext.Consumer>

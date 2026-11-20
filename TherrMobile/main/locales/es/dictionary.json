@@ -3006,8 +3006,16 @@
                 "renewNotCarried": "Tu compromiso se queda con este pacto. Añádelo de nuevo en el nuevo si quieres mantenerlo."
             },
             "openPact": {
-                "toggleLabel": "Permitir que otros pidan unirse",
+                "toggleLabel": "Abierto al público",
                 "toggleHint": "Quienes trabajan en el mismo hábito pueden pedir unirse. Tú apruebas cada solicitud.",
+                "wizardOptionTitle": "¿No tienes a quién invitar? Publica un pacto abierto",
+                "wizardOptionHint": "Quienes trabajan en el mismo hábito pueden pedir unirse. Tú apruebas cada solicitud.",
+                "reviewSubtitle": "Tu pacto aparecerá para quienes trabajan en el mismo hábito. Cualquiera puede pedir unirse, y tú decides quién entra.",
+                "reviewMembers": "Pacto abierto · esperando que alguien pida unirse",
+                "postCta": "Publicar pacto abierto",
+                "postedToast": "Tu pacto abierto está publicado",
+                "postedToastHint": "Las solicitudes para unirse aparecerán en este pacto para que las apruebes.",
+                "postError": "No pudimos publicar tu pacto. Inténtalo de nuevo.",
                 "requestsTitle": "Solicitudes para unirse ({count})",
                 "requestHint": "Quiere unirse a este pacto",
                 "approve": "Aprobar",

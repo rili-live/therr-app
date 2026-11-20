@@ -30,7 +30,7 @@ export type WizardBackTarget = WizardStep | 'exit';
  * send invites — the button would either send none or fail, and both read as
  * broken.
  */
-export type WizardFinalAction = 'send' | 'startSolo';
+export type WizardFinalAction = 'send' | 'startSolo' | 'postOpen';
 
 export interface IWizardContext {
     /**
@@ -107,20 +107,40 @@ export const getBackTarget = (
  *
  * On an existing habit nobody selected means nothing to do — the habit is
  * already tracked — so a partner is required there whatever the unlock says.
+ *
+ * An open pact is the exception to both: nobody selected, but a pact is still
+ * created, for strangers on the same habit to ask to join. It is the route for
+ * the user with no friends to invite, so it must not sit behind an unlock that
+ * is earned by inviting friends.
  */
 export const canAdvanceFromPartnerStep = (
     selectedPartnerCount: number,
     canCreateSolo: boolean,
     isExistingHabit = false,
-): boolean => selectedPartnerCount > 0 || (canCreateSolo && !isExistingHabit);
+    isOpenPact = false,
+): boolean => selectedPartnerCount > 0 || isOpenPact || (canCreateSolo && !isExistingHabit);
 
 /**
  * Whether the review step is reviewing a personal habit. Keyed on the partner
  * count rather than on `isSoloMode` so that clearing every partner on step 2
- * lands in the same place as entering solo mode did.
+ * lands in the same place as entering solo mode did. Nobody selected on an open
+ * pact is not solo: it creates a pact, just one with no invite in it yet.
  */
-export const isSoloReview = (selectedPartnerCount: number): boolean => selectedPartnerCount === 0;
+export const isSoloReview = (selectedPartnerCount: number, isOpenPact = false): boolean => (
+    selectedPartnerCount === 0 && !isOpenPact
+);
 
+/**
+ * `postOpen` creates a pact with no invitees, open to join requests. With
+ * partners selected an open pact is still `send` — the invites go out and the
+ * pact is opened alongside them.
+ */
 export const getFinalAction = (
     selectedPartnerCount: number,
-): WizardFinalAction => (isSoloReview(selectedPartnerCount) ? 'startSolo' : 'send');
+    isOpenPact = false,
+): WizardFinalAction => {
+    if (selectedPartnerCount > 0) {
+        return 'send';
+    }
+    return isOpenPact ? 'postOpen' : 'startSolo';
+};

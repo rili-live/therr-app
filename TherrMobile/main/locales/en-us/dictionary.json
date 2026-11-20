@@ -3006,8 +3006,16 @@
                 "renewNotCarried": "Your pledge stays with this pact. Add it again on the new one if you want to keep it."
             },
             "openPact": {
-                "toggleLabel": "Let others ask to join",
+                "toggleLabel": "Open to the public",
                 "toggleHint": "People working on the same habit can request to join. You approve each one.",
+                "wizardOptionTitle": "No one to invite? Post an open pact",
+                "wizardOptionHint": "People working on the same habit can ask to join. You approve each one.",
+                "reviewSubtitle": "Your pact will be listed for people working on the same habit. Anyone can ask to join, and you decide who does.",
+                "reviewMembers": "Open pact · waiting for someone to ask to join",
+                "postCta": "Post open pact",
+                "postedToast": "Your open pact is posted",
+                "postedToastHint": "Join requests will show up on this pact for you to approve.",
+                "postError": "We couldn't post your pact. Try again.",
                 "requestsTitle": "Requests to join ({count})",
                 "requestHint": "Wants to join this pact",
                 "approve": "Approve",
