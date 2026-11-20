@@ -7,6 +7,7 @@ import BrandScopedStore, { BrandValue } from './BrandScopedStore';
 import { CATEGORIES_TABLE_NAME } from './CategoriesStore';
 import { IConnection } from './connection';
 import { FORUM_CATEGORIES_TABLE_NAME } from './ForumCategoriesStore';
+import { FORUM_MESSAGES_TABLE_NAME } from './ForumMessagesStore';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -76,7 +77,20 @@ export interface ISearchForumOptions {
     nearbyLatitude?: number;
     nearbyLongitude?: number;
     nearbyMaxDistanceKm?: number;
+    /** Forums to leave out entirely, e.g. ones hidden from Discover by member reports. */
+    excludeForumIds?: string[];
+    /**
+     * Order by recent activity instead of by last edit (Discover). See DISCOVER_ACTIVITY_WINDOW_DAYS.
+     */
+    rankByActivity?: boolean;
 }
+
+/**
+ * How far back Discover looks when ranking groups by activity. Long enough that a weekly group
+ * still ranks as alive, short enough that a group that went quiet months ago sinks.
+ */
+export const DISCOVER_ACTIVITY_WINDOW_DAYS = 30;
+const FORUM_ACTIVITY_ALIAS = 'forumActivity';
 
 export default class ForumsStore extends BrandScopedStore {
     constructor(dbConnection: IConnection) {
@@ -185,10 +199,44 @@ export default class ForumsStore extends BrandScopedStore {
                 `${CATEGORIES_TABLE_NAME}.iconId as categories[].iconId`,
                 `${CATEGORIES_TABLE_NAME}.iconColor as categories[].iconColor`,
             ])
-            .orderBy(`${FORUMS_TABLE_NAME}.updatedAt`, conditions.order)
             .whereNull('archivedAt')
             .where('isPublic', !options.usersInvitedForumIds)
             .andWhere(`${FORUMS_TABLE_NAME}.brandVariation`, '=', brand);
+
+        if (options.rankByActivity) {
+            // Rank by how many different people posted recently, then by how much was posted.
+            // Distinct posters lead because they are the harder signal to fake: one account
+            // posting a hundred times (the usual shape of a promotional group) still counts as one.
+            // Ties, including every group with no recent messages, fall back to the last edit.
+            const activity = knexBuilder
+                .select(`${FORUM_MESSAGES_TABLE_NAME}.forumId`)
+                .countDistinct(`${FORUM_MESSAGES_TABLE_NAME}.fromUserId as activePosters`)
+                .count(`${FORUM_MESSAGES_TABLE_NAME}.id as recentMessages`)
+                .from(FORUM_MESSAGES_TABLE_NAME)
+                .where(`${FORUM_MESSAGES_TABLE_NAME}.brandVariation`, '=', brand)
+                .andWhere(`${FORUM_MESSAGES_TABLE_NAME}.isAnnouncement`, false)
+                .andWhere(
+                    `${FORUM_MESSAGES_TABLE_NAME}.createdAt`,
+                    '>',
+                    knexBuilder.raw(`NOW() - INTERVAL '${DISCOVER_ACTIVITY_WINDOW_DAYS} days'`),
+                )
+                .groupBy(`${FORUM_MESSAGES_TABLE_NAME}.forumId`)
+                .as(FORUM_ACTIVITY_ALIAS);
+
+            queryString = queryString
+                .leftJoin(activity, `${FORUM_ACTIVITY_ALIAS}.forumId`, `${FORUMS_TABLE_NAME}.id`)
+                .orderByRaw('COALESCE(??, 0) DESC', [`${FORUM_ACTIVITY_ALIAS}.activePosters`])
+                .orderByRaw('COALESCE(??, 0) DESC', [`${FORUM_ACTIVITY_ALIAS}.recentMessages`])
+                .orderBy(`${FORUMS_TABLE_NAME}.updatedAt`, 'desc');
+        } else {
+            queryString = queryString.orderBy(`${FORUMS_TABLE_NAME}.updatedAt`, conditions.order);
+        }
+        // Keeps a forum's category rows adjacent and the page order stable between requests.
+        queryString = queryString.orderBy(`${FORUMS_TABLE_NAME}.id`);
+
+        if (options.excludeForumIds?.length) {
+            queryString = queryString.whereNotIn(`${FORUMS_TABLE_NAME}.id`, options.excludeForumIds);
+        }
 
         if (options.usersInvitedForumIds) {
             queryString = queryString.whereIn('id', options.usersInvitedForumIds);

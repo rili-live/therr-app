@@ -3,6 +3,8 @@ import CategoriesStore from './CategoriesStore';
 import DirectMessagesStore from './DirectMessagesStore';
 import ForumsStore from './ForumsStore';
 import ForumMessagesStore from './ForumMessagesStore';
+import ForumReadStatesStore from './ForumReadStatesStore';
+import ForumReportsStore from './ForumReportsStore';
 
 class Store {
     db: IConnection;
@@ -15,6 +17,10 @@ class Store {
 
     forumMessages: ForumMessagesStore;
 
+    forumReadStates: ForumReadStatesStore;
+
+    forumReports: ForumReportsStore;
+
     constructor(dbConnection) {
         this.db = dbConnection;
 
@@ -22,6 +28,8 @@ class Store {
         this.directMessages = new DirectMessagesStore(this.db);
         this.forums = new ForumsStore(this.db);
         this.forumMessages = new ForumMessagesStore(this.db);
+        this.forumReadStates = new ForumReadStatesStore(this.db);
+        this.forumReports = new ForumReportsStore(this.db);
     }
 }
 

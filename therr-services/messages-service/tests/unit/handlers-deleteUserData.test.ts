@@ -93,6 +93,8 @@ describe('Messages Delete User Data', () => {
             const dmStub = sinon.stub(Store.directMessages, 'deleteByUserId').resolves([{ id: 'dm-1' }]);
             const fmStub = sinon.stub(Store.forumMessages, 'deleteByUserId').resolves([{ id: 'fm-1' }]);
             const forumStub = sinon.stub(Store.forums, 'reassignByAuthorId').resolves([{ id: 'forum-1' }]);
+            const readStatesStub = sinon.stub(Store.forumReadStates, 'deleteByUserId').resolves(3);
+            const reportsStub = sinon.stub(Store.forumReports, 'deleteByUserId').resolves(1);
             const res = buildMockRes();
 
             await deleteUserData({ headers: { 'x-userid': 'user-1' } }, res);
@@ -100,11 +102,15 @@ describe('Messages Delete User Data', () => {
             expect(dmStub.calledOnceWith('user-1')).to.be.eq(true);
             expect(fmStub.calledOnceWith('user-1')).to.be.eq(true);
             expect(forumStub.calledOnceWith('user-1', SUPER_ADMIN_ID)).to.be.eq(true);
+            expect(readStatesStub.calledOnceWith('user-1')).to.be.eq(true);
+            expect(reportsStub.calledOnceWith('user-1')).to.be.eq(true);
             expect(res.status.args[0][0]).to.equal(202);
             expect(res.send.args[0][0]).to.deep.equal({
                 directMessages: [{ id: 'dm-1' }],
                 forumMessages: [{ id: 'fm-1' }],
                 forums: [{ id: 'forum-1' }],
+                forumReadStates: 3,
+                forumReports: 1,
             });
         });
 
@@ -124,6 +130,8 @@ describe('Messages Delete User Data', () => {
                 callOrder.push('forums');
                 return Promise.resolve([]);
             });
+            sinon.stub(Store.forumReadStates, 'deleteByUserId').resolves(0);
+            sinon.stub(Store.forumReports, 'deleteByUserId').resolves(0);
 
             await deleteUserData({ headers: { 'x-userid': 'user-1' } }, buildMockRes());
 

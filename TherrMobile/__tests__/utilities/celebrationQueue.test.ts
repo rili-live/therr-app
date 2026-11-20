@@ -39,6 +39,7 @@ import celebrationQueue, {
     enqueueCompanionCelebration,
     enqueuePlacementCelebrations,
     enqueueStreakCelebration,
+    getPlacementLeagueMove,
     ICelebration,
 } from '../../main/utilities/celebrationQueue';
 
@@ -344,5 +345,38 @@ describe('celebrationQueue — companion stage-up', () => {
 
         expect(celebrationQueue.size).toBe(0);
         expect(navigate).not.toHaveBeenCalled();
+    });
+});
+
+describe('getPlacementLeagueMove', () => {
+    it('reads the move off the brand ladder, not off string order', () => {
+        expect(getPlacementLeagueMove('habits', { leagueFrom: 'sapling', leagueTo: 'bloom' })).toBe('promoted');
+        expect(getPlacementLeagueMove('habits', { leagueFrom: 'bloom', leagueTo: 'sapling' })).toBe('demoted');
+        expect(getPlacementLeagueMove('therr', { leagueFrom: 'wanderer', leagueTo: 'scout' })).toBe('promoted');
+    });
+
+    it('says nothing for a week closed without leagues or a user who stayed put', () => {
+        expect(getPlacementLeagueMove('habits', { leagueFrom: null, leagueTo: null })).toBeNull();
+        expect(getPlacementLeagueMove('habits', { leagueTo: 'oak' })).toBeNull();
+        expect(getPlacementLeagueMove('habits', { leagueFrom: 'oak', leagueTo: 'oak' })).toBeNull();
+        expect(getPlacementLeagueMove('teem', { leagueFrom: 'a', leagueTo: 'b' })).toBeNull();
+    });
+
+    it('carries leagueFrom onto the podium celebration it presents', () => {
+        navigate.mockClear();
+        celebrationQueue.reset();
+        enqueuePlacementCelebrations([{
+            periodId: '2026-11-09',
+            periodStart: '2026-11-09',
+            periodEnd: '2026-11-16',
+            placement: 1,
+            participants: 12,
+            score: 140,
+            leagueFrom: 'sapling',
+            leagueTo: 'bloom',
+        }]);
+        expect(navigate).toHaveBeenCalledWith('Celebration', expect.objectContaining({
+            type: 'placement', leagueFrom: 'sapling', leagueTo: 'bloom',
+        }));
     });
 });

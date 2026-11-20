@@ -54,6 +54,14 @@ const createUserForums = (headers: InternalConfigHeaders, group: any, memberIds:
     },
 });
 
+/** The caller's own user record (via x-userid), e.g. for their account's `createdAt`. */
+const getMe = (headers: InternalConfigHeaders) => internalRestRequest({
+    headers,
+}, {
+    method: 'get',
+    url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/me`,
+});
+
 const findUsers = (headers: InternalConfigHeaders, userIds: string[]) => internalRestRequest({
     headers,
 }, {
@@ -70,4 +78,5 @@ export {
     countForumMembers,
     createUserForums,
     findUsers,
+    getMe,
 };

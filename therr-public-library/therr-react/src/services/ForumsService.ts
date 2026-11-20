@@ -41,6 +41,12 @@ export interface ISearchForumsArgs {
     nearbyMaxDistanceKm?: number;
 }
 
+export type ForumReportReason = 'spam' | 'scam' | 'offensive' | 'other';
+
+export interface IReportForumBody {
+    reason?: ForumReportReason;
+}
+
 class ForumsService {
     getForum = (forumId: string) => axios({
         method: 'get',
@@ -78,6 +84,18 @@ class ForumsService {
             url: `/messages-service/forums/categories${queryString}`,
         });
     };
+
+    /** Moves the caller's unread watermark for this group to now. */
+    markForumRead = (id: string) => axios({
+        method: 'put',
+        url: `/messages-service/forums/${id}/read`,
+    });
+
+    reportForum = (id: string, data: IReportForumBody = {}) => axios({
+        method: 'post',
+        url: `/messages-service/forums/${id}/report`,
+        data,
+    });
 
     searchForums = (query: ISearchQuery, data: ISearchForumsArgs = {}) => {
         const queryString = getSearchQueryString(query);

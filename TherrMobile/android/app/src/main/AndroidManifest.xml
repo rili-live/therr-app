@@ -45,6 +45,17 @@
   <uses-feature
     android:name="android.hardware.camera.front"
     android:required="false" />
+  <!--
+    Implied features Play otherwise treats as required, filtering out tablets, Chromebooks and XR:
+    screen.portrait is implied by MainActivity's screenOrientation="portrait", and wifi by the
+    ACCESS_WIFI_STATE permission that netinfo and react-native-blob-util merge in.
+  -->
+  <uses-feature
+    android:name="android.hardware.screen.portrait"
+    android:required="false" />
+  <uses-feature
+    android:name="android.hardware.wifi"
+    android:required="false" />
 
   <application
     android:name=".MainApplication"
