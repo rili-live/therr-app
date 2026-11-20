@@ -88,7 +88,7 @@ const notifyUsersDisplacedFromPodium = async ({
  * leaderboardRankLost push for whoever that climb knocked from #3 to #4.
  *
  * While leagues are active for the brand, every rank here is league-relative: the top 10 / 3 / 1
- * of the user's own tier, and the rank-lost push goes to the league-mate pushed off its podium.
+ * of the user's own league, and the rank-lost push goes to the league-mate pushed off its podium.
  *
  * Fire-and-forget — never throws into the XP path. Crossing detection is edge-triggered
  * (was strictly outside the threshold before the award), so sitting inside the top N

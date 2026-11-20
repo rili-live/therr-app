@@ -1,15 +1,15 @@
-// Create main.userLeaderboardLeagues — the leaderboard tier ("league") each user is in, per brand.
+// Create main.userLeaderboardLeagues — the leaderboard league each user is in, per brand.
 //
 // Archetype: Brand-scoped (docs/NICHE_APP_DATABASE_GUIDELINES.md), like the
-// main.userLeaderboardScores and main.leaderboardPeriodResults it sits between: a user's tier on
-// the Friends with Habits board says nothing about their tier on the Therr board. Listed in
+// main.userLeaderboardScores and main.leaderboardPeriodResults it sits between: a user's league on
+// the Friends with Habits board says nothing about their league on the Therr board. Listed in
 // eslint-config/brand-scoped-tables.js and read only through UserLeaderboardLeaguesStore.
 //
 // WHAT A ROW MEANS
 //
-// `league` is a tier id from therr-js-utilities/config `LEADERBOARD_TIERS_BY_BRAND` (e.g.
+// `league` is a league id from therr-js-utilities/config `LEADERBOARD_LEAGUES_BY_BRAND` (e.g.
 // 'seedling' for Habits, 'wanderer' for Therr). A user with no row is in their brand's lowest
-// tier — so nobody needs a row to be placed, and nobody is demoted on the day leagues start:
+// league — so nobody needs a row to be placed, and nobody is demoted on the day leagues start:
 // everyone begins at the bottom, where there is nothing to fall from.
 //
 // WHO WRITES IT
@@ -27,7 +27,7 @@
 // Not read by either Cloud Function automator.
 //
 // Indexes, declared inside createTable so they exist the moment the table does:
-//   - UNIQUE (brandVariation, userId) — one tier per user per brand; the conflict target of the
+//   - UNIQUE (brandVariation, userId) — one league per user per brand; the conflict target of the
 //     apply upsert and the join key every league-scoped board read uses.
 //   - (brandVariation, league) — "everyone in this league", for the league-scoped push reads.
 //

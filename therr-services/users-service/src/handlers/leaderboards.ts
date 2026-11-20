@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import { ErrorCodes } from 'therr-js-utilities/constants';
-import { getLeaderboardTierIndex, getLeaderboardTiers } from 'therr-js-utilities/config';
+import { getLeaderboardLeagueIndex, getLeaderboardLeagues } from 'therr-js-utilities/config';
 import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
@@ -23,15 +23,15 @@ const DEFAULT_PAGE_SIZE = 25;
  * The requester's league as the client renders it. `size` is this week's live participant count,
  * so the promotion and relegation counts are what the close would apply if the week ended now.
  */
-const describeLeague = (brandVariation: string, tierId: string, size: number) => {
-    const tierCount = getLeaderboardTiers(brandVariation).length;
-    const tierIndex = getLeaderboardTierIndex(brandVariation, tierId);
+const describeLeague = (brandVariation: string, leagueId: string, size: number) => {
+    const leagueCount = getLeaderboardLeagues(brandVariation).length;
+    const leagueIndex = getLeaderboardLeagueIndex(brandVariation, leagueId);
     return {
-        id: tierId,
-        tierIndex,
-        tierCount,
+        id: leagueId,
+        leagueIndex,
+        leagueCount,
         size,
-        ...getLeagueMovementCounts(size, tierIndex, tierCount),
+        ...getLeagueMovementCounts(size, leagueIndex, leagueCount),
     };
 };
 
@@ -43,11 +43,11 @@ const describeLeague = (brandVariation: string, tierId: string, size: number) =>
  * restricts the pool to the requester's accepted connections (plus themself).
  *
  * Leagues: while they are active for the brand (utilities/leaderboardLeagues.ts), `league` in
- * the response describes the requester's tier — its id, where it sits on the brand's ladder,
+ * the response describes the requester's league — its id, where it sits on the brand's ladder,
  * how many are in it this week and how many of them the close will move up and down — and the
- * `league` scope ranks the requester's tier alone (always weekly). Otherwise `league` is null
+ * `league` scope ranks the requester's league alone (always weekly). Otherwise `league` is null
  * and a `league` scope request is answered with the global board (the response's `scope` says
- * which was served). Every entry carries its stored tier id (`league`, null = lowest tier).
+ * which was served). Every entry carries its stored league id (`league`, null = lowest league).
  * `currentUser` always reflects the requester — including their rank when they fall
  * outside the returned page — so clients can render a sticky "you" row. Entry ranks use
  * competition ranking so they agree with the requester's own rank on a tie.

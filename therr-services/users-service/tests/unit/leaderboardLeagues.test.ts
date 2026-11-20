@@ -1,5 +1,5 @@
 /**
- * Leaderboard leagues (#3055): branded tiers with promotion and relegation at each weekly close.
+ * Leaderboard leagues (#3055): branded leagues with promotion and relegation at each weekly close.
  *
  * Covers the pure rules (utilities/leaderboardLeagues.ts), the close that applies them
  * (handlers/helpers/leaderboardPeriods.ts), the SQL the stores emit for them, and the board
@@ -54,7 +54,7 @@ const withLeagueEnv = (env: Record<string, string | undefined>) => {
 };
 
 describe('leaderboard leagues — rollout switch and threshold', () => {
-    it('is off unless the brand is listed, and ignores brands without tiers', () => {
+    it('is off unless the brand is listed, and ignores brands without a ladder', () => {
         expect(getLeagueEnabledBrands({})).to.deep.equal([]);
         expect(areLeaguesEnabledForBrand(HABITS, {})).to.equal(false);
 
@@ -80,7 +80,7 @@ describe('getLeagueMovementCounts', () => {
         expect(getLeagueMovementCounts(5, 2, 6)).to.deep.equal({ promoteCount: 1, demoteCount: 1 });
     });
 
-    it('never relegates from the lowest tier or promotes from the top one', () => {
+    it('never relegates from the lowest league or promotes from the top one', () => {
         expect(getLeagueMovementCounts(30, 0, 6)).to.deep.equal({ promoteCount: 6, demoteCount: 0 });
         expect(getLeagueMovementCounts(30, 5, 6)).to.deep.equal({ promoteCount: 0, demoteCount: 6 });
     });
@@ -92,7 +92,7 @@ describe('getLeagueMovementCounts', () => {
 });
 
 describe('computeLeagueResults', () => {
-    it('starts everyone in the lowest tier, so the first close demotes no one', () => {
+    it('starts everyone in the lowest league, so the first close demotes no one', () => {
         const results = computeLeagueResults(HABITS, participants(30, null));
 
         expect(results).to.have.length(30);
@@ -150,8 +150,8 @@ describe('computeLeagueResults', () => {
             .to.have.members(['a', 'b']);
     });
 
-    it('reads an unknown stored tier as the lowest one', () => {
-        const [result] = computeLeagueResults(HABITS, [{ userId: 'a', points: 5, league: 'retired-tier' }]);
+    it('reads an unknown stored league as the lowest one', () => {
+        const [result] = computeLeagueResults(HABITS, [{ userId: 'a', points: 5, league: 'retired-league' }]);
 
         expect(result).to.include({ leagueFrom: 'seedling', leagueTo: 'seedling' });
     });
@@ -262,7 +262,7 @@ describe('leaderboard league SQL', () => {
         };
     };
 
-    it('puts users with no stored tier, or a retired one, in the lowest league', async () => {
+    it('puts users with no stored league, or a retired one, in the lowest league', async () => {
         const { read, scores } = buildStores();
 
         await scores.getTopScores(HABITS, { periodStart: '2026-09-14', league: 'seedling' });
@@ -367,7 +367,7 @@ describe('GET /users/leaderboards — league scope', () => {
         expect((Store.userLeaderboardScores.getTopScores as sinon.SinonStub).firstCall.args[1].league).to.equal('oak');
         expect((Store.userLeaderboardScores.getRankForScore as sinon.SinonStub).firstCall.args[2].league).to.equal('oak');
         expect(body.league).to.deep.equal({
-            id: 'oak', tierIndex: 4, tierCount: 6, size: 10, promoteCount: 2, demoteCount: 2,
+            id: 'oak', leagueIndex: 4, leagueCount: 6, size: 10, promoteCount: 2, demoteCount: 2,
         });
         expect(body.entries[0].league).to.equal('oak');
     });

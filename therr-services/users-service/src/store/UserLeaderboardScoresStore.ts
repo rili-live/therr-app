@@ -1,6 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
 import { AccessLevels } from 'therr-js-utilities/constants';
-import { getLeaderboardTierIndex, getLeaderboardTiers } from 'therr-js-utilities/config';
+import { getLeaderboardLeagueIndex, getLeaderboardLeagues } from 'therr-js-utilities/config';
 import BrandScopedStore, { BrandValue } from './BrandScopedStore';
 import { IConnection } from './connection';
 import { USER_LEADERBOARD_LEAGUES_TABLE_NAME } from './UserLeaderboardLeaguesStore';
@@ -28,7 +28,7 @@ export interface ILeaderboardEntry {
     firstName?: string;
     lastName?: string;
     media?: any;
-    /** Stored tier id; null means never moved (the brand's lowest tier). */
+    /** Stored league id; null means never moved (the brand's lowest league). */
     league?: string | null;
 }
 
@@ -36,35 +36,35 @@ interface IGetTopScoresArgs {
     periodStart?: string; // omitted → all-time (SUM across periods)
     limit?: number;
     userIds?: string[]; // restrict ranking pool (connections scope)
-    league?: string; // restrict ranking pool to one leaderboard tier (league scope)
+    league?: string; // restrict ranking pool to one leaderboard league (league scope)
 }
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
 
 /**
- * Restrict a (league-joined) query to one tier. The lowest tier also holds everyone with no
+ * Restrict a (league-joined) query to one league. The lowest league also holds everyone with no
  * stored row and anyone whose stored id is no longer on the ladder — the same rule
- * `getLeaderboardTierIndex` applies in code — so SQL and the close never disagree on who is
+ * `getLeaderboardLeagueIndex` applies in code — so SQL and the close never disagree on who is
  * in it.
  */
 const applyLeagueFilter = (qb: Knex.QueryBuilder, brand: BrandValue, league?: string) => {
     if (!league) {
         return qb;
     }
-    const tiers = getLeaderboardTiers(brand);
-    const tierIndex = getLeaderboardTierIndex(brand, league);
+    const ladder = getLeaderboardLeagues(brand);
+    const leagueIndex = getLeaderboardLeagueIndex(brand, league);
     const leagueColumn = `${USER_LEADERBOARD_LEAGUES_TABLE_NAME}.league`;
-    if (tierIndex <= 0) {
-        const higherTierIds = tiers.slice(1).map((tier) => tier.id);
+    if (leagueIndex <= 0) {
+        const higherLeagueIds = ladder.slice(1).map((higherLeague) => higherLeague.id);
         return qb.andWhere((builder) => {
             builder.whereNull(leagueColumn);
-            if (higherTierIds.length) {
-                builder.orWhereNotIn(leagueColumn, higherTierIds);
+            if (higherLeagueIds.length) {
+                builder.orWhereNotIn(leagueColumn, higherLeagueIds);
             }
         });
     }
-    return qb.andWhere(leagueColumn, tiers[tierIndex].id);
+    return qb.andWhere(leagueColumn, ladder[leagueIndex].id);
 };
 
 /**
@@ -117,7 +117,7 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
             .andWhereRaw(`NOT (COALESCE(${USERS_TABLE_NAME}."accessLevels", '[]'::jsonb) @> '["${AccessLevels.TEST_ACCOUNT}"]'::jsonb)`);
     }
 
-    /** LEFT JOIN each score row to its user's stored tier for the same brand. */
+    /** LEFT JOIN each score row to its user's stored league for the same brand. */
     private joinLeagues(qb: Knex.QueryBuilder) {
         return qb.leftJoin(USER_LEADERBOARD_LEAGUES_TABLE_NAME, (join) => {
             join.on(`${USER_LEADERBOARD_LEAGUES_TABLE_NAME}.userId`, '=', `${this.tableName}.userId`)
@@ -126,7 +126,7 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
     }
 
     /**
-     * Every eligible participant of one weekly period with their stored tier — the input the
+     * Every eligible participant of one weekly period with their stored league — the input the
      * weekly close ranks into leagues. Same eligibility as the live board and `closePeriod`.
      */
     getEligibleParticipantsForPeriod(brand: BrandValue, periodStart: string): Promise<{
@@ -151,7 +151,7 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
             })));
     }
 
-    /** How many eligible users have a score row in a weekly period, optionally within one tier. */
+    /** How many eligible users have a score row in a weekly period, optionally within one league. */
     countParticipants(brand: BrandValue, { periodStart, league }: { periodStart: string, league?: string }): Promise<number> {
         let queryBuilder = this.scopedQuery(brand)
             .count(`${this.tableName}.userId as count`)
@@ -169,7 +169,7 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
      * Ranked top scores for a brand. With periodStart → that week's board; without →
      * all-time board (SUM of all periods). Pass userIds to restrict the pool
      * (connections scope — caller includes the requesting user's own id), or league to rank
-     * within one leaderboard tier. Every entry carries its stored tier id (`league`).
+     * within one leaderboard league. Every entry carries its stored league id (`league`).
      */
     getTopScores(brand: BrandValue, {
         periodStart,
@@ -258,7 +258,7 @@ export default class UserLeaderboardScoresStore extends BrandScopedStore {
      * user's row has already been incremented, so without the exclusion the user's
      * own new points count as "ahead of" their old score and inflate the rank by one.
      *
-     * Pass league to rank within one leaderboard tier.
+     * Pass league to rank within one leaderboard league.
      */
     getRankForScore(brand: BrandValue, score: number, {
         periodStart,

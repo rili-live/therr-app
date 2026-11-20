@@ -31,13 +31,13 @@
  * ## Leagues
  *
  * While leagues are active for the brand (handlers/helpers/leaderboardPeriods.ts
- * `areLeaguesActiveForBrand`), "the podium" is each league's own: the pass runs once per tier,
- * against that tier's #3. A user is in exactly one tier, so the per-period dedupe key still means
+ * `areLeaguesActiveForBrand`), "the podium" is each league's own: the pass runs once per league,
+ * against that league's #3. A user is in exactly one league, so the per-period dedupe key still means
  * at most one nudge each.
  */
 
 import { PushNotifications } from 'therr-js-utilities/constants';
-import { getLeaderboardTiers } from 'therr-js-utilities/config';
+import { getLeaderboardLeagues } from 'therr-js-utilities/config';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../../store';
 import enqueueNotification from '../../utilities/enqueueNotification';
@@ -192,10 +192,10 @@ export const runPodiumWithinReachPass = async (
 
     const periodStart = getLeaderboardPeriodStart(now);
     const leagues = (await areLeaguesActiveForBrand(brandVariation, now))
-        ? getLeaderboardTiers(brandVariation).map((tier) => tier.id)
+        ? getLeaderboardLeagues(brandVariation).map((ladderLeague) => ladderLeague.id)
         : [undefined];
     // One league at a time: each is a handful of small reads, and serialising keeps a brand with
-    // six tiers from opening six times the connections in the digest's busiest pass.
+    // six leagues from opening six times the connections in the digest's busiest pass.
     // eslint-disable-next-line no-restricted-syntax
     for (const league of leagues) {
         // eslint-disable-next-line no-await-in-loop

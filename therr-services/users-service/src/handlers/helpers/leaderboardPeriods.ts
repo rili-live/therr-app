@@ -1,5 +1,5 @@
 import { BrandVariations } from 'therr-js-utilities/constants';
-import { getLeaderboardTierIndex, resolveLeaderboardTier } from 'therr-js-utilities/config';
+import { getLeaderboardLeagueIndex, resolveLeaderboardLeague } from 'therr-js-utilities/config';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../../store';
 import { BrandValue } from '../../store/BrandScopedStore';
@@ -55,15 +55,15 @@ export const resetClosedPeriodMemo = () => {
     leagueModeByBrand.clear();
 };
 
-/** How many results moved up (direction 1) or down (-1) a tier. */
+/** How many results moved up (direction 1) or down (-1) a league. */
 const countMoves = (brand: string, results: ILeagueResult[], direction: 1 | -1): number => results
-    .filter((result) => Math.sign(getLeaderboardTierIndex(brand, result.leagueTo) - getLeaderboardTierIndex(brand, result.leagueFrom)) === direction)
+    .filter((result) => Math.sign(getLeaderboardLeagueIndex(brand, result.leagueTo) - getLeaderboardLeagueIndex(brand, result.leagueFrom)) === direction)
     .length;
 
 /**
  * Rank one elapsed period and write its results. With leagues on for the brand and the week at or
- * above the activation threshold, every participant is ranked within their own tier and the top
- * and bottom of each tier move (utilities/leaderboardLeagues.ts); otherwise it is the one
+ * above the activation threshold, every participant is ranked within their own league and the top
+ * and bottom of each league move (utilities/leaderboardLeagues.ts); otherwise it is the one
  * brand-wide ranking with the league columns NULL, exactly as before leagues existed.
  */
 const writePeriodResults = async (brand: BrandValue, periodStart: string): Promise<number> => {
@@ -112,7 +112,7 @@ const writePeriodResults = async (brand: BrandValue, periodStart: string): Promi
  * store's INSERT ... ON CONFLICT DO NOTHING means a scheduled close and a lazy close from a client
  * read cannot both write. Returns the number of rows written.
  *
- * With leagues on for the brand, the tier moves the close froze are then applied to
+ * With leagues on for the brand, the league moves the close froze are then applied to
  * `main.userLeaderboardLeagues` — on every first close attempt of the period in this process,
  * including when the results were already there, so a crash between the two writes heals on the
  * next read. The apply only ever moves a user forward in time, so repeating it changes nothing.
@@ -167,7 +167,7 @@ export interface IPendingPlacement {
     participants: number;
     score: number;
     /**
-     * The tier the user competed in and the tier the close moved them to (equal when they stayed).
+     * The league the user competed in and the league the close moved them to (equal when they stayed).
      * Both null when the period closed without leagues; `placement` / `participants` are then
      * brand-wide rather than league-relative.
      */
@@ -246,7 +246,7 @@ export const areLeaguesActiveForBrand = async (brand: BrandValue, now: Date = ne
 
 /**
  * The league a user's weekly rank is measured in, or undefined while leagues are not active for
- * the brand (rank against the whole brand board, as before). The id is always a real tier — a user
+ * the brand (rank against the whole brand board, as before). The id is always a real league — a user
  * with no stored row is in the lowest one.
  */
 export const getActiveLeagueForUser = async (
@@ -258,5 +258,5 @@ export const getActiveLeagueForUser = async (
         return undefined;
     }
     const stored = await Store.userLeaderboardLeagues.getLeagueForUser(brand, userId);
-    return resolveLeaderboardTier(String(brand), stored)?.id;
+    return resolveLeaderboardLeague(String(brand), stored)?.id;
 };

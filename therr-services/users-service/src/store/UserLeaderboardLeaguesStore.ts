@@ -15,9 +15,9 @@ export interface IDBUserLeaderboardLeague {
 }
 
 /**
- * The leaderboard tier ("league") each user is in, per brand (`main.userLeaderboardLeagues`).
- * A user with no row is in the brand's lowest tier — callers resolve a missing or unknown id
- * through `resolveLeaderboardTier` from therr-js-utilities/config.
+ * The leaderboard league each user is in, per brand (`main.userLeaderboardLeagues`).
+ * A user with no row is in the brand's lowest league — callers resolve a missing or unknown id
+ * through `resolveLeaderboardLeague` from therr-js-utilities/config.
  *
  * Read-only from the API's side: the only writer is the weekly close, through
  * LeaderboardPeriodResultsStore.applyLeagueMoves, which applies what the close froze into
@@ -29,7 +29,7 @@ export default class UserLeaderboardLeaguesStore extends BrandScopedStore {
         super(dbConnection, USER_LEADERBOARD_LEAGUES_TABLE_NAME, 'enforce');
     }
 
-    /** The user's stored tier id for a brand, or null when they have never moved (lowest tier). */
+    /** The user's stored league id for a brand, or null when they have never moved (lowest league). */
     getLeagueForUser(brand: BrandValue, userId: string): Promise<string | null> {
         const queryString = this.scopedQuery(brand)
             .select(`${this.tableName}.league`)

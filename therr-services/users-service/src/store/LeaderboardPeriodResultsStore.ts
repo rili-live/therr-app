@@ -23,8 +23,8 @@ export interface IDBLeaderboardPeriodResult {
     placement: number;
     score: number;
     participants: number;
-    leagueFrom: string | null; // the tier the user competed in; null when the period closed without leagues
-    leagueTo: string | null; // the tier the close moved them to (equal to leagueFrom when they stayed)
+    leagueFrom: string | null; // the league the user competed in; null when the period closed without leagues
+    leagueTo: string | null; // the league the close moved them to (equal to leagueFrom when they stayed)
     acknowledgedAt: Date | null;
     createdAt: Date;
 }
@@ -154,11 +154,11 @@ export default class LeaderboardPeriodResultsStore extends BrandScopedStore {
     }
 
     /**
-     * Move every user to the tier a closed period assigned them (`leagueTo`), into
+     * Move every user to the league a closed period assigned them (`leagueTo`), into
      * `main.userLeaderboardLeagues`. Reads the moves back from the stored results rather than
      * taking them as arguments: those rows are first-writer-wins, so a lazy close racing the
      * scheduled one, or a retry after a crash between the two writes, applies exactly the
-     * outcome that was frozen — never a second promotion computed from an already-moved tier.
+     * outcome that was frozen — never a second promotion computed from an already-moved league.
      *
      * Only moves a row forward in time (`lastPeriodStart` strictly older), so it is idempotent and
      * a no-op for a period closed without leagues. Returns the number of rows inserted or moved.
