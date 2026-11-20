@@ -33,7 +33,7 @@ export interface IDBLeaderboardPeriodResult {
  * Final placements for closed weekly leaderboard periods (`main.leaderboardPeriodResults`).
  * Brand-scoped: a result belongs to one brand's board. See the table migration.
  */
-export default class LeaderboardPeriodResultsStore extends BrandScopedStore {
+export default class LeaderboardPeriodResultsStore extends BrandScopedStore<IConnection> {
     constructor(dbConnection: IConnection) {
         // Brand-scoped from creation per docs/NICHE_APP_DATABASE_GUIDELINES.md. 'enforce' from
         // day one: there are no legacy rows and every caller has a brand in hand.
@@ -117,6 +117,10 @@ export default class LeaderboardPeriodResultsStore extends BrandScopedStore {
      * `closePeriod` — rows already present for (brand, period, user) are left untouched, so
      * whichever close wrote first decides the outcome.
      *
+     * All chunks commit together or not at all. A partial write would never be repaired: once any
+     * row exists for the period, `hasResultsForPeriod` makes every later close skip it, so users in
+     * the unwritten chunks would get no placement and no league move.
+     *
      * Returns the number of rows this call inserted.
      */
     async insertLeagueResults(brand: BrandValue, periodStart: string, results: {
@@ -128,7 +132,10 @@ export default class LeaderboardPeriodResultsStore extends BrandScopedStore {
         leagueTo: string;
     }[]): Promise<number> {
         this.assertBrand(brand);
-        let written = 0;
+        if (!results.length) {
+            return 0;
+        }
+        const queryStrings: string[] = [];
         for (let offset = 0; offset < results.length; offset += INSERT_CHUNK_SIZE) {
             const chunk = results.slice(offset, offset + INSERT_CHUNK_SIZE).map((result) => withBrandOnInsert({
                 userId: result.userId,
@@ -139,18 +146,31 @@ export default class LeaderboardPeriodResultsStore extends BrandScopedStore {
                 leagueFrom: result.leagueFrom,
                 leagueTo: result.leagueTo,
             }, brand));
-            const queryString = knexBuilder.insert(chunk)
+            queryStrings.push(knexBuilder.insert(chunk)
                 .into(this.tableName)
                 .onConflict(['brandVariation', 'periodStart', 'userId'])
                 .ignore()
-                .toString();
-            // Sequential on purpose: chunks are few, and one failing chunk should stop the rest
-            // rather than leave an arbitrary subset written. A re-run fills in what is missing.
-            // eslint-disable-next-line no-await-in-loop
-            const response = await this.db.write.query(queryString);
-            written += response.rowCount || 0;
+                .toString());
         }
-        return written;
+
+        const client = await this.db.write.connect();
+        try {
+            await client.query('BEGIN');
+            let written = 0;
+            // eslint-disable-next-line no-restricted-syntax
+            for (const queryString of queryStrings) {
+                // eslint-disable-next-line no-await-in-loop
+                const response = await client.query(queryString);
+                written += response.rowCount || 0;
+            }
+            await client.query('COMMIT');
+            return written;
+        } catch (err) {
+            await client.query('ROLLBACK').catch(() => undefined);
+            throw err;
+        } finally {
+            client.release();
+        }
     }
 
     /**

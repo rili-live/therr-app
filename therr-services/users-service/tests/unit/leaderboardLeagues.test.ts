@@ -304,17 +304,54 @@ describe('leaderboard league SQL', () => {
         expect(sql).to.not.match(/main\.userLeaderboardLeagues\b/);
     });
 
-    it('writes league results first-writer-wins, in chunks', async () => {
-        const { write, results } = buildStores();
-        const rows = Array.from({ length: 501 }, (_, index) => ({
-            userId: `u-${index}`, placement: index + 1, score: 1, participants: 501, leagueFrom: 'seedling', leagueTo: 'seedling',
-        }));
+    const buildTransactionalStore = (failOnInsert?: number) => {
+        let inserts = 0;
+        const clientQuery = sinon.stub().callsFake((sql: string) => {
+            if (sql.startsWith('insert')) {
+                inserts += 1;
+                if (inserts === failOnInsert) {
+                    return Promise.reject(new Error('chunk failed'));
+                }
+                return Promise.resolve({ rows: [], rowCount: 500 });
+            }
+            return Promise.resolve({ rows: [] });
+        });
+        const release = sinon.stub();
+        const connection = {
+            read: { query: sinon.stub() },
+            write: { query: sinon.stub(), connect: sinon.stub().resolves({ query: clientQuery, release }) },
+        } as any;
+        return { clientQuery, release, results: new LeaderboardPeriodResultsStore(connection) };
+    };
+    const leagueRows = (count: number) => Array.from({ length: count }, (_, index) => ({
+        userId: `u-${index}`, placement: index + 1, score: 1, participants: count, leagueFrom: 'seedling', leagueTo: 'seedling',
+    }));
 
-        await results.insertLeagueResults(HABITS, '2026-09-07', rows);
+    it('writes league results first-writer-wins, in chunks, in one transaction', async () => {
+        const { clientQuery, release, results } = buildTransactionalStore();
 
-        expect(write.callCount).to.equal(2);
-        expect(write.firstCall.args[0]).to.contain('on conflict ("brandVariation", "periodStart", "userId") do nothing');
-        expect(write.firstCall.args[0]).to.contain('\'habits\'');
+        await results.insertLeagueResults(HABITS, '2026-09-07', leagueRows(501));
+
+        const statements: string[] = clientQuery.getCalls().map((call) => call.args[0]);
+        expect(statements[0]).to.equal('BEGIN');
+        expect(statements.filter((sql) => sql.startsWith('insert'))).to.have.length(2);
+        expect(statements[statements.length - 1]).to.equal('COMMIT');
+        expect(statements[1]).to.contain('on conflict ("brandVariation", "periodStart", "userId") do nothing');
+        expect(statements[1]).to.contain('\'habits\'');
+        expect(release.calledOnce).to.equal(true);
+    });
+
+    it('leaves no partial close behind when a later chunk fails', async () => {
+        const { clientQuery, release, results } = buildTransactionalStore(2);
+
+        let thrown: Error | undefined;
+        await results.insertLeagueResults(HABITS, '2026-09-07', leagueRows(501)).catch((err) => { thrown = err; });
+
+        const statements: string[] = clientQuery.getCalls().map((call) => call.args[0]);
+        expect(thrown?.message).to.equal('chunk failed');
+        expect(statements).to.include('ROLLBACK');
+        expect(statements).to.not.include('COMMIT');
+        expect(release.calledOnce).to.equal(true);
     });
 });
 
