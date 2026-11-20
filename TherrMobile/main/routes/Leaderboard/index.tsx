@@ -18,7 +18,7 @@ import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildLeaderboardStyles, LEAGUE_ZONE_COLORS, MEDAL_COLORS } from '../../styles/leaderboard';
 import { buildStyles as buildCelebrationStyles } from '../../styles/celebrations';
-import { PODIUM_PLACEMENT_MAX } from '../../utilities/celebrationQueue';
+import { getPlacementLeagueMove, PODIUM_PLACEMENT_MAX } from '../../utilities/celebrationQueue';
 import formatOrdinal from '../../utilities/formatOrdinal';
 import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import LeagueHeader from './LeagueHeader';
@@ -363,6 +363,9 @@ export const Leaderboard = ({
         if (!inlinePlacement) {
             return null;
         }
+        // Below the podium a week can move the user either way, so both directions are said.
+        const leagueMove = getPlacementLeagueMove(CURRENT_BRAND_VARIATION, inlinePlacement);
+        const movedTo = leagueMove ? resolveLeague(CURRENT_BRAND_VARIATION, inlinePlacement.leagueTo) : undefined;
 
         return (
             <View style={themeCelebration.styles.placementCard}>
@@ -386,6 +389,13 @@ export const Leaderboard = ({
                             score: inlinePlacement.score,
                         })}
                     </Text>
+                    {leagueMove && movedTo ? (
+                        <Text style={themeCelebration.styles.placementCardSubtitle}>
+                            {translate(`pages.leaderboard.placementCard.${leagueMove}`, {
+                                league: `${movedTo.emoji} ${translate(getLeagueNameKey(CURRENT_BRAND_VARIATION, movedTo.id))}`,
+                            })}
+                        </Text>
+                    ) : null}
                 </View>
                 <Pressable
                     onPress={() => acknowledgePlacement(inlinePlacement.periodId)?.catch?.(() => {})}

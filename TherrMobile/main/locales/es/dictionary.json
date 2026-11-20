@@ -1613,6 +1613,8 @@
             "placementCard": {
                 "title": "Terminaste en el puesto {placement} de {participants} la semana pasada",
                 "subtitle": "Semana del {period} · {score} pts",
+                "promoted": "Subiste a {league}",
+                "demoted": "Bajaste a {league}",
                 "dismiss": "Descartar",
                 "ordinal": {
                     "one": "{n}.º",

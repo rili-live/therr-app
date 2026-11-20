@@ -4,6 +4,7 @@ import {
     IDailyStreakPendingPlacement,
     IDailyStreakWeekDay,
 } from 'therr-react/types';
+import { getLeaderboardLeagueIndex } from 'therr-js-utilities/config';
 import { navigationRef, RootNavigation } from '../components/RootNavigation';
 import { ICompanionStageUp } from './companionCelebration';
 
@@ -37,7 +38,11 @@ export type ICelebration =
         placement: number;
         participants: number;
         score: number;
-        /** Reserved for leagues; always null today. */
+        /**
+         * The league the week was played in and the league the close moved the user to. Both null
+         * when the week closed without leagues. See `getPlacementLeagueMove`.
+         */
+        leagueFrom?: string | null;
         leagueTo: string | null;
     }
     | ({
@@ -225,8 +230,29 @@ export const enqueuePlacementCelebrations = (placements?: IDailyStreakPendingPla
             placement: placement.placement,
             participants: placement.participants,
             score: placement.score,
+            leagueFrom: placement.leagueFrom,
             leagueTo: placement.leagueTo,
         }));
+};
+
+/**
+ * Which way a closed week moved the user between leagues, by position on the brand's ladder.
+ * Null when the week closed without leagues or the user stayed put — staying is not news, and a
+ * placement screen that says "you are still in Sapling" every week reads as a nag.
+ */
+export const getPlacementLeagueMove = (
+    brand: string,
+    placement: { leagueFrom?: string | null; leagueTo?: string | null },
+): 'promoted' | 'demoted' | null => {
+    if (!placement.leagueFrom || !placement.leagueTo || placement.leagueFrom === placement.leagueTo) {
+        return null;
+    }
+    const fromIndex = getLeaderboardLeagueIndex(brand, placement.leagueFrom);
+    const toIndex = getLeaderboardLeagueIndex(brand, placement.leagueTo);
+    if (fromIndex < 0 || toIndex === fromIndex) {
+        return null;
+    }
+    return toIndex > fromIndex ? 'promoted' : 'demoted';
 };
 
 /**

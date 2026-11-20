@@ -1613,6 +1613,8 @@
             "placementCard": {
                 "title": "Tu as terminé {placement} sur {participants} la semaine dernière",
                 "subtitle": "Semaine du {period} · {score} pts",
+                "promoted": "Promu en {league}",
+                "demoted": "Descendu en {league}",
                 "dismiss": "Ignorer",
                 "ordinal": {
                     "one": "{n}er",
