@@ -363,7 +363,7 @@ class UsersService {
         url: `/users-service/users/achievements/${userId}/public`,
     });
 
-    // Leaderboards. `league` ranks the requester's own leaderboard tier; while leagues are not
+    // Leaderboards. `league` ranks the requester's own leaderboard league; while leagues are not
     // running for the brand the server answers it with the global board (see the response `scope`).
     getLeaderboard = (args?: {
         scope?: 'global' | 'connections' | 'league';

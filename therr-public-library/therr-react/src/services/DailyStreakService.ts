@@ -41,7 +41,7 @@ export interface IDailyStreakPendingPlacement {
     participants: number;
     score: number;
     /**
-     * Leaderboard leagues: the tier the user competed in and the tier the weekly close moved them
+     * Leaderboard leagues: the league the user competed in and the league the weekly close moved them
      * to (equal when they stayed). Both null when the period closed without leagues, in which case
      * `placement` / `participants` are brand-wide rather than out of the user's league.
      */
