@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { ErrorCodes } from 'therr-js-utilities/constants';
+import { getLeaderboardTierIndex, getLeaderboardTiers } from 'therr-js-utilities/config';
 import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
@@ -13,15 +14,40 @@ import {
 import { isDateString } from '../utilities/dailyStreak';
 import { tryClaimAppOpenXp } from '../store/redisClient';
 import { awardLeaderboardPoints } from './helpers/leaderboards';
+import { getActiveLeagueForUser } from './helpers/leaderboardPeriods';
+import { getLeagueMovementCounts } from '../utilities/leaderboardLeagues';
 
 const DEFAULT_PAGE_SIZE = 25;
 
 /**
- * GET /users/leaderboards?scope=global|connections&period=week|allTime&limit=N
+ * The requester's league as the client renders it. `size` is this week's live participant count,
+ * so the promotion and relegation counts are what the close would apply if the week ended now.
+ */
+const describeLeague = (brandVariation: string, tierId: string, size: number) => {
+    const tierCount = getLeaderboardTiers(brandVariation).length;
+    const tierIndex = getLeaderboardTierIndex(brandVariation, tierId);
+    return {
+        id: tierId,
+        tierIndex,
+        tierCount,
+        size,
+        ...getLeagueMovementCounts(size, tierIndex, tierCount),
+    };
+};
+
+/**
+ * GET /users/leaderboards?scope=global|connections|league&period=week|allTime&limit=N
  *
  * Ranked XP board for the requesting user's brand. Weekly boards cover the current
  * Monday-anchored UTC week; all-time sums every period. The `connections` scope
  * restricts the pool to the requester's accepted connections (plus themself).
+ *
+ * Leagues: while they are active for the brand (utilities/leaderboardLeagues.ts), `league` in
+ * the response describes the requester's tier — its id, where it sits on the brand's ladder,
+ * how many are in it this week and how many of them the close will move up and down — and the
+ * `league` scope ranks the requester's tier alone (always weekly). Otherwise `league` is null
+ * and a `league` scope request is answered with the global board (the response's `scope` says
+ * which was served). Every entry carries its stored tier id (`league`, null = lowest tier).
  * `currentUser` always reflects the requester — including their rank when they fall
  * outside the returned page — so clients can render a sticky "you" row. Entry ranks use
  * competition ranking so they agree with the requester's own rank on a tie.
@@ -38,24 +64,37 @@ const getLeaderboard: RequestHandler = async (req: any, res: any) => {
         });
     }
 
-    const scope = req.query.scope === 'connections' ? 'connections' : 'global';
-    const period = req.query.period === 'allTime' ? 'allTime' : 'week';
+    const requestedScope = ['connections', 'league'].includes(req.query.scope) ? req.query.scope : 'global';
     const limit = parseInt(req.query.limit, 10) || DEFAULT_PAGE_SIZE;
-    const periodStart = period === 'week' ? getLeaderboardPeriodStart() : undefined;
 
     try {
+        // Best-effort: a failed league lookup serves the brand-wide board rather than an error.
+        const userLeague = await getActiveLeagueForUser(brandVariation, userId).catch(() => undefined);
+        const scope = requestedScope === 'league' && !userLeague ? 'global' : requestedScope;
+        // A league is a weekly competition; it has no all-time board.
+        const period = scope !== 'league' && req.query.period === 'allTime' ? 'allTime' : 'week';
+        const periodStart = period === 'week' ? getLeaderboardPeriodStart() : undefined;
+        const league = scope === 'league' ? userLeague : undefined;
+
         let userIds: string[] | undefined;
         if (scope === 'connections') {
             const connectionIds = await Store.userConnections.getAcceptedConnectionUserIds(userId);
             userIds = [...connectionIds, userId];
         }
 
-        const [entries, currentUserPoints] = await Promise.all([
-            Store.userLeaderboardScores.getTopScores(brandVariation, { periodStart, limit, userIds }),
+        const weekStart = getLeaderboardPeriodStart();
+        const [entries, currentUserPoints, leagueSize] = await Promise.all([
+            Store.userLeaderboardScores.getTopScores(brandVariation, {
+                periodStart, limit, userIds, league,
+            }),
             Store.userLeaderboardScores.getUserScore(brandVariation, userId, periodStart),
+            userLeague
+                ? Store.userLeaderboardScores.countParticipants(brandVariation, { periodStart: weekStart, league: userLeague })
+                    .catch(() => 0)
+                : Promise.resolve(0),
         ]);
         const currentUserRank = await Store.userLeaderboardScores
-            .getRankForScore(brandVariation, currentUserPoints, { periodStart, userIds });
+            .getRankForScore(brandVariation, currentUserPoints, { periodStart, userIds, league });
 
         // The 🔥 chip: each row's app-level daily streak, in one query for the whole page.
         // Absent from the map means no streak row yet, which the client renders as no chip.
@@ -80,6 +119,7 @@ const getLeaderboard: RequestHandler = async (req: any, res: any) => {
             period,
             periodStart: periodStart || null,
             periodEnd: periodStart ? getLeaderboardPeriodEnd(periodStart) : null,
+            league: userLeague ? describeLeague(brandVariation, userLeague, leagueSize) : null,
         });
     } catch (err: any) {
         return handleHttpError({ err, res, message: 'SQL:LEADERBOARDS_ROUTES:ERROR' });

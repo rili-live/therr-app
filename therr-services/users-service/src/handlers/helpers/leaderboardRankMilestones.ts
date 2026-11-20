@@ -13,6 +13,7 @@ import {
     LEADERBOARD_DISPLACEMENT_THRESHOLD,
     WEEKLY_CHAMPION_TIER_BY_MILESTONE,
 } from '../../utilities/leaderboardHelpers';
+import { getActiveLeagueForUser } from './leaderboardPeriods';
 
 /**
  * Tells whoever the climber just bumped off the podium (#3 → #4) who passed them.
@@ -35,6 +36,7 @@ const notifyUsersDisplacedFromPodium = async ({
     prevPoints,
     newPoints,
     whiteLabelOrigin,
+    league,
     now = new Date(),
 }: {
     brandVariation: string,
@@ -43,6 +45,8 @@ const notifyUsersDisplacedFromPodium = async ({
     prevPoints: number,
     newPoints: number,
     whiteLabelOrigin?: string,
+    /** The climber's league while leagues are active: only their league-mates can be displaced. */
+    league?: string,
     now?: Date,
 }): Promise<(EnqueueOutcome | 'quiet-hours')[]> => {
     const displaced = await Store.userLeaderboardScores.getUsersDisplacedFromRank(brandVariation, {
@@ -51,6 +55,7 @@ const notifyUsersDisplacedFromPodium = async ({
         climberUserId: climber.id,
         prevPoints,
         newPoints,
+        league,
     });
     if (!displaced.length) {
         return [];
@@ -82,6 +87,9 @@ const notifyUsersDisplacedFromPodium = async ({
  * achievement progress per crossed threshold. Crossing into the top 3 also queues a
  * leaderboardRankLost push for whoever that climb knocked from #3 to #4.
  *
+ * While leagues are active for the brand, every rank here is league-relative: the top 10 / 3 / 1
+ * of the user's own tier, and the rank-lost push goes to the league-mate pushed off its podium.
+ *
  * Fire-and-forget — never throws into the XP path. Crossing detection is edge-triggered
  * (was strictly outside the threshold before the award), so sitting inside the top N
  * never re-notifies; a user must fall out and climb back in to trigger again.
@@ -110,14 +118,15 @@ const detectAndCelebrateRankMilestones = async (
 
     try {
         const periodStart = getLeaderboardPeriodStart();
+        const league = await getActiveLeagueForUser(brandVariation, userId);
         // Both ranks exclude the user's own row so they mean the same thing: "how many
         // OTHERS are ahead of this score". The award has already been written by the time
         // this runs, so counting self would make prevRank one worse than it really was —
         // enough to make a user sitting exactly at rank 1/3/10 re-cross that threshold on
         // every single XP award.
         const [prevRank, newRank] = await Promise.all([
-            Store.userLeaderboardScores.getRankForScore(brandVariation, prevPoints, { periodStart, excludeUserId: userId }),
-            Store.userLeaderboardScores.getRankForScore(brandVariation, newPoints, { periodStart, excludeUserId: userId }),
+            Store.userLeaderboardScores.getRankForScore(brandVariation, prevPoints, { periodStart, excludeUserId: userId, league }),
+            Store.userLeaderboardScores.getRankForScore(brandVariation, newPoints, { periodStart, excludeUserId: userId, league }),
         ]);
         const crossedMilestones = getCrossedRankMilestones(prevRank, newRank);
         if (!crossedMilestones.length) {
@@ -161,6 +170,7 @@ const detectAndCelebrateRankMilestones = async (
                 prevPoints,
                 newPoints,
                 whiteLabelOrigin,
+                league,
             }).catch((err) => logSpan({
                 level: 'error',
                 messageOrigin: 'API_SERVER',
