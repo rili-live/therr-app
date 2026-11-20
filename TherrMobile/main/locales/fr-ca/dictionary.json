@@ -3066,8 +3066,16 @@
                 "renewNotCarried": "Ton engagement reste avec ce pacte. Ajoute-le de nouveau au nouveau pacte si tu veux le garder."
             },
             "openPact": {
-                "toggleLabel": "Permettre aux autres de demander à se joindre",
+                "toggleLabel": "Ouvert au public",
                 "toggleHint": "Les personnes qui travaillent la même habitude peuvent demander à se joindre. Tu approuves chaque demande.",
+                "wizardOptionTitle": "Personne à inviter? Publie un pacte ouvert",
+                "wizardOptionHint": "Les personnes qui travaillent la même habitude peuvent demander à se joindre. Tu approuves chaque demande.",
+                "reviewSubtitle": "Ton pacte sera affiché pour les personnes qui travaillent la même habitude. N'importe qui peut demander à se joindre, et c'est toi qui décides.",
+                "reviewMembers": "Pacte ouvert · en attente d'une demande",
+                "postCta": "Publier le pacte ouvert",
+                "postedToast": "Ton pacte ouvert est publié",
+                "postedToastHint": "Les demandes pour se joindre apparaîtront dans ce pacte pour que tu les approuves.",
+                "postError": "Impossible de publier ton pacte. Réessaie.",
                 "requestsTitle": "Demandes pour se joindre ({count})",
                 "requestHint": "Veut se joindre à ce pacte",
                 "approve": "Approuver",
