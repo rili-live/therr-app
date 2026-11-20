@@ -1,0 +1,4 @@
+What's new:
+• No one to invite? Post an open pact and let people on the same habit ask to join
+• Groups now read like an inbox, with unread counts and the latest message at a glance
+• Report a group that is spam or offensive

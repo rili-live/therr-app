@@ -1,0 +1,4 @@
+Novedades:
+• ¿No tienes a quién invitar? Publica un pacto abierto y deja que otros con el mismo hábito pidan unirse
+• Los grupos ahora se leen como una bandeja de entrada, con mensajes sin leer y el último mensaje a la vista
+• Reporta un grupo que sea spam u ofensivo
