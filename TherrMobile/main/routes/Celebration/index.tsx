@@ -24,7 +24,7 @@ import { logAppEvent } from '../../utilities/analyticsEvents';
 import WeekStrip from '../../components/Celebrations/WeekStrip';
 import { PlacementHero, StreakHero } from '../../components/Celebrations/CelebrationHero';
 import ChameleonCatch, { isBigBonus } from '../../components/Celebrations/ChameleonCatch';
-import celebrationQueue, { ICelebration } from '../../utilities/celebrationQueue';
+import celebrationQueue, { getPlacementLeagueMove, ICelebration } from '../../utilities/celebrationQueue';
 import CompanionStageUpHero from '../../components/HabitCompanion/CompanionStageUpHero';
 import { COMPANION_STAGES } from '../../utilities/companionGrowth';
 import { markStageSeen } from '../../utilities/companionCelebration';
@@ -32,6 +32,8 @@ import { triggerRewardCelebration } from '../../utilities/rewardFeedback';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildCelebrationStyles } from '../../styles/celebrations';
+import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
+import { getLeagueNameKey, resolveLeague } from '../Leaderboard/leagues';
 
 const celebrationConfetti = require('../../assets/achievement-confetti-2.json');
 
@@ -408,6 +410,9 @@ export const Celebration = ({
         if (celebration.type !== 'placement') {
             return null;
         }
+        const promotedTo = getPlacementLeagueMove(CURRENT_BRAND_VARIATION, celebration) === 'promoted'
+            ? resolveLeague(CURRENT_BRAND_VARIATION, celebration.leagueTo)
+            : undefined;
 
         return (
             <>
@@ -424,11 +429,13 @@ export const Celebration = ({
                         participants: celebration.participants,
                     })}
                 </Text>
-                {/* Leagues are deferred. The line stays so the seam is visible, and renders
-                    nothing until `leagueTo` is ever populated. */}
-                {celebration.leagueTo ? (
+                {/* A podium finish can only move a user up (or nowhere), so only promotion is
+                    said here. Staying put, or a week closed without leagues, says nothing. */}
+                {promotedTo ? (
                     <Text style={themeCelebration.styles.copyStrong}>
-                        {translate('pages.celebration.placement.promoted', { league: celebration.leagueTo })}
+                        {translate('pages.celebration.placement.promoted', {
+                            league: `${promotedTo.emoji} ${translate(getLeagueNameKey(CURRENT_BRAND_VARIATION, promotedTo.id))}`,
+                        })}
                     </Text>
                 ) : null}
             </>

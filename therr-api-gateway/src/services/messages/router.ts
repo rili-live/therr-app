@@ -7,6 +7,8 @@ import { createForumMessageValidation } from './validation/forumMessages';
 import {
     createActivityValidation,
     createForumValidation,
+    markForumReadValidation,
+    reportForumValidation,
     searchForumsValidation,
     updateForumValidation,
 } from './validation/forums';
@@ -73,6 +75,16 @@ messagesServiceRouter.post('/forums/activities', createActivityValidation, valid
 }));
 
 messagesServiceRouter.post('/forums/search', authenticateOptional, searchForumsValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
+    method: 'post',
+}));
+
+messagesServiceRouter.put('/forums/:forumId/read', markForumReadValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
+    method: 'put',
+}));
+
+messagesServiceRouter.post('/forums/:forumId/report', reportForumValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
     method: 'post',
 }));

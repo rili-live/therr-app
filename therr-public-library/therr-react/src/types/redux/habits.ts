@@ -891,7 +891,11 @@ export interface IDailyStreakPendingPlacement {
     placement: number;
     participants: number;
     score: number;
-    /** Reserved for leagues; always null today. */
+    /**
+     * Leaderboard leagues: the league the user competed in and the league the weekly close moved them
+     * to (equal when they stayed). Both null when the period closed without leagues, in which case
+     * `placement` / `participants` are brand-wide rather than out of the user's league.
+     */
     leagueFrom: string | null;
     leagueTo: string | null;
 }

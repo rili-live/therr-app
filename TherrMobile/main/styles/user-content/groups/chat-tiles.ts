@@ -3,77 +3,159 @@ import { IMobileThemeName } from 'therr-react/types';
 import { getTheme } from '../../themes';
 
 
+// Group list row geometry. The divider starts at the text column (gutter + avatar + gap) so the
+// avatars read as one column, rather than running the full width under them.
+export const GROUP_ROW_GUTTER = 16;
+export const GROUP_AVATAR_SIZE = 52;
+const GROUP_ROW_GAP = 12;
+
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
     const styles = StyleSheet.create({
-        container: {
-            backgroundColor: therrTheme.colors.backgroundGray,
-            display: 'flex',
+        // --- Group list row (routes/Groups/GroupTile.tsx) ---
+        row: {
             flexDirection: 'row',
-            width: '100%',
-            height: 100,
-            borderRadius: 15,
-            marginBottom: 12,
-            elevation: 1,
-            borderWidth: 1,
-            borderColor: therrTheme.colors.accent1,
+            alignItems: 'flex-start',
+            gap: GROUP_ROW_GAP,
+            paddingHorizontal: GROUP_ROW_GUTTER,
+            paddingVertical: 14,
+            backgroundColor: therrTheme.colors.surface,
         },
-        avatarContainer: {
-            display: 'flex',
-            width: 100,
+        rowPressed: {
+            backgroundColor: therrTheme.colors.surfaceAlt,
+        },
+        rowDivider: {
+            position: 'absolute',
+            bottom: 0,
+            left: GROUP_ROW_GUTTER + GROUP_AVATAR_SIZE + GROUP_ROW_GAP,
+            right: 0,
+            height: StyleSheet.hairlineWidth,
+            backgroundColor: therrTheme.colors.accentDivider,
+        },
+        avatarFallback: {
+            width: GROUP_AVATAR_SIZE,
+            height: GROUP_AVATAR_SIZE,
+            borderRadius: GROUP_AVATAR_SIZE / 2,
+            alignItems: 'center',
             justifyContent: 'center',
-            alignItems: 'center',
         },
-        avatarStyle: {
-            height: 80,
-            width: 80,
-            borderRadius: 40,
+        avatarFallbackText: {
+            fontSize: 22,
+            fontWeight: '700',
+            color: therrTheme.colors.onBrand,
         },
-        contentContainer: {
+        rowContent: {
             flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
+            minWidth: 0,
         },
-        header: {
-            display: 'flex',
-            flexDirection: 'row',
-            paddingHorizontal: 10,
-            paddingVertical: 4,
-        },
-        headerTitle: {
-            maxHeight: 22,
-            flex: 1,
-            fontWeight: '800',
+        rowTitle: {
             fontSize: 16,
-            color: therrTheme.colors.textWhite,
-            overflow: 'hidden',
+            lineHeight: 21,
+            fontWeight: '600',
+            color: therrTheme.colors.onSurface,
         },
-        body: {
-            paddingHorizontal: 10,
-            paddingVertical: 4,
+        rowMeta: {
+            marginTop: 2,
+            fontSize: 13,
+            lineHeight: 18,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        rowDescription: {
+            marginTop: 6,
+            fontSize: 14,
+            lineHeight: 20,
+            color: therrTheme.colors.onSurface,
+            opacity: 0.85,
+        },
+        chipsRow: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: 6,
+            marginTop: 10,
+        },
+        chip: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+            paddingHorizontal: 8,
+            paddingVertical: 3,
+            borderRadius: 999,
+            backgroundColor: therrTheme.colors.surfaceAlt,
+        },
+        chipText: {
+            fontSize: 12,
+            lineHeight: 16,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        // --- "Your Groups" inbox row ---
+        inboxTitleRow: {
+            flexDirection: 'row',
+            alignItems: 'baseline',
+            gap: 8,
+        },
+        inboxTitle: {
             flex: 1,
         },
-        bodyText: {
-            maxHeight: 30,
+        rowTitleUnread: {
+            fontWeight: '700',
+        },
+        rowTime: {
             fontSize: 12,
-            color: therrTheme.colors.textGray,
-            overflow: 'hidden',
+            lineHeight: 16,
+            color: therrTheme.colors.onSurfaceMuted,
         },
-        footer: {
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'flex-start',
-            alignItems: 'center',
-            paddingHorizontal: 0,
-            paddingTop: 8,
+        rowTimeUnread: {
+            color: therrTheme.colors.brand,
+            fontWeight: '600',
         },
-        footerIconsContainer: {
-            minWidth: 50,
-            display: 'flex',
+        inboxPreviewRow: {
             flexDirection: 'row',
-            justifyContent: 'flex-start',
+            alignItems: 'flex-start',
+            gap: 8,
+            marginTop: 4,
+        },
+        rowPreview: {
+            flex: 1,
+            fontSize: 14,
+            lineHeight: 20,
+            color: therrTheme.colors.onSurfaceMuted,
+        },
+        rowPreviewUnread: {
+            color: therrTheme.colors.onSurface,
+        },
+        rowPreviewEmpty: {
+            fontStyle: 'italic',
+        },
+        unreadBadge: {
+            minWidth: 20,
+            height: 20,
+            paddingHorizontal: 6,
+            borderRadius: 10,
+            marginTop: 1,
             alignItems: 'center',
-
+            justifyContent: 'center',
+            backgroundColor: therrTheme.colors.brand,
+        },
+        unreadBadgeText: {
+            fontSize: 12,
+            lineHeight: 16,
+            fontWeight: '700',
+            color: therrTheme.colors.onBrand,
+        },
+        rowAction: {
+            alignSelf: 'flex-start',
+            marginTop: 2,
+        },
+        joinedBadge: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 2,
+            paddingTop: 6,
+        },
+        joinedText: {
+            fontSize: 13,
+            fontWeight: '600',
+            color: therrTheme.colors.brand,
         },
     });
 

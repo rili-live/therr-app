@@ -145,3 +145,27 @@ describe('create-habit wizard — inviting to an existing habit', () => {
         expect(canAdvanceFromPartnerStep(1, true, true)).toBe(true);
     });
 });
+
+/**
+ * Open pacts with nobody invited. This is the route for someone with no friends on the app to
+ * find a partner, so it must not depend on the solo unlock, which is earned by inviting friends.
+ * Before it existed, the only way to open a pact was a switch shown after choosing a friend.
+ */
+describe('posting an open pact with nobody invited', () => {
+    it('leaves the partner step with nobody selected, locked or not, new habit or existing', () => {
+        expect(canAdvanceFromPartnerStep(0, false, false, true)).toBe(true);
+        expect(canAdvanceFromPartnerStep(0, false, true, true)).toBe(true);
+        expect(canAdvanceFromPartnerStep(0, true, true, true)).toBe(true);
+    });
+
+    it('posts an open pact rather than starting a solo habit', () => {
+        expect(getFinalAction(0, true)).toBe('postOpen');
+        expect(getFinalAction(0, false)).toBe('startSolo');
+        expect(isSoloReview(0, true)).toBe(false);
+    });
+
+    it('still sends the invites when partners are selected on an open pact', () => {
+        expect(getFinalAction(2, true)).toBe('send');
+        expect(isSoloReview(2, true)).toBe(false);
+    });
+});

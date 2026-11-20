@@ -68,6 +68,10 @@ npm run lint:fix             # ESLint auto-fix
 npm run lint                 # Check for remaining errors
 ```
 
+> **iOS is mid-rebuild.** The native iOS project has not been compiled against RN 0.86.3.
+> Before touching `ios/**`, read `docs/IOS_BUILDOUT_PLAN.md` (tracking issue #3209) for the
+> audit, the ticket order and the build log, and add any native fix you make to that log.
+
 ## Environment Config
 
 `env-config.js` holds dev/prod settings:

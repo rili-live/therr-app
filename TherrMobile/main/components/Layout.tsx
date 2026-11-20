@@ -10,6 +10,7 @@ import {
     NativeEventSubscription,
     PermissionsAndroid,
     Platform,
+    Alert,
 } from 'react-native';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
@@ -141,6 +142,7 @@ interface ILayoutDispatchProps {
     searchActiveSpacesByIds: Function;
     searchCategories: Function;
     archiveForum: Function;
+    reportForum: Function;
     searchNotifications: Function;
     searchUsers: Function;
     updateActiveMomentsStream: Function;
@@ -229,6 +231,7 @@ const mapDispatchToProps = (dispatch: any) =>
             searchActiveSpacesByIds: ContentActions.searchActiveSpacesByIds,
             searchCategories: ForumActions.searchCategories,
             archiveForum: ForumActions.archiveForum,
+            reportForum: ForumActions.reportForum,
             updateActiveMomentsStream: ContentActions.updateActiveMomentsStream,
             updateActiveThoughtsStream: ContentActions.updateActiveThoughtsStream,
             updateActiveEventsStream: ContentActions.updateActiveEventsStream,
@@ -1041,19 +1044,27 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
-    actionSheetShow = (sheetId: 'group-sheet' | 'user-sheet', options: {
+    // `options` is optional to match the `showActionSheet` prop type it is passed as. A group sheet
+    // without a group has nothing to act on, so it is not shown.
+    actionSheetShow = (sheetId: 'group-sheet' | 'user-sheet', options?: {
         payload: Partial<Sheets[typeof sheetId]['payload']>;
         // onClose?: (data: Sheets[typeof sheetId]['returnValue'] | undefined) => void;
         context?: string;
     }) => {
         if (sheetId === 'group-sheet') {
-            const payload = options.payload as  Partial<Sheets['group-sheet']['payload']>;
+            const payload = (options?.payload || {}) as Partial<Sheets['group-sheet']['payload']>;
+            if (!payload.group?.id) {
+                return Promise.resolve(undefined);
+            }
             const { user } = this.props;
             const canJoinGroup = !user?.myUserGroups[payload.group.id]?.role;
             const hasGroupEditAccess = user?.myUserGroups[payload.group.id]?.role === GroupMemberRoles.ADMIN
                 || user?.details?.id === payload.group?.authorId;
             const isGroupMember = user?.myUserGroups[payload.group.id]?.role && user?.myUserGroups[payload.group.id]?.role !== GroupMemberRoles.ADMIN;
             const hasGroupArchiveAccess = user?.details?.id === payload.group.authorId;
+            // The server refuses a report from the group's creator too; this only hides the option
+            // when the route params carry the author (they do when opened from a group list).
+            const canReportGroup = !payload.group?.authorId || user?.details?.id !== payload.group.authorId;
             return SheetManager.show<typeof sheetId>(sheetId, {
                 payload: {
                     group: payload.group,
@@ -1063,7 +1074,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     hasGroupArchiveAccess,
                     hasGroupEditAccess,
                     isGroupMember,
+                    canReportGroup,
                     onPressArchiveGroup: this.onPressArchiveGroup,
+                    onPressReportGroup: this.onPressReportGroup,
                     onPressEditGroup: this.onPressEditGroup,
                     onPressJoinGroup: this.onPressJoinGroup,
                     onPressLeaveGroup: this.onPressLeaveGroup,
@@ -1082,6 +1095,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 },
             });
         }
+
+        return Promise.resolve(undefined);
     };
 
     onPressArchiveGroup = (group: any) => {
@@ -1102,6 +1117,37 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
 
         SheetManager.hide('group-sheet');
+    };
+
+    onPressReportGroup = (group: any) => {
+        SheetManager.hide('group-sheet');
+
+        const submitReport = (reason: 'spam' | 'offensive') => {
+            this.props.reportForum(group.id, { reason }).then(() => {
+                showToast.success({
+                    text1: this.translate('actionSheets.group.report.success'),
+                });
+                RootNavigation.navigate('Groups', {
+                    activeTab: GROUPS_CAROUSEL_TABS.DISCOVER,
+                });
+            }).catch(() => {
+                showToast.error({
+                    text1: this.translate('actionSheets.group.report.error'),
+                });
+            });
+        };
+
+        // Android shows at most three dialog buttons, so the reasons are the two that matter for
+        // moderation plus Cancel. The server also accepts 'scam' and 'other' for future clients.
+        Alert.alert(
+            this.translate('actionSheets.group.report.title'),
+            this.translate('actionSheets.group.report.message'),
+            [
+                { text: this.translate('actionSheets.group.report.cancel'), style: 'cancel' },
+                { text: this.translate('actionSheets.group.report.offensive'), onPress: () => submitReport('offensive') },
+                { text: this.translate('actionSheets.group.report.spam'), style: 'destructive', onPress: () => submitReport('spam') },
+            ],
+        );
     };
 
     onPressEditGroup = (group: any) => {
@@ -2941,7 +2987,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     location={location}
                                     logout={this.logout}
                                     updateGpsStatus={updateGpsStatus}
-                                    user={user}
                                     showActionSheet={this.actionSheetShow}
                                     startNavigationTour={this.props.startNavigationTour}
                                     theme={this.theme}

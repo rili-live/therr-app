@@ -11,7 +11,6 @@ import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
-import { buildStyles as buildTileStyles } from '../../styles/user-content/groups/chat-tiles';
 import { buildStyles as buildFormsStyles } from '../../styles/forms';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
 import spacingStyles from '../../styles/layouts/spacing';
@@ -137,7 +136,6 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     private themeButtons = buildButtonsStyles();
     private themeConfirmModal = buildConfirmModalStyles();
     private themeMenu = buildMenuStyles();
-    private themeTile = buildTileStyles();
     private themeForms = buildFormsStyles();
     private themeCategory = buildCategoryStyles();
     private unsubscribeFocusListener;
@@ -178,7 +176,6 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
-        this.themeTile = buildTileStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormsStyles(props.user.settings?.mobileThemeName);
         this.themeCategory = buildCategoryStyles(props.user.settings?.mobileThemeName);
     }
