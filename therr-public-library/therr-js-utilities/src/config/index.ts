@@ -6,21 +6,21 @@ import achievements, {
     IAchievement,
 } from './achievements';
 import {
-    LEADERBOARD_TIERS_BY_BRAND,
-    getLeaderboardTiers,
-    getLowestLeaderboardTier,
-    getLeaderboardTierIndex,
-    resolveLeaderboardTier,
-    ILeaderboardTier,
-} from './leaderboardTiers';
+    LEADERBOARD_LEAGUES_BY_BRAND,
+    getLeaderboardLeagues,
+    getLowestLeaderboardLeague,
+    getLeaderboardLeagueIndex,
+    resolveLeaderboardLeague,
+    ILeaderboardLeague,
+} from './leaderboardLeagues';
 
 export {
-    LEADERBOARD_TIERS_BY_BRAND,
-    getLeaderboardTiers,
-    getLowestLeaderboardTier,
-    getLeaderboardTierIndex,
-    resolveLeaderboardTier,
-    ILeaderboardTier,
+    LEADERBOARD_LEAGUES_BY_BRAND,
+    getLeaderboardLeagues,
+    getLowestLeaderboardLeague,
+    getLeaderboardLeagueIndex,
+    resolveLeaderboardLeague,
+    ILeaderboardLeague,
     achievements,
     achievementsByClass,
     achievementClassesByBrand,
