@@ -1507,7 +1507,8 @@
         "thisWeek": "This Week",
         "allTime": "All Time",
         "everyone": "Everyone",
-        "friends": "Friends"
+        "friends": "Friends",
+        "myLeague": "My League"
       },
       "labels": {
         "you": "You",
@@ -1518,6 +1519,34 @@
       "info": {
         "noScores": "No scores yet this week. Use the app to earn XP and claim your spot!",
         "noFriendScores": "None of your connections have earned XP yet. Invite friends to join the competition!"
+      },
+      "leagues": {
+        "title": "{tier} League",
+        "tierOf": "Tier {tier} of {count}",
+        "promotionZone": "Top {count} move up to {tier}",
+        "demotionZone": "Bottom {count} drop to {tier}",
+        "promotionZoneAccessibility": "In the promotion zone",
+        "demotionZoneAccessibility": "In the relegation zone",
+        "topTier": "You're in the top tier. Hold your ground!",
+        "tooSmall": "Moves up and down start once 5 people are competing in this league.",
+        "tiers": {
+          "habits": {
+            "seedling": "Seedling",
+            "sprout": "Sprout",
+            "sapling": "Sapling",
+            "bloom": "Bloom",
+            "oak": "Oak",
+            "evergreen": "Evergreen"
+          },
+          "therr": {
+            "wanderer": "Wanderer",
+            "scout": "Scout",
+            "pathfinder": "Pathfinder",
+            "trailblazer": "Trailblazer",
+            "cartographer": "Cartographer",
+            "legend": "Legend"
+          }
+        }
       }
     },
     "manageNotifications": {
