@@ -184,6 +184,17 @@ spec:
         # four new message types on top. See docs/HABIT_LIFECYCLE_MESSAGING.md.
         - name: HABIT_PHASE_ENGINE_ENABLED
           value: "true"
+        # Leaderboard leagues rollout switch (src/utilities/leaderboardLeagues.ts):
+        # comma-separated brands whose weekly close runs leagues, with promotion
+        # and relegation. Unset = off for every brand. A brand also needs
+        # LEADERBOARD_LEAGUES_MIN_PARTICIPANTS (default 30) eligible participants
+        # in the elapsed week, or that Monday's close stays brand-wide and nobody
+        # moves. Decided at each Monday close, so turning it on takes effect from
+        # the next close, never mid-week. Add a brand only once its mobile build
+        # with the league UI is on Play: older builds still work, but their rank
+        # pushes turn league-relative. See docs/FEATURES.md → Leaderboard leagues.
+        - name: LEADERBOARD_LEAGUES_BRANDS
+          value: "habits"
         # Store-review / QA accounts (src/utilities/testAccountCleanupWorker.ts,
         # docs/TEST_ACCOUNTS.md). Every account listed is granted the
         # user.test.account access level, which keeps what it posts off every
