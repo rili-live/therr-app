@@ -105,7 +105,7 @@ append new items here rather than only printing them once.
 - [ ] Before flipping it, pick the activation threshold from real numbers: count last week's eligible participants per brand (`/prod-db`, `main."userLeaderboardScores"` for the previous Monday's `periodStart`, excluding opted-out, deleted and test accounts). The default `LEADERBOARD_LEAGUES_MIN_PARTICIPANTS=30` keeps a smaller brand on the single board; lower it only knowingly.
 - [ ] The first Monday after flipping, read the `Leaderboard period closed with leagues` log (`leaderboard.participants`, `.promoted`, `.demoted`) or `... without leagues: below the activation threshold`, and check `main."userLeaderboardLeagues"` gained one row per participant.
 - [ ] Mirror `main.userLeaderboardLeagues` into therr-messaging-automator's `src/store/brandScoped.ts` (CLAUDE.md § Sibling Repos rule 2), even though it does not read the table today.
-- [ ] On a device, check the league header, ladder and arrows in light, dark and retro themes for both brands — the tier colours are fixed per tier and need to read on every theme.
+- [ ] On a device, check the league header, ladder and arrows in light, dark and retro themes for both brands — the league colours are fixed per league and need to read on every theme.
 
 ## Groups: Discover ranking, reports, inbox (added 2026-11-19, docs/FEATURES.md → Group reports, #3230)
 
