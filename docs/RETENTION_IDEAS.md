@@ -112,7 +112,7 @@ yet.
 
 ---
 
-## 3. Daily local quest and an "Explorer" streak
+## 3. Daily local quest and an "Explorer" streak (#3249)
 
 **Status: INTENDED — DEFERRED (2026-11-21).** The founder intends to build this; it is deferred
 to future work and nothing is scheduled.
@@ -142,7 +142,7 @@ complete none, and moments per space per month in target cities.
 
 ---
 
-## 4. Place passport with a "fog of war" map
+## 4. Place passport with a "fog of war" map (#3248)
 
 **Status: INTENDED — DEFERRED (2026-11-21).** The founder intends to build this; it is deferred
 to future work and nothing is scheduled.
@@ -191,7 +191,7 @@ the week after a card is generated.
 
 ---
 
-## 5. "Your moment was discovered" alerts and a weekly "your places" recap
+## 5. "Your moment was discovered" alerts and a weekly "your places" recap (#3247)
 
 **Status: INTENDED — DEFERRED (2026-11-21).** The founder intends to build this; it is deferred
 to future work and nothing is scheduled. **The weekly recap is the part the founder is most keen
