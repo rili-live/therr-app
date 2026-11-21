@@ -72,6 +72,8 @@ went unread.
 ### Growth & marketing
 - [GROWTH_STRATEGY.md](./GROWTH_STRATEGY.md) — B2B-first funnel; the active growth strategy
 - [TARGET_MARKETS.md](./TARGET_MARKETS.md) — consumer and business target markets
+- [RETENTION_IDEAS.md](./RETENTION_IDEAS.md) — November 2026 retention brainstorm (place-verified pacts, daily quests, passport, discovery recap, Plan a Hangout findings). **Unconfirmed** — nothing in it is approved except Drops
+- [DROPS.md](./DROPS.md) — Drops: a note or photo left at a place for one friend, opened only by going there (Therr, built 2026-11-21)
 - [PAID_ACQUISITION_PLAYBOOK.md](./PAID_ACQUISITION_PLAYBOOK.md) — Google Ads strategy, thresholds and decision log for Friends with Habits (tooling: `scripts/google-ads/`)
 - [ADJACENCY_MARKETING.md](./ADJACENCY_MARKETING.md) — "advertise next to what is already cool": trend-adjacent positioning, the adjacency Search campaign and the trend templates for Friends with Habits
 - [niche-sub-apps/habits/HABITS_ACQUISITION_PLAN.md](./niche-sub-apps/habits/HABITS_ACQUISITION_PLAN.md) — the near-zero-budget acquisition plan for Friends with Habits: channels ranked by installs per founder-hour, UTM conventions, the founder's weekly routine and four-week kill criteria
