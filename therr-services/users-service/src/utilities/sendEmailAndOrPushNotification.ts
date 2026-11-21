@@ -253,6 +253,7 @@ export default (
     {
         area,
         authorization,
+        drop,
         groupName,
         groupId,
         fromUser,
@@ -410,6 +411,7 @@ export default (
                 },
                 data: {
                     area,
+                    drop,
                     fromUserName: fromUser?.userName,
                     fromUserId: fromUser?.id,
                     groupId,
