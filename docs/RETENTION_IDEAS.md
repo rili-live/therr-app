@@ -1,14 +1,18 @@
 # Retention Ideas (November 2026 brainstorm)
 
-> ## ⚠️ Status: UNCONFIRMED. Nothing here is approved for implementation.
+> ## ⚠️ Each idea carries its own status. Read it before acting.
 >
-> This records a brainstorm about improving Therr's retention and daily use. Each idea below
-> is a **possibility to evaluate**, not a plan. The decision to build any of them has **not**
-> been made. Do not start work on one, file it as committed backlog, or describe it as planned
-> without the founder's explicit go-ahead.
+> This records a brainstorm about improving Therr's retention and daily use. Ideas have one
+> of three statuses:
 >
-> **The one exception is Drops** (§ 2), which was approved and built on 2026-11-21. Its design
-> doc is [`DROPS.md`](./DROPS.md).
+> | Status | Meaning | Ideas |
+> |---|---|---|
+> | **BUILT** | Approved and implemented. | § 2 Drops ([`DROPS.md`](./DROPS.md)) |
+> | **INTENDED — DEFERRED** | The founder intends to build it, but not now. No work is scheduled. Do not start without a go-ahead that names the idea, and treat the design notes as a starting point, not a spec. | § 3 Daily quest, § 4 Place passport, § 5 Discovery alerts and weekly recap |
+> | **UNCONFIRMED** | A possibility to evaluate. No decision has been made to build it. | § 1 Location-verified commitments, Plan a Hangout |
+>
+> Do not describe an UNCONFIRMED idea as planned, and do not describe an INTENDED — DEFERRED
+> idea as scheduled.
 
 **Date:** 2026-11-21
 **Scope:** core Therr (`general`), with notes where an idea touches Friends with Habits.
@@ -110,7 +114,8 @@ yet.
 
 ## 3. Daily local quest and an "Explorer" streak
 
-**Status: unconfirmed.**
+**Status: INTENDED — DEFERRED (2026-11-21).** The founder intends to build this; it is deferred
+to future work and nothing is scheduled.
 
 **Idea.** Each day, one small place-based mission chosen from nearby places and the user's
 interests. For example: "Try a café you haven't checked into", "Post a moment at a park".
@@ -139,11 +144,32 @@ complete none, and moments per space per month in target cities.
 
 ## 4. Place passport with a "fog of war" map
 
-**Status: unconfirmed.**
+**Status: INTENDED — DEFERRED (2026-11-21).** The founder intends to build this; it is deferred
+to future work and nothing is scheduled.
 
 **Idea.** Each user's map fills in as they visit places. It shows what share of their
 neighborhood they have explored, collects category stamps (coffee, trails, live music), and
 produces a monthly card they can share.
+
+**Decided shape: an optional mode, off until the user chooses it.**
+
+- **Opt-in, never on by default.** The passport is a mode the user turns on, not something
+  that records them silently. Until they choose, nothing is recorded for it.
+- **Asked once, in the first-time UI.** New users meet the choice during onboarding as its
+  own step: what the passport is, what it records (the places they visit), that only they see
+  it, and "Turn it on" / "Not now". "Not now" is a full answer: the step does not come back
+  as a nag. Existing users need an equivalent one-time prompt, for example the first time they
+  open the map after the feature ships, with the same two answers.
+- **Toggle in Settings, both ways, any time.** Turning it off stops recording immediately.
+  Decide at build time whether turning it off also offers to delete the recorded history;
+  it should at least be possible.
+- **Private by default.** The map and history are visible only to their owner. A share card is
+  created only when the user taps share, for that one card.
+
+The setting would live on `main.users` alongside the other `settings*` columns (for example
+`settingsIsPassportEnabled`, NULL meaning "not asked yet"). NULL is what makes the one-time
+prompt possible: the first-time UI shows while the value is NULL, and either answer stores a
+boolean.
 
 **Why.**
 - The history builds up, so leaving the app means losing something.
@@ -155,7 +181,10 @@ produces a monthly card they can share.
 
 **Risks.**
 - "Visited" needs a definition: check-ins only, or dwell detection from background location.
-- Background location raises the same privacy and policy questions as § 1b.
+  Either way, nothing may be recorded for the passport while the mode is off or not yet
+  chosen.
+- Background location raises the same privacy and policy questions as § 1b. The opt-in mode
+  above is part of the answer, and the first-time UI copy must say plainly what is recorded.
 
 **How to judge it.** Share-card generation and install rate from shared cards; return rate in
 the week after a card is generated.
@@ -164,7 +193,10 @@ the week after a card is generated.
 
 ## 5. "Your moment was discovered" alerts and a weekly "your places" recap
 
-**Status: unconfirmed.**
+**Status: INTENDED — DEFERRED (2026-11-21).** The founder intends to build this; it is deferred
+to future work and nothing is scheduled. **The weekly recap is the part the founder is most keen
+on** ("Weekly recaps would be great"), so when this is picked up, the recap is the natural
+first piece. It can ship on its own, before any real-time discovery alerts.
 
 **Idea.** Therr's posts unlock later when someone passes by, so a post can pay off days after
 it was made: "3 people discovered your moment at Joe's Pizza this week". These would be
@@ -180,6 +212,23 @@ keys, local-Monday send) and moment reactions with `userHasActivated`.
 **Risk, and a hard rule if built.** The AI automator already reacts to real users' posts.
 Discovery counts **must count humans only**. Counting bots makes the feedback fake, and users
 eventually notice.
+
+**Weekly recap: notes for when it is built.**
+- One push on the user's local Monday, about the week that just closed, with a matching
+  screen. Copy the Friends with Habits pattern: the digest asks "is it your Monday?" per user,
+  and the dedupe key is stamped with the week (`therr-weekly-recap:<weekStart>`).
+- Send it only when there is something to say. A recap of an empty week is a report card
+  nobody asked for.
+- Candidate contents, all counted from **human** activity only:
+  - how many people discovered the user's moments;
+  - reactions and replies the user received;
+  - places they checked in at;
+  - drops left, received and opened;
+  - passport progress, only if the passport mode (§ 4) is on.
+- The Friends with Habits recap decides which story to tell once, on the server (for example
+  "best week yet" against "quieter week"), so the push and the screen cannot contradict each
+  other. Do the same here.
+- Give it its own kill switch and a notification setting the user can turn off.
 
 **How to judge it.** Posting frequency of users who receive a recap, against those who do not.
 
@@ -225,4 +274,7 @@ strangers show up. That costs a weekend instead of a sprint.
 |---|---|
 | 2026-11-21 | **Drops approved and built** (connections only). See `DROPS.md`. |
 | 2026-11-21 | Background location inside Friends with Habits ruled out as too costly and too much friction. |
-| 2026-11-21 | All other ideas in this document remain **unconfirmed**. |
+| 2026-11-21 | **Daily quest (§ 3), place passport (§ 4) and discovery alerts with weekly recap (§ 5): intended to build, deferred to future work.** Nothing scheduled. |
+| 2026-11-21 | The place passport must be an **optional mode**: off until chosen, offered once in the first-time UI, and switchable on and off in Settings. |
+| 2026-11-21 | The weekly recap is the most wanted part of § 5. |
+| 2026-11-21 | Location-verified commitments (§ 1) and Plan a Hangout remain **unconfirmed**. |

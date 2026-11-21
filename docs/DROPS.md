@@ -8,8 +8,9 @@ A drop is a note and/or a photo that one user leaves **at a place** for **one or
 friends**. The friend is told it is waiting and where, and can open it only when they get there.
 
 It is the "personalized drop" idea from the November 2026 retention brainstorm
-([`RETENTION_IDEAS.md`](./RETENTION_IDEAS.md)), and the only one of those ideas approved for
-implementation. The rest of that document is still unconfirmed.
+([`RETENTION_IDEAS.md`](./RETENTION_IDEAS.md)), and the only one of those ideas built so far.
+That document gives each of the others its own status: some are intended but deferred, the rest
+unconfirmed.
 
 ---
 
