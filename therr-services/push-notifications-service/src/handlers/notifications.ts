@@ -35,6 +35,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
 
         // optional
         area,
+        // Drops: { id, placeName }. Routes the tap and supplies the push body's place name.
+        drop,
         achievementsCount,
         fromUserId,
         groupId,
@@ -112,6 +114,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         type || PushNotifications.Types.newDirectMessage,
         {
             area,
+            drop,
             groupId,
             fromUser: fromUser || {
                 id: fromUserId,

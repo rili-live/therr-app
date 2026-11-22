@@ -13,6 +13,8 @@ import TherrIcon from '../../components/TherrIcon';
 import SuperUserStatusIcon from '../../components/SuperUserStatusIcon';
 import { IUserProfileAction } from '../../components/ActionSheet/UserProfileSheet';
 import { buildUserUrl } from '../../utilities/shareUrls';
+import { FeatureFlags } from 'therr-js-utilities/constants';
+import { useFeatureFlags } from '../../context/FeatureFlagContext';
 
 const LogoIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -46,6 +48,19 @@ const actionMenuOptions: IActionItem[] = [
         icon: 'qr-code-2',
         title: 'user.profile.actions.myQRCodes',
     },
+    // Drops (docs/DROPS.md): leave one for a connection, or see your own.
+    {
+        id: '9',
+        name: 'leave-a-drop',
+        icon: 'add-location-alt',
+        title: 'user.profile.actions.leaveADrop',
+    },
+    {
+        id: '10',
+        name: 'my-drops',
+        icon: 'place',
+        title: 'user.profile.actions.myDrops',
+    },
     {
         id: '3',
         name: 'sync-socials',
@@ -78,8 +93,17 @@ const actionMenuOptions: IActionItem[] = [
     },
 ];
 
-const getActionableOptions = (isMe: boolean, userInView: any) => {
+const getActionableOptions = (isMe: boolean, userInView: any, areDropsEnabled = false) => {
     let filteredOptions = [...actionMenuOptions];
+    if (!areDropsEnabled) {
+        filteredOptions = filteredOptions.filter(option => !['leave-a-drop', 'my-drops'].includes(option.name));
+    } else if (isMe) {
+        filteredOptions = filteredOptions.filter(option => option.name !== 'leave-a-drop');
+    } else {
+        // A drop can only be left for a live connection; the server refuses anyone else.
+        filteredOptions = filteredOptions.filter(option => option.name !== 'my-drops'
+            && !(option.name === 'leave-a-drop' && (userInView.isNotConnected || userInView.isPendingConnection)));
+    }
     if (isMe) {
         filteredOptions = filteredOptions
             .filter(option => ![
@@ -201,7 +225,12 @@ const UserDisplayHeader = ({
 }) => {
     // eslint-disable-next-line eqeqeq
     const isMe = user.details?.id == userInView.id;
-    const actionsList = getActionableOptions(isMe, userInView);
+    const { areAllEnabled } = useFeatureFlags();
+    const actionsList = getActionableOptions(
+        isMe,
+        userInView,
+        areAllEnabled([FeatureFlags.ENABLE_DROPS, FeatureFlags.ENABLE_MAP]),
+    );
 
     const handleAction = (action: IUserProfileAction) => {
         switch (action.name) {
@@ -210,6 +239,14 @@ const UserDisplayHeader = ({
                 break;
             case 'my-qr-codes':
                 navigation.navigate('MyQRCodes');
+                break;
+            case 'leave-a-drop':
+                navigation.navigate('CreateDrop', {
+                    recipient: { id: userInView.id, userName: userInView.userName },
+                });
+                break;
+            case 'my-drops':
+                navigation.navigate('Drops');
                 break;
             case 'remove-connection-request':
                 onConnectionRequest(action, userInView);

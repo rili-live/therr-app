@@ -45,6 +45,9 @@ const featureFlags = {
     ENABLE_FORUMS: true,
     ENABLE_ACTIVITY_SCHEDULER: true,
 
+    // Drops (docs/DROPS.md). Therr only — a niche brand's overrides must set this false.
+    ENABLE_DROPS: true,
+
     // Device / OS Permissions
     ENABLE_LOCATION_SERVICES: true,
 

@@ -134,6 +134,9 @@ const REMINDER_ACTION_KEYS = new Set<string>([
     'NEW_SUPER_LIKE_RECEIVED',
     'NEW_THOUGHT_REPLY_RECEIVED',
     'NEW_THOUGHT_REPOST_RECEIVED',
+    // Drops (docs/DROPS.md): a friend's drop waiting for you, and your drop being found.
+    'DROP_RECEIVED',
+    'DROP_OPENED',
 ]);
 
 const REWARD_ACTION_KEYS = new Set<string>([

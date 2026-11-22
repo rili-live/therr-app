@@ -98,6 +98,15 @@ proactively encourage the user to check off open items at the start of each
 session.** Skills with `Manual Steps Required After Deploying` output should
 append new items here rather than only printing them once.
 
+## Drops (added 2026-11-21, docs/DROPS.md, docs/FEATURES.md → Drops)
+
+- [ ] After the users-service deploy, confirm migration `20261121000001_main.drops.js` ran (`main.drops` exists). New table, read by neither automator.
+- [ ] Confirm the users-service pod has `IMAGE_KIT_URL_PRIVATE` (added to `k8s/prod/users-service-deployment.yaml`). Without it an opened drop's photo comes back with `mediaUrl: null` — the drop still opens, the picture just never shows.
+- [ ] Mirror `main.drops` into therr-messaging-automator's `src/store/brandScoped.ts` (CLAUDE.md § Sibling Repos rule 2), even though it does not read the table today.
+- [ ] On `niche/HABITS-general` (and any other niche branch), set `ENABLE_DROPS: false` in that brand's feature-flag overrides when `general` is next merged down — `general`'s env-config turns it on.
+- [ ] On two Therr handsets that are connected to each other: leave a drop with a photo, confirm the recipient's `dropReceived` push lands in the **Therr** app and its tap opens the drop locked, walk to the spot and open it, and confirm the sender's `dropOpened` push and that "Let them know" unticked sends nothing. Check the screens in light, dark and retro themes.
+- [ ] Decide whether the immediate `dropOpened` push is acceptable or should be deferred to the next morning (DROPS.md § Privacy decisions — the brainstorm proposed day-level receipts).
+
 ## Leaderboard leagues (added 2026-11-20, docs/FEATURES.md → Leaderboard leagues, #3055)
 
 - [ ] After the users-service deploy, confirm migration `20261120000001_main.userLeaderboardLeagues.js` ran (`main."userLeaderboardLeagues"` exists). New table, read by neither automator.

@@ -15,6 +15,8 @@ export enum Types {
   INVITE_FRIENDS_REMINDER = 'INVITE_FRIENDS_REMINDER',
   PACT_INVITATION = 'PACT_INVITATION',
   PACT_JOIN_REQUEST = 'PACT_JOIN_REQUEST',
+  DROP_RECEIVED = 'DROP_RECEIVED',
+  DROP_OPENED = 'DROP_OPENED',
 }
 
 export enum MessageKeys {
@@ -34,4 +36,6 @@ export enum MessageKeys {
   INVITE_FRIENDS_REMINDER = 'notifications.inviteFriendsReminder',
   PACT_INVITATION = 'notifications.pactInvitation',
   PACT_JOIN_REQUEST = 'notifications.pactJoinRequest',
+  DROP_RECEIVED = 'notifications.dropReceived',
+  DROP_OPENED = 'notifications.dropOpened',
 }

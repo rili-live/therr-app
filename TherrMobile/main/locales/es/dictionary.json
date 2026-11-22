@@ -1167,7 +1167,8 @@
       "requestASpace": "Solicitar un espacio",
       "shareAThought": "Compartir un pensamiento",
       "uploadAMoment": "Crear un momento",
-      "captureAMoment": "Capturar un momento"
+      "captureAMoment": "Capturar un momento",
+      "leaveADrop": "Dejar un drop"
     },
     "filterActions": {
       "applyFilters": "Aplicar",
@@ -2144,6 +2145,116 @@
       "privateNote": "Tu perfil es privado — quienes escaneen verán una vista limitada hasta que se conecten.",
       "missingEntity": "No se proporcionaron detalles del código QR.",
       "backButton": "Volver"
+    },
+    "drops": {
+      "headerTitle": "Drops",
+      "tabs": {
+        "received": "Para ti",
+        "sent": "Los que dejaste"
+      },
+      "buttons": {
+        "leaveADrop": "Déjale un drop a un amigo"
+      },
+      "labels": {
+        "fromUser": "De {userName}",
+        "forUser": "Para {userName}",
+        "aSpotTheyPicked": "Un lugar que eligió",
+        "aSpotYouPicked": "Un lugar que elegiste"
+      },
+      "status": {
+        "locked": "Bloqueado",
+        "opened": "Abierto",
+        "openedOn": "Abierto el {date}",
+        "expired": "Caducado"
+      },
+      "info": {
+        "noReceivedTitle": "Aún no hay nada esperándote",
+        "noReceivedBody": "Cuando un amigo te deje un drop, aparecerá aquí. Tendrás que ir al lugar para abrirlo.",
+        "noSentTitle": "No has dejado ningún drop",
+        "noSentBody": "Deja una nota o una foto en algún lugar para un amigo. Solo se abre cuando llega allí."
+      }
+    },
+    "createDrop": {
+      "headerTitle": "Dejar un drop",
+      "labels": {
+        "forWho": "¿Para quién es?",
+        "message": "Mensaje",
+        "photo": "Foto (opcional)",
+        "addPhoto": "Añadir una foto",
+        "where": "Dónde",
+        "locationReady": "Se dejará justo donde estás",
+        "locating": "Buscando tu ubicación…",
+        "locationUnavailable": "No encontramos tu ubicación. Toca para intentarlo de nuevo"
+      },
+      "placeholders": {
+        "message": "Di algo que solo verá cuando llegue aquí",
+        "placeName": "Nombra este lugar (p. ej. \"el banco junto a la fuente\")"
+      },
+      "buttons": {
+        "submit": "Dejar el drop",
+        "removePhoto": "Quitar foto"
+      },
+      "info": {
+        "intro": "Deja una nota o una foto justo aquí. Tu amigo sabrá dónde está, y solo se abre cuando venga a este lugar.",
+        "noFriends": "Puedes dejar drops a personas con las que estás conectado. Conéctate primero con un amigo.",
+        "whereHelp": "Tu amigo ve este lugar en un mapa para poder llegar. Un nombre le ayuda a encontrarlo.",
+        "needsRecipient": "Elige al menos un amigo.",
+        "needsLocation": "Activa la ubicación para fijar el drop aquí.",
+        "needsContent": "Añade un mensaje o una foto."
+      },
+      "alerts": {
+        "successTitle": "¡Drop dejado!",
+        "successBodyOne": "Le diremos a {userName} dónde encontrarlo.",
+        "successBodyMany": "Les diremos a tus {count} amigos dónde encontrarlo.",
+        "errorTitle": "No se pudo dejar el drop",
+        "tooManyRecipients": "Puedes elegir hasta {count} amigos"
+      }
+    },
+    "viewDrop": {
+      "headerTitle": "Drop",
+      "labels": {
+        "leftYouADrop": "{userName} te dejó un drop",
+        "waitingAt": "Te espera en {placeName}",
+        "waitingAtUnnamed": "Te espera en un lugar que eligió",
+        "distanceAway": "A {distance}",
+        "letThemKnow": "Avisar a {userName} de que lo abrí",
+        "fromUser": "De {userName}",
+        "youLeftThisFor": "Lo dejaste para {userName}",
+        "notOpenedYet": "Aún sin abrir",
+        "openedOn": "Abierto el {date}",
+        "expiredUnopened": "Caducó antes de abrirse",
+        "expiredTitle": "Este drop caducó",
+        "expiredBody": "El drop de {userName} caducó antes de que llegaras."
+      },
+      "info": {
+        "locked": "Hay un mensaje dentro. Ve al lugar para abrirlo.",
+        "lockedWithPhoto": "Hay algo dentro, con foto incluida. Ve al lugar para abrirlo.",
+        "notFoundTitle": "Este drop no está aquí",
+        "notFoundBody": "Puede que se haya eliminado o que fuera para otra persona."
+      },
+      "buttons": {
+        "open": "Estoy aquí. Ábrelo",
+        "directions": "Cómo llegar",
+        "dropOneBack": "Dejarle uno de vuelta",
+        "delete": "Eliminar este drop",
+        "dismiss": "Quitar de mis drops"
+      },
+      "alerts": {
+        "tooFarTitle": "Aún no has llegado",
+        "tooFarBody": "Estás a unos {distance}. Acércate más para abrirlo.",
+        "noLocationTitle": "No encontramos tu ubicación",
+        "noLocationBody": "Activa los servicios de ubicación e inténtalo de nuevo.",
+        "openFailedTitle": "No se pudo abrir el drop"
+      },
+      "confirm": {
+        "deleteTitle": "¿Eliminar este drop?",
+        "deleteBody": "Tu amigo ya no podrá abrirlo.",
+        "dismissTitle": "¿Quitar este drop?",
+        "dismissBody": "Desaparecerá de tus drops. No se avisará a quien lo dejó.",
+        "delete": "Eliminar",
+        "dismiss": "Quitar",
+        "cancel": "Cancelar"
+      }
     }
   },
   "modals": {
@@ -2790,7 +2901,9 @@
         "syncSocials": "Sincronizar redes sociales",
         "shareALink": "Copiar enlace de perfil",
         "unconnect": "¿Eliminar conexión?",
-        "myQRCodes": "Mostrar mis códigos QR"
+        "myQRCodes": "Mostrar mis códigos QR",
+        "leaveADrop": "Dejarle un drop",
+        "myDrops": "Mis drops"
       },
       "buttons": {
         "editProfile": "Editar perfil",
