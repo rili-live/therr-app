@@ -157,6 +157,20 @@
             "amountTooPrecise": "Utilise au plus deux décimales, par exemple 25,50",
             "invalidCurrencyCode": "Utilise un code de devise à trois lettres, par exemple USD",
             "invalidTargetScope": "Choisis si l'objectif est par personne ou pour le groupe"
+        },
+        "drops": {
+            "notFound": "Ce drop n'existe pas, ou il ne t'est pas destiné",
+            "noRecipients": "Choisis au moins un ami à qui laisser ce drop",
+            "tooManyRecipients": "Un drop peut être laissé à 10 amis au maximum à la fois",
+            "cannotDropForSelf": "Tu ne peux pas te laisser un drop à toi-même",
+            "emptyDrop": "Ajoute un message ou une photo à ton drop",
+            "messageTooLong": "Le message de ton drop doit faire moins de 500 caractères",
+            "invalidLocation": "Impossible de lire ta position. Active les services de localisation et réessaie",
+            "invalidMedia": "Impossible de joindre cette photo. Essaie de l'ajouter à nouveau",
+            "notConnected": "Tu ne peux laisser des drops qu'aux personnes avec qui tu es connecté",
+            "tooManyToday": "Tu as laissé beaucoup de drops aujourd'hui. Réessaie demain",
+            "expired": "Ce drop a expiré avant d'être ouvert",
+            "tooFar": "Tu n'es pas encore assez proche. Rends-toi sur place pour l'ouvrir"
         }
     },
     "metrics": {
@@ -177,7 +191,11 @@
         "discoveredUniqueMoment": "Tu as trouvé quelque chose de spécial! Ouvre la carte pour y jeter un coup d'œil.",
         "discoveredUniqueSpace": "Alerte trésor caché — tu es près d'un espace unique!",
         "pactInvitation": "{fromUserName} t'a invité à un pacte : {habitName}",
-        "pactJoinRequest": "{fromUserName} a demandé à se joindre à ton pacte : {habitName}"
+        "pactJoinRequest": "{fromUserName} a demandé à se joindre à ton pacte : {habitName}",
+        "dropReceived": "{userName} t'a laissé un drop à {placeName}. Vas-y pour l'ouvrir",
+        "dropReceivedNoPlace": "{userName} t'a laissé un drop. Rends-toi sur place pour l'ouvrir",
+        "dropOpened": "{userName} a ouvert le drop que tu as laissé à {placeName}",
+        "dropOpenedNoPlace": "{userName} a ouvert le drop que tu lui as laissé"
     },
     "invites": {
         "phone": "{name} t'a invité sur {brandName}{brandTagline}. Inscris-toi ici pour te connecter : {inviteUrl}",

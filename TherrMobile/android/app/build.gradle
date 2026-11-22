@@ -119,8 +119,8 @@ android {
         applicationId "app.therrmobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 467
-        versionName "3.18.5"
+        versionCode 468
+        versionName "3.18.6"
         // App Links hosts for the autoVerify intent-filter in AndroidManifest.xml.
         // Keyed off applicationId (same pattern as the release signingConfig below) so a
         // niche variant only has to change applicationId and the hosts follow.

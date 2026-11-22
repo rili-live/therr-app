@@ -247,6 +247,11 @@ spec:
           value: "therr-public-user-data"
         - name: BUCKET_PRIVATE_USER_DATA
           value: "therr-private-user-data"
+        # Drops (docs/DROPS.md): users-service turns an opened drop's private photo path into a
+        # URL itself, because maps-service createMediaUrls will not resolve another user's
+        # private path for a drop. Same value as maps-service's.
+        - name: IMAGE_KIT_URL_PRIVATE
+          value: "https://ik.imagekit.io/qmtvldd7sl/private/"
         - name: SIGHTENGINE_API_KEY
           value: "109708716"
         - name: SIGHTENGINE_API_SECRET

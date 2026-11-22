@@ -33,6 +33,7 @@ import challengesRouter from './challengesRouter';
 import referralRewardsRouter from './referralRewardsRouter';
 import habitsPremiumRouter from './habitsPremiumRouter';
 import journalRouter from './journalRouter';
+import dropsRouter from './dropsRouter';
 import dailyStreakRouter from './dailyStreakRouter';
 import weeklyRecapRouter from './weeklyRecapRouter';
 
@@ -73,6 +74,7 @@ router.use('/habits/challenges', challengesRouter);
 router.use('/habits/referral-reward', referralRewardsRouter);
 router.use('/habits/premium', habitsPremiumRouter);
 router.use('/habits/journal', journalRouter);
+router.use('/drops', dropsRouter);
 router.use('/habits/daily-streak', dailyStreakRouter);
 router.use('/habits/weekly-recap', weeklyRecapRouter);
 

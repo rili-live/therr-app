@@ -766,6 +766,20 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             shouldShowCreateActions: false,
         });
 
+        // Drops (docs/DROPS.md) take their own fresh location fix on the create screen.
+        if (action === 'drop') {
+            if (!this.isUserAuthenticated()) {
+                this.showPublicUserToast({
+                    lottieLoader: createAMomentLoader,
+                    title: this.translate('alertTitles.loginRequired'),
+                    message: this.translate('alertMessages.createRequiresLogin'),
+                });
+                return;
+            }
+            navigation.navigate('CreateDrop', {});
+            return;
+        }
+
         if (location?.settings?.isGpsEnabled) {
             if (!this.isUserAuthenticated()) {
                 this.showPublicUserToast({

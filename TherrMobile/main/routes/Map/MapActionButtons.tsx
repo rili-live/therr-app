@@ -4,12 +4,14 @@ import { FAB, Badge } from 'react-native-paper';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { IUserState } from 'therr-react/types';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import AnimatedLottieView from 'lottie-react-native';
 import {
     AttachStep,
 } from 'react-native-spotlight-tour';
 import { ITherrThemeColors } from '../../styles/themes';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
+import { useFeatureFlags } from '../../context/FeatureFlagContext';
 import TherrIcon from '../../components/TherrIcon';
 import checkIn from '../../assets/coin-wallet.json';
 import claimASpace from '../../assets/claim-a-space.json';
@@ -27,7 +29,7 @@ const BTN_LARGE_WIDTH = 42;
 // they keep their existing anchor styles and only need to clear the preview card strip.
 const COMPACT_LIFT_STYLE = { transform: [{ translateY: -areaPreviewStripFootprint }] };
 
-export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment' | 'check-in' | 'event' | 'quick-report';
+export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment' | 'check-in' | 'event' | 'quick-report' | 'drop';
 
 interface MapActionButtonsProps {
     exchangeRate: number;
@@ -124,6 +126,10 @@ const renderMapMarkerPlusIcon = (props: { size: number; color: string }) => (
     <TherrIcon name="map-marker-plus" size={props.size} color={props.color} />
 );
 
+const renderAddLocationIcon = (props: { size: number; color: string }) => (
+    <MaterialIcon name="add-location-alt" size={props.size} color={props.color} />
+);
+
 const fabStyle = { borderRadius: 100 };
 
 export default ({
@@ -156,6 +162,7 @@ export default ({
     // const shouldShowCreateButton = isAuthorized() && isGpsEnabled;
     const [isModalVisible, setModalVisibility] = useState(false);
     const [isCheckInModalVisible, setCheckInModalVisibility] = useState(false);
+    const { areAllEnabled } = useFeatureFlags();
     const isBusinessAccount = user.details?.isBusinessAccount;
     const isCreatorAccount = user.details?.isCreatorAccount;
     const onShowModal = () => {
@@ -233,6 +240,11 @@ export default ({
     const expandedButtonKeys: string[] = ['createEvent', 'claimASpace', 'uploadMoment'];
     if (hasNearbySpaces && validCheckInSpaces?.length > 0) {
         expandedButtonKeys.push('addACheckIn');
+    }
+    // Drops (docs/DROPS.md) sit at the top of the stack, after whatever else is showing.
+    const areDropsEnabled = areAllEnabled([FeatureFlags.ENABLE_DROPS, FeatureFlags.ENABLE_MAP]);
+    if (areDropsEnabled) {
+        expandedButtonKeys.push('leaveADrop');
     }
     const getExpandedBottom = (key: string): number => {
         const index = expandedButtonKeys.indexOf(key);
@@ -454,6 +466,22 @@ export default ({
                         />
                     </View>
                 </>
+            }
+            {
+                shouldShowCreateActions && areDropsEnabled &&
+                <View style={[
+                    themeButtons.styles.createEvent,
+                    { bottom: getExpandedBottom('leaveADrop') },
+                ]}>
+                    <FAB
+                        icon={renderAddLocationIcon}
+                        label={translate('menus.mapActions.leaveADrop')}
+                        variant="secondary"
+                        size="small"
+                        style={fabStyle}
+                        onPress={() => handleCreate('drop')}
+                    />
+                </View>
             }
             <ConfirmModal
                 headerText={isBusinessAccount ? translate('modals.confirmModal.header.claimSpace') : translate('modals.confirmModal.header.requestSpace')}
