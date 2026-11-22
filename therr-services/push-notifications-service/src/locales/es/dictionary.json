@@ -97,6 +97,18 @@
       "body": "{userName} republicó tu publicación — está llegando a más gente",
       "pressActionView": "Ver publicación"
     },
+    "dropReceived": {
+      "title": "{userName} te dejó un drop",
+      "body": "Te espera en {placeName}. Ve allí para abrirlo",
+      "bodyNoPlace": "Te espera en un lugar que eligió. Ve allí para abrirlo",
+      "pressActionView": "Ver dónde"
+    },
+    "dropOpened": {
+      "title": "Abrieron tu drop",
+      "body": "{userName} encontró el drop que dejaste en {placeName}",
+      "bodyNoPlace": "{userName} encontró el drop que le dejaste",
+      "pressActionView": "Ver drop"
+    },
     "newAreasActivated": {
       "title": "¡Nuevos lugares desbloqueados!",
       "body": "Acabas de desbloquear {totalAreasActivated} nueva(s) área(s) — explora lo que se ha compartido cerca"

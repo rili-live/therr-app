@@ -48,6 +48,7 @@ import SubscriptionPurchasesStore from './SubscriptionPurchasesStore';
 import JournalEntriesStore from './JournalEntriesStore';
 import UserDailyStreaksStore from './UserDailyStreaksStore';
 import DailyStreakDaysStore from './DailyStreakDaysStore';
+import DropsStore from './DropsStore';
 import DailyBonusesStore from './DailyBonusesStore';
 import LeaderboardPeriodResultsStore from './LeaderboardPeriodResultsStore';
 import UserLeaderboardLeaguesStore from './UserLeaderboardLeaguesStore';
@@ -152,6 +153,8 @@ class Store {
 
     dailyStreakDays: DailyStreakDaysStore;
 
+    drops: DropsStore;
+
     dailyBonuses: DailyBonusesStore;
 
     leaderboardPeriodResults: LeaderboardPeriodResultsStore;
@@ -214,6 +217,7 @@ class Store {
         this.journalEntries = new JournalEntriesStore(this.db);
         this.userDailyStreaks = new UserDailyStreaksStore(this.db);
         this.dailyStreakDays = new DailyStreakDaysStore(this.db);
+        this.drops = new DropsStore(this.db);
         this.dailyBonuses = new DailyBonusesStore(this.db);
         this.leaderboardPeriodResults = new LeaderboardPeriodResultsStore(this.db);
         this.userLeaderboardLeagues = new UserLeaderboardLeaguesStore(this.db);

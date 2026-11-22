@@ -24,6 +24,9 @@ import Achievements from './Achievements';
 import ApiAccess from './ApiAccess';
 import AchievementClaim from './Achievements/AchievementClaim';
 import Leaderboard from './Leaderboard';
+import Drops from './Drops';
+import CreateDrop from './Drops/CreateDrop';
+import ViewDrop from './Drops/ViewDrop';
 import ActivatedAreas from './Areas/ActivatedAreas';
 import Areas from './Areas';
 import Connect from './Connect';
@@ -168,6 +171,36 @@ const routes: RouteConfig<
             title: 'Leaderboard',
             requiredFeatures: [FeatureFlags.ENABLE_ACHIEVEMENTS],
             access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    // Drops (docs/DROPS.md) — need the map's location stack as well as their own flag.
+    {
+        name: 'Drops',
+        component: Drops,
+        options: () => ({
+            title: 'Drops',
+            requiredFeatures: [FeatureFlags.ENABLE_DROPS, FeatureFlags.ENABLE_MAP],
+            access: AccessPresets.EMAIL_VERIFIED,
+        }),
+    },
+    {
+        name: 'CreateDrop',
+        component: CreateDrop,
+        options: () => ({
+            title: 'Leave a Drop',
+            requiredFeatures: [FeatureFlags.ENABLE_DROPS, FeatureFlags.ENABLE_MAP],
+            access: AccessPresets.EMAIL_VERIFIED,
+            ...editStackOptions,
+        }),
+    },
+    {
+        name: 'ViewDrop',
+        component: ViewDrop,
+        options: () => ({
+            title: 'Drop',
+            requiredFeatures: [FeatureFlags.ENABLE_DROPS, FeatureFlags.ENABLE_MAP],
+            access: AccessPresets.EMAIL_VERIFIED,
+            ...viewStackOptions,
         }),
     },
     {

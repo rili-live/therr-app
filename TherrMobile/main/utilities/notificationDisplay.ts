@@ -40,6 +40,8 @@ const DISPLAY_BY_TYPE: { [key: string]: INotificationDisplay } = {
     [NotificationEnums.Types.THOUGHT_REPLY]: { icon: 'reply', tone: 'message' },
     [NotificationEnums.Types.THOUGHT_REPOST]: { icon: 'retweet', tone: 'engagement' },
     [NotificationEnums.Types.INVITE_FRIENDS_REMINDER]: { icon: 'paper-plane', tone: 'social' },
+    [NotificationEnums.Types.DROP_RECEIVED]: { icon: 'map-marker-alt', tone: 'discovery' },
+    [NotificationEnums.Types.DROP_OPENED]: { icon: 'unlock', tone: 'engagement' },
 };
 
 export const getNotificationDisplay = (type?: string): INotificationDisplay =>

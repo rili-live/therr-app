@@ -524,6 +524,9 @@ const BRAND_EXCLUDED_NOTIFICATION_TYPES: Partial<Record<BrandVariations, Set<Pus
         PushNotifications.Types.proximityRequiredSpace,
         PushNotifications.Types.latestPostLikesStats,
         PushNotifications.Types.latestPostViewcountStats,
+        // Drops are a Therr surface; Friends with Habits has no screen to open one on.
+        PushNotifications.Types.dropReceived,
+        PushNotifications.Types.dropOpened,
     ]),
 };
 
@@ -1275,6 +1278,41 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'NEW_THOUGHT_REPOST_RECEIVED'), brandVariation);
             return baseMessage;
+
+        // Drops (docs/DROPS.md). Data-only like the thought pushes above, so the `dropView` press
+        // action can carry the drop into the tap. `drop` is already in `modifiedData` (stringified
+        // by the loop at the top of this function); its place name is read here for the copy.
+        case PushNotifications.Types.dropReceived:
+        case PushNotifications.Types.dropOpened: {
+            const isReceived = type === PushNotifications.Types.dropReceived;
+            const copyKey = isReceived ? 'dropReceived' : 'dropOpened';
+            const placeName = typeof data.drop?.placeName === 'string' ? data.drop.placeName.trim() : '';
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, `notifications.${copyKey}.title`, {
+                        userName: String(config.fromUserName || ''),
+                    }),
+                    notificationBody: translate(
+                        config.userLocale,
+                        placeName ? `notifications.${copyKey}.body` : `notifications.${copyKey}.bodyNoPlace`,
+                        {
+                            userName: String(config.fromUserName || ''),
+                            placeName,
+                        },
+                    ),
+                    notificationPressActionId: PushNotifications.PressActionIds.dropView,
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: PushNotifications.PressActionIds.dropView,
+                            title: translate(config.userLocale, `notifications.${copyKey}.pressActionView`),
+                        },
+                    ]),
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, isReceived ? 'DROP_RECEIVED' : 'DROP_OPENED'), brandVariation);
+            return baseMessage;
+        }
 
         // HABITS — Streak framing & pact lifecycle.
         // These notifications are HABITS' core retention loop. Streak-framed
@@ -2115,6 +2153,8 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.createAMomentReminder,
     PushNotifications.Types.createYourProfileReminder,
     PushNotifications.Types.dailyHabitReminder,
+    PushNotifications.Types.dropOpened,
+    PushNotifications.Types.dropReceived,
     PushNotifications.Types.eveningCheckIn,
     PushNotifications.Types.habitAutomaticity,
     PushNotifications.Types.habitComeback,
