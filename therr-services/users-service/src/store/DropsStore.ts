@@ -132,6 +132,20 @@ export default class DropsStore extends BrandScopedStore {
         return this.db.write.query(queryString).then((response) => response.rowCount || 0);
     }
 
+    /**
+     * Rows still pointing at this photo. One drop left for several friends shares one upload
+     * across its rows, so a sender deleting one copy must not delete the photo the others show.
+     * Reads the write pool: it runs straight after a delete and must see it.
+     */
+    countByMediaPath(brand: BrandValue, mediaPath: string): Promise<number> {
+        const queryString = this.scopedQuery(brand)
+            .count('* as count')
+            .andWhere(`${this.tableName}.mediaPath`, mediaPath)
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => Number(response.rows[0]?.count || 0));
+    }
+
     deleteForSender(brand: BrandValue, id: string, senderUserId: string): Promise<number> {
         const queryString = this.scopedUpdate(brand, { id, fromUserId: senderUserId })
             .delete()

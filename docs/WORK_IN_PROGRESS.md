@@ -102,6 +102,7 @@ append new items here rather than only printing them once.
 
 - [ ] After the users-service deploy, confirm migration `20261121000001_main.drops.js` ran (`main.drops` exists). New table, read by neither automator.
 - [ ] Confirm the users-service pod has `IMAGE_KIT_URL_PRIVATE` (added to `k8s/prod/users-service-deployment.yaml`). Without it an opened drop's photo comes back with `mediaUrl: null` — the drop still opens, the picture just never shows.
+- [ ] (2026-11-22, /quality-peer-review) Confirm the users-service storage credentials (`MAPS_SERVICE_GOOGLE_CREDENTIALS_BASE64`) can delete objects in `therr-private-user-data` (`storage.objects.delete`). Without it, deleting a drop logs "Error while deleting a deleted drop's photo" and leaves the photo behind — the drop itself still deletes.
 - [ ] Mirror `main.drops` into therr-messaging-automator's `src/store/brandScoped.ts` (CLAUDE.md § Sibling Repos rule 2), even though it does not read the table today.
 - [ ] On `niche/HABITS-general` (and any other niche branch), set `ENABLE_DROPS: false` in that brand's feature-flag overrides when `general` is next merged down — `general`'s env-config turns it on.
 - [ ] On two Therr handsets that are connected to each other: leave a drop with a photo, confirm the recipient's `dropReceived` push lands in the **Therr** app and its tap opens the drop locked, walk to the spot and open it, and confirm the sender's `dropOpened` push and that "Let them know" unticked sends nothing. Check the screens in light, dark and retro themes.

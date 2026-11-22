@@ -3,6 +3,7 @@ import { RequestHandler } from 'express';
 import { ErrorCodes, Notifications } from 'therr-js-utilities/constants';
 import { getBrandContext, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { storage } from '../api/aws';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
@@ -57,6 +58,21 @@ const serializeMany = async (rows: IDropRow[], userId: string) => {
     return rows
         .map((row) => serializeDrop(row, userId, { users, privateMediaBaseUrl }))
         .filter(Boolean);
+};
+
+/**
+ * Remove a drop's photo from the private bucket once no row references it. A drop left for
+ * several friends shares one upload, so deleting one copy keeps the photo while another remains.
+ * Only a sender's delete calls this: a recipient's dismissal leaves the sender's copy intact.
+ */
+export const deleteDropMediaIfUnreferenced = async (brandVariation: string, mediaPath: string): Promise<boolean> => {
+    const remaining = await Store.drops.countByMediaPath(brandVariation, mediaPath);
+    const bucketName = process.env.BUCKET_PRIVATE_USER_DATA;
+    if (remaining > 0 || !bucketName) {
+        return false;
+    }
+    await storage.bucket(bucketName).file(mediaPath).delete({ ignoreNotFound: true });
+    return true;
 };
 
 const notFound = (res, locale: string) => handleHttpError({
@@ -324,6 +340,20 @@ const deleteDrop: RequestHandler = async (req: any, res: any) => {
 
         if (String(row.fromUserId) === String(userId)) {
             await Store.drops.deleteForSender(brandVariation, row.id, userId);
+            if (row.mediaPath) {
+                // Best effort: a photo left behind is a storage leak, not a reason to fail the delete.
+                await deleteDropMediaIfUnreferenced(brandVariation, row.mediaPath).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while deleting a deleted drop\'s photo'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                            'drop.id': row.id,
+                        },
+                    });
+                });
+            }
             return res.status(200).send({ id: row.id, deleted: true });
         }
 

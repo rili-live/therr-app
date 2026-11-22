@@ -89,6 +89,20 @@ describe('DropsStore', () => {
         expect(sql).to.contain('"main"."drops"."brandVariation" = \'therr\'');
     });
 
+    it('counts photo references within the brand, on the write pool', async () => {
+        const db = buildMockDb();
+        db.write.query.resolves({ rows: [{ count: '2' }], rowCount: 1 });
+        const store = new DropsStore(db as any);
+
+        const count = await store.countByMediaPath('therr', `${SENDER}/drops/drop.jpg`);
+        const sql = db.write.query.args[0][0];
+
+        expect(count).to.equal(2);
+        expect(db.read.query.called).to.equal(false);
+        expect(sql).to.contain('"main"."drops"."brandVariation" = \'therr\'');
+        expect(sql).to.contain(`"main"."drops"."mediaPath" = '${SENDER}/drops/drop.jpg'`);
+    });
+
     it('lets only the sender delete', async () => {
         const db = buildMockDb();
         const store = new DropsStore(db as any);

@@ -90,6 +90,17 @@ unit-tested in `tests/unit/drops.test.ts`.
   anyone. users-service builds the photo URL itself (`IMAGE_KIT_URL_PRIVATE`), and only for a
   caller allowed to see it. maps-service `createMediaUrls` would not resolve another user's
   private path for a drop anyway, and that is the correct behaviour.
+- **The unlock trusts the location the phone reports.** `decideOpenDrop` checks the coordinates
+  in the open request; nothing proves the device is really there, so a spoofed location opens a
+  drop. That is accepted for v1: a drop only ever goes to a connection the sender chose, and its
+  location is already shown to that person exactly, so a spoof bypasses the walk, not anyone's
+  privacy. Revisit if drops ever reach people the sender did not pick, such as a public drop.
+- **A deleted drop takes its photo with it.** When the sender deletes a drop, users-service
+  deletes the photo from the private bucket once no row references its path any more
+  (`deleteDropMediaIfUnreferenced`). A drop left for several friends shares one upload, so the
+  photo stays until the last copy is deleted. A recipient removing their copy never deletes it.
+  The bucket delete is best effort: if it fails the drop is still deleted and the error is
+  logged. Photos of drops that merely expire are not cleaned up yet.
 - **Strangers and senders get `notFound` when they try to open.** The sender already holds the
   content. A distinct answer would only confirm to someone guessing ids that a row exists.
 - **The sender sees the day it was opened, never the time.** The API returns `openedOn` as
