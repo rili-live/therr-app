@@ -253,7 +253,11 @@ const openDrop: RequestHandler = async (req: any, res: any) => {
 
         // Only the request that flips openedAt notifies; a re-read of an opened drop updates nothing.
         const justOpened = row.openedAt ? undefined : await Store.drops.markOpened(brandVariation, row.id, userId);
-        const current = justOpened || row;
+        // Lost a race to a concurrent open (a double tap, a retry): `row` predates that write and
+        // still reads as locked, so re-read it rather than answer a successful open with no content.
+        const current = justOpened
+            || (row.openedAt ? row : await Store.drops.getForParticipant(brandVariation, row.id, userId))
+            || row;
 
         if (justOpened && shouldNotifySender !== false) {
             const users = await loadUsers([userId]);
