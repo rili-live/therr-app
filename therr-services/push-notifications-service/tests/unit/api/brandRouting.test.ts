@@ -54,6 +54,8 @@ const DATA_ONLY_TYPES = [
     PushNotifications.Types.nudgeSpaceEngagement,
     PushNotifications.Types.newThoughtReplyReceived,
     PushNotifications.Types.newThoughtRepostReceived,
+    PushNotifications.Types.dropReceived,
+    PushNotifications.Types.dropOpened,
     PushNotifications.Types.leaderboardRankMilestone,
     PushNotifications.Types.leaderboardRankLost,
     PushNotifications.Types.leaderboardPodiumWithinReach,

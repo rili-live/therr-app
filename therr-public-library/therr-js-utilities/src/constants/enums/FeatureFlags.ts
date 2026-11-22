@@ -21,6 +21,10 @@ enum FeatureFlags {
     ENABLE_FORUMS = 'ENABLE_FORUMS',
     ENABLE_ACTIVITY_SCHEDULER = 'ENABLE_ACTIVITY_SCHEDULER',
 
+    // Drops — a note or photo left at a place for one connection (docs/DROPS.md). Therr only:
+    // set false in every niche brand's overrides.
+    ENABLE_DROPS = 'ENABLE_DROPS',
+
     // HABITS App Features
     ENABLE_HABITS = 'ENABLE_HABITS',
     ENABLE_PACTS = 'ENABLE_PACTS',

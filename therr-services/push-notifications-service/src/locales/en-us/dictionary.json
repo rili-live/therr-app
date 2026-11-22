@@ -97,6 +97,18 @@
       "body": "{userName} reposted your post — it's reaching a new audience",
       "pressActionView": "View Post"
     },
+    "dropReceived": {
+      "title": "{userName} left you a drop",
+      "body": "It's waiting at {placeName}. Go there to open it",
+      "bodyNoPlace": "It's waiting at a spot they picked. Go there to open it",
+      "pressActionView": "See Where"
+    },
+    "dropOpened": {
+      "title": "Your drop was opened",
+      "body": "{userName} found the drop you left at {placeName}",
+      "bodyNoPlace": "{userName} found the drop you left for them",
+      "pressActionView": "View Drop"
+    },
     "newAreasActivated": {
       "title": "New Spots Unlocked!",
       "body": "You just unlocked {totalAreasActivated} new area(s) — explore what's been shared nearby"

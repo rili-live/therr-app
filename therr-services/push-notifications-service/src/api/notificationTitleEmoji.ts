@@ -38,6 +38,9 @@ export const NOTIFICATION_TITLE_EMOJI: Record<PushNotifications.Types, string> =
     [PushNotifications.Types.newAreasActivated]: '🗺️',
     [PushNotifications.Types.nudgeSpaceEngagement]: '💰',
     [PushNotifications.Types.postVisitReviewReminder]: '⭐',
+    // Drops (docs/DROPS.md)
+    [PushNotifications.Types.dropReceived]: '📦',
+    [PushNotifications.Types.dropOpened]: '🔑',
     [PushNotifications.Types.proximityRequiredMoment]: '🔮',
     [PushNotifications.Types.proximityRequiredSpace]: '📌',
 

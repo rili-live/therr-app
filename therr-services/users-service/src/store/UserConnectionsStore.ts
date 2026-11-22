@@ -128,6 +128,31 @@ export default class UserConnectionsStore {
             .filter((id) => !!id && id !== userId));
     }
 
+    /**
+     * Which of `otherUserIds` have a live connection to `userId` — accepted and not broken, the
+     * same predicate the connections list filters on. Used to gate actions that reach another
+     * user directly (Drops), where a pending or removed connection must not qualify.
+     */
+    getLiveConnectionUserIdsAmong(userId: string, otherUserIds: string[]): Promise<string[]> {
+        if (!otherUserIds.length) {
+            return Promise.resolve([]);
+        }
+        const queryString = knexBuilder.select(['requestingUserId', 'acceptingUserId'])
+            .from(USER_CONNECTIONS_TABLE_NAME)
+            .where({
+                requestStatus: UserConnectionTypes.COMPLETE,
+                isConnectionBroken: false,
+            })
+            .andWhere((builder) => builder
+                .where((inner) => inner.where({ requestingUserId: userId }).whereIn('acceptingUserId', otherUserIds))
+                .orWhere((inner) => inner.where({ acceptingUserId: userId }).whereIn('requestingUserId', otherUserIds)))
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => Array.from(new Set<string>(response.rows
+            .map((row) => (row.requestingUserId === userId ? row.acceptingUserId : row.requestingUserId))
+            .filter((id) => !!id && id !== userId))));
+    }
+
     getMightKnowUserConnections(userId: string, conditions = {}, limit = 100) {
         const queryString = knexBuilder.select('*')
             .from(USER_CONNECTIONS_TABLE_NAME)

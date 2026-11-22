@@ -4,6 +4,14 @@ import ApiService, {
     IPhoneAuthVerifyArgs,
 } from './ApiService';
 import CampaignsService from './CampaignsService';
+import DropsService, {
+    DropStatus,
+    ICreateDropBody,
+    IDrop,
+    IDropMedia,
+    IDropUser,
+    IOpenDropBody,
+} from './DropsService';
 import ForumsService from './ForumsService';
 import MapsService,
 {
@@ -56,6 +64,13 @@ export {
     IPhoneAuthSelectArgs,
     IPhoneAuthVerifyArgs,
     CampaignsService,
+    DropsService,
+    DropStatus,
+    ICreateDropBody,
+    IDrop,
+    IDropMedia,
+    IDropUser,
+    IOpenDropBody,
     ForumsService,
     MapsService,
     IGetSpaceEngagementArgs,
