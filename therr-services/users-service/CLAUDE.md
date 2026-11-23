@@ -71,6 +71,8 @@ Key tables: `users`, `userConnections`, `userGroups`, `notifications`, `userAchi
 - `pact_members` - Membership with per-user stats
 - `pact_join_requests` - Requests to join an *open* pact (`pacts.isOpen`). Deliberately not `pact_members` rows,
   so an unanswered stranger counts in no membership query; approval turns one into an ordinary active member
+  (the creator's, or the digest's handoff when the creator has gone quiet — `handlers/helpers/openPactHandoff.ts`, the only
+  writer of `pacts."creatorUserId"` after creation and of the `expired` status)
 - `habit_checkins` - Daily completion records
 - `challenges` / `challenge_members` - Join-by-link challenges: a public scoreboard over members' own check-ins on
   one habit goal. Not pacts — no partner pushes. Ranking rules live in `utilities/challengeStandings.ts`

@@ -63,6 +63,32 @@ export const isPactJoinable = (pact: {
 };
 
 /**
+ * The open-pact handoff (handlers/helpers/openPactHandoff.ts): when a request has waited this long
+ * and the pact's creator has gone quiet, the pact is handed to the requester who has waited longest
+ * and everyone waiting is let in. Two days is the push at the ask plus the creator's email at 24h
+ * (helpers/joinRequestEmailDigest.ts), and a day after that to answer it.
+ */
+export const OPEN_PACT_HANDOFF_MIN_REQUEST_AGE_DAYS = 2;
+
+/**
+ * How long a creator must have shown no sign of life — no login, no check-in on any habit, no
+ * message in the pact's chat — before their open pact can be handed off. A week, so a creator who
+ * is merely busy for a few days keeps their pact; someone who has not checked in for a week on a
+ * habits app has, for this pact's purposes, left it.
+ */
+export const OPEN_PACT_CREATOR_INACTIVE_DAYS = 7;
+
+/**
+ * A pending request older than this is expired, so it stops holding one of the requester's
+ * MAX_PENDING_JOIN_REQUESTS_PER_USER slots. Reached only when the creator is active but never
+ * answers, or closed the pact without answering — an inactive creator's pact is handed off first.
+ */
+export const JOIN_REQUEST_EXPIRY_DAYS = 14;
+
+/** Once per request: each requester is told once that they are in, or that they now host. */
+export const openPactHandoffDedupeKey = (requestId: string): string => `open-pact-handoff:${requestId}`;
+
+/**
  * Which unanswered pacts the digest prompts about. A pact whose invites have sat unanswered for
  * three days is unlikely to be answered at all — most accepts land within a day — but three weeks on
  * the creator has moved on, and a prompt about it reads as spam rather than help.

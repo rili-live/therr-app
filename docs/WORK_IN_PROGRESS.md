@@ -582,6 +582,14 @@ and `fix(push): clear dead device tokens for the recipient, not the sender`.
 - [ ] **Confirm one `pactJoinRequested` push lands in the Habits app on a handset.** All three new
   types are display pushes with no click action, so they render on installed builds; the tap only
   opens the app. Routing it to the pact is the mobile half on `niche/HABITS-general`.
+- [ ] **(2026-11-23) Watch `openPactHandoffs` in the first digest runs after the users-service deploy.** Logged as a
+  JSON string on the "Habits daily digest completed" span. The first run will hand off every open pact whose
+  creator has been quiet a week with someone waiting, and expire every request over 14 days old — expect a
+  one-time spike in `pactsHandedOff` and `requestsExpired`, then a trickle. `handoffErrors > 0` means a pact
+  was partly moved: search the logs for "failed to let a requester into a handed-off pact". Each handoff logs
+  "open pact handed to a new host" with both user ids. Kill switch: `HABIT_OPEN_PACT_HANDOFF_ENABLED=false`
+  (expiry keeps running; it only frees requesters' slots). Needs the push-notifications-service deploy too,
+  or the new host's push falls back to the ordinary "X let you into their pact" copy.
 
 ## Authenticated image pulls (added 2026-09-20)
 
