@@ -143,6 +143,11 @@ append new items here rather than only printing them once.
   one "Your egg hatched!" screen after any streak/placement screen; Continue, foreground again, and it must
   not repeat. An account that already had achievements before the update must NOT get a celebration on
   first launch (that launch records the baseline).
+- [ ] **(2026-11-23) Look at stages 6-10 on device, light and dark theme** (Trailblazer, Wing Sprout, Sky
+  Strider, Dragonkin, Habit Legend). They were reviewed only as a browser render of the grids. Check that the
+  teal crest, the wings and the gold horns/halo stay legible on the dark surface, and that the wing and halo
+  look right while the chameleon bobs (they are drawn on the creature layer, so they move with it). No
+  account can reach stage 6 before 120 days, so preview them by setting `stageId` on a dev build.
 
 ## Open-pact announcement & XP (added 2026-11-13, docs/FEATURES.md → Open pacts)
 
