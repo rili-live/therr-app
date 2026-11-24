@@ -101,4 +101,34 @@ describe('UserConnectionsStore', () => {
             expect(mockStore.write.query.args[0][0].includes(expected2)).to.be.equal(true);
         });
     });
+    describe('getLiveConnectionUserIdsAmong', () => {
+        it('requires a complete, unbroken connection in either direction', async () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({
+                        rows: [
+                            { requestingUserId: 'me', acceptingUserId: 'a' },
+                            { requestingUserId: 'b', acceptingUserId: 'me' },
+                        ],
+                    })),
+                },
+            };
+            const store = new UserConnectionsStore(mockStore);
+            const ids = await store.getLiveConnectionUserIdsAmong('me', ['a', 'b', 'c']);
+            const sql = mockStore.read.query.args[0][0];
+
+            expect(ids).to.deep.equal(['a', 'b']);
+            expect(sql).to.contain(`"requestStatus" = '${UserConnectionTypes.COMPLETE}'`);
+            expect(sql).to.contain('"isConnectionBroken" = false');
+            expect(sql).to.contain(`("requestingUserId" = 'me' and "acceptingUserId" in ('a', 'b', 'c')) or ("acceptingUserId" = 'me' and "requestingUserId" in ('a', 'b', 'c'))`);
+        });
+
+        it('skips the query when there is no one to check', async () => {
+            const mockStore = { read: { query: sinon.stub() } };
+            const store = new UserConnectionsStore(mockStore);
+
+            expect(await store.getLiveConnectionUserIdsAmong('me', [])).to.deep.equal([]);
+            expect(mockStore.read.query.called).to.equal(false);
+        });
+    });
 });

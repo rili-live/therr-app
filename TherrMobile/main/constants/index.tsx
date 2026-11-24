@@ -171,6 +171,9 @@ const REMINDER_ACTION_KEYS = new Set<string>([
     // Pact chat: a partner wrote to you. Heads-up, like NEW_DIRECT_MESSAGE above. Data-only, so
     // the channel comes from this set; the server already holds it to one per pact per hour.
     'PACT_MESSAGE',
+    // Drops (docs/DROPS.md): a friend's drop waiting for you, and your drop being found.
+    'DROP_RECEIVED',
+    'DROP_OPENED',
 ]);
 
 const REWARD_ACTION_KEYS = new Set<string>([

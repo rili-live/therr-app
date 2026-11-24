@@ -97,6 +97,18 @@
       "body": "{userName} reposted your post — it's reaching a new audience",
       "pressActionView": "View Post"
     },
+    "dropReceived": {
+      "title": "{userName} left you a drop",
+      "body": "It's waiting at {placeName}. Go there to open it",
+      "bodyNoPlace": "It's waiting at a spot they picked. Go there to open it",
+      "pressActionView": "See Where"
+    },
+    "dropOpened": {
+      "title": "Your drop was opened",
+      "body": "{userName} found the drop you left at {placeName}",
+      "bodyNoPlace": "{userName} found the drop you left for them",
+      "pressActionView": "View Drop"
+    },
     "newAreasActivated": {
       "title": "New Spots Unlocked!",
       "body": "You just unlocked {totalAreasActivated} new area(s) — explore what's been shared nearby"
@@ -208,7 +220,9 @@
     },
     "pactJoinApproved": {
       "title": "You're in!",
-      "body": "{userName} let you into their {habitName} pact. Check in today to get started."
+      "body": "{userName} let you into their {habitName} pact. Check in today to get started.",
+      "bodyHandoff": "You're in the {habitName} pact. {userName} is hosting it now. Check in today to get started.",
+      "bodyHandoffHost": "The {habitName} pact's creator went quiet, so it's yours to host now. Check in today and answer anyone who asks to join."
     },
     "openPactSuggestion": {
       "title": "Still waiting on a partner?",

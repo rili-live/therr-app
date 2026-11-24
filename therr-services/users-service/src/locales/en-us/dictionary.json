@@ -157,6 +157,20 @@
             "amountTooPrecise": "Use at most two decimal places, like 25.50",
             "invalidCurrencyCode": "Use a three-letter currency code, like USD",
             "invalidTargetScope": "Choose whether the target is per person or for the group"
+        },
+        "drops": {
+            "notFound": "This drop doesn't exist, or it isn't yours to see",
+            "noRecipients": "Choose at least one friend to leave this drop for",
+            "tooManyRecipients": "A drop can be left for at most 10 friends at once",
+            "cannotDropForSelf": "You can't leave a drop for yourself",
+            "emptyDrop": "Add a message or a photo to your drop",
+            "messageTooLong": "Keep your drop's message under 500 characters",
+            "invalidLocation": "We couldn't read your location. Turn on location services and try again",
+            "invalidMedia": "That photo couldn't be attached. Try adding it again",
+            "notConnected": "Drops can only be left for people you're connected with",
+            "tooManyToday": "You've left a lot of drops today. Try again tomorrow",
+            "expired": "This drop expired before it was opened",
+            "tooFar": "You're not close enough yet. Get to the spot to open it"
         }
     },
     "metrics": {
@@ -177,7 +191,11 @@
         "discoveredUniqueMoment": "You found something special! Open the map to check it out.",
         "discoveredUniqueSpace": "Hidden gem alert — you're near a unique space!",
         "pactInvitation": "{fromUserName} invited you to a pact: {habitName}",
-        "pactJoinRequest": "{fromUserName} asked to join your pact: {habitName}"
+        "pactJoinRequest": "{fromUserName} asked to join your pact: {habitName}",
+        "dropReceived": "{userName} left you a drop at {placeName}. Go there to open it",
+        "dropReceivedNoPlace": "{userName} left you a drop. Go to the spot to open it",
+        "dropOpened": "{userName} opened the drop you left at {placeName}",
+        "dropOpenedNoPlace": "{userName} opened the drop you left for them"
     },
     "invites": {
         "phone": "{name} invited you to {brandName}{brandTagline}. Sign up here to connect: {inviteUrl}",

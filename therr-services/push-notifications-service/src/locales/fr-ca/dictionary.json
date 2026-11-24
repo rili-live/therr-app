@@ -97,6 +97,18 @@
       "body": "{userName} a republié ta publication — elle rejoint un nouveau public",
       "pressActionView": "Voir la publication"
     },
+    "dropReceived": {
+      "title": "{userName} t'a laissé un drop",
+      "body": "Il t'attend à {placeName}. Vas-y pour l'ouvrir",
+      "bodyNoPlace": "Il t'attend à un endroit choisi pour toi. Vas-y pour l'ouvrir",
+      "pressActionView": "Voir où"
+    },
+    "dropOpened": {
+      "title": "Ton drop a été ouvert",
+      "body": "{userName} a trouvé le drop que tu as laissé à {placeName}",
+      "bodyNoPlace": "{userName} a trouvé le drop que tu lui as laissé",
+      "pressActionView": "Voir le drop"
+    },
     "newAreasActivated": {
       "title": "Nouveaux secteurs débloqués!",
       "body": "Tu viens de débloquer {totalAreasActivated} nouveau(x) secteur(s) — explore ce qui a été partagé à proximité"
@@ -208,7 +220,9 @@
     },
     "pactJoinApproved": {
       "title": "Tu es dedans!",
-      "body": "{userName} t'a accepté dans son pacte {habitName}. Fais ton suivi aujourd'hui pour commencer."
+      "body": "{userName} t'a accepté dans son pacte {habitName}. Fais ton suivi aujourd'hui pour commencer.",
+      "bodyHandoff": "Tu fais partie du pacte {habitName}. {userName} l'anime maintenant. Fais ton suivi aujourd'hui pour commencer.",
+      "bodyHandoffHost": "Le créateur du pacte {habitName} ne répond plus : c'est toi qui l'animes maintenant. Fais ton suivi aujourd'hui et réponds à ceux qui demandent à se joindre."
     },
     "openPactSuggestion": {
       "title": "Toujours en attente d'un partenaire?",

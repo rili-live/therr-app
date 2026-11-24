@@ -225,6 +225,18 @@ Next in Play Console: roll out the internal draft → promote to production → 
 
 ---
 
+## Known failure modes
+
+- **Submit FINISHED, but no track holds the bundle.** The EAS build and submission both report
+  FINISHED and Play's bundle list has the versionCode, yet the Console shows no release (seen
+  2026-11-22 on vc 467 and 468; root cause unknown). Never re-upload: Play rejects a duplicate
+  versionCode. Check `edits().bundles().list` and `edits().tracks().list` in `scripts/google-play`
+  (`.venv/bin/python`, `therr_play.publisher`). If the bundle is there, assign it to `internal`
+  as a `draft` release in a committed edit, keeping the track's existing non-draft releases in
+  the update body.
+
+---
+
 ## Rules
 
 - **Never bump versionCode or versionName yourself.** Report the minimum and let the user

@@ -503,6 +503,26 @@
                 "champion": {
                     "name": "Change Champion",
                     "caption": "Crowned in every color. You've built habits that last."
+                },
+                "trailblazer": {
+                    "name": "Trailblazer",
+                    "caption": "A crest has grown along its back. You're setting a pace others can follow."
+                },
+                "winged": {
+                    "name": "Wing Sprout",
+                    "caption": "Its first wing has unfurled. Months of steady habits are starting to lift you."
+                },
+                "soaring": {
+                    "name": "Sky Strider",
+                    "caption": "Wings spread wide. Your routine is carrying you further than you planned."
+                },
+                "dragonkin": {
+                    "name": "Dragonkin",
+                    "caption": "Its crown has grown into golden horns. Few habit buddies ever come this far."
+                },
+                "legend": {
+                    "name": "Habit Legend",
+                    "caption": "A year of showing up turned a little egg into a legend."
                 }
             },
             "celebration": {
@@ -1198,7 +1218,8 @@
             "requestASpace": "Request a Space",
             "shareAThought": "Share a Thought",
             "uploadAMoment": "Create a Moment",
-            "captureAMoment": "Capture a Moment"
+            "captureAMoment": "Capture a Moment",
+            "leaveADrop": "Leave a Drop"
         },
         "filterActions": {
             "applyFilters": "Apply",
@@ -3566,6 +3587,116 @@
                 "future": "{date}",
                 "none": "{date}: no streak yet"
             }
+        },
+        "drops": {
+            "headerTitle": "Drops",
+            "tabs": {
+                "received": "For You",
+                "sent": "You Left"
+            },
+            "buttons": {
+                "leaveADrop": "Leave a drop for a friend"
+            },
+            "labels": {
+                "fromUser": "From {userName}",
+                "forUser": "For {userName}",
+                "aSpotTheyPicked": "A spot they picked",
+                "aSpotYouPicked": "A spot you picked"
+            },
+            "status": {
+                "locked": "Locked",
+                "opened": "Opened",
+                "openedOn": "Opened {date}",
+                "expired": "Expired"
+            },
+            "info": {
+                "noReceivedTitle": "Nothing waiting for you yet",
+                "noReceivedBody": "When a friend leaves you a drop, it shows up here. You'll have to go to the spot to open it.",
+                "noSentTitle": "You haven't left any drops",
+                "noSentBody": "Leave a note or a photo somewhere for a friend. It only opens when they get there."
+            }
+        },
+        "createDrop": {
+            "headerTitle": "Leave a Drop",
+            "labels": {
+                "forWho": "Who is it for?",
+                "message": "Message",
+                "photo": "Photo (optional)",
+                "addPhoto": "Add a photo",
+                "where": "Where",
+                "locationReady": "It'll be left right where you're standing",
+                "locating": "Finding your location…",
+                "locationUnavailable": "We can't find your location. Tap to try again"
+            },
+            "placeholders": {
+                "message": "Say something they'll only see when they get here",
+                "placeName": "Name this spot (e.g. \"the bench by the fountain\")"
+            },
+            "buttons": {
+                "submit": "Leave the drop",
+                "removePhoto": "Remove photo"
+            },
+            "info": {
+                "intro": "Leave a note or a photo right here. Your friend gets told where it is, and it only opens when they come to this spot.",
+                "noFriends": "You can leave drops for people you are connected with. Connect with a friend first.",
+                "whereHelp": "Your friend sees this spot on a map, so they can get here. A name helps them find it.",
+                "needsRecipient": "Pick at least one friend.",
+                "needsLocation": "Turn on location so the drop can be pinned here.",
+                "needsContent": "Add a message or a photo."
+            },
+            "alerts": {
+                "successTitle": "Drop left!",
+                "successBodyOne": "We'll let {userName} know where to find it.",
+                "successBodyMany": "We'll let all {count} friends know where to find it.",
+                "errorTitle": "Couldn't leave the drop",
+                "tooManyRecipients": "You can pick up to {count} friends"
+            }
+        },
+        "viewDrop": {
+            "headerTitle": "Drop",
+            "labels": {
+                "leftYouADrop": "{userName} left you a drop",
+                "waitingAt": "It's waiting at {placeName}",
+                "waitingAtUnnamed": "It's waiting at a spot they picked",
+                "distanceAway": "{distance} away",
+                "letThemKnow": "Let {userName} know I opened it",
+                "fromUser": "From {userName}",
+                "youLeftThisFor": "You left this for {userName}",
+                "notOpenedYet": "Not opened yet",
+                "openedOn": "Opened {date}",
+                "expiredUnopened": "Expired before it was opened",
+                "expiredTitle": "This drop expired",
+                "expiredBody": "{userName}'s drop ran out before you got there."
+            },
+            "info": {
+                "locked": "There's a message inside. Go to the spot to open it.",
+                "lockedWithPhoto": "There's something inside, photo included. Go to the spot to open it.",
+                "notFoundTitle": "This drop isn't here",
+                "notFoundBody": "It may have been deleted, or it was meant for someone else."
+            },
+            "buttons": {
+                "open": "I'm here. Open it",
+                "directions": "Get directions",
+                "dropOneBack": "Leave one back",
+                "delete": "Delete this drop",
+                "dismiss": "Remove from my drops"
+            },
+            "alerts": {
+                "tooFarTitle": "Not quite there yet",
+                "tooFarBody": "You're about {distance} away. Get closer to open it.",
+                "noLocationTitle": "We can't find your location",
+                "noLocationBody": "Turn on location services and try again.",
+                "openFailedTitle": "Couldn't open the drop"
+            },
+            "confirm": {
+                "deleteTitle": "Delete this drop?",
+                "deleteBody": "Your friend won't be able to open it anymore.",
+                "dismissTitle": "Remove this drop?",
+                "dismissBody": "It will disappear from your drops. The person who left it won't be told.",
+                "delete": "Delete",
+                "dismiss": "Remove",
+                "cancel": "Cancel"
+            }
         }
     },
     "modals": {
@@ -4333,7 +4464,9 @@
                 "syncSocials": "Sync Socials",
                 "shareALink": "Copy Profile Link",
                 "unconnect": "Remove Connection?",
-                "myQRCodes": "Show My QR Codes"
+                "myQRCodes": "Show My QR Codes",
+                "leaveADrop": "Leave a drop for them",
+                "myDrops": "My drops"
             },
             "buttons": {
                 "editProfile": "Edit Profile",

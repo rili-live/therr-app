@@ -1329,6 +1329,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 || data.action === brandIntents.NEW_THOUGHT_REPLY_RECEIVED
                 || data.action === brandIntents.NEW_THOUGHT_REPOST_RECEIVED) {
                 targetRouteView = 'Notifications';
+            } else if (data.action === brandIntents.DROP_RECEIVED
+                || data.action === brandIntents.DROP_OPENED) {
+                // Drops (docs/DROPS.md). The intent carries no extras we can rely on here, so
+                // land on the inbox; the data-only tap path opens the drop itself.
+                targetRouteView = 'Drops';
+                targetRouteParams = {
+                    activeTab: data.action === brandIntents.DROP_OPENED ? 'sent' : 'received',
+                };
             } else if (data.action === brandIntents.NUDGE_SPACE_ENGAGEMENT) {
                 targetRouteView = 'Areas';
             } else if (data.action === brandIntents.POST_VISIT_REVIEW_REMINDER) {
@@ -1468,6 +1476,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const area = parseObject('area');
         const fromUser = parseObject('fromUser');
         const thought = parseObject('thought');
+        const drop = parseObject('drop');
         const groupId = typeof data?.groupId === 'string' ? data.groupId : undefined;
         const postType = typeof data?.postType === 'string' ? data.postType : undefined;
         // HABITS routing ids. The backend promotes these out of the copy config
@@ -1616,6 +1625,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             case PushNotifications.Types.newThoughtRepostReceived:
                 if (thought?.id) return buildThoughtRoute(thought);
                 return { targetRouteView: 'Notifications', targetRouteParams: {} };
+            case PushNotifications.Types.dropReceived:
+            case PushNotifications.Types.dropOpened:
+                if (drop?.id) return { targetRouteView: 'ViewDrop', targetRouteParams: { dropId: drop.id } };
+                return {
+                    targetRouteView: 'Drops',
+                    targetRouteParams: {
+                        activeTab: notificationType === PushNotifications.Types.dropOpened ? 'sent' : 'received',
+                    },
+                };
             case PushNotifications.Types.postVisitReviewReminder:
                 if (area?.id) return buildSpaceRoute(area);
                 return { targetRouteView: 'BookMarked', targetRouteParams: {} };
@@ -1868,6 +1886,24 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         },
                         thoughtDetails: thought,
                     });
+                }
+                return Promise.resolve();
+            }
+
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.dropView) {
+                let drop: any = {};
+                try {
+                    drop = typeof notification?.data?.drop === 'string'
+                        ? JSON.parse(notification?.data?.drop as string || '{}')
+                        : (notification?.data?.drop || {});
+                } catch {
+                    drop = {};
+                }
+
+                if (drop?.id) {
+                    RootNavigation.navigate('ViewDrop', { dropId: drop.id });
+                } else {
+                    RootNavigation.navigate('Drops');
                 }
                 return Promise.resolve();
             }
