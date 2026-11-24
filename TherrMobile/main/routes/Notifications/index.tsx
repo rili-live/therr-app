@@ -167,7 +167,16 @@ class Notifications extends React.Component<
 
     navigateToNotificationContext = (notification) => {
         const { navigation } = this.props;
-        if (notification.type === NotificationsEmuns.Types.NEW_AREAS_ACTIVATED) {
+        if (notification.type === NotificationsEmuns.Types.DROP_RECEIVED
+            || notification.type === NotificationsEmuns.Types.DROP_OPENED) {
+            // Drops (docs/DROPS.md): associationId is the drop row this user is a party to.
+            const dropId = notification.messageParams?.dropId || notification.associationId;
+            if (dropId) {
+                navigation.navigate('ViewDrop', { dropId });
+            } else {
+                navigation.navigate('Drops');
+            }
+        } else if (notification.type === NotificationsEmuns.Types.NEW_AREAS_ACTIVATED) {
             if (notification.messageParams?.activatedMomentIds?.length
                 || notification.messageParams?.activatedSpaceIds?.length) {
                 navigation.navigate('ActivatedAreas', {

@@ -210,6 +210,10 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     // `pactDeclined` copy selector: 'memberLeft' when an active group member left a pact that
     // carries on without them. Copy only — see push-notifications-service/api/pactDeclinedCopy.ts.
     pactDeclineReason?: 'memberLeft';
+    // `pactJoinApproved` copy selector: set when the habits digest let the recipient into an open pact
+    // whose creator went quiet — 'handoffHost' for the requester who now hosts it, 'handoff' for the
+    // others (handlers/helpers/openPactHandoff.ts). Absent for an ordinary approval. Copy only.
+    pactJoinApprovedReason?: 'handoff' | 'handoffHost';
     // Pact chat: the first line of the message a `pactMessage` push announces (capped by the
     // producer, handlers/pactChat.ts). Copy only.
     messagePreview?: string;
@@ -253,6 +257,7 @@ export default (
     {
         area,
         authorization,
+        drop,
         groupName,
         groupId,
         fromUser,
@@ -298,6 +303,7 @@ export default (
         pledgeAmount,
         charityKey,
         pactDeclineReason,
+        pactJoinApprovedReason,
         messagePreview,
         messageVariant,
         notificationQueueId,
@@ -410,6 +416,7 @@ export default (
                 },
                 data: {
                     area,
+                    drop,
                     fromUserName: fromUser?.userName,
                     fromUserId: fromUser?.id,
                     groupId,
@@ -455,6 +462,7 @@ export default (
                     pledgeAmount,
                     charityKey,
                     pactDeclineReason,
+                    pactJoinApprovedReason,
                     messagePreview,
                     messageVariant,
                     notificationQueueId,

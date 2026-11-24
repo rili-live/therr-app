@@ -35,6 +35,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
 
         // optional
         area,
+        // Drops: { id, placeName }. Routes the tap and supplies the push body's place name.
+        drop,
         achievementsCount,
         fromUserId,
         groupId,
@@ -101,6 +103,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         charityKey,
         // Which `pactDeclined` story to tell — copy only.
         pactDeclineReason,
+        // Which `pactJoinApproved` story to tell (an open pact handed off by the digest) — copy only.
+        pactJoinApprovedReason,
         // Pact chat — the first line of the message being announced. Copy only.
         messagePreview,
         // Which retention story a `dailyHabitReminder` tells (first-checkin, day-two, comeback, …).
@@ -112,6 +116,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         type || PushNotifications.Types.newDirectMessage,
         {
             area,
+            drop,
             groupId,
             fromUser: fromUser || {
                 id: fromUserId,
@@ -167,6 +172,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             pledgeAmount,
             charityKey,
             pactDeclineReason,
+            pactJoinApprovedReason,
             messagePreview,
             messageVariant: typeof messageVariant === 'string' ? messageVariant : undefined,
         },
@@ -278,6 +284,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         charityKey,
         // Which `pactDeclined` story to tell — copy only.
         pactDeclineReason,
+        // Which `pactJoinApproved` story to tell (an open pact handed off by the digest) — copy only.
+        pactJoinApprovedReason,
         // Pact chat — the first line of the message being announced. Copy only.
         messagePreview,
         // Which retention story a `dailyHabitReminder` tells (first-checkin, day-two, comeback, …).
@@ -346,6 +354,7 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             pledgeAmount,
             charityKey,
             pactDeclineReason,
+            pactJoinApprovedReason,
             messagePreview,
             messageVariant: typeof messageVariant === 'string' ? messageVariant : undefined,
         },

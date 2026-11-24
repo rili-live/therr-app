@@ -33,6 +33,10 @@ const getPushNotificationType = (notificationType: Notifications.Types): PushNot
         pushNotificationType = PushNotifications.Types.newGroupMembers;
     } else if (notificationType === Notifications.Types.NEW_GROUP_INVITE) {
         pushNotificationType = PushNotifications.Types.newGroupInvite;
+    } else if (notificationType === Notifications.Types.DROP_RECEIVED) {
+        pushNotificationType = PushNotifications.Types.dropReceived;
+    } else if (notificationType === Notifications.Types.DROP_OPENED) {
+        pushNotificationType = PushNotifications.Types.dropOpened;
     }
 
     return pushNotificationType;
@@ -90,6 +94,13 @@ const createAndSendNotification = (
                         fromUserId: dbNotification.messageParams?.contentUserId,
                     };
                     pushNotificationParams.postType = dbNotification.messageParams?.postType;
+                }
+                if (dbNotification.messageParams?.dropId) {
+                    // The drop's id routes the tap; its place name is the push body's copy.
+                    pushNotificationParams.drop = {
+                        id: dbNotification.messageParams.dropId,
+                        placeName: dbNotification.messageParams.placeName || undefined,
+                    };
                 }
                 if (dbNotification.messageParams?.thoughtId) {
                     pushNotificationParams.thought = {

@@ -49,6 +49,11 @@ import {
 } from './validation/subscribers';
 import { recordPushOpenValidation, updateNotificationValidation } from './validation/notifications';
 import {
+    createDropValidation,
+    dropIdValidation,
+    openDropValidation,
+} from './validation/drops';
+import {
     feedbackAttemptLimiter,
     forgotPasswordLimiter,
     loginAttemptLimiter,
@@ -1090,6 +1095,32 @@ usersServiceRouter.put('/habits/journal/:id', handleServiceRequest({
     method: 'put',
 }));
 usersServiceRouter.delete('/habits/journal/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'delete',
+}));
+
+// DROPS — a note or photo left at a place for one connection (docs/DROPS.md)
+usersServiceRouter.get('/drops/received', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/drops/sent', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/drops/:id', dropIdValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.post('/drops', createDropValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.post('/drops/:id/open', openDropValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.delete('/drops/:id', dropIdValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'delete',
 }));

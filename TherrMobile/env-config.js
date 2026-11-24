@@ -56,6 +56,9 @@ const baseFeatureFlags = {
     ENABLE_HABITS_SOLO: false,
     ENABLE_HABITS_LIFETIME_OFFER: false,
 
+    // Drops (docs/DROPS.md). Therr only — a niche brand's overrides must set this false.
+    ENABLE_DROPS: true,
+
     // Device / OS Permissions
     ENABLE_LOCATION_SERVICES: true,
 
@@ -108,6 +111,9 @@ const brandFeatureFlagOverrides = {
         // credentials configured, so this flag being on is necessary but not
         // sufficient for the CTA to appear.
         ENABLE_HABITS_LIFETIME_OFFER: true,
+
+        // Drops are place-anchored (docs/DROPS.md) and HABITS has no map or location services.
+        ENABLE_DROPS: false,
     },
 };
 

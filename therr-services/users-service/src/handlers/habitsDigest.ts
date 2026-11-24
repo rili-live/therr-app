@@ -61,6 +61,11 @@ import {
     runJoinRequestEmailPass,
 } from './helpers/joinRequestEmailDigest';
 import {
+    EMPTY_OPEN_PACT_HANDOFF_COUNTERS,
+    IOpenPactHandoffCounters,
+    runOpenPactHandoffPass,
+} from './helpers/openPactHandoff';
+import {
     emptyOnboardingNurtureCounters,
     IOnboardingNurtureCounters,
     runOnboardingNurturePass,
@@ -279,6 +284,8 @@ interface IDigestCountersWithRecap extends IDigestCounters {
     openPactSuggestions: IOpenPactSuggestionCounters;
     // Nested for the same reason. See helpers/joinRequestEmailDigest.ts.
     joinRequestEmails: IJoinRequestEmailCounters;
+    // Nested for the same reason. See helpers/openPactHandoff.ts.
+    openPactHandoffs: IOpenPactHandoffCounters;
     pactInviteReminders: IPactInviteReminderCounters;
     // Nested for the same reason. See helpers/onboardingNurtureDigest.ts.
     onboardingNurture: IOnboardingNurtureCounters;
@@ -398,6 +405,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         pledgeVerdicts: { ...EMPTY_PLEDGE_VERDICT_COUNTERS },
         openPactSuggestions: { ...EMPTY_OPEN_PACT_SUGGESTION_COUNTERS },
         joinRequestEmails: { ...EMPTY_JOIN_REQUEST_EMAIL_COUNTERS },
+        openPactHandoffs: { ...EMPTY_OPEN_PACT_HANDOFF_COUNTERS },
         pactInviteReminders: { ...EMPTY_PACT_INVITE_REMINDER_COUNTERS },
         onboardingNurture: emptyOnboardingNurtureCounters(),
         podiumWithinReach: { ...EMPTY_PODIUM_WITHIN_REACH_COUNTERS },
@@ -1666,6 +1674,20 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 return { ...EMPTY_OPEN_PACT_SUGGESTION_COUNTERS, suggestionErrors: 1 };
             });
 
+        // Best-effort, like the passes above. Before the join-request email, so requests this
+        // answers are not then emailed about. Every step is conditional (the request claim, the
+        // creator transfer), so a re-run, or a retry after a partial failure, hands nothing off
+        // twice; each push is deduped on its request. See helpers/openPactHandoff.ts.
+        counters.openPactHandoffs = await runOpenPactHandoffPass(queuePushOutcome, { brandVariation: brand }, new Date())
+            .catch((err: any) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: the open pact handoff pass failed'],
+                });
+                return { ...EMPTY_OPEN_PACT_HANDOFF_COUNTERS, handoffErrors: 1 };
+            });
+
         // Best-effort, like the passes above. A failure sends nothing, and the requests it did not
         // reach stay unclaimed for the next run — the claim on `emailReminderSentAt` is what keeps a
         // re-run, or a retry after a partial failure, from emailing anyone twice about one request.
@@ -1742,6 +1764,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 pledgeVerdicts: JSON.stringify(counters.pledgeVerdicts),
                 openPactSuggestions: JSON.stringify(counters.openPactSuggestions),
                 joinRequestEmails: JSON.stringify(counters.joinRequestEmails),
+                openPactHandoffs: JSON.stringify(counters.openPactHandoffs),
                 pactInviteReminders: JSON.stringify(counters.pactInviteReminders),
                 onboardingNurture: JSON.stringify(counters.onboardingNurture),
                 podiumWithinReach: JSON.stringify(counters.podiumWithinReach),

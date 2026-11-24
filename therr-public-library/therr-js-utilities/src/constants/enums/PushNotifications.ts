@@ -20,6 +20,17 @@ export enum Types {
     newThoughtRepostReceived = 'new-thought-repost-received',
     reportConfirmed = 'report-confirmed',
 
+    // Drops (docs/DROPS.md): a note or photo a connection left at a place for one person, which
+    // opens only once that person goes there. Therr only — excluded from HABITS in
+    // push-notifications-service. Both are data-only with the `dropView` press action, and both
+    // carry `drop` ({ id, placeName }) in the data map so the tap lands on the drop itself.
+    //
+    // To the recipient, when a connection leaves them a drop. Sent inline: it is the direct
+    // consequence of the sender's tap, and the drop is useless to someone who never hears of it.
+    dropReceived = 'drop-received',
+    // To the sender, when the recipient opens it — unless the recipient chose not to tell them.
+    dropOpened = 'drop-opened',
+
     // Leaderboards (all brands)
     leaderboardRankMilestone = 'leaderboard-rank-milestone',
     // Sent to a user bumped out of the weekly top 3 by someone climbing past them.
@@ -177,6 +188,8 @@ export enum PressActionIds {
     groupReplyToMsg = 'reply-to-group-msg',
     reportView = 'view-report',
     thoughtView = 'view-thought',
+    // Opens one drop (docs/DROPS.md). The payload must carry `drop` with its id.
+    dropView = 'view-drop',
     spaceView = 'view-space',
     userView = 'view-user',
     userAcceptConnectionRequest = 'accept-user-connection-request',
@@ -246,6 +259,8 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'NEW_LIKE_RECEIVED'
 | 'NEW_THOUGHT_REPLY_RECEIVED'
 | 'NEW_THOUGHT_REPOST_RECEIVED'
+| 'DROP_RECEIVED'
+| 'DROP_OPENED'
 | 'NEW_SUPER_LIKE_RECEIVED'
 | 'UNREAD_NOTIFICATIONS_REMINDER'
 | 'UNCLAIMED_ACHIEVEMENTS_REMINDER'
@@ -292,6 +307,8 @@ enum TeemAndroidIntentActions {
     NEW_LIKE_RECEIVED = 'com.therr.mobile.NEW_LIKE_RECEIVED',
     NEW_THOUGHT_REPLY_RECEIVED = 'com.therr.mobile.NEW_THOUGHT_REPLY_RECEIVED',
     NEW_THOUGHT_REPOST_RECEIVED = 'com.therr.mobile.NEW_THOUGHT_REPOST_RECEIVED',
+    DROP_RECEIVED = 'com.therr.mobile.DROP_RECEIVED',
+    DROP_OPENED = 'com.therr.mobile.DROP_OPENED',
     NEW_SUPER_LIKE_RECEIVED = 'com.therr.mobile.NEW_SUPER_LIKE_RECEIVED',
     UNREAD_NOTIFICATIONS_REMINDER = 'com.therr.mobile.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
@@ -319,6 +336,8 @@ enum TherrAndroidIntentActions {
     NEW_LIKE_RECEIVED = 'app.therrmobile.NEW_LIKE_RECEIVED',
     NEW_THOUGHT_REPLY_RECEIVED = 'app.therrmobile.NEW_THOUGHT_REPLY_RECEIVED',
     NEW_THOUGHT_REPOST_RECEIVED = 'app.therrmobile.NEW_THOUGHT_REPOST_RECEIVED',
+    DROP_RECEIVED = 'app.therrmobile.DROP_RECEIVED',
+    DROP_OPENED = 'app.therrmobile.DROP_OPENED',
     NEW_SUPER_LIKE_RECEIVED = 'app.therrmobile.NEW_SUPER_LIKE_RECEIVED',
     UNREAD_NOTIFICATIONS_REMINDER = 'app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
@@ -346,6 +365,8 @@ enum HabitsAndroidIntentActions {
     NEW_LIKE_RECEIVED = 'com.therr.mobile.habits.NEW_LIKE_RECEIVED',
     NEW_THOUGHT_REPLY_RECEIVED = 'com.therr.mobile.habits.NEW_THOUGHT_REPLY_RECEIVED',
     NEW_THOUGHT_REPOST_RECEIVED = 'com.therr.mobile.habits.NEW_THOUGHT_REPOST_RECEIVED',
+    DROP_RECEIVED = 'com.therr.mobile.habits.DROP_RECEIVED',
+    DROP_OPENED = 'com.therr.mobile.habits.DROP_OPENED',
     NEW_SUPER_LIKE_RECEIVED = 'com.therr.mobile.habits.NEW_SUPER_LIKE_RECEIVED',
     UNREAD_NOTIFICATIONS_REMINDER = 'com.therr.mobile.habits.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.habits.UNCLAIMED_ACHIEVEMENTS_REMINDER',
@@ -404,6 +425,13 @@ export interface INotificationData {
     thought?: {
         id: string;
         fromUserId?: string;
+    };
+    // Drops (docs/DROPS.md). `placeName` is the sender's label for where it was left; it is
+    // copy for the push body as well as routing, and may be absent.
+    drop?: {
+        id: string;
+        fromUserId?: string;
+        placeName?: string;
     };
 }
 

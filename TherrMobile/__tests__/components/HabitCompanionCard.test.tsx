@@ -59,7 +59,7 @@ describe('HabitCompanionCard', () => {
         const tree = render(0, 0);
         const text = allText(tree);
         expect(text).toContain('Egg');
-        expect(text).toContain('Stage 1 of 5');
+        expect(text).toContain(`Stage 1 of ${COMPANION_STAGES.length}`);
         expect(text).toContain('Next: Hatchling');
         expect(text).toContain('Achievements: 0 / 1');
         // Hatching has no age floor, so no days requirement is shown.
@@ -81,9 +81,19 @@ describe('HabitCompanionCard', () => {
         const final = COMPANION_STAGES[COMPANION_STAGES.length - 1];
         const tree = render(final.minAchievements, final.minAccountAgeDays + 1);
         const text = allText(tree);
-        expect(text).toContain('Change Champion');
+        expect(text).toContain('Habit Legend');
         expect(text).toContain(translate('components.habitCompanion.fullyGrown'));
         expect(text.some((t) => t.startsWith('Next:'))).toBe(false);
+        act(() => tree.unmount());
+    });
+
+    it('keeps a Change Champion growing toward the next stage', () => {
+        const champion = COMPANION_STAGES.find((s) => s.id === 'champion')!;
+        const tree = render(champion.minAchievements, champion.minAccountAgeDays + 1);
+        const text = allText(tree);
+        expect(text).toContain('Change Champion');
+        expect(text).toContain('Next: Trailblazer');
+        expect(text).not.toContain(translate('components.habitCompanion.fullyGrown'));
         act(() => tree.unmount());
     });
 
