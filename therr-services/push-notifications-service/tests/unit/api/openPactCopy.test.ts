@@ -47,6 +47,41 @@ describe('open pact push copy', () => {
         expect(message.notification.body).to.contain('Morning run');
     });
 
+    // A handed-off pact (users-service helpers/openPactHandoff.ts) has nobody who said yes, so the
+    // ordinary "{creator} let you into their pact" would credit the person who went quiet.
+    describe('an open pact handed off by the digest', () => {
+        const LOCALES = ['en-us', 'es', 'fr-ca'];
+
+        LOCALES.forEach((userLocale) => {
+            it(`names the new host and the habit to the others let in (${userLocale})`, () => {
+                const ordinary = build(PushNotifications.Types.pactJoinApproved, { userLocale });
+                const message = build(PushNotifications.Types.pactJoinApproved, { userLocale, pactJoinApprovedReason: 'handoff' });
+
+                expect(message.notification.body).to.contain('sam_runs');
+                expect(message.notification.body).to.contain('Morning run');
+                expect(message.notification.body).to.not.match(/\{\w+\}/);
+                expect(message.notification.body).to.not.equal(ordinary.notification.body);
+                expect(message.data.pactId).to.equal(baseConfig.pactId);
+            });
+
+            it(`tells the new host the pact is theirs, without naming anyone (${userLocale})`, () => {
+                const message = build(PushNotifications.Types.pactJoinApproved, { userLocale, pactJoinApprovedReason: 'handoffHost' });
+
+                expect(message.notification.body).to.contain('Morning run');
+                expect(message.notification.body).to.not.contain('sam_runs');
+                expect(message.notification.body).to.not.match(/\{\w+\}/);
+                expect(message.data.pactId).to.equal(baseConfig.pactId);
+            });
+        });
+
+        it('falls back to the ordinary copy on an unknown reason', () => {
+            const ordinary = build(PushNotifications.Types.pactJoinApproved);
+            const message = build(PushNotifications.Types.pactJoinApproved, { pactJoinApprovedReason: 'somethingElse' });
+
+            expect(message.notification.body).to.equal(ordinary.notification.body);
+        });
+    });
+
     it('names the habit on the suggestion', () => {
         const message = build(PushNotifications.Types.openPactSuggestion);
 

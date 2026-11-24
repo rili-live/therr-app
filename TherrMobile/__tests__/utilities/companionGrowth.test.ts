@@ -56,6 +56,21 @@ describe('companion stage ladder', () => {
         expect(COMPANION_STAGES[0]).toMatchObject({ id: 'egg', minAchievements: 0, minAccountAgeDays: 0 });
     });
 
+    it('only ever appends stages, so stage-up indexes stored on devices stay valid', () => {
+        // companionCelebration.ts stores the last stage shown by its index. Inserting or
+        // reordering a stage would shift those indexes and replay or skip celebrations.
+        expect(COMPANION_STAGES.map(({ id }) => id).slice(0, 5)).toEqual(['egg', 'hatchling', 'juvenile', 'adult', 'champion']);
+        expect(new Set(COMPANION_STAGES.map(({ id }) => id)).size).toBe(COMPANION_STAGES.length);
+    });
+
+    it('grows for a full year past Change Champion, ending at the legend', () => {
+        expect(COMPANION_STAGES).toHaveLength(10);
+        const final = COMPANION_STAGES[COMPANION_STAGES.length - 1];
+        expect(final.id).toBe('legend');
+        expect(final.minAccountAgeDays).toBe(365);
+        expect(growthFor(final.minAchievements, final.minAccountAgeDays - 1).stage.id).toBe('dragonkin');
+    });
+
     it('has a sprite and a name/caption in every locale for every stage', () => {
         const locales = ['en-us', 'es', 'fr-ca'];
         locales.forEach((locale) => {

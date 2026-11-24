@@ -481,6 +481,26 @@
         "champion": {
           "name": "Change Champion",
           "caption": "Crowned in every color. You've built habits that last."
+        },
+        "trailblazer": {
+          "name": "Trailblazer",
+          "caption": "A crest has grown along its back. You're setting a pace others can follow."
+        },
+        "winged": {
+          "name": "Wing Sprout",
+          "caption": "Its first wing has unfurled. Months of steady habits are starting to lift you."
+        },
+        "soaring": {
+          "name": "Sky Strider",
+          "caption": "Wings spread wide. Your routine is carrying you further than you planned."
+        },
+        "dragonkin": {
+          "name": "Dragonkin",
+          "caption": "Its crown has grown into golden horns. Few habit buddies ever come this far."
+        },
+        "legend": {
+          "name": "Habit Legend",
+          "caption": "A year of showing up turned a little egg into a legend."
         }
       },
       "celebration": {

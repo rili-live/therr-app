@@ -481,6 +481,26 @@
         "champion": {
           "name": "Champion du changement",
           "caption": "Couronné de toutes les couleurs. Vous avez bâti des habitudes durables."
+        },
+        "trailblazer": {
+          "name": "Pionnier",
+          "caption": "Une crête a poussé le long de son dos. Vous donnez un rythme que d'autres peuvent suivre."
+        },
+        "winged": {
+          "name": "Aile naissante",
+          "caption": "Sa première aile s'est déployée. Des mois d'habitudes constantes commencent à vous élever."
+        },
+        "soaring": {
+          "name": "Voltigeur du ciel",
+          "caption": "Ailes grandes ouvertes. Votre routine vous mène plus loin que prévu."
+        },
+        "dragonkin": {
+          "name": "Sang de dragon",
+          "caption": "Sa couronne est devenue des cornes dorées. Peu de compagnons vont aussi loin."
+        },
+        "legend": {
+          "name": "Légende des habitudes",
+          "caption": "Une année de constance a transformé un petit œuf en légende."
         }
       },
       "celebration": {
