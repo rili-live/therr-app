@@ -37,6 +37,7 @@ jest.mock('../../main/utilities/companionCelebration', () => ({
 }));
 
 import { Celebration } from '../../main/routes/Celebration';
+import { COMPANION_STAGES } from '../../main/utilities/companionGrowth';
 
 const buildNavigation = () => ({
     goBack: jest.fn(),
@@ -104,7 +105,7 @@ describe('Celebration — companion stage-up', () => {
 
         expect(text).toContain('Your egg hatched!');
         expect(text).toContain('Hatchling');
-        expect(text).toContain('Stage 2 of 5');
+        expect(text).toContain(`Stage 2 of ${COMPANION_STAGES.length}`);
         expect(text).toContain('Next: Little Climber');
         expect(mockLogAppEvent).toHaveBeenCalledWith('habits_companion_stage_up', expect.objectContaining({
             stage: 'hatchling', from_stage: 'egg',
@@ -112,14 +113,30 @@ describe('Celebration — companion stage-up', () => {
     });
 
     it('calls the final stage fully grown', () => {
+        const last = COMPANION_STAGES.length - 1;
+        const { tree } = renderScreen({
+            ...hatch,
+            stageId: COMPANION_STAGES[last].id,
+            stageIndex: last,
+            fromStageId: COMPANION_STAGES[last - 1].id,
+            fromStageIndex: last - 1,
+        });
+        const text = allText(tree);
+
+        expect(text).toContain('Your habit buddy grew!');
+        expect(text).toContain('Habit Legend');
+        expect(text.some((t) => t.startsWith('Fully grown'))).toBe(true);
+    });
+
+    it('no longer calls Change Champion fully grown, now that stages continue past it', () => {
         const { tree } = renderScreen({
             ...hatch, stageId: 'champion', stageIndex: 4, fromStageId: 'adult', fromStageIndex: 3,
         });
         const text = allText(tree);
 
-        expect(text).toContain('Your habit buddy grew!');
         expect(text).toContain('Change Champion');
-        expect(text.some((t) => t.startsWith('Fully grown'))).toBe(true);
+        expect(text).toContain('Next: Trailblazer');
+        expect(text.some((t) => t.startsWith('Fully grown'))).toBe(false);
     });
 
     it('records the stage as seen on this device and leaves, without the streak or placement writes', () => {
