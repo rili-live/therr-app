@@ -91,6 +91,15 @@ Key tables: `users`, `userConnections`, `userGroups`, `notifications`, `userAchi
   (userId, source, sourceKey) is the only thing stopping a retry or second device paying twice; see
   `utilities/dailyBonus.ts` for the odds
 
+## Gotchas
+
+- `main.users."lastLoginAt"` moves only on an explicit login. The app stays signed in through refresh tokens,
+  which write nothing, so a daily user's last login can be months old. Never read it as "last active" — take the
+  latest of it and a real action (a check-in, a chat message), as `PactJoinRequestsStore.getPactsAwaitingHandoff` does.
+- The unit suite fails to load with `MODULE_NOT_FOUND` from `bcrypt` after `npm ci --ignore-scripts`: the native
+  binding is never built. Run `npm rebuild bcrypt`, build `therr-js-utilities` first (shared libs are consumed as
+  `lib/`), and run mocha with `NODE_ENV=development` (`npm run test:unit` sets it).
+
 ## Related Services
 
 - Makes HTTP calls to: reactions-service (for user metrics)

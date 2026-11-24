@@ -73,3 +73,6 @@ to route around. **Never** connect any other way, and never print the `.env` val
 - `cannot execute … in a read-only transaction` → you wrote a write. This tool never writes; a data
   fix goes through a migration or a reviewed script with the founder's go-ahead.
 - `One statement per run` → combine with a CTE, or run twice.
+- `ENOENT … scripts/import-spaces/.env` → a cloud session. The credentials live only on the founder's
+  machine and are never in a cloud container. Say so, answer from the code, and give the founder the exact
+  `--sql` to run locally rather than presenting a guess as a prod number.
