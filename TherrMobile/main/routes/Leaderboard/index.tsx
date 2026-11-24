@@ -17,7 +17,14 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import { buildStyles as buildLeaderboardStyles, LEAGUE_ZONE_COLORS, MEDAL_COLORS } from '../../styles/leaderboard';
 import { CURRENT_BRAND_VARIATION } from '../../config/brandConfig';
 import LeagueHeader from './LeagueHeader';
-import { ILeaderboardLeagueStatus, getLeagueNameKey, getLeagueZone, resolveLeague } from './leagues';
+import {
+    ILeaderboardLeagueStatus,
+    LeagueLine,
+    getLeagueLinesAbove,
+    getLeagueNameKey,
+    getLeagueZone,
+    resolveLeague,
+} from './leagues';
 
 const PAGE_SIZE = 50;
 
@@ -241,35 +248,75 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
         );
     };
 
-    const renderItem = ({ item, index }: { item: ILeaderboardEntry, index: number }) => (
-        <Pressable
-            onPress={() => goToViewUser(item.userId)}
-            style={[
-                themeLeaderboard.styles.rowContainer,
-                item.isRequestingUser ? themeLeaderboard.styles.rowContainerHighlighted : null,
-            ]}
-        >
-            <View style={themeLeaderboard.styles.rankContainer}>
-                {renderRank(item.rank)}
+    // The two lines that decide next week, drawn across the league board between rows: everyone
+    // above the promotion line moves up a league at the weekly close, everyone below the demotion
+    // line drops one.
+    const renderLeagueLine = (line: LeagueLine) => {
+        const color = LEAGUE_ZONE_COLORS[line === 'promotion' ? 'promote' : 'demote'];
+        return (
+            <View
+                key={line}
+                style={themeLeaderboard.styles.leagueLine}
+                accessible
+                accessibilityLabel={translate(line === 'promotion'
+                    ? 'pages.leaderboard.leagues.promotionLineAccessibility'
+                    : 'pages.leaderboard.leagues.demotionLineAccessibility')}
+            >
+                <View style={[themeLeaderboard.styles.leagueLineRule, { backgroundColor: color }]} />
+                <FontAwesome5Icon
+                    name={line === 'promotion' ? 'arrow-up' : 'arrow-down'}
+                    size={10}
+                    color={color}
+                    style={themeLeaderboard.styles.leagueLineIcon}
+                />
+                <Text style={[themeLeaderboard.styles.leagueLineLabel, { color }]}>
+                    {translate(line === 'promotion'
+                        ? 'pages.leaderboard.leagues.promotionLine'
+                        : 'pages.leaderboard.leagues.demotionLine')}
+                </Text>
+                <View style={[themeLeaderboard.styles.leagueLineRule, { backgroundColor: color }]} />
             </View>
-            <Avatar
-                title={`${item.firstName?.substring(0, 1) || ''}${item.lastName?.substring(0, 1) || ''}`}
-                rounded
-                source={{
-                    uri: getUserImageUri({ details: { id: item.userId, media: item.media } }, 100),
-                }}
-                size="small"
-            />
-            <Text style={themeLeaderboard.styles.userNameText} numberOfLines={1}>
-                {item.isRequestingUser ? translate('pages.leaderboard.labels.you') : item.userName}
-            </Text>
-            {renderLeagueBadge(item)}
-            <Text style={themeLeaderboard.styles.pointsText}>
-                {translate('pages.leaderboard.labels.xpPoints', { points: item.points })}
-            </Text>
-            {renderZoneIndicator(item.rank, index + 1)}
-        </Pressable>
+        );
+    };
+
+    const renderItem = ({ item, index }: { item: ILeaderboardEntry, index: number }) => (
+        <>
+            {scope === 'league' && getLeagueLinesAbove(entries, index, league).map(renderLeagueLine)}
+            <Pressable
+                onPress={() => goToViewUser(item.userId)}
+                style={[
+                    themeLeaderboard.styles.rowContainer,
+                    item.isRequestingUser ? themeLeaderboard.styles.rowContainerHighlighted : null,
+                ]}
+            >
+                <View style={themeLeaderboard.styles.rankContainer}>
+                    {renderRank(item.rank)}
+                </View>
+                <Avatar
+                    title={`${item.firstName?.substring(0, 1) || ''}${item.lastName?.substring(0, 1) || ''}`}
+                    rounded
+                    source={{
+                        uri: getUserImageUri({ details: { id: item.userId, media: item.media } }, 100),
+                    }}
+                    size="small"
+                />
+                <Text style={themeLeaderboard.styles.userNameText} numberOfLines={1}>
+                    {item.isRequestingUser ? translate('pages.leaderboard.labels.you') : item.userName}
+                </Text>
+                {renderLeagueBadge(item)}
+                <Text style={themeLeaderboard.styles.pointsText}>
+                    {translate('pages.leaderboard.labels.xpPoints', { points: item.points })}
+                </Text>
+                {renderZoneIndicator(item.rank, index + 1)}
+            </Pressable>
+        </>
     );
+
+    // Below the page, the lines are out of sight, so the rank bar says which side of them the
+    // user is on. Their position is past the page, so their rank stands in for it.
+    const currentUserZone = scope === 'league' && currentUser
+        ? getLeagueZone(currentUser.rank, Math.max(currentUser.rank, entries.length + 1), league)
+        : null;
 
     const renderTab = (
         labelKey: string,
@@ -370,11 +417,24 @@ export const Leaderboard = ({ navigation, user }: ILeaderboardProps) => {
                     {
                         isRankBarVisible
                         && <View style={themeLeaderboard.styles.currentUserBar}>
-                            <Text style={themeLeaderboard.styles.currentUserBarText}>
-                                {translate('pages.leaderboard.labels.yourRank', {
-                                    rank: currentUser.rank,
-                                })}
-                            </Text>
+                            <View style={themeLeaderboard.styles.currentUserBarTextContainer}>
+                                <Text style={themeLeaderboard.styles.currentUserBarText}>
+                                    {translate('pages.leaderboard.labels.yourRank', {
+                                        rank: currentUser.rank,
+                                    })}
+                                </Text>
+                                {
+                                    !!currentUserZone
+                                    && <Text style={[
+                                        themeLeaderboard.styles.currentUserBarZoneText,
+                                        { color: LEAGUE_ZONE_COLORS[currentUserZone] },
+                                    ]}>
+                                        {translate(currentUserZone === 'promote'
+                                            ? 'pages.leaderboard.leagues.youArePromoting'
+                                            : 'pages.leaderboard.leagues.youAreDemoting')}
+                                    </Text>
+                                }
+                            </View>
                             <Text style={themeLeaderboard.styles.pointsText}>
                                 {translate('pages.leaderboard.labels.xpPoints', { points: currentUser.points })}
                             </Text>

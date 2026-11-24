@@ -100,11 +100,43 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderTopColor: therrTheme.colors.accentDivider,
             backgroundColor: therrTheme.colors.backgroundWhite,
         },
-        currentUserBarText: {
+        currentUserBarTextContainer: {
             flex: 1,
+            marginRight: 8,
+        },
+        currentUserBarText: {
             fontSize: 14,
             fontWeight: '600',
             color: therrTheme.colors.textWhite,
+        },
+        currentUserBarZoneText: {
+            fontSize: 12,
+            fontWeight: '600',
+            marginTop: 2,
+        },
+        // The promotion and demotion lines across the league board: a rule either side of a short
+        // label, coloured per line (LEAGUE_ZONE_COLORS) inline.
+        leagueLine: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginHorizontal: 14,
+            marginVertical: 6,
+        },
+        leagueLineRule: {
+            flex: 1,
+            height: 2,
+            borderRadius: 1,
+        },
+        leagueLineIcon: {
+            marginLeft: 8,
+        },
+        leagueLineLabel: {
+            marginLeft: 4,
+            marginRight: 8,
+            fontSize: 11,
+            fontWeight: '700',
+            letterSpacing: 0.5,
+            textTransform: 'uppercase',
         },
         // Leagues: the requester's league, its ladder and the move lines. The accent colour is
         // per league (therr-js-utilities/config LEADERBOARD_LEAGUES_BY_BRAND), so it is applied
