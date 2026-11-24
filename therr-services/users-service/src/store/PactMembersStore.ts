@@ -19,6 +19,8 @@ export interface ICreatePactMemberParams {
 }
 
 export interface IUpdatePactMemberParams {
+    /** creator | partner. Changes only when an open pact is handed to a new host (helpers/openPactHandoff.ts). */
+    role?: string;
     status?: string;
     joinedAt?: Date;
     leftAt?: Date;

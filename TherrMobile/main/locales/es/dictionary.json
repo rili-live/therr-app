@@ -481,6 +481,26 @@
         "champion": {
           "name": "Campeón del cambio",
           "caption": "Coronado con todos los colores. Has creado hábitos que perduran."
+        },
+        "trailblazer": {
+          "name": "Pionero",
+          "caption": "Le ha crecido una cresta en el lomo. Marcas un ritmo que otros pueden seguir."
+        },
+        "winged": {
+          "name": "Ala naciente",
+          "caption": "Su primera ala se ha desplegado. Meses de hábitos constantes empiezan a elevarte."
+        },
+        "soaring": {
+          "name": "Surcacielos",
+          "caption": "Alas bien abiertas. Tu rutina te está llevando más lejos de lo que imaginabas."
+        },
+        "dragonkin": {
+          "name": "Linaje de dragón",
+          "caption": "Su corona se convirtió en cuernos dorados. Pocos compañeros llegan tan lejos."
+        },
+        "legend": {
+          "name": "Leyenda de los hábitos",
+          "caption": "Un año de constancia convirtió un pequeño huevo en una leyenda."
         }
       },
       "celebration": {

@@ -17,9 +17,19 @@ import { isAchievementClassEnabledForBrand } from 'therr-js-utilities/config';
  * To add stages later: append to COMPANION_STAGES (keep both thresholds non-decreasing),
  * add a sprite for the new id in components/HabitCompanion/sprites.ts, and add its
  * name/caption to the three locale dictionaries under `components.habitCompanion.stages`.
+ *
+ * Append — never insert or reorder. The stage-up celebration (utilities/companionCelebration.ts)
+ * remembers the last stage each device showed by its INDEX in this list, so inserting a stage
+ * mid-ladder would shift every stored index and replay or skip celebrations.
+ *
+ * Stages 6-10 (trailblazer → legend) are the long game past Change Champion: +5 achievements
+ * and roughly two more months per stage, ending at a year together. A Friends with Habits
+ * account can earn ~90 achievements in all, many of them far-off tiers (365-day streaks,
+ * thousands of reactions), so 50 is a committed year rather than an unreachable one.
  */
 
-export type CompanionStageId = 'egg' | 'hatchling' | 'juvenile' | 'adult' | 'champion';
+export type CompanionStageId = 'egg' | 'hatchling' | 'juvenile' | 'adult' | 'champion'
+    | 'trailblazer' | 'winged' | 'soaring' | 'dragonkin' | 'legend';
 
 export interface ICompanionStage {
     id: CompanionStageId;
@@ -33,6 +43,11 @@ export const COMPANION_STAGES: ReadonlyArray<ICompanionStage> = [
     { id: 'juvenile', minAchievements: 4, minAccountAgeDays: 7 },
     { id: 'adult', minAchievements: 12, minAccountAgeDays: 30 },
     { id: 'champion', minAchievements: 25, minAccountAgeDays: 90 },
+    { id: 'trailblazer', minAchievements: 30, minAccountAgeDays: 120 },
+    { id: 'winged', minAchievements: 35, minAccountAgeDays: 180 },
+    { id: 'soaring', minAchievements: 40, minAccountAgeDays: 240 },
+    { id: 'dragonkin', minAchievements: 45, minAccountAgeDays: 300 },
+    { id: 'legend', minAchievements: 50, minAccountAgeDays: 365 },
 ];
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
