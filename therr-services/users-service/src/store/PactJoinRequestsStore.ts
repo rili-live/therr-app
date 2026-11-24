@@ -105,9 +105,13 @@ export default class PactJoinRequestsStore {
         return this.db.read.query(queryString).then((response) => response.rows[0]);
     }
 
-    /** The creator's queue: pending requests on one pact, oldest first, with who is asking. */
-    getPendingByPact(pactId: string): Promise<IPactJoinRequestRow[]> {
-        const queryString = knexBuilder
+    /**
+     * The creator's queue: pending requests on one pact, oldest first, with who is asking.
+     * `excludeSoftDeletedRequesters` drops requesters who have since deleted their account — the
+     * digest's handoff (helpers/openPactHandoff.ts) must not hand a pact to a dead account.
+     */
+    getPendingByPact(pactId: string, { excludeSoftDeletedRequesters = false } = {}): Promise<IPactJoinRequestRow[]> {
+        let query = knexBuilder
             .select([
                 `${PACT_JOIN_REQUESTS_TABLE_NAME}.*`,
                 `${USERS_TABLE_NAME}.userName as requesterUserName`,
@@ -115,7 +119,14 @@ export default class PactJoinRequestsStore {
             .from(PACT_JOIN_REQUESTS_TABLE_NAME)
             .innerJoin(USERS_TABLE_NAME, `${USERS_TABLE_NAME}.id`, `${PACT_JOIN_REQUESTS_TABLE_NAME}.requesterUserId`)
             .where(`${PACT_JOIN_REQUESTS_TABLE_NAME}.pactId`, pactId)
-            .andWhere(`${PACT_JOIN_REQUESTS_TABLE_NAME}.status`, 'pending')
+            .andWhere(`${PACT_JOIN_REQUESTS_TABLE_NAME}.status`, 'pending');
+        if (excludeSoftDeletedRequesters) {
+            query = query.andWhere((builder) => {
+                builder.where(`${USERS_TABLE_NAME}.settingsIsAccountSoftDeleted`, false)
+                    .orWhereNull(`${USERS_TABLE_NAME}.settingsIsAccountSoftDeleted`);
+            });
+        }
+        const queryString = query
             .orderBy(`${PACT_JOIN_REQUESTS_TABLE_NAME}.createdAt`, 'asc')
             .toString();
 

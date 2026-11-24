@@ -48,6 +48,8 @@ describe('open pacts — the handoff pass', () => {
     let createMember: sinon.SinonStub;
     let activatePact: sinon.SinonStub;
     let expireStale: sinon.SinonStub;
+    let getPendingByPact: sinon.SinonStub;
+    let getUserConnections: sinon.SinonStub;
 
     const stub = ({
         candidates = [candidate()],
@@ -60,7 +62,7 @@ describe('open pacts — the handoff pass', () => {
     }: any = {}) => {
         readCandidates = sinon.stub(Store.pactJoinRequests, 'getPactsAwaitingHandoff').resolves(candidates);
         sinon.stub(Store.pacts, 'getById').resolves(pact);
-        sinon.stub(Store.pactJoinRequests, 'getPendingByPact').resolves(requests);
+        getPendingByPact = sinon.stub(Store.pactJoinRequests, 'getPendingByPact').resolves(requests);
         sinon.stub(Store.pacts, 'countSeats').resolves(seats);
         sinon.stub(Store.pactMembers, 'getByPactAndUser').callsFake(async (_pactId: string, userId: string) => members[userId]);
         resolvePending = sinon.stub(Store.pactJoinRequests, 'resolvePending')
@@ -75,7 +77,9 @@ describe('open pacts — the handoff pass', () => {
         sinon.stub(Store.streaks, 'getOrCreate').resolves({} as any);
         sinon.stub(Store.userHabits, 'getOrCreate').resolves({} as any);
         sinon.stub(Store.userHabits, 'reviveArchivedByHabit').resolves(undefined as any);
-        sinon.stub(Store.userConnections, 'getUserConnections').rejects(new Error('not under test'));
+        getUserConnections = sinon.stub(Store.userConnections, 'getUserConnections').rejects(new Error('not under test'));
+        sinon.stub(Store.pactMembers, 'getByPactId').resolves(Object.entries(members)
+            .map(([userId, member]: [string, any]) => ({ userId, ...member })) as any);
         sinon.stub(Store.userLeaderboardScores, 'incrementPoints').resolves([] as any);
         // Capacity: a free account, at its limit when listed in `atCapacity`.
         sinon.stub(Store.users, 'findUser').resolves([{ accessLevels: [], isUnclaimed: true }] as any);
@@ -180,6 +184,54 @@ describe('open pacts — the handoff pass', () => {
 
         expect(counters).to.include({ pactsHandedOff: 1, requestersApproved: 1 });
         expect(resolvePending.callCount).to.equal(1);
+    });
+
+    it('never considers a requester who has since deleted their account', async () => {
+        stub();
+        await runOpenPactHandoffPass(queuePush, context, NOW);
+
+        expect(getPendingByPact.firstCall.args).to.deep.equal([PACT_ID, { excludeSoftDeletedRequesters: true }]);
+    });
+
+    it('still lets in a requester already in the pact after the seats run out', async () => {
+        const many = [FIRST, SECOND, THIRD].map((userId, i) => joinRequest(`req-${i + 1}`, userId, `u${i + 1}`));
+        // Only the host fits, but THIRD already holds a seat (an invite they had not answered).
+        stub({
+            requests: many,
+            seats: MAX_OPEN_PACT_MEMBERS,
+            members: { [CREATOR]: { status: 'active', role: 'creator' }, [THIRD]: { status: 'pending', role: 'partner' } },
+        });
+        const counters = await runOpenPactHandoffPass(queuePush, context, NOW);
+
+        expect(counters).to.include({ pactsHandedOff: 1, requestersApproved: 2 });
+        expect(resolvePending.calledWith('req-2')).to.equal(false);
+        expect(resolvePending.calledWith('req-3', 'approved')).to.equal(true);
+    });
+
+    it('keeps the date a creator already out of the pact left it', async () => {
+        stub({ members: { [CREATOR]: { status: 'left', role: 'creator' } } });
+        await runOpenPactHandoffPass(queuePush, context, NOW);
+
+        const creatorUpdate = updateMember.getCalls().find((call) => call.args[1] === CREATOR);
+        expect(creatorUpdate?.args[2]).to.deep.equal({ role: 'partner' });
+    });
+
+    it('connects the new host to the partners already in a running pact', async () => {
+        const PARTNER = 'a0000000-0000-4000-8000-0000000000aa';
+        stub({
+            pact: pendingPact({ status: 'active' }),
+            requests: [joinRequest('req-1', FIRST, 'first'), joinRequest('req-2', SECOND, 'second')],
+            members: { [CREATOR]: { status: 'active', role: 'creator' }, [PARTNER]: { status: 'active', role: 'partner' } },
+        });
+        await runOpenPactHandoffPass(queuePush, context, NOW);
+        // Fire-and-forget: let the connection writes settle.
+        await new Promise((resolve) => { setImmediate(resolve); });
+
+        const pairs = getUserConnections.getCalls().map((call) => call.args[0]);
+        expect(pairs).to.deep.include({ requestingUserId: FIRST, acceptingUserId: PARTNER });
+        // Never to the creator who left, nor twice to a joiner activatePactMembership already connected.
+        expect(pairs).to.not.deep.include({ requestingUserId: FIRST, acceptingUserId: CREATOR });
+        expect(pairs.filter((p: any) => p.acceptingUserId === SECOND)).to.have.length(1);
     });
 
     it('leaves a pact alone when its creator came back or closed it since the read', async () => {

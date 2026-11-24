@@ -38,6 +38,7 @@ import {
 } from '../../utilities/openPacts';
 import { LeaderboardXpValues } from '../../utilities/leaderboardHelpers';
 import { checkHabitCapacity } from './habitCapacity';
+import { ensureCompletedUserConnection } from './inviteAcceptance';
 import { activatePactMembership, ensureActiveHabitTracking } from './pactMembership';
 import { awardLeaderboardPoints } from './leaderboards';
 import { QueueRecapFn } from './weeklyRecapDigest';
@@ -125,7 +126,9 @@ const selectEligible = async (
         const member = await Store.pactMembers.getByPactAndUser(pactId, request.requesterUserId);
         const alreadyIn = isAlreadyMember(member);
         if (!alreadyIn && seatsLeft <= 0) {
-            break;
+            // Not `break`: a later requester who is already in the pact needs no seat.
+            // eslint-disable-next-line no-continue
+            continue;
         }
         if (!member || member.status !== 'active') {
             // eslint-disable-next-line no-await-in-loop
@@ -165,7 +168,9 @@ const handOffPact = async (
         return;
     }
 
-    const requests = await Store.pactJoinRequests.getPendingByPact(pact.id);
+    // A requester who has since deleted their account is never made host or let in: the pact would
+    // just be handed to another dead channel.
+    const requests = await Store.pactJoinRequests.getPendingByPact(pact.id, { excludeSoftDeletedRequesters: true });
     if (!requests.length) {
         bump(counters, 'pactsSkippedChanged');
         return;
@@ -207,12 +212,11 @@ const handOffPact = async (
     const hostUserId = host.request.requesterUserId;
     // The former creator leaves; their role follows the pact's new shape. Their row is kept so the
     // pact stays in their history, exactly as leaving it themselves would.
+    // Only a creator still in the pact gets a new `leftAt`; one already out keeps the date they left.
     if (formerCreatorMember) {
-        await Store.pactMembers.updateByPactAndUser(pact.id, formerCreatorId, {
-            role: 'partner',
-            status: 'left',
-            leftAt: now,
-        });
+        await Store.pactMembers.updateByPactAndUser(pact.id, formerCreatorId, isAlreadyMember(formerCreatorMember)
+            ? { role: 'partner', status: 'left', leftAt: now }
+            : { role: 'partner' });
     }
 
     // The host's seat: active from now, like any creator's — a creator's row is active even while
@@ -303,6 +307,26 @@ const handOffPact = async (
             });
         }
     }
+
+    // A pact's host is connected to every partner in it (activatePactMembership connects each
+    // joiner to the creator). The joiners above were connected to the new host as they came in;
+    // partners already in a running pact were connected only to the creator who left. Same
+    // fire-and-forget contract: a connection failure never undoes the handoff.
+    // The former creator is excluded by id, not only by status: this read may hit a replica that
+    // has not yet seen them marked `left` above.
+    const skipIds = new Set([hostUserId, formerCreatorId, ...joiners.map(({ request }) => request.requesterUserId)]);
+    Store.pactMembers.getByPactId(pact.id)
+        .then((members: any[]) => Promise.all((members || [])
+            .filter((m) => m.status === 'active' && !skipIds.has(m.userId))
+            .map((m) => ensureCompletedUserConnection(hostUserId, m.userId))))
+        .catch((err: any) => {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [err?.message, 'Habits digest: failed to connect a handed-off pact\'s new host to its partners'],
+                traceArgs: { 'pact.id': pact.id, 'user.id': hostUserId },
+            });
+        });
 
     logSpan({
         level: 'info',
