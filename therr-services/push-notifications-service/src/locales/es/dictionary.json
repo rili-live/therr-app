@@ -220,7 +220,9 @@
     },
     "pactJoinApproved": {
       "title": "¡Ya estás dentro!",
-      "body": "{userName} te aceptó en su pacto de {habitName}. Registra tu avance hoy para empezar."
+      "body": "{userName} te aceptó en su pacto de {habitName}. Registra tu avance hoy para empezar.",
+      "bodyHandoff": "Estás en el pacto de {habitName}. {userName} lo organiza ahora. Registra tu avance hoy para empezar.",
+      "bodyHandoffHost": "El creador del pacto de {habitName} dejó de responder, así que ahora lo organizas tú. Registra tu avance hoy y responde a quien pida unirse."
     },
     "openPactSuggestion": {
       "title": "¿Sigues esperando a un compañero?",
