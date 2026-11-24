@@ -683,6 +683,28 @@ export default class PactsStore {
             })));
     }
 
+    /**
+     * Makes `toUserId` the pact's creator — its host, the one who answers join requests. Conditional
+     * on `fromUserId` still being the creator, so an overlapping digest run (or anything else that
+     * moved the pact first) gets undefined back and hands nothing off twice. `partnerUserId` is the
+     * legacy 1:1 column; it is cleared if it named the new host, who cannot be both.
+     * Used only by helpers/openPactHandoff.ts.
+     */
+    transferCreator(id: string, fromUserId: string, toUserId: string): Promise<any | undefined> {
+        const queryString = knexBuilder
+            .where({ id, creatorUserId: fromUserId })
+            .update({
+                creatorUserId: toUserId,
+                partnerUserId: knexBuilder.raw('CASE WHEN "partnerUserId" = ? THEN NULL ELSE "partnerUserId" END', [toUserId]),
+                updatedAt: new Date(),
+            })
+            .into(PACTS_TABLE_NAME)
+            .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows[0]);
+    }
+
     /** Occupied seats on one pact — see `seatCountSql`. Checked again at approval time. */
     countSeats(id: string): Promise<number> {
         const queryString = knexBuilder
