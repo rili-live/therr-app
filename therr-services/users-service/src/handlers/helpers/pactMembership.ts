@@ -3,6 +3,16 @@ import Store from '../../store';
 import { ensureCompletedUserConnection } from './inviteAcceptance';
 
 /**
+ * Makes sure `userId` tracks the habit, reviving the row if they had archived it. See the note in
+ * `activatePactMembership` on why both calls. Also used when an open pact is handed to a new host
+ * (helpers/openPactHandoff.ts), who takes the pact's habit on without joining through this path.
+ */
+export const ensureActiveHabitTracking = async (userId: string, habitGoalId: string) => {
+    await Store.userHabits.getOrCreate(userId, habitGoalId);
+    await Store.userHabits.reviveArchivedByHabit(userId, habitGoalId);
+};
+
+/**
  * Everything that has to be true once `userId` becomes an active member of `pact` — whichever way
  * they got there. Shared by accepting an invite (handlers/pacts.ts § acceptPact) and by the creator
  * approving a join request on an open pact (handlers/pactJoinRequests.ts), so the two paths cannot
@@ -46,13 +56,9 @@ export const activatePactMembership = async (pact: any, userId: string) => {
     //     capacity check for the slot.
     // reviveArchivedByHabit is a no-op when the row is already active, so every join after the
     // first costs one guarded UPDATE and nothing else.
-    const ensureActiveTracking = async (trackingUserId: string) => {
-        await Store.userHabits.getOrCreate(trackingUserId, pact.habitGoalId);
-        await Store.userHabits.reviveArchivedByHabit(trackingUserId, pact.habitGoalId);
-    };
-    const trackingPromises: Promise<any>[] = [ensureActiveTracking(userId)];
+    const trackingPromises: Promise<any>[] = [ensureActiveHabitTracking(userId, pact.habitGoalId)];
     if (isFirstJoin) {
-        trackingPromises.push(ensureActiveTracking(pact.creatorUserId));
+        trackingPromises.push(ensureActiveHabitTracking(pact.creatorUserId, pact.habitGoalId));
     }
     await Promise.all(trackingPromises);
 

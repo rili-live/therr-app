@@ -267,6 +267,9 @@ interface ICreateMessageConfig {
     // pact that carries on without them. One type, so the tap routes and the channel are the
     // ones every installed app already knows; this only picks the copy. Copy only.
     pactDeclineReason?: PactDeclineReason;
+    // `pactJoinApproved` copy selector, set when users-service handed an open pact whose creator went
+    // quiet to its waiting requesters (users-service helpers/openPactHandoff.ts). Copy only.
+    pactJoinApprovedReason?: 'handoff' | 'handoffHost';
     // Pact chat: the first line of the message a `pactMessage` push announces, already trimmed
     // and capped by users-service. Copy only.
     messagePreview?: string;
@@ -1428,19 +1431,26 @@ const createMessage = (
                 channelId: AndroidChannelId.reminders,
             });
             return baseMessage;
-        case PushNotifications.Types.pactJoinApproved:
+        case PushNotifications.Types.pactJoinApproved: {
+            // An ordinary approval names the creator who said yes. A handoff has nobody who said yes:
+            // the new host is told the pact is theirs now, and the others whose pact they joined.
+            const bodyKey = {
+                handoff: 'bodyHandoff',
+                handoffHost: 'bodyHandoffHost',
+            }[config.pactJoinApprovedReason as string] || 'body';
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 brandVariation,
                 notificationTitle: translate(config.userLocale, 'notifications.pactJoinApproved.title'),
-                notificationBody: translate(config.userLocale, 'notifications.pactJoinApproved.body', {
+                notificationBody: translate(config.userLocale, `notifications.pactJoinApproved.${bodyKey}`, {
                     userName: String(config.fromUserName || ''),
                     habitName: String(config.habitName || ''),
                 }),
                 channelId: AndroidChannelId.reminders,
             });
             return baseMessage;
+        }
         case PushNotifications.Types.openPactSuggestion:
             baseMessage = createNotificationMessage({
                 data: modifiedData,

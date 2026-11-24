@@ -345,7 +345,7 @@ export interface IPactJoinRequest {
     pactId: string;
     requesterUserId: string;
     requesterUserName?: string;
-    status: 'pending' | 'approved' | 'declined' | 'cancelled';
+    status: 'pending' | 'approved' | 'declined' | 'cancelled' | 'expired';
     createdAt: string;
 }
 
