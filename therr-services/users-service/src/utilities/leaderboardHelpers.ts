@@ -235,3 +235,16 @@ export const getHoursUntilReset = (now: Date = new Date()): number => {
 export const getPodiumWithinReachDedupeKey = (periodStart: string): string => (
     `leaderboard-podium-within-reach:${periodStart}`
 );
+
+// The demotion-risk nudge only runs on the digests in the last this-many hours of the week —
+// Friday, Saturday and Sunday. Earlier, the bottom of a league is mostly people who have not
+// opened the app yet this week, and the zone says little about where they will finish.
+export const DEMOTION_RISK_MAX_HOURS_LEFT = 72;
+
+/**
+ * One demotion-risk nudge per user per day of a weekly period. The date is what re-arms it on
+ * the next late-week digest; the period keeps two weeks apart. Never put a clock value in it.
+ */
+export const getDemotionRiskDedupeKey = (periodStart: string, now: Date = new Date()): string => (
+    `leaderboard-demotion-risk:${periodStart}:${now.toISOString().split('T')[0]}`
+);

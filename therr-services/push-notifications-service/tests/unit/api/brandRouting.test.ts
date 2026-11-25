@@ -59,6 +59,7 @@ const DATA_ONLY_TYPES = [
     PushNotifications.Types.leaderboardRankMilestone,
     PushNotifications.Types.leaderboardRankLost,
     PushNotifications.Types.leaderboardPodiumWithinReach,
+    PushNotifications.Types.leaderboardDemotionRisk,
     PushNotifications.Types.streakAtRisk,
     // Moved off the display path so Notifee can render its "Check In" action
     // button — the OS-rendered path cannot carry one. See the DEPLOY ORDER note
@@ -223,6 +224,34 @@ describe('firebaseAdmin brand routing', () => {
             expect(message.data.clickActionId).to.equal('com.therr.mobile.habits.LEADERBOARD_RANK_MILESTONE');
             expect(message.data.notificationPressActionId).to.equal(PushNotifications.PressActionIds.leaderboardView);
             expect(message.data.notificationBody).to.contain('#4').and.to.contain('30 XP').and.to.contain('9 hours');
+        });
+
+        it('renders the demotion-risk gap in hours on the last two days, opening the leaderboard', () => {
+            const message: any = createMessage(
+                PushNotifications.Types.leaderboardDemotionRisk,
+                {},
+                {
+                    ...config, rank: 14, pointsBehind: 12, hoursLeft: 33,
+                },
+                BrandVariations.HABITS,
+            );
+
+            expect(message.data.clickActionId).to.equal('com.therr.mobile.habits.LEADERBOARD_RANK_MILESTONE');
+            expect(message.data.notificationPressActionId).to.equal(PushNotifications.PressActionIds.leaderboardView);
+            expect(message.data.notificationBody).to.contain('#14').and.to.contain('12 XP').and.to.contain('33 hours');
+        });
+
+        it('renders the demotion-risk countdown in whole days earlier in the week', () => {
+            const message: any = createMessage(
+                PushNotifications.Types.leaderboardDemotionRisk,
+                {},
+                {
+                    ...config, rank: 14, pointsBehind: 12, hoursLeft: 58,
+                },
+                BrandVariations.HABITS,
+            );
+
+            expect(message.data.notificationBody).to.contain('3 days').and.not.to.contain('hours');
         });
 
         it('falls back to anonymous rank-lost copy when the overtaker has no name', () => {

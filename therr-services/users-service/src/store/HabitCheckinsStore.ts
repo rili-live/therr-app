@@ -548,6 +548,35 @@ export default class HabitCheckinsStore {
             .then((response) => (response.rows[0]?.localDate ? String(response.rows[0].localDate).slice(0, 10) : undefined));
     }
 
+    /**
+     * Which of a batch of users have at least one completed check-in (any habit) on their own
+     * local day — each pair names the user and the date that is "today" in their zone. One query
+     * for a whole digest pass, shaped like `getCompletedOnDateForPairs`. Returns the user ids.
+     */
+    getUsersCompletedOnLocalDates(pairs: { userId: string; localDate: string }[]): Promise<Set<string>> {
+        if (!pairs.length) {
+            return Promise.resolve(new Set<string>());
+        }
+
+        const values = pairs.map(() => '(?::uuid, ?::date)').join(', ');
+        const bindings = pairs.reduce((acc: string[], pair) => acc.concat([pair.userId, pair.localDate]), []);
+
+        const queryString = knexBuilder.raw(
+            `WITH pairs("userId", "onDate") AS (VALUES ${values})
+            SELECT DISTINCT p."userId" AS "userId"
+            FROM pairs p
+            JOIN ${HABIT_CHECKINS_TABLE_NAME} c
+                ON c."userId" = p."userId"
+                AND c.status = 'completed'
+                AND c."localDate" = p."onDate"`,
+            bindings,
+        ).toString();
+
+        return this.db.read.query(queryString).then((response) => new Set<string>(
+            response.rows.map((row: any) => String(row.userId)),
+        ));
+    }
+
     /** How many completed check-ins (any habit) the user has on one local day. */
     countCompletedOnLocalDate(userId: string, localDate: string): Promise<number> {
         const queryString = knexBuilder

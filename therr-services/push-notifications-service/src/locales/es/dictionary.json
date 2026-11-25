@@ -8,6 +8,11 @@
       "title": "¡Hito en la tabla de clasificación!",
       "body": "Acabas de subir al puesto #{rank} en la tabla de esta semana. ¡Sigue ganando XP para defender tu lugar!"
     },
+    "leaderboardDemotionRisk": {
+      "title": "Estás bajo la línea de descenso",
+      "bodyDays": "Estás en el puesto #{rank} de tu liga, a {pointsBehind} XP de la zona segura. La semana termina en {daysLeft} días — ¡registra tu hábito hoy para no bajar de liga!",
+      "bodyHours": "Estás en el puesto #{rank} de tu liga, a {pointsBehind} XP de la zona segura. La semana termina en {hoursLeft} horas — ¡registra tu hábito hoy para no bajar de liga!"
+    },
     "leaderboardPodiumWithinReach": {
       "title": "Un lugar en el podio está a tu alcance",
       "body": "Estás en el puesto #{rank}, a solo {pointsBehind} XP del #3. La tabla se reinicia en {hoursLeft} horas — ¡un último esfuerzo podría bastar!"

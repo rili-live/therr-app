@@ -46,6 +46,11 @@ import {
     runPodiumWithinReachPass,
 } from './helpers/podiumWithinReachDigest';
 import {
+    EMPTY_DEMOTION_RISK_COUNTERS,
+    IDemotionRiskCounters,
+    runDemotionRiskPass,
+} from './helpers/demotionRiskDigest';
+import {
     EMPTY_PLEDGE_VERDICT_COUNTERS,
     IPledgeVerdictCounters,
     runPledgeVerdictPass,
@@ -291,6 +296,8 @@ interface IDigestCountersWithRecap extends IDigestCounters {
     onboardingNurture: IOnboardingNurtureCounters;
     // Nested for the same reason. See helpers/podiumWithinReachDigest.ts.
     podiumWithinReach: IPodiumWithinReachCounters;
+    // Nested for the same reason. See helpers/demotionRiskDigest.ts.
+    demotionRisk: IDemotionRiskCounters;
     // Nested for the same reason. The lapsed-user back-off, the comeback ladder and the
     // first-checkin / day-two messages — see helpers/retentionMessaging.ts.
     retention: IRetentionCounters;
@@ -409,6 +416,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
         pactInviteReminders: { ...EMPTY_PACT_INVITE_REMINDER_COUNTERS },
         onboardingNurture: emptyOnboardingNurtureCounters(),
         podiumWithinReach: { ...EMPTY_PODIUM_WITHIN_REACH_COUNTERS },
+        demotionRisk: { ...EMPTY_DEMOTION_RISK_COUNTERS },
         retention: emptyRetentionCounters(),
         pactsEvaluated: 0,
         pactsExpired: 0,
@@ -1746,6 +1754,22 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 return { ...EMPTY_PODIUM_WITHIN_REACH_COUNTERS, podiumErrors: 1 };
             });
 
+        // Leaderboard demotion risk: users under their league's demotion line who have not checked
+        // in yet today. A no-op except on the last three digests of the week, and while leagues
+        // are not running. Best-effort; the dedupe key is the period plus the day.
+        counters.demotionRisk = await runDemotionRiskPass({
+            brandVariation: brand,
+            whiteLabelOrigin,
+        }, new Date())
+            .catch((err: any) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message, 'Habits digest: the demotion-risk pass failed'],
+                });
+                return { ...EMPTY_DEMOTION_RISK_COUNTERS, demotionErrors: 1 };
+            });
+
         logSpan({
             level: 'info',
             messageOrigin: 'API_SERVER',
@@ -1768,6 +1792,7 @@ const runDailyHabitsDigest: RequestHandler = async (req: any, res: any) => {
                 pactInviteReminders: JSON.stringify(counters.pactInviteReminders),
                 onboardingNurture: JSON.stringify(counters.onboardingNurture),
                 podiumWithinReach: JSON.stringify(counters.podiumWithinReach),
+                demotionRisk: JSON.stringify(counters.demotionRisk),
                 retention: JSON.stringify(counters.retention),
                 'pushNotification.brandVariation': String(brand),
             },
